@@ -399,13 +399,13 @@
 <span class="kw">use super</span>::{BindingName, ModuleRepr, ResolveExportError, ResolvedBinding};
 
 <span class="kw">trait </span>TraceableCallback: Trace {
-    <span class="kw">fn </span>call(<span class="kw-2">&amp;</span><span class="self">self</span>, module: <span class="kw-2">&amp;</span>SyntheticModule, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;()&gt;;
+    <span class="kw">fn </span>call(<span class="kw-2">&amp;</span><span class="self">self</span>, module: <span class="kw-2">&amp;</span>SyntheticModule, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;()&gt;;
 }
 
 <span class="attr">#[derive(Trace, Finalize)]
 </span><span class="kw">struct </span>Callback&lt;F, T&gt;
 <span class="kw">where
-    </span>F: Fn(<span class="kw-2">&amp;</span>SyntheticModule, <span class="kw-2">&amp;</span>T, <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;()&gt;,
+    </span>F: Fn(<span class="kw-2">&amp;</span>SyntheticModule, <span class="kw-2">&amp;</span>T, <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;()&gt;,
     T: Trace,
 {
     <span class="comment">// SAFETY: `SyntheticModuleInitializer`&#39;s safe API ensures only `Copy` closures are stored; its unsafe API,
@@ -418,10 +418,10 @@
 
 <span class="kw">impl</span>&lt;F, T&gt; TraceableCallback <span class="kw">for </span>Callback&lt;F, T&gt;
 <span class="kw">where
-    </span>F: Fn(<span class="kw-2">&amp;</span>SyntheticModule, <span class="kw-2">&amp;</span>T, <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;()&gt;,
+    </span>F: Fn(<span class="kw-2">&amp;</span>SyntheticModule, <span class="kw-2">&amp;</span>T, <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;()&gt;,
     T: Trace,
 {
-    <span class="kw">fn </span>call(<span class="kw-2">&amp;</span><span class="self">self</span>, module: <span class="kw-2">&amp;</span>SyntheticModule, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;()&gt; {
+    <span class="kw">fn </span>call(<span class="kw-2">&amp;</span><span class="self">self</span>, module: <span class="kw-2">&amp;</span>SyntheticModule, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;()&gt; {
         (<span class="self">self</span>.f)(module, <span class="kw-2">&amp;</span><span class="self">self</span>.captures, context)
     }
 }
@@ -450,7 +450,7 @@
     <span class="doccomment">/// Creates a `SyntheticModuleInitializer` from a [`Copy`] closure.
     </span><span class="kw">pub fn </span>from_copy_closure&lt;F&gt;(closure: F) -&gt; <span class="self">Self
     </span><span class="kw">where
-        </span>F: Fn(<span class="kw-2">&amp;</span>SyntheticModule, <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;()&gt; + Copy + <span class="lifetime">&#39;static</span>,
+        </span>F: Fn(<span class="kw-2">&amp;</span>SyntheticModule, <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;()&gt; + Copy + <span class="lifetime">&#39;static</span>,
     {
         <span class="comment">// SAFETY: The `Copy` bound ensures there are no traceable types inside the closure.
         </span><span class="kw">unsafe </span>{ <span class="self">Self</span>::from_closure(closure) }
@@ -459,7 +459,7 @@
     <span class="doccomment">/// Creates a `SyntheticModuleInitializer` from a [`Copy`] closure and a list of traceable captures.
     </span><span class="kw">pub fn </span>from_copy_closure_with_captures&lt;F, T&gt;(closure: F, captures: T) -&gt; <span class="self">Self
     </span><span class="kw">where
-        </span>F: Fn(<span class="kw-2">&amp;</span>SyntheticModule, <span class="kw-2">&amp;</span>T, <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;()&gt; + Copy + <span class="lifetime">&#39;static</span>,
+        </span>F: Fn(<span class="kw-2">&amp;</span>SyntheticModule, <span class="kw-2">&amp;</span>T, <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;()&gt; + Copy + <span class="lifetime">&#39;static</span>,
         T: Trace + <span class="lifetime">&#39;static</span>,
     {
         <span class="comment">// SAFETY: The `Copy` bound ensures there are no traceable types inside the closure.
@@ -476,7 +476,7 @@
     /// on why that is the case.
     </span><span class="kw">pub unsafe fn </span>from_closure&lt;F&gt;(closure: F) -&gt; <span class="self">Self
     </span><span class="kw">where
-        </span>F: Fn(<span class="kw-2">&amp;</span>SyntheticModule, <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;()&gt; + <span class="lifetime">&#39;static</span>,
+        </span>F: Fn(<span class="kw-2">&amp;</span>SyntheticModule, <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;()&gt; + <span class="lifetime">&#39;static</span>,
     {
         <span class="comment">// SAFETY: The caller must ensure the invariants of the closure hold.
         </span><span class="kw">unsafe </span>{
@@ -494,7 +494,7 @@
     /// on why that is the case.
     </span><span class="kw">pub unsafe fn </span>from_closure_with_captures&lt;F, T&gt;(closure: F, captures: T) -&gt; <span class="self">Self
     </span><span class="kw">where
-        </span>F: Fn(<span class="kw-2">&amp;</span>SyntheticModule, <span class="kw-2">&amp;</span>T, <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;()&gt; + <span class="lifetime">&#39;static</span>,
+        </span>F: Fn(<span class="kw-2">&amp;</span>SyntheticModule, <span class="kw-2">&amp;</span>T, <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;()&gt; + <span class="lifetime">&#39;static</span>,
         T: Trace + <span class="lifetime">&#39;static</span>,
     {
         <span class="comment">// Hopefully, this unsafe operation will be replaced by the `CoerceUnsized` API in the
@@ -515,7 +515,7 @@
 
     <span class="doccomment">/// Calls this `SyntheticModuleInitializer`, forwarding the arguments to the corresponding function.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>call(<span class="kw-2">&amp;</span><span class="self">self</span>, module: <span class="kw-2">&amp;</span>SyntheticModule, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;()&gt; {
+    </span><span class="kw">pub fn </span>call(<span class="kw-2">&amp;</span><span class="self">self</span>, module: <span class="kw-2">&amp;</span>SyntheticModule, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;()&gt; {
         <span class="self">self</span>.inner.call(module, context)
     }
 }
@@ -577,7 +577,7 @@
     <span class="doccomment">/// Concrete method [`LoadRequestedModules ( )`][spec].
     ///
     /// [spec]: https://tc39.es/proposal-json-modules/#sec-smr-LoadRequestedModules
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>load(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsPromise {
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>load(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsPromise {
         <span class="comment">// 1. Return ! PromiseResolve(%Promise%, undefined).
         </span>JsPromise::resolve(JsValue::undefined(), context)
     }
@@ -613,7 +613,7 @@
     <span class="doccomment">/// Concrete method [`Link ( )`][spec].
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-moduledeclarationlinking
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>link(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) {
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>link(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) {
         <span class="kw">let </span>parent = <span class="self">self</span>.parent();
         <span class="comment">// 1. Let realm be module.[[Realm]].
         // 2. Let env be NewModuleEnvironment(realm.[[GlobalEnv]]).
@@ -669,7 +669,7 @@
     <span class="doccomment">/// Concrete method [`Evaluate ( )`][spec].
     ///
     /// [spec]: https://tc39.es/proposal-json-modules/#sec-smr-Evaluate
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>evaluate(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsPromise {
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>evaluate(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsPromise {
         <span class="comment">// 1. Let moduleContext be a new ECMAScript code execution context.
 
         </span><span class="kw">let </span>parent = <span class="self">self</span>.parent();
@@ -739,7 +739,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         export_name: <span class="kw-2">&amp;</span>JsString,
         export_value: JsValue,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;()&gt; {
         <span class="kw">let </span>identifier = context.interner_mut().get_or_intern(<span class="kw-2">&amp;**</span>export_name);
         <span class="kw">let </span>identifier = Identifier::new(identifier);

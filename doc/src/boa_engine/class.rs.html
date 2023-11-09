@@ -317,7 +317,7 @@
 //!     const LENGTH: usize = 1;
 //!
 //!     // This is what is called when we do `new Animal()` to construct the inner data of the class.
-//!     fn make_data(_this: &amp;JsValue, args: &amp;[JsValue], context: &amp;mut Context&lt;&#39;_&gt;) -&gt; JsResult&lt;Self&gt; {
+//!     fn make_data(_this: &amp;JsValue, args: &amp;[JsValue], context: &amp;mut Context) -&gt; JsResult&lt;Self&gt; {
 //!         // This is equivalent to `String(arg)`.
 //!         let kind = args.get_or_undefined(0).to_string(context)?;
 //!
@@ -380,10 +380,10 @@
     <span class="doccomment">/// Creates the internal data for an instance of this class.
     ///
     /// This method can also be called the &quot;native constructor&quot; of this class.
-    </span><span class="kw">fn </span>make_data(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt;;
+    </span><span class="kw">fn </span>make_data(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt;;
 
     <span class="doccomment">/// Initializes the properties and methods of this class.
-    </span><span class="kw">fn </span>init(class: <span class="kw-2">&amp;mut </span>ClassBuilder&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;()&gt;;
+    </span><span class="kw">fn </span>init(class: <span class="kw-2">&amp;mut </span>ClassBuilder&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;()&gt;;
 
     <span class="doccomment">/// Creates a new [`JsObject`] with its internal data set to the result of calling `Self::make_data`.
     ///
@@ -399,7 +399,7 @@
     </span><span class="kw">fn </span>construct(
         new_target: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsObject&gt; {
         <span class="kw">if </span>new_target.is_undefined() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
@@ -439,12 +439,12 @@
 
 <span class="doccomment">/// Class builder which allows adding methods and static methods to the class.
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>ClassBuilder&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;host</span>&gt; {
-    builder: ConstructorBuilder&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;host</span>&gt;,
+</span><span class="kw">pub struct </span>ClassBuilder&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    builder: ConstructorBuilder&lt;<span class="lifetime">&#39;ctx</span>&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;host</span>&gt; ClassBuilder&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;host</span>&gt; {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new&lt;T&gt;(context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span><span class="kw-2">mut </span>Context&lt;<span class="lifetime">&#39;host</span>&gt;) -&gt; <span class="self">Self
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; ClassBuilder&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new&lt;T&gt;(context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span><span class="kw-2">mut </span>Context) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>T: Class,
     {
@@ -572,7 +572,7 @@
 
     <span class="doccomment">/// Return the current context.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>context(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;host</span>&gt; {
+    </span><span class="kw">pub fn </span>context(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>Context {
         <span class="self">self</span>.builder.context()
     }
 }

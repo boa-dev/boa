@@ -932,10 +932,6 @@
 <a href="#932" id="932">932</a>
 <a href="#933" id="933">933</a>
 <a href="#934" id="934">934</a>
-<a href="#935" id="935">935</a>
-<a href="#936" id="936">936</a>
-<a href="#937" id="937">937</a>
-<a href="#938" id="938">938</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Function` object and Native Functions.
 //!
 //! Objects wrap `Function`s and expose them via call/construct slots.
@@ -1271,7 +1267,7 @@
     </span><span class="kw">fn </span>constructor(
         new_target: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>active_function = context
             .active_function_object()
@@ -1294,7 +1290,7 @@
         args: <span class="kw-2">&amp;</span>[JsValue],
         r#async: bool,
         generator: bool,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsObject&gt; {
         <span class="comment">// 1. Let currentRealm be the current Realm Record.
         // 2. Perform ? HostEnsureCanCompileStrings(currentRealm).
@@ -1524,7 +1520,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-function.prototype.apply
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/apply
-    </span><span class="kw">fn </span>apply(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>apply(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let func be the this value.
         // 2. If IsCallable(func) is false, throw a TypeError exception.
         </span><span class="kw">let </span>func = this.as_callable().ok_or_else(|| {
@@ -1564,7 +1560,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-function.prototype.bind
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_objects/Function/bind
-    </span><span class="kw">fn </span>bind(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>bind(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let Target be the this value.
         // 2. If IsCallable(Target) is false, throw a TypeError exception.
         </span><span class="kw">let </span>target = this.as_callable().ok_or_else(|| {
@@ -1646,7 +1642,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-function.prototype.call
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/call
-    </span><span class="kw">fn </span>call(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>call(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let func be the this value.
         // 2. If IsCallable(func) is false, throw a TypeError exception.
         </span><span class="kw">let </span>func = this.as_callable().ok_or_else(|| {
@@ -1670,7 +1666,7 @@
     /// [spec]: https://tc39.es/ecma262/#sec-function.prototype.tostring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/toString
     </span><span class="attr">#[allow(clippy::wrong_self_convention)]
-    </span><span class="kw">fn </span>to_string(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>to_string(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let func be the this value.
         </span><span class="kw">let </span>func = this;
 
@@ -1732,18 +1728,14 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-function.prototype-@@hasinstance
-    </span><span class="kw">fn </span>has_instance(
-        this: <span class="kw-2">&amp;</span>JsValue,
-        args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>has_instance(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let F be the this value.
         // 2. Return ? OrdinaryHasInstance(F, V).
         </span><span class="prelude-val">Ok</span>(JsValue::ordinary_has_instance(this, args.get_or_undefined(<span class="number">0</span>), context)<span class="question-mark">?</span>.into())
     }
 
     <span class="attr">#[allow(clippy::unnecessary_wraps)]
-    </span><span class="kw">fn </span>prototype(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>prototype(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="prelude-val">Ok</span>(JsValue::undefined())
     }
 }
@@ -1758,7 +1750,7 @@
     function: <span class="kw-2">&amp;</span>JsObject,
     name: <span class="kw-2">&amp;</span>PropertyKey,
     prefix: <span class="prelude-ty">Option</span>&lt;JsString&gt;,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) {
     <span class="comment">// 1. Assert: F is an extensible object that does not have a &quot;name&quot; own property.
     // 2. If Type(name) is Symbol, then
@@ -1826,7 +1818,7 @@
         target_function: JsObject,
         this: JsValue,
         args: Vec&lt;JsValue&gt;,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsObject&gt; {
         <span class="comment">// 1. Let proto be ? targetFunction.[[GetPrototypeOf]]().
         </span><span class="kw">let </span>proto = target_function.__get_prototype_of__(context)<span class="question-mark">?</span>;

@@ -2232,7 +2232,7 @@
     /// Takes an unknown `JsObject` and attempts to create a partial duration
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_partial_js_object(
         duration_like: <span class="kw-2">&amp;</span>JsValue,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="comment">// 1. If Type(temporalDurationLike) is not Object, then
         </span><span class="kw">let </span>JsValue::Object(unknown_object) = duration_like <span class="kw">else </span>{
@@ -2560,7 +2560,7 @@
     // Trace current callers and check whether the value
     // can be fed a native `DurationRecord` instead.
     </span><span class="doccomment">/// Creates a `Duration` object from the current `DurationRecord`.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>as_object(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsObject&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>as_object(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsObject&gt; {
         <span class="kw">super</span>::create_temporal_duration(<span class="kw-2">*</span><span class="self">self</span>, <span class="prelude-val">None</span>, context)
     }
 
@@ -2877,7 +2877,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         largest_unit: TemporalUnit,
         plain_relative_to: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>PlainDate&gt;,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;DateDuration&gt; {
         <span class="comment">// 1. Let allZero be false.
         // 2. If years = 0, and months = 0, and weeks = 0, and days = 0, set allZero to true.
@@ -3124,7 +3124,7 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         largest_unit: TemporalUnit,
         relative_to: <span class="kw-2">&amp;</span>JsValue,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;()&gt; {
         <span class="comment">// 1. Let allZero be false.
         // 2. If years = 0, and months = 0, and weeks = 0, and days = 0, set allZero to true.
@@ -3388,7 +3388,7 @@
             <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>ZonedDateTime&gt;,
             <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>PlainDateTime&gt;,
         ),
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;(<span class="self">Self</span>, f64)&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>result = DurationRecord::new(unbalance_date_duration, <span class="self">self</span>.time());
 
@@ -3881,7 +3881,7 @@
         unit: TemporalUnit,
         rounding_mode: RoundingMode,
         relative_to: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsValue&gt;,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;()&gt; {
         <span class="comment">// 1. If Type(relativeTo) is not Object; or relativeTo does not have an [[InitializedTemporalZonedDateTime]]
         // internal slot; or unit is one of &quot;year&quot;, &quot;month&quot;, &quot;week&quot;, or &quot;day&quot;; or unit is &quot;nanosecond&quot; and increment is 1, then

@@ -242,7 +242,7 @@
     Expression,
 };
 
-<span class="kw">fn </span>literal_to_js_value(literal: <span class="kw-2">&amp;</span>Literal, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsValue {
+<span class="kw">fn </span>literal_to_js_value(literal: <span class="kw-2">&amp;</span>Literal, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsValue {
     <span class="kw">match </span>literal {
         Literal::String(v) =&gt; JsValue::new(JsString::from(
             context.interner().resolve_expect(<span class="kw-2">*</span>v).utf16(),
@@ -256,7 +256,7 @@
     }
 }
 
-<span class="kw">fn </span>js_value_to_literal(value: JsValue, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Literal {
+<span class="kw">fn </span>js_value_to_literal(value: JsValue, context: <span class="kw-2">&amp;mut </span>Context) -&gt; Literal {
     <span class="kw">match </span>value {
         JsValue::Null =&gt; Literal::Null,
         JsValue::Undefined =&gt; Literal::Undefined,
@@ -277,7 +277,7 @@
 <span class="kw">impl </span>ConstantFolding {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>fold_expression(
         expr: <span class="kw-2">&amp;mut </span>Expression,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; PassAction&lt;Expression&gt; {
         <span class="kw">match </span>expr {
             Expression::Unary(unary) =&gt; <span class="self">Self</span>::constant_fold_unary_expr(unary, context),
@@ -288,7 +288,7 @@
 
     <span class="kw">fn </span>constant_fold_unary_expr(
         unary: <span class="kw-2">&amp;mut </span>Unary,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; PassAction&lt;Expression&gt; {
         <span class="kw">let </span>Expression::Literal(literal) = unary.target() <span class="kw">else </span>{
             <span class="kw">return </span>PassAction::Keep;
@@ -331,7 +331,7 @@
 
     <span class="kw">fn </span>constant_fold_binary_expr(
         binary: <span class="kw-2">&amp;mut </span>Binary,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; PassAction&lt;Expression&gt; {
         <span class="kw">let </span>Expression::Literal(lhs) = binary.lhs() <span class="kw">else </span>{
             <span class="kw">return </span>PassAction::Keep;

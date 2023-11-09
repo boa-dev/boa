@@ -375,7 +375,7 @@
 /// ## [`Trace`]?
 ///
 /// `NativeJob` doesn&#39;t implement `Trace` because it doesn&#39;t need to; all jobs can only be run once
-/// and putting a [`JobQueue`] on a garbage collected object should definitely be discouraged.
+/// and putting a [`JobQueue`] on a garbage collected object is not allowed.
 ///
 /// On the other hand, it seems like this type breaks all the safety checks of the
 /// [`NativeFunction`] API, since you can capture any `Trace` variable into the closure... but it
@@ -388,7 +388,7 @@
 /// [`NativeFunction`]: crate::native_function::NativeFunction
 </span><span class="kw">pub struct </span>NativeJob {
     <span class="attr">#[allow(clippy::type_complexity)]
-    </span>f: Box&lt;<span class="kw">dyn </span>FnOnce(<span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt;&gt;,
+    </span>f: Box&lt;<span class="kw">dyn </span>FnOnce(<span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt;&gt;,
     realm: <span class="prelude-ty">Option</span>&lt;Realm&gt;,
 }
 
@@ -402,7 +402,7 @@
     <span class="doccomment">/// Creates a new `NativeJob` from a closure.
     </span><span class="kw">pub fn </span>new&lt;F&gt;(f: F) -&gt; <span class="self">Self
     </span><span class="kw">where
-        </span>F: FnOnce(<span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; + <span class="lifetime">&#39;static</span>,
+        </span>F: FnOnce(<span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; + <span class="lifetime">&#39;static</span>,
     {
         <span class="self">Self </span>{
             f: Box::new(f),
@@ -411,9 +411,9 @@
     }
 
     <span class="doccomment">/// Creates a new `NativeJob` from a closure and an execution realm.
-    </span><span class="kw">pub fn </span>with_realm&lt;F&gt;(f: F, realm: Realm, _context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="self">Self
+    </span><span class="kw">pub fn </span>with_realm&lt;F&gt;(f: F, realm: Realm, _context: <span class="kw-2">&amp;mut </span>Context) -&gt; <span class="self">Self
     </span><span class="kw">where
-        </span>F: FnOnce(<span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; + <span class="lifetime">&#39;static</span>,
+        </span>F: FnOnce(<span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; + <span class="lifetime">&#39;static</span>,
     {
         <span class="self">Self </span>{
             f: Box::new(f),
@@ -433,7 +433,7 @@
     ///
     /// If the native job has an execution realm defined, this sets the running execution
     /// context to the realm&#39;s before calling the inner closure, and resets it after execution.
-    </span><span class="kw">pub fn </span>call(<span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">pub fn </span>call(<span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// If realm is not null, each time job is invoked the implementation must perform
         // implementation-defined steps such that execution is prepared to evaluate ECMAScript
         // code at the time of job&#39;s invocation.
@@ -531,14 +531,14 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-hostenqueuepromisejob
     /// [Jobs]: https://tc39.es/ecma262/#sec-jobs
-    </span><span class="kw">fn </span>enqueue_promise_job(<span class="kw-2">&amp;</span><span class="self">self</span>, job: NativeJob, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;);
+    </span><span class="kw">fn </span>enqueue_promise_job(<span class="kw-2">&amp;</span><span class="self">self</span>, job: NativeJob, context: <span class="kw-2">&amp;mut </span>Context);
 
     <span class="doccomment">/// Runs all jobs in the queue.
     ///
     /// Running a job could enqueue more jobs in the queue. The implementor of the trait
     /// determines if the method should loop until there are no more queued jobs or if
     /// it should only run one iteration of the queue.
-    </span><span class="kw">fn </span>run_jobs(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;);
+    </span><span class="kw">fn </span>run_jobs(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context);
 
     <span class="doccomment">/// Enqueues a new [`Future`] job on the job queue.
     ///
@@ -546,7 +546,7 @@
     /// job queue to update the state of the inner `Promise`, which is what ECMAScript sees. Failing
     /// to do this will leave the inner `Promise` in the `pending` state, which won&#39;t call any `then`
     /// or `catch` handlers, even if `future` was already completed.
-    </span><span class="kw">fn </span>enqueue_future_job(<span class="kw-2">&amp;</span><span class="self">self</span>, future: FutureJob, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;);
+    </span><span class="kw">fn </span>enqueue_future_job(<span class="kw-2">&amp;</span><span class="self">self</span>, future: FutureJob, context: <span class="kw-2">&amp;mut </span>Context);
 
     <span class="doccomment">/// Asynchronously runs all jobs in the queue.
     ///
@@ -556,14 +556,13 @@
     ///
     /// By default forwards to [`JobQueue::run_jobs`]. Implementors using async should override this
     /// with a proper algorithm to run jobs asynchronously.
-    </span><span class="kw">fn </span>run_jobs_async&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;host</span>, <span class="lifetime">&#39;fut</span>&gt;(
+    </span><span class="kw">fn </span>run_jobs_async&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;fut</span>&gt;(
         <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>,
-        context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span><span class="kw-2">mut </span>Context&lt;<span class="lifetime">&#39;host</span>&gt;,
+        context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span><span class="kw-2">mut </span>Context,
     ) -&gt; Pin&lt;Box&lt;<span class="kw">dyn </span>Future&lt;Output = ()&gt; + <span class="lifetime">&#39;fut</span>&gt;&gt;
     <span class="kw">where
         </span><span class="lifetime">&#39;a</span>: <span class="lifetime">&#39;fut</span>,
         <span class="lifetime">&#39;ctx</span>: <span class="lifetime">&#39;fut</span>,
-        <span class="lifetime">&#39;host</span>: <span class="lifetime">&#39;fut</span>,
     {
         Box::pin(<span class="kw">async </span>{ <span class="self">self</span>.run_jobs(context) })
     }
@@ -572,16 +571,17 @@
 <span class="doccomment">/// A job queue that does nothing.
 ///
 /// This queue is mostly useful if you want to disable the promise capabilities of the engine. This
-/// can be done by passing a reference to it to the [`ContextBuilder`]:
+/// can be done by passing it to the [`ContextBuilder`]:
 ///
 /// ```
+/// use std::rc::Rc;
 /// use boa_engine::{
 ///     context::ContextBuilder,
 ///     job::{IdleJobQueue, JobQueue},
 /// };
 ///
-/// let queue: &amp;dyn JobQueue = &amp;IdleJobQueue;
-/// let context = ContextBuilder::new().job_queue(queue).build();
+/// let queue = Rc::new(IdleJobQueue);
+/// let context = ContextBuilder::new().job_queue(queue ).build();
 /// ```
 ///
 /// [`ContextBuilder`]: crate::context::ContextBuilder
@@ -589,11 +589,11 @@
 </span><span class="kw">pub struct </span>IdleJobQueue;
 
 <span class="kw">impl </span>JobQueue <span class="kw">for </span>IdleJobQueue {
-    <span class="kw">fn </span>enqueue_promise_job(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: NativeJob, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) {}
+    <span class="kw">fn </span>enqueue_promise_job(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: NativeJob, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) {}
 
-    <span class="kw">fn </span>run_jobs(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) {}
+    <span class="kw">fn </span>run_jobs(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) {}
 
-    <span class="kw">fn </span>enqueue_future_job(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: FutureJob, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) {}
+    <span class="kw">fn </span>enqueue_future_job(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: FutureJob, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) {}
 }
 
 <span class="doccomment">/// A simple FIFO job queue that bails on the first error.
@@ -620,11 +620,11 @@
 }
 
 <span class="kw">impl </span>JobQueue <span class="kw">for </span>SimpleJobQueue {
-    <span class="kw">fn </span>enqueue_promise_job(<span class="kw-2">&amp;</span><span class="self">self</span>, job: NativeJob, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) {
+    <span class="kw">fn </span>enqueue_promise_job(<span class="kw-2">&amp;</span><span class="self">self</span>, job: NativeJob, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) {
         <span class="self">self</span>.<span class="number">0</span>.borrow_mut().push_back(job);
     }
 
-    <span class="kw">fn </span>run_jobs(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) {
+    <span class="kw">fn </span>run_jobs(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) {
         <span class="comment">// Yeah, I have no idea why Rust extends the lifetime of a `RefCell` that should be immediately
         // dropped after calling `pop_front`.
         </span><span class="kw">let </span><span class="kw-2">mut </span>next_job = <span class="self">self</span>.<span class="number">0</span>.borrow_mut().pop_front();
@@ -637,7 +637,7 @@
         }
     }
 
-    <span class="kw">fn </span>enqueue_future_job(<span class="kw-2">&amp;</span><span class="self">self</span>, future: FutureJob, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) {
+    <span class="kw">fn </span>enqueue_future_job(<span class="kw-2">&amp;</span><span class="self">self</span>, future: FutureJob, context: <span class="kw-2">&amp;mut </span>Context) {
         <span class="kw">let </span>job = pollster::block_on(future);
         <span class="self">self</span>.enqueue_promise_job(job, context);
     }

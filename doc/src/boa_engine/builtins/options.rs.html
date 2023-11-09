@@ -231,7 +231,7 @@
     /// steps instead of returning a pure string, number or boolean.
     ///
     /// [spec]: https://tc39.es/ecma402/#sec-getoption
-    </span><span class="kw">fn </span>from_value(value: JsValue, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt;;
+    </span><span class="kw">fn </span>from_value(value: JsValue, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt;;
 }
 
 <span class="doccomment">/// A type that implements [`OptionType`] by parsing a string.
@@ -243,7 +243,7 @@
 <span class="kw">where
     </span>T::Err: fmt::Display,
 {
-    <span class="kw">fn </span>from_value(value: JsValue, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+    <span class="kw">fn </span>from_value(value: JsValue, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         value
             .to_string(context)<span class="question-mark">?
             </span>.to_std_string_escaped()
@@ -270,7 +270,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_option&lt;T: OptionType&gt;(
     options: <span class="kw-2">&amp;</span>JsObject,
     property: <span class="kw-2">&amp;</span>[u16],
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;T&gt;&gt; {
     <span class="comment">// 1. Let value be ? Get(options, property).
     </span><span class="kw">let </span>value = options.get(property, context)<span class="question-mark">?</span>;
@@ -314,7 +314,7 @@
 <span class="comment">// Common options used in several builtins
 
 </span><span class="kw">impl </span>OptionType <span class="kw">for </span>bool {
-    <span class="kw">fn </span>from_value(value: JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+    <span class="kw">fn </span>from_value(value: JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="comment">// 5. If type is &quot;boolean&quot;, then
         //      a. Set value to ! ToBoolean(value).
         </span><span class="prelude-val">Ok</span>(value.to_boolean())
@@ -322,7 +322,7 @@
 }
 
 <span class="kw">impl </span>OptionType <span class="kw">for </span>JsString {
-    <span class="kw">fn </span>from_value(value: JsValue, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+    <span class="kw">fn </span>from_value(value: JsValue, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="comment">// 6. If type is &quot;string&quot;, then
         //      a. Set value to ? ToString(value).
         </span>value.to_string(context)

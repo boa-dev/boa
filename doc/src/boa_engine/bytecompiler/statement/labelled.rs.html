@@ -43,7 +43,7 @@
     Statement,
 };
 
-<span class="kw">impl </span>ByteCompiler&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>ByteCompiler&lt;<span class="lifetime">&#39;_</span>&gt; {
     <span class="doccomment">/// Compile a [`Labelled`] `boa_ast` node
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile_labelled(<span class="kw-2">&amp;mut </span><span class="self">self</span>, labelled: <span class="kw-2">&amp;</span>Labelled, use_expr: bool) {
         <span class="kw">let </span>labelled_loc = <span class="self">self</span>.next_opcode_location();

@@ -658,10 +658,6 @@
 <a href="#658" id="658">658</a>
 <a href="#659" id="659">659</a>
 <a href="#660" id="660">660</a>
-<a href="#661" id="661">661</a>
-<a href="#662" id="662">662</a>
-<a href="#663" id="663">663</a>
-<a href="#664" id="664">664</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of the ECMAScript `Temporal.PlainDate` builtin object.
 </span><span class="attr">#![allow(dead_code, unused_variables)]
 
@@ -872,7 +868,7 @@
     <span class="kw">fn </span>constructor(
         new_target: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">if </span>new_target.is_undefined() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
@@ -894,85 +890,85 @@
 
 <span class="comment">// -- `PlainDate` getter methods --
 </span><span class="kw">impl </span>PlainDate {
-    <span class="kw">fn </span>get_calendar_id(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    <span class="kw">fn </span>get_calendar_id(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="prelude-val">Err</span>(JsNativeError::error()
             .with_message(<span class="string">&quot;calendars not yet implemented.&quot;</span>)
             .into())
     }
 
-    <span class="kw">fn </span>get_year(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    <span class="kw">fn </span>get_year(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="prelude-val">Err</span>(JsNativeError::error()
             .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
             .into())
     }
 
-    <span class="kw">fn </span>get_month(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    <span class="kw">fn </span>get_month(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="prelude-val">Err</span>(JsNativeError::error()
             .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
             .into())
     }
 
-    <span class="kw">fn </span>get_month_code(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    <span class="kw">fn </span>get_month_code(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="prelude-val">Err</span>(JsNativeError::error()
             .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
             .into())
     }
 
-    <span class="kw">fn </span>get_day(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    <span class="kw">fn </span>get_day(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="prelude-val">Err</span>(JsNativeError::error()
             .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
             .into())
     }
 
-    <span class="kw">fn </span>get_day_of_week(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    <span class="kw">fn </span>get_day_of_week(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="prelude-val">Err</span>(JsNativeError::error()
             .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
             .into())
     }
 
-    <span class="kw">fn </span>get_day_of_year(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    <span class="kw">fn </span>get_day_of_year(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="prelude-val">Err</span>(JsNativeError::error()
             .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
             .into())
     }
 
-    <span class="kw">fn </span>get_week_of_year(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    <span class="kw">fn </span>get_week_of_year(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="prelude-val">Err</span>(JsNativeError::error()
             .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
             .into())
     }
 
-    <span class="kw">fn </span>get_year_of_week(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    <span class="kw">fn </span>get_year_of_week(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="prelude-val">Err</span>(JsNativeError::error()
             .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
             .into())
     }
 
-    <span class="kw">fn </span>get_days_in_week(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    <span class="kw">fn </span>get_days_in_week(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="prelude-val">Err</span>(JsNativeError::error()
             .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
             .into())
     }
 
-    <span class="kw">fn </span>get_days_in_month(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    <span class="kw">fn </span>get_days_in_month(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="prelude-val">Err</span>(JsNativeError::error()
             .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
             .into())
     }
 
-    <span class="kw">fn </span>get_days_in_year(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    <span class="kw">fn </span>get_days_in_year(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="prelude-val">Err</span>(JsNativeError::error()
             .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
             .into())
     }
 
-    <span class="kw">fn </span>get_months_in_year(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    <span class="kw">fn </span>get_months_in_year(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="prelude-val">Err</span>(JsNativeError::error()
             .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
             .into())
     }
 
-    <span class="kw">fn </span>get_in_leap_year(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    <span class="kw">fn </span>get_in_leap_year(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="prelude-val">Err</span>(JsNativeError::error()
             .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
             .into())
@@ -982,71 +978,67 @@
 <span class="comment">// ==== `PlainDate.prototype` method implementation ====
 
 </span><span class="kw">impl </span>PlainDate {
-    <span class="kw">fn </span>to_plain_year_month(
-        this: <span class="kw-2">&amp;</span>JsValue,
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
-        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;JsValue&gt; {
+    <span class="kw">fn </span>to_plain_year_month(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="prelude-val">Err</span>(JsNativeError::error()
             .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
             .into())
     }
 
-    <span class="kw">fn </span>to_plain_month_day(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    <span class="kw">fn </span>to_plain_month_day(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="prelude-val">Err</span>(JsNativeError::error()
             .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
             .into())
     }
 
-    <span class="kw">fn </span>get_iso_fields(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    <span class="kw">fn </span>get_iso_fields(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="prelude-val">Err</span>(JsNativeError::error()
             .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
             .into())
     }
 
-    <span class="kw">fn </span>get_calendar(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    <span class="kw">fn </span>get_calendar(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="prelude-val">Err</span>(JsNativeError::error()
             .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
             .into())
     }
 
-    <span class="kw">fn </span>add(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    <span class="kw">fn </span>add(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="prelude-val">Err</span>(JsNativeError::error()
             .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
             .into())
     }
 
-    <span class="kw">fn </span>subtract(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    <span class="kw">fn </span>subtract(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="prelude-val">Err</span>(JsNativeError::error()
             .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
             .into())
     }
 
-    <span class="kw">fn </span>with(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    <span class="kw">fn </span>with(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="prelude-val">Err</span>(JsNativeError::error()
             .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
             .into())
     }
 
-    <span class="kw">fn </span>with_calendar(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    <span class="kw">fn </span>with_calendar(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="prelude-val">Err</span>(JsNativeError::error()
             .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
             .into())
     }
 
-    <span class="kw">fn </span>until(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    <span class="kw">fn </span>until(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="prelude-val">Err</span>(JsNativeError::error()
             .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
             .into())
     }
 
-    <span class="kw">fn </span>since(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    <span class="kw">fn </span>since(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="prelude-val">Err</span>(JsNativeError::error()
             .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
             .into())
     }
 
-    <span class="kw">fn </span>equals(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    <span class="kw">fn </span>equals(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="prelude-val">Err</span>(JsNativeError::error()
             .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
             .into())
@@ -1057,7 +1049,7 @@
 
 </span><span class="kw">impl </span>PlainDate {
     <span class="doccomment">/// Utitily function for translating a `Temporal.PlainDate` into a `JsObject`.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>as_object(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsObject&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>as_object(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsObject&gt; {
         create_temporal_date(<span class="self">self</span>.inner, <span class="self">self</span>.calendar.clone(), <span class="prelude-val">None</span>, context)
     }
 }
@@ -1070,7 +1062,7 @@
     iso_date: IsoDateRecord,
     calendar: JsValue,
     new_target: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsValue&gt;,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;JsObject&gt; {
     <span class="comment">// 1. If IsValidISODate(isoYear, isoMonth, isoDay) is false, throw a RangeError exception.
     </span><span class="kw">if </span>!iso_date.is_valid() {
@@ -1126,7 +1118,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_temporal_date(
     item: <span class="kw-2">&amp;</span>JsValue,
     options: <span class="prelude-ty">Option</span>&lt;JsValue&gt;,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;PlainDate&gt; {
     <span class="comment">// 1. If options is not present, set options to undefined.
     </span><span class="kw">let </span>options = options.unwrap_or(JsValue::undefined());
@@ -1241,7 +1233,7 @@
     one: <span class="kw-2">&amp;</span>PlainDate,
     two: <span class="kw-2">&amp;</span>PlainDate,
     largest_unit: TemporalUnit,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;DurationRecord&gt; {
     <span class="comment">// 1. Assert: one.[[Calendar]] and two.[[Calendar]] have been determined to be equivalent as with CalendarEquals.
     // 2. Assert: options is an ordinary Object.
@@ -1297,7 +1289,7 @@
     plain_date: <span class="kw-2">&amp;</span>PlainDate,
     duration: <span class="kw-2">&amp;</span>DurationRecord,
     options: <span class="kw-2">&amp;</span>JsValue,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;PlainDate&gt; {
     <span class="comment">// 1. If options is not present, set options to undefined.
     // 2. If duration.[[Years]] ≠ 0, or duration.[[Months]] ≠ 0, or duration.[[Weeks]] ≠ 0, then

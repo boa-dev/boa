@@ -187,7 +187,7 @@
 <span class="kw">impl </span>JsObjectType <span class="kw">for </span>JsFunction {}
 
 <span class="kw">impl </span>TryFromJs <span class="kw">for </span>JsFunction {
-    <span class="kw">fn </span>try_from_js(value: <span class="kw-2">&amp;</span>JsValue, _context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+    <span class="kw">fn </span>try_from_js(value: <span class="kw-2">&amp;</span>JsValue, _context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="kw">match </span>value {
             JsValue::Object(o) =&gt; <span class="self">Self</span>::from_object(o.clone()).ok_or_else(|| {
                 JsNativeError::typ()

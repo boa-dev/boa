@@ -690,7 +690,7 @@
     </span><span class="kw">fn </span>constructor(
         new_target: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. If NewTarget is undefined, throw a TypeError exception.
         </span><span class="kw">if </span>new_target.is_undefined() {
@@ -715,7 +715,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-get-arraybuffer-@@species
     </span><span class="attr">#[allow(clippy::unnecessary_wraps)]
-    </span><span class="kw">fn </span>get_species(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>get_species(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Return the this value.
         </span><span class="prelude-val">Ok</span>(this.clone())
     }
@@ -727,7 +727,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-arraybuffer.isview
     </span><span class="attr">#[allow(clippy::unnecessary_wraps)]
-    </span><span class="kw">fn </span>is_view(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], _context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>is_view(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], _context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. If Type(arg) is not Object, return false.
         // 2. If arg has a [[ViewedArrayBuffer]] internal slot, return true.
         // 3. Return false.
@@ -748,7 +748,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_byte_length(
         this: <span class="kw-2">&amp;</span>JsValue,
         _args: <span class="kw-2">&amp;</span>[JsValue],
-        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).
@@ -773,7 +773,7 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-arraybuffer.prototype.slice
-    </span><span class="kw">fn </span>slice(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>slice(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).
         </span><span class="kw">let </span>obj = this.as_object().ok_or_else(|| {
@@ -882,7 +882,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>allocate(
         constructor: <span class="kw-2">&amp;</span>JsValue,
         byte_length: u64,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsObject&gt; {
         <span class="comment">// 1. Let obj be ? OrdinaryCreateFromConstructor(constructor, &quot;%ArrayBuffer.prototype%&quot;, « [[ArrayBufferData]], [[ArrayBufferByteLength]], [[ArrayBufferDetachKey]] »).
         </span><span class="kw">let </span>prototype = get_prototype_from_constructor(
@@ -922,7 +922,7 @@
     len: u64,
     relative_start: <span class="kw-2">&amp;</span>JsValue,
     end: <span class="kw-2">&amp;</span>JsValue,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;SliceRange&gt; {
     <span class="comment">// 5. Let len be O.[[ArrayBufferByteLength]].
 
@@ -969,8 +969,8 @@
 /// integer). For more information, check the [spec][spec].
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-createbytedatablock
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_byte_data_block(size: u64, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;Vec&lt;u8&gt;&gt; {
-    <span class="kw">if </span>size &gt; context.host_hooks().max_buffer_size() {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_byte_data_block(size: u64, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;Vec&lt;u8&gt;&gt; {
+    <span class="kw">if </span>size &gt; context.host_hooks().max_buffer_size(context) {
         <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
             .with_message(
                 <span class="string">&quot;cannot allocate a buffer that exceeds the maximum buffer size&quot;</span>.to_string(),

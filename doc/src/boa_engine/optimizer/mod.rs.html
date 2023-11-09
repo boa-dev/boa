@@ -201,14 +201,14 @@
 
 <span class="doccomment">/// This represents an AST optimizer.
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Optimizer&lt;<span class="lifetime">&#39;context</span>, <span class="lifetime">&#39;host</span>&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Optimizer&lt;<span class="lifetime">&#39;context</span>&gt; {
     statistics: OptimizerStatistics,
-    context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;context </span><span class="kw-2">mut </span>Context&lt;<span class="lifetime">&#39;host</span>&gt;,
+    context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;context </span><span class="kw-2">mut </span>Context,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;context</span>, <span class="lifetime">&#39;host</span>&gt; Optimizer&lt;<span class="lifetime">&#39;context</span>, <span class="lifetime">&#39;host</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;context</span>&gt; Optimizer&lt;<span class="lifetime">&#39;context</span>&gt; {
     <span class="doccomment">/// Create a optimizer.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;context </span><span class="kw-2">mut </span>Context&lt;<span class="lifetime">&#39;host</span>&gt;) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;context </span><span class="kw-2">mut </span>Context) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             statistics: OptimizerStatistics::default(),
             context,
@@ -260,7 +260,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ast</span>&gt; VisitorMut&lt;<span class="lifetime">&#39;ast</span>&gt; <span class="kw">for </span>Optimizer&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ast</span>&gt; VisitorMut&lt;<span class="lifetime">&#39;ast</span>&gt; <span class="kw">for </span>Optimizer&lt;<span class="lifetime">&#39;_</span>&gt; {
     <span class="kw">type </span>BreakTy = ();
 
     <span class="kw">fn </span>visit_expression_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span><span class="kw-2">mut </span>Expression) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {

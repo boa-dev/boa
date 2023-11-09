@@ -2306,50 +2306,6 @@
 <a href="#2306" id="2306">2306</a>
 <a href="#2307" id="2307">2307</a>
 <a href="#2308" id="2308">2308</a>
-<a href="#2309" id="2309">2309</a>
-<a href="#2310" id="2310">2310</a>
-<a href="#2311" id="2311">2311</a>
-<a href="#2312" id="2312">2312</a>
-<a href="#2313" id="2313">2313</a>
-<a href="#2314" id="2314">2314</a>
-<a href="#2315" id="2315">2315</a>
-<a href="#2316" id="2316">2316</a>
-<a href="#2317" id="2317">2317</a>
-<a href="#2318" id="2318">2318</a>
-<a href="#2319" id="2319">2319</a>
-<a href="#2320" id="2320">2320</a>
-<a href="#2321" id="2321">2321</a>
-<a href="#2322" id="2322">2322</a>
-<a href="#2323" id="2323">2323</a>
-<a href="#2324" id="2324">2324</a>
-<a href="#2325" id="2325">2325</a>
-<a href="#2326" id="2326">2326</a>
-<a href="#2327" id="2327">2327</a>
-<a href="#2328" id="2328">2328</a>
-<a href="#2329" id="2329">2329</a>
-<a href="#2330" id="2330">2330</a>
-<a href="#2331" id="2331">2331</a>
-<a href="#2332" id="2332">2332</a>
-<a href="#2333" id="2333">2333</a>
-<a href="#2334" id="2334">2334</a>
-<a href="#2335" id="2335">2335</a>
-<a href="#2336" id="2336">2336</a>
-<a href="#2337" id="2337">2337</a>
-<a href="#2338" id="2338">2338</a>
-<a href="#2339" id="2339">2339</a>
-<a href="#2340" id="2340">2340</a>
-<a href="#2341" id="2341">2341</a>
-<a href="#2342" id="2342">2342</a>
-<a href="#2343" id="2343">2343</a>
-<a href="#2344" id="2344">2344</a>
-<a href="#2345" id="2345">2345</a>
-<a href="#2346" id="2346">2346</a>
-<a href="#2347" id="2347">2347</a>
-<a href="#2348" id="2348">2348</a>
-<a href="#2349" id="2349">2349</a>
-<a href="#2350" id="2350">2350</a>
-<a href="#2351" id="2351">2351</a>
-<a href="#2352" id="2352">2352</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! An implementation of the `Temporal` proposal&#39;s Calendar builtin.
 
 </span><span class="kw">use </span><span class="self">self</span>::iso::IsoCalendar;
@@ -2587,7 +2543,7 @@
     <span class="kw">fn </span>constructor(
         new_target: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. If NewTarget is undefined, then
         </span><span class="kw">if </span>new_target.is_undefined() {
@@ -2622,7 +2578,7 @@
 }
 
 <span class="kw">impl </span>Calendar {
-    <span class="kw">fn </span>get_id(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    <span class="kw">fn </span>get_id(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>o = this.as_object().ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;this value of Calendar must be an object.&quot;</span>)
         })<span class="question-mark">?</span>;
@@ -2639,7 +2595,7 @@
     </span><span class="kw">fn </span>date_from_fields(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let calendar be the this value.
         // 2. Perform ? RequireInternalSlot(calendar, [[InitializedTemporalCalendar]]).
@@ -2725,7 +2681,7 @@
     </span><span class="kw">fn </span>year_month_from_fields(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;this value of Calendar must be an object.&quot;</span>)
@@ -2800,7 +2756,7 @@
     </span><span class="kw">fn </span>month_day_from_fields(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let calendar be the this value.
         // 2. Perform ? RequireInternalSlot(calendar, [[InitializedTemporalCalendar]]).
@@ -2875,7 +2831,7 @@
     }
 
     <span class="doccomment">/// 15.8.2.4 `Temporal.Calendar.prototype.dateAdd ( date, duration [ , options ] )` - supercedes 12.5.7
-    </span><span class="kw">fn </span>date_add(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>date_add(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let calendar be the this value.
         // 2. Perform ? RequireInternalSlot(calendar, [[InitializedTemporalCalendar]]).
         // 3. Assert: calendar.[[Identifier]] is &quot;iso8601&quot;.
@@ -2919,11 +2875,7 @@
     }
 
     <span class="doccomment">///15.8.2.5 `Temporal.Calendar.prototype.dateUntil ( one, two [ , options ] )` - Supercedes 12.5.8
-    </span><span class="kw">fn </span>date_until(
-        this: <span class="kw-2">&amp;</span>JsValue,
-        args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>date_until(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let calendar be the this value.
         // 2. Perform ? RequireInternalSlot(calendar, [[InitializedTemporalCalendar]]).
         // 3. Assert: calendar.[[Identifier]] is &quot;iso8601&quot;.
@@ -2966,7 +2918,7 @@
     }
 
     <span class="doccomment">/// 15.8.2.6 `Temporal.Calendar.prototype.era ( temporalDateLike )`
-    </span><span class="kw">fn </span>era(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>era(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;this value of Calendar must be an object.&quot;</span>)
         })<span class="question-mark">?</span>;
@@ -3014,7 +2966,7 @@
     }
 
     <span class="doccomment">/// 15.8.2.7 `Temporal.Calendar.prototype.eraYear ( temporalDateLike )`
-    </span><span class="kw">fn </span>era_year(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>era_year(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;this value of Calendar must be an object.&quot;</span>)
         })<span class="question-mark">?</span>;
@@ -3062,7 +3014,7 @@
     }
 
     <span class="doccomment">/// 15.8.2.8 `Temporal.Calendar.prototype.year ( temporalDateLike )`
-    </span><span class="kw">fn </span>year(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>year(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;this value of Calendar must be an object.&quot;</span>)
         })<span class="question-mark">?</span>;
@@ -3108,7 +3060,7 @@
     }
 
     <span class="doccomment">/// 15.8.2.9 `Temporal.Calendar.prototype.month ( temporalDateLike )`
-    </span><span class="kw">fn </span>month(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>month(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;this value of Calendar must be an object.&quot;</span>)
         })<span class="question-mark">?</span>;
@@ -3163,11 +3115,7 @@
     }
 
     <span class="doccomment">/// 15.8.2.10 `Temporal.Calendar.prototype.monthCode ( temporalDateLike )`
-    </span><span class="kw">fn </span>month_code(
-        this: <span class="kw-2">&amp;</span>JsValue,
-        args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>month_code(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;this value of Calendar must be an object.&quot;</span>)
         })<span class="question-mark">?</span>;
@@ -3219,7 +3167,7 @@
     }
 
     <span class="doccomment">/// 15.8.2.11 `Temporal.Calendar.prototype.day ( temporalDateLike )`
-    </span><span class="kw">fn </span>day(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>day(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;this value of Calendar must be an object.&quot;</span>)
         })<span class="question-mark">?</span>;
@@ -3265,11 +3213,7 @@
     }
 
     <span class="doccomment">/// 15.8.2.12 `Temporal.Calendar.prototype.dayOfWeek ( dateOrDateTime )`
-    </span><span class="kw">fn </span>day_of_week(
-        this: <span class="kw-2">&amp;</span>JsValue,
-        args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>day_of_week(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let calendar be the this value.
         // 2. Perform ? RequireInternalSlot(calendar, [[InitializedTemporalCalendar]]).
         </span><span class="kw">let </span>o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
@@ -3295,11 +3239,7 @@
     }
 
     <span class="doccomment">/// 15.8.2.13 `Temporal.Calendar.prototype.dayOfYear ( temporalDateLike )`
-    </span><span class="kw">fn </span>day_of_year(
-        this: <span class="kw-2">&amp;</span>JsValue,
-        args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>day_of_year(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>o = this.as_object().ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;this value of Calendar must be an object.&quot;</span>)
         })<span class="question-mark">?</span>;
@@ -3324,11 +3264,7 @@
     }
 
     <span class="doccomment">/// 15.8.2.14 `Temporal.Calendar.prototype.weekOfYear ( temporalDateLike )`
-    </span><span class="kw">fn </span>week_of_year(
-        this: <span class="kw-2">&amp;</span>JsValue,
-        args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>week_of_year(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;this value of Calendar must be an object.&quot;</span>)
         })<span class="question-mark">?</span>;
@@ -3352,11 +3288,7 @@
     }
 
     <span class="doccomment">/// 15.8.2.15 `Temporal.Calendar.prototype.yearOfWeek ( temporalDateLike )`
-    </span><span class="kw">fn </span>year_of_week(
-        this: <span class="kw-2">&amp;</span>JsValue,
-        args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>year_of_week(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;this value of Calendar must be an object.&quot;</span>)
         })<span class="question-mark">?</span>;
@@ -3380,11 +3312,7 @@
     }
 
     <span class="doccomment">/// 15.8.2.16 `Temporal.Calendar.prototype.daysInWeek ( temporalDateLike )`
-    </span><span class="kw">fn </span>days_in_week(
-        this: <span class="kw-2">&amp;</span>JsValue,
-        args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>days_in_week(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;this value of Calendar must be an object.&quot;</span>)
         })<span class="question-mark">?</span>;
@@ -3408,11 +3336,7 @@
     }
 
     <span class="doccomment">/// 15.8.2.17 `Temporal.Calendar.prototype.daysInMonth ( temporalDateLike )`
-    </span><span class="kw">fn </span>days_in_month(
-        this: <span class="kw-2">&amp;</span>JsValue,
-        args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>days_in_month(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;this value of Calendar must be an object.&quot;</span>)
         })<span class="question-mark">?</span>;
@@ -3460,11 +3384,7 @@
     }
 
     <span class="doccomment">/// 15.8.2.18 `Temporal.Calendar.prototype.daysInYear ( temporalDateLike )`
-    </span><span class="kw">fn </span>days_in_year(
-        this: <span class="kw-2">&amp;</span>JsValue,
-        args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>days_in_year(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;this value of Calendar must be an object.&quot;</span>)
         })<span class="question-mark">?</span>;
@@ -3515,7 +3435,7 @@
     </span><span class="kw">fn </span>months_in_year(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;this value of Calendar must be an object.&quot;</span>)
@@ -3564,11 +3484,7 @@
     }
 
     <span class="doccomment">/// 15.8.2.20 `Temporal.Calendar.prototype.inLeapYear ( temporalDateLike )`
-    </span><span class="kw">fn </span>in_leap_year(
-        this: <span class="kw-2">&amp;</span>JsValue,
-        args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>in_leap_year(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;this value of Calendar must be an object.&quot;</span>)
         })<span class="question-mark">?</span>;
@@ -3616,7 +3532,7 @@
     }
 
     <span class="doccomment">/// 15.8.2.21 `Temporal.Calendar.prototype.fields ( fields )`
-    </span><span class="kw">fn </span>fields(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>fields(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let calendar be the this value.
         // 2. Perform ? RequireInternalSlot(calendar, [[InitializedTemporalCalendar]]).
         </span><span class="kw">let </span>o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
@@ -3701,11 +3617,7 @@
     }
 
     <span class="doccomment">/// 15.8.2.22 `Temporal.Calendar.prototype.mergeFields ( fields, additionalFields )`
-    </span><span class="kw">fn </span>merge_fields(
-        this: <span class="kw-2">&amp;</span>JsValue,
-        args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>merge_fields(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let calendar be the this value.
         // 2. Perform ? RequireInternalSlot(calendar, [[InitializedTemporalCalendar]]).
         </span><span class="kw">let </span>o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
@@ -3807,7 +3719,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_temporal_calendar(
     identifier: <span class="kw-2">&amp;</span>JsString,
     new_target: <span class="prelude-ty">Option</span>&lt;JsValue&gt;,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;JsValue&gt; {
     <span class="comment">// 1. Assert: IsBuiltinCalendar(identifier) is true.
     </span><span class="macro">assert!</span>(is_builtin_calendar(identifier));
@@ -3841,7 +3753,7 @@
 </span><span class="attr">#[allow(unused)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_temporal_calendar_slot_value_with_default(
     item: <span class="kw-2">&amp;</span>JsObject,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;JsValue&gt; {
     <span class="comment">// 1. If item has an [[InitializedTemporalDate]], [[InitializedTemporalDateTime]], [[InitializedTemporalMonthDay]], [[InitializedTemporalYearMonth]], or [[InitializedTemporalZonedDateTime]] internal slot, then
     // a. Return item.[[Calendar]].
@@ -3979,7 +3891,7 @@
     calendar: <span class="kw-2">&amp;</span>JsValue,
     method: <span class="kw-2">&amp;</span>JsString,
     args: <span class="kw-2">&amp;</span>[JsValue],
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;JsValue&gt; {
     <span class="comment">// If Calendar is a string
     </span><span class="kw">let </span>this_calendar = <span class="kw">match </span>calendar {
@@ -4003,7 +3915,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>calendar_fields(
     calendar: <span class="kw-2">&amp;</span>JsValue,
     field_names: Vec&lt;JsValue&gt;,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;Vec&lt;JsValue&gt;&gt; {
     <span class="kw">let </span>field_names = Array::create_array_from_list(field_names, context);
     <span class="comment">// 1. If calendar is a String, then
@@ -4032,7 +3944,7 @@
     calendar: <span class="kw-2">&amp;</span>JsValue,
     fields: <span class="kw-2">&amp;</span>TemporalFields,
     additional_fields: <span class="kw-2">&amp;</span>JsValue,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;JsObject&gt; {
     <span class="comment">// 1. If calendar is a String, then
     // a. Set calendar to ! CreateTemporalCalendar(calendar).
@@ -4064,7 +3976,7 @@
     date: <span class="kw-2">&amp;</span>PlainDate,
     duration: <span class="kw-2">&amp;</span>DurationRecord,
     options: <span class="kw-2">&amp;</span>JsValue,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;PlainDate&gt; {
     <span class="comment">// NOTE: The specification never calls CalendarDateAdd without an options argument provided.
     // 1. If options is not present, set options to undefined.
@@ -4107,7 +4019,7 @@
     one: <span class="kw-2">&amp;</span>PlainDate,
     two: <span class="kw-2">&amp;</span>PlainDate,
     options: <span class="kw-2">&amp;</span>JsValue,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;DurationRecord&gt; {
     <span class="comment">// 1. If calendar is a String, then
     // a. Set calendar to ! CreateTemporalCalendar(calendar).
@@ -4150,7 +4062,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>calendar_year(
     calendar: <span class="kw-2">&amp;</span>JsValue,
     datelike: <span class="kw-2">&amp;</span>JsValue,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;f64&gt; {
     <span class="comment">// 1. If calendar is a String, then
     // a. Set calendar to ! CreateTemporalCalendar(calendar).
@@ -4186,7 +4098,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>calendar_month(
     calendar: <span class="kw-2">&amp;</span>JsValue,
     datelike: <span class="kw-2">&amp;</span>JsValue,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;f64&gt; {
     <span class="comment">// 1. If calendar is a String, then
     // a. Set calendar to ! CreateTemporalCalendar(calendar).
@@ -4229,7 +4141,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>calendar_month_code(
     calendar: <span class="kw-2">&amp;</span>JsValue,
     datelike: <span class="kw-2">&amp;</span>JsValue,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;JsString&gt; {
     <span class="comment">// 1. If calendar is a String, then
     // a. Set calendar to ! CreateTemporalCalendar(calendar).
@@ -4257,7 +4169,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>calendar_day(
     calendar: <span class="kw-2">&amp;</span>JsValue,
     datelike: <span class="kw-2">&amp;</span>JsValue,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;f64&gt; {
     <span class="comment">// 1. If calendar is a String, then
     // a. Set calendar to ! CreateTemporalCalendar(calendar).
@@ -4300,7 +4212,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>calendar_day_of_week(
     calendar: <span class="kw-2">&amp;</span>JsValue,
     datelike: <span class="kw-2">&amp;</span>JsValue,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;f64&gt; {
     <span class="comment">// 1. If calendar is a String, then
     // a. Set calendar to ! CreateTemporalCalendar(calendar).
@@ -4360,7 +4272,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>calendar_day_of_year(
     calendar: <span class="kw-2">&amp;</span>JsValue,
     datelike: <span class="kw-2">&amp;</span>JsValue,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;f64&gt; {
     <span class="comment">// 1. If calendar is a String, then
     // a. Set calendar to ! CreateTemporalCalendar(calendar).
@@ -4403,7 +4315,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>calendar_week_of_year(
     calendar: <span class="kw-2">&amp;</span>JsValue,
     datelike: <span class="kw-2">&amp;</span>JsValue,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;f64&gt; {
     <span class="comment">// 1. If calendar is a String, then
     // a. Set calendar to ! CreateTemporalCalendar(calendar).
@@ -4446,7 +4358,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>calendar_year_of_week(
     calendar: <span class="kw-2">&amp;</span>JsValue,
     datelike: <span class="kw-2">&amp;</span>JsValue,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;f64&gt; {
     <span class="comment">// 1. If calendar is a String, then
     // a. Set calendar to ! CreateTemporalCalendar(calendar).
@@ -4482,7 +4394,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>calendar_days_in_week(
     calendar: <span class="kw-2">&amp;</span>JsValue,
     datelike: <span class="kw-2">&amp;</span>JsValue,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;f64&gt; {
     <span class="comment">// 1. If calendar is a String, then
     // a. Set calendar to ! CreateTemporalCalendar(calendar).
@@ -4525,7 +4437,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>calendar_days_in_month(
     calendar: <span class="kw-2">&amp;</span>JsValue,
     datelike: <span class="kw-2">&amp;</span>JsValue,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;f64&gt; {
     <span class="comment">// 1. If calendar is a String, then
     // a. Set calendar to ! CreateTemporalCalendar(calendar).
@@ -4568,7 +4480,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>calendar_days_in_year(
     calendar: <span class="kw-2">&amp;</span>JsValue,
     datelike: <span class="kw-2">&amp;</span>JsValue,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;f64&gt; {
     <span class="comment">// 1. If calendar is a String, then
     // a. Set calendar to ! CreateTemporalCalendar(calendar).
@@ -4611,7 +4523,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>calendar_months_in_year(
     calendar: <span class="kw-2">&amp;</span>JsValue,
     datelike: <span class="kw-2">&amp;</span>JsValue,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;f64&gt; {
     <span class="comment">// 1. If calendar is a String, then
     // a. Set calendar to ! CreateTemporalCalendar(calendar).
@@ -4654,7 +4566,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>calendar_in_lear_year(
     calendar: <span class="kw-2">&amp;</span>JsValue,
     datelike: <span class="kw-2">&amp;</span>JsValue,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;bool&gt; {
     <span class="comment">// 1. If calendar is a String, then
     // a. Set calendar to ! CreateTemporalCalendar(calendar).

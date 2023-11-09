@@ -394,7 +394,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>function_call(
     function_object: <span class="kw-2">&amp;</span>JsObject,
     argument_count: usize,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;CallValue&gt; {
     context.check_runtime_limits()<span class="question-mark">?</span>;
 
@@ -479,7 +479,7 @@
 </span><span class="kw">fn </span>function_construct(
     this_function_object: <span class="kw-2">&amp;</span>JsObject,
     argument_count: usize,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;CallValue&gt; {
     context.check_runtime_limits()<span class="question-mark">?</span>;
 
@@ -598,7 +598,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>native_function_call(
     obj: <span class="kw-2">&amp;</span>JsObject,
     argument_count: usize,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;CallValue&gt; {
     <span class="kw">let </span>args = context.vm.pop_n_values(argument_count);
     <span class="kw">let </span>_func = context.vm.pop();
@@ -648,7 +648,7 @@
 </span><span class="kw">fn </span>native_function_construct(
     obj: <span class="kw-2">&amp;</span>JsObject,
     argument_count: usize,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;CallValue&gt; {
     <span class="comment">// We technically don&#39;t need this since native functions don&#39;t push any new frames to the
     // vm, but we&#39;ll eventually have to combine the native stack with the vm stack.

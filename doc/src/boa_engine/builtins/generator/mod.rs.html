@@ -485,7 +485,7 @@
     }
 
     <span class="doccomment">/// Creates a new `GeneratorContext` from the current `Context` state.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_current(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_current(context: <span class="kw-2">&amp;mut </span>Context) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span><span class="kw-2">mut </span>frame = context.vm.frame().clone();
         frame.environments = context.vm.environments.clone();
         frame.realm = context.realm().clone();
@@ -505,7 +505,7 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         value: <span class="prelude-ty">Option</span>&lt;JsValue&gt;,
         resume_kind: GeneratorResumeKind,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; CompletionRecord {
         std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.stack, <span class="kw-2">&amp;mut </span><span class="self">self</span>.stack);
         context
@@ -590,7 +590,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>next(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Return ? GeneratorResume(this value, value, empty).
         </span><span class="self">Self</span>::generator_resume(this, args.get_or_undefined(<span class="number">0</span>).clone(), context)
@@ -609,7 +609,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>r#return(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let g be the this value.
         // 2. Let C be Completion { [[Type]]: return, [[Value]]: value, [[Target]]: empty }.
@@ -631,7 +631,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>throw(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let g be the this value.
         // 2. Let C be ThrowCompletion(exception).
@@ -652,7 +652,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>generator_resume(
         gen: <span class="kw-2">&amp;</span>JsValue,
         value: JsValue,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let state be ? GeneratorValidate(generator, generatorBrand).
         </span><span class="kw">let </span><span class="prelude-val">Some</span>(generator_obj) = gen.as_object() <span class="kw">else </span>{
@@ -736,7 +736,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>generator_resume_abrupt(
         gen: <span class="kw-2">&amp;</span>JsValue,
         abrupt_completion: JsResult&lt;JsValue&gt;,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let state be ? GeneratorValidate(generator, generatorBrand).
         </span><span class="kw">let </span><span class="prelude-val">Some</span>(generator_obj) = gen.as_object() <span class="kw">else </span>{

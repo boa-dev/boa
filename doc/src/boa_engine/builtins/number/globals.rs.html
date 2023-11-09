@@ -304,14 +304,6 @@
 <a href="#304" id="304">304</a>
 <a href="#305" id="305">305</a>
 <a href="#306" id="306">306</a>
-<a href="#307" id="307">307</a>
-<a href="#308" id="308">308</a>
-<a href="#309" id="309">309</a>
-<a href="#310" id="310">310</a>
-<a href="#311" id="311">311</a>
-<a href="#312" id="312">312</a>
-<a href="#313" id="313">313</a>
-<a href="#314" id="314">314</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>boa_macros::utf16;
 
 <span class="kw">use crate</span>::{
@@ -339,7 +331,7 @@
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-isfinite-number
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/isFinite
-</span><span class="kw">fn </span>is_finite(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+</span><span class="kw">fn </span>is_finite(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
     <span class="kw">if let </span><span class="prelude-val">Some</span>(value) = args.get(<span class="number">0</span>) {
         <span class="kw">let </span>number = value.to_number(context)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(number.is_finite().into())
@@ -381,11 +373,7 @@
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-isnan-number
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/isNaN
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_nan(
-    <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
-    args: <span class="kw-2">&amp;</span>[JsValue],
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-) -&gt; JsResult&lt;JsValue&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_nan(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
     <span class="kw">if let </span><span class="prelude-val">Some</span>(value) = args.get(<span class="number">0</span>) {
         <span class="kw">let </span>number = value.to_number(context)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(number.is_nan().into())
@@ -427,11 +415,7 @@
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-parseint-string-radix
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/parseInt
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>parse_int(
-    <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
-    args: <span class="kw-2">&amp;</span>[JsValue],
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-) -&gt; JsResult&lt;JsValue&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>parse_int(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
     <span class="kw">if let </span>(<span class="prelude-val">Some</span>(val), radix) = (args.get(<span class="number">0</span>), args.get_or_undefined(<span class="number">1</span>)) {
         <span class="comment">// 1. Let inputString be ? ToString(string).
         </span><span class="kw">let </span>input_string = val.to_string(context)<span class="question-mark">?</span>;
@@ -572,7 +556,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>parse_float(
     <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
     args: <span class="kw-2">&amp;</span>[JsValue],
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;JsValue&gt; {
     <span class="kw">if let </span><span class="prelude-val">Some</span>(val) = args.get(<span class="number">0</span>) {
         <span class="comment">// TODO: parse float with optimal utf16 algorithm

@@ -814,7 +814,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>next(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let generator be the this value.
         </span><span class="kw">let </span>generator = this;
@@ -902,7 +902,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>r#return(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let generator be the this value.
         </span><span class="kw">let </span>generator = this;
@@ -980,7 +980,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>throw(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let generator be the this value.
         </span><span class="kw">let </span>generator = this;
@@ -1100,7 +1100,7 @@
         completion: JsResult&lt;JsValue&gt;,
         done: bool,
         realm: <span class="prelude-ty">Option</span>&lt;Realm&gt;,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) {
         <span class="comment">// 1. Let queue be generator.[[AsyncGeneratorQueue]].
         // 2. Assert: queue is not empty.
@@ -1162,7 +1162,7 @@
         state: AsyncGeneratorState,
         <span class="kw-2">mut </span>generator_context: GeneratorContext,
         completion: CompletionRecord,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) {
         <span class="comment">// 1. Assert: generator.[[AsyncGeneratorState]] is either suspendedStart or suspendedYield.
         </span><span class="macro">assert!</span>(
@@ -1213,7 +1213,7 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-asyncgeneratorawaitreturn
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>await_return(generator: JsObject, value: JsValue, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>await_return(generator: JsObject, value: JsValue, context: <span class="kw-2">&amp;mut </span>Context) {
         <span class="comment">// 1. Let queue be generator.[[AsyncGeneratorQueue]].
         // 2. Assert: queue is not empty.
         // 3. Let next be the first element of queue.
@@ -1336,7 +1336,7 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-asyncgeneratordrainqueue
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>drain_queue(generator: <span class="kw-2">&amp;</span>JsObject, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>drain_queue(generator: <span class="kw-2">&amp;</span>JsObject, context: <span class="kw-2">&amp;mut </span>Context) {
         <span class="kw">let </span><span class="kw-2">mut </span>generator_borrow_mut = generator.borrow_mut();
         <span class="kw">let </span>gen = generator_borrow_mut
             .as_async_generator_mut()

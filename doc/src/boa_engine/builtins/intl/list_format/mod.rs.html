@@ -510,13 +510,6 @@
 <a href="#510" id="510">510</a>
 <a href="#511" id="511">511</a>
 <a href="#512" id="512">512</a>
-<a href="#513" id="513">513</a>
-<a href="#514" id="514">514</a>
-<a href="#515" id="515">515</a>
-<a href="#516" id="516">516</a>
-<a href="#517" id="517">517</a>
-<a href="#518" id="518">518</a>
-<a href="#519" id="519">519</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::fmt::Write;
 
 <span class="kw">use </span>boa_profiler::Profiler;
@@ -610,7 +603,7 @@
     </span><span class="kw">fn </span>constructor(
         new_target: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. If NewTarget is undefined, throw a TypeError exception.
         </span><span class="kw">if </span>new_target.is_undefined() {
@@ -660,17 +653,17 @@
         </span><span class="kw">let </span>data_locale = DataLocale::from(<span class="kw-2">&amp;</span>locale);
         <span class="kw">let </span>formatter = <span class="kw">match </span>typ {
             ListFormatType::Conjunction =&gt; ListFormatter::try_new_and_with_length_unstable(
-                <span class="kw-2">&amp;</span>context.icu().provider(),
+                context.icu().provider(),
                 <span class="kw-2">&amp;</span>data_locale,
                 style,
             ),
             ListFormatType::Disjunction =&gt; ListFormatter::try_new_or_with_length_unstable(
-                <span class="kw-2">&amp;</span>context.icu().provider(),
+                context.icu().provider(),
                 <span class="kw-2">&amp;</span>data_locale,
                 style,
             ),
             ListFormatType::Unit =&gt; ListFormatter::try_new_unit_with_length_unstable(
-                <span class="kw-2">&amp;</span>context.icu().provider(),
+                context.icu().provider(),
                 <span class="kw-2">&amp;</span>data_locale,
                 style,
             ),
@@ -710,7 +703,7 @@
     </span><span class="kw">fn </span>supported_locales_of(
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>locales = args.get_or_undefined(<span class="number">0</span>);
         <span class="kw">let </span>options = args.get_or_undefined(<span class="number">1</span>);
@@ -733,7 +726,7 @@
     ///
     /// [spec]: https://tc39.es/ecma402/#sec-Intl.ListFormat.prototype.format
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/ListFormat/format
-    </span><span class="kw">fn </span>format(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>format(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let lf be the this value.
         // 2. Perform ? RequireInternalSlot(lf, [[InitializedListFormat]]).
         </span><span class="kw">let </span>lf = this.as_object().map(JsObject::borrow).ok_or_else(|| {
@@ -769,7 +762,7 @@
     </span><span class="kw">fn </span>format_to_parts(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// TODO: maybe try to move this into icu4x?
         </span><span class="kw">use </span>writeable::{PartsWrite, Writeable};
@@ -925,11 +918,7 @@
     ///
     /// [spec]: https://tc39.es/ecma402/#sec-Intl.ListFormat.prototype.resolvedoptions
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/ListFormat/resolvedOptions
-    </span><span class="kw">fn </span>resolved_options(
-        this: <span class="kw-2">&amp;</span>JsValue,
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>resolved_options(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let lf be the this value.
         // 2. Perform ? RequireInternalSlot(lf, [[InitializedListFormat]]).
         </span><span class="kw">let </span>lf = this.as_object().map(JsObject::borrow).ok_or_else(|| {
@@ -992,10 +981,7 @@
 <span class="doccomment">/// Abstract operation [`StringListFromIterable ( iterable )`][spec]
 ///
 /// [spec]: https://tc39.es/ecma402/#sec-createstringlistfromiterable
-</span><span class="kw">fn </span>string_list_from_iterable(
-    iterable: <span class="kw-2">&amp;</span>JsValue,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-) -&gt; JsResult&lt;Vec&lt;JsString&gt;&gt; {
+</span><span class="kw">fn </span>string_list_from_iterable(iterable: <span class="kw-2">&amp;</span>JsValue, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;Vec&lt;JsString&gt;&gt; {
     <span class="comment">// 1. If iterable is undefined, then
     </span><span class="kw">if </span>iterable.is_undefined() {
         <span class="comment">//     a. Return a new empty List.

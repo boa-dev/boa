@@ -485,10 +485,6 @@
 <a href="#485" id="485">485</a>
 <a href="#486" id="486">486</a>
 <a href="#487" id="487">487</a>
-<a href="#488" id="488">488</a>
-<a href="#489" id="489">489</a>
-<a href="#490" id="490">490</a>
-<a href="#491" id="491">491</a>
 </pre></div><pre class="rust"><code><span class="attr">#![allow(dead_code)]
 
 </span><span class="kw">use crate</span>::{
@@ -588,7 +584,7 @@
     <span class="kw">fn </span>constructor(
         new_target: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. If NewTarget is undefined, then
         // 1a. Throw a TypeError exception.
@@ -621,7 +617,7 @@
 
 <span class="kw">impl </span>TimeZone {
     <span class="comment">// NOTE: id, toJSON, toString currently share the exact same implementation -&gt; Consolidate into one function and define multiple accesors?
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_id(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_id(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;this value must be a Temporal.TimeZone&quot;</span>)
         })<span class="question-mark">?</span>;
@@ -634,7 +630,7 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_offset_nanoseconds_for(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let timeZone be the this value.
         // 2. Perform ? RequireInternalSlot(timeZone, [[InitializedTemporalTimeZone]]).
@@ -663,7 +659,7 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_offset_string_for(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let timeZone be the this value.
         // 2. Perform ? RequireInternalSlot(timeZone, [[InitializedTemporalTimeZone]]).
@@ -691,7 +687,7 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_plain_date_time_for(
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
-        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="prelude-val">Err</span>(JsNativeError::error()
             .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
@@ -701,7 +697,7 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_instant_for(
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
-        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="prelude-val">Err</span>(JsNativeError::error()
             .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
@@ -711,7 +707,7 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_possible_instants_for(
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
-        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="prelude-val">Err</span>(JsNativeError::error()
             .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
@@ -721,7 +717,7 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_next_transition(
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
-        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="prelude-val">Err</span>(JsNativeError::error()
             .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
@@ -731,18 +727,14 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_previous_transition(
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
-        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="prelude-val">Err</span>(JsNativeError::error()
             .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
             .into())
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_string(
-        this: <span class="kw-2">&amp;</span>JsValue,
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
-        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;JsValue&gt; {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_string(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let timeZone be the this value.
         // 2. Perform ? RequireInternalSlot(timeZone, [[InitializedTemporalTimeZone]]).
         </span><span class="kw">let </span>o = this.as_object().ok_or_else(|| {
@@ -774,7 +766,7 @@
 ///
 /// [spec]: https://tc39.es/proposal-temporal/#sec-defaulttimezone
 </span><span class="attr">#[allow(unused)]
-</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>default_time_zone(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; String {
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>default_time_zone(context: <span class="kw-2">&amp;mut </span>Context) -&gt; String {
     <span class="comment">// The minimum implementation of DefaultTimeZone for ECMAScript implementations that do not
     // include the ECMA-402 API, supporting only the &quot;UTC&quot; time zone, performs the following steps
     // when called:
@@ -795,7 +787,7 @@
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>create_temporal_time_zone(
     identifier: String,
     new_target: <span class="prelude-ty">Option</span>&lt;JsValue&gt;,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;JsValue&gt; {
     <span class="comment">// 1. If newTarget is not present, set newTarget to %Temporal.TimeZone%.
     </span><span class="kw">let </span>new_target = new_target.unwrap_or_else(|| {
@@ -858,7 +850,7 @@
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-parsetimezoneoffsetstring
 </span><span class="attr">#[allow(clippy::unnecessary_wraps, unused)]
-</span><span class="kw">fn </span>parse_timezone_offset_string(offset_string: <span class="kw-2">&amp;</span>str, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;i64&gt; {
+</span><span class="kw">fn </span>parse_timezone_offset_string(offset_string: <span class="kw-2">&amp;</span>str, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;i64&gt; {
     <span class="kw">use </span>boa_parser::temporal::{IsoCursor, TemporalTimeZoneString};
 
     <span class="comment">// 1. Let parseResult be ParseText(StringToCodePoints(offsetString), UTCOffset).

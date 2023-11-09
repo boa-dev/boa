@@ -1105,69 +1105,17 @@
 <a href="#1105" id="1105">1105</a>
 <a href="#1106" id="1106">1106</a>
 <a href="#1107" id="1107">1107</a>
-<a href="#1108" id="1108">1108</a>
-<a href="#1109" id="1109">1109</a>
-<a href="#1110" id="1110">1110</a>
-<a href="#1111" id="1111">1111</a>
-<a href="#1112" id="1112">1112</a>
-<a href="#1113" id="1113">1113</a>
-<a href="#1114" id="1114">1114</a>
-<a href="#1115" id="1115">1115</a>
-<a href="#1116" id="1116">1116</a>
-<a href="#1117" id="1117">1117</a>
-<a href="#1118" id="1118">1118</a>
-<a href="#1119" id="1119">1119</a>
-<a href="#1120" id="1120">1120</a>
-<a href="#1121" id="1121">1121</a>
-<a href="#1122" id="1122">1122</a>
-<a href="#1123" id="1123">1123</a>
-<a href="#1124" id="1124">1124</a>
-<a href="#1125" id="1125">1125</a>
-<a href="#1126" id="1126">1126</a>
-<a href="#1127" id="1127">1127</a>
-<a href="#1128" id="1128">1128</a>
-<a href="#1129" id="1129">1129</a>
-<a href="#1130" id="1130">1130</a>
-<a href="#1131" id="1131">1131</a>
-<a href="#1132" id="1132">1132</a>
-<a href="#1133" id="1133">1133</a>
-<a href="#1134" id="1134">1134</a>
-<a href="#1135" id="1135">1135</a>
-<a href="#1136" id="1136">1136</a>
-<a href="#1137" id="1137">1137</a>
-<a href="#1138" id="1138">1138</a>
-<a href="#1139" id="1139">1139</a>
-<a href="#1140" id="1140">1140</a>
-<a href="#1141" id="1141">1141</a>
-<a href="#1142" id="1142">1142</a>
-<a href="#1143" id="1143">1143</a>
-<a href="#1144" id="1144">1144</a>
-<a href="#1145" id="1145">1145</a>
-<a href="#1146" id="1146">1146</a>
-<a href="#1147" id="1147">1147</a>
-<a href="#1148" id="1148">1148</a>
-<a href="#1149" id="1149">1149</a>
-<a href="#1150" id="1150">1150</a>
-<a href="#1151" id="1151">1151</a>
-<a href="#1152" id="1152">1152</a>
-<a href="#1153" id="1153">1153</a>
-<a href="#1154" id="1154">1154</a>
-<a href="#1155" id="1155">1155</a>
-<a href="#1156" id="1156">1156</a>
-<a href="#1157" id="1157">1157</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! The ECMAScript context.
 
 </span><span class="kw">mod </span>hooks;
 <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>icu;
 <span class="kw">pub mod </span>intrinsics;
-<span class="kw">mod </span>maybe_shared;
 
 <span class="kw">pub use </span>hooks::{DefaultHooks, HostHooks};
 <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
 </span><span class="kw">pub use </span>icu::{BoaProvider, IcuError};
 <span class="kw">use </span>intrinsics::Intrinsics;
-<span class="kw">pub use </span>maybe_shared::MaybeShared;
 
 <span class="attr">#[cfg(not(feature = <span class="string">&quot;intl&quot;</span>))]
 </span><span class="kw">pub use </span>std::marker::PhantomData;
@@ -1244,7 +1192,7 @@
 ///
 /// assert_eq!(value.as_number(), Some(12.0))
 /// ```
-</span><span class="kw">pub struct </span>Context&lt;<span class="lifetime">&#39;host</span>&gt; {
+</span><span class="kw">pub struct </span>Context {
     <span class="doccomment">/// String interner in the context.
     </span>interner: Interner,
 
@@ -1263,13 +1211,13 @@
 
     <span class="doccomment">/// ICU related utilities
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
-    </span>icu: icu::Icu&lt;<span class="lifetime">&#39;host</span>&gt;,
+    </span>icu: icu::Icu,
 
-    host_hooks: MaybeShared&lt;<span class="lifetime">&#39;host</span>, <span class="kw">dyn </span>HostHooks&gt;,
+    host_hooks: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><span class="kw">dyn </span>HostHooks,
 
-    job_queue: MaybeShared&lt;<span class="lifetime">&#39;host</span>, <span class="kw">dyn </span>JobQueue&gt;,
+    job_queue: Rc&lt;<span class="kw">dyn </span>JobQueue&gt;,
 
-    module_loader: MaybeShared&lt;<span class="lifetime">&#39;host</span>, <span class="kw">dyn </span>ModuleLoader&gt;,
+    module_loader: Rc&lt;<span class="kw">dyn </span>ModuleLoader&gt;,
 
     optimizer_options: OptimizerOptions,
     root_shape: RootShape,
@@ -1278,7 +1226,7 @@
     </span>parser_identifier: u32,
 }
 
-<span class="kw">impl </span>std::fmt::Debug <span class="kw">for </span>Context&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>std::fmt::Debug <span class="kw">for </span>Context {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
         <span class="kw">let </span><span class="kw-2">mut </span>debug = f.debug_struct(<span class="string">&quot;Context&quot;</span>);
 
@@ -1299,7 +1247,7 @@
     }
 }
 
-<span class="kw">impl </span>Drop <span class="kw">for </span>Context&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>Drop <span class="kw">for </span>Context {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">if </span>!<span class="self">self</span>.can_block {
             CANNOT_BLOCK_COUNTER.set(CANNOT_BLOCK_COUNTER.get() - <span class="number">1</span>);
@@ -1307,7 +1255,7 @@
     }
 }
 
-<span class="kw">impl </span>Default <span class="kw">for </span>Context&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>Default <span class="kw">for </span>Context {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         ContextBuilder::default()
             .build()
@@ -1316,11 +1264,11 @@
 }
 
 <span class="comment">// ==== Public API ====
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;host</span>&gt; Context&lt;<span class="lifetime">&#39;host</span>&gt; {
+</span><span class="kw">impl </span>Context {
     <span class="doccomment">/// Create a new [`ContextBuilder`] to specify the [`Interner`] and/or
     /// the icu data provider.
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>builder() -&gt; ContextBuilder&lt;<span class="lifetime">&#39;static</span>, <span class="lifetime">&#39;static</span>, <span class="lifetime">&#39;static</span>, <span class="lifetime">&#39;static</span>&gt; {
+    </span><span class="kw">pub fn </span>builder() -&gt; ContextBuilder {
         ContextBuilder::default()
     }
 
@@ -1647,8 +1595,8 @@
     /// # Note
     ///
     /// Concurrent job execution cannot be guaranteed by the engine, since this depends on the
-    /// specific handling of each [`JobQueue`]. If you need to ensure that jobs are executed
-    /// concurrently, you can provide a custom implementor of `JobQueue` to the context.
+    /// specific handling of each [`JobQueue`]. If you want to execute jobs concurrently, you must
+    /// provide a custom implementor of `JobQueue` to the context.
     </span><span class="attr">#[allow(clippy::future_not_send)]
     </span><span class="kw">pub async fn </span>run_jobs_async(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="self">self</span>.job_queue().run_jobs_async(<span class="self">self</span>).<span class="kw">await</span>;
@@ -1685,7 +1633,7 @@
 
     <span class="doccomment">/// Create a new Realm with the default global bindings.
     </span><span class="kw">pub fn </span>create_realm(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; JsResult&lt;Realm&gt; {
-        <span class="kw">let </span>realm = Realm::create(<span class="kw-2">&amp;*</span><span class="self">self</span>.host_hooks, <span class="kw-2">&amp;</span><span class="self">self</span>.root_shape);
+        <span class="kw">let </span>realm = Realm::create(<span class="self">self</span>.host_hooks, <span class="kw-2">&amp;</span><span class="self">self</span>.root_shape);
 
         <span class="kw">let </span>old_realm = <span class="self">self</span>.enter_realm(realm);
 
@@ -1704,20 +1652,20 @@
     <span class="doccomment">/// Gets the host hooks.
     </span><span class="attr">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>host_hooks(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; MaybeShared&lt;<span class="lifetime">&#39;host</span>, <span class="kw">dyn </span>HostHooks&gt; {
-        <span class="self">self</span>.host_hooks.clone()
+    </span><span class="kw">pub fn </span>host_hooks(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><span class="kw">dyn </span>HostHooks {
+        <span class="self">self</span>.host_hooks
     }
 
     <span class="doccomment">/// Gets the job queue.
     </span><span class="attr">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>job_queue(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; MaybeShared&lt;<span class="lifetime">&#39;host</span>, <span class="kw">dyn </span>JobQueue&gt; {
+    </span><span class="kw">pub fn </span>job_queue(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Rc&lt;<span class="kw">dyn </span>JobQueue&gt; {
         <span class="self">self</span>.job_queue.clone()
     }
 
     <span class="doccomment">/// Gets the module loader.
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>module_loader(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; MaybeShared&lt;<span class="lifetime">&#39;host</span>, <span class="kw">dyn </span>ModuleLoader&gt; {
+    </span><span class="kw">pub fn </span>module_loader(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Rc&lt;<span class="kw">dyn </span>ModuleLoader&gt; {
         <span class="self">self</span>.module_loader.clone()
     }
 
@@ -1750,7 +1698,7 @@
 
 <span class="comment">// ==== Private API ====
 
-</span><span class="kw">impl </span>Context&lt;<span class="lifetime">&#39;_</span>&gt; {
+</span><span class="kw">impl </span>Context {
     <span class="doccomment">/// Swaps the currently active realm with `realm`.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>swap_realm(<span class="kw-2">&amp;mut </span><span class="self">self</span>, realm: <span class="kw-2">&amp;mut </span>Realm) {
         std::mem::swap(<span class="kw-2">&amp;mut </span><span class="self">self</span>.vm.realm, realm);
@@ -1988,18 +1936,18 @@
     </span>}
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;host</span>&gt; Context&lt;<span class="lifetime">&#39;host</span>&gt; {
+<span class="kw">impl </span>Context {
     <span class="doccomment">/// Creates a `ContextCleanupGuard` that executes some cleanup after being dropped.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>guard&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cleanup: F) -&gt; ContextCleanupGuard&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;host</span>, F&gt;
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>guard&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cleanup: F) -&gt; ContextCleanupGuard&lt;<span class="lifetime">&#39;_</span>, F&gt;
     <span class="kw">where
-        </span>F: FnOnce(<span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) + <span class="lifetime">&#39;static</span>,
+        </span>F: FnOnce(<span class="kw-2">&amp;mut </span>Context) + <span class="lifetime">&#39;static</span>,
     {
         ContextCleanupGuard::new(<span class="self">self</span>, cleanup)
     }
 
     <span class="doccomment">/// Get the ICU related utilities
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>icu(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>icu::Icu&lt;<span class="lifetime">&#39;host</span>&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>icu(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>icu::Icu {
         <span class="kw-2">&amp;</span><span class="self">self</span>.icu
     }
 }
@@ -2016,21 +1964,19 @@
     doc = <span class="string">&quot;The required data in a valid provider is specified in [`BoaProvider`]&quot;
 </span>)]
 #[derive(Default)]
-</span><span class="kw">pub struct </span>ContextBuilder&lt;<span class="lifetime">&#39;icu</span>, <span class="lifetime">&#39;hooks</span>, <span class="lifetime">&#39;queue</span>, <span class="lifetime">&#39;module</span>&gt; {
+</span><span class="kw">pub struct </span>ContextBuilder {
     interner: <span class="prelude-ty">Option</span>&lt;Interner&gt;,
-    host_hooks: <span class="prelude-ty">Option</span>&lt;MaybeShared&lt;<span class="lifetime">&#39;hooks</span>, <span class="kw">dyn </span>HostHooks&gt;&gt;,
-    job_queue: <span class="prelude-ty">Option</span>&lt;MaybeShared&lt;<span class="lifetime">&#39;queue</span>, <span class="kw">dyn </span>JobQueue&gt;&gt;,
-    module_loader: <span class="prelude-ty">Option</span>&lt;MaybeShared&lt;<span class="lifetime">&#39;module</span>, <span class="kw">dyn </span>ModuleLoader&gt;&gt;,
+    host_hooks: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><span class="kw">dyn </span>HostHooks&gt;,
+    job_queue: <span class="prelude-ty">Option</span>&lt;Rc&lt;<span class="kw">dyn </span>JobQueue&gt;&gt;,
+    module_loader: <span class="prelude-ty">Option</span>&lt;Rc&lt;<span class="kw">dyn </span>ModuleLoader&gt;&gt;,
     can_block: bool,
     <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
-    </span>icu: <span class="prelude-ty">Option</span>&lt;icu::Icu&lt;<span class="lifetime">&#39;icu</span>&gt;&gt;,
-    <span class="attr">#[cfg(not(feature = <span class="string">&quot;intl&quot;</span>))]
-    </span>icu: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;icu </span>()&gt;,
+    </span>icu: <span class="prelude-ty">Option</span>&lt;icu::Icu&gt;,
     <span class="attr">#[cfg(feature = <span class="string">&quot;fuzz&quot;</span>)]
     </span>instructions_remaining: usize,
 }
 
-<span class="kw">impl </span>std::fmt::Debug <span class="kw">for </span>ContextBuilder&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>std::fmt::Debug <span class="kw">for </span>ContextBuilder {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
         <span class="attr">#[derive(Clone, Copy, Debug)]
         </span><span class="kw">struct </span>JobQueue;
@@ -2060,7 +2006,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;icu</span>, <span class="lifetime">&#39;hooks</span>, <span class="lifetime">&#39;queue</span>, <span class="lifetime">&#39;module</span>&gt; ContextBuilder&lt;<span class="lifetime">&#39;icu</span>, <span class="lifetime">&#39;hooks</span>, <span class="lifetime">&#39;queue</span>, <span class="lifetime">&#39;module</span>&gt; {
+<span class="kw">impl </span>ContextBuilder {
     <span class="doccomment">/// Creates a new [`ContextBuilder`] with a default empty [`Interner`]
     /// and a default `BoaProvider` if the `intl` feature is enabled.
     </span><span class="attr">#[must_use]
@@ -2093,62 +2039,33 @@
     /// [`LocaleCanonicalizer`]: icu_locid_transform::LocaleCanonicalizer
     /// [`LocaleExpander`]: icu_locid_transform::LocaleExpander
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
-    </span><span class="kw">pub fn </span>icu_provider(
-        <span class="self">self</span>,
-        provider: BoaProvider&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;ContextBuilder&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;hooks</span>, <span class="lifetime">&#39;queue</span>, <span class="lifetime">&#39;module</span>&gt;, IcuError&gt; {
-        <span class="prelude-val">Ok</span>(ContextBuilder {
-            icu: <span class="prelude-val">Some</span>(icu::Icu::new(provider)<span class="question-mark">?</span>),
-            ..<span class="self">self
-        </span>})
+    </span><span class="kw">pub fn </span>icu_provider(<span class="kw-2">mut </span><span class="self">self</span>, provider: BoaProvider) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, IcuError&gt; {
+        <span class="self">self</span>.icu = <span class="prelude-val">Some</span>(icu::Icu::new(provider)<span class="question-mark">?</span>);
+        <span class="prelude-val">Ok</span>(<span class="self">self</span>)
     }
 
     <span class="doccomment">/// Initializes the [`HostHooks`] for the context.
     ///
     /// [`Host Hooks`]: https://tc39.es/ecma262/#sec-host-hooks-summary
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>host_hooks&lt;<span class="lifetime">&#39;new_hooks</span>, H&gt;(
-        <span class="self">self</span>,
-        host_hooks: H,
-    ) -&gt; ContextBuilder&lt;<span class="lifetime">&#39;icu</span>, <span class="lifetime">&#39;new_hooks</span>, <span class="lifetime">&#39;queue</span>, <span class="lifetime">&#39;module</span>&gt;
-    <span class="kw">where
-        </span>H: Into&lt;MaybeShared&lt;<span class="lifetime">&#39;new_hooks</span>, <span class="kw">dyn </span>HostHooks&gt;&gt;,
-    {
-        ContextBuilder {
-            host_hooks: <span class="prelude-val">Some</span>(host_hooks.into()),
-            ..<span class="self">self
-        </span>}
-    }
+    </span><span class="kw">pub fn </span>host_hooks&lt;H: HostHooks + <span class="lifetime">&#39;static</span>&gt;(<span class="kw-2">mut </span><span class="self">self</span>, host_hooks: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>H) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.host_hooks = <span class="prelude-val">Some</span>(host_hooks);
+        <span class="self">self
+    </span>}
 
     <span class="doccomment">/// Initializes the [`JobQueue`] for the context.
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>job_queue&lt;<span class="lifetime">&#39;new_queue</span>, Q&gt;(
-        <span class="self">self</span>,
-        job_queue: Q,
-    ) -&gt; ContextBuilder&lt;<span class="lifetime">&#39;icu</span>, <span class="lifetime">&#39;hooks</span>, <span class="lifetime">&#39;new_queue</span>, <span class="lifetime">&#39;module</span>&gt;
-    <span class="kw">where
-        </span>Q: Into&lt;MaybeShared&lt;<span class="lifetime">&#39;new_queue</span>, <span class="kw">dyn </span>JobQueue&gt;&gt;,
-    {
-        ContextBuilder {
-            job_queue: <span class="prelude-val">Some</span>(job_queue.into()),
-            ..<span class="self">self
-        </span>}
-    }
+    </span><span class="kw">pub fn </span>job_queue&lt;Q: JobQueue + <span class="lifetime">&#39;static</span>&gt;(<span class="kw-2">mut </span><span class="self">self</span>, job_queue: Rc&lt;Q&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.job_queue = <span class="prelude-val">Some</span>(job_queue);
+        <span class="self">self
+    </span>}
 
     <span class="doccomment">/// Initializes the [`ModuleLoader`] for the context.
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>module_loader&lt;<span class="lifetime">&#39;new_module</span>, M&gt;(
-        <span class="self">self</span>,
-        module_loader: M,
-    ) -&gt; ContextBuilder&lt;<span class="lifetime">&#39;icu</span>, <span class="lifetime">&#39;hooks</span>, <span class="lifetime">&#39;queue</span>, <span class="lifetime">&#39;new_module</span>&gt;
-    <span class="kw">where
-        </span>M: Into&lt;MaybeShared&lt;<span class="lifetime">&#39;new_module</span>, <span class="kw">dyn </span>ModuleLoader&gt;&gt;,
-    {
-        ContextBuilder {
-            module_loader: <span class="prelude-val">Some</span>(module_loader.into()),
-            ..<span class="self">self
-        </span>}
-    }
+    </span><span class="kw">pub fn </span>module_loader&lt;M: ModuleLoader + <span class="lifetime">&#39;static</span>&gt;(<span class="kw-2">mut </span><span class="self">self</span>, module_loader: Rc&lt;M&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.module_loader = <span class="prelude-val">Some</span>(module_loader);
+        <span class="self">self
+    </span>}
 
     <span class="doccomment">/// [`AgentCanSuspend ( )`][spec] aka `[[CanBlock]]`
     ///
@@ -2163,10 +2080,7 @@
     /// [spec]: https://tc39.es/ecma262/#sec-agentcansuspend
     /// [wait]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Atomics/wait
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub const fn </span>can_block(
-        <span class="kw-2">mut </span><span class="self">self</span>,
-        can_block: bool,
-    ) -&gt; ContextBuilder&lt;<span class="lifetime">&#39;icu</span>, <span class="lifetime">&#39;hooks</span>, <span class="lifetime">&#39;queue</span>, <span class="lifetime">&#39;module</span>&gt; {
+    </span><span class="kw">pub const fn </span>can_block(<span class="kw-2">mut </span><span class="self">self</span>, can_block: bool) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.can_block = can_block;
         <span class="self">self
     </span>}
@@ -2185,13 +2099,7 @@
     /// all missing parameters to their default values.
     </span><span class="comment">// TODO: try to use a custom error here, since most of the `JsError` APIs
     // require having a `Context` in the first place.
-    </span><span class="kw">pub fn </span>build&lt;<span class="lifetime">&#39;host</span>&gt;(<span class="self">self</span>) -&gt; JsResult&lt;Context&lt;<span class="lifetime">&#39;host</span>&gt;&gt;
-    <span class="kw">where
-        </span><span class="lifetime">&#39;icu</span>: <span class="lifetime">&#39;host</span>,
-        <span class="lifetime">&#39;hooks</span>: <span class="lifetime">&#39;host</span>,
-        <span class="lifetime">&#39;queue</span>: <span class="lifetime">&#39;host</span>,
-        <span class="lifetime">&#39;module</span>: <span class="lifetime">&#39;host</span>,
-    {
+    </span><span class="kw">pub fn </span>build(<span class="self">self</span>) -&gt; JsResult&lt;Context&gt; {
         <span class="kw">if </span><span class="self">self</span>.can_block {
             <span class="kw">if </span>CANNOT_BLOCK_COUNTER.get() &gt; <span class="number">0 </span>{
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
@@ -2206,27 +2114,21 @@
 
         <span class="kw">let </span>root_shape = RootShape::default();
 
-        <span class="kw">let </span>host_hooks = <span class="self">self</span>.host_hooks.unwrap_or_else(|| {
-            <span class="kw">let </span>hooks: <span class="kw-2">&amp;</span><span class="kw">dyn </span>HostHooks = <span class="kw-2">&amp;</span>DefaultHooks;
-            hooks.into()
-        });
-        <span class="kw">let </span>realm = Realm::create(<span class="kw-2">&amp;*</span>host_hooks, <span class="kw-2">&amp;</span>root_shape);
+        <span class="kw">let </span>host_hooks = <span class="self">self</span>.host_hooks.unwrap_or(<span class="kw-2">&amp;</span>DefaultHooks);
+        <span class="kw">let </span>realm = Realm::create(host_hooks, <span class="kw-2">&amp;</span>root_shape);
         <span class="kw">let </span>vm = Vm::new(realm);
 
-        <span class="kw">let </span>module_loader = <span class="kw">if let </span><span class="prelude-val">Some</span>(loader) = <span class="self">self</span>.module_loader {
+        <span class="kw">let </span>module_loader: Rc&lt;<span class="kw">dyn </span>ModuleLoader&gt; = <span class="kw">if let </span><span class="prelude-val">Some</span>(loader) = <span class="self">self</span>.module_loader {
             loader
+        } <span class="kw">else if let </span><span class="prelude-val">Ok</span>(loader) = SimpleModuleLoader::new(Path::new(<span class="string">&quot;.&quot;</span>)) {
+            Rc::new(loader)
         } <span class="kw">else </span>{
-            SimpleModuleLoader::new(Path::new(<span class="string">&quot;.&quot;</span>)).map_or_else(
-                |<span class="kw">_</span>| {
-                    <span class="kw">let </span>loader: <span class="kw-2">&amp;</span><span class="kw">dyn </span>ModuleLoader = <span class="kw-2">&amp;</span>IdleModuleLoader;
-                    loader.into()
-                },
-                |loader| {
-                    <span class="kw">let </span>loader: Rc&lt;<span class="kw">dyn </span>ModuleLoader&gt; = Rc::new(loader);
-                    loader.into()
-                },
-            )
+            Rc::new(IdleModuleLoader)
         };
+
+        <span class="kw">let </span>job_queue = <span class="self">self
+            </span>.job_queue
+            .unwrap_or_else(|| Rc::new(SimpleJobQueue::new()));
 
         <span class="kw">let </span><span class="kw-2">mut </span>context = Context {
             interner: <span class="self">self</span>.interner.unwrap_or_default(),
@@ -2234,18 +2136,16 @@
             strict: <span class="bool-val">false</span>,
             <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
             </span>icu: <span class="self">self</span>.icu.unwrap_or_else(|| {
-                <span class="kw">let </span>buffer: <span class="kw-2">&amp;</span><span class="kw">dyn </span>icu_provider::BufferProvider = boa_icu_provider::buffer();
-                <span class="kw">let </span>provider = BoaProvider::Buffer(buffer);
+                <span class="kw">let </span>provider = BoaProvider::Buffer(Box::new(icu::StaticProviderAdapter(
+                    boa_icu_provider::buffer(),
+                )));
                 icu::Icu::new(provider).expect(<span class="string">&quot;Failed to initialize default icu data.&quot;</span>)
             }),
             <span class="attr">#[cfg(feature = <span class="string">&quot;fuzz&quot;</span>)]
             </span>instructions_remaining: <span class="self">self</span>.instructions_remaining,
             kept_alive: Vec::new(),
             host_hooks,
-            job_queue: <span class="self">self</span>.job_queue.unwrap_or_else(|| {
-                <span class="kw">let </span>queue: Rc&lt;<span class="kw">dyn </span>JobQueue&gt; = Rc::new(SimpleJobQueue::new());
-                queue.into()
-            }),
+            job_queue,
             module_loader,
             optimizer_options: OptimizerOptions::OPTIMIZE_ALL,
             root_shape,
@@ -2261,20 +2161,20 @@
 
 <span class="doccomment">/// A cleanup guard for a [`Context`] that is executed when dropped.
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>ContextCleanupGuard&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;host</span>, F&gt;
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>ContextCleanupGuard&lt;<span class="lifetime">&#39;a</span>, F&gt;
 <span class="kw">where
-    </span>F: FnOnce(<span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) + <span class="lifetime">&#39;static</span>,
+    </span>F: FnOnce(<span class="kw-2">&amp;mut </span>Context) + <span class="lifetime">&#39;static</span>,
 {
-    context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Context&lt;<span class="lifetime">&#39;host</span>&gt;,
+    context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Context,
     cleanup: <span class="prelude-ty">Option</span>&lt;F&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;host</span>, F&gt; ContextCleanupGuard&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;host</span>, F&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, F&gt; ContextCleanupGuard&lt;<span class="lifetime">&#39;a</span>, F&gt;
 <span class="kw">where
-    </span>F: FnOnce(<span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) + <span class="lifetime">&#39;static</span>,
+    </span>F: FnOnce(<span class="kw-2">&amp;mut </span>Context) + <span class="lifetime">&#39;static</span>,
 {
     <span class="doccomment">/// Creates a new `ContextCleanupGuard` from the current context and its cleanup operation.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Context&lt;<span class="lifetime">&#39;host</span>&gt;, cleanup: F) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Context, cleanup: F) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             context,
             cleanup: <span class="prelude-val">Some</span>(cleanup),
@@ -2282,29 +2182,29 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;host</span>, F&gt; std::ops::Deref <span class="kw">for </span>ContextCleanupGuard&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;host</span>, F&gt;
+<span class="kw">impl</span>&lt;F&gt; std::ops::Deref <span class="kw">for </span>ContextCleanupGuard&lt;<span class="lifetime">&#39;_</span>, F&gt;
 <span class="kw">where
-    </span>F: FnOnce(<span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) + <span class="lifetime">&#39;static</span>,
+    </span>F: FnOnce(<span class="kw-2">&amp;mut </span>Context) + <span class="lifetime">&#39;static</span>,
 {
-    <span class="kw">type </span>Target = Context&lt;<span class="lifetime">&#39;host</span>&gt;;
+    <span class="kw">type </span>Target = Context;
 
     <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Target {
         <span class="self">self</span>.context
     }
 }
 
-<span class="kw">impl</span>&lt;F&gt; std::ops::DerefMut <span class="kw">for </span>ContextCleanupGuard&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>, F&gt;
+<span class="kw">impl</span>&lt;F&gt; std::ops::DerefMut <span class="kw">for </span>ContextCleanupGuard&lt;<span class="lifetime">&#39;_</span>, F&gt;
 <span class="kw">where
-    </span>F: FnOnce(<span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) + <span class="lifetime">&#39;static</span>,
+    </span>F: FnOnce(<span class="kw-2">&amp;mut </span>Context) + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">fn </span>deref_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Target {
         <span class="self">self</span>.context
     }
 }
 
-<span class="kw">impl</span>&lt;F&gt; Drop <span class="kw">for </span>ContextCleanupGuard&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>, F&gt;
+<span class="kw">impl</span>&lt;F&gt; Drop <span class="kw">for </span>ContextCleanupGuard&lt;<span class="lifetime">&#39;_</span>, F&gt;
 <span class="kw">where
-    </span>F: FnOnce(<span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) + <span class="lifetime">&#39;static</span>,
+    </span>F: FnOnce(<span class="kw-2">&amp;mut </span>Context) + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(cleanup) = <span class="self">self</span>.cleanup.take() {

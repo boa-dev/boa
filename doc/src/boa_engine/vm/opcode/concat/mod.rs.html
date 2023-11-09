@@ -61,7 +61,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>ConcatToString;
 
 <span class="kw">impl </span>ConcatToString {
-    <span class="kw">fn </span>operation(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;, value_count: usize) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>operation(context: <span class="kw-2">&amp;mut </span>Context, value_count: usize) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>strings = Vec::with_capacity(value_count);
         <span class="kw">for _ in </span><span class="number">0</span>..value_count {
             strings.push(context.vm.pop().to_string(context)<span class="question-mark">?</span>);
@@ -83,17 +83,17 @@
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - ConcatToString&quot;</span>;
     <span class="kw">const </span>COST: u8 = <span class="number">6</span>;
 
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>value_count = context.vm.read::&lt;u8&gt;() <span class="kw">as </span>usize;
         <span class="self">Self</span>::operation(context, value_count)
     }
 
-    <span class="kw">fn </span>execute_with_u16_operands(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>execute_with_u16_operands(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>value_count = context.vm.read::&lt;u16&gt;() <span class="kw">as </span>usize;
         <span class="self">Self</span>::operation(context, value_count)
     }
 
-    <span class="kw">fn </span>execute_with_u32_operands(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>execute_with_u32_operands(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>value_count = context.vm.read::&lt;u32&gt;() <span class="kw">as </span>usize;
         <span class="self">Self</span>::operation(context, value_count)
     }

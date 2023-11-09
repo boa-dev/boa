@@ -258,13 +258,13 @@
 <span class="doccomment">/// This trait adds a fallible and efficient conversions from a [`JsValue`] to Rust types.
 </span><span class="kw">pub trait </span>TryFromJs: Sized {
     <span class="doccomment">/// This function tries to convert a JavaScript value into `Self`.
-    </span><span class="kw">fn </span>try_from_js(value: <span class="kw-2">&amp;</span>JsValue, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt;;
+    </span><span class="kw">fn </span>try_from_js(value: <span class="kw-2">&amp;</span>JsValue, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt;;
 }
 
 <span class="kw">impl </span>JsValue {
     <span class="doccomment">/// This function is the inverse of [`TryFromJs`]. It tries to convert a [`JsValue`] to a given
     /// Rust type.
-    </span><span class="kw">pub fn </span>try_js_into&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;T&gt;
+    </span><span class="kw">pub fn </span>try_js_into&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;T&gt;
     <span class="kw">where
         </span>T: TryFromJs,
     {
@@ -273,7 +273,7 @@
 }
 
 <span class="kw">impl </span>TryFromJs <span class="kw">for </span>bool {
-    <span class="kw">fn </span>try_from_js(value: <span class="kw-2">&amp;</span>JsValue, _context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+    <span class="kw">fn </span>try_from_js(value: <span class="kw-2">&amp;</span>JsValue, _context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="kw">match </span>value {
             JsValue::Boolean(b) =&gt; <span class="prelude-val">Ok</span>(<span class="kw-2">*</span>b),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(JsNativeError::typ()
@@ -284,7 +284,7 @@
 }
 
 <span class="kw">impl </span>TryFromJs <span class="kw">for </span>String {
-    <span class="kw">fn </span>try_from_js(value: <span class="kw-2">&amp;</span>JsValue, _context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+    <span class="kw">fn </span>try_from_js(value: <span class="kw-2">&amp;</span>JsValue, _context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="kw">match </span>value {
             JsValue::String(s) =&gt; s.to_std_string().map_err(|e| {
                 JsNativeError::typ()
@@ -302,7 +302,7 @@
 <span class="kw">where
     </span>T: TryFromJs,
 {
-    <span class="kw">fn </span>try_from_js(value: <span class="kw-2">&amp;</span>JsValue, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+    <span class="kw">fn </span>try_from_js(value: <span class="kw-2">&amp;</span>JsValue, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="kw">match </span>value {
             JsValue::Null | JsValue::Undefined =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
             value =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(T::try_from_js(value, context)<span class="question-mark">?</span>)),
@@ -311,7 +311,7 @@
 }
 
 <span class="kw">impl </span>TryFromJs <span class="kw">for </span>JsBigInt {
-    <span class="kw">fn </span>try_from_js(value: <span class="kw-2">&amp;</span>JsValue, _context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+    <span class="kw">fn </span>try_from_js(value: <span class="kw-2">&amp;</span>JsValue, _context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="kw">match </span>value {
             JsValue::BigInt(b) =&gt; <span class="prelude-val">Ok</span>(b.clone()),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(JsNativeError::typ()
@@ -322,7 +322,7 @@
 }
 
 <span class="kw">impl </span>TryFromJs <span class="kw">for </span>BigInt {
-    <span class="kw">fn </span>try_from_js(value: <span class="kw-2">&amp;</span>JsValue, _context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+    <span class="kw">fn </span>try_from_js(value: <span class="kw-2">&amp;</span>JsValue, _context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="kw">match </span>value {
             JsValue::BigInt(b) =&gt; <span class="prelude-val">Ok</span>(b.as_inner().clone()),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(JsNativeError::typ()
@@ -333,13 +333,13 @@
 }
 
 <span class="kw">impl </span>TryFromJs <span class="kw">for </span>JsValue {
-    <span class="kw">fn </span>try_from_js(value: <span class="kw-2">&amp;</span>JsValue, _context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+    <span class="kw">fn </span>try_from_js(value: <span class="kw-2">&amp;</span>JsValue, _context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="prelude-val">Ok</span>(value.clone())
     }
 }
 
 <span class="kw">impl </span>TryFromJs <span class="kw">for </span>f64 {
-    <span class="kw">fn </span>try_from_js(value: <span class="kw-2">&amp;</span>JsValue, _context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+    <span class="kw">fn </span>try_from_js(value: <span class="kw-2">&amp;</span>JsValue, _context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="kw">match </span>value {
             JsValue::Integer(i) =&gt; <span class="prelude-val">Ok</span>((<span class="kw-2">*</span>i).into()),
             JsValue::Rational(r) =&gt; <span class="prelude-val">Ok</span>(<span class="kw-2">*</span>r),
@@ -351,7 +351,7 @@
 }
 
 <span class="kw">impl </span>TryFromJs <span class="kw">for </span>i8 {
-    <span class="kw">fn </span>try_from_js(value: <span class="kw-2">&amp;</span>JsValue, _context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+    <span class="kw">fn </span>try_from_js(value: <span class="kw-2">&amp;</span>JsValue, _context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="kw">match </span>value {
             JsValue::Integer(i) =&gt; (<span class="kw-2">*</span>i).try_into().map_err(|e| {
                 JsNativeError::typ()
@@ -366,7 +366,7 @@
 }
 
 <span class="kw">impl </span>TryFromJs <span class="kw">for </span>u8 {
-    <span class="kw">fn </span>try_from_js(value: <span class="kw-2">&amp;</span>JsValue, _context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+    <span class="kw">fn </span>try_from_js(value: <span class="kw-2">&amp;</span>JsValue, _context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="kw">match </span>value {
             JsValue::Integer(i) =&gt; (<span class="kw-2">*</span>i).try_into().map_err(|e| {
                 JsNativeError::typ()
@@ -381,7 +381,7 @@
 }
 
 <span class="kw">impl </span>TryFromJs <span class="kw">for </span>i16 {
-    <span class="kw">fn </span>try_from_js(value: <span class="kw-2">&amp;</span>JsValue, _context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+    <span class="kw">fn </span>try_from_js(value: <span class="kw-2">&amp;</span>JsValue, _context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="kw">match </span>value {
             JsValue::Integer(i) =&gt; (<span class="kw-2">*</span>i).try_into().map_err(|e| {
                 JsNativeError::typ()
@@ -396,7 +396,7 @@
 }
 
 <span class="kw">impl </span>TryFromJs <span class="kw">for </span>u16 {
-    <span class="kw">fn </span>try_from_js(value: <span class="kw-2">&amp;</span>JsValue, _context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+    <span class="kw">fn </span>try_from_js(value: <span class="kw-2">&amp;</span>JsValue, _context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="kw">match </span>value {
             JsValue::Integer(i) =&gt; (<span class="kw-2">*</span>i).try_into().map_err(|e| {
                 JsNativeError::typ()
@@ -411,7 +411,7 @@
 }
 
 <span class="kw">impl </span>TryFromJs <span class="kw">for </span>i32 {
-    <span class="kw">fn </span>try_from_js(value: <span class="kw-2">&amp;</span>JsValue, _context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+    <span class="kw">fn </span>try_from_js(value: <span class="kw-2">&amp;</span>JsValue, _context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="kw">match </span>value {
             JsValue::Integer(i) =&gt; <span class="prelude-val">Ok</span>(<span class="kw-2">*</span>i),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(JsNativeError::typ()
@@ -422,7 +422,7 @@
 }
 
 <span class="kw">impl </span>TryFromJs <span class="kw">for </span>u32 {
-    <span class="kw">fn </span>try_from_js(value: <span class="kw-2">&amp;</span>JsValue, _context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+    <span class="kw">fn </span>try_from_js(value: <span class="kw-2">&amp;</span>JsValue, _context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="kw">match </span>value {
             JsValue::Integer(i) =&gt; (<span class="kw-2">*</span>i).try_into().map_err(|e| {
                 JsNativeError::typ()
@@ -437,7 +437,7 @@
 }
 
 <span class="kw">impl </span>TryFromJs <span class="kw">for </span>i64 {
-    <span class="kw">fn </span>try_from_js(value: <span class="kw-2">&amp;</span>JsValue, _context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+    <span class="kw">fn </span>try_from_js(value: <span class="kw-2">&amp;</span>JsValue, _context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="kw">match </span>value {
             JsValue::Integer(i) =&gt; <span class="prelude-val">Ok</span>((<span class="kw-2">*</span>i).into()),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(JsNativeError::typ()
@@ -448,7 +448,7 @@
 }
 
 <span class="kw">impl </span>TryFromJs <span class="kw">for </span>u64 {
-    <span class="kw">fn </span>try_from_js(value: <span class="kw-2">&amp;</span>JsValue, _context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+    <span class="kw">fn </span>try_from_js(value: <span class="kw-2">&amp;</span>JsValue, _context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="kw">match </span>value {
             JsValue::Integer(i) =&gt; (<span class="kw-2">*</span>i).try_into().map_err(|e| {
                 JsNativeError::typ()
@@ -463,7 +463,7 @@
 }
 
 <span class="kw">impl </span>TryFromJs <span class="kw">for </span>usize {
-    <span class="kw">fn </span>try_from_js(value: <span class="kw-2">&amp;</span>JsValue, _context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+    <span class="kw">fn </span>try_from_js(value: <span class="kw-2">&amp;</span>JsValue, _context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="kw">match </span>value {
             JsValue::Integer(i) =&gt; (<span class="kw-2">*</span>i).try_into().map_err(|e| {
                 JsNativeError::typ()
@@ -478,7 +478,7 @@
 }
 
 <span class="kw">impl </span>TryFromJs <span class="kw">for </span>i128 {
-    <span class="kw">fn </span>try_from_js(value: <span class="kw-2">&amp;</span>JsValue, _context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+    <span class="kw">fn </span>try_from_js(value: <span class="kw-2">&amp;</span>JsValue, _context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="kw">match </span>value {
             JsValue::Integer(i) =&gt; <span class="prelude-val">Ok</span>((<span class="kw-2">*</span>i).into()),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(JsNativeError::typ()
@@ -489,7 +489,7 @@
 }
 
 <span class="kw">impl </span>TryFromJs <span class="kw">for </span>u128 {
-    <span class="kw">fn </span>try_from_js(value: <span class="kw-2">&amp;</span>JsValue, _context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+    <span class="kw">fn </span>try_from_js(value: <span class="kw-2">&amp;</span>JsValue, _context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="kw">match </span>value {
             JsValue::Integer(i) =&gt; (<span class="kw-2">*</span>i).try_into().map_err(|e| {
                 JsNativeError::typ()

@@ -373,18 +373,6 @@
 <a href="#373" id="373">373</a>
 <a href="#374" id="374">374</a>
 <a href="#375" id="375">375</a>
-<a href="#376" id="376">376</a>
-<a href="#377" id="377">377</a>
-<a href="#378" id="378">378</a>
-<a href="#379" id="379">379</a>
-<a href="#380" id="380">380</a>
-<a href="#381" id="381">381</a>
-<a href="#382" id="382">382</a>
-<a href="#383" id="383">383</a>
-<a href="#384" id="384">384</a>
-<a href="#385" id="385">385</a>
-<a href="#386" id="386">386</a>
-<a href="#387" id="387">387</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Symbol` object.
 //!
 //! The data type symbol is a primitive data type.
@@ -589,7 +577,7 @@
     </span><span class="kw">fn </span>constructor(
         new_target: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. If NewTarget is not undefined, throw a TypeError exception.
         </span><span class="kw">if </span>!new_target.is_undefined() {
@@ -638,11 +626,7 @@
     /// [spec]: https://tc39.es/ecma262/#sec-symbol.prototype.tostring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/toString
     </span><span class="attr">#[allow(clippy::wrong_self_convention)]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_string(
-        this: <span class="kw-2">&amp;</span>JsValue,
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
-        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_string(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let sym be ? thisSymbolValue(this value).
         </span><span class="kw">let </span>symbol = <span class="self">Self</span>::this_symbol_value(this)<span class="question-mark">?</span>;
 
@@ -660,11 +644,7 @@
     ///
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/valueOf
     /// [spec]: https://tc39.es/ecma262/#sec-symbol.prototype.valueof
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>value_of(
-        this: <span class="kw-2">&amp;</span>JsValue,
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
-        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>value_of(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Return ? thisSymbolValue(this value).
         </span><span class="kw">let </span>symbol = <span class="self">Self</span>::this_symbol_value(this)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(JsValue::Symbol(symbol))
@@ -683,7 +663,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_description(
         this: <span class="kw-2">&amp;</span>JsValue,
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
-        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let s be the this value.
         // 2. Let sym be ? thisSymbolValue(s).
@@ -703,11 +683,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-symbol.prototype.for
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/for
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>for_(
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
-        args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>for_(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let stringKey be ? ToString(key).
         </span><span class="kw">let </span>string_key = args
             .get(<span class="number">0</span>)
@@ -734,7 +710,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-symbol.prototype.keyfor
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/keyFor
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>key_for(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>key_for(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. If Type(sym) is not Symbol, throw a TypeError exception.
         </span><span class="kw">let </span>sym = args.get_or_undefined(<span class="number">0</span>).as_symbol().ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;Symbol.keyFor: sym is not a symbol&quot;</span>)
@@ -765,7 +741,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_primitive(
         this: <span class="kw-2">&amp;</span>JsValue,
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
-        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>sym = <span class="self">Self</span>::this_symbol_value(this)<span class="question-mark">?</span>;
         <span class="comment">// 1. Return ? thisSymbolValue(this value).

@@ -315,7 +315,7 @@
 <span class="kw">use </span>icu_datetime::options::preferences::HourCycle;
 
 <span class="kw">impl </span>OptionType <span class="kw">for </span>HourCycle {
-    <span class="kw">fn </span>from_value(value: JsValue, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+    <span class="kw">fn </span>from_value(value: JsValue, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="kw">match </span>value.to_string(context)<span class="question-mark">?</span>.to_std_string_escaped().as_str() {
             <span class="string">&quot;h11&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::H11),
             <span class="string">&quot;h12&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::H12),
@@ -384,7 +384,7 @@
     </span><span class="kw">fn </span>constructor(
         new_target: <span class="kw-2">&amp;</span>JsValue,
         _args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. If NewTarget is undefined, let newTarget be the active function object, else let newTarget be NewTarget.
         </span><span class="kw">let </span>new_target = <span class="kw-2">&amp;</span><span class="kw">if </span>new_target.is_undefined() {
@@ -471,7 +471,7 @@
     options: <span class="kw-2">&amp;</span>JsValue,
     required: <span class="kw-2">&amp;</span>DateTimeReqs,
     defaults: <span class="kw-2">&amp;</span>DateTimeReqs,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;JsObject&gt; {
     <span class="comment">// 1. If options is undefined, let options be null;
     // otherwise let options be ? ToObject(options).

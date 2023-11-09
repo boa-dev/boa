@@ -969,9 +969,6 @@
 <a href="#969" id="969">969</a>
 <a href="#970" id="970">970</a>
 <a href="#971" id="971">971</a>
-<a href="#972" id="972">972</a>
-<a href="#973" id="973">973</a>
-<a href="#974" id="974">974</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! `CodeBlock`
 //!
 //! This module is for the `CodeBlock` which implements a function representation in the VM
@@ -1800,7 +1797,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_function_object(
     code: Gc&lt;CodeBlock&gt;,
     prototype: JsObject,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsObject {
     <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;create_function_object&quot;</span>, <span class="string">&quot;vm&quot;</span>);
 
@@ -1873,10 +1870,7 @@
 /// This is prefered over [`create_function_object`] if prototype is [`None`],
 /// because it constructs the function from a pre-initialized object template,
 /// with all the properties and prototype set.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_function_object_fast(
-    code: Gc&lt;CodeBlock&gt;,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-) -&gt; JsObject {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_function_object_fast(code: Gc&lt;CodeBlock&gt;, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsObject {
     <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;create_function_object_fast&quot;</span>, <span class="string">&quot;vm&quot;</span>);
 
     <span class="kw">let </span>name: JsValue = code.name().clone().into();

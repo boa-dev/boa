@@ -542,7 +542,7 @@
         array_buffer: <span class="kw-2">&amp;</span>JsArrayBuffer,
         offset: <span class="prelude-ty">Option</span>&lt;u64&gt;,
         byte_length: <span class="prelude-ty">Option</span>&lt;u64&gt;,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="kw">let </span>(byte_offset, byte_length) = {
             <span class="kw">let </span>borrowed_buffer = array_buffer.borrow();
@@ -620,20 +620,20 @@
 
     <span class="doccomment">/// Returns the `viewed_array_buffer` field for [`JsDataView`]
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>buffer(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">pub fn </span>buffer(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         DataView::get_buffer(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[], context)
     }
 
     <span class="doccomment">/// Returns the `byte_length` property of [`JsDataView`] as a u64 integer
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>byte_length(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;u64&gt; {
+    </span><span class="kw">pub fn </span>byte_length(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;u64&gt; {
         DataView::get_byte_length(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[], context)
             .map(|v| v.as_number().expect(<span class="string">&quot;value should be a number&quot;</span>) <span class="kw">as </span>u64)
     }
 
     <span class="doccomment">/// Returns the `byte_offset` field property of [`JsDataView`] as a u64 integer
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>byte_offset(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;u64&gt; {
+    </span><span class="kw">pub fn </span>byte_offset(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;u64&gt; {
         DataView::get_byte_offset(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[], context)
             .map(|v| v.as_number().expect(<span class="string">&quot;byte_offset value must be a number&quot;</span>) <span class="kw">as </span>u64)
     }
@@ -644,7 +644,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         byte_offset: usize,
         is_little_endian: bool,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;i64&gt; {
         DataView::get_big_int64(
             <span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(),
@@ -660,7 +660,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         byte_offset: usize,
         is_little_endian: bool,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;u64&gt; {
         DataView::get_big_uint64(
             <span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(),
@@ -676,7 +676,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         byte_offset: usize,
         is_little_endian: bool,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;f32&gt; {
         DataView::get_float32(
             <span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(),
@@ -692,7 +692,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         byte_offset: usize,
         is_little_endian: bool,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;f64&gt; {
         DataView::get_float64(
             <span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(),
@@ -708,7 +708,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         byte_offset: usize,
         is_little_endian: bool,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;i8&gt; {
         DataView::get_int8(
             <span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(),
@@ -724,7 +724,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         byte_offset: usize,
         is_little_endian: bool,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;i16&gt; {
         DataView::get_int16(
             <span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(),
@@ -740,7 +740,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         byte_offset: usize,
         is_little_endian: bool,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;i32&gt; {
         DataView::get_int32(
             <span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(),
@@ -756,7 +756,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         byte_offset: usize,
         is_little_endian: bool,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;u8&gt; {
         DataView::get_uint8(
             <span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(),
@@ -772,7 +772,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         byte_offset: usize,
         is_little_endian: bool,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;u16&gt; {
         DataView::get_uint16(
             <span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(),
@@ -788,7 +788,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         byte_offset: usize,
         is_little_endian: bool,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;u32&gt; {
         DataView::get_uint32(
             <span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(),
@@ -805,7 +805,7 @@
         byte_offset: usize,
         value: i64,
         is_little_endian: bool,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         DataView::set_big_int64(
             <span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(),
@@ -821,7 +821,7 @@
         byte_offset: usize,
         value: u64,
         is_little_endian: bool,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         DataView::set_big_uint64(
             <span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(),
@@ -837,7 +837,7 @@
         byte_offset: usize,
         value: f32,
         is_little_endian: bool,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         DataView::set_float32(
             <span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(),
@@ -853,7 +853,7 @@
         byte_offset: usize,
         value: f64,
         is_little_endian: bool,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         DataView::set_float64(
             <span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(),
@@ -869,7 +869,7 @@
         byte_offset: usize,
         value: i8,
         is_little_endian: bool,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         DataView::set_int8(
             <span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(),
@@ -885,7 +885,7 @@
         byte_offset: usize,
         value: i16,
         is_little_endian: bool,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         DataView::set_int16(
             <span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(),
@@ -901,7 +901,7 @@
         byte_offset: usize,
         value: i32,
         is_little_endian: bool,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         DataView::set_int32(
             <span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(),
@@ -917,7 +917,7 @@
         byte_offset: usize,
         value: u8,
         is_little_endian: bool,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         DataView::set_uint8(
             <span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(),
@@ -933,7 +933,7 @@
         byte_offset: usize,
         value: u16,
         is_little_endian: bool,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         DataView::set_uint16(
             <span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(),
@@ -949,7 +949,7 @@
         byte_offset: usize,
         value: u32,
         is_little_endian: bool,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         DataView::set_uint32(
             <span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(),
@@ -985,7 +985,7 @@
 <span class="kw">impl </span>JsObjectType <span class="kw">for </span>JsDataView {}
 
 <span class="kw">impl </span>TryFromJs <span class="kw">for </span>JsDataView {
-    <span class="kw">fn </span>try_from_js(value: <span class="kw-2">&amp;</span>JsValue, _context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+    <span class="kw">fn </span>try_from_js(value: <span class="kw-2">&amp;</span>JsValue, _context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="kw">match </span>value {
             JsValue::Object(o) =&gt; <span class="self">Self</span>::from_object(o.clone()),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(JsNativeError::typ()

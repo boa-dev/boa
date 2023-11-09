@@ -279,7 +279,7 @@
         string: JsString,
         global: bool,
         unicode: bool,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsValue {
         <span class="comment">// TODO: Implement this with closures and generators.
         //       For now all values of the closure are stored in RegExpStringIterator and the actual closure execution is in `.next()`.
@@ -312,7 +312,7 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%regexpstringiteratorprototype%.next
-    </span><span class="kw">pub fn </span>next(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">pub fn </span>next(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>iterator = this.as_object().map(JsObject::borrow_mut);
         <span class="kw">let </span>iterator = iterator
             .as_mut()

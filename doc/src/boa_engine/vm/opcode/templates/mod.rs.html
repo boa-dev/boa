@@ -143,7 +143,7 @@
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - TemplateLookup&quot;</span>;
     <span class="kw">const </span>COST: u8 = <span class="number">3</span>;
 
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>jump = context.vm.read::&lt;u32&gt;();
         <span class="kw">let </span>site = context.vm.read::&lt;u64&gt;();
 
@@ -165,7 +165,7 @@
 
 <span class="kw">impl </span>TemplateCreate {
     <span class="attr">#[allow(clippy::unnecessary_wraps)]
-    </span><span class="kw">fn </span>operation(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;, count: u32, site: u64) -&gt; JsResult&lt;CompletionType&gt; {
+    </span><span class="kw">fn </span>operation(context: <span class="kw-2">&amp;mut </span>Context, count: u32, site: u64) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>template =
             Array::array_create(count.into(), <span class="prelude-val">None</span>, context).expect(<span class="string">&quot;cannot fail per spec&quot;</span>);
         <span class="kw">let </span>raw_obj =
@@ -228,19 +228,19 @@
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - TemplateCreate&quot;</span>;
     <span class="kw">const </span>COST: u8 = <span class="number">6</span>;
 
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>count = u32::from(context.vm.read::&lt;u8&gt;());
         <span class="kw">let </span>site = context.vm.read::&lt;u64&gt;();
         <span class="self">Self</span>::operation(context, count, site)
     }
 
-    <span class="kw">fn </span>execute_with_u16_operands(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>execute_with_u16_operands(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>count = u32::from(context.vm.read::&lt;u16&gt;());
         <span class="kw">let </span>site = context.vm.read::&lt;u64&gt;();
         <span class="self">Self</span>::operation(context, count, site)
     }
 
-    <span class="kw">fn </span>execute_with_u32_operands(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>execute_with_u32_operands(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>count = context.vm.read::&lt;u32&gt;();
         <span class="kw">let </span>site = context.vm.read::&lt;u64&gt;();
         <span class="self">Self</span>::operation(context, count, site)

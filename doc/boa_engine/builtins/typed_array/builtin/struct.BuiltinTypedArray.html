@@ -1,9 +1,9 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="The JavaScript `%TypedArray%` object."><title>BuiltinTypedArray in boa_engine::builtins::typed_array::builtin - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-cb6f1f67f1bcd037.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.73.0 (cc66ad468 2023-10-03)" data-channel="1.73.0" data-search-js="search-6dfdfced5eff6596.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-1596385f77d47ef2.css" data-theme-dark-css="dark-0a43001d3fc2282c.css" data-theme-ayu-css="ayu-fd19013d6ce078bf.css" ><script src="../../../../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="sidebar-items.js"></script><script defer src="../../../../static.files/main-0795b7d26be81095.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../../static.files/light-1596385f77d47ef2.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../../static.files/dark-0a43001d3fc2282c.css"><link rel="stylesheet" href="../../../../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc struct"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="logo-container" href="../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><h2></h2></nav><nav class="sidebar"><a class="logo-container" href="../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><h2 class="location"><a href="#">BuiltinTypedArray</a></h2><div class="sidebar-elems"><section><h3><a href="#implementations">Methods</a></h3><ul class="block"><li><a href="#method.allocate">allocate</a></li><li><a href="#method.allocate_buffer">allocate_buffer</a></li><li><a href="#method.at">at</a></li><li><a href="#method.buffer">buffer</a></li><li><a href="#method.byte_length">byte_length</a></li><li><a href="#method.byte_offset">byte_offset</a></li><li><a href="#method.copy_within">copy_within</a></li><li><a href="#method.create">create</a></li><li><a href="#method.entries">entries</a></li><li><a href="#method.every">every</a></li><li><a href="#method.fill">fill</a></li><li><a href="#method.filter">filter</a></li><li><a href="#method.find">find</a></li><li><a href="#method.find_index">find_index</a></li><li><a href="#method.find_last">find_last</a></li><li><a href="#method.find_last_index">find_last_index</a></li><li><a href="#method.foreach">foreach</a></li><li><a href="#method.from">from</a></li><li><a href="#method.from_kind_and_length">from_kind_and_length</a></li><li><a href="#method.get_species">get_species</a></li><li><a href="#method.includes">includes</a></li><li><a href="#method.index_of">index_of</a></li><li><a href="#method.initialize_from_array_buffer">initialize_from_array_buffer</a></li><li><a href="#method.initialize_from_array_like">initialize_from_array_like</a></li><li><a href="#method.initialize_from_list">initialize_from_list</a></li><li><a href="#method.initialize_from_typed_array">initialize_from_typed_array</a></li><li><a href="#method.join">join</a></li><li><a href="#method.keys">keys</a></li><li><a href="#method.last_index_of">last_index_of</a></li><li><a href="#method.length">length</a></li><li><a href="#method.map">map</a></li><li><a href="#method.of">of</a></li><li><a href="#method.reduce">reduce</a></li><li><a href="#method.reduceright">reduceright</a></li><li><a href="#method.reverse">reverse</a></li><li><a href="#method.set">set</a></li><li><a href="#method.set_typed_array_from_array_like">set_typed_array_from_array_like</a></li><li><a href="#method.set_typed_array_from_typed_array">set_typed_array_from_typed_array</a></li><li><a href="#method.slice">slice</a></li><li><a href="#method.some">some</a></li><li><a href="#method.sort">sort</a></li><li><a href="#method.species_create">species_create</a></li><li><a href="#method.subarray">subarray</a></li><li><a href="#method.to_locale_string">to_locale_string</a></li><li><a href="#method.to_reversed">to_reversed</a></li><li><a href="#method.to_sorted">to_sorted</a></li><li><a href="#method.to_string_tag">to_string_tag</a></li><li><a href="#method.values">values</a></li><li><a href="#method.with">with</a></li></ul><h3><a href="#trait-implementations">Trait Implementations</a></h3><ul class="block"><li><a href="#impl-BuiltInConstructor-for-BuiltinTypedArray">BuiltInConstructor</a></li><li><a href="#impl-BuiltInObject-for-BuiltinTypedArray">BuiltInObject</a></li><li><a href="#impl-Clone-for-BuiltinTypedArray">Clone</a></li><li><a href="#impl-Copy-for-BuiltinTypedArray">Copy</a></li><li><a href="#impl-Debug-for-BuiltinTypedArray">Debug</a></li><li><a href="#impl-IntrinsicObject-for-BuiltinTypedArray">IntrinsicObject</a></li></ul><h3><a href="#synthetic-implementations">Auto Trait Implementations</a></h3><ul class="block"><li><a href="#impl-RefUnwindSafe-for-BuiltinTypedArray">RefUnwindSafe</a></li><li><a href="#impl-Send-for-BuiltinTypedArray">Send</a></li><li><a href="#impl-Sync-for-BuiltinTypedArray">Sync</a></li><li><a href="#impl-Unpin-for-BuiltinTypedArray">Unpin</a></li><li><a href="#impl-UnwindSafe-for-BuiltinTypedArray">UnwindSafe</a></li></ul><h3><a href="#blanket-implementations">Blanket Implementations</a></h3><ul class="block"><li><a href="#impl-Any-for-BuiltinTypedArray">Any</a></li><li><a href="#impl-Borrow%3CT%3E-for-BuiltinTypedArray">Borrow&lt;T&gt;</a></li><li><a href="#impl-BorrowMut%3CT%3E-for-BuiltinTypedArray">BorrowMut&lt;T&gt;</a></li><li><a href="#impl-Conv-for-BuiltinTypedArray">Conv</a></li><li><a href="#impl-ErasedDestructor-for-BuiltinTypedArray">ErasedDestructor</a></li><li><a href="#impl-Filterable-for-BuiltinTypedArray">Filterable</a></li><li><a href="#impl-From%3CT%3E-for-BuiltinTypedArray">From&lt;T&gt;</a></li><li><a href="#impl-Into%3CU%3E-for-BuiltinTypedArray">Into&lt;U&gt;</a></li><li><a href="#impl-MaybeSendSync-for-BuiltinTypedArray">MaybeSendSync</a></li><li><a href="#impl-Pipe-for-BuiltinTypedArray">Pipe</a></li><li><a href="#impl-Tap-for-BuiltinTypedArray">Tap</a></li><li><a href="#impl-ToOwned-for-BuiltinTypedArray">ToOwned</a></li><li><a href="#impl-TryConv-for-BuiltinTypedArray">TryConv</a></li><li><a href="#impl-TryFrom%3CU%3E-for-BuiltinTypedArray">TryFrom&lt;U&gt;</a></li><li><a href="#impl-TryInto%3CU%3E-for-BuiltinTypedArray">TryInto&lt;U&gt;</a></li><li><a href="#impl-VZip%3CV%3E-for-BuiltinTypedArray">VZip&lt;V&gt;</a></li></ul></section><h2><a href="index.html">In boa_engine::builtins::typed_array::builtin</a></h2></div></nav><main><div class="width-limiter"><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="main-heading"><h1>Struct <a href="../../../index.html">boa_engine</a>::<wbr><a href="../../index.html">builtins</a>::<wbr><a href="../index.html">typed_array</a>::<wbr><a href="index.html">builtin</a>::<wbr><a class="struct" href="#">BuiltinTypedArray</a><button id="copy-path" title="Copy item path to clipboard"><img src="../../../../static.files/clipboard-7571035ce49a181d.svg" width="19" height="18" alt="Copy item path"></button></h1><span class="out-of-band"><a class="src" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#36">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><pre class="rust item-decl"><code>pub(crate) struct BuiltinTypedArray;</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>The JavaScript <code>%TypedArray%</code> object.</p>
 <p><a href="https://tc39.es/ecma262/#sec-%typedarray%-intrinsic-object">https://tc39.es/ecma262/#sec-%typedarray%-intrinsic-object</a></p>
-</div></details><h2 id="implementations" class="small-section-header">Implementations<a href="#implementations" class="anchor">§</a></h2><div id="implementations-list"><details class="toggle implementors-toggle" open><summary><section id="impl-BuiltinTypedArray" class="impl"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#187-3486">source</a><a href="#impl-BuiltinTypedArray" class="anchor">§</a><h3 class="code-header">impl <a class="struct" href="struct.BuiltinTypedArray.html" title="struct boa_engine::builtins::typed_array::builtin::BuiltinTypedArray">BuiltinTypedArray</a></h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.from" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#194-296">source</a><h4 class="code-header">fn <a href="#method.from" class="fn">from</a>(
+</div></details><h2 id="implementations" class="small-section-header">Implementations<a href="#implementations" class="anchor">§</a></h2><div id="implementations-list"><details class="toggle implementors-toggle" open><summary><section id="impl-BuiltinTypedArray" class="impl"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#187-3462">source</a><a href="#impl-BuiltinTypedArray" class="anchor">§</a><h3 class="code-header">impl <a class="struct" href="struct.BuiltinTypedArray.html" title="struct boa_engine::builtins::typed_array::builtin::BuiltinTypedArray">BuiltinTypedArray</a></h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.from" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#194-296">source</a><h4 class="code-header">fn <a href="#method.from" class="fn">from</a>(
     this: &amp;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>23.2.2.1 %TypedArray%.from ( source [ , mapfn [ , thisArg ] ] )</code></p>
 <p>More information:</p>
 <ul>
@@ -12,321 +12,317 @@
 </div></details><details class="toggle method-toggle" open><summary><section id="method.from_kind_and_length" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#301-310">source</a><h4 class="code-header">fn <a href="#method.from_kind_and_length" class="fn">from_kind_and_length</a>(
     kind: <a class="enum" href="../enum.TypedArrayKind.html" title="enum boa_engine::builtins::typed_array::TypedArrayKind">TypedArrayKind</a>,
     length: <a class="primitive" href="https://doc.rust-lang.org/1.73.0/std/primitive.u64.html">u64</a>,
-    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="struct" href="../../../object/jsobject/struct.JsObject.html" title="struct boa_engine::object::jsobject::JsObject">JsObject</a>&gt;</h4></section></summary><div class="docblock"><p><a href="https://tc39.es/ecma262/#sec-typedarray-create-same-type"><code>TypedArrayCreateSameType ( exemplar, argumentList )</code></a></p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.of" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#318-346">source</a><h4 class="code-header">fn <a href="#method.of" class="fn">of</a>(
     this: &amp;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>23.2.2.2 %TypedArray%.of ( ...items )</code></p>
 <p>More information:</p>
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-%typedarray%.of">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.get_species" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#355-362">source</a><h4 class="code-header">pub(super) fn <a href="#method.get_species" class="fn">get_species</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.get_species" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#355-358">source</a><h4 class="code-header">pub(super) fn <a href="#method.get_species" class="fn">get_species</a>(
     this: &amp;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     _: &amp;[<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    _: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    _: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>23.2.2.4 get %TypedArray% [ @@species ]</code></p>
 <p>More information:</p>
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-get-%typedarray%-@@species">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.at" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#370-418">source</a><h4 class="code-header">pub(crate) fn <a href="#method.at" class="fn">at</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.at" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#366-410">source</a><h4 class="code-header">pub(crate) fn <a href="#method.at" class="fn">at</a>(
     this: &amp;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>23.2.3.1 %TypedArray%.prototype.at ( index )</code></p>
 <p>More information:</p>
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-%typedarray%.prototype.at">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.buffer" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#426-441">source</a><h4 class="code-header">fn <a href="#method.buffer" class="fn">buffer</a>(
-    this: &amp;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
-    _: &amp;[<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    _: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
-) -&gt; <a class="type" href="../../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>23.2.3.2 get %TypedArray%.prototype.buffer</code></p>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.buffer" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#418-433">source</a><h4 class="code-header">fn <a href="#method.buffer" class="fn">buffer</a>(this: &amp;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>, _: &amp;[<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>], _: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>) -&gt; <a class="type" href="../../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>23.2.3.2 get %TypedArray%.prototype.buffer</code></p>
 <p>More information:</p>
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-get-%typedarray%.prototype.buffer">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.byte_length" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#449-474">source</a><h4 class="code-header">pub(crate) fn <a href="#method.byte_length" class="fn">byte_length</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.byte_length" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#441-462">source</a><h4 class="code-header">pub(crate) fn <a href="#method.byte_length" class="fn">byte_length</a>(
     this: &amp;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     _: &amp;[<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    _: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    _: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>23.2.3.3 get %TypedArray%.prototype.byteLength</code></p>
 <p>More information:</p>
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-get-%typedarray%.prototype.bytelength">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.byte_offset" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#482-507">source</a><h4 class="code-header">pub(crate) fn <a href="#method.byte_offset" class="fn">byte_offset</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.byte_offset" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#470-491">source</a><h4 class="code-header">pub(crate) fn <a href="#method.byte_offset" class="fn">byte_offset</a>(
     this: &amp;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     _: &amp;[<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    _: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    _: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>23.2.3.4 get %TypedArray%.prototype.byteOffset</code></p>
 <p>More information:</p>
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-get-%typedarray%.prototype.byteoffset">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.copy_within" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#515-653">source</a><h4 class="code-header">fn <a href="#method.copy_within" class="fn">copy_within</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.copy_within" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#499-633">source</a><h4 class="code-header">fn <a href="#method.copy_within" class="fn">copy_within</a>(
     this: &amp;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>23.2.3.6 %TypedArray%.prototype.copyWithin ( target, start [ , end ] )</code></p>
 <p>More information:</p>
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-%typedarray%.prototype.copywithin">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.entries" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#661-683">source</a><h4 class="code-header">fn <a href="#method.entries" class="fn">entries</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.entries" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#641-663">source</a><h4 class="code-header">fn <a href="#method.entries" class="fn">entries</a>(
     this: &amp;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     _: &amp;[<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>23.2.3.7 %TypedArray%.prototype.entries ( )</code></p>
 <p>More information:</p>
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-%typedarray%.prototype.entries">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.every" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#691-752">source</a><h4 class="code-header">pub(crate) fn <a href="#method.every" class="fn">every</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.every" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#671-732">source</a><h4 class="code-header">pub(crate) fn <a href="#method.every" class="fn">every</a>(
     this: &amp;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>23.2.3.8 %TypedArray%.prototype.every ( callbackfn [ , thisArg ] )</code></p>
 <p>More information:</p>
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-%typedarray%.prototype.every">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.fill" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#760-842">source</a><h4 class="code-header">pub(crate) fn <a href="#method.fill" class="fn">fill</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.fill" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#740-822">source</a><h4 class="code-header">pub(crate) fn <a href="#method.fill" class="fn">fill</a>(
     this: &amp;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>23.2.3.9 %TypedArray%.prototype.fill ( value [ , start [ , end ] ] )</code></p>
 <p>More information:</p>
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-%typedarray%.prototype.fill">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.filter" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#850-934">source</a><h4 class="code-header">pub(crate) fn <a href="#method.filter" class="fn">filter</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.filter" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#830-914">source</a><h4 class="code-header">pub(crate) fn <a href="#method.filter" class="fn">filter</a>(
     this: &amp;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>23.2.3.10 %TypedArray%.prototype.filter ( callbackfn [ , thisArg ] )</code></p>
 <p>More information:</p>
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-%typedarray%.prototype.filter">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.find" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#942-983">source</a><h4 class="code-header">pub(crate) fn <a href="#method.find" class="fn">find</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.find" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#922-963">source</a><h4 class="code-header">pub(crate) fn <a href="#method.find" class="fn">find</a>(
     this: &amp;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>23.2.3.11 %TypedArray%.prototype.find ( predicate [ , thisArg ] )</code></p>
 <p>More information:</p>
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-%typedarray%.prototype.find">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.find_index" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#991-1032">source</a><h4 class="code-header">pub(crate) fn <a href="#method.find_index" class="fn">find_index</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.find_index" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#971-1012">source</a><h4 class="code-header">pub(crate) fn <a href="#method.find_index" class="fn">find_index</a>(
     this: &amp;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>23.2.3.12 %TypedArray%.prototype.findIndex ( predicate [ , thisArg ] )</code></p>
 <p>More information:</p>
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-%typedarray%.prototype.findindex">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.find_last" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#1040-1079">source</a><h4 class="code-header">pub(crate) fn <a href="#method.find_last" class="fn">find_last</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.find_last" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#1020-1059">source</a><h4 class="code-header">pub(crate) fn <a href="#method.find_last" class="fn">find_last</a>(
     this: &amp;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>23.2.3.13 %TypedArray%.prototype.findLast ( predicate [ , thisArg ] )</code></p>
 <p>More information:</p>
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-%typedarray%.prototype.findlast">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.find_last_index" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#1087-1126">source</a><h4 class="code-header">pub(crate) fn <a href="#method.find_last_index" class="fn">find_last_index</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.find_last_index" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#1067-1106">source</a><h4 class="code-header">pub(crate) fn <a href="#method.find_last_index" class="fn">find_last_index</a>(
     this: &amp;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>23.2.3.14 %TypedArray%.prototype.findLastIndex ( predicate [ , thisArg ] )</code></p>
 <p>More information:</p>
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-%typedarray%.prototype.findlastindex">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.foreach" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#1134-1187">source</a><h4 class="code-header">pub(crate) fn <a href="#method.foreach" class="fn">foreach</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.foreach" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#1114-1167">source</a><h4 class="code-header">pub(crate) fn <a href="#method.foreach" class="fn">foreach</a>(
     this: &amp;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>23.2.3.15 %TypedArray%.prototype.forEach ( callbackfn [ , thisArg ] )</code></p>
 <p>More information:</p>
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-%typedarray%.prototype.foreach">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.includes" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#1195-1268">source</a><h4 class="code-header">pub(crate) fn <a href="#method.includes" class="fn">includes</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.includes" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#1175-1248">source</a><h4 class="code-header">pub(crate) fn <a href="#method.includes" class="fn">includes</a>(
     this: &amp;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>23.2.3.14 %TypedArray%.prototype.includes ( searchElement [ , fromIndex ] )</code></p>
 <p>More information:</p>
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-%typedarray%.prototype.includes">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.index_of" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#1276-1358">source</a><h4 class="code-header">pub(crate) fn <a href="#method.index_of" class="fn">index_of</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.index_of" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#1256-1338">source</a><h4 class="code-header">pub(crate) fn <a href="#method.index_of" class="fn">index_of</a>(
     this: &amp;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>23.2.3.15 %TypedArray%.prototype.indexOf ( searchElement [ , fromIndex ] )</code></p>
 <p>More information:</p>
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-%typedarray%.prototype.indexof">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.join" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#1366-1423">source</a><h4 class="code-header">pub(crate) fn <a href="#method.join" class="fn">join</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.join" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#1346-1403">source</a><h4 class="code-header">pub(crate) fn <a href="#method.join" class="fn">join</a>(
     this: &amp;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>23.2.3.16 %TypedArray%.prototype.join ( separator )</code></p>
 <p>More information:</p>
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-%typedarray%.prototype.join">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.keys" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#1431-1457">source</a><h4 class="code-header">pub(crate) fn <a href="#method.keys" class="fn">keys</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.keys" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#1411-1433">source</a><h4 class="code-header">pub(crate) fn <a href="#method.keys" class="fn">keys</a>(
     this: &amp;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     _: &amp;[<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>23.2.3.17 %TypedArray%.prototype.keys ( )</code></p>
 <p>More information:</p>
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-%typedarray%.prototype.keys">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.last_index_of" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#1465-1539">source</a><h4 class="code-header">pub(crate) fn <a href="#method.last_index_of" class="fn">last_index_of</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.last_index_of" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#1441-1515">source</a><h4 class="code-header">pub(crate) fn <a href="#method.last_index_of" class="fn">last_index_of</a>(
     this: &amp;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>23.2.3.18 %TypedArray%.prototype.lastIndexOf ( searchElement [ , fromIndex ] )</code></p>
 <p>More information:</p>
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-%typedarray%.prototype.lastindexof">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.length" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#1547-1568">source</a><h4 class="code-header">pub(crate) fn <a href="#method.length" class="fn">length</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.length" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#1523-1544">source</a><h4 class="code-header">pub(crate) fn <a href="#method.length" class="fn">length</a>(
     this: &amp;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     _: &amp;[<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    _: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    _: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>23.2.3.19 get %TypedArray%.prototype.length</code></p>
 <p>More information:</p>
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-get-%typedarray%.prototype.length">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.map" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#1576-1638">source</a><h4 class="code-header">pub(crate) fn <a href="#method.map" class="fn">map</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.map" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#1552-1614">source</a><h4 class="code-header">pub(crate) fn <a href="#method.map" class="fn">map</a>(
     this: &amp;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>23.2.3.20 %TypedArray%.prototype.map ( callbackfn [ , thisArg ] )</code></p>
 <p>More information:</p>
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-%typedarray%.prototype.map">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.reduce" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#1646-1725">source</a><h4 class="code-header">pub(crate) fn <a href="#method.reduce" class="fn">reduce</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.reduce" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#1622-1701">source</a><h4 class="code-header">pub(crate) fn <a href="#method.reduce" class="fn">reduce</a>(
     this: &amp;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>23.2.3.21 %TypedArray%.prototype.reduce ( callbackfn [ , initialValue ] )</code></p>
 <p>More information:</p>
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-%typedarray%.prototype.reduce">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.reduceright" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#1733-1814">source</a><h4 class="code-header">pub(crate) fn <a href="#method.reduceright" class="fn">reduceright</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.reduceright" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#1709-1790">source</a><h4 class="code-header">pub(crate) fn <a href="#method.reduceright" class="fn">reduceright</a>(
     this: &amp;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>23.2.3.22 %TypedArray%.prototype.reduceRight ( callbackfn [ , initialValue ] )</code></p>
 <p>More information:</p>
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-%typedarray%.prototype.reduceright">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.reverse" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#1823-1878">source</a><h4 class="code-header">pub(crate) fn <a href="#method.reverse" class="fn">reverse</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.reverse" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#1799-1854">source</a><h4 class="code-header">pub(crate) fn <a href="#method.reverse" class="fn">reverse</a>(
     this: &amp;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     _: &amp;[<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>23.2.3.23 %TypedArray%.prototype.reverse ( )</code></p>
 <p>More information:</p>
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-%typedarray%.prototype.reverse">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.to_reversed" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#1883-1929">source</a><h4 class="code-header">pub(crate) fn <a href="#method.to_reversed" class="fn">to_reversed</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.to_reversed" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#1859-1905">source</a><h4 class="code-header">pub(crate) fn <a href="#method.to_reversed" class="fn">to_reversed</a>(
     this: &amp;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     _: &amp;[<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><a href="https://tc39.es/ecma262/#sec-%typedarray%.prototype.toreversed"><code>%TypedArray%.prototype.toReversed ( )</code></a></p>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.set" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#1937-1989">source</a><h4 class="code-header">pub(crate) fn <a href="#method.set" class="fn">set</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.set" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#1913-1965">source</a><h4 class="code-header">pub(crate) fn <a href="#method.set" class="fn">set</a>(
     this: &amp;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>23.2.3.24 %TypedArray%.prototype.set ( source [ , offset ] )</code></p>
 <p>More information:</p>
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-%typedarray%.prototype.set">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.set_typed_array_from_typed_array" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#1997-2223">source</a><h4 class="code-header">fn <a href="#method.set_typed_array_from_typed_array" class="fn">set_typed_array_from_typed_array</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.set_typed_array_from_typed_array" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#1973-2199">source</a><h4 class="code-header">fn <a href="#method.set_typed_array_from_typed_array" class="fn">set_typed_array_from_typed_array</a>(
     target: &amp;<a class="struct" href="../../../object/jsobject/struct.JsObject.html" title="struct boa_engine::object::jsobject::JsObject">JsObject</a>,
     target_offset: &amp;<a class="enum" href="enum.U64OrPositiveInfinity.html" title="enum boa_engine::builtins::typed_array::builtin::U64OrPositiveInfinity">U64OrPositiveInfinity</a>,
     source: &amp;<a class="struct" href="../../../object/jsobject/struct.JsObject.html" title="struct boa_engine::object::jsobject::JsObject">JsObject</a>,
-    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.73.0/std/primitive.unit.html">()</a>&gt;</h4></section></summary><div class="docblock"><p><code>3.2.3.24.1 SetTypedArrayFromTypedArray ( target, targetOffset, source )</code></p>
 <p>More information:</p>
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-settypedarrayfromtypedarray">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.set_typed_array_from_array_like" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#2231-2296">source</a><h4 class="code-header">fn <a href="#method.set_typed_array_from_array_like" class="fn">set_typed_array_from_array_like</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.set_typed_array_from_array_like" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#2207-2272">source</a><h4 class="code-header">fn <a href="#method.set_typed_array_from_array_like" class="fn">set_typed_array_from_array_like</a>(
     target: &amp;<a class="struct" href="../../../object/jsobject/struct.JsObject.html" title="struct boa_engine::object::jsobject::JsObject">JsObject</a>,
     target_offset: &amp;<a class="enum" href="enum.U64OrPositiveInfinity.html" title="enum boa_engine::builtins::typed_array::builtin::U64OrPositiveInfinity">U64OrPositiveInfinity</a>,
     source: &amp;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
-    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.73.0/std/primitive.unit.html">()</a>&gt;</h4></section></summary><div class="docblock"><p><code>23.2.3.24.2 SetTypedArrayFromArrayLike ( target, targetOffset, source )</code></p>
 <p>More information:</p>
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-settypedarrayfromarraylike">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.slice" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#2304-2469">source</a><h4 class="code-header">pub(crate) fn <a href="#method.slice" class="fn">slice</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.slice" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#2280-2445">source</a><h4 class="code-header">pub(crate) fn <a href="#method.slice" class="fn">slice</a>(
     this: &amp;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>23.2.3.25 %TypedArray%.prototype.slice ( start, end )</code></p>
 <p>More information:</p>
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-%typedarray%.prototype.slice">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.some" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#2477-2537">source</a><h4 class="code-header">pub(crate) fn <a href="#method.some" class="fn">some</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.some" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#2453-2513">source</a><h4 class="code-header">pub(crate) fn <a href="#method.some" class="fn">some</a>(
     this: &amp;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>23.2.3.26 %TypedArray%.prototype.some ( callbackfn [ , thisArg ] )</code></p>
 <p>More information:</p>
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-%typedarray%.prototype.some">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.sort" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#2545-2608">source</a><h4 class="code-header">pub(crate) fn <a href="#method.sort" class="fn">sort</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.sort" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#2521-2584">source</a><h4 class="code-header">pub(crate) fn <a href="#method.sort" class="fn">sort</a>(
     this: &amp;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>23.2.3.27 %TypedArray%.prototype.sort ( comparefn )</code></p>
 <p>More information:</p>
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-%typedarray%.prototype.sort">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.to_sorted" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#2613-2676">source</a><h4 class="code-header">pub(crate) fn <a href="#method.to_sorted" class="fn">to_sorted</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.to_sorted" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#2589-2652">source</a><h4 class="code-header">pub(crate) fn <a href="#method.to_sorted" class="fn">to_sorted</a>(
     this: &amp;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><a href="https://tc39.es/ecma262/#sec-%typedarray%.prototype.tosorted"><code>%TypedArray%.prototype.toSorted ( comparefn )</code></a></p>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.subarray" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#2684-2761">source</a><h4 class="code-header">pub(crate) fn <a href="#method.subarray" class="fn">subarray</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.subarray" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#2660-2737">source</a><h4 class="code-header">pub(crate) fn <a href="#method.subarray" class="fn">subarray</a>(
     this: &amp;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>23.2.3.28 %TypedArray%.prototype.subarray ( begin, end )</code></p>
 <p>More information:</p>
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-%typedarray%.prototype.subarray">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.to_locale_string" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#2772-2851">source</a><h4 class="code-header">fn <a href="#method.to_locale_string" class="fn">to_locale_string</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.to_locale_string" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#2748-2827">source</a><h4 class="code-header">fn <a href="#method.to_locale_string" class="fn">to_locale_string</a>(
     this: &amp;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>%TypedArray%.prototype.toLocaleString ( [ reserved1 [ , reserved2 ] ] )</code>
 <code>Array.prototype.toLocaleString ( [ locales [ , options ] ] )</code></p>
 <p>More information:</p>
@@ -334,101 +330,97 @@
 <li><a href="https://tc39.es/ecma262/#sec-%typedarray%.prototype.tolocalestring">ECMAScript reference</a></li>
 <li><a href="https://402.ecma-international.org/10.0/#sup-array.prototype.tolocalestring">ECMA-402 reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.values" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#2859-2881">source</a><h4 class="code-header">fn <a href="#method.values" class="fn">values</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.values" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#2835-2857">source</a><h4 class="code-header">fn <a href="#method.values" class="fn">values</a>(
     this: &amp;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     _: &amp;[<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>23.2.3.31 %TypedArray%.prototype.values ( )</code></p>
 <p>More information:</p>
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-%typedarray%.prototype.values">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.with" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#2886-2974">source</a><h4 class="code-header">pub(crate) fn <a href="#method.with" class="fn">with</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.with" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#2862-2950">source</a><h4 class="code-header">pub(crate) fn <a href="#method.with" class="fn">with</a>(
     this: &amp;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><a href="https://tc39.es/ecma262/#sec-%typedarray%.prototype.with"><code>%TypedArray%.prototype.with ( index, value )</code></a></p>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.to_string_tag" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#2983-2998">source</a><h4 class="code-header">fn <a href="#method.to_string_tag" class="fn">to_string_tag</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.to_string_tag" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#2959-2974">source</a><h4 class="code-header">fn <a href="#method.to_string_tag" class="fn">to_string_tag</a>(
     this: &amp;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     _: &amp;[<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    _: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    _: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>23.2.3.33 get %TypedArray%.prototype [ @@toStringTag ]</code></p>
 <p>More information:</p>
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-get-%typedarray%.prototype-@@tostringtag">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.species_create" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#3006-3038">source</a><h4 class="code-header">fn <a href="#method.species_create" class="fn">species_create</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.species_create" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#2982-3014">source</a><h4 class="code-header">fn <a href="#method.species_create" class="fn">species_create</a>(
     exemplar: &amp;<a class="struct" href="../../../object/jsobject/struct.JsObject.html" title="struct boa_engine::object::jsobject::JsObject">JsObject</a>,
     kind: <a class="enum" href="../enum.TypedArrayKind.html" title="enum boa_engine::builtins::typed_array::TypedArrayKind">TypedArrayKind</a>,
     args: &amp;[<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="struct" href="../../../object/jsobject/struct.JsObject.html" title="struct boa_engine::object::jsobject::JsObject">JsObject</a>&gt;</h4></section></summary><div class="docblock"><p><code>23.2.4.1 TypedArraySpeciesCreate ( exemplar, argumentList )</code></p>
 <p>More information:</p>
 <ul>
 <li><a href="https://tc39.es/ecma262/#typedarray-species-create">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.create" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#3046-3079">source</a><h4 class="code-header">fn <a href="#method.create" class="fn">create</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.create" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#3022-3055">source</a><h4 class="code-header">fn <a href="#method.create" class="fn">create</a>(
     constructor: &amp;<a class="struct" href="../../../object/jsobject/struct.JsObject.html" title="struct boa_engine::object::jsobject::JsObject">JsObject</a>,
     args: &amp;[<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="struct" href="../../../object/jsobject/struct.JsObject.html" title="struct boa_engine::object::jsobject::JsObject">JsObject</a>&gt;</h4></section></summary><div class="docblock"><p><code>23.2.4.2 TypedArrayCreate ( constructor, argumentList )</code></p>
 <p>More information:</p>
 <ul>
 <li><a href="https://tc39.es/ecma262/#typedarray-create">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.allocate_buffer" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#3082-3114">source</a><h4 class="code-header">fn <a href="#method.allocate_buffer" class="fn">allocate_buffer</a>&lt;T: <a class="trait" href="../trait.TypedArray.html" title="trait boa_engine::builtins::typed_array::TypedArray">TypedArray</a>&gt;(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.allocate_buffer" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#3058-3090">source</a><h4 class="code-header">fn <a href="#method.allocate_buffer" class="fn">allocate_buffer</a>&lt;T: <a class="trait" href="../trait.TypedArray.html" title="trait boa_engine::builtins::typed_array::TypedArray">TypedArray</a>&gt;(
     length: <a class="primitive" href="https://doc.rust-lang.org/1.73.0/std/primitive.u64.html">u64</a>,
-    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="struct" href="../integer_indexed_object/struct.IntegerIndexed.html" title="struct boa_engine::builtins::typed_array::integer_indexed_object::IntegerIndexed">IntegerIndexed</a>&gt;</h4></section></summary><div class="docblock"><p><a href="https://tc39.es/ecma262/#sec-allocatetypedarraybuffer">https://tc39.es/ecma262/#sec-allocatetypedarraybuffer</a></p>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.initialize_from_list" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#3117-3145">source</a><h4 class="code-header">pub(crate) fn <a href="#method.initialize_from_list" class="fn">initialize_from_list</a>&lt;T: <a class="trait" href="../trait.TypedArray.html" title="trait boa_engine::builtins::typed_array::TypedArray">TypedArray</a>&gt;(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.initialize_from_list" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#3093-3121">source</a><h4 class="code-header">pub(crate) fn <a href="#method.initialize_from_list" class="fn">initialize_from_list</a>&lt;T: <a class="trait" href="../trait.TypedArray.html" title="trait boa_engine::builtins::typed_array::TypedArray">TypedArray</a>&gt;(
     proto: <a class="struct" href="../../../object/jsobject/struct.JsObject.html" title="struct boa_engine::object::jsobject::JsObject">JsObject</a>,
     values: <a class="struct" href="https://doc.rust-lang.org/1.73.0/alloc/vec/struct.Vec.html" title="struct alloc::vec::Vec">Vec</a>&lt;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;,
-    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="struct" href="../../../object/jsobject/struct.JsObject.html" title="struct boa_engine::object::jsobject::JsObject">JsObject</a>&gt;</h4></section></summary><div class="docblock"><p><a href="https://tc39.es/ecma262/#sec-initializetypedarrayfromlist">https://tc39.es/ecma262/#sec-initializetypedarrayfromlist</a></p>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.allocate" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#3157-3187">source</a><h4 class="code-header">pub(super) fn <a href="#method.allocate" class="fn">allocate</a>&lt;T: <a class="trait" href="../trait.TypedArray.html" title="trait boa_engine::builtins::typed_array::TypedArray">TypedArray</a>&gt;(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.allocate" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#3133-3163">source</a><h4 class="code-header">pub(super) fn <a href="#method.allocate" class="fn">allocate</a>&lt;T: <a class="trait" href="../trait.TypedArray.html" title="trait boa_engine::builtins::typed_array::TypedArray">TypedArray</a>&gt;(
     new_target: &amp;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     length: <a class="primitive" href="https://doc.rust-lang.org/1.73.0/std/primitive.u64.html">u64</a>,
-    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="struct" href="../../../object/jsobject/struct.JsObject.html" title="struct boa_engine::object::jsobject::JsObject">JsObject</a>&gt;</h4></section></summary><div class="docblock"><p><code>AllocateTypedArray ( constructorName, newTarget, defaultProto [ , length ] )</code></p>
 <p>It is used to validate and create an instance of a <code>TypedArray</code> constructor. If the <code>length</code>
 argument is passed, an <code>ArrayBuffer</code> of that length is also allocated and associated with the
 new <code>TypedArray</code> instance. <code>AllocateTypedArray</code> provides common semantics that is used by
 <code>TypedArray</code>.</p>
 <p>For more information, check the <a href="https://tc39.es/ecma262/#sec-allocatetypedarray">spec</a>.</p>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.initialize_from_typed_array" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#3195-3345">source</a><h4 class="code-header">pub(super) fn <a href="#method.initialize_from_typed_array" class="fn">initialize_from_typed_array</a>&lt;T: <a class="trait" href="../trait.TypedArray.html" title="trait boa_engine::builtins::typed_array::TypedArray">TypedArray</a>&gt;(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.initialize_from_typed_array" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#3171-3321">source</a><h4 class="code-header">pub(super) fn <a href="#method.initialize_from_typed_array" class="fn">initialize_from_typed_array</a>&lt;T: <a class="trait" href="../trait.TypedArray.html" title="trait boa_engine::builtins::typed_array::TypedArray">TypedArray</a>&gt;(
     proto: <a class="struct" href="../../../object/jsobject/struct.JsObject.html" title="struct boa_engine::object::jsobject::JsObject">JsObject</a>,
     src_array: &amp;<a class="struct" href="../../../object/jsobject/struct.JsObject.html" title="struct boa_engine::object::jsobject::JsObject">JsObject</a>,
-    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="struct" href="../../../object/jsobject/struct.JsObject.html" title="struct boa_engine::object::jsobject::JsObject">JsObject</a>&gt;</h4></section></summary><div class="docblock"><p><code>23.2.5.1.2 InitializeTypedArrayFromTypedArray ( O, srcArray )</code></p>
 <p>More information:</p>
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-initializetypedarrayfromtypedarray">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.initialize_from_array_buffer" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#3353-3449">source</a><h4 class="code-header">pub(super) fn <a href="#method.initialize_from_array_buffer" class="fn">initialize_from_array_buffer</a>&lt;T: <a class="trait" href="../trait.TypedArray.html" title="trait boa_engine::builtins::typed_array::TypedArray">TypedArray</a>&gt;(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.initialize_from_array_buffer" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#3329-3425">source</a><h4 class="code-header">pub(super) fn <a href="#method.initialize_from_array_buffer" class="fn">initialize_from_array_buffer</a>&lt;T: <a class="trait" href="../trait.TypedArray.html" title="trait boa_engine::builtins::typed_array::TypedArray">TypedArray</a>&gt;(
     proto: <a class="struct" href="../../../object/jsobject/struct.JsObject.html" title="struct boa_engine::object::jsobject::JsObject">JsObject</a>,
     buffer: <a class="struct" href="../../../object/jsobject/struct.JsObject.html" title="struct boa_engine::object::jsobject::JsObject">JsObject</a>,
     byte_offset: &amp;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     length: &amp;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
-    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="struct" href="../../../object/jsobject/struct.JsObject.html" title="struct boa_engine::object::jsobject::JsObject">JsObject</a>&gt;</h4></section></summary><div class="docblock"><p><code>23.2.5.1.3 InitializeTypedArrayFromArrayBuffer ( O, buffer, byteOffset, length )</code></p>
 <p>More information:</p>
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-initializetypedarrayfromarraybuffer">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.initialize_from_array_like" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#3457-3485">source</a><h4 class="code-header">pub(super) fn <a href="#method.initialize_from_array_like" class="fn">initialize_from_array_like</a>&lt;T: <a class="trait" href="../trait.TypedArray.html" title="trait boa_engine::builtins::typed_array::TypedArray">TypedArray</a>&gt;(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.initialize_from_array_like" class="method"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#3433-3461">source</a><h4 class="code-header">pub(super) fn <a href="#method.initialize_from_array_like" class="fn">initialize_from_array_like</a>&lt;T: <a class="trait" href="../trait.TypedArray.html" title="trait boa_engine::builtins::typed_array::TypedArray">TypedArray</a>&gt;(
     proto: <a class="struct" href="../../../object/jsobject/struct.JsObject.html" title="struct boa_engine::object::jsobject::JsObject">JsObject</a>,
     array_like: &amp;<a class="struct" href="../../../object/jsobject/struct.JsObject.html" title="struct boa_engine::object::jsobject::JsObject">JsObject</a>,
-    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="struct" href="../../../object/jsobject/struct.JsObject.html" title="struct boa_engine::object::jsobject::JsObject">JsObject</a>&gt;</h4></section></summary><div class="docblock"><p><code>23.2.5.1.5 InitializeTypedArrayFromArrayLike ( O, arrayLike )</code></p>
 <p>More information:</p>
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-initializetypedarrayfromarraylike">ECMAScript reference</a></li>
 </ul>
-</div></details></div></details></div><h2 id="trait-implementations" class="small-section-header">Trait Implementations<a href="#trait-implementations" class="anchor">§</a></h2><div id="trait-implementations-list"><details class="toggle implementors-toggle" open><summary><section id="impl-BuiltInConstructor-for-BuiltinTypedArray" class="impl"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#167-185">source</a><a href="#impl-BuiltInConstructor-for-BuiltinTypedArray" class="anchor">§</a><h3 class="code-header">impl <a class="trait" href="../../trait.BuiltInConstructor.html" title="trait boa_engine::builtins::BuiltInConstructor">BuiltInConstructor</a> for <a class="struct" href="struct.BuiltinTypedArray.html" title="struct boa_engine::builtins::typed_array::builtin::BuiltinTypedArray">BuiltinTypedArray</a></h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.constructor" class="method trait-impl"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#179-184">source</a><a href="#method.constructor" class="anchor">§</a><h4 class="code-header">fn <a href="../../trait.BuiltInConstructor.html#tymethod.constructor" class="fn">constructor</a>(
-    _: &amp;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
-    _: &amp;[<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    _: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
-) -&gt; <a class="type" href="../../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>23.2.1.1 %TypedArray% ( )</code></p>
+</div></details></div></details></div><h2 id="trait-implementations" class="small-section-header">Trait Implementations<a href="#trait-implementations" class="anchor">§</a></h2><div id="trait-implementations-list"><details class="toggle implementors-toggle" open><summary><section id="impl-BuiltInConstructor-for-BuiltinTypedArray" class="impl"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#167-185">source</a><a href="#impl-BuiltInConstructor-for-BuiltinTypedArray" class="anchor">§</a><h3 class="code-header">impl <a class="trait" href="../../trait.BuiltInConstructor.html" title="trait boa_engine::builtins::BuiltInConstructor">BuiltInConstructor</a> for <a class="struct" href="struct.BuiltinTypedArray.html" title="struct boa_engine::builtins::typed_array::builtin::BuiltinTypedArray">BuiltinTypedArray</a></h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.constructor" class="method trait-impl"><a class="src rightside" href="../../../../src/boa_engine/builtins/typed_array/builtin.rs.html#179-184">source</a><a href="#method.constructor" class="anchor">§</a><h4 class="code-header">fn <a href="../../trait.BuiltInConstructor.html#tymethod.constructor" class="fn">constructor</a>(_: &amp;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>, _: &amp;[<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>], _: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>) -&gt; <a class="type" href="../../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>23.2.1.1 %TypedArray% ( )</code></p>
 <p>More information:</p>
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-%typedarray%">ECMAScript reference</a></li>

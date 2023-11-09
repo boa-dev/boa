@@ -61,7 +61,7 @@
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - Nop&quot;</span>;
     <span class="kw">const </span>COST: u8 = <span class="number">1</span>;
 
-    <span class="kw">fn </span>execute(<span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>execute(<span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
 }
@@ -78,15 +78,15 @@
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - Reserved&quot;</span>;
     <span class="kw">const </span>COST: u8 = <span class="number">0</span>;
 
-    <span class="kw">fn </span>execute(<span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>execute(<span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="macro">unreachable!</span>(<span class="string">&quot;Reserved opcodes are unreachable!&quot;</span>)
     }
 
-    <span class="kw">fn </span>execute_with_u16_operands(<span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>execute_with_u16_operands(<span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="macro">unreachable!</span>(<span class="string">&quot;Reserved.U16 opcodes are unreachable!&quot;</span>)
     }
 
-    <span class="kw">fn </span>execute_with_u32_operands(<span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>execute_with_u32_operands(<span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="macro">unreachable!</span>(<span class="string">&quot;Reserved.U32 opcodes are unreachable!&quot;</span>)
     }
 }

@@ -308,7 +308,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_canonical_locales(
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>locales = args.get_or_undefined(<span class="number">0</span>);
 
@@ -350,7 +350,7 @@
     </span><span class="kw">fn </span>resolve(
         _locale: <span class="kw-2">&amp;mut </span>icu_locid::Locale,
         _options: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::LocaleOptions,
-        _provider: BoaProvider&lt;<span class="lifetime">&#39;_</span>&gt;,
+        _provider: <span class="kw-2">&amp;</span>BoaProvider,
     ) {
     }
 }

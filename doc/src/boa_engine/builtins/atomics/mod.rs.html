@@ -599,10 +599,6 @@
 <a href="#599" id="599">599</a>
 <a href="#600" id="600">600</a>
 <a href="#601" id="601">601</a>
-<a href="#602" id="602">602</a>
-<a href="#603" id="603">603</a>
-<a href="#604" id="604">604</a>
-<a href="#605" id="605">605</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Atomics` object.
 //!
 //! The `Atomics` object contains synchronization methods to orchestrate multithreading
@@ -683,7 +679,7 @@
 
 <span class="macro">macro_rules! </span>atomic_op {
     ($(<span class="attr">#[<span class="macro-nonterminal">$attr</span>:meta]</span>)* <span class="macro-nonterminal">$name</span>:ident) =&gt; {
-        $(<span class="attr">#[<span class="macro-nonterminal">$attr</span>]</span>)* <span class="kw">fn </span><span class="macro-nonterminal">$name</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+        $(<span class="attr">#[<span class="macro-nonterminal">$attr</span>]</span>)* <span class="kw">fn </span><span class="macro-nonterminal">$name</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
 
             <span class="kw">let </span>array = args.get_or_undefined(<span class="number">0</span>);
             <span class="kw">let </span>index = args.get_or_undefined(<span class="number">1</span>);
@@ -750,7 +746,7 @@
     <span class="doccomment">/// [`Atomics.isLockFree ( size )`][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-atomics.islockfree
-    </span><span class="kw">fn </span>is_lock_free(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>is_lock_free(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let n be ? ToIntegerOrInfinity(size).
         </span><span class="kw">let </span>n = args.get_or_undefined(<span class="number">0</span>).to_integer_or_infinity(context)<span class="question-mark">?</span>;
 
@@ -773,7 +769,7 @@
     <span class="doccomment">/// [`Atomics.load ( typedArray, index )`][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-atomics.load
-    </span><span class="kw">fn </span>load(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>load(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>array = args.get_or_undefined(<span class="number">0</span>);
         <span class="kw">let </span>index = args.get_or_undefined(<span class="number">1</span>);
 
@@ -806,7 +802,7 @@
     <span class="doccomment">/// [`Atomics.store ( typedArray, index, value )`][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-atomics.store
-    </span><span class="kw">fn </span>store(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>store(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>array = args.get_or_undefined(<span class="number">0</span>);
         <span class="kw">let </span>index = args.get_or_undefined(<span class="number">1</span>);
         <span class="kw">let </span>value = args.get_or_undefined(<span class="number">2</span>);
@@ -858,11 +854,7 @@
     <span class="doccomment">/// [`Atomics.compareExchange ( typedArray, index, expectedValue, replacementValue )`][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-atomics.compareexchange
-    </span><span class="kw">fn </span>compare_exchange(
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
-        args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>compare_exchange(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>array = args.get_or_undefined(<span class="number">0</span>);
         <span class="kw">let </span>index = args.get_or_undefined(<span class="number">1</span>);
         <span class="kw">let </span>expected = args.get_or_undefined(<span class="number">2</span>);
@@ -1013,7 +1005,7 @@
     <span class="doccomment">/// [`Atomics.wait ( typedArray, index, value, timeout )`][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-atomics.wait
-    </span><span class="kw">fn </span>wait(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>wait(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>array = args.get_or_undefined(<span class="number">0</span>);
         <span class="kw">let </span>index = args.get_or_undefined(<span class="number">1</span>);
         <span class="kw">let </span>value = args.get_or_undefined(<span class="number">2</span>);
@@ -1087,7 +1079,7 @@
     <span class="doccomment">/// [`Atomics.notify ( typedArray, index, count )`][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-atomics.notify
-    </span><span class="kw">fn </span>notify(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>notify(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>array = args.get_or_undefined(<span class="number">0</span>);
         <span class="kw">let </span>index = args.get_or_undefined(<span class="number">1</span>);
         <span class="kw">let </span>count = args.get_or_undefined(<span class="number">2</span>);
@@ -1181,7 +1173,7 @@
 </span><span class="kw">fn </span>validate_atomic_access(
     array: <span class="kw-2">&amp;</span>IntegerIndexed,
     request_index: <span class="kw-2">&amp;</span>JsValue,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;usize&gt; {
     <span class="comment">// 1. Let length be typedArray.[[ArrayLength]].
     </span><span class="kw">let </span>length = array.array_length();

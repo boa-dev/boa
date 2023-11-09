@@ -264,7 +264,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>DefineClassStaticSetterByName;
 
 <span class="kw">impl </span>DefineClassStaticSetterByName {
-    <span class="kw">fn </span>operation(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;, index: usize) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>operation(context: <span class="kw-2">&amp;mut </span>Context, index: usize) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>function = context.vm.pop();
         <span class="kw">let </span>class = context.vm.pop();
         <span class="kw">let </span>class = class.as_object().expect(<span class="string">&quot;class must be object&quot;</span>);
@@ -310,17 +310,17 @@
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - DefineClassStaticSetterByName&quot;</span>;
     <span class="kw">const </span>COST: u8 = <span class="number">6</span>;
 
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u8&gt;() <span class="kw">as </span>usize;
         <span class="self">Self</span>::operation(context, index)
     }
 
-    <span class="kw">fn </span>execute_with_u16_operands(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>execute_with_u16_operands(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u16&gt;() <span class="kw">as </span>usize;
         <span class="self">Self</span>::operation(context, index)
     }
 
-    <span class="kw">fn </span>execute_with_u32_operands(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>execute_with_u32_operands(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;() <span class="kw">as </span>usize;
         <span class="self">Self</span>::operation(context, index)
     }
@@ -334,7 +334,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>DefineClassSetterByName;
 
 <span class="kw">impl </span>DefineClassSetterByName {
-    <span class="kw">fn </span>operation(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;, index: usize) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>operation(context: <span class="kw-2">&amp;mut </span>Context, index: usize) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>function = context.vm.pop();
         <span class="kw">let </span>class_proto = context.vm.pop();
         <span class="kw">let </span>class_proto = class_proto.as_object().expect(<span class="string">&quot;class must be object&quot;</span>);
@@ -381,17 +381,17 @@
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - DefineClassSetterByName&quot;</span>;
     <span class="kw">const </span>COST: u8 = <span class="number">6</span>;
 
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u8&gt;() <span class="kw">as </span>usize;
         <span class="self">Self</span>::operation(context, index)
     }
 
-    <span class="kw">fn </span>execute_with_u16_operands(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>execute_with_u16_operands(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u16&gt;() <span class="kw">as </span>usize;
         <span class="self">Self</span>::operation(context, index)
     }
 
-    <span class="kw">fn </span>execute_with_u32_operands(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>execute_with_u32_operands(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;() <span class="kw">as </span>usize;
         <span class="self">Self</span>::operation(context, index)
     }
@@ -409,7 +409,7 @@
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - DefineClassStaticSetterByValue&quot;</span>;
     <span class="kw">const </span>COST: u8 = <span class="number">6</span>;
 
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>function = context.vm.pop();
         <span class="kw">let </span>key = context.vm.pop();
         <span class="kw">let </span>class = context.vm.pop();
@@ -461,7 +461,7 @@
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - DefineClassSetterByValue&quot;</span>;
     <span class="kw">const </span>COST: u8 = <span class="number">6</span>;
 
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>function = context.vm.pop();
         <span class="kw">let </span>key = context.vm.pop();
         <span class="kw">let </span>class_proto = context.vm.pop();

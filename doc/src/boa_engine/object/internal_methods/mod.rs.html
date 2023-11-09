@@ -962,11 +962,6 @@
 <a href="#962" id="962">962</a>
 <a href="#963" id="963">963</a>
 <a href="#964" id="964">964</a>
-<a href="#965" id="965">965</a>
-<a href="#966" id="966">966</a>
-<a href="#967" id="967">967</a>
-<a href="#968" id="968">968</a>
-<a href="#969" id="969">969</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module defines the object internal methods.
 //!
 //! More information:
@@ -1007,7 +1002,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-getprototypeof
     </span><span class="attr">#[track_caller]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>__get_prototype_of__(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsPrototype&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>__get_prototype_of__(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsPrototype&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Object::__get_prototype_of__&quot;</span>, <span class="string">&quot;object&quot;</span>);
         (<span class="self">self</span>.vtable().__get_prototype_of__)(<span class="self">self</span>, context)
     }
@@ -1023,7 +1018,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>__set_prototype_of__(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         val: JsPrototype,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;bool&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Object::__set_prototype_of__&quot;</span>, <span class="string">&quot;object&quot;</span>);
         (<span class="self">self</span>.vtable().__set_prototype_of__)(<span class="self">self</span>, val, context)
@@ -1037,7 +1032,7 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-isextensible
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>__is_extensible__(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;bool&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>__is_extensible__(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Object::__is_extensible__&quot;</span>, <span class="string">&quot;object&quot;</span>);
         (<span class="self">self</span>.vtable().__is_extensible__)(<span class="self">self</span>, context)
     }
@@ -1050,7 +1045,7 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-preventextensions
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>__prevent_extensions__(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;bool&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>__prevent_extensions__(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Object::__prevent_extensions__&quot;</span>, <span class="string">&quot;object&quot;</span>);
         (<span class="self">self</span>.vtable().__prevent_extensions__)(<span class="self">self</span>, context)
     }
@@ -1066,7 +1061,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>__get_own_property__(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         key: <span class="kw-2">&amp;</span>PropertyKey,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;PropertyDescriptor&gt;&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Object::__get_own_property__&quot;</span>, <span class="string">&quot;object&quot;</span>);
         (<span class="self">self</span>.vtable().__get_own_property__)(<span class="self">self</span>, key, context)
@@ -1084,7 +1079,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         key: <span class="kw-2">&amp;</span>PropertyKey,
         desc: PropertyDescriptor,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;bool&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Object::__define_own_property__&quot;</span>, <span class="string">&quot;object&quot;</span>);
         (<span class="self">self</span>.vtable().__define_own_property__)(<span class="self">self</span>, key, desc, context)
@@ -1101,7 +1096,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>__has_property__(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         key: <span class="kw-2">&amp;</span>PropertyKey,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;bool&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Object::__has_property__&quot;</span>, <span class="string">&quot;object&quot;</span>);
         (<span class="self">self</span>.vtable().__has_property__)(<span class="self">self</span>, key, context)
@@ -1119,7 +1114,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         key: <span class="kw-2">&amp;</span>PropertyKey,
         receiver: JsValue,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Object::__get__&quot;</span>, <span class="string">&quot;object&quot;</span>);
         (<span class="self">self</span>.vtable().__get__)(<span class="self">self</span>, key, receiver, context)
@@ -1138,7 +1133,7 @@
         key: PropertyKey,
         value: JsValue,
         receiver: JsValue,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;bool&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Object::__set__&quot;</span>, <span class="string">&quot;object&quot;</span>);
         (<span class="self">self</span>.vtable().__set__)(<span class="self">self</span>, key, value, receiver, context)
@@ -1152,11 +1147,7 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-delete-p
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>__delete__(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        key: <span class="kw-2">&amp;</span>PropertyKey,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;bool&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>__delete__(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>PropertyKey, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Object::__delete__&quot;</span>, <span class="string">&quot;object&quot;</span>);
         (<span class="self">self</span>.vtable().__delete__)(<span class="self">self</span>, key, context)
     }
@@ -1172,7 +1163,7 @@
     </span><span class="attr">#[track_caller]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>__own_property_keys__(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;Vec&lt;PropertyKey&gt;&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Object::__own_property_keys__&quot;</span>, <span class="string">&quot;object&quot;</span>);
         (<span class="self">self</span>.vtable().__own_property_keys__)(<span class="self">self</span>, context)
@@ -1252,24 +1243,23 @@
 </span><span class="attr">#[derive(Clone, Copy)]
 #[allow(clippy::type_complexity)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>InternalObjectMethods {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) __get_prototype_of__: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>JsObject, <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsPrototype&gt;,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) __set_prototype_of__: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>JsObject, JsPrototype, <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;bool&gt;,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) __is_extensible__: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>JsObject, <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;bool&gt;,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) __prevent_extensions__: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>JsObject, <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;bool&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) __get_prototype_of__: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>JsObject, <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsPrototype&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) __set_prototype_of__: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>JsObject, JsPrototype, <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) __is_extensible__: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>JsObject, <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) __prevent_extensions__: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>JsObject, <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt;,
     <span class="kw">pub</span>(<span class="kw">crate</span>) __get_own_property__:
-        <span class="kw">fn</span>(<span class="kw-2">&amp;</span>JsObject, <span class="kw-2">&amp;</span>PropertyKey, <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;PropertyDescriptor&gt;&gt;,
+        <span class="kw">fn</span>(<span class="kw-2">&amp;</span>JsObject, <span class="kw-2">&amp;</span>PropertyKey, <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;PropertyDescriptor&gt;&gt;,
     <span class="kw">pub</span>(<span class="kw">crate</span>) __define_own_property__:
-        <span class="kw">fn</span>(<span class="kw-2">&amp;</span>JsObject, <span class="kw-2">&amp;</span>PropertyKey, PropertyDescriptor, <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;bool&gt;,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) __has_property__: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>JsObject, <span class="kw-2">&amp;</span>PropertyKey, <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;bool&gt;,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) __get__: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>JsObject, <span class="kw-2">&amp;</span>PropertyKey, JsValue, <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt;,
+        <span class="kw">fn</span>(<span class="kw-2">&amp;</span>JsObject, <span class="kw-2">&amp;</span>PropertyKey, PropertyDescriptor, <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) __has_property__: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>JsObject, <span class="kw-2">&amp;</span>PropertyKey, <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) __get__: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>JsObject, <span class="kw-2">&amp;</span>PropertyKey, JsValue, <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt;,
     <span class="kw">pub</span>(<span class="kw">crate</span>) __set__:
-        <span class="kw">fn</span>(<span class="kw-2">&amp;</span>JsObject, PropertyKey, JsValue, JsValue, <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;bool&gt;,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) __delete__: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>JsObject, <span class="kw-2">&amp;</span>PropertyKey, <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;bool&gt;,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) __own_property_keys__: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>JsObject, <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;Vec&lt;PropertyKey&gt;&gt;,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) __call__:
-        <span class="kw">fn</span>(<span class="kw-2">&amp;</span>JsObject, argument_count: usize, <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CallValue&gt;,
+        <span class="kw">fn</span>(<span class="kw-2">&amp;</span>JsObject, PropertyKey, JsValue, JsValue, <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) __delete__: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>JsObject, <span class="kw-2">&amp;</span>PropertyKey, <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) __own_property_keys__: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>JsObject, <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;Vec&lt;PropertyKey&gt;&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) __call__: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>JsObject, argument_count: usize, <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CallValue&gt;,
     <span class="kw">pub</span>(<span class="kw">crate</span>) __construct__:
-        <span class="kw">fn</span>(<span class="kw-2">&amp;</span>JsObject, argument_count: usize, <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CallValue&gt;,
+        <span class="kw">fn</span>(<span class="kw-2">&amp;</span>JsObject, argument_count: usize, <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CallValue&gt;,
 }
 
 <span class="doccomment">/// The return value of an internal method (`[[Call]]` or `[[Construct]]`).
@@ -1283,7 +1273,7 @@
 
     <span class="doccomment">/// Further processing is needed.
     </span>Pending {
-        func: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>JsObject, argument_count: usize, <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CallValue&gt;,
+        func: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>JsObject, argument_count: usize, <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CallValue&gt;,
         object: JsObject,
         argument_count: usize,
     },
@@ -1294,7 +1284,7 @@
 
 <span class="kw">impl </span>CallValue {
     <span class="doccomment">/// Resolves the [`CallValue`], and return if the value is complete.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>resolve(<span class="kw-2">mut </span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;bool&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>resolve(<span class="kw-2">mut </span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt; {
         <span class="kw">while let </span><span class="self">Self</span>::Pending {
             func,
             object,
@@ -1317,7 +1307,7 @@
 </span><span class="attr">#[allow(clippy::unnecessary_wraps)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>ordinary_get_prototype_of(
     obj: <span class="kw-2">&amp;</span>JsObject,
-    _context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    _context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;JsPrototype&gt; {
     <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Object::ordinary_get_prototype_of&quot;</span>, <span class="string">&quot;object&quot;</span>);
 
@@ -1335,7 +1325,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>ordinary_set_prototype_of(
     obj: <span class="kw-2">&amp;</span>JsObject,
     val: JsPrototype,
-    <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;bool&gt; {
     <span class="comment">// 1. Assert: Either Type(V) is Object or Type(V) is Null.
     // 2. Let current be O.[[Prototype]].
@@ -1388,7 +1378,7 @@
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-ordinaryisextensible
 </span><span class="attr">#[allow(clippy::unnecessary_wraps)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>ordinary_is_extensible(obj: <span class="kw-2">&amp;</span>JsObject, _context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;bool&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>ordinary_is_extensible(obj: <span class="kw-2">&amp;</span>JsObject, _context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt; {
     <span class="comment">// 1. Return O.[[Extensible]].
     </span><span class="prelude-val">Ok</span>(obj.borrow().extensible)
 }
@@ -1402,7 +1392,7 @@
 </span><span class="attr">#[allow(clippy::unnecessary_wraps)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>ordinary_prevent_extensions(
     obj: <span class="kw-2">&amp;</span>JsObject,
-    _context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    _context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;bool&gt; {
     <span class="comment">// 1. Set O.[[Extensible]] to false.
     </span>obj.borrow_mut().extensible = <span class="bool-val">false</span>;
@@ -1421,7 +1411,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>ordinary_get_own_property(
     obj: <span class="kw-2">&amp;</span>JsObject,
     key: <span class="kw-2">&amp;</span>PropertyKey,
-    _context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    _context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;PropertyDescriptor&gt;&gt; {
     <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Object::ordinary_get_own_property&quot;</span>, <span class="string">&quot;object&quot;</span>);
     <span class="comment">// 1. Assert: IsPropertyKey(P) is true.
@@ -1451,7 +1441,7 @@
     obj: <span class="kw-2">&amp;</span>JsObject,
     key: <span class="kw-2">&amp;</span>PropertyKey,
     desc: PropertyDescriptor,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;bool&gt; {
     <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Object::ordinary_define_own_property&quot;</span>, <span class="string">&quot;object&quot;</span>);
     <span class="comment">// 1. Let current be ? O.[[GetOwnProperty]](P).
@@ -1478,7 +1468,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>ordinary_has_property(
     obj: <span class="kw-2">&amp;</span>JsObject,
     key: <span class="kw-2">&amp;</span>PropertyKey,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;bool&gt; {
     <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Object::ordinary_has_property&quot;</span>, <span class="string">&quot;object&quot;</span>);
     <span class="comment">// 1. Assert: IsPropertyKey(P) is true.
@@ -1508,7 +1498,7 @@
     obj: <span class="kw-2">&amp;</span>JsObject,
     key: <span class="kw-2">&amp;</span>PropertyKey,
     receiver: JsValue,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;JsValue&gt; {
     <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Object::ordinary_get&quot;</span>, <span class="string">&quot;object&quot;</span>);
     <span class="comment">// 1. Assert: IsPropertyKey(P) is true.
@@ -1554,7 +1544,7 @@
     key: PropertyKey,
     value: JsValue,
     receiver: JsValue,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;bool&gt; {
     <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Object::ordinary_set&quot;</span>, <span class="string">&quot;object&quot;</span>);
 
@@ -1653,7 +1643,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>ordinary_delete(
     obj: <span class="kw-2">&amp;</span>JsObject,
     key: <span class="kw-2">&amp;</span>PropertyKey,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;bool&gt; {
     <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Object::ordinary_delete&quot;</span>, <span class="string">&quot;object&quot;</span>);
     <span class="comment">// 1. Assert: IsPropertyKey(P) is true.
@@ -1684,7 +1674,7 @@
 </span><span class="attr">#[allow(clippy::unnecessary_wraps)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>ordinary_own_property_keys(
     obj: <span class="kw-2">&amp;</span>JsObject,
-    _context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    _context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;Vec&lt;PropertyKey&gt;&gt; {
     <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Object::ordinary_own_property_keys&quot;</span>, <span class="string">&quot;object&quot;</span>);
     <span class="comment">// 1. Let keys be a new empty List.
@@ -1890,7 +1880,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_prototype_from_constructor&lt;F&gt;(
     constructor: <span class="kw-2">&amp;</span>JsValue,
     default: F,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;JsObject&gt;
 <span class="kw">where
     </span>F: FnOnce(<span class="kw-2">&amp;</span>StandardConstructors) -&gt; <span class="kw-2">&amp;</span>StandardConstructor,
@@ -1918,7 +1908,7 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>non_existant_call(
     _obj: <span class="kw-2">&amp;</span>JsObject,
     _argument_count: usize,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;CallValue&gt; {
     <span class="prelude-val">Err</span>(JsNativeError::typ()
         .with_message(<span class="string">&quot;not a callable function&quot;</span>)
@@ -1929,7 +1919,7 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>non_existant_construct(
     _obj: <span class="kw-2">&amp;</span>JsObject,
     _argument_count: usize,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;CallValue&gt; {
     <span class="prelude-val">Err</span>(JsNativeError::typ()
         .with_message(<span class="string">&quot;not a constructor&quot;</span>)

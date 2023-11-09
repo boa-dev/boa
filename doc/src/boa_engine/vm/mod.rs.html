@@ -858,7 +858,7 @@
 }
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;trace&quot;</span>)]
-</span><span class="kw">impl </span>Context&lt;<span class="lifetime">&#39;_</span>&gt; {
+</span><span class="kw">impl </span>Context {
     <span class="kw">const </span>COLUMN_WIDTH: usize = <span class="number">26</span>;
     <span class="kw">const </span>TIME_COLUMN_WIDTH: usize = <span class="self">Self</span>::COLUMN_WIDTH / <span class="number">2</span>;
     <span class="kw">const </span>OPCODE_COLUMN_WIDTH: usize = <span class="self">Self</span>::COLUMN_WIDTH;
@@ -899,7 +899,7 @@
 
     <span class="kw">fn </span>trace_execute_instruction&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: F) -&gt; JsResult&lt;CompletionType&gt;
     <span class="kw">where
-        </span>F: FnOnce(Opcode, <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt;,
+        </span>F: FnOnce(Opcode, <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt;,
     {
         <span class="kw">let </span>bytecodes = <span class="kw-2">&amp;</span><span class="self">self</span>.vm.frame().code_block.bytecode;
         <span class="kw">let </span>pc = <span class="self">self</span>.vm.frame().pc <span class="kw">as </span>usize;
@@ -977,10 +977,10 @@
     }
 }
 
-<span class="kw">impl </span>Context&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>Context {
     <span class="kw">fn </span>execute_instruction&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: F) -&gt; JsResult&lt;CompletionType&gt;
     <span class="kw">where
-        </span>F: FnOnce(Opcode, <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt;,
+        </span>F: FnOnce(Opcode, <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt;,
     {
         <span class="kw">let </span>opcode: Opcode = {
             <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Opcode retrieval&quot;</span>, <span class="string">&quot;vm&quot;</span>);
@@ -1000,7 +1000,7 @@
 
     <span class="kw">fn </span>execute_one&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: F) -&gt; ControlFlow&lt;CompletionRecord&gt;
     <span class="kw">where
-        </span>F: FnOnce(Opcode, <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt;,
+        </span>F: FnOnce(Opcode, <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt;,
     {
         <span class="attr">#[cfg(feature = <span class="string">&quot;fuzz&quot;</span>)]
         </span>{

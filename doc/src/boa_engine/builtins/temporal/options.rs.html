@@ -403,7 +403,7 @@
 </span><span class="attr">#[inline]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_temporal_rounding_increment(
     options: <span class="kw-2">&amp;</span>JsObject,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;u32&gt; {
     <span class="comment">// 1. Let increment be ? GetOption(normalizedOptions, &quot;roundingIncrement&quot;, &quot;number&quot;, undefined, 1𝔽).
     </span><span class="kw">let </span>value = options.get(<span class="macro">js_string!</span>(<span class="string">&quot;roundingIncrement&quot;</span>), context)<span class="question-mark">?</span>;
@@ -442,7 +442,7 @@
     key: <span class="kw-2">&amp;</span>[u16],
     unit_group: TemporalUnitGroup,
     extra_values: <span class="prelude-ty">Option</span>&lt;Vec&lt;TemporalUnit&gt;&gt;,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;TemporalUnit&gt;&gt; {
     <span class="kw">let </span>extra = extra_values.unwrap_or_default();
     <span class="kw">let </span><span class="kw-2">mut </span>unit_values = unit_group.group();

@@ -790,10 +790,6 @@
 <a href="#790" id="790">790</a>
 <a href="#791" id="791">791</a>
 <a href="#792" id="792">792</a>
-<a href="#793" id="793">793</a>
-<a href="#794" id="794">794</a>
-<a href="#795" id="795">795</a>
-<a href="#796" id="796">796</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s `Temporal.Instant` builtin object.
 </span><span class="attr">#![allow(dead_code)]
 
@@ -913,7 +909,7 @@
     <span class="kw">fn </span>constructor(
         new_target: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. If NewTarget is undefined, then
         </span><span class="kw">if </span>new_target.is_undefined() {
@@ -944,7 +940,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_epoc_seconds(
         this: <span class="kw-2">&amp;</span>JsValue,
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
-        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let instant be the this value.
         // 2. Perform ? RequireInternalSlot(instant, [[InitializedTemporalInstant]]).
@@ -966,7 +962,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_epoc_milliseconds(
         this: <span class="kw-2">&amp;</span>JsValue,
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
-        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let instant be the this value.
         // 2. Perform ? RequireInternalSlot(instant, [[InitializedTemporalInstant]]).
@@ -988,7 +984,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_epoc_microseconds(
         this: <span class="kw-2">&amp;</span>JsValue,
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
-        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let instant be the this value.
         // 2. Perform ? RequireInternalSlot(instant, [[InitializedTemporalInstant]]).
@@ -1013,7 +1009,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_epoc_nanoseconds(
         this: <span class="kw-2">&amp;</span>JsValue,
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
-        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let instant be the this value.
         // 2. Perform ? RequireInternalSlot(instant, [[InitializedTemporalInstant]]).
@@ -1033,7 +1029,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>add(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let instant be the this value.
         // 2. Perform ? RequireInternalSlot(instant, [[InitializedTemporalInstant]]).
@@ -1053,7 +1049,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>subtract(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let instant be the this value.
         // 2. Perform ? RequireInternalSlot(instant, [[InitializedTemporalInstant]]).
@@ -1073,7 +1069,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>until(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let instant be the this value.
         // 2. Perform ? RequireInternalSlot(instant, [[InitializedTemporalInstant]]).
@@ -1094,7 +1090,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>since(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let instant be the this value.
         // 2. Perform ? RequireInternalSlot(instant, [[InitializedTemporalInstant]]).
@@ -1115,7 +1111,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>round(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let instant be the this value.
         // 2. Perform ? RequireInternalSlot(instant, [[InitializedTemporalInstant]]).
@@ -1214,11 +1210,7 @@
     }
 
     <span class="doccomment">/// 8.3.12 `Temporal.Instant.prototype.equals ( other )`
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>equals(
-        this: <span class="kw-2">&amp;</span>JsValue,
-        args: <span class="kw-2">&amp;</span>[JsValue],
-        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>equals(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let instant be the this value.
         // 2. Perform ? RequireInternalSlot(instant, [[InitializedTemporalInstant]]).
         // 4. If instant.[[Nanoseconds]] ≠ other.[[Nanoseconds]], return false.
@@ -1244,7 +1236,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_zoned_date_time(
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
-        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// TODO: Complete
         </span><span class="prelude-val">Err</span>(JsNativeError::error()
@@ -1256,7 +1248,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_zoned_date_time_iso(
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
-        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// TODO Complete
         </span><span class="prelude-val">Err</span>(JsNativeError::error()
@@ -1287,7 +1279,7 @@
 </span><span class="kw">fn </span>create_temporal_instant(
     epoch_nanos: JsBigInt,
     new_target: <span class="prelude-ty">Option</span>&lt;JsValue&gt;,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;JsValue&gt; {
     <span class="comment">// 1. Assert: ! IsValidEpochNanoseconds(epochNanoseconds) is true.
     </span><span class="macro">assert!</span>(is_valid_epoch_nanos(<span class="kw-2">&amp;</span>epoch_nanos));
@@ -1371,7 +1363,7 @@
     smallest_unit: TemporalUnit,
     largest_unit: TemporalUnit,
     rounding_mode: RoundingMode,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;DurationRecord&gt; {
     <span class="comment">// 1. Let difference be ℝ(ns2) - ℝ(ns1).
     </span><span class="kw">let </span>difference = JsBigInt::sub(ns1, ns2);
@@ -1488,7 +1480,7 @@
     instant: <span class="kw-2">&amp;</span>Instant,
     other: <span class="kw-2">&amp;</span>JsValue,
     options: <span class="kw-2">&amp;</span>JsValue,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;JsValue&gt; {
     <span class="comment">// 1. If operation is since, let sign be -1. Otherwise, let sign be 1.
     </span><span class="kw">let </span>sign = <span class="kw">if </span>op { <span class="number">1_f64 </span>} <span class="kw">else </span>{ -<span class="number">1_f64 </span>};
@@ -1545,7 +1537,7 @@
     op: bool,
     instant: <span class="kw-2">&amp;</span>Instant,
     temporal_duration_like: <span class="kw-2">&amp;</span>JsValue,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;JsValue&gt; {
     <span class="comment">// 1. If operation is subtract, let sign be -1. Otherwise, let sign be 1.
     </span><span class="kw">let </span>sign = <span class="kw">if </span>op { <span class="number">1 </span>} <span class="kw">else </span>{ -<span class="number">1 </span>};

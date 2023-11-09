@@ -140,7 +140,7 @@
 </span><span class="kw">fn </span>bound_function_exotic_call(
     obj: <span class="kw-2">&amp;</span>JsObject,
     argument_count: usize,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;CallValue&gt; {
     <span class="kw">let </span>obj = obj.borrow();
     <span class="kw">let </span>bound_function = obj
@@ -179,7 +179,7 @@
 </span><span class="kw">fn </span>bound_function_exotic_construct(
     function_object: <span class="kw-2">&amp;</span>JsObject,
     argument_count: usize,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;CallValue&gt; {
     <span class="kw">let </span>new_target = context.vm.pop();
 

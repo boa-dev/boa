@@ -128,7 +128,7 @@
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - TypeOf&quot;</span>;
     <span class="kw">const </span>COST: u8 = <span class="number">1</span>;
 
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>value = context.vm.pop();
         context.vm.push(value.js_type_of());
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
@@ -147,7 +147,7 @@
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - Pos&quot;</span>;
     <span class="kw">const </span>COST: u8 = <span class="number">3</span>;
 
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>value = context.vm.pop();
         <span class="kw">let </span>value = value.to_number(context)<span class="question-mark">?</span>;
         context.vm.push(value);
@@ -167,7 +167,7 @@
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - Neg&quot;</span>;
     <span class="kw">const </span>COST: u8 = <span class="number">3</span>;
 
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>value = context.vm.pop();
         <span class="kw">match </span>value.to_numeric(context)<span class="question-mark">? </span>{
             Numeric::Number(number) =&gt; context.vm.push(number.neg()),
@@ -189,7 +189,7 @@
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - BitNot&quot;</span>;
     <span class="kw">const </span>COST: u8 = <span class="number">3</span>;
 
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>value = context.vm.pop();
         <span class="kw">match </span>value.to_numeric(context)<span class="question-mark">? </span>{
             Numeric::Number(number) =&gt; context.vm.push(Number::not(number)),

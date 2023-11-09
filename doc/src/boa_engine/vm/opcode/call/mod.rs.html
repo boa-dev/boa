@@ -470,7 +470,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>CallEval;
 
 <span class="kw">impl </span>CallEval {
-    <span class="kw">fn </span>operation(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;, argument_count: usize) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>operation(context: <span class="kw-2">&amp;mut </span>Context, argument_count: usize) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>at = context.vm.stack.len() - argument_count;
         <span class="kw">let </span>func = <span class="kw-2">&amp;</span>context.vm.stack[at - <span class="number">1</span>];
 
@@ -522,17 +522,17 @@
     // the cost of the call.
     </span><span class="kw">const </span>COST: u8 = <span class="number">5</span>;
 
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>argument_count = context.vm.read::&lt;u8&gt;();
         <span class="self">Self</span>::operation(context, argument_count <span class="kw">as </span>usize)
     }
 
-    <span class="kw">fn </span>execute_with_u16_operands(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>execute_with_u16_operands(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>argument_count = context.vm.read::&lt;u16&gt;() <span class="kw">as </span>usize;
         <span class="self">Self</span>::operation(context, argument_count)
     }
 
-    <span class="kw">fn </span>execute_with_u32_operands(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>execute_with_u32_operands(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>argument_count = context.vm.read::&lt;u32&gt;();
         <span class="self">Self</span>::operation(context, argument_count <span class="kw">as </span>usize)
     }
@@ -552,7 +552,7 @@
     // the cost of the call.
     </span><span class="kw">const </span>COST: u8 = <span class="number">5</span>;
 
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="comment">// Get the arguments that are stored as an array object on the stack.
         </span><span class="kw">let </span>arguments_array = context.vm.pop();
         <span class="kw">let </span>arguments_array_object = arguments_array
@@ -619,7 +619,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Call;
 
 <span class="kw">impl </span>Call {
-    <span class="kw">fn </span>operation(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;, argument_count: usize) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>operation(context: <span class="kw-2">&amp;mut </span>Context, argument_count: usize) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>at = context.vm.stack.len() - argument_count;
         <span class="kw">let </span>func = <span class="kw-2">&amp;</span>context.vm.stack[at - <span class="number">1</span>];
 
@@ -639,17 +639,17 @@
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - Call&quot;</span>;
     <span class="kw">const </span>COST: u8 = <span class="number">3</span>;
 
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>argument_count = context.vm.read::&lt;u8&gt;();
         <span class="self">Self</span>::operation(context, argument_count <span class="kw">as </span>usize)
     }
 
-    <span class="kw">fn </span>execute_with_u16_operands(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>execute_with_u16_operands(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>argument_count = context.vm.read::&lt;u16&gt;() <span class="kw">as </span>usize;
         <span class="self">Self</span>::operation(context, argument_count)
     }
 
-    <span class="kw">fn </span>execute_with_u32_operands(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>execute_with_u32_operands(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>argument_count = context.vm.read::&lt;u32&gt;();
         <span class="self">Self</span>::operation(context, argument_count <span class="kw">as </span>usize)
     }
@@ -663,7 +663,7 @@
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - CallSpread&quot;</span>;
     <span class="kw">const </span>COST: u8 = <span class="number">3</span>;
 
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="comment">// Get the arguments that are stored as an array object on the stack.
         </span><span class="kw">let </span>arguments_array = context.vm.pop();
         <span class="kw">let </span>arguments_array_object = arguments_array
@@ -705,7 +705,7 @@
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - ImportCall&quot;</span>;
     <span class="kw">const </span>COST: u8 = <span class="number">15</span>;
 
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="comment">// Import Calls
         // Runtime Semantics: Evaluation
         // https://tc39.es/ecma262/#sec-import-call-runtime-semantics-evaluation

@@ -53,7 +53,7 @@
 };
 <span class="kw">use </span>boa_ast::statement::Continue;
 
-<span class="kw">impl </span>ByteCompiler&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>ByteCompiler&lt;<span class="lifetime">&#39;_</span>&gt; {
     <span class="attr">#[allow(clippy::unnecessary_wraps)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compile_continue(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: Continue, _use_expr: bool) {
         <span class="kw">let </span>actions = <span class="self">self</span>.continue_jump_record_actions(node);

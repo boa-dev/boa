@@ -293,7 +293,7 @@
 }
 
 <span class="doccomment">/// Builtin JavaScript `escape ( string )` function.
-</span><span class="kw">fn </span>escape(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+</span><span class="kw">fn </span>escape(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
     <span class="doccomment">/// Returns `true` if the codepoint `cp` is part of the `unescapedSet`.
     </span><span class="kw">fn </span>is_unescaped(cp: u16) -&gt; bool {
         <span class="kw">let </span><span class="prelude-val">Ok</span>(cp) = TryInto::&lt;u8&gt;::try_into(cp) <span class="kw">else </span>{
@@ -365,7 +365,7 @@
 }
 
 <span class="doccomment">/// Builtin JavaScript `unescape ( string )` function.
-</span><span class="kw">fn </span>unescape(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+</span><span class="kw">fn </span>unescape(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
     <span class="doccomment">/// Converts a char `cp` to its corresponding hex digit value.
     </span><span class="kw">fn </span>to_hex_digit(cp: u16) -&gt; <span class="prelude-ty">Option</span>&lt;u16&gt; {
         char::from_u32(u32::from(cp))

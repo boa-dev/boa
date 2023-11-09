@@ -327,10 +327,6 @@
 <a href="#327" id="327">327</a>
 <a href="#328" id="328">328</a>
 <a href="#329" id="329">329</a>
-<a href="#330" id="330">330</a>
-<a href="#331" id="331">331</a>
-<a href="#332" id="332">332</a>
-<a href="#333" id="333">333</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::ops::Range;
 
 <span class="kw">use </span>boa_macros::utf16;
@@ -447,7 +443,7 @@
     <span class="kw">fn </span>constructor(
         new_target: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. If NewTarget is undefined, throw a TypeError exception.
         </span><span class="kw">if </span>new_target.is_undefined() {
@@ -487,14 +483,14 @@
 
         </span><span class="kw">let </span>native = <span class="kw">match </span>granularity {
             Granularity::Grapheme =&gt; {
-                GraphemeClusterSegmenter::try_new_unstable(<span class="kw-2">&amp;</span>context.icu().provider())
+                GraphemeClusterSegmenter::try_new_unstable(context.icu().provider())
                     .map(|s| NativeSegmenter::Grapheme(Box::new(s)))
             }
 
-            Granularity::Word =&gt; WordSegmenter::try_new_auto_unstable(<span class="kw-2">&amp;</span>context.icu().provider())
+            Granularity::Word =&gt; WordSegmenter::try_new_auto_unstable(context.icu().provider())
                 .map(|s| NativeSegmenter::Word(Box::new(s))),
 
-            Granularity::Sentence =&gt; SentenceSegmenter::try_new_unstable(<span class="kw-2">&amp;</span>context.icu().provider())
+            Granularity::Sentence =&gt; SentenceSegmenter::try_new_unstable(context.icu().provider())
                 .map(|s| NativeSegmenter::Sentence(Box::new(s))),
         }
         .map_err(|err| JsNativeError::typ().with_message(err.to_string()))<span class="question-mark">?</span>;
@@ -532,7 +528,7 @@
     </span><span class="kw">fn </span>supported_locales_of(
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>locales = args.get_or_undefined(<span class="number">0</span>);
         <span class="kw">let </span>options = args.get_or_undefined(<span class="number">1</span>);
@@ -556,11 +552,7 @@
     ///
     /// [spec]: https://tc39.es/ecma402/#sec-Intl.Segmenter.prototype.resolvedoptions
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Segmenter/resolvedOptions
-    </span><span class="kw">fn </span>resolved_options(
-        this: <span class="kw-2">&amp;</span>JsValue,
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>resolved_options(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let segmenter be the this value.
         // 2. Perform ? RequireInternalSlot(segmenter, [[InitializedSegmenter]]).
         </span><span class="kw">let </span>segmenter = this.as_object().map(JsObject::borrow).ok_or_else(|| {
@@ -600,7 +592,7 @@
     /// Segments a string according to the locale and granularity of this `Intl.Segmenter` object.
     ///
     /// [spec]: https://tc39.es/ecma402/#sec-intl.segmenter.prototype.segment
-    </span><span class="kw">fn </span>segment(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>segment(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let segmenter be the this value.
         // 2. Perform ? RequireInternalSlot(segmenter, [[InitializedSegmenter]]).
         </span><span class="kw">let </span>segmenter = this
@@ -627,7 +619,7 @@
     string: JsString,
     range: Range&lt;usize&gt;,
     is_word_like: <span class="prelude-ty">Option</span>&lt;bool&gt;,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsObject {
     <span class="comment">// 1. Let len be the length of string.
     // 2. Assert: startIndex ≥ 0.

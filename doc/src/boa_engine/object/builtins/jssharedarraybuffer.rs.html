@@ -143,7 +143,7 @@
 <span class="kw">impl </span>JsSharedArrayBuffer {
     <span class="doccomment">/// Creates a new [`JsSharedArrayBuffer`] with `byte_length` bytes of allocated space.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>new(byte_length: usize, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+    </span><span class="kw">pub fn </span>new(byte_length: usize, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="kw">let </span>inner = SharedArrayBuffer::allocate(
             <span class="kw-2">&amp;</span>context
                 .intrinsics()
@@ -160,7 +160,7 @@
 
     <span class="doccomment">/// Creates a [`JsSharedArrayBuffer`] from a shared raw buffer.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>from_buffer(buffer: SharedArrayBuffer, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>from_buffer(buffer: SharedArrayBuffer, context: <span class="kw-2">&amp;mut </span>Context) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>proto = context
             .intrinsics()
             .constructors()
@@ -239,7 +239,7 @@
 <span class="kw">impl </span>JsObjectType <span class="kw">for </span>JsSharedArrayBuffer {}
 
 <span class="kw">impl </span>TryFromJs <span class="kw">for </span>JsSharedArrayBuffer {
-    <span class="kw">fn </span>try_from_js(value: <span class="kw-2">&amp;</span>JsValue, _context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+    <span class="kw">fn </span>try_from_js(value: <span class="kw-2">&amp;</span>JsValue, _context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="kw">match </span>value {
             JsValue::Object(o) =&gt; <span class="self">Self</span>::from_object(o.clone()),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(JsNativeError::typ()

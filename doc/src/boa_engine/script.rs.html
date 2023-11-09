@@ -296,7 +296,7 @@
     </span><span class="kw">pub fn </span>parse&lt;R: Read&gt;(
         src: Source&lt;<span class="lifetime">&#39;_</span>, R&gt;,
         realm: <span class="prelude-ty">Option</span>&lt;Realm&gt;,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Script parsing&quot;</span>, <span class="string">&quot;Main&quot;</span>);
         <span class="kw">let </span><span class="kw-2">mut </span>parser = Parser::new(src);
@@ -323,7 +323,7 @@
     <span class="doccomment">/// Compiles the codeblock of this script.
     ///
     /// This is a no-op if this has been called previously.
-    </span><span class="kw">pub fn </span>codeblock(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;Gc&lt;CodeBlock&gt;&gt; {
+    </span><span class="kw">pub fn </span>codeblock(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;Gc&lt;CodeBlock&gt;&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>codeblock = <span class="self">self</span>.inner.codeblock.borrow_mut();
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(codeblock) = <span class="kw-2">&amp;*</span>codeblock {
@@ -360,7 +360,7 @@
     /// on the context or [`JobQueue::run_jobs`] on the provided queue to run them.
     ///
     /// [`JobQueue::run_jobs`]: crate::job::JobQueue::run_jobs
-    </span><span class="kw">pub fn </span>evaluate(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">pub fn </span>evaluate(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Execution&quot;</span>, <span class="string">&quot;Main&quot;</span>);
 
         <span class="self">self</span>.prepare_run(context)<span class="question-mark">?</span>;
@@ -379,7 +379,7 @@
     /// execution is suspended. See [`Script::evaluate_async_with_budget`] if you want to also
     /// customize this parameter.
     </span><span class="attr">#[allow(clippy::future_not_send)]
-    </span><span class="kw">pub async fn </span>evaluate_async(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">pub async fn </span>evaluate_async(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="self">self</span>.evaluate_async_with_budget(context, <span class="number">256</span>).<span class="kw">await
     </span>}
 
@@ -393,7 +393,7 @@
     </span><span class="attr">#[allow(clippy::future_not_send)]
     </span><span class="kw">pub async fn </span>evaluate_async_with_budget(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
         budget: u32,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Async Execution&quot;</span>, <span class="string">&quot;Main&quot;</span>);
@@ -408,7 +408,7 @@
         record.consume()
     }
 
-    <span class="kw">fn </span>prepare_run(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;()&gt; {
+    <span class="kw">fn </span>prepare_run(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;()&gt; {
         <span class="kw">let </span>codeblock = <span class="self">self</span>.codeblock(context)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>env_fp = context.vm.environments.len() <span class="kw">as </span>u32;

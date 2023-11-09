@@ -431,7 +431,7 @@
     min_float_digits_default: u8,
     <span class="kw-2">mut </span>max_float_digits_default: u8,
     notation: Notation,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;DigitFormatOptions&gt; {
     <span class="kw">const </span>VALID_ROUNDING_INCREMENTS: [u16; <span class="number">15</span>] = [
         <span class="number">1</span>, <span class="number">2</span>, <span class="number">5</span>, <span class="number">10</span>, <span class="number">20</span>, <span class="number">25</span>, <span class="number">50</span>, <span class="number">100</span>, <span class="number">200</span>, <span class="number">250</span>, <span class="number">500</span>, <span class="number">1000</span>, <span class="number">2000</span>, <span class="number">2500</span>, <span class="number">5000</span>,

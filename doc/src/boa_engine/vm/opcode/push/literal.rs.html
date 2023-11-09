@@ -110,7 +110,7 @@
 
 <span class="kw">impl </span>PushLiteral {
     <span class="attr">#[allow(clippy::unnecessary_wraps)]
-    </span><span class="kw">fn </span>operation(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;, index: usize) -&gt; JsResult&lt;CompletionType&gt; {
+    </span><span class="kw">fn </span>operation(context: <span class="kw-2">&amp;mut </span>Context, index: usize) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>constant = <span class="kw-2">&amp;</span>context.vm.frame().code_block().constants[index];
         <span class="kw">let </span>value: JsValue = <span class="kw">match </span>constant {
             Constant::BigInt(v) =&gt; v.clone().into(),
@@ -127,17 +127,17 @@
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - PushLiteral&quot;</span>;
     <span class="kw">const </span>COST: u8 = <span class="number">1</span>;
 
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u8&gt;() <span class="kw">as </span>usize;
         <span class="self">Self</span>::operation(context, index)
     }
 
-    <span class="kw">fn </span>execute_with_u16_operands(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>execute_with_u16_operands(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u16&gt;() <span class="kw">as </span>usize;
         <span class="self">Self</span>::operation(context, index)
     }
 
-    <span class="kw">fn </span>execute_with_u32_operands(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>execute_with_u32_operands(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;() <span class="kw">as </span>usize;
         <span class="self">Self</span>::operation(context, index)
     }
@@ -152,7 +152,7 @@
 
 <span class="kw">impl </span>PushRegExp {
     <span class="kw">fn </span>operation(
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
         pattern_index: usize,
         flags_index: usize,
     ) -&gt; JsResult&lt;CompletionType&gt; {
@@ -174,19 +174,19 @@
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - PushRegExp&quot;</span>;
     <span class="kw">const </span>COST: u8 = <span class="number">5</span>;
 
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>pattern_index = context.vm.read::&lt;u8&gt;() <span class="kw">as </span>usize;
         <span class="kw">let </span>flags_index = context.vm.read::&lt;u8&gt;() <span class="kw">as </span>usize;
         <span class="self">Self</span>::operation(context, pattern_index, flags_index)
     }
 
-    <span class="kw">fn </span>execute_with_u16_operands(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>execute_with_u16_operands(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>pattern_index = context.vm.read::&lt;u16&gt;() <span class="kw">as </span>usize;
         <span class="kw">let </span>flags_index = context.vm.read::&lt;u16&gt;() <span class="kw">as </span>usize;
         <span class="self">Self</span>::operation(context, pattern_index, flags_index)
     }
 
-    <span class="kw">fn </span>execute_with_u32_operands(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>execute_with_u32_operands(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>pattern_index = context.vm.read::&lt;u32&gt;() <span class="kw">as </span>usize;
         <span class="kw">let </span>flags_index = context.vm.read::&lt;u32&gt;() <span class="kw">as </span>usize;
         <span class="self">Self</span>::operation(context, pattern_index, flags_index)

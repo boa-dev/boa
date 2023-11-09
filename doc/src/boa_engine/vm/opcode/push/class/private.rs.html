@@ -192,7 +192,7 @@
 
 <span class="kw">impl </span>PushClassPrivateMethod {
     <span class="attr">#[allow(clippy::unnecessary_wraps)]
-    </span><span class="kw">fn </span>operation(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;, index: usize) -&gt; JsResult&lt;CompletionType&gt; {
+    </span><span class="kw">fn </span>operation(context: <span class="kw-2">&amp;mut </span>Context, index: usize) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>name = context.vm.frame().code_block().constant_string(index);
         <span class="kw">let </span>method = context.vm.pop();
         <span class="kw">let </span>method_object = method.as_callable().expect(<span class="string">&quot;method must be callable&quot;</span>);
@@ -229,17 +229,17 @@
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - PushClassPrivateMethod&quot;</span>;
     <span class="kw">const </span>COST: u8 = <span class="number">6</span>;
 
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u8&gt;() <span class="kw">as </span>usize;
         <span class="self">Self</span>::operation(context, index)
     }
 
-    <span class="kw">fn </span>execute_with_u16_operands(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>execute_with_u16_operands(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u16&gt;() <span class="kw">as </span>usize;
         <span class="self">Self</span>::operation(context, index)
     }
 
-    <span class="kw">fn </span>execute_with_u32_operands(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>execute_with_u32_operands(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;() <span class="kw">as </span>usize;
         <span class="self">Self</span>::operation(context, index)
     }
@@ -254,7 +254,7 @@
 
 <span class="kw">impl </span>PushClassPrivateGetter {
     <span class="attr">#[allow(clippy::unnecessary_wraps)]
-    </span><span class="kw">fn </span>operation(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;, index: usize) -&gt; JsResult&lt;CompletionType&gt; {
+    </span><span class="kw">fn </span>operation(context: <span class="kw-2">&amp;mut </span>Context, index: usize) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>name = context.vm.frame().code_block().constant_string(index);
         <span class="kw">let </span>getter = context.vm.pop();
         <span class="kw">let </span>getter_object = getter.as_callable().expect(<span class="string">&quot;getter must be callable&quot;</span>);
@@ -282,17 +282,17 @@
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - PushClassPrivateGetter&quot;</span>;
     <span class="kw">const </span>COST: u8 = <span class="number">6</span>;
 
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u8&gt;() <span class="kw">as </span>usize;
         <span class="self">Self</span>::operation(context, index)
     }
 
-    <span class="kw">fn </span>execute_with_u16_operands(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>execute_with_u16_operands(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u16&gt;() <span class="kw">as </span>usize;
         <span class="self">Self</span>::operation(context, index)
     }
 
-    <span class="kw">fn </span>execute_with_u32_operands(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>execute_with_u32_operands(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;() <span class="kw">as </span>usize;
         <span class="self">Self</span>::operation(context, index)
     }
@@ -307,7 +307,7 @@
 
 <span class="kw">impl </span>PushClassPrivateSetter {
     <span class="attr">#[allow(clippy::unnecessary_wraps)]
-    </span><span class="kw">fn </span>operation(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;, index: usize) -&gt; JsResult&lt;CompletionType&gt; {
+    </span><span class="kw">fn </span>operation(context: <span class="kw-2">&amp;mut </span>Context, index: usize) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>name = context.vm.frame().code_block().constant_string(index);
         <span class="kw">let </span>setter = context.vm.pop();
         <span class="kw">let </span>setter_object = setter.as_callable().expect(<span class="string">&quot;getter must be callable&quot;</span>);
@@ -335,17 +335,17 @@
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - PushClassPrivateSetter&quot;</span>;
     <span class="kw">const </span>COST: u8 = <span class="number">6</span>;
 
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u8&gt;() <span class="kw">as </span>usize;
         <span class="self">Self</span>::operation(context, index)
     }
 
-    <span class="kw">fn </span>execute_with_u16_operands(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>execute_with_u16_operands(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u16&gt;() <span class="kw">as </span>usize;
         <span class="self">Self</span>::operation(context, index)
     }
 
-    <span class="kw">fn </span>execute_with_u32_operands(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>execute_with_u32_operands(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;() <span class="kw">as </span>usize;
         <span class="self">Self</span>::operation(context, index)
     }

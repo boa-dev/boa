@@ -1304,9 +1304,9 @@
     /// ```
     ///
     /// [`Promise()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/Promise
-    </span><span class="kw">pub fn </span>new&lt;F&gt;(executor: F, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="self">Self
+    </span><span class="kw">pub fn </span>new&lt;F&gt;(executor: F, context: <span class="kw-2">&amp;mut </span>Context) -&gt; <span class="self">Self
     </span><span class="kw">where
-        </span>F: FnOnce(<span class="kw-2">&amp;</span>ResolvingFunctions, <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt;,
+        </span>F: FnOnce(<span class="kw-2">&amp;</span>ResolvingFunctions, <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt;,
     {
         <span class="kw">let </span>promise = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
@@ -1358,7 +1358,7 @@
     /// # }
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>new_pending(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; (<span class="self">Self</span>, ResolvingFunctions) {
+    </span><span class="kw">pub fn </span>new_pending(context: <span class="kw-2">&amp;mut </span>Context) -&gt; (<span class="self">Self</span>, ResolvingFunctions) {
         <span class="kw">let </span>promise = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             context.intrinsics().constructors().promise().prototype(),
@@ -1440,7 +1440,7 @@
     /// ```
     ///
     /// [async_fn]: crate::native_function::NativeFunction::from_async_fn
-    </span><span class="kw">pub fn </span>from_future&lt;Fut&gt;(future: Fut, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="self">Self
+    </span><span class="kw">pub fn </span>from_future&lt;Fut&gt;(future: Fut, context: <span class="kw-2">&amp;mut </span>Context) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>Fut: std::future::IntoFuture&lt;Output = JsResult&lt;JsValue&gt;&gt; + <span class="lifetime">&#39;static</span>,
     {
@@ -1494,7 +1494,7 @@
     ///
     /// [`Promise.resolve()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/resolve
     /// [thenables]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise#thenables
-    </span><span class="kw">pub fn </span>resolve&lt;V: Into&lt;JsValue&gt;&gt;(value: V, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>resolve&lt;V: Into&lt;JsValue&gt;&gt;(value: V, context: <span class="kw-2">&amp;mut </span>Context) -&gt; <span class="self">Self </span>{
         Promise::promise_resolve(
             <span class="kw-2">&amp;</span>context.intrinsics().constructors().promise().constructor(),
             value.into(),
@@ -1535,7 +1535,7 @@
     ///
     /// [`Promise.reject`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/reject
     /// [thenable]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise#thenables
-    </span><span class="kw">pub fn </span>reject&lt;E: Into&lt;JsError&gt;&gt;(error: E, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>reject&lt;E: Into&lt;JsError&gt;&gt;(error: E, context: <span class="kw-2">&amp;mut </span>Context) -&gt; <span class="self">Self </span>{
         Promise::promise_reject(
             <span class="kw-2">&amp;</span>context.intrinsics().constructors().promise().constructor(),
             <span class="kw-2">&amp;</span>error.into(),
@@ -1648,7 +1648,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         on_fulfilled: <span class="prelude-ty">Option</span>&lt;JsFunction&gt;,
         on_rejected: <span class="prelude-ty">Option</span>&lt;JsFunction&gt;,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; <span class="self">Self </span>{
         Promise::inner_then(<span class="self">self</span>, on_fulfilled, on_rejected, context)
             .and_then(<span class="self">Self</span>::from_object)
@@ -1709,7 +1709,7 @@
     /// [then]: JsPromise::then
     </span><span class="attr">#[inline]
     #[allow(clippy::return_self_not_must_use)] </span><span class="comment">// Could just be used to add a handler on an existing promise
-    </span><span class="kw">pub fn </span>catch(<span class="kw-2">&amp;</span><span class="self">self</span>, on_rejected: JsFunction, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>catch(<span class="kw-2">&amp;</span><span class="self">self</span>, on_rejected: JsFunction, context: <span class="kw-2">&amp;mut </span>Context) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.then(<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(on_rejected), context)
     }
 
@@ -1787,7 +1787,7 @@
     /// [then]: JsPromise::then
     </span><span class="attr">#[inline]
     #[allow(clippy::return_self_not_must_use)] </span><span class="comment">// Could just be used to add a handler on an existing promise
-    </span><span class="kw">pub fn </span>finally(<span class="kw-2">&amp;</span><span class="self">self</span>, on_finally: JsFunction, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>finally(<span class="kw-2">&amp;</span><span class="self">self</span>, on_finally: JsFunction, context: <span class="kw-2">&amp;mut </span>Context) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>(then, catch) = Promise::then_catch_finally_closures(
             context.intrinsics().constructors().promise().constructor(),
             on_finally,
@@ -1854,7 +1854,7 @@
     /// ```
     ///
     /// [`Promise.all`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/all
-    </span><span class="kw">pub fn </span>all&lt;I&gt;(promises: I, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="self">Self
+    </span><span class="kw">pub fn </span>all&lt;I&gt;(promises: I, context: <span class="kw-2">&amp;mut </span>Context) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>I: IntoIterator&lt;Item = <span class="self">Self</span>&gt;,
     {
@@ -1943,7 +1943,7 @@
     /// ```
     ///
     /// [`Promise.allSettled`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/allSettled
-    </span><span class="kw">pub fn </span>all_settled&lt;I&gt;(promises: I, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="self">Self
+    </span><span class="kw">pub fn </span>all_settled&lt;I&gt;(promises: I, context: <span class="kw-2">&amp;mut </span>Context) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>I: IntoIterator&lt;Item = <span class="self">Self</span>&gt;,
     {
@@ -2006,7 +2006,7 @@
     /// ```
     ///
     /// [`Promise.any`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/any
-    </span><span class="kw">pub fn </span>any&lt;I&gt;(promises: I, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="self">Self
+    </span><span class="kw">pub fn </span>any&lt;I&gt;(promises: I, context: <span class="kw-2">&amp;mut </span>Context) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>I: IntoIterator&lt;Item = <span class="self">Self</span>&gt;,
     {
@@ -2080,7 +2080,7 @@
     /// ```
     ///
     /// [`Promise.race`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/race
-    </span><span class="kw">pub fn </span>race&lt;I&gt;(promises: I, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="self">Self
+    </span><span class="kw">pub fn </span>race&lt;I&gt;(promises: I, context: <span class="kw-2">&amp;mut </span>Context) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>I: IntoIterator&lt;Item = <span class="self">Self</span>&gt;,
     {
@@ -2143,7 +2143,7 @@
     /// # Ok(())
     /// # }
     /// ```
-    </span><span class="kw">pub fn </span>into_js_future(<span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsFuture {
+    </span><span class="kw">pub fn </span>into_js_future(<span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsFuture {
         <span class="comment">// Mostly based from:
         // https://docs.rs/wasm-bindgen-futures/0.4.37/src/wasm_bindgen_futures/lib.rs.html#109-168
 
@@ -2235,7 +2235,7 @@
 <span class="kw">impl </span>JsObjectType <span class="kw">for </span>JsPromise {}
 
 <span class="kw">impl </span>TryFromJs <span class="kw">for </span>JsPromise {
-    <span class="kw">fn </span>try_from_js(value: <span class="kw-2">&amp;</span>JsValue, _context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+    <span class="kw">fn </span>try_from_js(value: <span class="kw-2">&amp;</span>JsValue, _context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="kw">match </span>value {
             JsValue::Object(o) =&gt; <span class="self">Self</span>::from_object(o.clone()),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(JsNativeError::typ()

@@ -1558,7 +1558,7 @@
     ///
     /// assert!(error_val.as_object().unwrap().borrow().is_error());
     /// ```
-    </span><span class="kw">pub fn </span>to_opaque(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsValue {
+    </span><span class="kw">pub fn </span>to_opaque(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsValue {
         <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.inner {
             Repr::Native(e) =&gt; e.to_opaque(context).into(),
             Repr::Opaque(v) =&gt; v.clone(),
@@ -1603,7 +1603,7 @@
     /// assert!(matches!(error.kind, JsNativeErrorKind::Type));
     /// assert_eq!(error.message(), &quot;type error!&quot;);
     /// ```
-    </span><span class="kw">pub fn </span>try_native(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;JsNativeError, TryNativeError&gt; {
+    </span><span class="kw">pub fn </span>try_native(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; <span class="prelude-ty">Result</span>&lt;JsNativeError, TryNativeError&gt; {
         <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.inner {
             Repr::Native(e) =&gt; <span class="prelude-val">Ok</span>(e.clone()),
             Repr::Opaque(val) =&gt; {
@@ -1615,7 +1615,7 @@
                     .as_error()
                     .ok_or_else(|| TryNativeError::NotAnErrorObject(val.clone()))<span class="question-mark">?</span>;
 
-                <span class="kw">let </span>try_get_property = |key: JsString, name, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;| {
+                <span class="kw">let </span>try_get_property = |key: JsString, name, context: <span class="kw-2">&amp;mut </span>Context| {
                     obj.has_property(key.clone(), context)
                         .map_err(|e| TryNativeError::InaccessibleProperty {
                             property: name,
@@ -1782,7 +1782,7 @@
     ///     &quot;Symbol(error!)&quot;
     /// );
     /// ```
-    </span><span class="kw">pub fn </span>into_erased(<span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsErasedError {
+    </span><span class="kw">pub fn </span>into_erased(<span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsErasedError {
         <span class="kw">let </span><span class="prelude-val">Ok</span>(native) = <span class="self">self</span>.try_native(context) <span class="kw">else </span>{
             <span class="kw">return </span>JsErasedError {
                 inner: ErasedRepr::Opaque(<span class="self">self</span>.to_string().into_boxed_str()),
@@ -2278,7 +2278,7 @@
     ///
     /// If converting a [`JsNativeErrorKind::RuntimeLimit`] to an opaque object.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>to_opaque(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsObject {
+    </span><span class="kw">pub fn </span>to_opaque(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsObject {
         <span class="kw">let </span><span class="self">Self </span>{
             kind,
             message,

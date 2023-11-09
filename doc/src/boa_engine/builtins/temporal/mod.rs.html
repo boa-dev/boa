@@ -654,9 +654,6 @@
 <a href="#654" id="654">654</a>
 <a href="#655" id="655">655</a>
 <a href="#656" id="656">656</a>
-<a href="#657" id="657">657</a>
-<a href="#658" id="658">658</a>
-<a href="#659" id="659">659</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! The ECMAScript `Temporal` stage 3 built-in implementation.
 //!
 //! More information:
@@ -854,7 +851,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>iterator_to_list_of_types(
     iterator: <span class="kw-2">&amp;mut </span>IteratorRecord,
     element_types: <span class="kw-2">&amp;</span>[Type],
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;Vec&lt;JsValue&gt;&gt; {
     <span class="comment">// 1. Let values be a new empty List.
     </span><span class="kw">let </span><span class="kw-2">mut </span>values = Vec::new();
@@ -952,7 +949,7 @@
 <span class="doccomment">/// 13.21 `ToRelativeTemporalObject ( options )`
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_relative_temporal_object(
     _options: <span class="kw-2">&amp;</span>JsObject,
-    _context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    _context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;(<span class="prelude-ty">Option</span>&lt;PlainDate&gt;, <span class="prelude-ty">Option</span>&lt;ZonedDateTime&gt;)&gt; {
     <span class="prelude-val">Err</span>(JsNativeError::range()
         .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
@@ -1094,7 +1091,7 @@
 </span><span class="attr">#[inline]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_positive_integer_with_trunc(
     value: <span class="kw-2">&amp;</span>JsValue,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;i32&gt; {
     <span class="comment">// 1. Let integer be ? ToIntegerWithTruncation(argument).
     </span><span class="kw">let </span>int = to_integer_with_truncation(value, context)<span class="question-mark">?</span>;
@@ -1110,10 +1107,7 @@
 
 <span class="doccomment">/// 13.44 `ToIntegerWithTruncation ( argument )`
 </span><span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_integer_with_truncation(
-    value: <span class="kw-2">&amp;</span>JsValue,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-) -&gt; JsResult&lt;i32&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_integer_with_truncation(value: <span class="kw-2">&amp;</span>JsValue, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;i32&gt; {
     <span class="comment">// 1. Let number be ? ToNumber(argument).
     </span><span class="kw">let </span>number = value.to_number(context)<span class="question-mark">?</span>;
     <span class="comment">// 2. If number is NaN, +∞𝔽 or -∞𝔽, throw a RangeError exception.
@@ -1128,7 +1122,7 @@
 
 <span class="doccomment">/// Abstract operation 13.45 `ToIntegerIfIntegral( argument )`
 </span><span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_integer_if_integral(arg: <span class="kw-2">&amp;</span>JsValue, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;i32&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_integer_if_integral(arg: <span class="kw-2">&amp;</span>JsValue, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;i32&gt; {
     <span class="comment">// 1. Let number be ? ToNumber(argument).
     // 2. If IsIntegralNumber(number) is false, throw a RangeError exception.
     // 3. Return ℝ(number).
@@ -1154,7 +1148,7 @@
     disallowed_units: <span class="kw-2">&amp;</span>[TemporalUnit],
     fallback_smallest_unit: TemporalUnit,
     smallest_largest_default_unit: TemporalUnit,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;(TemporalUnit, TemporalUnit, RoundingMode, f64)&gt; {
     <span class="comment">// 1. NOTE: The following steps read options and perform independent validation in alphabetical order (ToTemporalRoundingIncrement reads &quot;roundingIncrement&quot; and ToTemporalRoundingMode reads &quot;roundingMode&quot;).
     // 2. Let largestUnit be ? GetTemporalUnit(options, &quot;largestUnit&quot;, unitGroup, &quot;auto&quot;).
@@ -1233,7 +1227,7 @@
     source: <span class="kw-2">&amp;</span>JsValue,
     excluded_keys: <span class="kw-2">&amp;</span>Vec&lt;JsString&gt;,
     excluded_values: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Vec&lt;JsValue&gt;&gt;,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;()&gt; {
     <span class="comment">// 1. If source is undefined or null, return unused.
     </span><span class="kw">if </span>source.is_null_or_undefined() {
@@ -1303,7 +1297,7 @@
     source: <span class="kw-2">&amp;</span>JsObject,
     excluded_keys: <span class="prelude-ty">Option</span>&lt;Vec&lt;JsString&gt;&gt;,
     excluded_values: <span class="prelude-ty">Option</span>&lt;Vec&lt;JsValue&gt;&gt;,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;JsObject&gt; {
     <span class="comment">// 1. Let copy be OrdinaryObjectCreate(proto).
     </span><span class="kw">let </span>copy = JsObject::with_null_proto();

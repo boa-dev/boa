@@ -570,10 +570,6 @@
 <a href="#570" id="570">570</a>
 <a href="#571" id="571">571</a>
 <a href="#572" id="572">572</a>
-<a href="#573" id="573">573</a>
-<a href="#574" id="574">574</a>
-<a href="#575" id="575">575</a>
-<a href="#576" id="576">576</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>boa_gc::{custom_trace, Finalize, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>icu_collator::{
@@ -656,12 +652,12 @@
 
     <span class="kw">type </span>LocaleOptions = CollatorLocaleOptions;
 
-    <span class="kw">fn </span>resolve(locale: <span class="kw-2">&amp;mut </span>Locale, options: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::LocaleOptions, provider: BoaProvider&lt;<span class="lifetime">&#39;_</span>&gt;) {
+    <span class="kw">fn </span>resolve(locale: <span class="kw-2">&amp;mut </span>Locale, options: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::LocaleOptions, provider: <span class="kw-2">&amp;</span>BoaProvider) {
         <span class="kw">let </span>collation = options
             .collation
             .take()
             .filter(|co| {
-                validate_extension::&lt;<span class="self">Self</span>::LangMarker&gt;(locale.id.clone(), <span class="macro">key!</span>(<span class="string">&quot;co&quot;</span>), co, <span class="kw-2">&amp;</span>provider)
+                validate_extension::&lt;<span class="self">Self</span>::LangMarker&gt;(locale.id.clone(), <span class="macro">key!</span>(<span class="string">&quot;co&quot;</span>), co, provider)
             })
             .or_else(|| {
                 locale
@@ -675,7 +671,7 @@
                             locale.id.clone(),
                             <span class="macro">key!</span>(<span class="string">&quot;co&quot;</span>),
                             co,
-                            <span class="kw-2">&amp;</span>provider,
+                            provider,
                         )
                     })
             })
@@ -780,7 +776,7 @@
     </span><span class="kw">fn </span>constructor(
         new_target: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. If NewTarget is undefined, let newTarget be the active function object, else let newTarget be NewTarget.
         </span><span class="kw">let </span>new_target = <span class="kw-2">&amp;</span><span class="kw">if </span>new_target.is_undefined() {
@@ -909,7 +905,7 @@
             .unzip();
 
         <span class="kw">let </span>collator =
-            NativeCollator::try_new_unstable(<span class="kw-2">&amp;</span>context.icu().provider(), <span class="kw-2">&amp;</span>collator_locale, {
+            NativeCollator::try_new_unstable(context.icu().provider(), <span class="kw-2">&amp;</span>collator_locale, {
                 <span class="kw">let </span><span class="kw-2">mut </span>options = icu_collator::CollatorOptions::new();
                 options.strength = strength;
                 options.case_level = case_level;
@@ -958,7 +954,7 @@
     </span><span class="kw">fn </span>supported_locales_of(
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>locales = args.get_or_undefined(<span class="number">0</span>);
         <span class="kw">let </span>options = args.get_or_undefined(<span class="number">1</span>);
@@ -981,7 +977,7 @@
     ///
     /// [spec]: https://tc39.es/ecma402/#sec-intl.collator.prototype.compare
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Collator/compare
-    </span><span class="kw">fn </span>compare(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>compare(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let collator be the this value.
         // 2. Perform ? RequireInternalSlot(collator, [[InitializedCollator]]).
         </span><span class="kw">let </span>this = this.as_object().ok_or_else(|| {
@@ -1052,11 +1048,7 @@
     ///
     /// [spec]: https://tc39.es/ecma402/#sec-intl.collator.prototype.resolvedoptions
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Collator/resolvedOptions
-    </span><span class="kw">fn </span>resolved_options(
-        this: <span class="kw-2">&amp;</span>JsValue,
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>resolved_options(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let collator be the this value.
         // 2. Perform ? RequireInternalSlot(collator, [[InitializedCollator]]).
         </span><span class="kw">let </span>collator = this.as_object().map(JsObject::borrow).ok_or_else(|| {

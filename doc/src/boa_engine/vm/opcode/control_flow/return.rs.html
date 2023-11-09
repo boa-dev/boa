@@ -126,7 +126,7 @@
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - Return&quot;</span>;
     <span class="kw">const </span>COST: u8 = <span class="number">4</span>;
 
-    <span class="kw">fn </span>execute(_context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>execute(_context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="prelude-val">Ok</span>(CompletionType::Return)
     }
 }
@@ -143,7 +143,7 @@
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - CheckReturn&quot;</span>;
     <span class="kw">const </span>COST: u8 = <span class="number">3</span>;
 
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">if </span>!context.vm.frame().construct() {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(CompletionType::Normal);
         }
@@ -195,7 +195,7 @@
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - GetReturnValue&quot;</span>;
     <span class="kw">const </span>COST: u8 = <span class="number">2</span>;
 
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>value = context.vm.get_return_value();
         context.vm.push(value);
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
@@ -214,7 +214,7 @@
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - SetReturnValue&quot;</span>;
     <span class="kw">const </span>COST: u8 = <span class="number">2</span>;
 
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>value = context.vm.pop();
         context.vm.set_return_value(value);
         <span class="prelude-val">Ok</span>(CompletionType::Normal)

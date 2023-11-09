@@ -182,10 +182,6 @@
 <a href="#182" id="182">182</a>
 <a href="#183" id="183">183</a>
 <a href="#184" id="184">184</a>
-<a href="#185" id="185">185</a>
-<a href="#186" id="186">186</a>
-<a href="#187" id="187">187</a>
-<a href="#188" id="188">188</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of `Temporal.Now` ECMAScript Builtin object.
 
 </span><span class="kw">use crate</span>::{
@@ -253,59 +249,55 @@
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.now.timezone
     </span><span class="attr">#[allow(clippy::unnecessary_wraps)]
-    </span><span class="kw">fn </span>time_zone_id(
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
-        _args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>time_zone_id(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, _args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Return ! SystemTimeZone().
         </span><span class="prelude-val">Ok</span>(system_time_zone(context).expect(<span class="string">&quot;retrieving the system timezone must not fail&quot;</span>))
     }
 
     <span class="doccomment">/// `Temporal.Now.instant()`
-    </span><span class="kw">fn </span>instant(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>instant(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="prelude-val">Err</span>(JsNativeError::error()
             .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
             .into())
     }
 
     <span class="doccomment">/// `Temporal.Now.plainDateTime()`
-    </span><span class="kw">fn </span>plain_date_time(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>plain_date_time(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="prelude-val">Err</span>(JsNativeError::error()
             .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
             .into())
     }
 
     <span class="doccomment">/// `Temporal.Now.plainDateTimeISO`
-    </span><span class="kw">fn </span>plain_date_time_iso(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>plain_date_time_iso(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="prelude-val">Err</span>(JsNativeError::error()
             .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
             .into())
     }
 
     <span class="doccomment">/// `Temporal.Now.zonedDateTime`
-    </span><span class="kw">fn </span>zoned_date_time(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>zoned_date_time(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="prelude-val">Err</span>(JsNativeError::error()
             .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
             .into())
     }
 
     <span class="doccomment">/// `Temporal.Now.zonedDateTimeISO`
-    </span><span class="kw">fn </span>zoned_date_time_iso(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>zoned_date_time_iso(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="prelude-val">Err</span>(JsNativeError::error()
             .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
             .into())
     }
 
     <span class="doccomment">/// `Temporal.Now.plainDate()`
-    </span><span class="kw">fn </span>plain_date(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>plain_date(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="prelude-val">Err</span>(JsNativeError::error()
             .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
             .into())
     }
 
     <span class="doccomment">/// `Temporal.Now.plainDateISO`
-    </span><span class="kw">fn </span>plain_date_iso(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>plain_date_iso(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="prelude-val">Err</span>(JsNativeError::error()
             .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
             .into())
@@ -368,7 +360,7 @@
 ///
 /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal-systemtimezone
 </span><span class="attr">#[allow(unused)]
-</span><span class="kw">fn </span>system_time_zone(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+</span><span class="kw">fn </span>system_time_zone(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
     <span class="comment">// 1. Let identifier be ! DefaultTimeZone().
     </span><span class="kw">let </span>identifier = default_time_zone(context);
     <span class="comment">// 2. Return ! CreateTemporalTimeZone(identifier).

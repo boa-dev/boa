@@ -203,7 +203,7 @@
     property: <span class="kw-2">&amp;</span>[u16],
     minimum: T,
     maximum: T,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;T&gt;&gt;
 <span class="kw">where
     </span>T: Into&lt;f64&gt; + FromPrimitive,
@@ -226,7 +226,7 @@
     value: <span class="kw-2">&amp;</span>JsValue,
     minimum: T,
     maximum: T,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;T&gt;&gt;
 <span class="kw">where
     </span>T: Into&lt;f64&gt; + FromPrimitive,
@@ -263,7 +263,7 @@
 /// [`get_options_object`]: crate::builtins::options::get_options_object
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>coerce_options_to_object(
     options: <span class="kw-2">&amp;</span>JsValue,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;JsObject&gt; {
     <span class="comment">// If options is undefined, then
     </span><span class="kw">if </span>options.is_undefined() {

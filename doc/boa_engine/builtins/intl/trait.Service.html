@@ -6,7 +6,7 @@
     fn <a href="#method.resolve" class="fn">resolve</a>(
         _locale: &amp;mut Locale,
         _options: &amp;mut Self::<a class="associatedtype" href="trait.Service.html#associatedtype.LocaleOptions" title="type boa_engine::builtins::intl::Service::LocaleOptions">LocaleOptions</a>,
-        _provider: <a class="enum" href="../../context/icu/enum.BoaProvider.html" title="enum boa_engine::context::icu::BoaProvider">BoaProvider</a>&lt;'_&gt;
+        _provider: &amp;<a class="enum" href="../../context/icu/enum.BoaProvider.html" title="enum boa_engine::context::icu::BoaProvider">BoaProvider</a>
     ) { ... }
 }</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>A service component that is part of the <code>Intl</code> API.</p>
 <p>This needs to be implemented for every <code>Intl</code> service in order to use the functions
@@ -18,7 +18,7 @@ locale.</p>
 </div></details></div><h2 id="provided-methods" class="small-section-header">Provided Methods<a href="#provided-methods" class="anchor">§</a></h2><div class="methods"><details class="toggle method-toggle" open><summary><section id="method.resolve" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/intl/mod.rs.html#172-177">source</a><h4 class="code-header">fn <a href="#method.resolve" class="fn">resolve</a>(
     _locale: &amp;mut Locale,
     _options: &amp;mut Self::<a class="associatedtype" href="trait.Service.html#associatedtype.LocaleOptions" title="type boa_engine::builtins::intl::Service::LocaleOptions">LocaleOptions</a>,
-    _provider: <a class="enum" href="../../context/icu/enum.BoaProvider.html" title="enum boa_engine::context::icu::BoaProvider">BoaProvider</a>&lt;'_&gt;
+    _provider: &amp;<a class="enum" href="../../context/icu/enum.BoaProvider.html" title="enum boa_engine::context::icu::BoaProvider">BoaProvider</a>
 )</h4></section></summary><div class="docblock"><p>Resolves the final value of <code>locale</code> from a set of <code>options</code>.</p>
 <p>The provided <code>options</code> will also be modified with the final values, in case there were
 changes in the resolution algorithm.</p>

@@ -1713,7 +1713,7 @@
 <span class="doccomment">/// The [`ByteCompiler`] is used to compile ECMAScript AST from [`boa_ast`] to bytecode.
 </span><span class="attr">#[derive(Debug)]
 #[allow(clippy::struct_excessive_bools)]
-</span><span class="kw">pub struct </span>ByteCompiler&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;host</span>&gt; {
+</span><span class="kw">pub struct </span>ByteCompiler&lt;<span class="lifetime">&#39;ctx</span>&gt; {
     <span class="doccomment">/// Name of this function.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) function_name: Sym,
 
@@ -1756,13 +1756,13 @@
     json_parse: bool,
 
     <span class="comment">// TODO: remove when we separate scripts from the context
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span><span class="kw-2">mut </span>Context&lt;<span class="lifetime">&#39;host</span>&gt;,
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span><span class="kw-2">mut </span>Context,
 
     <span class="attr">#[cfg(feature = <span class="string">&quot;annex-b&quot;</span>)]
     </span>annex_b_function_names: Vec&lt;Identifier&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;host</span>&gt; ByteCompiler&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;host</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; ByteCompiler&lt;<span class="lifetime">&#39;ctx</span>&gt; {
     <span class="doccomment">/// Represents a placeholder address that will be patched later.
     </span><span class="kw">const </span>DUMMY_ADDRESS: u32 = u32::MAX;
     <span class="kw">const </span>DUMMY_LABEL: Label = Label { index: u32::MAX };
@@ -1776,8 +1776,8 @@
         variable_environment: Rc&lt;CompileTimeEnvironment&gt;,
         lexical_environment: Rc&lt;CompileTimeEnvironment&gt;,
         <span class="comment">// TODO: remove when we separate scripts from the context
-        </span>context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span><span class="kw-2">mut </span>Context&lt;<span class="lifetime">&#39;host</span>&gt;,
-    ) -&gt; ByteCompiler&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;host</span>&gt; {
+        </span>context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span><span class="kw-2">mut </span>Context,
+    ) -&gt; ByteCompiler&lt;<span class="lifetime">&#39;ctx</span>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>code_block_flags = CodeBlockFlags::empty();
         code_block_flags.set(CodeBlockFlags::STRICT, strict);
         code_block_flags |= CodeBlockFlags::HAS_PROTOTYPE_PROPERTY;
@@ -2215,7 +2215,7 @@
         }
     }
 
-    <span class="kw">fn </span>access_set_top_of_stack_expr_fn(compiler: <span class="kw-2">&amp;mut </span>ByteCompiler&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt;, level: u8) {
+    <span class="kw">fn </span>access_set_top_of_stack_expr_fn(compiler: <span class="kw-2">&amp;mut </span>ByteCompiler&lt;<span class="lifetime">&#39;_</span>&gt;, level: u8) {
         <span class="kw">match </span>level {
             <span class="number">0 </span>=&gt; {}
             <span class="number">1 </span>=&gt; compiler.emit_opcode(Opcode::Swap),
@@ -2227,7 +2227,7 @@
 
     <span class="kw">fn </span>access_set&lt;F, R&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, access: Access&lt;<span class="lifetime">&#39;_</span>&gt;, use_expr: bool, expr_fn: F)
     <span class="kw">where
-        </span>F: FnOnce(<span class="kw-2">&amp;mut </span>ByteCompiler&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt;, u8) -&gt; R,
+        </span>F: FnOnce(<span class="kw-2">&amp;mut </span>ByteCompiler&lt;<span class="lifetime">&#39;_</span>&gt;, u8) -&gt; R,
     {
         <span class="kw">match </span>access {
             Access::Variable { name } =&gt; {

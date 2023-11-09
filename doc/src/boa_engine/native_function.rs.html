@@ -303,16 +303,6 @@
 <a href="#303" id="303">303</a>
 <a href="#304" id="304">304</a>
 <a href="#305" id="305">305</a>
-<a href="#306" id="306">306</a>
-<a href="#307" id="307">307</a>
-<a href="#308" id="308">308</a>
-<a href="#309" id="309">309</a>
-<a href="#310" id="310">310</a>
-<a href="#311" id="311">311</a>
-<a href="#312" id="312">312</a>
-<a href="#313" id="313">313</a>
-<a href="#314" id="314">314</a>
-<a href="#315" id="315">315</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s wrappers for native Rust functions to be compatible with ECMAScript calls.
 //!
 //! [`NativeFunction`] is the main type of this module, providing APIs to create native callables
@@ -336,21 +326,16 @@
 /// - The second argument represents the list of all arguments passed to the function.
 ///
 /// - The last argument is the engine [`Context`].
-</span><span class="kw">pub type </span>NativeFunctionPointer = <span class="kw">fn</span>(<span class="kw-2">&amp;</span>JsValue, <span class="kw-2">&amp;</span>[JsValue], <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt;;
+</span><span class="kw">pub type </span>NativeFunctionPointer = <span class="kw">fn</span>(<span class="kw-2">&amp;</span>JsValue, <span class="kw-2">&amp;</span>[JsValue], <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt;;
 
 <span class="kw">trait </span>TraceableClosure: Trace {
-    <span class="kw">fn </span>call(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        this: <span class="kw-2">&amp;</span>JsValue,
-        args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;JsValue&gt;;
+    <span class="kw">fn </span>call(<span class="kw-2">&amp;</span><span class="self">self</span>, this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt;;
 }
 
 <span class="attr">#[derive(Trace, Finalize)]
 </span><span class="kw">struct </span>Closure&lt;F, T&gt;
 <span class="kw">where
-    </span>F: Fn(<span class="kw-2">&amp;</span>JsValue, <span class="kw-2">&amp;</span>[JsValue], <span class="kw-2">&amp;</span>T, <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt;,
+    </span>F: Fn(<span class="kw-2">&amp;</span>JsValue, <span class="kw-2">&amp;</span>[JsValue], <span class="kw-2">&amp;</span>T, <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt;,
     T: Trace,
 {
     <span class="comment">// SAFETY: `NativeFunction`&#39;s safe API ensures only `Copy` closures are stored; its unsafe API,
@@ -363,15 +348,10 @@
 
 <span class="kw">impl</span>&lt;F, T&gt; TraceableClosure <span class="kw">for </span>Closure&lt;F, T&gt;
 <span class="kw">where
-    </span>F: Fn(<span class="kw-2">&amp;</span>JsValue, <span class="kw-2">&amp;</span>[JsValue], <span class="kw-2">&amp;</span>T, <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt;,
+    </span>F: Fn(<span class="kw-2">&amp;</span>JsValue, <span class="kw-2">&amp;</span>[JsValue], <span class="kw-2">&amp;</span>T, <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt;,
     T: Trace,
 {
-    <span class="kw">fn </span>call(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        this: <span class="kw-2">&amp;</span>JsValue,
-        args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;JsValue&gt; {
+    <span class="kw">fn </span>call(<span class="kw-2">&amp;</span><span class="self">self</span>, this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         (<span class="self">self</span>.f)(this, args, <span class="kw-2">&amp;</span><span class="self">self</span>.captures, context)
     }
 }
@@ -467,7 +447,7 @@
     /// async fn test(
     ///     _this: &amp;JsValue,
     ///     args: &amp;[JsValue],
-    ///     _context: &amp;mut Context&lt;&#39;_&gt;,
+    ///     _context: &amp;mut Context,
     /// ) -&gt; JsResult&lt;JsValue&gt; {
     ///     let arg = args.get(0).cloned();
     ///     std::future::ready(()).await;
@@ -486,7 +466,7 @@
     /// fn test&lt;&#39;a&gt;(
     ///     _this: &amp;JsValue,
     ///     args: &amp;&#39;a [JsValue],
-    ///     _context: &amp;mut Context&lt;&#39;_&gt;,
+    ///     _context: &amp;mut Context,
     /// ) -&gt; impl Future&lt;Output = JsResult&lt;JsValue&gt;&gt; + &#39;a {
     ///     async move {
     ///         let arg = args.get(0).cloned();
@@ -512,7 +492,7 @@
     /// fn test(
     ///     _this: &amp;JsValue,
     ///     args: &amp;[JsValue],
-    ///     _context: &amp;mut Context&lt;&#39;_&gt;,
+    ///     _context: &amp;mut Context,
     /// ) -&gt; impl Future&lt;Output = JsResult&lt;JsValue&gt;&gt; {
     ///     let arg = args.get(0).cloned();
     ///     async move {
@@ -527,7 +507,7 @@
     /// And this should always return a `&#39;static` future.
     ///
     /// [`Future`]: std::future::Future
-    </span><span class="kw">pub fn </span>from_async_fn&lt;Fut&gt;(f: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>JsValue, <span class="kw-2">&amp;</span>[JsValue], <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Fut) -&gt; <span class="self">Self
+    </span><span class="kw">pub fn </span>from_async_fn&lt;Fut&gt;(f: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>JsValue, <span class="kw-2">&amp;</span>[JsValue], <span class="kw-2">&amp;mut </span>Context) -&gt; Fut) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>Fut: std::future::IntoFuture&lt;Output = JsResult&lt;JsValue&gt;&gt; + <span class="lifetime">&#39;static</span>,
     {
@@ -541,7 +521,7 @@
     <span class="doccomment">/// Creates a `NativeFunction` from a `Copy` closure.
     </span><span class="kw">pub fn </span>from_copy_closure&lt;F&gt;(closure: F) -&gt; <span class="self">Self
     </span><span class="kw">where
-        </span>F: Fn(<span class="kw-2">&amp;</span>JsValue, <span class="kw-2">&amp;</span>[JsValue], <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; + Copy + <span class="lifetime">&#39;static</span>,
+        </span>F: Fn(<span class="kw-2">&amp;</span>JsValue, <span class="kw-2">&amp;</span>[JsValue], <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; + Copy + <span class="lifetime">&#39;static</span>,
     {
         <span class="comment">// SAFETY: The `Copy` bound ensures there are no traceable types inside the closure.
         </span><span class="kw">unsafe </span>{ <span class="self">Self</span>::from_closure(closure) }
@@ -550,7 +530,7 @@
     <span class="doccomment">/// Creates a `NativeFunction` from a `Copy` closure and a list of traceable captures.
     </span><span class="kw">pub fn </span>from_copy_closure_with_captures&lt;F, T&gt;(closure: F, captures: T) -&gt; <span class="self">Self
     </span><span class="kw">where
-        </span>F: Fn(<span class="kw-2">&amp;</span>JsValue, <span class="kw-2">&amp;</span>[JsValue], <span class="kw-2">&amp;</span>T, <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; + Copy + <span class="lifetime">&#39;static</span>,
+        </span>F: Fn(<span class="kw-2">&amp;</span>JsValue, <span class="kw-2">&amp;</span>[JsValue], <span class="kw-2">&amp;</span>T, <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; + Copy + <span class="lifetime">&#39;static</span>,
         T: Trace + <span class="lifetime">&#39;static</span>,
     {
         <span class="comment">// SAFETY: The `Copy` bound ensures there are no traceable types inside the closure.
@@ -567,7 +547,7 @@
     /// on why that is the case.
     </span><span class="kw">pub unsafe fn </span>from_closure&lt;F&gt;(closure: F) -&gt; <span class="self">Self
     </span><span class="kw">where
-        </span>F: Fn(<span class="kw-2">&amp;</span>JsValue, <span class="kw-2">&amp;</span>[JsValue], <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; + <span class="lifetime">&#39;static</span>,
+        </span>F: Fn(<span class="kw-2">&amp;</span>JsValue, <span class="kw-2">&amp;</span>[JsValue], <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; + <span class="lifetime">&#39;static</span>,
     {
         <span class="comment">// SAFETY: The caller must ensure the invariants of the closure hold.
         </span><span class="kw">unsafe </span>{
@@ -588,7 +568,7 @@
     /// on why that is the case.
     </span><span class="kw">pub unsafe fn </span>from_closure_with_captures&lt;F, T&gt;(closure: F, captures: T) -&gt; <span class="self">Self
     </span><span class="kw">where
-        </span>F: Fn(<span class="kw-2">&amp;</span>JsValue, <span class="kw-2">&amp;</span>[JsValue], <span class="kw-2">&amp;</span>T, <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; + <span class="lifetime">&#39;static</span>,
+        </span>F: Fn(<span class="kw-2">&amp;</span>JsValue, <span class="kw-2">&amp;</span>[JsValue], <span class="kw-2">&amp;</span>T, <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; + <span class="lifetime">&#39;static</span>,
         T: Trace + <span class="lifetime">&#39;static</span>,
     {
         <span class="comment">// Hopefully, this unsafe operation will be replaced by the `CoerceUnsized` API in the
@@ -612,7 +592,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">match </span><span class="self">self</span>.inner {
             Inner::PointerFn(f) =&gt; f(this, args, context),

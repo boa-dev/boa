@@ -169,10 +169,6 @@
 <a href="#169" id="169">169</a>
 <a href="#170" id="170">170</a>
 <a href="#171" id="171">171</a>
-<a href="#172" id="172">172</a>
-<a href="#173" id="173">173</a>
-<a href="#174" id="174">174</a>
-<a href="#175" id="175">175</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>boa_gc::{Finalize, Trace, WeakGc};
 <span class="kw">use </span>boa_profiler::Profiler;
 
@@ -238,7 +234,7 @@
     </span><span class="kw">fn </span>constructor(
         new_target: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// If NewTarget is undefined, throw a TypeError exception.
         </span><span class="kw">if </span>new_target.is_undefined() {
@@ -280,11 +276,7 @@
     /// proper [`JsObject`], or returns `undefined` otherwise.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-weak-ref.prototype.deref
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>deref(
-        this: <span class="kw-2">&amp;</span>JsValue,
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>deref(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let weakRef be the this value.
         // 2. Perform ? RequireInternalSlot(weakRef, [[WeakRefTarget]]).
         </span><span class="kw">let </span>weak_ref = this.as_object().map(JsObject::borrow).ok_or_else(|| {

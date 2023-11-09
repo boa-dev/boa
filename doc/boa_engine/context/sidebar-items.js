@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["CANNOT_BLOCK_COUNTER"],"enum":["BoaProvider","IcuError","MaybeShared"],"mod":["hooks","icu","intrinsics","maybe_shared"],"struct":["Context","ContextBuilder","ContextCleanupGuard","DefaultHooks"],"trait":["HostHooks"]};
+window.SIDEBAR_ITEMS = {"constant":["CANNOT_BLOCK_COUNTER"],"enum":["BoaProvider","IcuError"],"mod":["hooks","icu","intrinsics"],"struct":["Context","ContextBuilder","ContextCleanupGuard","DefaultHooks"],"trait":["HostHooks"]};

@@ -203,7 +203,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>GetName;
 
 <span class="kw">impl </span>GetName {
-    <span class="kw">fn </span>operation(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;, index: usize) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>operation(context: <span class="kw-2">&amp;mut </span>Context, index: usize) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>binding_locator = context.vm.frame().code_block.bindings[index];
         context.find_runtime_binding(<span class="kw-2">&amp;mut </span>binding_locator)<span class="question-mark">?</span>;
         <span class="kw">let </span>value = context.get_binding(binding_locator)<span class="question-mark">?</span>.ok_or_else(|| {
@@ -224,17 +224,17 @@
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - GetName&quot;</span>;
     <span class="kw">const </span>COST: u8 = <span class="number">4</span>;
 
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u8&gt;();
         <span class="self">Self</span>::operation(context, index <span class="kw">as </span>usize)
     }
 
-    <span class="kw">fn </span>execute_with_u16_operands(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>execute_with_u16_operands(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u16&gt;() <span class="kw">as </span>usize;
         <span class="self">Self</span>::operation(context, index)
     }
 
-    <span class="kw">fn </span>execute_with_u32_operands(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>execute_with_u32_operands(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
         <span class="self">Self</span>::operation(context, index <span class="kw">as </span>usize)
     }
@@ -248,7 +248,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>GetLocator;
 
 <span class="kw">impl </span>GetLocator {
-    <span class="kw">fn </span>operation(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;, index: usize) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>operation(context: <span class="kw-2">&amp;mut </span>Context, index: usize) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>binding_locator = context.vm.frame().code_block.bindings[index];
         context.find_runtime_binding(<span class="kw-2">&amp;mut </span>binding_locator)<span class="question-mark">?</span>;
 
@@ -263,17 +263,17 @@
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - GetLocator&quot;</span>;
     <span class="kw">const </span>COST: u8 = <span class="number">4</span>;
 
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u8&gt;();
         <span class="self">Self</span>::operation(context, index <span class="kw">as </span>usize)
     }
 
-    <span class="kw">fn </span>execute_with_u16_operands(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>execute_with_u16_operands(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u16&gt;() <span class="kw">as </span>usize;
         <span class="self">Self</span>::operation(context, index)
     }
 
-    <span class="kw">fn </span>execute_with_u32_operands(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>execute_with_u32_operands(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
         <span class="self">Self</span>::operation(context, index <span class="kw">as </span>usize)
     }
@@ -288,7 +288,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>GetNameAndLocator;
 
 <span class="kw">impl </span>GetNameAndLocator {
-    <span class="kw">fn </span>operation(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;, index: usize) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>operation(context: <span class="kw-2">&amp;mut </span>Context, index: usize) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>binding_locator = context.vm.frame().code_block.bindings[index];
         context.find_runtime_binding(<span class="kw-2">&amp;mut </span>binding_locator)<span class="question-mark">?</span>;
         <span class="kw">let </span>value = context.get_binding(binding_locator)<span class="question-mark">?</span>.ok_or_else(|| {
@@ -310,17 +310,17 @@
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - GetNameAndLocator&quot;</span>;
     <span class="kw">const </span>COST: u8 = <span class="number">4</span>;
 
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u8&gt;();
         <span class="self">Self</span>::operation(context, index <span class="kw">as </span>usize)
     }
 
-    <span class="kw">fn </span>execute_with_u16_operands(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>execute_with_u16_operands(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u16&gt;() <span class="kw">as </span>usize;
         <span class="self">Self</span>::operation(context, index)
     }
 
-    <span class="kw">fn </span>execute_with_u32_operands(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>execute_with_u32_operands(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
         <span class="self">Self</span>::operation(context, index <span class="kw">as </span>usize)
     }
@@ -334,7 +334,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>GetNameOrUndefined;
 
 <span class="kw">impl </span>GetNameOrUndefined {
-    <span class="kw">fn </span>operation(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;, index: usize) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>operation(context: <span class="kw-2">&amp;mut </span>Context, index: usize) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>binding_locator = context.vm.frame().code_block.bindings[index];
 
         <span class="kw">let </span>is_global = binding_locator.is_global();
@@ -365,17 +365,17 @@
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - GetNameOrUndefined&quot;</span>;
     <span class="kw">const </span>COST: u8 = <span class="number">4</span>;
 
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u8&gt;();
         <span class="self">Self</span>::operation(context, index <span class="kw">as </span>usize)
     }
 
-    <span class="kw">fn </span>execute_with_u16_operands(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>execute_with_u16_operands(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u16&gt;() <span class="kw">as </span>usize;
         <span class="self">Self</span>::operation(context, index)
     }
 
-    <span class="kw">fn </span>execute_with_u32_operands(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>execute_with_u32_operands(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>index = context.vm.read::&lt;u32&gt;();
         <span class="self">Self</span>::operation(context, index <span class="kw">as </span>usize)
     }

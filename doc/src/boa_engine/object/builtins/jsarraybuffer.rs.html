@@ -276,7 +276,7 @@
     /// # }
     /// ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>new(byte_length: usize, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+    </span><span class="kw">pub fn </span>new(byte_length: usize, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="kw">let </span>inner = ArrayBuffer::allocate(
             <span class="kw-2">&amp;</span>context
                 .intrinsics()
@@ -317,7 +317,7 @@
     /// # Ok(())
     /// # }
     /// ```
-    </span><span class="kw">pub fn </span>from_byte_block(byte_block: Vec&lt;u8&gt;, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+    </span><span class="kw">pub fn </span>from_byte_block(byte_block: Vec&lt;u8&gt;, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="kw">let </span>constructor = context
             .intrinsics()
             .constructors()
@@ -385,7 +385,7 @@
     /// # }
     ///  ```
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>byte_length(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; usize {
+    </span><span class="kw">pub fn </span>byte_length(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; usize {
         ArrayBuffer::get_byte_length(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[], context)
             .expect(<span class="string">&quot;it should not throw&quot;</span>)
             .as_number()
@@ -463,7 +463,7 @@
 <span class="kw">impl </span>JsObjectType <span class="kw">for </span>JsArrayBuffer {}
 
 <span class="kw">impl </span>TryFromJs <span class="kw">for </span>JsArrayBuffer {
-    <span class="kw">fn </span>try_from_js(value: <span class="kw-2">&amp;</span>JsValue, _context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+    <span class="kw">fn </span>try_from_js(value: <span class="kw-2">&amp;</span>JsValue, _context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="kw">match </span>value {
             JsValue::Object(o) =&gt; <span class="self">Self</span>::from_object(o.clone()),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(JsNativeError::typ()

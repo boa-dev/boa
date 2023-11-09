@@ -3398,30 +3398,6 @@
 <a href="#3398" id="3398">3398</a>
 <a href="#3399" id="3399">3399</a>
 <a href="#3400" id="3400">3400</a>
-<a href="#3401" id="3401">3401</a>
-<a href="#3402" id="3402">3402</a>
-<a href="#3403" id="3403">3403</a>
-<a href="#3404" id="3404">3404</a>
-<a href="#3405" id="3405">3405</a>
-<a href="#3406" id="3406">3406</a>
-<a href="#3407" id="3407">3407</a>
-<a href="#3408" id="3408">3408</a>
-<a href="#3409" id="3409">3409</a>
-<a href="#3410" id="3410">3410</a>
-<a href="#3411" id="3411">3411</a>
-<a href="#3412" id="3412">3412</a>
-<a href="#3413" id="3413">3413</a>
-<a href="#3414" id="3414">3414</a>
-<a href="#3415" id="3415">3415</a>
-<a href="#3416" id="3416">3416</a>
-<a href="#3417" id="3417">3417</a>
-<a href="#3418" id="3418">3418</a>
-<a href="#3419" id="3419">3419</a>
-<a href="#3420" id="3420">3420</a>
-<a href="#3421" id="3421">3421</a>
-<a href="#3422" id="3422">3422</a>
-<a href="#3423" id="3423">3423</a>
-<a href="#3424" id="3424">3424</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Array` object.
 //!
 //! The ECMAScript `Array` class is a global object that is used in the construction of arrays; which are high-level, list-like objects.
@@ -3598,7 +3574,7 @@
     <span class="kw">fn </span>constructor(
         new_target: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// If NewTarget is undefined, let newTarget be the active function object; else let newTarget be NewTarget.
         </span><span class="kw">let </span>new_target = <span class="kw-2">&amp;</span><span class="kw">if </span>new_target.is_undefined() {
@@ -3687,7 +3663,7 @@
 
 <span class="kw">impl </span>Array {
     <span class="doccomment">/// Optimized helper function, that sets the length of the array.
-    </span><span class="kw">fn </span>set_length(o: <span class="kw-2">&amp;</span>JsObject, len: u64, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;()&gt; {
+    </span><span class="kw">fn </span>set_length(o: <span class="kw-2">&amp;</span>JsObject, len: u64, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;()&gt; {
         <span class="kw">if </span>o.is_array() &amp;&amp; len &lt; (<span class="number">2u64</span>.pow(<span class="number">32</span>) - <span class="number">1</span>) {
             <span class="kw">let </span><span class="kw-2">mut </span>borrowed_object = o.borrow_mut();
             <span class="kw">if </span>borrowed_object.properties().shape.to_addr_usize()
@@ -3717,7 +3693,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>array_create(
         length: u64,
         prototype: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsObject&gt; {
         <span class="comment">// 1. If length &gt; 2^32 - 1, throw a RangeError exception.
         </span><span class="kw">if </span>length &gt; <span class="number">2u64</span>.pow(<span class="number">32</span>) - <span class="number">1 </span>{
@@ -3785,7 +3761,7 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-createarrayfromlist
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_array_from_list&lt;I&gt;(elements: I, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsObject
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_array_from_list&lt;I&gt;(elements: I, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsObject
     <span class="kw">where
         </span>I: IntoIterator&lt;Item = JsValue&gt;,
     {
@@ -3816,7 +3792,7 @@
     /// Returns a Boolean valued property that if `true` indicates that
     /// an object should be flattened to its array elements
     /// by `Array.prototype.concat`.
-    </span><span class="kw">fn </span>is_concat_spreadable(o: <span class="kw-2">&amp;</span>JsValue, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;bool&gt; {
+    </span><span class="kw">fn </span>is_concat_spreadable(o: <span class="kw-2">&amp;</span>JsValue, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt; {
         <span class="comment">// 1. If Type(O) is not Object, return false.
         </span><span class="kw">let </span><span class="prelude-val">Some</span>(o) = o.as_object() <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="bool-val">false</span>);
@@ -3845,7 +3821,7 @@
     /// [spec]: https://tc39.es/ecma262/#sec-get-array-@@species
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/@@species
     </span><span class="attr">#[allow(clippy::unnecessary_wraps)]
-    </span><span class="kw">fn </span>get_species(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>get_species(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Return the this value.
         </span><span class="prelude-val">Ok</span>(this.clone())
     }
@@ -3857,7 +3833,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>array_species_create(
         original_array: <span class="kw-2">&amp;</span>JsObject,
         length: u64,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsObject&gt; {
         <span class="comment">// 1. Let isArray be ? IsArray(originalArray).
         // 2. If isArray is false, return ? ArrayCreate(length).
@@ -3928,7 +3904,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>items = args.get_or_undefined(<span class="number">0</span>);
         <span class="kw">let </span>mapfn = args.get_or_undefined(<span class="number">1</span>);
@@ -4077,7 +4053,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_array(
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        _context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        _context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Return ? IsArray(arg).
         </span>args.get_or_undefined(<span class="number">0</span>).is_array().map(Into::into)
@@ -4094,11 +4070,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.of
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/of
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>of(
-        this: <span class="kw-2">&amp;</span>JsValue,
-        args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>of(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let len be the number of elements in items.
         // 2. Let lenNumber be 𝔽(len).
         </span><span class="kw">let </span>len = args.len();
@@ -4142,11 +4114,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.at
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/at
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>at(
-        this: <span class="kw-2">&amp;</span>JsValue,
-        args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>at(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">//1. let O be ? ToObject(this value)
         </span><span class="kw">let </span>obj = this.to_object(context)<span class="question-mark">?</span>;
         <span class="comment">//2. let len be ? LengthOfArrayLike(O)
@@ -4186,7 +4154,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>concat(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be ? ToObject(this value).
         </span><span class="kw">let </span>obj = this.to_object(context)<span class="question-mark">?</span>;
@@ -4269,7 +4237,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be ? ToObject(this value).
         </span><span class="kw">let </span>o = this.to_object(context)<span class="question-mark">?</span>;
@@ -4309,11 +4277,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.pop
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/pop
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>pop(
-        this: <span class="kw-2">&amp;</span>JsValue,
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>pop(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be ? ToObject(this value).
         </span><span class="kw">let </span>o = this.to_object(context)<span class="question-mark">?</span>;
         <span class="comment">// 2. Let len be ? LengthOfArrayLike(O).
@@ -4356,7 +4320,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>for_each(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be ? ToObject(this value).
         </span><span class="kw">let </span>o = this.to_object(context)<span class="question-mark">?</span>;
@@ -4402,7 +4366,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>join(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be ? ToObject(this value).
         </span><span class="kw">let </span>o = this.to_object(context)<span class="question-mark">?</span>;
@@ -4458,7 +4422,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_string(
         this: <span class="kw-2">&amp;</span>JsValue,
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let array be ? ToObject(this value).
         </span><span class="kw">let </span>array = this.to_object(context)<span class="question-mark">?</span>;
@@ -4488,7 +4452,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>reverse(
         this: <span class="kw-2">&amp;</span>JsValue,
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be ? ToObject(this value).
         </span><span class="kw">let </span>o = this.to_object(context)<span class="question-mark">?</span>;
@@ -4566,7 +4530,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_reversed(
         this: <span class="kw-2">&amp;</span>JsValue,
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be ? ToObject(this value).
         </span><span class="kw">let </span>o = this.to_object(context)<span class="question-mark">?</span>;
@@ -4608,11 +4572,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.shift
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/shift
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>shift(
-        this: <span class="kw-2">&amp;</span>JsValue,
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>shift(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be ? ToObject(this value).
         </span><span class="kw">let </span>o = this.to_object(context)<span class="question-mark">?</span>;
         <span class="comment">// 2. Let len be ? LengthOfArrayLike(O).
@@ -4689,7 +4649,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>unshift(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be ? ToObject(this value).
         </span><span class="kw">let </span>o = this.to_object(context)<span class="question-mark">?</span>;
@@ -4761,7 +4721,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>every(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be ? ToObject(this value).
         </span><span class="kw">let </span>o = this.to_object(context)<span class="question-mark">?</span>;
@@ -4813,7 +4773,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>map(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be ? ToObject(this value).
         </span><span class="kw">let </span>o = this.to_object(context)<span class="question-mark">?</span>;
@@ -4862,7 +4822,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>index_of(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be ? ToObject(this value).
         </span><span class="kw">let </span>o = this.to_object(context)<span class="question-mark">?</span>;
@@ -4949,7 +4909,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>last_index_of(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be ? ToObject(this value).
         </span><span class="kw">let </span>o = this.to_object(context)<span class="question-mark">?</span>;
@@ -5019,7 +4979,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>find(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be ? ToObject(this value).
         </span><span class="kw">let </span>o = this.to_object(context)<span class="question-mark">?</span>;
@@ -5060,7 +5020,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>find_index(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be ? ToObject(this value).
         </span><span class="kw">let </span>o = this.to_object(context)<span class="question-mark">?</span>;
@@ -5099,7 +5059,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>find_last(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be ? ToObject(this value).
         </span><span class="kw">let </span>o = this.to_object(context)<span class="question-mark">?</span>;
@@ -5138,7 +5098,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>find_last_index(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be ? ToObject(this value).
         </span><span class="kw">let </span>o = this.to_object(context)<span class="question-mark">?</span>;
@@ -5178,7 +5138,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>flat(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be ToObject(this value)
         </span><span class="kw">let </span>o = this.to_object(context)<span class="question-mark">?</span>;
@@ -5234,7 +5194,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>flat_map(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be ToObject(this value)
         </span><span class="kw">let </span>o = this.to_object(context)<span class="question-mark">?</span>;
@@ -5281,7 +5241,7 @@
         depth: u64,
         mapper_function: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsObject&gt;,
         this_arg: <span class="kw-2">&amp;</span>JsValue,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;u64&gt; {
         <span class="comment">// 1. Assert target is Object
         // 2. Assert source is Object
@@ -5394,7 +5354,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>fill(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be ? ToObject(this value).
         </span><span class="kw">let </span>o = this.to_object(context)<span class="question-mark">?</span>;
@@ -5442,7 +5402,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>includes_value(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be ? ToObject(this value).
         </span><span class="kw">let </span>o = this.to_object(context)<span class="question-mark">?</span>;
@@ -5519,7 +5479,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>slice(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be ? ToObject(this value).
         </span><span class="kw">let </span>o = this.to_object(context)<span class="question-mark">?</span>;
@@ -5587,7 +5547,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_locale_string(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let array be ? ToObject(this value).
         </span><span class="kw">let </span>array = this.to_object(context)<span class="question-mark">?</span>;
@@ -5645,7 +5605,7 @@
         actual_start: u64,
         start: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsValue&gt;,
         delete_count: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsValue&gt;,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;u64&gt; {
         <span class="comment">// 8. If start is not present, then
         </span><span class="kw">let </span>actual_delete_count = <span class="kw">if </span>start.is_none() {
@@ -5684,7 +5644,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>splice(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be ? ToObject(this value).
         </span><span class="kw">let </span>o = this.to_object(context)<span class="question-mark">?</span>;
@@ -5824,11 +5784,7 @@
     /// Splices the target array, returning the result as a new array.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.tospliced
-    </span><span class="kw">fn </span>to_spliced(
-        this: <span class="kw-2">&amp;</span>JsValue,
-        args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>to_spliced(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be ? ToObject(this value).
         </span><span class="kw">let </span>o = this.to_object(context)<span class="question-mark">?</span>;
 
@@ -5930,7 +5886,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>filter(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be ? ToObject(this value).
         </span><span class="kw">let </span>o = this.to_object(context)<span class="question-mark">?</span>;
@@ -5996,7 +5952,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>some(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be ? ToObject(this value).
         </span><span class="kw">let </span>o = this.to_object(context)<span class="question-mark">?</span>;
@@ -6041,10 +5997,10 @@
         len: u64,
         sort_compare: F,
         skip_holes: bool,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;Vec&lt;JsValue&gt;&gt;
     <span class="kw">where
-        </span>F: Fn(<span class="kw-2">&amp;</span>JsValue, <span class="kw-2">&amp;</span>JsValue, <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;Ordering&gt;,
+        </span>F: Fn(<span class="kw-2">&amp;</span>JsValue, <span class="kw-2">&amp;</span>JsValue, <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;Ordering&gt;,
     {
         <span class="comment">// 1. Let items be a new empty List.
         // doesn&#39;t matter if it clamps since it&#39;s just a best-effort optimization
@@ -6107,7 +6063,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>sort(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. If comparefn is not undefined and IsCallable(comparefn) is false, throw a TypeError exception.
         </span><span class="kw">let </span>comparefn = <span class="kw">match </span>args.get_or_undefined(<span class="number">0</span>) {
@@ -6128,7 +6084,7 @@
 
         <span class="comment">// 4. Let SortCompare be a new Abstract Closure with parameters (x, y) that captures comparefn and performs the following steps when called:
         </span><span class="kw">let </span>sort_compare =
-            |x: <span class="kw-2">&amp;</span>JsValue, y: <span class="kw-2">&amp;</span>JsValue, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;| -&gt; JsResult&lt;Ordering&gt; {
+            |x: <span class="kw-2">&amp;</span>JsValue, y: <span class="kw-2">&amp;</span>JsValue, context: <span class="kw-2">&amp;mut </span>Context| -&gt; JsResult&lt;Ordering&gt; {
                 <span class="comment">// a. Return ? CompareArrayElements(x, y, comparefn).
                 </span>compare_array_elements(x, y, comparefn, context)
             };
@@ -6170,7 +6126,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_sorted(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. If comparefn is not undefined and IsCallable(comparefn) is false, throw a TypeError exception.
         </span><span class="kw">let </span>comparefn = <span class="kw">match </span>args.get_or_undefined(<span class="number">0</span>) {
@@ -6194,7 +6150,7 @@
 
         <span class="comment">// 5. Let SortCompare be a new Abstract Closure with parameters (x, y) that captures comparefn and performs the following steps when called:
         </span><span class="kw">let </span>sort_compare =
-            |x: <span class="kw-2">&amp;</span>JsValue, y: <span class="kw-2">&amp;</span>JsValue, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;| -&gt; JsResult&lt;Ordering&gt; {
+            |x: <span class="kw-2">&amp;</span>JsValue, y: <span class="kw-2">&amp;</span>JsValue, context: <span class="kw-2">&amp;mut </span>Context| -&gt; JsResult&lt;Ordering&gt; {
                 <span class="comment">// a. Return ? CompareArrayElements(x, y, comparefn).
                 </span>compare_array_elements(x, y, comparefn, context)
             };
@@ -6227,7 +6183,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>reduce(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be ? ToObject(this value).
         </span><span class="kw">let </span>o = this.to_object(context)<span class="question-mark">?</span>;
@@ -6324,7 +6280,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>reduce_right(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be ? ToObject(this value).
         </span><span class="kw">let </span>o = this.to_object(context)<span class="question-mark">?</span>;
@@ -6418,7 +6374,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>copy_within(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be ? ToObject(this value).
         </span><span class="kw">let </span>o = this.to_object(context)<span class="question-mark">?</span>;
@@ -6508,7 +6464,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>values(
         this: <span class="kw-2">&amp;</span>JsValue,
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be ? ToObject(this value).
         </span><span class="kw">let </span>o = this.to_object(context)<span class="question-mark">?</span>;
@@ -6531,11 +6487,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.keys
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/values
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>keys(
-        this: <span class="kw-2">&amp;</span>JsValue,
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>keys(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be ? ToObject(this value).
         </span><span class="kw">let </span>o = this.to_object(context)<span class="question-mark">?</span>;
 
@@ -6560,7 +6512,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>entries(
         this: <span class="kw-2">&amp;</span>JsValue,
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be ? ToObject(this value).
         </span><span class="kw">let </span>o = this.to_object(context)<span class="question-mark">?</span>;
@@ -6579,7 +6531,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>with(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be ? ToObject(this value).
         </span><span class="kw">let </span>o = this.to_object(context)<span class="question-mark">?</span>;
@@ -6639,7 +6591,7 @@
 
     <span class="doccomment">/// Represents the algorithm to calculate `relativeStart` (or `k`) in array functions.
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>get_relative_start(
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
         arg: <span class="kw-2">&amp;</span>JsValue,
         len: u64,
     ) -&gt; JsResult&lt;u64&gt; {
@@ -6661,7 +6613,7 @@
 
     <span class="doccomment">/// Represents the algorithm to calculate `relativeEnd` (or `final`) in array functions.
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>get_relative_end(
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
         value: <span class="kw-2">&amp;</span>JsValue,
         len: u64,
     ) -&gt; JsResult&lt;u64&gt; {
@@ -6750,7 +6702,7 @@
     x: <span class="kw-2">&amp;</span>JsValue,
     y: <span class="kw-2">&amp;</span>JsValue,
     comparefn: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsObject&gt;,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;Ordering&gt; {
     <span class="kw">match </span>(x.is_undefined(), y.is_undefined()) {
         <span class="comment">// 1. If x and y are both undefined, return +0𝔽.
@@ -6802,7 +6754,7 @@
     direction: Direction,
     predicate: <span class="kw-2">&amp;</span>JsValue,
     this_arg: <span class="kw-2">&amp;</span>JsValue,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
     caller_name: <span class="kw-2">&amp;</span>str,
 ) -&gt; JsResult&lt;(JsValue, JsValue)&gt; {
     <span class="comment">// 1. If IsCallable(predicate) is false, throw a TypeError exception.

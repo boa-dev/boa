@@ -1309,9 +1309,6 @@
 <a href="#1309" id="1309">1309</a>
 <a href="#1310" id="1310">1310</a>
 <a href="#1311" id="1311">1311</a>
-<a href="#1312" id="1312">1312</a>
-<a href="#1313" id="1313">1313</a>
-<a href="#1314" id="1314">1314</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module implements the `JsObject` structure.
 //!
 //! The `JsObject` is a garbage collected Object.
@@ -1547,7 +1544,7 @@
     /// [spec]: https://tc39.es/ecma262/#sec-ordinarytoprimitive
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>ordinary_to_primitive(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
         hint: PreferredType,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Assert: Type(O) is Object.
@@ -2208,10 +2205,7 @@
     /// - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-topropertydescriptor
-    </span><span class="kw">pub fn </span>to_property_descriptor(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;PropertyDescriptor&gt; {
+    </span><span class="kw">pub fn </span>to_property_descriptor(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;PropertyDescriptor&gt; {
         <span class="comment">// 1 is implemented on the method `to_property_descriptor` of value
 
         // 2. Let desc be a new Property Descriptor that initially has no fields.
@@ -2312,7 +2306,7 @@ Cannot both specify accessors and a value or writable attribute&quot;</span>,
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         source: <span class="kw-2">&amp;</span>JsValue,
         excluded_keys: Vec&lt;K&gt;,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;()&gt;
     <span class="kw">where
         </span>K: Into&lt;PropertyKey&gt;,

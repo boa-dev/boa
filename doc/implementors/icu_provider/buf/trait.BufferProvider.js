@@ -1,0 +1,3 @@
+(function() {var implementors = {
+"boa_engine":[["impl&lt;T: BufferProvider&gt; BufferProvider for <a class=\"struct\" href=\"boa_engine/context/icu/struct.StaticProviderAdapter.html\" title=\"struct boa_engine::context::icu::StaticProviderAdapter\">StaticProviderAdapter</a>&lt;T&gt;"]]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

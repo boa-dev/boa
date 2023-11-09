@@ -3593,30 +3593,6 @@
 <a href="#3593" id="3593">3593</a>
 <a href="#3594" id="3594">3594</a>
 <a href="#3595" id="3595">3595</a>
-<a href="#3596" id="3596">3596</a>
-<a href="#3597" id="3597">3597</a>
-<a href="#3598" id="3598">3598</a>
-<a href="#3599" id="3599">3599</a>
-<a href="#3600" id="3600">3600</a>
-<a href="#3601" id="3601">3601</a>
-<a href="#3602" id="3602">3602</a>
-<a href="#3603" id="3603">3603</a>
-<a href="#3604" id="3604">3604</a>
-<a href="#3605" id="3605">3605</a>
-<a href="#3606" id="3606">3606</a>
-<a href="#3607" id="3607">3607</a>
-<a href="#3608" id="3608">3608</a>
-<a href="#3609" id="3609">3609</a>
-<a href="#3610" id="3610">3610</a>
-<a href="#3611" id="3611">3611</a>
-<a href="#3612" id="3612">3612</a>
-<a href="#3613" id="3613">3613</a>
-<a href="#3614" id="3614">3614</a>
-<a href="#3615" id="3615">3615</a>
-<a href="#3616" id="3616">3616</a>
-<a href="#3617" id="3617">3617</a>
-<a href="#3618" id="3618">3618</a>
-<a href="#3619" id="3619">3619</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{cmp, ptr, sync::atomic};
 
 <span class="kw">use </span>boa_gc::GcRef;
@@ -3795,7 +3771,7 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%typedarray%
-    </span><span class="kw">fn </span>constructor(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>constructor(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Throw a TypeError exception.
         </span><span class="prelude-val">Err</span>(JsNativeError::typ()
             .with_message(<span class="string">&quot;the TypedArray constructor should never be called directly&quot;</span>)
@@ -3810,7 +3786,7 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%typedarray%.from
-    </span><span class="kw">fn </span>from(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>from(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let C be the this value.
         // 2. If IsConstructor(C) is false, throw a TypeError exception.
         </span><span class="kw">let </span>constructor = <span class="kw">match </span>this.as_object() {
@@ -3920,7 +3896,7 @@
     </span><span class="kw">fn </span>from_kind_and_length(
         kind: TypedArrayKind,
         length: u64,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsObject&gt; {
         <span class="kw">let </span>constructor =
             kind.standard_constructor()(context.intrinsics().constructors()).constructor();
@@ -3934,7 +3910,7 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%typedarray%.of
-    </span><span class="kw">fn </span>of(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>of(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let len be the number of elements in items.
 
         // 2. Let C be the this value.
@@ -3971,11 +3947,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-get-%typedarray%-@@species
     </span><span class="attr">#[allow(clippy::unnecessary_wraps)]
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>get_species(
-        this: <span class="kw-2">&amp;</span>JsValue,
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
-        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>get_species(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Return the this value.
         </span><span class="prelude-val">Ok</span>(this.clone())
     }
@@ -3986,11 +3958,7 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%typedarray%.prototype.at
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>at(
-        this: <span class="kw-2">&amp;</span>JsValue,
-        args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>at(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
         </span><span class="kw">let </span>obj = this.as_object().ok_or_else(|| {
@@ -4042,7 +4010,7 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-get-%typedarray%.prototype.buffer
-    </span><span class="kw">fn </span>buffer(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>buffer(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[TypedArrayName]]).
         // 3. Assert: O has a [[ViewedArrayBuffer]] internal slot.
@@ -4065,11 +4033,7 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-get-%typedarray%.prototype.bytelength
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>byte_length(
-        this: <span class="kw-2">&amp;</span>JsValue,
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
-        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>byte_length(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[TypedArrayName]]).
         // 3. Assert: O has a [[ViewedArrayBuffer]] internal slot.
@@ -4098,11 +4062,7 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-get-%typedarray%.prototype.byteoffset
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>byte_offset(
-        this: <span class="kw-2">&amp;</span>JsValue,
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
-        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>byte_offset(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[TypedArrayName]]).
         // 3. Assert: O has a [[ViewedArrayBuffer]] internal slot.
@@ -4131,11 +4091,7 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%typedarray%.prototype.copywithin
-    </span><span class="kw">fn </span>copy_within(
-        this: <span class="kw-2">&amp;</span>JsValue,
-        args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>copy_within(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be the this value.
         </span><span class="kw">let </span>obj = this.as_object().ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;Value is not a typed array object&quot;</span>)
@@ -4277,7 +4233,7 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%typedarray%.prototype.entries
-    </span><span class="kw">fn </span>entries(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>entries(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
         </span><span class="kw">let </span>o = this.as_object().ok_or_else(|| {
@@ -4310,7 +4266,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>every(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
@@ -4379,7 +4335,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>fill(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
@@ -4469,7 +4425,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>filter(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
@@ -4561,7 +4517,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>find(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
@@ -4610,7 +4566,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>find_index(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
@@ -4659,7 +4615,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>find_last(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
@@ -4706,7 +4662,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>find_last_index(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
@@ -4753,7 +4709,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>foreach(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
@@ -4814,7 +4770,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>includes(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
@@ -4895,7 +4851,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>index_of(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
@@ -4985,7 +4941,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>join(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
@@ -5047,11 +5003,7 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%typedarray%.prototype.keys
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>keys(
-        this: <span class="kw-2">&amp;</span>JsValue,
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>keys(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
         </span><span class="kw">let </span>o = this.as_object().ok_or_else(|| {
@@ -5084,7 +5036,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>last_index_of(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
@@ -5163,7 +5115,7 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-get-%typedarray%.prototype.length
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>length(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>length(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[TypedArrayName]]).
         // 3. Assert: O has [[ViewedArrayBuffer]] and [[ArrayLength]] internal slots.
@@ -5195,7 +5147,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>map(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
@@ -5265,7 +5217,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>reduce(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
@@ -5352,7 +5304,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>reduceright(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
@@ -5442,7 +5394,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>reverse(
         this: <span class="kw-2">&amp;</span>JsValue,
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
@@ -5502,7 +5454,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_reversed(
         this: <span class="kw-2">&amp;</span>JsValue,
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be the this value.
         // 2. Let iieoRecord be ? ValidateTypedArray(O, seq-cst).
@@ -5556,7 +5508,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let target be the this value.
         // 2. Perform ? RequireInternalSlot(target, [[TypedArrayName]]).
@@ -5617,7 +5569,7 @@
         target: <span class="kw-2">&amp;</span>JsObject,
         target_offset: <span class="kw-2">&amp;</span>U64OrPositiveInfinity,
         source: <span class="kw-2">&amp;</span>JsObject,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;()&gt; {
         <span class="kw">let </span>target_borrow = target.borrow();
         <span class="kw">let </span>target_array = target_borrow
@@ -5851,7 +5803,7 @@
         target: <span class="kw-2">&amp;</span>JsObject,
         target_offset: <span class="kw-2">&amp;</span>U64OrPositiveInfinity,
         source: <span class="kw-2">&amp;</span>JsValue,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;()&gt; {
         <span class="kw">let </span>target_length = {
             <span class="kw">let </span>target_borrow = target.borrow();
@@ -5923,7 +5875,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>slice(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
@@ -6096,7 +6048,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>some(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
@@ -6164,7 +6116,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>sort(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. If comparefn is not undefined and IsCallable(comparefn) is false, throw a TypeError exception.
         </span><span class="kw">let </span>compare_fn = <span class="kw">match </span>args.get(<span class="number">0</span>) {
@@ -6204,7 +6156,7 @@
         <span class="comment">// 5. NOTE: The following closure performs a numeric comparison rather than the string comparison used in 23.1.3.30.
         // 6. Let SortCompare be a new Abstract Closure with parameters (x, y) that captures comparefn and performs the following steps when called:
         </span><span class="kw">let </span>sort_compare =
-            |x: <span class="kw-2">&amp;</span>JsValue, y: <span class="kw-2">&amp;</span>JsValue, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;| -&gt; JsResult&lt;cmp::Ordering&gt; {
+            |x: <span class="kw-2">&amp;</span>JsValue, y: <span class="kw-2">&amp;</span>JsValue, context: <span class="kw-2">&amp;mut </span>Context| -&gt; JsResult&lt;cmp::Ordering&gt; {
                 <span class="comment">// a. Return ? CompareTypedArrayElements(x, y, comparefn).
                 </span>compare_typed_array_elements(x, y, compare_fn, context)
             };
@@ -6232,7 +6184,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_sorted(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. If comparefn is not undefined and IsCallable(comparefn) is false, throw a TypeError exception.
         </span><span class="kw">let </span>compare_fn = <span class="kw">match </span>args.get(<span class="number">0</span>) {
@@ -6272,7 +6224,7 @@
         <span class="comment">// 6. NOTE: The following closure performs a numeric comparison rather than the string comparison used in 23.1.3.34.
         // 7. Let SortCompare be a new Abstract Closure with parameters (x, y) that captures comparefn and performs the following steps when called:
         </span><span class="kw">let </span>sort_compare =
-            |x: <span class="kw-2">&amp;</span>JsValue, y: <span class="kw-2">&amp;</span>JsValue, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;| -&gt; JsResult&lt;cmp::Ordering&gt; {
+            |x: <span class="kw-2">&amp;</span>JsValue, y: <span class="kw-2">&amp;</span>JsValue, context: <span class="kw-2">&amp;mut </span>Context| -&gt; JsResult&lt;cmp::Ordering&gt; {
                 <span class="comment">// a. Return ? CompareTypedArrayElements(x, y, comparefn).
                 </span>compare_typed_array_elements(x, y, compare_fn, context)
             };
@@ -6303,7 +6255,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>subarray(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[TypedArrayName]]).
@@ -6391,7 +6343,7 @@
     </span><span class="kw">fn </span>to_locale_string(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let array be ? ToObject(this value).
         // Note: ValidateTypedArray is applied to the this value prior to evaluating the algorithm.
@@ -6475,7 +6427,7 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%typedarray%.prototype.values
-    </span><span class="kw">fn </span>values(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>values(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
         </span><span class="kw">let </span>o = this.as_object().ok_or_else(|| {
@@ -6505,7 +6457,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>with(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be the this value.
         </span><span class="kw">let </span>obj = this.as_object().ok_or_else(|| {
@@ -6599,7 +6551,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-get-%typedarray%.prototype-@@tostringtag
     </span><span class="attr">#[allow(clippy::unnecessary_wraps)]
-    </span><span class="kw">fn </span>to_string_tag(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>to_string_tag(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be the this value.
         // 2. If Type(O) is not Object, return undefined.
         // 3. If O does not have a [[TypedArrayName]] internal slot, return undefined.
@@ -6626,7 +6578,7 @@
         exemplar: <span class="kw-2">&amp;</span>JsObject,
         kind: TypedArrayKind,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsObject&gt; {
         <span class="comment">// 1. Let defaultConstructor be the intrinsic object listed in column one of Table 73 for exemplar.[[TypedArrayName]].
         </span><span class="kw">let </span>default_constructor = kind.standard_constructor();
@@ -6665,7 +6617,7 @@
     </span><span class="kw">fn </span>create(
         constructor: <span class="kw-2">&amp;</span>JsObject,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsObject&gt; {
         <span class="comment">// 1. Let newTypedArray be ? Construct(constructor, argumentList).
         </span><span class="kw">let </span>new_typed_array = constructor.construct(args, <span class="prelude-val">Some</span>(constructor), context)<span class="question-mark">?</span>;
@@ -6700,7 +6652,7 @@
     <span class="doccomment">/// &lt;https://tc39.es/ecma262/#sec-allocatetypedarraybuffer&gt;
     </span><span class="kw">fn </span>allocate_buffer&lt;T: TypedArray&gt;(
         length: u64,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;IntegerIndexed&gt; {
         <span class="comment">// 1. Assert: O.[[ViewedArrayBuffer]] is undefined.
 
@@ -6736,7 +6688,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>initialize_from_list&lt;T: TypedArray&gt;(
         proto: JsObject,
         values: Vec&lt;JsValue&gt;,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsObject&gt; {
         <span class="comment">// 1. Let len be the number of elements in values.
         </span><span class="kw">let </span>len = values.len() <span class="kw">as </span>u64;
@@ -6776,7 +6728,7 @@
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>allocate&lt;T: TypedArray&gt;(
         new_target: <span class="kw-2">&amp;</span>JsValue,
         length: u64,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsObject&gt; {
         <span class="comment">// 1. Let proto be ? GetPrototypeFromConstructor(newTarget, defaultProto).
         </span><span class="kw">let </span>proto = get_prototype_from_constructor(new_target, T::STANDARD_CONSTRUCTOR, context)<span class="question-mark">?</span>;
@@ -6814,7 +6766,7 @@
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>initialize_from_typed_array&lt;T: TypedArray&gt;(
         proto: JsObject,
         src_array: <span class="kw-2">&amp;</span>JsObject,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsObject&gt; {
         <span class="kw">let </span>src_array = src_array.borrow();
         <span class="kw">let </span>src_array = src_array
@@ -6974,7 +6926,7 @@
         buffer: JsObject,
         byte_offset: <span class="kw-2">&amp;</span>JsValue,
         length: <span class="kw-2">&amp;</span>JsValue,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsObject&gt; {
         <span class="comment">// 1. Let elementSize be TypedArrayElementSize(O).
         </span><span class="kw">let </span>element_size = T::ERASED.element_size();
@@ -7076,7 +7028,7 @@
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>initialize_from_array_like&lt;T: TypedArray&gt;(
         proto: JsObject,
         array_like: <span class="kw-2">&amp;</span>JsObject,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsObject&gt; {
         <span class="comment">// 1. Let len be ? LengthOfArrayLike(arrayLike).
         </span><span class="kw">let </span>len = array_like.length_of_array_like(context)<span class="question-mark">?</span>;
@@ -7120,7 +7072,7 @@
     x: <span class="kw-2">&amp;</span>JsValue,
     y: <span class="kw-2">&amp;</span>JsValue,
     compare_fn: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsObject&gt;,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;cmp::Ordering&gt; {
     <span class="comment">// 1. Assert: x is a Number and y is a Number, or x is a BigInt and y is a BigInt.
 

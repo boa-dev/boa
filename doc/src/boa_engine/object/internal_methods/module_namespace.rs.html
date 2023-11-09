@@ -370,7 +370,7 @@
 </span><span class="attr">#[allow(clippy::unnecessary_wraps)]
 </span><span class="kw">fn </span>module_namespace_exotic_get_prototype_of(
     <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsObject,
-    <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;JsPrototype&gt; {
     <span class="comment">// 1. Return null.
     </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
@@ -383,7 +383,7 @@
 </span><span class="kw">fn </span>module_namespace_exotic_set_prototype_of(
     obj: <span class="kw-2">&amp;</span>JsObject,
     val: JsPrototype,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;bool&gt; {
     <span class="comment">// 1. Return ! SetImmutablePrototype(O, V).
     </span><span class="prelude-val">Ok</span>(
@@ -396,7 +396,7 @@
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-module-namespace-exotic-objects-isextensible
 </span><span class="attr">#[allow(clippy::unnecessary_wraps)]
-</span><span class="kw">fn </span>module_namespace_exotic_is_extensible(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsObject, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;bool&gt; {
+</span><span class="kw">fn </span>module_namespace_exotic_is_extensible(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsObject, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt; {
     <span class="comment">// 1. Return false.
     </span><span class="prelude-val">Ok</span>(<span class="bool-val">false</span>)
 }
@@ -405,7 +405,7 @@
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-module-namespace-exotic-objects-preventextensions
 </span><span class="attr">#[allow(clippy::unnecessary_wraps)]
-</span><span class="kw">fn </span>module_namespace_exotic_prevent_extensions(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsObject, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;bool&gt; {
+</span><span class="kw">fn </span>module_namespace_exotic_prevent_extensions(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsObject, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt; {
     <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>)
 }
 
@@ -415,7 +415,7 @@
 </span><span class="kw">fn </span>module_namespace_exotic_get_own_property(
     obj: <span class="kw-2">&amp;</span>JsObject,
     key: <span class="kw-2">&amp;</span>PropertyKey,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;PropertyDescriptor&gt;&gt; {
     <span class="comment">// 1. If P is a Symbol, return OrdinaryGetOwnProperty(O, P).
     </span><span class="kw">let </span>key = <span class="kw">match </span>key {
@@ -459,7 +459,7 @@
     obj: <span class="kw-2">&amp;</span>JsObject,
     key: <span class="kw-2">&amp;</span>PropertyKey,
     desc: PropertyDescriptor,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;bool&gt; {
     <span class="comment">// 1. If P is a Symbol, return ! OrdinaryDefineOwnProperty(O, P, Desc).
     </span><span class="kw">if let </span>PropertyKey::Symbol(<span class="kw">_</span>) = key {
@@ -495,7 +495,7 @@
 </span><span class="kw">fn </span>module_namespace_exotic_has_property(
     obj: <span class="kw-2">&amp;</span>JsObject,
     key: <span class="kw-2">&amp;</span>PropertyKey,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;bool&gt; {
     <span class="comment">// 1. If P is a Symbol, return ! OrdinaryHasProperty(O, P).
     </span><span class="kw">let </span>key = <span class="kw">match </span>key {
@@ -524,7 +524,7 @@
     obj: <span class="kw-2">&amp;</span>JsObject,
     key: <span class="kw-2">&amp;</span>PropertyKey,
     receiver: JsValue,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;JsValue&gt; {
     <span class="comment">// 1. If P is a Symbol, then
     //     a. Return ! OrdinaryGet(O, P, Receiver).
@@ -600,7 +600,7 @@
     _key: PropertyKey,
     _value: JsValue,
     _receiver: JsValue,
-    _context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    _context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;bool&gt; {
     <span class="comment">// 1. Return false.
     </span><span class="prelude-val">Ok</span>(<span class="bool-val">false</span>)
@@ -612,7 +612,7 @@
 </span><span class="kw">fn </span>module_namespace_exotic_delete(
     obj: <span class="kw-2">&amp;</span>JsObject,
     key: <span class="kw-2">&amp;</span>PropertyKey,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;bool&gt; {
     <span class="comment">// 1. If P is a Symbol, then
     //     a. Return ! OrdinaryDelete(O, P).
@@ -640,7 +640,7 @@
 /// [spec]: https://tc39.es/ecma262/#sec-module-namespace-exotic-objects-ownpropertykeys
 </span><span class="kw">fn </span>module_namespace_exotic_own_property_keys(
     obj: <span class="kw-2">&amp;</span>JsObject,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;Vec&lt;PropertyKey&gt;&gt; {
     <span class="comment">// 2. Let symbolKeys be OrdinaryOwnPropertyKeys(O).
     </span><span class="kw">let </span>symbol_keys = ordinary_own_property_keys(obj, context)<span class="question-mark">?</span>;

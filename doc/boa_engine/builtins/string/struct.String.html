@@ -1,12 +1,12 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="JavaScript `String` implementation."><title>String in boa_engine::builtins::string - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-cb6f1f67f1bcd037.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.73.0 (cc66ad468 2023-10-03)" data-channel="1.73.0" data-search-js="search-6dfdfced5eff6596.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-1596385f77d47ef2.css" data-theme-dark-css="dark-0a43001d3fc2282c.css" data-theme-ayu-css="ayu-fd19013d6ce078bf.css" ><script src="../../../static.files/storage-db41da1a38ea3cb8.js"></script><script defer src="sidebar-items.js"></script><script defer src="../../../static.files/main-0795b7d26be81095.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-1596385f77d47ef2.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-0a43001d3fc2282c.css"><link rel="stylesheet" href="../../../static.files/noscript-cffde32267a19fd6.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc struct"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="logo-container" href="../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><h2></h2></nav><nav class="sidebar"><a class="logo-container" href="../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><h2 class="location"><a href="#">String</a></h2><div class="sidebar-elems"><section><h3><a href="#implementations">Associated Constants</a></h3><ul class="block"><li><a href="#associatedconstant.MAX_STRING_LENGTH">MAX_STRING_LENGTH</a></li></ul><h3><a href="#implementations">Methods</a></h3><ul class="block"><li><a href="#method.anchor">anchor</a></li><li><a href="#method.at">at</a></li><li><a href="#method.big">big</a></li><li><a href="#method.blink">blink</a></li><li><a href="#method.bold">bold</a></li><li><a href="#method.char_at">char_at</a></li><li><a href="#method.char_code_at">char_code_at</a></li><li><a href="#method.code_point_at">code_point_at</a></li><li><a href="#method.concat">concat</a></li><li><a href="#method.create_html">create_html</a></li><li><a href="#method.ends_with">ends_with</a></li><li><a href="#method.fixed">fixed</a></li><li><a href="#method.fontcolor">fontcolor</a></li><li><a href="#method.fontsize">fontsize</a></li><li><a href="#method.from_char_code">from_char_code</a></li><li><a href="#method.from_code_point">from_code_point</a></li><li><a href="#method.includes">includes</a></li><li><a href="#method.index_of">index_of</a></li><li><a href="#method.is_well_formed">is_well_formed</a></li><li><a href="#method.italics">italics</a></li><li><a href="#method.iterator">iterator</a></li><li><a href="#method.last_index_of">last_index_of</a></li><li><a href="#method.link">link</a></li><li><a href="#method.locale_compare">locale_compare</a></li><li><a href="#method.match">match</a></li><li><a href="#method.match_all">match_all</a></li><li><a href="#method.normalize">normalize</a></li><li><a href="#method.pad_end">pad_end</a></li><li><a href="#method.pad_start">pad_start</a></li><li><a href="#method.raw">raw</a></li><li><a href="#method.repeat">repeat</a></li><li><a href="#method.replace">replace</a></li><li><a href="#method.replace_all">replace_all</a></li><li><a href="#method.search">search</a></li><li><a href="#method.slice">slice</a></li><li><a href="#method.small">small</a></li><li><a href="#method.split">split</a></li><li><a href="#method.starts_with">starts_with</a></li><li><a href="#method.strike">strike</a></li><li><a href="#method.string_create">string_create</a></li><li><a href="#method.string_pad">string_pad</a></li><li><a href="#method.sub">sub</a></li><li><a href="#method.substr">substr</a></li><li><a href="#method.substring">substring</a></li><li><a href="#method.sup">sup</a></li><li><a href="#method.this_string_value">this_string_value</a></li><li><a href="#method.to_case">to_case</a></li><li><a href="#method.to_locale_case">to_locale_case</a></li><li><a href="#method.to_string">to_string</a></li><li><a href="#method.to_well_formed">to_well_formed</a></li><li><a href="#method.trim">trim</a></li><li><a href="#method.trim_end">trim_end</a></li><li><a href="#method.trim_start">trim_start</a></li><li><a href="#method.value_of">value_of</a></li></ul><h3><a href="#trait-implementations">Trait Implementations</a></h3><ul class="block"><li><a href="#impl-BuiltInConstructor-for-String">BuiltInConstructor</a></li><li><a href="#impl-BuiltInObject-for-String">BuiltInObject</a></li><li><a href="#impl-Clone-for-String">Clone</a></li><li><a href="#impl-Copy-for-String">Copy</a></li><li><a href="#impl-Debug-for-String">Debug</a></li><li><a href="#impl-IntrinsicObject-for-String">IntrinsicObject</a></li></ul><h3><a href="#synthetic-implementations">Auto Trait Implementations</a></h3><ul class="block"><li><a href="#impl-RefUnwindSafe-for-String">RefUnwindSafe</a></li><li><a href="#impl-Send-for-String">Send</a></li><li><a href="#impl-Sync-for-String">Sync</a></li><li><a href="#impl-Unpin-for-String">Unpin</a></li><li><a href="#impl-UnwindSafe-for-String">UnwindSafe</a></li></ul><h3><a href="#blanket-implementations">Blanket Implementations</a></h3><ul class="block"><li><a href="#impl-Any-for-String">Any</a></li><li><a href="#impl-Borrow%3CT%3E-for-String">Borrow&lt;T&gt;</a></li><li><a href="#impl-BorrowMut%3CT%3E-for-String">BorrowMut&lt;T&gt;</a></li><li><a href="#impl-Conv-for-String">Conv</a></li><li><a href="#impl-ErasedDestructor-for-String">ErasedDestructor</a></li><li><a href="#impl-Filterable-for-String">Filterable</a></li><li><a href="#impl-From%3CT%3E-for-String">From&lt;T&gt;</a></li><li><a href="#impl-Into%3CU%3E-for-String">Into&lt;U&gt;</a></li><li><a href="#impl-MaybeSendSync-for-String">MaybeSendSync</a></li><li><a href="#impl-Pipe-for-String">Pipe</a></li><li><a href="#impl-Tap-for-String">Tap</a></li><li><a href="#impl-ToOwned-for-String">ToOwned</a></li><li><a href="#impl-TryConv-for-String">TryConv</a></li><li><a href="#impl-TryFrom%3CU%3E-for-String">TryFrom&lt;U&gt;</a></li><li><a href="#impl-TryInto%3CU%3E-for-String">TryInto&lt;U&gt;</a></li><li><a href="#impl-VZip%3CV%3E-for-String">VZip&lt;V&gt;</a></li></ul></section><h2><a href="index.html">In boa_engine::builtins::string</a></h2></div></nav><main><div class="width-limiter"><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="main-heading"><h1>Struct <a href="../../index.html">boa_engine</a>::<wbr><a href="../index.html">builtins</a>::<wbr><a href="index.html">string</a>::<wbr><a class="struct" href="#">String</a><button id="copy-path" title="Copy item path to clipboard"><img src="../../../static.files/clipboard-7571035ce49a181d.svg" width="19" height="18" alt="Copy item path"></button></h1><span class="out-of-band"><a class="src" href="../../../src/boa_engine/builtins/string/mod.rs.html#75">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><pre class="rust item-decl"><code>pub(crate) struct String;</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>JavaScript <code>String</code> implementation.</p>
-</div></details><h2 id="implementations" class="small-section-header">Implementations<a href="#implementations" class="anchor">§</a></h2><div id="implementations-list"><details class="toggle implementors-toggle" open><summary><section id="impl-String" class="impl"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#236-2227">source</a><a href="#impl-String" class="anchor">§</a><h3 class="code-header">impl <a class="struct" href="struct.String.html" title="struct boa_engine::builtins::string::String">String</a></h3></section></summary><div class="impl-items"><details class="toggle" open><summary><section id="associatedconstant.MAX_STRING_LENGTH" class="associatedconstant"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#242">source</a><h4 class="code-header">pub(crate) const <a href="#associatedconstant.MAX_STRING_LENGTH" class="constant">MAX_STRING_LENGTH</a>: <a class="primitive" href="https://doc.rust-lang.org/1.73.0/std/primitive.usize.html">usize</a> = 4_294_967_295usize</h4></section></summary><div class="docblock"><p>JavaScript strings must be between <code>0</code> and less than positive <code>Infinity</code> and cannot be a negative number.
+</div></details><h2 id="implementations" class="small-section-header">Implementations<a href="#implementations" class="anchor">§</a></h2><div id="implementations-list"><details class="toggle implementors-toggle" open><summary><section id="impl-String" class="impl"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#236-2211">source</a><a href="#impl-String" class="anchor">§</a><h3 class="code-header">impl <a class="struct" href="struct.String.html" title="struct boa_engine::builtins::string::String">String</a></h3></section></summary><div class="impl-items"><details class="toggle" open><summary><section id="associatedconstant.MAX_STRING_LENGTH" class="associatedconstant"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#242">source</a><h4 class="code-header">pub(crate) const <a href="#associatedconstant.MAX_STRING_LENGTH" class="constant">MAX_STRING_LENGTH</a>: <a class="primitive" href="https://doc.rust-lang.org/1.73.0/std/primitive.usize.html">usize</a> = 4_294_967_295usize</h4></section></summary><div class="docblock"><p>JavaScript strings must be between <code>0</code> and less than positive <code>Infinity</code> and cannot be a negative number.
 The range of allowed values can be described like this: <code>[0, +∞)</code>.</p>
 <p>The resulting string can also not be larger than the maximum string size,
 which can differ in JavaScript engines. In Boa it is <code>2^32 - 1</code></p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.string_create" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#252-283">source</a><h4 class="code-header">fn <a href="#method.string_create" class="fn">string_create</a>(
     value: <a class="struct" href="../../struct.JsString.html" title="struct boa_engine::JsString">JsString</a>,
     prototype: <a class="struct" href="../../object/jsobject/struct.JsObject.html" title="struct boa_engine::object::jsobject::JsObject">JsObject</a>,
-    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="struct" href="../../object/jsobject/struct.JsObject.html" title="struct boa_engine::object::jsobject::JsObject">JsObject</a></h4></section></summary><div class="docblock"><p>Abstract function <code>StringCreate( value, prototype )</code>.</p>
 <p>Call this function if you want to create a <code>String</code> exotic object.</p>
 <p>More information:</p>
@@ -21,7 +21,7 @@ which can differ in JavaScript engines. In Boa it is <code>2^32 - 1</code></p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.from_code_point" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#318-365">source</a><h4 class="code-header">pub(crate) fn <a href="#method.from_code_point" class="fn">from_code_point</a>(
     _: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>String.fromCodePoint(num1[, ...[, numN]])</code></p>
 <p>The static <code>String.fromCodePoint()</code> method returns a string created by using the specified sequence of code points.</p>
 <p>More information:</p>
@@ -29,39 +29,39 @@ which can differ in JavaScript engines. In Boa it is <code>2^32 - 1</code></p>
 <li><a href="https://tc39.es/ecma262/#sec-string.fromcodepoint">ECMAScript reference</a></li>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/fromCodePoint">MDN documentation</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.raw" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#375-441">source</a><h4 class="code-header">pub(crate) fn <a href="#method.raw" class="fn">raw</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.raw" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#375-437">source</a><h4 class="code-header">pub(crate) fn <a href="#method.raw" class="fn">raw</a>(
     _: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>String.raw( template, ...substitutions )</code></p>
 <p>More information:</p>
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-string.raw">ECMAScript reference</a></li>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/raw">MDN documentation</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.from_char_code" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#450-469">source</a><h4 class="code-header">pub(crate) fn <a href="#method.from_char_code" class="fn">from_char_code</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.from_char_code" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#446-465">source</a><h4 class="code-header">pub(crate) fn <a href="#method.from_char_code" class="fn">from_char_code</a>(
     _: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>String.fromCharCode(...codeUnits)</code></p>
 <p>Construct a <code>String</code> from one or more code points (as numbers).
 More information:</p>
 <ul>
 <li><a href="https://tc39.es/ecma262/multipage/text-processing.html#sec-string.fromcharcode">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.to_string" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#478-485">source</a><h4 class="code-header">pub(crate) fn <a href="#method.to_string" class="fn">to_string</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.to_string" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#474-477">source</a><h4 class="code-header">pub(crate) fn <a href="#method.to_string" class="fn">to_string</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     _: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    _: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    _: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>String.prototype.toString ( )</code></p>
 <p>More information:</p>
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-string.prototype.tostring">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.char_at" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#503-527">source</a><h4 class="code-header">pub(crate) fn <a href="#method.char_at" class="fn">char_at</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.char_at" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#495-519">source</a><h4 class="code-header">pub(crate) fn <a href="#method.char_at" class="fn">char_at</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>String.prototype.charAt( index )</code></p>
 <p>The <code>String</code> object’s <code>charAt()</code> method returns a new string consisting of the single UTF-16 code unit located at the specified offset into the string.</p>
 <p>Characters in a string are indexed from left to right. The index of the first character is <code>0</code>,
@@ -73,10 +73,10 @@ If the <code>index</code> you supply is out of this range, JavaScript returns an
 <li><a href="https://tc39.es/ecma262/#sec-string.prototype.charat">ECMAScript reference</a></li>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/charAt">MDN documentation</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.at" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#540-569">source</a><h4 class="code-header">pub(crate) fn <a href="#method.at" class="fn">at</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.at" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#532-557">source</a><h4 class="code-header">pub(crate) fn <a href="#method.at" class="fn">at</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>String.prototype.at ( index )</code></p>
 <p>This String object’s at() method returns a String consisting of the single UTF-16 code unit located at the specified position.
 Returns undefined if the given index cannot be found.</p>
@@ -85,10 +85,10 @@ Returns undefined if the given index cannot be found.</p>
 <li><a href="https://tc39.es/proposal-relative-indexing-method/#sec-string.prototype.at">ECMAScript reference</a></li>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/at">MDN documentation</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.code_point_at" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#585-612">source</a><h4 class="code-header">pub(crate) fn <a href="#method.code_point_at" class="fn">code_point_at</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.code_point_at" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#573-600">source</a><h4 class="code-header">pub(crate) fn <a href="#method.code_point_at" class="fn">code_point_at</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>String.prototype.codePointAt( index )</code></p>
 <p>The <code>codePointAt()</code> method returns an integer between <code>0</code> to <code>1114111</code> (<code>0x10FFFF</code>) representing the UTF-16 code unit at the given index.</p>
 <p>If no UTF-16 surrogate pair begins at the index, the code point at the index is returned.</p>
@@ -98,10 +98,10 @@ Returns undefined if the given index cannot be found.</p>
 <li><a href="https://tc39.es/ecma262/#sec-string.prototype.codepointat">ECMAScript reference</a></li>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/codePointAt">MDN documentation</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.char_code_at" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#628-651">source</a><h4 class="code-header">pub(crate) fn <a href="#method.char_code_at" class="fn">char_code_at</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.char_code_at" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#616-639">source</a><h4 class="code-header">pub(crate) fn <a href="#method.char_code_at" class="fn">char_code_at</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>String.prototype.charCodeAt( index )</code></p>
 <p>The <code>charCodeAt()</code> method returns an integer between <code>0</code> and <code>65535</code> representing the UTF-16 code unit at the given index.</p>
 <p>Unicode code points range from <code>0</code> to <code>1114111</code> (<code>0x10FFFF</code>). The first 128 Unicode code points are a direct match of the ASCII character encoding.</p>
@@ -111,10 +111,10 @@ Returns undefined if the given index cannot be found.</p>
 <li><a href="https://tc39.es/ecma262/#sec-string.prototype.charcodeat">ECMAScript reference</a></li>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/charCodeAt">MDN documentation</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.concat" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#667-688">source</a><h4 class="code-header">pub(crate) fn <a href="#method.concat" class="fn">concat</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.concat" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#655-676">source</a><h4 class="code-header">pub(crate) fn <a href="#method.concat" class="fn">concat</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>String.prototype.concat( str1[, ...strN] )</code></p>
 <p>The <code>concat()</code> method concatenates the string arguments to the calling string and returns a new string.</p>
 <p>Changes to the original string or the returned string don’t affect the other.</p>
@@ -124,10 +124,10 @@ Returns undefined if the given index cannot be found.</p>
 <li><a href="https://tc39.es/ecma262/#sec-string.prototype.concat">ECMAScript reference</a></li>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/concat">MDN documentation</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.repeat" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#701-742">source</a><h4 class="code-header">pub(crate) fn <a href="#method.repeat" class="fn">repeat</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.repeat" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#689-730">source</a><h4 class="code-header">pub(crate) fn <a href="#method.repeat" class="fn">repeat</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>String.prototype.repeat( count )</code></p>
 <p>The <code>repeat()</code> method constructs and returns a new string which contains the specified number of
 copies of the string on which it was called, concatenated together.</p>
@@ -136,10 +136,10 @@ copies of the string on which it was called, concatenated together.</p>
 <li><a href="https://tc39.es/ecma262/#sec-string.prototype.repeat">ECMAScript reference</a></li>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/repeat">MDN documentation</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.slice" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#754-807">source</a><h4 class="code-header">pub(crate) fn <a href="#method.slice" class="fn">slice</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.slice" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#742-795">source</a><h4 class="code-header">pub(crate) fn <a href="#method.slice" class="fn">slice</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>String.prototype.slice( beginIndex [, endIndex] )</code></p>
 <p>The <code>slice()</code> method extracts a section of a string and returns it as a new string, without modifying the original string.</p>
 <p>More information:</p>
@@ -147,10 +147,10 @@ copies of the string on which it was called, concatenated together.</p>
 <li><a href="https://tc39.es/ecma262/#sec-string.prototype.slice">ECMAScript reference</a></li>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/slice">MDN documentation</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.starts_with" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#819-876">source</a><h4 class="code-header">pub(crate) fn <a href="#method.starts_with" class="fn">starts_with</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.starts_with" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#807-864">source</a><h4 class="code-header">pub(crate) fn <a href="#method.starts_with" class="fn">starts_with</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>String.prototype.startWith( searchString[, position] )</code></p>
 <p>The <code>startsWith()</code> method determines whether a string begins with the characters of a specified string, returning <code>true</code> or <code>false</code> as appropriate.</p>
 <p>More information:</p>
@@ -158,10 +158,10 @@ copies of the string on which it was called, concatenated together.</p>
 <li><a href="https://tc39.es/ecma262/#sec-string.prototype.startswith">ECMAScript reference</a></li>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/startsWith">MDN documentation</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.ends_with" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#888-942">source</a><h4 class="code-header">pub(crate) fn <a href="#method.ends_with" class="fn">ends_with</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.ends_with" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#876-930">source</a><h4 class="code-header">pub(crate) fn <a href="#method.ends_with" class="fn">ends_with</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>String.prototype.endsWith( searchString[, length] )</code></p>
 <p>The <code>endsWith()</code> method determines whether a string ends with the characters of a specified string, returning <code>true</code> or <code>false</code> as appropriate.</p>
 <p>More information:</p>
@@ -169,10 +169,10 @@ copies of the string on which it was called, concatenated together.</p>
 <li><a href="https://tc39.es/ecma262/#sec-string.prototype.endswith">ECMAScript reference</a></li>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/endsWith">MDN documentation</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.includes" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#954-989">source</a><h4 class="code-header">pub(crate) fn <a href="#method.includes" class="fn">includes</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.includes" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#942-977">source</a><h4 class="code-header">pub(crate) fn <a href="#method.includes" class="fn">includes</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>String.prototype.includes( searchString[, position] )</code></p>
 <p>The <code>includes()</code> method determines whether one string may be found within another string, returning <code>true</code> or <code>false</code> as appropriate.</p>
 <p>More information:</p>
@@ -180,10 +180,10 @@ copies of the string on which it was called, concatenated together.</p>
 <li><a href="https://tc39.es/ecma262/#sec-string.prototype.includes">ECMAScript reference</a></li>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/includes">MDN documentation</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.replace" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#1006-1097">source</a><h4 class="code-header">pub(crate) fn <a href="#method.replace" class="fn">replace</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.replace" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#994-1085">source</a><h4 class="code-header">pub(crate) fn <a href="#method.replace" class="fn">replace</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>String.prototype.replace( regexp|substr, newSubstr|function )</code></p>
 <p>The <code>replace()</code> method returns a new string with some or all matches of a <code>pattern</code> replaced by a <code>replacement</code>.</p>
 <p>The <code>pattern</code> can be a string or a <code>RegExp</code>, and the <code>replacement</code> can be a string or a function to be called for each match.
@@ -194,10 +194,10 @@ If <code>pattern</code> is a string, only the first occurrence will be replaced.
 <li><a href="https://tc39.es/ecma262/#sec-string.prototype.replace">ECMAScript reference</a></li>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/replace">MDN documentation</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.replace_all" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#1115-1252">source</a><h4 class="code-header">pub(crate) fn <a href="#method.replace_all" class="fn">replace_all</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.replace_all" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#1103-1240">source</a><h4 class="code-header">pub(crate) fn <a href="#method.replace_all" class="fn">replace_all</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>22.1.3.18 String.prototype.replaceAll ( searchValue, replaceValue )</code></p>
 <p>The replaceAll() method returns a new string with all matches of a pattern replaced by a
 replacement.</p>
@@ -209,10 +209,10 @@ function to be called for each match.</p>
 <li><a href="https://tc39.es/ecma262/#sec-string.prototype.replaceall">ECMAScript reference</a></li>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/replace">MDN documentation</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.index_of" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#1267-1296">source</a><h4 class="code-header">pub(crate) fn <a href="#method.index_of" class="fn">index_of</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.index_of" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#1255-1284">source</a><h4 class="code-header">pub(crate) fn <a href="#method.index_of" class="fn">index_of</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>String.prototype.indexOf( searchValue[, fromIndex] )</code></p>
 <p>The <code>indexOf()</code> method returns the index within the calling <code>String</code> object of the first occurrence
 of the specified value, starting the search at <code>fromIndex</code>.</p>
@@ -222,20 +222,20 @@ of the specified value, starting the search at <code>fromIndex</code>.</p>
 <li><a href="https://tc39.es/ecma262/#sec-string.prototype.indexof">ECMAScript reference</a></li>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/indexOf">MDN documentation</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.is_well_formed" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#1306-1324">source</a><h4 class="code-header">pub(crate) fn <a href="#method.is_well_formed" class="fn">is_well_formed</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.is_well_formed" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#1294-1312">source</a><h4 class="code-header">pub(crate) fn <a href="#method.is_well_formed" class="fn">is_well_formed</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     _: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>String.prototype.isWellFormed ( )</code></p>
 <p>More information:</p>
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-string.prototype.iswellformed">ECMAScript reference</a></li>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/isWellFormed">MDN documentation</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.last_index_of" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#1339-1394">source</a><h4 class="code-header">pub(crate) fn <a href="#method.last_index_of" class="fn">last_index_of</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.last_index_of" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#1327-1382">source</a><h4 class="code-header">pub(crate) fn <a href="#method.last_index_of" class="fn">last_index_of</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>String.prototype.lastIndexOf( searchValue[, fromIndex] )</code></p>
 <p>The <code>lastIndexOf()</code> method returns the index within the calling <code>String</code> object of the last occurrence
 of the specified value, searching backwards from <code>fromIndex</code>.</p>
@@ -245,10 +245,10 @@ of the specified value, searching backwards from <code>fromIndex</code>.</p>
 <li><a href="https://tc39.es/ecma262/#sec-string.prototype.lastindexof">ECMAScript reference</a></li>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/lastIndexOf">MDN documentation</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.locale_compare" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#1406-1456">source</a><h4 class="code-header">pub(crate) fn <a href="#method.locale_compare" class="fn">locale_compare</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.locale_compare" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#1394-1444">source</a><h4 class="code-header">pub(crate) fn <a href="#method.locale_compare" class="fn">locale_compare</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><a href="https://tc39.es/ecma402/#sup-String.prototype.localeCompare"><code>String.prototype.localeCompare ( that [ , locales [ , options ] ] )</code></a></p>
 <p>Returns a number indicating whether a reference string comes before, or after, or is the
 same as the given string in sort order.</p>
@@ -256,10 +256,10 @@ same as the given string in sort order.</p>
 <ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/localeCompare">MDN documentation</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.match" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#1469-1497">source</a><h4 class="code-header">pub(crate) fn <a href="#method.match" class="fn">match</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.match" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#1457-1485">source</a><h4 class="code-header">pub(crate) fn <a href="#method.match" class="fn">match</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>String.prototype.match( regexp )</code></p>
 <p>The <code>match()</code> method retrieves the result of matching a <strong>string</strong> against a <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions"><code>regular expression</code></a>.</p>
 <p>More information:</p>
@@ -267,22 +267,22 @@ same as the given string in sort order.</p>
 <li><a href="https://tc39.es/ecma262/#sec-string.prototype.match">ECMAScript reference</a></li>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/match">MDN documentation</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.string_pad" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#1507-1567">source</a><h4 class="code-header">pub(crate) fn <a href="#method.string_pad" class="fn">string_pad</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.string_pad" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#1495-1555">source</a><h4 class="code-header">pub(crate) fn <a href="#method.string_pad" class="fn">string_pad</a>(
     object: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     max_length: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     fill_string: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     placement: <a class="enum" href="enum.Placement.html" title="enum boa_engine::builtins::string::Placement">Placement</a>,
-    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p>Abstract operation <code>StringPad ( O, maxLength, fillString, placement )</code>.</p>
 <p>Performs the actual string padding for padStart/End.</p>
 <p>More information:</p>
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-stringpad">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.pad_end" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#1581-1594">source</a><h4 class="code-header">pub(crate) fn <a href="#method.pad_end" class="fn">pad_end</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.pad_end" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#1569-1582">source</a><h4 class="code-header">pub(crate) fn <a href="#method.pad_end" class="fn">pad_end</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>String.prototype.padEnd( targetLength[, padString] )</code></p>
 <p>The <code>padEnd()</code> method pads the current string with a given string (repeated, if needed) so that the resulting string reaches a given length.</p>
 <p>The padding is applied from the end of the current string.</p>
@@ -291,10 +291,10 @@ same as the given string in sort order.</p>
 <li><a href="https://tc39.es/ecma262/#sec-string.prototype.padend">ECMAScript reference</a></li>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/padEnd">MDN documentation</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.pad_start" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#1608-1621">source</a><h4 class="code-header">pub(crate) fn <a href="#method.pad_start" class="fn">pad_start</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.pad_start" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#1596-1609">source</a><h4 class="code-header">pub(crate) fn <a href="#method.pad_start" class="fn">pad_start</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>String.prototype.padStart( targetLength [, padString] )</code></p>
 <p>The <code>padStart()</code> method pads the current string with another string (multiple times, if needed) until the resulting string reaches the given length.</p>
 <p>The padding is applied from the start of the current string.</p>
@@ -303,10 +303,10 @@ same as the given string in sort order.</p>
 <li><a href="https://tc39.es/ecma262/#sec-string.prototype.padstart">ECMAScript reference</a></li>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/padStart">MDN documentation</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.trim" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#1635-1645">source</a><h4 class="code-header">pub(crate) fn <a href="#method.trim" class="fn">trim</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.trim" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#1623-1629">source</a><h4 class="code-header">pub(crate) fn <a href="#method.trim" class="fn">trim</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     _: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p>String.prototype.trim()</p>
 <p>The <code>trim()</code> method removes whitespace from both ends of a string.</p>
 <p>Whitespace in this context is all the whitespace characters (space, tab, no-break space, etc.) and all the line terminator characters (LF, CR, etc.).</p>
@@ -315,10 +315,10 @@ same as the given string in sort order.</p>
 <li><a href="https://tc39.es/ecma262/#sec-string.prototype.trim">ECMAScript reference</a></li>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/trim">MDN documentation</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.trim_start" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#1659-1669">source</a><h4 class="code-header">pub(crate) fn <a href="#method.trim_start" class="fn">trim_start</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.trim_start" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#1643-1653">source</a><h4 class="code-header">pub(crate) fn <a href="#method.trim_start" class="fn">trim_start</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     _: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>String.prototype.trimStart()</code></p>
 <p>The <code>trimStart()</code> method removes whitespace from the beginning of a string.</p>
 <p>Whitespace in this context is all the whitespace characters (space, tab, no-break space, etc.) and all the line terminator characters (LF, CR, etc.).</p>
@@ -327,10 +327,10 @@ same as the given string in sort order.</p>
 <li><a href="https://tc39.es/ecma262/#sec-string.prototype.trimstart">ECMAScript reference</a></li>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/trimStart">MDN documentation</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.trim_end" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#1683-1693">source</a><h4 class="code-header">pub(crate) fn <a href="#method.trim_end" class="fn">trim_end</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.trim_end" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#1667-1677">source</a><h4 class="code-header">pub(crate) fn <a href="#method.trim_end" class="fn">trim_end</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     _: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p>String.prototype.trimEnd()</p>
 <p>The <code>trimEnd()</code> method removes whitespace from the end of a string.</p>
 <p>Whitespace in this context is all the whitespace characters (space, tab, no-break space, etc.) and all the line terminator characters (LF, CR, etc.).</p>
@@ -339,10 +339,10 @@ same as the given string in sort order.</p>
 <li><a href="https://tc39.es/ecma262/#sec-string.prototype.trimend">ECMAScript reference</a></li>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/trimEnd">MDN documentation</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.to_case" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#1707-1732">source</a><h4 class="code-header">pub(crate) fn <a href="#method.to_case" class="fn">to_case</a>&lt;const UPPER: <a class="primitive" href="https://doc.rust-lang.org/1.73.0/std/primitive.bool.html">bool</a>&gt;(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.to_case" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#1691-1716">source</a><h4 class="code-header">pub(crate) fn <a href="#method.to_case" class="fn">to_case</a>&lt;const UPPER: <a class="primitive" href="https://doc.rust-lang.org/1.73.0/std/primitive.bool.html">bool</a>&gt;(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     _: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><a href="https://tc39.es/ecma262/#sec-string.prototype.toUppercase"><code>String.prototype.toUpperCase()</code></a> and <a href="https://tc39.es/ecma262/#sec-string.prototype.toLowercase"><code>String.prototype.toLowerCase()</code></a></p>
 <p>The case methods return the calling string value converted to uppercase or lowercase.</p>
 <p>The value will be <strong>converted</strong> to a string if it isn’t one.</p>
@@ -350,26 +350,26 @@ same as the given string in sort order.</p>
 <ul>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/toUpperCase">MDN documentation</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.to_locale_case" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#1739-1804">source</a><h4 class="code-header">pub(crate) fn <a href="#method.to_locale_case" class="fn">to_locale_case</a>&lt;const UPPER: <a class="primitive" href="https://doc.rust-lang.org/1.73.0/std/primitive.bool.html">bool</a>&gt;(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.to_locale_case" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#1723-1788">source</a><h4 class="code-header">pub(crate) fn <a href="#method.to_locale_case" class="fn">to_locale_case</a>&lt;const UPPER: <a class="primitive" href="https://doc.rust-lang.org/1.73.0/std/primitive.bool.html">bool</a>&gt;(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><a href="https://tc39.es/ecma402/#sup-string.prototype.tolocalelowercase"><code>String.prototype.toLocaleLowerCase ( [ locales ] )</code></a> and
 <a href="https://tc39.es/ecma402/#sup-string.prototype.tolocaleuppercase"><code>String.prototype.toLocaleUpperCase ( [ locales ] )</code></a></p>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.to_well_formed" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#1814-1845">source</a><h4 class="code-header">pub(crate) fn <a href="#method.to_well_formed" class="fn">to_well_formed</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.to_well_formed" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#1798-1829">source</a><h4 class="code-header">pub(crate) fn <a href="#method.to_well_formed" class="fn">to_well_formed</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     _: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>String.prototype.toWellFormed ( )</code></p>
 <p>More information:</p>
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-string.prototype.towellformed">ECMAScript reference</a></li>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/toWellFormed">MDN documentation</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.substring" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#1857-1894">source</a><h4 class="code-header">pub(crate) fn <a href="#method.substring" class="fn">substring</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.substring" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#1841-1878">source</a><h4 class="code-header">pub(crate) fn <a href="#method.substring" class="fn">substring</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>String.prototype.substring( indexStart[, indexEnd] )</code></p>
 <p>The <code>substring()</code> method returns the part of the <code>string</code> between the start and end indexes, or to the end of the string.</p>
 <p>More information:</p>
@@ -377,10 +377,10 @@ same as the given string in sort order.</p>
 <li><a href="https://tc39.es/ecma262/#sec-string.prototype.substring">ECMAScript reference</a></li>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/substring">MDN documentation</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.split" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#1907-2014">source</a><h4 class="code-header">pub(crate) fn <a href="#method.split" class="fn">split</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.split" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#1891-1998">source</a><h4 class="code-header">pub(crate) fn <a href="#method.split" class="fn">split</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>String.prototype.split ( separator, limit )</code></p>
 <p>The split() method divides a String into an ordered list of substrings, puts these substrings into an array, and returns the array.
 The division is done by searching for a pattern; where the pattern is provided as the first parameter in the method’s call.</p>
@@ -389,10 +389,10 @@ The division is done by searching for a pattern; where the pattern is provided a
 <li><a href="https://tc39.es/ecma262/#sec-string.prototype.split">ECMAScript reference</a></li>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/split">MDN documentation</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.value_of" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#2026-2033">source</a><h4 class="code-header">pub(crate) fn <a href="#method.value_of" class="fn">value_of</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.value_of" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#2010-2017">source</a><h4 class="code-header">pub(crate) fn <a href="#method.value_of" class="fn">value_of</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     _args: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    _context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    _context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p>String.prototype.valueOf()</p>
 <p>The <code>valueOf()</code> method returns the primitive value of a <code>String</code> object.</p>
 <p>More information:</p>
@@ -400,10 +400,10 @@ The division is done by searching for a pattern; where the pattern is provided a
 <li><a href="https://tc39.es/ecma262/#sec-string.prototype.value_of">ECMAScript reference</a></li>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/valueOf">MDN documentation</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.match_all" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#2047-2092">source</a><h4 class="code-header">pub(crate) fn <a href="#method.match_all" class="fn">match_all</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.match_all" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#2031-2076">source</a><h4 class="code-header">pub(crate) fn <a href="#method.match_all" class="fn">match_all</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>String.prototype.matchAll( regexp )</code></p>
 <p>The <code>matchAll()</code> method returns an iterator of all results matching a string against a <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions"><code>regular expression</code></a>, including <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions/Groups_and_Ranges">capturing groups</a>.</p>
 <p>More information:</p>
@@ -411,10 +411,10 @@ The division is done by searching for a pattern; where the pattern is provided a
 <li><a href="https://tc39.es/ecma262/#sec-string.prototype.matchall">ECMAScript reference</a></li>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/matchAll">MDN documentation</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.normalize" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#2104-2173">source</a><h4 class="code-header">pub(crate) fn <a href="#method.normalize" class="fn">normalize</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.normalize" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#2088-2157">source</a><h4 class="code-header">pub(crate) fn <a href="#method.normalize" class="fn">normalize</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>String.prototype.normalize( [ form ] )</code></p>
 <p>The normalize() method normalizes a string into a form specified in the Unicode® Standard Annex #15</p>
 <p>More information:</p>
@@ -422,10 +422,10 @@ The division is done by searching for a pattern; where the pattern is provided a
 <li><a href="https://tc39.es/ecma262/#sec-string.prototype.normalize">ECMAScript reference</a></li>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/normalize">MDN documentation</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.search" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#2185-2213">source</a><h4 class="code-header">pub(crate) fn <a href="#method.search" class="fn">search</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.search" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#2169-2197">source</a><h4 class="code-header">pub(crate) fn <a href="#method.search" class="fn">search</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>String.prototype.search( regexp )</code></p>
 <p>The search() method executes a search for a match between a regular expression and this String object.</p>
 <p>More information:</p>
@@ -433,14 +433,14 @@ The division is done by searching for a pattern; where the pattern is provided a
 <li><a href="https://tc39.es/ecma262/#sec-string.prototype.search">ECMAScript reference</a></li>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/search">MDN documentation</a></li>
 </ul>
-</div></details><section id="method.iterator" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#2215-2226">source</a><h4 class="code-header">pub(crate) fn <a href="#method.iterator" class="fn">iterator</a>(
+</div></details><section id="method.iterator" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#2199-2210">source</a><h4 class="code-header">pub(crate) fn <a href="#method.iterator" class="fn">iterator</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     _: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
-) -&gt; <a class="type" href="../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></div></details><details class="toggle implementors-toggle" open><summary><section id="impl-String-1" class="impl"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#2230-2625">source</a><a href="#impl-String-1" class="anchor">§</a><h3 class="code-header">impl <a class="struct" href="struct.String.html" title="struct boa_engine::builtins::string::String">String</a></h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.substr" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#2242-2297">source</a><h4 class="code-header">pub(crate) fn <a href="#method.substr" class="fn">substr</a>(
+    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>
+) -&gt; <a class="type" href="../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></div></details><details class="toggle implementors-toggle" open><summary><section id="impl-String-1" class="impl"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#2214-2581">source</a><a href="#impl-String-1" class="anchor">§</a><h3 class="code-header">impl <a class="struct" href="struct.String.html" title="struct boa_engine::builtins::string::String">String</a></h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.substr" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#2226-2281">source</a><h4 class="code-header">pub(crate) fn <a href="#method.substr" class="fn">substr</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>String.prototype.substr( start[, length] )</code></p>
 <p>The <code>substr()</code> method returns a portion of the string, starting at the specified index and extending for a given number of characters afterward.</p>
 <p>More information:</p>
@@ -449,140 +449,140 @@ The division is done by searching for a pattern; where the pattern is provided a
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/substr">MDN documentation</a></li>
 </ul>
 <p><a href="https://tc39.es/ecma262/#sec-string.prototype.substr">https://tc39.es/ecma262/#sec-string.prototype.substr</a></p>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.create_html" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#2305-2369">source</a><h4 class="code-header">pub(crate) fn <a href="#method.create_html" class="fn">create_html</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.create_html" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#2289-2353">source</a><h4 class="code-header">pub(crate) fn <a href="#method.create_html" class="fn">create_html</a>(
     string: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     tag: &amp;[<a class="primitive" href="https://doc.rust-lang.org/1.73.0/std/primitive.u16.html">u16</a>],
     attribute_and_value: <a class="enum" href="https://doc.rust-lang.org/1.73.0/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;(&amp;[<a class="primitive" href="https://doc.rust-lang.org/1.73.0/std/primitive.u16.html">u16</a>], &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>)&gt;,
-    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>CreateHTML(string, tag, attribute, value)</code></p>
 <p>More information:</p>
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-createhtml">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.anchor" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#2379-2390">source</a><h4 class="code-header">pub(crate) fn <a href="#method.anchor" class="fn">anchor</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.anchor" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#2363-2374">source</a><h4 class="code-header">pub(crate) fn <a href="#method.anchor" class="fn">anchor</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>String.prototype.anchor( name )</code></p>
 <p>More information:</p>
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-string.prototype.anchor">ECMAScript reference</a></li>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/anchor">MDN documentation</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.big" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#2400-2409">source</a><h4 class="code-header">pub(crate) fn <a href="#method.big" class="fn">big</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.big" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#2384-2389">source</a><h4 class="code-header">pub(crate) fn <a href="#method.big" class="fn">big</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     _: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>String.prototype.big( )</code></p>
 <p>More information:</p>
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-string.prototype.big">ECMAScript reference</a></li>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/big">MDN documentation</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.blink" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#2419-2428">source</a><h4 class="code-header">pub(crate) fn <a href="#method.blink" class="fn">blink</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.blink" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#2399-2404">source</a><h4 class="code-header">pub(crate) fn <a href="#method.blink" class="fn">blink</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     _: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>String.prototype.blink( )</code></p>
 <p>More information:</p>
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-string.prototype.blink">ECMAScript reference</a></li>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/blink">MDN documentation</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.bold" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#2438-2447">source</a><h4 class="code-header">pub(crate) fn <a href="#method.bold" class="fn">bold</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.bold" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#2414-2419">source</a><h4 class="code-header">pub(crate) fn <a href="#method.bold" class="fn">bold</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     _: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>String.prototype.bold( )</code></p>
 <p>More information:</p>
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-string.prototype.bold">ECMAScript reference</a></li>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/bold">MDN documentation</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.fixed" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#2457-2466">source</a><h4 class="code-header">pub(crate) fn <a href="#method.fixed" class="fn">fixed</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.fixed" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#2429-2434">source</a><h4 class="code-header">pub(crate) fn <a href="#method.fixed" class="fn">fixed</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     _: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>String.prototype.fixed( )</code></p>
 <p>More information:</p>
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-string.prototype.fixed">ECMAScript reference</a></li>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/fixed">MDN documentation</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.fontcolor" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#2476-2487">source</a><h4 class="code-header">pub(crate) fn <a href="#method.fontcolor" class="fn">fontcolor</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.fontcolor" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#2444-2455">source</a><h4 class="code-header">pub(crate) fn <a href="#method.fontcolor" class="fn">fontcolor</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>String.prototype.fontcolor( color )</code></p>
 <p>More information:</p>
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-string.prototype.fontcolor">ECMAScript reference</a></li>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/fontcolor">MDN documentation</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.fontsize" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#2497-2508">source</a><h4 class="code-header">pub(crate) fn <a href="#method.fontsize" class="fn">fontsize</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.fontsize" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#2465-2476">source</a><h4 class="code-header">pub(crate) fn <a href="#method.fontsize" class="fn">fontsize</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>String.prototype.fontsize( size )</code></p>
 <p>More information:</p>
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-string.prototype.fontsize">ECMAScript reference</a></li>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/fontsize">MDN documentation</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.italics" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#2518-2527">source</a><h4 class="code-header">pub(crate) fn <a href="#method.italics" class="fn">italics</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.italics" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#2486-2495">source</a><h4 class="code-header">pub(crate) fn <a href="#method.italics" class="fn">italics</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     _: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>String.prototype.italics( )</code></p>
 <p>More information:</p>
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-string.prototype.italics">ECMAScript reference</a></li>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/italics">MDN documentation</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.link" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#2537-2548">source</a><h4 class="code-header">pub(crate) fn <a href="#method.link" class="fn">link</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.link" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#2505-2516">source</a><h4 class="code-header">pub(crate) fn <a href="#method.link" class="fn">link</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>String.prototype.link( url )</code></p>
 <p>More information:</p>
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-string.prototype.link">ECMAScript reference</a></li>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/link">MDN documentation</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.small" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#2558-2567">source</a><h4 class="code-header">pub(crate) fn <a href="#method.small" class="fn">small</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.small" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#2526-2531">source</a><h4 class="code-header">pub(crate) fn <a href="#method.small" class="fn">small</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     _: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>String.prototype.small( )</code></p>
 <p>More information:</p>
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-string.prototype.small">ECMAScript reference</a></li>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/small">MDN documentation</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.strike" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#2577-2586">source</a><h4 class="code-header">pub(crate) fn <a href="#method.strike" class="fn">strike</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.strike" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#2541-2550">source</a><h4 class="code-header">pub(crate) fn <a href="#method.strike" class="fn">strike</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     _: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>String.prototype.strike( )</code></p>
 <p>More information:</p>
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-string.prototype.strike">ECMAScript reference</a></li>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/strike">MDN documentation</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.sub" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#2596-2605">source</a><h4 class="code-header">pub(crate) fn <a href="#method.sub" class="fn">sub</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.sub" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#2560-2565">source</a><h4 class="code-header">pub(crate) fn <a href="#method.sub" class="fn">sub</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     _: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>String.prototype.sub( )</code></p>
 <p>More information:</p>
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-string.prototype.sub">ECMAScript reference</a></li>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/sub">MDN documentation</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.sup" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#2615-2624">source</a><h4 class="code-header">pub(crate) fn <a href="#method.sup" class="fn">sup</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.sup" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#2575-2580">source</a><h4 class="code-header">pub(crate) fn <a href="#method.sup" class="fn">sup</a>(
     this: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     _: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><code>String.prototype.sup( )</code></p>
 <p>More information:</p>
 <ul>
@@ -592,7 +592,7 @@ The division is done by searching for a pattern; where the pattern is provided a
 </div></details></div></details></div><h2 id="trait-implementations" class="small-section-header">Trait Implementations<a href="#trait-implementations" class="anchor">§</a></h2><div id="trait-implementations-list"><details class="toggle implementors-toggle" open><summary><section id="impl-BuiltInConstructor-for-String" class="impl"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#196-234">source</a><a href="#impl-BuiltInConstructor-for-String" class="anchor">§</a><h3 class="code-header">impl <a class="trait" href="../trait.BuiltInConstructor.html" title="trait boa_engine::builtins::BuiltInConstructor">BuiltInConstructor</a> for <a class="struct" href="struct.String.html" title="struct boa_engine::builtins::string::String">String</a></h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.constructor" class="method trait-impl"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#205-233">source</a><a href="#method.constructor" class="anchor">§</a><h4 class="code-header">fn <a href="../trait.BuiltInConstructor.html#tymethod.constructor" class="fn">constructor</a>(
     new_target: &amp;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>&lt;'_&gt;
+    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p>Constructor <code>String( value )</code></p>
 <p><a href="https://tc39.es/ecma262/#sec-string-constructor-string-value">https://tc39.es/ecma262/#sec-string-constructor-string-value</a></p>
 </div></details><details class="toggle" open><summary><section id="associatedconstant.LENGTH" class="associatedconstant trait-impl"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#197">source</a><a href="#associatedconstant.LENGTH" class="anchor">§</a><h4 class="code-header">const <a href="../trait.BuiltInConstructor.html#associatedconstant.LENGTH" class="constant">LENGTH</a>: <a class="primitive" href="https://doc.rust-lang.org/1.73.0/std/primitive.usize.html">usize</a> = 1usize</h4></section></summary><div class='docblock'>The amount of arguments this function object takes.</div></details><details class="toggle" open><summary><section id="associatedconstant.STANDARD_CONSTRUCTOR" class="associatedconstant trait-impl"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#199-200">source</a><a href="#associatedconstant.STANDARD_CONSTRUCTOR" class="anchor">§</a><h4 class="code-header">const <a href="../trait.BuiltInConstructor.html#associatedconstant.STANDARD_CONSTRUCTOR" class="constant">STANDARD_CONSTRUCTOR</a>: <a class="primitive" href="https://doc.rust-lang.org/1.73.0/std/primitive.fn.html">fn</a>(_: &amp;<a class="struct" href="../../context/intrinsics/struct.StandardConstructors.html" title="struct boa_engine::context::intrinsics::StandardConstructors">StandardConstructors</a>) -&gt; &amp;<a class="struct" href="../../context/intrinsics/struct.StandardConstructor.html" title="struct boa_engine::context::intrinsics::StandardConstructor">StandardConstructor</a> = {context::intrinsics::StandardConstructors::string as for&lt;&#39;a&gt; fn(&amp;&#39;a context::intrinsics::StandardConstructors) -&gt; &amp;&#39;a context::intrinsics::StandardConstructor}</h4></section></summary><div class='docblock'>The corresponding standard constructor of this constructor.</div></details></div></details><details class="toggle implementors-toggle" open><summary><section id="impl-BuiltInObject-for-String" class="impl"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#192-194">source</a><a href="#impl-BuiltInObject-for-String" class="anchor">§</a><h3 class="code-header">impl <a class="trait" href="../trait.BuiltInObject.html" title="trait boa_engine::builtins::BuiltInObject">BuiltInObject</a> for <a class="struct" href="struct.String.html" title="struct boa_engine::builtins::string::String">String</a></h3></section></summary><div class="impl-items"><details class="toggle" open><summary><section id="associatedconstant.NAME" class="associatedconstant trait-impl"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#193">source</a><a href="#associatedconstant.NAME" class="anchor">§</a><h4 class="code-header">const <a href="../trait.BuiltInObject.html#associatedconstant.NAME" class="constant">NAME</a>: <a class="struct" href="../../struct.JsString.html" title="struct boa_engine::JsString">JsString</a> = StaticJsStrings::STRING</h4></section></summary><div class='docblock'>Binding name of the builtin inside the global object. <a href="../trait.BuiltInObject.html#associatedconstant.NAME">Read more</a></div></details><details class="toggle" open><summary><section id="associatedconstant.ATTRIBUTE" class="associatedconstant trait-impl"><a class="src rightside" href="../../../src/boa_engine/builtins/mod.rs.html#151-153">source</a><a href="#associatedconstant.ATTRIBUTE" class="anchor">§</a><h4 class="code-header">const <a href="../trait.BuiltInObject.html#associatedconstant.ATTRIBUTE" class="constant">ATTRIBUTE</a>: <a class="struct" href="../../property/attribute/struct.Attribute.html" title="struct boa_engine::property::attribute::Attribute">Attribute</a> = _</h4></section></summary><div class='docblock'>Property attribute flags of the built-in. Check <a href="../../property/attribute/struct.Attribute.html" title="struct boa_engine::property::attribute::Attribute"><code>Attribute</code></a> for more information.</div></details></div></details><details class="toggle implementors-toggle" open><summary><section id="impl-Clone-for-String" class="impl"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#74">source</a><a href="#impl-Clone-for-String" class="anchor">§</a><h3 class="code-header">impl <a class="trait" href="https://doc.rust-lang.org/1.73.0/core/clone/trait.Clone.html" title="trait core::clone::Clone">Clone</a> for <a class="struct" href="struct.String.html" title="struct boa_engine::builtins::string::String">String</a></h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.clone" class="method trait-impl"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#74">source</a><a href="#method.clone" class="anchor">§</a><h4 class="code-header">fn <a href="https://doc.rust-lang.org/1.73.0/core/clone/trait.Clone.html#tymethod.clone" class="fn">clone</a>(&amp;self) -&gt; <a class="struct" href="struct.String.html" title="struct boa_engine::builtins::string::String">String</a></h4></section></summary><div class='docblock'>Returns a copy of the value. <a href="https://doc.rust-lang.org/1.73.0/core/clone/trait.Clone.html#tymethod.clone">Read more</a></div></details><details class="toggle method-toggle" open><summary><section id="method.clone_from" class="method trait-impl"><span class="rightside"><span class="since" title="Stable since Rust version 1.0.0">1.0.0</span> · <a class="src" href="https://doc.rust-lang.org/1.73.0/src/core/clone.rs.html#169">source</a></span><a href="#method.clone_from" class="anchor">§</a><h4 class="code-header">fn <a href="https://doc.rust-lang.org/1.73.0/core/clone/trait.Clone.html#method.clone_from" class="fn">clone_from</a>(&amp;mut self, source: <a class="primitive" href="https://doc.rust-lang.org/1.73.0/std/primitive.reference.html">&amp;Self</a>)</h4></section></summary><div class='docblock'>Performs copy-assignment from <code>source</code>. <a href="https://doc.rust-lang.org/1.73.0/core/clone/trait.Clone.html#method.clone_from">Read more</a></div></details></div></details><details class="toggle implementors-toggle" open><summary><section id="impl-Debug-for-String" class="impl"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#74">source</a><a href="#impl-Debug-for-String" class="anchor">§</a><h3 class="code-header">impl <a class="trait" href="https://doc.rust-lang.org/1.73.0/core/fmt/trait.Debug.html" title="trait core::fmt::Debug">Debug</a> for <a class="struct" href="struct.String.html" title="struct boa_engine::builtins::string::String">String</a></h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.fmt" class="method trait-impl"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#74">source</a><a href="#method.fmt" class="anchor">§</a><h4 class="code-header">fn <a href="https://doc.rust-lang.org/1.73.0/core/fmt/trait.Debug.html#tymethod.fmt" class="fn">fmt</a>(&amp;self, f: &amp;mut <a class="struct" href="https://doc.rust-lang.org/1.73.0/core/fmt/struct.Formatter.html" title="struct core::fmt::Formatter">Formatter</a>&lt;'_&gt;) -&gt; <a class="type" href="https://doc.rust-lang.org/1.73.0/core/fmt/type.Result.html" title="type core::fmt::Result">Result</a></h4></section></summary><div class='docblock'>Formats the value using the given formatter. <a href="https://doc.rust-lang.org/1.73.0/core/fmt/trait.Debug.html#tymethod.fmt">Read more</a></div></details></div></details><details class="toggle implementors-toggle" open><summary><section id="impl-IntrinsicObject-for-String" class="impl"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#77-190">source</a><a href="#impl-IntrinsicObject-for-String" class="anchor">§</a><h3 class="code-header">impl <a class="trait" href="../trait.IntrinsicObject.html" title="trait boa_engine::builtins::IntrinsicObject">IntrinsicObject</a> for <a class="struct" href="struct.String.html" title="struct boa_engine::builtins::string::String">String</a></h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.init" class="method trait-impl"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#78-185">source</a><a href="#method.init" class="anchor">§</a><h4 class="code-header">fn <a href="../trait.IntrinsicObject.html#tymethod.init" class="fn">init</a>(realm: &amp;<a class="struct" href="../../realm/struct.Realm.html" title="struct boa_engine::realm::Realm">Realm</a>)</h4></section></summary><div class='docblock'>Initializes the intrinsic object. <a href="../trait.IntrinsicObject.html#tymethod.init">Read more</a></div></details><details class="toggle method-toggle" open><summary><section id="method.get" class="method trait-impl"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#187-189">source</a><a href="#method.get" class="anchor">§</a><h4 class="code-header">fn <a href="../trait.IntrinsicObject.html#tymethod.get" class="fn">get</a>(intrinsics: &amp;<a class="struct" href="../../context/intrinsics/struct.Intrinsics.html" title="struct boa_engine::context::intrinsics::Intrinsics">Intrinsics</a>) -&gt; <a class="struct" href="../../object/jsobject/struct.JsObject.html" title="struct boa_engine::object::jsobject::JsObject">JsObject</a></h4></section></summary><div class='docblock'>Gets the intrinsic object.</div></details></div></details><section id="impl-Copy-for-String" class="impl"><a class="src rightside" href="../../../src/boa_engine/builtins/string/mod.rs.html#74">source</a><a href="#impl-Copy-for-String" class="anchor">§</a><h3 class="code-header">impl <a class="trait" href="https://doc.rust-lang.org/1.73.0/core/marker/trait.Copy.html" title="trait core::marker::Copy">Copy</a> for <a class="struct" href="struct.String.html" title="struct boa_engine::builtins::string::String">String</a></h3></section></div><h2 id="synthetic-implementations" class="small-section-header">Auto Trait Implementations<a href="#synthetic-implementations" class="anchor">§</a></h2><div id="synthetic-implementations-list"><section id="impl-RefUnwindSafe-for-String" class="impl"><a href="#impl-RefUnwindSafe-for-String" class="anchor">§</a><h3 class="code-header">impl <a class="trait" href="https://doc.rust-lang.org/1.73.0/core/panic/unwind_safe/trait.RefUnwindSafe.html" title="trait core::panic::unwind_safe::RefUnwindSafe">RefUnwindSafe</a> for <a class="struct" href="struct.String.html" title="struct boa_engine::builtins::string::String">String</a></h3></section><section id="impl-Send-for-String" class="impl"><a href="#impl-Send-for-String" class="anchor">§</a><h3 class="code-header">impl <a class="trait" href="https://doc.rust-lang.org/1.73.0/core/marker/trait.Send.html" title="trait core::marker::Send">Send</a> for <a class="struct" href="struct.String.html" title="struct boa_engine::builtins::string::String">String</a></h3></section><section id="impl-Sync-for-String" class="impl"><a href="#impl-Sync-for-String" class="anchor">§</a><h3 class="code-header">impl <a class="trait" href="https://doc.rust-lang.org/1.73.0/core/marker/trait.Sync.html" title="trait core::marker::Sync">Sync</a> for <a class="struct" href="struct.String.html" title="struct boa_engine::builtins::string::String">String</a></h3></section><section id="impl-Unpin-for-String" class="impl"><a href="#impl-Unpin-for-String" class="anchor">§</a><h3 class="code-header">impl <a class="trait" href="https://doc.rust-lang.org/1.73.0/core/marker/trait.Unpin.html" title="trait core::marker::Unpin">Unpin</a> for <a class="struct" href="struct.String.html" title="struct boa_engine::builtins::string::String">String</a></h3></section><section id="impl-UnwindSafe-for-String" class="impl"><a href="#impl-UnwindSafe-for-String" class="anchor">§</a><h3 class="code-header">impl <a class="trait" href="https://doc.rust-lang.org/1.73.0/core/panic/unwind_safe/trait.UnwindSafe.html" title="trait core::panic::unwind_safe::UnwindSafe">UnwindSafe</a> for <a class="struct" href="struct.String.html" title="struct boa_engine::builtins::string::String">String</a></h3></section></div><h2 id="blanket-implementations" class="small-section-header">Blanket Implementations<a href="#blanket-implementations" class="anchor">§</a></h2><div id="blanket-implementations-list"><details class="toggle implementors-toggle"><summary><section id="impl-Any-for-String" class="impl"><a class="src rightside" href="https://doc.rust-lang.org/1.73.0/src/core/any.rs.html#135">source</a><a href="#impl-Any-for-String" class="anchor">§</a><h3 class="code-header">impl&lt;T&gt; <a class="trait" href="https://doc.rust-lang.org/1.73.0/core/any/trait.Any.html" title="trait core::any::Any">Any</a> for T<span class="where fmt-newline">where

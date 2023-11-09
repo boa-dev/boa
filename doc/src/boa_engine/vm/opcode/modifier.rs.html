@@ -75,14 +75,14 @@
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - U16Operands&quot;</span>;
     <span class="kw">const </span>COST: u8 = <span class="number">1</span>;
 
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>opcode = context.vm.read::&lt;u8&gt;() <span class="kw">as </span>usize;
 
         Opcode::EXECUTE_FNS[Opcode::MAX + opcode](context)
     }
 
     <span class="kw">fn </span>spend_budget_and_execute(
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
         budget: <span class="kw-2">&amp;mut </span>u32,
     ) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>opcode: Opcode = context.vm.read::&lt;u8&gt;().into();
@@ -104,14 +104,14 @@
     <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - U32Operands&quot;</span>;
     <span class="kw">const </span>COST: u8 = <span class="number">1</span>;
 
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>opcode = context.vm.read::&lt;u8&gt;() <span class="kw">as </span>usize;
 
         Opcode::EXECUTE_FNS[Opcode::MAX * <span class="number">2 </span>+ opcode](context)
     }
 
     <span class="kw">fn </span>spend_budget_and_execute(
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
         budget: <span class="kw-2">&amp;mut </span>u32,
     ) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>opcode: Opcode = context.vm.read::&lt;u8&gt;().into();

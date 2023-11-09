@@ -2729,14 +2729,14 @@
                 <span class="self">Self</span>::INSTRUCTIONS[<span class="self">self </span><span class="kw">as </span>usize]
             }
 
-            <span class="kw">const </span>SPEND_FNS: [<span class="kw">fn</span>(<span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;, <span class="kw-2">&amp;mut </span>u32) -&gt; JsResult&lt;CompletionType&gt;; <span class="self">Self</span>::MAX] = [
+            <span class="kw">const </span>SPEND_FNS: [<span class="kw">fn</span>(<span class="kw-2">&amp;mut </span>Context, <span class="kw-2">&amp;mut </span>u32) -&gt; JsResult&lt;CompletionType&gt;; <span class="self">Self</span>::MAX] = [
                 $(&lt;<span class="macro">generate_opcodes!</span>(name <span class="macro-nonterminal">$Variant </span>$(=&gt; <span class="macro-nonterminal">$mapping</span>)<span class="question-mark">?</span>)&gt;::spend_budget_and_execute),<span class="kw-2">*</span>,
             ];
 
             <span class="doccomment">/// Spends the cost of this opcode into the provided budget and executes it.
             </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>spend_budget_and_execute(
                 <span class="self">self</span>,
-                context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+                context: <span class="kw-2">&amp;mut </span>Context,
                 budget: <span class="kw-2">&amp;mut </span>u32
             ) -&gt; JsResult&lt;CompletionType&gt; {
                 <span class="self">Self</span>::SPEND_FNS[<span class="self">self </span><span class="kw">as </span>usize](context, budget)
@@ -2751,13 +2751,13 @@
                 <span class="self">Self</span>::COSTS[<span class="self">self </span><span class="kw">as </span>usize]
             }
 
-            <span class="kw">const </span>EXECUTE_FNS: [<span class="kw">fn</span>(<span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt;; <span class="self">Self</span>::MAX * <span class="number">3</span>] = [
+            <span class="kw">const </span>EXECUTE_FNS: [<span class="kw">fn</span>(<span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt;; <span class="self">Self</span>::MAX * <span class="number">3</span>] = [
                 $(&lt;<span class="macro">generate_opcodes!</span>(name <span class="macro-nonterminal">$Variant </span>$(=&gt; <span class="macro-nonterminal">$mapping</span>)<span class="question-mark">?</span>)&gt;::execute),<span class="kw-2">*</span>,
                 $(&lt;<span class="macro">generate_opcodes!</span>(name <span class="macro-nonterminal">$Variant </span>$(=&gt; <span class="macro-nonterminal">$mapping</span>)<span class="question-mark">?</span>)&gt;::execute_with_u16_operands),<span class="kw-2">*</span>,
                 $(&lt;<span class="macro">generate_opcodes!</span>(name <span class="macro-nonterminal">$Variant </span>$(=&gt; <span class="macro-nonterminal">$mapping</span>)<span class="question-mark">?</span>)&gt;::execute_with_u32_operands),*
             ];
 
-            <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>execute(<span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+            <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>execute(<span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
                 <span class="self">Self</span>::EXECUTE_FNS[<span class="self">self </span><span class="kw">as </span>usize](context)
             }
         }
@@ -2858,25 +2858,25 @@
     <span class="kw">const </span>COST: u8;
 
     <span class="doccomment">/// Execute opcode with [`VaryingOperandKind::U8`] sized [`VaryingOperand`]s.
-    </span><span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt;;
+    </span><span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt;;
 
     <span class="doccomment">/// Execute opcode with [`VaryingOperandKind::U16`] sized [`VaryingOperand`]s.
     ///
     /// By default if not implemented will call [`Reserved::execute_with_u16_operands()`] which panics.
-    </span><span class="kw">fn </span>execute_with_u16_operands(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+    </span><span class="kw">fn </span>execute_with_u16_operands(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
         Reserved::execute_with_u16_operands(context)
     }
 
     <span class="doccomment">/// Execute opcode with [`VaryingOperandKind::U32`] sized [`VaryingOperand`]s.
     ///
     /// By default if not implemented will call [`Reserved::execute_with_u32_operands()`] which panics.
-    </span><span class="kw">fn </span>execute_with_u32_operands(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;CompletionType&gt; {
+    </span><span class="kw">fn </span>execute_with_u32_operands(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
         Reserved::execute_with_u32_operands(context)
     }
 
     <span class="doccomment">/// Spends the cost of this operation into `budget` and runs `execute`.
     </span><span class="kw">fn </span>spend_budget_and_execute(
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
         budget: <span class="kw-2">&amp;mut </span>u32,
     ) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw-2">*</span>budget = budget.saturating_sub(u32::from(<span class="self">Self</span>::COST));

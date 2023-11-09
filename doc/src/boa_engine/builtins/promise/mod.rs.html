@@ -2589,7 +2589,7 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-newpromisecapability
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(c: <span class="kw-2">&amp;</span>JsObject, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(c: <span class="kw-2">&amp;</span>JsObject, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="attr">#[derive(Debug, Clone, Trace, Finalize)]
         </span><span class="kw">struct </span>RejectResolve {
             reject: JsValue,
@@ -2763,7 +2763,7 @@
     </span><span class="kw">fn </span>constructor(
         new_target: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. If NewTarget is undefined, throw a TypeError exception.
         </span><span class="kw">if </span>new_target.is_undefined() {
@@ -2845,7 +2845,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>with_resolvers(
         this: <span class="kw-2">&amp;</span>JsValue,
         _args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let C be the this value.
         </span><span class="kw">let </span>c = this.as_object().ok_or_else(|| {
@@ -2882,7 +2882,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>all(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let C be the this value.
         </span><span class="kw">let </span>c = this.as_object().ok_or_else(|| {
@@ -2943,7 +2943,7 @@
         constructor: <span class="kw-2">&amp;</span>JsObject,
         result_capability: <span class="kw-2">&amp;</span>PromiseCapability,
         promise_resolve: <span class="kw-2">&amp;</span>JsObject,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsObject&gt; {
         <span class="attr">#[derive(Debug, Trace, Finalize)]
         </span><span class="kw">struct </span>ResolveElementCaptures {
@@ -3109,7 +3109,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>all_settled(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let C be the this value.
         </span><span class="kw">let </span>c = this.as_object().ok_or_else(|| {
@@ -3170,7 +3170,7 @@
         constructor: <span class="kw-2">&amp;</span>JsObject,
         result_capability: <span class="kw-2">&amp;</span>PromiseCapability,
         promise_resolve: <span class="kw-2">&amp;</span>JsObject,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsObject&gt; {
         <span class="attr">#[derive(Debug, Trace, Finalize)]
         </span><span class="kw">struct </span>ResolveRejectElementCaptures {
@@ -3444,7 +3444,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>any(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let C be the this value.
         </span><span class="kw">let </span>c = this.as_object().ok_or_else(|| {
@@ -3505,7 +3505,7 @@
         constructor: <span class="kw-2">&amp;</span>JsObject,
         result_capability: <span class="kw-2">&amp;</span>PromiseCapability,
         promise_resolve: <span class="kw-2">&amp;</span>JsObject,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsObject&gt; {
         <span class="attr">#[derive(Debug, Trace, Finalize)]
         </span><span class="kw">struct </span>RejectElementCaptures {
@@ -3685,7 +3685,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>race(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>iterable = args.get_or_undefined(<span class="number">0</span>);
 
@@ -3753,7 +3753,7 @@
         constructor: <span class="kw-2">&amp;</span>JsObject,
         result_capability: <span class="kw-2">&amp;</span>PromiseCapability,
         promise_resolve: <span class="kw-2">&amp;</span>JsObject,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsObject&gt; {
         <span class="kw">let </span>constructor = constructor.clone().into();
         <span class="comment">// 1. Repeat,
@@ -3801,7 +3801,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>reject(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>r = args.get_or_undefined(<span class="number">0</span>).clone();
 
@@ -3817,7 +3817,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>promise_reject(
         c: <span class="kw-2">&amp;</span>JsObject,
         e: <span class="kw-2">&amp;</span>JsError,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsObject&gt; {
         <span class="kw">let </span>e = e.to_opaque(context);
 
@@ -3845,7 +3845,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>resolve(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>x = args.get_or_undefined(<span class="number">0</span>);
 
@@ -3872,7 +3872,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>promise_resolve(
         c: <span class="kw-2">&amp;</span>JsObject,
         x: JsValue,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsObject&gt; {
         <span class="comment">// 1. If IsPromise(x) is true, then
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(x) = x.as_promise() {
@@ -3911,7 +3911,7 @@
     /// [spec]: https://tc39.es/ecma262/#sec-get-promise-@@species
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/@@species
     </span><span class="attr">#[allow(clippy::unnecessary_wraps)]
-    </span><span class="kw">fn </span>get_species(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>get_species(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Return the this value.
         </span><span class="prelude-val">Ok</span>(this.clone())
     }
@@ -3927,7 +3927,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>catch(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>on_rejected = args.get_or_undefined(<span class="number">0</span>);
 
@@ -3952,7 +3952,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>finally(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let promise be the this value.
         </span><span class="kw">let </span>promise = this;
@@ -3996,7 +3996,7 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>then_catch_finally_closures(
         c: JsObject,
         on_finally: JsFunction,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; (JsFunction, JsFunction) {
         <span class="doccomment">/// Capture object for the `thenFinallyClosure` abstract closure.
         </span><span class="attr">#[derive(Debug, Trace, Finalize)]
@@ -4118,7 +4118,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>then(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let promise be the this value.
         </span><span class="kw">let </span>promise = this;
@@ -4149,7 +4149,7 @@
         promise: <span class="kw-2">&amp;</span>JsObject,
         on_fulfilled: <span class="prelude-ty">Option</span>&lt;JsFunction&gt;,
         on_rejected: <span class="prelude-ty">Option</span>&lt;JsFunction&gt;,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsObject&gt; {
         <span class="comment">// 3. Let C be ? SpeciesConstructor(promise, %Promise%).
         </span><span class="kw">let </span>c = promise.species_constructor(StandardConstructors::promise, context)<span class="question-mark">?</span>;
@@ -4181,7 +4181,7 @@
         on_fulfilled: <span class="prelude-ty">Option</span>&lt;JsFunction&gt;,
         on_rejected: <span class="prelude-ty">Option</span>&lt;JsFunction&gt;,
         result_capability: <span class="prelude-ty">Option</span>&lt;PromiseCapability&gt;,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) {
         <span class="comment">// 1. Assert: IsPromise(promise) is true.
 
@@ -4298,7 +4298,7 @@
     /// [spec]: https://tc39.es/ecma262/#sec-getpromiseresolve
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_promise_resolve(
         promise_constructor: <span class="kw-2">&amp;</span>JsObject,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsObject&gt; {
         <span class="comment">// 1. Let promiseResolve be ? Get(promiseConstructor, &quot;resolve&quot;).
         </span><span class="kw">let </span>promise_resolve = promise_constructor.get(<span class="macro">utf16!</span>(<span class="string">&quot;resolve&quot;</span>), context)<span class="question-mark">?</span>;
@@ -4319,7 +4319,7 @@
     /// [spec]: https://tc39.es/ecma262/#sec-createresolvingfunctions
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_resolving_functions(
         promise: <span class="kw-2">&amp;</span>JsObject,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; ResolvingFunctions {
         <span class="doccomment">/// `TriggerPromiseReactions ( reactions, argument )`
         ///
@@ -4337,7 +4337,7 @@
         </span><span class="kw">fn </span>trigger_promise_reactions(
             reactions: Vec&lt;ReactionRecord&gt;,
             argument: <span class="kw-2">&amp;</span>JsValue,
-            context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+            context: <span class="kw-2">&amp;mut </span>Context,
         ) {
             <span class="comment">// 1. For each element reaction of reactions, do
             </span><span class="kw">for </span>reaction <span class="kw">in </span>reactions {
@@ -4363,7 +4363,7 @@
         /// # Panics
         ///
         /// Panics if `Promise` is not pending.
-        </span><span class="kw">fn </span>fulfill_promise(promise: <span class="kw-2">&amp;</span>JsObject, value: JsValue, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) {
+        </span><span class="kw">fn </span>fulfill_promise(promise: <span class="kw-2">&amp;</span>JsObject, value: JsValue, context: <span class="kw-2">&amp;mut </span>Context) {
             <span class="kw">let </span><span class="kw-2">mut </span>promise = promise.borrow_mut();
             <span class="kw">let </span>promise = promise
                 .as_promise_mut()
@@ -4407,7 +4407,7 @@
         /// # Panics
         ///
         /// Panics if `Promise` is not pending.
-        </span><span class="kw">fn </span>reject_promise(promise: <span class="kw-2">&amp;</span>JsObject, reason: JsValue, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) {
+        </span><span class="kw">fn </span>reject_promise(promise: <span class="kw-2">&amp;</span>JsObject, reason: JsValue, context: <span class="kw-2">&amp;mut </span>Context) {
             <span class="kw">let </span>handled = {
                 <span class="kw">let </span><span class="kw-2">mut </span>promise = promise.borrow_mut();
                 <span class="kw">let </span>promise = promise
@@ -4600,7 +4600,7 @@
 </span><span class="kw">fn </span>new_promise_reaction_job(
     <span class="kw-2">mut </span>reaction: ReactionRecord,
     argument: JsValue,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; NativeJob {
     <span class="comment">// Inverting order since `job` captures `reaction` by value.
 
@@ -4618,7 +4618,7 @@
         .unwrap_or_else(|| context.realm().clone());
 
     <span class="comment">// 1. Let job be a new Job Abstract Closure with no parameters that captures reaction and argument and performs the following steps when called:
-    </span><span class="kw">let </span>job = <span class="kw">move </span>|context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;| {
+    </span><span class="kw">let </span>job = <span class="kw">move </span>|context: <span class="kw-2">&amp;mut </span>Context| {
         <span class="comment">//   a. Let promiseCapability be reaction.[[Capability]].
         </span><span class="kw">let </span>promise_capability = reaction.promise_capability.take();
         <span class="comment">//   b. Let type be reaction.[[Type]].
@@ -4693,7 +4693,7 @@
     promise_to_resolve: JsObject,
     thenable: JsValue,
     then: JobCallback,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; NativeJob {
     <span class="comment">// Inverting order since `job` captures variables by value.
 
@@ -4707,7 +4707,7 @@
         .unwrap_or_else(|<span class="kw">_</span>| context.realm().clone());
 
     <span class="comment">// 1. Let job be a new Job Abstract Closure with no parameters that captures promiseToResolve, thenable, and then and performs the following steps when called:
-    </span><span class="kw">let </span>job = <span class="kw">move </span>|context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;| {
+    </span><span class="kw">let </span>job = <span class="kw">move </span>|context: <span class="kw-2">&amp;mut </span>Context| {
         <span class="comment">//    a. Let resolvingFunctions be CreateResolvingFunctions(promiseToResolve).
         </span><span class="kw">let </span>resolving_functions = Promise::create_resolving_functions(<span class="kw-2">&amp;</span>promise_to_resolve, context);
 

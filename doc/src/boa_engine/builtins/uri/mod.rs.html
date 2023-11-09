@@ -740,7 +740,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>decode_uri(
     <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
     args: <span class="kw-2">&amp;</span>[JsValue],
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;JsValue&gt; {
     <span class="kw">let </span>encoded_uri = args.get_or_undefined(<span class="number">0</span>);
 
@@ -768,7 +768,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>decode_uri_component(
     <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
     args: <span class="kw-2">&amp;</span>[JsValue],
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;JsValue&gt; {
     <span class="kw">let </span>encoded_uri_component = args.get_or_undefined(<span class="number">0</span>);
 
@@ -800,7 +800,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>encode_uri(
     <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
     args: <span class="kw-2">&amp;</span>[JsValue],
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;JsValue&gt; {
     <span class="kw">let </span>uri = args.get_or_undefined(<span class="number">0</span>);
 
@@ -829,7 +829,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>encode_uri_component(
     <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
     args: <span class="kw-2">&amp;</span>[JsValue],
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;JsValue&gt; {
     <span class="kw">let </span>uri_component = args.get_or_undefined(<span class="number">0</span>);
 

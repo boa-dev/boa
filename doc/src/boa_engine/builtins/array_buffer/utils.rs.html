@@ -578,7 +578,7 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-clonearraybuffer
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsObject&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsObject&gt; {
         <span class="comment">// 1. Assert: IsDetachedBuffer(srcBuffer) is false.
 
         // 2. Let targetBuffer be ? AllocateArrayBuffer(%ArrayBuffer%, srcLength).

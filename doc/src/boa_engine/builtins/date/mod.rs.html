@@ -1558,14 +1558,6 @@
 <a href="#1558" id="1558">1558</a>
 <a href="#1559" id="1559">1559</a>
 <a href="#1560" id="1560">1560</a>
-<a href="#1561" id="1561">1561</a>
-<a href="#1562" id="1562">1562</a>
-<a href="#1563" id="1563">1563</a>
-<a href="#1564" id="1564">1564</a>
-<a href="#1565" id="1565">1565</a>
-<a href="#1566" id="1566">1566</a>
-<a href="#1567" id="1567">1567</a>
-<a href="#1568" id="1568">1568</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s `Date` object.
 //!
 //! More information:
@@ -1803,7 +1795,7 @@
     </span><span class="kw">fn </span>constructor(
         new_target: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. If NewTarget is undefined, then
         </span><span class="kw">if </span>new_target.is_undefined() {
@@ -1820,7 +1812,7 @@
             <span class="comment">// 3. If numberOfArgs = 0, then
             </span>[] =&gt; {
                 <span class="comment">// a. Let dv be the time value (UTC) identifying the current time.
-                </span><span class="self">Self</span>::utc_now(<span class="kw-2">&amp;*</span>context.host_hooks())
+                </span><span class="self">Self</span>::utc_now(context.host_hooks())
             }
             <span class="comment">// 4. Else if numberOfArgs = 1, then
             // a. Let value be values[0].
@@ -1896,7 +1888,7 @@
     <span class="doccomment">/// Gets the timestamp from a list of component values.
     </span><span class="kw">fn </span>construct_date(
         values: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;NaiveDateTime&gt;&gt; {
         <span class="comment">// 1. Let y be ? ToNumber(year).
         </span><span class="kw">let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>year) = values
@@ -1999,7 +1991,7 @@
     /// [spec]: https://tc39.es/ecma262/#sec-date.now
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/now
     </span><span class="attr">#[allow(clippy::unnecessary_wraps)]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>now(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>now(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="prelude-val">Ok</span>(JsValue::new(
             context.host_hooks().utc_now().timestamp_millis(),
         ))
@@ -2017,11 +2009,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date.parse
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/parse
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>parse(
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
-        args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>parse(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// This method is implementation-defined and discouraged, so we just require the same format as the string
         // constructor.
 
@@ -2047,11 +2035,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date.utc
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/UTC
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>utc(
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
-        args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>utc(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>t = <span class="macro">some_or_nan!</span>(<span class="self">Self</span>::construct_date(args, context)<span class="question-mark">?</span>);
 
         <span class="prelude-val">Ok</span>(JsValue::from(t.timestamp_millis()))
@@ -2067,7 +2051,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_date&lt;<span class="kw">const </span>LOCAL: bool&gt;(
         this: <span class="kw-2">&amp;</span>JsValue,
         _args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let t be ? thisTimeValue(this value).
         </span><span class="kw">let </span>t = this_time_value(this)<span class="question-mark">?</span>;
@@ -2096,7 +2080,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_day&lt;<span class="kw">const </span>LOCAL: bool&gt;(
         this: <span class="kw-2">&amp;</span>JsValue,
         _args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let t be ? thisTimeValue(this value).
         </span><span class="kw">let </span>t = this_time_value(this)<span class="question-mark">?</span>;
@@ -2128,7 +2112,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_year(
         this: <span class="kw-2">&amp;</span>JsValue,
         _args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let t be ? thisTimeValue(this value).
         </span><span class="kw">let </span>t = this_time_value(this)<span class="question-mark">?</span>;
@@ -2151,7 +2135,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_full_year&lt;<span class="kw">const </span>LOCAL: bool&gt;(
         this: <span class="kw-2">&amp;</span>JsValue,
         _args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let t be ? thisTimeValue(this value).
         </span><span class="kw">let </span>t = this_time_value(this)<span class="question-mark">?</span>;
@@ -2179,7 +2163,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_hours&lt;<span class="kw">const </span>LOCAL: bool&gt;(
         this: <span class="kw-2">&amp;</span>JsValue,
         _args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let t be ? thisTimeValue(this value).
         </span><span class="kw">let </span>t = this_time_value(this)<span class="question-mark">?</span>;
@@ -2207,7 +2191,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_milliseconds&lt;<span class="kw">const </span>LOCAL: bool&gt;(
         this: <span class="kw-2">&amp;</span>JsValue,
         _args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let t be ? thisTimeValue(this value).
         </span><span class="kw">let </span>t = this_time_value(this)<span class="question-mark">?</span>;
@@ -2235,7 +2219,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_minutes&lt;<span class="kw">const </span>LOCAL: bool&gt;(
         this: <span class="kw-2">&amp;</span>JsValue,
         _args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let t be ? thisTimeValue(this value).
         </span><span class="kw">let </span>t = this_time_value(this)<span class="question-mark">?</span>;
@@ -2264,7 +2248,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_month&lt;<span class="kw">const </span>LOCAL: bool&gt;(
         this: <span class="kw-2">&amp;</span>JsValue,
         _args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let t be ? thisTimeValue(this value).
         </span><span class="kw">let </span>t = this_time_value(this)<span class="question-mark">?</span>;
@@ -2292,7 +2276,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_seconds&lt;<span class="kw">const </span>LOCAL: bool&gt;(
         this: <span class="kw-2">&amp;</span>JsValue,
         _args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let t be ? thisTimeValue(this value).
         </span><span class="kw">let </span>t = this_time_value(this)<span class="question-mark">?</span>;
@@ -2323,7 +2307,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_time(
         this: <span class="kw-2">&amp;</span>JsValue,
         _args: <span class="kw-2">&amp;</span>[JsValue],
-        _context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        _context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Return ? thisTimeValue(this value).
         </span><span class="prelude-val">Ok</span>(this_time_value(this)<span class="question-mark">?</span>.map_or(JsValue::nan(), JsValue::from))
@@ -2343,7 +2327,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_timezone_offset(
         this: <span class="kw-2">&amp;</span>JsValue,
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let t be ? thisTimeValue(this value).
         // 2. If t is NaN, return NaN.
@@ -2371,7 +2355,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_date&lt;<span class="kw">const </span>LOCAL: bool&gt;(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let t be LocalTime(? thisTimeValue(this value)).
         </span><span class="macro">get_mut_date!</span>(<span class="kw">let </span>t = this);
@@ -2391,7 +2375,7 @@
                 date: <span class="prelude-val">Some</span>(date),
                 ..Default::default()
             },
-            <span class="kw-2">&amp;*</span>context.host_hooks(),
+            context.host_hooks(),
         );
 
         <span class="comment">// 7. Set the [[DateValue]] internal slot of this Date object to u.
@@ -2412,7 +2396,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_full_year&lt;<span class="kw">const </span>LOCAL: bool&gt;(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let t be ? thisTimeValue(this value).
         </span><span class="macro">get_mut_date!</span>(<span class="kw">let </span>t = this);
@@ -2458,7 +2442,7 @@
                 date,
                 ..Default::default()
             },
-            <span class="kw-2">&amp;*</span>context.host_hooks(),
+            context.host_hooks(),
         );
 
         <span class="comment">// 8. Set the [[DateValue]] internal slot of this Date object to u.
@@ -2480,7 +2464,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_hours&lt;<span class="kw">const </span>LOCAL: bool&gt;(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let t be ? thisTimeValue(this value).
         </span><span class="macro">get_mut_date!</span>(<span class="kw">let </span>t = this);
@@ -2524,7 +2508,7 @@
                 millisecond,
                 ..Default::default()
             },
-            <span class="kw-2">&amp;*</span>context.host_hooks(),
+            context.host_hooks(),
         );
 
         <span class="comment">// 13. Set the [[DateValue]] internal slot of this Date object to u.
@@ -2544,7 +2528,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_milliseconds&lt;<span class="kw">const </span>LOCAL: bool&gt;(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let t be ? thisTimeValue(this value).
         // 1. Let t be LocalTime(? thisTimeValue(this value)).
@@ -2565,7 +2549,7 @@
                 millisecond: <span class="prelude-val">Some</span>(ms),
                 ..Default::default()
             },
-            <span class="kw-2">&amp;*</span>context.host_hooks(),
+            context.host_hooks(),
         );
 
         <span class="comment">// 7. Set the [[DateValue]] internal slot of this Date object to u.
@@ -2585,7 +2569,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_minutes&lt;<span class="kw">const </span>LOCAL: bool&gt;(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let t be ? thisTimeValue(this value).
         </span><span class="macro">get_mut_date!</span>(<span class="kw">let </span>t = this);
@@ -2621,7 +2605,7 @@
                 millisecond,
                 ..Default::default()
             },
-            <span class="kw-2">&amp;*</span>context.host_hooks(),
+            context.host_hooks(),
         );
 
         <span class="comment">// 11. Set the [[DateValue]] internal slot of this Date object to u.
@@ -2642,7 +2626,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_month&lt;<span class="kw">const </span>LOCAL: bool&gt;(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let t be ? thisTimeValue(this value).
         </span><span class="macro">get_mut_date!</span>(<span class="kw">let </span>t = this);
@@ -2670,7 +2654,7 @@
                 date,
                 ..Default::default()
             },
-            <span class="kw-2">&amp;*</span>context.host_hooks(),
+            context.host_hooks(),
         );
 
         <span class="comment">// 9. Set the [[DateValue]] internal slot of this Date object to u.
@@ -2690,7 +2674,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_seconds&lt;<span class="kw">const </span>LOCAL: bool&gt;(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let t be ? thisTimeValue(this value).
         </span><span class="macro">get_mut_date!</span>(<span class="kw">let </span>t = this);
@@ -2718,7 +2702,7 @@
                 millisecond,
                 ..Default::default()
             },
-            <span class="kw-2">&amp;*</span>context.host_hooks(),
+            context.host_hooks(),
         );
 
         <span class="comment">// 9. Set the [[DateValue]] internal slot of this Date object to u.
@@ -2745,7 +2729,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_year(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let t be ? thisTimeValue(this value).
         </span><span class="macro">get_mut_date!</span>(<span class="kw">let </span>t = this);
@@ -2789,7 +2773,7 @@
                 year: <span class="prelude-val">Some</span>(IntegerOrNan::Integer(year)),
                 ..Default::default()
             },
-            <span class="kw-2">&amp;*</span>context.host_hooks(),
+            context.host_hooks(),
         );
 
         <span class="comment">// 10. Set the [[DateValue]] internal slot of this Date object to TimeClip(date).
@@ -2812,7 +2796,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_time(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Perform ? thisTimeValue(this value).
         </span><span class="macro">get_mut_date!</span>(<span class="kw">let </span>t = this);
@@ -2844,7 +2828,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_date_string(
         this: <span class="kw-2">&amp;</span>JsValue,
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be this Date object.
         // 2. Let tv be ? thisTimeValue(O).
@@ -2877,7 +2861,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_iso_string(
         this: <span class="kw-2">&amp;</span>JsValue,
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
-        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>t = this_time_value(this)<span class="question-mark">?
             </span>.and_then(NaiveDateTime::from_timestamp_millis)
@@ -2901,7 +2885,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_json(
         this: <span class="kw-2">&amp;</span>JsValue,
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be ? ToObject(this value).
         </span><span class="kw">let </span>o = this.to_object(context)<span class="question-mark">?</span>;
@@ -2934,7 +2918,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_locale_date_string(
         _this: <span class="kw-2">&amp;</span>JsValue,
         _args: <span class="kw-2">&amp;</span>[JsValue],
-        _context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        _context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="prelude-val">Err</span>(JsError::from_opaque(JsValue::new(<span class="macro">js_string!</span>(
             <span class="string">&quot;Function Unimplemented&quot;
@@ -2953,7 +2937,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_locale_string(
         _this: <span class="kw-2">&amp;</span>JsValue,
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
-        _context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        _context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="prelude-val">Err</span>(JsError::from_opaque(JsValue::new(<span class="macro">js_string!</span>(
             <span class="string">&quot;Function Unimplemented]&quot;
@@ -2973,7 +2957,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_locale_time_string(
         _this: <span class="kw-2">&amp;</span>JsValue,
         _args: <span class="kw-2">&amp;</span>[JsValue],
-        _context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        _context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="prelude-val">Err</span>(JsError::from_opaque(JsValue::new(<span class="macro">js_string!</span>(
             <span class="string">&quot;Function Unimplemented]&quot;
@@ -2992,7 +2976,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_string(
         this: <span class="kw-2">&amp;</span>JsValue,
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let tv be ? thisTimeValue(this value).
         // 2. Return ToDateString(tv).
@@ -3020,7 +3004,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_time_string(
         this: <span class="kw-2">&amp;</span>JsValue,
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be this Date object.
         // 2. Let tv be ? thisTimeValue(O).
@@ -3051,7 +3035,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_utc_string(
         this: <span class="kw-2">&amp;</span>JsValue,
         _args: <span class="kw-2">&amp;</span>[JsValue],
-        _context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        _context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be this Date object.
         </span><span class="kw">let </span><span class="prelude-val">Some</span>(t) = this_time_value(this)<span class="question-mark">?</span>.and_then(NaiveDateTime::from_timestamp_millis) <span class="kw">else </span>{
@@ -3085,7 +3069,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>value_of(
         this: <span class="kw-2">&amp;</span>JsValue,
         _args: <span class="kw-2">&amp;</span>[JsValue],
-        _context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        _context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Return ? thisTimeValue(this value).
         </span><span class="prelude-val">Ok</span>(<span class="self">Self</span>::new(this_time_value(this)<span class="question-mark">?</span>).as_value())
@@ -3103,7 +3087,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_primitive(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be the this value.
         // 2. If Type(O) is not Object, throw a TypeError exception.

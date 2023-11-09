@@ -751,6 +751,9 @@
 <a href="#751" id="751">751</a>
 <a href="#752" id="752">752</a>
 <a href="#753" id="753">753</a>
+<a href="#754" id="754">754</a>
+<a href="#755" id="755">755</a>
+<a href="#756" id="756">756</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Execution module for the test runner.
 
 </span><span class="kw">mod </span>js262;
@@ -762,7 +765,7 @@
 <span class="kw">use </span>boa_engine::{
     builtins::promise::PromiseState,
     js_string,
-    module::{Module, ModuleLoader, SimpleModuleLoader},
+    module::{Module, SimpleModuleLoader},
     native_function::NativeFunction,
     object::FunctionObjectBuilder,
     optimizer::OptimizerOptions,
@@ -996,13 +999,14 @@
         <span class="kw">let </span>result = std::panic::catch_unwind(|| <span class="kw">match </span><span class="self">self</span>.expected_outcome {
             Outcome::Positive =&gt; {
                 <span class="kw">let </span>async_result = AsyncResult::default();
-                <span class="kw">let </span>loader = <span class="kw-2">&amp;</span>SimpleModuleLoader::new(
-                    <span class="self">self</span>.path.parent().expect(<span class="string">&quot;test should have a parent dir&quot;</span>),
-                )
-                .expect(<span class="string">&quot;test path should be canonicalizable&quot;</span>);
-                <span class="kw">let </span>dyn_loader: <span class="kw-2">&amp;</span><span class="kw">dyn </span>ModuleLoader = loader;
+                <span class="kw">let </span>loader = Rc::new(
+                    SimpleModuleLoader::new(
+                        <span class="self">self</span>.path.parent().expect(<span class="string">&quot;test should have a parent dir&quot;</span>),
+                    )
+                    .expect(<span class="string">&quot;test path should be canonicalizable&quot;</span>),
+                );
                 <span class="kw">let </span>context = <span class="kw-2">&amp;mut </span>Context::builder()
-                    .module_loader(dyn_loader)
+                    .module_loader(loader.clone())
                     .can_block(!<span class="self">self</span>.flags.contains(TestFlags::CAN_BLOCK_IS_FALSE))
                     .build()
                     .expect(<span class="string">&quot;cannot fail with default global object&quot;</span>);
@@ -1127,13 +1131,14 @@
                 phase: Phase::Resolution,
                 error_type,
             } =&gt; {
-                <span class="kw">let </span>loader = <span class="kw-2">&amp;</span>SimpleModuleLoader::new(
-                    <span class="self">self</span>.path.parent().expect(<span class="string">&quot;test should have a parent dir&quot;</span>),
-                )
-                .expect(<span class="string">&quot;test path should be canonicalizable&quot;</span>);
-                <span class="kw">let </span>dyn_loader: <span class="kw-2">&amp;</span><span class="kw">dyn </span>ModuleLoader = loader;
+                <span class="kw">let </span>loader = Rc::new(
+                    SimpleModuleLoader::new(
+                        <span class="self">self</span>.path.parent().expect(<span class="string">&quot;test should have a parent dir&quot;</span>),
+                    )
+                    .expect(<span class="string">&quot;test path should be canonicalizable&quot;</span>),
+                );
                 <span class="kw">let </span>context = <span class="kw-2">&amp;mut </span>Context::builder()
-                    .module_loader(dyn_loader)
+                    .module_loader(loader.clone())
                     .build()
                     .expect(<span class="string">&quot;cannot fail with default global object&quot;</span>);
 
@@ -1182,13 +1187,14 @@
                 phase: Phase::Runtime,
                 error_type,
             } =&gt; {
-                <span class="kw">let </span>loader = <span class="kw-2">&amp;</span>SimpleModuleLoader::new(
-                    <span class="self">self</span>.path.parent().expect(<span class="string">&quot;test should have a parent dir&quot;</span>),
-                )
-                .expect(<span class="string">&quot;test path should be canonicalizable&quot;</span>);
-                <span class="kw">let </span>dyn_loader: <span class="kw-2">&amp;</span><span class="kw">dyn </span>ModuleLoader = loader;
+                <span class="kw">let </span>loader = Rc::new(
+                    SimpleModuleLoader::new(
+                        <span class="self">self</span>.path.parent().expect(<span class="string">&quot;test should have a parent dir&quot;</span>),
+                    )
+                    .expect(<span class="string">&quot;test path should be canonicalizable&quot;</span>),
+                );
                 <span class="kw">let </span>context = <span class="kw-2">&amp;mut </span>Context::builder()
-                    .module_loader(dyn_loader)
+                    .module_loader(loader.clone())
                     .can_block(!<span class="self">self</span>.flags.contains(TestFlags::CAN_BLOCK_IS_FALSE))
                     .build()
                     .expect(<span class="string">&quot;cannot fail with default global object&quot;</span>);
@@ -1339,7 +1345,7 @@
     </span><span class="kw">fn </span>set_up_env(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         harness: <span class="kw-2">&amp;</span>Harness,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
         async_result: AsyncResult,
         handles: WorkerHandles,
         console: bool,
@@ -1404,7 +1410,7 @@
 }
 
 <span class="doccomment">/// Returns `true` if `error` is a `target_type` error.
-</span><span class="kw">fn </span>is_error_type(error: <span class="kw-2">&amp;</span>JsError, target_type: ErrorType, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; bool {
+</span><span class="kw">fn </span>is_error_type(error: <span class="kw-2">&amp;</span>JsError, target_type: ErrorType, context: <span class="kw-2">&amp;mut </span>Context) -&gt; bool {
     <span class="kw">if let </span><span class="prelude-val">Ok</span>(error) = error.try_native(context) {
         <span class="kw">match </span><span class="kw-2">&amp;</span>error.kind {
             JsNativeErrorKind::Syntax <span class="kw">if </span>target_type == ErrorType::SyntaxError =&gt; {}
@@ -1432,7 +1438,7 @@
 }
 
 <span class="doccomment">/// Registers the print function in the context.
-</span><span class="kw">fn </span>register_print_fn(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;, async_result: AsyncResult) {
+</span><span class="kw">fn </span>register_print_fn(context: <span class="kw-2">&amp;mut </span>Context, async_result: AsyncResult) {
     <span class="comment">// We use `FunctionBuilder` to define a closure with additional captures.
     </span><span class="kw">let </span>js_function = FunctionObjectBuilder::new(
         context.realm(),

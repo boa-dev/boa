@@ -1196,11 +1196,11 @@
     </span><span class="kw">fn </span>constructor(
         new_target: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt;;
 }
 
-<span class="kw">fn </span>global_binding&lt;B: BuiltInObject&gt;(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;()&gt; {
+<span class="kw">fn </span>global_binding&lt;B: BuiltInObject&gt;(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;()&gt; {
     <span class="kw">let </span>name = B::NAME;
     <span class="kw">let </span>attr = B::ATTRIBUTE;
     <span class="kw">let </span>intrinsic = B::get(context.intrinsics());
@@ -1333,7 +1333,7 @@
 <span class="doccomment">/// Abstract operation [`SetDefaultGlobalBindings ( realmRec )`][spec].
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-setdefaultglobalbindings
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_default_global_bindings(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;()&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_default_global_bindings(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;()&gt; {
     <span class="kw">let </span>global_object = context.global_object();
 
     global_object.define_property_or_throw(

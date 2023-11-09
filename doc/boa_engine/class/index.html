@@ -17,7 +17,7 @@
     </span><span class="kw">const </span>LENGTH: usize = <span class="number">1</span>;
 
     <span class="comment">// This is what is called when we do `new Animal()` to construct the inner data of the class.
-    </span><span class="kw">fn </span>make_data(_this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+    </span><span class="kw">fn </span>make_data(_this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="comment">// This is equivalent to `String(arg)`.
         </span><span class="kw">let </span>kind = args.get_or_undefined(<span class="number">0</span>).to_string(context)<span class="question-mark">?</span>;
 

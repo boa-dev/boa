@@ -2381,7 +2381,7 @@
     <span class="doccomment">/// Abstract operation [`InnerModuleLoading`][spec].
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-InnerModuleLoading
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>inner_load(<span class="kw-2">&amp;</span><span class="self">self</span>, state: <span class="kw-2">&amp;</span>Rc&lt;GraphLoadingState&gt;, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) {
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>inner_load(<span class="kw-2">&amp;</span><span class="self">self</span>, state: <span class="kw-2">&amp;</span>Rc&lt;GraphLoadingState&gt;, context: <span class="kw-2">&amp;mut </span>Context) {
         <span class="comment">// 2. If module is a Cyclic Module Record, module.[[Status]] is new, and state.[[Visited]] does not contain
         //    module, then
         // a. Append module to state.[[Visited]].
@@ -2662,7 +2662,7 @@
     <span class="doccomment">/// Concrete method [`Link ( )`][spec].
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-moduledeclarationlinking
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>link(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;()&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>link(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;()&gt; {
         <span class="comment">// 1. Assert: module.[[Status]] is one of unlinked, linked, evaluating-async, or evaluated.
         </span><span class="macro">debug_assert!</span>(<span class="macro">matches!</span>(
             <span class="kw-2">&amp;*</span><span class="self">self</span>.inner.status.borrow(),
@@ -2710,7 +2710,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         stack: <span class="kw-2">&amp;mut </span>Vec&lt;<span class="self">Self</span>&gt;,
         <span class="kw-2">mut </span>index: usize,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;usize&gt; {
         <span class="comment">// 2. If module.[[Status]] is one of linking, linked, evaluating-async, or evaluated, then
         </span><span class="kw">if </span><span class="macro">matches!</span>(
@@ -2853,7 +2853,7 @@
     <span class="doccomment">/// Concrete method [`Evaluate ( )`][spec].
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-moduleevaluation
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>evaluate(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsPromise {
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>evaluate(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsPromise {
         <span class="comment">// 1. Assert: This call to Evaluate is not happening at the same time as another call to Evaluate within the surrounding agent.
         </span><span class="kw">let </span>(module, promise) = {
             <span class="kw">match </span><span class="kw-2">&amp;*</span><span class="self">self</span>.inner.status.borrow() {
@@ -2983,7 +2983,7 @@
         stack: <span class="kw-2">&amp;mut </span>Vec&lt;<span class="self">Self</span>&gt;,
         <span class="kw-2">mut </span>index: usize,
         capability: <span class="prelude-ty">Option</span>&lt;PromiseCapability&gt;,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;usize&gt; {
         <span class="doccomment">/// Gets the next evaluation index of an async module.
         ///
@@ -3217,7 +3217,7 @@
     <span class="doccomment">/// Abstract operation [`ExecuteAsyncModule ( module )`][spec].
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-execute-async-module
-    </span><span class="kw">fn </span>execute_async(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) {
+    </span><span class="kw">fn </span>execute_async(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) {
         <span class="comment">// 1. Assert: module.[[Status]] is either evaluating or evaluating-async.
         </span><span class="macro">debug_assert!</span>(<span class="macro">matches!</span>(
             <span class="kw-2">&amp;*</span><span class="self">self</span>.inner.status.borrow(),
@@ -3330,7 +3330,7 @@
     <span class="doccomment">/// Abstract operation [`InitializeEnvironment ( )`][spec].
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-source-text-module-record-initialize-environment
-    </span><span class="kw">fn </span>initialize_environment(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;()&gt; {
+    </span><span class="kw">fn </span>initialize_environment(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;()&gt; {
         <span class="attr">#[derive(Debug)]
         </span><span class="kw">enum </span>ImportBinding {
             Namespace {
@@ -3673,7 +3673,7 @@
     </span><span class="kw">fn </span>execute(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         capability: <span class="prelude-ty">Option</span>&lt;PromiseCapability&gt;,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;()&gt; {
         <span class="comment">// 1. Let moduleContext be a new ECMAScript code execution context.
         </span><span class="kw">let </span>SourceTextContext {
@@ -3747,7 +3747,7 @@
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-async-module-execution-fulfilled
 </span><span class="attr">#[allow(clippy::mutable_key_type)]
-</span><span class="kw">fn </span>async_module_execution_fulfilled(module: <span class="kw-2">&amp;</span>SourceTextModule, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) {
+</span><span class="kw">fn </span>async_module_execution_fulfilled(module: <span class="kw-2">&amp;</span>SourceTextModule, context: <span class="kw-2">&amp;mut </span>Context) {
     <span class="comment">// 1. If module.[[Status]] is evaluated, then
     </span><span class="kw">if let </span>Status::Evaluated { error, .. } = <span class="kw-2">&amp;*</span>module.inner.status.borrow() {
         <span class="comment">//     a. Assert: module.[[EvaluationError]] is not empty.
@@ -3875,7 +3875,7 @@
 </span><span class="kw">fn </span>async_module_execution_rejected(
     module: <span class="kw-2">&amp;</span>SourceTextModule,
     error: <span class="kw-2">&amp;</span>JsError,
-    context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) {
     <span class="comment">// 1. If module.[[Status]] is evaluated, then
     </span><span class="kw">if let </span>Status::Evaluated { error, .. } = <span class="kw-2">&amp;*</span>module.inner.status.borrow() {

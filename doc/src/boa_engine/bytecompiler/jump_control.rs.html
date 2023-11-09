@@ -563,10 +563,6 @@
 <a href="#563" id="563">563</a>
 <a href="#564" id="564">564</a>
 <a href="#565" id="565">565</a>
-<a href="#566" id="566">566</a>
-<a href="#567" id="567">567</a>
-<a href="#568" id="568">568</a>
-<a href="#569" id="569">569</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! `JumpControlInfo` tracks relevant jump information used during compilation.
 //!
 //! Primarily, jump control tracks information related to the compilation of [iteration
@@ -656,11 +652,7 @@
     }
 
     <span class="doccomment">/// Performs the [`JumpRecordAction`]s.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>perform_actions(
-        <span class="kw-2">mut </span><span class="self">self</span>,
-        start_address: u32,
-        compiler: <span class="kw-2">&amp;mut </span>ByteCompiler&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt;,
-    ) {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>perform_actions(<span class="kw-2">mut </span><span class="self">self</span>, start_address: u32, compiler: <span class="kw-2">&amp;mut </span>ByteCompiler&lt;<span class="lifetime">&#39;_</span>&gt;) {
         <span class="kw">while let </span><span class="prelude-val">Some</span>(action) = <span class="self">self</span>.actions.pop() {
             <span class="kw">match </span>action {
                 JumpRecordAction::Transfer { index } =&gt; {
@@ -879,7 +871,7 @@
 }
 
 <span class="comment">// `JumpControlInfo` related methods that are implemented on `ByteCompiler`.
-</span><span class="kw">impl </span>ByteCompiler&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt; {
+</span><span class="kw">impl </span>ByteCompiler&lt;<span class="lifetime">&#39;_</span>&gt; {
     <span class="doccomment">/// Pushes a generic `JumpControlInfo` onto `ByteCompiler`
     ///
     /// Default `JumpControlInfoKind` is `JumpControlInfoKind::Loop`

@@ -236,14 +236,6 @@
 <a href="#236" id="236">236</a>
 <a href="#237" id="237">237</a>
 <a href="#238" id="238">238</a>
-<a href="#239" id="239">239</a>
-<a href="#240" id="240">240</a>
-<a href="#241" id="241">241</a>
-<a href="#242" id="242">242</a>
-<a href="#243" id="243">243</a>
-<a href="#244" id="244">244</a>
-<a href="#245" id="245">245</a>
-<a href="#246" id="246">246</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::promise::OperationType,
     job::JobCallback,
@@ -278,15 +270,15 @@
 ///     fn ensure_can_compile_strings(
 ///         &amp;self,
 ///         _realm: Realm,
-///         context: &amp;mut Context&lt;&#39;_&gt;,
+///         context: &amp;mut Context,
 ///     ) -&gt; JsResult&lt;()&gt; {
 ///         Err(JsNativeError::typ()
 ///             .with_message(&quot;eval calls not available&quot;)
 ///             .into())
 ///     }
 /// }
-/// let hooks: &amp;dyn HostHooks = &amp;Hooks; // Can have additional state.
-/// let context = &amp;mut ContextBuilder::new().host_hooks(hooks).build().unwrap();
+///
+/// let context = &amp;mut ContextBuilder::new().host_hooks(&amp;Hooks).build().unwrap();
 /// let result = context.eval(Source::from_bytes(r#&quot;eval(&quot;let a = 5&quot;)&quot;#));
 /// assert_eq!(
 ///     result.unwrap_err().to_string(),
@@ -303,7 +295,7 @@
     /// - It must return a `JobCallback` Record whose `[[Callback]]` field is `callback`.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-hostmakejobcallback
-    </span><span class="kw">fn </span>make_job_callback(<span class="kw-2">&amp;</span><span class="self">self</span>, callback: JsFunction, _context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JobCallback {
+    </span><span class="kw">fn </span>make_job_callback(<span class="kw-2">&amp;</span><span class="self">self</span>, callback: JsFunction, _context: <span class="kw-2">&amp;mut </span>Context) -&gt; JobCallback {
         <span class="comment">// The default implementation of HostMakeJobCallback performs the following steps when called:
 
         // 1. Return the JobCallback Record { [[Callback]]: callback, [[HostDefined]]: empty }.
@@ -322,7 +314,7 @@
         job: JobCallback,
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// The default implementation of HostCallJobCallback performs the following steps when called:
 
@@ -344,7 +336,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         _promise: <span class="kw-2">&amp;</span>JsObject,
         _operation: OperationType,
-        _context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        _context: <span class="kw-2">&amp;mut </span>Context,
     ) {
         <span class="comment">// The default implementation of HostPromiseRejectionTracker is to return unused.
     </span>}
@@ -358,11 +350,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-hostensurecancompilestrings
     </span><span class="comment">// TODO: Track https://github.com/tc39/ecma262/issues/938
-    </span><span class="kw">fn </span>ensure_can_compile_strings(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        _realm: Realm,
-        _context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;()&gt; {
+    </span><span class="kw">fn </span>ensure_can_compile_strings(<span class="kw-2">&amp;</span><span class="self">self</span>, _realm: Realm, _context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;()&gt; {
         <span class="comment">// The default implementation of HostEnsureCanCompileStrings is to return NormalCompletion(unused).
         </span><span class="prelude-val">Ok</span>(())
     }
@@ -375,11 +363,7 @@
     /// specific `func` as its argument, it must return the same result.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-hosthassourcetextavailable
-    </span><span class="kw">fn </span>has_source_text_available(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        _function: <span class="kw-2">&amp;</span>JsFunction,
-        _context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; bool {
+    </span><span class="kw">fn </span>has_source_text_available(<span class="kw-2">&amp;</span><span class="self">self</span>, _function: <span class="kw-2">&amp;</span>JsFunction, _context: <span class="kw-2">&amp;mut </span>Context) -&gt; bool {
         <span class="comment">// The default implementation of HostHasSourceTextAvailable is to return true.
         </span><span class="bool-val">true
     </span>}
@@ -398,7 +382,7 @@
     </span><span class="kw">fn </span>ensure_can_add_private_element(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         _o: <span class="kw-2">&amp;</span>JsObject,
-        _context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        _context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;()&gt; {
         <span class="prelude-val">Ok</span>(())
     }
@@ -480,7 +464,7 @@
     ///
     ///
     /// [specification]: https://tc39.es/ecma262/multipage/structured-data.html#sec-resizable-arraybuffer-guidelines
-    </span><span class="kw">fn </span>max_buffer_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+    </span><span class="kw">fn </span>max_buffer_size(<span class="kw-2">&amp;</span><span class="self">self</span>, _context: <span class="kw-2">&amp;mut </span>Context) -&gt; u64 {
         <span class="number">1_610_612_736 </span><span class="comment">// 1.5 GiB
     </span>}
 }

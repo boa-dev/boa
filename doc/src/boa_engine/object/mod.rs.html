@@ -3073,9 +3073,6 @@
 <a href="#3073" id="3073">3073</a>
 <a href="#3074" id="3074">3074</a>
 <a href="#3075" id="3075">3075</a>
-<a href="#3076" id="3076">3076</a>
-<a href="#3077" id="3077">3077</a>
-<a href="#3078" id="3078">3078</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s representation of a JavaScript object and builtin object wrappers
 //!
 //! For the builtin object wrappers, please see [`object::builtins`][builtins] for implementors.
@@ -5709,21 +5706,21 @@
 /// }
 /// ```
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>ObjectInitializer&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;host</span>&gt; {
-    context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span><span class="kw-2">mut </span>Context&lt;<span class="lifetime">&#39;host</span>&gt;,
+</span><span class="kw">pub struct </span>ObjectInitializer&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span><span class="kw-2">mut </span>Context,
     object: JsObject,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;host</span>&gt; ObjectInitializer&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;host</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; ObjectInitializer&lt;<span class="lifetime">&#39;ctx</span>&gt; {
     <span class="doccomment">/// Create a new `ObjectBuilder`.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>new(context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span><span class="kw-2">mut </span>Context&lt;<span class="lifetime">&#39;host</span>&gt;) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>new(context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span><span class="kw-2">mut </span>Context) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>object = JsObject::with_object_proto(context.intrinsics());
         <span class="self">Self </span>{ context, object }
     }
 
     <span class="doccomment">/// Create a new `ObjectBuilder` with custom [`NativeObject`] data.
-    </span><span class="kw">pub fn </span>with_native&lt;T: NativeObject&gt;(data: T, context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span><span class="kw-2">mut </span>Context&lt;<span class="lifetime">&#39;host</span>&gt;) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>with_native&lt;T: NativeObject&gt;(data: T, context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span><span class="kw-2">mut </span>Context) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>object = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             context.intrinsics().constructors().object().prototype(),
@@ -5805,15 +5802,15 @@
 
     <span class="doccomment">/// Gets the context used to create the object.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>context(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;host</span>&gt; {
+    </span><span class="kw">pub fn </span>context(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>Context {
         <span class="self">self</span>.context
     }
 }
 
 <span class="doccomment">/// Builder for creating constructors objects, like `Array`.
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>ConstructorBuilder&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;host</span>&gt; {
-    context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span><span class="kw-2">mut </span>Context&lt;<span class="lifetime">&#39;host</span>&gt;,
+</span><span class="kw">pub struct </span>ConstructorBuilder&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span><span class="kw-2">mut </span>Context,
     function: NativeFunction,
     constructor_object: Object,
     has_prototype_property: bool,
@@ -5826,13 +5823,10 @@
     custom_prototype: <span class="prelude-ty">Option</span>&lt;JsPrototype&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;host</span>&gt; ConstructorBuilder&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;host</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; ConstructorBuilder&lt;<span class="lifetime">&#39;ctx</span>&gt; {
     <span class="doccomment">/// Create a new `ConstructorBuilder`.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>new(
-        context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span><span class="kw-2">mut </span>Context&lt;<span class="lifetime">&#39;host</span>&gt;,
-        function: NativeFunction,
-    ) -&gt; ConstructorBuilder&lt;<span class="lifetime">&#39;ctx</span>, <span class="lifetime">&#39;host</span>&gt; {
+    </span><span class="kw">pub fn </span>new(context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span><span class="kw-2">mut </span>Context, function: NativeFunction) -&gt; ConstructorBuilder&lt;<span class="lifetime">&#39;ctx</span>&gt; {
         <span class="self">Self </span>{
             context,
             function,
@@ -6067,7 +6061,7 @@
 
     <span class="doccomment">/// Return the current context.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>context(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;host</span>&gt; {
+    </span><span class="kw">pub fn </span>context(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>Context {
         <span class="self">self</span>.context
     }
 

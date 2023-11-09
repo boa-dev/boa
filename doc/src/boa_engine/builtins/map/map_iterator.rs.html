@@ -152,10 +152,6 @@
 <a href="#152" id="152">152</a>
 <a href="#153" id="153">153</a>
 <a href="#154" id="154">154</a>
-<a href="#155" id="155">155</a>
-<a href="#156" id="156">156</a>
-<a href="#157" id="157">157</a>
-<a href="#158" id="158">158</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module implements the `MapIterator` object.
 //!
 //! More information:
@@ -233,7 +229,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_map_iterator(
         map: <span class="kw-2">&amp;</span>JsValue,
         kind: PropertyNameKind,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(map_obj) = map.as_object() {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(map) = map_obj.borrow_mut().as_map_mut() {
@@ -265,11 +261,7 @@
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%mapiteratorprototype%.next
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>next(
-        this: <span class="kw-2">&amp;</span>JsValue,
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>next(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>map_iterator = this.as_object().map(JsObject::borrow_mut);
         <span class="kw">let </span>map_iterator = map_iterator
             .as_mut()

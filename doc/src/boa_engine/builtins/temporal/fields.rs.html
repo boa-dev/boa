@@ -703,7 +703,7 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         field: <span class="kw-2">&amp;</span>JsString,
         value: <span class="kw-2">&amp;</span>JsValue,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;()&gt; {
         <span class="kw">match </span>field.to_std_string_escaped().as_str() {
             <span class="string">&quot;year&quot; </span>=&gt; <span class="self">self</span>.set_year(value, context)<span class="question-mark">?</span>,
@@ -727,7 +727,7 @@
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>set_year(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>JsValue, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;()&gt; {
+    </span><span class="kw">fn </span>set_year(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>JsValue, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;()&gt; {
         <span class="kw">let </span>y = <span class="kw">super</span>::to_integer_with_truncation(value, context)<span class="question-mark">?</span>;
         <span class="self">self</span>.year = <span class="prelude-val">Some</span>(y);
         <span class="self">self</span>.bit_map.set(FieldMap::YEAR, <span class="bool-val">true</span>);
@@ -735,7 +735,7 @@
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>set_month(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>JsValue, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;()&gt; {
+    </span><span class="kw">fn </span>set_month(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>JsValue, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;()&gt; {
         <span class="kw">let </span>mo = <span class="kw">super</span>::to_positive_integer_with_trunc(value, context)<span class="question-mark">?</span>;
         <span class="self">self</span>.year = <span class="prelude-val">Some</span>(mo);
         <span class="self">self</span>.bit_map.set(FieldMap::MONTH, <span class="bool-val">true</span>);
@@ -743,7 +743,7 @@
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>set_month_code(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>JsValue, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;()&gt; {
+    </span><span class="kw">fn </span>set_month_code(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>JsValue, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;()&gt; {
         <span class="kw">let </span>mc = value.to_primitive(context, PreferredType::String)<span class="question-mark">?</span>;
         <span class="kw">if let </span><span class="prelude-val">Some</span>(string) = mc.as_string() {
             <span class="self">self</span>.month_code = <span class="prelude-val">Some</span>(string.clone());
@@ -759,7 +759,7 @@
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>set_day(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>JsValue, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;()&gt; {
+    </span><span class="kw">fn </span>set_day(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>JsValue, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;()&gt; {
         <span class="kw">let </span>d = <span class="kw">super</span>::to_positive_integer_with_trunc(value, context)<span class="question-mark">?</span>;
         <span class="self">self</span>.day = <span class="prelude-val">Some</span>(d);
         <span class="self">self</span>.bit_map.set(FieldMap::DAY, <span class="bool-val">true</span>);
@@ -767,7 +767,7 @@
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>set_hour(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>JsValue, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;()&gt; {
+    </span><span class="kw">fn </span>set_hour(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>JsValue, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;()&gt; {
         <span class="kw">let </span>h = <span class="kw">super</span>::to_integer_with_truncation(value, context)<span class="question-mark">?</span>;
         <span class="self">self</span>.hour = h;
         <span class="self">self</span>.bit_map.set(FieldMap::HOUR, <span class="bool-val">true</span>);
@@ -775,7 +775,7 @@
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>set_minute(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>JsValue, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;()&gt; {
+    </span><span class="kw">fn </span>set_minute(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>JsValue, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;()&gt; {
         <span class="kw">let </span>m = <span class="kw">super</span>::to_integer_with_truncation(value, context)<span class="question-mark">?</span>;
         <span class="self">self</span>.minute = m;
         <span class="self">self</span>.bit_map.set(FieldMap::MINUTE, <span class="bool-val">true</span>);
@@ -783,7 +783,7 @@
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>set_second(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>JsValue, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;()&gt; {
+    </span><span class="kw">fn </span>set_second(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>JsValue, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;()&gt; {
         <span class="kw">let </span>sec = <span class="kw">super</span>::to_integer_with_truncation(value, context)<span class="question-mark">?</span>;
         <span class="self">self</span>.second = sec;
         <span class="self">self</span>.bit_map.set(FieldMap::SECOND, <span class="bool-val">true</span>);
@@ -791,7 +791,7 @@
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>set_milli(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>JsValue, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;()&gt; {
+    </span><span class="kw">fn </span>set_milli(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>JsValue, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;()&gt; {
         <span class="kw">let </span>milli = <span class="kw">super</span>::to_integer_with_truncation(value, context)<span class="question-mark">?</span>;
         <span class="self">self</span>.millisecond = milli;
         <span class="self">self</span>.bit_map.set(FieldMap::MILLISECOND, <span class="bool-val">true</span>);
@@ -799,7 +799,7 @@
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>set_micro(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>JsValue, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;()&gt; {
+    </span><span class="kw">fn </span>set_micro(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>JsValue, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;()&gt; {
         <span class="kw">let </span>micro = <span class="kw">super</span>::to_integer_with_truncation(value, context)<span class="question-mark">?</span>;
         <span class="self">self</span>.microsecond = micro;
         <span class="self">self</span>.bit_map.set(FieldMap::MICROSECOND, <span class="bool-val">true</span>);
@@ -807,7 +807,7 @@
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>set_nano(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>JsValue, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;()&gt; {
+    </span><span class="kw">fn </span>set_nano(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>JsValue, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;()&gt; {
         <span class="kw">let </span>nano = <span class="kw">super</span>::to_integer_with_truncation(value, context)<span class="question-mark">?</span>;
         <span class="self">self</span>.nanosecond = nano;
         <span class="self">self</span>.bit_map.set(FieldMap::NANOSECOND, <span class="bool-val">true</span>);
@@ -815,7 +815,7 @@
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>set_offset(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>JsValue, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;()&gt; {
+    </span><span class="kw">fn </span>set_offset(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>JsValue, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;()&gt; {
         <span class="kw">let </span>mc = value.to_primitive(context, PreferredType::String)<span class="question-mark">?</span>;
         <span class="kw">if let </span><span class="prelude-val">Some</span>(string) = mc.as_string() {
             <span class="self">self</span>.offset = <span class="prelude-val">Some</span>(string.clone());
@@ -830,7 +830,7 @@
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>set_era(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>JsValue, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;()&gt; {
+    </span><span class="kw">fn </span>set_era(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>JsValue, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;()&gt; {
         <span class="kw">let </span>mc = value.to_primitive(context, PreferredType::String)<span class="question-mark">?</span>;
         <span class="kw">if let </span><span class="prelude-val">Some</span>(string) = mc.as_string() {
             <span class="self">self</span>.era = <span class="prelude-val">Some</span>(string.clone());
@@ -845,7 +845,7 @@
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>set_era_year(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>JsValue, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;()&gt; {
+    </span><span class="kw">fn </span>set_era_year(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>JsValue, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;()&gt; {
         <span class="kw">let </span>ey = <span class="kw">super</span>::to_integer_with_truncation(value, context)<span class="question-mark">?</span>;
         <span class="self">self</span>.era_year = <span class="prelude-val">Some</span>(ey);
         <span class="self">self</span>.bit_map.set(FieldMap::ERA_YEAR, <span class="bool-val">true</span>);
@@ -873,7 +873,7 @@
         </span>extended_fields: <span class="prelude-ty">Option</span>&lt;Vec&lt;(JsString, bool)&gt;&gt;,
         partial: bool,
         dup_behaviour: <span class="prelude-ty">Option</span>&lt;JsString&gt;,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="comment">// 1. If duplicateBehaviour is not present, set duplicateBehaviour to throw.
         </span><span class="kw">let </span>dup_option = dup_behaviour.unwrap_or_else(|| <span class="macro">js_string!</span>(<span class="string">&quot;throw&quot;</span>));
@@ -979,7 +979,7 @@
     }
 
     <span class="doccomment">/// Convert a `TemporalFields` struct into a `JsObject`.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>as_object(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsObject&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>as_object(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsObject&gt; {
         <span class="kw">let </span>obj = JsObject::with_null_proto();
 
         <span class="kw">for </span>bit <span class="kw">in </span><span class="self">self</span>.bit_map.iter() {

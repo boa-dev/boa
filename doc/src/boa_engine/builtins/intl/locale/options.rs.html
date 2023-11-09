@@ -57,7 +57,7 @@
 <span class="kw">use crate</span>::{builtins::options::OptionType, Context, JsNativeError};
 
 <span class="kw">impl </span>OptionType <span class="kw">for </span>Value {
-    <span class="kw">fn </span>from_value(value: <span class="kw">crate</span>::JsValue, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="kw">crate</span>::JsResult&lt;<span class="self">Self</span>&gt; {
+    <span class="kw">fn </span>from_value(value: <span class="kw">crate</span>::JsValue, context: <span class="kw-2">&amp;mut </span>Context) -&gt; <span class="kw">crate</span>::JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="kw">let </span>val = value.to_string(context)<span class="question-mark">?</span>.to_std_string_escaped();
 
         <span class="kw">if </span>val.len() &lt; <span class="number">3 </span>{
@@ -72,7 +72,7 @@
 }
 
 <span class="kw">impl </span>OptionType <span class="kw">for </span>Language {
-    <span class="kw">fn </span>from_value(value: <span class="kw">crate</span>::JsValue, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="kw">crate</span>::JsResult&lt;<span class="self">Self</span>&gt; {
+    <span class="kw">fn </span>from_value(value: <span class="kw">crate</span>::JsValue, context: <span class="kw-2">&amp;mut </span>Context) -&gt; <span class="kw">crate</span>::JsResult&lt;<span class="self">Self</span>&gt; {
         value
             .to_string(context)<span class="question-mark">?
             </span>.to_std_string_escaped()
@@ -82,7 +82,7 @@
 }
 
 <span class="kw">impl </span>OptionType <span class="kw">for </span>Script {
-    <span class="kw">fn </span>from_value(value: <span class="kw">crate</span>::JsValue, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="kw">crate</span>::JsResult&lt;<span class="self">Self</span>&gt; {
+    <span class="kw">fn </span>from_value(value: <span class="kw">crate</span>::JsValue, context: <span class="kw-2">&amp;mut </span>Context) -&gt; <span class="kw">crate</span>::JsResult&lt;<span class="self">Self</span>&gt; {
         value
             .to_string(context)<span class="question-mark">?
             </span>.to_std_string_escaped()
@@ -92,7 +92,7 @@
 }
 
 <span class="kw">impl </span>OptionType <span class="kw">for </span>Region {
-    <span class="kw">fn </span>from_value(value: <span class="kw">crate</span>::JsValue, context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="kw">crate</span>::JsResult&lt;<span class="self">Self</span>&gt; {
+    <span class="kw">fn </span>from_value(value: <span class="kw">crate</span>::JsValue, context: <span class="kw-2">&amp;mut </span>Context) -&gt; <span class="kw">crate</span>::JsResult&lt;<span class="self">Self</span>&gt; {
         value
             .to_string(context)<span class="question-mark">?
             </span>.to_std_string_escaped()

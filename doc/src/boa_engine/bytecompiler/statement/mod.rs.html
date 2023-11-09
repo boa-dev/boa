@@ -139,7 +139,7 @@
 <span class="kw">mod </span>r#try;
 <span class="kw">mod </span>with;
 
-<span class="kw">impl </span>ByteCompiler&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>ByteCompiler&lt;<span class="lifetime">&#39;_</span>&gt; {
     <span class="doccomment">/// Compiles a [`Statement`] `boa_ast` node.
     </span><span class="kw">pub fn </span>compile_stmt(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span>Statement, use_expr: bool, root_statement: bool) {
         <span class="kw">match </span>node {

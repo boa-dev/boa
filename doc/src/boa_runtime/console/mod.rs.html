@@ -701,16 +701,6 @@
 <a href="#701" id="701">701</a>
 <a href="#702" id="702">702</a>
 <a href="#703" id="703">703</a>
-<a href="#704" id="704">704</a>
-<a href="#705" id="705">705</a>
-<a href="#706" id="706">706</a>
-<a href="#707" id="707">707</a>
-<a href="#708" id="708">708</a>
-<a href="#709" id="709">709</a>
-<a href="#710" id="710">710</a>
-<a href="#711" id="711">711</a>
-<a href="#712" id="712">712</a>
-<a href="#713" id="713">713</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of JavaScript&#39;s `console` Web API object.
 //!
 //! The `console` object can be accessed from any global object.
@@ -764,7 +754,7 @@
 }
 
 <span class="doccomment">/// This represents the `console` formatter.
-</span><span class="kw">fn </span>formatter(data: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;String&gt; {
+</span><span class="kw">fn </span>formatter(data: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;String&gt; {
     <span class="kw">match </span>data {
         [] =&gt; <span class="prelude-val">Ok</span>(String::new()),
         [val] =&gt; <span class="prelude-val">Ok</span>(val.to_string(context)<span class="question-mark">?</span>.to_std_string_escaped()),
@@ -849,9 +839,9 @@
 
     <span class="doccomment">/// Initializes the `console` built-in object.
     </span><span class="attr">#[allow(clippy::too_many_lines)]
-    </span><span class="kw">pub fn </span>init(context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsObject {
+    </span><span class="kw">pub fn </span>init(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsObject {
         <span class="kw">fn </span>console_method(
-            f: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>JsValue, <span class="kw-2">&amp;</span>[JsValue], <span class="kw-2">&amp;</span>Console, <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt;,
+            f: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>JsValue, <span class="kw-2">&amp;</span>[JsValue], <span class="kw-2">&amp;</span>Console, <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt;,
             state: Rc&lt;RefCell&lt;Console&gt;&gt;,
         ) -&gt; NativeFunction {
             <span class="comment">// SAFETY: `Console` doesn&#39;t contain types that need tracing.
@@ -862,7 +852,7 @@
             }
         }
         <span class="kw">fn </span>console_method_mut(
-            f: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>JsValue, <span class="kw-2">&amp;</span>[JsValue], <span class="kw-2">&amp;mut </span>Console, <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;JsValue&gt;,
+            f: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>JsValue, <span class="kw-2">&amp;</span>[JsValue], <span class="kw-2">&amp;mut </span>Console, <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt;,
             state: Rc&lt;RefCell&lt;Console&gt;&gt;,
         ) -&gt; NativeFunction {
             <span class="comment">// SAFETY: `Console` doesn&#39;t contain types that need tracing.
@@ -981,7 +971,7 @@
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
         console: <span class="kw-2">&amp;</span><span class="self">Self</span>,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>assertion = args.get(<span class="number">0</span>).map_or(<span class="bool-val">false</span>, JsValue::to_boolean);
 
@@ -1015,12 +1005,7 @@
     /// [spec]: https://console.spec.whatwg.org/#clear
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/clear
     </span><span class="attr">#[allow(clippy::unnecessary_wraps)]
-    </span><span class="kw">fn </span>clear(
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
-        console: <span class="kw-2">&amp;mut </span><span class="self">Self</span>,
-        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>clear(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], console: <span class="kw-2">&amp;mut </span><span class="self">Self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         console.groups.clear();
         <span class="prelude-val">Ok</span>(JsValue::undefined())
     }
@@ -1039,7 +1024,7 @@
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
         console: <span class="kw-2">&amp;</span><span class="self">Self</span>,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         logger(LogMessage::Log(formatter(args, context)<span class="question-mark">?</span>), console);
         <span class="prelude-val">Ok</span>(JsValue::undefined())
@@ -1059,7 +1044,7 @@
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
         console: <span class="kw-2">&amp;</span><span class="self">Self</span>,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         logger(LogMessage::Error(formatter(args, context)<span class="question-mark">?</span>), console);
         <span class="prelude-val">Ok</span>(JsValue::undefined())
@@ -1079,7 +1064,7 @@
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
         console: <span class="kw-2">&amp;</span><span class="self">Self</span>,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         logger(LogMessage::Info(formatter(args, context)<span class="question-mark">?</span>), console);
         <span class="prelude-val">Ok</span>(JsValue::undefined())
@@ -1099,7 +1084,7 @@
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
         console: <span class="kw-2">&amp;</span><span class="self">Self</span>,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         logger(LogMessage::Log(formatter(args, context)<span class="question-mark">?</span>), console);
         <span class="prelude-val">Ok</span>(JsValue::undefined())
@@ -1119,7 +1104,7 @@
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
         console: <span class="kw-2">&amp;</span><span class="self">Self</span>,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">if </span>!args.is_empty() {
             logger(LogMessage::Log(formatter(args, context)<span class="question-mark">?</span>), console);
@@ -1152,7 +1137,7 @@
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
         console: <span class="kw-2">&amp;</span><span class="self">Self</span>,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         logger(LogMessage::Warn(formatter(args, context)<span class="question-mark">?</span>), console);
         <span class="prelude-val">Ok</span>(JsValue::undefined())
@@ -1172,7 +1157,7 @@
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
         console: <span class="kw-2">&amp;mut </span><span class="self">Self</span>,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>label = <span class="kw">match </span>args.get(<span class="number">0</span>) {
             <span class="prelude-val">Some</span>(value) =&gt; value.to_string(context)<span class="question-mark">?</span>,
@@ -1201,7 +1186,7 @@
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
         console: <span class="kw-2">&amp;mut </span><span class="self">Self</span>,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>label = <span class="kw">match </span>args.get(<span class="number">0</span>) {
             <span class="prelude-val">Some</span>(value) =&gt; value.to_string(context)<span class="question-mark">?</span>,
@@ -1240,7 +1225,7 @@
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
         console: <span class="kw-2">&amp;mut </span><span class="self">Self</span>,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>label = <span class="kw">match </span>args.get(<span class="number">0</span>) {
             <span class="prelude-val">Some</span>(value) =&gt; value.to_string(context)<span class="question-mark">?</span>,
@@ -1277,7 +1262,7 @@
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
         console: <span class="kw-2">&amp;</span><span class="self">Self</span>,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>label = <span class="kw">match </span>args.get(<span class="number">0</span>) {
             <span class="prelude-val">Some</span>(value) =&gt; value.to_string(context)<span class="question-mark">?</span>,
@@ -1321,7 +1306,7 @@
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
         console: <span class="kw-2">&amp;mut </span><span class="self">Self</span>,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>label = <span class="kw">match </span>args.get(<span class="number">0</span>) {
             <span class="prelude-val">Some</span>(value) =&gt; value.to_string(context)<span class="question-mark">?</span>,
@@ -1368,7 +1353,7 @@
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
         console: <span class="kw-2">&amp;mut </span><span class="self">Self</span>,
-        context: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>group_label = formatter(args, context)<span class="question-mark">?</span>;
 
@@ -1393,7 +1378,7 @@
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
         console: <span class="kw-2">&amp;mut </span><span class="self">Self</span>,
-        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         console.groups.pop();
 
@@ -1411,12 +1396,7 @@
     /// [spec]: https://console.spec.whatwg.org/#dir
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/dir
     </span><span class="attr">#[allow(clippy::unnecessary_wraps)]
-    </span><span class="kw">fn </span>dir(
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
-        args: <span class="kw-2">&amp;</span>[JsValue],
-        console: <span class="kw-2">&amp;</span><span class="self">Self</span>,
-        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">fn </span>dir(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], console: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         logger(
             LogMessage::Info(args.get_or_undefined(<span class="number">0</span>).display_obj(<span class="bool-val">true</span>)),
             console,
