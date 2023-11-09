@@ -14,7 +14,7 @@ mod switch;
 mod r#try;
 mod with;
 
-impl ByteCompiler<'_, '_> {
+impl ByteCompiler<'_> {
     /// Compiles a [`Statement`] `boa_ast` node.
     pub fn compile_stmt(&mut self, node: &Statement, use_expr: bool, root_statement: bool) {
         match node {

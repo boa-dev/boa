@@ -15,7 +15,7 @@ use crate::{
 pub(crate) struct SetPropertyByName;
 
 impl SetPropertyByName {
-    fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
+    fn operation(context: &mut Context, index: usize) -> JsResult<CompletionType> {
         let value = context.vm.pop();
         let receiver = context.vm.pop();
         let object = context.vm.pop();
@@ -48,17 +48,17 @@ impl Operation for SetPropertyByName {
     const INSTRUCTION: &'static str = "INST - SetPropertyByName";
     const COST: u8 = 4;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let index = context.vm.read::<u8>();
         Self::operation(context, index as usize)
     }
 
-    fn execute_with_u16_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
         let index = context.vm.read::<u16>() as usize;
         Self::operation(context, index)
     }
 
-    fn execute_with_u32_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
         let index = context.vm.read::<u32>();
         Self::operation(context, index as usize)
     }
@@ -76,7 +76,7 @@ impl Operation for SetPropertyByValue {
     const INSTRUCTION: &'static str = "INST - SetPropertyByValue";
     const COST: u8 = 4;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let value = context.vm.pop();
         let key = context.vm.pop();
         let receiver = context.vm.pop();
@@ -177,7 +177,7 @@ impl Operation for SetPropertyByValue {
 pub(crate) struct SetPropertyGetterByName;
 
 impl SetPropertyGetterByName {
-    fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
+    fn operation(context: &mut Context, index: usize) -> JsResult<CompletionType> {
         let value = context.vm.pop();
         let object = context.vm.pop();
         let object = object.to_object(context)?;
@@ -211,17 +211,17 @@ impl Operation for SetPropertyGetterByName {
     const INSTRUCTION: &'static str = "INST - SetPropertyGetterByName";
     const COST: u8 = 4;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let index = context.vm.read::<u8>() as usize;
         Self::operation(context, index)
     }
 
-    fn execute_with_u16_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
         let index = context.vm.read::<u16>() as usize;
         Self::operation(context, index)
     }
 
-    fn execute_with_u32_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
         let index = context.vm.read::<u32>() as usize;
         Self::operation(context, index)
     }
@@ -239,7 +239,7 @@ impl Operation for SetPropertyGetterByValue {
     const INSTRUCTION: &'static str = "INST - SetPropertyGetterByValue";
     const COST: u8 = 4;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let value = context.vm.pop();
         let key = context.vm.pop();
         let object = context.vm.pop();
@@ -272,7 +272,7 @@ impl Operation for SetPropertyGetterByValue {
 pub(crate) struct SetPropertySetterByName;
 
 impl SetPropertySetterByName {
-    fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
+    fn operation(context: &mut Context, index: usize) -> JsResult<CompletionType> {
         let value = context.vm.pop();
         let object = context.vm.pop();
         let object = object.to_object(context)?;
@@ -306,17 +306,17 @@ impl Operation for SetPropertySetterByName {
     const INSTRUCTION: &'static str = "INST - SetPropertySetterByName";
     const COST: u8 = 4;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let index = context.vm.read::<u8>() as usize;
         Self::operation(context, index)
     }
 
-    fn execute_with_u16_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
         let index = context.vm.read::<u16>() as usize;
         Self::operation(context, index)
     }
 
-    fn execute_with_u32_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
         let index = context.vm.read::<u32>() as usize;
         Self::operation(context, index)
     }
@@ -334,7 +334,7 @@ impl Operation for SetPropertySetterByValue {
     const INSTRUCTION: &'static str = "INST - SetPropertySetterByValue";
     const COST: u8 = 4;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let value = context.vm.pop();
         let key = context.vm.pop();
         let object = context.vm.pop();
@@ -371,7 +371,7 @@ impl Operation for SetFunctionName {
     const INSTRUCTION: &'static str = "INST - SetFunctionName";
     const COST: u8 = 4;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let prefix = context.vm.read::<u8>();
         let function = context.vm.pop();
         let name = context.vm.pop();

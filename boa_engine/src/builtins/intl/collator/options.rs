@@ -83,7 +83,7 @@ impl FromStr for Usage {
 impl ParsableOptionType for Usage {}
 
 impl OptionType for CaseFirst {
-    fn from_value(value: JsValue, context: &mut Context<'_>) -> JsResult<Self> {
+    fn from_value(value: JsValue, context: &mut Context) -> JsResult<Self> {
         match value.to_string(context)?.to_std_string_escaped().as_str() {
             "upper" => Ok(Self::UpperFirst),
             "lower" => Ok(Self::LowerFirst),

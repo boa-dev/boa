@@ -28,7 +28,7 @@ impl Operation for TypeOf {
     const INSTRUCTION: &'static str = "INST - TypeOf";
     const COST: u8 = 1;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let value = context.vm.pop();
         context.vm.push(value.js_type_of());
         Ok(CompletionType::Normal)
@@ -47,7 +47,7 @@ impl Operation for Pos {
     const INSTRUCTION: &'static str = "INST - Pos";
     const COST: u8 = 3;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let value = context.vm.pop();
         let value = value.to_number(context)?;
         context.vm.push(value);
@@ -67,7 +67,7 @@ impl Operation for Neg {
     const INSTRUCTION: &'static str = "INST - Neg";
     const COST: u8 = 3;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let value = context.vm.pop();
         match value.to_numeric(context)? {
             Numeric::Number(number) => context.vm.push(number.neg()),
@@ -89,7 +89,7 @@ impl Operation for BitNot {
     const INSTRUCTION: &'static str = "INST - BitNot";
     const COST: u8 = 3;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let value = context.vm.pop();
         match value.to_numeric(context)? {
             Numeric::Number(number) => context.vm.push(Number::not(number)),

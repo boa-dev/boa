@@ -12,7 +12,7 @@ pub(crate) struct GetArgument;
 
 impl GetArgument {
     #[allow(clippy::unnecessary_wraps)]
-    fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
+    fn operation(context: &mut Context, index: usize) -> JsResult<CompletionType> {
         let fp = context.vm.frame().fp as usize;
         let argument_index = fp + 2;
         let argument_count = context.vm.frame().argument_count as usize;
@@ -31,17 +31,17 @@ impl Operation for GetArgument {
     const INSTRUCTION: &'static str = "INST - GetArgument";
     const COST: u8 = 2;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let index = context.vm.read::<u8>() as usize;
         Self::operation(context, index)
     }
 
-    fn execute_with_u16_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
         let index = context.vm.read::<u16>() as usize;
         Self::operation(context, index)
     }
 
-    fn execute_with_u32_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
         let index = context.vm.read::<u32>() as usize;
         Self::operation(context, index)
     }

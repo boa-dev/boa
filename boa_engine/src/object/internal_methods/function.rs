@@ -40,7 +40,7 @@ pub(crate) static CONSTRUCTOR_INTERNAL_METHODS: InternalObjectMethods = Internal
 pub(crate) fn function_call(
     function_object: &JsObject,
     argument_count: usize,
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) -> JsResult<CallValue> {
     context.check_runtime_limits()?;
 
@@ -125,7 +125,7 @@ pub(crate) fn function_call(
 fn function_construct(
     this_function_object: &JsObject,
     argument_count: usize,
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) -> JsResult<CallValue> {
     context.check_runtime_limits()?;
 
@@ -244,7 +244,7 @@ pub(crate) static NATIVE_CONSTRUCTOR_INTERNAL_METHODS: InternalObjectMethods =
 pub(crate) fn native_function_call(
     obj: &JsObject,
     argument_count: usize,
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) -> JsResult<CallValue> {
     let args = context.vm.pop_n_values(argument_count);
     let _func = context.vm.pop();
@@ -294,7 +294,7 @@ pub(crate) fn native_function_call(
 fn native_function_construct(
     obj: &JsObject,
     argument_count: usize,
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) -> JsResult<CallValue> {
     // We technically don't need this since native functions don't push any new frames to the
     // vm, but we'll eventually have to combine the native stack with the vm stack.

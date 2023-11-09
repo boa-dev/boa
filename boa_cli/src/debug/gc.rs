@@ -3,12 +3,12 @@ use boa_engine::{
 };
 
 /// Trigger garbage collection.
-fn collect(_: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+fn collect(_: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
     boa_gc::force_collect();
     Ok(JsValue::undefined())
 }
 
-pub(super) fn create_object(context: &mut Context<'_>) -> JsObject {
+pub(super) fn create_object(context: &mut Context) -> JsObject {
     ObjectInitializer::new(context)
         .function(
             NativeFunction::from_fn_ptr(collect),

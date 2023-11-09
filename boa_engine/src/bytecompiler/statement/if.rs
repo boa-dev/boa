@@ -1,7 +1,7 @@
 use crate::bytecompiler::ByteCompiler;
 use boa_ast::statement::If;
 
-impl ByteCompiler<'_, '_> {
+impl ByteCompiler<'_> {
     pub(crate) fn compile_if(&mut self, node: &If, use_expr: bool) {
         self.compile_expr(node.cond(), true);
         let jelse = self.jump_if_false();

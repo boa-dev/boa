@@ -65,59 +65,55 @@ impl Now {
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.now.timezone
     #[allow(clippy::unnecessary_wraps)]
-    fn time_zone_id(
-        _: &JsValue,
-        _args: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    fn time_zone_id(_: &JsValue, _args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Return ! SystemTimeZone().
         Ok(system_time_zone(context).expect("retrieving the system timezone must not fail"))
     }
 
     /// `Temporal.Now.instant()`
-    fn instant(_: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn instant(_: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Err(JsNativeError::error()
             .with_message("not yet implemented.")
             .into())
     }
 
     /// `Temporal.Now.plainDateTime()`
-    fn plain_date_time(_: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn plain_date_time(_: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Err(JsNativeError::error()
             .with_message("not yet implemented.")
             .into())
     }
 
     /// `Temporal.Now.plainDateTimeISO`
-    fn plain_date_time_iso(_: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn plain_date_time_iso(_: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Err(JsNativeError::error()
             .with_message("not yet implemented.")
             .into())
     }
 
     /// `Temporal.Now.zonedDateTime`
-    fn zoned_date_time(_: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn zoned_date_time(_: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Err(JsNativeError::error()
             .with_message("not yet implemented.")
             .into())
     }
 
     /// `Temporal.Now.zonedDateTimeISO`
-    fn zoned_date_time_iso(_: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn zoned_date_time_iso(_: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Err(JsNativeError::error()
             .with_message("not yet implemented.")
             .into())
     }
 
     /// `Temporal.Now.plainDate()`
-    fn plain_date(_: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn plain_date(_: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Err(JsNativeError::error()
             .with_message("not yet implemented.")
             .into())
     }
 
     /// `Temporal.Now.plainDateISO`
-    fn plain_date_iso(_: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn plain_date_iso(_: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Err(JsNativeError::error()
             .with_message("not yet implemented.")
             .into())
@@ -180,7 +176,7 @@ fn system_zoned_date_time() {
 ///
 /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal-systemtimezone
 #[allow(unused)]
-fn system_time_zone(context: &mut Context<'_>) -> JsResult<JsValue> {
+fn system_time_zone(context: &mut Context) -> JsResult<JsValue> {
     // 1. Let identifier be ! DefaultTimeZone().
     let identifier = default_time_zone(context);
     // 2. Return ! CreateTemporalTimeZone(identifier).

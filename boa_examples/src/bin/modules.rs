@@ -1,10 +1,8 @@
-use std::{error::Error, path::Path};
+use std::{error::Error, path::Path, rc::Rc};
 
 use boa_engine::{
-    builtins::promise::PromiseState,
-    js_string,
-    module::{ModuleLoader, SimpleModuleLoader},
-    Context, JsError, JsNativeError, JsValue, Module, NativeFunction,
+    builtins::promise::PromiseState, js_string, module::SimpleModuleLoader, Context, JsError,
+    JsNativeError, JsValue, Module, NativeFunction,
 };
 use boa_parser::Source;
 
@@ -22,11 +20,10 @@ fn main() -> Result<(), Box<dyn Error>> {
     "#;
 
     // This can be overriden with any custom implementation of `ModuleLoader`.
-    let loader = &SimpleModuleLoader::new("./scripts/modules")?;
-    let dyn_loader: &dyn ModuleLoader = loader;
+    let loader = Rc::new(SimpleModuleLoader::new("./scripts/modules")?);
 
     // Just need to cast to a `ModuleLoader` before passing it to the builder.
-    let context = &mut Context::builder().module_loader(dyn_loader).build()?;
+    let context = &mut Context::builder().module_loader(loader.clone()).build()?;
     let source = Source::from_reader(MODULE_SRC.as_bytes(), Some(Path::new("./main.mjs")));
 
     // Can also pass a `Some(realm)` if you need to execute the module in another realm.

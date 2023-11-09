@@ -117,7 +117,7 @@ impl BuiltInConstructor for Instant {
     fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. If NewTarget is undefined, then
         if new_target.is_undefined() {
@@ -148,7 +148,7 @@ impl Instant {
     pub(crate) fn get_epoc_seconds(
         this: &JsValue,
         _: &[JsValue],
-        _: &mut Context<'_>,
+        _: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let instant be the this value.
         // 2. Perform ? RequireInternalSlot(instant, [[InitializedTemporalInstant]]).
@@ -170,7 +170,7 @@ impl Instant {
     pub(crate) fn get_epoc_milliseconds(
         this: &JsValue,
         _: &[JsValue],
-        _: &mut Context<'_>,
+        _: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let instant be the this value.
         // 2. Perform ? RequireInternalSlot(instant, [[InitializedTemporalInstant]]).
@@ -192,7 +192,7 @@ impl Instant {
     pub(crate) fn get_epoc_microseconds(
         this: &JsValue,
         _: &[JsValue],
-        _: &mut Context<'_>,
+        _: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let instant be the this value.
         // 2. Perform ? RequireInternalSlot(instant, [[InitializedTemporalInstant]]).
@@ -217,7 +217,7 @@ impl Instant {
     pub(crate) fn get_epoc_nanoseconds(
         this: &JsValue,
         _: &[JsValue],
-        _: &mut Context<'_>,
+        _: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let instant be the this value.
         // 2. Perform ? RequireInternalSlot(instant, [[InitializedTemporalInstant]]).
@@ -237,7 +237,7 @@ impl Instant {
     pub(crate) fn add(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let instant be the this value.
         // 2. Perform ? RequireInternalSlot(instant, [[InitializedTemporalInstant]]).
@@ -257,7 +257,7 @@ impl Instant {
     pub(crate) fn subtract(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let instant be the this value.
         // 2. Perform ? RequireInternalSlot(instant, [[InitializedTemporalInstant]]).
@@ -277,7 +277,7 @@ impl Instant {
     pub(crate) fn until(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let instant be the this value.
         // 2. Perform ? RequireInternalSlot(instant, [[InitializedTemporalInstant]]).
@@ -298,7 +298,7 @@ impl Instant {
     pub(crate) fn since(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let instant be the this value.
         // 2. Perform ? RequireInternalSlot(instant, [[InitializedTemporalInstant]]).
@@ -319,7 +319,7 @@ impl Instant {
     pub(crate) fn round(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let instant be the this value.
         // 2. Perform ? RequireInternalSlot(instant, [[InitializedTemporalInstant]]).
@@ -418,11 +418,7 @@ impl Instant {
     }
 
     /// 8.3.12 `Temporal.Instant.prototype.equals ( other )`
-    pub(crate) fn equals(
-        this: &JsValue,
-        args: &[JsValue],
-        _: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn equals(this: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let instant be the this value.
         // 2. Perform ? RequireInternalSlot(instant, [[InitializedTemporalInstant]]).
         // 4. If instant.[[Nanoseconds]] ≠ other.[[Nanoseconds]], return false.
@@ -448,7 +444,7 @@ impl Instant {
     pub(crate) fn to_zoned_date_time(
         _: &JsValue,
         _: &[JsValue],
-        _: &mut Context<'_>,
+        _: &mut Context,
     ) -> JsResult<JsValue> {
         // TODO: Complete
         Err(JsNativeError::error()
@@ -460,7 +456,7 @@ impl Instant {
     pub(crate) fn to_zoned_date_time_iso(
         _: &JsValue,
         _: &[JsValue],
-        _: &mut Context<'_>,
+        _: &mut Context,
     ) -> JsResult<JsValue> {
         // TODO Complete
         Err(JsNativeError::error()
@@ -491,7 +487,7 @@ fn is_valid_epoch_nanos(epoch_nanos: &JsBigInt) -> bool {
 fn create_temporal_instant(
     epoch_nanos: JsBigInt,
     new_target: Option<JsValue>,
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) -> JsResult<JsValue> {
     // 1. Assert: ! IsValidEpochNanoseconds(epochNanoseconds) is true.
     assert!(is_valid_epoch_nanos(&epoch_nanos));
@@ -575,7 +571,7 @@ fn diff_instant(
     smallest_unit: TemporalUnit,
     largest_unit: TemporalUnit,
     rounding_mode: RoundingMode,
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) -> JsResult<DurationRecord> {
     // 1. Let difference be ℝ(ns2) - ℝ(ns1).
     let difference = JsBigInt::sub(ns1, ns2);
@@ -692,7 +688,7 @@ fn diff_temporal_instant(
     instant: &Instant,
     other: &JsValue,
     options: &JsValue,
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) -> JsResult<JsValue> {
     // 1. If operation is since, let sign be -1. Otherwise, let sign be 1.
     let sign = if op { 1_f64 } else { -1_f64 };
@@ -749,7 +745,7 @@ fn add_or_subtract_duration_from_instant(
     op: bool,
     instant: &Instant,
     temporal_duration_like: &JsValue,
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) -> JsResult<JsValue> {
     // 1. If operation is subtract, let sign be -1. Otherwise, let sign be 1.
     let sign = if op { 1 } else { -1 };

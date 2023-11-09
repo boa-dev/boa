@@ -11,7 +11,7 @@ mod optimizer;
 mod realm;
 mod shape;
 
-fn create_boa_object(context: &mut Context<'_>) -> JsObject {
+fn create_boa_object(context: &mut Context) -> JsObject {
     let function_module = function::create_object(context);
     let object_module = object::create_object(context);
     let shape_module = shape::create_object(context);
@@ -60,7 +60,7 @@ fn create_boa_object(context: &mut Context<'_>) -> JsObject {
 }
 
 #[allow(clippy::redundant_pub_crate)]
-pub(crate) fn init_boa_debug_object(context: &mut Context<'_>) {
+pub(crate) fn init_boa_debug_object(context: &mut Context) {
     let boa_object = create_boa_object(context);
     context
         .register_global_property(

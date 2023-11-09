@@ -19,15 +19,14 @@ use crate::builtins::string::StringNormalizers;
 /// Providers can be either [`BufferProvider`]s or [`AnyProvider`]s.
 ///
 /// The [`icu_provider`] documentation has more information about data providers.
-#[derive(Clone, Copy)]
-pub enum BoaProvider<'a> {
+pub enum BoaProvider {
     /// A [`BufferProvider`] data provider.
-    Buffer(&'a dyn BufferProvider),
+    Buffer(Box<dyn BufferProvider>),
     /// An [`AnyProvider`] data provider.
-    Any(&'a dyn AnyProvider),
+    Any(Box<dyn AnyProvider>),
 }
 
-impl Debug for BoaProvider<'_> {
+impl Debug for BoaProvider {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Buffer(_) => f.debug_tuple("Buffer").field(&"..").finish(),
@@ -38,7 +37,7 @@ impl Debug for BoaProvider<'_> {
 
 // This blanket implementation mirrors the `DataProvider` implementations of `BufferProvider` and
 // `AnyProvider`, which allows us to use `unstable` constructors in a stable way.
-impl<M> DataProvider<M> for BoaProvider<'_>
+impl<M> DataProvider<M> for BoaProvider
 where
     M: KeyedDataMarker + 'static,
     for<'de> YokeTraitHack<<M::Yokeable as Yokeable<'de>>::Output>: Deserialize<'de>,
@@ -69,15 +68,15 @@ pub enum IcuError {
 
 /// Collection of tools initialized from a [`DataProvider`] that are used for the functionality of
 /// `Intl`.
-pub(crate) struct Icu<'provider> {
-    provider: BoaProvider<'provider>,
+pub(crate) struct Icu {
+    provider: BoaProvider,
     locale_canonicalizer: LocaleCanonicalizer,
     locale_expander: LocaleExpander,
     string_normalizers: StringNormalizers,
     case_mapper: CaseMapper,
 }
 
-impl Debug for Icu<'_> {
+impl Debug for Icu {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("Icu")
             .field("provider", &self.provider)
@@ -89,13 +88,13 @@ impl Debug for Icu<'_> {
     }
 }
 
-impl<'provider> Icu<'provider> {
+impl Icu {
     /// Creates a new [`Icu`] from a valid [`BoaProvider`]
     ///
     /// # Errors
     ///
     /// Returns an error if any of the tools required cannot be constructed.
-    pub(crate) fn new(provider: BoaProvider<'provider>) -> Result<Icu<'provider>, IcuError> {
+    pub(crate) fn new(provider: BoaProvider) -> Result<Icu, IcuError> {
         Ok(Self {
             locale_canonicalizer: LocaleCanonicalizer::try_new_unstable(&provider)?,
             locale_expander: LocaleExpander::try_new_extended_unstable(&provider)?,
@@ -131,7 +130,32 @@ impl<'provider> Icu<'provider> {
     }
 
     /// Gets the inner icu data provider
-    pub(crate) const fn provider(&self) -> BoaProvider<'provider> {
-        self.provider
+    pub(crate) const fn provider(&self) -> &BoaProvider {
+        &self.provider
+    }
+}
+
+/// Adapter to allow creating a `Box<dyn Provider>` from
+/// a &'static impl Provider.
+#[derive(Debug)]
+pub(crate) struct StaticProviderAdapter<T: 'static>(pub(crate) &'static T);
+
+impl<T: BufferProvider> BufferProvider for StaticProviderAdapter<T> {
+    fn load_buffer(
+        &self,
+        key: icu_provider::DataKey,
+        req: DataRequest<'_>,
+    ) -> Result<DataResponse<icu_provider::BufferMarker>, DataError> {
+        self.0.load_buffer(key, req)
+    }
+}
+
+impl<T: AnyProvider> AnyProvider for StaticProviderAdapter<T> {
+    fn load_any(
+        &self,
+        key: icu_provider::DataKey,
+        req: DataRequest<'_>,
+    ) -> Result<icu_provider::AnyResponse, DataError> {
+        self.0.load_any(key, req)
     }
 }

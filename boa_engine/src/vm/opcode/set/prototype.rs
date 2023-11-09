@@ -15,7 +15,7 @@ impl Operation for SetPrototype {
     const INSTRUCTION: &'static str = "INST - SetPrototype";
     const COST: u8 = 4;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let value = context.vm.pop();
         let object = context.vm.pop();
 

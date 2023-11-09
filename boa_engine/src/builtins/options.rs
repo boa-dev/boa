@@ -12,7 +12,7 @@ pub(crate) trait OptionType: Sized {
     /// steps instead of returning a pure string, number or boolean.
     ///
     /// [spec]: https://tc39.es/ecma402/#sec-getoption
-    fn from_value(value: JsValue, context: &mut Context<'_>) -> JsResult<Self>;
+    fn from_value(value: JsValue, context: &mut Context) -> JsResult<Self>;
 }
 
 /// A type that implements [`OptionType`] by parsing a string.
@@ -24,7 +24,7 @@ impl<T: ParsableOptionType> OptionType for T
 where
     T::Err: fmt::Display,
 {
-    fn from_value(value: JsValue, context: &mut Context<'_>) -> JsResult<Self> {
+    fn from_value(value: JsValue, context: &mut Context) -> JsResult<Self> {
         value
             .to_string(context)?
             .to_std_string_escaped()
@@ -51,7 +51,7 @@ where
 pub(crate) fn get_option<T: OptionType>(
     options: &JsObject,
     property: &[u16],
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) -> JsResult<Option<T>> {
     // 1. Let value be ? Get(options, property).
     let value = options.get(property, context)?;
@@ -95,7 +95,7 @@ pub(crate) fn get_options_object(options: &JsValue) -> JsResult<JsObject> {
 // Common options used in several builtins
 
 impl OptionType for bool {
-    fn from_value(value: JsValue, _: &mut Context<'_>) -> JsResult<Self> {
+    fn from_value(value: JsValue, _: &mut Context) -> JsResult<Self> {
         // 5. If type is "boolean", then
         //      a. Set value to ! ToBoolean(value).
         Ok(value.to_boolean())
@@ -103,7 +103,7 @@ impl OptionType for bool {
 }
 
 impl OptionType for JsString {
-    fn from_value(value: JsValue, context: &mut Context<'_>) -> JsResult<Self> {
+    fn from_value(value: JsValue, context: &mut Context) -> JsResult<Self> {
         // 6. If type is "string", then
         //      a. Set value to ? ToString(value).
         value.to_string(context)

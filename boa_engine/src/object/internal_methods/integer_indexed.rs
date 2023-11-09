@@ -62,7 +62,7 @@ fn canonical_numeric_index_string(argument: &JsString) -> Option<f64> {
 pub(crate) fn integer_indexed_exotic_get_own_property(
     obj: &JsObject,
     key: &PropertyKey,
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) -> JsResult<Option<PropertyDescriptor>> {
     let p = match key {
         PropertyKey::String(key) => {
@@ -104,7 +104,7 @@ pub(crate) fn integer_indexed_exotic_get_own_property(
 pub(crate) fn integer_indexed_exotic_has_property(
     obj: &JsObject,
     key: &PropertyKey,
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) -> JsResult<bool> {
     let p = match key {
         PropertyKey::String(key) => {
@@ -135,7 +135,7 @@ pub(crate) fn integer_indexed_exotic_define_own_property(
     obj: &JsObject,
     key: &PropertyKey,
     desc: PropertyDescriptor,
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) -> JsResult<bool> {
     let p = match key {
         PropertyKey::String(key) => {
@@ -197,7 +197,7 @@ pub(crate) fn integer_indexed_exotic_get(
     obj: &JsObject,
     key: &PropertyKey,
     receiver: JsValue,
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) -> JsResult<JsValue> {
     let p = match key {
         PropertyKey::String(key) => {
@@ -230,7 +230,7 @@ pub(crate) fn integer_indexed_exotic_set(
     key: PropertyKey,
     value: JsValue,
     receiver: JsValue,
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) -> JsResult<bool> {
     let p = match &key {
         PropertyKey::String(key) => {
@@ -272,7 +272,7 @@ pub(crate) fn integer_indexed_exotic_set(
 pub(crate) fn integer_indexed_exotic_delete(
     obj: &JsObject,
     key: &PropertyKey,
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) -> JsResult<bool> {
     let p = match &key {
         PropertyKey::String(key) => {
@@ -303,7 +303,7 @@ pub(crate) fn integer_indexed_exotic_delete(
 #[allow(clippy::unnecessary_wraps)]
 pub(crate) fn integer_indexed_exotic_own_property_keys(
     obj: &JsObject,
-    _context: &mut Context<'_>,
+    _context: &mut Context,
 ) -> JsResult<Vec<PropertyKey>> {
     let obj = obj.borrow();
     let inner = obj.as_typed_array().expect(
@@ -388,7 +388,7 @@ pub(crate) fn integer_indexed_element_set(
     obj: &JsObject,
     index: f64,
     value: &JsValue,
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) -> JsResult<()> {
     let obj_borrow = obj.borrow();
     let inner = obj_borrow.as_typed_array().expect(

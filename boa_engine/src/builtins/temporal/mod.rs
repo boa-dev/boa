@@ -195,7 +195,7 @@ fn to_zero_padded_decimal_string(n: u64, min_length: usize) -> String {
 pub(crate) fn iterator_to_list_of_types(
     iterator: &mut IteratorRecord,
     element_types: &[Type],
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) -> JsResult<Vec<JsValue>> {
     // 1. Let values be a new empty List.
     let mut values = Vec::new();
@@ -293,7 +293,7 @@ pub(crate) fn validate_temporal_rounding_increment(
 /// 13.21 `ToRelativeTemporalObject ( options )`
 pub(crate) fn to_relative_temporal_object(
     _options: &JsObject,
-    _context: &mut Context<'_>,
+    _context: &mut Context,
 ) -> JsResult<(Option<PlainDate>, Option<ZonedDateTime>)> {
     Err(JsNativeError::range()
         .with_message("not yet implemented.")
@@ -435,7 +435,7 @@ pub(crate) fn round_to_increment_as_if_positive(
 #[inline]
 pub(crate) fn to_positive_integer_with_trunc(
     value: &JsValue,
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) -> JsResult<i32> {
     // 1. Let integer be ? ToIntegerWithTruncation(argument).
     let int = to_integer_with_truncation(value, context)?;
@@ -451,10 +451,7 @@ pub(crate) fn to_positive_integer_with_trunc(
 
 /// 13.44 `ToIntegerWithTruncation ( argument )`
 #[inline]
-pub(crate) fn to_integer_with_truncation(
-    value: &JsValue,
-    context: &mut Context<'_>,
-) -> JsResult<i32> {
+pub(crate) fn to_integer_with_truncation(value: &JsValue, context: &mut Context) -> JsResult<i32> {
     // 1. Let number be ? ToNumber(argument).
     let number = value.to_number(context)?;
     // 2. If number is NaN, +∞𝔽 or -∞𝔽, throw a RangeError exception.
@@ -469,7 +466,7 @@ pub(crate) fn to_integer_with_truncation(
 
 /// Abstract operation 13.45 `ToIntegerIfIntegral( argument )`
 #[inline]
-pub(crate) fn to_integer_if_integral(arg: &JsValue, context: &mut Context<'_>) -> JsResult<i32> {
+pub(crate) fn to_integer_if_integral(arg: &JsValue, context: &mut Context) -> JsResult<i32> {
     // 1. Let number be ? ToNumber(argument).
     // 2. If IsIntegralNumber(number) is false, throw a RangeError exception.
     // 3. Return ℝ(number).
@@ -495,7 +492,7 @@ pub(crate) fn get_diff_settings(
     disallowed_units: &[TemporalUnit],
     fallback_smallest_unit: TemporalUnit,
     smallest_largest_default_unit: TemporalUnit,
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) -> JsResult<(TemporalUnit, TemporalUnit, RoundingMode, f64)> {
     // 1. NOTE: The following steps read options and perform independent validation in alphabetical order (ToTemporalRoundingIncrement reads "roundingIncrement" and ToTemporalRoundingMode reads "roundingMode").
     // 2. Let largestUnit be ? GetTemporalUnit(options, "largestUnit", unitGroup, "auto").
@@ -574,7 +571,7 @@ pub(crate) fn copy_data_properties(
     source: &JsValue,
     excluded_keys: &Vec<JsString>,
     excluded_values: Option<&Vec<JsValue>>,
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) -> JsResult<()> {
     // 1. If source is undefined or null, return unused.
     if source.is_null_or_undefined() {
@@ -644,7 +641,7 @@ fn snapshot_own_properties(
     source: &JsObject,
     excluded_keys: Option<Vec<JsString>>,
     excluded_values: Option<Vec<JsValue>>,
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) -> JsResult<JsObject> {
     // 1. Let copy be OrdinaryObjectCreate(proto).
     let copy = JsObject::with_null_proto();

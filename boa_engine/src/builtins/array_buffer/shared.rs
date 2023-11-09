@@ -112,7 +112,7 @@ impl BuiltInConstructor for SharedArrayBuffer {
     fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. If NewTarget is undefined, throw a TypeError exception.
         if new_target.is_undefined() {
@@ -137,7 +137,7 @@ impl SharedArrayBuffer {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-sharedarraybuffer-@@species
     #[allow(clippy::unnecessary_wraps)]
-    fn get_species(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn get_species(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Return the this value.
         Ok(this.clone())
     }
@@ -151,7 +151,7 @@ impl SharedArrayBuffer {
     pub(crate) fn get_byte_length(
         this: &JsValue,
         _args: &[JsValue],
-        _: &mut Context<'_>,
+        _: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).
@@ -178,7 +178,7 @@ impl SharedArrayBuffer {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-sharedarraybuffer.prototype.slice
-    fn slice(this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+    fn slice(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).
         let obj = this.as_object().ok_or_else(|| {
@@ -259,7 +259,7 @@ impl SharedArrayBuffer {
     pub(crate) fn allocate(
         constructor: &JsValue,
         byte_length: u64,
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsObject> {
         // TODO:
         // 1. Let slots be « [[ArrayBufferData]] ».
@@ -315,9 +315,9 @@ impl SharedArrayBuffer {
 /// [spec]: https://tc39.es/ecma262/#sec-createsharedbytedatablock
 pub(crate) fn create_shared_byte_data_block(
     size: u64,
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) -> JsResult<Arc<Box<[AtomicU8]>>> {
-    if size > context.host_hooks().max_buffer_size() {
+    if size > context.host_hooks().max_buffer_size(context) {
         return Err(JsNativeError::range()
             .with_message(
                 "cannot allocate a buffer that exceeds the maximum buffer size".to_string(),

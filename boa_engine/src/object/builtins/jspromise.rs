@@ -161,9 +161,9 @@ impl JsPromise {
     /// ```
     ///
     /// [`Promise()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/Promise
-    pub fn new<F>(executor: F, context: &mut Context<'_>) -> Self
+    pub fn new<F>(executor: F, context: &mut Context) -> Self
     where
-        F: FnOnce(&ResolvingFunctions, &mut Context<'_>) -> JsResult<JsValue>,
+        F: FnOnce(&ResolvingFunctions, &mut Context) -> JsResult<JsValue>,
     {
         let promise = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
@@ -215,7 +215,7 @@ impl JsPromise {
     /// # }
     /// ```
     #[inline]
-    pub fn new_pending(context: &mut Context<'_>) -> (Self, ResolvingFunctions) {
+    pub fn new_pending(context: &mut Context) -> (Self, ResolvingFunctions) {
         let promise = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             context.intrinsics().constructors().promise().prototype(),
@@ -297,7 +297,7 @@ impl JsPromise {
     /// ```
     ///
     /// [async_fn]: crate::native_function::NativeFunction::from_async_fn
-    pub fn from_future<Fut>(future: Fut, context: &mut Context<'_>) -> Self
+    pub fn from_future<Fut>(future: Fut, context: &mut Context) -> Self
     where
         Fut: std::future::IntoFuture<Output = JsResult<JsValue>> + 'static,
     {
@@ -351,7 +351,7 @@ impl JsPromise {
     ///
     /// [`Promise.resolve()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/resolve
     /// [thenables]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise#thenables
-    pub fn resolve<V: Into<JsValue>>(value: V, context: &mut Context<'_>) -> Self {
+    pub fn resolve<V: Into<JsValue>>(value: V, context: &mut Context) -> Self {
         Promise::promise_resolve(
             &context.intrinsics().constructors().promise().constructor(),
             value.into(),
@@ -392,7 +392,7 @@ impl JsPromise {
     ///
     /// [`Promise.reject`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/reject
     /// [thenable]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise#thenables
-    pub fn reject<E: Into<JsError>>(error: E, context: &mut Context<'_>) -> Self {
+    pub fn reject<E: Into<JsError>>(error: E, context: &mut Context) -> Self {
         Promise::promise_reject(
             &context.intrinsics().constructors().promise().constructor(),
             &error.into(),
@@ -505,7 +505,7 @@ impl JsPromise {
         &self,
         on_fulfilled: Option<JsFunction>,
         on_rejected: Option<JsFunction>,
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> Self {
         Promise::inner_then(self, on_fulfilled, on_rejected, context)
             .and_then(Self::from_object)
@@ -566,7 +566,7 @@ impl JsPromise {
     /// [then]: JsPromise::then
     #[inline]
     #[allow(clippy::return_self_not_must_use)] // Could just be used to add a handler on an existing promise
-    pub fn catch(&self, on_rejected: JsFunction, context: &mut Context<'_>) -> Self {
+    pub fn catch(&self, on_rejected: JsFunction, context: &mut Context) -> Self {
         self.then(None, Some(on_rejected), context)
     }
 
@@ -644,7 +644,7 @@ impl JsPromise {
     /// [then]: JsPromise::then
     #[inline]
     #[allow(clippy::return_self_not_must_use)] // Could just be used to add a handler on an existing promise
-    pub fn finally(&self, on_finally: JsFunction, context: &mut Context<'_>) -> Self {
+    pub fn finally(&self, on_finally: JsFunction, context: &mut Context) -> Self {
         let (then, catch) = Promise::then_catch_finally_closures(
             context.intrinsics().constructors().promise().constructor(),
             on_finally,
@@ -711,7 +711,7 @@ impl JsPromise {
     /// ```
     ///
     /// [`Promise.all`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/all
-    pub fn all<I>(promises: I, context: &mut Context<'_>) -> Self
+    pub fn all<I>(promises: I, context: &mut Context) -> Self
     where
         I: IntoIterator<Item = Self>,
     {
@@ -800,7 +800,7 @@ impl JsPromise {
     /// ```
     ///
     /// [`Promise.allSettled`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/allSettled
-    pub fn all_settled<I>(promises: I, context: &mut Context<'_>) -> Self
+    pub fn all_settled<I>(promises: I, context: &mut Context) -> Self
     where
         I: IntoIterator<Item = Self>,
     {
@@ -863,7 +863,7 @@ impl JsPromise {
     /// ```
     ///
     /// [`Promise.any`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/any
-    pub fn any<I>(promises: I, context: &mut Context<'_>) -> Self
+    pub fn any<I>(promises: I, context: &mut Context) -> Self
     where
         I: IntoIterator<Item = Self>,
     {
@@ -937,7 +937,7 @@ impl JsPromise {
     /// ```
     ///
     /// [`Promise.race`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/race
-    pub fn race<I>(promises: I, context: &mut Context<'_>) -> Self
+    pub fn race<I>(promises: I, context: &mut Context) -> Self
     where
         I: IntoIterator<Item = Self>,
     {
@@ -1000,7 +1000,7 @@ impl JsPromise {
     /// # Ok(())
     /// # }
     /// ```
-    pub fn into_js_future(self, context: &mut Context<'_>) -> JsFuture {
+    pub fn into_js_future(self, context: &mut Context) -> JsFuture {
         // Mostly based from:
         // https://docs.rs/wasm-bindgen-futures/0.4.37/src/wasm_bindgen_futures/lib.rs.html#109-168
 
@@ -1092,7 +1092,7 @@ impl std::ops::Deref for JsPromise {
 impl JsObjectType for JsPromise {}
 
 impl TryFromJs for JsPromise {
-    fn try_from_js(value: &JsValue, _context: &mut Context<'_>) -> JsResult<Self> {
+    fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {
         match value {
             JsValue::Object(o) => Self::from_object(o.clone()),
             _ => Err(JsNativeError::typ()

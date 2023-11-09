@@ -34,7 +34,7 @@ impl Operation for Generator {
     const INSTRUCTION: &'static str = "INST - Generator";
     const COST: u8 = 8;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let r#async = context.vm.read::<u8>() != 0;
 
         let frame = context.vm.frame();
@@ -131,7 +131,7 @@ impl Operation for AsyncGeneratorClose {
     const INSTRUCTION: &'static str = "INST - AsyncGeneratorClose";
     const COST: u8 = 8;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         // Step 3.e-g in [AsyncGeneratorStart](https://tc39.es/ecma262/#sec-asyncgeneratorstart)
         let generator_object = context
             .vm
@@ -180,7 +180,7 @@ impl Operation for GeneratorNext {
     const INSTRUCTION: &'static str = "INST - GeneratorNext";
     const COST: u8 = 1;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let generator_resume_kind = context.vm.pop().to_generator_resume_kind();
         match generator_resume_kind {
             GeneratorResumeKind::Normal => Ok(CompletionType::Normal),
@@ -207,7 +207,7 @@ impl Operation for JumpIfNotResumeKind {
     const INSTRUCTION: &'static str = "INST - JumpIfNotResumeKind";
     const COST: u8 = 1;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let exit = context.vm.read::<u32>();
         let resume_kind = context.vm.read::<u8>();
 
@@ -234,7 +234,7 @@ impl Operation for GeneratorDelegateNext {
     const INSTRUCTION: &'static str = "INST - GeneratorDelegateNext";
     const COST: u8 = 18;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let throw_method_undefined = context.vm.read::<u32>();
         let return_method_undefined = context.vm.read::<u32>();
 
@@ -324,7 +324,7 @@ impl Operation for GeneratorDelegateResume {
     const INSTRUCTION: &'static str = "INST - GeneratorDelegateResume";
     const COST: u8 = 7;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let return_gen = context.vm.read::<u32>();
         let exit = context.vm.read::<u32>();
 

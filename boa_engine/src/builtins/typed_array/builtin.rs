@@ -176,7 +176,7 @@ impl BuiltInConstructor for BuiltinTypedArray {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%typedarray%
-    fn constructor(_: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn constructor(_: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Throw a TypeError exception.
         Err(JsNativeError::typ()
             .with_message("the TypedArray constructor should never be called directly")
@@ -191,7 +191,7 @@ impl BuiltinTypedArray {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%typedarray%.from
-    fn from(this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+    fn from(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let C be the this value.
         // 2. If IsConstructor(C) is false, throw a TypeError exception.
         let constructor = match this.as_object() {
@@ -301,7 +301,7 @@ impl BuiltinTypedArray {
     fn from_kind_and_length(
         kind: TypedArrayKind,
         length: u64,
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsObject> {
         let constructor =
             kind.standard_constructor()(context.intrinsics().constructors()).constructor();
@@ -315,7 +315,7 @@ impl BuiltinTypedArray {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%typedarray%.of
-    fn of(this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+    fn of(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let len be the number of elements in items.
 
         // 2. Let C be the this value.
@@ -352,11 +352,7 @@ impl BuiltinTypedArray {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-get-%typedarray%-@@species
     #[allow(clippy::unnecessary_wraps)]
-    pub(super) fn get_species(
-        this: &JsValue,
-        _: &[JsValue],
-        _: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    pub(super) fn get_species(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Return the this value.
         Ok(this.clone())
     }
@@ -367,11 +363,7 @@ impl BuiltinTypedArray {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%typedarray%.prototype.at
-    pub(crate) fn at(
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn at(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
         let obj = this.as_object().ok_or_else(|| {
@@ -423,7 +415,7 @@ impl BuiltinTypedArray {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-get-%typedarray%.prototype.buffer
-    fn buffer(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn buffer(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[TypedArrayName]]).
         // 3. Assert: O has a [[ViewedArrayBuffer]] internal slot.
@@ -446,11 +438,7 @@ impl BuiltinTypedArray {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-get-%typedarray%.prototype.bytelength
-    pub(crate) fn byte_length(
-        this: &JsValue,
-        _: &[JsValue],
-        _: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn byte_length(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[TypedArrayName]]).
         // 3. Assert: O has a [[ViewedArrayBuffer]] internal slot.
@@ -479,11 +467,7 @@ impl BuiltinTypedArray {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-get-%typedarray%.prototype.byteoffset
-    pub(crate) fn byte_offset(
-        this: &JsValue,
-        _: &[JsValue],
-        _: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn byte_offset(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[TypedArrayName]]).
         // 3. Assert: O has a [[ViewedArrayBuffer]] internal slot.
@@ -512,11 +496,7 @@ impl BuiltinTypedArray {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%typedarray%.prototype.copywithin
-    fn copy_within(
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    fn copy_within(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         let obj = this.as_object().ok_or_else(|| {
             JsNativeError::typ().with_message("Value is not a typed array object")
@@ -658,7 +638,7 @@ impl BuiltinTypedArray {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%typedarray%.prototype.entries
-    fn entries(this: &JsValue, _: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+    fn entries(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
         let o = this.as_object().ok_or_else(|| {
@@ -691,7 +671,7 @@ impl BuiltinTypedArray {
     pub(crate) fn every(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
@@ -760,7 +740,7 @@ impl BuiltinTypedArray {
     pub(crate) fn fill(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
@@ -850,7 +830,7 @@ impl BuiltinTypedArray {
     pub(crate) fn filter(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
@@ -942,7 +922,7 @@ impl BuiltinTypedArray {
     pub(crate) fn find(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
@@ -991,7 +971,7 @@ impl BuiltinTypedArray {
     pub(crate) fn find_index(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
@@ -1040,7 +1020,7 @@ impl BuiltinTypedArray {
     pub(crate) fn find_last(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
@@ -1087,7 +1067,7 @@ impl BuiltinTypedArray {
     pub(crate) fn find_last_index(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
@@ -1134,7 +1114,7 @@ impl BuiltinTypedArray {
     pub(crate) fn foreach(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
@@ -1195,7 +1175,7 @@ impl BuiltinTypedArray {
     pub(crate) fn includes(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
@@ -1276,7 +1256,7 @@ impl BuiltinTypedArray {
     pub(crate) fn index_of(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
@@ -1366,7 +1346,7 @@ impl BuiltinTypedArray {
     pub(crate) fn join(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
@@ -1428,11 +1408,7 @@ impl BuiltinTypedArray {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%typedarray%.prototype.keys
-    pub(crate) fn keys(
-        this: &JsValue,
-        _: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn keys(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
         let o = this.as_object().ok_or_else(|| {
@@ -1465,7 +1441,7 @@ impl BuiltinTypedArray {
     pub(crate) fn last_index_of(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
@@ -1544,7 +1520,7 @@ impl BuiltinTypedArray {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-get-%typedarray%.prototype.length
-    pub(crate) fn length(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    pub(crate) fn length(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[TypedArrayName]]).
         // 3. Assert: O has [[ViewedArrayBuffer]] and [[ArrayLength]] internal slots.
@@ -1576,7 +1552,7 @@ impl BuiltinTypedArray {
     pub(crate) fn map(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
@@ -1646,7 +1622,7 @@ impl BuiltinTypedArray {
     pub(crate) fn reduce(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
@@ -1733,7 +1709,7 @@ impl BuiltinTypedArray {
     pub(crate) fn reduceright(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
@@ -1823,7 +1799,7 @@ impl BuiltinTypedArray {
     pub(crate) fn reverse(
         this: &JsValue,
         _: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
@@ -1883,7 +1859,7 @@ impl BuiltinTypedArray {
     pub(crate) fn to_reversed(
         this: &JsValue,
         _: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Let iieoRecord be ? ValidateTypedArray(O, seq-cst).
@@ -1937,7 +1913,7 @@ impl BuiltinTypedArray {
     pub(crate) fn set(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let target be the this value.
         // 2. Perform ? RequireInternalSlot(target, [[TypedArrayName]]).
@@ -1998,7 +1974,7 @@ impl BuiltinTypedArray {
         target: &JsObject,
         target_offset: &U64OrPositiveInfinity,
         source: &JsObject,
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<()> {
         let target_borrow = target.borrow();
         let target_array = target_borrow
@@ -2232,7 +2208,7 @@ impl BuiltinTypedArray {
         target: &JsObject,
         target_offset: &U64OrPositiveInfinity,
         source: &JsValue,
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<()> {
         let target_length = {
             let target_borrow = target.borrow();
@@ -2304,7 +2280,7 @@ impl BuiltinTypedArray {
     pub(crate) fn slice(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
@@ -2477,7 +2453,7 @@ impl BuiltinTypedArray {
     pub(crate) fn some(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
@@ -2545,7 +2521,7 @@ impl BuiltinTypedArray {
     pub(crate) fn sort(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. If comparefn is not undefined and IsCallable(comparefn) is false, throw a TypeError exception.
         let compare_fn = match args.get(0) {
@@ -2585,7 +2561,7 @@ impl BuiltinTypedArray {
         // 5. NOTE: The following closure performs a numeric comparison rather than the string comparison used in 23.1.3.30.
         // 6. Let SortCompare be a new Abstract Closure with parameters (x, y) that captures comparefn and performs the following steps when called:
         let sort_compare =
-            |x: &JsValue, y: &JsValue, context: &mut Context<'_>| -> JsResult<cmp::Ordering> {
+            |x: &JsValue, y: &JsValue, context: &mut Context| -> JsResult<cmp::Ordering> {
                 // a. Return ? CompareTypedArrayElements(x, y, comparefn).
                 compare_typed_array_elements(x, y, compare_fn, context)
             };
@@ -2613,7 +2589,7 @@ impl BuiltinTypedArray {
     pub(crate) fn to_sorted(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. If comparefn is not undefined and IsCallable(comparefn) is false, throw a TypeError exception.
         let compare_fn = match args.get(0) {
@@ -2653,7 +2629,7 @@ impl BuiltinTypedArray {
         // 6. NOTE: The following closure performs a numeric comparison rather than the string comparison used in 23.1.3.34.
         // 7. Let SortCompare be a new Abstract Closure with parameters (x, y) that captures comparefn and performs the following steps when called:
         let sort_compare =
-            |x: &JsValue, y: &JsValue, context: &mut Context<'_>| -> JsResult<cmp::Ordering> {
+            |x: &JsValue, y: &JsValue, context: &mut Context| -> JsResult<cmp::Ordering> {
                 // a. Return ? CompareTypedArrayElements(x, y, comparefn).
                 compare_typed_array_elements(x, y, compare_fn, context)
             };
@@ -2684,7 +2660,7 @@ impl BuiltinTypedArray {
     pub(crate) fn subarray(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[TypedArrayName]]).
@@ -2772,7 +2748,7 @@ impl BuiltinTypedArray {
     fn to_locale_string(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let array be ? ToObject(this value).
         // Note: ValidateTypedArray is applied to the this value prior to evaluating the algorithm.
@@ -2856,7 +2832,7 @@ impl BuiltinTypedArray {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%typedarray%.prototype.values
-    fn values(this: &JsValue, _: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+    fn values(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
         let o = this.as_object().ok_or_else(|| {
@@ -2886,7 +2862,7 @@ impl BuiltinTypedArray {
     pub(crate) fn with(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         let obj = this.as_object().ok_or_else(|| {
@@ -2980,7 +2956,7 @@ impl BuiltinTypedArray {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-get-%typedarray%.prototype-@@tostringtag
     #[allow(clippy::unnecessary_wraps)]
-    fn to_string_tag(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn to_string_tag(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. If Type(O) is not Object, return undefined.
         // 3. If O does not have a [[TypedArrayName]] internal slot, return undefined.
@@ -3007,7 +2983,7 @@ impl BuiltinTypedArray {
         exemplar: &JsObject,
         kind: TypedArrayKind,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsObject> {
         // 1. Let defaultConstructor be the intrinsic object listed in column one of Table 73 for exemplar.[[TypedArrayName]].
         let default_constructor = kind.standard_constructor();
@@ -3046,7 +3022,7 @@ impl BuiltinTypedArray {
     fn create(
         constructor: &JsObject,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsObject> {
         // 1. Let newTypedArray be ? Construct(constructor, argumentList).
         let new_typed_array = constructor.construct(args, Some(constructor), context)?;
@@ -3081,7 +3057,7 @@ impl BuiltinTypedArray {
     /// <https://tc39.es/ecma262/#sec-allocatetypedarraybuffer>
     fn allocate_buffer<T: TypedArray>(
         length: u64,
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<IntegerIndexed> {
         // 1. Assert: O.[[ViewedArrayBuffer]] is undefined.
 
@@ -3117,7 +3093,7 @@ impl BuiltinTypedArray {
     pub(crate) fn initialize_from_list<T: TypedArray>(
         proto: JsObject,
         values: Vec<JsValue>,
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsObject> {
         // 1. Let len be the number of elements in values.
         let len = values.len() as u64;
@@ -3157,7 +3133,7 @@ impl BuiltinTypedArray {
     pub(super) fn allocate<T: TypedArray>(
         new_target: &JsValue,
         length: u64,
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsObject> {
         // 1. Let proto be ? GetPrototypeFromConstructor(newTarget, defaultProto).
         let proto = get_prototype_from_constructor(new_target, T::STANDARD_CONSTRUCTOR, context)?;
@@ -3195,7 +3171,7 @@ impl BuiltinTypedArray {
     pub(super) fn initialize_from_typed_array<T: TypedArray>(
         proto: JsObject,
         src_array: &JsObject,
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsObject> {
         let src_array = src_array.borrow();
         let src_array = src_array
@@ -3355,7 +3331,7 @@ impl BuiltinTypedArray {
         buffer: JsObject,
         byte_offset: &JsValue,
         length: &JsValue,
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsObject> {
         // 1. Let elementSize be TypedArrayElementSize(O).
         let element_size = T::ERASED.element_size();
@@ -3457,7 +3433,7 @@ impl BuiltinTypedArray {
     pub(super) fn initialize_from_array_like<T: TypedArray>(
         proto: JsObject,
         array_like: &JsObject,
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsObject> {
         // 1. Let len be ? LengthOfArrayLike(arrayLike).
         let len = array_like.length_of_array_like(context)?;
@@ -3501,7 +3477,7 @@ fn compare_typed_array_elements(
     x: &JsValue,
     y: &JsValue,
     compare_fn: Option<&JsObject>,
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) -> JsResult<cmp::Ordering> {
     // 1. Assert: x is a Number and y is a Number, or x is a BigInt and y is a BigInt.
 

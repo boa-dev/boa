@@ -16,7 +16,7 @@ impl Operation for Case {
     const INSTRUCTION: &'static str = "INST - Case";
     const COST: u8 = 2;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let address = context.vm.read::<u32>();
         let cond = context.vm.pop();
         let value = context.vm.pop();
@@ -42,7 +42,7 @@ impl Operation for Default {
     const INSTRUCTION: &'static str = "INST - Default";
     const COST: u8 = 2;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let exit = context.vm.read::<u32>();
         let _val = context.vm.pop();
         context.vm.frame_mut().pc = exit;

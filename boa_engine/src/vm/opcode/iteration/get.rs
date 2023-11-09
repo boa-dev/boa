@@ -16,7 +16,7 @@ impl Operation for GetIterator {
     const INSTRUCTION: &'static str = "INST - GetIterator";
     const COST: u8 = 6;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let object = context.vm.pop();
         let iterator = object.get_iterator(context, None, None)?;
         context.vm.frame_mut().iterators.push(iterator);
@@ -36,7 +36,7 @@ impl Operation for GetAsyncIterator {
     const INSTRUCTION: &'static str = "INST - GetAsyncIterator";
     const COST: u8 = 6;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let object = context.vm.pop();
         let iterator = object.get_iterator(context, Some(IteratorHint::Async), None)?;
         context.vm.frame_mut().iterators.push(iterator);

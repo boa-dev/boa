@@ -232,7 +232,7 @@ pub(crate) enum Operand {
 /// The [`ByteCompiler`] is used to compile ECMAScript AST from [`boa_ast`] to bytecode.
 #[derive(Debug)]
 #[allow(clippy::struct_excessive_bools)]
-pub struct ByteCompiler<'ctx, 'host> {
+pub struct ByteCompiler<'ctx> {
     /// Name of this function.
     pub(crate) function_name: Sym,
 
@@ -275,13 +275,13 @@ pub struct ByteCompiler<'ctx, 'host> {
     json_parse: bool,
 
     // TODO: remove when we separate scripts from the context
-    pub(crate) context: &'ctx mut Context<'host>,
+    pub(crate) context: &'ctx mut Context,
 
     #[cfg(feature = "annex-b")]
     annex_b_function_names: Vec<Identifier>,
 }
 
-impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
+impl<'ctx> ByteCompiler<'ctx> {
     /// Represents a placeholder address that will be patched later.
     const DUMMY_ADDRESS: u32 = u32::MAX;
     const DUMMY_LABEL: Label = Label { index: u32::MAX };
@@ -295,8 +295,8 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
         variable_environment: Rc<CompileTimeEnvironment>,
         lexical_environment: Rc<CompileTimeEnvironment>,
         // TODO: remove when we separate scripts from the context
-        context: &'ctx mut Context<'host>,
-    ) -> ByteCompiler<'ctx, 'host> {
+        context: &'ctx mut Context,
+    ) -> ByteCompiler<'ctx> {
         let mut code_block_flags = CodeBlockFlags::empty();
         code_block_flags.set(CodeBlockFlags::STRICT, strict);
         code_block_flags |= CodeBlockFlags::HAS_PROTOTYPE_PROPERTY;
@@ -734,7 +734,7 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
         }
     }
 
-    fn access_set_top_of_stack_expr_fn(compiler: &mut ByteCompiler<'_, '_>, level: u8) {
+    fn access_set_top_of_stack_expr_fn(compiler: &mut ByteCompiler<'_>, level: u8) {
         match level {
             0 => {}
             1 => compiler.emit_opcode(Opcode::Swap),
@@ -746,7 +746,7 @@ impl<'ctx, 'host> ByteCompiler<'ctx, 'host> {
 
     fn access_set<F, R>(&mut self, access: Access<'_>, use_expr: bool, expr_fn: F)
     where
-        F: FnOnce(&mut ByteCompiler<'_, '_>, u8) -> R,
+        F: FnOnce(&mut ByteCompiler<'_>, u8) -> R,
     {
         match access {
             Access::Variable { name } => {

@@ -63,7 +63,7 @@ impl BuiltInConstructor for WeakRef {
     fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // If NewTarget is undefined, throw a TypeError exception.
         if new_target.is_undefined() {
@@ -105,11 +105,7 @@ impl WeakRef {
     /// proper [`JsObject`], or returns `undefined` otherwise.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-weak-ref.prototype.deref
-    pub(crate) fn deref(
-        this: &JsValue,
-        _: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn deref(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let weakRef be the this value.
         // 2. Perform ? RequireInternalSlot(weakRef, [[WeakRefTarget]]).
         let weak_ref = this.as_object().map(JsObject::borrow).ok_or_else(|| {

@@ -15,7 +15,7 @@ use crate::{
 pub(crate) struct SetPrivateField;
 
 impl SetPrivateField {
-    fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
+    fn operation(context: &mut Context, index: usize) -> JsResult<CompletionType> {
         let name = context.vm.frame().code_block().constant_string(index);
         let value = context.vm.pop();
         let object = context.vm.pop();
@@ -38,17 +38,17 @@ impl Operation for SetPrivateField {
     const INSTRUCTION: &'static str = "INST - SetPrivateField";
     const COST: u8 = 4;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let index = context.vm.read::<u8>() as usize;
         Self::operation(context, index)
     }
 
-    fn execute_with_u16_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
         let index = context.vm.read::<u16>() as usize;
         Self::operation(context, index)
     }
 
-    fn execute_with_u32_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
         let index = context.vm.read::<u32>() as usize;
         Self::operation(context, index)
     }
@@ -63,7 +63,7 @@ pub(crate) struct DefinePrivateField;
 
 impl DefinePrivateField {
     #[allow(clippy::unnecessary_wraps)]
-    fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
+    fn operation(context: &mut Context, index: usize) -> JsResult<CompletionType> {
         let name = context.vm.frame().code_block().constant_string(index);
         let value = context.vm.pop();
         let object = context.vm.pop();
@@ -84,17 +84,17 @@ impl Operation for DefinePrivateField {
     const INSTRUCTION: &'static str = "INST - DefinePrivateField";
     const COST: u8 = 4;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let index = context.vm.read::<u8>() as usize;
         Self::operation(context, index)
     }
 
-    fn execute_with_u16_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
         let index = context.vm.read::<u16>() as usize;
         Self::operation(context, index)
     }
 
-    fn execute_with_u32_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
         let index = context.vm.read::<u32>() as usize;
         Self::operation(context, index)
     }
@@ -109,7 +109,7 @@ pub(crate) struct SetPrivateMethod;
 
 impl SetPrivateMethod {
     #[allow(clippy::unnecessary_wraps)]
-    fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
+    fn operation(context: &mut Context, index: usize) -> JsResult<CompletionType> {
         let name = context.vm.frame().code_block().constant_string(index);
         let value = context.vm.pop();
         let value = value.as_callable().expect("method must be callable");
@@ -144,17 +144,17 @@ impl Operation for SetPrivateMethod {
     const INSTRUCTION: &'static str = "INST - SetPrivateMethod";
     const COST: u8 = 4;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let index = context.vm.read::<u8>() as usize;
         Self::operation(context, index)
     }
 
-    fn execute_with_u16_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
         let index = context.vm.read::<u16>() as usize;
         Self::operation(context, index)
     }
 
-    fn execute_with_u32_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
         let index = context.vm.read::<u32>() as usize;
         Self::operation(context, index)
     }
@@ -169,7 +169,7 @@ pub(crate) struct SetPrivateSetter;
 
 impl SetPrivateSetter {
     #[allow(clippy::unnecessary_wraps)]
-    fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
+    fn operation(context: &mut Context, index: usize) -> JsResult<CompletionType> {
         let name = context.vm.frame().code_block().constant_string(index);
         let value = context.vm.pop();
         let value = value.as_callable().expect("setter must be callable");
@@ -195,17 +195,17 @@ impl Operation for SetPrivateSetter {
     const INSTRUCTION: &'static str = "INST - SetPrivateSetter";
     const COST: u8 = 4;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let index = context.vm.read::<u8>() as usize;
         Self::operation(context, index)
     }
 
-    fn execute_with_u16_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
         let index = context.vm.read::<u16>() as usize;
         Self::operation(context, index)
     }
 
-    fn execute_with_u32_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
         let index = context.vm.read::<u32>() as usize;
         Self::operation(context, index)
     }
@@ -220,7 +220,7 @@ pub(crate) struct SetPrivateGetter;
 
 impl SetPrivateGetter {
     #[allow(clippy::unnecessary_wraps)]
-    fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
+    fn operation(context: &mut Context, index: usize) -> JsResult<CompletionType> {
         let name = context.vm.frame().code_block().constant_string(index);
         let value = context.vm.pop();
         let value = value.as_callable().expect("getter must be callable");
@@ -246,17 +246,17 @@ impl Operation for SetPrivateGetter {
     const INSTRUCTION: &'static str = "INST - SetPrivateGetter";
     const COST: u8 = 4;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let index = context.vm.read::<u8>() as usize;
         Self::operation(context, index)
     }
 
-    fn execute_with_u16_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
         let index = context.vm.read::<u16>() as usize;
         Self::operation(context, index)
     }
 
-    fn execute_with_u32_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
         let index = context.vm.read::<u32>() as usize;
         Self::operation(context, index)
     }

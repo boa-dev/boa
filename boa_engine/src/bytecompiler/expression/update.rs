@@ -8,7 +8,7 @@ use boa_ast::expression::{
     operator::{update::UpdateOp, Update},
 };
 
-impl ByteCompiler<'_, '_> {
+impl ByteCompiler<'_> {
     pub(crate) fn compile_update(&mut self, update: &Update, use_expr: bool) {
         let opcode = match update.op() {
             UpdateOp::IncrementPre => Opcode::Inc,

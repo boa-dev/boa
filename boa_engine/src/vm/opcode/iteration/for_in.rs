@@ -17,7 +17,7 @@ impl Operation for CreateForInIterator {
     const INSTRUCTION: &'static str = "INST - CreateForInIterator";
     const COST: u8 = 4;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let object = context.vm.pop();
 
         let object = object.to_object(context)?;

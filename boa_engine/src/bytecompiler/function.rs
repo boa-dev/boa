@@ -91,7 +91,7 @@ impl FunctionCompiler {
         body: &FunctionBody,
         variable_environment: Rc<CompileTimeEnvironment>,
         lexical_environment: Rc<CompileTimeEnvironment>,
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> Gc<CodeBlock> {
         self.strict = self.strict || body.strict();
 

@@ -4,7 +4,7 @@ use super::{ByteCompiler, Literal, Operand};
 use boa_ast::{declaration::ExportDeclaration, expression::Identifier, ModuleItem, ModuleItemList};
 use boa_interner::Sym;
 
-impl ByteCompiler<'_, '_> {
+impl ByteCompiler<'_> {
     /// Compiles a [`ModuleItemList`].
     #[inline]
     pub fn compile_module_item_list(&mut self, list: &ModuleItemList) {

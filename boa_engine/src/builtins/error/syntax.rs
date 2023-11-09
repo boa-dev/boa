@@ -61,7 +61,7 @@ impl BuiltInConstructor for SyntaxError {
     fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. If NewTarget is undefined, let newTarget be the active function object; else let newTarget be NewTarget.
         let new_target = &if new_target.is_undefined() {

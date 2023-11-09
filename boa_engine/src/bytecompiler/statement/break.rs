@@ -4,7 +4,7 @@ use crate::bytecompiler::{
 };
 use boa_ast::statement::Break;
 
-impl ByteCompiler<'_, '_> {
+impl ByteCompiler<'_> {
     /// Compile a [`Break`] `boa_ast` node
     pub(crate) fn compile_break(&mut self, node: Break, _use_expr: bool) {
         let actions = self.break_jump_record_actions(node);

@@ -16,7 +16,7 @@ impl Operation for PushEmptyObject {
     const INSTRUCTION: &'static str = "INST - PushEmptyObject";
     const COST: u8 = 1;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let o = context
             .intrinsics()
             .templates()

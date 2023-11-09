@@ -86,7 +86,7 @@ impl SetIterator {
         set: JsValue,
         kind: PropertyNameKind,
         lock: SetLock,
-        context: &Context<'_>,
+        context: &Context,
     ) -> JsValue {
         let set_iterator = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
@@ -104,11 +104,7 @@ impl SetIterator {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%setiteratorprototype%.next
-    pub(crate) fn next(
-        this: &JsValue,
-        _: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let mut set_iterator = this.as_object().map(JsObject::borrow_mut);
 
         let set_iterator = set_iterator

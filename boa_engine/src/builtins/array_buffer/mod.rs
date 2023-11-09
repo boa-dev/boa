@@ -192,7 +192,7 @@ impl BuiltInConstructor for ArrayBuffer {
     fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. If NewTarget is undefined, throw a TypeError exception.
         if new_target.is_undefined() {
@@ -217,7 +217,7 @@ impl ArrayBuffer {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-get-arraybuffer-@@species
     #[allow(clippy::unnecessary_wraps)]
-    fn get_species(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn get_species(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Return the this value.
         Ok(this.clone())
     }
@@ -229,7 +229,7 @@ impl ArrayBuffer {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-arraybuffer.isview
     #[allow(clippy::unnecessary_wraps)]
-    fn is_view(_: &JsValue, args: &[JsValue], _context: &mut Context<'_>) -> JsResult<JsValue> {
+    fn is_view(_: &JsValue, args: &[JsValue], _context: &mut Context) -> JsResult<JsValue> {
         // 1. If Type(arg) is not Object, return false.
         // 2. If arg has a [[ViewedArrayBuffer]] internal slot, return true.
         // 3. Return false.
@@ -250,7 +250,7 @@ impl ArrayBuffer {
     pub(crate) fn get_byte_length(
         this: &JsValue,
         _args: &[JsValue],
-        _: &mut Context<'_>,
+        _: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).
@@ -275,7 +275,7 @@ impl ArrayBuffer {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-arraybuffer.prototype.slice
-    fn slice(this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+    fn slice(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).
         let obj = this.as_object().ok_or_else(|| {
@@ -384,7 +384,7 @@ impl ArrayBuffer {
     pub(crate) fn allocate(
         constructor: &JsValue,
         byte_length: u64,
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsObject> {
         // 1. Let obj be ? OrdinaryCreateFromConstructor(constructor, "%ArrayBuffer.prototype%", « [[ArrayBufferData]], [[ArrayBufferByteLength]], [[ArrayBufferDetachKey]] »).
         let prototype = get_prototype_from_constructor(
@@ -424,7 +424,7 @@ fn get_slice_range(
     len: u64,
     relative_start: &JsValue,
     end: &JsValue,
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) -> JsResult<SliceRange> {
     // 5. Let len be O.[[ArrayBufferByteLength]].
 
@@ -471,8 +471,8 @@ fn get_slice_range(
 /// integer). For more information, check the [spec][spec].
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-createbytedatablock
-pub(crate) fn create_byte_data_block(size: u64, context: &mut Context<'_>) -> JsResult<Vec<u8>> {
-    if size > context.host_hooks().max_buffer_size() {
+pub(crate) fn create_byte_data_block(size: u64, context: &mut Context) -> JsResult<Vec<u8>> {
+    if size > context.host_hooks().max_buffer_size(context) {
         return Err(JsNativeError::range()
             .with_message(
                 "cannot allocate a buffer that exceeds the maximum buffer size".to_string(),

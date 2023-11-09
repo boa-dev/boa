@@ -87,11 +87,7 @@ impl JumpRecord {
     }
 
     /// Performs the [`JumpRecordAction`]s.
-    pub(crate) fn perform_actions(
-        mut self,
-        start_address: u32,
-        compiler: &mut ByteCompiler<'_, '_>,
-    ) {
+    pub(crate) fn perform_actions(mut self, start_address: u32, compiler: &mut ByteCompiler<'_>) {
         while let Some(action) = self.actions.pop() {
             match action {
                 JumpRecordAction::Transfer { index } => {
@@ -310,7 +306,7 @@ impl JumpControlInfo {
 }
 
 // `JumpControlInfo` related methods that are implemented on `ByteCompiler`.
-impl ByteCompiler<'_, '_> {
+impl ByteCompiler<'_> {
     /// Pushes a generic `JumpControlInfo` onto `ByteCompiler`
     ///
     /// Default `JumpControlInfoKind` is `JumpControlInfoKind::Loop`

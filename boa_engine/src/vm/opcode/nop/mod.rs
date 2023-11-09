@@ -15,7 +15,7 @@ impl Operation for Nop {
     const INSTRUCTION: &'static str = "INST - Nop";
     const COST: u8 = 1;
 
-    fn execute(_: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(_: &mut Context) -> JsResult<CompletionType> {
         Ok(CompletionType::Normal)
     }
 }
@@ -32,15 +32,15 @@ impl Operation for Reserved {
     const INSTRUCTION: &'static str = "INST - Reserved";
     const COST: u8 = 0;
 
-    fn execute(_: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(_: &mut Context) -> JsResult<CompletionType> {
         unreachable!("Reserved opcodes are unreachable!")
     }
 
-    fn execute_with_u16_operands(_: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute_with_u16_operands(_: &mut Context) -> JsResult<CompletionType> {
         unreachable!("Reserved.U16 opcodes are unreachable!")
     }
 
-    fn execute_with_u32_operands(_: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute_with_u32_operands(_: &mut Context) -> JsResult<CompletionType> {
         unreachable!("Reserved.U32 opcodes are unreachable!")
     }
 }

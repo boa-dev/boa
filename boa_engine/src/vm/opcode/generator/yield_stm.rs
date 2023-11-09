@@ -16,7 +16,7 @@ impl Operation for GeneratorYield {
     const INSTRUCTION: &'static str = "INST - GeneratorYield";
     const COST: u8 = 1;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let value = context.vm.pop();
         context.vm.set_return_value(value);
         Ok(CompletionType::Yield)
@@ -35,7 +35,7 @@ impl Operation for AsyncGeneratorYield {
     const INSTRUCTION: &'static str = "INST - AsyncGeneratorYield";
     const COST: u8 = 8;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let value = context.vm.pop();
 
         let async_gen = context

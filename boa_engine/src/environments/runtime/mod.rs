@@ -485,7 +485,7 @@ pub(crate) enum BindingLocatorError {
     Silent,
 }
 
-impl Context<'_> {
+impl Context {
     /// Gets the corresponding runtime binding of the provided `BindingLocator`, modifying
     /// its indexes in place.
     ///

@@ -17,13 +17,13 @@ use crate::{
 use super::{BindingName, ModuleRepr, ResolveExportError, ResolvedBinding};
 
 trait TraceableCallback: Trace {
-    fn call(&self, module: &SyntheticModule, context: &mut Context<'_>) -> JsResult<()>;
+    fn call(&self, module: &SyntheticModule, context: &mut Context) -> JsResult<()>;
 }
 
 #[derive(Trace, Finalize)]
 struct Callback<F, T>
 where
-    F: Fn(&SyntheticModule, &T, &mut Context<'_>) -> JsResult<()>,
+    F: Fn(&SyntheticModule, &T, &mut Context) -> JsResult<()>,
     T: Trace,
 {
     // SAFETY: `SyntheticModuleInitializer`'s safe API ensures only `Copy` closures are stored; its unsafe API,
@@ -36,10 +36,10 @@ where
 
 impl<F, T> TraceableCallback for Callback<F, T>
 where
-    F: Fn(&SyntheticModule, &T, &mut Context<'_>) -> JsResult<()>,
+    F: Fn(&SyntheticModule, &T, &mut Context) -> JsResult<()>,
     T: Trace,
 {
-    fn call(&self, module: &SyntheticModule, context: &mut Context<'_>) -> JsResult<()> {
+    fn call(&self, module: &SyntheticModule, context: &mut Context) -> JsResult<()> {
         (self.f)(module, &self.captures, context)
     }
 }
@@ -68,7 +68,7 @@ impl SyntheticModuleInitializer {
     /// Creates a `SyntheticModuleInitializer` from a [`Copy`] closure.
     pub fn from_copy_closure<F>(closure: F) -> Self
     where
-        F: Fn(&SyntheticModule, &mut Context<'_>) -> JsResult<()> + Copy + 'static,
+        F: Fn(&SyntheticModule, &mut Context) -> JsResult<()> + Copy + 'static,
     {
         // SAFETY: The `Copy` bound ensures there are no traceable types inside the closure.
         unsafe { Self::from_closure(closure) }
@@ -77,7 +77,7 @@ impl SyntheticModuleInitializer {
     /// Creates a `SyntheticModuleInitializer` from a [`Copy`] closure and a list of traceable captures.
     pub fn from_copy_closure_with_captures<F, T>(closure: F, captures: T) -> Self
     where
-        F: Fn(&SyntheticModule, &T, &mut Context<'_>) -> JsResult<()> + Copy + 'static,
+        F: Fn(&SyntheticModule, &T, &mut Context) -> JsResult<()> + Copy + 'static,
         T: Trace + 'static,
     {
         // SAFETY: The `Copy` bound ensures there are no traceable types inside the closure.
@@ -94,7 +94,7 @@ impl SyntheticModuleInitializer {
     /// on why that is the case.
     pub unsafe fn from_closure<F>(closure: F) -> Self
     where
-        F: Fn(&SyntheticModule, &mut Context<'_>) -> JsResult<()> + 'static,
+        F: Fn(&SyntheticModule, &mut Context) -> JsResult<()> + 'static,
     {
         // SAFETY: The caller must ensure the invariants of the closure hold.
         unsafe {
@@ -112,7 +112,7 @@ impl SyntheticModuleInitializer {
     /// on why that is the case.
     pub unsafe fn from_closure_with_captures<F, T>(closure: F, captures: T) -> Self
     where
-        F: Fn(&SyntheticModule, &T, &mut Context<'_>) -> JsResult<()> + 'static,
+        F: Fn(&SyntheticModule, &T, &mut Context) -> JsResult<()> + 'static,
         T: Trace + 'static,
     {
         // Hopefully, this unsafe operation will be replaced by the `CoerceUnsized` API in the
@@ -133,7 +133,7 @@ impl SyntheticModuleInitializer {
 
     /// Calls this `SyntheticModuleInitializer`, forwarding the arguments to the corresponding function.
     #[inline]
-    pub fn call(&self, module: &SyntheticModule, context: &mut Context<'_>) -> JsResult<()> {
+    pub fn call(&self, module: &SyntheticModule, context: &mut Context) -> JsResult<()> {
         self.inner.call(module, context)
     }
 }
@@ -195,7 +195,7 @@ impl SyntheticModule {
     /// Concrete method [`LoadRequestedModules ( )`][spec].
     ///
     /// [spec]: https://tc39.es/proposal-json-modules/#sec-smr-LoadRequestedModules
-    pub(super) fn load(context: &mut Context<'_>) -> JsPromise {
+    pub(super) fn load(context: &mut Context) -> JsPromise {
         // 1. Return ! PromiseResolve(%Promise%, undefined).
         JsPromise::resolve(JsValue::undefined(), context)
     }
@@ -231,7 +231,7 @@ impl SyntheticModule {
     /// Concrete method [`Link ( )`][spec].
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-moduledeclarationlinking
-    pub(super) fn link(&self, context: &mut Context<'_>) {
+    pub(super) fn link(&self, context: &mut Context) {
         let parent = self.parent();
         // 1. Let realm be module.[[Realm]].
         // 2. Let env be NewModuleEnvironment(realm.[[GlobalEnv]]).
@@ -287,7 +287,7 @@ impl SyntheticModule {
     /// Concrete method [`Evaluate ( )`][spec].
     ///
     /// [spec]: https://tc39.es/proposal-json-modules/#sec-smr-Evaluate
-    pub(super) fn evaluate(&self, context: &mut Context<'_>) -> JsPromise {
+    pub(super) fn evaluate(&self, context: &mut Context) -> JsPromise {
         // 1. Let moduleContext be a new ECMAScript code execution context.
 
         let parent = self.parent();
@@ -357,7 +357,7 @@ impl SyntheticModule {
         &self,
         export_name: &JsString,
         export_value: JsValue,
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<()> {
         let identifier = context.interner_mut().get_or_intern(&**export_name);
         let identifier = Identifier::new(identifier);

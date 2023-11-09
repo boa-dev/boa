@@ -15,7 +15,7 @@ impl Operation for Throw {
     const INSTRUCTION: &'static str = "INST - Throw";
     const COST: u8 = 6;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let error = JsError::from_opaque(context.vm.pop());
         context.vm.pending_exception = Some(error);
 
@@ -41,7 +41,7 @@ impl Operation for ReThrow {
     const INSTRUCTION: &'static str = "INST - ReThrow";
     const COST: u8 = 2;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         // Note: -1 because we increment after fetching the opcode.
         let pc = context.vm.frame().pc.saturating_sub(1);
         if context.vm.handle_exception_at(pc) {
@@ -73,7 +73,7 @@ impl Operation for Exception {
     const INSTRUCTION: &'static str = "INST - Exception";
     const COST: u8 = 2;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         if let Some(error) = context.vm.pending_exception.take() {
             let error = error.to_opaque(context);
             context.vm.push(error);
@@ -101,7 +101,7 @@ impl Operation for MaybeException {
     const INSTRUCTION: &'static str = "INST - MaybeException";
     const COST: u8 = 3;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         if let Some(error) = context.vm.pending_exception.take() {
             let error = error.to_opaque(context);
             context.vm.push(error);
@@ -122,7 +122,7 @@ impl Operation for MaybeException {
 pub(crate) struct ThrowNewTypeError;
 
 impl ThrowNewTypeError {
-    fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
+    fn operation(context: &mut Context, index: usize) -> JsResult<CompletionType> {
         let msg = context.vm.frame().code_block().constant_string(index);
         let msg = msg
             .to_std_string()
@@ -136,17 +136,17 @@ impl Operation for ThrowNewTypeError {
     const INSTRUCTION: &'static str = "INST - ThrowNewTypeError";
     const COST: u8 = 2;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let index = context.vm.read::<u8>() as usize;
         Self::operation(context, index)
     }
 
-    fn execute_with_u16_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
         let index = context.vm.read::<u16>() as usize;
         Self::operation(context, index)
     }
 
-    fn execute_with_u32_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
         let index = context.vm.read::<u32>() as usize;
         Self::operation(context, index)
     }

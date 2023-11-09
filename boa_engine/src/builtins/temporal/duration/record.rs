@@ -260,7 +260,7 @@ impl DurationRecord {
     /// Takes an unknown `JsObject` and attempts to create a partial duration
     pub(crate) fn from_partial_js_object(
         duration_like: &JsValue,
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<Self> {
         // 1. If Type(temporalDurationLike) is not Object, then
         let JsValue::Object(unknown_object) = duration_like else {
@@ -588,7 +588,7 @@ impl DurationRecord {
     // Trace current callers and check whether the value
     // can be fed a native `DurationRecord` instead.
     /// Creates a `Duration` object from the current `DurationRecord`.
-    pub(crate) fn as_object(&self, context: &mut Context<'_>) -> JsResult<JsObject> {
+    pub(crate) fn as_object(&self, context: &mut Context) -> JsResult<JsObject> {
         super::create_temporal_duration(*self, None, context)
     }
 
@@ -905,7 +905,7 @@ impl DurationRecord {
         &self,
         largest_unit: TemporalUnit,
         plain_relative_to: Option<&PlainDate>,
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<DateDuration> {
         // 1. Let allZero be false.
         // 2. If years = 0, and months = 0, and weeks = 0, and days = 0, set allZero to true.
@@ -1152,7 +1152,7 @@ impl DurationRecord {
         &mut self,
         largest_unit: TemporalUnit,
         relative_to: &JsValue,
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<()> {
         // 1. Let allZero be false.
         // 2. If years = 0, and months = 0, and weeks = 0, and days = 0, set allZero to true.
@@ -1416,7 +1416,7 @@ impl DurationRecord {
             Option<&ZonedDateTime>,
             Option<&PlainDateTime>,
         ),
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<(Self, f64)> {
         let mut result = DurationRecord::new(unbalance_date_duration, self.time());
 
@@ -1909,7 +1909,7 @@ impl DurationRecord {
         unit: TemporalUnit,
         rounding_mode: RoundingMode,
         relative_to: Option<&JsValue>,
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<()> {
         // 1. If Type(relativeTo) is not Object; or relativeTo does not have an [[InitializedTemporalZonedDateTime]]
         // internal slot; or unit is one of "year", "month", "week", or "day"; or unit is "nanosecond" and increment is 1, then

@@ -15,7 +15,7 @@ impl Operation for Pop {
     const INSTRUCTION: &'static str = "INST - Pop";
     const COST: u8 = 1;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let _val = context.vm.pop();
         Ok(CompletionType::Normal)
     }
@@ -33,7 +33,7 @@ impl Operation for PopEnvironment {
     const INSTRUCTION: &'static str = "INST - PopEnvironment";
     const COST: u8 = 1;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         context.vm.environments.pop();
         Ok(CompletionType::Normal)
     }

@@ -67,7 +67,7 @@ use boa_engine::{
     context::ContextBuilder,
     job::{FutureJob, JobQueue, NativeJob},
     js_string,
-    module::{Module, ModuleLoader, SimpleModuleLoader},
+    module::{Module, SimpleModuleLoader},
     optimizer::OptimizerOptions,
     property::Attribute,
     script::Script,
@@ -81,7 +81,7 @@ use debug::init_boa_debug_object;
 use rustyline::{config::Config, error::ReadlineError, EditMode, Editor};
 use std::{
     cell::RefCell, collections::VecDeque, eprintln, fs::read, fs::OpenOptions, io, path::PathBuf,
-    println,
+    println, rc::Rc,
 };
 
 #[cfg(all(
@@ -233,7 +233,7 @@ enum FlowgraphDirection {
 ///
 /// Returns a error of type String with a error message,
 /// if the source has a syntax or parsing error.
-fn dump<S>(src: &S, args: &Opt, context: &mut Context<'_>) -> Result<(), String>
+fn dump<S>(src: &S, args: &Opt, context: &mut Context) -> Result<(), String>
 where
     S: AsRef<[u8]> + ?Sized,
 {
@@ -278,7 +278,7 @@ where
 }
 
 fn generate_flowgraph(
-    context: &mut Context<'_>,
+    context: &mut Context,
     src: &[u8],
     format: FlowgraphFormat,
     direction: Option<FlowgraphDirection>,
@@ -304,8 +304,8 @@ fn generate_flowgraph(
 
 fn evaluate_files(
     args: &Opt,
-    context: &mut Context<'_>,
-    loader: &SimpleModuleLoader,
+    context: &mut Context,
+    loader: Rc<SimpleModuleLoader>,
 ) -> Result<(), io::Error> {
     for file in &args.files {
         let buffer = read(file)?;
@@ -382,13 +382,14 @@ fn main() -> Result<(), io::Error> {
 
     let args = Opt::parse();
 
-    let queue: &dyn JobQueue = &Jobs::default();
-    let loader = &SimpleModuleLoader::new(&args.root)
-        .map_err(|e| io::Error::new(io::ErrorKind::Other, e.to_string()))?;
-    let dyn_loader: &dyn ModuleLoader = loader;
+    let queue = Rc::new(Jobs::default());
+    let loader = Rc::new(
+        SimpleModuleLoader::new(&args.root)
+            .map_err(|e| io::Error::new(io::ErrorKind::Other, e.to_string()))?,
+    );
     let mut context = ContextBuilder::new()
         .job_queue(queue)
-        .module_loader(dyn_loader)
+        .module_loader(loader.clone())
         .build()
         .expect("cannot fail with default global object");
 
@@ -491,7 +492,7 @@ fn main() -> Result<(), io::Error> {
 }
 
 /// Adds the CLI runtime to the context.
-fn add_runtime(context: &mut Context<'_>) {
+fn add_runtime(context: &mut Context) {
     let console = Console::init(context);
     context
         .register_global_property(js_string!(Console::NAME), console, Attribute::all())
@@ -502,11 +503,11 @@ fn add_runtime(context: &mut Context<'_>) {
 struct Jobs(RefCell<VecDeque<NativeJob>>);
 
 impl JobQueue for Jobs {
-    fn enqueue_promise_job(&self, job: NativeJob, _: &mut Context<'_>) {
+    fn enqueue_promise_job(&self, job: NativeJob, _: &mut Context) {
         self.0.borrow_mut().push_back(job);
     }
 
-    fn run_jobs(&self, context: &mut Context<'_>) {
+    fn run_jobs(&self, context: &mut Context) {
         loop {
             let jobs = std::mem::take(&mut *self.0.borrow_mut());
             if jobs.is_empty() {
@@ -520,7 +521,7 @@ impl JobQueue for Jobs {
         }
     }
 
-    fn enqueue_future_job(&self, future: FutureJob, _: &mut Context<'_>) {
+    fn enqueue_future_job(&self, future: FutureJob, _: &mut Context) {
         let job = pollster::block_on(future);
         self.0.borrow_mut().push_back(job);
     }

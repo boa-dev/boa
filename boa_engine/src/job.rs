@@ -53,7 +53,7 @@ pub type FutureJob = Pin<Box<dyn Future<Output = NativeJob> + 'static>>;
 /// ## [`Trace`]?
 ///
 /// `NativeJob` doesn't implement `Trace` because it doesn't need to; all jobs can only be run once
-/// and putting a [`JobQueue`] on a garbage collected object should definitely be discouraged.
+/// and putting a [`JobQueue`] on a garbage collected object is not allowed.
 ///
 /// On the other hand, it seems like this type breaks all the safety checks of the
 /// [`NativeFunction`] API, since you can capture any `Trace` variable into the closure... but it
@@ -66,7 +66,7 @@ pub type FutureJob = Pin<Box<dyn Future<Output = NativeJob> + 'static>>;
 /// [`NativeFunction`]: crate::native_function::NativeFunction
 pub struct NativeJob {
     #[allow(clippy::type_complexity)]
-    f: Box<dyn FnOnce(&mut Context<'_>) -> JsResult<JsValue>>,
+    f: Box<dyn FnOnce(&mut Context) -> JsResult<JsValue>>,
     realm: Option<Realm>,
 }
 
@@ -80,7 +80,7 @@ impl NativeJob {
     /// Creates a new `NativeJob` from a closure.
     pub fn new<F>(f: F) -> Self
     where
-        F: FnOnce(&mut Context<'_>) -> JsResult<JsValue> + 'static,
+        F: FnOnce(&mut Context) -> JsResult<JsValue> + 'static,
     {
         Self {
             f: Box::new(f),
@@ -89,9 +89,9 @@ impl NativeJob {
     }
 
     /// Creates a new `NativeJob` from a closure and an execution realm.
-    pub fn with_realm<F>(f: F, realm: Realm, _context: &mut Context<'_>) -> Self
+    pub fn with_realm<F>(f: F, realm: Realm, _context: &mut Context) -> Self
     where
-        F: FnOnce(&mut Context<'_>) -> JsResult<JsValue> + 'static,
+        F: FnOnce(&mut Context) -> JsResult<JsValue> + 'static,
     {
         Self {
             f: Box::new(f),
@@ -111,7 +111,7 @@ impl NativeJob {
     ///
     /// If the native job has an execution realm defined, this sets the running execution
     /// context to the realm's before calling the inner closure, and resets it after execution.
-    pub fn call(self, context: &mut Context<'_>) -> JsResult<JsValue> {
+    pub fn call(self, context: &mut Context) -> JsResult<JsValue> {
         // If realm is not null, each time job is invoked the implementation must perform
         // implementation-defined steps such that execution is prepared to evaluate ECMAScript
         // code at the time of job's invocation.
@@ -209,14 +209,14 @@ pub trait JobQueue {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-hostenqueuepromisejob
     /// [Jobs]: https://tc39.es/ecma262/#sec-jobs
-    fn enqueue_promise_job(&self, job: NativeJob, context: &mut Context<'_>);
+    fn enqueue_promise_job(&self, job: NativeJob, context: &mut Context);
 
     /// Runs all jobs in the queue.
     ///
     /// Running a job could enqueue more jobs in the queue. The implementor of the trait
     /// determines if the method should loop until there are no more queued jobs or if
     /// it should only run one iteration of the queue.
-    fn run_jobs(&self, context: &mut Context<'_>);
+    fn run_jobs(&self, context: &mut Context);
 
     /// Enqueues a new [`Future`] job on the job queue.
     ///
@@ -224,7 +224,7 @@ pub trait JobQueue {
     /// job queue to update the state of the inner `Promise`, which is what ECMAScript sees. Failing
     /// to do this will leave the inner `Promise` in the `pending` state, which won't call any `then`
     /// or `catch` handlers, even if `future` was already completed.
-    fn enqueue_future_job(&self, future: FutureJob, context: &mut Context<'_>);
+    fn enqueue_future_job(&self, future: FutureJob, context: &mut Context);
 
     /// Asynchronously runs all jobs in the queue.
     ///
@@ -234,14 +234,13 @@ pub trait JobQueue {
     ///
     /// By default forwards to [`JobQueue::run_jobs`]. Implementors using async should override this
     /// with a proper algorithm to run jobs asynchronously.
-    fn run_jobs_async<'a, 'ctx, 'host, 'fut>(
+    fn run_jobs_async<'a, 'ctx, 'fut>(
         &'a self,
-        context: &'ctx mut Context<'host>,
+        context: &'ctx mut Context,
     ) -> Pin<Box<dyn Future<Output = ()> + 'fut>>
     where
         'a: 'fut,
         'ctx: 'fut,
-        'host: 'fut,
     {
         Box::pin(async { self.run_jobs(context) })
     }
@@ -250,16 +249,17 @@ pub trait JobQueue {
 /// A job queue that does nothing.
 ///
 /// This queue is mostly useful if you want to disable the promise capabilities of the engine. This
-/// can be done by passing a reference to it to the [`ContextBuilder`]:
+/// can be done by passing it to the [`ContextBuilder`]:
 ///
 /// ```
+/// use std::rc::Rc;
 /// use boa_engine::{
 ///     context::ContextBuilder,
 ///     job::{IdleJobQueue, JobQueue},
 /// };
 ///
-/// let queue: &dyn JobQueue = &IdleJobQueue;
-/// let context = ContextBuilder::new().job_queue(queue).build();
+/// let queue = Rc::new(IdleJobQueue);
+/// let context = ContextBuilder::new().job_queue(queue ).build();
 /// ```
 ///
 /// [`ContextBuilder`]: crate::context::ContextBuilder
@@ -267,11 +267,11 @@ pub trait JobQueue {
 pub struct IdleJobQueue;
 
 impl JobQueue for IdleJobQueue {
-    fn enqueue_promise_job(&self, _: NativeJob, _: &mut Context<'_>) {}
+    fn enqueue_promise_job(&self, _: NativeJob, _: &mut Context) {}
 
-    fn run_jobs(&self, _: &mut Context<'_>) {}
+    fn run_jobs(&self, _: &mut Context) {}
 
-    fn enqueue_future_job(&self, _: FutureJob, _: &mut Context<'_>) {}
+    fn enqueue_future_job(&self, _: FutureJob, _: &mut Context) {}
 }
 
 /// A simple FIFO job queue that bails on the first error.
@@ -298,11 +298,11 @@ impl SimpleJobQueue {
 }
 
 impl JobQueue for SimpleJobQueue {
-    fn enqueue_promise_job(&self, job: NativeJob, _: &mut Context<'_>) {
+    fn enqueue_promise_job(&self, job: NativeJob, _: &mut Context) {
         self.0.borrow_mut().push_back(job);
     }
 
-    fn run_jobs(&self, context: &mut Context<'_>) {
+    fn run_jobs(&self, context: &mut Context) {
         // Yeah, I have no idea why Rust extends the lifetime of a `RefCell` that should be immediately
         // dropped after calling `pop_front`.
         let mut next_job = self.0.borrow_mut().pop_front();
@@ -315,7 +315,7 @@ impl JobQueue for SimpleJobQueue {
         }
     }
 
-    fn enqueue_future_job(&self, future: FutureJob, context: &mut Context<'_>) {
+    fn enqueue_future_job(&self, future: FutureJob, context: &mut Context) {
         let job = pollster::block_on(future);
         self.enqueue_promise_job(job, context);
     }

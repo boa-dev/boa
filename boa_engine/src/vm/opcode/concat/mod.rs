@@ -11,7 +11,7 @@ use crate::{
 pub(crate) struct ConcatToString;
 
 impl ConcatToString {
-    fn operation(context: &mut Context<'_>, value_count: usize) -> JsResult<CompletionType> {
+    fn operation(context: &mut Context, value_count: usize) -> JsResult<CompletionType> {
         let mut strings = Vec::with_capacity(value_count);
         for _ in 0..value_count {
             strings.push(context.vm.pop().to_string(context)?);
@@ -33,17 +33,17 @@ impl Operation for ConcatToString {
     const INSTRUCTION: &'static str = "INST - ConcatToString";
     const COST: u8 = 6;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let value_count = context.vm.read::<u8>() as usize;
         Self::operation(context, value_count)
     }
 
-    fn execute_with_u16_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
         let value_count = context.vm.read::<u16>() as usize;
         Self::operation(context, value_count)
     }
 
-    fn execute_with_u32_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
         let value_count = context.vm.read::<u32>() as usize;
         Self::operation(context, value_count)
     }

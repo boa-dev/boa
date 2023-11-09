@@ -8,7 +8,7 @@ use boa_ast::expression::{
     operator::{assign::AssignOp, Assign},
 };
 
-impl ByteCompiler<'_, '_> {
+impl ByteCompiler<'_> {
     pub(crate) fn compile_assign(&mut self, assign: &Assign, use_expr: bool) {
         if assign.op() == AssignOp::Assign {
             match Access::from_assign_target(assign.lhs()) {

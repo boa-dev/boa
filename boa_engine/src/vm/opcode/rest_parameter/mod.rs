@@ -16,7 +16,7 @@ impl Operation for RestParameterInit {
     const INSTRUCTION: &'static str = "INST - RestParameterInit";
     const COST: u8 = 6;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let arg_count = context.vm.frame().argument_count as usize;
         let param_count = context.vm.frame().code_block().params.as_ref().len();
 

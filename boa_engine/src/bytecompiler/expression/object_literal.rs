@@ -9,7 +9,7 @@ use boa_ast::{
 };
 use boa_interner::Sym;
 
-impl ByteCompiler<'_, '_> {
+impl ByteCompiler<'_> {
     pub(crate) fn compile_object_literal(&mut self, object: &ObjectLiteral, use_expr: bool) {
         self.emit_opcode(Opcode::PushEmptyObject);
         for property in object.properties() {

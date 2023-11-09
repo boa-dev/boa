@@ -63,7 +63,7 @@ pub(super) fn get_number_option<T>(
     property: &[u16],
     minimum: T,
     maximum: T,
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) -> JsResult<Option<T>>
 where
     T: Into<f64> + FromPrimitive,
@@ -86,7 +86,7 @@ pub(super) fn default_number_option<T>(
     value: &JsValue,
     minimum: T,
     maximum: T,
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) -> JsResult<Option<T>>
 where
     T: Into<f64> + FromPrimitive,
@@ -123,7 +123,7 @@ where
 /// [`get_options_object`]: crate::builtins::options::get_options_object
 pub(super) fn coerce_options_to_object(
     options: &JsValue,
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) -> JsResult<JsObject> {
     // If options is undefined, then
     if options.is_undefined() {

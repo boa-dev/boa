@@ -38,7 +38,7 @@ impl JsObject {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-getprototypeof
     #[track_caller]
-    pub(crate) fn __get_prototype_of__(&self, context: &mut Context<'_>) -> JsResult<JsPrototype> {
+    pub(crate) fn __get_prototype_of__(&self, context: &mut Context) -> JsResult<JsPrototype> {
         let _timer = Profiler::global().start_event("Object::__get_prototype_of__", "object");
         (self.vtable().__get_prototype_of__)(self, context)
     }
@@ -54,7 +54,7 @@ impl JsObject {
     pub(crate) fn __set_prototype_of__(
         &self,
         val: JsPrototype,
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<bool> {
         let _timer = Profiler::global().start_event("Object::__set_prototype_of__", "object");
         (self.vtable().__set_prototype_of__)(self, val, context)
@@ -68,7 +68,7 @@ impl JsObject {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-isextensible
-    pub(crate) fn __is_extensible__(&self, context: &mut Context<'_>) -> JsResult<bool> {
+    pub(crate) fn __is_extensible__(&self, context: &mut Context) -> JsResult<bool> {
         let _timer = Profiler::global().start_event("Object::__is_extensible__", "object");
         (self.vtable().__is_extensible__)(self, context)
     }
@@ -81,7 +81,7 @@ impl JsObject {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-preventextensions
-    pub(crate) fn __prevent_extensions__(&self, context: &mut Context<'_>) -> JsResult<bool> {
+    pub(crate) fn __prevent_extensions__(&self, context: &mut Context) -> JsResult<bool> {
         let _timer = Profiler::global().start_event("Object::__prevent_extensions__", "object");
         (self.vtable().__prevent_extensions__)(self, context)
     }
@@ -97,7 +97,7 @@ impl JsObject {
     pub(crate) fn __get_own_property__(
         &self,
         key: &PropertyKey,
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<Option<PropertyDescriptor>> {
         let _timer = Profiler::global().start_event("Object::__get_own_property__", "object");
         (self.vtable().__get_own_property__)(self, key, context)
@@ -115,7 +115,7 @@ impl JsObject {
         &self,
         key: &PropertyKey,
         desc: PropertyDescriptor,
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<bool> {
         let _timer = Profiler::global().start_event("Object::__define_own_property__", "object");
         (self.vtable().__define_own_property__)(self, key, desc, context)
@@ -132,7 +132,7 @@ impl JsObject {
     pub(crate) fn __has_property__(
         &self,
         key: &PropertyKey,
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<bool> {
         let _timer = Profiler::global().start_event("Object::__has_property__", "object");
         (self.vtable().__has_property__)(self, key, context)
@@ -150,7 +150,7 @@ impl JsObject {
         &self,
         key: &PropertyKey,
         receiver: JsValue,
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         let _timer = Profiler::global().start_event("Object::__get__", "object");
         (self.vtable().__get__)(self, key, receiver, context)
@@ -169,7 +169,7 @@ impl JsObject {
         key: PropertyKey,
         value: JsValue,
         receiver: JsValue,
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<bool> {
         let _timer = Profiler::global().start_event("Object::__set__", "object");
         (self.vtable().__set__)(self, key, value, receiver, context)
@@ -183,11 +183,7 @@ impl JsObject {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-delete-p
-    pub(crate) fn __delete__(
-        &self,
-        key: &PropertyKey,
-        context: &mut Context<'_>,
-    ) -> JsResult<bool> {
+    pub(crate) fn __delete__(&self, key: &PropertyKey, context: &mut Context) -> JsResult<bool> {
         let _timer = Profiler::global().start_event("Object::__delete__", "object");
         (self.vtable().__delete__)(self, key, context)
     }
@@ -203,7 +199,7 @@ impl JsObject {
     #[track_caller]
     pub(crate) fn __own_property_keys__(
         &self,
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<Vec<PropertyKey>> {
         let _timer = Profiler::global().start_event("Object::__own_property_keys__", "object");
         (self.vtable().__own_property_keys__)(self, context)
@@ -283,24 +279,23 @@ pub(crate) static ORDINARY_INTERNAL_METHODS: InternalObjectMethods = InternalObj
 #[derive(Clone, Copy)]
 #[allow(clippy::type_complexity)]
 pub(crate) struct InternalObjectMethods {
-    pub(crate) __get_prototype_of__: fn(&JsObject, &mut Context<'_>) -> JsResult<JsPrototype>,
-    pub(crate) __set_prototype_of__: fn(&JsObject, JsPrototype, &mut Context<'_>) -> JsResult<bool>,
-    pub(crate) __is_extensible__: fn(&JsObject, &mut Context<'_>) -> JsResult<bool>,
-    pub(crate) __prevent_extensions__: fn(&JsObject, &mut Context<'_>) -> JsResult<bool>,
+    pub(crate) __get_prototype_of__: fn(&JsObject, &mut Context) -> JsResult<JsPrototype>,
+    pub(crate) __set_prototype_of__: fn(&JsObject, JsPrototype, &mut Context) -> JsResult<bool>,
+    pub(crate) __is_extensible__: fn(&JsObject, &mut Context) -> JsResult<bool>,
+    pub(crate) __prevent_extensions__: fn(&JsObject, &mut Context) -> JsResult<bool>,
     pub(crate) __get_own_property__:
-        fn(&JsObject, &PropertyKey, &mut Context<'_>) -> JsResult<Option<PropertyDescriptor>>,
+        fn(&JsObject, &PropertyKey, &mut Context) -> JsResult<Option<PropertyDescriptor>>,
     pub(crate) __define_own_property__:
-        fn(&JsObject, &PropertyKey, PropertyDescriptor, &mut Context<'_>) -> JsResult<bool>,
-    pub(crate) __has_property__: fn(&JsObject, &PropertyKey, &mut Context<'_>) -> JsResult<bool>,
-    pub(crate) __get__: fn(&JsObject, &PropertyKey, JsValue, &mut Context<'_>) -> JsResult<JsValue>,
+        fn(&JsObject, &PropertyKey, PropertyDescriptor, &mut Context) -> JsResult<bool>,
+    pub(crate) __has_property__: fn(&JsObject, &PropertyKey, &mut Context) -> JsResult<bool>,
+    pub(crate) __get__: fn(&JsObject, &PropertyKey, JsValue, &mut Context) -> JsResult<JsValue>,
     pub(crate) __set__:
-        fn(&JsObject, PropertyKey, JsValue, JsValue, &mut Context<'_>) -> JsResult<bool>,
-    pub(crate) __delete__: fn(&JsObject, &PropertyKey, &mut Context<'_>) -> JsResult<bool>,
-    pub(crate) __own_property_keys__: fn(&JsObject, &mut Context<'_>) -> JsResult<Vec<PropertyKey>>,
-    pub(crate) __call__:
-        fn(&JsObject, argument_count: usize, &mut Context<'_>) -> JsResult<CallValue>,
+        fn(&JsObject, PropertyKey, JsValue, JsValue, &mut Context) -> JsResult<bool>,
+    pub(crate) __delete__: fn(&JsObject, &PropertyKey, &mut Context) -> JsResult<bool>,
+    pub(crate) __own_property_keys__: fn(&JsObject, &mut Context) -> JsResult<Vec<PropertyKey>>,
+    pub(crate) __call__: fn(&JsObject, argument_count: usize, &mut Context) -> JsResult<CallValue>,
     pub(crate) __construct__:
-        fn(&JsObject, argument_count: usize, &mut Context<'_>) -> JsResult<CallValue>,
+        fn(&JsObject, argument_count: usize, &mut Context) -> JsResult<CallValue>,
 }
 
 /// The return value of an internal method (`[[Call]]` or `[[Construct]]`).
@@ -314,7 +309,7 @@ pub(crate) enum CallValue {
 
     /// Further processing is needed.
     Pending {
-        func: fn(&JsObject, argument_count: usize, &mut Context<'_>) -> JsResult<CallValue>,
+        func: fn(&JsObject, argument_count: usize, &mut Context) -> JsResult<CallValue>,
         object: JsObject,
         argument_count: usize,
     },
@@ -325,7 +320,7 @@ pub(crate) enum CallValue {
 
 impl CallValue {
     /// Resolves the [`CallValue`], and return if the value is complete.
-    pub(crate) fn resolve(mut self, context: &mut Context<'_>) -> JsResult<bool> {
+    pub(crate) fn resolve(mut self, context: &mut Context) -> JsResult<bool> {
         while let Self::Pending {
             func,
             object,
@@ -348,7 +343,7 @@ impl CallValue {
 #[allow(clippy::unnecessary_wraps)]
 pub(crate) fn ordinary_get_prototype_of(
     obj: &JsObject,
-    _context: &mut Context<'_>,
+    _context: &mut Context,
 ) -> JsResult<JsPrototype> {
     let _timer = Profiler::global().start_event("Object::ordinary_get_prototype_of", "object");
 
@@ -366,7 +361,7 @@ pub(crate) fn ordinary_get_prototype_of(
 pub(crate) fn ordinary_set_prototype_of(
     obj: &JsObject,
     val: JsPrototype,
-    _: &mut Context<'_>,
+    _: &mut Context,
 ) -> JsResult<bool> {
     // 1. Assert: Either Type(V) is Object or Type(V) is Null.
     // 2. Let current be O.[[Prototype]].
@@ -419,7 +414,7 @@ pub(crate) fn ordinary_set_prototype_of(
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-ordinaryisextensible
 #[allow(clippy::unnecessary_wraps)]
-pub(crate) fn ordinary_is_extensible(obj: &JsObject, _context: &mut Context<'_>) -> JsResult<bool> {
+pub(crate) fn ordinary_is_extensible(obj: &JsObject, _context: &mut Context) -> JsResult<bool> {
     // 1. Return O.[[Extensible]].
     Ok(obj.borrow().extensible)
 }
@@ -433,7 +428,7 @@ pub(crate) fn ordinary_is_extensible(obj: &JsObject, _context: &mut Context<'_>)
 #[allow(clippy::unnecessary_wraps)]
 pub(crate) fn ordinary_prevent_extensions(
     obj: &JsObject,
-    _context: &mut Context<'_>,
+    _context: &mut Context,
 ) -> JsResult<bool> {
     // 1. Set O.[[Extensible]] to false.
     obj.borrow_mut().extensible = false;
@@ -452,7 +447,7 @@ pub(crate) fn ordinary_prevent_extensions(
 pub(crate) fn ordinary_get_own_property(
     obj: &JsObject,
     key: &PropertyKey,
-    _context: &mut Context<'_>,
+    _context: &mut Context,
 ) -> JsResult<Option<PropertyDescriptor>> {
     let _timer = Profiler::global().start_event("Object::ordinary_get_own_property", "object");
     // 1. Assert: IsPropertyKey(P) is true.
@@ -482,7 +477,7 @@ pub(crate) fn ordinary_define_own_property(
     obj: &JsObject,
     key: &PropertyKey,
     desc: PropertyDescriptor,
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) -> JsResult<bool> {
     let _timer = Profiler::global().start_event("Object::ordinary_define_own_property", "object");
     // 1. Let current be ? O.[[GetOwnProperty]](P).
@@ -509,7 +504,7 @@ pub(crate) fn ordinary_define_own_property(
 pub(crate) fn ordinary_has_property(
     obj: &JsObject,
     key: &PropertyKey,
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) -> JsResult<bool> {
     let _timer = Profiler::global().start_event("Object::ordinary_has_property", "object");
     // 1. Assert: IsPropertyKey(P) is true.
@@ -539,7 +534,7 @@ pub(crate) fn ordinary_get(
     obj: &JsObject,
     key: &PropertyKey,
     receiver: JsValue,
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) -> JsResult<JsValue> {
     let _timer = Profiler::global().start_event("Object::ordinary_get", "object");
     // 1. Assert: IsPropertyKey(P) is true.
@@ -585,7 +580,7 @@ pub(crate) fn ordinary_set(
     key: PropertyKey,
     value: JsValue,
     receiver: JsValue,
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) -> JsResult<bool> {
     let _timer = Profiler::global().start_event("Object::ordinary_set", "object");
 
@@ -684,7 +679,7 @@ pub(crate) fn ordinary_set(
 pub(crate) fn ordinary_delete(
     obj: &JsObject,
     key: &PropertyKey,
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) -> JsResult<bool> {
     let _timer = Profiler::global().start_event("Object::ordinary_delete", "object");
     // 1. Assert: IsPropertyKey(P) is true.
@@ -715,7 +710,7 @@ pub(crate) fn ordinary_delete(
 #[allow(clippy::unnecessary_wraps)]
 pub(crate) fn ordinary_own_property_keys(
     obj: &JsObject,
-    _context: &mut Context<'_>,
+    _context: &mut Context,
 ) -> JsResult<Vec<PropertyKey>> {
     let _timer = Profiler::global().start_event("Object::ordinary_own_property_keys", "object");
     // 1. Let keys be a new empty List.
@@ -921,7 +916,7 @@ pub(crate) fn validate_and_apply_property_descriptor(
 pub(crate) fn get_prototype_from_constructor<F>(
     constructor: &JsValue,
     default: F,
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) -> JsResult<JsObject>
 where
     F: FnOnce(&StandardConstructors) -> &StandardConstructor,
@@ -949,7 +944,7 @@ where
 pub(crate) fn non_existant_call(
     _obj: &JsObject,
     _argument_count: usize,
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) -> JsResult<CallValue> {
     Err(JsNativeError::typ()
         .with_message("not a callable function")
@@ -960,7 +955,7 @@ pub(crate) fn non_existant_call(
 pub(crate) fn non_existant_construct(
     _obj: &JsObject,
     _argument_count: usize,
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) -> JsResult<CallValue> {
     Err(JsNativeError::typ()
         .with_message("not a constructor")

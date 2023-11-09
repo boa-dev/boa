@@ -18,7 +18,7 @@ impl Operation for PushNewArray {
     const INSTRUCTION: &'static str = "INST - PushNewArray";
     const COST: u8 = 3;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let array = context
             .intrinsics()
             .templates()
@@ -41,7 +41,7 @@ impl Operation for PushValueToArray {
     const INSTRUCTION: &'static str = "INST - PushValueToArray";
     const COST: u8 = 3;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let value = context.vm.pop();
         let array = context.vm.pop();
         let o = array.as_object().expect("should be an object");
@@ -67,7 +67,7 @@ impl Operation for PushElisionToArray {
     const INSTRUCTION: &'static str = "INST - PushElisionToArray";
     const COST: u8 = 3;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let array = context.vm.pop();
         let o = array.as_object().expect("should always be an object");
 
@@ -93,7 +93,7 @@ impl Operation for PushIteratorToArray {
     const INSTRUCTION: &'static str = "INST - PushIteratorToArray";
     const COST: u8 = 8;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let mut iterator = context
             .vm
             .frame_mut()

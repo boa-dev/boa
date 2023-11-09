@@ -2,7 +2,7 @@ use super::ByteCompiler;
 use crate::environments::CompileTimeEnvironment;
 use std::rc::Rc;
 
-impl ByteCompiler<'_, '_> {
+impl ByteCompiler<'_> {
     /// Push either a new declarative or function environment on the compile time environment stack.
     #[must_use]
     pub(crate) fn push_compile_environment(&mut self, function_scope: bool) -> u32 {

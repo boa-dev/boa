@@ -46,12 +46,12 @@ pub struct JsDate {
 impl JsDate {
     /// Create a new `Date` object with universal time.
     #[inline]
-    pub fn new(context: &mut Context<'_>) -> Self {
+    pub fn new(context: &mut Context) -> Self {
         let prototype = context.intrinsics().constructors().date().prototype();
         let inner = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            ObjectData::date(Date::utc_now(&*context.host_hooks())),
+            ObjectData::date(Date::utc_now(context.host_hooks())),
         );
 
         Self { inner }
@@ -73,7 +73,7 @@ impl JsDate {
     ///
     /// Same as JavaScript's `Date.now()`
     #[inline]
-    pub fn now(context: &mut Context<'_>) -> JsResult<JsValue> {
+    pub fn now(context: &mut Context) -> JsResult<JsValue> {
         Date::now(&JsValue::Null, &[JsValue::Null], context)
     }
 
@@ -85,7 +85,7 @@ impl JsDate {
     ///
     /// Same as JavaScript's `Date.parse(value)`.
     #[inline]
-    pub fn parse(value: JsValue, context: &mut Context<'_>) -> JsResult<JsValue> {
+    pub fn parse(value: JsValue, context: &mut Context) -> JsResult<JsValue> {
         Date::parse(&JsValue::Null, &[value], context)
     }
 
@@ -94,7 +94,7 @@ impl JsDate {
     ///
     /// Same as JavaScript's `Date.UTC()`
     #[inline]
-    pub fn utc(values: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+    pub fn utc(values: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Date::utc(&JsValue::Null, values, context)
     }
 
@@ -103,7 +103,7 @@ impl JsDate {
     ///
     /// Same as JavaScript's `Date.prototype.getDate()`.
     #[inline]
-    pub fn get_date(&self, context: &mut Context<'_>) -> JsResult<JsValue> {
+    pub fn get_date(&self, context: &mut Context) -> JsResult<JsValue> {
         Date::get_date::<true>(&self.inner.clone().into(), &[JsValue::null()], context)
     }
 
@@ -112,7 +112,7 @@ impl JsDate {
     ///
     /// Same as JavaScript's `Date.prototype.getDay()`.
     #[inline]
-    pub fn get_day(&self, context: &mut Context<'_>) -> JsResult<JsValue> {
+    pub fn get_day(&self, context: &mut Context) -> JsResult<JsValue> {
         Date::get_day::<true>(&self.inner.clone().into(), &[JsValue::null()], context)
     }
 
@@ -121,7 +121,7 @@ impl JsDate {
     ///
     /// Same as JavaScript's `Date.prototype.getFullYear()`.
     #[inline]
-    pub fn get_full_year(&self, context: &mut Context<'_>) -> JsResult<JsValue> {
+    pub fn get_full_year(&self, context: &mut Context) -> JsResult<JsValue> {
         Date::get_full_year::<true>(&self.inner.clone().into(), &[JsValue::null()], context)
     }
 
@@ -129,7 +129,7 @@ impl JsDate {
     ///
     /// Same as JavaScript's `Date.prototype.getHours()`.
     #[inline]
-    pub fn get_hours(&self, context: &mut Context<'_>) -> JsResult<JsValue> {
+    pub fn get_hours(&self, context: &mut Context) -> JsResult<JsValue> {
         Date::get_hours::<true>(&self.inner.clone().into(), &[JsValue::null()], context)
     }
 
@@ -138,7 +138,7 @@ impl JsDate {
     ///
     /// Same as JavaScript's `Date.prototype.getMilliseconds()`.
     #[inline]
-    pub fn get_milliseconds(&self, context: &mut Context<'_>) -> JsResult<JsValue> {
+    pub fn get_milliseconds(&self, context: &mut Context) -> JsResult<JsValue> {
         Date::get_milliseconds::<true>(&self.inner.clone().into(), &[JsValue::null()], context)
     }
 
@@ -146,7 +146,7 @@ impl JsDate {
     ///
     /// Same as JavaScript's `Date.prototype.getMinutes()`.
     #[inline]
-    pub fn get_minutes(&self, context: &mut Context<'_>) -> JsResult<JsValue> {
+    pub fn get_minutes(&self, context: &mut Context) -> JsResult<JsValue> {
         Date::get_minutes::<true>(&self.inner.clone().into(), &[JsValue::null()], context)
     }
 
@@ -154,7 +154,7 @@ impl JsDate {
     ///
     /// Same as JavaScript's `Date.prototype.getMonth()`.
     #[inline]
-    pub fn get_month(&self, context: &mut Context<'_>) -> JsResult<JsValue> {
+    pub fn get_month(&self, context: &mut Context) -> JsResult<JsValue> {
         Date::get_month::<true>(&self.inner.clone().into(), &[JsValue::null()], context)
     }
 
@@ -162,7 +162,7 @@ impl JsDate {
     ///
     /// Same as JavaScript's `Date.prototype.getSeconds()`.
     #[inline]
-    pub fn get_seconds(&self, context: &mut Context<'_>) -> JsResult<JsValue> {
+    pub fn get_seconds(&self, context: &mut Context) -> JsResult<JsValue> {
         Date::get_seconds::<true>(&self.inner.clone().into(), &[JsValue::null()], context)
     }
 
@@ -172,7 +172,7 @@ impl JsDate {
     ///
     /// Same as JavaScript's `Date.prototype.getTime()`.
     #[inline]
-    pub fn get_time(&self, context: &mut Context<'_>) -> JsResult<JsValue> {
+    pub fn get_time(&self, context: &mut Context) -> JsResult<JsValue> {
         Date::get_time(&self.inner.clone().into(), &[JsValue::null()], context)
     }
 
@@ -180,7 +180,7 @@ impl JsDate {
     ///
     /// Same as JavaScript's `Date.prototype.getTimezoneOffset()`.
     #[inline]
-    pub fn get_timezone_offset(&self, context: &mut Context<'_>) -> JsResult<JsValue> {
+    pub fn get_timezone_offset(&self, context: &mut Context) -> JsResult<JsValue> {
         Date::get_timezone_offset(&self.inner.clone().into(), &[JsValue::Null], context)
     }
 
@@ -189,7 +189,7 @@ impl JsDate {
     ///
     /// Same as JavaScript's `Date.prototype.getUTCDate()`.
     #[inline]
-    pub fn get_utc_date(&self, context: &mut Context<'_>) -> JsResult<JsValue> {
+    pub fn get_utc_date(&self, context: &mut Context) -> JsResult<JsValue> {
         Date::get_date::<false>(&self.inner.clone().into(), &[JsValue::null()], context)
     }
 
@@ -198,7 +198,7 @@ impl JsDate {
     ///
     /// Same as JavaScript's `Date.prototype.getUTCDay()`.
     #[inline]
-    pub fn get_utc_day(&self, context: &mut Context<'_>) -> JsResult<JsValue> {
+    pub fn get_utc_day(&self, context: &mut Context) -> JsResult<JsValue> {
         Date::get_day::<false>(&self.inner.clone().into(), &[JsValue::null()], context)
     }
 
@@ -207,7 +207,7 @@ impl JsDate {
     ///
     /// Same as JavaScript's `Date.prototype.getUTCFullYear()`.
     #[inline]
-    pub fn get_utc_full_year(&self, context: &mut Context<'_>) -> JsResult<JsValue> {
+    pub fn get_utc_full_year(&self, context: &mut Context) -> JsResult<JsValue> {
         Date::get_full_year::<false>(&self.inner.clone().into(), &[JsValue::null()], context)
     }
 
@@ -216,7 +216,7 @@ impl JsDate {
     ///
     /// Same as JavaScript's `Date.prototype.getUTCHours()`.
     #[inline]
-    pub fn get_utc_hours(&self, context: &mut Context<'_>) -> JsResult<JsValue> {
+    pub fn get_utc_hours(&self, context: &mut Context) -> JsResult<JsValue> {
         Date::get_hours::<false>(&self.inner.clone().into(), &[JsValue::null()], context)
     }
 
@@ -225,7 +225,7 @@ impl JsDate {
     ///
     /// Same as JavaScript's `Date.prototype.getUTCMilliseconds()`.
     #[inline]
-    pub fn get_utc_milliseconds(&self, context: &mut Context<'_>) -> JsResult<JsValue> {
+    pub fn get_utc_milliseconds(&self, context: &mut Context) -> JsResult<JsValue> {
         Date::get_milliseconds::<false>(&self.inner.clone().into(), &[JsValue::null()], context)
     }
 
@@ -234,7 +234,7 @@ impl JsDate {
     ///
     /// Same as JavaScript's `Date.prototype.getUTCMinutes()`.
     #[inline]
-    pub fn get_utc_minutes(&self, context: &mut Context<'_>) -> JsResult<JsValue> {
+    pub fn get_utc_minutes(&self, context: &mut Context) -> JsResult<JsValue> {
         Date::get_minutes::<false>(&self.inner.clone().into(), &[JsValue::null()], context)
     }
 
@@ -243,7 +243,7 @@ impl JsDate {
     ///
     /// Same as JavaScript's `Date.prototype.getUTCMonth()`.
     #[inline]
-    pub fn get_utc_month(&self, context: &mut Context<'_>) -> JsResult<JsValue> {
+    pub fn get_utc_month(&self, context: &mut Context) -> JsResult<JsValue> {
         Date::get_month::<false>(&self.inner.clone().into(), &[JsValue::null()], context)
     }
 
@@ -252,7 +252,7 @@ impl JsDate {
     ///
     /// Same as JavaScript's `Date.prototype.getUTCSeconds()`.
     #[inline]
-    pub fn get_utc_seconds(&self, context: &mut Context<'_>) -> JsResult<JsValue> {
+    pub fn get_utc_seconds(&self, context: &mut Context) -> JsResult<JsValue> {
         Date::get_seconds::<false>(&self.inner.clone().into(), &[JsValue::null()], context)
     }
 
@@ -263,7 +263,7 @@ impl JsDate {
     /// the UNIX epoch and the given date.
     ///
     /// Same as JavaScript's `Date.prototype.setDate()`.
-    pub fn set_date<T>(&self, value: T, context: &mut Context<'_>) -> JsResult<JsValue>
+    pub fn set_date<T>(&self, value: T, context: &mut Context) -> JsResult<JsValue>
     where
         T: Into<JsValue>,
     {
@@ -278,11 +278,7 @@ impl JsDate {
     ///
     /// Same as JavaScript's `Date.prototype.setFullYear()`.
     #[inline]
-    pub fn set_full_year(
-        &self,
-        values: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    pub fn set_full_year(&self, values: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Date::set_full_year::<true>(&self.inner.clone().into(), values, context)
     }
 
@@ -293,7 +289,7 @@ impl JsDate {
     ///
     /// Same as JavaScript's `Date.prototype.setHours()`.
     #[inline]
-    pub fn set_hours(&self, values: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+    pub fn set_hours(&self, values: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Date::set_hours::<true>(&self.inner.clone().into(), values, context)
     }
 
@@ -303,7 +299,7 @@ impl JsDate {
     /// the UNIX epoch and updated date.
     ///
     /// Same as JavaScript's `Date.prototype.setMilliseconds()`.
-    pub fn set_milliseconds<T>(&self, value: T, context: &mut Context<'_>) -> JsResult<JsValue>
+    pub fn set_milliseconds<T>(&self, value: T, context: &mut Context) -> JsResult<JsValue>
     where
         T: Into<JsValue>,
     {
@@ -317,7 +313,7 @@ impl JsDate {
     ///
     /// Same as JavaScript's `Date.prototype.setMinutes()`.
     #[inline]
-    pub fn set_minutes(&self, values: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+    pub fn set_minutes(&self, values: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Date::set_minutes::<true>(&self.inner.clone().into(), values, context)
     }
 
@@ -328,7 +324,7 @@ impl JsDate {
     ///
     /// Same as JavaScript's `Date.prototype.setMonth()`.
     #[inline]
-    pub fn set_month(&self, values: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+    pub fn set_month(&self, values: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Date::set_month::<true>(&self.inner.clone().into(), values, context)
     }
 
@@ -339,7 +335,7 @@ impl JsDate {
     ///
     /// Same as JavaScript's `Date.prototype.setSeconds()`.
     #[inline]
-    pub fn set_seconds(&self, values: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+    pub fn set_seconds(&self, values: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Date::set_seconds::<true>(&self.inner.clone().into(), values, context)
     }
 
@@ -351,7 +347,7 @@ impl JsDate {
     /// the UNIX epoch and the updated date.
     ///
     /// Same as JavaScript's `Date.prototype.setTime()`.
-    pub fn set_time<T>(&self, value: T, context: &mut Context<'_>) -> JsResult<JsValue>
+    pub fn set_time<T>(&self, value: T, context: &mut Context) -> JsResult<JsValue>
     where
         T: Into<JsValue>,
     {
@@ -365,7 +361,7 @@ impl JsDate {
     /// the UNIX epoch and the updated date.
     ///
     /// Same as JavaScript's `Date.prototype.setUTCDate()`.
-    pub fn set_utc_date<T>(&self, value: T, context: &mut Context<'_>) -> JsResult<JsValue>
+    pub fn set_utc_date<T>(&self, value: T, context: &mut Context) -> JsResult<JsValue>
     where
         T: Into<JsValue>,
     {
@@ -383,7 +379,7 @@ impl JsDate {
     pub fn set_utc_full_year(
         &self,
         values: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         Date::set_full_year::<false>(&self.inner.clone().into(), values, context)
     }
@@ -395,11 +391,7 @@ impl JsDate {
     ///
     /// Same as JavaScript's `Date.prototype.setUTCHours()`.
     #[inline]
-    pub fn set_utc_hours(
-        &self,
-        values: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    pub fn set_utc_hours(&self, values: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Date::set_hours::<false>(&self.inner.clone().into(), values, context)
     }
 
@@ -409,7 +401,7 @@ impl JsDate {
     /// the UNIX epoch and the updated date.
     ///
     /// Same as JavaScript's `Date.prototype.setUTCMilliseconds()`.
-    pub fn set_utc_milliseconds<T>(&self, value: T, context: &mut Context<'_>) -> JsResult<JsValue>
+    pub fn set_utc_milliseconds<T>(&self, value: T, context: &mut Context) -> JsResult<JsValue>
     where
         T: Into<JsValue>,
     {
@@ -423,11 +415,7 @@ impl JsDate {
     ///
     /// Same as JavaScript's `Date.prototype.setUTCMinutes()`.
     #[inline]
-    pub fn set_utc_minutes(
-        &self,
-        values: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    pub fn set_utc_minutes(&self, values: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Date::set_minutes::<false>(&self.inner.clone().into(), values, context)
     }
 
@@ -438,11 +426,7 @@ impl JsDate {
     ///
     /// Same as JavaScript's `Date.prototype.setUTCMonth()`.
     #[inline]
-    pub fn set_utc_month(
-        &self,
-        values: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    pub fn set_utc_month(&self, values: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Date::set_month::<false>(&self.inner.clone().into(), values, context)
     }
 
@@ -453,11 +437,7 @@ impl JsDate {
     ///
     /// Same as JavaScript's `Date.prototype.setUTCSeconds()`.
     #[inline]
-    pub fn set_utc_seconds(
-        &self,
-        values: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    pub fn set_utc_seconds(&self, values: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Date::set_seconds::<false>(&self.inner.clone().into(), values, context)
     }
 
@@ -465,7 +445,7 @@ impl JsDate {
     ///
     /// Same as JavaScript's `Date.prototype.toDateString()`.
     #[inline]
-    pub fn to_date_string(&self, context: &mut Context<'_>) -> JsResult<JsValue> {
+    pub fn to_date_string(&self, context: &mut Context) -> JsResult<JsValue> {
         Date::to_date_string(&self.inner.clone().into(), &[JsValue::Null], context)
     }
 
@@ -476,7 +456,7 @@ impl JsDate {
     /// Same as JavaScript's legacy `Date.prototype.toGMTString()`
     #[deprecated]
     #[inline]
-    pub fn to_gmt_string(&self, context: &mut Context<'_>) -> JsResult<JsValue> {
+    pub fn to_gmt_string(&self, context: &mut Context) -> JsResult<JsValue> {
         Date::to_utc_string(&self.inner.clone().into(), &[JsValue::Null], context)
     }
 
@@ -485,7 +465,7 @@ impl JsDate {
     ///
     /// Same as JavaScript's `Date.prototype.toISOString()`.
     #[inline]
-    pub fn to_iso_string(&self, context: &mut Context<'_>) -> JsResult<JsValue> {
+    pub fn to_iso_string(&self, context: &mut Context) -> JsResult<JsValue> {
         Date::to_iso_string(&self.inner.clone().into(), &[JsValue::Null], context)
     }
 
@@ -493,7 +473,7 @@ impl JsDate {
     ///
     /// Same as JavaScript's `Date.prototype.toJSON()`.
     #[inline]
-    pub fn to_json(&self, context: &mut Context<'_>) -> JsResult<JsValue> {
+    pub fn to_json(&self, context: &mut Context) -> JsResult<JsValue> {
         Date::to_json(&self.inner.clone().into(), &[JsValue::Null], context)
     }
 
@@ -506,7 +486,7 @@ impl JsDate {
     pub fn to_local_date_string(
         &self,
         values: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         Date::to_locale_date_string(&self.inner.clone().into(), values, context)
     }
@@ -516,11 +496,7 @@ impl JsDate {
     ///
     /// Same as JavaScript's `Date.prototype.toLocaleDateString()`.
     #[inline]
-    pub fn to_locale_string(
-        &self,
-        values: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    pub fn to_locale_string(&self, values: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Date::to_locale_string(&self.inner.clone().into(), values, context)
     }
 
@@ -531,7 +507,7 @@ impl JsDate {
     pub fn to_locale_time_string(
         &self,
         values: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         Date::to_locale_time_string(&self.inner.clone().into(), values, context)
     }
@@ -540,7 +516,7 @@ impl JsDate {
     ///
     /// Same as JavaScript's `Date.prototype.toString()`.
     #[inline]
-    pub fn to_string(&self, context: &mut Context<'_>) -> JsResult<JsValue> {
+    pub fn to_string(&self, context: &mut Context) -> JsResult<JsValue> {
         Date::to_string(&self.inner.clone().into(), &[JsValue::Null], context)
     }
 
@@ -548,7 +524,7 @@ impl JsDate {
     ///
     /// Same as JavaScript's `Date.prototype.toTimeString()`.
     #[inline]
-    pub fn to_time_string(&self, context: &mut Context<'_>) -> JsResult<JsValue> {
+    pub fn to_time_string(&self, context: &mut Context) -> JsResult<JsValue> {
         Date::to_time_string(&self.inner.clone().into(), &[JsValue::Null], context)
     }
 
@@ -556,7 +532,7 @@ impl JsDate {
     ///
     /// Same as JavaScript's `Date.prototype.toUTCString()`.
     #[inline]
-    pub fn to_utc_string(&self, context: &mut Context<'_>) -> JsResult<JsValue> {
+    pub fn to_utc_string(&self, context: &mut Context) -> JsResult<JsValue> {
         Date::to_utc_string(&self.inner.clone().into(), &[JsValue::Null], context)
     }
 
@@ -564,12 +540,12 @@ impl JsDate {
     ///
     /// Same as JavaScript's `Date.prototype.valueOf()`.
     #[inline]
-    pub fn value_of(&self, context: &mut Context<'_>) -> JsResult<JsValue> {
+    pub fn value_of(&self, context: &mut Context) -> JsResult<JsValue> {
         Date::value_of(&self.inner.clone().into(), &[JsValue::Null], context)
     }
 
     /// Utility create a `Date` object from RFC3339 string
-    pub fn new_from_parse(value: &JsValue, context: &mut Context<'_>) -> JsResult<Self> {
+    pub fn new_from_parse(value: &JsValue, context: &mut Context) -> JsResult<Self> {
         let prototype = context.intrinsics().constructors().date().prototype();
         let string = value
             .to_string(context)?
@@ -615,7 +591,7 @@ impl Deref for JsDate {
 impl JsObjectType for JsDate {}
 
 impl TryFromJs for JsDate {
-    fn try_from_js(value: &JsValue, _context: &mut Context<'_>) -> JsResult<Self> {
+    fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {
         match value {
             JsValue::Object(o) => Self::from_object(o.clone()),
             _ => Err(JsNativeError::typ()

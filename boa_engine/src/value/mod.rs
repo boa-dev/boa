@@ -350,7 +350,7 @@ impl JsValue {
     /// <https://tc39.es/ecma262/#sec-toprimitive>
     pub fn to_primitive(
         &self,
-        context: &mut Context<'_>,
+        context: &mut Context,
         preferred_type: PreferredType,
     ) -> JsResult<Self> {
         // 1. Assert: input is an ECMAScript language value. (always a value not need to check)
@@ -406,7 +406,7 @@ impl JsValue {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-tobigint
-    pub fn to_bigint(&self, context: &mut Context<'_>) -> JsResult<JsBigInt> {
+    pub fn to_bigint(&self, context: &mut Context) -> JsResult<JsBigInt> {
         match self {
             Self::Null => Err(JsNativeError::typ()
                 .with_message("cannot convert null to a BigInt")
@@ -467,7 +467,7 @@ impl JsValue {
     /// Converts the value to a string.
     ///
     /// This function is equivalent to `String(value)` in JavaScript.
-    pub fn to_string(&self, context: &mut Context<'_>) -> JsResult<JsString> {
+    pub fn to_string(&self, context: &mut Context) -> JsResult<JsString> {
         match self {
             Self::Null => Ok("null".into()),
             Self::Undefined => Ok("undefined".into()),
@@ -491,7 +491,7 @@ impl JsValue {
     /// This function is equivalent to `Object(value)` in JavaScript.
     ///
     /// See: <https://tc39.es/ecma262/#sec-toobject>
-    pub fn to_object(&self, context: &mut Context<'_>) -> JsResult<JsObject> {
+    pub fn to_object(&self, context: &mut Context) -> JsResult<JsObject> {
         // TODO: add fast paths with object template
         match self {
             Self::Undefined | Self::Null => Err(JsNativeError::typ()
@@ -533,7 +533,7 @@ impl JsValue {
     /// Converts the value to a `PropertyKey`, that can be used as a key for properties.
     ///
     /// See <https://tc39.es/ecma262/#sec-topropertykey>
-    pub fn to_property_key(&self, context: &mut Context<'_>) -> JsResult<PropertyKey> {
+    pub fn to_property_key(&self, context: &mut Context) -> JsResult<PropertyKey> {
         Ok(match self {
             // Fast path:
             Self::String(string) => string.clone().into(),
@@ -553,7 +553,7 @@ impl JsValue {
     /// It returns value converted to a numeric value of type `Number` or `BigInt`.
     ///
     /// See: <https://tc39.es/ecma262/#sec-tonumeric>
-    pub fn to_numeric(&self, context: &mut Context<'_>) -> JsResult<Numeric> {
+    pub fn to_numeric(&self, context: &mut Context) -> JsResult<Numeric> {
         // 1. Let primValue be ? ToPrimitive(value, number).
         let primitive = self.to_primitive(context, PreferredType::Number)?;
 
@@ -571,7 +571,7 @@ impl JsValue {
     /// This function is equivalent to `value | 0` in JavaScript
     ///
     /// See: <https://tc39.es/ecma262/#sec-touint32>
-    pub fn to_u32(&self, context: &mut Context<'_>) -> JsResult<u32> {
+    pub fn to_u32(&self, context: &mut Context) -> JsResult<u32> {
         // This is the fast path, if the value is Integer we can just return it.
         if let Self::Integer(number) = *self {
             if let Ok(number) = u32::try_from(number) {
@@ -586,7 +586,7 @@ impl JsValue {
     /// Converts a value to an integral 32 bit signed integer.
     ///
     /// See: <https://tc39.es/ecma262/#sec-toint32>
-    pub fn to_i32(&self, context: &mut Context<'_>) -> JsResult<i32> {
+    pub fn to_i32(&self, context: &mut Context) -> JsResult<i32> {
         // This is the fast path, if the value is Integer we can just return it.
         if let Self::Integer(number) = *self {
             return Ok(number);
@@ -602,7 +602,7 @@ impl JsValue {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-toint8
-    pub fn to_int8(&self, context: &mut Context<'_>) -> JsResult<i8> {
+    pub fn to_int8(&self, context: &mut Context) -> JsResult<i8> {
         // 1. Let number be ? ToNumber(argument).
         let number = self.to_number(context)?;
 
@@ -631,7 +631,7 @@ impl JsValue {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-touint8
-    pub fn to_uint8(&self, context: &mut Context<'_>) -> JsResult<u8> {
+    pub fn to_uint8(&self, context: &mut Context) -> JsResult<u8> {
         // 1. Let number be ? ToNumber(argument).
         let number = self.to_number(context)?;
 
@@ -656,7 +656,7 @@ impl JsValue {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-touint8clamp
-    pub fn to_uint8_clamp(&self, context: &mut Context<'_>) -> JsResult<u8> {
+    pub fn to_uint8_clamp(&self, context: &mut Context) -> JsResult<u8> {
         // 1. Let number be ? ToNumber(argument).
         let number = self.to_number(context)?;
 
@@ -703,7 +703,7 @@ impl JsValue {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-toint16
-    pub fn to_int16(&self, context: &mut Context<'_>) -> JsResult<i16> {
+    pub fn to_int16(&self, context: &mut Context) -> JsResult<i16> {
         // 1. Let number be ? ToNumber(argument).
         let number = self.to_number(context)?;
 
@@ -732,7 +732,7 @@ impl JsValue {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-touint16
-    pub fn to_uint16(&self, context: &mut Context<'_>) -> JsResult<u16> {
+    pub fn to_uint16(&self, context: &mut Context) -> JsResult<u16> {
         // 1. Let number be ? ToNumber(argument).
         let number = self.to_number(context)?;
 
@@ -757,7 +757,7 @@ impl JsValue {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-tobigint64
-    pub fn to_big_int64(&self, context: &mut Context<'_>) -> JsResult<i64> {
+    pub fn to_big_int64(&self, context: &mut Context) -> JsResult<i64> {
         // 1. Let n be ? ToBigInt(argument).
         let n = self.to_bigint(context)?;
 
@@ -782,7 +782,7 @@ impl JsValue {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-tobiguint64
-    pub fn to_big_uint64(&self, context: &mut Context<'_>) -> JsResult<u64> {
+    pub fn to_big_uint64(&self, context: &mut Context) -> JsResult<u64> {
         // 1. Let n be ? ToBigInt(argument).
         let n = self.to_bigint(context)?;
 
@@ -797,7 +797,7 @@ impl JsValue {
     /// Converts a value to a non-negative integer if it is a valid integer index value.
     ///
     /// See: <https://tc39.es/ecma262/#sec-toindex>
-    pub fn to_index(&self, context: &mut Context<'_>) -> JsResult<u64> {
+    pub fn to_index(&self, context: &mut Context) -> JsResult<u64> {
         // 1. If value is undefined, then
         if self.is_undefined() {
             // a. Return 0.
@@ -828,7 +828,7 @@ impl JsValue {
     /// Converts argument to an integer suitable for use as the length of an array-like object.
     ///
     /// See: <https://tc39.es/ecma262/#sec-tolength>
-    pub fn to_length(&self, context: &mut Context<'_>) -> JsResult<u64> {
+    pub fn to_length(&self, context: &mut Context) -> JsResult<u64> {
         // 1. Let len be ? ToInteger(argument).
         // 2. If len ≤ +0, return +0.
         // 3. Return min(len, 2^53 - 1).
@@ -846,7 +846,7 @@ impl JsValue {
     /// - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-tointegerorinfinity
-    pub fn to_integer_or_infinity(&self, context: &mut Context<'_>) -> JsResult<IntegerOrInfinity> {
+    pub fn to_integer_or_infinity(&self, context: &mut Context) -> JsResult<IntegerOrInfinity> {
         // 1. Let number be ? ToNumber(argument).
         let number = self.to_number(context)?;
 
@@ -858,7 +858,7 @@ impl JsValue {
     ///
     /// This function is almost the same as [`Self::to_integer_or_infinity`], but with the exception
     /// that this will return `Nan` if [`Self::to_number`] returns a non-finite number.
-    pub(crate) fn to_integer_or_nan(&self, context: &mut Context<'_>) -> JsResult<IntegerOrNan> {
+    pub(crate) fn to_integer_or_nan(&self, context: &mut Context) -> JsResult<IntegerOrNan> {
         // 1. Let number be ? ToNumber(argument).
         let number = self.to_number(context)?;
 
@@ -875,7 +875,7 @@ impl JsValue {
     /// This function is equivalent to the unary `+` operator (`+value`) in JavaScript
     ///
     /// See: <https://tc39.es/ecma262/#sec-tonumber>
-    pub fn to_number(&self, context: &mut Context<'_>) -> JsResult<f64> {
+    pub fn to_number(&self, context: &mut Context) -> JsResult<f64> {
         match *self {
             Self::Null => Ok(0.0),
             Self::Undefined => Ok(f64::NAN),
@@ -901,7 +901,7 @@ impl JsValue {
     /// This function is equivalent to `Number(value)` in JavaScript
     ///
     /// See: <https://tc39.es/ecma262/#sec-tonumeric>
-    pub fn to_numeric_number(&self, context: &mut Context<'_>) -> JsResult<f64> {
+    pub fn to_numeric_number(&self, context: &mut Context) -> JsResult<f64> {
         let primitive = self.to_primitive(context, PreferredType::Number)?;
         if let Some(bigint) = primitive.as_bigint() {
             return Ok(bigint.to_f64());
@@ -938,10 +938,7 @@ impl JsValue {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-topropertydescriptor
     #[inline]
-    pub fn to_property_descriptor(
-        &self,
-        context: &mut Context<'_>,
-    ) -> JsResult<PropertyDescriptor> {
+    pub fn to_property_descriptor(&self, context: &mut Context) -> JsResult<PropertyDescriptor> {
         // 1. If Type(Obj) is not Object, throw a TypeError exception.
         self.as_object()
             .ok_or_else(|| {

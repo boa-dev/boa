@@ -18,7 +18,7 @@ pub(crate) struct DefVar;
 
 impl DefVar {
     #[allow(clippy::unnecessary_wraps)]
-    fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
+    fn operation(context: &mut Context, index: usize) -> JsResult<CompletionType> {
         // TODO: spec specifies to return `empty` on empty vars, but we're trying to initialize.
         let binding_locator = context.vm.frame().code_block.bindings[index];
 
@@ -36,17 +36,17 @@ impl Operation for DefVar {
     const INSTRUCTION: &'static str = "INST - DefVar";
     const COST: u8 = 3;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let index = context.vm.read::<u8>();
         Self::operation(context, index as usize)
     }
 
-    fn execute_with_u16_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
         let index = context.vm.read::<u16>() as usize;
         Self::operation(context, index)
     }
 
-    fn execute_with_u32_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
         let index = context.vm.read::<u32>();
         Self::operation(context, index as usize)
     }
@@ -60,7 +60,7 @@ impl Operation for DefVar {
 pub(crate) struct DefInitVar;
 
 impl DefInitVar {
-    fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
+    fn operation(context: &mut Context, index: usize) -> JsResult<CompletionType> {
         let value = context.vm.pop();
         let mut binding_locator = context.vm.frame().code_block.bindings[index];
         context.find_runtime_binding(&mut binding_locator)?;
@@ -79,17 +79,17 @@ impl Operation for DefInitVar {
     const INSTRUCTION: &'static str = "INST - DefInitVar";
     const COST: u8 = 3;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let index = context.vm.read::<u8>();
         Self::operation(context, index as usize)
     }
 
-    fn execute_with_u16_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
         let index = context.vm.read::<u16>() as usize;
         Self::operation(context, index)
     }
 
-    fn execute_with_u32_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
         let index = context.vm.read::<u32>();
         Self::operation(context, index as usize)
     }
@@ -104,7 +104,7 @@ pub(crate) struct PutLexicalValue;
 
 impl PutLexicalValue {
     #[allow(clippy::unnecessary_wraps)]
-    fn operation(context: &mut Context<'_>, index: usize) -> JsResult<CompletionType> {
+    fn operation(context: &mut Context, index: usize) -> JsResult<CompletionType> {
         let value = context.vm.pop();
         let binding_locator = context.vm.frame().code_block.bindings[index];
         context.vm.environments.put_lexical_value(
@@ -122,17 +122,17 @@ impl Operation for PutLexicalValue {
     const INSTRUCTION: &'static str = "INST - PutLexicalValue";
     const COST: u8 = 3;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let index = context.vm.read::<u8>();
         Self::operation(context, index as usize)
     }
 
-    fn execute_with_u16_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
         let index = context.vm.read::<u16>() as usize;
         Self::operation(context, index)
     }
 
-    fn execute_with_u32_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
         let index = context.vm.read::<u32>();
         Self::operation(context, index as usize)
     }
@@ -150,7 +150,7 @@ pub(crate) struct CreateGlobalFunctionBinding;
 impl CreateGlobalFunctionBinding {
     #[allow(clippy::unnecessary_wraps)]
     fn operation(
-        context: &mut Context<'_>,
+        context: &mut Context,
         index: usize,
         configurable: bool,
     ) -> JsResult<CompletionType> {
@@ -172,19 +172,19 @@ impl Operation for CreateGlobalFunctionBinding {
     const INSTRUCTION: &'static str = "INST - CreateGlobalFunctionBinding";
     const COST: u8 = 2;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let configurable = context.vm.read::<u8>() != 0;
         let index = context.vm.read::<u8>() as usize;
         Self::operation(context, index, configurable)
     }
 
-    fn execute_with_u16_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
         let configurable = context.vm.read::<u8>() != 0;
         let index = context.vm.read::<u16>() as usize;
         Self::operation(context, index, configurable)
     }
 
-    fn execute_with_u32_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
         let configurable = context.vm.read::<u8>() != 0;
         let index = context.vm.read::<u32>() as usize;
         Self::operation(context, index, configurable)

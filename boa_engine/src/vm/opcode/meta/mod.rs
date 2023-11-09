@@ -18,7 +18,7 @@ impl Operation for NewTarget {
     const INSTRUCTION: &'static str = "INST - NewTarget";
     const COST: u8 = 2;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let new_target = if let Some(new_target) = context
             .vm
             .environments
@@ -47,7 +47,7 @@ impl Operation for ImportMeta {
     const INSTRUCTION: &'static str = "INST - ImportMeta";
     const COST: u8 = 6;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         // Meta Properties
         //
         // ImportMeta : import . meta

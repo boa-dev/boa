@@ -18,7 +18,7 @@ pub struct JsSharedArrayBuffer {
 impl JsSharedArrayBuffer {
     /// Creates a new [`JsSharedArrayBuffer`] with `byte_length` bytes of allocated space.
     #[inline]
-    pub fn new(byte_length: usize, context: &mut Context<'_>) -> JsResult<Self> {
+    pub fn new(byte_length: usize, context: &mut Context) -> JsResult<Self> {
         let inner = SharedArrayBuffer::allocate(
             &context
                 .intrinsics()
@@ -35,7 +35,7 @@ impl JsSharedArrayBuffer {
 
     /// Creates a [`JsSharedArrayBuffer`] from a shared raw buffer.
     #[inline]
-    pub fn from_buffer(buffer: SharedArrayBuffer, context: &mut Context<'_>) -> Self {
+    pub fn from_buffer(buffer: SharedArrayBuffer, context: &mut Context) -> Self {
         let proto = context
             .intrinsics()
             .constructors()
@@ -114,7 +114,7 @@ impl Deref for JsSharedArrayBuffer {
 impl JsObjectType for JsSharedArrayBuffer {}
 
 impl TryFromJs for JsSharedArrayBuffer {
-    fn try_from_js(value: &JsValue, _context: &mut Context<'_>) -> JsResult<Self> {
+    fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {
         match value {
             JsValue::Object(o) => Self::from_object(o.clone()),
             _ => Err(JsNativeError::typ()

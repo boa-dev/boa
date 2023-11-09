@@ -16,7 +16,7 @@ impl Operation for ValueNotNullOrUndefined {
     const INSTRUCTION: &'static str = "INST - ValueNotNullOrUndefined";
     const COST: u8 = 2;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let value = context.vm.pop();
         if value.is_null() {
             return Err(JsNativeError::typ()
@@ -45,7 +45,7 @@ impl Operation for IsObject {
     const INSTRUCTION: &'static str = "INST - IsObject";
     const COST: u8 = 1;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let value = context.vm.pop();
         context.vm.push(value.is_object());
         Ok(CompletionType::Normal)

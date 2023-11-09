@@ -65,8 +65,8 @@ pub trait ModuleLoader {
         &self,
         referrer: Referrer,
         specifier: JsString,
-        finish_load: Box<dyn FnOnce(JsResult<Module>, &mut Context<'_>)>,
-        context: &mut Context<'_>,
+        finish_load: Box<dyn FnOnce(JsResult<Module>, &mut Context)>,
+        context: &mut Context,
     );
 
     /// Registers a new module into the module loader.
@@ -101,13 +101,7 @@ pub trait ModuleLoader {
     ///
     /// [meta]: https://tc39.es/ecma262/#sec-hostgetimportmetaproperties
     /// [final]: https://tc39.es/ecma262/#sec-hostfinalizeimportmeta
-    fn init_import_meta(
-        &self,
-        _import_meta: &JsObject,
-        _module: &Module,
-        _context: &mut Context<'_>,
-    ) {
-    }
+    fn init_import_meta(&self, _import_meta: &JsObject, _module: &Module, _context: &mut Context) {}
 }
 
 /// A module loader that throws when trying to load any modules.
@@ -121,8 +115,8 @@ impl ModuleLoader for IdleModuleLoader {
         &self,
         _referrer: Referrer,
         _specifier: JsString,
-        finish_load: Box<dyn FnOnce(JsResult<Module>, &mut Context<'_>)>,
-        context: &mut Context<'_>,
+        finish_load: Box<dyn FnOnce(JsResult<Module>, &mut Context)>,
+        context: &mut Context,
     ) {
         finish_load(
             Err(JsNativeError::typ()
@@ -184,8 +178,8 @@ impl ModuleLoader for SimpleModuleLoader {
         &self,
         _referrer: Referrer,
         specifier: JsString,
-        finish_load: Box<dyn FnOnce(JsResult<Module>, &mut Context<'_>)>,
-        context: &mut Context<'_>,
+        finish_load: Box<dyn FnOnce(JsResult<Module>, &mut Context)>,
+        context: &mut Context,
     ) {
         let result = (|| {
             let path = specifier

@@ -235,7 +235,7 @@ impl BuiltInConstructor for Calendar {
     fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. If NewTarget is undefined, then
         if new_target.is_undefined() {
@@ -270,7 +270,7 @@ impl BuiltInConstructor for Calendar {
 }
 
 impl Calendar {
-    fn get_id(this: &JsValue, _: &[JsValue], _: &mut Context<'_>) -> JsResult<JsValue> {
+    fn get_id(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let o = this.as_object().ok_or_else(|| {
             JsNativeError::typ().with_message("this value of Calendar must be an object.")
         })?;
@@ -287,7 +287,7 @@ impl Calendar {
     fn date_from_fields(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let calendar be the this value.
         // 2. Perform ? RequireInternalSlot(calendar, [[InitializedTemporalCalendar]]).
@@ -373,7 +373,7 @@ impl Calendar {
     fn year_month_from_fields(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         let o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
             JsNativeError::typ().with_message("this value of Calendar must be an object.")
@@ -448,7 +448,7 @@ impl Calendar {
     fn month_day_from_fields(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let calendar be the this value.
         // 2. Perform ? RequireInternalSlot(calendar, [[InitializedTemporalCalendar]]).
@@ -523,7 +523,7 @@ impl Calendar {
     }
 
     /// 15.8.2.4 `Temporal.Calendar.prototype.dateAdd ( date, duration [ , options ] )` - supercedes 12.5.7
-    fn date_add(this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+    fn date_add(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let calendar be the this value.
         // 2. Perform ? RequireInternalSlot(calendar, [[InitializedTemporalCalendar]]).
         // 3. Assert: calendar.[[Identifier]] is "iso8601".
@@ -567,11 +567,7 @@ impl Calendar {
     }
 
     ///15.8.2.5 `Temporal.Calendar.prototype.dateUntil ( one, two [ , options ] )` - Supercedes 12.5.8
-    fn date_until(
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    fn date_until(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let calendar be the this value.
         // 2. Perform ? RequireInternalSlot(calendar, [[InitializedTemporalCalendar]]).
         // 3. Assert: calendar.[[Identifier]] is "iso8601".
@@ -614,7 +610,7 @@ impl Calendar {
     }
 
     /// 15.8.2.6 `Temporal.Calendar.prototype.era ( temporalDateLike )`
-    fn era(this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+    fn era(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
             JsNativeError::typ().with_message("this value of Calendar must be an object.")
         })?;
@@ -662,7 +658,7 @@ impl Calendar {
     }
 
     /// 15.8.2.7 `Temporal.Calendar.prototype.eraYear ( temporalDateLike )`
-    fn era_year(this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+    fn era_year(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
             JsNativeError::typ().with_message("this value of Calendar must be an object.")
         })?;
@@ -710,7 +706,7 @@ impl Calendar {
     }
 
     /// 15.8.2.8 `Temporal.Calendar.prototype.year ( temporalDateLike )`
-    fn year(this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+    fn year(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
             JsNativeError::typ().with_message("this value of Calendar must be an object.")
         })?;
@@ -756,7 +752,7 @@ impl Calendar {
     }
 
     /// 15.8.2.9 `Temporal.Calendar.prototype.month ( temporalDateLike )`
-    fn month(this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+    fn month(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
             JsNativeError::typ().with_message("this value of Calendar must be an object.")
         })?;
@@ -811,11 +807,7 @@ impl Calendar {
     }
 
     /// 15.8.2.10 `Temporal.Calendar.prototype.monthCode ( temporalDateLike )`
-    fn month_code(
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    fn month_code(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
             JsNativeError::typ().with_message("this value of Calendar must be an object.")
         })?;
@@ -867,7 +859,7 @@ impl Calendar {
     }
 
     /// 15.8.2.11 `Temporal.Calendar.prototype.day ( temporalDateLike )`
-    fn day(this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+    fn day(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
             JsNativeError::typ().with_message("this value of Calendar must be an object.")
         })?;
@@ -913,11 +905,7 @@ impl Calendar {
     }
 
     /// 15.8.2.12 `Temporal.Calendar.prototype.dayOfWeek ( dateOrDateTime )`
-    fn day_of_week(
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    fn day_of_week(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let calendar be the this value.
         // 2. Perform ? RequireInternalSlot(calendar, [[InitializedTemporalCalendar]]).
         let o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
@@ -943,11 +931,7 @@ impl Calendar {
     }
 
     /// 15.8.2.13 `Temporal.Calendar.prototype.dayOfYear ( temporalDateLike )`
-    fn day_of_year(
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    fn day_of_year(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let o = this.as_object().ok_or_else(|| {
             JsNativeError::typ().with_message("this value of Calendar must be an object.")
         })?;
@@ -972,11 +956,7 @@ impl Calendar {
     }
 
     /// 15.8.2.14 `Temporal.Calendar.prototype.weekOfYear ( temporalDateLike )`
-    fn week_of_year(
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    fn week_of_year(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
             JsNativeError::typ().with_message("this value of Calendar must be an object.")
         })?;
@@ -1000,11 +980,7 @@ impl Calendar {
     }
 
     /// 15.8.2.15 `Temporal.Calendar.prototype.yearOfWeek ( temporalDateLike )`
-    fn year_of_week(
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    fn year_of_week(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
             JsNativeError::typ().with_message("this value of Calendar must be an object.")
         })?;
@@ -1028,11 +1004,7 @@ impl Calendar {
     }
 
     /// 15.8.2.16 `Temporal.Calendar.prototype.daysInWeek ( temporalDateLike )`
-    fn days_in_week(
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    fn days_in_week(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
             JsNativeError::typ().with_message("this value of Calendar must be an object.")
         })?;
@@ -1056,11 +1028,7 @@ impl Calendar {
     }
 
     /// 15.8.2.17 `Temporal.Calendar.prototype.daysInMonth ( temporalDateLike )`
-    fn days_in_month(
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    fn days_in_month(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
             JsNativeError::typ().with_message("this value of Calendar must be an object.")
         })?;
@@ -1108,11 +1076,7 @@ impl Calendar {
     }
 
     /// 15.8.2.18 `Temporal.Calendar.prototype.daysInYear ( temporalDateLike )`
-    fn days_in_year(
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    fn days_in_year(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
             JsNativeError::typ().with_message("this value of Calendar must be an object.")
         })?;
@@ -1163,7 +1127,7 @@ impl Calendar {
     fn months_in_year(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         let o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
             JsNativeError::typ().with_message("this value of Calendar must be an object.")
@@ -1212,11 +1176,7 @@ impl Calendar {
     }
 
     /// 15.8.2.20 `Temporal.Calendar.prototype.inLeapYear ( temporalDateLike )`
-    fn in_leap_year(
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    fn in_leap_year(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
             JsNativeError::typ().with_message("this value of Calendar must be an object.")
         })?;
@@ -1264,7 +1224,7 @@ impl Calendar {
     }
 
     /// 15.8.2.21 `Temporal.Calendar.prototype.fields ( fields )`
-    fn fields(this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+    fn fields(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let calendar be the this value.
         // 2. Perform ? RequireInternalSlot(calendar, [[InitializedTemporalCalendar]]).
         let o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
@@ -1349,11 +1309,7 @@ impl Calendar {
     }
 
     /// 15.8.2.22 `Temporal.Calendar.prototype.mergeFields ( fields, additionalFields )`
-    fn merge_fields(
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    fn merge_fields(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let calendar be the this value.
         // 2. Perform ? RequireInternalSlot(calendar, [[InitializedTemporalCalendar]]).
         let o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
@@ -1455,7 +1411,7 @@ impl Calendar {
 pub(crate) fn create_temporal_calendar(
     identifier: &JsString,
     new_target: Option<JsValue>,
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) -> JsResult<JsValue> {
     // 1. Assert: IsBuiltinCalendar(identifier) is true.
     assert!(is_builtin_calendar(identifier));
@@ -1489,7 +1445,7 @@ pub(crate) fn create_temporal_calendar(
 #[allow(unused)]
 pub(crate) fn get_temporal_calendar_slot_value_with_default(
     item: &JsObject,
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) -> JsResult<JsValue> {
     // 1. If item has an [[InitializedTemporalDate]], [[InitializedTemporalDateTime]], [[InitializedTemporalMonthDay]], [[InitializedTemporalYearMonth]], or [[InitializedTemporalZonedDateTime]] internal slot, then
     // a. Return item.[[Calendar]].
@@ -1627,7 +1583,7 @@ fn call_method_on_abstract_calendar(
     calendar: &JsValue,
     method: &JsString,
     args: &[JsValue],
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) -> JsResult<JsValue> {
     // If Calendar is a string
     let this_calendar = match calendar {
@@ -1651,7 +1607,7 @@ fn call_method_on_abstract_calendar(
 pub(crate) fn calendar_fields(
     calendar: &JsValue,
     field_names: Vec<JsValue>,
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) -> JsResult<Vec<JsValue>> {
     let field_names = Array::create_array_from_list(field_names, context);
     // 1. If calendar is a String, then
@@ -1680,7 +1636,7 @@ pub(crate) fn calendar_merge_fields(
     calendar: &JsValue,
     fields: &TemporalFields,
     additional_fields: &JsValue,
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) -> JsResult<JsObject> {
     // 1. If calendar is a String, then
     // a. Set calendar to ! CreateTemporalCalendar(calendar).
@@ -1712,7 +1668,7 @@ pub(crate) fn calendar_date_add(
     date: &PlainDate,
     duration: &DurationRecord,
     options: &JsValue,
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) -> JsResult<PlainDate> {
     // NOTE: The specification never calls CalendarDateAdd without an options argument provided.
     // 1. If options is not present, set options to undefined.
@@ -1755,7 +1711,7 @@ pub(crate) fn calendar_date_until(
     one: &PlainDate,
     two: &PlainDate,
     options: &JsValue,
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) -> JsResult<DurationRecord> {
     // 1. If calendar is a String, then
     // a. Set calendar to ! CreateTemporalCalendar(calendar).
@@ -1798,7 +1754,7 @@ pub(crate) fn calendar_date_until(
 pub(crate) fn calendar_year(
     calendar: &JsValue,
     datelike: &JsValue,
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) -> JsResult<f64> {
     // 1. If calendar is a String, then
     // a. Set calendar to ! CreateTemporalCalendar(calendar).
@@ -1834,7 +1790,7 @@ pub(crate) fn calendar_year(
 pub(crate) fn calendar_month(
     calendar: &JsValue,
     datelike: &JsValue,
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) -> JsResult<f64> {
     // 1. If calendar is a String, then
     // a. Set calendar to ! CreateTemporalCalendar(calendar).
@@ -1877,7 +1833,7 @@ pub(crate) fn calendar_month(
 pub(crate) fn calendar_month_code(
     calendar: &JsValue,
     datelike: &JsValue,
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) -> JsResult<JsString> {
     // 1. If calendar is a String, then
     // a. Set calendar to ! CreateTemporalCalendar(calendar).
@@ -1905,7 +1861,7 @@ pub(crate) fn calendar_month_code(
 pub(crate) fn calendar_day(
     calendar: &JsValue,
     datelike: &JsValue,
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) -> JsResult<f64> {
     // 1. If calendar is a String, then
     // a. Set calendar to ! CreateTemporalCalendar(calendar).
@@ -1948,7 +1904,7 @@ pub(crate) fn calendar_day(
 pub(crate) fn calendar_day_of_week(
     calendar: &JsValue,
     datelike: &JsValue,
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) -> JsResult<f64> {
     // 1. If calendar is a String, then
     // a. Set calendar to ! CreateTemporalCalendar(calendar).
@@ -2008,7 +1964,7 @@ pub(crate) fn calendar_day_of_week(
 pub(crate) fn calendar_day_of_year(
     calendar: &JsValue,
     datelike: &JsValue,
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) -> JsResult<f64> {
     // 1. If calendar is a String, then
     // a. Set calendar to ! CreateTemporalCalendar(calendar).
@@ -2051,7 +2007,7 @@ pub(crate) fn calendar_day_of_year(
 pub(crate) fn calendar_week_of_year(
     calendar: &JsValue,
     datelike: &JsValue,
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) -> JsResult<f64> {
     // 1. If calendar is a String, then
     // a. Set calendar to ! CreateTemporalCalendar(calendar).
@@ -2094,7 +2050,7 @@ pub(crate) fn calendar_week_of_year(
 pub(crate) fn calendar_year_of_week(
     calendar: &JsValue,
     datelike: &JsValue,
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) -> JsResult<f64> {
     // 1. If calendar is a String, then
     // a. Set calendar to ! CreateTemporalCalendar(calendar).
@@ -2130,7 +2086,7 @@ pub(crate) fn calendar_year_of_week(
 pub(crate) fn calendar_days_in_week(
     calendar: &JsValue,
     datelike: &JsValue,
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) -> JsResult<f64> {
     // 1. If calendar is a String, then
     // a. Set calendar to ! CreateTemporalCalendar(calendar).
@@ -2173,7 +2129,7 @@ pub(crate) fn calendar_days_in_week(
 pub(crate) fn calendar_days_in_month(
     calendar: &JsValue,
     datelike: &JsValue,
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) -> JsResult<f64> {
     // 1. If calendar is a String, then
     // a. Set calendar to ! CreateTemporalCalendar(calendar).
@@ -2216,7 +2172,7 @@ pub(crate) fn calendar_days_in_month(
 pub(crate) fn calendar_days_in_year(
     calendar: &JsValue,
     datelike: &JsValue,
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) -> JsResult<f64> {
     // 1. If calendar is a String, then
     // a. Set calendar to ! CreateTemporalCalendar(calendar).
@@ -2259,7 +2215,7 @@ pub(crate) fn calendar_days_in_year(
 pub(crate) fn calendar_months_in_year(
     calendar: &JsValue,
     datelike: &JsValue,
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) -> JsResult<f64> {
     // 1. If calendar is a String, then
     // a. Set calendar to ! CreateTemporalCalendar(calendar).
@@ -2302,7 +2258,7 @@ pub(crate) fn calendar_months_in_year(
 pub(crate) fn calendar_in_lear_year(
     calendar: &JsValue,
     datelike: &JsValue,
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) -> JsResult<bool> {
     // 1. If calendar is a String, then
     // a. Set calendar to ! CreateTemporalCalendar(calendar).

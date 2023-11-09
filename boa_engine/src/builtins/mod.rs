@@ -170,11 +170,11 @@ pub(crate) trait BuiltInConstructor: BuiltInObject {
     fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue>;
 }
 
-fn global_binding<B: BuiltInObject>(context: &mut Context<'_>) -> JsResult<()> {
+fn global_binding<B: BuiltInObject>(context: &mut Context) -> JsResult<()> {
     let name = B::NAME;
     let attr = B::ATTRIBUTE;
     let intrinsic = B::get(context.intrinsics());
@@ -307,7 +307,7 @@ impl Realm {
 /// Abstract operation [`SetDefaultGlobalBindings ( realmRec )`][spec].
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-setdefaultglobalbindings
-pub(crate) fn set_default_global_bindings(context: &mut Context<'_>) -> JsResult<()> {
+pub(crate) fn set_default_global_bindings(context: &mut Context) -> JsResult<()> {
     let global_object = context.global_object();
 
     global_object.define_property_or_throw(

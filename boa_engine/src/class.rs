@@ -28,7 +28,7 @@
 //!     const LENGTH: usize = 1;
 //!
 //!     // This is what is called when we do `new Animal()` to construct the inner data of the class.
-//!     fn make_data(_this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<Self> {
+//!     fn make_data(_this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<Self> {
 //!         // This is equivalent to `String(arg)`.
 //!         let kind = args.get_or_undefined(0).to_string(context)?;
 //!
@@ -91,10 +91,10 @@ pub trait Class: NativeObject + Sized {
     /// Creates the internal data for an instance of this class.
     ///
     /// This method can also be called the "native constructor" of this class.
-    fn make_data(this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<Self>;
+    fn make_data(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<Self>;
 
     /// Initializes the properties and methods of this class.
-    fn init(class: &mut ClassBuilder<'_, '_>) -> JsResult<()>;
+    fn init(class: &mut ClassBuilder<'_>) -> JsResult<()>;
 
     /// Creates a new [`JsObject`] with its internal data set to the result of calling `Self::make_data`.
     ///
@@ -110,7 +110,7 @@ pub trait Class: NativeObject + Sized {
     fn construct(
         new_target: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsObject> {
         if new_target.is_undefined() {
             return Err(JsNativeError::typ()
@@ -150,12 +150,12 @@ pub trait Class: NativeObject + Sized {
 
 /// Class builder which allows adding methods and static methods to the class.
 #[derive(Debug)]
-pub struct ClassBuilder<'ctx, 'host> {
-    builder: ConstructorBuilder<'ctx, 'host>,
+pub struct ClassBuilder<'ctx> {
+    builder: ConstructorBuilder<'ctx>,
 }
 
-impl<'ctx, 'host> ClassBuilder<'ctx, 'host> {
-    pub(crate) fn new<T>(context: &'ctx mut Context<'host>) -> Self
+impl<'ctx> ClassBuilder<'ctx> {
+    pub(crate) fn new<T>(context: &'ctx mut Context) -> Self
     where
         T: Class,
     {
@@ -283,7 +283,7 @@ impl<'ctx, 'host> ClassBuilder<'ctx, 'host> {
 
     /// Return the current context.
     #[inline]
-    pub fn context(&mut self) -> &mut Context<'host> {
+    pub fn context(&mut self) -> &mut Context {
         self.builder.context()
     }
 }

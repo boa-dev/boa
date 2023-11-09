@@ -2631,21 +2631,21 @@ impl<'realm> FunctionObjectBuilder<'realm> {
 /// }
 /// ```
 #[derive(Debug)]
-pub struct ObjectInitializer<'ctx, 'host> {
-    context: &'ctx mut Context<'host>,
+pub struct ObjectInitializer<'ctx> {
+    context: &'ctx mut Context,
     object: JsObject,
 }
 
-impl<'ctx, 'host> ObjectInitializer<'ctx, 'host> {
+impl<'ctx> ObjectInitializer<'ctx> {
     /// Create a new `ObjectBuilder`.
     #[inline]
-    pub fn new(context: &'ctx mut Context<'host>) -> Self {
+    pub fn new(context: &'ctx mut Context) -> Self {
         let object = JsObject::with_object_proto(context.intrinsics());
         Self { context, object }
     }
 
     /// Create a new `ObjectBuilder` with custom [`NativeObject`] data.
-    pub fn with_native<T: NativeObject>(data: T, context: &'ctx mut Context<'host>) -> Self {
+    pub fn with_native<T: NativeObject>(data: T, context: &'ctx mut Context) -> Self {
         let object = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             context.intrinsics().constructors().object().prototype(),
@@ -2727,15 +2727,15 @@ impl<'ctx, 'host> ObjectInitializer<'ctx, 'host> {
 
     /// Gets the context used to create the object.
     #[inline]
-    pub fn context(&mut self) -> &mut Context<'host> {
+    pub fn context(&mut self) -> &mut Context {
         self.context
     }
 }
 
 /// Builder for creating constructors objects, like `Array`.
 #[derive(Debug)]
-pub struct ConstructorBuilder<'ctx, 'host> {
-    context: &'ctx mut Context<'host>,
+pub struct ConstructorBuilder<'ctx> {
+    context: &'ctx mut Context,
     function: NativeFunction,
     constructor_object: Object,
     has_prototype_property: bool,
@@ -2748,13 +2748,10 @@ pub struct ConstructorBuilder<'ctx, 'host> {
     custom_prototype: Option<JsPrototype>,
 }
 
-impl<'ctx, 'host> ConstructorBuilder<'ctx, 'host> {
+impl<'ctx> ConstructorBuilder<'ctx> {
     /// Create a new `ConstructorBuilder`.
     #[inline]
-    pub fn new(
-        context: &'ctx mut Context<'host>,
-        function: NativeFunction,
-    ) -> ConstructorBuilder<'ctx, 'host> {
+    pub fn new(context: &'ctx mut Context, function: NativeFunction) -> ConstructorBuilder<'ctx> {
         Self {
             context,
             function,
@@ -2989,7 +2986,7 @@ impl<'ctx, 'host> ConstructorBuilder<'ctx, 'host> {
 
     /// Return the current context.
     #[inline]
-    pub fn context(&mut self) -> &mut Context<'host> {
+    pub fn context(&mut self) -> &mut Context {
         self.context
     }
 

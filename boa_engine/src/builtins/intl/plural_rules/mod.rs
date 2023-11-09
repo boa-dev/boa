@@ -85,7 +85,7 @@ impl BuiltInConstructor for PluralRules {
     fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. If NewTarget is undefined, throw a TypeError exception.
         if new_target.is_undefined() {
@@ -137,11 +137,11 @@ impl BuiltInConstructor for PluralRules {
 
         let native = match rule_type {
             PluralRuleType::Cardinal => NativePluralRules::try_new_cardinal_unstable(
-                &context.icu().provider(),
+                context.icu().provider(),
                 &DataLocale::from(&locale),
             ),
             PluralRuleType::Ordinal => NativePluralRules::try_new_ordinal_unstable(
-                &context.icu().provider(),
+                context.icu().provider(),
                 &DataLocale::from(&locale),
             ),
             _ => {
@@ -183,7 +183,7 @@ impl PluralRules {
     ///
     /// [spec]: https://tc39.es/ecma402/#sec-intl.pluralrules.prototype.select
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/PluralRules/select
-    fn select(this: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+    fn select(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let pr be the this value.
         // 2. Perform ? RequireInternalSlot(pr, [[InitializedPluralRules]]).
         let plural_rules = this.as_object().map(JsObject::borrow).ok_or_else(|| {
@@ -214,7 +214,7 @@ impl PluralRules {
     fn supported_locales_of(
         _: &JsValue,
         args: &[JsValue],
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         let locales = args.get_or_undefined(0);
         let options = args.get_or_undefined(1);
@@ -238,11 +238,7 @@ impl PluralRules {
     ///
     /// [spec]: https://tc39.es/ecma402/#sec-intl.pluralrules.prototype.resolvedoptions
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/PluralRules/resolvedOptions
-    fn resolved_options(
-        this: &JsValue,
-        _: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    fn resolved_options(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let pr be the this value.
         // 2. Perform ? RequireInternalSlot(pr, [[InitializedPluralRules]]).
         let plural_rules = this.as_object().map(JsObject::borrow).ok_or_else(|| {

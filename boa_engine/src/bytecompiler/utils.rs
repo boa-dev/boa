@@ -5,7 +5,7 @@ use crate::{
 
 use super::{ByteCompiler, Literal, Operand};
 
-impl ByteCompiler<'_, '_> {
+impl ByteCompiler<'_> {
     /// Closes an iterator
     ///
     /// This is equivalent to the [`IteratorClose`][iter] and [`AsyncIteratorClose`][async]

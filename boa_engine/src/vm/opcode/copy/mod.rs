@@ -12,7 +12,7 @@ pub(crate) struct CopyDataProperties;
 
 impl CopyDataProperties {
     fn operation(
-        context: &mut Context<'_>,
+        context: &mut Context,
         excluded_key_count: usize,
         excluded_key_count_computed: usize,
     ) -> JsResult<CompletionType> {
@@ -45,19 +45,19 @@ impl Operation for CopyDataProperties {
     const INSTRUCTION: &'static str = "INST - CopyDataProperties";
     const COST: u8 = 6;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let excluded_key_count = context.vm.read::<u8>() as usize;
         let excluded_key_count_computed = context.vm.read::<u8>() as usize;
         Self::operation(context, excluded_key_count, excluded_key_count_computed)
     }
 
-    fn execute_with_u16_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
         let excluded_key_count = context.vm.read::<u16>() as usize;
         let excluded_key_count_computed = context.vm.read::<u16>() as usize;
         Self::operation(context, excluded_key_count, excluded_key_count_computed)
     }
 
-    fn execute_with_u32_operands(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
         let excluded_key_count = context.vm.read::<u32>() as usize;
         let excluded_key_count_computed = context.vm.read::<u32>() as usize;
         Self::operation(context, excluded_key_count, excluded_key_count_computed)

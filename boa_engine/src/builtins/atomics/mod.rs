@@ -78,7 +78,7 @@ impl BuiltInObject for Atomics {
 
 macro_rules! atomic_op {
     ($(#[$attr:meta])* $name:ident) => {
-        $(#[$attr])* fn $name(_: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+        $(#[$attr])* fn $name(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
 
             let array = args.get_or_undefined(0);
             let index = args.get_or_undefined(1);
@@ -145,7 +145,7 @@ impl Atomics {
     /// [`Atomics.isLockFree ( size )`][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-atomics.islockfree
-    fn is_lock_free(_: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+    fn is_lock_free(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let n be ? ToIntegerOrInfinity(size).
         let n = args.get_or_undefined(0).to_integer_or_infinity(context)?;
 
@@ -168,7 +168,7 @@ impl Atomics {
     /// [`Atomics.load ( typedArray, index )`][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-atomics.load
-    fn load(_: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+    fn load(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let array = args.get_or_undefined(0);
         let index = args.get_or_undefined(1);
 
@@ -201,7 +201,7 @@ impl Atomics {
     /// [`Atomics.store ( typedArray, index, value )`][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-atomics.store
-    fn store(_: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+    fn store(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let array = args.get_or_undefined(0);
         let index = args.get_or_undefined(1);
         let value = args.get_or_undefined(2);
@@ -253,11 +253,7 @@ impl Atomics {
     /// [`Atomics.compareExchange ( typedArray, index, expectedValue, replacementValue )`][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-atomics.compareexchange
-    fn compare_exchange(
-        _: &JsValue,
-        args: &[JsValue],
-        context: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    fn compare_exchange(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let array = args.get_or_undefined(0);
         let index = args.get_or_undefined(1);
         let expected = args.get_or_undefined(2);
@@ -408,7 +404,7 @@ impl Atomics {
     /// [`Atomics.wait ( typedArray, index, value, timeout )`][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-atomics.wait
-    fn wait(_: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+    fn wait(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let array = args.get_or_undefined(0);
         let index = args.get_or_undefined(1);
         let value = args.get_or_undefined(2);
@@ -482,7 +478,7 @@ impl Atomics {
     /// [`Atomics.notify ( typedArray, index, count )`][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-atomics.notify
-    fn notify(_: &JsValue, args: &[JsValue], context: &mut Context<'_>) -> JsResult<JsValue> {
+    fn notify(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let array = args.get_or_undefined(0);
         let index = args.get_or_undefined(1);
         let count = args.get_or_undefined(2);
@@ -576,7 +572,7 @@ fn validate_integer_typed_array(
 fn validate_atomic_access(
     array: &IntegerIndexed,
     request_index: &JsValue,
-    context: &mut Context<'_>,
+    context: &mut Context,
 ) -> JsResult<usize> {
     // 1. Let length be typedArray.[[ArrayLength]].
     let length = array.array_length();

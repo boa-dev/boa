@@ -91,7 +91,7 @@ impl JsMap {
     /// let map = JsMap::new(context);
     /// ```
     #[inline]
-    pub fn new(context: &mut Context<'_>) -> Self {
+    pub fn new(context: &mut Context) -> Self {
         let map = Self::create_map(context);
         Self { inner: map }
     }
@@ -123,7 +123,7 @@ impl JsMap {
     /// # Ok(())
     /// # }
     /// ```
-    pub fn from_js_iterable(iterable: &JsValue, context: &mut Context<'_>) -> JsResult<Self> {
+    pub fn from_js_iterable(iterable: &JsValue, context: &mut Context) -> JsResult<Self> {
         // Create a new map object.
         let map = Self::create_map(context);
 
@@ -186,7 +186,7 @@ impl JsMap {
     }
 
     // Utility function to generate the default `Map` object.
-    fn create_map(context: &mut Context<'_>) -> JsObject {
+    fn create_map(context: &mut Context) -> JsObject {
         // Get default Map prototype
         let prototype = context.intrinsics().constructors().map().prototype();
 
@@ -200,7 +200,7 @@ impl JsMap {
 
     /// Returns a new [`JsMapIterator`] object that yields the `[key, value]` pairs within the [`JsMap`] in insertion order.
     #[inline]
-    pub fn entries(&self, context: &mut Context<'_>) -> JsResult<JsMapIterator> {
+    pub fn entries(&self, context: &mut Context) -> JsResult<JsMapIterator> {
         let iterator_record = Map::entries(&self.inner.clone().into(), &[], context)?
             .get_iterator(context, None, None)?;
         let map_iterator_object = iterator_record.iterator();
@@ -209,7 +209,7 @@ impl JsMap {
 
     /// Returns a new [`JsMapIterator`] object that yields the `key` for each element within the [`JsMap`] in insertion order.
     #[inline]
-    pub fn keys(&self, context: &mut Context<'_>) -> JsResult<JsMapIterator> {
+    pub fn keys(&self, context: &mut Context) -> JsResult<JsMapIterator> {
         let iterator_record = Map::keys(&self.inner.clone().into(), &[], context)?
             .get_iterator(context, None, None)?;
         let map_iterator_object = iterator_record.iterator();
@@ -240,7 +240,7 @@ impl JsMap {
     /// # Ok(())
     /// # }
     /// ```
-    pub fn set<K, V>(&self, key: K, value: V, context: &mut Context<'_>) -> JsResult<JsValue>
+    pub fn set<K, V>(&self, key: K, value: V, context: &mut Context) -> JsResult<JsValue>
     where
         K: Into<JsValue>,
         V: Into<JsValue>,
@@ -274,7 +274,7 @@ impl JsMap {
     /// # }
     /// ```
     #[inline]
-    pub fn get_size(&self, context: &mut Context<'_>) -> JsResult<JsValue> {
+    pub fn get_size(&self, context: &mut Context) -> JsResult<JsValue> {
         Map::get_size(&self.inner.clone().into(), &[], context)
     }
 
@@ -303,7 +303,7 @@ impl JsMap {
     /// # Ok(())
     /// # }
     /// ```
-    pub fn delete<T>(&self, key: T, context: &mut Context<'_>) -> JsResult<JsValue>
+    pub fn delete<T>(&self, key: T, context: &mut Context) -> JsResult<JsValue>
     where
         T: Into<JsValue>,
     {
@@ -330,7 +330,7 @@ impl JsMap {
     /// # Ok(())
     /// # }
     /// ```
-    pub fn get<T>(&self, key: T, context: &mut Context<'_>) -> JsResult<JsValue>
+    pub fn get<T>(&self, key: T, context: &mut Context) -> JsResult<JsValue>
     where
         T: Into<JsValue>,
     {
@@ -359,7 +359,7 @@ impl JsMap {
     /// # }
     /// ```
     #[inline]
-    pub fn clear(&self, context: &mut Context<'_>) -> JsResult<JsValue> {
+    pub fn clear(&self, context: &mut Context) -> JsResult<JsValue> {
         Map::clear(&self.inner.clone().into(), &[], context)
     }
 
@@ -383,7 +383,7 @@ impl JsMap {
     /// # Ok(())
     /// # }
     /// ```
-    pub fn has<T>(&self, key: T, context: &mut Context<'_>) -> JsResult<JsValue>
+    pub fn has<T>(&self, key: T, context: &mut Context) -> JsResult<JsValue>
     where
         T: Into<JsValue>,
     {
@@ -396,7 +396,7 @@ impl JsMap {
         &self,
         callback: JsFunction,
         this_arg: JsValue,
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         Map::for_each(
             &self.inner.clone().into(),
@@ -407,7 +407,7 @@ impl JsMap {
 
     /// Returns a new [`JsMapIterator`] object that yields the `value` for each element within the [`JsMap`] in insertion order.
     #[inline]
-    pub fn values(&self, context: &mut Context<'_>) -> JsResult<JsMapIterator> {
+    pub fn values(&self, context: &mut Context) -> JsResult<JsMapIterator> {
         let iterator_record = Map::values(&self.inner.clone().into(), &[], context)?
             .get_iterator(context, None, None)?;
         let map_iterator_object = iterator_record.iterator();
@@ -441,7 +441,7 @@ impl Deref for JsMap {
 impl JsObjectType for JsMap {}
 
 impl TryFromJs for JsMap {
-    fn try_from_js(value: &JsValue, _context: &mut Context<'_>) -> JsResult<Self> {
+    fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {
         match value {
             JsValue::Object(o) => Self::from_object(o.clone()),
             _ => Err(JsNativeError::typ()

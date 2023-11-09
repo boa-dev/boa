@@ -21,8 +21,10 @@ impl HostHooks for CustomTimezone {
 }
 
 fn main() -> JsResult<()> {
-    let hooks: &dyn HostHooks = &CustomTimezone;
-    let context = &mut Context::builder().host_hooks(hooks).build().unwrap();
+    let context = &mut Context::builder()
+        .host_hooks(&CustomTimezone)
+        .build()
+        .unwrap();
 
     let timestamp = JsDate::utc(
         &[

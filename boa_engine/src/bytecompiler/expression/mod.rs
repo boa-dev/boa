@@ -19,7 +19,7 @@ use boa_ast::{
     Expression,
 };
 
-impl ByteCompiler<'_, '_> {
+impl ByteCompiler<'_> {
     fn compile_literal(&mut self, lit: &AstLiteral, use_expr: bool) {
         match lit {
             AstLiteral::String(v) => self.emit_push_literal(Literal::String(

@@ -16,7 +16,7 @@ impl Operation for IncrementLoopIteration {
     const INSTRUCTION: &'static str = "INST - IncrementLoopIteration";
     const COST: u8 = 3;
 
-    fn execute(context: &mut Context<'_>) -> JsResult<CompletionType> {
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let previous_iteration_count = context.vm.frame_mut().loop_iteration_count;
 
         let max = context.vm.runtime_limits.loop_iteration_limit();

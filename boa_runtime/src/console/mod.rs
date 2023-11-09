@@ -51,7 +51,7 @@ fn logger(msg: LogMessage, console_state: &Console) {
 }
 
 /// This represents the `console` formatter.
-fn formatter(data: &[JsValue], context: &mut Context<'_>) -> JsResult<String> {
+fn formatter(data: &[JsValue], context: &mut Context) -> JsResult<String> {
     match data {
         [] => Ok(String::new()),
         [val] => Ok(val.to_string(context)?.to_std_string_escaped()),
@@ -136,9 +136,9 @@ impl Console {
 
     /// Initializes the `console` built-in object.
     #[allow(clippy::too_many_lines)]
-    pub fn init(context: &mut Context<'_>) -> JsObject {
+    pub fn init(context: &mut Context) -> JsObject {
         fn console_method(
-            f: fn(&JsValue, &[JsValue], &Console, &mut Context<'_>) -> JsResult<JsValue>,
+            f: fn(&JsValue, &[JsValue], &Console, &mut Context) -> JsResult<JsValue>,
             state: Rc<RefCell<Console>>,
         ) -> NativeFunction {
             // SAFETY: `Console` doesn't contain types that need tracing.
@@ -149,7 +149,7 @@ impl Console {
             }
         }
         fn console_method_mut(
-            f: fn(&JsValue, &[JsValue], &mut Console, &mut Context<'_>) -> JsResult<JsValue>,
+            f: fn(&JsValue, &[JsValue], &mut Console, &mut Context) -> JsResult<JsValue>,
             state: Rc<RefCell<Console>>,
         ) -> NativeFunction {
             // SAFETY: `Console` doesn't contain types that need tracing.
@@ -268,7 +268,7 @@ impl Console {
         _: &JsValue,
         args: &[JsValue],
         console: &Self,
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         let assertion = args.get(0).map_or(false, JsValue::to_boolean);
 
@@ -302,12 +302,7 @@ impl Console {
     /// [spec]: https://console.spec.whatwg.org/#clear
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/clear
     #[allow(clippy::unnecessary_wraps)]
-    fn clear(
-        _: &JsValue,
-        _: &[JsValue],
-        console: &mut Self,
-        _: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    fn clear(_: &JsValue, _: &[JsValue], console: &mut Self, _: &mut Context) -> JsResult<JsValue> {
         console.groups.clear();
         Ok(JsValue::undefined())
     }
@@ -326,7 +321,7 @@ impl Console {
         _: &JsValue,
         args: &[JsValue],
         console: &Self,
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         logger(LogMessage::Log(formatter(args, context)?), console);
         Ok(JsValue::undefined())
@@ -346,7 +341,7 @@ impl Console {
         _: &JsValue,
         args: &[JsValue],
         console: &Self,
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         logger(LogMessage::Error(formatter(args, context)?), console);
         Ok(JsValue::undefined())
@@ -366,7 +361,7 @@ impl Console {
         _: &JsValue,
         args: &[JsValue],
         console: &Self,
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         logger(LogMessage::Info(formatter(args, context)?), console);
         Ok(JsValue::undefined())
@@ -386,7 +381,7 @@ impl Console {
         _: &JsValue,
         args: &[JsValue],
         console: &Self,
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         logger(LogMessage::Log(formatter(args, context)?), console);
         Ok(JsValue::undefined())
@@ -406,7 +401,7 @@ impl Console {
         _: &JsValue,
         args: &[JsValue],
         console: &Self,
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         if !args.is_empty() {
             logger(LogMessage::Log(formatter(args, context)?), console);
@@ -439,7 +434,7 @@ impl Console {
         _: &JsValue,
         args: &[JsValue],
         console: &Self,
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         logger(LogMessage::Warn(formatter(args, context)?), console);
         Ok(JsValue::undefined())
@@ -459,7 +454,7 @@ impl Console {
         _: &JsValue,
         args: &[JsValue],
         console: &mut Self,
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         let label = match args.get(0) {
             Some(value) => value.to_string(context)?,
@@ -488,7 +483,7 @@ impl Console {
         _: &JsValue,
         args: &[JsValue],
         console: &mut Self,
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         let label = match args.get(0) {
             Some(value) => value.to_string(context)?,
@@ -527,7 +522,7 @@ impl Console {
         _: &JsValue,
         args: &[JsValue],
         console: &mut Self,
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         let label = match args.get(0) {
             Some(value) => value.to_string(context)?,
@@ -564,7 +559,7 @@ impl Console {
         _: &JsValue,
         args: &[JsValue],
         console: &Self,
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         let label = match args.get(0) {
             Some(value) => value.to_string(context)?,
@@ -608,7 +603,7 @@ impl Console {
         _: &JsValue,
         args: &[JsValue],
         console: &mut Self,
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         let label = match args.get(0) {
             Some(value) => value.to_string(context)?,
@@ -655,7 +650,7 @@ impl Console {
         _: &JsValue,
         args: &[JsValue],
         console: &mut Self,
-        context: &mut Context<'_>,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
         let group_label = formatter(args, context)?;
 
@@ -680,7 +675,7 @@ impl Console {
         _: &JsValue,
         _: &[JsValue],
         console: &mut Self,
-        _: &mut Context<'_>,
+        _: &mut Context,
     ) -> JsResult<JsValue> {
         console.groups.pop();
 
@@ -698,12 +693,7 @@ impl Console {
     /// [spec]: https://console.spec.whatwg.org/#dir
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/dir
     #[allow(clippy::unnecessary_wraps)]
-    fn dir(
-        _: &JsValue,
-        args: &[JsValue],
-        console: &Self,
-        _: &mut Context<'_>,
-    ) -> JsResult<JsValue> {
+    fn dir(_: &JsValue, args: &[JsValue], console: &Self, _: &mut Context) -> JsResult<JsValue> {
         logger(
             LogMessage::Info(args.get_or_undefined(0).display_obj(true)),
             console,

@@ -4,7 +4,7 @@ use crate::bytecompiler::{
 };
 use boa_ast::statement::Continue;
 
-impl ByteCompiler<'_, '_> {
+impl ByteCompiler<'_> {
     #[allow(clippy::unnecessary_wraps)]
     pub(crate) fn compile_continue(&mut self, node: Continue, _use_expr: bool) {
         let actions = self.continue_jump_record_actions(node);

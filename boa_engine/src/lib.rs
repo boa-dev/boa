@@ -230,7 +230,7 @@ enum Inner {
         source: Cow<'static, str>,
     },
     InspectContext {
-        op: fn(&mut Context<'_>),
+        op: fn(&mut Context),
     },
     Assert {
         source: Cow<'static, str>,
@@ -241,7 +241,7 @@ enum Inner {
     },
     AssertWithOp {
         source: Cow<'static, str>,
-        op: fn(JsValue, &mut Context<'_>) -> bool,
+        op: fn(JsValue, &mut Context) -> bool,
     },
     AssertOpaqueError {
         source: Cow<'static, str>,
@@ -253,7 +253,7 @@ enum Inner {
         message: &'static str,
     },
     AssertContext {
-        op: fn(&mut Context<'_>) -> bool,
+        op: fn(&mut Context) -> bool,
     },
 }
 
@@ -274,7 +274,7 @@ impl TestAction {
     /// Executes `op` with the currently active context.
     ///
     /// Useful to make custom assertions that must be done from Rust code.
-    fn inspect_context(op: fn(&mut Context<'_>)) -> Self {
+    fn inspect_context(op: fn(&mut Context)) -> Self {
         Self(Inner::InspectContext { op })
     }
 
@@ -298,7 +298,7 @@ impl TestAction {
     /// Useful to check properties of the obtained value that cannot be checked from JS code.
     fn assert_with_op(
         source: impl Into<Cow<'static, str>>,
-        op: fn(JsValue, &mut Context<'_>) -> bool,
+        op: fn(JsValue, &mut Context) -> bool,
     ) -> Self {
         Self(Inner::AssertWithOp {
             source: source.into(),
@@ -331,7 +331,7 @@ impl TestAction {
     }
 
     /// Asserts that calling `op` with the currently executing context returns `true`.
-    fn assert_context(op: fn(&mut Context<'_>) -> bool) -> Self {
+    fn assert_context(op: fn(&mut Context) -> bool) -> Self {
         Self(Inner::AssertContext { op })
     }
 }
@@ -347,9 +347,9 @@ fn run_test_actions(actions: impl IntoIterator<Item = TestAction>) {
 /// Executes a list of test actions on the provided context.
 #[cfg(test)]
 #[track_caller]
-fn run_test_actions_with(actions: impl IntoIterator<Item = TestAction>, context: &mut Context<'_>) {
+fn run_test_actions_with(actions: impl IntoIterator<Item = TestAction>, context: &mut Context) {
     #[track_caller]
-    fn forward_val(context: &mut Context<'_>, source: &str) -> JsResult<JsValue> {
+    fn forward_val(context: &mut Context, source: &str) -> JsResult<JsValue> {
         context.eval(Source::from_bytes(source))
     }
 
