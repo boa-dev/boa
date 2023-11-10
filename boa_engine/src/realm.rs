@@ -21,7 +21,7 @@ use crate::{
     object::shape::RootShape,
     HostDefined, JsObject, JsString,
 };
-use boa_gc::{Finalize, Gc, GcRefCell, Trace};
+use boa_gc::{Finalize, Gc, GcRef, GcRefCell, GcRefMut, Trace};
 use boa_profiler::Profiler;
 
 /// Representation of a Realm.
@@ -61,7 +61,7 @@ struct Inner {
     loaded_modules: GcRefCell<FxHashMap<JsString, Module>>,
     host_classes: GcRefCell<FxHashMap<TypeId, StandardConstructor>>,
 
-    host_defined: HostDefined,
+    host_defined: GcRefCell<HostDefined>,
 }
 
 impl Realm {
@@ -86,7 +86,7 @@ impl Realm {
                 template_map: GcRefCell::default(),
                 loaded_modules: GcRefCell::default(),
                 host_classes: GcRefCell::default(),
-                host_defined: HostDefined::default(),
+                host_defined: GcRefCell::default(),
             }),
         };
 
@@ -102,13 +102,32 @@ impl Realm {
         &self.inner.intrinsics
     }
 
-    /// Returns the [`ECMAScript specification`][spec] defined [`\[\[\HostDefined]\]`][`HostDefined`] field of the [`Realm`].
+    /// Returns an immutable reference to the [`ECMAScript specification`][spec] defined
+    /// [`\[\[\HostDefined]\]`][`HostDefined`] field of the [`Realm`].
     ///
     /// [spec]: https://tc39.es/ecma262/#table-realm-record-fields
+    ///
+    /// # Panics
+    ///
+    /// Panics if [`HostDefined`] field is mutably borrowed.
     #[inline]
     #[must_use]
-    pub fn host_defined(&self) -> &HostDefined {
-        &self.inner.host_defined
+    pub fn host_defined(&self) -> GcRef<'_, HostDefined> {
+        self.inner.host_defined.borrow()
+    }
+
+    /// Returns a mutable reference to [`ECMAScript specification`][spec] defined
+    /// [`\[\[\HostDefined]\]`][`HostDefined`] field of the [`Realm`].
+    ///
+    /// [spec]: https://tc39.es/ecma262/#table-realm-record-fields
+    ///
+    /// # Panics
+    ///
+    /// Panics if [`HostDefined`] field is borrowed.
+    #[inline]
+    #[must_use]
+    pub fn host_defined_mut(&self) -> GcRefMut<'_, HostDefined> {
+        self.inner.host_defined.borrow_mut()
     }
 
     /// Checks if this `Realm` has the class `C` registered into its class map.

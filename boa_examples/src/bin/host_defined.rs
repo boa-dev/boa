@@ -1,7 +1,8 @@
 // This example goes into the details on how to store user defined structs/state that is shared.
 
 use boa_engine::{
-    js_string, native_function::NativeFunction, Context, JsArgs, JsError, JsNativeError, Source,
+    js_string, native_function::NativeFunction, Context, JsArgs, JsError, JsNativeError, JsValue,
+    Source,
 };
 use boa_gc::{Finalize, Trace};
 
@@ -25,6 +26,13 @@ impl AnotherCustomHostDefinedStruct {
     }
 }
 
+/// Custom host-defined struct that tracks the number of calls to the `getRealmValue` and `setRealmValue` functions.
+#[derive(Default, Trace, Finalize)]
+struct HostDefinedMetrics {
+    #[unsafe_ignore_trace]
+    counter: usize,
+}
+
 fn main() -> Result<(), JsError> {
     // We create a new `Context` to create a new Javascript executor..
     let mut context = Context::default();
@@ -34,14 +42,15 @@ fn main() -> Result<(), JsError> {
 
     // Insert a default CustomHostDefinedStruct.
     realm
-        .host_defined()
+        .host_defined_mut()
         .insert_default::<CustomHostDefinedStruct>();
 
     {
         assert!(realm.host_defined().has::<CustomHostDefinedStruct>());
 
         // Get the [[HostDefined]] field from the realm and downcast it to our concrete type.
-        let Some(host_defined) = realm.host_defined().get::<CustomHostDefinedStruct>() else {
+        let host_defined = realm.host_defined();
+        let Some(host_defined) = host_defined.get::<CustomHostDefinedStruct>() else {
             return Err(JsNativeError::typ()
                 .with_message("Realm does not have HostDefined field")
                 .into());
@@ -53,15 +62,15 @@ fn main() -> Result<(), JsError> {
 
     // Insert another struct with state into [[HostDefined]] field.
     realm
-        .host_defined()
+        .host_defined_mut()
         .insert(AnotherCustomHostDefinedStruct::new(10));
 
     {
         assert!(realm.host_defined().has::<AnotherCustomHostDefinedStruct>());
 
         // Get the [[HostDefined]] field from the realm and downcast it to our concrete type.
-        let Some(host_defined) = realm.host_defined().get::<AnotherCustomHostDefinedStruct>()
-        else {
+        let host_defined = realm.host_defined();
+        let Some(host_defined) = host_defined.get::<AnotherCustomHostDefinedStruct>() else {
             return Err(JsNativeError::typ()
                 .with_message("Realm does not have HostDefined field")
                 .into());
@@ -73,7 +82,7 @@ fn main() -> Result<(), JsError> {
 
     // Remove a type from the [[HostDefined]] field.
     assert!(realm
-        .host_defined()
+        .host_defined_mut()
         .remove::<AnotherCustomHostDefinedStruct>()
         .is_some());
 
@@ -86,14 +95,17 @@ fn main() -> Result<(), JsError> {
         NativeFunction::from_fn_ptr(|_, args, context| {
             let value: usize = args.get_or_undefined(0).try_js_into(context)?;
 
-            let host_defined = context.realm().host_defined();
-            let Some(mut host_defined) = host_defined.get_mut::<CustomHostDefinedStruct>() else {
+            let mut host_defined = context.realm().host_defined_mut();
+            let Some((host_defined, metrics)) =
+                host_defined.get_many_mut::<(CustomHostDefinedStruct, HostDefinedMetrics), 2>()
+            else {
                 return Err(JsNativeError::typ()
                     .with_message("Realm does not have HostDefined field")
                     .into());
             };
 
             host_defined.counter = value;
+            metrics.counter += 1;
 
             Ok(value.into())
         }),
@@ -103,16 +115,33 @@ fn main() -> Result<(), JsError> {
         js_string!("getRealmValue"),
         0,
         NativeFunction::from_fn_ptr(|_, _, context| {
-            let host_defined = context.realm().host_defined();
-            let Some(host_defined) = host_defined.get::<CustomHostDefinedStruct>() else {
+            let mut host_defined = context.realm().host_defined_mut();
+
+            let value: JsValue = {
+                let Some(host_defined) = host_defined.get::<CustomHostDefinedStruct>() else {
+                    return Err(JsNativeError::typ()
+                        .with_message("Realm does not have HostDefined field")
+                        .into());
+                };
+                host_defined.counter.into()
+            };
+
+            let Some(metrics) = host_defined.get_mut::<HostDefinedMetrics>() else {
                 return Err(JsNativeError::typ()
                     .with_message("Realm does not have HostDefined field")
                     .into());
             };
 
-            Ok(host_defined.counter.into())
+            metrics.counter += 1;
+
+            Ok(value)
         }),
     )?;
+
+    // Insert HostDefinedMetrics into the [[HostDefined]] field.
+    realm
+        .host_defined_mut()
+        .insert_default::<HostDefinedMetrics>();
 
     // Run code in JavaScript that mutates the host-defined field on the Realm.
     context.eval(Source::from_bytes(
@@ -122,14 +151,24 @@ fn main() -> Result<(), JsError> {
     ",
     ))?;
 
-    let Some(host_defined) = realm.host_defined().get::<CustomHostDefinedStruct>() else {
+    let host_defined = realm.host_defined();
+    let Some(host_defined_value) = host_defined.get::<CustomHostDefinedStruct>() else {
         return Err(JsNativeError::typ()
             .with_message("Realm does not have HostDefined field")
             .into());
     };
 
     // Assert that the host-defined field changed.
-    assert_eq!(host_defined.counter, 100);
+    assert_eq!(host_defined_value.counter, 100);
+
+    let Some(metrics) = host_defined.get::<HostDefinedMetrics>() else {
+        return Err(JsNativeError::typ()
+            .with_message("Realm does not have HostDefined field")
+            .into());
+    };
+
+    // Assert that we called the getRealmValue and setRealmValue functions (3 times in total)
+    assert_eq!(metrics.counter, 3);
 
     Ok(())
 }

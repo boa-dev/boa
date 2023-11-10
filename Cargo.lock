@@ -406,6 +406,7 @@ dependencies = [
  "fixed_decimal",
  "float-cmp",
  "futures-lite 2.0.1",
+ "hashbrown 0.14.2",
  "icu_calendar",
  "icu_casemap",
  "icu_collator",

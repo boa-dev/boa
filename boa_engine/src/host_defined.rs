@@ -1,14 +1,9 @@
 use std::any::TypeId;
 
-use boa_gc::{GcRef, GcRefCell, GcRefMut};
 use boa_macros::{Finalize, Trace};
-use rustc_hash::FxHashMap;
+use hashbrown::hash_map::HashMap;
 
 use crate::object::NativeObject;
-
-/// Map used to store the host defined objects.
-#[doc(hidden)]
-type HostDefinedMap = FxHashMap<TypeId, Box<dyn NativeObject>>;
 
 /// This represents a `ECMASCript` specification \[`HostDefined`\] field.
 ///
@@ -16,96 +11,144 @@ type HostDefinedMap = FxHashMap<TypeId, Box<dyn NativeObject>>;
 #[derive(Default, Trace, Finalize)]
 #[allow(missing_debug_implementations)]
 pub struct HostDefined {
-    state: GcRefCell<HostDefinedMap>,
+    // INVARIANT: All key-value pairs `(id, obj)` satisfy:
+    //  `id == TypeId::of::<T>() && obj.is::<T>()`
+    // for some type `T : NativeObject`.
+    types: HashMap<TypeId, Box<dyn NativeObject>>,
+}
+
+// TODO: Track https://github.com/rust-lang/rust/issues/65991 and
+// https://github.com/rust-lang/rust/issues/90850 to remove this
+// when those are stabilized.
+fn downcast_boxed_native_object_unchecked<T: NativeObject>(obj: Box<dyn NativeObject>) -> Box<T> {
+    let raw: *mut dyn NativeObject = Box::into_raw(obj);
+
+    // SAFETY: We know that `obj` is of type `T` (due to the INVARIANT of `HostDefined`).
+    // See `HostDefined::insert`, `HostDefined::insert_default` and `HostDefined::remove`.
+    unsafe { Box::from_raw(raw.cast::<T>()) }
 }
 
 impl HostDefined {
     /// Insert a type into the [`HostDefined`].
-    ///
-    /// # Panics
-    ///
-    /// Panics if [`HostDefined`] field is borrowed.
     #[track_caller]
-    pub fn insert_default<T: NativeObject + Default>(&self) -> Option<Box<dyn NativeObject>> {
-        self.state
-            .borrow_mut()
+    pub fn insert_default<T: NativeObject + Default>(&mut self) -> Option<Box<T>> {
+        self.types
             .insert(TypeId::of::<T>(), Box::<T>::default())
+            .map(downcast_boxed_native_object_unchecked)
     }
 
     /// Insert a type into the [`HostDefined`].
-    ///
-    /// # Panics
-    ///
-    /// Panics if [`HostDefined`] field is borrowed.
     #[track_caller]
-    pub fn insert<T: NativeObject>(&self, value: T) -> Option<Box<dyn NativeObject>> {
-        self.state
-            .borrow_mut()
+    pub fn insert<T: NativeObject>(&mut self, value: T) -> Option<Box<T>> {
+        self.types
             .insert(TypeId::of::<T>(), Box::new(value))
+            .map(downcast_boxed_native_object_unchecked)
     }
 
     /// Check if the [`HostDefined`] has type T.
-    ///
-    /// # Panics
-    ///
-    /// Panics if [`HostDefined`] field is borrowed mutably.
+    #[must_use]
     #[track_caller]
     pub fn has<T: NativeObject>(&self) -> bool {
-        self.state.borrow().contains_key(&TypeId::of::<T>())
+        self.types.contains_key(&TypeId::of::<T>())
     }
 
     /// Remove type T from [`HostDefined`], if it exists.
     ///
     /// Returns [`Some`] with the object if it exits, [`None`] otherwise.
-    ///
-    /// # Panics
-    ///
-    /// Panics if [`HostDefined`] field is borrowed.
     #[track_caller]
-    pub fn remove<T: NativeObject>(&self) -> Option<Box<dyn NativeObject>> {
-        self.state.borrow_mut().remove(&TypeId::of::<T>())
+    pub fn remove<T: NativeObject>(&mut self) -> Option<Box<T>> {
+        self.types
+            .remove(&TypeId::of::<T>())
+            .map(downcast_boxed_native_object_unchecked)
     }
 
-    /// Get type T from [`HostDefined`], if it exits.
-    ///
-    /// # Panics
-    ///
-    /// Panics if [`HostDefined`] field is borrowed.
+    /// Get type T from [`HostDefined`], if it exists.
     #[track_caller]
-    pub fn get<T: NativeObject>(&self) -> Option<GcRef<'_, T>> {
-        GcRef::try_map(self.state.borrow(), |state| {
-            state
-                .get(&TypeId::of::<T>())
-                .map(Box::as_ref)
-                .and_then(<dyn NativeObject>::downcast_ref::<T>)
-        })
+    pub fn get<T: NativeObject>(&self) -> Option<&T> {
+        self.types
+            .get(&TypeId::of::<T>())
+            .map(Box::as_ref)
+            .and_then(<dyn NativeObject>::downcast_ref::<T>)
     }
 
-    /// Get type T from [`HostDefined`], if it exits.
-    ///
-    /// # Panics
-    ///
-    /// Panics if [`HostDefined`] field is borrowed.
+    /// Get type T from [`HostDefined`], if it exists.
     #[track_caller]
-    pub fn get_mut<T: NativeObject>(&self) -> Option<GcRefMut<'_, HostDefinedMap, T>> {
-        GcRefMut::try_map(
-            self.state.borrow_mut(),
-            |state: &mut FxHashMap<TypeId, Box<dyn NativeObject>>| {
-                state
-                    .get_mut(&TypeId::of::<T>())
-                    .map(Box::as_mut)
-                    .and_then(<dyn NativeObject>::downcast_mut::<T>)
-            },
-        )
+    pub fn get_mut<T: NativeObject>(&mut self) -> Option<&mut T> {
+        self.types
+            .get_mut(&TypeId::of::<T>())
+            .map(Box::as_mut)
+            .and_then(<dyn NativeObject>::downcast_mut::<T>)
+    }
+
+    /// Get type a tuple of types from [`HostDefined`], if they exist.
+    #[track_caller]
+    pub fn get_many_mut<T, const SIZE: usize>(&mut self) -> Option<T::NativeTupleMutRef<'_>>
+    where
+        T: NativeTuple<SIZE>,
+    {
+        let ids = T::as_type_ids();
+        let refs: [&TypeId; SIZE] = ids
+            .iter()
+            .collect::<Vec<_>>()
+            .try_into()
+            .expect("tuple should be of size `SIZE`");
+
+        self.types.get_many_mut(refs).and_then(T::mut_ref_from_anys)
     }
 
     /// Clears all the objects.
-    ///
-    /// # Panics
-    ///
-    /// Panics if [`HostDefined`] field is borrowed.
     #[track_caller]
-    pub fn clear(&self) {
-        self.state.borrow_mut().clear();
+    pub fn clear(&mut self) {
+        self.types.clear();
     }
 }
+
+/// This trait represents a tuple of [`NativeObject`]s capable of being
+/// used in [`HostDefined`].
+///
+/// This allows accessing multiple types from [`HostDefined`] at once.
+pub trait NativeTuple<const SIZE: usize> {
+    type NativeTupleMutRef<'a>;
+
+    fn as_type_ids() -> Vec<TypeId>;
+
+    fn mut_ref_from_anys(
+        anys: [&'_ mut Box<dyn NativeObject>; SIZE],
+    ) -> Option<Self::NativeTupleMutRef<'_>>;
+}
+
+macro_rules! impl_native_tuple {
+    ($size:literal $(,$name:ident)* ) => {
+        impl<$($name: NativeObject,)*> NativeTuple<$size> for ($($name,)*) {
+            type NativeTupleMutRef<'a> = ($(&'a mut $name,)*);
+
+            fn as_type_ids() -> Vec<TypeId> {
+                vec![$(TypeId::of::<$name>(),)*]
+            }
+
+            fn mut_ref_from_anys(
+                anys: [&'_ mut Box<dyn NativeObject>; $size],
+            ) -> Option<Self::NativeTupleMutRef<'_>> {
+                #[allow(unused_variables, unused_mut)]
+                let mut anys = anys.into_iter();
+                Some(($(
+                    anys.next().expect("Expect `anys` to be of length `SIZE`").downcast_mut::<$name>()?,
+                )*))
+            }
+        }
+    }
+}
+
+impl_native_tuple!(0);
+impl_native_tuple!(1, A);
+impl_native_tuple!(2, A, B);
+impl_native_tuple!(3, A, B, C);
+impl_native_tuple!(4, A, B, C, D);
+impl_native_tuple!(5, A, B, C, D, E);
+impl_native_tuple!(6, A, B, C, D, E, F);
+impl_native_tuple!(7, A, B, C, D, E, F, G);
+impl_native_tuple!(8, A, B, C, D, E, F, G, H);
+impl_native_tuple!(9, A, B, C, D, E, F, G, H, I);
+impl_native_tuple!(10, A, B, C, D, E, F, G, H, I, J);
+impl_native_tuple!(11, A, B, C, D, E, F, G, H, I, J, K);
+impl_native_tuple!(12, A, B, C, D, E, F, G, H, I, J, K, L);
