@@ -189,6 +189,25 @@
 <a href="#189" id="189">189</a>
 <a href="#190" id="190">190</a>
 <a href="#191" id="191">191</a>
+<a href="#192" id="192">192</a>
+<a href="#193" id="193">193</a>
+<a href="#194" id="194">194</a>
+<a href="#195" id="195">195</a>
+<a href="#196" id="196">196</a>
+<a href="#197" id="197">197</a>
+<a href="#198" id="198">198</a>
+<a href="#199" id="199">199</a>
+<a href="#200" id="200">200</a>
+<a href="#201" id="201">201</a>
+<a href="#202" id="202">202</a>
+<a href="#203" id="203">203</a>
+<a href="#204" id="204">204</a>
+<a href="#205" id="205">205</a>
+<a href="#206" id="206">206</a>
+<a href="#207" id="207">207</a>
+<a href="#208" id="208">208</a>
+<a href="#209" id="209">209</a>
+<a href="#210" id="210">210</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s `Realm Records`
 //!
 //! Conceptually, a realm consists of a set of intrinsic objects, an ECMAScript global environment,
@@ -212,7 +231,7 @@
     object::shape::RootShape,
     HostDefined, JsObject, JsString,
 };
-<span class="kw">use </span>boa_gc::{Finalize, Gc, GcRefCell, Trace};
+<span class="kw">use </span>boa_gc::{Finalize, Gc, GcRef, GcRefCell, GcRefMut, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
 
 <span class="doccomment">/// Representation of a Realm.
@@ -252,7 +271,7 @@
     loaded_modules: GcRefCell&lt;FxHashMap&lt;JsString, Module&gt;&gt;,
     host_classes: GcRefCell&lt;FxHashMap&lt;TypeId, StandardConstructor&gt;&gt;,
 
-    host_defined: HostDefined,
+    host_defined: GcRefCell&lt;HostDefined&gt;,
 }
 
 <span class="kw">impl </span>Realm {
@@ -277,7 +296,7 @@
                 template_map: GcRefCell::default(),
                 loaded_modules: GcRefCell::default(),
                 host_classes: GcRefCell::default(),
-                host_defined: HostDefined::default(),
+                host_defined: GcRefCell::default(),
             }),
         };
 
@@ -293,13 +312,32 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>.inner.intrinsics
     }
 
-    <span class="doccomment">/// Returns the [`ECMAScript specification`][spec] defined [`\[\[\HostDefined]\]`][`HostDefined`] field of the [`Realm`].
+    <span class="doccomment">/// Returns an immutable reference to the [`ECMAScript specification`][spec] defined
+    /// [`\[\[\HostDefined]\]`][`HostDefined`] field of the [`Realm`].
     ///
     /// [spec]: https://tc39.es/ecma262/#table-realm-record-fields
+    ///
+    /// # Panics
+    ///
+    /// Panics if [`HostDefined`] field is mutably borrowed.
     </span><span class="attr">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>host_defined(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>HostDefined {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.inner.host_defined
+    </span><span class="kw">pub fn </span>host_defined(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; GcRef&lt;<span class="lifetime">&#39;_</span>, HostDefined&gt; {
+        <span class="self">self</span>.inner.host_defined.borrow()
+    }
+
+    <span class="doccomment">/// Returns a mutable reference to [`ECMAScript specification`][spec] defined
+    /// [`\[\[\HostDefined]\]`][`HostDefined`] field of the [`Realm`].
+    ///
+    /// [spec]: https://tc39.es/ecma262/#table-realm-record-fields
+    ///
+    /// # Panics
+    ///
+    /// Panics if [`HostDefined`] field is borrowed.
+    </span><span class="attr">#[inline]
+    #[must_use]
+    </span><span class="kw">pub fn </span>host_defined_mut(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; GcRefMut&lt;<span class="lifetime">&#39;_</span>, HostDefined&gt; {
+        <span class="self">self</span>.inner.host_defined.borrow_mut()
     }
 
     <span class="doccomment">/// Checks if this `Realm` has the class `C` registered into its class map.

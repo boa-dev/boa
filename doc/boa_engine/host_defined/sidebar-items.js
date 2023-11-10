@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["HostDefined"]};
+window.SIDEBAR_ITEMS = {"fn":["downcast_boxed_native_object_unchecked"],"macro":["impl_native_tuple"],"struct":["HostDefined"],"trait":["NativeTuple"]};

@@ -109,17 +109,55 @@
 <a href="#109" id="109">109</a>
 <a href="#110" id="110">110</a>
 <a href="#111" id="111">111</a>
+<a href="#112" id="112">112</a>
+<a href="#113" id="113">113</a>
+<a href="#114" id="114">114</a>
+<a href="#115" id="115">115</a>
+<a href="#116" id="116">116</a>
+<a href="#117" id="117">117</a>
+<a href="#118" id="118">118</a>
+<a href="#119" id="119">119</a>
+<a href="#120" id="120">120</a>
+<a href="#121" id="121">121</a>
+<a href="#122" id="122">122</a>
+<a href="#123" id="123">123</a>
+<a href="#124" id="124">124</a>
+<a href="#125" id="125">125</a>
+<a href="#126" id="126">126</a>
+<a href="#127" id="127">127</a>
+<a href="#128" id="128">128</a>
+<a href="#129" id="129">129</a>
+<a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
+<a href="#134" id="134">134</a>
+<a href="#135" id="135">135</a>
+<a href="#136" id="136">136</a>
+<a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::any::TypeId;
 
-<span class="kw">use </span>boa_gc::{GcRef, GcRefCell, GcRefMut};
 <span class="kw">use </span>boa_macros::{Finalize, Trace};
-<span class="kw">use </span>rustc_hash::FxHashMap;
+<span class="kw">use </span>hashbrown::hash_map::HashMap;
 
 <span class="kw">use </span><span class="kw">crate</span>::object::NativeObject;
-
-<span class="doccomment">/// Map used to store the host defined objects.
-</span><span class="attr">#[doc(hidden)]
-</span><span class="kw">type </span>HostDefinedMap = FxHashMap&lt;TypeId, Box&lt;<span class="kw">dyn </span>NativeObject&gt;&gt;;
 
 <span class="doccomment">/// This represents a `ECMASCript` specification \[`HostDefined`\] field.
 ///
@@ -127,97 +165,145 @@
 </span><span class="attr">#[derive(Default, Trace, Finalize)]
 #[allow(missing_debug_implementations)]
 </span><span class="kw">pub struct </span>HostDefined {
-    state: GcRefCell&lt;HostDefinedMap&gt;,
+    <span class="comment">// INVARIANT: All key-value pairs `(id, obj)` satisfy:
+    //  `id == TypeId::of::&lt;T&gt;() &amp;&amp; obj.is::&lt;T&gt;()`
+    // for some type `T : NativeObject`.
+    </span>types: HashMap&lt;TypeId, Box&lt;<span class="kw">dyn </span>NativeObject&gt;&gt;,
+}
+
+<span class="comment">// TODO: Track https://github.com/rust-lang/rust/issues/65991 and
+// https://github.com/rust-lang/rust/issues/90850 to remove this
+// when those are stabilized.
+</span><span class="kw">fn </span>downcast_boxed_native_object_unchecked&lt;T: NativeObject&gt;(obj: Box&lt;<span class="kw">dyn </span>NativeObject&gt;) -&gt; Box&lt;T&gt; {
+    <span class="kw">let </span>raw: <span class="kw-2">*mut </span><span class="kw">dyn </span>NativeObject = Box::into_raw(obj);
+
+    <span class="comment">// SAFETY: We know that `obj` is of type `T` (due to the INVARIANT of `HostDefined`).
+    // See `HostDefined::insert`, `HostDefined::insert_default` and `HostDefined::remove`.
+    </span><span class="kw">unsafe </span>{ Box::from_raw(raw.cast::&lt;T&gt;()) }
 }
 
 <span class="kw">impl </span>HostDefined {
     <span class="doccomment">/// Insert a type into the [`HostDefined`].
-    ///
-    /// # Panics
-    ///
-    /// Panics if [`HostDefined`] field is borrowed.
     </span><span class="attr">#[track_caller]
-    </span><span class="kw">pub fn </span>insert_default&lt;T: NativeObject + Default&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>NativeObject&gt;&gt; {
-        <span class="self">self</span>.state
-            .borrow_mut()
+    </span><span class="kw">pub fn </span>insert_default&lt;T: NativeObject + Default&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Box&lt;T&gt;&gt; {
+        <span class="self">self</span>.types
             .insert(TypeId::of::&lt;T&gt;(), Box::&lt;T&gt;::default())
+            .map(downcast_boxed_native_object_unchecked)
     }
 
     <span class="doccomment">/// Insert a type into the [`HostDefined`].
-    ///
-    /// # Panics
-    ///
-    /// Panics if [`HostDefined`] field is borrowed.
     </span><span class="attr">#[track_caller]
-    </span><span class="kw">pub fn </span>insert&lt;T: NativeObject&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, value: T) -&gt; <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>NativeObject&gt;&gt; {
-        <span class="self">self</span>.state
-            .borrow_mut()
+    </span><span class="kw">pub fn </span>insert&lt;T: NativeObject&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: T) -&gt; <span class="prelude-ty">Option</span>&lt;Box&lt;T&gt;&gt; {
+        <span class="self">self</span>.types
             .insert(TypeId::of::&lt;T&gt;(), Box::new(value))
+            .map(downcast_boxed_native_object_unchecked)
     }
 
     <span class="doccomment">/// Check if the [`HostDefined`] has type T.
-    ///
-    /// # Panics
-    ///
-    /// Panics if [`HostDefined`] field is borrowed mutably.
-    </span><span class="attr">#[track_caller]
+    </span><span class="attr">#[must_use]
+    #[track_caller]
     </span><span class="kw">pub fn </span>has&lt;T: NativeObject&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="self">self</span>.state.borrow().contains_key(<span class="kw-2">&amp;</span>TypeId::of::&lt;T&gt;())
+        <span class="self">self</span>.types.contains_key(<span class="kw-2">&amp;</span>TypeId::of::&lt;T&gt;())
     }
 
     <span class="doccomment">/// Remove type T from [`HostDefined`], if it exists.
     ///
     /// Returns [`Some`] with the object if it exits, [`None`] otherwise.
-    ///
-    /// # Panics
-    ///
-    /// Panics if [`HostDefined`] field is borrowed.
     </span><span class="attr">#[track_caller]
-    </span><span class="kw">pub fn </span>remove&lt;T: NativeObject&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>NativeObject&gt;&gt; {
-        <span class="self">self</span>.state.borrow_mut().remove(<span class="kw-2">&amp;</span>TypeId::of::&lt;T&gt;())
+    </span><span class="kw">pub fn </span>remove&lt;T: NativeObject&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Box&lt;T&gt;&gt; {
+        <span class="self">self</span>.types
+            .remove(<span class="kw-2">&amp;</span>TypeId::of::&lt;T&gt;())
+            .map(downcast_boxed_native_object_unchecked)
     }
 
-    <span class="doccomment">/// Get type T from [`HostDefined`], if it exits.
-    ///
-    /// # Panics
-    ///
-    /// Panics if [`HostDefined`] field is borrowed.
+    <span class="doccomment">/// Get type T from [`HostDefined`], if it exists.
     </span><span class="attr">#[track_caller]
-    </span><span class="kw">pub fn </span>get&lt;T: NativeObject&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;GcRef&lt;<span class="lifetime">&#39;_</span>, T&gt;&gt; {
-        GcRef::try_map(<span class="self">self</span>.state.borrow(), |state| {
-            state
-                .get(<span class="kw-2">&amp;</span>TypeId::of::&lt;T&gt;())
-                .map(Box::as_ref)
-                .and_then(&lt;<span class="kw">dyn </span>NativeObject&gt;::downcast_ref::&lt;T&gt;)
-        })
+    </span><span class="kw">pub fn </span>get&lt;T: NativeObject&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>T&gt; {
+        <span class="self">self</span>.types
+            .get(<span class="kw-2">&amp;</span>TypeId::of::&lt;T&gt;())
+            .map(Box::as_ref)
+            .and_then(&lt;<span class="kw">dyn </span>NativeObject&gt;::downcast_ref::&lt;T&gt;)
     }
 
-    <span class="doccomment">/// Get type T from [`HostDefined`], if it exits.
-    ///
-    /// # Panics
-    ///
-    /// Panics if [`HostDefined`] field is borrowed.
+    <span class="doccomment">/// Get type T from [`HostDefined`], if it exists.
     </span><span class="attr">#[track_caller]
-    </span><span class="kw">pub fn </span>get_mut&lt;T: NativeObject&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;GcRefMut&lt;<span class="lifetime">&#39;_</span>, HostDefinedMap, T&gt;&gt; {
-        GcRefMut::try_map(
-            <span class="self">self</span>.state.borrow_mut(),
-            |state: <span class="kw-2">&amp;mut </span>FxHashMap&lt;TypeId, Box&lt;<span class="kw">dyn </span>NativeObject&gt;&gt;| {
-                state
-                    .get_mut(<span class="kw-2">&amp;</span>TypeId::of::&lt;T&gt;())
-                    .map(Box::as_mut)
-                    .and_then(&lt;<span class="kw">dyn </span>NativeObject&gt;::downcast_mut::&lt;T&gt;)
-            },
-        )
+    </span><span class="kw">pub fn </span>get_mut&lt;T: NativeObject&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>T&gt; {
+        <span class="self">self</span>.types
+            .get_mut(<span class="kw-2">&amp;</span>TypeId::of::&lt;T&gt;())
+            .map(Box::as_mut)
+            .and_then(&lt;<span class="kw">dyn </span>NativeObject&gt;::downcast_mut::&lt;T&gt;)
+    }
+
+    <span class="doccomment">/// Get type a tuple of types from [`HostDefined`], if they exist.
+    </span><span class="attr">#[track_caller]
+    </span><span class="kw">pub fn </span>get_many_mut&lt;T, <span class="kw">const </span>SIZE: usize&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;T::NativeTupleMutRef&lt;<span class="lifetime">&#39;_</span>&gt;&gt;
+    <span class="kw">where
+        </span>T: NativeTuple&lt;SIZE&gt;,
+    {
+        <span class="kw">let </span>ids = T::as_type_ids();
+        <span class="kw">let </span>refs: [<span class="kw-2">&amp;</span>TypeId; SIZE] = ids
+            .iter()
+            .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;()
+            .try_into()
+            .expect(<span class="string">&quot;tuple should be of size `SIZE`&quot;</span>);
+
+        <span class="self">self</span>.types.get_many_mut(refs).and_then(T::mut_ref_from_anys)
     }
 
     <span class="doccomment">/// Clears all the objects.
-    ///
-    /// # Panics
-    ///
-    /// Panics if [`HostDefined`] field is borrowed.
     </span><span class="attr">#[track_caller]
-    </span><span class="kw">pub fn </span>clear(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="self">self</span>.state.borrow_mut().clear();
+    </span><span class="kw">pub fn </span>clear(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="self">self</span>.types.clear();
     }
 }
+
+<span class="doccomment">/// This trait represents a tuple of [`NativeObject`]s capable of being
+/// used in [`HostDefined`].
+///
+/// This allows accessing multiple types from [`HostDefined`] at once.
+</span><span class="kw">pub trait </span>NativeTuple&lt;<span class="kw">const </span>SIZE: usize&gt; {
+    <span class="kw">type </span>NativeTupleMutRef&lt;<span class="lifetime">&#39;a</span>&gt;;
+
+    <span class="kw">fn </span>as_type_ids() -&gt; Vec&lt;TypeId&gt;;
+
+    <span class="kw">fn </span>mut_ref_from_anys(
+        anys: [<span class="kw-2">&amp;</span><span class="lifetime">&#39;_ </span><span class="kw-2">mut </span>Box&lt;<span class="kw">dyn </span>NativeObject&gt;; SIZE],
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::NativeTupleMutRef&lt;<span class="lifetime">&#39;_</span>&gt;&gt;;
+}
+
+<span class="macro">macro_rules! </span>impl_native_tuple {
+    (<span class="macro-nonterminal">$size</span>:literal $(,<span class="macro-nonterminal">$name</span>:ident)* ) =&gt; {
+        <span class="kw">impl</span>&lt;$(<span class="macro-nonterminal">$name</span>: NativeObject,)<span class="kw-2">*</span>&gt; NativeTuple&lt;<span class="macro-nonterminal">$size</span>&gt; <span class="kw">for </span>($(<span class="macro-nonterminal">$name</span>,)<span class="kw-2">*</span>) {
+            <span class="kw">type </span>NativeTupleMutRef&lt;<span class="lifetime">&#39;a</span>&gt; = ($(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="macro-nonterminal">$name</span>,)<span class="kw-2">*</span>);
+
+            <span class="kw">fn </span>as_type_ids() -&gt; Vec&lt;TypeId&gt; {
+                <span class="macro">vec!</span>[$(TypeId::of::&lt;<span class="macro-nonterminal">$name</span>&gt;(),)<span class="kw-2">*</span>]
+            }
+
+            <span class="kw">fn </span>mut_ref_from_anys(
+                anys: [<span class="kw-2">&amp;</span><span class="lifetime">&#39;_ </span><span class="kw-2">mut </span>Box&lt;<span class="kw">dyn </span>NativeObject&gt;; <span class="macro-nonterminal">$size</span>],
+            ) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::NativeTupleMutRef&lt;<span class="lifetime">&#39;_</span>&gt;&gt; {
+                <span class="attr">#[allow(unused_variables, unused_mut)]
+                </span><span class="kw">let </span><span class="kw-2">mut </span>anys = anys.into_iter();
+                <span class="prelude-val">Some</span>(($(
+                    anys.next().expect(<span class="string">&quot;Expect `anys` to be of length `SIZE`&quot;</span>).downcast_mut::&lt;<span class="macro-nonterminal">$name</span>&gt;()<span class="question-mark">?</span>,
+                )<span class="kw-2">*</span>))
+            }
+        }
+    }
+}
+
+<span class="macro">impl_native_tuple!</span>(<span class="number">0</span>);
+<span class="macro">impl_native_tuple!</span>(<span class="number">1</span>, A);
+<span class="macro">impl_native_tuple!</span>(<span class="number">2</span>, A, B);
+<span class="macro">impl_native_tuple!</span>(<span class="number">3</span>, A, B, C);
+<span class="macro">impl_native_tuple!</span>(<span class="number">4</span>, A, B, C, D);
+<span class="macro">impl_native_tuple!</span>(<span class="number">5</span>, A, B, C, D, E);
+<span class="macro">impl_native_tuple!</span>(<span class="number">6</span>, A, B, C, D, E, F);
+<span class="macro">impl_native_tuple!</span>(<span class="number">7</span>, A, B, C, D, E, F, G);
+<span class="macro">impl_native_tuple!</span>(<span class="number">8</span>, A, B, C, D, E, F, G, H);
+<span class="macro">impl_native_tuple!</span>(<span class="number">9</span>, A, B, C, D, E, F, G, H, I);
+<span class="macro">impl_native_tuple!</span>(<span class="number">10</span>, A, B, C, D, E, F, G, H, I, J);
+<span class="macro">impl_native_tuple!</span>(<span class="number">11</span>, A, B, C, D, E, F, G, H, I, J, K);
+<span class="macro">impl_native_tuple!</span>(<span class="number">12</span>, A, B, C, D, E, F, G, H, I, J, K, L);
 </code></pre></div></section></main></body></html>
