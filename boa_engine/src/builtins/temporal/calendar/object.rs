@@ -1,11 +1,12 @@
 //! Boa's implementation of a user-defined Anonymous Calendar.
 
 use crate::{
-    builtins::temporal::{plain_date, plain_date_time, plain_month_day, plain_year_month},
+    builtins::temporal::{plain_date, plain_month_day, plain_year_month},
     object::ObjectKind,
     property::PropertyKey,
     Context, JsObject, JsValue,
 };
+use std::any::Any;
 
 use boa_macros::utf16;
 use boa_temporal::{
@@ -28,14 +29,12 @@ use boa_temporal::{
 #[derive(Debug, Clone)]
 pub(crate) struct CustomRuntimeCalendar {
     calendar: JsObject,
-    ctx: *mut Context,
 }
 
 impl CustomRuntimeCalendar {
-    pub(crate) fn new(calendar: &JsObject, context: &mut Context) -> Self {
+    pub(crate) fn new(calendar: &JsObject) -> Self {
         Self {
             calendar: calendar.clone(),
-            ctx: context,
         }
     }
 }
@@ -45,10 +44,13 @@ impl CalendarProtocol for CustomRuntimeCalendar {
         &self,
         fields: &mut TemporalFields,
         overflow: ArithmeticOverflow,
+        context: &mut dyn Any,
     ) -> TemporalResult<TemporalDate> {
         // Safety: Context lives for the life of the program and execution, so
         // this should, in theory, be valid.
-        let context = unsafe { &mut *self.ctx };
+        let context = context
+            .downcast_mut::<Context>()
+            .expect("Context was not provided for a CustomCalendar.");
 
         let method = self
             .calendar
@@ -80,6 +82,7 @@ impl CalendarProtocol for CustomRuntimeCalendar {
         &self,
         fields: &mut TemporalFields,
         overflow: ArithmeticOverflow,
+        context: &mut dyn Any,
     ) -> TemporalResult<TemporalYearMonth> {
         todo!()
     }
@@ -88,6 +91,7 @@ impl CalendarProtocol for CustomRuntimeCalendar {
         &self,
         fields: &mut TemporalFields,
         overflow: ArithmeticOverflow,
+        context: &mut dyn Any,
     ) -> TemporalResult<TemporalMonthDay> {
         todo!()
     }
@@ -97,6 +101,7 @@ impl CalendarProtocol for CustomRuntimeCalendar {
         date: &TemporalDate,
         duration: &Duration,
         overflow: ArithmeticOverflow,
+        context: &mut dyn Any,
     ) -> TemporalResult<TemporalDate> {
         todo!()
     }
@@ -106,55 +111,90 @@ impl CalendarProtocol for CustomRuntimeCalendar {
         one: &TemporalDate,
         two: &TemporalDate,
         largest_unit: boa_temporal::options::TemporalUnit,
+        context: &mut dyn Any,
     ) -> TemporalResult<Duration> {
         todo!()
     }
 
     // TODO: Determine validity of below errors.
-    fn era(&self, date_like: &CalendarDateLike) -> TemporalResult<Option<TinyStr8>> {
+    fn era(
+        &self,
+        date_like: &CalendarDateLike,
+        context: &mut dyn Any,
+    ) -> TemporalResult<Option<TinyStr8>> {
         Err(TemporalError::range().with_message("Objects do not implement era"))
     }
 
-    fn era_year(&self, date_like: &CalendarDateLike) -> TemporalResult<Option<i32>> {
+    fn era_year(
+        &self,
+        date_like: &CalendarDateLike,
+        context: &mut dyn Any,
+    ) -> TemporalResult<Option<i32>> {
         Err(TemporalError::range().with_message("Objects do not implement eraYear."))
     }
 
-    fn year(&self, date_like: &CalendarDateLike) -> TemporalResult<i32> {
+    fn year(&self, date_like: &CalendarDateLike, context: &mut dyn Any) -> TemporalResult<i32> {
         todo!()
     }
 
-    fn month(&self, date_like: &CalendarDateLike) -> TemporalResult<u8> {
+    fn month(&self, date_like: &CalendarDateLike, context: &mut dyn Any) -> TemporalResult<u8> {
         todo!()
     }
 
-    fn month_code(&self, date_like: &CalendarDateLike) -> TemporalResult<TinyStr4> {
+    fn month_code(
+        &self,
+        date_like: &CalendarDateLike,
+        context: &mut dyn Any,
+    ) -> TemporalResult<TinyStr4> {
         todo!()
     }
 
-    fn day(&self, date_like: &CalendarDateLike) -> TemporalResult<u8> {
+    fn day(&self, date_like: &CalendarDateLike, context: &mut dyn Any) -> TemporalResult<u8> {
         todo!()
     }
 
-    fn day_of_week(&self, date_like: &CalendarDateLike) -> TemporalResult<i32> {
+    fn day_of_week(
+        &self,
+        date_like: &CalendarDateLike,
+        context: &mut dyn Any,
+    ) -> TemporalResult<i32> {
         todo!()
     }
 
-    fn day_of_year(&self, date_like: &CalendarDateLike) -> TemporalResult<i32> {
+    fn day_of_year(
+        &self,
+        date_like: &CalendarDateLike,
+        context: &mut dyn Any,
+    ) -> TemporalResult<i32> {
         todo!()
     }
 
-    fn week_of_year(&self, date_like: &CalendarDateLike) -> TemporalResult<i32> {
+    fn week_of_year(
+        &self,
+        date_like: &CalendarDateLike,
+        context: &mut dyn Any,
+    ) -> TemporalResult<i32> {
         todo!()
     }
 
-    fn year_of_week(&self, date_like: &CalendarDateLike) -> TemporalResult<i32> {
+    fn year_of_week(
+        &self,
+        date_like: &CalendarDateLike,
+        context: &mut dyn Any,
+    ) -> TemporalResult<i32> {
         todo!()
     }
 
-    fn days_in_week(&self, date_like: &CalendarDateLike) -> TemporalResult<i32> {
+    fn days_in_week(
+        &self,
+        date_like: &CalendarDateLike,
+        context: &mut dyn Any,
+    ) -> TemporalResult<i32> {
         // Safety: Context lives for the lifetime of the program's execution, so
         // this should, in theory, be safe memory to access.
-        let context = unsafe { &mut *self.ctx };
+        let context = context
+            .downcast_mut::<Context>()
+            .expect("Context was not provided for a CustomCalendar.");
 
         let date_like = date_like_to_object(date_like, context)?;
 
@@ -176,10 +216,16 @@ impl CalendarProtocol for CustomRuntimeCalendar {
         Ok(integral)
     }
 
-    fn days_in_month(&self, date_like: &CalendarDateLike) -> TemporalResult<i32> {
+    fn days_in_month(
+        &self,
+        date_like: &CalendarDateLike,
+        context: &mut dyn Any,
+    ) -> TemporalResult<i32> {
         // Safety: Context lives for the lifetime of the program's execution, so
         // this should, in theory, be safe memory to access.
-        let context = unsafe { &mut *self.ctx };
+        let context = context
+            .downcast_mut::<Context>()
+            .expect("Context was not provided for a CustomCalendar.");
 
         let date_like = date_like_to_object(date_like, context)?;
 
@@ -200,10 +246,16 @@ impl CalendarProtocol for CustomRuntimeCalendar {
         Ok(integral)
     }
 
-    fn days_in_year(&self, date_like: &CalendarDateLike) -> TemporalResult<i32> {
+    fn days_in_year(
+        &self,
+        date_like: &CalendarDateLike,
+        context: &mut dyn Any,
+    ) -> TemporalResult<i32> {
         // Safety: Context lives for the lifetime of the program's execution, so
         // this should, in theory, be safe memory to access.
-        let context = unsafe { &mut *self.ctx };
+        let context = context
+            .downcast_mut::<Context>()
+            .expect("Context was not provided for a CustomCalendar.");
 
         let date_like = date_like_to_object(date_like, context)?;
 
@@ -225,11 +277,19 @@ impl CalendarProtocol for CustomRuntimeCalendar {
         Ok(integral)
     }
 
-    fn months_in_year(&self, date_like: &CalendarDateLike) -> TemporalResult<i32> {
+    fn months_in_year(
+        &self,
+        date_like: &CalendarDateLike,
+        context: &mut dyn Any,
+    ) -> TemporalResult<i32> {
         todo!()
     }
 
-    fn in_leap_year(&self, date_like: &CalendarDateLike) -> TemporalResult<bool> {
+    fn in_leap_year(
+        &self,
+        date_like: &CalendarDateLike,
+        context: &mut dyn Any,
+    ) -> TemporalResult<bool> {
         todo!()
     }
 
@@ -254,10 +314,12 @@ impl CalendarProtocol for CustomRuntimeCalendar {
         todo!()
     }
 
-    fn identifier(&self) -> TemporalResult<String> {
+    fn identifier(&self, context: &mut dyn Any) -> TemporalResult<String> {
         // Safety: Context lives for the lifetime of the program's execution, so
         // this should, in theory, be safe memory to access.
-        let context = unsafe { &mut *self.ctx };
+        let context = context
+            .downcast_mut::<Context>()
+            .expect("Context was not provided for a CustomCalendar.");
 
         let identifier = self
             .calendar

@@ -19,3 +19,7 @@ bitflags.workspace = true
 rustc-hash = { workspace = true, features = ["std"] }
 num-bigint = { workspace = true, features = ["serde"] }
 num-traits.workspace = true
+
+
+[features]
+context = []

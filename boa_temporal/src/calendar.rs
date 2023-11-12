@@ -7,7 +7,7 @@
 //! it is up to implementers to implement an engine specific impl for handling JavaScript
 //! objects that may return true on `ImplementsCalendarProtocol`.
 
-use std::str::FromStr;
+use std::{any::Any, str::FromStr};
 
 use crate::{
     date::TemporalDate,
@@ -162,18 +162,21 @@ pub trait CalendarProtocol: CalendarProtocolClone {
         &self,
         fields: &mut TemporalFields,
         overflow: ArithmeticOverflow,
+        context: &mut dyn Any,
     ) -> TemporalResult<TemporalDate>;
     /// Creates a `Temporal.PlainYearMonth` object from the provided fields.
     fn year_month_from_fields(
         &self,
         fields: &mut TemporalFields,
         overflow: ArithmeticOverflow,
+        context: &mut dyn Any,
     ) -> TemporalResult<TemporalYearMonth>;
     /// Creates a `Temporal.PlainMonthDay` object from the provided fields.
     fn month_day_from_fields(
         &self,
         fields: &mut TemporalFields,
         overflow: ArithmeticOverflow,
+        context: &mut dyn Any,
     ) -> TemporalResult<TemporalMonthDay>;
     /// Returns a `Temporal.PlainDate` based off an added date.
     fn date_add(
@@ -181,6 +184,7 @@ pub trait CalendarProtocol: CalendarProtocolClone {
         date: &TemporalDate,
         duration: &Duration,
         overflow: ArithmeticOverflow,
+        context: &mut dyn Any,
     ) -> TemporalResult<TemporalDate>;
     /// Returns a `Temporal.Duration` representing the duration between two dates.
     fn date_until(
@@ -188,38 +192,87 @@ pub trait CalendarProtocol: CalendarProtocolClone {
         one: &TemporalDate,
         two: &TemporalDate,
         largest_unit: TemporalUnit,
+        context: &mut dyn Any,
     ) -> TemporalResult<Duration>;
     /// Returns the era for a given `temporaldatelike`.
-    fn era(&self, date_like: &CalendarDateLike) -> TemporalResult<Option<TinyStr8>>;
+    fn era(
+        &self,
+        date_like: &CalendarDateLike,
+        context: &mut dyn Any,
+    ) -> TemporalResult<Option<TinyStr8>>;
     /// Returns the era year for a given `temporaldatelike`
-    fn era_year(&self, date_like: &CalendarDateLike) -> TemporalResult<Option<i32>>;
+    fn era_year(
+        &self,
+        date_like: &CalendarDateLike,
+        context: &mut dyn Any,
+    ) -> TemporalResult<Option<i32>>;
     /// Returns the `year` for a given `temporaldatelike`
-    fn year(&self, date_like: &CalendarDateLike) -> TemporalResult<i32>;
+    fn year(&self, date_like: &CalendarDateLike, context: &mut dyn Any) -> TemporalResult<i32>;
     /// Returns the `month` for a given `temporaldatelike`
-    fn month(&self, date_like: &CalendarDateLike) -> TemporalResult<u8>;
+    fn month(&self, date_like: &CalendarDateLike, context: &mut dyn Any) -> TemporalResult<u8>;
     // Note: Best practice would probably be to switch to a MonthCode enum after extraction.
     /// Returns the `monthCode` for a given `temporaldatelike`
-    fn month_code(&self, date_like: &CalendarDateLike) -> TemporalResult<TinyStr4>;
+    fn month_code(
+        &self,
+        date_like: &CalendarDateLike,
+        context: &mut dyn Any,
+    ) -> TemporalResult<TinyStr4>;
     /// Returns the `day` for a given `temporaldatelike`
-    fn day(&self, date_like: &CalendarDateLike) -> TemporalResult<u8>;
+    fn day(&self, date_like: &CalendarDateLike, context: &mut dyn Any) -> TemporalResult<u8>;
     /// Returns a value representing the day of the week for a date.
-    fn day_of_week(&self, date_like: &CalendarDateLike) -> TemporalResult<i32>;
+    fn day_of_week(
+        &self,
+        date_like: &CalendarDateLike,
+        context: &mut dyn Any,
+    ) -> TemporalResult<i32>;
     /// Returns a value representing the day of the year for a given calendar.
-    fn day_of_year(&self, date_like: &CalendarDateLike) -> TemporalResult<i32>;
+    fn day_of_year(
+        &self,
+        date_like: &CalendarDateLike,
+        context: &mut dyn Any,
+    ) -> TemporalResult<i32>;
     /// Returns a value representing the week of the year for a given calendar.
-    fn week_of_year(&self, date_like: &CalendarDateLike) -> TemporalResult<i32>;
+    fn week_of_year(
+        &self,
+        date_like: &CalendarDateLike,
+        context: &mut dyn Any,
+    ) -> TemporalResult<i32>;
     /// Returns the year of a given week.
-    fn year_of_week(&self, date_like: &CalendarDateLike) -> TemporalResult<i32>;
+    fn year_of_week(
+        &self,
+        date_like: &CalendarDateLike,
+        context: &mut dyn Any,
+    ) -> TemporalResult<i32>;
     /// Returns the days in a week for a given calendar.
-    fn days_in_week(&self, date_like: &CalendarDateLike) -> TemporalResult<i32>;
+    fn days_in_week(
+        &self,
+        date_like: &CalendarDateLike,
+        context: &mut dyn Any,
+    ) -> TemporalResult<i32>;
     /// Returns the days in a month for a given calendar.
-    fn days_in_month(&self, date_like: &CalendarDateLike) -> TemporalResult<i32>;
+    fn days_in_month(
+        &self,
+        date_like: &CalendarDateLike,
+        context: &mut dyn Any,
+    ) -> TemporalResult<i32>;
     /// Returns the days in a year for a given calendar.
-    fn days_in_year(&self, date_like: &CalendarDateLike) -> TemporalResult<i32>;
+    fn days_in_year(
+        &self,
+        date_like: &CalendarDateLike,
+        context: &mut dyn Any,
+    ) -> TemporalResult<i32>;
     /// Returns the months in a year for a given calendar.
-    fn months_in_year(&self, date_like: &CalendarDateLike) -> TemporalResult<i32>;
+    fn months_in_year(
+        &self,
+        date_like: &CalendarDateLike,
+        context: &mut dyn Any,
+    ) -> TemporalResult<i32>;
     /// Returns whether a value is within a leap year according to the designated calendar.
-    fn in_leap_year(&self, date_like: &CalendarDateLike) -> TemporalResult<bool>;
+    fn in_leap_year(
+        &self,
+        date_like: &CalendarDateLike,
+        context: &mut dyn Any,
+    ) -> TemporalResult<bool>;
     /// Resolve the `TemporalFields` for the implemented Calendar
     fn resolve_fields(
         &self,
@@ -231,12 +284,16 @@ pub trait CalendarProtocol: CalendarProtocolClone {
     /// Return the fields to ignore for this Calendar based on provided keys.
     fn field_keys_to_ignore(&self, additional_keys: Vec<String>) -> Vec<String>;
     /// Debug name
-    fn identifier(&self) -> TemporalResult<String>;
+    fn identifier(&self, context: &mut dyn Any) -> TemporalResult<String>;
 }
 
 impl core::fmt::Debug for dyn CalendarProtocol {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "{}", self.identifier().unwrap_or_default().as_str())
+        write!(
+            f,
+            "{}",
+            self.identifier(&mut ()).unwrap_or_default().as_str()
+        )
     }
 }
 
@@ -279,13 +336,14 @@ impl CalendarSlot {
         date: &TemporalDate,
         duration: &Duration,
         overflow: ArithmeticOverflow,
+        context: &mut dyn Any,
     ) -> TemporalResult<TemporalDate> {
         match self {
             Self::Identifier(id) => {
                 let protocol = AvailableCalendars::from_str(&id)?.to_protocol();
-                protocol.date_add(date, duration, overflow)
+                protocol.date_add(date, duration, overflow, context)
             }
-            Self::Protocol(protocol) => protocol.date_add(date, duration, overflow),
+            Self::Protocol(protocol) => protocol.date_add(date, duration, overflow, context),
         }
     }
 
@@ -297,182 +355,223 @@ impl CalendarSlot {
         one: &TemporalDate,
         two: &TemporalDate,
         largest_unit: TemporalUnit,
+        context: &mut dyn Any,
     ) -> TemporalResult<Duration> {
         match self {
             Self::Identifier(id) => {
                 let protocol = AvailableCalendars::from_str(&id)?.to_protocol();
-                protocol.date_until(one, two, largest_unit)
+                protocol.date_until(one, two, largest_unit, context)
             }
-            Self::Protocol(protocol) => protocol.date_until(one, two, largest_unit),
+            Self::Protocol(protocol) => protocol.date_until(one, two, largest_unit, context),
         }
     }
 
     /// `CalendarYear`
     ///
     /// TODO: More docs.
-    pub fn year(&self, date_like: &CalendarDateLike) -> TemporalResult<i32> {
+    pub fn year(&self, date_like: &CalendarDateLike, context: &mut dyn Any) -> TemporalResult<i32> {
         match self {
             Self::Identifier(id) => {
                 let protocol = AvailableCalendars::from_str(&id)?.to_protocol();
-                protocol.year(date_like)
+                protocol.year(date_like, &mut ())
             }
-            Self::Protocol(protocol) => protocol.year(date_like),
+            Self::Protocol(protocol) => protocol.year(date_like, context),
         }
     }
 
     /// `CalendarMonth`
     ///
     /// TODO: More docs.
-    pub fn month(&self, date_like: &CalendarDateLike) -> TemporalResult<u8> {
+    pub fn month(&self, date_like: &CalendarDateLike, context: &mut dyn Any) -> TemporalResult<u8> {
         match self {
             Self::Identifier(id) => {
                 let protocol = AvailableCalendars::from_str(&id)?.to_protocol();
-                protocol.month(date_like)
+                protocol.month(date_like, &mut ())
             }
-            Self::Protocol(protocol) => protocol.month(date_like),
+            Self::Protocol(protocol) => protocol.month(date_like, context),
         }
     }
 
     /// `CalendarMonthCode`
     ///
     /// TODO: More docs.
-    pub fn month_code(&self, date_like: &CalendarDateLike) -> TemporalResult<TinyStr4> {
+    pub fn month_code(
+        &self,
+        date_like: &CalendarDateLike,
+        context: &mut dyn Any,
+    ) -> TemporalResult<TinyStr4> {
         match self {
             Self::Identifier(id) => {
                 let protocol = AvailableCalendars::from_str(&id)?.to_protocol();
-                protocol.month_code(date_like)
+                protocol.month_code(date_like, &mut ())
             }
-            Self::Protocol(protocol) => protocol.month_code(date_like),
+            Self::Protocol(protocol) => protocol.month_code(date_like, context),
         }
     }
 
     /// `CalendarDay`
     ///
     /// TODO: More docs.
-    pub fn day(&self, date_like: &CalendarDateLike) -> TemporalResult<u8> {
+    pub fn day(&self, date_like: &CalendarDateLike, context: &mut dyn Any) -> TemporalResult<u8> {
         match self {
             Self::Identifier(id) => {
                 let protocol = AvailableCalendars::from_str(&id)?.to_protocol();
-                protocol.day(date_like)
+                protocol.day(date_like, &mut ())
             }
-            Self::Protocol(protocol) => protocol.day(date_like),
+            Self::Protocol(protocol) => protocol.day(date_like, context),
         }
     }
 
     /// `CalendarDayOfWeek`
     ///
     /// TODO: More docs.
-    pub fn day_of_week(&self, date_like: &CalendarDateLike) -> TemporalResult<i32> {
+    pub fn day_of_week(
+        &self,
+        date_like: &CalendarDateLike,
+        context: &mut dyn Any,
+    ) -> TemporalResult<i32> {
         match self {
             Self::Identifier(id) => {
                 let protocol = AvailableCalendars::from_str(&id)?.to_protocol();
-                protocol.day_of_week(date_like)
+                protocol.day_of_week(date_like, &mut ())
             }
-            Self::Protocol(protocol) => protocol.day_of_week(date_like),
+            Self::Protocol(protocol) => protocol.day_of_week(date_like, context),
         }
     }
 
     /// `CalendarDayOfYear`
     ///
     /// TODO: More docs.
-    pub fn day_of_year(&self, date_like: &CalendarDateLike) -> TemporalResult<i32> {
+    pub fn day_of_year(
+        &self,
+        date_like: &CalendarDateLike,
+        context: &mut dyn Any,
+    ) -> TemporalResult<i32> {
         match self {
             Self::Identifier(id) => {
                 let protocol = AvailableCalendars::from_str(&id)?.to_protocol();
-                protocol.day_of_year(date_like)
+                protocol.day_of_year(date_like, &mut ())
             }
-            Self::Protocol(protocol) => protocol.day_of_year(date_like),
+            Self::Protocol(protocol) => protocol.day_of_year(date_like, context),
         }
     }
 
     /// `CalendarWeekOfYear`
     ///
     /// TODO: More docs.
-    pub fn week_of_year(&self, date_like: &CalendarDateLike) -> TemporalResult<i32> {
+    pub fn week_of_year(
+        &self,
+        date_like: &CalendarDateLike,
+        context: &mut dyn Any,
+    ) -> TemporalResult<i32> {
         match self {
             Self::Identifier(id) => {
                 let protocol = AvailableCalendars::from_str(&id)?.to_protocol();
-                protocol.week_of_year(date_like)
+                protocol.week_of_year(date_like, &mut ())
             }
-            Self::Protocol(protocol) => protocol.week_of_year(date_like),
+            Self::Protocol(protocol) => protocol.week_of_year(date_like, context),
         }
     }
 
     /// `CalendarYearOfWeek`
     ///
     /// TODO: More docs.
-    pub fn year_of_week(&self, date_like: &CalendarDateLike) -> TemporalResult<i32> {
+    pub fn year_of_week(
+        &self,
+        date_like: &CalendarDateLike,
+        context: &mut dyn Any,
+    ) -> TemporalResult<i32> {
         match self {
             Self::Identifier(id) => {
                 let protocol = AvailableCalendars::from_str(&id)?.to_protocol();
-                protocol.year_of_week(date_like)
+                protocol.year_of_week(date_like, &mut ())
             }
-            Self::Protocol(protocol) => protocol.year_of_week(date_like),
+            Self::Protocol(protocol) => protocol.year_of_week(date_like, context),
         }
     }
 
     /// `CalendarDaysInWeek`
     ///
     /// TODO: More docs.
-    pub fn days_in_week(&self, date_like: &CalendarDateLike) -> TemporalResult<i32> {
+    pub fn days_in_week(
+        &self,
+        date_like: &CalendarDateLike,
+        context: &mut dyn Any,
+    ) -> TemporalResult<i32> {
         match self {
             Self::Identifier(id) => {
                 let protocol = AvailableCalendars::from_str(&id)?.to_protocol();
-                protocol.days_in_week(date_like)
+                protocol.days_in_week(date_like, &mut ())
             }
-            Self::Protocol(protocol) => protocol.days_in_week(date_like),
+            Self::Protocol(protocol) => protocol.days_in_week(date_like, context),
         }
     }
 
     /// `CalendarDaysInMonth`
     ///
     /// TODO: More docs.
-    pub fn days_in_month(&self, date_like: &CalendarDateLike) -> TemporalResult<i32> {
+    pub fn days_in_month(
+        &self,
+        date_like: &CalendarDateLike,
+        context: &mut dyn Any,
+    ) -> TemporalResult<i32> {
         match self {
             Self::Identifier(id) => {
                 let protocol = AvailableCalendars::from_str(&id)?.to_protocol();
-                protocol.days_in_month(date_like)
+                protocol.days_in_month(date_like, &mut ())
             }
-            Self::Protocol(protocol) => protocol.days_in_month(date_like),
+            Self::Protocol(protocol) => protocol.days_in_month(date_like, context),
         }
     }
 
     /// `CalendarDaysInYear`
     ///
     /// TODO: More docs.
-    pub fn days_in_year(&self, date_like: &CalendarDateLike) -> TemporalResult<i32> {
+    pub fn days_in_year(
+        &self,
+        date_like: &CalendarDateLike,
+        context: &mut dyn Any,
+    ) -> TemporalResult<i32> {
         match self {
             Self::Identifier(id) => {
                 let protocol = AvailableCalendars::from_str(&id)?.to_protocol();
-                protocol.days_in_year(date_like)
+                protocol.days_in_year(date_like, &mut ())
             }
-            Self::Protocol(protocol) => protocol.days_in_year(date_like),
+            Self::Protocol(protocol) => protocol.days_in_year(date_like, context),
         }
     }
 
     /// `CalendarMonthsInYear`
     ///
     /// TODO: More docs.
-    pub fn months_in_year(&self, date_like: &CalendarDateLike) -> TemporalResult<i32> {
+    pub fn months_in_year(
+        &self,
+        date_like: &CalendarDateLike,
+        context: &mut dyn Any,
+    ) -> TemporalResult<i32> {
         match self {
             Self::Identifier(id) => {
                 let protocol = AvailableCalendars::from_str(&id)?.to_protocol();
-                protocol.months_in_year(date_like)
+                protocol.months_in_year(date_like, &mut ())
             }
-            Self::Protocol(protocol) => protocol.months_in_year(date_like),
+            Self::Protocol(protocol) => protocol.months_in_year(date_like, context),
         }
     }
 
     /// `CalendarInLeapYear`
     ///
     /// TODO: More docs.
-    pub fn in_leap_year(&self, date_like: &CalendarDateLike) -> TemporalResult<bool> {
+    pub fn in_leap_year(
+        &self,
+        date_like: &CalendarDateLike,
+        context: &mut dyn Any,
+    ) -> TemporalResult<bool> {
         match self {
             Self::Identifier(id) => {
                 let protocol = AvailableCalendars::from_str(&id)?.to_protocol();
-                protocol.in_leap_year(date_like)
+                protocol.in_leap_year(date_like, &mut ())
             }
-            Self::Protocol(protocol) => protocol.in_leap_year(date_like),
+            Self::Protocol(protocol) => protocol.in_leap_year(date_like, context),
         }
     }
 }

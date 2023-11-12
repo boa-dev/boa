@@ -10,6 +10,7 @@ use crate::{
     zoneddatetime::TemporalZonedDateTime,
     TemporalError, TemporalResult, NS_PER_DAY,
 };
+use std::any::Any;
 
 // ==== `DateDuration` ====
 
@@ -243,12 +244,42 @@ pub struct Duration {
     time: TimeDuration,
 }
 
+// NOTE(nekevss): Structure of the below is going to be a little convoluted,
+// but intended to section everything based on the below
+//
+// Notation - [section](sub-section(s)).
+//
+// Sections:
+//   - Creation (private/public)
+//   - Getters/Setters
+//   - Methods (private/public/feature)
+//
+
+// ==== Private Creation methods ====
+
 impl Duration {
     /// Creates a new `Duration` from a `DateDuration` and `TimeDuration`.
     pub(crate) const fn new_unchecked(date: DateDuration, time: TimeDuration) -> Self {
         Self { date, time }
     }
 
+    /// Utility function to create a year duration.
+    pub(crate) fn one_year(year_value: f64) -> Self {
+        Self::from_date_duration(DateDuration::new(year_value, 0f64, 0f64, 0f64))
+    }
+
+    /// Utility function to create a month duration.
+    pub(crate) fn one_month(month_value: f64) -> Self {
+        Self::from_date_duration(DateDuration::new(0f64, month_value, 0f64, 0f64))
+    }
+
+    /// Utility function to create a week duration.
+    pub(crate) fn one_week(week_value: f64) -> Self {
+        Self::from_date_duration(DateDuration::new(0f64, 0f64, week_value, 0f64))
+    }
+}
+
+impl Duration {
     /// Creates a new validated `Duration`.
     #[allow(clippy::too_many_arguments)]
     pub fn new(
@@ -306,27 +337,14 @@ impl Duration {
         }
     }
 
-    /// Utility function to create a one year duration.
-    pub(crate) fn one_year(year_value: f64) -> Self {
-        Self::from_date_duration(DateDuration::new(year_value, 0f64, 0f64, 0f64))
-    }
-
-    /// Utility function to create a one month duration.
-    pub(crate) fn one_month(month_value: f64) -> Self {
-        Self::from_date_duration(DateDuration::new(0f64, month_value, 0f64, 0f64))
-    }
-
-    /// Utility function to create a one week duration.
-    pub(crate) fn one_week(week_value: f64) -> Self {
-        Self::from_date_duration(DateDuration::new(0f64, 0f64, week_value, 0f64))
-    }
-
-    /// Utility function to return if the Durations values are within their valid ranges.
+    /// Return if the Durations values are within their valid ranges.
     #[inline]
     pub fn is_time_within_range(&self) -> bool {
         self.time.is_within_range()
     }
 }
+
+// ==== Public `Duration` Getters/Setters ====
 
 impl Duration {
     /// Returns a reference to the inner `TimeDuration`
@@ -423,12 +441,12 @@ impl Iterator for DurationIter<'_> {
             1 => Some(self.duration.date.months()),
             2 => Some(self.duration.date.weeks()),
             3 => Some(self.duration.date.days()),
-            4 => Some(self.duration.time.hours),
-            5 => Some(self.duration.time.minutes),
-            6 => Some(self.duration.time.seconds),
-            7 => Some(self.duration.time.milliseconds),
-            8 => Some(self.duration.time.microseconds),
-            9 => Some(self.duration.time.nanoseconds),
+            4 => Some(self.duration.time.hours()),
+            5 => Some(self.duration.time.minutes()),
+            6 => Some(self.duration.time.seconds()),
+            7 => Some(self.duration.time.milliseconds()),
+            8 => Some(self.duration.time.microseconds()),
+            9 => Some(self.duration.time.nanoseconds()),
             _ => None,
         };
         self.index += 1;
@@ -436,54 +454,14 @@ impl Iterator for DurationIter<'_> {
     }
 }
 
-// ==== Duration method ====
-
-impl Duration {
-    /// Returns the absolute value of `Duration`.
-    pub fn abs(&self) -> Self {
-        Self {
-            date: DateDuration::new(
-                self.date.years.abs(),
-                self.date.months.abs(),
-                self.date.weeks.abs(),
-                self.date.days.abs(),
-            ),
-            time: TimeDuration::new(
-                self.time.hours.abs(),
-                self.time.minutes.abs(),
-                self.time.seconds.abs(),
-                self.time.milliseconds.abs(),
-                self.time.microseconds.abs(),
-                self.time.nanoseconds.abs(),
-            ),
-        }
-    }
-}
+// ==== Private Duration methods ====
 
 impl Duration {
     /// Returns the duration time values as a vec
-    fn time_values(&self) -> Vec<f64> {
+    pub(crate) fn time_values(&self) -> Vec<f64> {
         let mut values = Vec::from([self.date.days]);
         values.extend(self.time.into_iter());
         values
-    }
-
-    /// 7.5.10 `DurationSign ( years, months, weeks, days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds )`
-    ///
-    /// Determines the sign for the current self.
-    pub fn duration_sign(&self) -> i32 {
-        // 1. For each value v of « years, months, weeks, days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds », do
-        for v in self {
-            // a. If v < 0, return -1.
-            if v < 0_f64 {
-                return -1;
-            // b. If v > 0, return 1.
-            } else if v > 0_f64 {
-                return 1;
-            }
-        }
-        // 2. Return 0.
-        0
     }
 
     /// 7.5.11 `IsValidDuration ( years, months, weeks, days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds )`
@@ -511,30 +489,8 @@ impl Duration {
         true
     }
 
-    /// 7.5.12 `DefaultTemporalLargestUnit ( years, months, weeks, days, hours, minutes, seconds, milliseconds, microseconds )`
-    pub fn default_temporal_largest_unit(&self) -> TemporalUnit {
-        for (index, value) in self.into_iter().enumerate() {
-            if value != 0.0 {
-                match index {
-                    0 => return TemporalUnit::Year,
-                    1 => return TemporalUnit::Month,
-                    2 => return TemporalUnit::Week,
-                    3 => return TemporalUnit::Day,
-                    4 => return TemporalUnit::Hour,
-                    5 => return TemporalUnit::Minute,
-                    6 => return TemporalUnit::Second,
-                    7 => return TemporalUnit::Millisecond,
-                    8 => return TemporalUnit::Microsecond,
-                    _ => {}
-                }
-            }
-        }
-
-        TemporalUnit::Nanosecond
-    }
-
     /// 7.5.17 `TotalDurationNanoseconds ( days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds, offsetShift )`
-    fn total_duration_nanoseconds(&self, offset_shift: f64) -> f64 {
+    pub(crate) fn total_duration_nanoseconds(&self, offset_shift: f64) -> f64 {
         let nanoseconds = if self.date.days == 0_f64 {
             self.time.nanoseconds
         } else {
@@ -549,26 +505,6 @@ impl Duration {
             .mul_add(1_000_f64, self.time.milliseconds)
             .mul_add(1_000_f64, self.time.microseconds)
             .mul_add(1_000_f64, nanoseconds)
-    }
-
-    /// Abstract Operation 7.5.17 `BalanceTimeDuration ( days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds, largestUnit )`
-    pub fn balance_time_duration(
-        &self,
-        largest_unit: TemporalUnit,
-    ) -> TemporalResult<(f64, TimeDuration)> {
-        // 1. Let balanceResult be ? BalancePossiblyInfiniteDuration(days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds, largestUnit, relativeTo).
-        let balance_result = self.balance_possibly_infinite_time_duration(largest_unit)?;
-
-        // 2. If balanceResult is positive overflow or negative overflow, then
-        let Some(result) = balance_result else {
-            // a. Throw a RangeError exception.
-            return Err(TemporalError::range()
-                .with_message("duration overflowed viable range.")
-                .into());
-        };
-        // 3. Else,
-        // a. Return balanceResult.
-        Ok(result)
     }
 
     /// Abstract Operation 7.5.18 `BalancePossiblyInfiniteDuration ( days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds, largestUnit )`
@@ -727,13 +663,13 @@ impl Duration {
         Ok(Some((result_days, result)))
     }
 
-    // TODO: move to DateDuration.
     /// 7.5.21 UnbalanceDateDurationRelative ( years, months, weeks, days, largestUnit, plainRelativeTo )`
     #[allow(dead_code)]
-    pub fn unbalance_duration_relative(
+    pub(crate) fn unbalance_duration_relative(
         &self,
         largest_unit: TemporalUnit,
         plain_relative_to: Option<&TemporalDate>,
+        context: &mut dyn Any,
     ) -> TemporalResult<DateDuration> {
         // 1. Let allZero be false.
         // 2. If years = 0, and months = 0, and weeks = 0, and days = 0, set allZero to true.
@@ -798,6 +734,7 @@ impl Duration {
                     &plain_relative_to,
                     &one_year,
                     ArithmeticOverflow::Constrain,
+                    context,
                 )?;
 
                 // ii. Let untilOptions be OrdinaryObjectCreate(null).
@@ -807,6 +744,7 @@ impl Duration {
                     &plain_relative_to,
                     &new_relative_to,
                     TemporalUnit::Month,
+                    context,
                 )?;
 
                 // v. Let oneYearMonths be untilResult.[[Months]].
@@ -858,7 +796,7 @@ impl Duration {
             // e. Repeat, while years ≠ 0,
             while years != 0f64 {
                 // i. Let moveResult be ? MoveRelativeDate(calendar, plainRelativeTo, oneYear, dateAdd).
-                let move_result = plain_relative_to.move_relative_date(&one_year)?;
+                let move_result = plain_relative_to.move_relative_date(&one_year, context)?;
 
                 // ii. Set plainRelativeTo to moveResult.[[RelativeTo]].
                 plain_relative_to = move_result.0;
@@ -872,7 +810,7 @@ impl Duration {
             // f. Repeat, while months ≠ 0,
             while months != 0f64 {
                 // i. Let moveResult be ? MoveRelativeDate(calendar, plainRelativeTo, oneMonth, dateAdd).
-                let move_result = plain_relative_to.move_relative_date(&one_month)?;
+                let move_result = plain_relative_to.move_relative_date(&one_month, context)?;
                 // ii. Set plainRelativeTo to moveResult.[[RelativeTo]].
                 plain_relative_to = move_result.0;
                 // iii. Set days to days + moveResult.[[Days]].
@@ -911,7 +849,7 @@ impl Duration {
         // a. Let moveResult be ? MoveRelativeDate(calendar, plainRelativeTo, oneYear, dateAdd).
         while years != 0f64 {
             // a. Let moveResult be ? MoveRelativeDate(calendar, plainRelativeTo, oneYear, dateAdd).
-            let move_result = plain_relative_to.move_relative_date(&one_year)?;
+            let move_result = plain_relative_to.move_relative_date(&one_year, context)?;
 
             // b. Set plainRelativeTo to moveResult.[[RelativeTo]].
             plain_relative_to = move_result.0;
@@ -925,7 +863,7 @@ impl Duration {
         // 18. Repeat, while months ≠ 0,
         while months != 0f64 {
             // a. Let moveResult be ? MoveRelativeDate(calendar, plainRelativeTo, oneMonth, dateAdd).
-            let move_result = plain_relative_to.move_relative_date(&one_month)?;
+            let move_result = plain_relative_to.move_relative_date(&one_month, context)?;
             // b. Set plainRelativeTo to moveResult.[[RelativeTo]].
             plain_relative_to = move_result.0;
             // c. Set days to days +moveResult.[[Days]].
@@ -938,7 +876,7 @@ impl Duration {
         // 19. Repeat, while weeks ≠ 0,
         while weeks != 0f64 {
             // a. Let moveResult be ? MoveRelativeDate(calendar, plainRelativeTo, oneWeek, dateAdd).
-            let move_result = plain_relative_to.move_relative_date(&one_week)?;
+            let move_result = plain_relative_to.move_relative_date(&one_week, context)?;
             // b. Set plainRelativeTo to moveResult.[[RelativeTo]].
             plain_relative_to = move_result.0;
             // c. Set days to days + moveResult.[[Days]].
@@ -958,6 +896,7 @@ impl Duration {
         &self,
         largest_unit: TemporalUnit,
         plain_relative_to: Option<&TemporalDate>,
+        context: &mut dyn Any,
     ) -> TemporalResult<DateDuration> {
         let mut result = DateDuration::from(self.date);
 
@@ -1010,7 +949,7 @@ impl Duration {
                 // d. Let newRelativeTo be moveResult.[[RelativeTo]].
                 // e. Let oneYearDays be moveResult.[[Days]].
                 let (mut new_relative_to, mut one_year_days) =
-                    plain_relative_to.move_relative_date(&one_year)?;
+                    plain_relative_to.move_relative_date(&one_year, context)?;
 
                 // f. Repeat, while abs(days) ≥ abs(oneYearDays),
                 while result.days().abs() >= one_year_days.abs() {
@@ -1023,7 +962,7 @@ impl Duration {
                     // iii. Set relativeTo to newRelativeTo.
                     plain_relative_to = new_relative_to;
                     // iv. Set moveResult to ? MoveRelativeDate(calendar, relativeTo, oneYear, dateAdd).
-                    let move_result = plain_relative_to.move_relative_date(&one_year)?;
+                    let move_result = plain_relative_to.move_relative_date(&one_year, context)?;
 
                     // v. Set newRelativeTo to moveResult.[[RelativeTo]].
                     new_relative_to = move_result.0;
@@ -1035,7 +974,7 @@ impl Duration {
                 // h. Set newRelativeTo to moveResult.[[RelativeTo]].
                 // i. Let oneMonthDays be moveResult.[[Days]].
                 let (mut new_relative_to, mut one_month_days) =
-                    plain_relative_to.move_relative_date(&one_month)?;
+                    plain_relative_to.move_relative_date(&one_month, context)?;
 
                 // j. Repeat, while abs(days) ≥ abs(oneMonthDays),
                 while result.days().abs() >= one_month_days.abs() {
@@ -1047,7 +986,7 @@ impl Duration {
                     // iii. Set relativeTo to newRelativeTo.
                     plain_relative_to = new_relative_to;
                     // iv. Set moveResult to ? MoveRelativeDate(calendar, relativeTo, oneMonth, dateAdd).
-                    let move_result = plain_relative_to.move_relative_date(&one_month)?;
+                    let move_result = plain_relative_to.move_relative_date(&one_month, context)?;
 
                     // v. Set newRelativeTo to moveResult.[[RelativeTo]].
                     new_relative_to = move_result.0;
@@ -1060,6 +999,7 @@ impl Duration {
                     &plain_relative_to,
                     &one_year,
                     ArithmeticOverflow::Constrain,
+                    context,
                 )?;
 
                 // l. If calendar is an Object, then
@@ -1074,6 +1014,7 @@ impl Duration {
                     &plain_relative_to,
                     &new_relative_to,
                     TemporalUnit::Month,
+                    context,
                 )?;
 
                 // q. Let oneYearMonths be untilResult.[[Months]].
@@ -1094,6 +1035,7 @@ impl Duration {
                         &plain_relative_to,
                         &one_year,
                         ArithmeticOverflow::Constrain,
+                        context,
                     )?;
 
                     // v. Set untilOptions to OrdinaryObjectCreate(null).
@@ -1103,6 +1045,7 @@ impl Duration {
                         &plain_relative_to,
                         &new_relative_to,
                         TemporalUnit::Month,
+                        context,
                     )?;
 
                     // viii. Set oneYearMonths to untilResult.[[Months]].
@@ -1120,7 +1063,7 @@ impl Duration {
                 // d. Let newRelativeTo be moveResult.[[RelativeTo]].
                 // e. Let oneMonthDays be moveResult.[[Days]].
                 let (mut new_relative_to, mut one_month_days) =
-                    plain_relative_to.move_relative_date(&one_month)?;
+                    plain_relative_to.move_relative_date(&one_month, context)?;
 
                 // f. Repeat, while abs(days) ≥ abs(oneMonthDays),
                 while result.days().abs() >= one_month_days.abs() {
@@ -1134,7 +1077,7 @@ impl Duration {
                     plain_relative_to = new_relative_to;
 
                     // iv. Set moveResult to ? MoveRelativeDate(calendar, relativeTo, oneMonth, dateAdd).
-                    let move_result = plain_relative_to.move_relative_date(&one_month)?;
+                    let move_result = plain_relative_to.move_relative_date(&one_month, context)?;
 
                     // v. Set newRelativeTo to moveResult.[[RelativeTo]].
                     new_relative_to = move_result.0;
@@ -1154,7 +1097,7 @@ impl Duration {
                 // e. Let newRelativeTo be moveResult.[[RelativeTo]].
                 // f. Let oneWeekDays be moveResult.[[Days]].
                 let (mut new_relative_to, mut one_week_days) =
-                    plain_relative_to.move_relative_date(&one_week)?;
+                    plain_relative_to.move_relative_date(&one_week, context)?;
 
                 // g. Repeat, while abs(days) ≥ abs(oneWeekDays),
                 while result.days().abs() >= one_week_days.abs() {
@@ -1165,7 +1108,7 @@ impl Duration {
                     // iii. Set relativeTo to newRelativeTo.
                     plain_relative_to = new_relative_to;
                     // iv. Set moveResult to ? MoveRelativeDate(calendar, relativeTo, oneWeek, dateAdd).
-                    let move_result = plain_relative_to.move_relative_date(&one_week)?;
+                    let move_result = plain_relative_to.move_relative_date(&one_week, context)?;
 
                     // v. Set newRelativeTo to moveResult.[[RelativeTo]].
                     new_relative_to = move_result.0;
@@ -1195,6 +1138,7 @@ impl Duration {
             Option<&TemporalZonedDateTime>,
             Option<&TemporalDateTime>,
         ),
+        context: &mut dyn Any,
     ) -> TemporalResult<(Self, f64)> {
         let mut result = Duration::new_unchecked(unbalance_date_duration, self.time);
 
@@ -1283,7 +1227,7 @@ impl Duration {
 
                 // e. Let yearsLater be ? AddDate(calendar, plainRelativeTo, yearsDuration, undefined, dateAdd).
                 let years_later = plain_relative_to
-                    .add_to_date(&years_duration, ArithmeticOverflow::Constrain)?;
+                    .add_date(&years_duration, ArithmeticOverflow::Constrain, context)?;
 
                 // f. Let yearsMonthsWeeks be ! CreateTemporalDuration(years, months, weeks, 0, 0, 0, 0, 0, 0, 0).
                 let years_months_weeks = Self::new_unchecked(
@@ -1298,7 +1242,7 @@ impl Duration {
 
                 // g. Let yearsMonthsWeeksLater be ? AddDate(calendar, plainRelativeTo, yearsMonthsWeeks, undefined, dateAdd).
                 let years_months_weeks_later = plain_relative_to
-                    .add_to_date(&years_months_weeks, ArithmeticOverflow::Constrain)?;
+                    .add_date(&years_months_weeks, ArithmeticOverflow::Constrain, context)?;
 
                 // h. Let monthsWeeksInDays be DaysUntil(yearsLater, yearsMonthsWeeksLater).
                 let months_weeks_in_days = years_later.days_until(&years_months_weeks_later);
@@ -1322,7 +1266,7 @@ impl Duration {
                 // n. Perform ! CreateDataPropertyOrThrow(untilOptions, "largestUnit", "year").
                 // o. Let timePassed be ? DifferenceDate(calendar, plainRelativeTo, wholeDaysLater, untilOptions).
                 let time_passed =
-                    plain_relative_to.diff_date(&whole_days_later, TemporalUnit::Year)?;
+                    plain_relative_to.diff_date(&whole_days_later, TemporalUnit::Year, context)?;
 
                 // p. Let yearsPassed be timePassed.[[Years]].
                 let years_passed = time_passed.date.years();
@@ -1337,7 +1281,7 @@ impl Duration {
                 // t. Set plainRelativeTo to moveResult.[[RelativeTo]].
                 // u. Let daysPassed be moveResult.[[Days]].
                 let (plain_relative_to, days_passed) =
-                    plain_relative_to.move_relative_date(&years_duration)?;
+                    plain_relative_to.move_relative_date(&years_duration, context)?;
 
                 // v. Set fractionalDays to fractionalDays - daysPassed.
                 frac_days -= days_passed;
@@ -1350,7 +1294,8 @@ impl Duration {
 
                 // y. Set moveResult to ? MoveRelativeDate(calendar, plainRelativeTo, oneYear, dateAdd).
                 // z. Let oneYearDays be moveResult.[[Days]].
-                let (_, one_year_days) = plain_relative_to.move_relative_date(&one_year)?;
+                let (_, one_year_days) =
+                    plain_relative_to.move_relative_date(&one_year, context)?;
 
                 // aa. Let fractionalYears be years + fractionalDays / abs(oneYearDays).
                 let frac_years = result.date.years() + (frac_days / one_year_days.abs());
@@ -1389,7 +1334,7 @@ impl Duration {
 
                 // e. Let yearsMonthsLater be ? AddDate(calendar, plainRelativeTo, yearsMonths, undefined, dateAdd).
                 let years_months_later =
-                    plain_relative_to.add_to_date(&years_months, ArithmeticOverflow::Constrain)?;
+                    plain_relative_to.add_date(&years_months, ArithmeticOverflow::Constrain, context)?;
 
                 // f. Let yearsMonthsWeeks be ! CreateTemporalDuration(years, months, weeks, 0, 0, 0, 0, 0, 0, 0).
                 let years_months_weeks = Self::from_date_duration(DateDuration::new(
@@ -1401,7 +1346,7 @@ impl Duration {
 
                 // g. Let yearsMonthsWeeksLater be ? AddDate(calendar, plainRelativeTo, yearsMonthsWeeks, undefined, dateAdd).
                 let years_months_weeks_later = plain_relative_to
-                    .add_to_date(&years_months_weeks, ArithmeticOverflow::Constrain)?;
+                    .add_date(&years_months_weeks, ArithmeticOverflow::Constrain, context)?;
 
                 // h. Let weeksInDays be DaysUntil(yearsMonthsLater, yearsMonthsWeeksLater).
                 let weeks_in_days = years_months_later.days_until(&years_months_weeks_later);
@@ -1422,7 +1367,7 @@ impl Duration {
                 // n. Set plainRelativeTo to moveResult.[[RelativeTo]].
                 // o. Let oneMonthDays be moveResult.[[Days]].
                 let (mut plain_relative_to, mut one_month_days) =
-                    plain_relative_to.move_relative_date(&one_month)?;
+                    plain_relative_to.move_relative_date(&one_month, context)?;
 
                 // p. Repeat, while abs(fractionalDays) ≥ abs(oneMonthDays),
                 while frac_days.abs() >= one_month_days.abs() {
@@ -1433,7 +1378,7 @@ impl Duration {
                     frac_days -= one_month_days;
 
                     // iii. Set moveResult to ? MoveRelativeDate(calendar, plainRelativeTo, oneMonth, dateAdd).
-                    let move_result = plain_relative_to.move_relative_date(&one_month)?;
+                    let move_result = plain_relative_to.move_relative_date(&one_month, context)?;
 
                     // iv. Set plainRelativeTo to moveResult.[[RelativeTo]].
                     plain_relative_to = move_result.0;
@@ -1475,7 +1420,7 @@ impl Duration {
                 // g. Set plainRelativeTo to moveResult.[[RelativeTo]].
                 // h. Let oneWeekDays be moveResult.[[Days]].
                 let (mut plain_relative_to, mut one_week_days) =
-                    plain_relative_to.move_relative_date(&one_week)?;
+                    plain_relative_to.move_relative_date(&one_week, context)?;
 
                 // i. Repeat, while abs(fractionalDays) ≥ abs(oneWeekDays),
                 while frac_days.abs() >= one_week_days.abs() {
@@ -1486,7 +1431,7 @@ impl Duration {
                     frac_days -= one_week_days;
 
                     // iii. Set moveResult to ? MoveRelativeDate(calendar, plainRelativeTo, oneWeek, dateAdd).
-                    let move_result = plain_relative_to.move_relative_date(&one_week)?;
+                    let move_result = plain_relative_to.move_relative_date(&one_week, context)?;
 
                     // iv. Set plainRelativeTo to moveResult.[[RelativeTo]].
                     plain_relative_to = move_result.0;
@@ -1618,5 +1563,89 @@ impl Duration {
         // 18. Let duration be ? CreateDurationRecord(years, months, weeks, days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds).
         // 19. Return the Record { [[DurationRecord]]: duration, [[Total]]: total }.
         Ok((result, total))
+    }
+}
+
+// ==== Public Duration methods ====
+
+impl Duration {
+    /// Returns the absolute value of `Duration`.
+    pub fn abs(&self) -> Self {
+        Self {
+            date: DateDuration::new(
+                self.date.years.abs(),
+                self.date.months.abs(),
+                self.date.weeks.abs(),
+                self.date.days.abs(),
+            ),
+            time: TimeDuration::new(
+                self.time.hours.abs(),
+                self.time.minutes.abs(),
+                self.time.seconds.abs(),
+                self.time.milliseconds.abs(),
+                self.time.microseconds.abs(),
+                self.time.nanoseconds.abs(),
+            ),
+        }
+    }
+
+    /// 7.5.10 `DurationSign ( years, months, weeks, days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds )`
+    ///
+    /// Determines the sign for the current self.
+    pub fn duration_sign(&self) -> i32 {
+        // 1. For each value v of « years, months, weeks, days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds », do
+        for v in self {
+            // a. If v < 0, return -1.
+            if v < 0_f64 {
+                return -1;
+            // b. If v > 0, return 1.
+            } else if v > 0_f64 {
+                return 1;
+            }
+        }
+        // 2. Return 0.
+        0
+    }
+
+    /// 7.5.12 `DefaultTemporalLargestUnit ( years, months, weeks, days, hours, minutes, seconds, milliseconds, microseconds )`
+    pub fn default_temporal_largest_unit(&self) -> TemporalUnit {
+        for (index, value) in self.into_iter().enumerate() {
+            if value != 0.0 {
+                match index {
+                    0 => return TemporalUnit::Year,
+                    1 => return TemporalUnit::Month,
+                    2 => return TemporalUnit::Week,
+                    3 => return TemporalUnit::Day,
+                    4 => return TemporalUnit::Hour,
+                    5 => return TemporalUnit::Minute,
+                    6 => return TemporalUnit::Second,
+                    7 => return TemporalUnit::Millisecond,
+                    8 => return TemporalUnit::Microsecond,
+                    _ => {}
+                }
+            }
+        }
+
+        TemporalUnit::Nanosecond
+    }
+
+    /// Abstract Operation 7.5.17 `BalanceTimeDuration ( days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds, largestUnit )`
+    pub fn balance_time_duration(
+        &self,
+        largest_unit: TemporalUnit,
+    ) -> TemporalResult<(f64, TimeDuration)> {
+        // 1. Let balanceResult be ? BalancePossiblyInfiniteDuration(days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds, largestUnit, relativeTo).
+        let balance_result = self.balance_possibly_infinite_time_duration(largest_unit)?;
+
+        // 2. If balanceResult is positive overflow or negative overflow, then
+        let Some(result) = balance_result else {
+            // a. Throw a RangeError exception.
+            return Err(TemporalError::range()
+                .with_message("duration overflowed viable range.")
+                .into());
+        };
+        // 3. Else,
+        // a. Return balanceResult.
+        Ok(result)
     }
 }

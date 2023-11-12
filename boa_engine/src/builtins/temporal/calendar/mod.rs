@@ -159,7 +159,7 @@ impl Calendar {
         create_temporal_calendar(slot, None, context)
     }
 
-    fn get_id(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    fn get_id(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let o = this.as_object().ok_or_else(|| {
             JsNativeError::typ().with_message("this value of Calendar must be an object.")
         })?;
@@ -174,7 +174,7 @@ impl Calendar {
             CalendarSlot::Protocol(proto) => proto.clone(),
         };
 
-        Ok(JsString::from(protocol.identifier()?.as_str()).into())
+        Ok(JsString::from(protocol.identifier(context)?.as_str()).into())
     }
 
     /// 15.8.2.1 `Temporal.Calendar.prototype.dateFromFields ( fields [ , options ] )` - Supercedes 12.5.4
@@ -217,7 +217,7 @@ impl Calendar {
         ]);
 
         // 6. If calendar.[[Identifier]] is "iso8601", then
-        let mut fields = if protocol.identifier()?.as_str() == "iso8601" {
+        let mut fields = if protocol.identifier(context)?.as_str() == "iso8601" {
             // a. Set fields to ? PrepareTemporalFields(fields, relevantFieldNames, « "year", "day" »).
             let mut required_fields = Vec::from([js_string!("year"), js_string!("day")]);
             fields::prepare_temporal_fields(
@@ -257,7 +257,7 @@ impl Calendar {
         // a. Perform ? CalendarResolveFields(calendar.[[Identifier]], fields, date).
         // b. Let result be ? CalendarDateToISO(calendar.[[Identifier]], fields, overflow).
 
-        let result = protocol.date_from_fields(&mut fields, overflow)?;
+        let result = protocol.date_from_fields(&mut fields, overflow, context)?;
 
         create_temporal_date(result, None, context).map(Into::into)
     }
@@ -296,7 +296,7 @@ impl Calendar {
         ]);
 
         // 6. Set fields to ? PrepareTemporalFields(fields, « "month", "monthCode", "year" », « "year" »).
-        let mut fields = if protocol.identifier()?.as_str() == "iso8601" {
+        let mut fields = if protocol.identifier(context)?.as_str() == "iso8601" {
             // a. Set fields to ? PrepareTemporalFields(fields, relevantFieldNames, « "year" »).
             let mut required_fields = Vec::from([js_string!("year")]);
             fields::prepare_temporal_fields(
@@ -333,7 +333,7 @@ impl Calendar {
         let overflow = get_option::<ArithmeticOverflow>(&options, utf16!("overflow"), context)?
             .unwrap_or(ArithmeticOverflow::Constrain);
 
-        let result = protocol.year_month_from_fields(&mut fields, overflow)?;
+        let result = protocol.year_month_from_fields(&mut fields, overflow, context)?;
 
         create_temporal_year_month(result, None, context)
     }
@@ -377,7 +377,7 @@ impl Calendar {
         ]);
 
         // 6. If calendar.[[Identifier]] is "iso8601", then
-        let mut fields = if protocol.identifier()?.as_str() == "iso8601" {
+        let mut fields = if protocol.identifier(context)?.as_str() == "iso8601" {
             // a. Set fields to ? PrepareTemporalFields(fields, relevantFieldNames, « "day" »).
             let mut required_fields = Vec::from([js_string!("day")]);
             fields::prepare_temporal_fields(
@@ -409,7 +409,7 @@ impl Calendar {
         let overflow = get_option(&options, utf16!("overflow"), context)?
             .unwrap_or(ArithmeticOverflow::Constrain);
 
-        let result = protocol.month_day_from_fields(&mut fields, overflow)?;
+        let result = protocol.month_day_from_fields(&mut fields, overflow, context)?;
 
         create_temporal_month_day(result, None, context)
     }
@@ -451,7 +451,7 @@ impl Calendar {
         // 8. Let balanceResult be ? BalanceTimeDuration(duration.[[Days]], duration.[[Hours]], duration.[[Minutes]], duration.[[Seconds]], duration.[[Milliseconds]], duration.[[Microseconds]], duration.[[Nanoseconds]], "day").
         duration.balance_time_duration(TemporalUnit::Day)?;
 
-        let result = protocol.date_add(&date.inner, &duration, overflow)?;
+        let result = protocol.date_add(&date.inner, &duration, overflow, context)?;
 
         create_temporal_date(result, None, context).map(Into::into)
     }
@@ -493,7 +493,7 @@ impl Calendar {
         )?
         .unwrap_or(TemporalUnit::Day);
 
-        let result = protocol.date_until(&one.inner, &two.inner, largest_unit)?;
+        let result = protocol.date_until(&one.inner, &two.inner, largest_unit, context)?;
 
         create_temporal_duration(result, None, context).map(Into::into)
     }
@@ -516,7 +516,7 @@ impl Calendar {
         let date_like = to_calendar_date_like(args.get_or_undefined(0), context)?;
 
         let result = protocol
-            .era(&date_like)?
+            .era(&date_like, context)?
             .map_or(JsValue::undefined(), |r| JsString::from(r.as_str()).into());
 
         Ok(result)
@@ -540,7 +540,7 @@ impl Calendar {
         let date_like = to_calendar_date_like(args.get_or_undefined(0), context)?;
 
         let result = protocol
-            .era_year(&date_like)?
+            .era_year(&date_like, context)?
             .map_or(JsValue::undefined(), JsValue::from);
 
         Ok(result)
@@ -563,7 +563,7 @@ impl Calendar {
 
         let date_like = to_calendar_date_like(args.get_or_undefined(0), context)?;
 
-        let result = protocol.year(&date_like)?;
+        let result = protocol.year(&date_like, context)?;
 
         Ok(result.into())
     }
@@ -590,7 +590,7 @@ impl Calendar {
         // 4. If Type(temporalDateLike) is not Object or temporalDateLike does not have an [[InitializedTemporalDate]], [[InitializedTemporalDateTime]], or [[InitializedTemporalYearMonth]] internal slot, then
         // 4.a. Set temporalDateLike to ? ToTemporalDate(temporalDateLike).
 
-        let result = protocol.month(&date_like)?;
+        let result = protocol.month(&date_like, context)?;
 
         Ok(result.into())
     }
@@ -612,7 +612,7 @@ impl Calendar {
 
         let date_like = to_calendar_date_like(args.get_or_undefined(0), context)?;
 
-        let result = protocol.month_code(&date_like)?;
+        let result = protocol.month_code(&date_like, context)?;
 
         Ok(JsString::from(result.as_str()).into())
     }
@@ -634,7 +634,7 @@ impl Calendar {
 
         let date_like = to_calendar_date_like(args.get_or_undefined(0), context)?;
 
-        let result = protocol.day(&date_like)?;
+        let result = protocol.day(&date_like, context)?;
 
         Ok(result.into())
     }
@@ -659,7 +659,7 @@ impl Calendar {
         // 3. Let temporalDate be ? ToTemporalDate(temporalDateLike).
         let date = temporal::plain_date::to_temporal_date(args.get_or_undefined(0), None, context)?;
 
-        let result = protocol.day_of_week(&CalendarDateLike::Date(date.inner.clone()))?;
+        let result = protocol.day_of_week(&CalendarDateLike::Date(date.inner.clone()), context)?;
 
         Ok(result.into())
     }
@@ -683,7 +683,7 @@ impl Calendar {
         // 3. Let temporalDate be ? ToTemporalDate(temporalDateLike).
         let date = temporal::plain_date::to_temporal_date(args.get_or_undefined(0), None, context)?;
 
-        let result = protocol.day_of_year(&CalendarDateLike::Date(date.inner.clone()))?;
+        let result = protocol.day_of_year(&CalendarDateLike::Date(date.inner.clone()), context)?;
 
         Ok(result.into())
     }
@@ -706,7 +706,7 @@ impl Calendar {
         // 3. Let temporalDate be ? ToTemporalDate(temporalDateLike).
         let date = temporal::plain_date::to_temporal_date(args.get_or_undefined(0), None, context)?;
 
-        let result = protocol.week_of_year(&CalendarDateLike::Date(date.inner.clone()))?;
+        let result = protocol.week_of_year(&CalendarDateLike::Date(date.inner.clone()), context)?;
 
         Ok(result.into())
     }
@@ -729,7 +729,7 @@ impl Calendar {
         // 3. Let temporalDate be ? ToTemporalDate(temporalDateLike).
         let date = temporal::plain_date::to_temporal_date(args.get_or_undefined(0), None, context)?;
 
-        let result = protocol.year_of_week(&CalendarDateLike::Date(date.inner.clone()))?;
+        let result = protocol.year_of_week(&CalendarDateLike::Date(date.inner.clone()), context)?;
 
         Ok(result.into())
     }
@@ -752,7 +752,7 @@ impl Calendar {
         // 3. Let temporalDate be ? ToTemporalDate(temporalDateLike).
         let date = temporal::plain_date::to_temporal_date(args.get_or_undefined(0), None, context)?;
 
-        let result = protocol.days_in_week(&CalendarDateLike::Date(date.inner.clone()))?;
+        let result = protocol.days_in_week(&CalendarDateLike::Date(date.inner.clone()), context)?;
 
         Ok(result.into())
     }
@@ -774,7 +774,7 @@ impl Calendar {
 
         let date_like = to_calendar_date_like(args.get_or_undefined(0), context)?;
 
-        let result = protocol.days_in_month(&date_like)?;
+        let result = protocol.days_in_month(&date_like, context)?;
 
         Ok(result.into())
     }
@@ -795,7 +795,7 @@ impl Calendar {
         };
 
         let date_like = to_calendar_date_like(args.get_or_undefined(0), context)?;
-        let result = protocol.days_in_year(&date_like)?;
+        let result = protocol.days_in_year(&date_like, context)?;
 
         Ok(result.into())
     }
@@ -821,7 +821,7 @@ impl Calendar {
 
         let date_like = to_calendar_date_like(args.get_or_undefined(0), context)?;
 
-        let result = protocol.months_in_year(&date_like)?;
+        let result = protocol.months_in_year(&date_like, context)?;
 
         Ok(result.into())
     }
@@ -843,7 +843,7 @@ impl Calendar {
 
         let date_like = to_calendar_date_like(args.get_or_undefined(0), context)?;
 
-        let result = protocol.in_leap_year(&date_like)?;
+        let result = protocol.in_leap_year(&date_like, context)?;
 
         Ok(result.into())
     }
@@ -916,7 +916,7 @@ impl Calendar {
 
         // 7. Let result be fieldNames.
         // 8. If calendar.[[Identifier]] is not "iso8601", then
-        if protocol.identifier()?.as_str() != "iso8601" {
+        if protocol.identifier(context)?.as_str() != "iso8601" {
             // a. NOTE: Every built-in calendar preserves all input field names in output.
             // b. Let extraFieldDescriptors be CalendarFieldDescriptors(calendar.[[Identifier]], fieldNames).
             let extended_fields =
@@ -1160,7 +1160,7 @@ pub(crate) fn to_temporal_calendar_slot_value(
         }
 
         // Types: Box<dyn CalendarProtocol> <- UserCalendar
-        let protocol = Box::new(CustomRuntimeCalendar::new(calendar_like, context));
+        let protocol = Box::new(CustomRuntimeCalendar::new(calendar_like));
         // c. Return temporalCalendarLike.
         return Ok(CalendarSlot::Protocol(protocol));
     }

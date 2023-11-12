@@ -11,6 +11,7 @@ use crate::{
     year_month::TemporalYearMonth,
     TemporalResult,
 };
+use std::any::Any;
 
 use tinystr::{tinystr, TinyStr4, TinyStr8};
 
@@ -31,6 +32,7 @@ impl CalendarProtocol for IsoCalendar {
         &self,
         fields: &mut TemporalFields,
         overflow: ArithmeticOverflow,
+        _: &mut dyn Any,
     ) -> TemporalResult<TemporalDate> {
         // NOTE: we are in ISO by default here.
         // a. Perform ? ISOResolveMonth(fields).
@@ -54,6 +56,7 @@ impl CalendarProtocol for IsoCalendar {
         &self,
         fields: &mut TemporalFields,
         overflow: ArithmeticOverflow,
+        _: &mut dyn Any,
     ) -> TemporalResult<TemporalYearMonth> {
         // 9. If calendar.[[Identifier]] is "iso8601", then
         // a. Perform ? ISOResolveMonth(fields).
@@ -77,6 +80,7 @@ impl CalendarProtocol for IsoCalendar {
         &self,
         fields: &mut TemporalFields,
         overflow: ArithmeticOverflow,
+        _: &mut dyn Any,
     ) -> TemporalResult<TemporalMonthDay> {
         // 8. Perform ? ISOResolveMonth(fields).
         fields.iso_resolve_month()?;
@@ -100,6 +104,7 @@ impl CalendarProtocol for IsoCalendar {
         _date: &TemporalDate,
         _duration: &Duration,
         _overflow: ArithmeticOverflow,
+        _: &mut dyn Any,
     ) -> TemporalResult<TemporalDate> {
         // TODO: Not stable on `ICU4X`. Implement once completed.
         Err(TemporalError::range()
@@ -118,6 +123,7 @@ impl CalendarProtocol for IsoCalendar {
         _one: &TemporalDate,
         _two: &TemporalDate,
         _largest_unit: TemporalUnit,
+        _: &mut dyn Any,
     ) -> TemporalResult<Duration> {
         // TODO: Not stable on `ICU4X`. Implement once completed.
         Err(TemporalError::range()
@@ -129,52 +135,56 @@ impl CalendarProtocol for IsoCalendar {
     }
 
     /// `Temporal.Calendar.prototype.era( dateLike )` for iso8601 calendar.
-    fn era(&self, _: &CalendarDateLike) -> TemporalResult<Option<TinyStr8>> {
+    fn era(&self, _: &CalendarDateLike, _: &mut dyn Any) -> TemporalResult<Option<TinyStr8>> {
         // Returns undefined on iso8601.
         Ok(None)
     }
 
     /// `Temporal.Calendar.prototype.eraYear( dateLike )` for iso8601 calendar.
-    fn era_year(&self, _: &CalendarDateLike) -> TemporalResult<Option<i32>> {
+    fn era_year(&self, _: &CalendarDateLike, _: &mut dyn Any) -> TemporalResult<Option<i32>> {
         // Returns undefined on iso8601.
         Ok(None)
     }
 
     /// Returns the `year` for the `Iso` calendar.
-    fn year(&self, date_like: &CalendarDateLike) -> TemporalResult<i32> {
+    fn year(&self, date_like: &CalendarDateLike, _: &mut dyn Any) -> TemporalResult<i32> {
         Ok(date_like.as_iso_date().year())
     }
 
     /// Returns the `month` for the `Iso` calendar.
-    fn month(&self, date_like: &CalendarDateLike) -> TemporalResult<u8> {
+    fn month(&self, date_like: &CalendarDateLike, _: &mut dyn Any) -> TemporalResult<u8> {
         Ok(date_like.as_iso_date().month())
     }
 
     /// Returns the `monthCode` for the `Iso` calendar.
-    fn month_code(&self, date_like: &CalendarDateLike) -> TemporalResult<TinyStr4> {
+    fn month_code(
+        &self,
+        date_like: &CalendarDateLike,
+        _: &mut dyn Any,
+    ) -> TemporalResult<TinyStr4> {
         let date = date_like.as_iso_date().as_icu4x()?;
         Ok(date.month().code.0)
     }
 
     /// Returns the `day` for the `Iso` calendar.
-    fn day(&self, date_like: &CalendarDateLike) -> TemporalResult<u8> {
+    fn day(&self, date_like: &CalendarDateLike, _: &mut dyn Any) -> TemporalResult<u8> {
         Ok(date_like.as_iso_date().day())
     }
 
     /// Returns the `dayOfWeek` for the `Iso` calendar.
-    fn day_of_week(&self, date_like: &CalendarDateLike) -> TemporalResult<i32> {
+    fn day_of_week(&self, date_like: &CalendarDateLike, _: &mut dyn Any) -> TemporalResult<i32> {
         let date = date_like.as_iso_date().as_icu4x()?;
         Ok(date.day_of_week() as i32)
     }
 
     /// Returns the `dayOfYear` for the `Iso` calendar.
-    fn day_of_year(&self, date_like: &CalendarDateLike) -> TemporalResult<i32> {
+    fn day_of_year(&self, date_like: &CalendarDateLike, _: &mut dyn Any) -> TemporalResult<i32> {
         let date = date_like.as_iso_date().as_icu4x()?;
         Ok(i32::from(date.day_of_year_info().day_of_year))
     }
 
     /// Returns the `weekOfYear` for the `Iso` calendar.
-    fn week_of_year(&self, date_like: &CalendarDateLike) -> TemporalResult<i32> {
+    fn week_of_year(&self, date_like: &CalendarDateLike, _: &mut dyn Any) -> TemporalResult<i32> {
         let date = date_like.as_iso_date().as_icu4x()?;
 
         let week_calculator = WeekCalculator::default();
@@ -187,7 +197,7 @@ impl CalendarProtocol for IsoCalendar {
     }
 
     /// Returns the `yearOfWeek` for the `Iso` calendar.
-    fn year_of_week(&self, date_like: &CalendarDateLike) -> TemporalResult<i32> {
+    fn year_of_week(&self, date_like: &CalendarDateLike, _: &mut dyn Any) -> TemporalResult<i32> {
         let date = date_like.as_iso_date().as_icu4x()?;
 
         let week_calculator = WeekCalculator::default();
@@ -206,29 +216,29 @@ impl CalendarProtocol for IsoCalendar {
     }
 
     /// Returns the `daysInWeek` value for the `Iso` calendar.
-    fn days_in_week(&self, _: &CalendarDateLike) -> TemporalResult<i32> {
+    fn days_in_week(&self, _: &CalendarDateLike, _: &mut dyn Any) -> TemporalResult<i32> {
         Ok(7)
     }
 
     /// Returns the `daysInMonth` value for the `Iso` calendar.
-    fn days_in_month(&self, date_like: &CalendarDateLike) -> TemporalResult<i32> {
+    fn days_in_month(&self, date_like: &CalendarDateLike, _: &mut dyn Any) -> TemporalResult<i32> {
         let date = date_like.as_iso_date().as_icu4x()?;
         Ok(i32::from(date.days_in_month()))
     }
 
     /// Returns the `daysInYear` value for the `Iso` calendar.
-    fn days_in_year(&self, date_like: &CalendarDateLike) -> TemporalResult<i32> {
+    fn days_in_year(&self, date_like: &CalendarDateLike, _: &mut dyn Any) -> TemporalResult<i32> {
         let date = date_like.as_iso_date().as_icu4x()?;
         Ok(i32::from(date.days_in_year()))
     }
 
     /// Return the amount of months in an ISO Calendar.
-    fn months_in_year(&self, _: &CalendarDateLike) -> TemporalResult<i32> {
+    fn months_in_year(&self, _: &CalendarDateLike, _: &mut dyn Any) -> TemporalResult<i32> {
         Ok(12)
     }
 
     /// Returns whether provided date is in a leap year according to this calendar.
-    fn in_leap_year(&self, date_like: &CalendarDateLike) -> TemporalResult<bool> {
+    fn in_leap_year(&self, date_like: &CalendarDateLike, _: &mut dyn Any) -> TemporalResult<bool> {
         // `ICU4X`'s `CalendarArithmetic` is currently private.
         Ok(utils::mathematical_days_in_year(date_like.as_iso_date().year()) == 366)
     }
@@ -268,7 +278,7 @@ impl CalendarProtocol for IsoCalendar {
     // NOTE: This is currently not a name that is compliant with
     // the Temporal proposal. For debugging purposes only.
     /// Returns the debug name.
-    fn identifier(&self) -> TemporalResult<String> {
+    fn identifier(&self, _: &mut dyn Any) -> TemporalResult<String> {
         Ok("iso8601".to_string())
     }
 }
