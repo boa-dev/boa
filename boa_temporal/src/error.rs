@@ -2,7 +2,7 @@
 
 use core::fmt;
 
-/// TemporalError's error type.
+/// `TemporalError`'s error type.
 #[derive(Debug, Default, Clone, Copy)]
 pub enum ErrorKind {
     /// Error.
@@ -41,6 +41,7 @@ impl TemporalError {
     }
 
     /// Create a generic error
+    #[must_use]
     pub fn general<S>(msg: S) -> Self
     where
         S: Into<Box<str>>,
@@ -49,16 +50,19 @@ impl TemporalError {
     }
 
     /// Create a range error.
+    #[must_use]
     pub fn range() -> Self {
         Self::new(ErrorKind::Range)
     }
 
     /// Create a type error.
+    #[must_use]
     pub fn r#type() -> Self {
         Self::new(ErrorKind::Type)
     }
 
     /// Add a message to the error.
+    #[must_use]
     pub fn with_message<S>(mut self, msg: S) -> Self
     where
         S: Into<Box<str>>,
@@ -68,11 +72,13 @@ impl TemporalError {
     }
 
     /// Returns this error's kind.
+    #[must_use]
     pub fn kind(&self) -> ErrorKind {
         self.kind
     }
 
     /// Returns the error message.
+    #[must_use]
     pub fn message(&self) -> &str {
         &self.msg
     }

@@ -4,22 +4,38 @@ use core::{fmt, str::FromStr};
 
 use crate::TemporalError;
 
+/// The relevant unit that should be used for the operation that
+/// this option is provided as a value.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum TemporalUnit {
+    /// The `Auto` unit
     Auto = 0,
+    /// The `Nanosecond` unit
     Nanosecond,
+    /// The `Microsecond` unit
     Microsecond,
+    /// The `Millisecond` unit
     Millisecond,
+    /// The `Second` unit
     Second,
+    /// The `Minute` unit
     Minute,
+    /// The `Hour` unit
     Hour,
+    /// The `Day` unit
     Day,
+    /// The `Week` unit
     Week,
+    /// The `Month` unit
     Month,
+    /// The `Year` unit
     Year,
 }
 
 impl TemporalUnit {
+    #[inline]
+    #[must_use]
+    /// Returns the `MaximumRoundingIncrement` for the current `TemporalUnit`.
     pub fn to_maximum_rounding_increment(self) -> Option<u16> {
         use TemporalUnit::{
             Auto, Day, Hour, Microsecond, Millisecond, Minute, Month, Nanosecond, Second, Week,
@@ -43,7 +59,8 @@ impl TemporalUnit {
     }
 }
 
-#[derive(Debug)]
+/// A parsing error for `TemporalUnit`
+#[derive(Debug, Clone, Copy)]
 pub struct ParseTemporalUnitError;
 
 impl fmt::Display for ParseTemporalUnitError {
@@ -97,11 +114,14 @@ impl fmt::Display for TemporalUnit {
 /// and "reject" options.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ArithmeticOverflow {
+    /// Constrain option
     Constrain,
+    /// Constrain option
     Reject,
 }
 
-#[derive(Debug)]
+/// A parsing error for `ArithemeticOverflow`
+#[derive(Debug, Clone, Copy)]
 pub struct ParseArithmeticOverflowError;
 
 impl fmt::Display for ParseArithmeticOverflowError {
@@ -133,12 +153,16 @@ impl fmt::Display for ArithmeticOverflow {
 }
 
 /// `Duration` overflow options.
+#[derive(Debug, Clone, Copy)]
 pub enum DurationOverflow {
+    /// Constrain option
     Constrain,
+    /// Balance option
     Balance,
 }
 
-#[derive(Debug)]
+/// A parsing error for `DurationOverflow`.
+#[derive(Debug, Clone, Copy)]
 pub struct ParseDurationOverflowError;
 
 impl fmt::Display for ParseDurationOverflowError {
@@ -170,14 +194,20 @@ impl fmt::Display for DurationOverflow {
 }
 
 /// The disambiguation options for an instant.
+#[derive(Debug, Clone, Copy)]
 pub enum InstantDisambiguation {
+    /// Compatible option
     Compatible,
+    /// Earlier option
     Earlier,
+    /// Later option
     Later,
+    /// Reject option
     Reject,
 }
 
-#[derive(Debug)]
+/// A parsing error on `InstantDisambiguation` options.
+#[derive(Debug, Clone, Copy)]
 pub struct ParseInstantDisambiguationError;
 
 impl fmt::Display for ParseInstantDisambiguationError {
@@ -213,14 +243,20 @@ impl fmt::Display for InstantDisambiguation {
 }
 
 /// Offset disambiguation options.
+#[derive(Debug, Clone, Copy)]
 pub enum OffsetDisambiguation {
+    /// Use option
     Use,
+    /// Prefer option
     Prefer,
+    /// Ignore option
     Ignore,
+    /// Reject option
     Reject,
 }
 
-#[derive(Debug)]
+/// A parsing error for `OffsetDisambiguation` parsing.
+#[derive(Debug, Clone, Copy)]
 pub struct ParseOffsetDisambiguationError;
 
 impl fmt::Display for ParseOffsetDisambiguationError {
@@ -257,30 +293,49 @@ impl fmt::Display for OffsetDisambiguation {
 
 // TODO: Figure out what to do with intl's RoundingMode
 
+/// Declares the specified `RoundingMode` for the operation.
 #[derive(Debug, Copy, Clone, Default)]
 pub enum TemporalRoundingMode {
+    /// Ceil RoundingMode
     Ceil,
+    /// Floor RoundingMode
     Floor,
+    /// Expand RoundingMode
     Expand,
+    /// Truncate RoundingMode
     Trunc,
+    /// HalfCeil RoundingMode
     HalfCeil,
+    /// HalfFloor RoundingMode
     HalfFloor,
+    /// HalfExpand RoundingMode - Default
     #[default]
     HalfExpand,
+    /// HalfTruncate RoundingMode
     HalfTrunc,
+    /// HalfEven RoundingMode
     HalfEven,
 }
 
+/// The `UnsignedRoundingMode`
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TemporalUnsignedRoundingMode {
+    /// `Infinity` `RoundingMode`
     Infinity,
+    /// `Zero` `RoundingMode`
     Zero,
+    /// `HalfInfinity` `RoundingMode`
     HalfInfinity,
+    /// `HalfZero` `RoundingMode`
     HalfZero,
+    /// `HalfEven` `RoundingMode`
     HalfEven,
 }
 
 impl TemporalRoundingMode {
+    #[inline]
+    #[must_use]
+    /// Negates the current `RoundingMode`.
     pub const fn negate(self) -> Self {
         use TemporalRoundingMode::{
             Ceil, Expand, Floor, HalfCeil, HalfEven, HalfExpand, HalfFloor, HalfTrunc, Trunc,
@@ -299,6 +354,9 @@ impl TemporalRoundingMode {
         }
     }
 
+    #[inline]
+    #[must_use]
+    /// Returns the `UnsignedRoundingMode`
     pub const fn get_unsigned_round_mode(self, is_negative: bool) -> TemporalUnsignedRoundingMode {
         use TemporalRoundingMode::{
             Ceil, Expand, Floor, HalfCeil, HalfEven, HalfExpand, HalfFloor, HalfTrunc, Trunc,

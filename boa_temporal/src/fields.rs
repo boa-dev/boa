@@ -1,4 +1,4 @@
-//! TemporalFields native Rust representation.
+//! `TemporalFields` native Rust representation.
 
 use std::str::FromStr;
 
@@ -390,10 +390,10 @@ impl TemporalFields {
                 )),
                 FieldMap::HOUR => result.push(("hour".to_owned(), FieldValue::Integer(self.hour))),
                 FieldMap::MINUTE => {
-                    result.push(("minute".to_owned(), FieldValue::Integer(self.minute)))
+                    result.push(("minute".to_owned(), FieldValue::Integer(self.minute)));
                 }
                 FieldMap::SECOND => {
-                    result.push(("second".to_owned(), FieldValue::Integer(self.second)))
+                    result.push(("second".to_owned(), FieldValue::Integer(self.second)));
                 }
                 FieldMap::MILLISECOND => result.push((
                     "millisecond".to_owned(),
@@ -484,9 +484,7 @@ fn month_code_to_integer(mc: &TinyStr4) -> TemporalResult<i32> {
         "M11" => Ok(11),
         "M12" => Ok(12),
         "M13" => Ok(13),
-        _ => Err(TemporalError::range()
-            .with_message("monthCode is not within the valid values.")
-            .into()),
+        _ => Err(TemporalError::range().with_message("monthCode is not within the valid values.")),
     }
 }
 

@@ -170,7 +170,7 @@ impl Calendar {
         })?;
 
         let protocol = match &calendar.slot {
-            CalendarSlot::Identifier(s) => AvailableCalendars::from_str(&s)?.to_protocol(),
+            CalendarSlot::Identifier(s) => AvailableCalendars::from_str(s)?.to_protocol(),
             CalendarSlot::Protocol(proto) => proto.clone(),
         };
 
@@ -195,7 +195,7 @@ impl Calendar {
 
         // Retrieve the current CalendarProtocol.
         let protocol = match &calendar.slot {
-            CalendarSlot::Identifier(s) => AvailableCalendars::from_str(&s)?.to_protocol(),
+            CalendarSlot::Identifier(s) => AvailableCalendars::from_str(s)?.to_protocol(),
             CalendarSlot::Protocol(proto) => proto.clone(),
         };
 
@@ -221,7 +221,7 @@ impl Calendar {
             // a. Set fields to ? PrepareTemporalFields(fields, relevantFieldNames, « "year", "day" »).
             let mut required_fields = Vec::from([js_string!("year"), js_string!("day")]);
             fields::prepare_temporal_fields(
-                &fields_obj,
+                fields_obj,
                 &mut relevant_field_names,
                 &mut required_fields,
                 None,
@@ -235,7 +235,7 @@ impl Calendar {
             let calendar_relevant_fields = protocol.field_descriptors(CalendarFieldsType::Date);
             // b. Set fields to ? PrepareTemporalFields(fields, relevantFieldNames, « », calendarRelevantFieldDescriptors).
             fields::prepare_temporal_fields(
-                &fields_obj,
+                fields_obj,
                 &mut relevant_field_names,
                 &mut Vec::new(),
                 Some(calendar_relevant_fields),
@@ -277,7 +277,7 @@ impl Calendar {
         })?;
 
         let protocol = match &calendar.slot {
-            CalendarSlot::Identifier(s) => AvailableCalendars::from_str(&s)?.to_protocol(),
+            CalendarSlot::Identifier(s) => AvailableCalendars::from_str(s)?.to_protocol(),
             CalendarSlot::Protocol(proto) => proto.clone(),
         };
 
@@ -300,7 +300,7 @@ impl Calendar {
             // a. Set fields to ? PrepareTemporalFields(fields, relevantFieldNames, « "year" »).
             let mut required_fields = Vec::from([js_string!("year")]);
             fields::prepare_temporal_fields(
-                &fields_obj,
+                fields_obj,
                 &mut relevant_field_names,
                 &mut required_fields,
                 None,
@@ -315,7 +315,7 @@ impl Calendar {
             let calendar_relevant_fields =
                 protocol.field_descriptors(CalendarFieldsType::YearMonth);
             fields::prepare_temporal_fields(
-                &fields_obj,
+                fields_obj,
                 &mut relevant_field_names,
                 &mut Vec::new(),
                 Some(calendar_relevant_fields),
@@ -355,7 +355,7 @@ impl Calendar {
         })?;
 
         let protocol = match &calendar.slot {
-            CalendarSlot::Identifier(s) => AvailableCalendars::from_str(&s)?.to_protocol(),
+            CalendarSlot::Identifier(s) => AvailableCalendars::from_str(s)?.to_protocol(),
             CalendarSlot::Protocol(proto) => proto.clone(),
         };
 
@@ -381,7 +381,7 @@ impl Calendar {
             // a. Set fields to ? PrepareTemporalFields(fields, relevantFieldNames, « "day" »).
             let mut required_fields = Vec::from([js_string!("day")]);
             fields::prepare_temporal_fields(
-                &fields_obj,
+                fields_obj,
                 &mut relevant_field_names,
                 &mut required_fields,
                 None,
@@ -395,7 +395,7 @@ impl Calendar {
             let calendar_relevant_fields = protocol.field_descriptors(CalendarFieldsType::MonthDay);
             // b. Set fields to ? PrepareTemporalFields(fields, relevantFieldNames, « », calendarRelevantFieldDescriptors).
             fields::prepare_temporal_fields(
-                &fields_obj,
+                fields_obj,
                 &mut relevant_field_names,
                 &mut Vec::new(),
                 Some(calendar_relevant_fields),
@@ -428,7 +428,7 @@ impl Calendar {
         })?;
 
         let protocol = match &calendar.slot {
-            CalendarSlot::Identifier(s) => AvailableCalendars::from_str(&s)?.to_protocol(),
+            CalendarSlot::Identifier(s) => AvailableCalendars::from_str(s)?.to_protocol(),
             CalendarSlot::Protocol(proto) => proto.clone(),
         };
 
@@ -470,7 +470,7 @@ impl Calendar {
         })?;
 
         let protocol = match &calendar.slot {
-            CalendarSlot::Identifier(s) => AvailableCalendars::from_str(&s)?.to_protocol(),
+            CalendarSlot::Identifier(s) => AvailableCalendars::from_str(s)?.to_protocol(),
             CalendarSlot::Protocol(proto) => proto.clone(),
         };
 
@@ -509,7 +509,7 @@ impl Calendar {
         })?;
 
         let protocol = match &calendar.slot {
-            CalendarSlot::Identifier(s) => AvailableCalendars::from_str(&s)?.to_protocol(),
+            CalendarSlot::Identifier(s) => AvailableCalendars::from_str(s)?.to_protocol(),
             CalendarSlot::Protocol(proto) => proto.clone(),
         };
 
@@ -533,7 +533,7 @@ impl Calendar {
         })?;
 
         let protocol = match &calendar.slot {
-            CalendarSlot::Identifier(s) => AvailableCalendars::from_str(&s)?.to_protocol(),
+            CalendarSlot::Identifier(s) => AvailableCalendars::from_str(s)?.to_protocol(),
             CalendarSlot::Protocol(proto) => proto.clone(),
         };
 
@@ -557,7 +557,7 @@ impl Calendar {
         })?;
 
         let protocol = match &calendar.slot {
-            CalendarSlot::Identifier(s) => AvailableCalendars::from_str(&s)?.to_protocol(),
+            CalendarSlot::Identifier(s) => AvailableCalendars::from_str(s)?.to_protocol(),
             CalendarSlot::Protocol(proto) => proto.clone(),
         };
 
@@ -579,7 +579,7 @@ impl Calendar {
         })?;
 
         let protocol = match &calendar.slot {
-            CalendarSlot::Identifier(s) => AvailableCalendars::from_str(&s)?.to_protocol(),
+            CalendarSlot::Identifier(s) => AvailableCalendars::from_str(s)?.to_protocol(),
             CalendarSlot::Protocol(proto) => proto.clone(),
         };
 
@@ -606,7 +606,7 @@ impl Calendar {
         })?;
 
         let protocol = match &calendar.slot {
-            CalendarSlot::Identifier(s) => AvailableCalendars::from_str(&s)?.to_protocol(),
+            CalendarSlot::Identifier(s) => AvailableCalendars::from_str(s)?.to_protocol(),
             CalendarSlot::Protocol(proto) => proto.clone(),
         };
 
@@ -628,7 +628,7 @@ impl Calendar {
         })?;
 
         let protocol = match &calendar.slot {
-            CalendarSlot::Identifier(s) => AvailableCalendars::from_str(&s)?.to_protocol(),
+            CalendarSlot::Identifier(s) => AvailableCalendars::from_str(s)?.to_protocol(),
             CalendarSlot::Protocol(proto) => proto.clone(),
         };
 
@@ -652,7 +652,7 @@ impl Calendar {
         })?;
 
         let protocol = match &calendar.slot {
-            CalendarSlot::Identifier(s) => AvailableCalendars::from_str(&s)?.to_protocol(),
+            CalendarSlot::Identifier(s) => AvailableCalendars::from_str(s)?.to_protocol(),
             CalendarSlot::Protocol(proto) => proto.clone(),
         };
 
@@ -676,7 +676,7 @@ impl Calendar {
         })?;
 
         let protocol = match &calendar.slot {
-            CalendarSlot::Identifier(s) => AvailableCalendars::from_str(&s)?.to_protocol(),
+            CalendarSlot::Identifier(s) => AvailableCalendars::from_str(s)?.to_protocol(),
             CalendarSlot::Protocol(proto) => proto.clone(),
         };
 
@@ -699,7 +699,7 @@ impl Calendar {
         })?;
 
         let protocol = match &calendar.slot {
-            CalendarSlot::Identifier(s) => AvailableCalendars::from_str(&s)?.to_protocol(),
+            CalendarSlot::Identifier(s) => AvailableCalendars::from_str(s)?.to_protocol(),
             CalendarSlot::Protocol(proto) => proto.clone(),
         };
 
@@ -722,7 +722,7 @@ impl Calendar {
         })?;
 
         let protocol = match &calendar.slot {
-            CalendarSlot::Identifier(s) => AvailableCalendars::from_str(&s)?.to_protocol(),
+            CalendarSlot::Identifier(s) => AvailableCalendars::from_str(s)?.to_protocol(),
             CalendarSlot::Protocol(proto) => proto.clone(),
         };
 
@@ -745,7 +745,7 @@ impl Calendar {
         })?;
 
         let protocol = match &calendar.slot {
-            CalendarSlot::Identifier(s) => AvailableCalendars::from_str(&s)?.to_protocol(),
+            CalendarSlot::Identifier(s) => AvailableCalendars::from_str(s)?.to_protocol(),
             CalendarSlot::Protocol(proto) => proto.clone(),
         };
 
@@ -768,7 +768,7 @@ impl Calendar {
         })?;
 
         let protocol = match &calendar.slot {
-            CalendarSlot::Identifier(s) => AvailableCalendars::from_str(&s)?.to_protocol(),
+            CalendarSlot::Identifier(s) => AvailableCalendars::from_str(s)?.to_protocol(),
             CalendarSlot::Protocol(proto) => proto.clone(),
         };
 
@@ -790,7 +790,7 @@ impl Calendar {
         })?;
 
         let protocol = match &calendar.slot {
-            CalendarSlot::Identifier(s) => AvailableCalendars::from_str(&s)?.to_protocol(),
+            CalendarSlot::Identifier(s) => AvailableCalendars::from_str(s)?.to_protocol(),
             CalendarSlot::Protocol(proto) => proto.clone(),
         };
 
@@ -815,7 +815,7 @@ impl Calendar {
         })?;
 
         let protocol = match &calendar.slot {
-            CalendarSlot::Identifier(s) => AvailableCalendars::from_str(&s)?.to_protocol(),
+            CalendarSlot::Identifier(s) => AvailableCalendars::from_str(s)?.to_protocol(),
             CalendarSlot::Protocol(proto) => proto.clone(),
         };
 
@@ -837,7 +837,7 @@ impl Calendar {
         })?;
 
         let protocol = match &calendar.slot {
-            CalendarSlot::Identifier(s) => AvailableCalendars::from_str(&s)?.to_protocol(),
+            CalendarSlot::Identifier(s) => AvailableCalendars::from_str(s)?.to_protocol(),
             CalendarSlot::Protocol(proto) => proto.clone(),
         };
 
@@ -861,7 +861,7 @@ impl Calendar {
         })?;
 
         let protocol = match &calendar.slot {
-            CalendarSlot::Identifier(s) => AvailableCalendars::from_str(&s)?.to_protocol(),
+            CalendarSlot::Identifier(s) => AvailableCalendars::from_str(s)?.to_protocol(),
             CalendarSlot::Protocol(proto) => proto.clone(),
         };
 
@@ -951,7 +951,7 @@ impl Calendar {
         })?;
 
         let protocol = match &calendar.slot {
-            CalendarSlot::Identifier(s) => AvailableCalendars::from_str(&s)?.to_protocol(),
+            CalendarSlot::Identifier(s) => AvailableCalendars::from_str(s)?.to_protocol(),
             CalendarSlot::Protocol(proto) => proto.clone(),
         };
 
@@ -979,7 +979,7 @@ impl Calendar {
         let add_keys = additional_fields_copy
             .__own_property_keys__(context)?
             .iter()
-            .map(|k| k.to_string())
+            .map(ToString::to_string)
             .collect::<Vec<_>>();
 
         // 7. If calendar.[[Identifier]] is "iso8601", then

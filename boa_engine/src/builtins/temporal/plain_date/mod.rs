@@ -415,7 +415,7 @@ pub(crate) fn create_temporal_date(
     };
 
     // 2. If ISODateTimeWithinLimits(isoYear, isoMonth, isoDay, 12, 0, 0, 0, 0, 0) is false, throw a RangeError exception.
-    if !TemporalDateTime::validate_date(&inner) {
+    if !TemporalDateTime::validate(&inner) {
         return Err(JsNativeError::range()
             .with_message("Date is not within ISO date time limits.")
             .into());

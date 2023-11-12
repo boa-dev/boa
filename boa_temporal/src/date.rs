@@ -4,7 +4,7 @@ use crate::{
     calendar::CalendarSlot,
     datetime::TemporalDateTime,
     duration::{DateDuration, Duration},
-    iso::IsoDate,
+    iso::{IsoDate, IsoDateSlots},
     options::{ArithmeticOverflow, TemporalUnit},
     TemporalResult,
 };
@@ -20,12 +20,13 @@ pub struct TemporalDate {
 // ==== Private API ====
 
 impl TemporalDate {
-    /// Create a new TemporalDate with the date values and calendar slot.
+    /// Create a new `TemporalDate` with the date values and calendar slot.
     pub(crate) fn new_unchecked(iso: IsoDate, calendar: CalendarSlot) -> Self {
         Self { iso, calendar }
     }
 
     #[inline]
+    #[must_use]
     /// `DifferenceDate`
     pub(crate) fn diff_date(
         &self,
@@ -55,6 +56,7 @@ impl TemporalDate {
     }
 
     #[inline]
+    #[must_use]
     /// Internal `AddDate` function
     pub(crate) fn add_date(
         &self,
@@ -72,7 +74,7 @@ impl TemporalDate {
             // i. Set dateAdd to unused.
             // ii. If calendar is an Object, set dateAdd to ? GetMethod(calendar, "dateAdd").
             // b. Return ? CalendarDateAdd(calendar, plainDate, duration, options, dateAdd).
-            return self.calendar().date_add(&self, duration, overflow, context);
+            return self.calendar().date_add(self, duration, overflow, context);
         }
 
         // 3. Let overflow be ? ToTemporalOverflow(options).
@@ -88,6 +90,7 @@ impl TemporalDate {
     }
 
     #[inline]
+    #[must_use]
     /// Returns a new moved date and the days associated with that adjustment
     pub(crate) fn move_relative_date(
         &self,
@@ -115,6 +118,7 @@ impl TemporalDate {
         Ok(Self::new_unchecked(iso, calendar))
     }
 
+    #[must_use]
     /// Creates a `TemporalDate` from a `TemporalDateTime`.
     pub fn from_datetime(dt: &TemporalDateTime) -> Self {
         Self {
@@ -124,30 +128,35 @@ impl TemporalDate {
     }
 
     #[inline]
+    #[must_use]
     /// Returns this `TemporalDate`'s year value.
     pub const fn year(&self) -> i32 {
         self.iso.year()
     }
 
     #[inline]
+    #[must_use]
     /// Returns this `TemporalDate`'s month value.
     pub const fn month(&self) -> u8 {
         self.iso.month()
     }
 
     #[inline]
+    #[must_use]
     /// Returns this `TemporalDate`'s day value.
     pub const fn day(&self) -> u8 {
         self.iso.day()
     }
 
     #[inline]
+    #[must_use]
     /// Returns the `TemporalDate`'s inner `IsoDate` record.
     pub const fn iso_date(&self) -> IsoDate {
         self.iso
     }
 
     #[inline]
+    #[must_use]
     /// Returns a reference to this `TemporalDate`'s calendar slot.
     pub fn calendar(&self) -> &CalendarSlot {
         &self.calendar
@@ -155,25 +164,38 @@ impl TemporalDate {
 
     /// 3.5.7 `IsValidISODate`
     ///
-    /// Checks if the current date is a valid ISODate.
+    /// Checks if the current date is a valid `ISODate`.
+    #[must_use]
     pub fn is_valid(&self) -> bool {
         self.iso.is_valid()
     }
 
-    #[inline]
     /// `DaysUntil`
     ///
     /// Calculates the epoch days between two `TemporalDate`s
+    #[inline]
+    #[must_use]
     pub fn days_until(&self, other: &Self) -> i32 {
         other.iso.to_epoch_days() - self.iso.to_epoch_days()
+    }
+}
+
+impl IsoDateSlots for TemporalDate {
+    /// Returns the structs `IsoDate`
+    fn iso_date(&self) -> IsoDate {
+        self.iso
     }
 }
 
 // ==== Context based API ====
 
 impl TemporalDate {
-    #[cfg(feature = "context")]
+    /// Returns the date after adding the given duration to date.
+    ///
+    /// Temporal Equivalent: 3.5.13 `AddDate ( calendar, plainDate, duration [ , options [ , dateAdd ] ] )`
     #[inline]
+    #[must_use]
+    #[cfg(feature = "context")]
     pub fn add_to_date(
         &self,
         duration: &Duration,
@@ -183,8 +205,12 @@ impl TemporalDate {
         self.add_date(duration, overflow, context)
     }
 
-    #[cfg(not(feature = "context"))]
+    /// Returns the date after adding the given duration to date.
+    ///
+    /// Temporal Equivalent: 3.5.13 `AddDate ( calendar, plainDate, duration [ , options [ , dateAdd ] ] )`
     #[inline]
+    #[must_use]
+    #[cfg(not(feature = "context"))]
     pub fn add_to_date(
         &self,
         duration: &Duration,
@@ -193,19 +219,27 @@ impl TemporalDate {
         self.add_date(duration, overflow, &mut ())
     }
 
-    #[cfg(feature = "context")]
+    /// Returns a duration representing the difference between the dates one and two.
+    ///
+    /// Temporal Equivalent: 3.5.6 `DifferenceDate ( calendar, one, two, options )`
     #[inline]
+    #[must_use]
+    #[cfg(feature = "context")]
     pub fn difference_date(
         &self,
-        duration: &Duration,
-        overflow: ArithmeticOverflow,
+        other: &Self,
+        largest_unit: TemporalUnit,
         context: &mut dyn Any,
-    ) -> TemporalResult<Self> {
-        self.add_date(duration, overflow, context)
+    ) -> TemporalResult<Duration> {
+        self.diff_date(other, largest_unit, context)
     }
 
-    #[cfg(not(feature = "context"))]
+    /// Returns a duration representing the difference between the dates one and two.
+    ///
+    /// Temporal Equivalent: 3.5.6 `DifferenceDate ( calendar, one, two, options )`
     #[inline]
+    #[must_use]
+    #[cfg(not(feature = "context"))]
     pub fn difference_date(
         &self,
         other: &Self,

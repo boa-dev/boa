@@ -1,4 +1,14 @@
+//! The `ISO` module implements the internal ISO field slots.
+//!
+//! The three main types of slots are:
+//!   - `IsoDateTime`
+//!   - `IsoDate`
+//!   - `IsoTime`
+//!
 //! An `IsoDate` that represents the `[[ISOYear]]`, `[[ISOMonth]]`, and `[[ISODay]]` internal slots.
+//! An `IsoTime` that represents the `[[ISOHour]]`, `[[ISOMinute]]`, `[[ISOsecond]]`, `[[ISOmillisecond]]`,
+//! `[[ISOmicrosecond]]`, and `[[ISOnanosecond]]` internal slots.
+//! An `IsoDateTime` has the internal slots of both an `IsoDate` and `IsoTime`.
 
 use crate::{
     duration::DateDuration, error::TemporalError, options::ArithmeticOverflow, utils,
@@ -35,7 +45,7 @@ impl IsoDateTime {
     }
 
     /// Returns the UTC epoch nanoseconds for this `IsoDateTime`.
-    pub(crate) fn to_utc_epoch_nanoseconds(&self, offset: f64) -> Option<BigInt> {
+    pub(crate) fn to_utc_epoch_nanoseconds(self, offset: f64) -> Option<BigInt> {
         let day = self.date.to_epoch_days();
         let time = self.time.to_epoch_ms();
         let epoch_ms = utils::epoch_days_to_epoch_ms(day, time);
@@ -60,6 +70,12 @@ impl IsoDateTime {
 // ==== `IsoDate` section ====
 
 // TODO: Figure out `ICU4X` interop / replacement?
+
+/// A trait for accessing the `IsoDate` across the various Temporal objects
+pub trait IsoDateSlots {
+    /// Returns the target's internal `IsoDate`.
+    fn iso_date(&self) -> IsoDate;
+}
 
 /// `IsoDate` serves as a record for the `[[ISOYear]]`, `[[ISOMonth]]`,
 /// and `[[ISODay]]` internal fields.
@@ -102,26 +118,6 @@ impl IsoDate {
         }
     }
 
-    pub(crate) fn new_year_month(
-        year: i32,
-        month: i32,
-        overflow: ArithmeticOverflow,
-    ) -> TemporalResult<Self> {
-        match overflow {
-            ArithmeticOverflow::Constrain => {
-                let m = month.clamp(1, 12) as u8;
-                Ok(Self::new_unchecked(year, m, 1))
-            }
-            ArithmeticOverflow::Reject => {
-                if (1..=12).contains(&month) {
-                    return Err(TemporalError::range().with_message("IsoYearMonth is not valid."));
-                }
-                // NOTE: Values have been verified to be in a u8 range.
-                Ok(Self::new_unchecked(year, month as u8, 1))
-            }
-        }
-    }
-
     /// Create a balanced `IsoDate`
     ///
     /// Equivalent to `BalanceISODate`.
@@ -136,34 +132,35 @@ impl IsoDate {
     }
 
     /// Returns the year field
-    pub(crate) const fn year(&self) -> i32 {
+    pub(crate) const fn year(self) -> i32 {
         self.year
     }
 
     /// Returns the month field
-    pub(crate) const fn month(&self) -> u8 {
+    pub(crate) const fn month(self) -> u8 {
         self.month
     }
 
     /// Returns the day field
-    pub(crate) const fn day(&self) -> u8 {
+    pub(crate) const fn day(self) -> u8 {
         self.day
     }
 
     /// Functionally the same as Date's abstract operation `MakeDay`
     ///
     /// Equivalent to `IsoDateToEpochDays`
-    pub(crate) fn to_epoch_days(&self) -> i32 {
+    pub(crate) fn to_epoch_days(self) -> i32 {
         iso_date_to_epoch_days(self.year, self.month.into(), self.day.into())
     }
 
     /// Returns if the current `IsoDate` is valid.
-    pub(crate) fn is_valid(&self) -> bool {
+    pub(crate) fn is_valid(self) -> bool {
         is_valid_date(self.year, self.month.into(), self.day.into())
     }
 
+    /// Returns the resulting `IsoDate` from adding a provided `Duration` to this `IsoDate`
     pub(crate) fn add_iso_date(
-        &self,
+        self,
         duration: &DateDuration,
         overflow: ArithmeticOverflow,
     ) -> TemporalResult<Self> {
@@ -199,9 +196,8 @@ impl IsoDate {
 }
 
 impl IsoDate {
-    // TODO: look into using Date<Iso> across the board...TBD.
     /// Creates `[[ISOYear]]`, `[[isoMonth]]`, `[[isoDay]]` fields from `ICU4X`'s `Date<Iso>` struct.
-    pub(crate) fn as_icu4x(&self) -> TemporalResult<IcuDate<Iso>> {
+    pub(crate) fn as_icu4x(self) -> TemporalResult<IcuDate<Iso>> {
         IcuDate::try_new_iso_date(self.year, self.month, self.day)
             .map_err(|e| TemporalError::range().with_message(e.to_string()))
     }
@@ -307,7 +303,7 @@ impl IsoTime {
     /// Note: This method is library specific and not in spec
     ///
     /// Functionally the same as Date's `MakeTime`
-    pub(crate) fn to_epoch_ms(&self) -> f64 {
+    pub(crate) fn to_epoch_ms(self) -> f64 {
         f64::from(self.hour).mul_add(
             utils::MS_PER_HOUR,
             f64::from(self.minute) * utils::MS_PER_MINUTE,
@@ -317,7 +313,7 @@ impl IsoTime {
 
 // ==== `IsoDate` specific utiltiy functions ====
 
-/// Returns the EpochDays based off the given year, month, and day.
+/// Returns the Epoch days based off the given year, month, and day.
 #[inline]
 fn iso_date_to_epoch_days(year: i32, month: i32, day: i32) -> i32 {
     // 1. Let resolvedYear be year + floor(month / 12).
@@ -327,7 +323,7 @@ fn iso_date_to_epoch_days(year: i32, month: i32, day: i32) -> i32 {
 
     // 3. Find a time t such that EpochTimeToEpochYear(t) is resolvedYear, EpochTimeToMonthInYear(t) is resolvedMonth, and EpochTimeToDate(t) is 1.
     let year_t = utils::epoch_time_for_year(resolved_year);
-    let month_t = utils::epoch_time_for_month_given_year(resolved_month.into(), resolved_year);
+    let month_t = utils::epoch_time_for_month_given_year(resolved_month, resolved_year);
 
     // 4. Return EpochTimeToDayNumber(t) + date - 1.
     utils::epoch_time_to_day_number(year_t + month_t) + day - 1
@@ -343,185 +339,3 @@ fn is_valid_date(year: i32, month: i32, day: i32) -> bool {
     let days_in_month = utils::iso_days_in_month(year, month);
     (1..=days_in_month).contains(&day)
 }
-
-/*
-impl IsoDate {
-    /// 3.5.6 `RegulateISODate`
-    pub(crate) fn from_unregulated(
-        year: i32,
-        month: i32,
-        day: i32,
-        overflow: ArithmeticOverflow,
-    ) -> TemporalResult<Self> {
-        match overflow {
-            ArithmeticOverflow::Constrain => {
-                let m = month.clamp(1, 12);
-                let days_in_month = utils::iso_days_in_month(year, month);
-                let d = day.clamp(1, days_in_month);
-                Ok(Self::new_unchecked(year, m, d))
-            }
-            ArithmeticOverflow::Reject => {
-                let date = Self::new_unchecked(year, month, day);
-                if !date.is_valid() {
-                    return Err(TemporalError::range()
-                        .with_message("not a valid ISO date."));
-                }
-                Ok(date)
-            }
-        }
-    }
-
-    /// 12.2.35 `ISODateFromFields ( fields, overflow )`
-    ///
-    /// Note: fields.month must be resolved prior to using `from_temporal_fields`
-    pub(crate) fn from_temporal_fields(
-        fields: &TemporalFields,
-        overflow: ArithmeticOverflow,
-    ) -> TemporalResult<Self> {
-        Self::from_unregulated(
-            fields.year().expect("Cannot fail per spec"),
-            fields.month().expect("cannot fail after resolution"),
-            fields.day().expect("cannot fail per spec"),
-            overflow,
-        )
-    }
-
-    /// Create a Month-Day record from a `TemporalFields` object.
-    pub(crate) fn month_day_from_temporal_fields(
-        fields: &TemporalFields,
-        overflow: ArithmeticOverflow,
-    ) -> TemporalResult<Self> {
-        match fields.year() {
-            Some(year) => Self::from_unregulated(
-                year,
-                fields.month().expect("month must exist."),
-                fields.day().expect("cannot fail per spec"),
-                overflow,
-            ),
-            None => Self::from_unregulated(
-                1972,
-                fields.month().expect("cannot fail per spec"),
-                fields.day().expect("cannot fail per spec."),
-                overflow,
-            ),
-        }
-    }
-
-    /// Within `YearMonth` valid limits
-    pub(crate) const fn within_year_month_limits(&self) -> bool {
-        if self.year < -271_821 || self.year > 275_760 {
-            return false;
-        }
-
-        if self.year == -271_821 && self.month < 4 {
-            return false;
-        }
-
-        if self.year == 275_760 && self.month > 9 {
-            return true;
-        }
-
-        true
-    }
-
-    /// 3.5.5 `DifferenceISODate`
-    pub(crate) fn diff_iso_date(
-        &self,
-        o: &Self,
-        largest_unit: TemporalUnit,
-    ) -> TemporalResult<DurationRecord> {
-        debug_assert!(self.is_valid());
-        // TODO: Implement on `ICU4X`.
-
-        Err(TemporalError::range()
-            .with_message("not yet implemented."))
-    }
-
-    /// 3.5.7 `IsValidISODate`
-    pub(crate) fn is_valid(&self) -> bool {
-        if self.month < 1 || self.month > 12 {
-            return false;
-        }
-
-        let days_in_month = utils::iso_days_in_month(self.year, self.month);
-
-        if self.day < 1 || self.day > days_in_month {
-            return false;
-        }
-        true
-    }
-
-    /// 13.2 `IsoDateToEpochDays`
-    pub(crate) fn as_epoch_days(&self) -> i32 {
-        // 1. Let resolvedYear be year + floor(month / 12).
-        let resolved_year = self.year + (f64::from(self.month) / 12_f64).floor() as i32;
-        // 2. Let resolvedMonth be month modulo 12.
-        let resolved_month = self.month % 12;
-
-        // 3. Find a time t such that EpochTimeToEpochYear(t) is resolvedYear, EpochTimeToMonthInYear(t) is resolvedMonth, and EpochTimeToDate(t) is 1.
-        let year_t = utils::epoch_time_for_year(resolved_year);
-        let month_t = utils::epoch_time_for_month_given_year(
-            resolved_month,
-            resolved_year,
-        );
-
-        // 4. Return EpochTimeToDayNumber(t) + date - 1.
-        utils::epoch_time_to_day_number(year_t + month_t) + self.day - 1
-    }
-
-    // NOTE: Implementing as mut self so balance is applied to self, but TBD.
-    /// 3.5.8 `BalanceIsoDate`
-    pub(crate) fn balance(&mut self) {
-        let epoch_days = self.as_epoch_days();
-        let ms = utils::epoch_days_to_epoch_ms(epoch_days, 0);
-
-        // Balance current values
-        self.year = utils::epoch_time_to_epoch_year(ms);
-        self.month = utils::epoch_time_to_month_in_year(ms);
-        self.day = utils::epoch_time_to_date(ms);
-    }
-
-    // NOTE: Used in AddISODate only, so could possibly be deleted in the future.
-    /// 9.5.4 `BalanceISOYearMonth ( year, month )`
-    pub(crate) fn balance_year_month(&mut self) {
-        self.year += (self.month - 1) / 12;
-        self.month = ((self.month - 1) % 12) + 1;
-    }
-
-    /// 3.5.11 `AddISODate ( year, month, day, years, months, weeks, days, overflow )`
-    pub(crate) fn add_iso_date(
-        &self,
-        date_duration: DateDuration,
-        overflow: ArithmeticOverflow,
-    ) -> TemporalResult<Self> {
-        // 1. Assert: year, month, day, years, months, weeks, and days are integers.
-        // 2. Assert: overflow is either "constrain" or "reject".
-        let mut intermediate = Self::new_unchecked(
-            self.year + date_duration.years() as i32,
-            self.month + date_duration.months() as i32,
-            0,
-        );
-
-        // 3. Let intermediate be ! BalanceISOYearMonth(year + years, month + months).
-        intermediate.balance_year_month();
-
-        // 4. Let intermediate be ? RegulateISODate(intermediate.[[Year]], intermediate.[[Month]], day, overflow).
-        let mut new_date = Self::from_unregulated(
-            intermediate.year(),
-            intermediate.month(),
-            self.day,
-            overflow,
-        )?;
-
-        // 5. Set days to days + 7 × weeks.
-        // 6. Let d be intermediate.[[Day]] + days.
-        let additional_days = date_duration.days() as i32 + (date_duration.weeks() as i32 * 7);
-        new_date.day += additional_days;
-
-        // 7. Return BalanceISODate(intermediate.[[Year]], intermediate.[[Month]], d).
-        new_date.balance();
-
-        Ok(new_date)
-    }
-}
-*/

@@ -2,7 +2,8 @@
 
 use crate::iso::IsoTime;
 
-#[derive(Debug, Default)]
+/// The Temporal `PlainTime` object.
+#[derive(Debug, Default, Clone, Copy)]
 pub struct TemporalTime {
     iso: IsoTime,
 }

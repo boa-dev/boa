@@ -2,9 +2,8 @@
 
 use crate::{
     builtins::temporal::{plain_date, plain_month_day, plain_year_month},
-    object::ObjectKind,
     property::PropertyKey,
-    Context, JsObject, JsValue,
+    Context, JsObject, JsString, JsValue,
 };
 use std::any::Any;
 
@@ -20,11 +19,12 @@ use boa_temporal::{
     year_month::TemporalYearMonth,
     TemporalResult, TinyStr4, TinyStr8,
 };
+use num_traits::ToPrimitive;
 
 /// A user-defined, custom calendar that is only known at runtime
 /// and executed at runtime.
 ///
-/// A user-defined calendar implements all methods of the CalendarProtocol,
+/// A user-defined calendar implements all of the `CalendarProtocolMethods`
 /// and therefore satisfies the requirements to be used as a calendar.
 #[derive(Debug, Clone)]
 pub(crate) struct CustomRuntimeCalendar {
@@ -46,8 +46,6 @@ impl CalendarProtocol for CustomRuntimeCalendar {
         overflow: ArithmeticOverflow,
         context: &mut dyn Any,
     ) -> TemporalResult<TemporalDate> {
-        // Safety: Context lives for the life of the program and execution, so
-        // this should, in theory, be valid.
         let context = context
             .downcast_mut::<Context>()
             .expect("Context was not provided for a CustomCalendar.");
@@ -57,23 +55,39 @@ impl CalendarProtocol for CustomRuntimeCalendar {
             .get(utf16!("dateFromFields"), context)
             .expect("method must exist on a object that implements the CalendarProtocol.");
 
-        let fields = JsObject::from_temporal_fields(&fields, context)
-            .map_err(|_| TemporalError::range().with_message("Need new"))?;
+        let fields = JsObject::from_temporal_fields(fields, context)
+            .map_err(|e| TemporalError::general(e.to_string()))?;
+
+        let overflow_obj = JsObject::with_null_proto();
+
+        overflow_obj
+            .create_data_property_or_throw(
+                utf16!("overflow"),
+                JsString::from(overflow.to_string()),
+                context,
+            )
+            .map_err(|e| TemporalError::general(e.to_string()))?;
 
         let value = method
-            .call(&self.calendar.clone().into(), &[fields.into()], context)
-            .map_err(|e| {
-                TemporalError::range().with_message("Update error to handle error conversions")
-            })?;
+            .as_callable()
+            .ok_or_else(|| {
+                TemporalError::general("dateFromFields must be implemented as a callable method.")
+            })?
+            .call(
+                &self.calendar.clone().into(),
+                &[fields.into(), overflow_obj.into()],
+                context,
+            )
+            .map_err(|e| TemporalError::general(e.to_string()))?;
 
-        let obj = value
-            .as_object()
-            .map(JsObject::borrow)
-            .ok_or_else(|| TemporalError::r#type().with_message("could not borrow object"))?;
+        let obj = value.as_object().map(JsObject::borrow).ok_or_else(|| {
+            TemporalError::r#type()
+                .with_message("datefromFields must return a valid PlainDate object.")
+        })?;
 
-        let ObjectKind::PlainDate(pd) = obj.kind() else {
-            return Err(TemporalError::r#type().with_message("Object returned was not a PlainDate"));
-        };
+        let pd = obj.as_plain_date().ok_or_else(|| {
+            TemporalError::r#type().with_message("Object returned was not a PlainDate")
+        })?;
 
         Ok(pd.inner.clone())
     }
@@ -84,7 +98,52 @@ impl CalendarProtocol for CustomRuntimeCalendar {
         overflow: ArithmeticOverflow,
         context: &mut dyn Any,
     ) -> TemporalResult<TemporalYearMonth> {
-        todo!()
+        let context = context
+            .downcast_mut::<Context>()
+            .expect("Context was not provided for a CustomCalendar.");
+
+        let method = self
+            .calendar
+            .get(utf16!("yearMonthFromFields"), context)
+            .expect("method must exist on a object that implements the CalendarProtocol.");
+
+        let fields = JsObject::from_temporal_fields(fields, context)
+            .map_err(|e| TemporalError::general(e.to_string()))?;
+
+        let overflow_obj = JsObject::with_null_proto();
+
+        overflow_obj
+            .create_data_property_or_throw(
+                utf16!("overflow"),
+                JsString::from(overflow.to_string()),
+                context,
+            )
+            .map_err(|e| TemporalError::general(e.to_string()))?;
+
+        let value = method
+            .as_callable()
+            .ok_or_else(|| {
+                TemporalError::general(
+                    "yearMonthFromFields must be implemented as a callable method.",
+                )
+            })?
+            .call(
+                &self.calendar.clone().into(),
+                &[fields.into(), overflow_obj.into()],
+                context,
+            )
+            .map_err(|e| TemporalError::general(e.to_string()))?;
+
+        let obj = value.as_object().map(JsObject::borrow).ok_or_else(|| {
+            TemporalError::r#type()
+                .with_message("yearMonthFromFields must return a valid PlainYearMonth object.")
+        })?;
+
+        let ym = obj.as_plain_year_month().ok_or_else(|| {
+            TemporalError::r#type().with_message("Object returned was not a PlainDate")
+        })?;
+
+        Ok(ym.inner.clone())
     }
 
     fn month_day_from_fields(
@@ -93,52 +152,156 @@ impl CalendarProtocol for CustomRuntimeCalendar {
         overflow: ArithmeticOverflow,
         context: &mut dyn Any,
     ) -> TemporalResult<TemporalMonthDay> {
-        todo!()
+        let context = context
+            .downcast_mut::<Context>()
+            .expect("Context was not provided for a CustomCalendar.");
+
+        let method = self
+            .calendar
+            .get(utf16!("yearMonthFromFields"), context)
+            .expect("method must exist on a object that implements the CalendarProtocol.");
+
+        let fields = JsObject::from_temporal_fields(fields, context)
+            .map_err(|e| TemporalError::general(e.to_string()))?;
+
+        let overflow_obj = JsObject::with_null_proto();
+
+        overflow_obj
+            .create_data_property_or_throw(
+                utf16!("overflow"),
+                JsString::from(overflow.to_string()),
+                context,
+            )
+            .map_err(|e| TemporalError::general(e.to_string()))?;
+
+        let value = method
+            .as_callable()
+            .ok_or_else(|| {
+                TemporalError::general(
+                    "yearMonthFromFields must be implemented as a callable method.",
+                )
+            })?
+            .call(
+                &self.calendar.clone().into(),
+                &[fields.into(), overflow_obj.into()],
+                context,
+            )
+            .map_err(|e| TemporalError::general(e.to_string()))?;
+
+        let obj = value.as_object().map(JsObject::borrow).ok_or_else(|| {
+            TemporalError::r#type()
+                .with_message("yearMonthFromFields must return a valid PlainYearMonth object.")
+        })?;
+
+        let md = obj.as_plain_month_day().ok_or_else(|| {
+            TemporalError::r#type().with_message("Object returned was not a PlainDate")
+        })?;
+
+        Ok(md.inner.clone())
     }
 
     fn date_add(
         &self,
-        date: &TemporalDate,
-        duration: &Duration,
-        overflow: ArithmeticOverflow,
-        context: &mut dyn Any,
+        _date: &TemporalDate,
+        _duration: &Duration,
+        _overflow: ArithmeticOverflow,
+        _context: &mut dyn Any,
     ) -> TemporalResult<TemporalDate> {
         todo!()
     }
 
     fn date_until(
         &self,
-        one: &TemporalDate,
-        two: &TemporalDate,
-        largest_unit: boa_temporal::options::TemporalUnit,
-        context: &mut dyn Any,
+        _one: &TemporalDate,
+        _two: &TemporalDate,
+        _largest_unit: boa_temporal::options::TemporalUnit,
+        _context: &mut dyn Any,
     ) -> TemporalResult<Duration> {
         todo!()
     }
 
-    // TODO: Determine validity of below errors.
-    fn era(
-        &self,
-        date_like: &CalendarDateLike,
-        context: &mut dyn Any,
-    ) -> TemporalResult<Option<TinyStr8>> {
-        Err(TemporalError::range().with_message("Objects do not implement era"))
+    fn era(&self, _: &CalendarDateLike, _: &mut dyn Any) -> TemporalResult<Option<TinyStr8>> {
+        // Return undefined as custom calendars do not implement -> Currently.
+        Ok(None)
     }
 
-    fn era_year(
-        &self,
-        date_like: &CalendarDateLike,
-        context: &mut dyn Any,
-    ) -> TemporalResult<Option<i32>> {
-        Err(TemporalError::range().with_message("Objects do not implement eraYear."))
+    fn era_year(&self, _: &CalendarDateLike, _: &mut dyn Any) -> TemporalResult<Option<i32>> {
+        // Return undefined as custom calendars do not implement -> Currently.
+        Ok(None)
     }
 
     fn year(&self, date_like: &CalendarDateLike, context: &mut dyn Any) -> TemporalResult<i32> {
-        todo!()
+        let context = context
+            .downcast_mut::<Context>()
+            .expect("Context was not provided for a CustomCalendar.");
+
+        let date_like = date_like_to_object(date_like, context)?;
+
+        let method = self
+            .calendar
+            .get(PropertyKey::from(utf16!("year")), context)
+            .expect("method must exist on a object that implements the CalendarProtocol.");
+
+        let val = method
+            .as_callable()
+            .expect("is method")
+            .call(&method, &[date_like], context)
+            .map_err(|err| TemporalError::general(err.to_string()))?;
+
+        let Some(number) = val.as_number() else {
+            return Err(TemporalError::r#type().with_message("year must return a number."));
+        };
+
+        if !number.is_finite() || number.fract() != 0.0 {
+            return Err(TemporalError::r#type().with_message("year return must be integral."));
+        }
+
+        if number < 1f64 {
+            return Err(TemporalError::r#type().with_message("year return must be larger than 1."));
+        }
+
+        let result = number
+            .to_i32()
+            .ok_or_else(|| TemporalError::range().with_message("year exceeded a valid range."))?;
+
+        Ok(result)
     }
 
     fn month(&self, date_like: &CalendarDateLike, context: &mut dyn Any) -> TemporalResult<u8> {
-        todo!()
+        let context = context
+            .downcast_mut::<Context>()
+            .expect("Context was not provided for a CustomCalendar.");
+
+        let date_like = date_like_to_object(date_like, context)?;
+
+        let method = self
+            .calendar
+            .get(PropertyKey::from(utf16!("month")), context)
+            .expect("method must exist on a object that implements the CalendarProtocol.");
+
+        let val = method
+            .as_callable()
+            .expect("is method")
+            .call(&method, &[date_like], context)
+            .map_err(|err| TemporalError::general(err.to_string()))?;
+
+        let Some(number) = val.as_number() else {
+            return Err(TemporalError::r#type().with_message("month must return a number."));
+        };
+
+        if !number.is_finite() || number.fract() != 0.0 {
+            return Err(TemporalError::r#type().with_message("month return must be integral."));
+        }
+
+        if number < 1f64 {
+            return Err(TemporalError::r#type().with_message("month return must be larger than 1."));
+        }
+
+        let result = number
+            .to_u8()
+            .ok_or_else(|| TemporalError::range().with_message("month exceeded a valid range."))?;
+
+        Ok(result)
     }
 
     fn month_code(
@@ -146,35 +309,197 @@ impl CalendarProtocol for CustomRuntimeCalendar {
         date_like: &CalendarDateLike,
         context: &mut dyn Any,
     ) -> TemporalResult<TinyStr4> {
-        todo!()
+        let context = context
+            .downcast_mut::<Context>()
+            .expect("Context was not provided for a CustomCalendar.");
+
+        let date_like = date_like_to_object(date_like, context)?;
+
+        let method = self
+            .calendar
+            .get(PropertyKey::from(utf16!("monthCode")), context)
+            .expect("method must exist on a object that implements the CalendarProtocol.");
+
+        let val = method
+            .as_callable()
+            .expect("is method")
+            .call(&method, &[date_like], context)
+            .map_err(|err| TemporalError::general(err.to_string()))?;
+
+        let JsValue::String(result) = val else {
+            return Err(TemporalError::r#type().with_message("monthCode return must be a String."));
+        };
+
+        let result = TinyStr4::from_str(&result.to_std_string_escaped())
+            .map_err(|_| TemporalError::general("Unexpected monthCode value."))?;
+
+        Ok(result)
     }
 
     fn day(&self, date_like: &CalendarDateLike, context: &mut dyn Any) -> TemporalResult<u8> {
-        todo!()
+        let context = context
+            .downcast_mut::<Context>()
+            .expect("Context was not provided for a CustomCalendar.");
+
+        let date_like = date_like_to_object(date_like, context)?;
+
+        let method = self
+            .calendar
+            .get(PropertyKey::from(utf16!("day")), context)
+            .expect("method must exist on a object that implements the CalendarProtocol.");
+
+        let val = method
+            .as_callable()
+            .expect("is method")
+            .call(&method, &[date_like], context)
+            .map_err(|err| TemporalError::general(err.to_string()))?;
+
+        let Some(number) = val.as_number() else {
+            return Err(TemporalError::r#type().with_message("day must return a number."));
+        };
+
+        if !number.is_finite() || number.fract() != 0.0 {
+            return Err(TemporalError::r#type().with_message("day return must be integral."));
+        }
+
+        if number < 1f64 {
+            return Err(TemporalError::r#type().with_message("day return must be larger than 1."));
+        }
+
+        let result = number
+            .to_u8()
+            .ok_or_else(|| TemporalError::range().with_message("day exceeded a valid range."))?;
+
+        Ok(result)
     }
 
     fn day_of_week(
         &self,
         date_like: &CalendarDateLike,
         context: &mut dyn Any,
-    ) -> TemporalResult<i32> {
-        todo!()
+    ) -> TemporalResult<u16> {
+        let context = context
+            .downcast_mut::<Context>()
+            .expect("Context was not provided for a CustomCalendar.");
+
+        let date_like = date_like_to_object(date_like, context)?;
+
+        let method = self
+            .calendar
+            .get(PropertyKey::from(utf16!("dayOfWeek")), context)
+            .expect("method must exist on a object that implements the CalendarProtocol.");
+
+        let val = method
+            .as_callable()
+            .expect("is method")
+            .call(&method, &[date_like], context)
+            .map_err(|err| TemporalError::general(err.to_string()))?;
+
+        let Some(number) = val.as_number() else {
+            return Err(TemporalError::r#type().with_message("DayOfWeek must return a number."));
+        };
+
+        if !number.is_finite() || number.fract() != 0.0 {
+            return Err(TemporalError::r#type().with_message("DayOfWeek return must be integral."));
+        }
+
+        if number < 1f64 {
+            return Err(
+                TemporalError::r#type().with_message("DayOfWeek return must be larger than 1.")
+            );
+        }
+
+        let result = number.to_u16().ok_or_else(|| {
+            TemporalError::range().with_message("DayOfWeek exceeded valid range.")
+        })?;
+
+        Ok(result)
     }
 
     fn day_of_year(
         &self,
         date_like: &CalendarDateLike,
         context: &mut dyn Any,
-    ) -> TemporalResult<i32> {
-        todo!()
+    ) -> TemporalResult<u16> {
+        let context = context
+            .downcast_mut::<Context>()
+            .expect("Context was not provided for a CustomCalendar.");
+
+        let date_like = date_like_to_object(date_like, context)?;
+
+        let method = self
+            .calendar
+            .get(PropertyKey::from(utf16!("dayOfYear")), context)
+            .expect("method must exist on a object that implements the CalendarProtocol.");
+
+        let val = method
+            .as_callable()
+            .expect("is method")
+            .call(&method, &[date_like], context)
+            .map_err(|err| TemporalError::general(err.to_string()))?;
+
+        let Some(number) = val.as_number() else {
+            return Err(TemporalError::r#type().with_message("dayOfYear must return a number."));
+        };
+
+        if !number.is_finite() || number.fract() != 0.0 {
+            return Err(TemporalError::r#type().with_message("dayOfYear return must be integral."));
+        }
+
+        if number < 1f64 {
+            return Err(
+                TemporalError::r#type().with_message("dayOfYear return must be larger than 1.")
+            );
+        }
+
+        let result = number.to_u16().ok_or_else(|| {
+            TemporalError::range().with_message("dayOfYear exceeded valid range.")
+        })?;
+
+        Ok(result)
     }
 
     fn week_of_year(
         &self,
         date_like: &CalendarDateLike,
         context: &mut dyn Any,
-    ) -> TemporalResult<i32> {
-        todo!()
+    ) -> TemporalResult<u16> {
+        let context = context
+            .downcast_mut::<Context>()
+            .expect("Context was not provided for a CustomCalendar.");
+
+        let date_like = date_like_to_object(date_like, context)?;
+
+        let method = self
+            .calendar
+            .get(PropertyKey::from(utf16!("weekOfYear")), context)
+            .expect("method must exist on a object that implements the CalendarProtocol.");
+
+        let val = method
+            .as_callable()
+            .expect("is method")
+            .call(&method, &[date_like], context)
+            .map_err(|err| TemporalError::general(err.to_string()))?;
+
+        let Some(number) = val.as_number() else {
+            return Err(TemporalError::r#type().with_message("weekOfYear must return a number."));
+        };
+
+        if !number.is_finite() || number.fract() != 0.0 {
+            return Err(TemporalError::r#type().with_message("weekOfYear return must be integral."));
+        }
+
+        if number < 1f64 {
+            return Err(
+                TemporalError::r#type().with_message("weekOfYear return must be larger than 1.")
+            );
+        }
+
+        let result = number.to_u16().ok_or_else(|| {
+            TemporalError::range().with_message("weekOfYear exceeded valid range.")
+        })?;
+
+        Ok(result)
     }
 
     fn year_of_week(
@@ -182,16 +507,43 @@ impl CalendarProtocol for CustomRuntimeCalendar {
         date_like: &CalendarDateLike,
         context: &mut dyn Any,
     ) -> TemporalResult<i32> {
-        todo!()
+        let context = context
+            .downcast_mut::<Context>()
+            .expect("Context was not provided for a CustomCalendar.");
+
+        let date_like = date_like_to_object(date_like, context)?;
+
+        let method = self
+            .calendar
+            .get(PropertyKey::from(utf16!("yearOfWeek")), context)
+            .expect("method must exist on a object that implements the CalendarProtocol.");
+
+        let val = method
+            .as_callable()
+            .expect("is method")
+            .call(&method, &[date_like], context)
+            .map_err(|err| TemporalError::general(err.to_string()))?;
+
+        let Some(number) = val.as_number() else {
+            return Err(TemporalError::r#type().with_message("yearOfWeek must return a number."));
+        };
+
+        if !number.is_finite() || number.fract() != 0.0 {
+            return Err(TemporalError::r#type().with_message("yearOfWeek return must be integral."));
+        }
+
+        let result = number.to_i32().ok_or_else(|| {
+            TemporalError::range().with_message("yearOfWeek exceeded valid range.")
+        })?;
+
+        Ok(result)
     }
 
     fn days_in_week(
         &self,
         date_like: &CalendarDateLike,
         context: &mut dyn Any,
-    ) -> TemporalResult<i32> {
-        // Safety: Context lives for the lifetime of the program's execution, so
-        // this should, in theory, be safe memory to access.
+    ) -> TemporalResult<u16> {
         let context = context
             .downcast_mut::<Context>()
             .expect("Context was not provided for a CustomCalendar.");
@@ -209,20 +561,32 @@ impl CalendarProtocol for CustomRuntimeCalendar {
             .call(&method, &[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))?;
 
-        let JsValue::Integer(integral) = val else {
-            return Err(TemporalError::range().with_message("Invalid CustomCalendarReturn"));
+        let Some(number) = val.as_number() else {
+            return Err(TemporalError::r#type().with_message("daysInWeek must return a number."));
         };
 
-        Ok(integral)
+        if !number.is_finite() || number.fract() != 0.0 {
+            return Err(TemporalError::r#type().with_message("daysInWeek return must be integral."));
+        }
+
+        if number < 1f64 {
+            return Err(
+                TemporalError::r#type().with_message("daysInWeek return must be larger than 1.")
+            );
+        }
+
+        let result = number.to_u16().ok_or_else(|| {
+            TemporalError::range().with_message("daysInWeek exceeded valid range.")
+        })?;
+
+        Ok(result)
     }
 
     fn days_in_month(
         &self,
         date_like: &CalendarDateLike,
         context: &mut dyn Any,
-    ) -> TemporalResult<i32> {
-        // Safety: Context lives for the lifetime of the program's execution, so
-        // this should, in theory, be safe memory to access.
+    ) -> TemporalResult<u16> {
         let context = context
             .downcast_mut::<Context>()
             .expect("Context was not provided for a CustomCalendar.");
@@ -239,20 +603,34 @@ impl CalendarProtocol for CustomRuntimeCalendar {
             .call(&method, &[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))?;
 
-        let JsValue::Integer(integral) = val else {
-            return Err(TemporalError::range().with_message("Invalid CustomCalendarReturn"));
+        let Some(number) = val.as_number() else {
+            return Err(TemporalError::r#type().with_message("daysInMonth must return a number."));
         };
 
-        Ok(integral)
+        if !number.is_finite() || number.fract() != 0.0 {
+            return Err(
+                TemporalError::r#type().with_message("daysInMonth return must be integral.")
+            );
+        }
+
+        if number < 1f64 {
+            return Err(
+                TemporalError::r#type().with_message("daysInMonth return must be larger than 1.")
+            );
+        }
+
+        let result = number.to_u16().ok_or_else(|| {
+            TemporalError::range().with_message("daysInMonth exceeded valid range.")
+        })?;
+
+        Ok(result)
     }
 
     fn days_in_year(
         &self,
         date_like: &CalendarDateLike,
         context: &mut dyn Any,
-    ) -> TemporalResult<i32> {
-        // Safety: Context lives for the lifetime of the program's execution, so
-        // this should, in theory, be safe memory to access.
+    ) -> TemporalResult<u16> {
         let context = context
             .downcast_mut::<Context>()
             .expect("Context was not provided for a CustomCalendar.");
@@ -270,19 +648,70 @@ impl CalendarProtocol for CustomRuntimeCalendar {
             .call(&method, &[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))?;
 
-        let JsValue::Integer(integral) = val else {
-            return Err(TemporalError::range().with_message("Invalid CustomCalendarReturn"));
+        let Some(number) = val.as_number() else {
+            return Err(TemporalError::r#type().with_message("daysInYear must return a number."));
         };
 
-        Ok(integral)
+        if !number.is_finite() || number.fract() != 0.0 {
+            return Err(TemporalError::r#type().with_message("daysInYear return must be integral."));
+        }
+
+        if number < 1f64 {
+            return Err(
+                TemporalError::r#type().with_message("daysInYear return must be larger than 1.")
+            );
+        }
+
+        let result = number.to_u16().ok_or_else(|| {
+            TemporalError::range().with_message("monthsInYear exceeded valid range.")
+        })?;
+
+        Ok(result)
     }
 
     fn months_in_year(
         &self,
         date_like: &CalendarDateLike,
         context: &mut dyn Any,
-    ) -> TemporalResult<i32> {
-        todo!()
+    ) -> TemporalResult<u16> {
+        let context = context
+            .downcast_mut::<Context>()
+            .expect("Context was not provided for a CustomCalendar.");
+
+        let date_like = date_like_to_object(date_like, context)?;
+
+        let method = self
+            .calendar
+            .get(PropertyKey::from(utf16!("monthsInYear")), context)
+            .expect("method must exist on a object that implements the CalendarProtocol.");
+
+        let val = method
+            .as_callable()
+            .expect("is method")
+            .call(&method, &[date_like], context)
+            .map_err(|err| TemporalError::general(err.to_string()))?;
+
+        let Some(number) = val.as_number() else {
+            return Err(TemporalError::r#type().with_message("monthsInYear must return a number."));
+        };
+
+        if !number.is_finite() || number.fract() != 0.0 {
+            return Err(
+                TemporalError::r#type().with_message("monthsInYear return must be integral.")
+            );
+        }
+
+        if number < 1f64 {
+            return Err(
+                TemporalError::r#type().with_message("monthsInYear return must be larger than 1.")
+            );
+        }
+
+        let result = number.to_u16().ok_or_else(|| {
+            TemporalError::range().with_message("monthsInYear exceeded valid range.")
+        })?;
+
+        Ok(result)
     }
 
     fn in_leap_year(
@@ -290,33 +719,54 @@ impl CalendarProtocol for CustomRuntimeCalendar {
         date_like: &CalendarDateLike,
         context: &mut dyn Any,
     ) -> TemporalResult<bool> {
-        todo!()
+        let context = context
+            .downcast_mut::<Context>()
+            .expect("Context was not provided for a CustomCalendar.");
+
+        let date_like = date_like_to_object(date_like, context)?;
+
+        let method = self
+            .calendar
+            .get(PropertyKey::from(utf16!("inLeapYear")), context)
+            .expect("method must exist on a object that implements the CalendarProtocol.");
+
+        let val = method
+            .as_callable()
+            .expect("is method")
+            .call(&method, &[date_like], context)
+            .map_err(|err| TemporalError::general(err.to_string()))?;
+
+        let JsValue::Boolean(result) = val else {
+            return Err(
+                TemporalError::r#type().with_message("inLeapYear must return a valid boolean.")
+            );
+        };
+
+        Ok(result)
     }
 
     // TODO: Determine fate of fn fields()
 
     fn field_descriptors(
         &self,
-        r#type: boa_temporal::calendar::CalendarFieldsType,
+        _: boa_temporal::calendar::CalendarFieldsType,
     ) -> Vec<(String, bool)> {
         Vec::default()
     }
 
-    fn field_keys_to_ignore(&self, additional_keys: Vec<String>) -> Vec<String> {
+    fn field_keys_to_ignore(&self, _: Vec<String>) -> Vec<String> {
         Vec::default()
     }
 
     fn resolve_fields(
         &self,
-        fields: &mut TemporalFields,
-        r#type: boa_temporal::calendar::CalendarFieldsType,
+        _: &mut TemporalFields,
+        _: boa_temporal::calendar::CalendarFieldsType,
     ) -> TemporalResult<()> {
-        todo!()
+        Ok(())
     }
 
     fn identifier(&self, context: &mut dyn Any) -> TemporalResult<String> {
-        // Safety: Context lives for the lifetime of the program's execution, so
-        // this should, in theory, be safe memory to access.
         let context = context
             .downcast_mut::<Context>()
             .expect("Context was not provided for a CustomCalendar.");
@@ -338,6 +788,7 @@ impl CalendarProtocol for CustomRuntimeCalendar {
     }
 }
 
+/// Utility function for converting `Temporal`'s `CalendarDateLike` to it's `Boa` specific `JsObject`.
 pub(crate) fn date_like_to_object(
     date_like: &CalendarDateLike,
     context: &mut Context,
@@ -346,7 +797,7 @@ pub(crate) fn date_like_to_object(
         CalendarDateLike::Date(d) => plain_date::create_temporal_date(d.clone(), None, context)
             .map_err(|e| TemporalError::general(e.to_string()))
             .map(Into::into),
-        CalendarDateLike::DateTime(dt) => {
+        CalendarDateLike::DateTime(_dt) => {
             todo!()
         }
         CalendarDateLike::MonthDay(md) => {

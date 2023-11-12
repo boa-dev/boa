@@ -148,10 +148,10 @@ impl BuiltInConstructor for PlainYearMonth {
         // 2. If referenceISODay is undefined, then
         let ref_day = if day.is_undefined() {
             // a. Set referenceISODay to 1𝔽.
-            1
+            None
         } else {
             // 6. Let ref be ? ToIntegerWithTruncation(referenceISODay).
-            super::to_integer_with_truncation(day, context)?
+            Some(super::to_integer_with_truncation(day, context)?)
         };
 
         // 3. Let y be ? ToIntegerWithTruncation(isoYear).
@@ -162,7 +162,7 @@ impl BuiltInConstructor for PlainYearMonth {
         let calendar = to_temporal_calendar_slot_value(args.get_or_undefined(2), context)?;
 
         // 7. Return ? CreateTemporalYearMonth(y, m, calendar, ref, NewTarget).
-        let inner = InnerYearMonth::new(y, m, calendar, ArithmeticOverflow::Reject)?;
+        let inner = InnerYearMonth::new(y, m, ref_day, calendar, ArithmeticOverflow::Reject)?;
 
         create_temporal_year_month(inner, Some(new_target), context)
     }

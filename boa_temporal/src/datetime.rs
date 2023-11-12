@@ -2,9 +2,7 @@
 
 use crate::{
     calendar::CalendarSlot,
-    date::TemporalDate,
-    iso::{IsoDate, IsoDateTime, IsoTime},
-    month_day::TemporalMonthDay,
+    iso::{IsoDate, IsoDateSlots, IsoDateTime, IsoTime},
     options::ArithmeticOverflow,
     TemporalResult,
 };
@@ -16,6 +14,8 @@ pub struct TemporalDateTime {
     calendar: CalendarSlot,
 }
 
+// ==== Private DateTime API ====
+
 impl TemporalDateTime {
     /// Creates a new unchecked `TemporalDateTime`.
     pub(crate) fn new_unchecked(date: IsoDate, time: IsoTime, calendar: CalendarSlot) -> Self {
@@ -25,6 +25,16 @@ impl TemporalDateTime {
         }
     }
 
+    #[inline]
+    /// Utility function for validating `IsoDate`s
+    fn validate_iso(iso: IsoDate) -> bool {
+        IsoDateTime::new_unchecked(iso, IsoTime::noon()).is_within_limits()
+    }
+}
+
+// ==== Public DateTime API ====
+
+impl TemporalDateTime {
     /// Creates a new validated `TemporalDateTime`.
     #[allow(clippy::too_many_arguments)]
     pub fn new(
@@ -53,21 +63,9 @@ impl TemporalDateTime {
     }
 
     #[inline]
-    /// Utility function for validating `IsoDate`s
-    fn validate_iso(iso: IsoDate) -> bool {
-        IsoDateTime::new_unchecked(iso, IsoTime::noon()).is_within_limits()
-    }
-
-    #[inline]
-    /// Validates that the provide `TemporalDate` is within iso limits at noon.
-    pub fn validate_date(date: &TemporalDate) -> bool {
-        Self::validate_iso(date.iso_date())
-    }
-
-    #[inline]
-    /// Validates that the provided `TemporalMonthDay` is within limits.
-    pub fn validate_month_day(month_day: &TemporalMonthDay) -> bool {
-        Self::validate_iso(month_day.iso_date())
+    /// Validates whether ISO date slots are within iso limits at noon.
+    pub fn validate<T: IsoDateSlots>(target: &T) -> bool {
+        Self::validate_iso(target.iso_date())
     }
 
     /// Returns the inner `IsoDate` value.

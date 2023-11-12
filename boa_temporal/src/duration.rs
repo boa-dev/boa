@@ -30,6 +30,7 @@ pub struct DateDuration {
 
 impl DateDuration {
     /// Creates a new `DateDuration` with provided values.
+    #[must_use]
     pub const fn new(years: f64, months: f64, weeks: f64, days: f64) -> Self {
         Self {
             years,
@@ -39,7 +40,8 @@ impl DateDuration {
         }
     }
 
-    /// Returns a `PartialDateDuration` with all fields set to NaN.
+    /// Returns a `PartialDateDuration` with all fields set to `NaN`.
+    #[must_use]
     pub const fn partial() -> Self {
         Self {
             years: f64::NAN,
@@ -50,21 +52,25 @@ impl DateDuration {
     }
 
     /// Returns the `[[years]]` value.
+    #[must_use]
     pub const fn years(&self) -> f64 {
         self.years
     }
 
     /// Returns the `[[months]]` value.
+    #[must_use]
     pub const fn months(&self) -> f64 {
         self.months
     }
 
     /// Returns the `[[weeks]]` value.
+    #[must_use]
     pub const fn weeks(&self) -> f64 {
         self.weeks
     }
 
     /// Returns the `[[days]]` value.
+    #[must_use]
     pub const fn days(&self) -> f64 {
         self.days
     }
@@ -125,6 +131,7 @@ pub struct TimeDuration {
 
 impl TimeDuration {
     /// Creates a new `TimeDuration`.
+    #[must_use]
     pub const fn new(
         hours: f64,
         minutes: f64,
@@ -143,7 +150,8 @@ impl TimeDuration {
         }
     }
 
-    /// Creates a partial `TimeDuration` with all values set to NaN.
+    /// Creates a partial `TimeDuration` with all values set to `NaN`.
+    #[must_use]
     pub const fn partial() -> Self {
         Self {
             hours: f64::NAN,
@@ -157,6 +165,7 @@ impl TimeDuration {
 
     /// Utility function for returning if values in a valid range.
     #[inline]
+    #[must_use]
     pub fn is_within_range(&self) -> bool {
         self.hours.abs() < 24f64
             && self.minutes.abs() < 60f64
@@ -167,31 +176,37 @@ impl TimeDuration {
     }
 
     /// Returns the `[[hours]]` value.
+    #[must_use]
     pub const fn hours(&self) -> f64 {
         self.hours
     }
 
     /// Returns the `[[minutes]]` value.
+    #[must_use]
     pub const fn minutes(&self) -> f64 {
         self.minutes
     }
 
     /// Returns the `[[seconds]]` value.
+    #[must_use]
     pub const fn seconds(&self) -> f64 {
         self.seconds
     }
 
     /// Returns the `[[milliseconds]]` value.
+    #[must_use]
     pub const fn milliseconds(&self) -> f64 {
         self.milliseconds
     }
 
     /// Returns the `[[microseconds]]` value.
+    #[must_use]
     pub const fn microseconds(&self) -> f64 {
         self.microseconds
     }
 
     /// Returns the `[[nanoseconds]]` value.
+    #[must_use]
     pub const fn nanoseconds(&self) -> f64 {
         self.nanoseconds
     }
@@ -281,6 +296,7 @@ impl Duration {
 
 impl Duration {
     /// Creates a new validated `Duration`.
+    #[must_use]
     #[allow(clippy::too_many_arguments)]
     pub fn new(
         years: f64,
@@ -311,7 +327,8 @@ impl Duration {
         Ok(duration)
     }
 
-    /// Creates a partial `Duration` with all fields set to NaN.
+    /// Creates a partial `Duration` with all fields set to `NaN`.
+    #[must_use]
     pub const fn partial() -> Self {
         Self {
             date: DateDuration::partial(),
@@ -319,7 +336,8 @@ impl Duration {
         }
     }
 
-    /// Creates a `Duration` from only a DateDuration.
+    /// Creates a `Duration` from only a `DateDuration`.
+    #[must_use]
     pub fn from_date_duration(date: DateDuration) -> Self {
         Self {
             date,
@@ -330,6 +348,7 @@ impl Duration {
     /// Creates a `Duration` from a provided a day and a `TimeDuration`.
     ///
     /// Note: `TimeDuration` records can store a day value to deal with overflow.
+    #[must_use]
     pub const fn from_day_and_time(day: f64, time: TimeDuration) -> Self {
         Self {
             date: DateDuration::new(0.0, 0.0, 0.0, day),
@@ -339,6 +358,7 @@ impl Duration {
 
     /// Return if the Durations values are within their valid ranges.
     #[inline]
+    #[must_use]
     pub fn is_time_within_range(&self) -> bool {
         self.time.is_within_range()
     }
@@ -348,66 +368,81 @@ impl Duration {
 
 impl Duration {
     /// Returns a reference to the inner `TimeDuration`
+    #[inline]
+    #[must_use]
     pub fn time(&self) -> &TimeDuration {
         &self.time
     }
 
     /// Returns a reference to the inner `DateDuration`
+    #[inline]
+    #[must_use]
     pub fn date(&self) -> &DateDuration {
         &self.date
     }
 
     /// Set this `DurationRecord`'s `TimeDuration`.
+    #[inline]
     pub fn set_time_duration(&mut self, time: TimeDuration) {
         self.time = time;
     }
 
     /// Set the value for `years`.
+    #[inline]
     pub fn set_years(&mut self, y: f64) {
         self.date.years = y;
     }
 
     /// Set the value for `months`.
+    #[inline]
     pub fn set_months(&mut self, mo: f64) {
         self.date.months = mo;
     }
 
     /// Set the value for `weeks`.
+    #[inline]
     pub fn set_weeks(&mut self, w: f64) {
         self.date.weeks = w;
     }
 
     /// Set the value for `days`.
+    #[inline]
     pub fn set_days(&mut self, d: f64) {
         self.date.days = d;
     }
 
     /// Set the value for `hours`.
+    #[inline]
     pub fn set_hours(&mut self, h: f64) {
         self.time.hours = h;
     }
 
     /// Set the value for `minutes`.
+    #[inline]
     pub fn set_minutes(&mut self, m: f64) {
         self.time.minutes = m;
     }
 
     /// Set the value for `seconds`.
+    #[inline]
     pub fn set_seconds(&mut self, s: f64) {
         self.time.seconds = s;
     }
 
     /// Set the value for `milliseconds`.
+    #[inline]
     pub fn set_milliseconds(&mut self, ms: f64) {
         self.time.milliseconds = ms;
     }
 
     /// Set the value for `microseconds`.
+    #[inline]
     pub fn set_microseconds(&mut self, mis: f64) {
         self.time.microseconds = mis;
     }
 
     /// Set the value for `nanoseconds`.
+    #[inline]
     pub fn set_nanoseconds(&mut self, ns: f64) {
         self.time.nanoseconds = ns;
     }
@@ -460,7 +495,7 @@ impl Duration {
     /// Returns the duration time values as a vec
     pub(crate) fn time_values(&self) -> Vec<f64> {
         let mut values = Vec::from([self.date.days]);
-        values.extend(self.time.into_iter());
+        values.extend(&self.time);
         values
     }
 
@@ -538,90 +573,90 @@ impl Duration {
                 // a. Set microseconds to floor(nanoseconds / 1000).
                 result.microseconds = (result.nanoseconds / 1000f64).floor();
                 // b. Set nanoseconds to nanoseconds modulo 1000.
-                result.nanoseconds = result.nanoseconds % 1000f64;
+                result.nanoseconds %= 1000f64;
 
                 // c. Set milliseconds to floor(microseconds / 1000).
                 result.milliseconds = (result.microseconds / 1000f64).floor();
                 // d. Set microseconds to microseconds modulo 1000.
-                result.microseconds = result.microseconds % 1000f64;
+                result.microseconds %= 1000f64;
 
                 // e. Set seconds to floor(milliseconds / 1000).
                 result.seconds = (result.milliseconds / 1000f64).floor();
                 // f. Set milliseconds to milliseconds modulo 1000.
-                result.milliseconds = result.milliseconds % 1000f64;
+                result.milliseconds %= 1000f64;
 
                 // g. Set minutes to floor(seconds / 60).
                 result.minutes = (result.seconds / 60f64).floor();
                 // h. Set seconds to seconds modulo 60.
-                result.seconds = result.seconds % 60f64;
+                result.seconds %= 60f64;
 
                 // i. Set hours to floor(minutes / 60).
                 result.hours = (result.minutes / 60f64).floor();
                 // j. Set minutes to minutes modulo 60.
-                result.minutes = result.minutes % 60f64;
+                result.minutes %= 60f64;
 
                 // k. Set days to floor(hours / 24).
                 result_days = (result.hours / 24f64).floor();
                 // l. Set hours to hours modulo 24.
-                result.hours = result.hours % 24f64;
+                result.hours %= 24f64;
             }
             // 10. Else if largestUnit is "minute", then
             TemporalUnit::Minute => {
                 // a. Set microseconds to floor(nanoseconds / 1000).
                 // b. Set nanoseconds to nanoseconds modulo 1000.
                 result.microseconds = (result.nanoseconds / 1000f64).floor();
-                result.nanoseconds = result.nanoseconds % 1000f64;
+                result.nanoseconds %= 1000f64;
 
                 // c. Set milliseconds to floor(microseconds / 1000).
                 // d. Set microseconds to microseconds modulo 1000.
                 result.milliseconds = (result.microseconds / 1000f64).floor();
-                result.microseconds = result.microseconds % 1000f64;
+                result.microseconds %= 1000f64;
 
                 // e. Set seconds to floor(milliseconds / 1000).
                 // f. Set milliseconds to milliseconds modulo 1000.
                 result.minutes = (result.seconds / 60f64).floor();
-                result.seconds = result.seconds % 60f64;
+                result.seconds %= 60f64;
 
                 // g. Set minutes to floor(seconds / 60).
                 // h. Set seconds to seconds modulo 60.
                 result.minutes = (result.seconds / 60f64).floor();
-                result.seconds = result.seconds % 60f64;
+                result.seconds %= 60f64;
             }
             // 11. Else if largestUnit is "second", then
             TemporalUnit::Second => {
                 // a. Set microseconds to floor(nanoseconds / 1000).
                 // b. Set nanoseconds to nanoseconds modulo 1000.
                 result.microseconds = (result.nanoseconds / 1000f64).floor();
-                result.nanoseconds = result.nanoseconds % 1000f64;
+                result.nanoseconds %= 1000f64;
 
                 // c. Set milliseconds to floor(microseconds / 1000).
                 // d. Set microseconds to microseconds modulo 1000.
                 result.milliseconds = (result.microseconds / 1000f64).floor();
-                result.microseconds = result.microseconds % 1000f64;
+                result.microseconds %= 1000f64;
 
                 // e. Set seconds to floor(milliseconds / 1000).
                 // f. Set milliseconds to milliseconds modulo 1000.
                 result.minutes = (result.seconds / 60f64).floor();
-                result.seconds = result.seconds % 60f64;
+                result.seconds %= 60f64;
             }
             // 12. Else if largestUnit is "millisecond", then
             TemporalUnit::Millisecond => {
                 // a. Set microseconds to floor(nanoseconds / 1000).
                 // b. Set nanoseconds to nanoseconds modulo 1000.
                 result.microseconds = (result.nanoseconds / 1000f64).floor();
-                result.nanoseconds = result.nanoseconds % 1000f64;
+                result.nanoseconds %= 1000f64;
 
                 // c. Set milliseconds to floor(microseconds / 1000).
                 // d. Set microseconds to microseconds modulo 1000.
                 result.milliseconds = (result.microseconds / 1000f64).floor();
-                result.microseconds = result.microseconds % 1000f64;
+                result.microseconds %= 1000f64;
             }
             // 13. Else if largestUnit is "microsecond", then
             TemporalUnit::Microsecond => {
                 // a. Set microseconds to floor(nanoseconds / 1000).
                 // b. Set nanoseconds to nanoseconds modulo 1000.
                 result.microseconds = (result.nanoseconds / 1000f64).floor();
-                result.nanoseconds = result.nanoseconds % 1000f64;
+                result.nanoseconds %= 1000f64;
             }
             // 14. Else,
             // a. Assert: largestUnit is "nanosecond".
@@ -655,15 +690,15 @@ impl Duration {
 
         // `CreateTimeDurationRecord` validates that the record that would be created is a valid duration, so validate here
         if !self.is_valid() {
-            return Err(TemporalError::range()
-                .with_message("TimeDurationRecord is not a valid duration.")
-                .into());
+            return Err(
+                TemporalError::range().with_message("TimeDurationRecord is not a valid duration.")
+            );
         }
 
         Ok(Some((result_days, result)))
     }
 
-    /// 7.5.21 UnbalanceDateDurationRelative ( years, months, weeks, days, largestUnit, plainRelativeTo )`
+    /// 7.5.21 `UnbalanceDateDurationRelative ( years, months, weeks, days, largestUnit, plainRelativeTo )`
     #[allow(dead_code)]
     pub(crate) fn unbalance_duration_relative(
         &self,
@@ -713,9 +748,7 @@ impl Duration {
             // b. If calendar is undefined, then
             let Some(mut plain_relative_to) = plain_relative_to.map(Clone::clone) else {
                 // i. Throw a RangeError exception.
-                return Err(TemporalError::range()
-                    .with_message("Calendar cannot be undefined.")
-                    .into());
+                return Err(TemporalError::range().with_message("Calendar cannot be undefined."));
             };
 
             // c. If calendar is an Object, then
@@ -781,9 +814,7 @@ impl Duration {
             // b. If calendar is undefined, then
             let Some(mut plain_relative_to) = plain_relative_to.map(Clone::clone) else {
                 // i. Throw a RangeError exception.
-                return Err(TemporalError::range()
-                    .with_message("Calendar cannot be undefined.")
-                    .into());
+                return Err(TemporalError::range().with_message("Calendar cannot be undefined."));
             };
 
             // c. If calendar is an Object, then
@@ -834,9 +865,7 @@ impl Duration {
         // 14. If calendar is undefined, then
         let Some(mut plain_relative_to) = plain_relative_to.map(Clone::clone) else {
             // a. Throw a RangeError exception.
-            return Err(TemporalError::range()
-                .with_message("Calendar cannot be undefined.")
-                .into());
+            return Err(TemporalError::range().with_message("Calendar cannot be undefined."));
         };
 
         // 15. If calendar is an Object, then
@@ -898,7 +927,7 @@ impl Duration {
         plain_relative_to: Option<&TemporalDate>,
         context: &mut dyn Any,
     ) -> TemporalResult<DateDuration> {
-        let mut result = DateDuration::from(self.date);
+        let mut result = self.date;
 
         // 1. Let allZero be false.
         // 2. If years = 0, and months = 0, and weeks = 0, and days = 0, set allZero to true.
@@ -919,9 +948,7 @@ impl Duration {
         // 4. If plainRelativeTo is undefined, then
         let Some(mut plain_relative_to) = plain_relative_to.map(Clone::clone) else {
             // a. Throw a RangeError exception.
-            return Err(TemporalError::range()
-                .with_message("relativeTo cannot be undefined.")
-                .into());
+            return Err(TemporalError::range().with_message("relativeTo cannot be undefined."));
         };
 
         // 5. Let sign be ! DurationSign(years, months, weeks, days, 0, 0, 0, 0, 0, 0).
@@ -1156,8 +1183,7 @@ impl Duration {
             {
                 // a. Throw a RangeError exception.
                 return Err(TemporalError::range()
-                    .with_message("plainRelativeTo canot be undefined with given TemporalUnit")
-                    .into());
+                    .with_message("plainRelativeTo canot be undefined with given TemporalUnit"));
             }
             // 5. If unit is one of "year", "month", "week", or "day", then
             TemporalUnit::Year | TemporalUnit::Month | TemporalUnit::Week | TemporalUnit::Day => {
@@ -1175,9 +1201,7 @@ impl Duration {
                     result.date.days + nanos / NS_PER_DAY as f64
                 } else {
                     // implementation of b: i-iii needed.
-                    return Err(TemporalError::range()
-                        .with_message("Not yet implemented.")
-                        .into());
+                    return Err(TemporalError::range().with_message("Not yet implemented."));
                 };
                 // d. Set days, hours, minutes, seconds, milliseconds, microseconds, and nanoseconds to 0.
                 result.date.days = 0f64;
@@ -1226,8 +1250,11 @@ impl Duration {
                 // i. Let dateAdd be unused.
 
                 // e. Let yearsLater be ? AddDate(calendar, plainRelativeTo, yearsDuration, undefined, dateAdd).
-                let years_later = plain_relative_to
-                    .add_date(&years_duration, ArithmeticOverflow::Constrain, context)?;
+                let years_later = plain_relative_to.add_date(
+                    &years_duration,
+                    ArithmeticOverflow::Constrain,
+                    context,
+                )?;
 
                 // f. Let yearsMonthsWeeks be ! CreateTemporalDuration(years, months, weeks, 0, 0, 0, 0, 0, 0, 0).
                 let years_months_weeks = Self::new_unchecked(
@@ -1241,8 +1268,11 @@ impl Duration {
                 );
 
                 // g. Let yearsMonthsWeeksLater be ? AddDate(calendar, plainRelativeTo, yearsMonthsWeeks, undefined, dateAdd).
-                let years_months_weeks_later = plain_relative_to
-                    .add_date(&years_months_weeks, ArithmeticOverflow::Constrain, context)?;
+                let years_months_weeks_later = plain_relative_to.add_date(
+                    &years_months_weeks,
+                    ArithmeticOverflow::Constrain,
+                    context,
+                )?;
 
                 // h. Let monthsWeeksInDays be DaysUntil(yearsLater, yearsMonthsWeeksLater).
                 let months_weeks_in_days = years_later.days_until(&years_months_weeks_later);
@@ -1333,8 +1363,11 @@ impl Duration {
                 // i. Let dateAdd be unused.
 
                 // e. Let yearsMonthsLater be ? AddDate(calendar, plainRelativeTo, yearsMonths, undefined, dateAdd).
-                let years_months_later =
-                    plain_relative_to.add_date(&years_months, ArithmeticOverflow::Constrain, context)?;
+                let years_months_later = plain_relative_to.add_date(
+                    &years_months,
+                    ArithmeticOverflow::Constrain,
+                    context,
+                )?;
 
                 // f. Let yearsMonthsWeeks be ! CreateTemporalDuration(years, months, weeks, 0, 0, 0, 0, 0, 0, 0).
                 let years_months_weeks = Self::from_date_duration(DateDuration::new(
@@ -1345,8 +1378,11 @@ impl Duration {
                 ));
 
                 // g. Let yearsMonthsWeeksLater be ? AddDate(calendar, plainRelativeTo, yearsMonthsWeeks, undefined, dateAdd).
-                let years_months_weeks_later = plain_relative_to
-                    .add_date(&years_months_weeks, ArithmeticOverflow::Constrain, context)?;
+                let years_months_weeks_later = plain_relative_to.add_date(
+                    &years_months_weeks,
+                    ArithmeticOverflow::Constrain,
+                    context,
+                )?;
 
                 // h. Let weeksInDays be DaysUntil(yearsMonthsLater, yearsMonthsWeeksLater).
                 let weeks_in_days = years_months_later.days_until(&years_months_weeks_later);
@@ -1570,6 +1606,8 @@ impl Duration {
 
 impl Duration {
     /// Returns the absolute value of `Duration`.
+    #[inline]
+    #[must_use]
     pub fn abs(&self) -> Self {
         Self {
             date: DateDuration::new(
@@ -1592,6 +1630,8 @@ impl Duration {
     /// 7.5.10 `DurationSign ( years, months, weeks, days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds )`
     ///
     /// Determines the sign for the current self.
+    #[inline]
+    #[must_use]
     pub fn duration_sign(&self) -> i32 {
         // 1. For each value v of « years, months, weeks, days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds », do
         for v in self {
@@ -1608,6 +1648,8 @@ impl Duration {
     }
 
     /// 7.5.12 `DefaultTemporalLargestUnit ( years, months, weeks, days, hours, minutes, seconds, milliseconds, microseconds )`
+    #[inline]
+    #[must_use]
     pub fn default_temporal_largest_unit(&self) -> TemporalUnit {
         for (index, value) in self.into_iter().enumerate() {
             if value != 0.0 {
@@ -1630,6 +1672,8 @@ impl Duration {
     }
 
     /// Abstract Operation 7.5.17 `BalanceTimeDuration ( days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds, largestUnit )`
+    #[inline]
+    #[must_use]
     pub fn balance_time_duration(
         &self,
         largest_unit: TemporalUnit,
@@ -1640,9 +1684,7 @@ impl Duration {
         // 2. If balanceResult is positive overflow or negative overflow, then
         let Some(result) = balance_result else {
             // a. Throw a RangeError exception.
-            return Err(TemporalError::range()
-                .with_message("duration overflowed viable range.")
-                .into());
+            return Err(TemporalError::range().with_message("duration overflowed viable range."));
         };
         // 3. Else,
         // a. Return balanceResult.

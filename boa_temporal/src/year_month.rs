@@ -1,6 +1,11 @@
-//! TemporalYearMonth
+//! `TemporalYearMonth`
 
-use crate::{calendar::CalendarSlot, iso::IsoDate, options::ArithmeticOverflow, TemporalResult};
+use crate::{
+    calendar::CalendarSlot,
+    iso::{IsoDate, IsoDateSlots},
+    options::ArithmeticOverflow,
+    TemporalResult,
+};
 
 /// The `TemporalYearMonth` struct
 #[derive(Debug, Default, Clone)]
@@ -17,26 +22,32 @@ impl TemporalYearMonth {
     }
 
     #[inline]
+    #[must_use]
     /// Creates a new valid `TemporalYearMonth`.
     pub fn new(
         year: i32,
         month: i32,
+        reference_day: Option<i32>,
         calendar: CalendarSlot,
         overflow: ArithmeticOverflow,
     ) -> TemporalResult<Self> {
-        let iso = IsoDate::new_year_month(year, month, overflow)?;
+        let day = reference_day.unwrap_or(1);
+        let iso = IsoDate::new(year, month, day, overflow)?;
         Ok(Self::new_unchecked(iso, calendar))
     }
 
     #[inline]
-    /// Returns a reference to this `YearMonth`'s `IsoDate`
-    pub fn iso_date(&self) -> IsoDate {
-        self.iso
-    }
-
-    #[inline]
+    #[must_use]
     /// Returns a reference to `YearMonth`'s `CalendarSlot`
     pub fn calendar(&self) -> &CalendarSlot {
         &self.calendar
+    }
+}
+
+impl IsoDateSlots for TemporalYearMonth {
+    #[inline]
+    /// Returns this `YearMonth`'s `IsoDate`
+    fn iso_date(&self) -> IsoDate {
+        self.iso
     }
 }

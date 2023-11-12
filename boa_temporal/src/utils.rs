@@ -120,7 +120,7 @@ pub(crate) fn epoch_days_to_epoch_ms(day: i32, time: f64) -> f64 {
 
 /// `EpochTimeToDayNumber`
 ///
-/// This equation is the same ECMAScripts `Date(t)`
+/// This equation is the equivalent to `ECMAScript`'s `Date(t)`
 pub(crate) fn epoch_time_to_day_number(t: f64) -> i32 {
     (t / f64::from(MS_PER_DAY)).floor() as i32
 }
@@ -328,7 +328,7 @@ pub(crate) fn to_iso_day_of_week(year: i32, month: u8, day: u8) -> i32 {
 
 // ==== Tests =====
 
-// TODO(nekevss): Add more to the below.
+// TODO(nekevss): Add way more to the below.
 
 #[cfg(test)]
 mod tests {
