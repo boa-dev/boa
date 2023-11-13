@@ -209,7 +209,7 @@ pub(crate) fn epoch_time_for_month_given_year(m: i32, y: i32) -> f64 {
         _ => unreachable!(),
     };
 
-    (MS_PER_DAY as f64).mul(f64::from(days))
+    f64::from(MS_PER_DAY).mul(f64::from(days))
 }
 
 pub(crate) fn epoch_time_to_date(t: f64) -> u8 {

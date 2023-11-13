@@ -15,14 +15,14 @@ pub struct TemporalMonthDay {
 }
 
 impl TemporalMonthDay {
-    #[inline]
     /// Creates a new unchecked `TemporalMonthDay`
+    #[inline]
+    #[must_use]
     pub(crate) fn new_unchecked(iso: IsoDate, calendar: CalendarSlot) -> Self {
         Self { iso, calendar }
     }
 
     #[inline]
-    #[must_use]
     /// Creates a new valid `TemporalMonthDay`.
     pub fn new(
         month: i32,

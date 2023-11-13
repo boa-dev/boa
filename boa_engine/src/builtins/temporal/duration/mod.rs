@@ -946,7 +946,6 @@ pub(crate) fn create_temporal_duration(
 }
 
 /// Equivalent to 7.5.13 `ToTemporalPartialDurationRecord ( temporalDurationLike )`
-///
 pub(crate) fn to_temporal_partial_duration(
     duration_like: &JsValue,
     context: &mut Context,

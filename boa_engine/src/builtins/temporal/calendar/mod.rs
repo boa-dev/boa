@@ -1140,12 +1140,22 @@ pub(crate) fn to_temporal_calendar_slot_value(
                 return Ok(calendar);
             }
         } else if calendar_like.is_plain_date_time() {
-            todo!()
+            // TODO
+            return Err(JsNativeError::range()
+                .with_message("Not yet implemented.")
+                .into());
         } else if calendar_like.is_plain_year_month() {
-            todo!()
+            // TODO
+            return Err(JsNativeError::range()
+                .with_message("Not yet implemented.")
+                .into());
         } else if calendar_like.is_plain_month_day() {
-            todo!()
+            // TODO
+            return Err(JsNativeError::range()
+                .with_message("Not yet implemented.")
+                .into());
         } else if calendar_like.is_zoned_date_time() {
+            // TODO
             return Err(JsNativeError::range()
                 .with_message("Not yet implemented.")
                 .into());
@@ -1187,6 +1197,7 @@ fn object_implements_calendar_protocol(calendar_like: &JsObject, context: &mut C
     })
 }
 
+/// Utility function for taking a `JsValue` and converting it to a temporal library `CalendarDateLike` enum.
 fn to_calendar_date_like(date_like: &JsValue, context: &mut Context) -> JsResult<CalendarDateLike> {
     match date_like {
         JsValue::Object(o) if o.is_plain_date_time() => {
@@ -1213,103 +1224,3 @@ fn to_calendar_date_like(date_like: &JsValue, context: &mut Context) -> JsResult
         }
     }
 }
-
-// ---------------------------- Native Abstract Calendar Methods ----------------------------
-//
-// The above refers to the functions in the Abstract Operations section of the Calendar
-// spec takes either a calendar identifier or `Temporal.Calendar` and calls the a
-// function that aligns with a method on `Temporal.Calendar`. These functions appear
-// to be a second completely abstract builtin calendar implementation itself, so
-// separating them from the other Abstract Operations seems both natural and will
-// hopefully make any changes more maintainable.
-//
-// NOTE: Instead of creating temporal calendar it may be more efficient to retrieve
-// the protocol and call the value directly in rust, something to consider.
-
-/*
-/// 12.2.2 `CalendarFields ( calendar, fieldNames )`
-///
-/// `CalendarFields` takes the input fields and adds the `extraFieldDescriptors` for
-/// that specific calendar.
-#[allow(unused)]
-pub(crate) fn calendar_fields(
-    calendar: &JsValue,
-    field_names: Vec<JsValue>,
-    context: &mut Context,
-) -> JsResult<Vec<JsValue>> {
-    let field_names = Array::create_array_from_list(field_names, context);
-    // 1. If calendar is a String, then
-    // a. Set calendar to ! CreateTemporalCalendar(calendar).
-    // b. Let fieldsArray be ? Call(%Temporal.Calendar.prototype.fields%, calendar, « CreateArrayFromList(fieldNames) »).
-    // c. Return ! CreateListFromArrayLike(fieldsArray, « String »).
-    // 2. Let fieldsArray be ? Invoke(calendar, "fields", « CreateArrayFromList(fieldNames) »).
-    let fields_array = call_method_on_abstract_calendar(
-        calendar,
-        &JsString::from("fields"),
-        &[field_names.into()],
-        context,
-    )?;
-
-    // 3. Let iteratorRecord be ? GetIterator(fieldsArray, sync).
-    let mut iterator_record = fields_array.get_iterator(context, Some(IteratorHint::Sync), None)?;
-    // 4. Return ? IteratorToListOfType(iteratorRecord, « String »).
-    super::iterator_to_list_of_types(&mut iterator_record, &[crate::value::Type::String], context)
-}
-
-/// 12.2.3 `CalendarMergeFields ( calendar, fields, additionalFields )`
-///
-/// Returns either a normal completion containing an Object, or a throw completion.
-#[allow(unused)]
-pub(crate) fn calendar_merge_fields(
-    calendar: &JsValue,
-    fields: &TemporalFields,
-    additional_fields: &JsValue,
-    context: &mut Context,
-) -> JsResult<JsObject> {
-    // 1. If calendar is a String, then
-    // a. Set calendar to ! CreateTemporalCalendar(calendar).
-    // b. Return ? Call(%Temporal.Calendar.prototype.mergeFields%, calendar, « fields, additionalFields »).
-    // 2. Let result be ? Invoke(calendar, "mergeFields", « fields, additionalFields »).
-    let result = call_method_on_abstract_calendar(
-        calendar,
-        &JsString::from("mergeFields"),
-        &[fields.as_object(context)?.into(), additional_fields.clone()],
-        context,
-    )?;
-
-    // 3. If Type(result) is not Object, throw a TypeError exception.
-    // 4. Return result.
-    match result {
-        JsValue::Object(o) => Ok(o),
-        _ => Err(JsNativeError::typ()
-            .with_message("mergeFields must return an object")
-            .into()),
-    }
-}
-
-/// 12.2.24 `CalendarDateFromFields ( calendar, fields [ , options [ , dateFromFields ] ] )`
-#[allow(unused)]
-pub(crate) fn calendar_date_from_fields(
-    calendar: &JsValue,
-    _fields: &JsObject,
-    options: Option<&JsValue>,
-    _date_from_fields: Option<&JsObject>,
-) -> JsResult<PlainDate> {
-    let _options = match options {
-        Some(o) => o.clone(),
-        _ => JsValue::undefined(),
-    };
-    // 1. If options is not present, set options to undefined.
-    // 2. If calendar is a String, then
-    // a. Set calendar to ! CreateTemporalCalendar(calendar).
-    // b. Return ? Call(%Temporal.Calendar.prototype.dateFromFields%, calendar, « fields, options »).
-    // 3. If dateFromFields is not present, set dateFromFields to ? GetMethod(calendar, "dateFromFields").
-    // 4. Let date be ? Call(calendar, dateFromFields, « fields, options »).
-    // 5. Perform ? RequireInternalSlot(date, [[InitializedTemporalDate]]).
-    // 6. Return date.
-
-    Err(JsNativeError::range()
-        .with_message("not yet implemented.")
-        .into())
-}
-*/

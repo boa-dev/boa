@@ -40,6 +40,7 @@ bitflags! {
         const ERA_YEAR = 0b0001_0000_0000_0000;
         /// Represents an active `timeZone` field
         const TIME_ZONE = 0b0010_0000_0000_0000;
+        // NOTE(nekevss): Two bits preserved if needed.
     }
 }
 
@@ -166,8 +167,8 @@ impl TemporalFields {
 impl TemporalFields {
     /// Flags a field as being required.
     #[inline]
-    pub fn require_field(&mut self, field: String) {
-        match field.as_str() {
+    pub fn require_field(&mut self, field: &str) {
+        match field {
             "year" => self.bit_map.set(FieldMap::YEAR, true),
             "month" => self.bit_map.set(FieldMap::MONTH, true),
             "monthCode" => self.bit_map.set(FieldMap::MONTH_CODE, true),
@@ -191,12 +192,8 @@ impl TemporalFields {
     ///
     /// This method will not run any `JsValue` conversion. `FieldValue` is
     /// expected to contain a preconverted value.
-    pub fn set_field_value(
-        &mut self,
-        field: String, // TODO: Switch to an options Enum.
-        value: FieldValue,
-    ) -> TemporalResult<()> {
-        match field.as_str() {
+    pub fn set_field_value(&mut self, field: &str, value: &FieldValue) -> TemporalResult<()> {
+        match field {
             "year" => self.set_year(value)?,
             "month" => self.set_month(value)?,
             "monthCode" => self.set_month_code(value)?,
@@ -218,27 +215,27 @@ impl TemporalFields {
     }
 
     #[inline]
-    fn set_year(&mut self, value: FieldValue) -> TemporalResult<()> {
+    fn set_year(&mut self, value: &FieldValue) -> TemporalResult<()> {
         let FieldValue::Integer(y) = value else {
             return Err(TemporalError::r#type().with_message("Year must be an integer."));
         };
-        self.year = Some(y);
+        self.year = Some(*y);
         self.bit_map.set(FieldMap::YEAR, true);
         Ok(())
     }
 
     #[inline]
-    fn set_month(&mut self, value: FieldValue) -> TemporalResult<()> {
+    fn set_month(&mut self, value: &FieldValue) -> TemporalResult<()> {
         let FieldValue::Integer(mo) = value else {
             return Err(TemporalError::r#type().with_message("Month must be an integer."));
         };
-        self.year = Some(mo);
+        self.year = Some(*mo);
         self.bit_map.set(FieldMap::MONTH, true);
         Ok(())
     }
 
     #[inline]
-    fn set_month_code(&mut self, value: FieldValue) -> TemporalResult<()> {
+    fn set_month_code(&mut self, value: &FieldValue) -> TemporalResult<()> {
         let FieldValue::String(mc) = value else {
             return Err(TemporalError::r#type().with_message("monthCode must be string."));
         };
@@ -249,88 +246,88 @@ impl TemporalFields {
     }
 
     #[inline]
-    fn set_day(&mut self, value: FieldValue) -> TemporalResult<()> {
+    fn set_day(&mut self, value: &FieldValue) -> TemporalResult<()> {
         let FieldValue::Integer(d) = value else {
             return Err(TemporalError::r#type().with_message("day must be an integer."));
         };
-        self.day = Some(d);
+        self.day = Some(*d);
         self.bit_map.set(FieldMap::DAY, true);
         Ok(())
     }
 
     #[inline]
-    fn set_hour(&mut self, value: FieldValue) -> TemporalResult<()> {
+    fn set_hour(&mut self, value: &FieldValue) -> TemporalResult<()> {
         let FieldValue::Integer(h) = value else {
             return Err(TemporalError::r#type().with_message("hour must be an integer."));
         };
-        self.hour = h;
+        self.hour = *h;
         self.bit_map.set(FieldMap::HOUR, true);
         Ok(())
     }
 
     #[inline]
-    fn set_minute(&mut self, value: FieldValue) -> TemporalResult<()> {
+    fn set_minute(&mut self, value: &FieldValue) -> TemporalResult<()> {
         let FieldValue::Integer(min) = value else {
             return Err(TemporalError::r#type().with_message("minute must be an integer."));
         };
-        self.minute = min;
+        self.minute = *min;
         self.bit_map.set(FieldMap::MINUTE, true);
         Ok(())
     }
 
     #[inline]
-    fn set_second(&mut self, value: FieldValue) -> TemporalResult<()> {
+    fn set_second(&mut self, value: &FieldValue) -> TemporalResult<()> {
         let FieldValue::Integer(sec) = value else {
             return Err(TemporalError::r#type().with_message("Second must be an integer."));
         };
-        self.second = sec;
+        self.second = *sec;
         self.bit_map.set(FieldMap::SECOND, true);
         Ok(())
     }
 
     #[inline]
-    fn set_milli(&mut self, value: FieldValue) -> TemporalResult<()> {
+    fn set_milli(&mut self, value: &FieldValue) -> TemporalResult<()> {
         let FieldValue::Integer(milli) = value else {
             return Err(TemporalError::r#type().with_message("Second must be an integer."));
         };
-        self.millisecond = milli;
+        self.millisecond = *milli;
         self.bit_map.set(FieldMap::MILLISECOND, true);
         Ok(())
     }
 
     #[inline]
-    fn set_micro(&mut self, value: FieldValue) -> TemporalResult<()> {
+    fn set_micro(&mut self, value: &FieldValue) -> TemporalResult<()> {
         let FieldValue::Integer(micro) = value else {
             return Err(TemporalError::r#type().with_message("microsecond must be an integer."));
         };
-        self.microsecond = micro;
+        self.microsecond = *micro;
         self.bit_map.set(FieldMap::MICROSECOND, true);
         Ok(())
     }
 
     #[inline]
-    fn set_nano(&mut self, value: FieldValue) -> TemporalResult<()> {
+    fn set_nano(&mut self, value: &FieldValue) -> TemporalResult<()> {
         let FieldValue::Integer(nano) = value else {
             return Err(TemporalError::r#type().with_message("nanosecond must be an integer."));
         };
-        self.nanosecond = nano;
+        self.nanosecond = *nano;
         self.bit_map.set(FieldMap::NANOSECOND, true);
         Ok(())
     }
 
     #[inline]
-    fn set_offset(&mut self, value: FieldValue) -> TemporalResult<()> {
+    fn set_offset(&mut self, value: &FieldValue) -> TemporalResult<()> {
         let FieldValue::String(offset) = value else {
             return Err(TemporalError::r#type().with_message("offset must be string."));
         };
-        self.offset = Some(offset);
+        self.offset = Some(offset.clone());
         self.bit_map.set(FieldMap::OFFSET, true);
 
         Ok(())
     }
 
     #[inline]
-    fn set_era(&mut self, value: FieldValue) -> TemporalResult<()> {
+    fn set_era(&mut self, value: &FieldValue) -> TemporalResult<()> {
         let FieldValue::String(era) = value else {
             return Err(TemporalError::r#type().with_message("era must be string."));
         };
@@ -342,21 +339,21 @@ impl TemporalFields {
     }
 
     #[inline]
-    fn set_era_year(&mut self, value: FieldValue) -> TemporalResult<()> {
+    fn set_era_year(&mut self, value: &FieldValue) -> TemporalResult<()> {
         let FieldValue::Integer(era_year) = value else {
             return Err(TemporalError::r#type().with_message("eraYear must be an integer."));
         };
-        self.era_year = Some(era_year);
+        self.era_year = Some(*era_year);
         self.bit_map.set(FieldMap::ERA_YEAR, true);
         Ok(())
     }
 
     #[inline]
-    fn set_time_zone(&mut self, value: FieldValue) -> TemporalResult<()> {
+    fn set_time_zone(&mut self, value: &FieldValue) -> TemporalResult<()> {
         let FieldValue::String(tz) = value else {
             return Err(TemporalError::r#type().with_message("tz must be string."));
         };
-        self.time_zone = Some(tz);
+        self.time_zone = Some(tz.clone());
         self.bit_map.set(FieldMap::TIME_ZONE, true);
         Ok(())
     }
@@ -452,7 +449,7 @@ impl TemporalFields {
             .as_ref()
             .expect("monthCode must exist at this point.");
 
-        let month_code_integer = month_code_to_integer(unresolved_month_code)?;
+        let month_code_integer = month_code_to_integer(*unresolved_month_code)?;
 
         let new_month = match self.month {
             Some(month) if month != month_code_integer => {
@@ -469,7 +466,7 @@ impl TemporalFields {
     }
 }
 
-fn month_code_to_integer(mc: &TinyStr4) -> TemporalResult<i32> {
+fn month_code_to_integer(mc: TinyStr4) -> TemporalResult<i32> {
     match mc.as_str() {
         "M01" => Ok(1),
         "M02" => Ok(2),
@@ -487,268 +484,3 @@ fn month_code_to_integer(mc: &TinyStr4) -> TemporalResult<i32> {
         _ => Err(TemporalError::range().with_message("monthCode is not within the valid values.")),
     }
 }
-
-/*
-impl TemporalFields {
-    // TODO: Shift to JsString or utf16 over String.
-    /// A method for creating a Native representation for `TemporalFields` from
-    /// a `JsObject`.
-    ///
-    /// This is the equivalant to Abstract Operation 13.46 `PrepareTemporalFields`
-    pub(crate) fn from_js_object(
-        fields: &JsObject,
-        field_names: &mut Vec<JsString>,
-        required_fields: &mut Vec<JsString>, // None when Partial
-        extended_fields: Option<Vec<(JsString, bool)>>,
-        partial: bool,
-        dup_behaviour: Option<JsString>,
-        context: &mut Context<'_>,
-    ) -> TemporalResult<Self> {
-        // 1. If duplicateBehaviour is not present, set duplicateBehaviour to throw.
-        let dup_option = dup_behaviour.unwrap_or_else(|| js_string!("throw"));
-
-        // 2. Let result be OrdinaryObjectCreate(null).
-        let mut result = Self::default();
-
-        // 3. Let any be false.
-        let mut any = false;
-        // 4. If extraFieldDescriptors is present, then
-        if let Some(extra_fields) = extended_fields {
-            for (field_name, required) in extra_fields {
-                // a. For each Calendar Field Descriptor Record desc of extraFieldDescriptors, do
-                // i. Assert: fieldNames does not contain desc.[[Property]].
-                // ii. Append desc.[[Property]] to fieldNames.
-                field_names.push(field_name.clone());
-
-                // iii. If desc.[[Required]] is true and requiredFields is a List, then
-                if required && !partial {
-                    // 1. Append desc.[[Property]] to requiredFields.
-                    required_fields.push(field_name);
-                }
-            }
-        }
-
-        // 5. Let sortedFieldNames be SortStringListByCodeUnit(fieldNames).
-        // 6. Let previousProperty be undefined.
-        let mut dups_map = FxHashSet::default();
-
-        // 7. For each property name property of sortedFieldNames, do
-        for field in &*field_names {
-            // a. If property is one of "constructor" or "__proto__", then
-            if field.to_std_string_escaped().as_str() == "constructor"
-                || field.to_std_string_escaped().as_str() == "__proto__"
-            {
-                // i. Throw a RangeError exception.
-                return Err(TemporalError::range()
-                    .with_message("constructor or proto is out of field range.")
-                    .into());
-            }
-
-            let new_value = dups_map.insert(field);
-
-            // b. If property is not equal to previousProperty, then
-            if new_value {
-                // i. Let value be ? Get(fields, property).
-                let value = fields.get(PropertyKey::from(field.clone()), context)?;
-                // ii. If value is not undefined, then
-                if !value.is_undefined() {
-                    // 1. Set any to true.
-                    any = true;
-
-                    // 2. If property is in the Property column of Table 17 and there is a Conversion value in the same row, then
-                    // a. Let Conversion be the Conversion value of the same row.
-                    // b. If Conversion is ToIntegerWithTruncation, then
-                    // i. Set value to ? ToIntegerWithTruncation(value).
-                    // ii. Set value to 𝔽(value).
-                    // c. Else if Conversion is ToPositiveIntegerWithTruncation, then
-                    // i. Set value to ? ToPositiveIntegerWithTruncation(value).
-                    // ii. Set value to 𝔽(value).
-                    // d. Else,
-                    // i. Assert: Conversion is ToPrimitiveAndRequireString.
-                    // ii. NOTE: Non-primitive values are supported here for consistency with other fields, but such values must coerce to Strings.
-                    // iii. Set value to ? ToPrimitive(value, string).
-                    // iv. If value is not a String, throw a TypeError exception.
-                    // 3. Perform ! CreateDataPropertyOrThrow(result, property, value).
-                    result.set_field_value(field, &value, context)?;
-                // iii. Else if requiredFields is a List, then
-                } else if !partial {
-                    // 1. If requiredFields contains property, then
-                    if required_fields.contains(field) {
-                        // a. Throw a TypeError exception.
-                        return Err(TemporalError::typ()
-                            .with_message("A required TemporalField was not provided.")
-                            .into());
-                    }
-
-                    // NOTE: Values set to a default on init.
-                    // 2. If property is in the Property column of Table 17, then
-                    // a. Set value to the corresponding Default value of the same row.
-                    // 3. Perform ! CreateDataPropertyOrThrow(result, property, value).
-                }
-            // c. Else if duplicateBehaviour is throw, then
-            } else if dup_option.to_std_string_escaped() == "throw" {
-                // i. Throw a RangeError exception.
-                return Err(TemporalError::range()
-                    .with_message("Cannot have a duplicate field")
-                    .into());
-            }
-            // d. Set previousProperty to property.
-        }
-
-        // 8. If requiredFields is partial and any is false, then
-        if partial && !any {
-            // a. Throw a TypeError exception.
-            return Err(TemporalError::range()
-                .with_message("requiredFields cannot be partial when any is false")
-                .into());
-        }
-
-        // 9. Return result.
-        Ok(result)
-    }
-
-    /// Convert a `TemporalFields` struct into a `JsObject`.
-    pub(crate) fn as_object(&self, context: &mut Context<'_>) -> TemporalResult<JsObject> {
-        let obj = JsObject::with_null_proto();
-
-        for bit in self.bit_map.iter() {
-            match bit {
-                FieldMap::YEAR => {
-                    obj.create_data_property_or_throw(
-                        js_string!("year"),
-                        self.year.map_or(JsValue::undefined(), JsValue::from),
-                        context,
-                    )?;
-                }
-                FieldMap::MONTH => {
-                    obj.create_data_property_or_throw(
-                        js_string!("month"),
-                        self.month.map_or(JsValue::undefined(), JsValue::from),
-                        context,
-                    )?;
-                }
-                FieldMap::MONTH_CODE => {
-                    obj.create_data_property_or_throw(
-                        js_string!("monthCode"),
-                        self.month_code
-                            .as_ref()
-                            .map_or(JsValue::undefined(), |f| f.clone().into()),
-                        context,
-                    )?;
-                }
-                FieldMap::DAY => {
-                    obj.create_data_property(
-                        js_string!("day"),
-                        self.day().map_or(JsValue::undefined(), JsValue::from),
-                        context,
-                    )?;
-                }
-                FieldMap::HOUR => {
-                    obj.create_data_property(js_string!("hour"), self.hour, context)?;
-                }
-                FieldMap::MINUTE => {
-                    obj.create_data_property(js_string!("minute"), self.minute, context)?;
-                }
-                FieldMap::SECOND => {
-                    obj.create_data_property_or_throw(js_string!("second"), self.second, context)?;
-                }
-                FieldMap::MILLISECOND => {
-                    obj.create_data_property_or_throw(
-                        js_string!("millisecond"),
-                        self.millisecond,
-                        context,
-                    )?;
-                }
-                FieldMap::MICROSECOND => {
-                    obj.create_data_property_or_throw(
-                        js_string!("microsecond"),
-                        self.microsecond,
-                        context,
-                    )?;
-                }
-                FieldMap::NANOSECOND => {
-                    obj.create_data_property_or_throw(
-                        js_string!("nanosecond"),
-                        self.nanosecond,
-                        context,
-                    )?;
-                }
-                FieldMap::OFFSET => {
-                    obj.create_data_property_or_throw(
-                        js_string!("offset"),
-                        self.offset
-                            .as_ref()
-                            .map_or(JsValue::undefined(), |s| s.clone().into()),
-                        context,
-                    )?;
-                }
-                FieldMap::ERA => {
-                    obj.create_data_property_or_throw(
-                        js_string!("era"),
-                        self.era
-                            .as_ref()
-                            .map_or(JsValue::undefined(), |s| s.clone().into()),
-                        context,
-                    )?;
-                }
-                FieldMap::ERA_YEAR => {
-                    obj.create_data_property_or_throw(
-                        js_string!("eraYear"),
-                        self.era_year.map_or(JsValue::undefined(), JsValue::from),
-                        context,
-                    )?;
-                }
-                FieldMap::TIME_ZONE => {
-                    obj.create_data_property_or_throw(
-                        js_string!("timeZone"),
-                        self.time_zone
-                            .as_ref()
-                            .map_or(JsValue::undefined(), |s| s.clone().into()),
-                        context,
-                    )?;
-                }
-                _ => unreachable!(),
-            }
-        }
-
-        Ok(obj)
-    }
-
-    // Note placeholder until overflow is implemented on `ICU4x`'s Date<Iso>.
-    /// A function to regulate the current `TemporalFields` according to the overflow value
-    pub(crate) fn regulate(&mut self, overflow: ArithmeticOverflow) -> TemporalResult<()> {
-        if let (Some(year), Some(month), Some(day)) = (self.year(), self.month(), self.day()) {
-            match overflow {
-                ArithmeticOverflow::Constrain => {
-                    let m = month.clamp(1, 12);
-                    let days_in_month = crate::utils::iso_days_in_month(year, month);
-                    let d = day.clamp(1, days_in_month);
-
-                    self.month = Some(m);
-                    self.day = Some(d);
-                }
-                ArithmeticOverflow::Reject => {
-                    return Err(TemporalError::range()
-                        .with_message("TemporalFields is out of a valid range.")
-                        )
-                }
-            }
-        }
-        Ok(())
-    }
-
-    pub(crate) fn regulate_year_month(&mut self, overflow: ArithmeticOverflow) {
-        match self.month {
-            Some(month) if overflow == ArithmeticOverflow::Constrain => {
-                let m = month.clamp(1, 12);
-                self.month = Some(m);
-            }
-            _ => {}
-        }
-    }
-
-}
-
-
-
-*/

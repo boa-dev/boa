@@ -296,7 +296,6 @@ impl Duration {
 
 impl Duration {
     /// Creates a new validated `Duration`.
-    #[must_use]
     #[allow(clippy::too_many_arguments)]
     pub fn new(
         years: f64,
@@ -1673,7 +1672,6 @@ impl Duration {
 
     /// Abstract Operation 7.5.17 `BalanceTimeDuration ( days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds, largestUnit )`
     #[inline]
-    #[must_use]
     pub fn balance_time_duration(
         &self,
         largest_unit: TemporalUnit,

@@ -207,7 +207,8 @@ impl CalendarProtocol for CustomRuntimeCalendar {
         _overflow: ArithmeticOverflow,
         _context: &mut dyn Any,
     ) -> TemporalResult<TemporalDate> {
-        todo!()
+        // TODO
+        Err(TemporalError::general("Not yet implemented."))
     }
 
     fn date_until(
@@ -217,7 +218,8 @@ impl CalendarProtocol for CustomRuntimeCalendar {
         _largest_unit: boa_temporal::options::TemporalUnit,
         _context: &mut dyn Any,
     ) -> TemporalResult<Duration> {
-        todo!()
+        // TODO
+        Err(TemporalError::general("Not yet implemented."))
     }
 
     fn era(&self, _: &CalendarDateLike, _: &mut dyn Any) -> TemporalResult<Option<TinyStr8>> {
@@ -247,6 +249,12 @@ impl CalendarProtocol for CustomRuntimeCalendar {
             .expect("is method")
             .call(&method, &[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))?;
+
+        // Validate the return value.
+        // 3. If Type(result) is not Number, throw a TypeError exception.
+        // 4. If IsIntegralNumber(result) is false, throw a RangeError exception.
+        // 5. If result < 1𝔽, throw a RangeError exception.
+        // 6. Return ℝ(result).
 
         let Some(number) = val.as_number() else {
             return Err(TemporalError::r#type().with_message("year must return a number."));
@@ -284,6 +292,12 @@ impl CalendarProtocol for CustomRuntimeCalendar {
             .expect("is method")
             .call(&method, &[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))?;
+
+        // Validate the return value.
+        // 3. If Type(result) is not Number, throw a TypeError exception.
+        // 4. If IsIntegralNumber(result) is false, throw a RangeError exception.
+        // 5. If result < 1𝔽, throw a RangeError exception.
+        // 6. Return ℝ(result).
 
         let Some(number) = val.as_number() else {
             return Err(TemporalError::r#type().with_message("month must return a number."));
@@ -354,6 +368,12 @@ impl CalendarProtocol for CustomRuntimeCalendar {
             .call(&method, &[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))?;
 
+        // Validate the return value.
+        // 3. If Type(result) is not Number, throw a TypeError exception.
+        // 4. If IsIntegralNumber(result) is false, throw a RangeError exception.
+        // 5. If result < 1𝔽, throw a RangeError exception.
+        // 6. Return ℝ(result).
+
         let Some(number) = val.as_number() else {
             return Err(TemporalError::r#type().with_message("day must return a number."));
         };
@@ -394,6 +414,12 @@ impl CalendarProtocol for CustomRuntimeCalendar {
             .expect("is method")
             .call(&method, &[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))?;
+
+        // Validate the return value.
+        // 3. If Type(result) is not Number, throw a TypeError exception.
+        // 4. If IsIntegralNumber(result) is false, throw a RangeError exception.
+        // 5. If result < 1𝔽, throw a RangeError exception.
+        // 6. Return ℝ(result).
 
         let Some(number) = val.as_number() else {
             return Err(TemporalError::r#type().with_message("DayOfWeek must return a number."));
@@ -438,6 +464,12 @@ impl CalendarProtocol for CustomRuntimeCalendar {
             .call(&method, &[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))?;
 
+        // Validate the return value.
+        // 3. If Type(result) is not Number, throw a TypeError exception.
+        // 4. If IsIntegralNumber(result) is false, throw a RangeError exception.
+        // 5. If result < 1𝔽, throw a RangeError exception.
+        // 6. Return ℝ(result).
+
         let Some(number) = val.as_number() else {
             return Err(TemporalError::r#type().with_message("dayOfYear must return a number."));
         };
@@ -480,6 +512,12 @@ impl CalendarProtocol for CustomRuntimeCalendar {
             .expect("is method")
             .call(&method, &[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))?;
+
+        // Validate the return value.
+        // 3. If Type(result) is not Number, throw a TypeError exception.
+        // 4. If IsIntegralNumber(result) is false, throw a RangeError exception.
+        // 5. If result < 1𝔽, throw a RangeError exception.
+        // 6. Return ℝ(result).
 
         let Some(number) = val.as_number() else {
             return Err(TemporalError::r#type().with_message("weekOfYear must return a number."));
@@ -524,6 +562,11 @@ impl CalendarProtocol for CustomRuntimeCalendar {
             .call(&method, &[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))?;
 
+        // Validate the return value.
+        // 3. If Type(result) is not Number, throw a TypeError exception.
+        // 4. If IsIntegralNumber(result) is false, throw a RangeError exception.
+        // 5. Return ℝ(result).
+
         let Some(number) = val.as_number() else {
             return Err(TemporalError::r#type().with_message("yearOfWeek must return a number."));
         };
@@ -560,6 +603,12 @@ impl CalendarProtocol for CustomRuntimeCalendar {
             .expect("is method")
             .call(&method, &[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))?;
+
+        // Validate the return value.
+        // 3. If Type(result) is not Number, throw a TypeError exception.
+        // 4. If IsIntegralNumber(result) is false, throw a RangeError exception.
+        // 5. If result < 1𝔽, throw a RangeError exception.
+        // 6. Return ℝ(result).
 
         let Some(number) = val.as_number() else {
             return Err(TemporalError::r#type().with_message("daysInWeek must return a number."));
@@ -602,6 +651,12 @@ impl CalendarProtocol for CustomRuntimeCalendar {
             .expect("is method")
             .call(&method, &[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))?;
+
+        // Validate the return value.
+        // 3. If Type(result) is not Number, throw a TypeError exception.
+        // 4. If IsIntegralNumber(result) is false, throw a RangeError exception.
+        // 5. If result < 1𝔽, throw a RangeError exception.
+        // 6. Return ℝ(result).
 
         let Some(number) = val.as_number() else {
             return Err(TemporalError::r#type().with_message("daysInMonth must return a number."));
@@ -648,6 +703,12 @@ impl CalendarProtocol for CustomRuntimeCalendar {
             .call(&method, &[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))?;
 
+        // Validate the return value.
+        // 3. If Type(result) is not Number, throw a TypeError exception.
+        // 4. If IsIntegralNumber(result) is false, throw a RangeError exception.
+        // 5. If result < 1𝔽, throw a RangeError exception.
+        // 6. Return ℝ(result).
+
         let Some(number) = val.as_number() else {
             return Err(TemporalError::r#type().with_message("daysInYear must return a number."));
         };
@@ -690,6 +751,12 @@ impl CalendarProtocol for CustomRuntimeCalendar {
             .expect("is method")
             .call(&method, &[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))?;
+
+        // Validate the return value.
+        // 3. If Type(result) is not Number, throw a TypeError exception.
+        // 4. If IsIntegralNumber(result) is false, throw a RangeError exception.
+        // 5. If result < 1𝔽, throw a RangeError exception.
+        // 6. Return ℝ(result).
 
         let Some(number) = val.as_number() else {
             return Err(TemporalError::r#type().with_message("monthsInYear must return a number."));

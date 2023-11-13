@@ -105,12 +105,14 @@ pub(crate) fn prepare_temporal_fields(
                         // iv. If value is not a String, throw a TypeError exception.
                         FieldValue::String(primitive.to_string(context)?.to_std_string_escaped())
                     }
-                    _ => unreachable!("todo need to implement conversion handling for tz."),
+                    FieldConversion::None => {
+                        unreachable!("todo need to implement conversion handling for tz.")
+                    }
                 };
 
                 // 3. Perform ! CreateDataPropertyOrThrow(result, property, value).
                 result
-                    .set_field_value(field.to_std_string_escaped(), converted_value)
+                    .set_field_value(&field.to_std_string_escaped(), &converted_value)
                     .expect("FieldConversion enforces the appropriate type");
             // iii. Else if requiredFields is a List, then
             } else if !partial {
@@ -126,7 +128,7 @@ pub(crate) fn prepare_temporal_fields(
                 // 2. If property is in the Property column of Table 17, then
                 // a. Set value to the corresponding Default value of the same row.
                 // 3. Perform ! CreateDataPropertyOrThrow(result, property, value).
-                result.require_field(field.to_std_string_escaped());
+                result.require_field(&field.to_std_string_escaped());
             }
         // c. Else if duplicateBehaviour is throw, then
         } else if dup_option.to_std_string_escaped() == "throw" {

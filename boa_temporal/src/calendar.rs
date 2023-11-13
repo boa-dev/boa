@@ -101,6 +101,7 @@ impl FromStr for AvailableCalendars {
 
 impl AvailableCalendars {
     /// Returns the `CalendarProtocol` for the `AvailableCalendar`
+    #[must_use]
     pub fn to_protocol(&self) -> Box<dyn CalendarProtocol> {
         match self {
             Self::Iso => Box::new(IsoCalendar),
@@ -123,6 +124,8 @@ pub enum CalendarDateLike {
 
 impl CalendarDateLike {
     /// Retrieves the internal `IsoDate` field.
+    #[inline]
+    #[must_use]
     pub fn as_iso_date(&self) -> IsoDate {
         match self {
             CalendarDateLike::Date(d) => d.iso_date(),
@@ -150,7 +153,8 @@ where
     }
 }
 
-// TODO: Implement `fields` and `mergeFields`
+// TODO: Split further into `CalendarProtocol` and `BuiltinCalendar` to better handle
+// fields and mergeFields.
 /// A trait for implementing a Builtin Calendar's Calendar Protocol in Rust.
 pub trait CalendarProtocol: CalendarProtocolClone {
     /// Creates a `Temporal.PlainDate` object from provided fields.
@@ -323,6 +327,7 @@ impl Default for CalendarSlot {
     }
 }
 
+// TODO: Handle `CalendarFields` and `CalendarMergeFields`
 impl CalendarSlot {
     /// `CalendarDateAdd`
     ///

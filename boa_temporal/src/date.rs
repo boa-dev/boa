@@ -21,12 +21,13 @@ pub struct TemporalDate {
 
 impl TemporalDate {
     /// Create a new `TemporalDate` with the date values and calendar slot.
+    #[inline]
+    #[must_use]
     pub(crate) fn new_unchecked(iso: IsoDate, calendar: CalendarSlot) -> Self {
         Self { iso, calendar }
     }
 
     #[inline]
-    #[must_use]
     /// `DifferenceDate`
     pub(crate) fn diff_date(
         &self,
@@ -56,7 +57,6 @@ impl TemporalDate {
     }
 
     #[inline]
-    #[must_use]
     /// Internal `AddDate` function
     pub(crate) fn add_date(
         &self,
@@ -90,7 +90,6 @@ impl TemporalDate {
     }
 
     #[inline]
-    #[must_use]
     /// Returns a new moved date and the days associated with that adjustment
     pub(crate) fn move_relative_date(
         &self,
@@ -194,7 +193,6 @@ impl TemporalDate {
     ///
     /// Temporal Equivalent: 3.5.13 `AddDate ( calendar, plainDate, duration [ , options [ , dateAdd ] ] )`
     #[inline]
-    #[must_use]
     #[cfg(feature = "context")]
     pub fn add_to_date(
         &self,
@@ -209,7 +207,6 @@ impl TemporalDate {
     ///
     /// Temporal Equivalent: 3.5.13 `AddDate ( calendar, plainDate, duration [ , options [ , dateAdd ] ] )`
     #[inline]
-    #[must_use]
     #[cfg(not(feature = "context"))]
     pub fn add_to_date(
         &self,
@@ -223,7 +220,6 @@ impl TemporalDate {
     ///
     /// Temporal Equivalent: 3.5.6 `DifferenceDate ( calendar, one, two, options )`
     #[inline]
-    #[must_use]
     #[cfg(feature = "context")]
     pub fn difference_date(
         &self,
@@ -238,7 +234,6 @@ impl TemporalDate {
     ///
     /// Temporal Equivalent: 3.5.6 `DifferenceDate ( calendar, one, two, options )`
     #[inline]
-    #[must_use]
     #[cfg(not(feature = "context"))]
     pub fn difference_date(
         &self,

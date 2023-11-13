@@ -38,8 +38,8 @@ impl IsoDateTime {
             return false;
         };
 
-        let max = crate::ns_max_instant() + crate::NS_PER_DAY;
-        let min = crate::ns_min_instant() - crate::NS_PER_DAY;
+        let max = BigInt::from(crate::NS_MAX_INSTANT + i128::from(crate::NS_PER_DAY));
+        let min = BigInt::from(crate::NS_MIN_INSTANT - i128::from(crate::NS_PER_DAY));
 
         min < ns && max > ns
     }

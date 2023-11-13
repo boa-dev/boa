@@ -18,6 +18,8 @@ pub struct TemporalDateTime {
 
 impl TemporalDateTime {
     /// Creates a new unchecked `TemporalDateTime`.
+    #[inline]
+    #[must_use]
     pub(crate) fn new_unchecked(date: IsoDate, time: IsoTime, calendar: CalendarSlot) -> Self {
         Self {
             iso: IsoDateTime::new_unchecked(date, time),
@@ -26,6 +28,7 @@ impl TemporalDateTime {
     }
 
     #[inline]
+    #[must_use]
     /// Utility function for validating `IsoDate`s
     fn validate_iso(iso: IsoDate) -> bool {
         IsoDateTime::new_unchecked(iso, IsoTime::noon()).is_within_limits()
@@ -36,6 +39,7 @@ impl TemporalDateTime {
 
 impl TemporalDateTime {
     /// Creates a new validated `TemporalDateTime`.
+    #[inline]
     #[allow(clippy::too_many_arguments)]
     pub fn new(
         year: i32,
@@ -62,23 +66,29 @@ impl TemporalDateTime {
         Ok(Self::new_unchecked(iso_date, iso_time, calendar))
     }
 
-    #[inline]
     /// Validates whether ISO date slots are within iso limits at noon.
+    #[inline]
     pub fn validate<T: IsoDateSlots>(target: &T) -> bool {
         Self::validate_iso(target.iso_date())
     }
 
     /// Returns the inner `IsoDate` value.
+    #[inline]
+    #[must_use]
     pub fn iso_date(&self) -> IsoDate {
         self.iso.iso_date()
     }
 
     /// Returns the inner `IsoTime` value.
+    #[inline]
+    #[must_use]
     pub fn iso_time(&self) -> IsoTime {
         self.iso.iso_time()
     }
 
     /// Returns the Calendar value.
+    #[inline]
+    #[must_use]
     pub fn calendar(&self) -> &CalendarSlot {
         &self.calendar
     }
