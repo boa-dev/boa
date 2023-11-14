@@ -508,7 +508,7 @@
 <span class="macro">macro_rules! </span>well_known_symbols {
     ( $( $(<span class="attr">#[<span class="macro-nonterminal">$attr</span>:meta]</span>)* (<span class="macro-nonterminal">$name</span>:ident, <span class="macro-nonterminal">$variant</span>:path) ),+$(,)<span class="question-mark">? </span>) =&gt; {
         $(
-            $(<span class="attr">#[<span class="macro-nonterminal">$attr</span>]</span>)* <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span><span class="macro-nonterminal">$name</span>() -&gt; JsSymbol {
+            $(<span class="attr">#[<span class="macro-nonterminal">$attr</span>]</span>)* <span class="kw">pub const fn </span><span class="macro-nonterminal">$name</span>() -&gt; JsSymbol {
                 JsSymbol {
                     <span class="comment">// the cast shouldn&#39;t matter since we only have 127 const symbols
                     </span>repr: Tagged::from_tag(<span class="macro-nonterminal">$variant</span>.hash() <span class="kw">as </span>usize),
