@@ -1920,9 +1920,6 @@
 <a href="#1920" id="1920">1920</a>
 <a href="#1921" id="1921">1921</a>
 <a href="#1922" id="1922">1922</a>
-<a href="#1923" id="1923">1923</a>
-<a href="#1924" id="1924">1924</a>
-<a href="#1925" id="1925">1925</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `RegExp` object.
 //!
 //! The `RegExp` object is used for matching text with a pattern.
@@ -3115,79 +3112,76 @@
         context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let rx be the this value.
-        // 2. If Type(rx) is not Object, throw a TypeError exception.
-        </span><span class="kw">let </span>rx = this.as_object().ok_or_else(|| {
-            JsNativeError::typ()
+        // 2. If rx is not an Object, throw a TypeError exception.
+        </span><span class="kw">let </span><span class="prelude-val">Some</span>(rx) = this.as_object() <span class="kw">else </span>{
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
                 .with_message(<span class="string">&quot;RegExp.prototype.match method called on incompatible value&quot;</span>)
-        })<span class="question-mark">?</span>;
+                .into());
+        };
 
         <span class="comment">// 3. Let S be ? ToString(string).
         </span><span class="kw">let </span>arg_str = args.get_or_undefined(<span class="number">0</span>).to_string(context)<span class="question-mark">?</span>;
 
-        <span class="comment">// 4. Let global be ! ToBoolean(? Get(rx, &quot;global&quot;)).
-        </span><span class="kw">let </span>global = rx.get(<span class="macro">utf16!</span>(<span class="string">&quot;global&quot;</span>), context)<span class="question-mark">?</span>.to_boolean();
+        <span class="comment">// 4. Let flags be ? ToString(? Get(rx, &quot;flags&quot;)).
+        </span><span class="kw">let </span>flags = rx.get(<span class="macro">utf16!</span>(<span class="string">&quot;flags&quot;</span>), context)<span class="question-mark">?</span>.to_string(context)<span class="question-mark">?</span>;
 
-        <span class="comment">// 5. If global is false, then
-        </span><span class="attr">#[allow(clippy::if_not_else)]
-        </span><span class="kw">if </span>!global {
+        <span class="comment">// 5. If flags does not contain &quot;g&quot;, then
+        </span><span class="kw">if </span>!flags.contains(<span class="kw-2">&amp;</span><span class="number">103</span>) {
             <span class="comment">// a. Return ? RegExpExec(rx, S).
-            </span>(<span class="self">Self</span>::abstract_exec(rx, arg_str, context)<span class="question-mark">?</span>)
-                .map_or_else(|| <span class="prelude-val">Ok</span>(JsValue::null()), |v| <span class="prelude-val">Ok</span>(v.into()))
+            </span><span class="kw">return </span>(<span class="self">Self</span>::abstract_exec(rx, arg_str, context)<span class="question-mark">?</span>)
+                .map_or_else(|| <span class="prelude-val">Ok</span>(JsValue::null()), |v| <span class="prelude-val">Ok</span>(v.into()));
+        }
+
         <span class="comment">// 6. Else,
-        </span>} <span class="kw">else </span>{
-            <span class="comment">// a. Assert: global is true.
 
-            // b. Let fullUnicode be ! ToBoolean(? Get(rx, &quot;unicode&quot;)).
-            </span><span class="kw">let </span>unicode = rx.get(<span class="macro">utf16!</span>(<span class="string">&quot;unicode&quot;</span>), context)<span class="question-mark">?</span>.to_boolean();
+        // a. If flags contains &quot;u&quot; or flags contains &quot;v&quot;, let fullUnicode be true. Otherwise, let fullUnicode be false.
+        </span><span class="kw">let </span>full_unicode = flags.contains(<span class="kw-2">&amp;</span><span class="number">117</span>) || flags.contains(<span class="kw-2">&amp;</span><span class="number">118</span>);
 
-            <span class="comment">// c. Perform ? Set(rx, &quot;lastIndex&quot;, +0𝔽, true).
-            </span>rx.set(<span class="macro">utf16!</span>(<span class="string">&quot;lastIndex&quot;</span>), <span class="number">0</span>, <span class="bool-val">true</span>, context)<span class="question-mark">?</span>;
+        <span class="comment">// b. Perform ? Set(rx, &quot;lastIndex&quot;, +0𝔽, true).
+        </span>rx.set(<span class="macro">utf16!</span>(<span class="string">&quot;lastIndex&quot;</span>), <span class="number">0</span>, <span class="bool-val">true</span>, context)<span class="question-mark">?</span>;
 
-            <span class="comment">// d. Let A be ! ArrayCreate(0).
-            </span><span class="kw">let </span>a =
-                Array::array_create(<span class="number">0</span>, <span class="prelude-val">None</span>, context).expect(<span class="string">&quot;this ArrayCreate call must not fail&quot;</span>);
+        <span class="comment">// c. Let A be ! ArrayCreate(0).
+        </span><span class="kw">let </span>a = Array::array_create(<span class="number">0</span>, <span class="prelude-val">None</span>, context).expect(<span class="string">&quot;this ArrayCreate call must not fail&quot;</span>);
 
-            <span class="comment">// e. Let n be 0.
-            </span><span class="kw">let </span><span class="kw-2">mut </span>n = <span class="number">0</span>;
+        <span class="comment">// d. Let n be 0.
+        </span><span class="kw">let </span><span class="kw-2">mut </span>n = <span class="number">0</span>;
 
-            <span class="comment">// f. Repeat,
-            </span><span class="kw">loop </span>{
-                <span class="comment">// i. Let result be ? RegExpExec(rx, S).
-                </span><span class="kw">let </span>result = <span class="self">Self</span>::abstract_exec(rx, arg_str.clone(), context)<span class="question-mark">?</span>;
+        <span class="comment">// e. Repeat,
+        </span><span class="kw">loop </span>{
+            <span class="comment">// i. Let result be ? RegExpExec(rx, S).
+            </span><span class="kw">let </span>result = <span class="self">Self</span>::abstract_exec(rx, arg_str.clone(), context)<span class="question-mark">?</span>;
 
-                <span class="comment">// ii. If result is null, then
-                // iii. Else,
-                </span><span class="kw">if let </span><span class="prelude-val">Some</span>(result) = result {
-                    <span class="comment">// 1. Let matchStr be ? ToString(? Get(result, &quot;0&quot;)).
-                    </span><span class="kw">let </span>match_str = result.get(<span class="number">0</span>, context)<span class="question-mark">?</span>.to_string(context)<span class="question-mark">?</span>;
+            <span class="comment">// ii. If result is null, then
+            // iii. Else,
+            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(result) = result {
+                <span class="comment">// 1. Let matchStr be ? ToString(? Get(result, &quot;0&quot;)).
+                </span><span class="kw">let </span>match_str = result.get(<span class="number">0</span>, context)<span class="question-mark">?</span>.to_string(context)<span class="question-mark">?</span>;
 
-                    <span class="comment">// 2. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(n)), matchStr).
-                    </span>a.create_data_property_or_throw(n, match_str.clone(), context)
-                        .expect(<span class="string">&quot;this CreateDataPropertyOrThrow call must not fail&quot;</span>);
+                <span class="comment">// 2. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(n)), matchStr).
+                </span>a.create_data_property_or_throw(n, match_str.clone(), context)
+                    .expect(<span class="string">&quot;this CreateDataPropertyOrThrow call must not fail&quot;</span>);
 
-                    <span class="comment">// 3. If matchStr is the empty String, then
-                    </span><span class="kw">if </span>match_str.is_empty() {
-                        <span class="comment">// a. Let thisIndex be ℝ(? ToLength(? Get(rx, &quot;lastIndex&quot;))).
-                        </span><span class="kw">let </span>this_index =
-                            rx.get(<span class="macro">utf16!</span>(<span class="string">&quot;lastIndex&quot;</span>), context)<span class="question-mark">?</span>.to_length(context)<span class="question-mark">?</span>;
+                <span class="comment">// 3. If matchStr is the empty String, then
+                </span><span class="kw">if </span>match_str.is_empty() {
+                    <span class="comment">// a. Let thisIndex be ℝ(? ToLength(? Get(rx, &quot;lastIndex&quot;))).
+                    </span><span class="kw">let </span>this_index = rx.get(<span class="macro">utf16!</span>(<span class="string">&quot;lastIndex&quot;</span>), context)<span class="question-mark">?</span>.to_length(context)<span class="question-mark">?</span>;
 
-                        <span class="comment">// b. Let nextIndex be AdvanceStringIndex(S, thisIndex, fullUnicode).
-                        </span><span class="kw">let </span>next_index = advance_string_index(<span class="kw-2">&amp;</span>arg_str, this_index, unicode);
+                    <span class="comment">// b. Let nextIndex be AdvanceStringIndex(S, thisIndex, fullUnicode).
+                    </span><span class="kw">let </span>next_index = advance_string_index(<span class="kw-2">&amp;</span>arg_str, this_index, full_unicode);
 
-                        <span class="comment">// c. Perform ? Set(rx, &quot;lastIndex&quot;, 𝔽(nextIndex), true).
-                        </span>rx.set(<span class="macro">utf16!</span>(<span class="string">&quot;lastIndex&quot;</span>), JsValue::new(next_index), <span class="bool-val">true</span>, context)<span class="question-mark">?</span>;
-                    }
-
-                    <span class="comment">// 4. Set n to n + 1.
-                    </span>n += <span class="number">1</span>;
-                } <span class="kw">else </span>{
-                    <span class="comment">// 1. If n = 0, return null.
-                    </span><span class="kw">if </span>n == <span class="number">0 </span>{
-                        <span class="kw">return </span><span class="prelude-val">Ok</span>(JsValue::null());
-                    }
-                    <span class="comment">// 2. Return A.
-                    </span><span class="kw">return </span><span class="prelude-val">Ok</span>(a.into());
+                    <span class="comment">// c. Perform ? Set(rx, &quot;lastIndex&quot;, 𝔽(nextIndex), true).
+                    </span>rx.set(<span class="macro">utf16!</span>(<span class="string">&quot;lastIndex&quot;</span>), JsValue::new(next_index), <span class="bool-val">true</span>, context)<span class="question-mark">?</span>;
                 }
+
+                <span class="comment">// 4. Set n to n + 1.
+                </span>n += <span class="number">1</span>;
+            } <span class="kw">else </span>{
+                <span class="comment">// 1. If n = 0, return null.
+                </span><span class="kw">if </span>n == <span class="number">0 </span>{
+                    <span class="kw">return </span><span class="prelude-val">Ok</span>(JsValue::null());
+                }
+                <span class="comment">// 2. Return A.
+                </span><span class="kw">return </span><span class="prelude-val">Ok</span>(a.into());
             }
         }
     }
