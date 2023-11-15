@@ -1190,79 +1190,76 @@ impl RegExp {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let rx be the this value.
-        // 2. If Type(rx) is not Object, throw a TypeError exception.
-        let rx = this.as_object().ok_or_else(|| {
-            JsNativeError::typ()
+        // 2. If rx is not an Object, throw a TypeError exception.
+        let Some(rx) = this.as_object() else {
+            return Err(JsNativeError::typ()
                 .with_message("RegExp.prototype.match method called on incompatible value")
-        })?;
+                .into());
+        };
 
         // 3. Let S be ? ToString(string).
         let arg_str = args.get_or_undefined(0).to_string(context)?;
 
-        // 4. Let global be ! ToBoolean(? Get(rx, "global")).
-        let global = rx.get(utf16!("global"), context)?.to_boolean();
+        // 4. Let flags be ? ToString(? Get(rx, "flags")).
+        let flags = rx.get(utf16!("flags"), context)?.to_string(context)?;
 
-        // 5. If global is false, then
-        #[allow(clippy::if_not_else)]
-        if !global {
+        // 5. If flags does not contain "g", then
+        if !flags.contains(&103) {
             // a. Return ? RegExpExec(rx, S).
-            (Self::abstract_exec(rx, arg_str, context)?)
-                .map_or_else(|| Ok(JsValue::null()), |v| Ok(v.into()))
+            return (Self::abstract_exec(rx, arg_str, context)?)
+                .map_or_else(|| Ok(JsValue::null()), |v| Ok(v.into()));
+        }
+
         // 6. Else,
-        } else {
-            // a. Assert: global is true.
 
-            // b. Let fullUnicode be ! ToBoolean(? Get(rx, "unicode")).
-            let unicode = rx.get(utf16!("unicode"), context)?.to_boolean();
+        // a. If flags contains "u" or flags contains "v", let fullUnicode be true. Otherwise, let fullUnicode be false.
+        let full_unicode = flags.contains(&117) || flags.contains(&118);
 
-            // c. Perform ? Set(rx, "lastIndex", +0𝔽, true).
-            rx.set(utf16!("lastIndex"), 0, true, context)?;
+        // b. Perform ? Set(rx, "lastIndex", +0𝔽, true).
+        rx.set(utf16!("lastIndex"), 0, true, context)?;
 
-            // d. Let A be ! ArrayCreate(0).
-            let a =
-                Array::array_create(0, None, context).expect("this ArrayCreate call must not fail");
+        // c. Let A be ! ArrayCreate(0).
+        let a = Array::array_create(0, None, context).expect("this ArrayCreate call must not fail");
 
-            // e. Let n be 0.
-            let mut n = 0;
+        // d. Let n be 0.
+        let mut n = 0;
 
-            // f. Repeat,
-            loop {
-                // i. Let result be ? RegExpExec(rx, S).
-                let result = Self::abstract_exec(rx, arg_str.clone(), context)?;
+        // e. Repeat,
+        loop {
+            // i. Let result be ? RegExpExec(rx, S).
+            let result = Self::abstract_exec(rx, arg_str.clone(), context)?;
 
-                // ii. If result is null, then
-                // iii. Else,
-                if let Some(result) = result {
-                    // 1. Let matchStr be ? ToString(? Get(result, "0")).
-                    let match_str = result.get(0, context)?.to_string(context)?;
+            // ii. If result is null, then
+            // iii. Else,
+            if let Some(result) = result {
+                // 1. Let matchStr be ? ToString(? Get(result, "0")).
+                let match_str = result.get(0, context)?.to_string(context)?;
 
-                    // 2. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(n)), matchStr).
-                    a.create_data_property_or_throw(n, match_str.clone(), context)
-                        .expect("this CreateDataPropertyOrThrow call must not fail");
+                // 2. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(n)), matchStr).
+                a.create_data_property_or_throw(n, match_str.clone(), context)
+                    .expect("this CreateDataPropertyOrThrow call must not fail");
 
-                    // 3. If matchStr is the empty String, then
-                    if match_str.is_empty() {
-                        // a. Let thisIndex be ℝ(? ToLength(? Get(rx, "lastIndex"))).
-                        let this_index =
-                            rx.get(utf16!("lastIndex"), context)?.to_length(context)?;
+                // 3. If matchStr is the empty String, then
+                if match_str.is_empty() {
+                    // a. Let thisIndex be ℝ(? ToLength(? Get(rx, "lastIndex"))).
+                    let this_index = rx.get(utf16!("lastIndex"), context)?.to_length(context)?;
 
-                        // b. Let nextIndex be AdvanceStringIndex(S, thisIndex, fullUnicode).
-                        let next_index = advance_string_index(&arg_str, this_index, unicode);
+                    // b. Let nextIndex be AdvanceStringIndex(S, thisIndex, fullUnicode).
+                    let next_index = advance_string_index(&arg_str, this_index, full_unicode);
 
-                        // c. Perform ? Set(rx, "lastIndex", 𝔽(nextIndex), true).
-                        rx.set(utf16!("lastIndex"), JsValue::new(next_index), true, context)?;
-                    }
-
-                    // 4. Set n to n + 1.
-                    n += 1;
-                } else {
-                    // 1. If n = 0, return null.
-                    if n == 0 {
-                        return Ok(JsValue::null());
-                    }
-                    // 2. Return A.
-                    return Ok(a.into());
+                    // c. Perform ? Set(rx, "lastIndex", 𝔽(nextIndex), true).
+                    rx.set(utf16!("lastIndex"), JsValue::new(next_index), true, context)?;
                 }
+
+                // 4. Set n to n + 1.
+                n += 1;
+            } else {
+                // 1. If n = 0, return null.
+                if n == 0 {
+                    return Ok(JsValue::null());
+                }
+                // 2. Return A.
+                return Ok(a.into());
             }
         }
     }
