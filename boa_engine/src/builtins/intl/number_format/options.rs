@@ -2,10 +2,12 @@ use std::fmt;
 
 use crate::builtins::options::{ParsableOptionType, RoundingMode};
 
+use super::RoundingIncrement;
+
 #[derive(Debug)]
 pub(crate) struct DigitFormatOptions {
     pub(crate) minimum_integer_digits: u8,
-    pub(crate) rounding_increment: u16,
+    pub(crate) rounding_increment: RoundingIncrement,
     pub(crate) rounding_mode: RoundingMode,
     pub(crate) trailing_zero_display: TrailingZeroDisplay,
     pub(crate) rounding_type: RoundingType,

@@ -438,7 +438,7 @@ pub enum ObjectKind {
     SegmentIterator(SegmentIterator),
     /// The `PluralRules` object kind.
     #[cfg(feature = "intl")]
-    PluralRules(PluralRules),
+    PluralRules(Box<PluralRules>),
 
     /// The `Temporal.Instant` object kind.
     #[cfg(feature = "temporal")]
@@ -982,7 +982,7 @@ impl ObjectData {
     #[must_use]
     pub fn plural_rules(plural_rules: PluralRules) -> Self {
         Self {
-            kind: ObjectKind::PluralRules(plural_rules),
+            kind: ObjectKind::PluralRules(Box::new(plural_rules)),
             internal_methods: &ORDINARY_INTERNAL_METHODS,
         }
     }
