@@ -34,3 +34,6 @@ bus = "2.4.1"
 
 [features]
 default = ["boa_engine/intl", "boa_engine/experimental", "boa_engine/annex-b"]
+
+[lints]
+workspace = true

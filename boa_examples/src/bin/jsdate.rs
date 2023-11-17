@@ -40,7 +40,7 @@ fn main() -> JsResult<()> {
     .as_number()
     .unwrap();
 
-    assert_eq!(timestamp, 823230245000.0);
+    assert_eq!(timestamp, 823_230_245_000.0);
 
     // Gets the current time in UTC time.
     let date = JsDate::new(context);

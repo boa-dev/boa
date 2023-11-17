@@ -2,6 +2,11 @@
     html_logo_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg",
     html_favicon_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"
 )]
+#![allow(
+    unused_crate_dependencies,
+    missing_docs,
+    rustdoc::missing_crate_level_docs
+)]
 
 use std::{error::Error, fs::File};
 

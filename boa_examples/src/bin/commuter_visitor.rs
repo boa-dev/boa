@@ -53,7 +53,7 @@ impl<'ast> VisitorMut<'ast> for CommutorVisitor {
                     let mut exchanger = OpExchanger::default();
                     assert!(matches!(
                         exchanger.visit_binary_mut(node),
-                        ControlFlow::Break(_)
+                        ControlFlow::Break(())
                     ));
                 }
                 _ => {}
@@ -74,7 +74,7 @@ fn main() {
 
     assert!(matches!(
         visitor.visit_statement_list_mut(script.statements_mut()),
-        ControlFlow::Continue(_)
+        ControlFlow::Continue(())
     ));
 
     println!("{}", script.to_interned_string(ctx.interner()));

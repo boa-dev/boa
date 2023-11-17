@@ -85,7 +85,7 @@ impl Class for Person {
     }
 
     /// Here is where the class is initialized.
-    fn init(class: &mut ClassBuilder) -> JsResult<()> {
+    fn init(class: &mut ClassBuilder<'_>) -> JsResult<()> {
         // We add a inheritable method `sayHello` with `0` arguments of length.
         //
         // This function is added to the `Person` prototype.

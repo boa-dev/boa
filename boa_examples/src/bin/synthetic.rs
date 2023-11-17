@@ -68,7 +68,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     match promise_result.state() {
         PromiseState::Pending => return Err("module didn't execute!".into()),
         PromiseState::Fulfilled(v) => {
-            assert_eq!(v, JsValue::undefined())
+            assert_eq!(v, JsValue::undefined());
         }
         PromiseState::Rejected(err) => {
             return Err(JsError::from_opaque(err).try_native(context)?.into())

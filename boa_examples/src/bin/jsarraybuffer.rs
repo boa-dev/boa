@@ -17,7 +17,7 @@ fn main() -> JsResult<()> {
     // We can now create an typed array to access the data.
     let uint32_typed_array = JsUint32Array::from_array_buffer(array_buffer, context)?;
 
-    let value = 0x12345678u32;
+    let value = 0x1234_5678_u32;
     uint32_typed_array.set(0_u64, value, true, context)?;
 
     assert_eq!(uint32_typed_array.get(0_u64, context)?, JsValue::new(value));

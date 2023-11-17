@@ -34,16 +34,16 @@ impl<'a> Queue<'a> {
     }
 }
 
-impl<'a> JobQueue for Queue<'a> {
-    fn enqueue_promise_job(&self, job: NativeJob, _context: &mut boa_engine::Context) {
+impl JobQueue for Queue<'_> {
+    fn enqueue_promise_job(&self, job: NativeJob, _context: &mut Context) {
         self.jobs.borrow_mut().push_back(job);
     }
 
-    fn enqueue_future_job(&self, future: FutureJob, _context: &mut boa_engine::Context) {
-        self.futures.borrow().push(future)
+    fn enqueue_future_job(&self, future: FutureJob, _context: &mut Context) {
+        self.futures.borrow().push(future);
     }
 
-    fn run_jobs(&self, context: &mut boa_engine::Context) {
+    fn run_jobs(&self, context: &mut Context) {
         // Early return in case there were no jobs scheduled.
         if self.jobs.borrow().is_empty() && self.futures.borrow().is_empty() {
             return;
@@ -55,7 +55,7 @@ impl<'a> JobQueue for Queue<'a> {
             // Used to sync the finalization of both tasks
             let finished = Cell::new(0b00u8);
 
-            let fqueue = async {
+            let fut_queue = async {
                 loop {
                     if self.futures.borrow().is_empty() {
                         finished.set(finished.get() | 0b01);
@@ -82,7 +82,7 @@ impl<'a> JobQueue for Queue<'a> {
                 }
             };
 
-            let jqueue = async {
+            let job_queue = async {
                 loop {
                     if self.jobs.borrow().is_empty() {
                         finished.set(finished.get() | 0b10);
@@ -109,8 +109,8 @@ impl<'a> JobQueue for Queue<'a> {
             };
 
             // Wait for both queues to complete
-            future::zip(fqueue, jqueue).await;
-        }))
+            future::zip(fut_queue, job_queue).await;
+        }));
     }
 }
 
@@ -126,7 +126,7 @@ fn delay(
         let millis = millis?;
         println!("Delaying for {millis} milliseconds ...");
         let now = Instant::now();
-        smol::Timer::after(Duration::from_millis(millis as u64)).await;
+        smol::Timer::after(Duration::from_millis(u64::from(millis))).await;
         let elapsed = now.elapsed().as_secs_f64();
         Ok(elapsed.into())
     }
@@ -163,7 +163,7 @@ fn main() {
     add_runtime(context);
 
     // Multiple calls to multiple async timers.
-    let script = r#"
+    let script = r"
         function print(elapsed) {
             console.log(`Finished. elapsed time: ${elapsed * 1000} ms`)
         }
@@ -172,7 +172,7 @@ fn main() {
         delay(200).then(print);
         delay(600).then(print);
         delay(30).then(print);
-    "#;
+    ";
 
     let now = Instant::now();
     context.eval(Source::from_bytes(script)).unwrap();

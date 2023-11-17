@@ -151,7 +151,7 @@ unsafe impl Trace for JsSymbol {
 macro_rules! well_known_symbols {
     ( $( $(#[$attr:meta])* ($name:ident, $variant:path) ),+$(,)? ) => {
         $(
-            $(#[$attr])* pub const fn $name() -> JsSymbol {
+            $(#[$attr])* #[must_use] pub const fn $name() -> JsSymbol {
                 JsSymbol {
                     // the cast shouldn't matter since we only have 127 const symbols
                     repr: Tagged::from_tag($variant.hash() as usize),

@@ -122,9 +122,15 @@ jobs:
         with:
           key: clippy
       - name: Clippy (All features)
-        run: cargo workspaces exec cargo clippy --all-features --all-targets -- -D warnings
+        run: cargo workspaces exec cargo clippy --all-features --all-targets
       - name: Clippy (No features)
-        run: cargo workspaces exec cargo clippy --no-default-features --all-targets -- -D warnings
+        run: cargo workspaces exec cargo clippy --no-default-features --all-targets
+      - name: Clippy (Intl)
+        run: cargo clippy -p boa_engine --features intl
+      - name: Clippy (Annex-B)
+        run: cargo clippy -p boa_engine --features annex-b
+      - name: Clippy (Experimental)
+        run: cargo clippy -p boa_engine --features experimental
 
   docs:
     name: Documentation

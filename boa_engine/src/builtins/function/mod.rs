@@ -253,7 +253,7 @@ impl OrdinaryFunction {
         &self.realm
     }
 
-    /// Check if function is [`FunctionKind::Ordinary`].
+    /// Checks if this function is an ordinary function.
     pub(crate) fn is_ordinary(&self) -> bool {
         self.code.is_ordinary()
     }

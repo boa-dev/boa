@@ -141,14 +141,14 @@ mod tests {
 
     /// Checks that we cannot create a position with 0 as the column.
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "column number cannot be 0")]
     fn invalid_position_column() {
         Position::new(10, 0);
     }
 
     /// Checks that we cannot create a position with 0 as the line.
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "line number cannot be 0")]
     fn invalid_position_line() {
         Position::new(0, 10);
     }
@@ -195,7 +195,7 @@ mod tests {
 
     /// Checks that we cannot create an invalid span.
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "a span cannot start after its end")]
     fn invalid_span() {
         let a = Position::new(10, 30);
         let b = Position::new(10, 50);
