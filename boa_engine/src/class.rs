@@ -28,7 +28,7 @@
 //!     const LENGTH: usize = 1;
 //!
 //!     // This is what is called when we do `new Animal()` to construct the inner data of the class.
-//!     fn make_data(_this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<Self> {
+//!     fn make_data(_new_target: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<Self> {
 //!         // This is equivalent to `String(arg)`.
 //!         let kind = args.get_or_undefined(0).to_string(context)?;
 //!
@@ -91,7 +91,7 @@ pub trait Class: NativeObject + Sized {
     /// Creates the internal data for an instance of this class.
     ///
     /// This method can also be called the "native constructor" of this class.
-    fn make_data(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<Self>;
+    fn make_data(new_target: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<Self>;
 
     /// Initializes the properties and methods of this class.
     fn init(class: &mut ClassBuilder<'_>) -> JsResult<()>;
