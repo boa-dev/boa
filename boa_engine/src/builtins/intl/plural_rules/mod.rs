@@ -6,6 +6,7 @@ use fixed_decimal::FixedDecimal;
 use icu_locid::Locale;
 use icu_plurals::{
     provider::CardinalV1Marker, PluralCategory, PluralRuleType, PluralRules as NativePluralRules,
+    PluralRulesWithRanges,
 };
 use icu_provider::DataLocale;
 
@@ -36,7 +37,7 @@ use super::{
 #[derive(Debug)]
 pub struct PluralRules {
     locale: Locale,
-    native: NativePluralRules,
+    native: PluralRulesWithRanges<NativePluralRules>,
     rule_type: PluralRuleType,
     format_options: DigitFormatOptions,
 }
@@ -64,6 +65,7 @@ impl IntrinsicObject for PluralRules {
             )
             .method(Self::resolved_options, js_string!("resolvedOptions"), 0)
             .method(Self::select, js_string!("select"), 1)
+            .method(Self::select_range, js_string!("selectRange"), 2)
             .build();
     }
 
@@ -93,6 +95,12 @@ impl BuiltInConstructor for PluralRules {
                 .with_message("cannot call `Intl.PluralRules` constructor without `new`")
                 .into());
         }
+        let proto = get_prototype_from_constructor(
+            new_target,
+            StandardConstructors::plural_rules,
+            context,
+        )?;
+
         // 2. Let pluralRules be ? OrdinaryCreateFromConstructor(NewTarget, "%PluralRules.prototype%",
         //    « [[InitializedPluralRules]], [[Locale]], [[Type]], [[MinimumIntegerDigits]],
         //    [[MinimumFractionDigits]], [[MaximumFractionDigits]], [[MinimumSignificantDigits]],
@@ -136,11 +144,11 @@ impl BuiltInConstructor for PluralRules {
         );
 
         let native = match rule_type {
-            PluralRuleType::Cardinal => NativePluralRules::try_new_cardinal_unstable(
+            PluralRuleType::Cardinal => PluralRulesWithRanges::try_new_cardinal_unstable(
                 context.icu().provider(),
                 &DataLocale::from(&locale),
             ),
-            PluralRuleType::Ordinal => NativePluralRules::try_new_ordinal_unstable(
+            PluralRuleType::Ordinal => PluralRulesWithRanges::try_new_ordinal_unstable(
                 context.icu().provider(),
                 &DataLocale::from(&locale),
             ),
@@ -151,12 +159,6 @@ impl BuiltInConstructor for PluralRules {
             }
         }
         .map_err(|e| JsNativeError::typ().with_message(e.to_string()))?;
-
-        let proto = get_prototype_from_constructor(
-            new_target,
-            StandardConstructors::plural_rules,
-            context,
-        )?;
 
         // 12. Return pluralRules.
         Ok(JsObject::from_proto_and_data_with_shared_shape(
@@ -187,20 +189,86 @@ impl PluralRules {
         // 1. Let pr be the this value.
         // 2. Perform ? RequireInternalSlot(pr, [[InitializedPluralRules]]).
         let plural_rules = this.as_object().map(JsObject::borrow).ok_or_else(|| {
-            JsNativeError::typ().with_message(
-                "`resolved_options` can only be called on an `Intl.PluralRules` object",
-            )
+            JsNativeError::typ()
+                .with_message("`select` can only be called on an `Intl.PluralRules` object")
         })?;
         let plural_rules = plural_rules.as_plural_rules().ok_or_else(|| {
-            JsNativeError::typ().with_message(
-                "`resolved_options` can only be called on an `Intl.PluralRules` object",
-            )
+            JsNativeError::typ()
+                .with_message("`select` can only be called on an `Intl.PluralRules` object")
         })?;
 
         let n = args.get_or_undefined(0).to_number(context)?;
 
         Ok(plural_category_to_js_string(resolve_plural(plural_rules, n).category).into())
     }
+
+    /// [`Intl.PluralRules.prototype.selectRange ( start, end )`][spec].
+    ///
+    /// Receives two values and returns a string indicating which plural rule to use for
+    /// locale-aware formatting of the indicated range.
+    ///
+    /// More information:
+    /// - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma402/#sec-intl.pluralrules.prototype.selectrange
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/PluralRules/selectRange
+    fn select_range(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        // 1. Let pr be the this value.
+        // 2. Perform ? RequireInternalSlot(pr, [[InitializedPluralRules]]).
+        let plural_rules = this.as_object().map(JsObject::borrow).ok_or_else(|| {
+            JsNativeError::typ()
+                .with_message("`select_range` can only be called on an `Intl.PluralRules` object")
+        })?;
+        let plural_rules = plural_rules.as_plural_rules().ok_or_else(|| {
+            JsNativeError::typ()
+                .with_message("`select_range` can only be called on an `Intl.PluralRules` object")
+        })?;
+
+        // 3. If start is undefined or end is undefined, throw a TypeError exception.
+        let x = args.get_or_undefined(0);
+        let y = args.get_or_undefined(1);
+        if x.is_undefined() || y.is_undefined() {
+            return Err(JsNativeError::typ()
+                .with_message("extremum of range cannot be `undefined`")
+                .into());
+        }
+
+        // 4. Let x be ? ToNumber(start).
+        let x = x.to_number(context)?;
+        // 5. Let y be ? ToNumber(end).
+        let y = y.to_number(context)?;
+
+        // 6. Return ? ResolvePluralRange(pr, x, y).
+        // ResolvePluralRange(pr, x, y)
+        // <https://tc39.es/ecma402/#sec-resolvepluralrange>
+
+        // 1. If x is NaN or y is NaN, throw a RangeError exception.
+        if x.is_nan() || y.is_nan() {
+            return Err(JsNativeError::typ()
+                .with_message("extremum of range cannot be NaN")
+                .into());
+        }
+
+        // 2. Let xp be ResolvePlural(pluralRules, x).
+        let x = resolve_plural(plural_rules, x);
+        // 3. Let yp be ResolvePlural(pluralRules, y).
+        let y = resolve_plural(plural_rules, y);
+
+        // 4. If xp.[[FormattedString]] is yp.[[FormattedString]], then
+        if x.formatted == y.formatted {
+            // a. Return xp.[[PluralCategory]].
+            return Ok(plural_category_to_js_string(x.category).into());
+        }
+
+        // 5. Let locale be pluralRules.[[Locale]].
+        // 6. Let type be pluralRules.[[Type]].
+        // 7. Return PluralRuleSelectRange(locale, type, xp.[[PluralCategory]], yp.[[PluralCategory]]).
+        Ok(
+            plural_category_to_js_string(plural_rules.native.resolve_range(x.category, y.category))
+                .into(),
+        )
+    }
+
     /// [`Intl.PluralRules.supportedLocalesOf ( locales [ , options ] )`][spec].
     ///
     /// Returns an array containing those of the provided locales that are supported in plural rules
@@ -322,7 +390,7 @@ impl PluralRules {
             )
             .property(
                 js_string!("roundingIncrement"),
-                plural_rules.format_options.rounding_increment,
+                plural_rules.format_options.rounding_increment.to_u16(),
                 Attribute::all(),
             )
             .property(
@@ -339,6 +407,7 @@ impl PluralRules {
         let plural_categories = Array::create_array_from_list(
             plural_rules
                 .native
+                .rules()
                 .categories()
                 .map(|category| plural_category_to_js_string(category).into()),
             options.context(),
@@ -401,7 +470,7 @@ fn resolve_plural(plural_rules: &PluralRules, n: f64) -> ResolvedPlural {
     // 8. Let s be res.[[FormattedString]].
     // 9. Let operands be ! GetOperands(s).
     // 10. Let p be ! PluralRuleSelect(locale, type, n, operands).
-    let category = plural_rules.native.category_for(&fixed);
+    let category = plural_rules.native.rules().category_for(&fixed);
 
     // 11. Return the Record { [[PluralCategory]]: p, [[FormattedString]]: s }.
     ResolvedPlural {

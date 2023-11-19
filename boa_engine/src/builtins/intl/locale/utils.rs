@@ -325,6 +325,8 @@ where
         //    extension sequences removed.
         let mut locale = locale.clone();
         let id = std::mem::take(&mut locale.id);
+        locale.extensions.transform.clear();
+        locale.extensions.private.clear();
 
         // b. Let availableLocale be ! BestAvailableLocale(availableLocales, noExtensionsLocale).
         let available_locale = best_available_locale::<M>(id, icu.provider());
@@ -371,6 +373,8 @@ where
         }))
     {
         let id = std::mem::take(&mut locale.id);
+        locale.extensions.transform.clear();
+        locale.extensions.private.clear();
 
         if let Some(available) = best_locale_for_provider(id, icu.provider()) {
             locale.id = available;

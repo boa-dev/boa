@@ -1,5 +1,5 @@
 use boa_macros::utf16;
-use fixed_decimal::{FixedDecimal, FloatPrecision};
+use fixed_decimal::{FixedDecimal, FloatPrecision, RoundingIncrement as BaseMultiple};
 
 use crate::{
     builtins::{
@@ -14,6 +14,76 @@ use crate::{
 
 use super::{DigitFormatOptions, Notation, RoundingPriority};
 
+/// The increment of a rounding operation.
+///
+/// This differs from [`fixed_decimal::RoundingIncrement`] because ECMA402 accepts
+/// several more increments than `fixed_decimal`, but all increments can be decomposed
+/// into the target multiple and the magnitude offset.
+///
+/// For example, rounding the number `0.02456` to the increment 200 at position
+/// -3 is equivalent to rounding the same number to the increment 2 at position -1, and adding
+/// trailing zeroes.
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+pub(crate) struct RoundingIncrement {
+    multiple: BaseMultiple,
+    // INVARIANT: can only be 0, 1, 2, or 3
+    magnitude_offset: u8,
+}
+
+impl RoundingIncrement {
+    /// Creates a `RoundingIncrement` from the numeric value of the increment.
+    fn from_u16(increment: u16) -> Option<Self> {
+        let mut offset = 0u8;
+        let multiple = loop {
+            let rem = increment % 10u16.checked_pow(u32::from(offset + 1))?;
+
+            if rem != 0 {
+                break increment / 10u16.pow(u32::from(offset));
+            }
+
+            offset += 1;
+        };
+
+        if offset > 3 {
+            return None;
+        }
+
+        let multiple = match multiple {
+            1 => BaseMultiple::MultiplesOf1,
+            2 => BaseMultiple::MultiplesOf2,
+            5 => BaseMultiple::MultiplesOf5,
+            25 => BaseMultiple::MultiplesOf25,
+            _ => return None,
+        };
+
+        Some(RoundingIncrement {
+            multiple,
+            magnitude_offset: offset,
+        })
+    }
+
+    /// Gets the numeric value of this `RoundingIncrement`.
+    pub(crate) fn to_u16(self) -> u16 {
+        u16::from(self.magnitude_offset + 1)
+            * match self.multiple {
+                BaseMultiple::MultiplesOf1 => 1,
+                BaseMultiple::MultiplesOf2 => 2,
+                BaseMultiple::MultiplesOf5 => 5,
+                BaseMultiple::MultiplesOf25 => 25,
+                _ => {
+                    debug_assert!(false, "base multiples can only be 1, 2, 5, or 25");
+                    1
+                }
+            }
+    }
+
+    /// Gets the magnitude offset that needs to be added to the rounding position
+    /// for this rounding increment.
+    fn magnitude_offset(self) -> i16 {
+        i16::from(self.magnitude_offset)
+    }
+}
+
 /// Abstract operation [`SetNumberFormatDigitOptions ( intlObj, options, mnfdDefault, mxfdDefault, notation )`][spec].
 ///
 /// Gets the digit format options of the number formatter from the options object and the requested notation.
@@ -26,10 +96,6 @@ pub(crate) fn get_digit_format_options(
     notation: Notation,
     context: &mut Context,
 ) -> JsResult<DigitFormatOptions> {
-    const VALID_ROUNDING_INCREMENTS: [u16; 15] = [
-        1, 2, 5, 10, 20, 25, 50, 100, 200, 250, 500, 1000, 2000, 2500, 5000,
-    ];
-
     // 1. Let mnid be ? GetNumberOption(options, "minimumIntegerDigits,", 1, 21, 1).
     let minimum_integer_digits =
         get_number_option(options, utf16!("minimumIntegerDigits"), 1, 21, context)?.unwrap_or(1);
@@ -51,11 +117,9 @@ pub(crate) fn get_digit_format_options(
     let rounding_increment =
         get_number_option(options, utf16!("roundingIncrement"), 1, 5000, context)?.unwrap_or(1);
 
-    if !VALID_ROUNDING_INCREMENTS.contains(&rounding_increment) {
-        return Err(JsNativeError::range()
-            .with_message("invalid value for option `roundingIncrement`")
-            .into());
-    }
+    let rounding_increment = RoundingIncrement::from_u16(rounding_increment).ok_or_else(|| {
+        JsNativeError::range().with_message("invalid value for option `roundingIncrement`")
+    })?;
 
     // 10. Let roundingMode be ? GetOption(options, "roundingMode", string, « "ceil", "floor", "expand", "trunc", "halfCeil", "halfFloor", "halfExpand", "halfTrunc", "halfEven" », "halfExpand").
     let rounding_mode = get_option(options, utf16!("roundingMode"), context)?.unwrap_or_default();
@@ -67,7 +131,7 @@ pub(crate) fn get_digit_format_options(
     // 12. NOTE: All fields required by SetNumberFormatDigitOptions have now been read from options. The remainder of this AO interprets the options and may throw exceptions.
 
     // 13. If roundingIncrement is not 1, set mxfdDefault to mnfdDefault.
-    if rounding_increment != 1 {
+    if rounding_increment.to_u16() != 1 {
         max_float_digits_default = min_float_digits_default;
     }
 
@@ -220,7 +284,7 @@ pub(crate) fn get_digit_format_options(
         (None, Some(frac)) => RoundingType::FractionDigits(frac),
     };
 
-    if rounding_increment != 1 {
+    if rounding_increment.to_u16() != 1 {
         let RoundingType::FractionDigits(range) = rounding_type else {
             return Err(JsNativeError::typ()
                 .with_message("option `roundingIncrement` invalid for the current set of options")
@@ -257,17 +321,17 @@ pub(crate) fn f64_to_formatted_fixed_decimal(
     number: f64,
     options: &DigitFormatOptions,
 ) -> FixedDecimal {
-    fn round(number: &mut FixedDecimal, position: i16, mode: RoundingMode) {
+    fn round(number: &mut FixedDecimal, position: i16, mode: RoundingMode, multiple: BaseMultiple) {
         match mode {
-            RoundingMode::Ceil => number.ceil(position),
-            RoundingMode::Floor => number.floor(position),
-            RoundingMode::Expand => number.expand(position),
-            RoundingMode::Trunc => number.trunc(position),
-            RoundingMode::HalfCeil => number.half_ceil(position),
-            RoundingMode::HalfFloor => number.half_floor(position),
-            RoundingMode::HalfExpand => number.half_expand(position),
-            RoundingMode::HalfTrunc => number.half_trunc(position),
-            RoundingMode::HalfEven => number.half_even(position),
+            RoundingMode::Ceil => number.ceil_to_increment(position, multiple),
+            RoundingMode::Floor => number.floor_to_increment(position, multiple),
+            RoundingMode::Expand => number.expand_to_increment(position, multiple),
+            RoundingMode::Trunc => number.trunc_to_increment(position, multiple),
+            RoundingMode::HalfCeil => number.half_ceil_to_increment(position, multiple),
+            RoundingMode::HalfFloor => number.half_floor_to_increment(position, multiple),
+            RoundingMode::HalfExpand => number.half_expand_to_increment(position, multiple),
+            RoundingMode::HalfTrunc => number.half_trunc_to_increment(position, multiple),
+            RoundingMode::HalfEven => number.half_even_to_increment(position, multiple),
         }
     }
 
@@ -282,7 +346,7 @@ pub(crate) fn f64_to_formatted_fixed_decimal(
         let min_msb = msb - i16::from(min_precision) + 1;
         let max_msb = msb - i16::from(max_precision) + 1;
         number.pad_end(min_msb);
-        round(number, max_msb, rounding_mode);
+        round(number, max_msb, rounding_mode, BaseMultiple::MultiplesOf1);
         max_msb
     }
 
@@ -291,12 +355,21 @@ pub(crate) fn f64_to_formatted_fixed_decimal(
         number: &mut FixedDecimal,
         min_fraction: u8,
         max_fraction: u8,
-        // TODO: missing support for `roundingIncrement` on `FixedDecimal`.
-        _rounding_increment: u16,
+        rounding_increment: RoundingIncrement,
         rounding_mode: RoundingMode,
     ) -> i16 {
+        #[cfg(debug_assertions)]
+        if rounding_increment.to_u16() != 1 {
+            assert_eq!(min_fraction, max_fraction);
+        }
+
         number.pad_end(-i16::from(min_fraction));
-        round(number, -i16::from(max_fraction), rounding_mode);
+        round(
+            number,
+            rounding_increment.magnitude_offset() - i16::from(max_fraction),
+            rounding_mode,
+            rounding_increment.multiple,
+        );
         -i16::from(max_fraction)
     }
 
@@ -404,4 +477,49 @@ pub(crate) fn f64_to_formatted_fixed_decimal(
 
     // 14. Return the Record { [[RoundedNumber]]: x, [[FormattedString]]: string }.
     number
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::builtins::intl::number_format::RoundingIncrement;
+    use fixed_decimal::RoundingIncrement::*;
+
+    #[test]
+    fn u16_to_rounding_increment_sunny_day() {
+        #[rustfmt::skip]
+        const VALID_CASES: [(u16, RoundingIncrement); 15] = [
+            // Singles
+            (1, RoundingIncrement { multiple: MultiplesOf1, magnitude_offset: 0 }),
+            (2, RoundingIncrement { multiple: MultiplesOf2, magnitude_offset: 0 }),
+            (5, RoundingIncrement { multiple: MultiplesOf5, magnitude_offset: 0 }),
+            // Tens
+            (10, RoundingIncrement { multiple: MultiplesOf1, magnitude_offset: 1 }),
+            (20, RoundingIncrement { multiple: MultiplesOf2, magnitude_offset: 1 }),
+            (25, RoundingIncrement { multiple: MultiplesOf25, magnitude_offset: 0 }),
+            (50, RoundingIncrement { multiple: MultiplesOf5, magnitude_offset: 1 }),
+            // Hundreds
+            (100, RoundingIncrement { multiple: MultiplesOf1, magnitude_offset: 2 }),
+            (200, RoundingIncrement { multiple: MultiplesOf2, magnitude_offset: 2 }),
+            (250, RoundingIncrement { multiple: MultiplesOf25, magnitude_offset: 1 }),
+            (500, RoundingIncrement { multiple: MultiplesOf5, magnitude_offset: 2 }),
+            // Thousands
+            (1000, RoundingIncrement { multiple: MultiplesOf1, magnitude_offset: 3 }),
+            (2000, RoundingIncrement { multiple: MultiplesOf2, magnitude_offset: 3 }),
+            (2500, RoundingIncrement { multiple: MultiplesOf25, magnitude_offset: 2 }),
+            (5000, RoundingIncrement { multiple: MultiplesOf5, magnitude_offset: 3 }),
+        ];
+
+        for (num, increment) in VALID_CASES {
+            assert_eq!(RoundingIncrement::from_u16(num), Some(increment));
+        }
+    }
+
+    #[test]
+    fn u16_to_rounding_increment_rainy_day() {
+        const INVALID_CASES: [u16; 9] = [0, 4, 6, 24, 10000, 65535, 7373, 140, 1500];
+
+        for num in INVALID_CASES {
+            assert!(RoundingIncrement::from_u16(num).is_none());
+        }
+    }
 }
