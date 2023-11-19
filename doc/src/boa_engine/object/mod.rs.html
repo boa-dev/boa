@@ -3513,7 +3513,7 @@
     </span>SegmentIterator(SegmentIterator),
     <span class="doccomment">/// The `PluralRules` object kind.
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
-    </span>PluralRules(PluralRules),
+    </span>PluralRules(Box&lt;PluralRules&gt;),
 
     <span class="doccomment">/// The `Temporal.Instant` object kind.
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
@@ -4057,7 +4057,7 @@
     #[must_use]
     </span><span class="kw">pub fn </span>plural_rules(plural_rules: PluralRules) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            kind: ObjectKind::PluralRules(plural_rules),
+            kind: ObjectKind::PluralRules(Box::new(plural_rules)),
             internal_methods: <span class="kw-2">&amp;</span>ORDINARY_INTERNAL_METHODS,
         }
     }

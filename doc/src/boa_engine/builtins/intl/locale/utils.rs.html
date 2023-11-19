@@ -652,6 +652,10 @@
 <a href="#652" id="652">652</a>
 <a href="#653" id="653">653</a>
 <a href="#654" id="654">654</a>
+<a href="#655" id="655">655</a>
+<a href="#656" id="656">656</a>
+<a href="#657" id="657">657</a>
+<a href="#658" id="658">658</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::{
         intl::{
@@ -979,6 +983,8 @@
         //    extension sequences removed.
         </span><span class="kw">let </span><span class="kw-2">mut </span>locale = locale.clone();
         <span class="kw">let </span>id = std::mem::take(<span class="kw-2">&amp;mut </span>locale.id);
+        locale.extensions.transform.clear();
+        locale.extensions.private.clear();
 
         <span class="comment">// b. Let availableLocale be ! BestAvailableLocale(availableLocales, noExtensionsLocale).
         </span><span class="kw">let </span>available_locale = best_available_locale::&lt;M&gt;(id, icu.provider());
@@ -1025,6 +1031,8 @@
         }))
     {
         <span class="kw">let </span>id = std::mem::take(<span class="kw-2">&amp;mut </span>locale.id);
+        locale.extensions.transform.clear();
+        locale.extensions.private.clear();
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(available) = best_locale_for_provider(id, icu.provider()) {
             locale.id = available;
