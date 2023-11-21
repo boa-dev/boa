@@ -156,7 +156,7 @@ pub(crate) fn epoch_time_to_epoch_year(t: f64) -> i32 {
     // roughly calculate the largest possible year given the time t,
     // then check and refine the year.
     let day_count = epoch_time_to_day_number(t);
-    let mut year = day_count / 365;
+    let mut year = (day_count / 365) + 1970;
     loop {
         if epoch_time_for_year(year) <= t {
             break;
@@ -164,7 +164,7 @@ pub(crate) fn epoch_time_to_epoch_year(t: f64) -> i32 {
         year -= 1;
     }
 
-    year + 1970
+    year
 }
 
 /// Returns either 1 (true) or 0 (false)

@@ -57,5 +57,5 @@ fn run_custom_calendar() {
         TestAction::assert_eq("cal.daysInMonth(date)", 14),
         TestAction::assert_eq("cal.daysInWeek(date)", 6),
         TestAction::assert_eq("cal.daysInYear(date)", 360),
-    ])
+    ]);
 }

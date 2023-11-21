@@ -46,13 +46,14 @@ bitflags! {
 
 /// The post conversion field value.
 #[derive(Debug)]
+#[allow(variant_size_differences)]
 pub enum FieldValue {
     /// Designates the values as an integer.
     Integer(i32),
-    /// Designates the value as a string.
-    String(String),
     /// Designates that the value is undefined.
     Undefined,
+    /// Designates the value as a string.
+    String(String),
 }
 
 /// The Conversion type of a field.
@@ -320,7 +321,7 @@ impl TemporalFields {
         let FieldValue::String(offset) = value else {
             return Err(TemporalError::r#type().with_message("offset must be string."));
         };
-        self.offset = Some(offset.clone());
+        self.offset = Some(offset.to_string());
         self.bit_map.set(FieldMap::OFFSET, true);
 
         Ok(())
@@ -353,7 +354,7 @@ impl TemporalFields {
         let FieldValue::String(tz) = value else {
             return Err(TemporalError::r#type().with_message("tz must be string."));
         };
-        self.time_zone = Some(tz.clone());
+        self.time_zone = Some(tz.to_string());
         self.bit_map.set(FieldMap::TIME_ZONE, true);
         Ok(())
     }

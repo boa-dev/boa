@@ -297,7 +297,7 @@ impl core::fmt::Debug for dyn CalendarProtocol {
     }
 }
 
-/// The [[Calendar]] field slot of a Temporal Object.
+/// The `[[Calendar]]` field slot of a Temporal Object.
 #[derive(Debug)]
 pub enum CalendarSlot {
     /// The calendar identifier string.

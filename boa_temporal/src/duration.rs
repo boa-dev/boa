@@ -1173,7 +1173,7 @@ impl Duration {
         // 2. If zonedRelativeTo is not present, set zonedRelativeTo to undefined.
         let zoned_relative_to = relative_targets.1;
         // 3. If precalculatedPlainDateTime is not present, set precalculatedPlainDateTime to undefined.
-        let _precalc_pdt = relative_targets.2;
+        let _ = relative_targets.2;
 
         let (frac_days, frac_secs) = match unit {
             // 4. If unit is "year", "month", or "week", and plainRelativeTo is undefined, then

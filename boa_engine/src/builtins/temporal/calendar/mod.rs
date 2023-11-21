@@ -1139,23 +1139,12 @@ pub(crate) fn to_temporal_calendar_slot_value(
                 let calendar = date.inner.calendar().clone();
                 return Ok(calendar);
             }
-        } else if calendar_like.is_plain_date_time() {
-            // TODO
-            return Err(JsNativeError::range()
-                .with_message("Not yet implemented.")
-                .into());
-        } else if calendar_like.is_plain_year_month() {
-            // TODO
-            return Err(JsNativeError::range()
-                .with_message("Not yet implemented.")
-                .into());
-        } else if calendar_like.is_plain_month_day() {
-            // TODO
-            return Err(JsNativeError::range()
-                .with_message("Not yet implemented.")
-                .into());
-        } else if calendar_like.is_zoned_date_time() {
-            // TODO
+        } else if calendar_like.is_plain_date_time()
+            || calendar_like.is_plain_year_month()
+            || calendar_like.is_plain_month_day()
+            || calendar_like.is_zoned_date_time()
+        {
+            // TODO(nekevss): Separate out and reimplement the handling of different branches.
             return Err(JsNativeError::range()
                 .with_message("Not yet implemented.")
                 .into());
