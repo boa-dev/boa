@@ -75,8 +75,16 @@ fn main() -> JsResult<()> {
     .build();
 
     assert_eq!(
-        array.find_last(lower_than_200_predicate, None, context),
+        array.find_last(lower_than_200_predicate.clone(), None, context),
         Ok(JsValue::Integer(199))
+    );
+
+    let data: Vec<u8> = vec![90, 120, 150, 180, 210, 240];
+    let array = JsUint8Array::from_iter(data, context)?;
+
+    assert_eq!(
+        array.find_last_index(lower_than_200_predicate, None, context),
+        Ok(Some(3))
     );
 
     context
