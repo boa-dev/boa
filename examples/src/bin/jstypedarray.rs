@@ -60,6 +60,25 @@ fn main() -> JsResult<()> {
         Ok(Some(11))
     );
 
+    let lower_than_200_predicate = FunctionObjectBuilder::new(
+        context.realm(),
+        NativeFunction::from_fn_ptr(|_this, args, _context| {
+            let element = args
+                .get(0)
+                .cloned()
+                .unwrap_or_default()
+                .as_number()
+                .expect("error at number conversion");
+            Ok(JsValue::Boolean(element < 200.0))
+        }),
+    )
+    .build();
+
+    assert_eq!(
+        array.find_last(lower_than_200_predicate, None, context),
+        Ok(JsValue::Integer(199))
+    );
+
     context
         .register_global_property(
             js_string!("myUint8Array"),

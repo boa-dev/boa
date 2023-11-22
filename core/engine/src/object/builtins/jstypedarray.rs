@@ -331,6 +331,56 @@ impl JsTypedArray {
         }
     }
 
+    /// Iterates the typed array in reverse order and returns the value of 
+    /// the first element that satisfies the provided testing function. 
+    /// If no elements satisfy the testing function, `JsResult::Ok(None)` is returned.  
+    /// 
+    /// Calls `TypedArray.prototype.findLast()`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use boa_engine::{JsResult, object::{builtins::JsUint8Array, FunctionObjectBuilder}, NativeFunction, JsValue, Context};
+    /// # fn main() -> JsResult<()> {
+    /// let context = &mut Context::default();
+    /// let data: Vec<u8> = (0..=255).collect();
+    /// let array = JsUint8Array::from_iter(data, context)?;
+    ///
+    /// let lower_than_200_predicate = FunctionObjectBuilder::new(
+    ///     context.realm(),
+    ///     NativeFunction::from_fn_ptr(|_this, args, _context| {
+    ///         let element = args
+    ///             .first()
+    ///             .cloned()
+    ///             .unwrap_or_default()
+    ///             .as_number()
+    ///             .expect("error at number conversion");
+    ///         Ok(JsValue::Boolean(element < 200.0))
+    ///     }),
+    /// )
+    /// .build();
+    /// assert_eq!(
+    ///     array.find_last(lower_than_200_predicate.clone(), None, context),
+    ///     Ok(JsValue::Integer(199))
+    /// );
+    ///
+    /// # Ok(())
+    /// # }
+    /// ```
+    #[inline]
+    pub fn find_last(
+        &self,
+        predicate: JsFunction,
+        this_arg: Option<JsValue>,
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        BuiltinTypedArray::find_last(
+            &self.inner.clone().into(),
+            &[predicate.into(), this_arg.into_or_undefined()],
+            context,
+        )
+    }
+
     /// Calls `TypedArray.prototype.indexOf()`.
     pub fn index_of<T>(
         &self,
