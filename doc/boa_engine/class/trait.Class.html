@@ -5,7 +5,7 @@
 
     // Required methods
     fn <a href="#tymethod.make_data" class="fn">make_data</a>(
-        this: &amp;<a class="enum" href="../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
+        new_target: &amp;<a class="enum" href="../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
         args: &amp;[<a class="enum" href="../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
         context: &amp;mut <a class="struct" href="../struct.Context.html" title="struct boa_engine::Context">Context</a>
     ) -&gt; <a class="type" href="../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;Self&gt;;
@@ -23,7 +23,7 @@
 </div></details><details class="toggle" open><summary><section id="associatedconstant.ATTRIBUTES" class="method"><a class="src rightside" href="../../src/boa_engine/class.rs.html#89">source</a><h4 class="code-header">const <a href="#associatedconstant.ATTRIBUTES" class="constant">ATTRIBUTES</a>: <a class="struct" href="../property/attribute/struct.Attribute.html" title="struct boa_engine::property::attribute::Attribute">Attribute</a> = _</h4></section></summary><div class="docblock"><p>The property attributes of this class’ constructor in the global object.
 Default is <code>writable</code>, <code>enumerable</code>, <code>configurable</code>.</p>
 </div></details></div><h2 id="required-methods" class="small-section-header">Required Methods<a href="#required-methods" class="anchor">§</a></h2><div class="methods"><details class="toggle method-toggle" open><summary><section id="tymethod.make_data" class="method"><a class="src rightside" href="../../src/boa_engine/class.rs.html#94">source</a><h4 class="code-header">fn <a href="#tymethod.make_data" class="fn">make_data</a>(
-    this: &amp;<a class="enum" href="../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
+    new_target: &amp;<a class="enum" href="../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
     context: &amp;mut <a class="struct" href="../struct.Context.html" title="struct boa_engine::Context">Context</a>
 ) -&gt; <a class="type" href="../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;Self&gt;</h4></section></summary><div class="docblock"><p>Creates the internal data for an instance of this class.</p>
