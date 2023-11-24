@@ -78,6 +78,7 @@ use boa_gc::{custom_trace, Finalize, Trace, WeakGc};
 use std::{
     any::{Any, TypeId},
     fmt::{self, Debug},
+    mem,
     ops::{Deref, DerefMut},
 };
 
@@ -1986,6 +1987,19 @@ impl Object {
     pub fn as_native_object(&self) -> Option<&dyn NativeObject> {
         match self.kind {
             ObjectKind::NativeObject(ref object) => Some(object.as_ref()),
+            _ => None,
+        }
+    }
+
+    /// Sets the native object data returning the previous data, if the
+    /// object is a 'NativeObject'.
+    #[inline]
+    pub fn set_native_object_data<T: NativeObject>(
+        &mut self,
+        data: T,
+    ) -> Option<Box<dyn NativeObject>> {
+        match self.kind {
+            ObjectKind::NativeObject(ref mut object) => Some(mem::replace(object, Box::new(data))),
             _ => None,
         }
     }
