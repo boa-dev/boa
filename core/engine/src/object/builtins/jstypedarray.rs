@@ -439,6 +439,59 @@ impl JsTypedArray {
         }
     }
 
+    /// Executes a provided function once for each typed array element. 
+    /// 
+    /// Calls `TypedArray.prototype.forEach()`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use boa_gc::{Gc, GcRefCell};
+    /// # use boa_engine::{JsResult, object::{builtins::JsUint8Array, FunctionObjectBuilder}, NativeFunction, JsValue, Context};
+    /// # fn main() -> JsResult<()> {
+    /// let context = &mut Context::default();
+    /// let array = JsUint8Array::from_iter(vec![1, 2, 3, 4, 5], context)?;
+    /// let num_to_modify = Gc::new(GcRefCell::new(0u8));
+    ///
+    /// let js_function = FunctionObjectBuilder::new(
+    ///     context.realm(),
+    ///     NativeFunction::from_copy_closure_with_captures(
+    ///         |_, args, captures, inner_context| {
+    ///             let element = args
+    ///                 .first()
+    ///                 .cloned()
+    ///                 .unwrap_or_default()
+    ///                 .to_uint8(inner_context)
+    ///                 .expect("error at number conversion");
+    ///             *captures.borrow_mut() += element;
+    ///             Ok(JsValue::Undefined)
+    ///         },
+    ///         Gc::clone(&num_to_modify),
+    ///     ),
+    /// )
+    /// .build();
+    ///
+    /// array.for_each(js_function, None, context);
+    /// let borrow = *num_to_modify.borrow();
+    /// assert_eq!(borrow, 15u8);
+    ///
+    /// # Ok(())
+    /// # }
+    /// ```
+    #[inline]
+    pub fn for_each(
+        &self,
+        callback: JsFunction,
+        this_arg: Option<JsValue>,
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        BuiltinTypedArray::foreach(
+            &self.inner.clone().into(),
+            &[callback.into(), this_arg.into_or_undefined()],
+            context,
+        )
+    }
+
     /// Calls `TypedArray.prototype.indexOf()`.
     pub fn index_of<T>(
         &self,

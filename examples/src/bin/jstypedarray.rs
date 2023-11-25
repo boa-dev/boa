@@ -7,6 +7,7 @@ use boa_engine::{
     property::Attribute,
     Context, JsResult, JsValue,
 };
+use boa_gc::{Gc, GcRefCell};
 
 fn main() -> JsResult<()> {
     // We create a new `Context` to create a new Javascript executor.
@@ -86,6 +87,34 @@ fn main() -> JsResult<()> {
         array.find_last_index(lower_than_200_predicate, None, context),
         Ok(Some(3))
     );
+
+    // forEach
+    let array = JsUint8Array::from_iter(vec![1, 2, 3, 4, 5], context)?;
+    let num_to_modify = Gc::new(GcRefCell::new(0u8));
+
+    let js_function = FunctionObjectBuilder::new(
+        context.realm(),
+        NativeFunction::from_copy_closure_with_captures(
+            |_, args, captures, inner_context| {
+                let element = args
+                    .get(0)
+                    .cloned()
+                    .unwrap_or_default()
+                    .to_uint8(inner_context)
+                    .expect("error at number conversion");
+
+                *captures.borrow_mut() += element;
+                Ok(JsValue::Undefined)
+            },
+            Gc::clone(&num_to_modify),
+        ),
+    )
+    .build();
+
+    let _unused = array.for_each(js_function, None, context);
+
+    let borrow = *num_to_modify.borrow();
+    assert_eq!(borrow, 15u8);
 
     context
         .register_global_property(
