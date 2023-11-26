@@ -3,11 +3,11 @@
 //! TODO: Docs
 
 use crate::{
-    date::TemporalDate,
-    datetime::TemporalDateTime,
+    date::Date,
+    datetime::DateTime,
     options::{ArithmeticOverflow, TemporalRoundingMode, TemporalUnit},
     utils,
-    zoneddatetime::TemporalZonedDateTime,
+    zoneddatetime::ZonedDateTime,
     TemporalError, TemporalResult, NS_PER_DAY,
 };
 use std::any::Any;
@@ -702,7 +702,7 @@ impl Duration {
     pub(crate) fn unbalance_duration_relative(
         &self,
         largest_unit: TemporalUnit,
-        plain_relative_to: Option<&TemporalDate>,
+        plain_relative_to: Option<&Date>,
         context: &mut dyn Any,
     ) -> TemporalResult<DateDuration> {
         // 1. Let allZero be false.
@@ -923,7 +923,7 @@ impl Duration {
     pub fn balance_date_duration_relative(
         &self,
         largest_unit: TemporalUnit,
-        plain_relative_to: Option<&TemporalDate>,
+        plain_relative_to: Option<&Date>,
         context: &mut dyn Any,
     ) -> TemporalResult<DateDuration> {
         let mut result = self.date;
@@ -1159,11 +1159,7 @@ impl Duration {
         increment: f64,
         unit: TemporalUnit,
         rounding_mode: TemporalRoundingMode,
-        relative_targets: (
-            Option<&TemporalDate>,
-            Option<&TemporalZonedDateTime>,
-            Option<&TemporalDateTime>,
-        ),
+        relative_targets: (Option<&Date>, Option<&ZonedDateTime>, Option<&DateTime>),
         context: &mut dyn Any,
     ) -> TemporalResult<(Self, f64)> {
         let mut result = Duration::new_unchecked(unbalance_date_duration, self.time);
@@ -1288,8 +1284,8 @@ impl Duration {
                     ArithmeticOverflow::Constrain,
                 )?;
 
-                // l. Let wholeDaysLater be ? CreateTemporalDate(isoResult.[[Year]], isoResult.[[Month]], isoResult.[[Day]], calendar).
-                let whole_days_later = TemporalDate::new_unchecked(iso_result, calendar.clone());
+                // l. Let wholeDaysLater be ? CreateDate(isoResult.[[Year]], isoResult.[[Month]], isoResult.[[Day]], calendar).
+                let whole_days_later = Date::new_unchecked(iso_result, calendar.clone());
 
                 // m. Let untilOptions be OrdinaryObjectCreate(null).
                 // n. Perform ! CreateDataPropertyOrThrow(untilOptions, "largestUnit", "year").

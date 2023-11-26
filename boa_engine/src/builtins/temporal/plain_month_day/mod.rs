@@ -11,7 +11,7 @@ use crate::{
 };
 use boa_profiler::Profiler;
 
-use boa_temporal::{datetime::TemporalDateTime, month_day::TemporalMonthDay as InnerMonthDay};
+use boa_temporal::{datetime::DateTime, month_day::MonthDay as InnerMonthDay};
 
 /// The `Temporal.PlainMonthDay` object.
 #[derive(Debug, Clone)]
@@ -73,7 +73,7 @@ pub(crate) fn create_temporal_month_day(
 ) -> JsResult<JsValue> {
     // 1. If IsValidISODate(referenceISOYear, isoMonth, isoDay) is false, throw a RangeError exception.
     // 2. If ISODateTimeWithinLimits(referenceISOYear, isoMonth, isoDay, 12, 0, 0, 0, 0, 0) is false, throw a RangeError exception.
-    if TemporalDateTime::validate(&inner) {
+    if DateTime::validate(&inner) {
         return Err(JsNativeError::range()
             .with_message("PlainMonthDay is not a valid ISO date time.")
             .into());

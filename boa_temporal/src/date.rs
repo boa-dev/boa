@@ -2,7 +2,7 @@
 
 use crate::{
     calendar::CalendarSlot,
-    datetime::TemporalDateTime,
+    datetime::DateTime,
     duration::{DateDuration, Duration},
     iso::{IsoDate, IsoDateSlots},
     options::{ArithmeticOverflow, TemporalUnit},
@@ -12,15 +12,15 @@ use std::any::Any;
 
 /// The `Temporal.PlainDate` equivalent
 #[derive(Debug, Default, Clone)]
-pub struct TemporalDate {
+pub struct Date {
     iso: IsoDate,
     calendar: CalendarSlot,
 }
 
 // ==== Private API ====
 
-impl TemporalDate {
-    /// Create a new `TemporalDate` with the date values and calendar slot.
+impl Date {
+    /// Create a new `Date` with the date values and calendar slot.
     #[inline]
     #[must_use]
     pub(crate) fn new_unchecked(iso: IsoDate, calendar: CalendarSlot) -> Self {
@@ -95,7 +95,7 @@ impl TemporalDate {
         &self,
         duration: &Duration,
         context: &mut dyn Any,
-    ) -> TemporalResult<(TemporalDate, f64)> {
+    ) -> TemporalResult<(Self, f64)> {
         let new_date = self.add_date(duration, ArithmeticOverflow::Constrain, context)?;
         let days = f64::from(self.days_until(&new_date));
         Ok((new_date, days))
@@ -104,8 +104,8 @@ impl TemporalDate {
 
 // ==== Public API ====
 
-impl TemporalDate {
-    /// Creates a new `TemporalDate` while checking for validity.
+impl Date {
+    /// Creates a new `Date` while checking for validity.
     pub fn new(
         year: i32,
         month: i32,
@@ -118,8 +118,8 @@ impl TemporalDate {
     }
 
     #[must_use]
-    /// Creates a `TemporalDate` from a `TemporalDateTime`.
-    pub fn from_datetime(dt: &TemporalDateTime) -> Self {
+    /// Creates a `Date` from a `DateTime`.
+    pub fn from_datetime(dt: &DateTime) -> Self {
         Self {
             iso: dt.iso_date(),
             calendar: dt.calendar().clone(),
@@ -128,35 +128,35 @@ impl TemporalDate {
 
     #[inline]
     #[must_use]
-    /// Returns this `TemporalDate`'s year value.
+    /// Returns this `Date`'s year value.
     pub const fn year(&self) -> i32 {
         self.iso.year()
     }
 
     #[inline]
     #[must_use]
-    /// Returns this `TemporalDate`'s month value.
+    /// Returns this `Date`'s month value.
     pub const fn month(&self) -> u8 {
         self.iso.month()
     }
 
     #[inline]
     #[must_use]
-    /// Returns this `TemporalDate`'s day value.
+    /// Returns this `Date`'s day value.
     pub const fn day(&self) -> u8 {
         self.iso.day()
     }
 
     #[inline]
     #[must_use]
-    /// Returns the `TemporalDate`'s inner `IsoDate` record.
+    /// Returns the `Date`'s inner `IsoDate` record.
     pub const fn iso_date(&self) -> IsoDate {
         self.iso
     }
 
     #[inline]
     #[must_use]
-    /// Returns a reference to this `TemporalDate`'s calendar slot.
+    /// Returns a reference to this `Date`'s calendar slot.
     pub fn calendar(&self) -> &CalendarSlot {
         &self.calendar
     }
@@ -171,7 +171,7 @@ impl TemporalDate {
 
     /// `DaysUntil`
     ///
-    /// Calculates the epoch days between two `TemporalDate`s
+    /// Calculates the epoch days between two `Date`s
     #[inline]
     #[must_use]
     pub fn days_until(&self, other: &Self) -> i32 {
@@ -179,7 +179,7 @@ impl TemporalDate {
     }
 }
 
-impl IsoDateSlots for TemporalDate {
+impl IsoDateSlots for Date {
     /// Returns the structs `IsoDate`
     fn iso_date(&self) -> IsoDate {
         self.iso
@@ -188,7 +188,7 @@ impl IsoDateSlots for TemporalDate {
 
 // ==== Context based API ====
 
-impl TemporalDate {
+impl Date {
     /// Returns the date after adding the given duration to date.
     ///
     /// Temporal Equivalent: 3.5.13 `AddDate ( calendar, plainDate, duration [ , options [ , dateAdd ] ] )`

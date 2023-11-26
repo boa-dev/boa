@@ -3,21 +3,22 @@
 //! The goal of the calendar module of `boa_temporal` is to provide
 //! Temporal compatible calendar implementations.
 //!
-//! The implementation will only be of calendar's prexisting calendars. That is to say,
-//! it is up to implementers to implement an engine specific impl for handling JavaScript
-//! objects that may return true on `ImplementsCalendarProtocol`.
+//! The implementation will only be of calendar's prexisting calendars. This library
+//! does not come with a pre-existing `CustomCalendar` (i.e., an object that implements
+//! the calendar protocol), but it does aim to provide the necessary tools and API for
+//! implementing one.
 
 use std::{any::Any, str::FromStr};
 
 use crate::{
-    date::TemporalDate,
-    datetime::TemporalDateTime,
+    date::Date,
+    datetime::DateTime,
     duration::Duration,
     fields::TemporalFields,
     iso::{IsoDate, IsoDateSlots},
-    month_day::TemporalMonthDay,
+    month_day::MonthDay,
     options::{ArithmeticOverflow, TemporalUnit},
-    year_month::TemporalYearMonth,
+    year_month::YearMonth,
     TemporalError, TemporalResult,
 };
 
@@ -113,13 +114,13 @@ impl AvailableCalendars {
 #[derive(Debug)]
 pub enum CalendarDateLike {
     /// Represents a `Date` datelike
-    Date(TemporalDate),
+    Date(Date),
     /// Represents a `DateTime` datelike
-    DateTime(TemporalDateTime),
+    DateTime(DateTime),
     /// Represents a `YearMonth` datelike
-    YearMonth(TemporalYearMonth),
+    YearMonth(YearMonth),
     /// Represents a `MonthDay` datelike
-    MonthDay(TemporalMonthDay),
+    MonthDay(MonthDay),
 }
 
 impl CalendarDateLike {
@@ -163,34 +164,34 @@ pub trait CalendarProtocol: CalendarProtocolClone {
         fields: &mut TemporalFields,
         overflow: ArithmeticOverflow,
         context: &mut dyn Any,
-    ) -> TemporalResult<TemporalDate>;
+    ) -> TemporalResult<Date>;
     /// Creates a `Temporal.PlainYearMonth` object from the provided fields.
     fn year_month_from_fields(
         &self,
         fields: &mut TemporalFields,
         overflow: ArithmeticOverflow,
         context: &mut dyn Any,
-    ) -> TemporalResult<TemporalYearMonth>;
+    ) -> TemporalResult<YearMonth>;
     /// Creates a `Temporal.PlainMonthDay` object from the provided fields.
     fn month_day_from_fields(
         &self,
         fields: &mut TemporalFields,
         overflow: ArithmeticOverflow,
         context: &mut dyn Any,
-    ) -> TemporalResult<TemporalMonthDay>;
+    ) -> TemporalResult<MonthDay>;
     /// Returns a `Temporal.PlainDate` based off an added date.
     fn date_add(
         &self,
-        date: &TemporalDate,
+        date: &Date,
         duration: &Duration,
         overflow: ArithmeticOverflow,
         context: &mut dyn Any,
-    ) -> TemporalResult<TemporalDate>;
+    ) -> TemporalResult<Date>;
     /// Returns a `Temporal.Duration` representing the duration between two dates.
     fn date_until(
         &self,
-        one: &TemporalDate,
-        two: &TemporalDate,
+        one: &Date,
+        two: &Date,
         largest_unit: TemporalUnit,
         context: &mut dyn Any,
     ) -> TemporalResult<Duration>;
@@ -334,11 +335,11 @@ impl CalendarSlot {
     /// TODO: More Docs
     pub fn date_add(
         &self,
-        date: &TemporalDate,
+        date: &Date,
         duration: &Duration,
         overflow: ArithmeticOverflow,
         context: &mut dyn Any,
-    ) -> TemporalResult<TemporalDate> {
+    ) -> TemporalResult<Date> {
         match self {
             Self::Identifier(id) => {
                 let protocol = AvailableCalendars::from_str(id)?.to_protocol();
@@ -353,8 +354,8 @@ impl CalendarSlot {
     /// TODO: More Docs
     pub fn date_until(
         &self,
-        one: &TemporalDate,
-        two: &TemporalDate,
+        one: &Date,
+        two: &Date,
         largest_unit: TemporalUnit,
         context: &mut dyn Any,
     ) -> TemporalResult<Duration> {

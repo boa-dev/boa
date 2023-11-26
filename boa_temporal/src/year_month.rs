@@ -1,4 +1,4 @@
-//! `TemporalYearMonth`
+//! `YearMonth`
 
 use crate::{
     calendar::CalendarSlot,
@@ -7,22 +7,22 @@ use crate::{
     TemporalResult,
 };
 
-/// The `TemporalYearMonth` struct
+/// The `YearMonth` struct
 #[derive(Debug, Default, Clone)]
-pub struct TemporalYearMonth {
+pub struct YearMonth {
     iso: IsoDate,
     calendar: CalendarSlot,
 }
 
-impl TemporalYearMonth {
-    /// Creates an unvalidated `TemporalYearMonth`.
+impl YearMonth {
+    /// Creates an unvalidated `YearMonth`.
     #[inline]
     #[must_use]
     pub(crate) fn new_unchecked(iso: IsoDate, calendar: CalendarSlot) -> Self {
         Self { iso, calendar }
     }
 
-    /// Creates a new valid `TemporalYearMonth`.
+    /// Creates a new valid `YearMonth`.
     #[inline]
     pub fn new(
         year: i32,
@@ -44,7 +44,7 @@ impl TemporalYearMonth {
     }
 }
 
-impl IsoDateSlots for TemporalYearMonth {
+impl IsoDateSlots for YearMonth {
     #[inline]
     /// Returns this `YearMonth`'s `IsoDate`
     fn iso_date(&self) -> IsoDate {

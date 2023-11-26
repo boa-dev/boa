@@ -10,13 +10,13 @@ use std::any::Any;
 use boa_macros::utf16;
 use boa_temporal::{
     calendar::{CalendarDateLike, CalendarProtocol},
-    date::TemporalDate,
+    date::Date,
     duration::Duration,
     error::TemporalError,
     fields::TemporalFields,
-    month_day::TemporalMonthDay,
+    month_day::MonthDay,
     options::ArithmeticOverflow,
-    year_month::TemporalYearMonth,
+    year_month::YearMonth,
     TemporalResult, TinyStr4, TinyStr8,
 };
 use num_traits::ToPrimitive;
@@ -45,7 +45,7 @@ impl CalendarProtocol for CustomRuntimeCalendar {
         fields: &mut TemporalFields,
         overflow: ArithmeticOverflow,
         context: &mut dyn Any,
-    ) -> TemporalResult<TemporalDate> {
+    ) -> TemporalResult<Date> {
         let context = context
             .downcast_mut::<Context>()
             .expect("Context was not provided for a CustomCalendar.");
@@ -97,7 +97,7 @@ impl CalendarProtocol for CustomRuntimeCalendar {
         fields: &mut TemporalFields,
         overflow: ArithmeticOverflow,
         context: &mut dyn Any,
-    ) -> TemporalResult<TemporalYearMonth> {
+    ) -> TemporalResult<YearMonth> {
         let context = context
             .downcast_mut::<Context>()
             .expect("Context was not provided for a CustomCalendar.");
@@ -151,7 +151,7 @@ impl CalendarProtocol for CustomRuntimeCalendar {
         fields: &mut TemporalFields,
         overflow: ArithmeticOverflow,
         context: &mut dyn Any,
-    ) -> TemporalResult<TemporalMonthDay> {
+    ) -> TemporalResult<MonthDay> {
         let context = context
             .downcast_mut::<Context>()
             .expect("Context was not provided for a CustomCalendar.");
@@ -202,19 +202,19 @@ impl CalendarProtocol for CustomRuntimeCalendar {
 
     fn date_add(
         &self,
-        _date: &TemporalDate,
+        _date: &Date,
         _duration: &Duration,
         _overflow: ArithmeticOverflow,
         _context: &mut dyn Any,
-    ) -> TemporalResult<TemporalDate> {
+    ) -> TemporalResult<Date> {
         // TODO
         Err(TemporalError::general("Not yet implemented."))
     }
 
     fn date_until(
         &self,
-        _one: &TemporalDate,
-        _two: &TemporalDate,
+        _one: &Date,
+        _two: &Date,
         _largest_unit: boa_temporal::options::TemporalUnit,
         _context: &mut dyn Any,
     ) -> TemporalResult<Duration> {

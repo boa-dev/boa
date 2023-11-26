@@ -1,13 +1,11 @@
 //! Utility equations for Temporal
 
 use crate::{
-    iso::IsoDate,
     options::{TemporalRoundingMode, TemporalUnsignedRoundingMode},
     MS_PER_DAY,
 };
 
 use std::ops::Mul;
-use tinystr::TinyStr4;
 
 // NOTE: Review the below for optimizations and add ALOT of tests.
 
@@ -150,8 +148,6 @@ pub(crate) fn epoch_time_for_year(y: i32) -> f64 {
     f64::from(MS_PER_DAY) * epoch_day_number_for_year(f64::from(y))
 }
 
-// NOTE: The below returns the epoch years (years since 1970). The spec
-// appears to assume the below returns with the epoch applied.
 pub(crate) fn epoch_time_to_epoch_year(t: f64) -> i32 {
     // roughly calculate the largest possible year given the time t,
     // then check and refine the year.
@@ -236,11 +232,10 @@ pub(crate) fn epoch_time_to_day_in_year(t: f64) -> i32 {
         - (epoch_day_number_for_year(f64::from(epoch_time_to_epoch_year(t))) as i32)
 }
 
-pub(crate) fn epoch_time_to_week_day(t: f64) -> i32 {
-    (epoch_time_to_day_number(t) + 4) % 7
-}
+// EpochTimeTOWeekDay -> REMOVED
 
 // ==== End Date Equations ====
+
 // ==== Begin Calendar Equations ====
 
 // NOTE: below was the iso methods in temporal::calendar -> Need to be reassessed.
@@ -255,74 +250,11 @@ pub(crate) fn iso_days_in_month(year: i32, month: i32) -> i32 {
     }
 }
 
-/// 12.2.32 `ToISOWeekOfYear ( year, month, day )`
-///
-/// Takes an `[[IsoYear]]`, `[[IsoMonth]]`, and `[[IsoDay]]` and returns a (week, year) record.
-#[allow(unused)]
-pub(crate) fn to_iso_week_of_year(year: i32, month: u8, day: u8) -> (i32, i32) {
-    // Function constants
-    // 2. Let wednesday be 3.
-    // 3. Let thursday be 4.
-    // 4. Let friday be 5.
-    // 5. Let saturday be 6.
-    // 6. Let daysInWeek be 7.
-    // 7. Let maxWeekNumber be 53.
-    let day_of_year = to_iso_day_of_year(year, month, day);
-    let day_of_week = to_iso_day_of_week(year, month, day);
-    let week = (day_of_week + 7 - day_of_week + 3) / 7;
-
-    if week < 1 {
-        let first_day_of_year = to_iso_day_of_week(year, 1, 1);
-        if first_day_of_year == 5 {
-            return (53, year - 1);
-        } else if first_day_of_year == 6
-            && mathematical_in_leap_year(epoch_time_for_year(year - 1)) == 1
-        {
-            return (52, year - 1);
-        }
-        return (52, year - 1);
-    } else if week == 53 {
-        let days_in_year = mathematical_days_in_year(year);
-        let days_later_in_year = days_in_year - day_of_year;
-        let days_after_thursday = 4 - day_of_week;
-        if days_later_in_year < days_after_thursday {
-            return (1, year - 1);
-        }
-    }
-    (week, year)
-}
-
-/// 12.2.33 `ISOMonthCode ( month )`
-#[allow(unused)]
-fn iso_month_code(month: i32) -> TinyStr4 {
-    // TODO: optimize
-    if month < 10 {
-        TinyStr4::from_bytes(format!("M0{month}").as_bytes()).expect("Cannot be more than 4 bytes")
-    } else {
-        TinyStr4::from_bytes(format!("M{month}").as_bytes()).expect("double check these later")
-    }
-}
-
-/// 12.2.39 `ToISODayOfYear ( year, month, day )`
-#[allow(unused)]
-fn to_iso_day_of_year(year: i32, month: u8, day: u8) -> i32 {
-    // TODO: update fn parameter to take IsoDateRecord.
-    let iso = IsoDate::new_unchecked(year, month - 1, day);
-    let epoch_days = iso.to_epoch_days();
-    epoch_time_to_day_in_year(epoch_days_to_epoch_ms(epoch_days, 0f64)) + 1
-}
-
-/// 12.2.40 `ToISODayOfWeek ( year, month, day )`
-#[allow(unused)]
-pub(crate) fn to_iso_day_of_week(year: i32, month: u8, day: u8) -> i32 {
-    let iso = IsoDate::new_unchecked(year, month - 1, day);
-    let epoch_days = iso.to_epoch_days();
-    let day_of_week = epoch_time_to_week_day(epoch_days_to_epoch_ms(epoch_days, 0f64));
-    if day_of_week == 0 {
-        return 7;
-    }
-    day_of_week
-}
+// The below calendar abstract equations/utilities were removed for being unused.
+// 12.2.32 `ToISOWeekOfYear ( year, month, day )`
+// 12.2.33 `ISOMonthCode ( month )`
+// 12.2.39 `ToISODayOfYear ( year, month, day )`
+// 12.2.40 `ToISODayOfWeek ( year, month, day )`
 
 // ==== End Calendar Equations ====
 

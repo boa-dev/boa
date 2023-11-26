@@ -5,13 +5,13 @@ use crate::iso::IsoTime;
 /// The Temporal `PlainTime` object.
 #[derive(Debug, Default, Clone, Copy)]
 #[allow(dead_code)]
-pub struct TemporalTime {
+pub struct Time {
     iso: IsoTime,
 }
 
 // ==== Private API ====
 
-impl TemporalTime {
+impl Time {
     #[allow(dead_code)]
     pub(crate) fn new_unchecked(
         hour: i32,
@@ -26,7 +26,7 @@ impl TemporalTime {
         }
     }
 
-    /// Checks if the time is a valid `TemporalTime`
+    /// Returns true if a valid `Time`.
     #[allow(dead_code)]
     pub(crate) fn is_valid(&self) -> bool {
         self.iso.is_valid()

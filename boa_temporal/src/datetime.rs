@@ -7,17 +7,17 @@ use crate::{
     TemporalResult,
 };
 
-/// The `TemporalDateTime` struct.
+/// The `DateTime` struct.
 #[derive(Debug, Default, Clone)]
-pub struct TemporalDateTime {
+pub struct DateTime {
     iso: IsoDateTime,
     calendar: CalendarSlot,
 }
 
 // ==== Private DateTime API ====
 
-impl TemporalDateTime {
-    /// Creates a new unchecked `TemporalDateTime`.
+impl DateTime {
+    /// Creates a new unchecked `DateTime`.
     #[inline]
     #[must_use]
     pub(crate) fn new_unchecked(date: IsoDate, time: IsoTime, calendar: CalendarSlot) -> Self {
@@ -37,8 +37,8 @@ impl TemporalDateTime {
 
 // ==== Public DateTime API ====
 
-impl TemporalDateTime {
-    /// Creates a new validated `TemporalDateTime`.
+impl DateTime {
+    /// Creates a new validated `DateTime`.
     #[inline]
     #[allow(clippy::too_many_arguments)]
     pub fn new(

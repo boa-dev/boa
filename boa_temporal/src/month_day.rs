@@ -1,4 +1,4 @@
-//! `TemporalMonthDay`
+//! `MonthDay`
 
 use crate::{
     calendar::CalendarSlot,
@@ -7,15 +7,15 @@ use crate::{
     TemporalResult,
 };
 
-/// The `TemporalMonthDay` struct
+/// The `MonthDay` struct
 #[derive(Debug, Default, Clone)]
-pub struct TemporalMonthDay {
+pub struct MonthDay {
     iso: IsoDate,
     calendar: CalendarSlot,
 }
 
-impl TemporalMonthDay {
-    /// Creates a new unchecked `TemporalMonthDay`
+impl MonthDay {
+    /// Creates a new unchecked `MonthDay`
     #[inline]
     #[must_use]
     pub(crate) fn new_unchecked(iso: IsoDate, calendar: CalendarSlot) -> Self {
@@ -23,7 +23,7 @@ impl TemporalMonthDay {
     }
 
     #[inline]
-    /// Creates a new valid `TemporalMonthDay`.
+    /// Creates a new valid `MonthDay`.
     pub fn new(
         month: i32,
         day: i32,
@@ -42,7 +42,7 @@ impl TemporalMonthDay {
     }
 }
 
-impl IsoDateSlots for TemporalMonthDay {
+impl IsoDateSlots for MonthDay {
     #[inline]
     /// Returns this structs `IsoDate`.
     fn iso_date(&self) -> IsoDate {

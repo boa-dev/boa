@@ -1,14 +1,14 @@
 //! Implementation of the "iso8601" calendar.
 
 use crate::{
-    date::TemporalDate,
+    date::Date,
     duration::Duration,
     error::TemporalError,
     fields::TemporalFields,
-    month_day::TemporalMonthDay,
+    month_day::MonthDay,
     options::{ArithmeticOverflow, TemporalUnit},
     utils,
-    year_month::TemporalYearMonth,
+    year_month::YearMonth,
     TemporalResult,
 };
 use std::any::Any;
@@ -33,14 +33,14 @@ impl CalendarProtocol for IsoCalendar {
         fields: &mut TemporalFields,
         overflow: ArithmeticOverflow,
         _: &mut dyn Any,
-    ) -> TemporalResult<TemporalDate> {
+    ) -> TemporalResult<Date> {
         // NOTE: we are in ISO by default here.
         // a. Perform ? ISOResolveMonth(fields).
         // b. Let result be ? ISODateFromFields(fields, overflow).
         fields.iso_resolve_month()?;
 
-        // 9. Return ? CreateTemporalDate(result.[[Year]], result.[[Month]], result.[[Day]], "iso8601").
-        TemporalDate::new(
+        // 9. Return ? CreateDate(result.[[Year]], result.[[Month]], result.[[Day]], "iso8601").
+        Date::new(
             fields.year().unwrap_or(0),
             fields.month().unwrap_or(0),
             fields.day().unwrap_or(0),
@@ -57,15 +57,15 @@ impl CalendarProtocol for IsoCalendar {
         fields: &mut TemporalFields,
         overflow: ArithmeticOverflow,
         _: &mut dyn Any,
-    ) -> TemporalResult<TemporalYearMonth> {
+    ) -> TemporalResult<YearMonth> {
         // 9. If calendar.[[Identifier]] is "iso8601", then
         // a. Perform ? ISOResolveMonth(fields).
         fields.iso_resolve_month()?;
 
         // TODO: Do we even need ISOYearMonthFromFields? YearMonth would should pass as a valid date
         // b. Let result be ? ISOYearMonthFromFields(fields, overflow).
-        // 10. Return ? CreateTemporalYearMonth(result.[[Year]], result.[[Month]], "iso8601", result.[[ReferenceISODay]]).
-        TemporalYearMonth::new(
+        // 10. Return ? CreateYearMonth(result.[[Year]], result.[[Month]], "iso8601", result.[[ReferenceISODay]]).
+        YearMonth::new(
             fields.year().unwrap_or(0),
             fields.month().unwrap_or(0),
             fields.day(),
@@ -82,14 +82,14 @@ impl CalendarProtocol for IsoCalendar {
         fields: &mut TemporalFields,
         overflow: ArithmeticOverflow,
         _: &mut dyn Any,
-    ) -> TemporalResult<TemporalMonthDay> {
+    ) -> TemporalResult<MonthDay> {
         // 8. Perform ? ISOResolveMonth(fields).
         fields.iso_resolve_month()?;
 
         // TODO: double check error mapping is correct for specifcation/test262.
         // 9. Let result be ? ISOMonthDayFromFields(fields, overflow).
-        // 10. Return ? CreateTemporalMonthDay(result.[[Month]], result.[[Day]], "iso8601", result.[[ReferenceISOYear]]).
-        TemporalMonthDay::new(
+        // 10. Return ? CreateMonthDay(result.[[Month]], result.[[Day]], "iso8601", result.[[ReferenceISOYear]]).
+        MonthDay::new(
             fields.month().unwrap_or(0),
             fields.month().unwrap_or(0),
             CalendarSlot::Identifier("iso8601".to_string()),
@@ -102,16 +102,16 @@ impl CalendarProtocol for IsoCalendar {
     /// Below implements the basic implementation for an iso8601 calendar's `dateAdd` method.
     fn date_add(
         &self,
-        _date: &TemporalDate,
+        _date: &Date,
         _duration: &Duration,
         _overflow: ArithmeticOverflow,
         _: &mut dyn Any,
-    ) -> TemporalResult<TemporalDate> {
+    ) -> TemporalResult<Date> {
         // TODO: Not stable on `ICU4X`. Implement once completed.
         Err(TemporalError::range().with_message("feature not implemented."))
 
         // 9. Let result be ? AddISODate(date.[[ISOYear]], date.[[ISOMonth]], date.[[ISODay]], duration.[[Years]], duration.[[Months]], duration.[[Weeks]], balanceResult.[[Days]], overflow).
-        // 10. Return ? CreateTemporalDate(result.[[Year]], result.[[Month]], result.[[Day]], "iso8601").
+        // 10. Return ? CreateDate(result.[[Year]], result.[[Month]], result.[[Day]], "iso8601").
     }
 
     /// 12.5.8 `Temporal.Calendar.prototype.dateUntil ( one, two [ , options ] )`
@@ -119,8 +119,8 @@ impl CalendarProtocol for IsoCalendar {
     ///  Below implements the basic implementation for an iso8601 calendar's `dateUntil` method.
     fn date_until(
         &self,
-        _one: &TemporalDate,
-        _two: &TemporalDate,
+        _one: &Date,
+        _two: &Date,
         _largest_unit: TemporalUnit,
         _: &mut dyn Any,
     ) -> TemporalResult<Duration> {

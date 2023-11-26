@@ -11,7 +11,7 @@ use crate::{
 };
 use boa_profiler::Profiler;
 
-use boa_temporal::datetime::TemporalDateTime as InnerDateTime;
+use boa_temporal::datetime::DateTime as InnerDateTime;
 
 /// The `Temporal.PlainDateTime` object.
 #[derive(Debug, Clone)]
