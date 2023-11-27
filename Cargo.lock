@@ -451,7 +451,7 @@ dependencies = [
  "fixed_decimal",
  "float-cmp",
  "futures-lite 2.0.1",
- "hashbrown 0.14.2",
+ "hashbrown 0.14.3",
  "icu_calendar",
  "icu_casemap",
  "icu_collator",
@@ -516,7 +516,7 @@ version = "0.17.0"
 dependencies = [
  "boa_macros",
  "boa_profiler",
- "hashbrown 0.14.2",
+ "hashbrown 0.14.3",
  "thin-vec",
 ]
 
@@ -541,7 +541,7 @@ dependencies = [
  "arbitrary",
  "boa_gc",
  "boa_macros",
- "hashbrown 0.14.2",
+ "hashbrown 0.14.3",
  "indexmap 2.1.0",
  "once_cell",
  "phf",
@@ -1102,7 +1102,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "978747c1d849a7d2ee5e8adc0159961c48fb7e5db2f06af6723b80123bb53856"
 dependencies = [
  "cfg-if",
- "hashbrown 0.14.2",
+ "hashbrown 0.14.3",
  "lock_api",
  "once_cell",
  "parking_lot_core 0.9.9",
@@ -1610,9 +1610,9 @@ dependencies = [
 
 [[package]]
 name = "hashbrown"
-version = "0.14.2"
+version = "0.14.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f93e7192158dbcda357bdec5fb5788eebf8bbac027f3f33e719d29135ae84156"
+checksum = "290f1a1d9242c78d09ce40a5e87e7554ee637af1351968159f4952f028f75604"
 dependencies = [
  "ahash 0.8.6",
 ]
@@ -2079,7 +2079,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d530e1a18b1cb4c484e6e34556a0d948706958449fca0cab753d649f2bce3d1f"
 dependencies = [
  "equivalent",
- "hashbrown 0.14.2",
+ "hashbrown 0.14.3",
 ]
 
 [[package]]

@@ -46,7 +46,7 @@ chrono = { version = "0.4.31", default-features = false }
 clap = "4.4.8"
 colored = "2.0.4"
 fast-float = "0.2.0"
-hashbrown = { version = "0.14.2", default-features = false }
+hashbrown = { version = "0.14.3", default-features = false }
 indexmap = { version = "2.1.0", default-features = false }
 indoc = "2.0.4"
 jemallocator = "0.5.4"
