@@ -7,20 +7,19 @@ use crate::{
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, ObjectData, CONSTRUCTOR},
+    object::{internal_methods::get_prototype_from_constructor, CONSTRUCTOR},
     property::Attribute,
     realm::Realm,
     string::{common::StaticJsStrings, utf16},
     Context, JsArgs, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 use boa_profiler::Profiler;
+use boa_temporal::tz::{TimeZoneSlot, TzProtocol};
 
 /// The `Temporal.TimeZone` object.
 #[derive(Debug, Clone)]
 pub struct TimeZone {
-    pub(crate) initialized_temporal_time_zone: bool,
-    pub(crate) identifier: String,
-    pub(crate) offset_nanoseconds: Option<i64>,
+    slot: TimeZoneSlot,
 }
 
 impl BuiltInObject for TimeZone {
@@ -129,15 +128,18 @@ impl BuiltInConstructor for TimeZone {
 }
 
 impl TimeZone {
-    // NOTE: id, toJSON, toString currently share the exact same implementation -> Consolidate into one function and define multiple accesors?
-    pub(crate) fn get_id(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn get_id(
+        this: &JsValue,
+        _: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
         let o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
             JsNativeError::typ().with_message("this value must be a Temporal.TimeZone")
         })?;
         let tz = o.as_time_zone().ok_or_else(|| {
             JsNativeError::typ().with_message("this value must be a Temporal.TimeZone")
         })?;
-        Ok(JsString::from(tz.identifier.clone()).into())
+        Ok(JsString::from(tz.slot.id(context)).into())
     }
 
     pub(crate) fn get_offset_nanoseconds_for(
@@ -147,20 +149,15 @@ impl TimeZone {
     ) -> JsResult<JsValue> {
         // 1. Let timeZone be the this value.
         // 2. Perform ? RequireInternalSlot(timeZone, [[InitializedTemporalTimeZone]]).
-        let _tz = this
-            .as_object()
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("this value must be a Temporal.TimeZone")
-            })?
-            .borrow()
-            .as_time_zone()
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("this value must be a Temporal.TimeZone")
-            })?;
+        let o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
+            JsNativeError::typ().with_message("this value must be a Temporal.TimeZone")
+        })?;
+        let _tz = o.as_time_zone().ok_or_else(|| {
+            JsNativeError::typ().with_message("this value must be a Temporal.TimeZone")
+        })?;
+
         // 3. Set instant to ? ToTemporalInstant(instant).
         let _i = args.get_or_undefined(0);
-        // TODO: to_temporal_instant is abstract operation for Temporal.Instant objects.
-        // let instant = to_temporal_instant(i)?;
 
         // 4. If timeZone.[[OffsetNanoseconds]] is not undefined, return 𝔽(timeZone.[[OffsetNanoseconds]]).
         // 5. Return 𝔽(GetNamedTimeZoneOffsetNanoseconds(timeZone.[[Identifier]], instant.[[Nanoseconds]])).
@@ -247,7 +244,11 @@ impl TimeZone {
             .into())
     }
 
-    pub(crate) fn to_string(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn to_string(
+        this: &JsValue,
+        _: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
         // 1. Let timeZone be the this value.
         // 2. Perform ? RequireInternalSlot(timeZone, [[InitializedTemporalTimeZone]]).
         let o = this.as_object().ok_or_else(|| {
@@ -258,7 +259,7 @@ impl TimeZone {
             JsNativeError::typ().with_message("this value must be a Temporal.TimeZone")
         })?;
         // 3. Return timeZone.[[Identifier]].
-        Ok(JsString::from(tz.identifier.clone()).into())
+        Ok(JsString::from(tz.slot.id(context)).into())
     }
 }
 
@@ -317,39 +318,10 @@ pub(super) fn create_temporal_time_zone(
     let prototype =
         get_prototype_from_constructor(&new_target, StandardConstructors::time_zone, context)?;
 
-    // 3. Let offsetNanosecondsResult be Completion(ParseTimeZoneOffsetString(identifier)).
-    let offset_nanoseconds_result = parse_timezone_offset_string(&identifier, context);
-
-    // 4. If offsetNanosecondsResult is an abrupt completion, then
-    let (identifier, offset_nanoseconds) = if let Ok(offset_nanoseconds) = offset_nanoseconds_result
-    {
-        // Switched conditions for more idiomatic rust code structuring
-        // 5. Else,
-        // a. Set object.[[Identifier]] to ! FormatTimeZoneOffsetString(offsetNanosecondsResult.[[Value]]).
-        // b. Set object.[[OffsetNanoseconds]] to offsetNanosecondsResult.[[Value]].
-        (
-            format_time_zone_offset_string(offset_nanoseconds),
-            Some(offset_nanoseconds),
-        )
-    } else {
-        // a. Assert: ! CanonicalizeTimeZoneName(identifier) is identifier.
-        assert_eq!(canonicalize_time_zone_name(&identifier), identifier);
-
-        // b. Set object.[[Identifier]] to identifier.
-        // c. Set object.[[OffsetNanoseconds]] to undefined.
-        (identifier, None)
-    };
-
-    // 6. Return object.
-    let object = JsObject::from_proto_and_data(
-        prototype,
-        ObjectData::time_zone(TimeZone {
-            initialized_temporal_time_zone: false,
-            identifier,
-            offset_nanoseconds,
-        }),
-    );
-    Ok(object.into())
+    // TODO: Migrate ISO8601 parsing to `boa_temporal`
+    Err(JsNativeError::error()
+        .with_message("not yet implemented.")
+        .into())
 }
 
 /// Abstract operation `ParseTimeZoneOffsetString ( offsetString )`

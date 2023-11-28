@@ -16,7 +16,7 @@ use crate::{
 };
 use icu_calendar::{Date as IcuDate, Iso};
 use num_bigint::BigInt;
-use num_traits::cast::FromPrimitive;
+use num_traits::{cast::FromPrimitive, ToPrimitive};
 
 /// `IsoDateTime` is the Temporal internal representation of
 /// a `DateTime` record
@@ -30,6 +30,73 @@ impl IsoDateTime {
     /// Creates a new `IsoDateTime` without any validaiton.
     pub(crate) fn new_unchecked(date: IsoDate, time: IsoTime) -> Self {
         Self { date, time }
+    }
+
+    // NOTE: The below assumes that nanos is from an `Instant` and thus in a valid range. -> Needs validation.
+    /// Creates an `IsoDateTime` from a `BigInt` of epochNanoseconds.
+    pub(crate) fn from_epoch_nanos(nanos: &BigInt, offset: f64) -> TemporalResult<Self> {
+        // Skip the assert as nanos should be validated by Instant.
+        // TODO: Determine whether value needs to be validated as integral.
+        // Get the component ISO parts
+        let mathematical_nanos = nanos.to_f64().ok_or_else(|| {
+            TemporalError::range().with_message("nanos was not within a valid range.")
+        })?;
+
+        // 2. Let remainderNs be epochNanoseconds modulo 10^6.
+        let remainder_nanos = mathematical_nanos % 1_000_000f64;
+
+        // 3. Let epochMilliseconds be 𝔽((epochNanoseconds - remainderNs) / 10^6).
+        let epoch_millis = ((mathematical_nanos - remainder_nanos) / 1_000_000f64).floor();
+
+        let year = utils::epoch_time_to_epoch_year(epoch_millis);
+        let month = utils::epoch_time_to_month_in_year(epoch_millis) + 1;
+        let day = utils::epoch_time_to_date(epoch_millis);
+
+        // 7. Let hour be ℝ(! HourFromTime(epochMilliseconds)).
+        let hour = (epoch_millis / 3_600_000f64).floor() % 24f64;
+        // 8. Let minute be ℝ(! MinFromTime(epochMilliseconds)).
+        let minute = (epoch_millis / 60_000f64).floor() % 60f64;
+        // 9. Let second be ℝ(! SecFromTime(epochMilliseconds)).
+        let second = (epoch_millis / 1000f64).floor() % 60f64;
+        // 10. Let millisecond be ℝ(! msFromTime(epochMilliseconds)).
+        let millis = (epoch_millis % 1000f64).floor() % 1000f64;
+
+        // 11. Let microsecond be floor(remainderNs / 1000).
+        let micros = (remainder_nanos / 1000f64).floor();
+        // 12. Assert: microsecond < 1000.
+        debug_assert!(micros < 1000f64);
+        // 13. Let nanosecond be remainderNs modulo 1000.
+        let nanos = (remainder_nanos % 1000f64).floor();
+
+        Ok(Self::balance(
+            year,
+            i32::from(month),
+            i32::from(day),
+            hour,
+            minute,
+            second,
+            millis,
+            micros,
+            nanos + offset,
+        ))
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    fn balance(
+        year: i32,
+        month: i32,
+        day: i32,
+        hour: f64,
+        minute: f64,
+        second: f64,
+        millisecond: f64,
+        microsecond: f64,
+        nanosecond: f64,
+    ) -> Self {
+        let (overflow_day, time) =
+            IsoTime::balance(hour, minute, second, millisecond, microsecond, nanosecond);
+        let date = IsoDate::balance(year, month, day + overflow_day);
+        Self::new_unchecked(date, time)
     }
 
     /// Returns whether the `IsoDateTime` is within valid limits.
@@ -58,11 +125,11 @@ impl IsoDateTime {
         BigInt::from_f64(epoch_nanos - offset)
     }
 
-    pub(crate) fn iso_date(&self) -> IsoDate {
+    pub(crate) fn date(&self) -> IsoDate {
         self.date
     }
 
-    pub(crate) fn iso_time(&self) -> IsoTime {
+    pub(crate) fn time(&self) -> IsoTime {
         self.time
     }
 }
@@ -106,6 +173,7 @@ impl IsoDate {
                 let m = month.clamp(1, 12);
                 let days_in_month = utils::iso_days_in_month(year, month);
                 let d = day.clamp(1, days_in_month);
+                // NOTE: Values are clamped in a u8 range.
                 Ok(Self::new_unchecked(year, m as u8, d as u8))
             }
             ArithmeticOverflow::Reject => {
@@ -209,23 +277,23 @@ impl IsoDate {
 /// time slots.
 #[derive(Debug, Default, Clone, Copy)]
 pub struct IsoTime {
-    hour: i32,        // 0..=23
-    minute: i32,      // 0..=59
-    second: i32,      // 0..=59
-    millisecond: i32, // 0..=999
-    microsecond: i32, // 0..=999
-    nanosecond: i32,  // 0..=999
+    pub(crate) hour: u8,         // 0..=23
+    pub(crate) minute: u8,       // 0..=59
+    pub(crate) second: u8,       // 0..=59
+    pub(crate) millisecond: u16, // 0..=999
+    pub(crate) microsecond: u16, // 0..=999
+    pub(crate) nanosecond: u16,  // 0..=999
 }
 
 impl IsoTime {
     /// Creates a new `IsoTime` without any validation.
     pub(crate) fn new_unchecked(
-        hour: i32,
-        minute: i32,
-        second: i32,
-        millisecond: i32,
-        microsecond: i32,
-        nanosecond: i32,
+        hour: u8,
+        minute: u8,
+        second: u8,
+        millisecond: u16,
+        microsecond: u16,
+        nanosecond: u16,
     ) -> Self {
         Self {
             hour,
@@ -249,22 +317,26 @@ impl IsoTime {
     ) -> TemporalResult<IsoTime> {
         match overflow {
             ArithmeticOverflow::Constrain => {
-                let h = hour.clamp(0, 23);
-                let min = minute.clamp(0, 59);
-                let sec = second.clamp(0, 59);
-                let milli = millisecond.clamp(0, 999);
-                let micro = microsecond.clamp(0, 999);
-                let nano = nanosecond.clamp(0, 999);
+                let h = hour.clamp(0, 23) as u8;
+                let min = minute.clamp(0, 59) as u8;
+                let sec = second.clamp(0, 59) as u8;
+                let milli = millisecond.clamp(0, 999) as u16;
+                let micro = microsecond.clamp(0, 999) as u16;
+                let nano = nanosecond.clamp(0, 999) as u16;
                 Ok(Self::new_unchecked(h, min, sec, milli, micro, nano))
             }
             ArithmeticOverflow::Reject => {
-                // TODO: Invert structure validation and update fields to u16.
-                let time =
-                    Self::new_unchecked(hour, minute, second, millisecond, microsecond, nanosecond);
-                if !time.is_valid() {
+                if !is_valid_time(hour, minute, second, millisecond, microsecond, nanosecond) {
                     return Err(TemporalError::range().with_message("IsoTime is not valid"));
-                }
-                Ok(time)
+                };
+                Ok(Self::new_unchecked(
+                    hour as u8,
+                    minute as u8,
+                    second as u8,
+                    millisecond as u16,
+                    microsecond as u16,
+                    nanosecond as u16,
+                ))
             }
         }
     }
@@ -279,6 +351,53 @@ impl IsoTime {
             microsecond: 0,
             nanosecond: 0,
         }
+    }
+
+    // NOTE(nekevss): f64 is needed here as values could exceed i32 when input.
+    /// Balances and creates a new `IsoTime` with `day` overflow from the provided values.
+    pub(crate) fn balance(
+        hour: f64,
+        minute: f64,
+        second: f64,
+        millisecond: f64,
+        microsecond: f64,
+        nanosecond: f64,
+    ) -> (i32, Self) {
+        // 1. Set microsecond to microsecond + floor(nanosecond / 1000).
+        let mut mis = microsecond + (nanosecond / 1000f64).floor();
+        // 2. Set nanosecond to nanosecond modulo 1000.
+        let ns = nanosecond % 1000f64;
+        // 3. Set millisecond to millisecond + floor(microsecond / 1000).
+        let mut ms = millisecond + (mis / 1000f64).floor();
+        // 4. Set microsecond to microsecond modulo 1000.
+        mis = mis.rem_euclid(1000f64);
+        // 5. Set second to second + floor(millisecond / 1000).
+        let mut secs = second + (ms / 1000f64).floor();
+        // 6. Set millisecond to millisecond modulo 1000.
+        ms = ms.rem_euclid(1000f64);
+        // 7. Set minute to minute + floor(second / 60).
+        let mut minutes = minute + (secs / 60f64).floor();
+        // 8. Set second to second modulo 60.
+        secs = secs.rem_euclid(60f64);
+        // 9. Set hour to hour + floor(minute / 60).
+        let mut hours = hour + (minutes / 60f64).floor();
+        // 10. Set minute to minute modulo 60.
+        minutes = minutes.rem_euclid(60f64);
+        // 11. Let days be floor(hour / 24).
+        let days = (hours / 24f64).floor();
+        // 12. Set hour to hour modulo 24.
+        hours = hours.rem_euclid(24f64);
+
+        let time = Self::new_unchecked(
+            hours as u8,
+            minutes as u8,
+            secs as u8,
+            ms as u16,
+            mis as u16,
+            ns as u16,
+        );
+
+        (days as i32, time)
     }
 
     /// Checks if the time is a valid `IsoTime`
@@ -338,4 +457,19 @@ fn is_valid_date(year: i32, month: i32, day: i32) -> bool {
 
     let days_in_month = utils::iso_days_in_month(year, month);
     (1..=days_in_month).contains(&day)
+}
+
+#[inline]
+fn is_valid_time(hour: i32, minute: i32, second: i32, ms: i32, mis: i32, ns: i32) -> bool {
+    if !(0..=23).contains(&hour) {
+        return false;
+    }
+
+    let min_sec = 0..=59;
+    if !min_sec.contains(&minute) || !min_sec.contains(&second) {
+        return false;
+    }
+
+    let sub_second = 0..=999;
+    sub_second.contains(&ms) && sub_second.contains(&mis) && sub_second.contains(&ns)
 }

@@ -2,6 +2,7 @@
 
 use crate::{
     calendar::CalendarSlot,
+    instant::Instant,
     iso::{IsoDate, IsoDateSlots, IsoDateTime, IsoTime},
     options::ArithmeticOverflow,
     TemporalResult,
@@ -32,6 +33,17 @@ impl DateTime {
     /// Utility function for validating `IsoDate`s
     fn validate_iso(iso: IsoDate) -> bool {
         IsoDateTime::new_unchecked(iso, IsoTime::noon()).is_within_limits()
+    }
+
+    /// Create a new `DateTime` from an `Instant`.
+    #[inline]
+    pub(crate) fn from_instant(
+        instant: &Instant,
+        offset: f64,
+        calendar: CalendarSlot,
+    ) -> TemporalResult<Self> {
+        let iso = IsoDateTime::from_epoch_nanos(&instant.nanos, offset)?;
+        Ok(Self { iso, calendar })
     }
 }
 
@@ -76,14 +88,56 @@ impl DateTime {
     #[inline]
     #[must_use]
     pub fn iso_date(&self) -> IsoDate {
-        self.iso.iso_date()
+        self.iso.date()
     }
 
     /// Returns the inner `IsoTime` value.
     #[inline]
     #[must_use]
     pub fn iso_time(&self) -> IsoTime {
-        self.iso.iso_time()
+        self.iso.time()
+    }
+
+    /// Returns the hour value
+    #[inline]
+    #[must_use]
+    pub fn hours(&self) -> u8 {
+        self.iso.time().hour
+    }
+
+    /// Returns the minute value
+    #[inline]
+    #[must_use]
+    pub fn minutes(&self) -> u8 {
+        self.iso.time().minute
+    }
+
+    /// Returns the second value
+    #[inline]
+    #[must_use]
+    pub fn seconds(&self) -> u8 {
+        self.iso.time().second
+    }
+
+    /// Returns the `millisecond` value
+    #[inline]
+    #[must_use]
+    pub fn milliseconds(&self) -> u16 {
+        self.iso.time().millisecond
+    }
+
+    /// Returns the `microsecond` value
+    #[inline]
+    #[must_use]
+    pub fn microseconds(&self) -> u16 {
+        self.iso.time().microsecond
+    }
+
+    /// Returns the `nanosecond` value
+    #[inline]
+    #[must_use]
+    pub fn nanoseconds(&self) -> u16 {
+        self.iso.time().nanosecond
     }
 
     /// Returns the Calendar value.

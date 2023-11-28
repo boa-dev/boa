@@ -8,14 +8,14 @@ use crate::{
     Context, JsBigInt, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 use boa_profiler::Profiler;
-use boa_temporal::duration::Duration as TemporalDuration;
+use boa_temporal::{
+    duration::Duration as TemporalDuration, zoneddatetime::ZonedDateTime as InnerZdt,
+};
 
 /// The `Temporal.ZonedDateTime` object.
 #[derive(Debug, Clone)]
 pub struct ZonedDateTime {
-    nanoseconds: JsBigInt,
-    time_zone: JsObject,
-    calendar: JsObject,
+    inner: InnerZdt,
 }
 
 impl BuiltInObject for ZonedDateTime {
