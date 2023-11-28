@@ -61,6 +61,12 @@ impl JsTypedArray {
         BuiltinTypedArray::at(&self.inner.clone().into(), &[index.into().into()], context)
     }
 
+    /// Calls `TypedArray.prototype.buffer()`.
+    #[inline]
+    pub fn buffer(&self, context: &mut Context) -> JsResult<JsValue> {
+        BuiltinTypedArray::buffer(&self.inner.clone().into(), &[], context)
+    }
+
     /// Returns `TypedArray.prototype.byteLength`.
     #[inline]
     pub fn byte_length(&self, context: &mut Context) -> JsResult<usize> {

@@ -159,6 +159,12 @@ fn main() -> JsResult<()> {
     assert_eq!(subarray4_6.get(0, context)?, JsValue::new(5.0));
     assert_eq!(subarray4_6.get(1, context)?, JsValue::new(6.0));
 
+    // buffer
+    let array_buffer8 = JsArrayBuffer::new(8, context)?;
+    let array = JsUint8Array::from_array_buffer(array_buffer8, context)?;
+
+    assert!(array.buffer(context)?.as_object().unwrap().is_buffer());
+
     context
         .register_global_property(
             js_string!("myUint8Array"),
