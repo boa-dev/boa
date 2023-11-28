@@ -116,6 +116,14 @@ fn main() -> JsResult<()> {
     let borrow = *num_to_modify.borrow();
     assert_eq!(borrow, 15u8);
 
+    // includes
+    assert_eq!(array.includes(JsValue::new(2), None, context), Ok(true));
+    let empty_array = JsUint8Array::from_iter(vec![], context)?;
+    assert_eq!(
+        empty_array.includes(JsValue::new(2), None, context),
+        Ok(false)
+    );
+
     context
         .register_global_property(
             js_string!("myUint8Array"),

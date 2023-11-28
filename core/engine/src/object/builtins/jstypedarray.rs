@@ -492,6 +492,52 @@ impl JsTypedArray {
         )
     }
 
+    /// Determines whether a typed array includes a certain value among its entries, 
+    /// returning true or false as appropriate.
+    /// 
+    /// Calls `TypedArray.prototype.includes()`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use boa_engine::{JsResult, object::{builtins::JsUint8Array}, JsValue, Context};
+    /// # fn main() -> JsResult<()> {
+    ///
+    /// let context = &mut Context::default();
+    /// let data: Vec<u8> = (0..=255).collect();
+    /// let array = JsUint8Array::from_iter(data, context)?;
+    ///
+    /// assert_eq!(array.includes(JsValue::new(2), None, context), Ok(true));
+    /// let empty_array = JsUint8Array::from_iter(vec![], context)?;
+    /// assert_eq!(
+    ///     empty_array.includes(JsValue::new(2), None, context),
+    ///     Ok(false)
+    /// );
+    ///
+    /// # Ok(())
+    /// # }
+    /// ```
+    #[inline]
+    pub fn includes<T>(
+        &self,
+        search_element: T,
+        from_index: Option<u64>,
+        context: &mut Context,
+    ) -> JsResult<bool>
+    where
+        T: Into<JsValue>,
+    {
+        let result = BuiltinTypedArray::includes(
+            &self.inner.clone().into(),
+            &[search_element.into(), from_index.into_or_undefined()],
+            context,
+        )?
+        .as_boolean()
+        .expect("TypedArray.prototype.includes should always return boolean");
+
+        Ok(result)
+    }
+
     /// Calls `TypedArray.prototype.indexOf()`.
     pub fn index_of<T>(
         &self,
