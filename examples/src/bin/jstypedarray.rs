@@ -3,7 +3,10 @@
 use boa_engine::{
     js_string,
     native_function::NativeFunction,
-    object::{builtins::JsUint8Array, FunctionObjectBuilder},
+    object::{
+        builtins::{JsArray, JsArrayBuffer, JsUint8Array},
+        FunctionObjectBuilder,
+    },
     property::Attribute,
     Context, JsResult, JsValue,
 };
@@ -123,6 +126,24 @@ fn main() -> JsResult<()> {
         empty_array.includes(JsValue::new(2), None, context),
         Ok(false)
     );
+
+    // set
+    let array_buffer8 = JsArrayBuffer::new(8, context)?;
+    let initialized8_array = JsUint8Array::from_array_buffer(array_buffer8, context)?;
+    initialized8_array.set_values(
+        JsArray::from_iter(vec![JsValue::new(1), JsValue::new(2)], context).into(),
+        Some(3),
+        context,
+    )?;
+    assert_eq!(initialized8_array.get(0, context)?, JsValue::new(0));
+    assert_eq!(initialized8_array.get(1, context)?, JsValue::new(0));
+    assert_eq!(initialized8_array.get(2, context)?, JsValue::new(0));
+    assert_eq!(initialized8_array.get(3, context)?, JsValue::new(1.0));
+    assert_eq!(initialized8_array.get(4, context)?, JsValue::new(2.0));
+    assert_eq!(initialized8_array.get(5, context)?, JsValue::new(0));
+    assert_eq!(initialized8_array.get(6, context)?, JsValue::new(0));
+    assert_eq!(initialized8_array.get(7, context)?, JsValue::new(0));
+    assert_eq!(initialized8_array.get(8, context)?, JsValue::Undefined);
 
     context
         .register_global_property(
