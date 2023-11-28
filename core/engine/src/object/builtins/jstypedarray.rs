@@ -155,6 +155,50 @@ impl JsTypedArray {
         Ok(self.clone())
     }
 
+    /// Returns a new typed array on the same `ArrayBuffer` store and with the same element 
+    /// types as for this typed array. 
+    /// The begin offset is inclusive and the end offset is exclusive. 
+    ///
+    /// Calls `TypedArray.prototype.subarray()`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use boa_engine::{JsResult, object::{builtins::JsUint8Array}, JsValue, Context};
+    /// # fn main() -> JsResult<()> {
+    ///
+    /// let context = &mut Context::default();
+    /// let array = JsUint8Array::from_iter(vec![1u8, 2u8, 3u8, 4u8, 5u8, 6u8, 7u8, 8u8], context)?;
+    /// let subarray2_6 = array.subarray(2, 6, context)?;
+    /// assert_eq!(subarray2_6.length(context)?, 4);
+    /// assert_eq!(subarray2_6.get(0, context)?, JsValue::new(3.0));
+    /// assert_eq!(subarray2_6.get(1, context)?, JsValue::new(4.0));
+    /// assert_eq!(subarray2_6.get(2, context)?, JsValue::new(5.0));
+    /// assert_eq!(subarray2_6.get(3, context)?, JsValue::new(6.0));
+    /// let subarray4_6 = array.subarray(-4, 6, context)?;
+    /// assert_eq!(subarray4_6.length(context)?, 2);
+    /// assert_eq!(subarray4_6.get(0, context)?, JsValue::new(5.0));
+    /// assert_eq!(subarray4_6.get(1, context)?, JsValue::new(6.0));
+    ///
+    /// # Ok(())
+    /// # }
+    /// ```
+    #[inline]
+    pub fn subarray(&self, begin: i64, end: i64, context: &mut Context) -> JsResult<Self> {
+        let subarray = BuiltinTypedArray::subarray(
+            &self.inner.clone().into(),
+            &[begin.into(), end.into()],
+            context,
+        )?;
+
+        Ok(Self {
+            inner: subarray
+                .as_object()
+                .cloned()
+                .expect("`subarray` must always return a `TypedArray` on success"),
+        })
+    }
+
     /// Calls `TypedArray.prototype.filter()`.
     #[inline]
     pub fn filter(

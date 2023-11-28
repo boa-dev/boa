@@ -145,6 +145,20 @@ fn main() -> JsResult<()> {
     assert_eq!(initialized8_array.get(7, context)?, JsValue::new(0));
     assert_eq!(initialized8_array.get(8, context)?, JsValue::Undefined);
 
+    // subarray
+    let array = JsUint8Array::from_iter(vec![1u8, 2u8, 3u8, 4u8, 5u8, 6u8, 7u8, 8u8], context)?;
+    let subarray2_6 = array.subarray(2, 6, context)?;
+    assert_eq!(subarray2_6.length(context)?, 4);
+    assert_eq!(subarray2_6.get(0, context)?, JsValue::new(3.0));
+    assert_eq!(subarray2_6.get(1, context)?, JsValue::new(4.0));
+    assert_eq!(subarray2_6.get(2, context)?, JsValue::new(5.0));
+    assert_eq!(subarray2_6.get(3, context)?, JsValue::new(6.0));
+
+    let subarray4_6 = array.subarray(-4, 6, context)?;
+    assert_eq!(subarray4_6.length(context)?, 2);
+    assert_eq!(subarray4_6.get(0, context)?, JsValue::new(5.0));
+    assert_eq!(subarray4_6.get(1, context)?, JsValue::new(6.0));
+
     context
         .register_global_property(
             js_string!("myUint8Array"),
