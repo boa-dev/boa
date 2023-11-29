@@ -236,6 +236,7 @@
 <a href="#236" id="236">236</a>
 <a href="#237" id="237">237</a>
 <a href="#238" id="238">238</a>
+<a href="#239" id="239">239</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::promise::OperationType,
     job::JobCallback,
@@ -278,7 +279,8 @@
 ///     }
 /// }
 ///
-/// let context = &amp;mut ContextBuilder::new().host_hooks(&amp;Hooks).build().unwrap();
+/// let context =
+///     &amp;mut ContextBuilder::new().host_hooks(&amp;Hooks).build().unwrap();
 /// let result = context.eval(Source::from_bytes(r#&quot;eval(&quot;let a = 5&quot;)&quot;#));
 /// assert_eq!(
 ///     result.unwrap_err().to_string(),

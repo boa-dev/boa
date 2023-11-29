@@ -3073,6 +3073,20 @@
 <a href="#3073" id="3073">3073</a>
 <a href="#3074" id="3074">3074</a>
 <a href="#3075" id="3075">3075</a>
+<a href="#3076" id="3076">3076</a>
+<a href="#3077" id="3077">3077</a>
+<a href="#3078" id="3078">3078</a>
+<a href="#3079" id="3079">3079</a>
+<a href="#3080" id="3080">3080</a>
+<a href="#3081" id="3081">3081</a>
+<a href="#3082" id="3082">3082</a>
+<a href="#3083" id="3083">3083</a>
+<a href="#3084" id="3084">3084</a>
+<a href="#3085" id="3085">3085</a>
+<a href="#3086" id="3086">3086</a>
+<a href="#3087" id="3087">3087</a>
+<a href="#3088" id="3088">3088</a>
+<a href="#3089" id="3089">3089</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s representation of a JavaScript object and builtin object wrappers
 //!
 //! For the builtin object wrappers, please see [`object::builtins`][builtins] for implementors.
@@ -5720,10 +5734,24 @@
     }
 
     <span class="doccomment">/// Create a new `ObjectBuilder` with custom [`NativeObject`] data.
-    </span><span class="kw">pub fn </span>with_native&lt;T: NativeObject&gt;(data: T, context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span><span class="kw-2">mut </span>Context) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>with_native_data&lt;T: NativeObject&gt;(data: T, context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span><span class="kw-2">mut </span>Context) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>object = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             context.intrinsics().constructors().object().prototype(),
+            ObjectData::native_object(data),
+        );
+        <span class="self">Self </span>{ context, object }
+    }
+
+    <span class="doccomment">/// Create a new `ObjectBuilder` with custom [`NativeObject`] data and custom prototype.
+    </span><span class="kw">pub fn </span>with_native_data_and_proto&lt;T: NativeObject&gt;(
+        data: T,
+        proto: JsObject,
+        context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span><span class="kw-2">mut </span>Context,
+    ) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>object = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
+            proto,
             ObjectData::native_object(data),
         );
         <span class="self">Self </span>{ context, object }

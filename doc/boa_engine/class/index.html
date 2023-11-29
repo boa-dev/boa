@@ -1,6 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Traits and structs for implementing native classes."><title>boa_engine::class - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-fa3bb1812debf86c.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0 (79e9716c9 2023-11-13)" data-channel="1.74.0" data-search-js="search-8be46b629f5f14a8.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/main-c5bd66d33317d69f.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc mod"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="logo-container" href="../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a></nav><nav class="sidebar"><a class="logo-container" href="../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><h2 class="location"><a href="#">Module class</a></h2><div class="sidebar-elems"><section><ul class="block"><li><a href="#structs">Structs</a></li><li><a href="#traits">Traits</a></li></ul></section></div></nav><main><div class="width-limiter"><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="main-heading"><h1>Module <a href="../index.html">boa_engine</a>::<wbr><a class="mod" href="#">class</a><button id="copy-path" title="Copy item path to clipboard"><img src="../../static.files/clipboard-7571035ce49a181d.svg" width="19" height="18" alt="Copy item path"></button></h1><span class="out-of-band"><a class="src" href="../../src/boa_engine/class.rs.html#1-289">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Traits and structs for implementing native classes.</p>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Traits and structs for implementing native classes."><title>boa_engine::class - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-fa3bb1812debf86c.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0 (79e9716c9 2023-11-13)" data-channel="1.74.0" data-search-js="search-8be46b629f5f14a8.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/main-c5bd66d33317d69f.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc mod"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="logo-container" href="../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a></nav><nav class="sidebar"><a class="logo-container" href="../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><h2 class="location"><a href="#">Module class</a></h2><div class="sidebar-elems"><section><ul class="block"><li><a href="#structs">Structs</a></li><li><a href="#traits">Traits</a></li></ul></section></div></nav><main><div class="width-limiter"><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="main-heading"><h1>Module <a href="../index.html">boa_engine</a>::<wbr><a class="mod" href="#">class</a><button id="copy-path" title="Copy item path to clipboard"><img src="../../static.files/clipboard-7571035ce49a181d.svg" width="19" height="18" alt="Copy item path"></button></h1><span class="out-of-band"><a class="src" href="../../src/boa_engine/class.rs.html#1-387">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Traits and structs for implementing native classes.</p>
 <p>Native classes are implemented through the <a href="./trait.Class.html"><code>Class</code></a> trait.</p>
-
+<h2 id="examples"><a href="#examples">Examples</a></h2>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="comment">// Can also be a struct containing `Trace` types.
 </span><span class="attr">#[derive(Debug, Trace, Finalize)]
 </span><span class="kw">enum </span>Animal {
@@ -13,11 +13,13 @@
     <span class="comment">// we set the binging name of this function to be `&quot;Animal&quot;`.
     </span><span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;Animal&quot;</span>;
 
-    <span class="comment">// We set the length to `1` since we accept 1 arguments in the constructor.
-    </span><span class="kw">const </span>LENGTH: usize = <span class="number">1</span>;
+    <span class="comment">// We set the length to `2` since we accept 2 arguments in the constructor.
+    </span><span class="kw">const </span>LENGTH: usize = <span class="number">2</span>;
 
     <span class="comment">// This is what is called when we do `new Animal()` to construct the inner data of the class.
-    </span><span class="kw">fn </span>make_data(_new_target: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
+    // `_new_target` is the target of the `new` invocation, in this case the `Animal` constructor
+    // object.
+    </span><span class="kw">fn </span>data_constructor(_new_target: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="comment">// This is equivalent to `String(arg)`.
         </span><span class="kw">let </span>kind = args.get_or_undefined(<span class="number">0</span>).to_string(context)<span class="question-mark">?</span>;
 
@@ -30,7 +32,22 @@
         <span class="prelude-val">Ok</span>(animal)
     }
 
-    <span class="doccomment">/// This is where the object is initialized.
+    <span class="comment">// This is also called on instance construction, but it receives the object wrapping the
+    // native data as its `instance` argument.
+    </span><span class="kw">fn </span>object_constructor(
+        instance: <span class="kw-2">&amp;</span>JsObject,
+        args: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;()&gt; {
+        <span class="kw">let </span>age = args.get_or_undefined(<span class="number">1</span>).to_number(context)<span class="question-mark">?</span>;
+
+        <span class="comment">// Roughly equivalent to `this.age = Number(age)`.
+        </span>instance.set(<span class="macro">js_string!</span>(<span class="string">&quot;age&quot;</span>), age, <span class="bool-val">true</span>, context)<span class="question-mark">?</span>;
+
+        <span class="prelude-val">Ok</span>(())
+    }
+
+    <span class="doccomment">/// This is where the class object is initialized.
     </span><span class="kw">fn </span>init(class: <span class="kw-2">&amp;mut </span>ClassBuilder) -&gt; JsResult&lt;()&gt; {
         class.method(
             <span class="macro">js_string!</span>(<span class="string">&quot;speak&quot;</span>),
@@ -38,17 +55,34 @@
             NativeFunction::from_fn_ptr(|this, _args, _ctx| {
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(object) = this.as_object() {
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(animal) = object.downcast_ref::&lt;Animal&gt;() {
-                        <span class="kw">match </span><span class="kw-2">&amp;*</span>animal {
-                            <span class="self">Self</span>::Cat =&gt; <span class="macro">println!</span>(<span class="string">&quot;meow&quot;</span>),
-                            <span class="self">Self</span>::Dog =&gt; <span class="macro">println!</span>(<span class="string">&quot;woof&quot;</span>),
-                            <span class="self">Self</span>::Other =&gt; <span class="macro">println!</span>(<span class="string">r&quot;¯\_(ツ)_/¯&quot;</span>),
-                        }
+                        <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="kw">match </span><span class="kw-2">&amp;*</span>animal {
+                            <span class="self">Self</span>::Cat =&gt; <span class="macro">js_string!</span>(<span class="string">&quot;meow&quot;</span>),
+                            <span class="self">Self</span>::Dog =&gt; <span class="macro">js_string!</span>(<span class="string">&quot;woof&quot;</span>),
+                            <span class="self">Self</span>::Other =&gt; <span class="macro">js_string!</span>(<span class="string">r&quot;¯\_(ツ)_/¯&quot;</span>),
+                        }.into());
                     }
                 }
-                <span class="prelude-val">Ok</span>(JsValue::undefined())
+                <span class="prelude-val">Err</span>(JsNativeError::typ().with_message(<span class="string">&quot;invalid this for class method&quot;</span>).into())
             }),
         );
         <span class="prelude-val">Ok</span>(())
     }
+}
+
+<span class="kw">fn </span>main() {
+    <span class="kw">let </span><span class="kw-2">mut </span>context = Context::default();
+
+    context.register_global_class::&lt;Animal&gt;().unwrap();
+
+    <span class="kw">let </span>result = context.eval(Source::from_bytes(<span class="string">r#&quot;
+        let pet = new Animal(&quot;dog&quot;, 3);
+
+        `My pet is ${pet.age} years old. Right, buddy? - ${pet.speak()}!`
+    &quot;#</span>)).unwrap();
+
+    <span class="macro">assert_eq!</span>(
+        result.as_string().unwrap(),
+        <span class="kw-2">&amp;</span><span class="macro">js_string!</span>(<span class="string">&quot;My pet is 3 years old. Right, buddy? - woof!&quot;</span>)
+    );
 }</code></pre></div>
 </div></details><h2 id="structs" class="small-section-header"><a href="#structs">Structs</a></h2><ul class="item-table"><li><div class="item-name"><a class="struct" href="struct.ClassBuilder.html" title="struct boa_engine::class::ClassBuilder">ClassBuilder</a></div><div class="desc docblock-short">Class builder which allows adding methods and static methods to the class.</div></li></ul><h2 id="traits" class="small-section-header"><a href="#traits">Traits</a></h2><ul class="item-table"><li><div class="item-name"><a class="trait" href="trait.Class.html" title="trait boa_engine::class::Class">Class</a></div><div class="desc docblock-short">Native class.</div></li></ul></section></div></main></body></html>

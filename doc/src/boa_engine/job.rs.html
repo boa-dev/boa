@@ -574,14 +574,14 @@
 /// can be done by passing it to the [`ContextBuilder`]:
 ///
 /// ```
-/// use std::rc::Rc;
 /// use boa_engine::{
 ///     context::ContextBuilder,
 ///     job::{IdleJobQueue, JobQueue},
 /// };
+/// use std::rc::Rc;
 ///
 /// let queue = Rc::new(IdleJobQueue);
-/// let context = ContextBuilder::new().job_queue(queue ).build();
+/// let context = ContextBuilder::new().job_queue(queue).build();
 /// ```
 ///
 /// [`ContextBuilder`]: crate::context::ContextBuilder

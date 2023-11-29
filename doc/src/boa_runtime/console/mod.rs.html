@@ -866,7 +866,7 @@
 
         </span><span class="kw">let </span>state = Rc::new(RefCell::new(<span class="self">Self</span>::default()));
 
-        ObjectInitializer::with_native(<span class="self">Self</span>::default(), context)
+        ObjectInitializer::with_native_data(<span class="self">Self</span>::default(), context)
             .function(
                 console_method(<span class="self">Self</span>::assert, state.clone()),
                 <span class="macro">js_string!</span>(<span class="string">&quot;assert&quot;</span>),
