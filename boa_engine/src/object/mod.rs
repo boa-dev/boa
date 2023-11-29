@@ -2645,10 +2645,24 @@ impl<'ctx> ObjectInitializer<'ctx> {
     }
 
     /// Create a new `ObjectBuilder` with custom [`NativeObject`] data.
-    pub fn with_native<T: NativeObject>(data: T, context: &'ctx mut Context) -> Self {
+    pub fn with_native_data<T: NativeObject>(data: T, context: &'ctx mut Context) -> Self {
         let object = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             context.intrinsics().constructors().object().prototype(),
+            ObjectData::native_object(data),
+        );
+        Self { context, object }
+    }
+
+    /// Create a new `ObjectBuilder` with custom [`NativeObject`] data and custom prototype.
+    pub fn with_native_data_and_proto<T: NativeObject>(
+        data: T,
+        proto: JsObject,
+        context: &'ctx mut Context,
+    ) -> Self {
+        let object = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
+            proto,
             ObjectData::native_object(data),
         );
         Self { context, object }

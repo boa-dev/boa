@@ -65,7 +65,11 @@ impl Class for Person {
     const LENGTH: usize = 2;
 
     // This is what is internally called when we construct a `Person` with the expression `new Person()`.
-    fn make_data(_this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<Self> {
+    fn data_constructor(
+        _this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<Self> {
         // We get the first argument. If it is unavailable we default to `undefined`,
         // and then we call `to_string()`.
         //

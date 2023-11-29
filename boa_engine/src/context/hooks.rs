@@ -40,7 +40,8 @@ use super::intrinsics::Intrinsics;
 ///     }
 /// }
 ///
-/// let context = &mut ContextBuilder::new().host_hooks(&Hooks).build().unwrap();
+/// let context =
+///     &mut ContextBuilder::new().host_hooks(&Hooks).build().unwrap();
 /// let result = context.eval(Source::from_bytes(r#"eval("let a = 5")"#));
 /// assert_eq!(
 ///     result.unwrap_err().to_string(),

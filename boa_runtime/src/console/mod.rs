@@ -163,7 +163,7 @@ impl Console {
 
         let state = Rc::new(RefCell::new(Self::default()));
 
-        ObjectInitializer::with_native(Self::default(), context)
+        ObjectInitializer::with_native_data(Self::default(), context)
             .function(
                 console_method(Self::assert, state.clone()),
                 js_string!("assert"),

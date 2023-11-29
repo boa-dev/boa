@@ -1,14 +1,17 @@
 //! Traits and structs for implementing native classes.
 //!
 //! Native classes are implemented through the [`Class`][class-trait] trait.
+//!
+//! # Examples
+//!
 //! ```
 //! # use boa_engine::{
 //! #    NativeFunction,
 //! #    property::Attribute,
 //! #    class::{Class, ClassBuilder},
 //! #    Context, JsResult, JsValue,
-//! #    JsArgs,
-//! #    js_string,
+//! #    JsArgs, Source, JsObject, js_string,
+//! #    JsNativeError,
 //! # };
 //! # use boa_gc::{Finalize, Trace};
 //! #
@@ -24,11 +27,13 @@
 //!     // we set the binging name of this function to be `"Animal"`.
 //!     const NAME: &'static str = "Animal";
 //!
-//!     // We set the length to `1` since we accept 1 arguments in the constructor.
-//!     const LENGTH: usize = 1;
+//!     // We set the length to `2` since we accept 2 arguments in the constructor.
+//!     const LENGTH: usize = 2;
 //!
 //!     // This is what is called when we do `new Animal()` to construct the inner data of the class.
-//!     fn make_data(_new_target: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<Self> {
+//!     // `_new_target` is the target of the `new` invocation, in this case the `Animal` constructor
+//!     // object.
+//!     fn data_constructor(_new_target: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<Self> {
 //!         // This is equivalent to `String(arg)`.
 //!         let kind = args.get_or_undefined(0).to_string(context)?;
 //!
@@ -41,7 +46,22 @@
 //!         Ok(animal)
 //!     }
 //!
-//!     /// This is where the object is initialized.
+//!     // This is also called on instance construction, but it receives the object wrapping the
+//!     // native data as its `instance` argument.
+//!     fn object_constructor(
+//!         instance: &JsObject,
+//!         args: &[JsValue],
+//!         context: &mut Context,
+//!     ) -> JsResult<()> {
+//!         let age = args.get_or_undefined(1).to_number(context)?;
+//!
+//!         // Roughly equivalent to `this.age = Number(age)`.
+//!         instance.set(js_string!("age"), age, true, context)?;
+//!
+//!         Ok(())
+//!     }
+//!
+//!     /// This is where the class object is initialized.
 //!     fn init(class: &mut ClassBuilder) -> JsResult<()> {
 //!         class.method(
 //!             js_string!("speak"),
@@ -49,18 +69,35 @@
 //!             NativeFunction::from_fn_ptr(|this, _args, _ctx| {
 //!                 if let Some(object) = this.as_object() {
 //!                     if let Some(animal) = object.downcast_ref::<Animal>() {
-//!                         match &*animal {
-//!                             Self::Cat => println!("meow"),
-//!                             Self::Dog => println!("woof"),
-//!                             Self::Other => println!(r"¯\_(ツ)_/¯"),
-//!                         }
+//!                         return Ok(match &*animal {
+//!                             Self::Cat => js_string!("meow"),
+//!                             Self::Dog => js_string!("woof"),
+//!                             Self::Other => js_string!(r"¯\_(ツ)_/¯"),
+//!                         }.into());
 //!                     }
 //!                 }
-//!                 Ok(JsValue::undefined())
+//!                 Err(JsNativeError::typ().with_message("invalid this for class method").into())
 //!             }),
 //!         );
 //!         Ok(())
 //!     }
+//! }
+//!
+//! fn main() {
+//!     let mut context = Context::default();
+//!
+//!     context.register_global_class::<Animal>().unwrap();
+//!
+//!     let result = context.eval(Source::from_bytes(r#"
+//!         let pet = new Animal("dog", 3);
+//!
+//!         `My pet is ${pet.age} years old. Right, buddy? - ${pet.speak()}!`
+//!     "#)).unwrap();
+//!
+//!     assert_eq!(
+//!         result.as_string().unwrap(),
+//!         &js_string!("My pet is 3 years old. Right, buddy? - woof!")
+//!     );
 //! }
 //! ```
 //!
@@ -79,6 +116,8 @@ use crate::{
 };
 
 /// Native class.
+///
+/// See the [module-level documentation][self] for more details.
 pub trait Class: NativeObject + Sized {
     /// The binding name of this class.
     const NAME: &'static str;
@@ -88,25 +127,42 @@ pub trait Class: NativeObject + Sized {
     /// Default is `writable`, `enumerable`, `configurable`.
     const ATTRIBUTES: Attribute = Attribute::all();
 
-    /// Creates the internal data for an instance of this class.
-    ///
-    /// This method can also be called the "native constructor" of this class.
-    fn make_data(new_target: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<Self>;
-
     /// Initializes the properties and methods of this class.
     fn init(class: &mut ClassBuilder<'_>) -> JsResult<()>;
 
-    /// Creates a new [`JsObject`] with its internal data set to the result of calling `Self::make_data`.
+    /// Creates the internal data for an instance of this class.
+    fn data_constructor(
+        new_target: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<Self>;
+
+    /// Initializes the properties of the constructed object for an instance of this class.
     ///
-    /// # Note
+    /// Useful to initialize additional properties for the constructed object that aren't
+    /// stored inside the native data.
+    #[allow(unused_variables)] // Saves work when IDEs autocomplete trait impls.
+    fn object_constructor(
+        instance: &JsObject,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<()> {
+        Ok(())
+    }
+
+    /// Creates a new [`JsObject`] with its internal data set to the result of calling
+    /// [`Class::data_constructor`] and [`Class::object_constructor`].
     ///
-    /// This will throw an error if this class is not registered in the context's active realm.
+    /// # Errors
+    ///
+    /// - Throws an error if `new_target` is undefined.
+    /// - Throws an error if this class is not registered in `new_target`'s realm.
     /// See [`Context::register_global_class`].
     ///
-    /// # Warning
-    ///
+    /// <div class="warning">
     /// Overriding this method could be useful for certain usages, but incorrectly implementing this
     /// could lead to weird errors like missing inherited methods or incorrect internal data.
+    /// </div>
     fn construct(
         new_target: &JsValue,
         args: &[JsValue],
@@ -121,30 +177,72 @@ pub trait Class: NativeObject + Sized {
                 .into());
         }
 
-        let class = context.get_global_class::<Self>().ok_or_else(|| {
-            JsNativeError::typ().with_message(format!(
-                "could not find native class `{}` in the map of registered classes",
-                Self::NAME
-            ))
-        })?;
+        let prototype = 'proto: {
+            let realm = if let Some(constructor) = new_target.as_object() {
+                if let Some(proto) = constructor.get(PROTOTYPE, context)?.as_object() {
+                    break 'proto proto.clone();
+                }
+                constructor.get_function_realm(context)?
+            } else {
+                context.realm().clone()
+            };
+            realm
+                .get_class::<Self>()
+                .ok_or_else(|| {
+                    JsNativeError::typ().with_message(format!(
+                        "could not find native class `{}` in the map of registered classes",
+                        Self::NAME
+                    ))
+                })?
+                .prototype()
+        };
 
-        let prototype = new_target
-            .as_object()
-            .map(|obj| {
-                obj.get(PROTOTYPE, context)
-                    .map(|val| val.as_object().cloned())
-            })
-            .transpose()?
-            .flatten()
-            .unwrap_or_else(|| class.prototype());
+        let data = Self::data_constructor(new_target, args, context)?;
 
-        let data = Self::make_data(new_target, args, context)?;
-        let instance = JsObject::from_proto_and_data_with_shared_shape(
+        let object = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
             ObjectData::native_object(data),
         );
-        Ok(instance)
+
+        Self::object_constructor(&object, args, context)?;
+
+        Ok(object)
+    }
+
+    /// Constructs an instance of this class from its inner native data.
+    ///
+    /// Note that the default implementation won't call [`Class::data_constructor`], but it will
+    /// call [`Class::object_constructor`] with no arguments.
+    ///
+    /// # Errors
+    /// - Throws an error if this class is not registered in the context's realm. See
+    /// [`Context::register_global_class`].
+    ///
+    /// <div class="warning">
+    /// Overriding this method could be useful for certain usages, but incorrectly implementing this
+    /// could lead to weird errors like missing inherited methods or incorrect internal data.
+    /// </div>
+    fn from_data(data: Self, context: &mut Context) -> JsResult<JsObject> {
+        let prototype = context
+            .get_global_class::<Self>()
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message(format!(
+                    "could not find native class `{}` in the map of registered classes",
+                    Self::NAME
+                ))
+            })?
+            .prototype();
+
+        let object = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
+            prototype,
+            ObjectData::native_object(data),
+        );
+
+        Self::object_constructor(&object, &[], context)?;
+
+        Ok(object)
     }
 }
 
