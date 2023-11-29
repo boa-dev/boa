@@ -48,7 +48,11 @@
 #![allow(
     clippy::module_name_repetitions,
     clippy::redundant_pub_crate,
-    clippy::let_unit_value
+    clippy::let_unit_value,
+    clippy::missing_panics_doc,
+    unused_tuple_struct_fields,
+    dead_code,
+    unused_crate_dependencies
 )]
 
 mod console;
@@ -154,7 +158,7 @@ pub(crate) mod test {
                     // TODO: extract to a file
                     forward_val(
                         context,
-                        r#"
+                        r"
                         function equals(a, b) {
                             if (Array.isArray(a) && Array.isArray(b)) {
                                 return arrayEquals(a, b);
@@ -167,7 +171,7 @@ pub(crate) mod test {
                                 a.length === b.length &&
                                 a.every((val, index) => equals(val, b[index]));
                         }
-                    "#,
+                    ",
                     )
                     .expect("failed to evaluate test harness");
                 }
