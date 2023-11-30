@@ -2,7 +2,7 @@ use crate::{
     finalizer_safe,
     internals::EphemeronBox,
     trace::{Finalize, Trace},
-    Allocator, Gc,
+    Allocator, Gc, GcBox,
 };
 use std::ptr::NonNull;
 
@@ -31,6 +31,17 @@ impl<K: Trace, V: Trace + Clone> Ephemeron<K, V> {
         // SAFETY: this is safe because `Ephemeron` is tracked to always point to a valid pointer
         // `inner_ptr`.
         unsafe { self.inner_ptr.as_ref().value().cloned() }
+    }
+
+    /// Gets the stored value of this `Ephemeron`, or `None` if the key was already garbage collected.
+    ///
+    /// This needs to return a clone of the value because holding a reference to it between
+    /// garbage collection passes could drop the underlying allocation, causing an Use After Free.
+    #[must_use]
+    pub fn key_ptr(&self) -> Option<NonNull<GcBox<K>>> {
+        // SAFETY: this is safe because `Ephemeron` is tracked to always point to a valid pointer
+        // `inner_ptr`.
+        unsafe { self.inner_ptr.as_ref().key_ptr() }
     }
 
     /// Checks if the [`Ephemeron`] has a value.

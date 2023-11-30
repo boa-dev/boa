@@ -139,6 +139,21 @@ impl<K: Trace, V: Trace> EphemeronBox<K, V> {
         data.as_ref().map(|data| &data.value)
     }
 
+    /// Returns the pointer to the ephemeron's key or None.
+    ///
+    /// # Safety
+    ///
+    /// The caller must ensure there are no live mutable references to the ephemeron box's data
+    /// before calling this method.
+    pub(crate) unsafe fn key_ptr(&self) -> Option<NonNull<GcBox<K>>> {
+        // SAFETY: the garbage collector ensures the ephemeron doesn't mutate until
+        // finalization.
+        unsafe {
+            let data = &*self.data.get();
+            data.as_ref().map(|data| data.key)
+        }
+    }
+
     /// Returns a reference to the ephemeron's key or None.
     ///
     /// # Safety
@@ -148,10 +163,7 @@ impl<K: Trace, V: Trace> EphemeronBox<K, V> {
     pub(crate) unsafe fn key(&self) -> Option<&GcBox<K>> {
         // SAFETY: the garbage collector ensures the ephemeron doesn't mutate until
         // finalization.
-        unsafe {
-            let data = &*self.data.get();
-            data.as_ref().map(|data| data.key.as_ref())
-        }
+        unsafe { self.key_ptr().map(|data| data.as_ref()) }
     }
 
     /// Marks this `EphemeronBox` as live.

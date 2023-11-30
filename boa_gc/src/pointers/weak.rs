@@ -8,7 +8,7 @@ use std::hash::{Hash, Hasher};
 #[derive(Debug, Trace, Finalize)]
 #[repr(transparent)]
 pub struct WeakGc<T: Trace + 'static> {
-    inner: Ephemeron<T, Gc<T>>,
+    inner: Ephemeron<T, ()>,
 }
 
 impl<T: Trace> WeakGc<T> {
@@ -16,7 +16,7 @@ impl<T: Trace> WeakGc<T> {
     #[must_use]
     pub fn new(value: &Gc<T>) -> Self {
         Self {
-            inner: Ephemeron::new(value, value.clone()),
+            inner: Ephemeron::new(value, ()),
         }
     }
 
@@ -24,7 +24,15 @@ impl<T: Trace> WeakGc<T> {
     /// if the value was already garbage collected.
     #[must_use]
     pub fn upgrade(&self) -> Option<Gc<T>> {
-        self.inner.value()
+        let inner_ptr = self.inner.key_ptr()?;
+
+        // SAFETY: Returned pointer is valid, so this is safe.
+        unsafe {
+            inner_ptr.as_ref().inc_ref_count();
+        }
+
+        // SAFETY: The gc pointer's reference count has been incremented, so this is safe.
+        Some(unsafe { Gc::from_raw(inner_ptr) })
     }
 
     /// Check if the [`WeakGc`] can be upgraded.
@@ -34,7 +42,7 @@ impl<T: Trace> WeakGc<T> {
     }
 
     #[must_use]
-    pub(crate) const fn inner(&self) -> &Ephemeron<T, Gc<T>> {
+    pub(crate) const fn inner(&self) -> &Ephemeron<T, ()> {
         &self.inner
     }
 }
@@ -47,8 +55,8 @@ impl<T: Trace> Clone for WeakGc<T> {
     }
 }
 
-impl<T: Trace> From<Ephemeron<T, Gc<T>>> for WeakGc<T> {
-    fn from(inner: Ephemeron<T, Gc<T>>) -> Self {
+impl<T: Trace> From<Ephemeron<T, ()>> for WeakGc<T> {
+    fn from(inner: Ephemeron<T, ()>) -> Self {
         Self { inner }
     }
 }
