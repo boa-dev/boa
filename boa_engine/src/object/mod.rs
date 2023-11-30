@@ -30,14 +30,6 @@ use self::{
     },
     shape::Shape,
 };
-#[cfg(feature = "intl")]
-use crate::builtins::intl::{
-    collator::Collator,
-    date_time_format::DateTimeFormat,
-    list_format::ListFormat,
-    plural_rules::PluralRules,
-    segmenter::{SegmentIterator, Segmenter, Segments},
-};
 #[cfg(feature = "temporal")]
 use crate::builtins::temporal::{
     Calendar, Duration, Instant, PlainDate, PlainDateTime, PlainMonthDay, PlainTime,
@@ -128,8 +120,18 @@ pub trait NativeObject: Any + Trace {
 
     /// Convert the Rust type which implements `NativeObject` to a `&mut dyn Any`.
     fn as_mut_any(&mut self) -> &mut dyn Any;
+
+    /// Gets the type name of the value.
+    fn type_name_of_value(&self) -> &'static str {
+        fn name_of_val<T: ?Sized>(_val: &T) -> &'static str {
+            std::any::type_name::<T>()
+        }
+
+        name_of_val(self)
+    }
 }
 
+// TODO: Use super trait casting in Rust 1.75
 impl<T: Any + Trace> NativeObject for T {
     fn as_any(&self) -> &dyn Any {
         self
@@ -140,6 +142,7 @@ impl<T: Any + Trace> NativeObject for T {
     }
 }
 
+// TODO: Use super trait casting in Rust 1.75
 impl dyn NativeObject {
     /// Returns `true` if the inner type is the same as `T`.
     #[inline]
@@ -409,37 +412,6 @@ pub enum ObjectKind {
     /// The `ModuleNamespace` object kind.
     ModuleNamespace(ModuleNamespace),
 
-    /// The `Intl.Collator` object kind.
-    #[cfg(feature = "intl")]
-    Collator(Box<Collator>),
-
-    /// The `Intl.DateTimeFormat` object kind.
-    #[cfg(feature = "intl")]
-    DateTimeFormat(Box<DateTimeFormat>),
-
-    /// The `Intl.ListFormat` object kind.
-    #[cfg(feature = "intl")]
-    ListFormat(Box<ListFormat>),
-
-    /// The `Intl.Locale` object kind.
-    #[cfg(feature = "intl")]
-    Locale(Box<icu_locid::Locale>),
-
-    /// The `Intl.Segmenter` object kind.
-    #[cfg(feature = "intl")]
-    Segmenter(Segmenter),
-
-    /// The `Segments` object kind.
-    #[cfg(feature = "intl")]
-    Segments(Segments),
-
-    /// The `Segment Iterator` object kind.
-    #[cfg(feature = "intl")]
-    SegmentIterator(SegmentIterator),
-    /// The `PluralRules` object kind.
-    #[cfg(feature = "intl")]
-    PluralRules(Box<PluralRules>),
-
     /// The `Temporal.Instant` object kind.
     #[cfg(feature = "temporal")]
     Instant(Instant),
@@ -509,19 +481,6 @@ unsafe impl Trace for ObjectKind {
             Self::WeakMap(wm) => mark(wm),
             Self::WeakSet(ws) => mark(ws),
             Self::ModuleNamespace(m) => mark(m),
-            #[cfg(feature = "intl")]
-            Self::DateTimeFormat(f) => mark(f),
-            #[cfg(feature = "intl")]
-            Self::Collator(co) => mark(co),
-            #[cfg(feature = "intl")]
-            Self::Segments(seg) => mark(seg),
-            #[cfg(feature = "intl")]
-            Self::SegmentIterator(it) => mark(it),
-            #[cfg(feature = "intl")]
-            Self::ListFormat(_)
-            | Self::Locale(_)
-            | Self::Segmenter(_)
-            | Self::PluralRules(_) => {}
             Self::RegExp(_)
             | Self::BigInt(_)
             | Self::Boolean(_)
@@ -907,86 +866,6 @@ impl ObjectData {
         }
     }
 
-    /// Create the `Collator` object data
-    #[cfg(feature = "intl")]
-    #[must_use]
-    pub fn collator(date_time_fmt: Collator) -> Self {
-        Self {
-            kind: ObjectKind::Collator(Box::new(date_time_fmt)),
-            internal_methods: &ORDINARY_INTERNAL_METHODS,
-        }
-    }
-
-    /// Create the `DateTimeFormat` object data
-    #[cfg(feature = "intl")]
-    #[must_use]
-    pub fn date_time_format(date_time_fmt: Box<DateTimeFormat>) -> Self {
-        Self {
-            kind: ObjectKind::DateTimeFormat(date_time_fmt),
-            internal_methods: &ORDINARY_INTERNAL_METHODS,
-        }
-    }
-
-    /// Create the `ListFormat` object data
-    #[cfg(feature = "intl")]
-    #[must_use]
-    pub fn list_format(list_format: ListFormat) -> Self {
-        Self {
-            kind: ObjectKind::ListFormat(Box::new(list_format)),
-            internal_methods: &ORDINARY_INTERNAL_METHODS,
-        }
-    }
-
-    /// Create the `Locale` object data
-    #[cfg(feature = "intl")]
-    #[must_use]
-    pub fn locale(locale: icu_locid::Locale) -> Self {
-        Self {
-            kind: ObjectKind::Locale(Box::new(locale)),
-            internal_methods: &ORDINARY_INTERNAL_METHODS,
-        }
-    }
-
-    /// Create the `Segmenter` object data
-    #[cfg(feature = "intl")]
-    #[must_use]
-    pub fn segmenter(segmenter: Segmenter) -> Self {
-        Self {
-            kind: ObjectKind::Segmenter(segmenter),
-            internal_methods: &ORDINARY_INTERNAL_METHODS,
-        }
-    }
-
-    /// Create the `Segments` object data
-    #[cfg(feature = "intl")]
-    #[must_use]
-    pub fn segments(segments: Segments) -> Self {
-        Self {
-            kind: ObjectKind::Segments(segments),
-            internal_methods: &ORDINARY_INTERNAL_METHODS,
-        }
-    }
-
-    /// Create the `SegmentIterator` object data
-    #[cfg(feature = "intl")]
-    #[must_use]
-    pub fn segment_iterator(segment_iterator: SegmentIterator) -> Self {
-        Self {
-            kind: ObjectKind::SegmentIterator(segment_iterator),
-            internal_methods: &ORDINARY_INTERNAL_METHODS,
-        }
-    }
-
-    /// Create the `PluralRules` object data
-    #[cfg(feature = "intl")]
-    #[must_use]
-    pub fn plural_rules(plural_rules: PluralRules) -> Self {
-        Self {
-            kind: ObjectKind::PluralRules(Box::new(plural_rules)),
-            internal_methods: &ORDINARY_INTERNAL_METHODS,
-        }
-    }
-
     /// Create the `Instant` object data
     #[cfg(feature = "temporal")]
     #[must_use]
@@ -1119,7 +998,6 @@ impl Debug for ObjectKind {
             Self::Date(_) => "Date",
             Self::Global => "Global",
             Self::Arguments(_) => "Arguments",
-            Self::NativeObject(_) => "NativeObject",
             Self::IntegerIndexed(_) => "TypedArray",
             Self::DataView(_) => "DataView",
             Self::Promise(_) => "Promise",
@@ -1127,22 +1005,7 @@ impl Debug for ObjectKind {
             Self::WeakMap(_) => "WeakMap",
             Self::WeakSet(_) => "WeakSet",
             Self::ModuleNamespace(_) => "ModuleNamespace",
-            #[cfg(feature = "intl")]
-            Self::Collator(_) => "Collator",
-            #[cfg(feature = "intl")]
-            Self::DateTimeFormat(_) => "DateTimeFormat",
-            #[cfg(feature = "intl")]
-            Self::ListFormat(_) => "ListFormat",
-            #[cfg(feature = "intl")]
-            Self::Locale(_) => "Locale",
-            #[cfg(feature = "intl")]
-            Self::Segmenter(_) => "Segmenter",
-            #[cfg(feature = "intl")]
-            Self::Segments(_) => "Segments",
-            #[cfg(feature = "intl")]
-            Self::SegmentIterator(_) => "SegmentIterator",
-            #[cfg(feature = "intl")]
-            Self::PluralRules(_) => "PluralRules",
+            Self::NativeObject(obj) => (**obj).type_name_of_value(),
             #[cfg(feature = "temporal")]
             Self::Instant(_) => "Instant",
             #[cfg(feature = "temporal")]
@@ -2041,118 +1904,6 @@ impl Object {
     pub fn as_module_namespace_mut(&mut self) -> Option<&mut ModuleNamespace> {
         match &mut self.kind {
             ObjectKind::ModuleNamespace(ns) => Some(ns),
-            _ => None,
-        }
-    }
-
-    /// Gets the `Collator` data if the object is a `Collator`.
-    #[inline]
-    #[must_use]
-    #[cfg(feature = "intl")]
-    pub const fn as_collator(&self) -> Option<&Collator> {
-        match self.kind {
-            ObjectKind::Collator(ref collator) => Some(collator),
-            _ => None,
-        }
-    }
-
-    /// Gets a mutable reference to the `Collator` data if the object is a `Collator`.
-    #[inline]
-    #[cfg(feature = "intl")]
-    pub fn as_collator_mut(&mut self) -> Option<&mut Collator> {
-        match self.kind {
-            ObjectKind::Collator(ref mut collator) => Some(collator),
-            _ => None,
-        }
-    }
-
-    /// Checks if it is a `Locale` object.
-    #[inline]
-    #[must_use]
-    #[cfg(feature = "intl")]
-    pub const fn is_locale(&self) -> bool {
-        matches!(self.kind, ObjectKind::Locale(_))
-    }
-
-    /// Gets the `Locale` data if the object is a `Locale`.
-    #[inline]
-    #[must_use]
-    #[cfg(feature = "intl")]
-    pub const fn as_locale(&self) -> Option<&icu_locid::Locale> {
-        match self.kind {
-            ObjectKind::Locale(ref locale) => Some(locale),
-            _ => None,
-        }
-    }
-
-    /// Gets the `ListFormat` data if the object is a `ListFormat`.
-    #[inline]
-    #[must_use]
-    #[cfg(feature = "intl")]
-    pub const fn as_list_format(&self) -> Option<&ListFormat> {
-        match self.kind {
-            ObjectKind::ListFormat(ref lf) => Some(lf),
-            _ => None,
-        }
-    }
-
-    /// Checks if it is a `Segmenter` object.
-    #[inline]
-    #[must_use]
-    #[cfg(feature = "intl")]
-    pub const fn is_segmenter(&self) -> bool {
-        matches!(self.kind, ObjectKind::Segmenter(_))
-    }
-
-    /// Gets the `Segmenter` data if the object is a `Segmenter`.
-    #[inline]
-    #[must_use]
-    #[cfg(feature = "intl")]
-    pub const fn as_segmenter(&self) -> Option<&Segmenter> {
-        match self.kind {
-            ObjectKind::Segmenter(ref seg) => Some(seg),
-            _ => None,
-        }
-    }
-
-    /// Gets the `Segments` data if the object is a `Segments`.
-    #[inline]
-    #[must_use]
-    #[cfg(feature = "intl")]
-    pub const fn as_segments(&self) -> Option<&Segments> {
-        match self.kind {
-            ObjectKind::Segments(ref seg) => Some(seg),
-            _ => None,
-        }
-    }
-
-    /// Gets the `SegmentIterator` data if the object is a `SegmentIterator`.
-    #[inline]
-    #[cfg(feature = "intl")]
-    pub fn as_segment_iterator_mut(&mut self) -> Option<&mut SegmentIterator> {
-        match &mut self.kind {
-            ObjectKind::SegmentIterator(it) => Some(it),
-            _ => None,
-        }
-    }
-
-    /// Gets the `PluralRules` data if the object is a `PluralRules`.
-    #[inline]
-    #[must_use]
-    #[cfg(feature = "intl")]
-    pub const fn as_plural_rules(&self) -> Option<&PluralRules> {
-        match &self.kind {
-            ObjectKind::PluralRules(it) => Some(it),
-            _ => None,
-        }
-    }
-
-    /// Gets a mutable reference to the `PluralRules` data if the object is a `PluralRules`.
-    #[inline]
-    #[cfg(feature = "intl")]
-    pub fn as_plural_rules_mut(&mut self) -> Option<&mut PluralRules> {
-        match &mut self.kind {
-            ObjectKind::PluralRules(plural_rules) => Some(plural_rules),
             _ => None,
         }
     }

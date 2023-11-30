@@ -206,7 +206,7 @@ impl BuiltInConstructor for Locale {
 
         let mut tag = if let Some(tag) = tag
             .as_object()
-            .and_then(|obj| obj.borrow().as_locale().cloned())
+            .and_then(|obj| obj.borrow().downcast_ref::<icu_locid::Locale>().cloned())
         {
             // a. Let tag be tag.[[Locale]].
             tag
@@ -371,7 +371,7 @@ impl BuiltInConstructor for Locale {
         let locale = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            ObjectData::locale(tag),
+            ObjectData::native_object(tag),
         );
 
         // 37. Return locale.
@@ -398,7 +398,7 @@ impl Locale {
             JsNativeError::typ().with_message("`maximize` can only be called on a `Locale` object")
         })?;
         let mut loc = loc
-            .as_locale()
+            .downcast_ref::<icu_locid::Locale>()
             .ok_or_else(|| {
                 JsNativeError::typ()
                     .with_message("`maximize` can only be called on a `Locale` object")
@@ -413,7 +413,7 @@ impl Locale {
         Ok(JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            ObjectData::locale(loc),
+            ObjectData::native_object(loc),
         )
         .into())
     }
@@ -436,7 +436,7 @@ impl Locale {
             JsNativeError::typ().with_message("`minimize` can only be called on a `Locale` object")
         })?;
         let mut loc = loc
-            .as_locale()
+            .downcast_ref::<icu_locid::Locale>()
             .ok_or_else(|| {
                 JsNativeError::typ()
                     .with_message("`minimize` can only be called on a `Locale` object")
@@ -451,7 +451,7 @@ impl Locale {
         Ok(JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            ObjectData::locale(loc),
+            ObjectData::native_object(loc),
         )
         .into())
     }
@@ -469,7 +469,7 @@ impl Locale {
         let loc = this.as_object().map(JsObject::borrow).ok_or_else(|| {
             JsNativeError::typ().with_message("`toString` can only be called on a `Locale` object")
         })?;
-        let loc = loc.as_locale().ok_or_else(|| {
+        let loc = loc.downcast_ref::<icu_locid::Locale>().ok_or_else(|| {
             JsNativeError::typ().with_message("`toString` can only be called on a `Locale` object")
         })?;
 
@@ -491,7 +491,7 @@ impl Locale {
             JsNativeError::typ()
                 .with_message("`get baseName` can only be called on a `Locale` object")
         })?;
-        let loc = loc.as_locale().ok_or_else(|| {
+        let loc = loc.downcast_ref::<icu_locid::Locale>().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message("`get baseName` can only be called on a `Locale` object")
         })?;
@@ -515,7 +515,7 @@ impl Locale {
             JsNativeError::typ()
                 .with_message("`get calendar` can only be called on a `Locale` object")
         })?;
-        let loc = loc.as_locale().ok_or_else(|| {
+        let loc = loc.downcast_ref::<icu_locid::Locale>().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message("`get calendar` can only be called on a `Locale` object")
         })?;
@@ -544,7 +544,7 @@ impl Locale {
             JsNativeError::typ()
                 .with_message("`get caseFirst` can only be called on a `Locale` object")
         })?;
-        let loc = loc.as_locale().ok_or_else(|| {
+        let loc = loc.downcast_ref::<icu_locid::Locale>().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message("`get caseFirst` can only be called on a `Locale` object")
         })?;
@@ -573,7 +573,7 @@ impl Locale {
             JsNativeError::typ()
                 .with_message("`get collation` can only be called on a `Locale` object")
         })?;
-        let loc = loc.as_locale().ok_or_else(|| {
+        let loc = loc.downcast_ref::<icu_locid::Locale>().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message("`get collation` can only be called on a `Locale` object")
         })?;
@@ -602,7 +602,7 @@ impl Locale {
             JsNativeError::typ()
                 .with_message("`get hourCycle` can only be called on a `Locale` object")
         })?;
-        let loc = loc.as_locale().ok_or_else(|| {
+        let loc = loc.downcast_ref::<icu_locid::Locale>().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message("`get hourCycle` can only be called on a `Locale` object")
         })?;
@@ -631,7 +631,7 @@ impl Locale {
             JsNativeError::typ()
                 .with_message("`get numeric` can only be called on a `Locale` object")
         })?;
-        let loc = loc.as_locale().ok_or_else(|| {
+        let loc = loc.downcast_ref::<icu_locid::Locale>().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message("`get numeric` can only be called on a `Locale` object")
         })?;
@@ -668,7 +668,7 @@ impl Locale {
             JsNativeError::typ()
                 .with_message("`get numberingSystem` can only be called on a `Locale` object")
         })?;
-        let loc = loc.as_locale().ok_or_else(|| {
+        let loc = loc.downcast_ref::<icu_locid::Locale>().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message("`get numberingSystem` can only be called on a `Locale` object")
         })?;
@@ -697,7 +697,7 @@ impl Locale {
             JsNativeError::typ()
                 .with_message("`get language` can only be called on a `Locale` object")
         })?;
-        let loc = loc.as_locale().ok_or_else(|| {
+        let loc = loc.downcast_ref::<icu_locid::Locale>().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message("`get language` can only be called on a `Locale` object")
         })?;
@@ -722,7 +722,7 @@ impl Locale {
             JsNativeError::typ()
                 .with_message("`get script` can only be called on a `Locale` object")
         })?;
-        let loc = loc.as_locale().ok_or_else(|| {
+        let loc = loc.downcast_ref::<icu_locid::Locale>().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message("`get script` can only be called on a `Locale` object")
         })?;
@@ -752,7 +752,7 @@ impl Locale {
             JsNativeError::typ()
                 .with_message("`get region` can only be called on a `Locale` object")
         })?;
-        let loc = loc.as_locale().ok_or_else(|| {
+        let loc = loc.downcast_ref::<icu_locid::Locale>().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message("`get region` can only be called on a `Locale` object")
         })?;

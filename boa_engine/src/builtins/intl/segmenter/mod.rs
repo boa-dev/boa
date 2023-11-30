@@ -1,5 +1,6 @@
 use std::ops::Range;
 
+use boa_gc::{empty_trace, Finalize, Trace};
 use boa_macros::utf16;
 use boa_profiler::Profiler;
 use icu_locid::Locale;
@@ -36,10 +37,15 @@ use super::{
     Service,
 };
 
-#[derive(Debug)]
-pub struct Segmenter {
+#[derive(Debug, Finalize)]
+pub(crate) struct Segmenter {
     locale: Locale,
     native: NativeSegmenter,
+}
+
+// SAFETY: `Segmenter` doesn't contain any traceable data.
+unsafe impl Trace for Segmenter {
+    empty_trace!();
 }
 
 #[derive(Debug)]
@@ -177,7 +183,7 @@ impl BuiltInConstructor for Segmenter {
         let segmenter = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             proto,
-            ObjectData::segmenter(segmenter),
+            ObjectData::native_object(segmenter),
         );
 
         // 14. Return segmenter.
@@ -230,7 +236,7 @@ impl Segmenter {
             JsNativeError::typ()
                 .with_message("`resolved_options` can only be called on an `Intl.Segmenter` object")
         })?;
-        let segmenter = segmenter.as_segmenter().ok_or_else(|| {
+        let segmenter = segmenter.downcast_ref::<Self>().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message("`resolved_options` can only be called on an `Intl.Segmenter` object")
         })?;
@@ -268,7 +274,7 @@ impl Segmenter {
         // 2. Perform ? RequireInternalSlot(segmenter, [[InitializedSegmenter]]).
         let segmenter = this
             .as_object()
-            .filter(|o| o.borrow().is_segmenter())
+            .filter(|o| o.borrow().is::<Self>())
             .ok_or_else(|| {
                 JsNativeError::typ().with_message(
                     "`resolved_options` can only be called on an `Intl.Segmenter` object",

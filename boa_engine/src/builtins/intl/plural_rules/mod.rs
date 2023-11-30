@@ -1,5 +1,6 @@
 mod options;
 
+use boa_gc::{empty_trace, Finalize, Trace};
 use boa_macros::utf16;
 use boa_profiler::Profiler;
 use fixed_decimal::FixedDecimal;
@@ -34,12 +35,17 @@ use super::{
     Service,
 };
 
-#[derive(Debug)]
-pub struct PluralRules {
+#[derive(Debug, Finalize)]
+pub(crate) struct PluralRules {
     locale: Locale,
     native: PluralRulesWithRanges<NativePluralRules>,
     rule_type: PluralRuleType,
     format_options: DigitFormatOptions,
+}
+
+// SAFETY: `PluralRules` doesn't contain any traceable data.
+unsafe impl Trace for PluralRules {
+    empty_trace!();
 }
 
 impl Service for PluralRules {
@@ -164,7 +170,7 @@ impl BuiltInConstructor for PluralRules {
         Ok(JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             proto,
-            ObjectData::plural_rules(Self {
+            ObjectData::native_object(Self {
                 locale,
                 native,
                 rule_type,
@@ -192,7 +198,7 @@ impl PluralRules {
             JsNativeError::typ()
                 .with_message("`select` can only be called on an `Intl.PluralRules` object")
         })?;
-        let plural_rules = plural_rules.as_plural_rules().ok_or_else(|| {
+        let plural_rules = plural_rules.downcast_ref::<Self>().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message("`select` can only be called on an `Intl.PluralRules` object")
         })?;
@@ -219,7 +225,7 @@ impl PluralRules {
             JsNativeError::typ()
                 .with_message("`select_range` can only be called on an `Intl.PluralRules` object")
         })?;
-        let plural_rules = plural_rules.as_plural_rules().ok_or_else(|| {
+        let plural_rules = plural_rules.downcast_ref::<Self>().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message("`select_range` can only be called on an `Intl.PluralRules` object")
         })?;
@@ -314,7 +320,7 @@ impl PluralRules {
                 "`resolved_options` can only be called on an `Intl.PluralRules` object",
             )
         })?;
-        let plural_rules = plural_rules.as_plural_rules().ok_or_else(|| {
+        let plural_rules = plural_rules.downcast_ref::<Self>().ok_or_else(|| {
             JsNativeError::typ().with_message(
                 "`resolved_options` can only be called on an `Intl.PluralRules` object",
             )
