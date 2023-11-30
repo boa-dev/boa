@@ -89,6 +89,34 @@ impl JsTypedArray {
         )
     }
 
+    /// Function that created the instance object. It is the hidden `TypedArray` constructor function, 
+    /// but each typed array subclass also defines its own constructor property.
+    ///
+    /// Returns `TypedArray.prototype.constructor`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use boa_engine::{JsResult, object::{builtins::JsUint8Array}, JsNativeError, Context};
+    /// # fn main() -> JsResult<()> {
+    ///
+    /// let context = &mut Context::default();
+    /// let array = JsUint8Array::from_iter(vec![1, 2, 3, 4, 5], context)?;
+    /// assert_eq!(
+    ///     Err(JsNativeError::typ()
+    ///         .with_message("the TypedArray constructor should never be called directly")
+    ///         .into()),
+    ///     array.constructor(context)
+    /// );
+    ///
+    /// # Ok(())
+    /// # }
+    /// ```
+    #[inline]
+    pub fn constructor(&self, context: &mut Context) -> JsResult<JsValue> {
+        BuiltinTypedArray::constructor(&self.inner.clone().into(), &[], context)
+    }
+
     /// Calls `TypedArray.prototype.fill()`.
     pub fn fill<T>(
         &self,

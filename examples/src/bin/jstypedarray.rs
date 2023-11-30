@@ -8,7 +8,7 @@ use boa_engine::{
         FunctionObjectBuilder,
     },
     property::Attribute,
-    Context, JsResult, JsValue,
+    Context, JsNativeError, JsResult, JsValue,
 };
 use boa_gc::{Gc, GcRefCell};
 
@@ -164,6 +164,14 @@ fn main() -> JsResult<()> {
     let array = JsUint8Array::from_array_buffer(array_buffer8, context)?;
 
     assert!(array.buffer(context)?.as_object().unwrap().is_buffer());
+
+    // constructor
+    assert_eq!(
+        Err(JsNativeError::typ()
+            .with_message("the TypedArray constructor should never be called directly")
+            .into()),
+        array.constructor(context)
+    );
 
     context
         .register_global_property(
