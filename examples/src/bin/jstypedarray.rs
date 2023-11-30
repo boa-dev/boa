@@ -173,6 +173,18 @@ fn main() -> JsResult<()> {
         array.constructor(context)
     );
 
+    // copyWithin
+    let array = JsUint8Array::from_iter(vec![1u8, 2u8, 3u8, 4u8, 5u8, 6u8, 7u8, 8u8], context)?;
+    array.copy_within(3, 1, Some(3), context)?;
+    assert_eq!(array.get(0, context)?, JsValue::new(1.0));
+    assert_eq!(array.get(1, context)?, JsValue::new(2.0));
+    assert_eq!(array.get(2, context)?, JsValue::new(3.0));
+    assert_eq!(array.get(3, context)?, JsValue::new(2.0));
+    assert_eq!(array.get(4, context)?, JsValue::new(3.0));
+    assert_eq!(array.get(5, context)?, JsValue::new(6.0));
+    assert_eq!(array.get(6, context)?, JsValue::new(7.0));
+    assert_eq!(array.get(7, context)?, JsValue::new(8.0));
+
     context
         .register_global_property(
             js_string!("myUint8Array"),

@@ -117,6 +117,57 @@ impl JsTypedArray {
         BuiltinTypedArray::constructor(&self.inner.clone().into(), &[], context)
     }
 
+    /// Shallow copies part of this typed array to another location in the same typed 
+    /// array and returns this typed array without modifying its length.
+    /// 
+    /// Returns `TypedArray.prototype.copyWithin()`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use boa_engine::{JsResult, JsValue, object::{builtins::{JsUint8Array}}, Context};
+    /// # fn main() -> JsResult<()> {
+    ///
+    /// let context = &mut Context::default();
+    /// let array = JsUint8Array::from_iter(vec![1u8, 2u8, 3u8, 4u8, 5u8, 6u8, 7u8, 8u8], context)?;
+    /// array.copy_within(3, 1, Some(3), context)?;
+    /// assert_eq!(array.get(0, context)?, JsValue::new(1.0));
+    /// assert_eq!(array.get(1, context)?, JsValue::new(2.0));
+    /// assert_eq!(array.get(2, context)?, JsValue::new(3.0));
+    /// assert_eq!(array.get(3, context)?, JsValue::new(2.0));
+    /// assert_eq!(array.get(4, context)?, JsValue::new(3.0));
+    /// assert_eq!(array.get(5, context)?, JsValue::new(6.0));
+    /// assert_eq!(array.get(6, context)?, JsValue::new(7.0));
+    /// assert_eq!(array.get(7, context)?, JsValue::new(8.0));
+    ///
+    /// # Ok(())
+    /// # }
+    /// ```
+    #[inline]
+    pub fn copy_within<T>(
+        &self,
+        target: T,
+        start: u64,
+        end: Option<u64>,
+        context: &mut Context,
+    ) -> JsResult<Self>
+    where
+        T: Into<JsValue>,
+    {
+        let object = BuiltinTypedArray::copy_within(
+            &self.inner.clone().into(),
+            &[target.into(), start.into(), end.into_or_undefined()],
+            context,
+        )?;
+
+        Ok(Self {
+            inner: object
+                .as_object()
+                .cloned()
+                .expect("`copyWithin` must always return a `TypedArray` on success"),
+        })
+    }
+
     /// Calls `TypedArray.prototype.fill()`.
     pub fn fill<T>(
         &self,
