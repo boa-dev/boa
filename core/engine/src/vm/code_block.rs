@@ -444,6 +444,9 @@ impl CodeBlock {
             | Instruction::Call {
                 argument_count: value,
             }
+            | Instruction::TailCall {
+                argument_count: value,
+            }
             | Instruction::New {
                 argument_count: value,
             }
@@ -746,8 +749,7 @@ impl CodeBlock {
             | Instruction::Reserved54
             | Instruction::Reserved55
             | Instruction::Reserved56
-            | Instruction::Reserved57
-            | Instruction::Reserved58 => unreachable!("Reserved opcodes are unrechable"),
+            | Instruction::Reserved57 => unreachable!("Reserved opcodes are unreachable"),
         }
     }
 }

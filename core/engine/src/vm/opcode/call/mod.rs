@@ -1,5 +1,5 @@
 use crate::{
-    builtins::{promise::PromiseCapability, Promise},
+    builtins::{function::OrdinaryFunction, promise::PromiseCapability, Promise},
     error::JsNativeError,
     module::{ModuleKind, Referrer},
     object::FunctionObjectBuilder,
@@ -182,6 +182,82 @@ impl Call {
 impl Operation for Call {
     const NAME: &'static str = "Call";
     const INSTRUCTION: &'static str = "INST - Call";
+    const COST: u8 = 3;
+
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
+        let argument_count = context.vm.read::<u8>();
+        Self::operation(context, argument_count as usize)
+    }
+
+    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
+        let argument_count = context.vm.read::<u16>() as usize;
+        Self::operation(context, argument_count)
+    }
+
+    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
+        let argument_count = context.vm.read::<u32>();
+        Self::operation(context, argument_count as usize)
+    }
+}
+
+/// `TailCall` implements the Opcode Operation for `Opcode::TailCall`
+///
+/// Operation:
+///  - Tail call a function
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct TailCall;
+
+impl TailCall {
+    fn operation(context: &mut Context, argument_count: usize) -> JsResult<CompletionType> {
+        let at = context.vm.stack.len() - argument_count;
+        let func = &context.vm.stack[at - 1];
+
+        let Some(object) = func.as_object() else {
+            return Err(JsNativeError::typ()
+                .with_message("not a callable function")
+                .into());
+        };
+
+        let is_ordinary_function = object.is::<OrdinaryFunction>();
+        object.__call__(argument_count).resolve(context)?;
+
+        // only tail call for ordinary functions
+        // don't tail call on the main script
+        // TODO: the 3 needs to be reviewed
+        if is_ordinary_function && context.vm.frames.len() > 3 {
+            // check that caller is also ordinary function
+            let frames = &context.vm.frames;
+            let caller_frame = &frames[frames.len() - 2];
+            let caller_function = caller_frame
+                .function(&context.vm)
+                .expect("there must be a caller function");
+            if caller_function.is::<OrdinaryFunction>() {
+                // remove caller's CallFrame
+                let frames = &mut context.vm.frames;
+                let caller_frame = frames.swap_remove(frames.len() - 2);
+
+                // remove caller's prologue from stack
+                // this + func + arguments
+                let to_remove = 1 + 1 + caller_frame.argument_count as usize;
+                context
+                    .vm
+                    .stack
+                    .drain((caller_frame.fp as usize)..(caller_frame.fp as usize + to_remove));
+
+                // update invoked function's fp
+                let frames = &mut context.vm.frames;
+                let invoked_frame = frames.last_mut().expect("invoked frame must exist");
+                invoked_frame.set_exit_early(caller_frame.exit_early());
+                invoked_frame.fp -= to_remove as u32;
+            }
+        }
+        Ok(CompletionType::Normal)
+    }
+}
+
+impl Operation for TailCall {
+    const NAME: &'static str = "TailCall";
+    const INSTRUCTION: &'static str = "INST - TailCall";
     const COST: u8 = 3;
 
     fn execute(context: &mut Context) -> JsResult<CompletionType> {
