@@ -21,7 +21,7 @@ impl Harness {
         BOA_GC.with(|current| {
             let gc = current.borrow();
 
-            assert!(gc.strong_start.get().is_none());
+            assert!(gc.strongs.is_empty());
             assert!(gc.runtime.bytes_allocated == 0);
         });
     }
@@ -43,6 +43,7 @@ impl Harness {
     }
 }
 
+#[track_caller]
 fn run_test(test: impl FnOnce() + Send + 'static) {
     let handle = std::thread::spawn(test);
     handle.join().unwrap();

@@ -19,7 +19,6 @@ const NON_ROOTS_MAX: u32 = NON_ROOTS_MASK;
 pub(crate) struct EphemeronBoxHeader {
     ref_count: Cell<u32>,
     non_root_count: Cell<u32>,
-    pub(crate) next: Cell<Option<NonNull<dyn ErasedEphemeronBox>>>,
 }
 
 impl EphemeronBoxHeader {
@@ -28,7 +27,6 @@ impl EphemeronBoxHeader {
         Self {
             ref_count: Cell::new(1),
             non_root_count: Cell::new(0),
-            next: Cell::new(None),
         }
     }
 
