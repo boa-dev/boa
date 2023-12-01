@@ -13,6 +13,7 @@ pub struct WeakGc<T: Trace + 'static> {
 
 impl<T: Trace> WeakGc<T> {
     /// Creates a new weak pointer for a garbage collected value.
+    #[inline]
     #[must_use]
     pub fn new(value: &Gc<T>) -> Self {
         Self {
@@ -22,20 +23,14 @@ impl<T: Trace> WeakGc<T> {
 
     /// Upgrade returns a `Gc` pointer for the internal value if the pointer is still live, or `None`
     /// if the value was already garbage collected.
+    #[inline]
     #[must_use]
     pub fn upgrade(&self) -> Option<Gc<T>> {
-        let inner_ptr = self.inner.key_ptr()?;
-
-        // SAFETY: Returned pointer is valid, so this is safe.
-        unsafe {
-            inner_ptr.as_ref().inc_ref_count();
-        }
-
-        // SAFETY: The gc pointer's reference count has been incremented, so this is safe.
-        Some(unsafe { Gc::from_raw(inner_ptr) })
+        self.inner.key()
     }
 
     /// Check if the [`WeakGc`] can be upgraded.
+    #[inline]
     #[must_use]
     pub fn is_upgradable(&self) -> bool {
         self.inner.has_value()
