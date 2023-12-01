@@ -3,7 +3,7 @@ use crate::{
     error::JsNativeError,
     module::{ModuleKind, Referrer},
     object::FunctionObjectBuilder,
-    vm::{opcode::Operation, CompletionType},
+    vm::{opcode::Operation, CallFrame, CompletionType},
     Context, JsObject, JsResult, JsValue, NativeFunction,
 };
 
@@ -210,7 +210,7 @@ pub(crate) struct TailCall;
 impl TailCall {
     fn operation(context: &mut Context, argument_count: usize) -> JsResult<CompletionType> {
         let at = context.vm.stack.len() - argument_count;
-        let func = &context.vm.stack[at - 1];
+        let func = context.vm.stack[at - 1].clone();
 
         let Some(object) = func.as_object() else {
             return Err(JsNativeError::typ()
@@ -218,38 +218,24 @@ impl TailCall {
                 .into());
         };
 
-        let is_ordinary_function = object.is::<OrdinaryFunction>();
-        object.__call__(argument_count).resolve(context)?;
-
-        // only tail call for ordinary functions
-        // don't tail call on the main script
-        // TODO: the 3 needs to be reviewed
-        if is_ordinary_function && context.vm.frames.len() > 3 {
-            // check that caller is also ordinary function
-            let frames = &context.vm.frames;
-            let caller_frame = &frames[frames.len() - 2];
-            let caller_function = caller_frame
-                .function(&context.vm)
-                .expect("there must be a caller function");
-            if caller_function.is::<OrdinaryFunction>() {
-                // remove caller's CallFrame
-                let frames = &mut context.vm.frames;
-                let caller_frame = frames.swap_remove(frames.len() - 2);
-
-                // remove caller's prologue from stack
-                // this + func + arguments
-                let to_remove = 1 + 1 + caller_frame.argument_count as usize;
+        let mut early_exit = false;
+        if object.is::<OrdinaryFunction>() {
+            if let Some(caller) = context.vm.pop_frame() {
+                let fp = caller.fp as usize;
                 context
                     .vm
                     .stack
-                    .drain((caller_frame.fp as usize)..(caller_frame.fp as usize + to_remove));
-
-                // update invoked function's fp
-                let frames = &mut context.vm.frames;
-                let invoked_frame = frames.last_mut().expect("invoked frame must exist");
-                invoked_frame.set_exit_early(caller_frame.exit_early());
-                invoked_frame.fp -= to_remove as u32;
+                    .drain(fp..(at - CallFrame::FUNCTION_PROLOGUE));
+                early_exit = caller.exit_early();
             }
+        }
+
+        object.__call__(argument_count).resolve(context)?;
+
+        // If the caller is early exit, since it has been poped from the frames
+        // we have to mark the current frame as early exit.
+        if early_exit {
+            context.vm.frame_mut().set_exit_early(true);
         }
         Ok(CompletionType::Normal)
     }

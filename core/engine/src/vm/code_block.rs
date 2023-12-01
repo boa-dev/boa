@@ -76,6 +76,47 @@ bitflags! {
     }
 }
 
+impl CodeBlockFlags {
+    /// Check if the function is traced.
+    #[cfg(feature = "trace")]
+    pub(crate) fn traceable(&self) -> bool {
+        self.contains(CodeBlockFlags::TRACEABLE)
+    }
+    /// Check if the function is a class constructor.
+    pub(crate) fn is_class_constructor(&self) -> bool {
+        self.contains(CodeBlockFlags::IS_CLASS_CONSTRUCTOR)
+    }
+    /// Check if the function is in strict mode.
+    pub(crate) fn strict(&self) -> bool {
+        self.contains(CodeBlockFlags::STRICT)
+    }
+    /// Indicates if the function is an expression and has a binding identifier.
+    pub(crate) fn has_binding_identifier(&self) -> bool {
+        self.contains(CodeBlockFlags::HAS_BINDING_IDENTIFIER)
+    }
+    /// Does this function have the `[[ClassFieldInitializerName]]` internal slot set to non-empty value.
+    pub(crate) fn in_class_field_initializer(&self) -> bool {
+        self.contains(CodeBlockFlags::IN_CLASS_FIELD_INITIALIZER)
+    }
+    /// Returns true if this function is a derived constructor.
+    pub(crate) fn is_derived_constructor(&self) -> bool {
+        self.contains(CodeBlockFlags::IS_DERIVED_CONSTRUCTOR)
+    }
+    /// Returns true if this function an async function.
+    pub(crate) fn is_async(self) -> bool {
+        self.contains(CodeBlockFlags::IS_ASYNC)
+    }
+
+    /// Returns true if this function an generator function.
+    pub(crate) fn is_generator(self) -> bool {
+        self.contains(CodeBlockFlags::IS_GENERATOR)
+    }
+    /// Returns true if this function an async function.
+    pub(crate) fn is_ordinary(self) -> bool {
+        !self.is_async() && !self.is_generator()
+    }
+}
+
 // SAFETY: Nothing in CodeBlockFlags needs tracing, so this is safe.
 unsafe impl Trace for CodeBlockFlags {
     empty_trace!();
@@ -232,7 +273,7 @@ impl CodeBlock {
     /// Check if the function is traced.
     #[cfg(feature = "trace")]
     pub(crate) fn traceable(&self) -> bool {
-        self.flags.get().contains(CodeBlockFlags::TRACEABLE)
+        self.flags.get().traceable()
     }
     /// Enable or disable instruction tracing to `stdout`.
     #[cfg(feature = "trace")]
@@ -245,50 +286,42 @@ impl CodeBlock {
 
     /// Check if the function is a class constructor.
     pub(crate) fn is_class_constructor(&self) -> bool {
-        self.flags
-            .get()
-            .contains(CodeBlockFlags::IS_CLASS_CONSTRUCTOR)
+        self.flags.get().is_class_constructor()
     }
 
     /// Check if the function is in strict mode.
     pub(crate) fn strict(&self) -> bool {
-        self.flags.get().contains(CodeBlockFlags::STRICT)
+        self.flags.get().strict()
     }
 
     /// Indicates if the function is an expression and has a binding identifier.
     pub(crate) fn has_binding_identifier(&self) -> bool {
-        self.flags
-            .get()
-            .contains(CodeBlockFlags::HAS_BINDING_IDENTIFIER)
+        self.flags.get().has_binding_identifier()
     }
 
     /// Does this function have the `[[ClassFieldInitializerName]]` internal slot set to non-empty value.
     pub(crate) fn in_class_field_initializer(&self) -> bool {
-        self.flags
-            .get()
-            .contains(CodeBlockFlags::IN_CLASS_FIELD_INITIALIZER)
+        self.flags.get().in_class_field_initializer()
     }
 
     /// Returns true if this function is a derived constructor.
     pub(crate) fn is_derived_constructor(&self) -> bool {
-        self.flags
-            .get()
-            .contains(CodeBlockFlags::IS_DERIVED_CONSTRUCTOR)
+        self.flags.get().is_derived_constructor()
     }
 
     /// Returns true if this function an async function.
     pub(crate) fn is_async(&self) -> bool {
-        self.flags.get().contains(CodeBlockFlags::IS_ASYNC)
+        self.flags.get().is_async()
     }
 
     /// Returns true if this function an generator function.
     pub(crate) fn is_generator(&self) -> bool {
-        self.flags.get().contains(CodeBlockFlags::IS_GENERATOR)
+        self.flags.get().is_generator()
     }
 
     /// Returns true if this function an async function.
     pub(crate) fn is_ordinary(&self) -> bool {
-        !self.is_async() && !self.is_generator()
+        self.flags.get().is_ordinary()
     }
 
     /// Returns true if this function has the `"prototype"` property when function object is created.
