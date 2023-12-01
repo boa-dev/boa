@@ -330,7 +330,7 @@
 
 <span class="doccomment">/// JavaScript `Intl.DateTimeFormat` object.
 </span><span class="attr">#[derive(Debug, Clone, Trace, Finalize)]
-</span><span class="kw">pub struct </span>DateTimeFormat {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>DateTimeFormat {
     initialized_date_time_format: bool,
     locale: JsString,
     calendar: JsString,
@@ -413,7 +413,7 @@
         </span><span class="kw">let </span>date_time_format = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            ObjectData::date_time_format(Box::new(<span class="self">Self </span>{
+            ObjectData::native_object(<span class="self">Self </span>{
                 initialized_date_time_format: <span class="bool-val">true</span>,
                 locale: <span class="macro">js_string!</span>(<span class="string">&quot;en-US&quot;</span>),
                 calendar: <span class="macro">js_string!</span>(<span class="string">&quot;gregory&quot;</span>),
@@ -433,7 +433,7 @@
                 hour_cycle: <span class="macro">js_string!</span>(<span class="string">&quot;h24&quot;</span>),
                 pattern: <span class="macro">js_string!</span>(<span class="string">&quot;{hour}:{minute}&quot;</span>),
                 bound_format: <span class="macro">js_string!</span>(<span class="string">&quot;undefined&quot;</span>),
-            })),
+            }),
         );
 
         <span class="comment">// TODO 3. Perform ? InitializeDateTimeFormat(dateTimeFormat, locales, options).

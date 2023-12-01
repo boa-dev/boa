@@ -129,6 +129,7 @@
 <a href="#129" id="129">129</a>
 <a href="#130" id="130">130</a>
 <a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>boa_gc::{Finalize, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>itertools::Itertools;
@@ -142,10 +143,10 @@
     Context, JsArgs, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 
-<span class="kw">use super</span>::{create_segment_data_object, SegmentIterator};
+<span class="kw">use super</span>::{create_segment_data_object, SegmentIterator, Segmenter};
 
 <span class="attr">#[derive(Debug, Trace, Finalize)]
-</span><span class="kw">pub struct </span>Segments {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Segments {
     segmenter: JsObject,
     string: JsString,
 }
@@ -175,9 +176,10 @@
         // 3. Set segments.[[SegmentsSegmenter]] to segmenter.
         // 4. Set segments.[[SegmentsString]] to string.
         // 5. Return segments.
-        </span>JsObject::from_proto_and_data(
+        </span>JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
             context.intrinsics().objects().segments_prototype(),
-            ObjectData::segments(<span class="self">Self </span>{ segmenter, string }),
+            ObjectData::native_object(<span class="self">Self </span>{ segmenter, string }),
         )
     }
 
@@ -191,7 +193,7 @@
             JsNativeError::typ()
                 .with_message(<span class="string">&quot;`containing` can only be called on a `Segments` object&quot;</span>)
         })<span class="question-mark">?</span>;
-        <span class="kw">let </span>segments = segments.as_segments().ok_or_else(|| {
+        <span class="kw">let </span>segments = segments.downcast_ref::&lt;<span class="self">Self</span>&gt;().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message(<span class="string">&quot;`containing` can only be called on a `Segments` object&quot;</span>)
         })<span class="question-mark">?</span>;
@@ -199,7 +201,7 @@
         <span class="comment">// 3. Let segmenter be segments.[[SegmentsSegmenter]].
         </span><span class="kw">let </span>segmenter = segments.segmenter.borrow();
         <span class="kw">let </span>segmenter = segmenter
-            .as_segmenter()
+            .downcast_ref::&lt;Segmenter&gt;()
             .expect(<span class="string">&quot;segments object should contain a segmenter&quot;</span>);
 
         <span class="comment">// 4. Let string be segments.[[SegmentsString]].
@@ -246,7 +248,7 @@
             JsNativeError::typ()
                 .with_message(<span class="string">&quot;`containing` can only be called on a `Segments` object&quot;</span>)
         })<span class="question-mark">?</span>;
-        <span class="kw">let </span>segments = segments.as_segments().ok_or_else(|| {
+        <span class="kw">let </span>segments = segments.downcast_ref::&lt;<span class="self">Self</span>&gt;().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message(<span class="string">&quot;`containing` can only be called on a `Segments` object&quot;</span>)
         })<span class="question-mark">?</span>;

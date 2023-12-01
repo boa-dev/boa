@@ -510,8 +510,15 @@
 <a href="#510" id="510">510</a>
 <a href="#511" id="511">511</a>
 <a href="#512" id="512">512</a>
+<a href="#513" id="513">513</a>
+<a href="#514" id="514">514</a>
+<a href="#515" id="515">515</a>
+<a href="#516" id="516">516</a>
+<a href="#517" id="517">517</a>
+<a href="#518" id="518">518</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::fmt::Write;
 
+<span class="kw">use </span>boa_gc::{empty_trace, Finalize, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>icu_list::{provider::AndListV1Marker, ListFormatter, ListLength};
 <span class="kw">use </span>icu_locid::Locale;
@@ -541,12 +548,17 @@
 <span class="kw">mod </span>options;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>options::<span class="kw-2">*</span>;
 
-<span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>ListFormat {
+<span class="attr">#[derive(Debug, Finalize)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>ListFormat {
     locale: Locale,
     typ: ListFormatType,
     style: ListLength,
     native: ListFormatter,
+}
+
+<span class="comment">// SAFETY: `ListFormat` doesn&#39;t contain traceable data.
+</span><span class="kw">unsafe impl </span>Trace <span class="kw">for </span>ListFormat {
+    <span class="macro">empty_trace!</span>();
 }
 
 <span class="kw">impl </span>Service <span class="kw">for </span>ListFormat {
@@ -676,7 +688,7 @@
         <span class="kw">let </span>list_format = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            ObjectData::list_format(<span class="self">Self </span>{
+            ObjectData::native_object(<span class="self">Self </span>{
                 locale,
                 typ,
                 style,
@@ -733,7 +745,7 @@
             JsNativeError::typ()
                 .with_message(<span class="string">&quot;`format` can only be called on a `ListFormat` object&quot;</span>)
         })<span class="question-mark">?</span>;
-        <span class="kw">let </span>lf = lf.as_list_format().ok_or_else(|| {
+        <span class="kw">let </span>lf = lf.downcast_ref::&lt;<span class="self">Self</span>&gt;().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message(<span class="string">&quot;`format` can only be called on a `ListFormat` object&quot;</span>)
         })<span class="question-mark">?</span>;
@@ -851,7 +863,7 @@
             JsNativeError::typ()
                 .with_message(<span class="string">&quot;`formatToParts` can only be called on a `ListFormat` object&quot;</span>)
         })<span class="question-mark">?</span>;
-        <span class="kw">let </span>lf = lf.as_list_format().ok_or_else(|| {
+        <span class="kw">let </span>lf = lf.downcast_ref::&lt;<span class="self">Self</span>&gt;().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message(<span class="string">&quot;`formatToParts` can only be called on a `ListFormat` object&quot;</span>)
         })<span class="question-mark">?</span>;
@@ -925,7 +937,7 @@
             JsNativeError::typ()
                 .with_message(<span class="string">&quot;`resolvedOptions` can only be called on a `ListFormat` object&quot;</span>)
         })<span class="question-mark">?</span>;
-        <span class="kw">let </span>lf = lf.as_list_format().ok_or_else(|| {
+        <span class="kw">let </span>lf = lf.downcast_ref::&lt;<span class="self">Self</span>&gt;().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message(<span class="string">&quot;`resolvedOptions` can only be called on a `ListFormat` object&quot;</span>)
         })<span class="question-mark">?</span>;

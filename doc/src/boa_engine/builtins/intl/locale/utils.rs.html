@@ -738,7 +738,7 @@
     </span><span class="kw">let </span>o = <span class="kw">if </span>locales.is_string()
         || locales
             .as_object()
-            .map_or(<span class="bool-val">false</span>, |o| o.borrow().is_locale())
+            .map_or(<span class="bool-val">false</span>, |o| o.borrow().is::&lt;Locale&gt;())
     {
         <span class="comment">// a. Let O be CreateArrayFromList(« locales »).
         </span>Array::create_array_from_list([locales.clone()], context)
@@ -771,7 +771,7 @@
             <span class="comment">// iii. If Type(kValue) is Object and kValue has an [[InitializedLocale]] internal slot, then
             </span><span class="kw">let </span><span class="kw-2">mut </span>tag = <span class="kw">if let </span><span class="prelude-val">Some</span>(tag) = k_value
                 .as_object()
-                .and_then(|obj| obj.borrow().as_locale().cloned())
+                .and_then(|obj| obj.borrow().downcast_ref::&lt;Locale&gt;().cloned())
             {
                 <span class="comment">// 1. Let tag be kValue.[[Locale]].
                 </span>tag

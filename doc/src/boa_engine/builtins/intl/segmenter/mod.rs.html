@@ -327,8 +327,15 @@
 <a href="#327" id="327">327</a>
 <a href="#328" id="328">328</a>
 <a href="#329" id="329">329</a>
+<a href="#330" id="330">330</a>
+<a href="#331" id="331">331</a>
+<a href="#332" id="332">332</a>
+<a href="#333" id="333">333</a>
+<a href="#334" id="334">334</a>
+<a href="#335" id="335">335</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::ops::Range;
 
+<span class="kw">use </span>boa_gc::{empty_trace, Finalize, Trace};
 <span class="kw">use </span>boa_macros::utf16;
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>icu_locid::Locale;
@@ -365,10 +372,15 @@
     Service,
 };
 
-<span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>Segmenter {
+<span class="attr">#[derive(Debug, Finalize)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Segmenter {
     locale: Locale,
     native: NativeSegmenter,
+}
+
+<span class="comment">// SAFETY: `Segmenter` doesn&#39;t contain any traceable data.
+</span><span class="kw">unsafe impl </span>Trace <span class="kw">for </span>Segmenter {
+    <span class="macro">empty_trace!</span>();
 }
 
 <span class="attr">#[derive(Debug)]
@@ -506,7 +518,7 @@
         <span class="kw">let </span>segmenter = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             proto,
-            ObjectData::segmenter(segmenter),
+            ObjectData::native_object(segmenter),
         );
 
         <span class="comment">// 14. Return segmenter.
@@ -559,7 +571,7 @@
             JsNativeError::typ()
                 .with_message(<span class="string">&quot;`resolved_options` can only be called on an `Intl.Segmenter` object&quot;</span>)
         })<span class="question-mark">?</span>;
-        <span class="kw">let </span>segmenter = segmenter.as_segmenter().ok_or_else(|| {
+        <span class="kw">let </span>segmenter = segmenter.downcast_ref::&lt;<span class="self">Self</span>&gt;().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message(<span class="string">&quot;`resolved_options` can only be called on an `Intl.Segmenter` object&quot;</span>)
         })<span class="question-mark">?</span>;
@@ -597,7 +609,7 @@
         // 2. Perform ? RequireInternalSlot(segmenter, [[InitializedSegmenter]]).
         </span><span class="kw">let </span>segmenter = this
             .as_object()
-            .filter(|o| o.borrow().is_segmenter())
+            .filter(|o| o.borrow().is::&lt;<span class="self">Self</span>&gt;())
             .ok_or_else(|| {
                 JsNativeError::typ().with_message(
                     <span class="string">&quot;`resolved_options` can only be called on an `Intl.Segmenter` object&quot;</span>,

@@ -614,7 +614,7 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>options::<span class="kw-2">*</span>;
 
 <span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>Collator {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Collator {
     locale: Locale,
     collation: Value,
     numeric: bool,
@@ -922,7 +922,7 @@
         <span class="kw">let </span>collator = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            ObjectData::collator(<span class="self">Self </span>{
+            ObjectData::native_object(<span class="self">Self </span>{
                 locale,
                 collation,
                 numeric,
@@ -986,7 +986,7 @@
         })<span class="question-mark">?</span>;
         <span class="kw">let </span>collator_obj = this.clone();
         <span class="kw">let </span><span class="kw-2">mut </span>collator = this.borrow_mut();
-        <span class="kw">let </span>collator = collator.as_collator_mut().ok_or_else(|| {
+        <span class="kw">let </span>collator = collator.downcast_mut::&lt;<span class="self">Self</span>&gt;().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message(<span class="string">&quot;`resolvedOptions` can only be called on a `Collator` object&quot;</span>)
         })<span class="question-mark">?</span>;
@@ -1008,7 +1008,7 @@
                         // 2. Assert: Type(collator) is Object and collator has an [[InitializedCollator]] internal slot.
                         </span><span class="kw">let </span>collator = collator.borrow();
                         <span class="kw">let </span>collator = collator
-                            .as_collator()
+                            .downcast_ref::&lt;<span class="self">Self</span>&gt;()
                             .expect(<span class="string">&quot;checked above that the object was a collator object&quot;</span>);
 
                         <span class="comment">// 3. If x is not provided, let x be undefined.
@@ -1055,7 +1055,7 @@
             JsNativeError::typ()
                 .with_message(<span class="string">&quot;`resolvedOptions` can only be called on a `Collator` object&quot;</span>)
         })<span class="question-mark">?</span>;
-        <span class="kw">let </span>collator = collator.as_collator().ok_or_else(|| {
+        <span class="kw">let </span>collator = collator.downcast_ref::&lt;<span class="self">Self</span>&gt;().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message(<span class="string">&quot;`resolvedOptions` can only be called on a `Collator` object&quot;</span>)
         })<span class="question-mark">?</span>;

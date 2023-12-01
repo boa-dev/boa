@@ -976,7 +976,7 @@
 
         </span><span class="kw">let </span><span class="kw-2">mut </span>tag = <span class="kw">if let </span><span class="prelude-val">Some</span>(tag) = tag
             .as_object()
-            .and_then(|obj| obj.borrow().as_locale().cloned())
+            .and_then(|obj| obj.borrow().downcast_ref::&lt;icu_locid::Locale&gt;().cloned())
         {
             <span class="comment">// a. Let tag be tag.[[Locale]].
             </span>tag
@@ -1141,7 +1141,7 @@
         <span class="kw">let </span>locale = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            ObjectData::locale(tag),
+            ObjectData::native_object(tag),
         );
 
         <span class="comment">// 37. Return locale.
@@ -1168,7 +1168,7 @@
             JsNativeError::typ().with_message(<span class="string">&quot;`maximize` can only be called on a `Locale` object&quot;</span>)
         })<span class="question-mark">?</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>loc = loc
-            .as_locale()
+            .downcast_ref::&lt;icu_locid::Locale&gt;()
             .ok_or_else(|| {
                 JsNativeError::typ()
                     .with_message(<span class="string">&quot;`maximize` can only be called on a `Locale` object&quot;</span>)
@@ -1183,7 +1183,7 @@
         <span class="prelude-val">Ok</span>(JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            ObjectData::locale(loc),
+            ObjectData::native_object(loc),
         )
         .into())
     }
@@ -1206,7 +1206,7 @@
             JsNativeError::typ().with_message(<span class="string">&quot;`minimize` can only be called on a `Locale` object&quot;</span>)
         })<span class="question-mark">?</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>loc = loc
-            .as_locale()
+            .downcast_ref::&lt;icu_locid::Locale&gt;()
             .ok_or_else(|| {
                 JsNativeError::typ()
                     .with_message(<span class="string">&quot;`minimize` can only be called on a `Locale` object&quot;</span>)
@@ -1221,7 +1221,7 @@
         <span class="prelude-val">Ok</span>(JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            ObjectData::locale(loc),
+            ObjectData::native_object(loc),
         )
         .into())
     }
@@ -1239,7 +1239,7 @@
         </span><span class="kw">let </span>loc = this.as_object().map(JsObject::borrow).ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;`toString` can only be called on a `Locale` object&quot;</span>)
         })<span class="question-mark">?</span>;
-        <span class="kw">let </span>loc = loc.as_locale().ok_or_else(|| {
+        <span class="kw">let </span>loc = loc.downcast_ref::&lt;icu_locid::Locale&gt;().ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;`toString` can only be called on a `Locale` object&quot;</span>)
         })<span class="question-mark">?</span>;
 
@@ -1261,7 +1261,7 @@
             JsNativeError::typ()
                 .with_message(<span class="string">&quot;`get baseName` can only be called on a `Locale` object&quot;</span>)
         })<span class="question-mark">?</span>;
-        <span class="kw">let </span>loc = loc.as_locale().ok_or_else(|| {
+        <span class="kw">let </span>loc = loc.downcast_ref::&lt;icu_locid::Locale&gt;().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message(<span class="string">&quot;`get baseName` can only be called on a `Locale` object&quot;</span>)
         })<span class="question-mark">?</span>;
@@ -1285,7 +1285,7 @@
             JsNativeError::typ()
                 .with_message(<span class="string">&quot;`get calendar` can only be called on a `Locale` object&quot;</span>)
         })<span class="question-mark">?</span>;
-        <span class="kw">let </span>loc = loc.as_locale().ok_or_else(|| {
+        <span class="kw">let </span>loc = loc.downcast_ref::&lt;icu_locid::Locale&gt;().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message(<span class="string">&quot;`get calendar` can only be called on a `Locale` object&quot;</span>)
         })<span class="question-mark">?</span>;
@@ -1314,7 +1314,7 @@
             JsNativeError::typ()
                 .with_message(<span class="string">&quot;`get caseFirst` can only be called on a `Locale` object&quot;</span>)
         })<span class="question-mark">?</span>;
-        <span class="kw">let </span>loc = loc.as_locale().ok_or_else(|| {
+        <span class="kw">let </span>loc = loc.downcast_ref::&lt;icu_locid::Locale&gt;().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message(<span class="string">&quot;`get caseFirst` can only be called on a `Locale` object&quot;</span>)
         })<span class="question-mark">?</span>;
@@ -1343,7 +1343,7 @@
             JsNativeError::typ()
                 .with_message(<span class="string">&quot;`get collation` can only be called on a `Locale` object&quot;</span>)
         })<span class="question-mark">?</span>;
-        <span class="kw">let </span>loc = loc.as_locale().ok_or_else(|| {
+        <span class="kw">let </span>loc = loc.downcast_ref::&lt;icu_locid::Locale&gt;().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message(<span class="string">&quot;`get collation` can only be called on a `Locale` object&quot;</span>)
         })<span class="question-mark">?</span>;
@@ -1372,7 +1372,7 @@
             JsNativeError::typ()
                 .with_message(<span class="string">&quot;`get hourCycle` can only be called on a `Locale` object&quot;</span>)
         })<span class="question-mark">?</span>;
-        <span class="kw">let </span>loc = loc.as_locale().ok_or_else(|| {
+        <span class="kw">let </span>loc = loc.downcast_ref::&lt;icu_locid::Locale&gt;().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message(<span class="string">&quot;`get hourCycle` can only be called on a `Locale` object&quot;</span>)
         })<span class="question-mark">?</span>;
@@ -1401,7 +1401,7 @@
             JsNativeError::typ()
                 .with_message(<span class="string">&quot;`get numeric` can only be called on a `Locale` object&quot;</span>)
         })<span class="question-mark">?</span>;
-        <span class="kw">let </span>loc = loc.as_locale().ok_or_else(|| {
+        <span class="kw">let </span>loc = loc.downcast_ref::&lt;icu_locid::Locale&gt;().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message(<span class="string">&quot;`get numeric` can only be called on a `Locale` object&quot;</span>)
         })<span class="question-mark">?</span>;
@@ -1438,7 +1438,7 @@
             JsNativeError::typ()
                 .with_message(<span class="string">&quot;`get numberingSystem` can only be called on a `Locale` object&quot;</span>)
         })<span class="question-mark">?</span>;
-        <span class="kw">let </span>loc = loc.as_locale().ok_or_else(|| {
+        <span class="kw">let </span>loc = loc.downcast_ref::&lt;icu_locid::Locale&gt;().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message(<span class="string">&quot;`get numberingSystem` can only be called on a `Locale` object&quot;</span>)
         })<span class="question-mark">?</span>;
@@ -1467,7 +1467,7 @@
             JsNativeError::typ()
                 .with_message(<span class="string">&quot;`get language` can only be called on a `Locale` object&quot;</span>)
         })<span class="question-mark">?</span>;
-        <span class="kw">let </span>loc = loc.as_locale().ok_or_else(|| {
+        <span class="kw">let </span>loc = loc.downcast_ref::&lt;icu_locid::Locale&gt;().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message(<span class="string">&quot;`get language` can only be called on a `Locale` object&quot;</span>)
         })<span class="question-mark">?</span>;
@@ -1492,7 +1492,7 @@
             JsNativeError::typ()
                 .with_message(<span class="string">&quot;`get script` can only be called on a `Locale` object&quot;</span>)
         })<span class="question-mark">?</span>;
-        <span class="kw">let </span>loc = loc.as_locale().ok_or_else(|| {
+        <span class="kw">let </span>loc = loc.downcast_ref::&lt;icu_locid::Locale&gt;().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message(<span class="string">&quot;`get script` can only be called on a `Locale` object&quot;</span>)
         })<span class="question-mark">?</span>;
@@ -1522,7 +1522,7 @@
             JsNativeError::typ()
                 .with_message(<span class="string">&quot;`get region` can only be called on a `Locale` object&quot;</span>)
         })<span class="question-mark">?</span>;
-        <span class="kw">let </span>loc = loc.as_locale().ok_or_else(|| {
+        <span class="kw">let </span>loc = loc.downcast_ref::&lt;icu_locid::Locale&gt;().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message(<span class="string">&quot;`get region` can only be called on a `Locale` object&quot;</span>)
         })<span class="question-mark">?</span>;

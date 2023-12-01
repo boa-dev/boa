@@ -169,7 +169,7 @@
     Context, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 
-<span class="kw">use </span><span class="kw">super</span>::create_segment_data_object;
+<span class="kw">use super</span>::{create_segment_data_object, Segmenter};
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>NativeSegmentIterator&lt;<span class="lifetime">&#39;l</span>, <span class="lifetime">&#39;s</span>&gt; {
     Grapheme(GraphemeClusterBreakIteratorUtf16&lt;<span class="lifetime">&#39;l</span>, <span class="lifetime">&#39;s</span>&gt;),
@@ -202,7 +202,7 @@
 }
 
 <span class="attr">#[derive(Debug, Trace, Finalize)]
-</span><span class="kw">pub struct </span>SegmentIterator {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>SegmentIterator {
     segmenter: JsObject,
     string: JsString,
     next_segment_index: usize,
@@ -245,7 +245,7 @@
                 .objects()
                 .iterator_prototypes()
                 .segment(),
-            ObjectData::segment_iterator(<span class="self">Self </span>{
+            ObjectData::native_object(<span class="self">Self </span>{
                 segmenter,
                 string,
                 next_segment_index: <span class="number">0</span>,
@@ -262,7 +262,7 @@
             JsNativeError::typ()
                 .with_message(<span class="string">&quot;`next` can only be called on a `Segment Iterator` object&quot;</span>)
         })<span class="question-mark">?</span>;
-        <span class="kw">let </span>iter = iter.as_segment_iterator_mut().ok_or_else(|| {
+        <span class="kw">let </span>iter = iter.downcast_mut::&lt;<span class="self">Self</span>&gt;().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message(<span class="string">&quot;`next` can only be called on a `Segment Iterator` object&quot;</span>)
         })<span class="question-mark">?</span>;
@@ -276,7 +276,7 @@
             <span class="comment">// 3. Let segmenter be iterator.[[IteratingSegmenter]].
             </span><span class="kw">let </span>segmenter = iter.segmenter.borrow();
             <span class="kw">let </span>segmenter = segmenter
-                .as_segmenter()
+                .downcast_ref::&lt;Segmenter&gt;()
                 .expect(<span class="string">&quot;segment iterator object should contain a segmenter&quot;</span>);
             <span class="kw">let </span><span class="kw-2">mut </span>segments = segmenter.native.segment(string);
             <span class="comment">// the first elem is always 0.

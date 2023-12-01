@@ -4195,7 +4195,7 @@
                     .map(JsObject::borrow)
                     .expect(<span class="string">&quot;constructor must return a JsObject&quot;</span>);
                 <span class="kw">let </span>collator = collator
-                    .as_collator()
+                    .downcast_ref::&lt;<span class="kw">crate</span>::builtins::intl::Collator&gt;()
                     .expect(<span class="string">&quot;constructor must return a `Collator` object&quot;</span>)
                     .collator();
 
