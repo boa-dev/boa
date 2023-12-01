@@ -40,7 +40,7 @@ impl OptionType for HourCycle {
 
 /// JavaScript `Intl.DateTimeFormat` object.
 #[derive(Debug, Clone, Trace, Finalize)]
-pub struct DateTimeFormat {
+pub(crate) struct DateTimeFormat {
     initialized_date_time_format: bool,
     locale: JsString,
     calendar: JsString,
@@ -123,7 +123,7 @@ impl BuiltInConstructor for DateTimeFormat {
         let date_time_format = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            ObjectData::date_time_format(Box::new(Self {
+            ObjectData::native_object(Self {
                 initialized_date_time_format: true,
                 locale: js_string!("en-US"),
                 calendar: js_string!("gregory"),
@@ -143,7 +143,7 @@ impl BuiltInConstructor for DateTimeFormat {
                 hour_cycle: js_string!("h24"),
                 pattern: js_string!("{hour}:{minute}"),
                 bound_format: js_string!("undefined"),
-            })),
+            }),
         );
 
         // TODO 3. Perform ? InitializeDateTimeFormat(dateTimeFormat, locales, options).

@@ -1,5 +1,6 @@
 use std::fmt::Write;
 
+use boa_gc::{empty_trace, Finalize, Trace};
 use boa_profiler::Profiler;
 use icu_list::{provider::AndListV1Marker, ListFormatter, ListLength};
 use icu_locid::Locale;
@@ -29,12 +30,17 @@ use super::{
 mod options;
 pub(crate) use options::*;
 
-#[derive(Debug)]
-pub struct ListFormat {
+#[derive(Debug, Finalize)]
+pub(crate) struct ListFormat {
     locale: Locale,
     typ: ListFormatType,
     style: ListLength,
     native: ListFormatter,
+}
+
+// SAFETY: `ListFormat` doesn't contain traceable data.
+unsafe impl Trace for ListFormat {
+    empty_trace!();
 }
 
 impl Service for ListFormat {
@@ -164,7 +170,7 @@ impl BuiltInConstructor for ListFormat {
         let list_format = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            ObjectData::list_format(Self {
+            ObjectData::native_object(Self {
                 locale,
                 typ,
                 style,
@@ -221,7 +227,7 @@ impl ListFormat {
             JsNativeError::typ()
                 .with_message("`format` can only be called on a `ListFormat` object")
         })?;
-        let lf = lf.as_list_format().ok_or_else(|| {
+        let lf = lf.downcast_ref::<Self>().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message("`format` can only be called on a `ListFormat` object")
         })?;
@@ -339,7 +345,7 @@ impl ListFormat {
             JsNativeError::typ()
                 .with_message("`formatToParts` can only be called on a `ListFormat` object")
         })?;
-        let lf = lf.as_list_format().ok_or_else(|| {
+        let lf = lf.downcast_ref::<Self>().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message("`formatToParts` can only be called on a `ListFormat` object")
         })?;
@@ -413,7 +419,7 @@ impl ListFormat {
             JsNativeError::typ()
                 .with_message("`resolvedOptions` can only be called on a `ListFormat` object")
         })?;
-        let lf = lf.as_list_format().ok_or_else(|| {
+        let lf = lf.downcast_ref::<Self>().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message("`resolvedOptions` can only be called on a `ListFormat` object")
         })?;

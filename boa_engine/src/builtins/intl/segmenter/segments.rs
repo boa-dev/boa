@@ -11,10 +11,10 @@ use crate::{
     Context, JsArgs, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 
-use super::{create_segment_data_object, SegmentIterator};
+use super::{create_segment_data_object, SegmentIterator, Segmenter};
 
 #[derive(Debug, Trace, Finalize)]
-pub struct Segments {
+pub(crate) struct Segments {
     segmenter: JsObject,
     string: JsString,
 }
@@ -44,9 +44,10 @@ impl Segments {
         // 3. Set segments.[[SegmentsSegmenter]] to segmenter.
         // 4. Set segments.[[SegmentsString]] to string.
         // 5. Return segments.
-        JsObject::from_proto_and_data(
+        JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
             context.intrinsics().objects().segments_prototype(),
-            ObjectData::segments(Self { segmenter, string }),
+            ObjectData::native_object(Self { segmenter, string }),
         )
     }
 
@@ -60,7 +61,7 @@ impl Segments {
             JsNativeError::typ()
                 .with_message("`containing` can only be called on a `Segments` object")
         })?;
-        let segments = segments.as_segments().ok_or_else(|| {
+        let segments = segments.downcast_ref::<Self>().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message("`containing` can only be called on a `Segments` object")
         })?;
@@ -68,7 +69,7 @@ impl Segments {
         // 3. Let segmenter be segments.[[SegmentsSegmenter]].
         let segmenter = segments.segmenter.borrow();
         let segmenter = segmenter
-            .as_segmenter()
+            .downcast_ref::<Segmenter>()
             .expect("segments object should contain a segmenter");
 
         // 4. Let string be segments.[[SegmentsString]].
@@ -115,7 +116,7 @@ impl Segments {
             JsNativeError::typ()
                 .with_message("`containing` can only be called on a `Segments` object")
         })?;
-        let segments = segments.as_segments().ok_or_else(|| {
+        let segments = segments.downcast_ref::<Self>().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message("`containing` can only be called on a `Segments` object")
         })?;

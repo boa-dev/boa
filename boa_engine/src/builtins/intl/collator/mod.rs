@@ -42,7 +42,7 @@ mod options;
 pub(crate) use options::*;
 
 #[derive(Debug)]
-pub struct Collator {
+pub(crate) struct Collator {
     locale: Locale,
     collation: Value,
     numeric: bool,
@@ -350,7 +350,7 @@ impl BuiltInConstructor for Collator {
         let collator = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            ObjectData::collator(Self {
+            ObjectData::native_object(Self {
                 locale,
                 collation,
                 numeric,
@@ -414,7 +414,7 @@ impl Collator {
         })?;
         let collator_obj = this.clone();
         let mut collator = this.borrow_mut();
-        let collator = collator.as_collator_mut().ok_or_else(|| {
+        let collator = collator.downcast_mut::<Self>().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message("`resolvedOptions` can only be called on a `Collator` object")
         })?;
@@ -436,7 +436,7 @@ impl Collator {
                         // 2. Assert: Type(collator) is Object and collator has an [[InitializedCollator]] internal slot.
                         let collator = collator.borrow();
                         let collator = collator
-                            .as_collator()
+                            .downcast_ref::<Self>()
                             .expect("checked above that the object was a collator object");
 
                         // 3. If x is not provided, let x be undefined.
@@ -483,7 +483,7 @@ impl Collator {
             JsNativeError::typ()
                 .with_message("`resolvedOptions` can only be called on a `Collator` object")
         })?;
-        let collator = collator.as_collator().ok_or_else(|| {
+        let collator = collator.downcast_ref::<Self>().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message("`resolvedOptions` can only be called on a `Collator` object")
         })?;

@@ -438,3 +438,24 @@ unsafe impl<T: Trace> Trace for Cell<Option<T>> {
         }
     });
 }
+
+#[cfg(feature = "icu")]
+mod icu {
+    use icu_locid::{LanguageIdentifier, Locale};
+
+    use crate::{Finalize, Trace};
+
+    impl Finalize for LanguageIdentifier {}
+
+    // SAFETY: `LanguageIdentifier` doesn't have any traceable data.
+    unsafe impl Trace for LanguageIdentifier {
+        empty_trace!();
+    }
+
+    impl Finalize for Locale {}
+
+    // SAFETY: `LanguageIdentifier` doesn't have any traceable data.
+    unsafe impl Trace for Locale {
+        empty_trace!();
+    }
+}

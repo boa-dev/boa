@@ -14,7 +14,7 @@ use crate::{
     Context, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 
-use super::create_segment_data_object;
+use super::{create_segment_data_object, Segmenter};
 
 pub(crate) enum NativeSegmentIterator<'l, 's> {
     Grapheme(GraphemeClusterBreakIteratorUtf16<'l, 's>),
@@ -47,7 +47,7 @@ impl NativeSegmentIterator<'_, '_> {
 }
 
 #[derive(Debug, Trace, Finalize)]
-pub struct SegmentIterator {
+pub(crate) struct SegmentIterator {
     segmenter: JsObject,
     string: JsString,
     next_segment_index: usize,
@@ -90,7 +90,7 @@ impl SegmentIterator {
                 .objects()
                 .iterator_prototypes()
                 .segment(),
-            ObjectData::segment_iterator(Self {
+            ObjectData::native_object(Self {
                 segmenter,
                 string,
                 next_segment_index: 0,
@@ -107,7 +107,7 @@ impl SegmentIterator {
             JsNativeError::typ()
                 .with_message("`next` can only be called on a `Segment Iterator` object")
         })?;
-        let iter = iter.as_segment_iterator_mut().ok_or_else(|| {
+        let iter = iter.downcast_mut::<Self>().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message("`next` can only be called on a `Segment Iterator` object")
         })?;
@@ -121,7 +121,7 @@ impl SegmentIterator {
             // 3. Let segmenter be iterator.[[IteratingSegmenter]].
             let segmenter = iter.segmenter.borrow();
             let segmenter = segmenter
-                .as_segmenter()
+                .downcast_ref::<Segmenter>()
                 .expect("segment iterator object should contain a segmenter");
             let mut segments = segmenter.native.segment(string);
             // the first elem is always 0.

@@ -11,15 +11,18 @@ repository.workspace = true
 rust-version.workspace = true
 
 [features]
-# Enable default implementatio of trace and finalize thin-vec crate
-thinvec = ["thin-vec"]
+# Enable default implementations of trace and finalize for the thin-vec crate
+thin-vec = ["dep:thin-vec"]
+# Enable default implementations of trace and finalize for some `ICU4X` types
+icu = ["dep:icu_locid"]
 
 [dependencies]
 boa_profiler.workspace = true
 boa_macros.workspace = true
+hashbrown = { workspace = true, features = ["ahash", "raw"] }
 
 thin-vec = { workspace = true, optional = true }
-hashbrown = { workspace = true, features = ["ahash", "raw"] }
+icu_locid = { workspace = true, optional = true }
 
 [lints]
 workspace = true

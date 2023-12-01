@@ -1425,7 +1425,7 @@ impl String {
                     .map(JsObject::borrow)
                     .expect("constructor must return a JsObject");
                 let collator = collator
-                    .as_collator()
+                    .downcast_ref::<crate::builtins::intl::Collator>()
                     .expect("constructor must return a `Collator` object")
                     .collator();
 

@@ -517,6 +517,7 @@ dependencies = [
  "boa_macros",
  "boa_profiler",
  "hashbrown 0.14.3",
+ "icu_locid",
  "thin-vec",
 ]
 
