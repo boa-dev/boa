@@ -1,13 +1,13 @@
 use std::rc::Rc;
 
 use boa_gc::{Finalize, Gc, GcRefCell, Trace, WeakGc};
-use boa_interner::Sym;
 use rustc_hash::FxHashSet;
 
 use crate::{
     builtins::promise::ResolvingFunctions,
-    bytecompiler::{ByteCompiler, ToJsString},
+    bytecompiler::ByteCompiler,
     environments::{CompileTimeEnvironment, EnvironmentStack},
+    js_string,
     object::JsPromise,
     vm::{ActiveRunnable, CallFrame, CodeBlock},
     Context, JsNativeError, JsResult, JsString, JsValue, Module,
@@ -242,7 +242,7 @@ impl SyntheticModule {
         // TODO: A bit of a hack to be able to pass the currently active runnable without an
         // available codeblock to execute.
         let compiler = ByteCompiler::new(
-            Sym::MAIN.to_js_string(context.interner()),
+            js_string!("<main>"),
             true,
             false,
             module_compile_env.clone(),

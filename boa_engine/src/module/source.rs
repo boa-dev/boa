@@ -16,7 +16,7 @@ use boa_ast::{
     },
 };
 use boa_gc::{custom_trace, empty_trace, Finalize, Gc, GcRefCell, Trace, WeakGc};
-use boa_interner::{Interner, Sym};
+use boa_interner::Interner;
 use boa_macros::utf16;
 use indexmap::IndexSet;
 use rustc_hash::{FxHashMap, FxHashSet, FxHasher};
@@ -25,6 +25,7 @@ use crate::{
     builtins::{promise::PromiseCapability, Promise},
     bytecompiler::{ByteCompiler, FunctionSpec, ToJsString},
     environments::{BindingLocator, CompileTimeEnvironment, EnvironmentStack},
+    js_string,
     module::ModuleKind,
     object::{FunctionObjectBuilder, JsPromise, RecursionLimiter},
     realm::Realm,
@@ -1435,7 +1436,7 @@ impl SourceTextModule {
         let env = Rc::new(CompileTimeEnvironment::new(global_compile_env, true));
 
         let mut compiler = ByteCompiler::new(
-            Sym::MAIN.to_js_string(context.interner()),
+            js_string!("<main>"),
             true,
             false,
             env.clone(),

@@ -13,7 +13,7 @@
 
 use crate::{
     builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
-    bytecompiler::{FunctionCompiler, ToJsString},
+    bytecompiler::FunctionCompiler,
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     environments::{EnvironmentStack, PrivateEnvironment},
     error::JsNativeError,
@@ -557,7 +557,7 @@ impl BuiltInFunctionObject {
         };
 
         let code = FunctionCompiler::new()
-            .name(Sym::ANONYMOUS.to_js_string(context.interner()))
+            .name(js_string!("anonymous"))
             .generator(generator)
             .r#async(r#async)
             .compile(

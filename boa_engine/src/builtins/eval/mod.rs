@@ -11,10 +11,11 @@
 
 use crate::{
     builtins::BuiltInObject,
-    bytecompiler::{ByteCompiler, ToJsString},
+    bytecompiler::ByteCompiler,
     context::intrinsics::Intrinsics,
     environments::Environment,
     error::JsNativeError,
+    js_string,
     object::JsObject,
     realm::Realm,
     string::common::StaticJsStrings,
@@ -23,7 +24,6 @@ use crate::{
 };
 use boa_ast::operations::{contains, contains_arguments, ContainsSymbol};
 use boa_gc::Gc;
-use boa_interner::Sym;
 use boa_parser::{Parser, Source};
 use boa_profiler::Profiler;
 
@@ -228,7 +228,7 @@ impl Eval {
         let mut var_env = var_environment.compile_env();
 
         let mut compiler = ByteCompiler::new(
-            Sym::MAIN.to_js_string(context.interner()),
+            js_string!("<main>"),
             body.strict(),
             false,
             var_env.clone(),
