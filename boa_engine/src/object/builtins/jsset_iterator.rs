@@ -21,7 +21,7 @@ impl JsSetIterator {
     /// Create a `JsSetIterator` from a `JsObject`.
     /// If object is not a `SetIterator`, throw `TypeError`.
     pub fn from_object(object: JsObject) -> JsResult<Self> {
-        if object.is_set_iterator() {
+        if object.is::<SetIterator>() {
             Ok(Self { inner: object })
         } else {
             Err(JsNativeError::typ()

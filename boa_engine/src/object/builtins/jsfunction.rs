@@ -2,12 +2,7 @@
 use crate::{
     builtins::function::ConstructorKind,
     native_function::NativeFunctionObject,
-    object::{
-        internal_methods::function::{
-            NATIVE_CONSTRUCTOR_INTERNAL_METHODS, NATIVE_FUNCTION_INTERNAL_METHODS,
-        },
-        JsObject, JsObjectType, Object, ObjectKind,
-    },
+    object::{JsObject, JsObjectType},
     value::TryFromJs,
     Context, JsNativeError, JsResult, JsValue, NativeFunction,
 };
@@ -33,16 +28,12 @@ impl JsFunction {
     /// [`Context`]: crate::Context
     pub(crate) fn empty_intrinsic_function(constructor: bool) -> Self {
         Self {
-            inner: JsObject::from_object_and_vtable(
-                Object::with_kind(ObjectKind::NativeFunction(NativeFunctionObject {
+            inner: JsObject::from_proto_and_data(
+                None,
+                NativeFunctionObject {
                     f: NativeFunction::from_fn_ptr(|_, _, _| Ok(JsValue::undefined())),
                     constructor: constructor.then_some(ConstructorKind::Base),
                     realm: None,
-                })),
-                if constructor {
-                    &NATIVE_CONSTRUCTOR_INTERNAL_METHODS
-                } else {
-                    &NATIVE_FUNCTION_INTERNAL_METHODS
                 },
             ),
         }

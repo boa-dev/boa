@@ -1,7 +1,7 @@
 //! Rust API wrappers for the `TypedArray` Builtin ECMAScript Objects
 use crate::{
     builtins::typed_array::BuiltinTypedArray,
-    builtins::BuiltInConstructor,
+    builtins::{typed_array::TypedArray, BuiltInConstructor},
     error::JsNativeError,
     object::{JsArrayBuffer, JsFunction, JsObject, JsObjectType},
     value::{IntoOrUndefined, TryFromJs},
@@ -25,7 +25,7 @@ impl JsTypedArray {
     /// object.
     #[inline]
     pub fn from_object(object: JsObject) -> JsResult<Self> {
-        if object.is_typed_array() {
+        if object.is::<TypedArray>() {
             Ok(Self { inner: object })
         } else {
             Err(JsNativeError::typ()
@@ -450,7 +450,7 @@ macro_rules! JsTypedArrayType {
             )]
             #[inline]
             pub fn from_object(object: JsObject) -> JsResult<Self> {
-                if object.$checker_function() {
+                if object.borrow().$checker_function() {
                     Ok(Self {
                         inner: JsTypedArray {
                             inner: object.into(),

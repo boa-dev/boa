@@ -2,7 +2,7 @@
 use crate::{
     builtins::array_buffer::SharedArrayBuffer,
     error::JsNativeError,
-    object::{JsObject, JsObjectType, ObjectData},
+    object::{JsObject, JsObjectType},
     value::TryFromJs,
     Context, JsResult, JsValue,
 };
@@ -42,11 +42,8 @@ impl JsSharedArrayBuffer {
             .shared_array_buffer()
             .prototype();
 
-        let inner = JsObject::from_proto_and_data_with_shared_shape(
-            context.root_shape(),
-            proto,
-            ObjectData::shared_array_buffer(buffer),
-        );
+        let inner =
+            JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), proto, buffer);
 
         Self { inner }
     }
@@ -58,7 +55,7 @@ impl JsSharedArrayBuffer {
     /// the object.
     #[inline]
     pub fn from_object(object: JsObject) -> JsResult<Self> {
-        if object.is_shared_array_buffer() {
+        if object.is::<SharedArrayBuffer>() {
             Ok(Self { inner: object })
         } else {
             Err(JsNativeError::typ()
@@ -71,8 +68,7 @@ impl JsSharedArrayBuffer {
     #[inline]
     #[must_use]
     pub fn byte_length(&self) -> usize {
-        self.borrow()
-            .as_shared_array_buffer()
+        self.downcast_ref::<SharedArrayBuffer>()
             .expect("should be an array buffer")
             .len()
     }
@@ -81,8 +77,7 @@ impl JsSharedArrayBuffer {
     #[inline]
     #[must_use]
     pub fn inner(&self) -> SharedArrayBuffer {
-        self.borrow()
-            .as_shared_array_buffer()
+        self.downcast_ref::<SharedArrayBuffer>()
             .expect("should be an array buffer")
             .clone()
     }

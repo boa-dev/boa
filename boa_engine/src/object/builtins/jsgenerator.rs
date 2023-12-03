@@ -19,7 +19,7 @@ impl JsGenerator {
     /// Creates a `JsGenerator` from a generator `JsObject`
     #[inline]
     pub fn from_object(object: JsObject) -> JsResult<Self> {
-        if object.is_generator() {
+        if object.is::<Generator>() {
             Ok(Self { inner: object })
         } else {
             Err(JsNativeError::typ()

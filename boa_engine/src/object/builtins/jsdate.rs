@@ -6,7 +6,7 @@ use chrono::DateTime;
 
 use crate::{
     builtins::Date,
-    object::{JsObject, JsObjectType, ObjectData},
+    object::{JsObject, JsObjectType},
     value::TryFromJs,
     Context, JsNativeError, JsResult, JsValue,
 };
@@ -51,7 +51,7 @@ impl JsDate {
         let inner = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            ObjectData::date(Date::utc_now(context.host_hooks())),
+            Date::utc_now(context.host_hooks()),
         );
 
         Self { inner }
@@ -60,7 +60,7 @@ impl JsDate {
     /// Create a new `JsDate` object from an existing object.
     #[inline]
     pub fn from_object(object: JsObject) -> JsResult<Self> {
-        if object.is_date() {
+        if object.is::<Date>() {
             Ok(Self { inner: object })
         } else {
             Err(JsNativeError::typ()
@@ -559,7 +559,7 @@ impl JsDate {
             inner: JsObject::from_proto_and_data_with_shared_shape(
                 context.root_shape(),
                 prototype,
-                ObjectData::date(date_time),
+                date_time,
             ),
         })
     }

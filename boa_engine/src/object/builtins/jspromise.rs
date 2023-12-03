@@ -9,7 +9,7 @@ use crate::{
         Promise,
     },
     job::NativeJob,
-    object::{JsObject, JsObjectType, ObjectData},
+    object::{JsObject, JsObjectType},
     value::TryFromJs,
     Context, JsArgs, JsError, JsNativeError, JsResult, JsValue, NativeFunction,
 };
@@ -168,7 +168,7 @@ impl JsPromise {
         let promise = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             context.intrinsics().constructors().promise().prototype(),
-            ObjectData::promise(Promise::new()),
+            Promise::new(),
         );
         let resolvers = Promise::create_resolving_functions(&promise, context);
 
@@ -219,7 +219,7 @@ impl JsPromise {
         let promise = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             context.intrinsics().constructors().promise().prototype(),
-            ObjectData::promise(Promise::new()),
+            Promise::new(),
         );
         let resolvers = Promise::create_resolving_functions(&promise, context);
         let promise =
@@ -262,7 +262,7 @@ impl JsPromise {
     /// ```
     #[inline]
     pub fn from_object(object: JsObject) -> JsResult<Self> {
-        if !object.is_promise() {
+        if !object.is::<Promise>() {
             return Err(JsNativeError::typ()
                 .with_message("`object` is not a Promise")
                 .into());
@@ -423,8 +423,7 @@ impl JsPromise {
     #[must_use]
     pub fn state(&self) -> PromiseState {
         self.inner
-            .borrow()
-            .as_promise()
+            .downcast_ref::<Promise>()
             .expect("objects cannot change type after creation")
             .state()
             .clone()
