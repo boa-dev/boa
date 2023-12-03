@@ -169,13 +169,61 @@ pub fn utf16(input: TokenStream) -> TokenStream {
 }
 
 decl_derive! {
-    [Trace, attributes(unsafe_ignore_trace)] =>
+    [Trace, attributes(boa_gc, unsafe_ignore_trace)] =>
     /// Derive the `Trace` trait.
     derive_trace
 }
 
 /// Derives the `Trace` trait.
 fn derive_trace(mut s: Structure<'_>) -> proc_macro2::TokenStream {
+    struct EmptyTrace {
+        copy: bool,
+    }
+
+    impl Parse for EmptyTrace {
+        fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
+            let i: Ident = input.parse()?;
+
+            if i != "empty_trace" && i != "unsafe_empty_trace" {
+                let msg = format!(
+                    "expected token \"empty_trace\" or \"unsafe_empty_trace\", found {i:?}"
+                );
+                return Err(syn::Error::new_spanned(i.clone(), msg));
+            }
+
+            Ok(Self {
+                copy: i == "empty_trace",
+            })
+        }
+    }
+
+    for attr in &s.ast().attrs {
+        if attr.path().is_ident("boa_gc") {
+            let trace = match attr.parse_args::<EmptyTrace>() {
+                Ok(t) => t,
+                Err(e) => return e.into_compile_error(),
+            };
+
+            if trace.copy {
+                s.add_where_predicate(syn::parse_quote!(Self: Copy));
+            }
+
+            return s.unsafe_bound_impl(
+                quote!(::boa_gc::Trace),
+                quote! {
+                    #[inline(always)]
+                    unsafe fn trace(&self) {}
+                    #[inline(always)]
+                    fn trace_non_roots(&self) {}
+                    #[inline]
+                    fn run_finalizer(&self) {
+                        ::boa_gc::Finalize::finalize(self)
+                    }
+                },
+            );
+        }
+    }
+
     s.filter(|bi| {
         !bi.ast()
             .attrs
@@ -228,6 +276,8 @@ fn derive_trace(mut s: Structure<'_>) -> proc_macro2::TokenStream {
     let drop_impl = s.unbound_impl(
         quote!(::core::ops::Drop),
         quote! {
+            #[allow(clippy::inline_always)]
+            #[inline(always)]
             fn drop(&mut self) {
                 if ::boa_gc::finalizer_safe() {
                     ::boa_gc::Finalize::finalize(self);
@@ -252,6 +302,18 @@ decl_derive! {
 #[allow(clippy::needless_pass_by_value)]
 fn derive_finalize(s: Structure<'_>) -> proc_macro2::TokenStream {
     s.unbound_impl(quote!(::boa_gc::Finalize), quote!())
+}
+
+decl_derive! {
+    [JsData] =>
+    /// Derive the `JsData` trait.
+    derive_js_data
+}
+
+/// Derives the `JsData` trait.
+#[allow(clippy::needless_pass_by_value)]
+fn derive_js_data(s: Structure<'_>) -> proc_macro2::TokenStream {
+    s.unbound_impl(quote!(::boa_engine::JsData), quote!())
 }
 
 /// Derives the `TryFromJs` trait, with the `#[boa()]` attribute.
