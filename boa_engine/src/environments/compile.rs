@@ -1,7 +1,6 @@
 use std::{cell::RefCell, rc::Rc};
 
-use crate::environments::runtime::BindingLocator;
-use boa_ast::expression::Identifier;
+use crate::{environments::runtime::BindingLocator, JsString};
 use boa_gc::{empty_trace, Finalize, Trace};
 
 use rustc_hash::FxHashMap;
@@ -26,7 +25,7 @@ struct CompileTimeBinding {
 pub(crate) struct CompileTimeEnvironment {
     outer: Option<Rc<Self>>,
     environment_index: u32,
-    bindings: RefCell<FxHashMap<Identifier, CompileTimeBinding>>,
+    bindings: RefCell<FxHashMap<JsString, CompileTimeBinding>>,
     function_scope: bool,
 }
 
@@ -58,21 +57,21 @@ impl CompileTimeEnvironment {
     }
 
     /// Check if environment has a lexical binding with the given name.
-    pub(crate) fn has_lex_binding(&self, name: Identifier) -> bool {
+    pub(crate) fn has_lex_binding(&self, name: &JsString) -> bool {
         self.bindings
             .borrow()
-            .get(&name)
+            .get(name)
             .map_or(false, |binding| binding.lex)
     }
 
     /// Check if the environment has a binding with the given name.
-    pub(crate) fn has_binding(&self, name: Identifier) -> bool {
-        self.bindings.borrow().contains_key(&name)
+    pub(crate) fn has_binding(&self, name: &JsString) -> bool {
+        self.bindings.borrow().contains_key(name)
     }
 
     /// Get the binding locator for a binding with the given name.
     /// Fall back to the global environment if the binding is not found.
-    pub(crate) fn get_identifier_reference(&self, name: Identifier) -> IdentifierReference {
+    pub(crate) fn get_identifier_reference(&self, name: JsString) -> IdentifierReference {
         if let Some(binding) = self.bindings.borrow().get(&name) {
             IdentifierReference::new(
                 BindingLocator::declarative(name, self.environment_index, binding.index),
@@ -106,22 +105,21 @@ impl CompileTimeEnvironment {
     }
 
     /// Get the locator for a binding name.
-    pub(crate) fn get_binding(&self, name: Identifier) -> Option<BindingLocator> {
-        self.bindings
-            .borrow()
-            .get(&name)
-            .map(|binding| BindingLocator::declarative(name, self.environment_index, binding.index))
+    pub(crate) fn get_binding(&self, name: &JsString) -> Option<BindingLocator> {
+        self.bindings.borrow().get(name).map(|binding| {
+            BindingLocator::declarative(name.clone(), self.environment_index, binding.index)
+        })
     }
 
     /// Create a mutable binding.
     pub(crate) fn create_mutable_binding(
         &self,
-        name: Identifier,
+        name: JsString,
         function_scope: bool,
     ) -> BindingLocator {
         let binding_index = self.bindings.borrow().len() as u32;
         self.bindings.borrow_mut().insert(
-            name,
+            name.clone(),
             CompileTimeBinding {
                 index: binding_index,
                 mutable: true,
@@ -133,14 +131,10 @@ impl CompileTimeEnvironment {
     }
 
     /// Crate an immutable binding.
-    pub(crate) fn create_immutable_binding(
-        &self,
-        name: Identifier,
-        strict: bool,
-    ) -> BindingLocator {
+    pub(crate) fn create_immutable_binding(&self, name: JsString, strict: bool) -> BindingLocator {
         let binding_index = self.bindings.borrow().len() as u32;
         self.bindings.borrow_mut().insert(
-            name,
+            name.clone(),
             CompileTimeBinding {
                 index: binding_index,
                 mutable: false,
@@ -154,7 +148,7 @@ impl CompileTimeEnvironment {
     /// Return the binding locator for a mutable binding.
     pub(crate) fn set_mutable_binding(
         &self,
-        name: Identifier,
+        name: JsString,
     ) -> Result<BindingLocator, BindingLocatorError> {
         Ok(match self.bindings.borrow().get(&name) {
             Some(binding) if binding.mutable => {
@@ -163,8 +157,8 @@ impl CompileTimeEnvironment {
             Some(binding) if binding.strict => return Err(BindingLocatorError::MutateImmutable),
             Some(_) => return Err(BindingLocatorError::Silent),
             None => self.outer.as_ref().map_or_else(
-                || Ok(BindingLocator::global(name)),
-                |outer| outer.set_mutable_binding(name),
+                || Ok(BindingLocator::global(name.clone())),
+                |outer| outer.set_mutable_binding(name.clone()),
             )?,
         })
     }
@@ -173,12 +167,12 @@ impl CompileTimeEnvironment {
     /// Return the binding locator for a set operation on an existing var binding.
     pub(crate) fn set_mutable_binding_var(
         &self,
-        name: Identifier,
+        name: JsString,
     ) -> Result<BindingLocator, BindingLocatorError> {
         if !self.is_function() {
             return self.outer.as_ref().map_or_else(
-                || Ok(BindingLocator::global(name)),
-                |outer| outer.set_mutable_binding_var(name),
+                || Ok(BindingLocator::global(name.clone())),
+                |outer| outer.set_mutable_binding_var(name.clone()),
             );
         }
 
@@ -189,8 +183,8 @@ impl CompileTimeEnvironment {
             Some(binding) if binding.strict => return Err(BindingLocatorError::MutateImmutable),
             Some(_) => return Err(BindingLocatorError::Silent),
             None => self.outer.as_ref().map_or_else(
-                || Ok(BindingLocator::global(name)),
-                |outer| outer.set_mutable_binding_var(name),
+                || Ok(BindingLocator::global(name.clone())),
+                |outer| outer.set_mutable_binding_var(name.clone()),
             )?,
         })
     }
@@ -215,7 +209,7 @@ impl IdentifierReference {
 
     /// Get the binding locator for this identifier reference.
     pub(crate) fn locator(&self) -> BindingLocator {
-        self.locator
+        self.locator.clone()
     }
 
     /// Check if this identifier reference is lexical.

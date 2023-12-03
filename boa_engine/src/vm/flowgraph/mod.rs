@@ -1,7 +1,6 @@
 //! This module is responsible for generating the vm instruction flowgraph.
 
 use crate::vm::CodeBlock;
-use boa_interner::Interner;
 use boa_macros::utf16;
 
 mod color;
@@ -19,7 +18,7 @@ use super::{Constant, Instruction, InstructionIterator};
 impl CodeBlock {
     /// Output the [`CodeBlock`] VM instructions into a [`Graph`].
     #[allow(clippy::match_same_arms)]
-    pub fn to_graph(&self, interner: &Interner, graph: &mut SubGraph) {
+    pub fn to_graph(&self, graph: &mut SubGraph) {
         // Have to remove any invalid graph chars like `<` or `>`.
         let name = if self.name() == utf16!("<main>") {
             "__main__".to_string()
@@ -34,10 +33,7 @@ impl CodeBlock {
             let opcode = instruction.opcode();
             let opcode_str = opcode.as_str();
 
-            let label = format!(
-                "{opcode_str} {}",
-                self.instruction_operands(&instruction, interner)
-            );
+            let label = format!("{opcode_str} {}", self.instruction_operands(&instruction));
 
             let pc = iterator.pc();
 
@@ -527,7 +523,7 @@ impl CodeBlock {
         for constant in &self.constants {
             if let Constant::Function(function) = constant {
                 let subgraph = graph.subgraph(String::new());
-                function.to_graph(interner, subgraph);
+                function.to_graph(subgraph);
             }
         }
     }

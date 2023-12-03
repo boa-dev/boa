@@ -12,14 +12,10 @@ use bitflags::bitflags;
 use boa_ast::function::FormalParameterList;
 use boa_gc::{empty_trace, Finalize, Gc, Trace};
 use boa_profiler::Profiler;
-use std::{cell::Cell, mem::size_of, rc::Rc};
+use std::{cell::Cell, fmt::Display, mem::size_of, rc::Rc};
 use thin_vec::ThinVec;
 
-#[cfg(any(feature = "trace", feature = "flowgraph"))]
 use super::{Instruction, InstructionIterator};
-
-#[cfg(any(feature = "trace", feature = "flowgraph"))]
-use boa_interner::{Interner, ToInternedString};
 
 /// This represents whether a value can be read from [`CodeBlock`] code.
 ///
@@ -352,12 +348,7 @@ impl CodeBlock {
     /// Modifies the `pc` to point to the next instruction.
     ///
     /// Returns an empty `String` if no operands are present.
-    #[cfg(any(feature = "trace", feature = "flowgraph"))]
-    pub(crate) fn instruction_operands(
-        &self,
-        instruction: &Instruction,
-        interner: &Interner,
-    ) -> String {
+    pub(crate) fn instruction_operands(&self, instruction: &Instruction) -> String {
         match instruction {
             Instruction::SetFunctionName { prefix } => match prefix {
                 0 => "prefix: none",
@@ -454,7 +445,9 @@ impl CodeBlock {
                 format!(
                     "{:04}: '{}'",
                     index.value(),
-                    interner.resolve_expect(self.bindings[index.value() as usize].name().sym()),
+                    self.bindings[index.value() as usize]
+                        .name()
+                        .to_std_string_escaped()
                 )
             }
             Instruction::GetPropertyByName { index }
@@ -701,20 +694,15 @@ impl CodeBlock {
     }
 }
 
-#[cfg(any(feature = "trace", feature = "flowgraph"))]
-impl ToInternedString for CodeBlock {
-    fn to_interned_string(&self, interner: &Interner) -> String {
+impl Display for CodeBlock {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let name = self.name();
-        let mut f = if name == "<main>" {
-            String::new()
-        } else {
-            "\n".to_owned()
-        };
 
-        f.push_str(&format!(
-            "{:-^70}\nLocation  Count    Handler    Opcode                     Operands\n\n",
+        writeln!(
+            f,
+            "{:-^70}\nLocation  Count    Handler    Opcode                     Operands\n",
             format!("Compiled Output: '{}'", name.to_std_string_escaped()),
-        ));
+        )?;
 
         let mut iterator = InstructionIterator::new(&self.bytecode);
 
@@ -722,7 +710,7 @@ impl ToInternedString for CodeBlock {
         while let Some((instruction_start_pc, varying_operand_kind, instruction)) = iterator.next()
         {
             let opcode = instruction.opcode().as_str();
-            let operands = self.instruction_operands(&instruction, interner);
+            let operands = self.instruction_operands(&instruction);
             let pc = iterator.pc();
 
             let handler = if let Some((i, handler)) = self.find_handler(instruction_start_pc as u32)
@@ -745,72 +733,77 @@ impl ToInternedString for CodeBlock {
                 super::VaryingOperandKind::U32 => ".U32",
             };
 
-            f.push_str(&format!(
-                "{instruction_start_pc:06}    {count:04}   {handler}    {opcode}{varying_operand_kind:<27}{operands}\n",
-            ));
+            writeln!(
+                f,
+                    "{instruction_start_pc:06}    {count:04}   {handler}    {opcode}{varying_operand_kind:<27}{operands}",
+                )?;
             count += 1;
         }
 
-        f.push_str("\nConstants:");
+        f.write_str("\nConstants:")?;
 
         if self.constants.is_empty() {
-            f.push_str(" <empty>\n");
+            f.write_str(" <empty>\n")?;
         } else {
-            f.push('\n');
+            f.write_str("\n")?;
             for (i, value) in self.constants.iter().enumerate() {
-                f.push_str(&format!("    {i:04}: "));
-                let value = match value {
+                write!(f, "    {i:04}: ")?;
+                match value {
                     Constant::String(v) => {
-                        format!("[STRING] \"{}\"", v.to_std_string_escaped().escape_debug())
+                        writeln!(
+                            f,
+                            "[STRING] \"{}\"",
+                            v.to_std_string_escaped().escape_debug()
+                        )?;
                     }
-                    Constant::BigInt(v) => format!("[BIGINT] {v}n"),
-                    Constant::Function(code) => format!(
+                    Constant::BigInt(v) => writeln!(f, "[BIGINT] {v}n")?,
+                    Constant::Function(code) => writeln!(
+                        f,
                         "[FUNCTION] name: '{}' (length: {})\n",
                         code.name().to_std_string_escaped(),
                         code.length
-                    ),
+                    )?,
                     Constant::CompileTimeEnvironment(v) => {
-                        format!(
+                        writeln!(
+                            f,
                             "[ENVIRONMENT] index: {}, bindings: {}",
                             v.environment_index(),
                             v.num_bindings()
-                        )
+                        )?;
                     }
-                };
-                f.push_str(&value);
-                f.push('\n');
+                }
             }
         }
 
-        f.push_str("\nBindings:\n");
+        f.write_str("\nBindings:\n")?;
         if self.bindings.is_empty() {
-            f.push_str("    <empty>\n");
+            f.write_str("    <empty>\n")?;
         } else {
             for (i, binding_locator) in self.bindings.iter().enumerate() {
-                f.push_str(&format!(
-                    "    {i:04}: {}\n",
-                    interner.resolve_expect(binding_locator.name().sym())
-                ));
+                writeln!(
+                    f,
+                    "    {i:04}: {}",
+                    binding_locator.name().to_std_string_escaped()
+                )?;
             }
         }
 
-        f.push_str("\nHandlers:\n");
+        f.write_str("\nHandlers:\n")?;
         if self.handlers.is_empty() {
-            f.push_str("    <empty>\n");
+            f.write_str("    <empty>\n")?;
         } else {
             for (i, handler) in self.handlers.iter().enumerate() {
-                f.push_str(&format!(
-                    "    {i:04}: Range: [{:04}, {:04}): Handler: {:04}, Stack: {:02}, Environment: {:02}\n",
+                writeln!(f,
+                    "    {i:04}: Range: [{:04}, {:04}): Handler: {:04}, Stack: {:02}, Environment: {:02}",
                     handler.start,
                     handler.end,
                     handler.handler(),
                     handler.stack_count,
                     handler.environment_count,
-                ));
+                )?;
             }
         }
-
-        f
+        Ok(())
     }
 }
 

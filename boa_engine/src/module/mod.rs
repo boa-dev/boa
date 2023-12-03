@@ -34,12 +34,11 @@ use std::io::Read;
 use std::rc::Rc;
 use std::{collections::HashSet, hash::BuildHasherDefault};
 
-use indexmap::IndexMap;
+use indexmap::IndexSet;
 use rustc_hash::{FxHashSet, FxHasher};
 
-use boa_ast::expression::Identifier;
 use boa_gc::{Finalize, Gc, GcRefCell, Trace};
-use boa_interner::Sym;
+use boa_interner::Interner;
 use boa_parser::{Parser, Source};
 use boa_profiler::Profiler;
 
@@ -102,10 +101,10 @@ pub(crate) struct ResolvedBinding {
 ///
 /// Note that a resolved binding can resolve to a single binding inside a module (`export var a = 1"`)
 /// or to a whole module namespace (`export * as ns from "mod.js"`).
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub(crate) enum BindingName {
     /// A local binding.
-    Name(Identifier),
+    Name(JsString),
     /// The whole namespace of the containing module.
     Namespace,
 }
@@ -117,8 +116,8 @@ impl ResolvedBinding {
     }
 
     /// Gets the binding associated with the resolved export.
-    pub(crate) const fn binding_name(&self) -> BindingName {
-        self.binding_name
+    pub(crate) fn binding_name(&self) -> BindingName {
+        self.binding_name.clone()
     }
 }
 
@@ -153,7 +152,7 @@ impl Module {
         let module = parser.parse_module(context.interner_mut())?;
 
         let inner = Gc::new_cyclic(|weak| {
-            let src = SourceTextModule::new(module, weak.clone());
+            let src = SourceTextModule::new(module, weak.clone(), context.interner());
 
             ModuleRepr {
                 realm: realm.unwrap_or_else(|| context.realm().clone()),
@@ -180,10 +179,7 @@ impl Module {
         realm: Option<Realm>,
         context: &mut Context,
     ) -> Self {
-        let names: FxHashSet<Sym> = export_names
-            .iter()
-            .map(|string| context.interner_mut().get_or_intern(&**string))
-            .collect();
+        let names = export_names.iter().cloned().collect();
         let realm = realm.unwrap_or_else(|| context.realm().clone());
         let inner = Gc::new_cyclic(|weak| {
             let synth = SyntheticModule::new(names, evaluation_steps, weak.clone());
@@ -322,9 +318,13 @@ impl Module {
     /// This must only be called if the [`JsPromise`] returned by [`Module::load`] has fulfilled.
     ///
     /// [spec]: https://tc39.es/ecma262/#table-abstract-methods-of-module-records
-    fn get_exported_names(&self, export_star_set: &mut Vec<SourceTextModule>) -> FxHashSet<Sym> {
+    fn get_exported_names(
+        &self,
+        export_star_set: &mut Vec<SourceTextModule>,
+        interner: &Interner,
+    ) -> FxHashSet<JsString> {
         match self.kind() {
-            ModuleKind::SourceText(src) => src.get_exported_names(export_star_set),
+            ModuleKind::SourceText(src) => src.get_exported_names(export_star_set, interner),
             ModuleKind::Synthetic(synth) => synth.get_exported_names(),
         }
     }
@@ -343,11 +343,12 @@ impl Module {
     #[allow(clippy::mutable_key_type)]
     pub(crate) fn resolve_export(
         &self,
-        export_name: Sym,
-        resolve_set: &mut FxHashSet<(Self, Sym)>,
+        export_name: JsString,
+        resolve_set: &mut FxHashSet<(Self, JsString)>,
+        interner: &Interner,
     ) -> Result<ResolvedBinding, ResolveExportError> {
         match self.kind() {
-            ModuleKind::SourceText(src) => src.resolve_export(export_name, resolve_set),
+            ModuleKind::SourceText(src) => src.resolve_export(&export_name, resolve_set, interner),
             ModuleKind::Synthetic(synth) => synth.resolve_export(export_name),
         }
     }
@@ -531,7 +532,8 @@ impl Module {
             .borrow_mut()
             .get_or_insert_with(|| {
                 // a. Let exportedNames be module.GetExportedNames().
-                let exported_names = self.get_exported_names(&mut Vec::default());
+                let exported_names =
+                    self.get_exported_names(&mut Vec::default(), context.interner());
 
                 // b. Let unambiguousNames be a new empty List.
                 let unambiguous_names = exported_names
@@ -540,9 +542,13 @@ impl Module {
                     .filter_map(|name| {
                         // i. Let resolution be module.ResolveExport(name).
                         // ii. If resolution is a ResolvedBinding Record, append name to unambiguousNames.
-                        self.resolve_export(name, &mut HashSet::default())
-                            .ok()
-                            .map(|_| name)
+                        self.resolve_export(
+                            name.clone(),
+                            &mut HashSet::default(),
+                            context.interner(),
+                        )
+                        .ok()
+                        .map(|_| name)
                     })
                     .collect();
 
@@ -576,31 +582,20 @@ impl Hash for Module {
 pub struct ModuleNamespace {
     module: Module,
     #[unsafe_ignore_trace]
-    exports: IndexMap<JsString, Sym, BuildHasherDefault<FxHasher>>,
+    exports: IndexSet<JsString, BuildHasherDefault<FxHasher>>,
 }
 
 impl ModuleNamespace {
     /// Abstract operation [`ModuleNamespaceCreate ( module, exports )`][spec].
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-modulenamespacecreate
-    pub(crate) fn create(module: Module, names: Vec<Sym>, context: &mut Context) -> JsObject {
+    pub(crate) fn create(module: Module, names: Vec<JsString>, context: &mut Context) -> JsObject {
         // 1. Assert: module.[[Namespace]] is empty.
         // ignored since this is ensured by `Module::namespace`.
 
         // 6. Let sortedExports be a List whose elements are the elements of exports ordered as if an Array of the same values had been sorted using %Array.prototype.sort% using undefined as comparefn.
-        let mut exports = names
-            .into_iter()
-            .map(|sym| {
-                (
-                    context
-                        .interner()
-                        .resolve_expect(sym)
-                        .into_common::<JsString>(false),
-                    sym,
-                )
-            })
-            .collect::<IndexMap<_, _, _>>();
-        exports.sort_keys();
+        let mut exports = names.into_iter().collect::<IndexSet<_, _>>();
+        exports.sort();
 
         // 2. Let internalSlotsList be the internal slots listed in Table 32.
         // 3. Let M be MakeBasicObject(internalSlotsList).
@@ -621,7 +616,7 @@ impl ModuleNamespace {
     }
 
     /// Gets the export names of the Module Namespace object.
-    pub(crate) const fn exports(&self) -> &IndexMap<JsString, Sym, BuildHasherDefault<FxHasher>> {
+    pub(crate) const fn exports(&self) -> &IndexSet<JsString, BuildHasherDefault<FxHasher>> {
         &self.exports
     }
 

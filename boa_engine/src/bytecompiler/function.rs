@@ -4,31 +4,31 @@ use crate::{
     builtins::function::ThisMode,
     bytecompiler::ByteCompiler,
     environments::CompileTimeEnvironment,
+    js_string,
     vm::{CodeBlock, CodeBlockFlags, Opcode},
-    Context,
+    Context, JsString,
 };
 use boa_ast::function::{FormalParameterList, FunctionBody};
 use boa_gc::Gc;
-use boa_interner::Sym;
 
 /// `FunctionCompiler` is used to compile AST functions to bytecode.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 #[allow(clippy::struct_excessive_bools)]
 pub(crate) struct FunctionCompiler {
-    name: Sym,
+    name: JsString,
     generator: bool,
     r#async: bool,
     strict: bool,
     arrow: bool,
     method: bool,
-    binding_identifier: Option<Sym>,
+    binding_identifier: Option<JsString>,
 }
 
 impl FunctionCompiler {
     /// Create a new `FunctionCompiler`.
-    pub(crate) const fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Self {
-            name: Sym::EMPTY_STRING,
+            name: js_string!(),
             generator: false,
             r#async: false,
             strict: false,
@@ -41,7 +41,7 @@ impl FunctionCompiler {
     /// Set the name of the function.
     pub(crate) fn name<N>(mut self, name: N) -> Self
     where
-        N: Into<Option<Sym>>,
+        N: Into<Option<JsString>>,
     {
         let name = name.into();
         if let Some(name) = name {
@@ -79,7 +79,7 @@ impl FunctionCompiler {
     }
 
     /// Indicate if the function has a binding identifier.
-    pub(crate) const fn binding_identifier(mut self, binding_identifier: Option<Sym>) -> Self {
+    pub(crate) fn binding_identifier(mut self, binding_identifier: Option<JsString>) -> Self {
         self.binding_identifier = binding_identifier;
         self
     }
@@ -126,7 +126,7 @@ impl FunctionCompiler {
             let _ = compiler.push_compile_environment(false);
             compiler
                 .lexical_environment
-                .create_immutable_binding(binding_identifier.into(), self.strict);
+                .create_immutable_binding(binding_identifier, self.strict);
         }
 
         // Function environment

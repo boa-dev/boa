@@ -1,5 +1,8 @@
-use super::{ByteCompiler, Literal, Operand};
-use crate::vm::{BindingOpcode, CodeBlock, CodeBlockFlags, Opcode};
+use super::{ByteCompiler, Literal, Operand, ToJsString};
+use crate::{
+    js_string,
+    vm::{BindingOpcode, CodeBlock, CodeBlockFlags, Opcode},
+};
 use boa_ast::{
     expression::Identifier,
     function::{Class, ClassElement, FormalParameterList},
@@ -29,22 +32,24 @@ impl ByteCompiler<'_> {
         let strict = self.strict();
         self.code_block_flags |= CodeBlockFlags::STRICT;
 
-        let class_name = class.name().map_or(Sym::EMPTY_STRING, Identifier::sym);
+        let class_name = class
+            .name()
+            .map_or(Sym::EMPTY_STRING, Identifier::sym)
+            .to_js_string(self.interner());
 
-        let old_lex_env = match class.name() {
-            Some(name) if class.has_binding_identifier() => {
-                let old_lex_env = self.lexical_environment.clone();
-                let env_index = self.push_compile_environment(false);
-                self.emit_with_varying_operand(Opcode::PushDeclarativeEnvironment, env_index);
-                self.lexical_environment
-                    .create_immutable_binding(name, true);
-                Some(old_lex_env)
-            }
-            _ => None,
+        let old_lex_env = if class.has_binding_identifier() {
+            let old_lex_env = self.lexical_environment.clone();
+            let env_index = self.push_compile_environment(false);
+            self.emit_with_varying_operand(Opcode::PushDeclarativeEnvironment, env_index);
+            self.lexical_environment
+                .create_immutable_binding(class_name.clone(), true);
+            Some(old_lex_env)
+        } else {
+            None
         };
 
         let mut compiler = ByteCompiler::new(
-            class_name,
+            class_name.clone(),
             true,
             self.json_parse,
             self.variable_environment.clone(),
@@ -122,7 +127,7 @@ impl ByteCompiler<'_> {
 
         if old_lex_env.is_some() {
             self.emit_opcode(Opcode::Dup);
-            self.emit_binding(BindingOpcode::InitLexical, class_name.into());
+            self.emit_binding(BindingOpcode::InitLexical, class_name.clone());
         }
 
         // TODO: set function name for getter and setters
@@ -277,7 +282,7 @@ impl ByteCompiler<'_> {
                         }
                     }
                     let mut field_compiler = ByteCompiler::new(
-                        Sym::EMPTY_STRING,
+                        js_string!(),
                         true,
                         self.json_parse,
                         self.variable_environment.clone(),
@@ -305,7 +310,7 @@ impl ByteCompiler<'_> {
                     self.emit_opcode(Opcode::Dup);
                     let name_index = self.get_or_insert_private_name(*name);
                     let mut field_compiler = ByteCompiler::new(
-                        class_name,
+                        class_name.clone(),
                         true,
                         self.json_parse,
                         self.variable_environment.clone(),
@@ -343,7 +348,7 @@ impl ByteCompiler<'_> {
                         }
                     };
                     let mut field_compiler = ByteCompiler::new(
-                        class_name,
+                        class_name.clone(),
                         true,
                         self.json_parse,
                         self.variable_environment.clone(),
@@ -377,7 +382,7 @@ impl ByteCompiler<'_> {
                 }
                 ClassElement::StaticBlock(body) => {
                     let mut compiler = ByteCompiler::new(
-                        Sym::EMPTY_STRING,
+                        Sym::EMPTY_STRING.to_js_string(self.interner()),
                         true,
                         false,
                         self.variable_environment.clone(),
@@ -580,7 +585,7 @@ impl ByteCompiler<'_> {
         self.emit_opcode(Opcode::PopPrivateEnvironment);
 
         if !expression {
-            self.emit_binding(BindingOpcode::InitVar, class_name.into());
+            self.emit_binding(BindingOpcode::InitVar, class_name);
         }
 
         // NOTE: Reset strict mode to before class declaration/expression evalutation.

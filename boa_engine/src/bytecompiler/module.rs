@@ -1,7 +1,7 @@
 use crate::vm::{BindingOpcode, Opcode};
 
-use super::{ByteCompiler, Literal, Operand};
-use boa_ast::{declaration::ExportDeclaration, expression::Identifier, ModuleItem, ModuleItemList};
+use super::{ByteCompiler, Literal, Operand, ToJsString};
+use boa_ast::{declaration::ExportDeclaration, ModuleItem, ModuleItemList};
 use boa_interner::Sym;
 
 impl ByteCompiler<'_> {
@@ -47,13 +47,14 @@ impl ByteCompiler<'_> {
                         if cl.name().is_none() {
                             self.emit_binding(
                                 BindingOpcode::InitLexical,
-                                Identifier::from(Sym::DEFAULT_EXPORT),
+                                Sym::DEFAULT_EXPORT.to_js_string(self.interner()),
                             );
                         }
                     }
                     ExportDeclaration::DefaultAssignmentExpression(expr) => {
-                        let name = Identifier::from(Sym::DEFAULT_EXPORT);
-                        self.lexical_environment.create_mutable_binding(name, false);
+                        let name = Sym::DEFAULT_EXPORT.to_js_string(self.interner());
+                        self.lexical_environment
+                            .create_mutable_binding(name.clone(), false);
                         self.compile_expr(expr, true);
 
                         if expr.is_anonymous_function_definition() {

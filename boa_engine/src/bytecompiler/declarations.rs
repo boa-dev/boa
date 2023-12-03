@@ -3,7 +3,6 @@ use std::rc::Rc;
 use crate::{
     bytecompiler::{ByteCompiler, FunctionCompiler, FunctionSpec, NodeKind},
     environments::CompileTimeEnvironment,
-    js_string,
     vm::{create_function_object_fast, BindingOpcode, Opcode},
     JsNativeError, JsResult,
 };
@@ -23,7 +22,7 @@ use boa_interner::Sym;
 #[cfg(feature = "annex-b")]
 use boa_ast::operations::annex_b_function_declarations_names;
 
-use super::Operand;
+use super::{Operand, ToJsString};
 
 impl ByteCompiler<'_> {
     /// `GlobalDeclarationInstantiation ( script, env )`
@@ -45,17 +44,24 @@ impl ByteCompiler<'_> {
 
         // 3. For each element name of lexNames, do
         for name in lex_names {
+            let name = self
+                .context
+                .interner()
+                .resolve_expect(name.sym())
+                .utf16()
+                .into();
+
             // Note: Our implementation differs from the spec here.
             // a. If env.HasVarDeclaration(name) is true, throw a SyntaxError exception.
             // b. If env.HasLexicalDeclaration(name) is true, throw a SyntaxError exception.
-            if env.has_binding(name) {
+            if env.has_binding(&name) {
                 return Err(JsNativeError::syntax()
                     .with_message("duplicate lexical declaration")
                     .into());
             }
 
             // c. Let hasRestrictedGlobal be ? env.HasRestrictedGlobalProperty(name).
-            let has_restricted_global = self.context.has_restricted_global_property(name)?;
+            let has_restricted_global = self.context.has_restricted_global_property(&name)?;
 
             // d. If hasRestrictedGlobal is true, throw a SyntaxError exception.
             if has_restricted_global {
@@ -67,8 +73,15 @@ impl ByteCompiler<'_> {
 
         // 4. For each element name of varNames, do
         for name in var_names {
+            let name = self
+                .context
+                .interner()
+                .resolve_expect(name.sym())
+                .utf16()
+                .into();
+
             // a. If env.HasLexicalDeclaration(name) is true, throw a SyntaxError exception.
-            if env.has_lex_binding(name) {
+            if env.has_lex_binding(&name) {
                 return Err(JsNativeError::syntax()
                     .with_message("duplicate lexical declaration")
                     .into());
@@ -106,7 +119,9 @@ impl ByteCompiler<'_> {
             // a.iv. If declaredFunctionNames does not contain fn, then
             if !declared_function_names.contains(&name) {
                 // 1. Let fnDefinable be ? env.CanDeclareGlobalFunction(fn).
-                let fn_definable = self.context.can_declare_global_function(name)?;
+                let fn_definable = self
+                    .context
+                    .can_declare_global_function(&name.to_js_string(self.interner()))?;
 
                 // 2. If fnDefinable is false, throw a TypeError exception.
                 if !fn_definable {
@@ -140,7 +155,9 @@ impl ByteCompiler<'_> {
                 // 1. If declaredFunctionNames does not contain vn, then
                 if !declared_function_names.contains(&name) {
                     // a. Let vnDefinable be ? env.CanDeclareGlobalVar(vn).
-                    let definable = self.context.can_declare_global_var(name)?;
+                    let definable = self
+                        .context
+                        .can_declare_global_var(&name.to_js_string(self.interner()))?;
 
                     // b. If vnDefinable is false, throw a TypeError exception.
                     if !definable {
@@ -178,10 +195,12 @@ impl ByteCompiler<'_> {
                 // 2. If replacing the FunctionDeclaration f with a VariableStatement that has F as a BindingIdentifier
                 //    would not produce any Early Errors for script, then
                 if !lex_names.contains(&f) {
+                    let f_string = self.resolve_identifier_expect(f);
+
                     // a. If env.HasLexicalDeclaration(F) is false, then
-                    if !env.has_lex_binding(f) {
+                    if !env.has_lex_binding(&f_string) {
                         // i. Let fnDefinable be ? env.CanDeclareGlobalVar(F).
-                        let fn_definable = self.context.can_declare_global_function(f)?;
+                        let fn_definable = self.context.can_declare_global_function(&f_string)?;
 
                         // ii. If fnDefinable is true, then
                         if fn_definable {
@@ -192,7 +211,7 @@ impl ByteCompiler<'_> {
                                 && !declared_var_names.contains(&f)
                             {
                                 // i. Perform ? env.CreateGlobalVarBinding(F, false).
-                                self.context.create_global_var_binding(f, false)?;
+                                self.context.create_global_var_binding(f_string, false)?;
 
                                 // ii. Append F to declaredFunctionOrVarNames.
                                 declared_function_names.push(f);
@@ -225,16 +244,19 @@ impl ByteCompiler<'_> {
                 match declaration {
                     Declaration::Class(class) => {
                         for name in bound_names(class) {
+                            let name = name.to_js_string(self.interner());
                             env.create_mutable_binding(name, false);
                         }
                     }
                     Declaration::Lexical(LexicalDeclaration::Let(declaration)) => {
                         for name in bound_names(declaration) {
+                            let name = name.to_js_string(self.interner());
                             env.create_mutable_binding(name, false);
                         }
                     }
                     Declaration::Lexical(LexicalDeclaration::Const(declaration)) => {
                         for name in bound_names(declaration) {
+                            let name = name.to_js_string(self.interner());
                             env.create_immutable_binding(name, true);
                         }
                     }
@@ -266,11 +288,11 @@ impl ByteCompiler<'_> {
             let name = name.expect("function declaration must have a name");
 
             let code = FunctionCompiler::new()
-                .name(name.sym())
+                .name(name.sym().to_js_string(self.interner()))
                 .generator(generator)
                 .r#async(r#async)
                 .strict(self.strict())
-                .binding_identifier(Some(name.sym()))
+                .binding_identifier(Some(name.sym().to_js_string(self.interner())))
                 .compile(
                     parameters,
                     body,
@@ -286,7 +308,7 @@ impl ByteCompiler<'_> {
             let function = create_function_object_fast(code, self.context);
 
             // c. Perform ? env.CreateGlobalFunctionBinding(fn, fo, false).
-            let name = js_string!(self.interner().resolve_expect(name.sym()).utf16());
+            let name = name.to_js_string(self.interner());
             self.context
                 .create_global_function_binding(name, function, false)?;
         }
@@ -294,6 +316,7 @@ impl ByteCompiler<'_> {
         // 17. For each String vn of declaredVarNames, do
         for var in declared_var_names {
             // a. Perform ? env.CreateGlobalVarBinding(vn, false).
+            let var = var.to_js_string(self.interner());
             self.context.create_global_var_binding(var, false)?;
         }
 
@@ -328,6 +351,7 @@ impl ByteCompiler<'_> {
                 // a. For each element dn of the BoundNames of d, do
                 for dn in bound_names::<'_, VariableList>(d) {
                     // 1. Perform ! env.CreateImmutableBinding(dn, true).
+                    let dn = dn.to_js_string(self.interner());
                     env.create_immutable_binding(dn, true);
                 }
             }
@@ -335,13 +359,15 @@ impl ByteCompiler<'_> {
             else {
                 // a. For each element dn of the BoundNames of d, do
                 for dn in d.bound_names() {
+                    let dn = dn.to_js_string(self.interner());
+
                     #[cfg(not(feature = "annex-b"))]
                     // 1. Perform ! env.CreateMutableBinding(dn, false). NOTE: This step is replaced in section B.3.2.6.
                     env.create_mutable_binding(dn, false);
 
                     #[cfg(feature = "annex-b")]
                     // 1. If ! env.HasBinding(dn) is false, then
-                    if !env.has_binding(dn) {
+                    if !env.has_binding(&dn) {
                         // a. Perform  ! env.CreateMutableBinding(dn, false).
                         env.create_mutable_binding(dn, false);
                     }
@@ -403,9 +429,11 @@ impl ByteCompiler<'_> {
             if var_env.is_global() {
                 // i. For each element name of varNames, do
                 for name in &var_names {
+                    let name = name.to_js_string(self.interner());
+
                     // 1. If varEnv.HasLexicalDeclaration(name) is true, throw a SyntaxError exception.
                     // 2. NOTE: eval will not create a global var declaration that would be shadowed by a global lexical declaration.
-                    if var_env.has_lex_binding(*name) {
+                    if var_env.has_lex_binding(&name) {
                         return Err(JsNativeError::syntax()
                             .with_message("duplicate lexical declaration")
                             .into());
@@ -424,12 +452,18 @@ impl ByteCompiler<'_> {
                 //    declaration so it doesn't need to be checked for var/let hoisting conflicts.
                 // 2. For each element name of varNames, do
                 for name in &var_names {
+                    let name = self
+                        .context
+                        .interner()
+                        .resolve_expect(name.sym())
+                        .utf16()
+                        .into();
+
                     // a. If ! thisEnv.HasBinding(name) is true, then
-                    if this_env.has_binding(*name) {
+                    if this_env.has_binding(&name) {
                         // i. Throw a SyntaxError exception.
                         // ii. NOTE: Annex B.3.4 defines alternate semantics for the above step.
-                        let name = self.context.interner().resolve_expect(name.sym());
-                        let msg = format!("variable declaration {name} in eval function already exists as a lexical variable");
+                        let msg = format!("variable declaration {} in eval function already exists as a lexical variable", name.to_std_string_escaped());
                         return Err(JsNativeError::syntax().with_message(msg).into());
                     }
                     // b. NOTE: A direct eval will not hoist var declaration over a like-named lexical declaration.
@@ -497,8 +531,10 @@ impl ByteCompiler<'_> {
             if !declared_function_names.contains(&name) {
                 // 1. If varEnv is a Global Environment Record, then
                 if var_env.is_global() {
+                    let name = name.to_js_string(self.interner());
+
                     // a. Let fnDefinable be ? varEnv.CanDeclareGlobalFunction(fn).
-                    let fn_definable = self.context.can_declare_global_function(name)?;
+                    let fn_definable = self.context.can_declare_global_function(&name)?;
 
                     // b. If fnDefinable is false, throw a TypeError exception.
                     if !fn_definable {
@@ -541,9 +577,11 @@ impl ByteCompiler<'_> {
                     // 3. Assert: The following loop will terminate.
                     // 4. Repeat, while thisEnv is not varEnv,
                     while this_env.environment_index() != lex_env.environment_index() {
+                        let f = f.to_js_string(self.interner());
+
                         // a. If thisEnv is not an Object Environment Record, then
                         // i. If ! thisEnv.HasBinding(F) is true, then
-                        if this_env.has_binding(f) {
+                        if this_env.has_binding(&f) {
                             // i. Let bindingExists be true.
                             binding_exists = true;
                             break;
@@ -559,14 +597,16 @@ impl ByteCompiler<'_> {
 
                     // 5. If bindingExists is false and varEnv is a Global Environment Record, then
                     let fn_definable = if !binding_exists && var_env.is_global() {
+                        let f = f.to_js_string(self.interner());
+
                         // a. If varEnv.HasLexicalDeclaration(F) is false, then
                         // b. Else,
-                        if self.variable_environment.has_lex_binding(f) {
+                        if self.variable_environment.has_lex_binding(&f) {
                             // i. Let fnDefinable be false.
                             false
                         } else {
                             // i. Let fnDefinable be ? varEnv.CanDeclareGlobalVar(F).
-                            self.context.can_declare_global_var(f)?
+                            self.context.can_declare_global_var(&f)?
                         }
                     }
                     // 6. Else,
@@ -586,14 +626,16 @@ impl ByteCompiler<'_> {
                         {
                             // i. If varEnv is a Global Environment Record, then
                             if var_env.is_global() {
+                                let f = f.to_js_string(self.interner());
                                 // i. Perform ? varEnv.CreateGlobalVarBinding(F, true).
                                 self.context.create_global_var_binding(f, true)?;
                             }
                             // ii. Else,
                             else {
+                                let f = f.to_js_string(self.interner());
                                 // i. Let bindingExists be ! varEnv.HasBinding(F).
                                 // ii. If bindingExists is false, then
-                                if !var_env.has_binding(f) {
+                                if !var_env.has_binding(&f) {
                                     // i. Perform ! varEnv.CreateMutableBinding(F, true).
                                     // ii. Perform ! varEnv.InitializeBinding(F, undefined).
                                     let binding = var_env.create_mutable_binding(f, true);
@@ -636,8 +678,10 @@ impl ByteCompiler<'_> {
                 if !declared_function_names.contains(&name) {
                     // a. If varEnv is a Global Environment Record, then
                     if var_env.is_global() {
+                        let name = name.to_js_string(self.interner());
+
                         // i. Let vnDefinable be ? varEnv.CanDeclareGlobalVar(vn).
-                        let vn_definable = self.context.can_declare_global_var(name)?;
+                        let vn_definable = self.context.can_declare_global_var(&name)?;
 
                         // ii. If vnDefinable is false, throw a TypeError exception.
                         if !vn_definable {
@@ -672,16 +716,19 @@ impl ByteCompiler<'_> {
                 match declaration {
                     Declaration::Class(class) => {
                         for name in bound_names(class) {
+                            let name = name.to_js_string(self.interner());
                             lex_env.create_mutable_binding(name, false);
                         }
                     }
                     Declaration::Lexical(LexicalDeclaration::Let(declaration)) => {
                         for name in bound_names(declaration) {
+                            let name = name.to_js_string(self.interner());
                             lex_env.create_mutable_binding(name, false);
                         }
                     }
                     Declaration::Lexical(LexicalDeclaration::Const(declaration)) => {
                         for name in bound_names(declaration) {
+                            let name = name.to_js_string(self.interner());
                             lex_env.create_immutable_binding(name, true);
                         }
                     }
@@ -712,11 +759,11 @@ impl ByteCompiler<'_> {
             };
             let name = name.expect("function declaration must have a name");
             let code = FunctionCompiler::new()
-                .name(name.sym())
+                .name(name.sym().to_js_string(self.interner()))
                 .generator(generator)
                 .r#async(r#async)
                 .strict(self.strict())
-                .binding_identifier(Some(name.sym()))
+                .binding_identifier(Some(name.sym().to_js_string(self.interner())))
                 .compile(
                     parameters,
                     body,
@@ -746,8 +793,10 @@ impl ByteCompiler<'_> {
                 let index = self.push_function_to_constants(code);
                 self.emit_with_varying_operand(Opcode::GetFunction, index);
 
+                let name = name.to_js_string(self.interner());
+
                 // i. Let bindingExists be ! varEnv.HasBinding(fn).
-                let binding_exists = var_env.has_binding(name);
+                let binding_exists = var_env.has_binding(&name);
 
                 // ii. If bindingExists is false, then
                 // iii. Else,
@@ -769,6 +818,8 @@ impl ByteCompiler<'_> {
 
         // 18. For each String vn of declaredVarNames, do
         for name in declared_var_names {
+            let name = name.to_js_string(self.interner());
+
             // a. If varEnv is a Global Environment Record, then
             if var_env.is_global() {
                 // i. Perform ? varEnv.CreateGlobalVarBinding(vn, true).
@@ -777,7 +828,7 @@ impl ByteCompiler<'_> {
             // b. Else,
             else {
                 // i. Let bindingExists be ! varEnv.HasBinding(vn).
-                let binding_exists = var_env.has_binding(name);
+                let binding_exists = var_env.has_binding(&name);
 
                 // ii. If bindingExists is false, then
                 if !binding_exists {
@@ -920,6 +971,8 @@ impl ByteCompiler<'_> {
         // NOTE(HalidOdat): Has been moved up, so "arguments" gets registed as
         //     the first binding in the environment with index 0.
         if arguments_object_needed {
+            let arguments = arguments.to_js_string(self.interner());
+
             // a. If strict is true or simpleParameterList is false, then
             if strict || !formals.is_simple() {
                 // i. Let ao be CreateUnmappedArgumentsObject(argumentsList).
@@ -939,12 +992,12 @@ impl ByteCompiler<'_> {
                 // i. Perform ! env.CreateImmutableBinding("arguments", false).
                 // ii. NOTE: In strict mode code early errors prevent attempting to assign
                 //           to this binding, so its mutability is not observable.
-                env.create_immutable_binding(arguments, false);
+                env.create_immutable_binding(arguments.clone(), false);
             }
             // d. Else,
             else {
                 // i. Perform ! env.CreateMutableBinding("arguments", false).
-                env.create_mutable_binding(arguments, false);
+                env.create_mutable_binding(arguments.clone(), false);
             }
 
             // e. Perform ! env.InitializeBinding("arguments", ao).
@@ -953,8 +1006,10 @@ impl ByteCompiler<'_> {
 
         // 21. For each String paramName of parameterNames, do
         for param_name in &parameter_names {
+            let param_name = param_name.to_js_string(self.interner());
+
             // a. Let alreadyDeclared be ! env.HasBinding(paramName).
-            let already_declared = env.has_binding(*param_name);
+            let already_declared = env.has_binding(&param_name);
 
             // b. NOTE: Early errors ensure that duplicate parameter names can only occur in non-strict
             //    functions that do not have parameter default values or rest parameters.
@@ -962,7 +1017,7 @@ impl ByteCompiler<'_> {
             // c. If alreadyDeclared is false, then
             if !already_declared {
                 // i. Perform ! env.CreateMutableBinding(paramName, false).
-                env.create_mutable_binding(*param_name, false);
+                env.create_mutable_binding(param_name, false);
 
                 // Note: These steps are not necessary in our implementation.
                 // ii. If hasDuplicates is true, then
@@ -997,12 +1052,13 @@ impl ByteCompiler<'_> {
             }
             match parameter.variable().binding() {
                 Binding::Identifier(ident) => {
+                    let ident = ident.to_js_string(self.interner());
                     if let Some(init) = parameter.variable().init() {
                         let skip = self.emit_opcode_with_operand(Opcode::JumpIfNotUndefined);
                         self.compile_expr(init, true);
                         self.patch_jump(skip);
                     }
-                    self.emit_binding(BindingOpcode::InitLexical, *ident);
+                    self.emit_binding(BindingOpcode::InitLexical, ident);
                 }
                 Binding::Pattern(pattern) => {
                     if let Some(init) = parameter.variable().init() {
@@ -1044,8 +1100,10 @@ impl ByteCompiler<'_> {
                     // 1. Append n to instantiatedVarNames.
                     instantiated_var_names.push(n);
 
+                    let n_string = n.to_js_string(self.interner());
+
                     // 2. Perform ! varEnv.CreateMutableBinding(n, false).
-                    let binding = var_env.create_mutable_binding(n, false);
+                    let binding = var_env.create_mutable_binding(n_string.clone(), false);
 
                     // 3. If parameterBindings does not contain n, or if functionNames contains n, then
                     if !parameter_bindings.contains(&n) || function_names.contains(&n) {
@@ -1055,7 +1113,7 @@ impl ByteCompiler<'_> {
                     // 4. Else,
                     else {
                         // a. Let initialValue be ! env.GetBindingValue(n, false).
-                        let binding = env.get_binding(n).expect("must have binding");
+                        let binding = env.get_binding(&n_string).expect("must have binding");
                         let index = self.get_or_insert_binding(binding);
                         self.emit_with_varying_operand(Opcode::GetName, index);
                     }
@@ -1082,6 +1140,8 @@ impl ByteCompiler<'_> {
                 if !instantiated_var_names.contains(&n) {
                     // 1. Append n to instantiatedVarNames.
                     instantiated_var_names.push(n);
+
+                    let n = n.to_js_string(self.interner());
 
                     // 2. Perform ! env.CreateMutableBinding(n, false).
                     // 3. Perform ! env.InitializeBinding(n, undefined).
@@ -1113,9 +1173,11 @@ impl ByteCompiler<'_> {
 
                     // 2. If initializedBindings does not contain F and F is not "arguments", then
                     if !instantiated_var_names.contains(&f) && f != arguments {
+                        let f_string = f.to_js_string(self.interner());
+
                         // a. Perform ! varEnv.CreateMutableBinding(F, false).
                         // b. Perform ! varEnv.InitializeBinding(F, undefined).
-                        let binding = var_env.create_mutable_binding(f, false);
+                        let binding = var_env.create_mutable_binding(f_string, false);
                         let index = self.get_or_insert_binding(binding);
                         self.emit_opcode(Opcode::PushUndefined);
                         self.emit_with_varying_operand(Opcode::DefInitVar, index);
@@ -1169,16 +1231,19 @@ impl ByteCompiler<'_> {
                 match declaration {
                     Declaration::Class(class) => {
                         for name in bound_names(class) {
+                            let name = name.to_js_string(self.interner());
                             lex_env.create_mutable_binding(name, false);
                         }
                     }
                     Declaration::Lexical(LexicalDeclaration::Let(declaration)) => {
                         for name in bound_names(declaration) {
+                            let name = name.to_js_string(self.interner());
                             lex_env.create_mutable_binding(name, false);
                         }
                     }
                     Declaration::Lexical(LexicalDeclaration::Const(declaration)) => {
                         for name in bound_names(declaration) {
+                            let name = name.to_js_string(self.interner());
                             lex_env.create_immutable_binding(name, true);
                         }
                     }

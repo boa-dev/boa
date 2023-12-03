@@ -557,7 +557,7 @@ impl BuiltInFunctionObject {
         };
 
         let code = FunctionCompiler::new()
-            .name(Sym::ANONYMOUS)
+            .name(js_string!("anonymous"))
             .generator(generator)
             .r#async(r#async)
             .compile(

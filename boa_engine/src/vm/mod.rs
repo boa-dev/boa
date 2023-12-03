@@ -15,8 +15,6 @@ use std::{future::Future, mem::size_of, ops::ControlFlow, pin::Pin, task};
 
 #[cfg(feature = "trace")]
 use crate::sys::time::Instant;
-#[cfg(feature = "trace")]
-use boa_interner::ToInternedString;
 
 mod call_frame;
 mod code_block;
@@ -269,13 +267,7 @@ impl Context {
             " VM Start ".to_string()
         };
 
-        println!(
-            "{}",
-            self.vm
-                .frame()
-                .code_block
-                .to_interned_string(self.interner())
-        );
+        println!("{}", self.vm.frame().code_block);
         println!(
             "{msg:-^width$}",
             width = Self::COLUMN_WIDTH * Self::NUMBER_OF_COLUMNS - 10
@@ -304,7 +296,7 @@ impl Context {
             .vm
             .frame()
             .code_block
-            .instruction_operands(&instruction, self.interner());
+            .instruction_operands(&instruction);
 
         let opcode = instruction.opcode();
         match opcode {

@@ -33,7 +33,6 @@ use crate::{
     Context, JsArgs, JsResult, JsString, JsValue,
 };
 use boa_gc::Gc;
-use boa_interner::Sym;
 use boa_parser::{Parser, Source};
 use boa_profiler::Profiler;
 
@@ -114,7 +113,7 @@ impl Json {
         let script = parser.parse_script(context.interner_mut())?;
         let code_block = {
             let mut compiler = ByteCompiler::new(
-                Sym::MAIN,
+                js_string!("<main>"),
                 script.strict(),
                 true,
                 context.realm().environment().compile_env(),

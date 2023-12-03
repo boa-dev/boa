@@ -11,13 +11,13 @@
 use std::io::Read;
 
 use boa_gc::{Finalize, Gc, GcRefCell, Trace};
-use boa_interner::Sym;
 use boa_parser::{Parser, Source};
 use boa_profiler::Profiler;
 use rustc_hash::FxHashMap;
 
 use crate::{
     bytecompiler::ByteCompiler,
+    js_string,
     realm::Realm,
     vm::{ActiveRunnable, CallFrame, CallFrameFlags, CodeBlock},
     Context, HostDefined, JsResult, JsString, JsValue, Module,
@@ -116,7 +116,7 @@ impl Script {
         let _timer = Profiler::global().start_event("Script compilation", "Main");
 
         let mut compiler = ByteCompiler::new(
-            Sym::MAIN,
+            js_string!("<main>"),
             self.inner.source.strict(),
             false,
             self.inner.realm.environment().compile_env(),

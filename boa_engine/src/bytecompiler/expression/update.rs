@@ -1,5 +1,5 @@
 use crate::{
-    bytecompiler::{Access, ByteCompiler, Operand},
+    bytecompiler::{Access, ByteCompiler, Operand, ToJsString},
     environments::BindingLocatorError,
     vm::Opcode,
 };
@@ -23,7 +23,10 @@ impl ByteCompiler<'_> {
 
         match Access::from_update_target(update.target()) {
             Access::Variable { name } => {
-                let binding = self.lexical_environment.get_identifier_reference(name);
+                let name = name.to_js_string(self.interner());
+                let binding = self
+                    .lexical_environment
+                    .get_identifier_reference(name.clone());
                 let index = self.get_or_insert_binding(binding.locator());
 
                 if binding.is_lexical() {
@@ -40,13 +43,13 @@ impl ByteCompiler<'_> {
                 }
 
                 if binding.is_lexical() {
-                    match self.lexical_environment.set_mutable_binding(name) {
+                    match self.lexical_environment.set_mutable_binding(name.clone()) {
                         Ok(binding) => {
                             let index = self.get_or_insert_binding(binding);
                             self.emit_with_varying_operand(Opcode::SetName, index);
                         }
                         Err(BindingLocatorError::MutateImmutable) => {
-                            let index = self.get_or_insert_name(name);
+                            let index = self.get_or_insert_string(name);
                             self.emit_with_varying_operand(Opcode::ThrowMutateImmutable, index);
                         }
                         Err(BindingLocatorError::Silent) => {

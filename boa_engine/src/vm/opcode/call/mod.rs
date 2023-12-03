@@ -299,15 +299,14 @@ impl Operation for ImportCall {
                                         panic!("referrer cannot be a synthetic module");
                                     };
 
-                                    let sym = context.interner_mut().get_or_intern(&*specifier);
-
                                     let mut loaded_modules = src.loaded_modules().borrow_mut();
 
                                     //     a. If referrer.[[LoadedModules]] contains a Record whose [[Specifier]] is specifier, then
                                     //     b. Else,
                                     //         i. Append the Record { [[Specifier]]: specifier, [[Module]]: result.[[Value]] } to referrer.[[LoadedModules]].
-                                    let entry =
-                                        loaded_modules.entry(sym).or_insert_with(|| m.clone());
+                                    let entry = loaded_modules
+                                        .entry(specifier)
+                                        .or_insert_with(|| m.clone());
 
                                     //         i. Assert: That Record's [[Module]] is result.[[Value]].
                                     debug_assert_eq!(&m, entry);

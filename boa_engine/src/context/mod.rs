@@ -29,7 +29,7 @@ use crate::{
     vm::{ActiveRunnable, CallFrame, Vm},
     JsNativeError, JsResult, JsString, JsValue, Source,
 };
-use boa_ast::{expression::Identifier, StatementList};
+use boa_ast::StatementList;
 use boa_interner::Interner;
 use boa_profiler::Profiler;
 
@@ -609,13 +609,13 @@ impl Context {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-candeclareglobalfunction
-    pub(crate) fn can_declare_global_function(&mut self, name: Identifier) -> JsResult<bool> {
+    pub(crate) fn can_declare_global_function(&mut self, name: &JsString) -> JsResult<bool> {
         // 1. Let ObjRec be envRec.[[ObjectRecord]].
         // 2. Let globalObject be ObjRec.[[BindingObject]].
         let global_object = self.realm().global_object().clone();
 
         // 3. Let existingProp be ? globalObject.[[GetOwnProperty]](N).
-        let name = self.interner().resolve_expect(name.sym()).utf16().into();
+        let name = name.clone().into();
         let existing_prop = global_object.__get_own_property__(&name, self)?;
 
         // 4. If existingProp is undefined, return ? IsExtensible(globalObject).
@@ -646,14 +646,13 @@ impl Context {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-candeclareglobalvar
-    pub(crate) fn can_declare_global_var(&mut self, name: Identifier) -> JsResult<bool> {
+    pub(crate) fn can_declare_global_var(&mut self, name: &JsString) -> JsResult<bool> {
         // 1. Let ObjRec be envRec.[[ObjectRecord]].
         // 2. Let globalObject be ObjRec.[[BindingObject]].
         let global_object = self.realm().global_object().clone();
 
         // 3. Let hasProperty be ? HasOwnProperty(globalObject, N).
-        let name = PropertyKey::from(self.interner().resolve_expect(name.sym()).utf16());
-        let has_property = global_object.has_own_property(name, self)?;
+        let has_property = global_object.has_own_property(name.clone(), self)?;
 
         // 4. If hasProperty is true, return true.
         if has_property {
@@ -672,7 +671,7 @@ impl Context {
     /// [spec]: https://tc39.es/ecma262/#sec-createglobalvarbinding
     pub(crate) fn create_global_var_binding(
         &mut self,
-        name: Identifier,
+        name: JsString,
         configurable: bool,
     ) -> JsResult<()> {
         // 1. Let ObjRec be envRec.[[ObjectRecord]].
@@ -680,7 +679,6 @@ impl Context {
         let global_object = self.realm().global_object().clone();
 
         // 3. Let hasProperty be ? HasOwnProperty(globalObject, N).
-        let name = PropertyKey::from(self.interner().resolve_expect(name.sym()).utf16());
         let has_property = global_object.has_own_property(name.clone(), self)?;
 
         // 4. Let extensible be ? IsExtensible(globalObject).
@@ -765,13 +763,13 @@ impl Context {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-hasrestrictedglobalproperty
-    pub(crate) fn has_restricted_global_property(&mut self, name: Identifier) -> JsResult<bool> {
+    pub(crate) fn has_restricted_global_property(&mut self, name: &JsString) -> JsResult<bool> {
         // 1. Let ObjRec be envRec.[[ObjectRecord]].
         // 2. Let globalObject be ObjRec.[[BindingObject]].
         let global_object = self.realm().global_object().clone();
 
         // 3. Let existingProp be ? globalObject.[[GetOwnProperty]](N).
-        let name = PropertyKey::from(self.interner().resolve_expect(name.sym()).utf16());
+        let name = name.clone().into();
         let existing_prop = global_object.__get_own_property__(&name, self)?;
 
         // 4. If existingProp is undefined, return false.

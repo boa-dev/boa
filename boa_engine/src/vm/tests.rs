@@ -1,4 +1,8 @@
-use crate::{js_string, run_test_actions, JsNativeErrorKind, JsValue, TestAction};
+use crate::{
+    js_string, property::Attribute, run_test_actions, Context, JsNativeErrorKind, JsValue,
+    TestAction,
+};
+use boa_parser::Source;
 use indoc::indoc;
 
 #[test]
@@ -386,4 +390,30 @@ fn super_construction_with_paramater_expression() {
         TestAction::assert_eq("new Student().name", js_string!("unknown")),
         TestAction::assert_eq("new Student('Jack').name", js_string!("Jack")),
     ]);
+}
+
+#[test]
+fn cross_context_funtion_call() {
+    let context1 = &mut Context::default();
+    let result = context1.eval(Source::from_bytes(indoc! {r"
+        var global = 100;
+
+        (function x() {
+            return global;
+        })
+    "}));
+
+    assert!(result.is_ok());
+    let result = result.unwrap();
+    assert!(result.is_callable());
+
+    let context2 = &mut Context::default();
+
+    context2
+        .register_global_property(js_string!("func"), result, Attribute::all())
+        .unwrap();
+
+    let result = context2.eval(Source::from_bytes("func()"));
+
+    assert_eq!(result, Ok(JsValue::new(100)));
 }

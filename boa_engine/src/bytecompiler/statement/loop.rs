@@ -9,7 +9,7 @@ use boa_ast::{
 use boa_interner::Sym;
 
 use crate::{
-    bytecompiler::{Access, ByteCompiler, Operand},
+    bytecompiler::{Access, ByteCompiler, Operand, ToJsString},
     environments::BindingLocatorError,
     vm::{BindingOpcode, Opcode},
 };
@@ -38,15 +38,16 @@ impl ByteCompiler<'_> {
                     let names = bound_names(decl);
                     if decl.is_const() {
                         for name in &names {
+                            let name = name.to_js_string(self.interner());
                             self.lexical_environment
-                                .create_immutable_binding(*name, true);
+                                .create_immutable_binding(name, true);
                         }
                     } else {
                         let mut indices = Vec::new();
                         for name in &names {
-                            let binding = self
-                                .lexical_environment
-                                .create_mutable_binding(*name, false);
+                            let name = name.to_js_string(self.interner());
+                            let binding =
+                                self.lexical_environment.create_mutable_binding(name, false);
                             let index = self.get_or_insert_binding(binding);
                             indices.push(index);
                         }
@@ -119,9 +120,10 @@ impl ByteCompiler<'_> {
         // Handle https://tc39.es/ecma262/#prod-annexB-ForInOfStatement
         if let IterableLoopInitializer::Var(var) = for_in_loop.initializer() {
             if let Binding::Identifier(ident) = var.binding() {
+                let ident = ident.to_js_string(self.interner());
                 if let Some(init) = var.init() {
                     self.compile_expr(init, true);
-                    self.emit_binding(BindingOpcode::InitVar, *ident);
+                    self.emit_binding(BindingOpcode::InitVar, ident);
                 }
             }
         }
@@ -138,8 +140,8 @@ impl ByteCompiler<'_> {
             self.emit_with_varying_operand(Opcode::PushDeclarativeEnvironment, env_index);
 
             for name in &initializer_bound_names {
-                self.lexical_environment
-                    .create_mutable_binding(*name, false);
+                let name = name.to_js_string(self.interner());
+                self.lexical_environment.create_mutable_binding(name, false);
             }
             self.compile_expr(for_in_loop.target(), true);
 
@@ -171,7 +173,8 @@ impl ByteCompiler<'_> {
 
         match for_in_loop.initializer() {
             IterableLoopInitializer::Identifier(ident) => {
-                self.emit_binding(BindingOpcode::InitVar, *ident);
+                let ident = ident.to_js_string(self.interner());
+                self.emit_binding(BindingOpcode::InitVar, ident);
             }
             IterableLoopInitializer::Access(access) => {
                 self.access_set(
@@ -182,7 +185,8 @@ impl ByteCompiler<'_> {
             }
             IterableLoopInitializer::Var(declaration) => match declaration.binding() {
                 Binding::Identifier(ident) => {
-                    self.emit_binding(BindingOpcode::InitVar, *ident);
+                    let ident = ident.to_js_string(self.interner());
+                    self.emit_binding(BindingOpcode::InitVar, ident);
                 }
                 Binding::Pattern(pattern) => {
                     self.compile_declaration_pattern(pattern, BindingOpcode::InitVar);
@@ -190,12 +194,14 @@ impl ByteCompiler<'_> {
             },
             IterableLoopInitializer::Let(declaration) => match declaration {
                 Binding::Identifier(ident) => {
+                    let ident = ident.to_js_string(self.interner());
                     self.lexical_environment
-                        .create_mutable_binding(*ident, false);
-                    self.emit_binding(BindingOpcode::InitLexical, *ident);
+                        .create_mutable_binding(ident.clone(), false);
+                    self.emit_binding(BindingOpcode::InitLexical, ident);
                 }
                 Binding::Pattern(pattern) => {
                     for ident in bound_names(pattern) {
+                        let ident = ident.to_js_string(self.interner());
                         self.lexical_environment
                             .create_mutable_binding(ident, false);
                     }
@@ -204,12 +210,14 @@ impl ByteCompiler<'_> {
             },
             IterableLoopInitializer::Const(declaration) => match declaration {
                 Binding::Identifier(ident) => {
+                    let ident = ident.to_js_string(self.interner());
                     self.lexical_environment
-                        .create_immutable_binding(*ident, true);
-                    self.emit_binding(BindingOpcode::InitLexical, *ident);
+                        .create_immutable_binding(ident.clone(), true);
+                    self.emit_binding(BindingOpcode::InitLexical, ident);
                 }
                 Binding::Pattern(pattern) => {
                     for ident in bound_names(pattern) {
+                        let ident = ident.to_js_string(self.interner());
                         self.lexical_environment
                             .create_immutable_binding(ident, true);
                     }
@@ -261,8 +269,8 @@ impl ByteCompiler<'_> {
             self.emit_with_varying_operand(Opcode::PushDeclarativeEnvironment, env_index);
 
             for name in &initializer_bound_names {
-                self.lexical_environment
-                    .create_mutable_binding(*name, false);
+                let name = name.to_js_string(self.interner());
+                self.lexical_environment.create_mutable_binding(name, false);
             }
             self.compile_expr(for_of_loop.iterable(), true);
 
@@ -307,13 +315,14 @@ impl ByteCompiler<'_> {
         let mut handler_index = None;
         match for_of_loop.initializer() {
             IterableLoopInitializer::Identifier(ref ident) => {
-                match self.lexical_environment.set_mutable_binding(*ident) {
+                let ident = ident.to_js_string(self.interner());
+                match self.lexical_environment.set_mutable_binding(ident.clone()) {
                     Ok(binding) => {
                         let index = self.get_or_insert_binding(binding);
                         self.emit_with_varying_operand(Opcode::DefInitVar, index);
                     }
                     Err(BindingLocatorError::MutateImmutable) => {
-                        let index = self.get_or_insert_name(*ident);
+                        let index = self.get_or_insert_string(ident);
                         self.emit_with_varying_operand(Opcode::ThrowMutateImmutable, index);
                     }
                     Err(BindingLocatorError::Silent) => {
@@ -334,7 +343,8 @@ impl ByteCompiler<'_> {
                 assert!(declaration.init().is_none());
                 match declaration.binding() {
                     Binding::Identifier(ident) => {
-                        self.emit_binding(BindingOpcode::InitVar, *ident);
+                        let ident = ident.to_js_string(self.interner());
+                        self.emit_binding(BindingOpcode::InitVar, ident);
                     }
                     Binding::Pattern(pattern) => {
                         self.compile_declaration_pattern(pattern, BindingOpcode::InitVar);
@@ -343,12 +353,14 @@ impl ByteCompiler<'_> {
             }
             IterableLoopInitializer::Let(declaration) => match declaration {
                 Binding::Identifier(ident) => {
+                    let ident = ident.to_js_string(self.interner());
                     self.lexical_environment
-                        .create_mutable_binding(*ident, false);
-                    self.emit_binding(BindingOpcode::InitLexical, *ident);
+                        .create_mutable_binding(ident.clone(), false);
+                    self.emit_binding(BindingOpcode::InitLexical, ident);
                 }
                 Binding::Pattern(pattern) => {
                     for ident in bound_names(pattern) {
+                        let ident = ident.to_js_string(self.interner());
                         self.lexical_environment
                             .create_mutable_binding(ident, false);
                     }
@@ -357,12 +369,14 @@ impl ByteCompiler<'_> {
             },
             IterableLoopInitializer::Const(declaration) => match declaration {
                 Binding::Identifier(ident) => {
+                    let ident = ident.to_js_string(self.interner());
                     self.lexical_environment
-                        .create_immutable_binding(*ident, true);
-                    self.emit_binding(BindingOpcode::InitLexical, *ident);
+                        .create_immutable_binding(ident.clone(), true);
+                    self.emit_binding(BindingOpcode::InitLexical, ident);
                 }
                 Binding::Pattern(pattern) => {
                     for ident in bound_names(pattern) {
+                        let ident = ident.to_js_string(self.interner());
                         self.lexical_environment
                             .create_immutable_binding(ident, true);
                     }
