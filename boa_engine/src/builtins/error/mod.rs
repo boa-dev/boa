@@ -45,7 +45,7 @@ pub(crate) use self::uri::UriError;
 
 use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
 
-/// The kind of a `NativeError` object, per the [ECMAScript spec][spec].
+/// A `NativeError` object, per the [ECMAScript spec][spec].
 ///
 /// This is used internally to convert between [`JsObject`] and
 /// [`JsNativeError`] correctly, but it can also be used to manually create `Error`
@@ -59,7 +59,8 @@ use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
 /// [spec]: https://tc39.es/ecma262/#sec-error-objects
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Trace, Finalize, JsData)]
 #[boa_gc(empty_trace)]
-pub enum ErrorKind {
+#[non_exhaustive]
+pub enum ErrorObject {
     /// The `AggregateError` object type.
     ///
     /// More information:
@@ -180,7 +181,7 @@ impl BuiltInConstructor for Error {
         let o = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            ErrorKind::Error,
+            ErrorObject::Error,
         );
 
         // 3. If message is not undefined, then

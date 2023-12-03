@@ -1146,22 +1146,22 @@ pub(crate) fn to_temporal_calendar_slot_value(
         if let Some(calendar) = extract_from_temporal_type(
             calendar_like,
             |d| Ok(Some(d.inner.calendar().clone())),
-            |dt| {
+            |_dt| {
                 Err(JsNativeError::range()
                     .with_message("Not yet implemented.")
                     .into())
             },
-            |ym| {
+            |_ym| {
                 Err(JsNativeError::range()
                     .with_message("Not yet implemented.")
                     .into())
             },
-            |md| {
+            |_md| {
                 Err(JsNativeError::range()
                     .with_message("Not yet implemented.")
                     .into())
             },
-            |zdt| {
+            |_zdt| {
                 Err(JsNativeError::range()
                     .with_message("Not yet implemented.")
                     .into())

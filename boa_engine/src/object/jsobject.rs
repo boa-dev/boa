@@ -118,8 +118,8 @@ impl JsObject {
     /// Creates a new object with the provided prototype and object data.
     ///
     /// This is equivalent to calling the specification's abstract operation [`OrdinaryObjectCreate`],
-    /// with the difference that the `additionalInternalSlotsList` parameter is automatically set by
-    /// the [`ObjectData`] provided.
+    /// with the difference that the `additionalInternalSlotsList` parameter is determined by
+    /// the provided `data`.
     ///
     /// [`OrdinaryObjectCreate`]: https://tc39.es/ecma262/#sec-ordinaryobjectcreate
     pub fn from_proto_and_data<O: Into<Option<Self>>, T: NativeObject>(
@@ -151,8 +151,8 @@ impl JsObject {
     /// Creates a new object with the provided prototype and object data.
     ///
     /// This is equivalent to calling the specification's abstract operation [`OrdinaryObjectCreate`],
-    /// with the difference that the `additionalInternalSlotsList` parameter is automatically set by
-    /// the [`ObjectData`] provided.
+    /// with the difference that the `additionalInternalSlotsList` parameter is determined by
+    /// the provided `data`.
     ///
     /// [`OrdinaryObjectCreate`]: https://tc39.es/ecma262/#sec-ordinaryobjectcreate
     pub(crate) fn from_proto_and_data_with_shared_shape<O: Into<Option<Self>>, T: NativeObject>(

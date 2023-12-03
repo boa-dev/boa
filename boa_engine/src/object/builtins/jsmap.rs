@@ -153,7 +153,7 @@ impl JsMap {
     /// // `some_object` can be any JavaScript `Map` object.
     /// let some_object = JsObject::from_proto_and_data(
     ///     context.intrinsics().constructors().map().prototype(),
-    ///     ObjectData::map(OrderedMap::new()),
+    ///     OrderedMap::<JsValue>::new(),
     /// );
     ///
     /// // Create `JsMap` object with incoming object.

@@ -22,7 +22,7 @@ use crate::{
 };
 use boa_profiler::Profiler;
 
-use super::{Error, ErrorKind};
+use super::{Error, ErrorObject};
 
 /// JavaScript `URIError` implementation.
 #[derive(Debug, Clone, Copy)]
@@ -83,7 +83,7 @@ impl BuiltInConstructor for UriError {
         let o = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            ErrorKind::Uri,
+            ErrorObject::Uri,
         );
 
         // 3. If message is not undefined, then

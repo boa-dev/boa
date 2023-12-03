@@ -11,12 +11,12 @@
 //! #    class::{Class, ClassBuilder},
 //! #    Context, JsResult, JsValue,
 //! #    JsArgs, Source, JsObject, js_string,
-//! #    JsNativeError,
+//! #    JsNativeError, JsData,
 //! # };
 //! # use boa_gc::{Finalize, Trace};
 //! #
 //! // Can also be a struct containing `Trace` types.
-//! #[derive(Debug, Trace, Finalize)]
+//! #[derive(Debug, Trace, Finalize, JsData)]
 //! enum Animal {
 //!     Cat,
 //!     Dog,

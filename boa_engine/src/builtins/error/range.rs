@@ -21,7 +21,7 @@ use crate::{
 };
 use boa_profiler::Profiler;
 
-use super::{Error, ErrorKind};
+use super::{Error, ErrorObject};
 
 /// JavaScript `RangeError` implementation.
 #[derive(Debug, Clone, Copy)]
@@ -82,7 +82,7 @@ impl BuiltInConstructor for RangeError {
         let o = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            ErrorKind::Range,
+            ErrorObject::Range,
         );
 
         // 3. If message is not undefined, then

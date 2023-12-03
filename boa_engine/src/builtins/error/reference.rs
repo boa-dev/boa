@@ -21,7 +21,7 @@ use crate::{
 };
 use boa_profiler::Profiler;
 
-use super::{Error, ErrorKind};
+use super::{Error, ErrorObject};
 
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct ReferenceError;
@@ -84,7 +84,7 @@ impl BuiltInConstructor for ReferenceError {
         let o = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            ErrorKind::Reference,
+            ErrorObject::Reference,
         );
 
         // 3. If message is not undefined, then

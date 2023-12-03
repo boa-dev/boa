@@ -2,7 +2,7 @@ use std::borrow::Cow;
 
 use crate::{
     builtins::{
-        error::ErrorKind, map::ordered_map::OrderedMap, promise::PromiseState,
+        error::ErrorObject, map::ordered_map::OrderedMap, promise::PromiseState,
         set::ordered_set::OrderedSet, Array, Promise,
     },
     property::PropertyDescriptor,
@@ -193,7 +193,7 @@ pub(crate) fn log_string_from(x: &JsValue, print_internals: bool, print_children
                 } else {
                     format!("Set({size})")
                 }
-            } else if v_bor.is::<ErrorKind>() {
+            } else if v_bor.is::<ErrorObject>() {
                 drop(v_bor);
                 let name: Cow<'static, str> = v
                     .get_property(&utf16!("name").into())

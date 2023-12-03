@@ -16,7 +16,7 @@
 use std::ops::Deref;
 
 use super::{
-    error::ErrorKind, Array, BuiltInBuilder, BuiltInConstructor, Date, IntrinsicObject, RegExp,
+    error::ErrorObject, Array, BuiltInBuilder, BuiltInConstructor, Date, IntrinsicObject, RegExp,
 };
 use crate::{
     builtins::{map, BuiltInObject},
@@ -850,7 +850,7 @@ impl OrdinaryObject {
             } else if o.is_callable() {
                 // 7. Else if O has a [[Call]] internal method, let builtinTag be "Function".
                 utf16!("Function")
-            } else if o.is::<ErrorKind>() {
+            } else if o.is::<ErrorObject>() {
                 // 8. Else if O has an [[ErrorData]] internal slot, let builtinTag be "Error".
                 utf16!("Error")
             } else if o.is::<bool>() {
