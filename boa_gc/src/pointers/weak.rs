@@ -7,11 +7,11 @@ use std::hash::{Hash, Hasher};
 /// garbage collections. However, this also means [`WeakGc::upgrade`] could return `None` at any moment.
 #[derive(Debug, Trace, Finalize)]
 #[repr(transparent)]
-pub struct WeakGc<T: Trace + 'static> {
+pub struct WeakGc<T: Trace + ?Sized + 'static> {
     inner: Ephemeron<T, ()>,
 }
 
-impl<T: Trace> WeakGc<T> {
+impl<T: Trace + ?Sized> WeakGc<T> {
     /// Creates a new weak pointer for a garbage collected value.
     #[inline]
     #[must_use]

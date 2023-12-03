@@ -11,12 +11,18 @@ use crate::{custom_trace, Allocator, Ephemeron, Finalize, Gc, GcRefCell, Trace};
 use std::{fmt, hash::BuildHasher, marker::PhantomData, mem};
 
 /// A map that holds weak references to its keys and is traced by the garbage collector.
-#[derive(Clone, Debug, Default, Trace, Finalize)]
-pub struct WeakMap<K: Trace + Sized + 'static, V: Trace + Sized + 'static> {
+#[derive(Clone, Debug, Default, Finalize)]
+pub struct WeakMap<K: Trace + ?Sized + 'static, V: Trace + 'static> {
     pub(crate) inner: Gc<GcRefCell<RawWeakMap<K, V>>>,
 }
 
-impl<K: Trace, V: Trace + Clone> WeakMap<K, V> {
+unsafe impl<K: Trace + ?Sized + 'static, V: Trace + 'static> Trace for WeakMap<K, V> {
+    custom_trace!(this, {
+        mark(&this.inner);
+    });
+}
+
+impl<K: Trace + ?Sized, V: Trace + Clone> WeakMap<K, V> {
     /// Creates a new `WeakMap`.
     #[must_use]
     #[inline]
@@ -58,7 +64,7 @@ impl<K: Trace, V: Trace + Clone> WeakMap<K, V> {
 /// held.
 pub(crate) struct RawWeakMap<K, V, S = DefaultHashBuilder>
 where
-    K: Trace + 'static,
+    K: Trace + ?Sized + 'static,
     V: Trace + 'static,
 {
     hash_builder: S,
@@ -67,7 +73,7 @@ where
 
 impl<K, V, S> Finalize for RawWeakMap<K, V, S>
 where
-    K: Trace + 'static,
+    K: Trace + ?Sized + 'static,
     V: Trace + 'static,
 {
 }
@@ -75,7 +81,7 @@ where
 // SAFETY: The implementation correctly marks all ephemerons inside the map.
 unsafe impl<K, V, S> Trace for RawWeakMap<K, V, S>
 where
-    K: Trace + 'static,
+    K: Trace + ?Sized + 'static,
     V: Trace + 'static,
 {
     custom_trace!(this, {
@@ -88,7 +94,7 @@ where
 impl<K, V, S> Default for RawWeakMap<K, V, S>
 where
     S: Default,
-    K: Trace + 'static,
+    K: Trace + ?Sized + 'static,
     V: Trace + 'static,
 {
     fn default() -> Self {
@@ -98,7 +104,7 @@ where
 
 impl<K, V> RawWeakMap<K, V, DefaultHashBuilder>
 where
-    K: Trace + 'static,
+    K: Trace + ?Sized + 'static,
     V: Trace + 'static,
 {
     /// Creates an empty `RawWeakMap`.
@@ -121,7 +127,7 @@ where
 
 impl<K, V, S> RawWeakMap<K, V, S>
 where
-    K: Trace + 'static,
+    K: Trace + ?Sized + 'static,
     V: Trace + 'static,
 {
     /// Creates an empty `RawWeakMap` which will use the given hash builder to hash
@@ -226,7 +232,7 @@ where
 
 impl<K, V, S> RawWeakMap<K, V, S>
 where
-    K: Trace + 'static,
+    K: Trace + ?Sized + 'static,
     V: Trace + Clone + 'static,
     S: BuildHasher,
 {
@@ -339,7 +345,7 @@ where
 
 pub(crate) struct Iter<'a, K, V>
 where
-    K: Trace + 'static,
+    K: Trace + ?Sized + 'static,
     V: Trace + 'static,
 {
     inner: RawIter<Ephemeron<K, V>>,
@@ -348,7 +354,7 @@ where
 
 impl<K, V> Clone for Iter<'_, K, V>
 where
-    K: Trace + 'static,
+    K: Trace + ?Sized + 'static,
     V: Trace + 'static,
 {
     #[inline]
@@ -362,7 +368,7 @@ where
 
 impl<K, V> fmt::Debug for Iter<'_, K, V>
 where
-    K: Trace + 'static + fmt::Debug,
+    K: Trace + ?Sized + 'static + fmt::Debug,
     V: Trace + 'static + fmt::Debug,
 {
     #[inline]
@@ -373,7 +379,7 @@ where
 
 impl<'a, K, V> Iterator for Iter<'a, K, V>
 where
-    K: Trace + 'static,
+    K: Trace + ?Sized + 'static,
     V: Trace + 'static,
 {
     type Item = &'a Ephemeron<K, V>;
@@ -393,7 +399,7 @@ where
 
 impl<K, V, S> fmt::Debug for RawWeakMap<K, V, S>
 where
-    K: fmt::Debug + Trace + Finalize,
+    K: fmt::Debug + ?Sized + Trace + Finalize,
     V: fmt::Debug + Trace + Finalize,
 {
     #[inline]
@@ -405,7 +411,7 @@ where
 fn make_hasher<K, V, S>(hash_builder: &S) -> impl Fn(&Ephemeron<K, V>) -> u64 + '_
 where
     S: BuildHasher,
-    K: Trace + 'static,
+    K: Trace + ?Sized + 'static,
     V: Trace + 'static,
 {
     move |val| make_hash_from_eph::<K, V, S>(hash_builder, val)
@@ -414,7 +420,7 @@ where
 fn make_hash_from_eph<K, V, S>(hash_builder: &S, eph: &Ephemeron<K, V>) -> u64
 where
     S: BuildHasher,
-    K: Trace + 'static,
+    K: Trace + ?Sized + 'static,
     V: Trace + 'static,
 {
     use std::hash::Hasher;
@@ -435,7 +441,7 @@ where
 fn make_hash_from_gc<K, S>(hash_builder: &S, gc: &Gc<K>) -> u64
 where
     S: BuildHasher,
-    K: Trace + 'static,
+    K: Trace + ?Sized + 'static,
 {
     use std::hash::Hasher;
     let mut state = hash_builder.build_hasher();
@@ -445,7 +451,7 @@ where
 
 fn equivalent_key<K, V>(k: &Gc<K>) -> impl Fn(&Ephemeron<K, V>) -> bool + '_
 where
-    K: Trace + 'static,
+    K: Trace + ?Sized + 'static,
     V: Trace + 'static,
 {
     // SAFETY: The return value of `key` is only used inside eq, which
