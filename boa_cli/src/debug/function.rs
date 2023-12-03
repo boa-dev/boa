@@ -2,7 +2,7 @@ use boa_engine::{
     js_string,
     object::ObjectInitializer,
     vm::flowgraph::{Direction, Graph},
-    Context, JsArgs, JsNativeError, JsObject, JsResult, JsValue, NativeFunction,
+    Context, JsArgs, JsNativeError, JsObject, JsResult, JsValue, NativeFunction, builtins::function::OrdinaryFunction,
 };
 
 use crate::FlowgraphFormat;
@@ -80,9 +80,7 @@ fn flowgraph(_this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResu
         }
     }
 
-    let object = object.borrow();
-
-    let Some(function) = object.as_function() else {
+    let Some(function) = object.downcast_ref::<OrdinaryFunction>() else {
         return Err(JsNativeError::typ()
             .with_message("expected an ordinary function object")
             .into());
@@ -112,8 +110,7 @@ fn bytecode(_: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue>
             .with_message(format!("expected object, got {}", value.type_of()))
             .into());
     };
-    let object = object.borrow();
-    let Some(function) = object.as_function() else {
+    let Some(function) = object.downcast_ref::<OrdinaryFunction>() else {
         return Err(JsNativeError::typ()
             .with_message("expected an ordinary function object")
             .into());
@@ -124,8 +121,7 @@ fn bytecode(_: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue>
 }
 
 fn set_trace_flag_in_function_object(object: &JsObject, value: bool) -> JsResult<()> {
-    let object = object.borrow();
-    let Some(function) = object.as_function() else {
+    let Some(function) = object.downcast_ref::<OrdinaryFunction>() else {
         return Err(JsNativeError::typ()
             .with_message("expected an ordinary function object")
             .into());

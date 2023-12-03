@@ -18,7 +18,7 @@ fn id(_: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
     };
 
     let ptr: *const _ = object.as_ref();
-    Ok(js_string!(format!("0x{:X}", ptr as usize)).into())
+    Ok(js_string!(format!("0x{:X}", ptr.cast::<()>() as usize)).into())
 }
 
 pub(super) fn create_object(context: &mut Context) -> JsObject {

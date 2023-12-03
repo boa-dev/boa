@@ -20,7 +20,7 @@ use boa_engine::{
     object::{JsObject, ObjectInitializer},
     string::utf16,
     value::{JsValue, Numeric},
-    Context, JsArgs, JsResult, JsString,
+    Context, JsArgs, JsData, JsResult, JsString,
 };
 use boa_gc::{Finalize, Trace};
 // use boa_profiler::Profiler;
@@ -123,7 +123,7 @@ fn formatter(data: &[JsValue], context: &mut Context) -> JsResult<String> {
 }
 
 /// This is the internal console object state.
-#[derive(Debug, Default, Trace, Finalize)]
+#[derive(Debug, Default, Trace, Finalize, JsData)]
 pub struct Console {
     count_map: FxHashMap<JsString, u32>,
     timer_map: FxHashMap<JsString, u128>,

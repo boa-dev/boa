@@ -7,7 +7,7 @@ use std::{
 };
 
 use boa_engine::{
-    builtins::array_buffer::SharedArrayBuffer,
+    builtins::array_buffer::{ArrayBuffer, SharedArrayBuffer},
     js_string,
     native_function::NativeFunction,
     object::{builtins::JsSharedArrayBuffer, JsObject, ObjectInitializer},
@@ -142,7 +142,9 @@ fn detach_array_buffer(_: &JsValue, args: &[JsValue], _: &mut Context) -> JsResu
     let mut array_buffer = array_buffer.borrow_mut();
 
     // 1. Assert: IsSharedArrayBuffer(arrayBuffer) is false.
-    let array_buffer = array_buffer.as_array_buffer_mut().ok_or_else(type_err)?;
+    let array_buffer = array_buffer
+        .downcast_mut::<ArrayBuffer>()
+        .ok_or_else(type_err)?;
 
     // 2. If key is not present, set key to undefined.
     let key = args.get_or_undefined(1);
@@ -233,8 +235,7 @@ fn agent_obj(handles: WorkerHandles, context: &mut Context) -> JsObject {
                 JsNativeError::typ().with_message("argument was not a shared array")
             })?;
             let buffer = buffer
-                .borrow()
-                .as_shared_array_buffer()
+                .downcast_ref::<SharedArrayBuffer>()
                 .ok_or_else(|| {
                     JsNativeError::typ().with_message("argument was not a shared array")
                 })?
