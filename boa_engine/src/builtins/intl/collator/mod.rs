@@ -478,7 +478,7 @@ impl Collator {
         // 2. Perform ? RequireInternalSlot(collator, [[InitializedCollator]]).
         let collator = this
             .as_object()
-            .and_then(|o| o.downcast_ref::<Self>())
+            .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ()
                     .with_message("`resolvedOptions` can only be called on a `Collator` object")

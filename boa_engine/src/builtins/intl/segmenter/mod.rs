@@ -226,7 +226,7 @@ impl Segmenter {
         // 2. Perform ? RequireInternalSlot(segmenter, [[InitializedSegmenter]]).
         let segmenter = this
             .as_object()
-            .and_then(|o| o.downcast_ref::<Self>())
+            .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message(
                     "`resolved_options` can only be called on an `Intl.Segmenter` object",

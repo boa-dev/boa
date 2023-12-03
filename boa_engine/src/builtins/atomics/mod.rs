@@ -521,7 +521,7 @@ fn validate_integer_typed_array(
     // 2. Perform ? ValidateTypedArray(typedArray).
     let ii = array
         .as_object()
-        .and_then(|o| o.downcast_ref::<TypedArray>())
+        .and_then(JsObject::downcast_ref::<TypedArray>)
         .ok_or_else(|| JsNativeError::typ().with_message("value is not a typed array object"))?;
     if ii.is_detached() {
         return Err(JsNativeError::typ()

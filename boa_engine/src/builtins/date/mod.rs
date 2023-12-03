@@ -50,7 +50,7 @@ macro_rules! some_or_nan {
 macro_rules! get_mut_date {
     ($val:expr) => {
         $val.as_object()
-            .and_then(|o| o.downcast_mut::<Date>())
+            .and_then(JsObject::downcast_mut::<Date>)
             .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?
     };
 }

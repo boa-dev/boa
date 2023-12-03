@@ -332,7 +332,7 @@ impl JsObject {
     #[must_use]
     #[track_caller]
     pub fn downcast_ref<T: NativeObject>(&self) -> Option<Ref<'_, T>> {
-        Ref::try_map(self.borrow(), |x| x.downcast_ref())
+        Ref::try_map(self.borrow(), ErasedObject::downcast_ref)
     }
 
     /// Downcast a mutable reference to the object,
@@ -344,7 +344,7 @@ impl JsObject {
     #[must_use]
     #[track_caller]
     pub fn downcast_mut<T: NativeObject>(&self) -> Option<RefMut<'_, ErasedObject, T>> {
-        RefMut::try_map(self.borrow_mut(), |x| x.downcast_mut())
+        RefMut::try_map(self.borrow_mut(), ErasedObject::downcast_mut)
     }
 
     /// Get the prototype of the object.
@@ -664,7 +664,7 @@ Cannot both specify accessors and a value or writable attribute",
     /// Create a new private name with this object as the unique identifier.
     pub(crate) fn private_name(&self, description: JsString) -> PrivateName {
         let ptr: *const _ = self.as_ref();
-        PrivateName::new(description, (ptr as *const ()) as usize)
+        PrivateName::new(description, ptr.cast::<()>() as usize)
     }
 }
 
@@ -781,9 +781,8 @@ impl RecursionLimiter {
     /// visited. The first `T` visited will clear the hashset, while any others will check if they are contained
     /// by the hashset.
     pub fn new<T: ?Sized>(o: &T) -> Self {
-        // We shouldn't have to worry too much about this being moved during Debug::fmt.
-        #[allow(trivial_casts)]
-        let ptr = (o as *const _ as *const ()) as usize;
+        let ptr: *const _ = o;
+        let ptr = ptr.cast::<()>() as usize;
         let (top_level, visited, live) = SEEN.with(|hm| {
             let mut hm = hm.borrow_mut();
             let top_level = hm.is_empty();
@@ -817,7 +816,7 @@ impl Debug for JsObject {
         // at most once, hopefully making things a bit clearer.
         if !limiter.visited && !limiter.live {
             let ptr: *const _ = self.as_ref();
-            let ptr = ptr as *const ();
+            let ptr = ptr.cast::<()>();
             let obj = self.borrow();
             let kind = obj.data.type_name_of_value();
             if obj.is::<OrdinaryFunction>() {

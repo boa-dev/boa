@@ -58,7 +58,7 @@ impl Segments {
         // 2. Perform ? RequireInternalSlot(segments, [[SegmentsSegmenter]]).
         let segments = this
             .as_object()
-            .and_then(|o| o.downcast_ref::<Self>())
+            .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ()
                     .with_message("`containing` can only be called on a `Segments` object")

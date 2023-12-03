@@ -105,7 +105,7 @@ impl ArrayIterator {
     pub(crate) fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let mut array_iterator = this
             .as_object()
-            .and_then(|o| o.downcast_mut::<Self>())
+            .and_then(JsObject::downcast_mut::<Self>)
             .ok_or_else(|| JsNativeError::typ().with_message("`this` is not an ArrayIterator"))?;
         let index = array_iterator.next_index;
         if array_iterator.done {

@@ -154,7 +154,7 @@ impl Instant {
         // 2. Perform ? RequireInternalSlot(instant, [[InitializedTemporalInstant]]).
         let instant = this
             .as_object()
-            .and_then(|o| o.downcast_ref::<Self>())
+            .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be an instant object.")
             })?;
@@ -176,7 +176,7 @@ impl Instant {
         // 2. Perform ? RequireInternalSlot(instant, [[InitializedTemporalInstant]]).
         let instant = this
             .as_object()
-            .and_then(|o| o.downcast_ref::<Self>())
+            .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be an instant object.")
             })?;
@@ -198,7 +198,7 @@ impl Instant {
         // 2. Perform ? RequireInternalSlot(instant, [[InitializedTemporalInstant]]).
         let instant = this
             .as_object()
-            .and_then(|o| o.downcast_ref::<Self>())
+            .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be an instant object.")
             })?;
@@ -223,7 +223,7 @@ impl Instant {
         // 2. Perform ? RequireInternalSlot(instant, [[InitializedTemporalInstant]]).
         let instant = this
             .as_object()
-            .and_then(|o| o.downcast_ref::<Self>())
+            .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be an instant object.")
             })?;
@@ -243,7 +243,7 @@ impl Instant {
         // 2. Perform ? RequireInternalSlot(instant, [[InitializedTemporalInstant]]).
         let instant = this
             .as_object()
-            .and_then(|o| o.downcast_ref::<Self>())
+            .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be an instant object.")
             })?;
@@ -263,7 +263,7 @@ impl Instant {
         // 2. Perform ? RequireInternalSlot(instant, [[InitializedTemporalInstant]]).
         let instant = this
             .as_object()
-            .and_then(|o| o.downcast_ref::<Self>())
+            .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be an instant object.")
             })?;
@@ -283,7 +283,7 @@ impl Instant {
         // 2. Perform ? RequireInternalSlot(instant, [[InitializedTemporalInstant]]).
         let instant = this
             .as_object()
-            .and_then(|o| o.downcast_ref::<Self>())
+            .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be an instant object.")
             })?;
@@ -304,7 +304,7 @@ impl Instant {
         // 2. Perform ? RequireInternalSlot(instant, [[InitializedTemporalInstant]]).
         let instant = this
             .as_object()
-            .and_then(|o| o.downcast_ref::<Self>())
+            .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be an instant object.")
             })?;
@@ -325,7 +325,7 @@ impl Instant {
         // 2. Perform ? RequireInternalSlot(instant, [[InitializedTemporalInstant]]).
         let instant = this
             .as_object()
-            .and_then(|o| o.downcast_ref::<Self>())
+            .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be an instant object.")
             })?;
@@ -425,7 +425,7 @@ impl Instant {
         // 5. Return true.
         let instant = this
             .as_object()
-            .and_then(|o| o.downcast_ref::<Self>())
+            .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be an instant object.")
             })?;

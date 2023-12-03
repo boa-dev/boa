@@ -25,6 +25,7 @@ impl UnmappedArguments {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-createunmappedargumentsobject
+    #[allow(clippy::new_ret_no_self)]
     pub(crate) fn new(arguments_list: &[JsValue], context: &mut Context) -> JsObject {
         // 1. Let len be the number of elements in argumentsList.
         let len = arguments_list.len();
@@ -139,6 +140,7 @@ impl MappedArguments {
     /// Creates a new mapped Arguments exotic object.
     ///
     /// <https://tc39.es/ecma262/#sec-createmappedargumentsobject>
+    #[allow(clippy::new_ret_no_self)]
     pub(crate) fn new(
         func: &JsObject,
         formals: &FormalParameterList,

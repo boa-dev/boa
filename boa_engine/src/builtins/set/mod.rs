@@ -231,7 +231,7 @@ impl Set {
         // 2. Perform ? RequireInternalSlot(S, [[SetData]]).
         let Some(mut set) = this
             .as_object()
-            .and_then(|o| o.downcast_mut::<OrderedSet>())
+            .and_then(JsObject::downcast_mut::<OrderedSet>)
         else {
             return Err(JsNativeError::typ()
                 .with_message("Method Set.prototype.add called on incompatible receiver")
@@ -268,7 +268,7 @@ impl Set {
     pub(crate) fn clear(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let Some(mut set) = this
             .as_object()
-            .and_then(|o| o.downcast_mut::<OrderedSet>())
+            .and_then(JsObject::downcast_mut::<OrderedSet>)
         else {
             return Err(JsNativeError::typ()
                 .with_message("'this' is not a Set")
@@ -298,7 +298,7 @@ impl Set {
         // 2. Perform ? RequireInternalSlot(S, [[SetData]]).
         let Some(mut set) = this
             .as_object()
-            .and_then(|o| o.downcast_mut::<OrderedSet>())
+            .and_then(JsObject::downcast_mut::<OrderedSet>)
         else {
             return Err(JsNativeError::typ()
                 .with_message("Method Set.prototype.delete called on incompatible receiver")
@@ -396,7 +396,7 @@ impl Set {
             // a. Let e be entries[index].
             let Some(set) = this
                 .as_object()
-                .and_then(|o| o.downcast_ref::<OrderedSet>())
+                .and_then(JsObject::downcast_ref::<OrderedSet>)
             else {
                 return Err(JsNativeError::typ()
                     .with_message("Method Set.prototype.forEach called on incompatible receiver")
@@ -445,7 +445,7 @@ impl Set {
         // 2. Perform ? RequireInternalSlot(S, [[SetData]]).
         let Some(set) = this
             .as_object()
-            .and_then(|o| o.downcast_ref::<OrderedSet>())
+            .and_then(JsObject::downcast_ref::<OrderedSet>)
         else {
             return Err(JsNativeError::typ()
                 .with_message("Method Set.prototype.has called on incompatible receiver")

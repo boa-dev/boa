@@ -190,7 +190,7 @@ impl Calendar {
         // 2. Perform ? RequireInternalSlot(calendar, [[InitializedTemporalCalendar]]).
         let calendar = this
             .as_object()
-            .and_then(|o| o.downcast_ref::<Self>())
+            .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ()
                     .with_message("this value of Calendar must be a Calendar object.")
@@ -273,7 +273,7 @@ impl Calendar {
     ) -> JsResult<JsValue> {
         let calendar = this
             .as_object()
-            .and_then(|o| o.downcast_ref::<Self>())
+            .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ()
                     .with_message("this value of Calendar must be a Calendar object.")
@@ -351,7 +351,7 @@ impl Calendar {
         // 2. Perform ? RequireInternalSlot(calendar, [[InitializedTemporalCalendar]]).
         let calendar = this
             .as_object()
-            .and_then(|o| o.downcast_ref::<Self>())
+            .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ()
                     .with_message("this value of Calendar must be a Calendar object.")
@@ -424,7 +424,7 @@ impl Calendar {
         // 3. Assert: calendar.[[Identifier]] is "iso8601".
         let calendar = this
             .as_object()
-            .and_then(|o| o.downcast_ref::<Self>())
+            .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ()
                     .with_message("this value of Calendar must be a Calendar object.")
@@ -466,7 +466,7 @@ impl Calendar {
         // 3. Assert: calendar.[[Identifier]] is "iso8601".
         let calendar = this
             .as_object()
-            .and_then(|o| o.downcast_ref::<Self>())
+            .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ()
                     .with_message("this value of Calendar must be a Calendar object.")
@@ -505,7 +505,7 @@ impl Calendar {
     fn era(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let calendar = this
             .as_object()
-            .and_then(|o| o.downcast_ref::<Self>())
+            .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ()
                     .with_message("this value of Calendar must be a Calendar object.")
@@ -529,7 +529,7 @@ impl Calendar {
     fn era_year(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let calendar = this
             .as_object()
-            .and_then(|o| o.downcast_ref::<Self>())
+            .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ()
                     .with_message("this value of Calendar must be a Calendar object.")
@@ -553,7 +553,7 @@ impl Calendar {
     fn year(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let calendar = this
             .as_object()
-            .and_then(|o| o.downcast_ref::<Self>())
+            .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ()
                     .with_message("this value of Calendar must be a Calendar object.")
@@ -575,7 +575,7 @@ impl Calendar {
     fn month(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let calendar = this
             .as_object()
-            .and_then(|o| o.downcast_ref::<Self>())
+            .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ()
                     .with_message("this value of Calendar must be a Calendar object.")
@@ -602,7 +602,7 @@ impl Calendar {
     fn month_code(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let calendar = this
             .as_object()
-            .and_then(|o| o.downcast_ref::<Self>())
+            .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ()
                     .with_message("this value of Calendar must be a Calendar object.")
@@ -624,7 +624,7 @@ impl Calendar {
     fn day(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let calendar = this
             .as_object()
-            .and_then(|o| o.downcast_ref::<Self>())
+            .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ()
                     .with_message("this value of Calendar must be a Calendar object.")
@@ -648,7 +648,7 @@ impl Calendar {
         // 2. Perform ? RequireInternalSlot(calendar, [[InitializedTemporalCalendar]]).
         let calendar = this
             .as_object()
-            .and_then(|o| o.downcast_ref::<Self>())
+            .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ()
                     .with_message("this value of Calendar must be a Calendar object.")
@@ -671,7 +671,7 @@ impl Calendar {
     fn day_of_year(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let calendar = this
             .as_object()
-            .and_then(|o| o.downcast_ref::<Self>())
+            .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ()
                     .with_message("this value of Calendar must be a Calendar object.")
@@ -694,7 +694,7 @@ impl Calendar {
     fn week_of_year(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let calendar = this
             .as_object()
-            .and_then(|o| o.downcast_ref::<Self>())
+            .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ()
                     .with_message("this value of Calendar must be a Calendar object.")
@@ -717,7 +717,7 @@ impl Calendar {
     fn year_of_week(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let calendar = this
             .as_object()
-            .and_then(|o| o.downcast_ref::<Self>())
+            .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ()
                     .with_message("this value of Calendar must be a Calendar object.")
@@ -740,7 +740,7 @@ impl Calendar {
     fn days_in_week(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let calendar = this
             .as_object()
-            .and_then(|o| o.downcast_ref::<Self>())
+            .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ()
                     .with_message("this value of Calendar must be a Calendar object.")
@@ -763,7 +763,7 @@ impl Calendar {
     fn days_in_month(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let calendar = this
             .as_object()
-            .and_then(|o| o.downcast_ref::<Self>())
+            .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ()
                     .with_message("this value of Calendar must be a Calendar object.")
@@ -785,7 +785,7 @@ impl Calendar {
     fn days_in_year(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let calendar = this
             .as_object()
-            .and_then(|o| o.downcast_ref::<Self>())
+            .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ()
                     .with_message("this value of Calendar must be a Calendar object.")
@@ -810,7 +810,7 @@ impl Calendar {
     ) -> JsResult<JsValue> {
         let calendar = this
             .as_object()
-            .and_then(|o| o.downcast_ref::<Self>())
+            .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ()
                     .with_message("this value of Calendar must be a Calendar object.")
@@ -832,7 +832,7 @@ impl Calendar {
     fn in_leap_year(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let calendar = this
             .as_object()
-            .and_then(|o| o.downcast_ref::<Self>())
+            .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ()
                     .with_message("this value of Calendar must be a Calendar object.")
@@ -856,7 +856,7 @@ impl Calendar {
         // 2. Perform ? RequireInternalSlot(calendar, [[InitializedTemporalCalendar]]).
         let calendar = this
             .as_object()
-            .and_then(|o| o.downcast_ref::<Self>())
+            .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ()
                     .with_message("this value of Calendar must be a Calendar object.")
@@ -946,7 +946,7 @@ impl Calendar {
         // 2. Perform ? RequireInternalSlot(calendar, [[InitializedTemporalCalendar]]).
         let calendar = this
             .as_object()
-            .and_then(|o| o.downcast_ref::<Self>())
+            .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ()
                     .with_message("this value of Calendar must be a Calendar object.")
@@ -1069,11 +1069,11 @@ pub(crate) fn create_temporal_calendar(
 
 fn extract_from_temporal_type<DF, DTF, YMF, MDF, ZDTF, Ret>(
     object: &JsObject,
-    df: DF,
-    dtf: DTF,
-    ymf: YMF,
-    mdf: MDF,
-    zdtf: ZDTF,
+    date_f: DF,
+    datetime_f: DTF,
+    year_month_f: YMF,
+    month_day_f: MDF,
+    zoned_datetime_f: ZDTF,
 ) -> JsResult<Option<Ret>>
 where
     DF: FnOnce(&PlainDate) -> JsResult<Option<Ret>>,
@@ -1085,15 +1085,15 @@ where
     let o = object.borrow();
 
     if let Some(date) = o.downcast_ref::<PlainDate>() {
-        return df(date);
+        return date_f(date);
     } else if let Some(dt) = o.downcast_ref::<PlainDateTime>() {
-        return dtf(dt);
+        return datetime_f(dt);
     } else if let Some(ym) = o.downcast_ref::<PlainYearMonth>() {
-        return ymf(ym);
+        return year_month_f(ym);
     } else if let Some(md) = o.downcast_ref::<PlainMonthDay>() {
-        return mdf(md);
+        return month_day_f(md);
     } else if let Some(dt) = o.downcast_ref::<ZonedDateTime>() {
-        return zdtf(dt);
+        return zoned_datetime_f(dt);
     }
 
     Ok(None)

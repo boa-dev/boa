@@ -104,7 +104,7 @@ impl SegmentIterator {
         // 2. Perform ? RequireInternalSlot(iterator, [[IteratingSegmenter]]).
         let mut iter = this
             .as_object()
-            .and_then(|o| o.downcast_mut::<Self>())
+            .and_then(JsObject::downcast_mut::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ()
                     .with_message("`next` can only be called on a `Segment Iterator` object")

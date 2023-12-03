@@ -211,41 +211,43 @@ impl BuiltInConstructor for RegExp {
         }
 
         // 4. If pattern is an Object and pattern has a [[RegExpMatcher]] internal slot, then
-        let (p, f) =
-            if let Some(pattern) = pattern.as_object().and_then(|o| o.downcast_ref::<RegExp>()) {
-                // a. Let P be pattern.[[OriginalSource]].
-                let p = pattern.original_source.clone().into();
+        let (p, f) = if let Some(pattern) = pattern
+            .as_object()
+            .and_then(JsObject::downcast_ref::<RegExp>)
+        {
+            // a. Let P be pattern.[[OriginalSource]].
+            let p = pattern.original_source.clone().into();
 
-                // b. If flags is undefined, let F be pattern.[[OriginalFlags]].
-                let f = if flags.is_undefined() {
-                    pattern.original_flags.clone().into()
-                // c. Else, let F be flags.
-                } else {
-                    flags.clone()
-                };
-
-                (p, f)
-            } else if let Some(pattern) = pattern_is_regexp {
-                // a. Let P be ? Get(pattern, "source").
-                let p = pattern.get(js_string!("source"), context)?;
-
-                // b. If flags is undefined, then
-                let f = if flags.is_undefined() {
-                    // i. Let F be ? Get(pattern, "flags").
-                    pattern.get(js_string!("flags"), context)?
-                // c. Else,
-                } else {
-                    // i. Let F be flags.
-                    flags.clone()
-                };
-
-                (p, f)
-            // 6. Else,
+            // b. If flags is undefined, let F be pattern.[[OriginalFlags]].
+            let f = if flags.is_undefined() {
+                pattern.original_flags.clone().into()
+            // c. Else, let F be flags.
             } else {
-                // a. Let P be pattern.
-                // b. Let F be flags.
-                (pattern.clone(), flags.clone())
+                flags.clone()
             };
+
+            (p, f)
+        } else if let Some(pattern) = pattern_is_regexp {
+            // a. Let P be ? Get(pattern, "source").
+            let p = pattern.get(js_string!("source"), context)?;
+
+            // b. If flags is undefined, then
+            let f = if flags.is_undefined() {
+                // i. Let F be ? Get(pattern, "flags").
+                pattern.get(js_string!("flags"), context)?
+            // c. Else,
+            } else {
+                // i. Let F be flags.
+                flags.clone()
+            };
+
+            (p, f)
+        // 6. Else,
+        } else {
+            // a. Let P be pattern.
+            // b. Let F be flags.
+            (pattern.clone(), flags.clone())
+        };
 
         // 7. Let O be ? RegExpAlloc(newTarget).
         let proto =
@@ -1269,7 +1271,7 @@ impl RegExp {
     pub(crate) fn to_string(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let (body, flags) = this
             .as_object()
-            .and_then(|o| o.downcast_ref::<RegExp>())
+            .and_then(JsObject::downcast_ref::<RegExp>)
             .map(|rx| (rx.original_source.clone(), rx.original_flags.clone()))
             .ok_or_else(|| {
                 JsNativeError::typ().with_message(format!(

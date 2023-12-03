@@ -136,7 +136,7 @@ impl TimeZone {
     pub(crate) fn get_id(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let tz = this
             .as_object()
-            .and_then(|o| o.downcast_ref::<Self>())
+            .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("this value must be a Temporal.TimeZone")
             })?;
@@ -152,7 +152,7 @@ impl TimeZone {
         // 2. Perform ? RequireInternalSlot(timeZone, [[InitializedTemporalTimeZone]]).
         let _tz = this
             .as_object()
-            .and_then(|o| o.downcast_ref::<Self>())
+            .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("this value must be a Temporal.TimeZone")
             })?;
@@ -177,7 +177,7 @@ impl TimeZone {
         // 2. Perform ? RequireInternalSlot(timeZone, [[InitializedTemporalTimeZone]]).
         let _tz = this
             .as_object()
-            .and_then(|o| o.downcast_ref::<Self>())
+            .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("this value must be a Temporal.TimeZone")
             })?;
@@ -247,7 +247,7 @@ impl TimeZone {
         // 2. Perform ? RequireInternalSlot(timeZone, [[InitializedTemporalTimeZone]]).
         let tz = this
             .as_object()
-            .and_then(|o| o.downcast_ref::<Self>())
+            .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("this value must be a Temporal.TimeZone")
             })?;

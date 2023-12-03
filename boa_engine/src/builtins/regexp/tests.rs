@@ -1,6 +1,6 @@
 use crate::{
-    js_string, native_function::NativeFunctionObject, run_test_actions, JsNativeErrorKind, JsValue,
-    TestAction,
+    js_string, native_function::NativeFunctionObject, run_test_actions, JsNativeErrorKind,
+    JsObject, JsValue, TestAction,
 };
 use indoc::indoc;
 
@@ -44,7 +44,7 @@ fn species() {
         TestAction::assert_eq("descriptor.set", JsValue::undefined()),
         TestAction::assert_with_op("accessor", |v, _| {
             v.as_object()
-                .map_or(false, |o| o.is::<NativeFunctionObject>())
+                .map_or(false, JsObject::is::<NativeFunctionObject>)
         }),
         TestAction::assert("!descriptor.enumerable"),
         TestAction::assert("descriptor.configurable"),

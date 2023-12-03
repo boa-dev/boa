@@ -175,6 +175,7 @@ decl_derive! {
 }
 
 /// Derives the `Trace` trait.
+#[allow(clippy::too_many_lines)]
 fn derive_trace(mut s: Structure<'_>) -> proc_macro2::TokenStream {
     struct EmptyTrace {
         copy: bool,

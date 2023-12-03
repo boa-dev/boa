@@ -269,7 +269,7 @@ impl Duration {
     fn get_internal_field(this: &JsValue, field: &DateTimeValues) -> JsResult<JsValue> {
         let duration = this
             .as_object()
-            .and_then(|o| o.downcast_ref::<Self>())
+            .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("this value must be a Duration object.")
             })?;
@@ -349,7 +349,7 @@ impl Duration {
         // 2. Perform ? RequireInternalSlot(duration, [[InitializedTemporalDuration]]).
         let duration = this
             .as_object()
-            .and_then(|o| o.downcast_ref::<Self>())
+            .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("this value must be a Duration object.")
             })?;
@@ -366,7 +366,7 @@ impl Duration {
         // 2. Perform ? RequireInternalSlot(duration, [[InitializedTemporalDuration]]).
         let duration = this
             .as_object()
-            .and_then(|o| o.downcast_ref::<Self>())
+            .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("this value must be a Duration object.")
             })?;
@@ -398,7 +398,7 @@ impl Duration {
         // 2. Perform ? RequireInternalSlot(duration, [[InitializedTemporalDuration]]).
         let duration = this
             .as_object()
-            .and_then(|o| o.downcast_ref::<Self>())
+            .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("this value must be a Duration object.")
             })?;
@@ -544,7 +544,7 @@ impl Duration {
         //    abs(duration.[[Seconds]]), abs(duration.[[Milliseconds]]), abs(duration.[[Microseconds]]), abs(duration.[[Nanoseconds]])).
         let duration = this
             .as_object()
-            .and_then(|o| o.downcast_ref::<Self>())
+            .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("this value must be a Duration object.")
             })?;
@@ -579,7 +579,7 @@ impl Duration {
         // 2. Perform ? RequireInternalSlot(duration, [[InitializedTemporalDuration]]).
         let duration = this
             .as_object()
-            .and_then(|o| o.downcast_ref::<Self>())
+            .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("this value must be a Duration object.")
             })?;
@@ -800,7 +800,7 @@ impl Duration {
         // 2. Perform ? RequireInternalSlot(duration, [[InitializedTemporalDuration]]).
         let _duration = this
             .as_object()
-            .and_then(|o| o.downcast_ref::<Self>())
+            .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("this value must be a Duration object.")
             })?;
@@ -879,7 +879,10 @@ impl Duration {
 pub(crate) fn to_temporal_duration(item: &JsValue) -> JsResult<InnerDuration> {
     // 1a. If Type(item) is Object
     // 1b. and item has an [[InitializedTemporalDuration]] internal slot, then
-    if let Some(duration) = item.as_object().and_then(|o| o.downcast_ref::<Duration>()) {
+    if let Some(duration) = item
+        .as_object()
+        .and_then(JsObject::downcast_ref::<Duration>)
+    {
         return Ok(duration.inner);
     }
 

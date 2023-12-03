@@ -126,7 +126,7 @@ impl RegExpStringIterator {
     pub(crate) fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let mut iterator = this
             .as_object()
-            .and_then(|o| o.downcast_mut::<Self>())
+            .and_then(JsObject::downcast_mut::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("`this` is not a RegExpStringIterator")
             })?;

@@ -110,11 +110,11 @@ impl WeakRef {
         // 2. Perform ? RequireInternalSlot(weakRef, [[WeakRefTarget]]).
         let weak_ref = this
             .as_object()
-            .and_then(|o| o.downcast_ref::<WeakGc<ErasedVTableObject>>())
+            .and_then(JsObject::downcast_ref::<WeakGc<ErasedVTableObject>>)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message(format!(
-                    "WeakRef.prototype.deref: expected `this` to be a `WeakRef` object"
-                ))
+                JsNativeError::typ().with_message(
+                    "WeakRef.prototype.deref: expected `this` to be a `WeakRef` object",
+                )
             })?;
 
         // 3. Return WeakRefDeref(weakRef).

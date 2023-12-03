@@ -158,7 +158,7 @@ impl SharedArrayBuffer {
         // 3. If IsSharedArrayBuffer(O) is true, throw a TypeError exception.
         let buf = this
             .as_object()
-            .and_then(|o| o.downcast_ref::<Self>())
+            .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ()
                     .with_message("SharedArrayBuffer.byteLength called with invalid value")

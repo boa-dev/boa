@@ -100,7 +100,7 @@ impl AsyncFromSyncIterator {
         // 4. Let syncIteratorRecord be O.[[SyncIteratorRecord]].
         let sync_iterator_record = this
             .as_object()
-            .and_then(|o| o.downcast_ref::<Self>())
+            .and_then(JsObject::downcast_ref::<Self>)
             .expect("async from sync iterator prototype must be object")
             .sync_iterator_record
             .clone();
@@ -145,7 +145,7 @@ impl AsyncFromSyncIterator {
         // 4. Let syncIterator be O.[[SyncIteratorRecord]].[[Iterator]].
         let sync_iterator = this
             .as_object()
-            .and_then(|o| o.downcast_ref::<Self>())
+            .and_then(JsObject::downcast_ref::<Self>)
             .expect("async from sync iterator prototype must be object")
             .sync_iterator_record
             .iterator()
@@ -215,7 +215,7 @@ impl AsyncFromSyncIterator {
         // 4. Let syncIterator be O.[[SyncIteratorRecord]].[[Iterator]].
         let sync_iterator = this
             .as_object()
-            .and_then(|o| o.downcast_ref::<Self>())
+            .and_then(JsObject::downcast_ref::<Self>)
             .expect("async from sync iterator prototype must be object")
             .sync_iterator_record
             .iterator()

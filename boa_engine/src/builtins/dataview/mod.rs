@@ -245,7 +245,7 @@ impl DataView {
         // 2. Perform ? RequireInternalSlot(O, [[DataView]]).
         let view = this
             .as_object()
-            .and_then(|o| o.downcast_ref::<Self>())
+            .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a DataView"))?;
         // 3. Assert: O has a [[ViewedArrayBuffer]] internal slot.
         // 4. Let buffer be O.[[ViewedArrayBuffer]].
@@ -273,7 +273,7 @@ impl DataView {
         // 2. Perform ? RequireInternalSlot(O, [[DataView]]).
         let view = this
             .as_object()
-            .and_then(|o| o.downcast_ref::<Self>())
+            .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a DataView"))?;
         // 3. Assert: O has a [[ViewedArrayBuffer]] internal slot.
         // 4. Let buffer be O.[[ViewedArrayBuffer]].
@@ -313,7 +313,7 @@ impl DataView {
         // 2. Perform ? RequireInternalSlot(O, [[DataView]]).
         let view = this
             .as_object()
-            .and_then(|o| o.downcast_ref::<Self>())
+            .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a DataView"))?;
         // 3. Assert: O has a [[ViewedArrayBuffer]] internal slot.
         // 4. Let buffer be O.[[ViewedArrayBuffer]].
@@ -353,7 +353,7 @@ impl DataView {
         // 2. Assert: view has a [[ViewedArrayBuffer]] internal slot.
         let view = view
             .as_object()
-            .and_then(|o| o.downcast_ref::<Self>())
+            .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a DataView"))?;
         // 3. Let getIndex be ? ToIndex(requestIndex).
         let get_index = request_index.to_index(context)?;
@@ -664,7 +664,7 @@ impl DataView {
         // 2. Assert: view has a [[ViewedArrayBuffer]] internal slot.
         let view = view
             .as_object()
-            .and_then(|o| o.downcast_ref::<Self>())
+            .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a DataView"))?;
         // 3. Let getIndex be ? ToIndex(requestIndex).
         let get_index = request_index.to_index(context)?;

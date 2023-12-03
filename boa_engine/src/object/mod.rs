@@ -369,12 +369,10 @@ impl Object<dyn NativeObject> {
     #[must_use]
     pub(crate) fn as_buffer(&self) -> Option<BufferRef<'_>> {
         if let Some(buffer) = self.downcast_ref::<ArrayBuffer>() {
-            Some(BufferRef::Buffer(buffer))
-        } else if let Some(buffer) = self.downcast_ref::<SharedArrayBuffer>() {
-            Some(BufferRef::SharedBuffer(buffer))
-        } else {
-            None
+            return Some(BufferRef::Buffer(buffer));
         }
+        self.downcast_ref::<SharedArrayBuffer>()
+            .map(BufferRef::SharedBuffer)
     }
 
     /// Gets the mutable buffer data if the object is an `ArrayBuffer` or a `SharedArrayBuffer`.
@@ -390,7 +388,7 @@ impl Object<dyn NativeObject> {
         }
 
         self.downcast_mut::<SharedArrayBuffer>()
-            .map(|buf| BufferRefMut::SharedBuffer(buf))
+            .map(BufferRefMut::SharedBuffer)
     }
 
     /// Checks if this object is an `Arguments` object.

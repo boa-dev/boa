@@ -144,7 +144,7 @@ impl WeakSet {
         // 2. Perform ? RequireInternalSlot(S, [[WeakSetData]]).
         let mut set = this
             .as_object()
-            .and_then(|o| o.downcast_mut::<NativeWeakSet>())
+            .and_then(JsObject::downcast_mut::<NativeWeakSet>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("WeakSet.add: called with non-object value")
             })?;
@@ -193,7 +193,7 @@ impl WeakSet {
         // 2. Perform ? RequireInternalSlot(S, [[WeakSetData]]).
         let mut set = this
             .as_object()
-            .and_then(|o| o.downcast_mut::<NativeWeakSet>())
+            .and_then(JsObject::downcast_mut::<NativeWeakSet>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("WeakSet.delete: called with non-object value")
             })?;
@@ -232,7 +232,7 @@ impl WeakSet {
         // 2. Perform ? RequireInternalSlot(S, [[WeakSetData]]).
         let set = this
             .as_object()
-            .and_then(|o| o.downcast_ref::<NativeWeakSet>())
+            .and_then(JsObject::downcast_ref::<NativeWeakSet>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("WeakSet.has: called with non-object value")
             })?;
