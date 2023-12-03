@@ -1969,6 +1969,46 @@
 <a href="#1969" id="1969">1969</a>
 <a href="#1970" id="1970">1970</a>
 <a href="#1971" id="1971">1971</a>
+<a href="#1972" id="1972">1972</a>
+<a href="#1973" id="1973">1973</a>
+<a href="#1974" id="1974">1974</a>
+<a href="#1975" id="1975">1975</a>
+<a href="#1976" id="1976">1976</a>
+<a href="#1977" id="1977">1977</a>
+<a href="#1978" id="1978">1978</a>
+<a href="#1979" id="1979">1979</a>
+<a href="#1980" id="1980">1980</a>
+<a href="#1981" id="1981">1981</a>
+<a href="#1982" id="1982">1982</a>
+<a href="#1983" id="1983">1983</a>
+<a href="#1984" id="1984">1984</a>
+<a href="#1985" id="1985">1985</a>
+<a href="#1986" id="1986">1986</a>
+<a href="#1987" id="1987">1987</a>
+<a href="#1988" id="1988">1988</a>
+<a href="#1989" id="1989">1989</a>
+<a href="#1990" id="1990">1990</a>
+<a href="#1991" id="1991">1991</a>
+<a href="#1992" id="1992">1992</a>
+<a href="#1993" id="1993">1993</a>
+<a href="#1994" id="1994">1994</a>
+<a href="#1995" id="1995">1995</a>
+<a href="#1996" id="1996">1996</a>
+<a href="#1997" id="1997">1997</a>
+<a href="#1998" id="1998">1998</a>
+<a href="#1999" id="1999">1999</a>
+<a href="#2000" id="2000">2000</a>
+<a href="#2001" id="2001">2001</a>
+<a href="#2002" id="2002">2002</a>
+<a href="#2003" id="2003">2003</a>
+<a href="#2004" id="2004">2004</a>
+<a href="#2005" id="2005">2005</a>
+<a href="#2006" id="2006">2006</a>
+<a href="#2007" id="2007">2007</a>
+<a href="#2008" id="2008">2008</a>
+<a href="#2009" id="2009">2009</a>
+<a href="#2010" id="2010">2010</a>
+<a href="#2011" id="2011">2011</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{
     cell::Cell,
     collections::HashSet,
@@ -1987,14 +2027,16 @@
     },
 };
 <span class="kw">use </span>boa_gc::{custom_trace, empty_trace, Finalize, Gc, GcRefCell, Trace, WeakGc};
-<span class="kw">use </span>boa_interner::Sym;
+<span class="kw">use </span>boa_interner::Interner;
+<span class="kw">use </span>boa_macros::utf16;
 <span class="kw">use </span>indexmap::IndexSet;
 <span class="kw">use </span>rustc_hash::{FxHashMap, FxHashSet, FxHasher};
 
 <span class="kw">use crate</span>::{
     builtins::{promise::PromiseCapability, Promise},
-    bytecompiler::{ByteCompiler, FunctionSpec},
+    bytecompiler::{ByteCompiler, FunctionSpec, ToJsString},
     environments::{BindingLocator, CompileTimeEnvironment, EnvironmentStack},
+    js_string,
     module::ModuleKind,
     object::{FunctionObjectBuilder, JsPromise, RecursionLimiter},
     realm::Realm,
@@ -2244,7 +2286,7 @@
 </span><span class="kw">struct </span>Inner {
     parent: WeakGc&lt;ModuleRepr&gt;,
     status: GcRefCell&lt;Status&gt;,
-    loaded_modules: GcRefCell&lt;FxHashMap&lt;Sym, Module&gt;&gt;,
+    loaded_modules: GcRefCell&lt;FxHashMap&lt;JsString, Module&gt;&gt;,
     async_parent_modules: GcRefCell&lt;Vec&lt;SourceTextModule&gt;&gt;,
     import_meta: GcRefCell&lt;<span class="prelude-ty">Option</span>&lt;JsObject&gt;&gt;,
     <span class="attr">#[unsafe_ignore_trace]
@@ -2254,12 +2296,12 @@
 <span class="attr">#[derive(Debug)]
 </span><span class="kw">struct </span>ModuleCode {
     has_tla: bool,
-    requested_modules: IndexSet&lt;Sym, BuildHasherDefault&lt;FxHasher&gt;&gt;,
+    requested_modules: IndexSet&lt;JsString, BuildHasherDefault&lt;FxHasher&gt;&gt;,
     source: boa_ast::Module,
     import_entries: Vec&lt;ImportEntry&gt;,
     local_export_entries: Vec&lt;LocalExportEntry&gt;,
     indirect_export_entries: Vec&lt;IndirectExportEntry&gt;,
-    star_export_entries: Vec&lt;Sym&gt;,
+    star_export_entries: Vec&lt;JsString&gt;,
 }
 
 <span class="kw">impl </span>SourceTextModule {
@@ -2279,9 +2321,18 @@
     /// Contains part of the abstract operation [`ParseModule`][parse].
     ///
     /// [parse]: https://tc39.es/ecma262/#sec-parsemodule
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(code: boa_ast::Module, parent: WeakGc&lt;ModuleRepr&gt;) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(
+        code: boa_ast::Module,
+        parent: WeakGc&lt;ModuleRepr&gt;,
+        interner: <span class="kw-2">&amp;</span>Interner,
+    ) -&gt; <span class="self">Self </span>{
         <span class="comment">// 3. Let requestedModules be the ModuleRequests of body.
-        </span><span class="kw">let </span>requested_modules = code.items().requests();
+        </span><span class="kw">let </span>requested_modules = code
+            .items()
+            .requests()
+            .iter()
+            .map(|name| name.to_js_string(interner))
+            .collect();
         <span class="comment">// 4. Let importEntries be ImportEntries of body.
         </span><span class="kw">let </span>import_entries = code.items().import_entries();
 
@@ -2334,7 +2385,7 @@
                 </span>ExportEntry::StarReExport { module_request } =&gt; {
                     <span class="comment">// i. Assert: ee.[[ExportName]] is null.
                     // ii. Append ee to starExportEntries.
-                    </span>star_export_entries.push(module_request);
+                    </span>star_export_entries.push(module_request.to_js_string(interner));
                 }
                 <span class="comment">// c. Else,
                 //    i. Append ee to indirectExportEntries.
@@ -2395,7 +2446,7 @@
                 .pending_modules
                 .set(state.pending_modules.get() + requested.len());
             <span class="comment">// d. For each String required of module.[[RequestedModules]], do
-            </span><span class="kw">for </span><span class="kw-2">&amp;</span>required <span class="kw">in </span>requested {
+            </span><span class="kw">for </span>required <span class="kw">in </span>requested.iter().cloned() {
                 <span class="comment">// i. If module.[[LoadedModules]] contains a Record whose [[Specifier]] is required, then
                 </span><span class="kw">let </span>loaded = <span class="self">self</span>.inner.loaded_modules.borrow().get(<span class="kw-2">&amp;</span>required).cloned();
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(loaded) = loaded {
@@ -2407,10 +2458,7 @@
                     //       1. Perform HostLoadImportedModule(module, required, state.[[HostDefined]], state).
                     //       2. NOTE: HostLoadImportedModule will call FinishLoadingImportedModule, which re-enters
                     //          the graph loading process through ContinueModuleLoading.
-                    </span><span class="kw">let </span>name_specifier: JsString = context
-                        .interner()
-                        .resolve_expect(required)
-                        .into_common(<span class="bool-val">false</span>);
+                    </span><span class="kw">let </span>name_specifier = required.clone();
                     <span class="kw">let </span>src = <span class="self">self</span>.clone();
                     <span class="kw">let </span>state = state.clone();
                     context.module_loader().load_imported_module(
@@ -2486,7 +2534,11 @@
     <span class="doccomment">/// Concrete method [`GetExportedNames ( [ exportStarSet ] )`][spec].
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-getexportednames
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>get_exported_names(<span class="kw-2">&amp;</span><span class="self">self</span>, export_star_set: <span class="kw-2">&amp;mut </span>Vec&lt;<span class="self">Self</span>&gt;) -&gt; FxHashSet&lt;Sym&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>get_exported_names(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        export_star_set: <span class="kw-2">&amp;mut </span>Vec&lt;<span class="self">Self</span>&gt;,
+        interner: <span class="kw-2">&amp;</span>Interner,
+    ) -&gt; FxHashSet&lt;JsString&gt; {
         <span class="comment">// 1. Assert: module.[[Status]] is not new.
         // 2. If exportStarSet is not present, set exportStarSet to a new empty List.
 
@@ -2507,14 +2559,16 @@
         </span><span class="kw">for </span>e <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.inner.code.local_export_entries {
             <span class="comment">// a. Assert: module provides the direct binding for this export.
             // b. Append e.[[ExportName]] to exportedNames.
-            </span>exported_names.insert(e.export_name());
+            </span><span class="kw">let </span>name = e.export_name().to_js_string(interner);
+            exported_names.insert(name);
         }
 
         <span class="comment">// 7. For each ExportEntry Record e of module.[[IndirectExportEntries]], do
         </span><span class="kw">for </span>e <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.inner.code.indirect_export_entries {
             <span class="comment">// a. Assert: module imports a specific binding for this export.
             // b. Append e.[[ExportName]] to exportedNames.
-            </span>exported_names.insert(e.export_name());
+            </span><span class="kw">let </span>name = e.export_name().to_js_string(interner);
+            exported_names.insert(name);
         }
 
         <span class="comment">// 8. For each ExportEntry Record e of module.[[StarExportEntries]], do
@@ -2524,9 +2578,9 @@
 
             <span class="comment">// b. Let starNames be requestedModule.GetExportedNames(exportStarSet).
             // c. For each element n of starNames, do
-            </span><span class="kw">for </span>n <span class="kw">in </span>requested_module.get_exported_names(export_star_set) {
+            </span><span class="kw">for </span>n <span class="kw">in </span>requested_module.get_exported_names(export_star_set, interner) {
                 <span class="comment">// i. If SameValue(n, &quot;default&quot;) is false, then
-                </span><span class="kw">if </span>n != Sym::DEFAULT {
+                </span><span class="kw">if </span><span class="kw-2">&amp;</span>n != <span class="macro">utf16!</span>(<span class="string">&quot;default&quot;</span>) {
                     <span class="comment">// 1. If exportedNames does not contain n, then
                     //    a. Append n to exportedNames.
                     </span>exported_names.insert(n);
@@ -2544,32 +2598,34 @@
     </span><span class="attr">#[allow(clippy::mutable_key_type)]
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>resolve_export(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        export_name: Sym,
-        resolve_set: <span class="kw-2">&amp;mut </span>FxHashSet&lt;(Module, Sym)&gt;,
+        export_name: <span class="kw-2">&amp;</span>JsString,
+        resolve_set: <span class="kw-2">&amp;mut </span>FxHashSet&lt;(Module, JsString)&gt;,
+        interner: <span class="kw-2">&amp;</span>Interner,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;ResolvedBinding, ResolveExportError&gt; {
         <span class="kw">let </span>parent = <span class="self">self</span>.parent();
         <span class="comment">// 1. Assert: module.[[Status]] is not new.
         // 2. If resolveSet is not present, set resolveSet to a new empty List.
         // 3. For each Record { [[Module]], [[ExportName]] } r of resolveSet, do
         //    a. If module and r.[[Module]] are the same Module Record and SameValue(exportName, r.[[ExportName]]) is true, then
-        </span><span class="kw">if </span>resolve_set.contains(<span class="kw-2">&amp;</span>(parent.clone(), export_name)) {
+        </span><span class="kw">let </span>value = (parent.clone(), export_name.clone());
+        <span class="kw">if </span>resolve_set.contains(<span class="kw-2">&amp;</span>value) {
             <span class="comment">//   i. Assert: This is a circular import request.
             //   ii. Return null.
             </span><span class="kw">return </span><span class="prelude-val">Err</span>(ResolveExportError::NotFound);
         }
 
         <span class="comment">// 4. Append the Record { [[Module]]: module, [[ExportName]]: exportName } to resolveSet.
-        </span>resolve_set.insert((parent.clone(), export_name));
+        </span>resolve_set.insert(value);
 
         <span class="comment">// 5. For each ExportEntry Record e of module.[[LocalExportEntries]], do
         </span><span class="kw">for </span>e <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.inner.code.local_export_entries {
             <span class="comment">// a. If SameValue(exportName, e.[[ExportName]]) is true, then
-            </span><span class="kw">if </span>export_name == e.export_name() {
+            </span><span class="kw">if </span>export_name == <span class="kw-2">&amp;</span>e.export_name().to_js_string(interner) {
                 <span class="comment">// i. Assert: module provides the direct binding for this export.
                 // ii. Return ResolvedBinding Record { [[Module]]: module, [[BindingName]]: e.[[LocalName]] }.
                 </span><span class="kw">return </span><span class="prelude-val">Ok</span>(ResolvedBinding {
                     module: parent,
-                    binding_name: BindingName::Name(e.local_name()),
+                    binding_name: BindingName::Name(e.local_name().to_js_string(interner)),
                 });
             }
         }
@@ -2577,10 +2633,10 @@
         <span class="comment">// 6. For each ExportEntry Record e of module.[[IndirectExportEntries]], do
         </span><span class="kw">for </span>e <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.inner.code.indirect_export_entries {
             <span class="comment">// a. If SameValue(exportName, e.[[ExportName]]) is true, then
-            </span><span class="kw">if </span>export_name == e.export_name() {
+            </span><span class="kw">if </span>export_name == <span class="kw-2">&amp;</span>e.export_name().to_js_string(interner) {
                 <span class="comment">// i. Let importedModule be GetImportedModule(module, e.[[ModuleRequest]]).
-                </span><span class="kw">let </span>imported_module =
-                    <span class="self">self</span>.inner.loaded_modules.borrow()[<span class="kw-2">&amp;</span>e.module_request()].clone();
+                </span><span class="kw">let </span>module_request = e.module_request().to_js_string(interner);
+                <span class="kw">let </span>imported_module = <span class="self">self</span>.inner.loaded_modules.borrow()[<span class="kw-2">&amp;</span>module_request].clone();
                 <span class="kw">return match </span>e.import_name() {
                     <span class="comment">// ii. If e.[[ImportName]] is all, then
                     //    1. Assert: module does not provide the direct binding for this export.
@@ -2593,14 +2649,15 @@
                     //    1. Assert: module imports a specific binding for this export.
                     //    2. Return importedModule.ResolveExport(e.[[ImportName]], resolveSet).
                     </span>ReExportImportName::Name(name) =&gt; {
-                        imported_module.resolve_export(name, resolve_set)
+                        <span class="kw">let </span>name = name.to_js_string(interner);
+                        imported_module.resolve_export(name, resolve_set, interner)
                     }
                 };
             }
         }
 
         <span class="comment">// 7. If SameValue(exportName, &quot;default&quot;) is true, then
-        </span><span class="kw">if </span>export_name == Sym::DEFAULT {
+        </span><span class="kw">if </span><span class="kw-2">&amp;</span>export_name.clone() == <span class="macro">utf16!</span>(<span class="string">&quot;default&quot;</span>) {
             <span class="comment">// a. Assert: A default export was not explicitly defined by this module.
             // b. Return null.
             // c. NOTE: A default export cannot be provided by an export * from &quot;mod&quot; declaration.
@@ -2615,13 +2672,14 @@
             <span class="comment">// a. Let importedModule be GetImportedModule(module, e.[[ModuleRequest]]).
             </span><span class="kw">let </span>imported_module = <span class="self">self</span>.inner.loaded_modules.borrow()[e].clone();
             <span class="comment">// b. Let resolution be importedModule.ResolveExport(exportName, resolveSet).
-            </span><span class="kw">let </span>resolution = <span class="kw">match </span>imported_module.resolve_export(export_name, resolve_set) {
-                <span class="comment">// d. If resolution is not null, then
-                </span><span class="prelude-val">Ok</span>(resolution) =&gt; resolution,
-                <span class="comment">// c. If resolution is ambiguous, return ambiguous.
-                </span><span class="prelude-val">Err</span>(e @ ResolveExportError::Ambiguous) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(e),
-                <span class="prelude-val">Err</span>(ResolveExportError::NotFound) =&gt; <span class="kw">continue</span>,
-            };
+            </span><span class="kw">let </span>resolution =
+                <span class="kw">match </span>imported_module.resolve_export(export_name.clone(), resolve_set, interner) {
+                    <span class="comment">// d. If resolution is not null, then
+                    </span><span class="prelude-val">Ok</span>(resolution) =&gt; resolution,
+                    <span class="comment">// c. If resolution is ambiguous, return ambiguous.
+                    </span><span class="prelude-val">Err</span>(e @ ResolveExportError::Ambiguous) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(e),
+                    <span class="prelude-val">Err</span>(ResolveExportError::NotFound) =&gt; <span class="kw">continue</span>,
+                };
 
             <span class="comment">// i. Assert: resolution is a ResolvedBinding Record.
             </span><span class="kw">if let </span><span class="prelude-val">Some</span>(star_resolution) = <span class="kw-2">&amp;</span>star_resolution {
@@ -2632,7 +2690,10 @@
                 </span><span class="kw">if </span>resolution.module != star_resolution.module {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(ResolveExportError::Ambiguous);
                 }
-                <span class="kw">match </span>(resolution.binding_name, star_resolution.binding_name) {
+                <span class="kw">match </span>(
+                    resolution.binding_name,
+                    star_resolution.binding_name.clone(),
+                ) {
                     <span class="comment">// 3. If resolution.[[BindingName]] is not starResolution.[[BindingName]] and either
                     //    resolution.[[BindingName]] or starResolution.[[BindingName]] is namespace,
                     //    return ambiguous.
@@ -3051,9 +3112,9 @@
         </span>stack.push(<span class="self">self</span>.clone());
 
         <span class="comment">// 11. For each String required of module.[[RequestedModules]], do
-        </span><span class="kw">for </span><span class="kw-2">&amp;</span>required <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.inner.code.requested_modules {
+        </span><span class="kw">for </span>required <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.inner.code.requested_modules {
             <span class="comment">// a. Let requiredModule be GetImportedModule(module, required).
-            </span><span class="kw">let </span>required_module = <span class="self">self</span>.inner.loaded_modules.borrow()[<span class="kw-2">&amp;</span>required].clone();
+            </span><span class="kw">let </span>required_module = <span class="self">self</span>.inner.loaded_modules.borrow()[required].clone();
             <span class="comment">// b. Set index to ? InnerModuleEvaluation(requiredModule, stack, index).
             </span>index = required_module.inner_evaluate(stack, index, context)<span class="question-mark">?</span>;
 
@@ -3350,7 +3411,11 @@
             </span><span class="kw">for </span>e <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.inner.code.indirect_export_entries {
                 <span class="comment">// a. Let resolution be module.ResolveExport(e.[[ExportName]]).
                 </span>parent
-                    .resolve_export(e.export_name(), <span class="kw-2">&amp;mut </span>HashSet::default())
+                    .resolve_export(
+                        e.export_name().to_js_string(context.interner()),
+                        <span class="kw-2">&amp;mut </span>HashSet::default(),
+                        context.interner(),
+                    )
                     <span class="comment">// b. If resolution is either null or ambiguous, throw a SyntaxError exception.
                     </span>.map_err(|err| <span class="kw">match </span>err {
                         ResolveExportError::NotFound =&gt; {
@@ -3381,8 +3446,14 @@
         <span class="kw">let </span>global_compile_env = global_env.compile_env();
         <span class="kw">let </span>env = Rc::new(CompileTimeEnvironment::new(global_compile_env, <span class="bool-val">true</span>));
 
-        <span class="kw">let </span><span class="kw-2">mut </span>compiler =
-            ByteCompiler::new(Sym::MAIN, <span class="bool-val">true</span>, <span class="bool-val">false</span>, env.clone(), env.clone(), context);
+        <span class="kw">let </span><span class="kw-2">mut </span>compiler = ByteCompiler::new(
+            <span class="macro">js_string!</span>(<span class="string">&quot;&lt;main&gt;&quot;</span>),
+            <span class="bool-val">true</span>,
+            <span class="bool-val">false</span>,
+            env.clone(),
+            env.clone(),
+            context,
+        );
 
         compiler.code_block_flags |= CodeBlockFlags::IS_ASYNC;
         compiler.async_handler = <span class="prelude-val">Some</span>(compiler.push_handler());
@@ -3393,32 +3464,32 @@
             <span class="comment">// 7. For each ImportEntry Record in of module.[[ImportEntries]], do
             </span><span class="kw">for </span>entry <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.inner.code.import_entries {
                 <span class="comment">// a. Let importedModule be GetImportedModule(module, in.[[ModuleRequest]]).
-                </span><span class="kw">let </span>imported_module =
-                    <span class="self">self</span>.inner.loaded_modules.borrow()[<span class="kw-2">&amp;</span>entry.module_request()].clone();
+                </span><span class="kw">let </span>module_request = entry.module_request().to_js_string(compiler.interner());
+                <span class="kw">let </span>imported_module = <span class="self">self</span>.inner.loaded_modules.borrow()[<span class="kw-2">&amp;</span>module_request].clone();
 
                 <span class="kw">if let </span>ImportName::Name(name) = entry.import_name() {
+                    <span class="kw">let </span>name = name.to_js_string(compiler.interner());
                     <span class="comment">// c. Else,
                     //    i. Let resolution be importedModule.ResolveExport(in.[[ImportName]]).
-                    </span><span class="kw">let </span>resolution =
-                        imported_module
-                            .resolve_export(name, <span class="kw-2">&amp;mut </span>HashSet::default())
-                            <span class="comment">// ii. If resolution is either null or ambiguous, throw a SyntaxError exception.
-                            </span>.map_err(|err| <span class="kw">match </span>err {
-                                ResolveExportError::NotFound =&gt; JsNativeError::syntax()
-                                    .with_message(<span class="macro">format!</span>(
-                                        <span class="string">&quot;could not find export `{}`&quot;</span>,
-                                        compiler.interner().resolve_expect(name)
-                                    )),
-                                ResolveExportError::Ambiguous =&gt; JsNativeError::syntax()
-                                    .with_message(<span class="macro">format!</span>(
-                                        <span class="string">&quot;could not resolve ambiguous export `{}`&quot;</span>,
-                                        compiler.interner().resolve_expect(name)
-                                    )),
-                            })<span class="question-mark">?</span>;
+                    </span><span class="kw">let </span>resolution = imported_module
+                        .resolve_export(name.clone(), <span class="kw-2">&amp;mut </span>HashSet::default(), compiler.interner())
+                        <span class="comment">// ii. If resolution is either null or ambiguous, throw a SyntaxError exception.
+                        </span>.map_err(|err| <span class="kw">match </span>err {
+                            ResolveExportError::NotFound =&gt; JsNativeError::syntax().with_message(
+                                <span class="macro">format!</span>(<span class="string">&quot;could not find export `{}`&quot;</span>, name.to_std_string_escaped()),
+                            ),
+                            ResolveExportError::Ambiguous =&gt; {
+                                JsNativeError::syntax().with_message(<span class="macro">format!</span>(
+                                    <span class="string">&quot;could not resolve ambiguous export `{}`&quot;</span>,
+                                    name.to_std_string_escaped()
+                                ))
+                            }
+                        })<span class="question-mark">?</span>;
 
                     <span class="comment">// 2. Perform ! env.CreateImmutableBinding(in.[[LocalName]], true).
                     // 3. Perform ! env.InitializeBinding(in.[[LocalName]], namespace).
-                    </span><span class="kw">let </span>locator = env.create_immutable_binding(entry.local_name(), <span class="bool-val">true</span>);
+                    </span><span class="kw">let </span>local_name = entry.local_name().to_js_string(compiler.interner());
+                    <span class="kw">let </span>locator = env.create_immutable_binding(local_name, <span class="bool-val">true</span>);
 
                     <span class="kw">if let </span>BindingName::Name(<span class="kw">_</span>) = resolution.binding_name {
                         <span class="comment">// 1. Perform env.CreateImportBinding(in.[[LocalName]], resolution.[[Module]],
@@ -3440,7 +3511,10 @@
                     <span class="comment">// b. If in.[[ImportName]] is namespace-object, then
                     //    ii. Perform ! env.CreateImmutableBinding(in.[[LocalName]], true).
                     //    iii. Perform ! env.InitializeBinding(in.[[LocalName]], namespace).
-                    </span><span class="kw">let </span>locator = env.create_immutable_binding(entry.local_name(), <span class="bool-val">true</span>);
+                    </span><span class="kw">let </span>locator = env.create_immutable_binding(
+                        entry.local_name().to_js_string(compiler.interner()),
+                        <span class="bool-val">true</span>,
+                    );
 
                     <span class="comment">//    i. Let namespace be GetModuleNamespace(importedModule).
                     //       deferred to initialization below
@@ -3460,11 +3534,13 @@
             </span><span class="kw">for </span>var <span class="kw">in </span>var_declarations {
                 <span class="comment">// a. For each element dn of the BoundNames of d, do
                 </span><span class="kw">for </span>name <span class="kw">in </span>var.bound_names() {
+                    <span class="kw">let </span>name = name.to_js_string(compiler.interner());
+
                     <span class="comment">// i. If declaredVarNames does not contain dn, then
                     </span><span class="kw">if </span>!declared_var_names.contains(<span class="kw-2">&amp;</span>name) {
                         <span class="comment">// 1. Perform ! env.CreateMutableBinding(dn, false).
                         // 2. Perform ! env.InitializeBinding(dn, undefined).
-                        </span><span class="kw">let </span>binding = env.create_mutable_binding(name, <span class="bool-val">false</span>);
+                        </span><span class="kw">let </span>binding = env.create_mutable_binding(name.clone(), <span class="bool-val">false</span>);
                         <span class="kw">let </span>index = compiler.get_or_insert_binding(binding);
                         compiler.emit_opcode(Opcode::PushUndefined);
                         compiler.emit_with_varying_operand(Opcode::DefInitVar, index);
@@ -3493,31 +3569,32 @@
                 // deferred to below.
                 </span><span class="kw">let </span>(spec, locator): (FunctionSpec&lt;<span class="lifetime">&#39;_</span>&gt;, <span class="kw">_</span>) = <span class="kw">match </span>declaration {
                     LexicallyScopedDeclaration::Function(f) =&gt; {
-                        <span class="kw">let </span>name = bound_names(f)[<span class="number">0</span>];
+                        <span class="kw">let </span>name = bound_names(f)[<span class="number">0</span>].to_js_string(compiler.interner());
                         <span class="kw">let </span>locator = env.create_mutable_binding(name, <span class="bool-val">false</span>);
 
                         (f.into(), locator)
                     }
                     LexicallyScopedDeclaration::Generator(g) =&gt; {
-                        <span class="kw">let </span>name = bound_names(g)[<span class="number">0</span>];
+                        <span class="kw">let </span>name = bound_names(g)[<span class="number">0</span>].to_js_string(compiler.interner());
                         <span class="kw">let </span>locator = env.create_mutable_binding(name, <span class="bool-val">false</span>);
 
                         (g.into(), locator)
                     }
                     LexicallyScopedDeclaration::AsyncFunction(af) =&gt; {
-                        <span class="kw">let </span>name = bound_names(af)[<span class="number">0</span>];
+                        <span class="kw">let </span>name = bound_names(af)[<span class="number">0</span>].to_js_string(compiler.interner());
                         <span class="kw">let </span>locator = env.create_mutable_binding(name, <span class="bool-val">false</span>);
 
                         (af.into(), locator)
                     }
                     LexicallyScopedDeclaration::AsyncGenerator(ag) =&gt; {
-                        <span class="kw">let </span>name = bound_names(ag)[<span class="number">0</span>];
+                        <span class="kw">let </span>name = bound_names(ag)[<span class="number">0</span>].to_js_string(compiler.interner());
                         <span class="kw">let </span>locator = env.create_mutable_binding(name, <span class="bool-val">false</span>);
 
                         (ag.into(), locator)
                     }
                     LexicallyScopedDeclaration::Class(class) =&gt; {
                         <span class="kw">for </span>name <span class="kw">in </span>bound_names(class) {
+                            <span class="kw">let </span>name = name.to_js_string(compiler.interner());
                             env.create_mutable_binding(name, <span class="bool-val">false</span>);
                         }
                         <span class="kw">continue</span>;
@@ -3528,6 +3605,7 @@
                     )) =&gt; {
                         <span class="comment">// a. For each element dn of the BoundNames of d, do
                         </span><span class="kw">for </span>name <span class="kw">in </span>bound_names(c) {
+                            <span class="kw">let </span>name = name.to_js_string(compiler.interner());
                             <span class="comment">// 1. Perform ! env.CreateImmutableBinding(dn, true).
                             </span>env.create_immutable_binding(name, <span class="bool-val">true</span>);
                         }
@@ -3535,12 +3613,14 @@
                     }
                     LexicallyScopedDeclaration::LexicalDeclaration(LexicalDeclaration::Let(l)) =&gt; {
                         <span class="kw">for </span>name <span class="kw">in </span>bound_names(l) {
+                            <span class="kw">let </span>name = name.to_js_string(compiler.interner());
                             env.create_mutable_binding(name, <span class="bool-val">false</span>);
                         }
                         <span class="kw">continue</span>;
                     }
                     LexicallyScopedDeclaration::AssignmentExpression(expr) =&gt; {
                         <span class="kw">for </span>name <span class="kw">in </span>bound_names(expr) {
+                            <span class="kw">let </span>name = name.to_js_string(compiler.interner());
                             env.create_mutable_binding(name, <span class="bool-val">false</span>);
                         }
                         <span class="kw">continue</span>;
@@ -3733,7 +3813,7 @@
     }
 
     <span class="doccomment">/// Gets the loaded modules of this module.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>loaded_modules(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>GcRefCell&lt;FxHashMap&lt;Sym, Module&gt;&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>loaded_modules(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>GcRefCell&lt;FxHashMap&lt;JsString, Module&gt;&gt; {
         <span class="kw-2">&amp;</span><span class="self">self</span>.inner.loaded_modules
     }
 

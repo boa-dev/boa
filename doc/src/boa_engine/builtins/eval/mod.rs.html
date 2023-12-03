@@ -291,6 +291,7 @@
     context::intrinsics::Intrinsics,
     environments::Environment,
     error::JsNativeError,
+    js_string,
     object::JsObject,
     realm::Realm,
     string::common::StaticJsStrings,
@@ -299,7 +300,6 @@
 };
 <span class="kw">use </span>boa_ast::operations::{contains, contains_arguments, ContainsSymbol};
 <span class="kw">use </span>boa_gc::Gc;
-<span class="kw">use </span>boa_interner::Sym;
 <span class="kw">use </span>boa_parser::{Parser, Source};
 <span class="kw">use </span>boa_profiler::Profiler;
 
@@ -504,7 +504,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>var_env = var_environment.compile_env();
 
         <span class="kw">let </span><span class="kw-2">mut </span>compiler = ByteCompiler::new(
-            Sym::MAIN,
+            <span class="macro">js_string!</span>(<span class="string">&quot;&lt;main&gt;&quot;</span>),
             body.strict(),
             <span class="bool-val">false</span>,
             var_env.clone(),

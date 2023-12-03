@@ -111,23 +111,16 @@
 <a href="#111" id="111">111</a>
 <a href="#112" id="112">112</a>
 <a href="#113" id="113">113</a>
-<a href="#114" id="114">114</a>
-<a href="#115" id="115">115</a>
-<a href="#116" id="116">116</a>
-<a href="#117" id="117">117</a>
-<a href="#118" id="118">118</a>
-<a href="#119" id="119">119</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span>std::cell::Cell;
+</pre></div><pre class="rust"><code><span class="kw">use </span>std::cell::RefCell;
 
-<span class="kw">use </span>boa_ast::expression::Identifier;
 <span class="kw">use </span>boa_gc::{Finalize, GcRefCell, Trace};
 
-<span class="kw">use crate</span>::{module::Module, JsValue};
+<span class="kw">use crate</span>::{module::Module, JsString, JsValue};
 
 <span class="doccomment">/// Type of accessor used to access an indirect binding.
-</span><span class="attr">#[derive(Debug, Clone, Copy)]
+</span><span class="attr">#[derive(Debug, Clone)]
 </span><span class="kw">enum </span>BindingAccessor {
-    Identifier(Identifier),
+    Identifier(JsString),
     Index(u32),
 }
 
@@ -136,7 +129,7 @@
 </span><span class="kw">struct </span>IndirectBinding {
     module: Module,
     <span class="attr">#[unsafe_ignore_trace]
-    </span>accessor: Cell&lt;BindingAccessor&gt;,
+    </span>accessor: RefCell&lt;BindingAccessor&gt;,
 }
 
 <span class="doccomment">/// The type of binding a [`ModuleEnvironment`] can contain.
@@ -180,7 +173,7 @@
             BindingType::Indirect(IndirectBinding { module, accessor }) =&gt; {
                 <span class="kw">let </span>env = module.environment()<span class="question-mark">?</span>;
 
-                <span class="kw">match </span>accessor.get() {
+                <span class="kw">match </span><span class="kw-2">&amp;*</span>accessor.clone().borrow() {
                     BindingAccessor::Identifier(name) =&gt; {
                         <span class="kw">let </span>index = env
                             .compile_env()
@@ -189,11 +182,11 @@
 
                         <span class="kw">let </span>value = env.get(index.binding_index)<span class="question-mark">?</span>;
 
-                        accessor.set(BindingAccessor::Index(index.binding_index));
+                        <span class="kw-2">*</span>accessor.borrow_mut() = BindingAccessor::Index(index.binding_index);
 
                         <span class="prelude-val">Some</span>(value)
                     }
-                    BindingAccessor::Index(index) =&gt; env.get(index),
+                    BindingAccessor::Index(index) =&gt; env.get(<span class="kw-2">*</span>index),
                 }
             }
         }
@@ -222,17 +215,12 @@
     ///
     /// Panics if the binding value is out of range.
     </span><span class="attr">#[track_caller]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_indirect(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        index: u32,
-        target_module: Module,
-        target_binding: Identifier,
-    ) {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_indirect(<span class="kw-2">&amp;</span><span class="self">self</span>, index: u32, target_module: Module, target_binding: JsString) {
         <span class="kw">let </span><span class="kw-2">mut </span>bindings = <span class="self">self</span>.bindings.borrow_mut();
 
         bindings[index <span class="kw">as </span>usize] = BindingType::Indirect(IndirectBinding {
             module: target_module,
-            accessor: Cell::new(BindingAccessor::Identifier(target_binding)),
+            accessor: RefCell::new(BindingAccessor::Identifier(target_binding)),
         });
     }
 }

@@ -962,13 +962,6 @@
 <a href="#962" id="962">962</a>
 <a href="#963" id="963">963</a>
 <a href="#964" id="964">964</a>
-<a href="#965" id="965">965</a>
-<a href="#966" id="966">966</a>
-<a href="#967" id="967">967</a>
-<a href="#968" id="968">968</a>
-<a href="#969" id="969">969</a>
-<a href="#970" id="970">970</a>
-<a href="#971" id="971">971</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! `CodeBlock`
 //!
 //! This module is for the `CodeBlock` which implements a function representation in the VM
@@ -983,14 +976,10 @@
 <span class="kw">use </span>boa_ast::function::FormalParameterList;
 <span class="kw">use </span>boa_gc::{empty_trace, Finalize, Gc, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
-<span class="kw">use </span>std::{cell::Cell, mem::size_of, rc::Rc};
+<span class="kw">use </span>std::{cell::Cell, fmt::Display, mem::size_of, rc::Rc};
 <span class="kw">use </span>thin_vec::ThinVec;
 
-<span class="attr">#[cfg(any(feature = <span class="string">&quot;trace&quot;</span>, feature = <span class="string">&quot;flowgraph&quot;</span>))]
-</span><span class="kw">use super</span>::{Instruction, InstructionIterator};
-
-<span class="attr">#[cfg(any(feature = <span class="string">&quot;trace&quot;</span>, feature = <span class="string">&quot;flowgraph&quot;</span>))]
-</span><span class="kw">use </span>boa_interner::{Interner, ToInternedString};
+<span class="kw">use super</span>::{Instruction, InstructionIterator};
 
 <span class="doccomment">/// This represents whether a value can be read from [`CodeBlock`] code.
 ///
@@ -1323,12 +1312,7 @@
     /// Modifies the `pc` to point to the next instruction.
     ///
     /// Returns an empty `String` if no operands are present.
-    </span><span class="attr">#[cfg(any(feature = <span class="string">&quot;trace&quot;</span>, feature = <span class="string">&quot;flowgraph&quot;</span>))]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>instruction_operands(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        instruction: <span class="kw-2">&amp;</span>Instruction,
-        interner: <span class="kw-2">&amp;</span>Interner,
-    ) -&gt; String {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>instruction_operands(<span class="kw-2">&amp;</span><span class="self">self</span>, instruction: <span class="kw-2">&amp;</span>Instruction) -&gt; String {
         <span class="kw">match </span>instruction {
             Instruction::SetFunctionName { prefix } =&gt; <span class="kw">match </span>prefix {
                 <span class="number">0 </span>=&gt; <span class="string">&quot;prefix: none&quot;</span>,
@@ -1425,7 +1409,9 @@
                 <span class="macro">format!</span>(
                     <span class="string">&quot;{:04}: &#39;{}&#39;&quot;</span>,
                     index.value(),
-                    interner.resolve_expect(<span class="self">self</span>.bindings[index.value() <span class="kw">as </span>usize].name().sym()),
+                    <span class="self">self</span>.bindings[index.value() <span class="kw">as </span>usize]
+                        .name()
+                        .to_std_string_escaped()
                 )
             }
             Instruction::GetPropertyByName { index }
@@ -1672,20 +1658,15 @@
     }
 }
 
-<span class="attr">#[cfg(any(feature = <span class="string">&quot;trace&quot;</span>, feature = <span class="string">&quot;flowgraph&quot;</span>))]
-</span><span class="kw">impl </span>ToInternedString <span class="kw">for </span>CodeBlock {
-    <span class="kw">fn </span>to_interned_string(<span class="kw-2">&amp;</span><span class="self">self</span>, interner: <span class="kw-2">&amp;</span>Interner) -&gt; String {
+<span class="kw">impl </span>Display <span class="kw">for </span>CodeBlock {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
         <span class="kw">let </span>name = <span class="self">self</span>.name();
-        <span class="kw">let </span><span class="kw-2">mut </span>f = <span class="kw">if </span>name == <span class="string">&quot;&lt;main&gt;&quot; </span>{
-            String::new()
-        } <span class="kw">else </span>{
-            <span class="string">&quot;\n&quot;</span>.to_owned()
-        };
 
-        f.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
-            <span class="string">&quot;{:-^70}\nLocation  Count    Handler    Opcode                     Operands\n\n&quot;</span>,
+        <span class="macro">writeln!</span>(
+            f,
+            <span class="string">&quot;{:-^70}\nLocation  Count    Handler    Opcode                     Operands\n&quot;</span>,
             <span class="macro">format!</span>(<span class="string">&quot;Compiled Output: &#39;{}&#39;&quot;</span>, name.to_std_string_escaped()),
-        ));
+        )<span class="question-mark">?</span>;
 
         <span class="kw">let </span><span class="kw-2">mut </span>iterator = InstructionIterator::new(<span class="kw-2">&amp;</span><span class="self">self</span>.bytecode);
 
@@ -1693,7 +1674,7 @@
         <span class="kw">while let </span><span class="prelude-val">Some</span>((instruction_start_pc, varying_operand_kind, instruction)) = iterator.next()
         {
             <span class="kw">let </span>opcode = instruction.opcode().as_str();
-            <span class="kw">let </span>operands = <span class="self">self</span>.instruction_operands(<span class="kw-2">&amp;</span>instruction, interner);
+            <span class="kw">let </span>operands = <span class="self">self</span>.instruction_operands(<span class="kw-2">&amp;</span>instruction);
             <span class="kw">let </span>pc = iterator.pc();
 
             <span class="kw">let </span>handler = <span class="kw">if let </span><span class="prelude-val">Some</span>((i, handler)) = <span class="self">self</span>.find_handler(instruction_start_pc <span class="kw">as </span>u32)
@@ -1716,72 +1697,77 @@
                 <span class="kw">super</span>::VaryingOperandKind::U32 =&gt; <span class="string">&quot;.U32&quot;</span>,
             };
 
-            f.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
-                <span class="string">&quot;{instruction_start_pc:06}    {count:04}   {handler}    {opcode}{varying_operand_kind:&lt;27}{operands}\n&quot;</span>,
-            ));
+            <span class="macro">writeln!</span>(
+                f,
+                    <span class="string">&quot;{instruction_start_pc:06}    {count:04}   {handler}    {opcode}{varying_operand_kind:&lt;27}{operands}&quot;</span>,
+                )<span class="question-mark">?</span>;
             count += <span class="number">1</span>;
         }
 
-        f.push_str(<span class="string">&quot;\nConstants:&quot;</span>);
+        f.write_str(<span class="string">&quot;\nConstants:&quot;</span>)<span class="question-mark">?</span>;
 
         <span class="kw">if </span><span class="self">self</span>.constants.is_empty() {
-            f.push_str(<span class="string">&quot; &lt;empty&gt;\n&quot;</span>);
+            f.write_str(<span class="string">&quot; &lt;empty&gt;\n&quot;</span>)<span class="question-mark">?</span>;
         } <span class="kw">else </span>{
-            f.push(<span class="string">&#39;\n&#39;</span>);
+            f.write_str(<span class="string">&quot;\n&quot;</span>)<span class="question-mark">?</span>;
             <span class="kw">for </span>(i, value) <span class="kw">in </span><span class="self">self</span>.constants.iter().enumerate() {
-                f.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;    {i:04}: &quot;</span>));
-                <span class="kw">let </span>value = <span class="kw">match </span>value {
+                <span class="macro">write!</span>(f, <span class="string">&quot;    {i:04}: &quot;</span>)<span class="question-mark">?</span>;
+                <span class="kw">match </span>value {
                     Constant::String(v) =&gt; {
-                        <span class="macro">format!</span>(<span class="string">&quot;[STRING] \&quot;{}\&quot;&quot;</span>, v.to_std_string_escaped().escape_debug())
+                        <span class="macro">writeln!</span>(
+                            f,
+                            <span class="string">&quot;[STRING] \&quot;{}\&quot;&quot;</span>,
+                            v.to_std_string_escaped().escape_debug()
+                        )<span class="question-mark">?</span>;
                     }
-                    Constant::BigInt(v) =&gt; <span class="macro">format!</span>(<span class="string">&quot;[BIGINT] {v}n&quot;</span>),
-                    Constant::Function(code) =&gt; <span class="macro">format!</span>(
+                    Constant::BigInt(v) =&gt; <span class="macro">writeln!</span>(f, <span class="string">&quot;[BIGINT] {v}n&quot;</span>)<span class="question-mark">?</span>,
+                    Constant::Function(code) =&gt; <span class="macro">writeln!</span>(
+                        f,
                         <span class="string">&quot;[FUNCTION] name: &#39;{}&#39; (length: {})\n&quot;</span>,
                         code.name().to_std_string_escaped(),
                         code.length
-                    ),
+                    )<span class="question-mark">?</span>,
                     Constant::CompileTimeEnvironment(v) =&gt; {
-                        <span class="macro">format!</span>(
+                        <span class="macro">writeln!</span>(
+                            f,
                             <span class="string">&quot;[ENVIRONMENT] index: {}, bindings: {}&quot;</span>,
                             v.environment_index(),
                             v.num_bindings()
-                        )
+                        )<span class="question-mark">?</span>;
                     }
-                };
-                f.push_str(<span class="kw-2">&amp;</span>value);
-                f.push(<span class="string">&#39;\n&#39;</span>);
+                }
             }
         }
 
-        f.push_str(<span class="string">&quot;\nBindings:\n&quot;</span>);
+        f.write_str(<span class="string">&quot;\nBindings:\n&quot;</span>)<span class="question-mark">?</span>;
         <span class="kw">if </span><span class="self">self</span>.bindings.is_empty() {
-            f.push_str(<span class="string">&quot;    &lt;empty&gt;\n&quot;</span>);
+            f.write_str(<span class="string">&quot;    &lt;empty&gt;\n&quot;</span>)<span class="question-mark">?</span>;
         } <span class="kw">else </span>{
             <span class="kw">for </span>(i, binding_locator) <span class="kw">in </span><span class="self">self</span>.bindings.iter().enumerate() {
-                f.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
-                    <span class="string">&quot;    {i:04}: {}\n&quot;</span>,
-                    interner.resolve_expect(binding_locator.name().sym())
-                ));
+                <span class="macro">writeln!</span>(
+                    f,
+                    <span class="string">&quot;    {i:04}: {}&quot;</span>,
+                    binding_locator.name().to_std_string_escaped()
+                )<span class="question-mark">?</span>;
             }
         }
 
-        f.push_str(<span class="string">&quot;\nHandlers:\n&quot;</span>);
+        f.write_str(<span class="string">&quot;\nHandlers:\n&quot;</span>)<span class="question-mark">?</span>;
         <span class="kw">if </span><span class="self">self</span>.handlers.is_empty() {
-            f.push_str(<span class="string">&quot;    &lt;empty&gt;\n&quot;</span>);
+            f.write_str(<span class="string">&quot;    &lt;empty&gt;\n&quot;</span>)<span class="question-mark">?</span>;
         } <span class="kw">else </span>{
             <span class="kw">for </span>(i, handler) <span class="kw">in </span><span class="self">self</span>.handlers.iter().enumerate() {
-                f.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
-                    <span class="string">&quot;    {i:04}: Range: [{:04}, {:04}): Handler: {:04}, Stack: {:02}, Environment: {:02}\n&quot;</span>,
+                <span class="macro">writeln!</span>(f,
+                    <span class="string">&quot;    {i:04}: Range: [{:04}, {:04}): Handler: {:04}, Stack: {:02}, Environment: {:02}&quot;</span>,
                     handler.start,
                     handler.end,
                     handler.handler(),
                     handler.stack_count,
                     handler.environment_count,
-                ));
+                )<span class="question-mark">?</span>;
             }
         }
-
-        f
+        <span class="prelude-val">Ok</span>(())
     }
 }
 

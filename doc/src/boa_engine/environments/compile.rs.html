@@ -217,16 +217,9 @@
 <a href="#217" id="217">217</a>
 <a href="#218" id="218">218</a>
 <a href="#219" id="219">219</a>
-<a href="#220" id="220">220</a>
-<a href="#221" id="221">221</a>
-<a href="#222" id="222">222</a>
-<a href="#223" id="223">223</a>
-<a href="#224" id="224">224</a>
-<a href="#225" id="225">225</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{cell::RefCell, rc::Rc};
 
-<span class="kw">use </span><span class="kw">crate</span>::environments::runtime::BindingLocator;
-<span class="kw">use </span>boa_ast::expression::Identifier;
+<span class="kw">use crate</span>::{environments::runtime::BindingLocator, JsString};
 <span class="kw">use </span>boa_gc::{empty_trace, Finalize, Trace};
 
 <span class="kw">use </span>rustc_hash::FxHashMap;
@@ -251,7 +244,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>CompileTimeEnvironment {
     outer: <span class="prelude-ty">Option</span>&lt;Rc&lt;<span class="self">Self</span>&gt;&gt;,
     environment_index: u32,
-    bindings: RefCell&lt;FxHashMap&lt;Identifier, CompileTimeBinding&gt;&gt;,
+    bindings: RefCell&lt;FxHashMap&lt;JsString, CompileTimeBinding&gt;&gt;,
     function_scope: bool,
 }
 
@@ -283,21 +276,21 @@
     }
 
     <span class="doccomment">/// Check if environment has a lexical binding with the given name.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>has_lex_binding(<span class="kw-2">&amp;</span><span class="self">self</span>, name: Identifier) -&gt; bool {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>has_lex_binding(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>JsString) -&gt; bool {
         <span class="self">self</span>.bindings
             .borrow()
-            .get(<span class="kw-2">&amp;</span>name)
+            .get(name)
             .map_or(<span class="bool-val">false</span>, |binding| binding.lex)
     }
 
     <span class="doccomment">/// Check if the environment has a binding with the given name.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>has_binding(<span class="kw-2">&amp;</span><span class="self">self</span>, name: Identifier) -&gt; bool {
-        <span class="self">self</span>.bindings.borrow().contains_key(<span class="kw-2">&amp;</span>name)
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>has_binding(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>JsString) -&gt; bool {
+        <span class="self">self</span>.bindings.borrow().contains_key(name)
     }
 
     <span class="doccomment">/// Get the binding locator for a binding with the given name.
     /// Fall back to the global environment if the binding is not found.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_identifier_reference(<span class="kw-2">&amp;</span><span class="self">self</span>, name: Identifier) -&gt; IdentifierReference {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_identifier_reference(<span class="kw-2">&amp;</span><span class="self">self</span>, name: JsString) -&gt; IdentifierReference {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(binding) = <span class="self">self</span>.bindings.borrow().get(<span class="kw-2">&amp;</span>name) {
             IdentifierReference::new(
                 BindingLocator::declarative(name, <span class="self">self</span>.environment_index, binding.index),
@@ -331,22 +324,21 @@
     }
 
     <span class="doccomment">/// Get the locator for a binding name.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_binding(<span class="kw-2">&amp;</span><span class="self">self</span>, name: Identifier) -&gt; <span class="prelude-ty">Option</span>&lt;BindingLocator&gt; {
-        <span class="self">self</span>.bindings
-            .borrow()
-            .get(<span class="kw-2">&amp;</span>name)
-            .map(|binding| BindingLocator::declarative(name, <span class="self">self</span>.environment_index, binding.index))
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_binding(<span class="kw-2">&amp;</span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>JsString) -&gt; <span class="prelude-ty">Option</span>&lt;BindingLocator&gt; {
+        <span class="self">self</span>.bindings.borrow().get(name).map(|binding| {
+            BindingLocator::declarative(name.clone(), <span class="self">self</span>.environment_index, binding.index)
+        })
     }
 
     <span class="doccomment">/// Create a mutable binding.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_mutable_binding(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        name: Identifier,
+        name: JsString,
         function_scope: bool,
     ) -&gt; BindingLocator {
         <span class="kw">let </span>binding_index = <span class="self">self</span>.bindings.borrow().len() <span class="kw">as </span>u32;
         <span class="self">self</span>.bindings.borrow_mut().insert(
-            name,
+            name.clone(),
             CompileTimeBinding {
                 index: binding_index,
                 mutable: <span class="bool-val">true</span>,
@@ -358,14 +350,10 @@
     }
 
     <span class="doccomment">/// Crate an immutable binding.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_immutable_binding(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        name: Identifier,
-        strict: bool,
-    ) -&gt; BindingLocator {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_immutable_binding(<span class="kw-2">&amp;</span><span class="self">self</span>, name: JsString, strict: bool) -&gt; BindingLocator {
         <span class="kw">let </span>binding_index = <span class="self">self</span>.bindings.borrow().len() <span class="kw">as </span>u32;
         <span class="self">self</span>.bindings.borrow_mut().insert(
-            name,
+            name.clone(),
             CompileTimeBinding {
                 index: binding_index,
                 mutable: <span class="bool-val">false</span>,
@@ -379,7 +367,7 @@
     <span class="doccomment">/// Return the binding locator for a mutable binding.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_mutable_binding(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        name: Identifier,
+        name: JsString,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;BindingLocator, BindingLocatorError&gt; {
         <span class="prelude-val">Ok</span>(<span class="kw">match </span><span class="self">self</span>.bindings.borrow().get(<span class="kw-2">&amp;</span>name) {
             <span class="prelude-val">Some</span>(binding) <span class="kw">if </span>binding.mutable =&gt; {
@@ -388,8 +376,8 @@
             <span class="prelude-val">Some</span>(binding) <span class="kw">if </span>binding.strict =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(BindingLocatorError::MutateImmutable),
             <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(BindingLocatorError::Silent),
             <span class="prelude-val">None </span>=&gt; <span class="self">self</span>.outer.as_ref().map_or_else(
-                || <span class="prelude-val">Ok</span>(BindingLocator::global(name)),
-                |outer| outer.set_mutable_binding(name),
+                || <span class="prelude-val">Ok</span>(BindingLocator::global(name.clone())),
+                |outer| outer.set_mutable_binding(name.clone()),
             )<span class="question-mark">?</span>,
         })
     }
@@ -398,12 +386,12 @@
     </span><span class="doccomment">/// Return the binding locator for a set operation on an existing var binding.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_mutable_binding_var(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        name: Identifier,
+        name: JsString,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;BindingLocator, BindingLocatorError&gt; {
         <span class="kw">if </span>!<span class="self">self</span>.is_function() {
             <span class="kw">return </span><span class="self">self</span>.outer.as_ref().map_or_else(
-                || <span class="prelude-val">Ok</span>(BindingLocator::global(name)),
-                |outer| outer.set_mutable_binding_var(name),
+                || <span class="prelude-val">Ok</span>(BindingLocator::global(name.clone())),
+                |outer| outer.set_mutable_binding_var(name.clone()),
             );
         }
 
@@ -414,8 +402,8 @@
             <span class="prelude-val">Some</span>(binding) <span class="kw">if </span>binding.strict =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(BindingLocatorError::MutateImmutable),
             <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(BindingLocatorError::Silent),
             <span class="prelude-val">None </span>=&gt; <span class="self">self</span>.outer.as_ref().map_or_else(
-                || <span class="prelude-val">Ok</span>(BindingLocator::global(name)),
-                |outer| outer.set_mutable_binding_var(name),
+                || <span class="prelude-val">Ok</span>(BindingLocator::global(name.clone())),
+                |outer| outer.set_mutable_binding_var(name.clone()),
             )<span class="question-mark">?</span>,
         })
     }
@@ -440,7 +428,7 @@
 
     <span class="doccomment">/// Get the binding locator for this identifier reference.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>locator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; BindingLocator {
-        <span class="self">self</span>.locator
+        <span class="self">self</span>.locator.clone()
     }
 
     <span class="doccomment">/// Check if this identifier reference is lexical.

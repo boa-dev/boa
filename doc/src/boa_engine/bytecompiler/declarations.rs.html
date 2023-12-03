@@ -1199,12 +1199,76 @@
 <a href="#1199" id="1199">1199</a>
 <a href="#1200" id="1200">1200</a>
 <a href="#1201" id="1201">1201</a>
+<a href="#1202" id="1202">1202</a>
+<a href="#1203" id="1203">1203</a>
+<a href="#1204" id="1204">1204</a>
+<a href="#1205" id="1205">1205</a>
+<a href="#1206" id="1206">1206</a>
+<a href="#1207" id="1207">1207</a>
+<a href="#1208" id="1208">1208</a>
+<a href="#1209" id="1209">1209</a>
+<a href="#1210" id="1210">1210</a>
+<a href="#1211" id="1211">1211</a>
+<a href="#1212" id="1212">1212</a>
+<a href="#1213" id="1213">1213</a>
+<a href="#1214" id="1214">1214</a>
+<a href="#1215" id="1215">1215</a>
+<a href="#1216" id="1216">1216</a>
+<a href="#1217" id="1217">1217</a>
+<a href="#1218" id="1218">1218</a>
+<a href="#1219" id="1219">1219</a>
+<a href="#1220" id="1220">1220</a>
+<a href="#1221" id="1221">1221</a>
+<a href="#1222" id="1222">1222</a>
+<a href="#1223" id="1223">1223</a>
+<a href="#1224" id="1224">1224</a>
+<a href="#1225" id="1225">1225</a>
+<a href="#1226" id="1226">1226</a>
+<a href="#1227" id="1227">1227</a>
+<a href="#1228" id="1228">1228</a>
+<a href="#1229" id="1229">1229</a>
+<a href="#1230" id="1230">1230</a>
+<a href="#1231" id="1231">1231</a>
+<a href="#1232" id="1232">1232</a>
+<a href="#1233" id="1233">1233</a>
+<a href="#1234" id="1234">1234</a>
+<a href="#1235" id="1235">1235</a>
+<a href="#1236" id="1236">1236</a>
+<a href="#1237" id="1237">1237</a>
+<a href="#1238" id="1238">1238</a>
+<a href="#1239" id="1239">1239</a>
+<a href="#1240" id="1240">1240</a>
+<a href="#1241" id="1241">1241</a>
+<a href="#1242" id="1242">1242</a>
+<a href="#1243" id="1243">1243</a>
+<a href="#1244" id="1244">1244</a>
+<a href="#1245" id="1245">1245</a>
+<a href="#1246" id="1246">1246</a>
+<a href="#1247" id="1247">1247</a>
+<a href="#1248" id="1248">1248</a>
+<a href="#1249" id="1249">1249</a>
+<a href="#1250" id="1250">1250</a>
+<a href="#1251" id="1251">1251</a>
+<a href="#1252" id="1252">1252</a>
+<a href="#1253" id="1253">1253</a>
+<a href="#1254" id="1254">1254</a>
+<a href="#1255" id="1255">1255</a>
+<a href="#1256" id="1256">1256</a>
+<a href="#1257" id="1257">1257</a>
+<a href="#1258" id="1258">1258</a>
+<a href="#1259" id="1259">1259</a>
+<a href="#1260" id="1260">1260</a>
+<a href="#1261" id="1261">1261</a>
+<a href="#1262" id="1262">1262</a>
+<a href="#1263" id="1263">1263</a>
+<a href="#1264" id="1264">1264</a>
+<a href="#1265" id="1265">1265</a>
+<a href="#1266" id="1266">1266</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::rc::Rc;
 
 <span class="kw">use crate</span>::{
     bytecompiler::{ByteCompiler, FunctionCompiler, FunctionSpec, NodeKind},
     environments::CompileTimeEnvironment,
-    js_string,
     vm::{create_function_object_fast, BindingOpcode, Opcode},
     JsNativeError, JsResult,
 };
@@ -1224,7 +1288,7 @@
 <span class="attr">#[cfg(feature = <span class="string">&quot;annex-b&quot;</span>)]
 </span><span class="kw">use </span>boa_ast::operations::annex_b_function_declarations_names;
 
-<span class="kw">use </span><span class="kw">super</span>::Operand;
+<span class="kw">use super</span>::{Operand, ToJsString};
 
 <span class="kw">impl </span>ByteCompiler&lt;<span class="lifetime">&#39;_</span>&gt; {
     <span class="doccomment">/// `GlobalDeclarationInstantiation ( script, env )`
@@ -1246,17 +1310,24 @@
 
         <span class="comment">// 3. For each element name of lexNames, do
         </span><span class="kw">for </span>name <span class="kw">in </span>lex_names {
+            <span class="kw">let </span>name = <span class="self">self
+                </span>.context
+                .interner()
+                .resolve_expect(name.sym())
+                .utf16()
+                .into();
+
             <span class="comment">// Note: Our implementation differs from the spec here.
             // a. If env.HasVarDeclaration(name) is true, throw a SyntaxError exception.
             // b. If env.HasLexicalDeclaration(name) is true, throw a SyntaxError exception.
-            </span><span class="kw">if </span>env.has_binding(name) {
+            </span><span class="kw">if </span>env.has_binding(<span class="kw-2">&amp;</span>name) {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::syntax()
                     .with_message(<span class="string">&quot;duplicate lexical declaration&quot;</span>)
                     .into());
             }
 
             <span class="comment">// c. Let hasRestrictedGlobal be ? env.HasRestrictedGlobalProperty(name).
-            </span><span class="kw">let </span>has_restricted_global = <span class="self">self</span>.context.has_restricted_global_property(name)<span class="question-mark">?</span>;
+            </span><span class="kw">let </span>has_restricted_global = <span class="self">self</span>.context.has_restricted_global_property(<span class="kw-2">&amp;</span>name)<span class="question-mark">?</span>;
 
             <span class="comment">// d. If hasRestrictedGlobal is true, throw a SyntaxError exception.
             </span><span class="kw">if </span>has_restricted_global {
@@ -1268,8 +1339,15 @@
 
         <span class="comment">// 4. For each element name of varNames, do
         </span><span class="kw">for </span>name <span class="kw">in </span>var_names {
+            <span class="kw">let </span>name = <span class="self">self
+                </span>.context
+                .interner()
+                .resolve_expect(name.sym())
+                .utf16()
+                .into();
+
             <span class="comment">// a. If env.HasLexicalDeclaration(name) is true, throw a SyntaxError exception.
-            </span><span class="kw">if </span>env.has_lex_binding(name) {
+            </span><span class="kw">if </span>env.has_lex_binding(<span class="kw-2">&amp;</span>name) {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::syntax()
                     .with_message(<span class="string">&quot;duplicate lexical declaration&quot;</span>)
                     .into());
@@ -1307,7 +1385,9 @@
             <span class="comment">// a.iv. If declaredFunctionNames does not contain fn, then
             </span><span class="kw">if </span>!declared_function_names.contains(<span class="kw-2">&amp;</span>name) {
                 <span class="comment">// 1. Let fnDefinable be ? env.CanDeclareGlobalFunction(fn).
-                </span><span class="kw">let </span>fn_definable = <span class="self">self</span>.context.can_declare_global_function(name)<span class="question-mark">?</span>;
+                </span><span class="kw">let </span>fn_definable = <span class="self">self
+                    </span>.context
+                    .can_declare_global_function(<span class="kw-2">&amp;</span>name.to_js_string(<span class="self">self</span>.interner()))<span class="question-mark">?</span>;
 
                 <span class="comment">// 2. If fnDefinable is false, throw a TypeError exception.
                 </span><span class="kw">if </span>!fn_definable {
@@ -1341,7 +1421,9 @@
                 <span class="comment">// 1. If declaredFunctionNames does not contain vn, then
                 </span><span class="kw">if </span>!declared_function_names.contains(<span class="kw-2">&amp;</span>name) {
                     <span class="comment">// a. Let vnDefinable be ? env.CanDeclareGlobalVar(vn).
-                    </span><span class="kw">let </span>definable = <span class="self">self</span>.context.can_declare_global_var(name)<span class="question-mark">?</span>;
+                    </span><span class="kw">let </span>definable = <span class="self">self
+                        </span>.context
+                        .can_declare_global_var(<span class="kw-2">&amp;</span>name.to_js_string(<span class="self">self</span>.interner()))<span class="question-mark">?</span>;
 
                     <span class="comment">// b. If vnDefinable is false, throw a TypeError exception.
                     </span><span class="kw">if </span>!definable {
@@ -1379,10 +1461,12 @@
                 // 2. If replacing the FunctionDeclaration f with a VariableStatement that has F as a BindingIdentifier
                 //    would not produce any Early Errors for script, then
                 </span><span class="kw">if </span>!lex_names.contains(<span class="kw-2">&amp;</span>f) {
+                    <span class="kw">let </span>f_string = <span class="self">self</span>.resolve_identifier_expect(f);
+
                     <span class="comment">// a. If env.HasLexicalDeclaration(F) is false, then
-                    </span><span class="kw">if </span>!env.has_lex_binding(f) {
+                    </span><span class="kw">if </span>!env.has_lex_binding(<span class="kw-2">&amp;</span>f_string) {
                         <span class="comment">// i. Let fnDefinable be ? env.CanDeclareGlobalVar(F).
-                        </span><span class="kw">let </span>fn_definable = <span class="self">self</span>.context.can_declare_global_function(f)<span class="question-mark">?</span>;
+                        </span><span class="kw">let </span>fn_definable = <span class="self">self</span>.context.can_declare_global_function(<span class="kw-2">&amp;</span>f_string)<span class="question-mark">?</span>;
 
                         <span class="comment">// ii. If fnDefinable is true, then
                         </span><span class="kw">if </span>fn_definable {
@@ -1393,7 +1477,7 @@
                                 &amp;&amp; !declared_var_names.contains(<span class="kw-2">&amp;</span>f)
                             {
                                 <span class="comment">// i. Perform ? env.CreateGlobalVarBinding(F, false).
-                                </span><span class="self">self</span>.context.create_global_var_binding(f, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+                                </span><span class="self">self</span>.context.create_global_var_binding(f_string, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
 
                                 <span class="comment">// ii. Append F to declaredFunctionOrVarNames.
                                 </span>declared_function_names.push(f);
@@ -1426,16 +1510,19 @@
                 <span class="kw">match </span>declaration {
                     Declaration::Class(class) =&gt; {
                         <span class="kw">for </span>name <span class="kw">in </span>bound_names(class) {
+                            <span class="kw">let </span>name = name.to_js_string(<span class="self">self</span>.interner());
                             env.create_mutable_binding(name, <span class="bool-val">false</span>);
                         }
                     }
                     Declaration::Lexical(LexicalDeclaration::Let(declaration)) =&gt; {
                         <span class="kw">for </span>name <span class="kw">in </span>bound_names(declaration) {
+                            <span class="kw">let </span>name = name.to_js_string(<span class="self">self</span>.interner());
                             env.create_mutable_binding(name, <span class="bool-val">false</span>);
                         }
                     }
                     Declaration::Lexical(LexicalDeclaration::Const(declaration)) =&gt; {
                         <span class="kw">for </span>name <span class="kw">in </span>bound_names(declaration) {
+                            <span class="kw">let </span>name = name.to_js_string(<span class="self">self</span>.interner());
                             env.create_immutable_binding(name, <span class="bool-val">true</span>);
                         }
                     }
@@ -1467,11 +1554,11 @@
             <span class="kw">let </span>name = name.expect(<span class="string">&quot;function declaration must have a name&quot;</span>);
 
             <span class="kw">let </span>code = FunctionCompiler::new()
-                .name(name.sym())
+                .name(name.sym().to_js_string(<span class="self">self</span>.interner()))
                 .generator(generator)
                 .r#async(r#async)
                 .strict(<span class="self">self</span>.strict())
-                .binding_identifier(<span class="prelude-val">Some</span>(name.sym()))
+                .binding_identifier(<span class="prelude-val">Some</span>(name.sym().to_js_string(<span class="self">self</span>.interner())))
                 .compile(
                     parameters,
                     body,
@@ -1487,7 +1574,7 @@
             </span><span class="kw">let </span>function = create_function_object_fast(code, <span class="self">self</span>.context);
 
             <span class="comment">// c. Perform ? env.CreateGlobalFunctionBinding(fn, fo, false).
-            </span><span class="kw">let </span>name = <span class="macro">js_string!</span>(<span class="self">self</span>.interner().resolve_expect(name.sym()).utf16());
+            </span><span class="kw">let </span>name = name.to_js_string(<span class="self">self</span>.interner());
             <span class="self">self</span>.context
                 .create_global_function_binding(name, function, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
         }
@@ -1495,7 +1582,8 @@
         <span class="comment">// 17. For each String vn of declaredVarNames, do
         </span><span class="kw">for </span>var <span class="kw">in </span>declared_var_names {
             <span class="comment">// a. Perform ? env.CreateGlobalVarBinding(vn, false).
-            </span><span class="self">self</span>.context.create_global_var_binding(var, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+            </span><span class="kw">let </span>var = var.to_js_string(<span class="self">self</span>.interner());
+            <span class="self">self</span>.context.create_global_var_binding(var, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
         }
 
         <span class="comment">// 18. Return unused.
@@ -1529,20 +1617,23 @@
                 <span class="comment">// a. For each element dn of the BoundNames of d, do
                 </span><span class="kw">for </span>dn <span class="kw">in </span>bound_names::&lt;<span class="lifetime">&#39;_</span>, VariableList&gt;(d) {
                     <span class="comment">// 1. Perform ! env.CreateImmutableBinding(dn, true).
-                    </span>env.create_immutable_binding(dn, <span class="bool-val">true</span>);
+                    </span><span class="kw">let </span>dn = dn.to_js_string(<span class="self">self</span>.interner());
+                    env.create_immutable_binding(dn, <span class="bool-val">true</span>);
                 }
             }
             <span class="comment">// ii. Else,
             </span><span class="kw">else </span>{
                 <span class="comment">// a. For each element dn of the BoundNames of d, do
                 </span><span class="kw">for </span>dn <span class="kw">in </span>d.bound_names() {
+                    <span class="kw">let </span>dn = dn.to_js_string(<span class="self">self</span>.interner());
+
                     <span class="attr">#[cfg(not(feature = <span class="string">&quot;annex-b&quot;</span>))]
                     </span><span class="comment">// 1. Perform ! env.CreateMutableBinding(dn, false). NOTE: This step is replaced in section B.3.2.6.
                     </span>env.create_mutable_binding(dn, <span class="bool-val">false</span>);
 
                     <span class="attr">#[cfg(feature = <span class="string">&quot;annex-b&quot;</span>)]
                     </span><span class="comment">// 1. If ! env.HasBinding(dn) is false, then
-                    </span><span class="kw">if </span>!env.has_binding(dn) {
+                    </span><span class="kw">if </span>!env.has_binding(<span class="kw-2">&amp;</span>dn) {
                         <span class="comment">// a. Perform  ! env.CreateMutableBinding(dn, false).
                         </span>env.create_mutable_binding(dn, <span class="bool-val">false</span>);
                     }
@@ -1604,9 +1695,11 @@
             </span><span class="kw">if </span>var_env.is_global() {
                 <span class="comment">// i. For each element name of varNames, do
                 </span><span class="kw">for </span>name <span class="kw">in </span><span class="kw-2">&amp;</span>var_names {
+                    <span class="kw">let </span>name = name.to_js_string(<span class="self">self</span>.interner());
+
                     <span class="comment">// 1. If varEnv.HasLexicalDeclaration(name) is true, throw a SyntaxError exception.
                     // 2. NOTE: eval will not create a global var declaration that would be shadowed by a global lexical declaration.
-                    </span><span class="kw">if </span>var_env.has_lex_binding(<span class="kw-2">*</span>name) {
+                    </span><span class="kw">if </span>var_env.has_lex_binding(<span class="kw-2">&amp;</span>name) {
                         <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::syntax()
                             .with_message(<span class="string">&quot;duplicate lexical declaration&quot;</span>)
                             .into());
@@ -1625,12 +1718,18 @@
                 //    declaration so it doesn&#39;t need to be checked for var/let hoisting conflicts.
                 // 2. For each element name of varNames, do
                 </span><span class="kw">for </span>name <span class="kw">in </span><span class="kw-2">&amp;</span>var_names {
+                    <span class="kw">let </span>name = <span class="self">self
+                        </span>.context
+                        .interner()
+                        .resolve_expect(name.sym())
+                        .utf16()
+                        .into();
+
                     <span class="comment">// a. If ! thisEnv.HasBinding(name) is true, then
-                    </span><span class="kw">if </span>this_env.has_binding(<span class="kw-2">*</span>name) {
+                    </span><span class="kw">if </span>this_env.has_binding(<span class="kw-2">&amp;</span>name) {
                         <span class="comment">// i. Throw a SyntaxError exception.
                         // ii. NOTE: Annex B.3.4 defines alternate semantics for the above step.
-                        </span><span class="kw">let </span>name = <span class="self">self</span>.context.interner().resolve_expect(name.sym());
-                        <span class="kw">let </span>msg = <span class="macro">format!</span>(<span class="string">&quot;variable declaration {name} in eval function already exists as a lexical variable&quot;</span>);
+                        </span><span class="kw">let </span>msg = <span class="macro">format!</span>(<span class="string">&quot;variable declaration {} in eval function already exists as a lexical variable&quot;</span>, name.to_std_string_escaped());
                         <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::syntax().with_message(msg).into());
                     }
                     <span class="comment">// b. NOTE: A direct eval will not hoist var declaration over a like-named lexical declaration.
@@ -1698,8 +1797,10 @@
             </span><span class="kw">if </span>!declared_function_names.contains(<span class="kw-2">&amp;</span>name) {
                 <span class="comment">// 1. If varEnv is a Global Environment Record, then
                 </span><span class="kw">if </span>var_env.is_global() {
+                    <span class="kw">let </span>name = name.to_js_string(<span class="self">self</span>.interner());
+
                     <span class="comment">// a. Let fnDefinable be ? varEnv.CanDeclareGlobalFunction(fn).
-                    </span><span class="kw">let </span>fn_definable = <span class="self">self</span>.context.can_declare_global_function(name)<span class="question-mark">?</span>;
+                    </span><span class="kw">let </span>fn_definable = <span class="self">self</span>.context.can_declare_global_function(<span class="kw-2">&amp;</span>name)<span class="question-mark">?</span>;
 
                     <span class="comment">// b. If fnDefinable is false, throw a TypeError exception.
                     </span><span class="kw">if </span>!fn_definable {
@@ -1742,9 +1843,11 @@
                     <span class="comment">// 3. Assert: The following loop will terminate.
                     // 4. Repeat, while thisEnv is not varEnv,
                     </span><span class="kw">while </span>this_env.environment_index() != lex_env.environment_index() {
+                        <span class="kw">let </span>f = f.to_js_string(<span class="self">self</span>.interner());
+
                         <span class="comment">// a. If thisEnv is not an Object Environment Record, then
                         // i. If ! thisEnv.HasBinding(F) is true, then
-                        </span><span class="kw">if </span>this_env.has_binding(f) {
+                        </span><span class="kw">if </span>this_env.has_binding(<span class="kw-2">&amp;</span>f) {
                             <span class="comment">// i. Let bindingExists be true.
                             </span>binding_exists = <span class="bool-val">true</span>;
                             <span class="kw">break</span>;
@@ -1760,14 +1863,16 @@
 
                     <span class="comment">// 5. If bindingExists is false and varEnv is a Global Environment Record, then
                     </span><span class="kw">let </span>fn_definable = <span class="kw">if </span>!binding_exists &amp;&amp; var_env.is_global() {
+                        <span class="kw">let </span>f = f.to_js_string(<span class="self">self</span>.interner());
+
                         <span class="comment">// a. If varEnv.HasLexicalDeclaration(F) is false, then
                         // b. Else,
-                        </span><span class="kw">if </span><span class="self">self</span>.variable_environment.has_lex_binding(f) {
+                        </span><span class="kw">if </span><span class="self">self</span>.variable_environment.has_lex_binding(<span class="kw-2">&amp;</span>f) {
                             <span class="comment">// i. Let fnDefinable be false.
                             </span><span class="bool-val">false
                         </span>} <span class="kw">else </span>{
                             <span class="comment">// i. Let fnDefinable be ? varEnv.CanDeclareGlobalVar(F).
-                            </span><span class="self">self</span>.context.can_declare_global_var(f)<span class="question-mark">?
+                            </span><span class="self">self</span>.context.can_declare_global_var(<span class="kw-2">&amp;</span>f)<span class="question-mark">?
                         </span>}
                     }
                     <span class="comment">// 6. Else,
@@ -1787,14 +1892,16 @@
                         {
                             <span class="comment">// i. If varEnv is a Global Environment Record, then
                             </span><span class="kw">if </span>var_env.is_global() {
+                                <span class="kw">let </span>f = f.to_js_string(<span class="self">self</span>.interner());
                                 <span class="comment">// i. Perform ? varEnv.CreateGlobalVarBinding(F, true).
                                 </span><span class="self">self</span>.context.create_global_var_binding(f, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
                             }
                             <span class="comment">// ii. Else,
                             </span><span class="kw">else </span>{
+                                <span class="kw">let </span>f = f.to_js_string(<span class="self">self</span>.interner());
                                 <span class="comment">// i. Let bindingExists be ! varEnv.HasBinding(F).
                                 // ii. If bindingExists is false, then
-                                </span><span class="kw">if </span>!var_env.has_binding(f) {
+                                </span><span class="kw">if </span>!var_env.has_binding(<span class="kw-2">&amp;</span>f) {
                                     <span class="comment">// i. Perform ! varEnv.CreateMutableBinding(F, true).
                                     // ii. Perform ! varEnv.InitializeBinding(F, undefined).
                                     </span><span class="kw">let </span>binding = var_env.create_mutable_binding(f, <span class="bool-val">true</span>);
@@ -1837,8 +1944,10 @@
                 </span><span class="kw">if </span>!declared_function_names.contains(<span class="kw-2">&amp;</span>name) {
                     <span class="comment">// a. If varEnv is a Global Environment Record, then
                     </span><span class="kw">if </span>var_env.is_global() {
+                        <span class="kw">let </span>name = name.to_js_string(<span class="self">self</span>.interner());
+
                         <span class="comment">// i. Let vnDefinable be ? varEnv.CanDeclareGlobalVar(vn).
-                        </span><span class="kw">let </span>vn_definable = <span class="self">self</span>.context.can_declare_global_var(name)<span class="question-mark">?</span>;
+                        </span><span class="kw">let </span>vn_definable = <span class="self">self</span>.context.can_declare_global_var(<span class="kw-2">&amp;</span>name)<span class="question-mark">?</span>;
 
                         <span class="comment">// ii. If vnDefinable is false, throw a TypeError exception.
                         </span><span class="kw">if </span>!vn_definable {
@@ -1873,16 +1982,19 @@
                 <span class="kw">match </span>declaration {
                     Declaration::Class(class) =&gt; {
                         <span class="kw">for </span>name <span class="kw">in </span>bound_names(class) {
+                            <span class="kw">let </span>name = name.to_js_string(<span class="self">self</span>.interner());
                             lex_env.create_mutable_binding(name, <span class="bool-val">false</span>);
                         }
                     }
                     Declaration::Lexical(LexicalDeclaration::Let(declaration)) =&gt; {
                         <span class="kw">for </span>name <span class="kw">in </span>bound_names(declaration) {
+                            <span class="kw">let </span>name = name.to_js_string(<span class="self">self</span>.interner());
                             lex_env.create_mutable_binding(name, <span class="bool-val">false</span>);
                         }
                     }
                     Declaration::Lexical(LexicalDeclaration::Const(declaration)) =&gt; {
                         <span class="kw">for </span>name <span class="kw">in </span>bound_names(declaration) {
+                            <span class="kw">let </span>name = name.to_js_string(<span class="self">self</span>.interner());
                             lex_env.create_immutable_binding(name, <span class="bool-val">true</span>);
                         }
                     }
@@ -1913,11 +2025,11 @@
             };
             <span class="kw">let </span>name = name.expect(<span class="string">&quot;function declaration must have a name&quot;</span>);
             <span class="kw">let </span>code = FunctionCompiler::new()
-                .name(name.sym())
+                .name(name.sym().to_js_string(<span class="self">self</span>.interner()))
                 .generator(generator)
                 .r#async(r#async)
                 .strict(<span class="self">self</span>.strict())
-                .binding_identifier(<span class="prelude-val">Some</span>(name.sym()))
+                .binding_identifier(<span class="prelude-val">Some</span>(name.sym().to_js_string(<span class="self">self</span>.interner())))
                 .compile(
                     parameters,
                     body,
@@ -1947,8 +2059,10 @@
                 </span><span class="kw">let </span>index = <span class="self">self</span>.push_function_to_constants(code);
                 <span class="self">self</span>.emit_with_varying_operand(Opcode::GetFunction, index);
 
+                <span class="kw">let </span>name = name.to_js_string(<span class="self">self</span>.interner());
+
                 <span class="comment">// i. Let bindingExists be ! varEnv.HasBinding(fn).
-                </span><span class="kw">let </span>binding_exists = var_env.has_binding(name);
+                </span><span class="kw">let </span>binding_exists = var_env.has_binding(<span class="kw-2">&amp;</span>name);
 
                 <span class="comment">// ii. If bindingExists is false, then
                 // iii. Else,
@@ -1970,6 +2084,8 @@
 
         <span class="comment">// 18. For each String vn of declaredVarNames, do
         </span><span class="kw">for </span>name <span class="kw">in </span>declared_var_names {
+            <span class="kw">let </span>name = name.to_js_string(<span class="self">self</span>.interner());
+
             <span class="comment">// a. If varEnv is a Global Environment Record, then
             </span><span class="kw">if </span>var_env.is_global() {
                 <span class="comment">// i. Perform ? varEnv.CreateGlobalVarBinding(vn, true).
@@ -1978,7 +2094,7 @@
             <span class="comment">// b. Else,
             </span><span class="kw">else </span>{
                 <span class="comment">// i. Let bindingExists be ! varEnv.HasBinding(vn).
-                </span><span class="kw">let </span>binding_exists = var_env.has_binding(name);
+                </span><span class="kw">let </span>binding_exists = var_env.has_binding(<span class="kw-2">&amp;</span>name);
 
                 <span class="comment">// ii. If bindingExists is false, then
                 </span><span class="kw">if </span>!binding_exists {
@@ -2121,6 +2237,8 @@
         // NOTE(HalidOdat): Has been moved up, so &quot;arguments&quot; gets registed as
         //     the first binding in the environment with index 0.
         </span><span class="kw">if </span>arguments_object_needed {
+            <span class="kw">let </span>arguments = arguments.to_js_string(<span class="self">self</span>.interner());
+
             <span class="comment">// a. If strict is true or simpleParameterList is false, then
             </span><span class="kw">if </span>strict || !formals.is_simple() {
                 <span class="comment">// i. Let ao be CreateUnmappedArgumentsObject(argumentsList).
@@ -2140,12 +2258,12 @@
                 <span class="comment">// i. Perform ! env.CreateImmutableBinding(&quot;arguments&quot;, false).
                 // ii. NOTE: In strict mode code early errors prevent attempting to assign
                 //           to this binding, so its mutability is not observable.
-                </span>env.create_immutable_binding(arguments, <span class="bool-val">false</span>);
+                </span>env.create_immutable_binding(arguments.clone(), <span class="bool-val">false</span>);
             }
             <span class="comment">// d. Else,
             </span><span class="kw">else </span>{
                 <span class="comment">// i. Perform ! env.CreateMutableBinding(&quot;arguments&quot;, false).
-                </span>env.create_mutable_binding(arguments, <span class="bool-val">false</span>);
+                </span>env.create_mutable_binding(arguments.clone(), <span class="bool-val">false</span>);
             }
 
             <span class="comment">// e. Perform ! env.InitializeBinding(&quot;arguments&quot;, ao).
@@ -2154,8 +2272,10 @@
 
         <span class="comment">// 21. For each String paramName of parameterNames, do
         </span><span class="kw">for </span>param_name <span class="kw">in </span><span class="kw-2">&amp;</span>parameter_names {
+            <span class="kw">let </span>param_name = param_name.to_js_string(<span class="self">self</span>.interner());
+
             <span class="comment">// a. Let alreadyDeclared be ! env.HasBinding(paramName).
-            </span><span class="kw">let </span>already_declared = env.has_binding(<span class="kw-2">*</span>param_name);
+            </span><span class="kw">let </span>already_declared = env.has_binding(<span class="kw-2">&amp;</span>param_name);
 
             <span class="comment">// b. NOTE: Early errors ensure that duplicate parameter names can only occur in non-strict
             //    functions that do not have parameter default values or rest parameters.
@@ -2163,7 +2283,7 @@
             // c. If alreadyDeclared is false, then
             </span><span class="kw">if </span>!already_declared {
                 <span class="comment">// i. Perform ! env.CreateMutableBinding(paramName, false).
-                </span>env.create_mutable_binding(<span class="kw-2">*</span>param_name, <span class="bool-val">false</span>);
+                </span>env.create_mutable_binding(param_name, <span class="bool-val">false</span>);
 
                 <span class="comment">// Note: These steps are not necessary in our implementation.
                 // ii. If hasDuplicates is true, then
@@ -2198,12 +2318,13 @@
             }
             <span class="kw">match </span>parameter.variable().binding() {
                 Binding::Identifier(ident) =&gt; {
+                    <span class="kw">let </span>ident = ident.to_js_string(<span class="self">self</span>.interner());
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(init) = parameter.variable().init() {
                         <span class="kw">let </span>skip = <span class="self">self</span>.emit_opcode_with_operand(Opcode::JumpIfNotUndefined);
                         <span class="self">self</span>.compile_expr(init, <span class="bool-val">true</span>);
                         <span class="self">self</span>.patch_jump(skip);
                     }
-                    <span class="self">self</span>.emit_binding(BindingOpcode::InitLexical, <span class="kw-2">*</span>ident);
+                    <span class="self">self</span>.emit_binding(BindingOpcode::InitLexical, ident);
                 }
                 Binding::Pattern(pattern) =&gt; {
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(init) = parameter.variable().init() {
@@ -2245,8 +2366,10 @@
                     <span class="comment">// 1. Append n to instantiatedVarNames.
                     </span>instantiated_var_names.push(n);
 
+                    <span class="kw">let </span>n_string = n.to_js_string(<span class="self">self</span>.interner());
+
                     <span class="comment">// 2. Perform ! varEnv.CreateMutableBinding(n, false).
-                    </span><span class="kw">let </span>binding = var_env.create_mutable_binding(n, <span class="bool-val">false</span>);
+                    </span><span class="kw">let </span>binding = var_env.create_mutable_binding(n_string.clone(), <span class="bool-val">false</span>);
 
                     <span class="comment">// 3. If parameterBindings does not contain n, or if functionNames contains n, then
                     </span><span class="kw">if </span>!parameter_bindings.contains(<span class="kw-2">&amp;</span>n) || function_names.contains(<span class="kw-2">&amp;</span>n) {
@@ -2256,7 +2379,7 @@
                     <span class="comment">// 4. Else,
                     </span><span class="kw">else </span>{
                         <span class="comment">// a. Let initialValue be ! env.GetBindingValue(n, false).
-                        </span><span class="kw">let </span>binding = env.get_binding(n).expect(<span class="string">&quot;must have binding&quot;</span>);
+                        </span><span class="kw">let </span>binding = env.get_binding(<span class="kw-2">&amp;</span>n_string).expect(<span class="string">&quot;must have binding&quot;</span>);
                         <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
                         <span class="self">self</span>.emit_with_varying_operand(Opcode::GetName, index);
                     }
@@ -2283,6 +2406,8 @@
                 </span><span class="kw">if </span>!instantiated_var_names.contains(<span class="kw-2">&amp;</span>n) {
                     <span class="comment">// 1. Append n to instantiatedVarNames.
                     </span>instantiated_var_names.push(n);
+
+                    <span class="kw">let </span>n = n.to_js_string(<span class="self">self</span>.interner());
 
                     <span class="comment">// 2. Perform ! env.CreateMutableBinding(n, false).
                     // 3. Perform ! env.InitializeBinding(n, undefined).
@@ -2314,9 +2439,11 @@
 
                     // 2. If initializedBindings does not contain F and F is not &quot;arguments&quot;, then
                     </span><span class="kw">if </span>!instantiated_var_names.contains(<span class="kw-2">&amp;</span>f) &amp;&amp; f != arguments {
+                        <span class="kw">let </span>f_string = f.to_js_string(<span class="self">self</span>.interner());
+
                         <span class="comment">// a. Perform ! varEnv.CreateMutableBinding(F, false).
                         // b. Perform ! varEnv.InitializeBinding(F, undefined).
-                        </span><span class="kw">let </span>binding = var_env.create_mutable_binding(f, <span class="bool-val">false</span>);
+                        </span><span class="kw">let </span>binding = var_env.create_mutable_binding(f_string, <span class="bool-val">false</span>);
                         <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
                         <span class="self">self</span>.emit_opcode(Opcode::PushUndefined);
                         <span class="self">self</span>.emit_with_varying_operand(Opcode::DefInitVar, index);
@@ -2370,16 +2497,19 @@
                 <span class="kw">match </span>declaration {
                     Declaration::Class(class) =&gt; {
                         <span class="kw">for </span>name <span class="kw">in </span>bound_names(class) {
+                            <span class="kw">let </span>name = name.to_js_string(<span class="self">self</span>.interner());
                             lex_env.create_mutable_binding(name, <span class="bool-val">false</span>);
                         }
                     }
                     Declaration::Lexical(LexicalDeclaration::Let(declaration)) =&gt; {
                         <span class="kw">for </span>name <span class="kw">in </span>bound_names(declaration) {
+                            <span class="kw">let </span>name = name.to_js_string(<span class="self">self</span>.interner());
                             lex_env.create_mutable_binding(name, <span class="bool-val">false</span>);
                         }
                     }
                     Declaration::Lexical(LexicalDeclaration::Const(declaration)) =&gt; {
                         <span class="kw">for </span>name <span class="kw">in </span>bound_names(declaration) {
+                            <span class="kw">let </span>name = name.to_js_string(<span class="self">self</span>.interner());
                             lex_env.create_immutable_binding(name, <span class="bool-val">true</span>);
                         }
                     }

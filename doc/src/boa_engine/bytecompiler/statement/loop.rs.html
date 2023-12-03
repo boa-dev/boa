@@ -461,6 +461,20 @@
 <a href="#461" id="461">461</a>
 <a href="#462" id="462">462</a>
 <a href="#463" id="463">463</a>
+<a href="#464" id="464">464</a>
+<a href="#465" id="465">465</a>
+<a href="#466" id="466">466</a>
+<a href="#467" id="467">467</a>
+<a href="#468" id="468">468</a>
+<a href="#469" id="469">469</a>
+<a href="#470" id="470">470</a>
+<a href="#471" id="471">471</a>
+<a href="#472" id="472">472</a>
+<a href="#473" id="473">473</a>
+<a href="#474" id="474">474</a>
+<a href="#475" id="475">475</a>
+<a href="#476" id="476">476</a>
+<a href="#477" id="477">477</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>boa_ast::{
     declaration::Binding,
     operations::bound_names,
@@ -472,7 +486,7 @@
 <span class="kw">use </span>boa_interner::Sym;
 
 <span class="kw">use crate</span>::{
-    bytecompiler::{Access, ByteCompiler, Operand},
+    bytecompiler::{Access, ByteCompiler, Operand, ToJsString},
     environments::BindingLocatorError,
     vm::{BindingOpcode, Opcode},
 };
@@ -501,15 +515,16 @@
                     <span class="kw">let </span>names = bound_names(decl);
                     <span class="kw">if </span>decl.is_const() {
                         <span class="kw">for </span>name <span class="kw">in </span><span class="kw-2">&amp;</span>names {
+                            <span class="kw">let </span>name = name.to_js_string(<span class="self">self</span>.interner());
                             <span class="self">self</span>.lexical_environment
-                                .create_immutable_binding(<span class="kw-2">*</span>name, <span class="bool-val">true</span>);
+                                .create_immutable_binding(name, <span class="bool-val">true</span>);
                         }
                     } <span class="kw">else </span>{
                         <span class="kw">let </span><span class="kw-2">mut </span>indices = Vec::new();
                         <span class="kw">for </span>name <span class="kw">in </span><span class="kw-2">&amp;</span>names {
-                            <span class="kw">let </span>binding = <span class="self">self
-                                </span>.lexical_environment
-                                .create_mutable_binding(<span class="kw-2">*</span>name, <span class="bool-val">false</span>);
+                            <span class="kw">let </span>name = name.to_js_string(<span class="self">self</span>.interner());
+                            <span class="kw">let </span>binding =
+                                <span class="self">self</span>.lexical_environment.create_mutable_binding(name, <span class="bool-val">false</span>);
                             <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
                             indices.push(index);
                         }
@@ -582,9 +597,10 @@
         <span class="comment">// Handle https://tc39.es/ecma262/#prod-annexB-ForInOfStatement
         </span><span class="kw">if let </span>IterableLoopInitializer::Var(var) = for_in_loop.initializer() {
             <span class="kw">if let </span>Binding::Identifier(ident) = var.binding() {
+                <span class="kw">let </span>ident = ident.to_js_string(<span class="self">self</span>.interner());
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(init) = var.init() {
                     <span class="self">self</span>.compile_expr(init, <span class="bool-val">true</span>);
-                    <span class="self">self</span>.emit_binding(BindingOpcode::InitVar, <span class="kw-2">*</span>ident);
+                    <span class="self">self</span>.emit_binding(BindingOpcode::InitVar, ident);
                 }
             }
         }
@@ -601,8 +617,8 @@
             <span class="self">self</span>.emit_with_varying_operand(Opcode::PushDeclarativeEnvironment, env_index);
 
             <span class="kw">for </span>name <span class="kw">in </span><span class="kw-2">&amp;</span>initializer_bound_names {
-                <span class="self">self</span>.lexical_environment
-                    .create_mutable_binding(<span class="kw-2">*</span>name, <span class="bool-val">false</span>);
+                <span class="kw">let </span>name = name.to_js_string(<span class="self">self</span>.interner());
+                <span class="self">self</span>.lexical_environment.create_mutable_binding(name, <span class="bool-val">false</span>);
             }
             <span class="self">self</span>.compile_expr(for_in_loop.target(), <span class="bool-val">true</span>);
 
@@ -634,7 +650,8 @@
 
         <span class="kw">match </span>for_in_loop.initializer() {
             IterableLoopInitializer::Identifier(ident) =&gt; {
-                <span class="self">self</span>.emit_binding(BindingOpcode::InitVar, <span class="kw-2">*</span>ident);
+                <span class="kw">let </span>ident = ident.to_js_string(<span class="self">self</span>.interner());
+                <span class="self">self</span>.emit_binding(BindingOpcode::InitVar, ident);
             }
             IterableLoopInitializer::Access(access) =&gt; {
                 <span class="self">self</span>.access_set(
@@ -645,7 +662,8 @@
             }
             IterableLoopInitializer::Var(declaration) =&gt; <span class="kw">match </span>declaration.binding() {
                 Binding::Identifier(ident) =&gt; {
-                    <span class="self">self</span>.emit_binding(BindingOpcode::InitVar, <span class="kw-2">*</span>ident);
+                    <span class="kw">let </span>ident = ident.to_js_string(<span class="self">self</span>.interner());
+                    <span class="self">self</span>.emit_binding(BindingOpcode::InitVar, ident);
                 }
                 Binding::Pattern(pattern) =&gt; {
                     <span class="self">self</span>.compile_declaration_pattern(pattern, BindingOpcode::InitVar);
@@ -653,12 +671,14 @@
             },
             IterableLoopInitializer::Let(declaration) =&gt; <span class="kw">match </span>declaration {
                 Binding::Identifier(ident) =&gt; {
+                    <span class="kw">let </span>ident = ident.to_js_string(<span class="self">self</span>.interner());
                     <span class="self">self</span>.lexical_environment
-                        .create_mutable_binding(<span class="kw-2">*</span>ident, <span class="bool-val">false</span>);
-                    <span class="self">self</span>.emit_binding(BindingOpcode::InitLexical, <span class="kw-2">*</span>ident);
+                        .create_mutable_binding(ident.clone(), <span class="bool-val">false</span>);
+                    <span class="self">self</span>.emit_binding(BindingOpcode::InitLexical, ident);
                 }
                 Binding::Pattern(pattern) =&gt; {
                     <span class="kw">for </span>ident <span class="kw">in </span>bound_names(pattern) {
+                        <span class="kw">let </span>ident = ident.to_js_string(<span class="self">self</span>.interner());
                         <span class="self">self</span>.lexical_environment
                             .create_mutable_binding(ident, <span class="bool-val">false</span>);
                     }
@@ -667,12 +687,14 @@
             },
             IterableLoopInitializer::Const(declaration) =&gt; <span class="kw">match </span>declaration {
                 Binding::Identifier(ident) =&gt; {
+                    <span class="kw">let </span>ident = ident.to_js_string(<span class="self">self</span>.interner());
                     <span class="self">self</span>.lexical_environment
-                        .create_immutable_binding(<span class="kw-2">*</span>ident, <span class="bool-val">true</span>);
-                    <span class="self">self</span>.emit_binding(BindingOpcode::InitLexical, <span class="kw-2">*</span>ident);
+                        .create_immutable_binding(ident.clone(), <span class="bool-val">true</span>);
+                    <span class="self">self</span>.emit_binding(BindingOpcode::InitLexical, ident);
                 }
                 Binding::Pattern(pattern) =&gt; {
                     <span class="kw">for </span>ident <span class="kw">in </span>bound_names(pattern) {
+                        <span class="kw">let </span>ident = ident.to_js_string(<span class="self">self</span>.interner());
                         <span class="self">self</span>.lexical_environment
                             .create_immutable_binding(ident, <span class="bool-val">true</span>);
                     }
@@ -724,8 +746,8 @@
             <span class="self">self</span>.emit_with_varying_operand(Opcode::PushDeclarativeEnvironment, env_index);
 
             <span class="kw">for </span>name <span class="kw">in </span><span class="kw-2">&amp;</span>initializer_bound_names {
-                <span class="self">self</span>.lexical_environment
-                    .create_mutable_binding(<span class="kw-2">*</span>name, <span class="bool-val">false</span>);
+                <span class="kw">let </span>name = name.to_js_string(<span class="self">self</span>.interner());
+                <span class="self">self</span>.lexical_environment.create_mutable_binding(name, <span class="bool-val">false</span>);
             }
             <span class="self">self</span>.compile_expr(for_of_loop.iterable(), <span class="bool-val">true</span>);
 
@@ -770,13 +792,14 @@
         <span class="kw">let </span><span class="kw-2">mut </span>handler_index = <span class="prelude-val">None</span>;
         <span class="kw">match </span>for_of_loop.initializer() {
             IterableLoopInitializer::Identifier(<span class="kw-2">ref </span>ident) =&gt; {
-                <span class="kw">match </span><span class="self">self</span>.lexical_environment.set_mutable_binding(<span class="kw-2">*</span>ident) {
+                <span class="kw">let </span>ident = ident.to_js_string(<span class="self">self</span>.interner());
+                <span class="kw">match </span><span class="self">self</span>.lexical_environment.set_mutable_binding(ident.clone()) {
                     <span class="prelude-val">Ok</span>(binding) =&gt; {
                         <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
                         <span class="self">self</span>.emit_with_varying_operand(Opcode::DefInitVar, index);
                     }
                     <span class="prelude-val">Err</span>(BindingLocatorError::MutateImmutable) =&gt; {
-                        <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name(<span class="kw-2">*</span>ident);
+                        <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_string(ident);
                         <span class="self">self</span>.emit_with_varying_operand(Opcode::ThrowMutateImmutable, index);
                     }
                     <span class="prelude-val">Err</span>(BindingLocatorError::Silent) =&gt; {
@@ -797,7 +820,8 @@
                 </span><span class="macro">assert!</span>(declaration.init().is_none());
                 <span class="kw">match </span>declaration.binding() {
                     Binding::Identifier(ident) =&gt; {
-                        <span class="self">self</span>.emit_binding(BindingOpcode::InitVar, <span class="kw-2">*</span>ident);
+                        <span class="kw">let </span>ident = ident.to_js_string(<span class="self">self</span>.interner());
+                        <span class="self">self</span>.emit_binding(BindingOpcode::InitVar, ident);
                     }
                     Binding::Pattern(pattern) =&gt; {
                         <span class="self">self</span>.compile_declaration_pattern(pattern, BindingOpcode::InitVar);
@@ -806,12 +830,14 @@
             }
             IterableLoopInitializer::Let(declaration) =&gt; <span class="kw">match </span>declaration {
                 Binding::Identifier(ident) =&gt; {
+                    <span class="kw">let </span>ident = ident.to_js_string(<span class="self">self</span>.interner());
                     <span class="self">self</span>.lexical_environment
-                        .create_mutable_binding(<span class="kw-2">*</span>ident, <span class="bool-val">false</span>);
-                    <span class="self">self</span>.emit_binding(BindingOpcode::InitLexical, <span class="kw-2">*</span>ident);
+                        .create_mutable_binding(ident.clone(), <span class="bool-val">false</span>);
+                    <span class="self">self</span>.emit_binding(BindingOpcode::InitLexical, ident);
                 }
                 Binding::Pattern(pattern) =&gt; {
                     <span class="kw">for </span>ident <span class="kw">in </span>bound_names(pattern) {
+                        <span class="kw">let </span>ident = ident.to_js_string(<span class="self">self</span>.interner());
                         <span class="self">self</span>.lexical_environment
                             .create_mutable_binding(ident, <span class="bool-val">false</span>);
                     }
@@ -820,12 +846,14 @@
             },
             IterableLoopInitializer::Const(declaration) =&gt; <span class="kw">match </span>declaration {
                 Binding::Identifier(ident) =&gt; {
+                    <span class="kw">let </span>ident = ident.to_js_string(<span class="self">self</span>.interner());
                     <span class="self">self</span>.lexical_environment
-                        .create_immutable_binding(<span class="kw-2">*</span>ident, <span class="bool-val">true</span>);
-                    <span class="self">self</span>.emit_binding(BindingOpcode::InitLexical, <span class="kw-2">*</span>ident);
+                        .create_immutable_binding(ident.clone(), <span class="bool-val">true</span>);
+                    <span class="self">self</span>.emit_binding(BindingOpcode::InitLexical, ident);
                 }
                 Binding::Pattern(pattern) =&gt; {
                     <span class="kw">for </span>ident <span class="kw">in </span>bound_names(pattern) {
+                        <span class="kw">let </span>ident = ident.to_js_string(<span class="self">self</span>.interner());
                         <span class="self">self</span>.lexical_environment
                             .create_immutable_binding(ident, <span class="bool-val">true</span>);
                     }

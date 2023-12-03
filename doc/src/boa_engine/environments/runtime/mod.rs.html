@@ -657,34 +657,6 @@
 <a href="#657" id="657">657</a>
 <a href="#658" id="658">658</a>
 <a href="#659" id="659">659</a>
-<a href="#660" id="660">660</a>
-<a href="#661" id="661">661</a>
-<a href="#662" id="662">662</a>
-<a href="#663" id="663">663</a>
-<a href="#664" id="664">664</a>
-<a href="#665" id="665">665</a>
-<a href="#666" id="666">666</a>
-<a href="#667" id="667">667</a>
-<a href="#668" id="668">668</a>
-<a href="#669" id="669">669</a>
-<a href="#670" id="670">670</a>
-<a href="#671" id="671">671</a>
-<a href="#672" id="672">672</a>
-<a href="#673" id="673">673</a>
-<a href="#674" id="674">674</a>
-<a href="#675" id="675">675</a>
-<a href="#676" id="676">676</a>
-<a href="#677" id="677">677</a>
-<a href="#678" id="678">678</a>
-<a href="#679" id="679">679</a>
-<a href="#680" id="680">680</a>
-<a href="#681" id="681">681</a>
-<a href="#682" id="682">682</a>
-<a href="#683" id="683">683</a>
-<a href="#684" id="684">684</a>
-<a href="#685" id="685">685</a>
-<a href="#686" id="686">686</a>
-<a href="#687" id="687">687</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::rc::Rc;
 
 <span class="kw">use crate</span>::{
@@ -692,7 +664,6 @@
     object::{JsObject, PrivateName},
     Context, JsResult, JsString, JsSymbol, JsValue,
 };
-<span class="kw">use </span>boa_ast::expression::Identifier;
 <span class="kw">use </span>boa_gc::{empty_trace, Finalize, Gc, Trace};
 
 <span class="kw">mod </span>declarative;
@@ -1104,9 +1075,9 @@
 <span class="doccomment">/// A binding locator contains all information about a binding that is needed to resolve it at runtime.
 ///
 /// Binding locators get created at bytecode compile time and are accessible at runtime via the [`crate::vm::CodeBlock`].
-</span><span class="attr">#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, Finalize)]
+</span><span class="attr">#[derive(Clone, Debug, Eq, Hash, PartialEq, Finalize)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>BindingLocator {
-    name: Identifier,
+    name: JsString,
     environment_index: u32,
     binding_index: u32,
     global: bool,
@@ -1119,7 +1090,7 @@
 <span class="kw">impl </span>BindingLocator {
     <span class="doccomment">/// Creates a new declarative binding locator that has knows indices.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>declarative(
-        name: Identifier,
+        name: JsString,
         environment_index: u32,
         binding_index: u32,
     ) -&gt; <span class="self">Self </span>{
@@ -1132,7 +1103,7 @@
     }
 
     <span class="doccomment">/// Creates a binding locator that indicates that the binding is on the global object.
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">const fn </span>global(name: Identifier) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">const fn </span>global(name: JsString) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             name,
             environment_index: <span class="number">0</span>,
@@ -1142,8 +1113,8 @@
     }
 
     <span class="doccomment">/// Returns the name of the binding.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Identifier {
-        <span class="self">self</span>.name
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>JsString {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.name
     }
 
     <span class="doccomment">/// Returns if the binding is located on the global object.
@@ -1197,7 +1168,7 @@
                     <span class="kw">if </span>env.poisoned() {
                         <span class="kw">let </span>compile = env.compile_env();
                         <span class="kw">if </span>compile.is_function() {
-                            <span class="kw">if let </span><span class="prelude-val">Some</span>(b) = compile.get_binding(locator.name) {
+                            <span class="kw">if let </span><span class="prelude-val">Some</span>(b) = compile.get_binding(locator.name()) {
                                 locator.environment_index = b.environment_index;
                                 locator.binding_index = b.binding_index;
                                 locator.global = <span class="bool-val">false</span>;
@@ -1210,10 +1181,7 @@
                 }
                 Environment::Object(o) =&gt; {
                     <span class="kw">let </span>o = o.clone();
-                    <span class="kw">let </span>key: JsString = <span class="self">self
-                        </span>.interner()
-                        .resolve_expect(locator.name.sym())
-                        .into_common(<span class="bool-val">false</span>);
+                    <span class="kw">let </span>key = locator.name().clone();
                     <span class="kw">if </span>o.has_property(key.clone(), <span class="self">self</span>)<span class="question-mark">? </span>{
                         <span class="kw">if let </span><span class="prelude-val">Some</span>(unscopables) = o.get(JsSymbol::unscopables(), <span class="self">self</span>)<span class="question-mark">?</span>.as_object()
                         {
@@ -1239,19 +1207,13 @@
     /// Panics if the environment or binding index are out of range.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_initialized_binding(<span class="kw-2">&amp;mut </span><span class="self">self</span>, locator: <span class="kw-2">&amp;</span>BindingLocator) -&gt; JsResult&lt;bool&gt; {
         <span class="kw">if </span>locator.global {
-            <span class="kw">let </span>key: JsString = <span class="self">self
-                </span>.interner()
-                .resolve_expect(locator.name.sym())
-                .into_common(<span class="bool-val">false</span>);
+            <span class="kw">let </span>key = locator.name().clone();
             <span class="self">self</span>.global_object().has_property(key, <span class="self">self</span>)
         } <span class="kw">else </span>{
             <span class="kw">match </span><span class="self">self</span>.environment_expect(locator.environment_index) {
                 Environment::Declarative(env) =&gt; <span class="prelude-val">Ok</span>(env.get(locator.binding_index).is_some()),
                 Environment::Object(obj) =&gt; {
-                    <span class="kw">let </span>key: JsString = <span class="self">self
-                        </span>.interner()
-                        .resolve_expect(locator.name.sym())
-                        .into_common(<span class="bool-val">false</span>);
+                    <span class="kw">let </span>key = locator.name().clone();
                     obj.clone().has_property(key, <span class="self">self</span>)
                 }
             }
@@ -1263,13 +1225,10 @@
     /// # Panics
     ///
     /// Panics if the environment or binding index are out of range.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_binding(<span class="kw-2">&amp;mut </span><span class="self">self</span>, locator: BindingLocator) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;JsValue&gt;&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_binding(<span class="kw-2">&amp;mut </span><span class="self">self</span>, locator: <span class="kw-2">&amp;</span>BindingLocator) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;JsValue&gt;&gt; {
         <span class="kw">if </span>locator.global {
             <span class="kw">let </span>global = <span class="self">self</span>.global_object();
-            <span class="kw">let </span>key: JsString = <span class="self">self
-                </span>.interner()
-                .resolve_expect(locator.name.sym())
-                .into_common(<span class="bool-val">false</span>);
+            <span class="kw">let </span>key = locator.name().clone();
             <span class="kw">if </span>global.has_property(key.clone(), <span class="self">self</span>)<span class="question-mark">? </span>{
                 global.get(key, <span class="self">self</span>).map(<span class="prelude-val">Some</span>)
             } <span class="kw">else </span>{
@@ -1280,10 +1239,7 @@
                 Environment::Declarative(env) =&gt; <span class="prelude-val">Ok</span>(env.get(locator.binding_index)),
                 Environment::Object(obj) =&gt; {
                     <span class="kw">let </span>obj = obj.clone();
-                    <span class="kw">let </span>key: JsString = <span class="self">self
-                        </span>.interner()
-                        .resolve_expect(locator.name.sym())
-                        .into_common(<span class="bool-val">false</span>);
+                    <span class="kw">let </span>key = locator.name().clone();
                     obj.get(key, <span class="self">self</span>).map(<span class="prelude-val">Some</span>)
                 }
             }
@@ -1298,15 +1254,12 @@
     </span><span class="attr">#[track_caller]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_binding(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        locator: BindingLocator,
+        locator: <span class="kw-2">&amp;</span>BindingLocator,
         value: JsValue,
         strict: bool,
     ) -&gt; JsResult&lt;()&gt; {
         <span class="kw">if </span>locator.global {
-            <span class="kw">let </span>key = <span class="self">self
-                </span>.interner()
-                .resolve_expect(locator.name().sym())
-                .into_common::&lt;JsString&gt;(<span class="bool-val">false</span>);
+            <span class="kw">let </span>key = locator.name().clone();
 
             <span class="self">self</span>.global_object().set(key, value, strict, <span class="self">self</span>)<span class="question-mark">?</span>;
         } <span class="kw">else </span>{
@@ -1316,10 +1269,7 @@
                 }
                 Environment::Object(obj) =&gt; {
                     <span class="kw">let </span>obj = obj.clone();
-                    <span class="kw">let </span>key: JsString = <span class="self">self
-                        </span>.interner()
-                        .resolve_expect(locator.name.sym())
-                        .into_common(<span class="bool-val">false</span>);
+                    <span class="kw">let </span>key = locator.name().clone();
 
                     obj.set(key, value, strict, <span class="self">self</span>)<span class="question-mark">?</span>;
                 }
@@ -1336,22 +1286,16 @@
     /// # Panics
     ///
     /// Panics if the environment or binding index are out of range.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>delete_binding(<span class="kw-2">&amp;mut </span><span class="self">self</span>, locator: BindingLocator) -&gt; JsResult&lt;bool&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>delete_binding(<span class="kw-2">&amp;mut </span><span class="self">self</span>, locator: <span class="kw-2">&amp;</span>BindingLocator) -&gt; JsResult&lt;bool&gt; {
         <span class="kw">if </span>locator.is_global() {
-            <span class="kw">let </span>key: JsString = <span class="self">self
-                </span>.interner()
-                .resolve_expect(locator.name().sym())
-                .into_common::&lt;JsString&gt;(<span class="bool-val">false</span>);
+            <span class="kw">let </span>key = locator.name().clone();
             <span class="self">self</span>.global_object().__delete__(<span class="kw-2">&amp;</span>key.into(), <span class="self">self</span>)
         } <span class="kw">else </span>{
             <span class="kw">match </span><span class="self">self</span>.environment_expect(locator.environment_index) {
                 Environment::Declarative(<span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>),
                 Environment::Object(obj) =&gt; {
                     <span class="kw">let </span>obj = obj.clone();
-                    <span class="kw">let </span>key: JsString = <span class="self">self
-                        </span>.interner()
-                        .resolve_expect(locator.name.sym())
-                        .into_common(<span class="bool-val">false</span>);
+                    <span class="kw">let </span>key = locator.name().clone();
 
                     obj.__delete__(<span class="kw-2">&amp;</span>key.into(), <span class="self">self</span>)
                 }

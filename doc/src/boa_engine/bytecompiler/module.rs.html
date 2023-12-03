@@ -73,10 +73,11 @@
 <a href="#73" id="73">73</a>
 <a href="#74" id="74">74</a>
 <a href="#75" id="75">75</a>
+<a href="#76" id="76">76</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::vm::{BindingOpcode, Opcode};
 
-<span class="kw">use super</span>::{ByteCompiler, Literal, Operand};
-<span class="kw">use </span>boa_ast::{declaration::ExportDeclaration, expression::Identifier, ModuleItem, ModuleItemList};
+<span class="kw">use super</span>::{ByteCompiler, Literal, Operand, ToJsString};
+<span class="kw">use </span>boa_ast::{declaration::ExportDeclaration, ModuleItem, ModuleItemList};
 <span class="kw">use </span>boa_interner::Sym;
 
 <span class="kw">impl </span>ByteCompiler&lt;<span class="lifetime">&#39;_</span>&gt; {
@@ -122,13 +123,14 @@
                         <span class="kw">if </span>cl.name().is_none() {
                             <span class="self">self</span>.emit_binding(
                                 BindingOpcode::InitLexical,
-                                Identifier::from(Sym::DEFAULT_EXPORT),
+                                Sym::DEFAULT_EXPORT.to_js_string(<span class="self">self</span>.interner()),
                             );
                         }
                     }
                     ExportDeclaration::DefaultAssignmentExpression(expr) =&gt; {
-                        <span class="kw">let </span>name = Identifier::from(Sym::DEFAULT_EXPORT);
-                        <span class="self">self</span>.lexical_environment.create_mutable_binding(name, <span class="bool-val">false</span>);
+                        <span class="kw">let </span>name = Sym::DEFAULT_EXPORT.to_js_string(<span class="self">self</span>.interner());
+                        <span class="self">self</span>.lexical_environment
+                            .create_mutable_binding(name.clone(), <span class="bool-val">false</span>);
                         <span class="self">self</span>.compile_expr(expr, <span class="bool-val">true</span>);
 
                         <span class="kw">if </span>expr.is_anonymous_function_definition() {

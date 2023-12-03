@@ -528,14 +528,9 @@
 <a href="#528" id="528">528</a>
 <a href="#529" id="529">529</a>
 <a href="#530" id="530">530</a>
-<a href="#531" id="531">531</a>
-<a href="#532" id="532">532</a>
-<a href="#533" id="533">533</a>
-<a href="#534" id="534">534</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module is responsible for generating the vm instruction flowgraph.
 
 </span><span class="kw">use </span><span class="kw">crate</span>::vm::CodeBlock;
-<span class="kw">use </span>boa_interner::Interner;
 <span class="kw">use </span>boa_macros::utf16;
 
 <span class="kw">mod </span>color;
@@ -553,7 +548,7 @@
 <span class="kw">impl </span>CodeBlock {
     <span class="doccomment">/// Output the [`CodeBlock`] VM instructions into a [`Graph`].
     </span><span class="attr">#[allow(clippy::match_same_arms)]
-    </span><span class="kw">pub fn </span>to_graph(<span class="kw-2">&amp;</span><span class="self">self</span>, interner: <span class="kw-2">&amp;</span>Interner, graph: <span class="kw-2">&amp;mut </span>SubGraph) {
+    </span><span class="kw">pub fn </span>to_graph(<span class="kw-2">&amp;</span><span class="self">self</span>, graph: <span class="kw-2">&amp;mut </span>SubGraph) {
         <span class="comment">// Have to remove any invalid graph chars like `&lt;` or `&gt;`.
         </span><span class="kw">let </span>name = <span class="kw">if </span><span class="self">self</span>.name() == <span class="macro">utf16!</span>(<span class="string">&quot;&lt;main&gt;&quot;</span>) {
             <span class="string">&quot;__main__&quot;</span>.to_string()
@@ -568,10 +563,7 @@
             <span class="kw">let </span>opcode = instruction.opcode();
             <span class="kw">let </span>opcode_str = opcode.as_str();
 
-            <span class="kw">let </span>label = <span class="macro">format!</span>(
-                <span class="string">&quot;{opcode_str} {}&quot;</span>,
-                <span class="self">self</span>.instruction_operands(<span class="kw-2">&amp;</span>instruction, interner)
-            );
+            <span class="kw">let </span>label = <span class="macro">format!</span>(<span class="string">&quot;{opcode_str} {}&quot;</span>, <span class="self">self</span>.instruction_operands(<span class="kw-2">&amp;</span>instruction));
 
             <span class="kw">let </span>pc = iterator.pc();
 
@@ -1061,7 +1053,7 @@
         <span class="kw">for </span>constant <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.constants {
             <span class="kw">if let </span>Constant::Function(function) = constant {
                 <span class="kw">let </span>subgraph = graph.subgraph(String::new());
-                function.to_graph(interner, subgraph);
+                function.to_graph(subgraph);
             }
         }
     }

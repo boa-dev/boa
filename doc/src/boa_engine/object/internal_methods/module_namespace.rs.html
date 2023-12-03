@@ -329,6 +329,10 @@
 <a href="#329" id="329">329</a>
 <a href="#330" id="330">330</a>
 <a href="#331" id="331">331</a>
+<a href="#332" id="332">332</a>
+<a href="#333" id="333">333</a>
+<a href="#334" id="334">334</a>
+<a href="#335" id="335">335</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::collections::HashSet;
 
 <span class="kw">use crate</span>::{
@@ -433,7 +437,7 @@
         </span><span class="kw">let </span>exports = obj.exports();
 
         <span class="comment">// 3. If exports does not contain P, return undefined.
-        </span><span class="kw">if </span>!exports.contains_key(<span class="kw-2">&amp;</span>key) {
+        </span><span class="kw">if </span>!exports.contains(<span class="kw-2">&amp;</span>key) {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
         }
     }
@@ -514,7 +518,7 @@
 
     <span class="comment">// 3. If exports contains P, return true.
     // 4. Return false.
-    </span><span class="prelude-val">Ok</span>(exports.contains_key(<span class="kw-2">&amp;</span>key))
+    </span><span class="prelude-val">Ok</span>(exports.contains(<span class="kw-2">&amp;</span>key))
 }
 
 <span class="doccomment">/// [`[[Get]] ( P, Receiver )`][spec]
@@ -542,7 +546,7 @@
     <span class="comment">// 2. Let exports be O.[[Exports]].
     </span><span class="kw">let </span>exports = obj.exports();
     <span class="comment">// 3. If exports does not contain P, return undefined.
-    </span><span class="kw">let </span><span class="prelude-val">Some</span>(export_name) = exports.get(<span class="kw-2">&amp;</span>key).copied() <span class="kw">else </span>{
+    </span><span class="kw">let </span><span class="prelude-val">Some</span>(export_name) = exports.get(<span class="kw-2">&amp;</span>key).cloned() <span class="kw">else </span>{
         <span class="kw">return </span><span class="prelude-val">Ok</span>(JsValue::undefined());
     };
 
@@ -551,7 +555,11 @@
 
     <span class="comment">// 5. Let binding be m.ResolveExport(P).
     </span><span class="kw">let </span>binding = m
-        .resolve_export(export_name, <span class="kw-2">&amp;mut </span>HashSet::default())
+        .resolve_export(
+            export_name.clone(),
+            <span class="kw-2">&amp;mut </span>HashSet::default(),
+            context.interner(),
+        )
         .expect(<span class="string">&quot;6. Assert: binding is a ResolvedBinding Record.&quot;</span>);
 
     <span class="comment">// 7. Let targetModule be binding.[[Module]].
@@ -563,7 +571,7 @@
         <span class="comment">// 10. Let targetEnv be targetModule.[[Environment]].
         </span><span class="kw">let </span><span class="prelude-val">Some</span>(env) = target_module.environment() <span class="kw">else </span>{
             <span class="comment">// 11. If targetEnv is empty, throw a ReferenceError exception.
-            </span><span class="kw">let </span>import = context.interner().resolve_expect(export_name);
+            </span><span class="kw">let </span>import = export_name.to_std_string_escaped();
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::reference()
                 .with_message(<span class="macro">format!</span>(
                     <span class="string">&quot;cannot get import `{import}` from an uninitialized module&quot;
@@ -573,12 +581,12 @@
 
         <span class="kw">let </span>locator = env
             .compile_env()
-            .get_binding(name)
+            .get_binding(<span class="kw-2">&amp;</span>name)
             .expect(<span class="string">&quot;checked before that the name was reachable&quot;</span>);
 
         <span class="comment">// 12. Return ? targetEnv.GetBindingValue(binding.[[BindingName]], true).
         </span>env.get(locator.binding_index()).ok_or_else(|| {
-            <span class="kw">let </span>import = context.interner().resolve_expect(export_name);
+            <span class="kw">let </span>import = export_name.to_std_string_escaped();
 
             JsNativeError::reference()
                 .with_message(<span class="macro">format!</span>(<span class="string">&quot;cannot get uninitialized import `{import}`&quot;</span>))
@@ -632,7 +640,7 @@
 
     <span class="comment">// 3. If exports contains P, return false.
     // 4. Return true.
-    </span><span class="prelude-val">Ok</span>(!exports.contains_key(<span class="kw-2">&amp;</span>key))
+    </span><span class="prelude-val">Ok</span>(!exports.contains(<span class="kw-2">&amp;</span>key))
 }
 
 <span class="doccomment">/// [`[[OwnPropertyKeys]] ( )`][spec].
@@ -655,7 +663,7 @@
 
     <span class="comment">// 3. Return the list-concatenation of exports and symbolKeys.
     </span><span class="prelude-val">Ok</span>(exports
-        .keys()
+        .iter()
         .map(|k| PropertyKey::String(k.clone()))
         .chain(symbol_keys)
         .collect())

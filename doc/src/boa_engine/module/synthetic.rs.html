@@ -370,27 +370,16 @@
 <a href="#370" id="370">370</a>
 <a href="#371" id="371">371</a>
 <a href="#372" id="372">372</a>
-<a href="#373" id="373">373</a>
-<a href="#374" id="374">374</a>
-<a href="#375" id="375">375</a>
-<a href="#376" id="376">376</a>
-<a href="#377" id="377">377</a>
-<a href="#378" id="378">378</a>
-<a href="#379" id="379">379</a>
-<a href="#380" id="380">380</a>
-<a href="#381" id="381">381</a>
-<a href="#382" id="382">382</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::rc::Rc;
 
-<span class="kw">use </span>boa_ast::expression::Identifier;
 <span class="kw">use </span>boa_gc::{Finalize, Gc, GcRefCell, Trace, WeakGc};
-<span class="kw">use </span>boa_interner::Sym;
 <span class="kw">use </span>rustc_hash::FxHashSet;
 
 <span class="kw">use crate</span>::{
     builtins::promise::ResolvingFunctions,
     bytecompiler::ByteCompiler,
     environments::{CompileTimeEnvironment, EnvironmentStack},
+    js_string,
     object::JsPromise,
     vm::{ActiveRunnable, CallFrame, CodeBlock},
     Context, JsNativeError, JsResult, JsString, JsValue, Module,
@@ -541,7 +530,7 @@
 </span><span class="kw">struct </span>Inner {
     parent: WeakGc&lt;ModuleRepr&gt;,
     <span class="attr">#[unsafe_ignore_trace]
-    </span>export_names: FxHashSet&lt;Sym&gt;,
+    </span>export_names: FxHashSet&lt;JsString&gt;,
     eval_context: GcRefCell&lt;<span class="prelude-ty">Option</span>&lt;(EnvironmentStack, Gc&lt;CodeBlock&gt;)&gt;&gt;,
     eval_steps: SyntheticModuleInitializer,
 }
@@ -560,7 +549,7 @@
 
     <span class="doccomment">/// Creates a new synthetic module.
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(
-        names: FxHashSet&lt;Sym&gt;,
+        names: FxHashSet&lt;JsString&gt;,
         eval_steps: SyntheticModuleInitializer,
         parent: WeakGc&lt;ModuleRepr&gt;,
     ) -&gt; <span class="self">Self </span>{
@@ -585,7 +574,7 @@
     <span class="doccomment">/// Concrete method [`GetExportedNames ( [ exportStarSet ] )`][spec].
     ///
     /// [spec]: https://tc39.es/proposal-json-modules/#sec-smr-getexportednames
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>get_exported_names(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FxHashSet&lt;Sym&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>get_exported_names(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FxHashSet&lt;JsString&gt; {
         <span class="comment">// 1. Return module.[[ExportNames]].
         </span><span class="self">self</span>.inner.export_names.clone()
     }
@@ -596,13 +585,13 @@
     </span><span class="attr">#[allow(clippy::mutable_key_type)]
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>resolve_export(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        export_name: Sym,
+        export_name: JsString,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;ResolvedBinding, ResolveExportError&gt; {
         <span class="kw">if </span><span class="self">self</span>.inner.export_names.contains(<span class="kw-2">&amp;</span>export_name) {
             <span class="comment">// 2. Return ResolvedBinding Record { [[Module]]: module, [[BindingName]]: exportName }.
             </span><span class="prelude-val">Ok</span>(ResolvedBinding {
                 module: <span class="self">self</span>.parent(),
-                binding_name: BindingName::Name(Identifier::new(export_name)),
+                binding_name: BindingName::Name(export_name),
             })
         } <span class="kw">else </span>{
             <span class="comment">// 1. If module.[[ExportNames]] does not contain exportName, return null.
@@ -625,7 +614,7 @@
         <span class="comment">// TODO: A bit of a hack to be able to pass the currently active runnable without an
         // available codeblock to execute.
         </span><span class="kw">let </span>compiler = ByteCompiler::new(
-            Sym::MAIN,
+            <span class="macro">js_string!</span>(<span class="string">&quot;&lt;main&gt;&quot;</span>),
             <span class="bool-val">true</span>,
             <span class="bool-val">false</span>,
             module_compile_env.clone(),
@@ -639,9 +628,8 @@
             .export_names
             .iter()
             .map(|name| {
-                <span class="kw">let </span>ident = Identifier::new(<span class="kw-2">*</span>name);
                 <span class="comment">//     a. Perform ! env.CreateMutableBinding(exportName, false).
-                </span>module_compile_env.create_mutable_binding(ident, <span class="bool-val">false</span>)
+                </span>module_compile_env.create_mutable_binding(name.clone(), <span class="bool-val">false</span>)
             })
             .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
 
@@ -735,22 +723,14 @@
     /// be passed to the list of exported names in [`Module::synthetic`] beforehand.
     ///
     /// [spec]: https://tc39.es/proposal-json-modules/#sec-createsyntheticmodule
-    </span><span class="kw">pub fn </span>set_export(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        export_name: <span class="kw-2">&amp;</span>JsString,
-        export_value: JsValue,
-        context: <span class="kw-2">&amp;mut </span>Context,
-    ) -&gt; JsResult&lt;()&gt; {
-        <span class="kw">let </span>identifier = context.interner_mut().get_or_intern(<span class="kw-2">&amp;**</span>export_name);
-        <span class="kw">let </span>identifier = Identifier::new(identifier);
-
+    </span><span class="kw">pub fn </span>set_export(<span class="kw-2">&amp;</span><span class="self">self</span>, export_name: <span class="kw-2">&amp;</span>JsString, export_value: JsValue) -&gt; JsResult&lt;()&gt; {
         <span class="kw">let </span>environment = <span class="self">self
             </span>.parent()
             .environment()
             .expect(<span class="string">&quot;this must be initialized before evaluating&quot;</span>);
         <span class="kw">let </span>locator = environment
             .compile_env()
-            .get_binding(identifier)
+            .get_binding(export_name)
             .ok_or_else(|| {
                 JsNativeError::reference().with_message(<span class="macro">format!</span>(
                     <span class="string">&quot;cannot set name `{}` which was not included in the list of exports&quot;</span>,

@@ -191,31 +191,31 @@
     builtins::function::ThisMode,
     bytecompiler::ByteCompiler,
     environments::CompileTimeEnvironment,
+    js_string,
     vm::{CodeBlock, CodeBlockFlags, Opcode},
-    Context,
+    Context, JsString,
 };
 <span class="kw">use </span>boa_ast::function::{FormalParameterList, FunctionBody};
 <span class="kw">use </span>boa_gc::Gc;
-<span class="kw">use </span>boa_interner::Sym;
 
 <span class="doccomment">/// `FunctionCompiler` is used to compile AST functions to bytecode.
-</span><span class="attr">#[derive(Debug, Clone, Copy)]
+</span><span class="attr">#[derive(Debug, Clone)]
 #[allow(clippy::struct_excessive_bools)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>FunctionCompiler {
-    name: Sym,
+    name: JsString,
     generator: bool,
     r#async: bool,
     strict: bool,
     arrow: bool,
     method: bool,
-    binding_identifier: <span class="prelude-ty">Option</span>&lt;Sym&gt;,
+    binding_identifier: <span class="prelude-ty">Option</span>&lt;JsString&gt;,
 }
 
 <span class="kw">impl </span>FunctionCompiler {
     <span class="doccomment">/// Create a new `FunctionCompiler`.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>new() -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            name: Sym::EMPTY_STRING,
+            name: <span class="macro">js_string!</span>(),
             generator: <span class="bool-val">false</span>,
             r#async: <span class="bool-val">false</span>,
             strict: <span class="bool-val">false</span>,
@@ -228,7 +228,7 @@
     <span class="doccomment">/// Set the name of the function.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>name&lt;N&gt;(<span class="kw-2">mut </span><span class="self">self</span>, name: N) -&gt; <span class="self">Self
     </span><span class="kw">where
-        </span>N: Into&lt;<span class="prelude-ty">Option</span>&lt;Sym&gt;&gt;,
+        </span>N: Into&lt;<span class="prelude-ty">Option</span>&lt;JsString&gt;&gt;,
     {
         <span class="kw">let </span>name = name.into();
         <span class="kw">if let </span><span class="prelude-val">Some</span>(name) = name {
@@ -266,7 +266,7 @@
     </span>}
 
     <span class="doccomment">/// Indicate if the function has a binding identifier.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>binding_identifier(<span class="kw-2">mut </span><span class="self">self</span>, binding_identifier: <span class="prelude-ty">Option</span>&lt;Sym&gt;) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>binding_identifier(<span class="kw-2">mut </span><span class="self">self</span>, binding_identifier: <span class="prelude-ty">Option</span>&lt;JsString&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.binding_identifier = binding_identifier;
         <span class="self">self
     </span>}
@@ -313,7 +313,7 @@
             <span class="kw">let _ </span>= compiler.push_compile_environment(<span class="bool-val">false</span>);
             compiler
                 .lexical_environment
-                .create_immutable_binding(binding_identifier.into(), <span class="self">self</span>.strict);
+                .create_immutable_binding(binding_identifier, <span class="self">self</span>.strict);
         }
 
         <span class="comment">// Function environment

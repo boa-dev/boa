@@ -625,11 +625,6 @@
 <a href="#625" id="625">625</a>
 <a href="#626" id="626">626</a>
 <a href="#627" id="627">627</a>
-<a href="#628" id="628">628</a>
-<a href="#629" id="629">629</a>
-<a href="#630" id="630">630</a>
-<a href="#631" id="631">631</a>
-<a href="#632" id="632">632</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of the ECMAScript&#39;s module system.
 //!
 //! This module contains the [`Module`] type, which represents an [**Abstract Module Record**][module],
@@ -666,12 +661,11 @@
 <span class="kw">use </span>std::rc::Rc;
 <span class="kw">use </span>std::{collections::HashSet, hash::BuildHasherDefault};
 
-<span class="kw">use </span>indexmap::IndexMap;
+<span class="kw">use </span>indexmap::IndexSet;
 <span class="kw">use </span>rustc_hash::{FxHashSet, FxHasher};
 
-<span class="kw">use </span>boa_ast::expression::Identifier;
 <span class="kw">use </span>boa_gc::{Finalize, Gc, GcRefCell, Trace};
-<span class="kw">use </span>boa_interner::Sym;
+<span class="kw">use </span>boa_interner::Interner;
 <span class="kw">use </span>boa_parser::{Parser, Source};
 <span class="kw">use </span>boa_profiler::Profiler;
 
@@ -734,10 +728,10 @@
 ///
 /// Note that a resolved binding can resolve to a single binding inside a module (`export var a = 1&quot;`)
 /// or to a whole module namespace (`export * as ns from &quot;mod.js&quot;`).
-</span><span class="attr">#[derive(Debug, Clone, Copy)]
+</span><span class="attr">#[derive(Debug, Clone)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>BindingName {
     <span class="doccomment">/// A local binding.
-    </span>Name(Identifier),
+    </span>Name(JsString),
     <span class="doccomment">/// The whole namespace of the containing module.
     </span>Namespace,
 }
@@ -749,8 +743,8 @@
     }
 
     <span class="doccomment">/// Gets the binding associated with the resolved export.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>binding_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; BindingName {
-        <span class="self">self</span>.binding_name
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>binding_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; BindingName {
+        <span class="self">self</span>.binding_name.clone()
     }
 }
 
@@ -785,7 +779,7 @@
         <span class="kw">let </span>module = parser.parse_module(context.interner_mut())<span class="question-mark">?</span>;
 
         <span class="kw">let </span>inner = Gc::new_cyclic(|weak| {
-            <span class="kw">let </span>src = SourceTextModule::new(module, weak.clone());
+            <span class="kw">let </span>src = SourceTextModule::new(module, weak.clone(), context.interner());
 
             ModuleRepr {
                 realm: realm.unwrap_or_else(|| context.realm().clone()),
@@ -812,10 +806,7 @@
         realm: <span class="prelude-ty">Option</span>&lt;Realm&gt;,
         context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>names: FxHashSet&lt;Sym&gt; = export_names
-            .iter()
-            .map(|string| context.interner_mut().get_or_intern(<span class="kw-2">&amp;**</span>string))
-            .collect();
+        <span class="kw">let </span>names = export_names.iter().cloned().collect();
         <span class="kw">let </span>realm = realm.unwrap_or_else(|| context.realm().clone());
         <span class="kw">let </span>inner = Gc::new_cyclic(|weak| {
             <span class="kw">let </span>synth = SyntheticModule::new(names, evaluation_steps, weak.clone());
@@ -954,9 +945,13 @@
     /// This must only be called if the [`JsPromise`] returned by [`Module::load`] has fulfilled.
     ///
     /// [spec]: https://tc39.es/ecma262/#table-abstract-methods-of-module-records
-    </span><span class="kw">fn </span>get_exported_names(<span class="kw-2">&amp;</span><span class="self">self</span>, export_star_set: <span class="kw-2">&amp;mut </span>Vec&lt;SourceTextModule&gt;) -&gt; FxHashSet&lt;Sym&gt; {
+    </span><span class="kw">fn </span>get_exported_names(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        export_star_set: <span class="kw-2">&amp;mut </span>Vec&lt;SourceTextModule&gt;,
+        interner: <span class="kw-2">&amp;</span>Interner,
+    ) -&gt; FxHashSet&lt;JsString&gt; {
         <span class="kw">match </span><span class="self">self</span>.kind() {
-            ModuleKind::SourceText(src) =&gt; src.get_exported_names(export_star_set),
+            ModuleKind::SourceText(src) =&gt; src.get_exported_names(export_star_set, interner),
             ModuleKind::Synthetic(synth) =&gt; synth.get_exported_names(),
         }
     }
@@ -975,11 +970,12 @@
     </span><span class="attr">#[allow(clippy::mutable_key_type)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>resolve_export(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        export_name: Sym,
-        resolve_set: <span class="kw-2">&amp;mut </span>FxHashSet&lt;(<span class="self">Self</span>, Sym)&gt;,
+        export_name: JsString,
+        resolve_set: <span class="kw-2">&amp;mut </span>FxHashSet&lt;(<span class="self">Self</span>, JsString)&gt;,
+        interner: <span class="kw-2">&amp;</span>Interner,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;ResolvedBinding, ResolveExportError&gt; {
         <span class="kw">match </span><span class="self">self</span>.kind() {
-            ModuleKind::SourceText(src) =&gt; src.resolve_export(export_name, resolve_set),
+            ModuleKind::SourceText(src) =&gt; src.resolve_export(<span class="kw-2">&amp;</span>export_name, resolve_set, interner),
             ModuleKind::Synthetic(synth) =&gt; synth.resolve_export(export_name),
         }
     }
@@ -1163,7 +1159,8 @@
             .borrow_mut()
             .get_or_insert_with(|| {
                 <span class="comment">// a. Let exportedNames be module.GetExportedNames().
-                </span><span class="kw">let </span>exported_names = <span class="self">self</span>.get_exported_names(<span class="kw-2">&amp;mut </span>Vec::default());
+                </span><span class="kw">let </span>exported_names =
+                    <span class="self">self</span>.get_exported_names(<span class="kw-2">&amp;mut </span>Vec::default(), context.interner());
 
                 <span class="comment">// b. Let unambiguousNames be a new empty List.
                 </span><span class="kw">let </span>unambiguous_names = exported_names
@@ -1172,9 +1169,13 @@
                     </span>.filter_map(|name| {
                         <span class="comment">// i. Let resolution be module.ResolveExport(name).
                         // ii. If resolution is a ResolvedBinding Record, append name to unambiguousNames.
-                        </span><span class="self">self</span>.resolve_export(name, <span class="kw-2">&amp;mut </span>HashSet::default())
-                            .ok()
-                            .map(|<span class="kw">_</span>| name)
+                        </span><span class="self">self</span>.resolve_export(
+                            name.clone(),
+                            <span class="kw-2">&amp;mut </span>HashSet::default(),
+                            context.interner(),
+                        )
+                        .ok()
+                        .map(|<span class="kw">_</span>| name)
                     })
                     .collect();
 
@@ -1208,31 +1209,20 @@
 </span><span class="kw">pub struct </span>ModuleNamespace {
     module: Module,
     <span class="attr">#[unsafe_ignore_trace]
-    </span>exports: IndexMap&lt;JsString, Sym, BuildHasherDefault&lt;FxHasher&gt;&gt;,
+    </span>exports: IndexSet&lt;JsString, BuildHasherDefault&lt;FxHasher&gt;&gt;,
 }
 
 <span class="kw">impl </span>ModuleNamespace {
     <span class="doccomment">/// Abstract operation [`ModuleNamespaceCreate ( module, exports )`][spec].
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-modulenamespacecreate
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create(module: Module, names: Vec&lt;Sym&gt;, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsObject {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create(module: Module, names: Vec&lt;JsString&gt;, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsObject {
         <span class="comment">// 1. Assert: module.[[Namespace]] is empty.
         // ignored since this is ensured by `Module::namespace`.
 
         // 6. Let sortedExports be a List whose elements are the elements of exports ordered as if an Array of the same values had been sorted using %Array.prototype.sort% using undefined as comparefn.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>exports = names
-            .into_iter()
-            .map(|sym| {
-                (
-                    context
-                        .interner()
-                        .resolve_expect(sym)
-                        .into_common::&lt;JsString&gt;(<span class="bool-val">false</span>),
-                    sym,
-                )
-            })
-            .collect::&lt;IndexMap&lt;<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>&gt;&gt;();
-        exports.sort_keys();
+        </span><span class="kw">let </span><span class="kw-2">mut </span>exports = names.into_iter().collect::&lt;IndexSet&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt;&gt;();
+        exports.sort();
 
         <span class="comment">// 2. Let internalSlotsList be the internal slots listed in Table 32.
         // 3. Let M be MakeBasicObject(internalSlotsList).
@@ -1253,7 +1243,7 @@
     }
 
     <span class="doccomment">/// Gets the export names of the Module Namespace object.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>exports(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>IndexMap&lt;JsString, Sym, BuildHasherDefault&lt;FxHasher&gt;&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>exports(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>IndexSet&lt;JsString, BuildHasherDefault&lt;FxHasher&gt;&gt; {
         <span class="kw-2">&amp;</span><span class="self">self</span>.exports
     }
 

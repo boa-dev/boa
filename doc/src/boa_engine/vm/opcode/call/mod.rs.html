@@ -452,7 +452,6 @@
 <a href="#452" id="452">452</a>
 <a href="#453" id="453">453</a>
 <a href="#454" id="454">454</a>
-<a href="#455" id="455">455</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::{promise::PromiseCapability, Promise},
     error::JsNativeError,
@@ -754,15 +753,14 @@
                                         <span class="macro">panic!</span>(<span class="string">&quot;referrer cannot be a synthetic module&quot;</span>);
                                     };
 
-                                    <span class="kw">let </span>sym = context.interner_mut().get_or_intern(<span class="kw-2">&amp;*</span>specifier);
-
                                     <span class="kw">let </span><span class="kw-2">mut </span>loaded_modules = src.loaded_modules().borrow_mut();
 
                                     <span class="comment">//     a. If referrer.[[LoadedModules]] contains a Record whose [[Specifier]] is specifier, then
                                     //     b. Else,
                                     //         i. Append the Record { [[Specifier]]: specifier, [[Module]]: result.[[Value]] } to referrer.[[LoadedModules]].
-                                    </span><span class="kw">let </span>entry =
-                                        loaded_modules.entry(sym).or_insert_with(|| m.clone());
+                                    </span><span class="kw">let </span>entry = loaded_modules
+                                        .entry(specifier)
+                                        .or_insert_with(|| m.clone());
 
                                     <span class="comment">//         i. Assert: That Record&#39;s [[Module]] is result.[[Value]].
                                     </span><span class="macro">debug_assert_eq!</span>(<span class="kw-2">&amp;</span>m, entry);

@@ -293,7 +293,7 @@
 <a href="#293" id="293">293</a>
 <a href="#294" id="294">294</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
-    bytecompiler::{Access, ByteCompiler, Literal, Operand},
+    bytecompiler::{Access, ByteCompiler, Literal, Operand, ToJsString},
     vm::{BindingOpcode, Opcode},
 };
 <span class="kw">use </span>boa_ast::{
@@ -355,7 +355,7 @@
                                 <span class="self">self</span>.compile_expr(init, <span class="bool-val">true</span>);
                                 <span class="self">self</span>.patch_jump(skip);
                             }
-                            <span class="self">self</span>.emit_binding(def, <span class="kw-2">*</span>ident);
+                            <span class="self">self</span>.emit_binding(def, ident.to_js_string(<span class="self">self</span>.interner()));
 
                             <span class="kw">if </span>rest_exits &amp;&amp; name.computed().is_some() {
                                 <span class="self">self</span>.emit_opcode(Opcode::Swap);
@@ -382,7 +382,7 @@
                                     Operand::Varying(additional_excluded_keys_count),
                                 ],
                             );
-                            <span class="self">self</span>.emit_binding(def, <span class="kw-2">*</span>ident);
+                            <span class="self">self</span>.emit_binding(def, ident.to_js_string(<span class="self">self</span>.interner()));
                         }
                         AssignmentRestPropertyAccess {
                             access,
@@ -544,7 +544,7 @@
                     <span class="self">self</span>.compile_expr(init, <span class="bool-val">true</span>);
                     <span class="self">self</span>.patch_jump(skip);
                 }
-                <span class="self">self</span>.emit_binding(def, <span class="kw-2">*</span>ident);
+                <span class="self">self</span>.emit_binding(def, ident.to_js_string(<span class="self">self</span>.interner()));
             }
             PropertyAccess { access } =&gt; {
                 <span class="self">self</span>.access_set(Access::Property { access }, <span class="bool-val">false</span>, |compiler, _level| {
@@ -571,7 +571,7 @@
             <span class="comment">// BindingRestElement : ... BindingIdentifier
             </span>SingleNameRest { ident } =&gt; {
                 <span class="self">self</span>.emit_opcode(Opcode::IteratorToArray);
-                <span class="self">self</span>.emit_binding(def, <span class="kw-2">*</span>ident);
+                <span class="self">self</span>.emit_binding(def, ident.to_js_string(<span class="self">self</span>.interner()));
             }
             PropertyAccessRest { access } =&gt; {
                 <span class="self">self</span>.access_set(Access::Property { access }, <span class="bool-val">false</span>, |compiler, _level| {

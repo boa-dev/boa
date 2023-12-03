@@ -826,7 +826,6 @@
 <a href="#826" id="826">826</a>
 <a href="#827" id="827">827</a>
 <a href="#828" id="828">828</a>
-<a href="#829" id="829">829</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `JSON` object.
 //!
 //! The `JSON` object contains methods for parsing [JavaScript Object Notation (JSON)][spec]
@@ -862,7 +861,6 @@
     Context, JsArgs, JsResult, JsString, JsValue,
 };
 <span class="kw">use </span>boa_gc::Gc;
-<span class="kw">use </span>boa_interner::Sym;
 <span class="kw">use </span>boa_parser::{Parser, Source};
 <span class="kw">use </span>boa_profiler::Profiler;
 
@@ -943,7 +941,7 @@
         <span class="kw">let </span>script = parser.parse_script(context.interner_mut())<span class="question-mark">?</span>;
         <span class="kw">let </span>code_block = {
             <span class="kw">let </span><span class="kw-2">mut </span>compiler = ByteCompiler::new(
-                Sym::MAIN,
+                <span class="macro">js_string!</span>(<span class="string">&quot;&lt;main&gt;&quot;</span>),
                 script.strict(),
                 <span class="bool-val">true</span>,
                 context.realm().environment().compile_env(),

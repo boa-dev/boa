@@ -51,13 +51,14 @@
 <a href="#51" id="51">51</a>
 <a href="#52" id="52">52</a>
 <a href="#53" id="53">53</a>
+<a href="#54" id="54">54</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>boa_ast::{
     expression::operator::{unary::UnaryOp, Unary},
     Expression,
 };
 
 <span class="kw">use crate</span>::{
-    bytecompiler::{Access, ByteCompiler},
+    bytecompiler::{Access, ByteCompiler, ToJsString},
     vm::Opcode,
 };
 
@@ -80,9 +81,10 @@
             UnaryOp::TypeOf =&gt; {
                 <span class="kw">match </span>unary.target().flatten() {
                     Expression::Identifier(identifier) =&gt; {
+                        <span class="kw">let </span>identifier = identifier.to_js_string(<span class="self">self</span>.interner());
                         <span class="kw">let </span>binding = <span class="self">self
                             </span>.lexical_environment
-                            .get_identifier_reference(<span class="kw-2">*</span>identifier);
+                            .get_identifier_reference(identifier);
                         <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding.locator());
                         <span class="self">self</span>.emit_with_varying_operand(Opcode::GetNameOrUndefined, index);
                     }

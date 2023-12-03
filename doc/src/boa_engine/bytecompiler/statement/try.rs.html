@@ -197,8 +197,10 @@
 <a href="#197" id="197">197</a>
 <a href="#198" id="198">198</a>
 <a href="#199" id="199">199</a>
+<a href="#200" id="200">200</a>
+<a href="#201" id="201">201</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
-    bytecompiler::{jump_control::JumpControlInfoFlags, ByteCompiler},
+    bytecompiler::{jump_control::JumpControlInfoFlags, ByteCompiler, ToJsString},
     vm::{BindingOpcode, Opcode},
 };
 <span class="kw">use </span>boa_ast::{
@@ -318,11 +320,13 @@
         <span class="kw">if let </span><span class="prelude-val">Some</span>(binding) = catch.parameter() {
             <span class="kw">match </span>binding {
                 Binding::Identifier(ident) =&gt; {
-                    env.create_mutable_binding(<span class="kw-2">*</span>ident, <span class="bool-val">false</span>);
-                    <span class="self">self</span>.emit_binding(BindingOpcode::InitLexical, <span class="kw-2">*</span>ident);
+                    <span class="kw">let </span>ident = ident.to_js_string(<span class="self">self</span>.interner());
+                    env.create_mutable_binding(ident.clone(), <span class="bool-val">false</span>);
+                    <span class="self">self</span>.emit_binding(BindingOpcode::InitLexical, ident);
                 }
                 Binding::Pattern(pattern) =&gt; {
                     <span class="kw">for </span>ident <span class="kw">in </span>bound_names(pattern) {
+                        <span class="kw">let </span>ident = ident.to_js_string(<span class="self">self</span>.interner());
                         env.create_mutable_binding(ident, <span class="bool-val">false</span>);
                     }
                     <span class="self">self</span>.compile_declaration_pattern(pattern, BindingOpcode::InitLexical);

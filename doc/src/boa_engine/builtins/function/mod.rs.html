@@ -1491,7 +1491,7 @@
         };
 
         <span class="kw">let </span>code = FunctionCompiler::new()
-            .name(Sym::ANONYMOUS)
+            .name(<span class="macro">js_string!</span>(<span class="string">&quot;anonymous&quot;</span>))
             .generator(generator)
             .r#async(r#async)
             .compile(

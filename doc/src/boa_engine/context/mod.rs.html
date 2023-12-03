@@ -1103,8 +1103,6 @@
 <a href="#1103" id="1103">1103</a>
 <a href="#1104" id="1104">1104</a>
 <a href="#1105" id="1105">1105</a>
-<a href="#1106" id="1106">1106</a>
-<a href="#1107" id="1107">1107</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! The ECMAScript context.
 
 </span><span class="kw">mod </span>hooks;
@@ -1136,7 +1134,7 @@
     vm::{ActiveRunnable, CallFrame, Vm},
     JsNativeError, JsResult, JsString, JsValue, Source,
 };
-<span class="kw">use </span>boa_ast::{expression::Identifier, StatementList};
+<span class="kw">use </span>boa_ast::StatementList;
 <span class="kw">use </span>boa_interner::Interner;
 <span class="kw">use </span>boa_profiler::Profiler;
 
@@ -1716,13 +1714,13 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-candeclareglobalfunction
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>can_declare_global_function(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: Identifier) -&gt; JsResult&lt;bool&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>can_declare_global_function(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>JsString) -&gt; JsResult&lt;bool&gt; {
         <span class="comment">// 1. Let ObjRec be envRec.[[ObjectRecord]].
         // 2. Let globalObject be ObjRec.[[BindingObject]].
         </span><span class="kw">let </span>global_object = <span class="self">self</span>.realm().global_object().clone();
 
         <span class="comment">// 3. Let existingProp be ? globalObject.[[GetOwnProperty]](N).
-        </span><span class="kw">let </span>name = <span class="self">self</span>.interner().resolve_expect(name.sym()).utf16().into();
+        </span><span class="kw">let </span>name = name.clone().into();
         <span class="kw">let </span>existing_prop = global_object.__get_own_property__(<span class="kw-2">&amp;</span>name, <span class="self">self</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 4. If existingProp is undefined, return ? IsExtensible(globalObject).
@@ -1753,14 +1751,13 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-candeclareglobalvar
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>can_declare_global_var(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: Identifier) -&gt; JsResult&lt;bool&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>can_declare_global_var(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>JsString) -&gt; JsResult&lt;bool&gt; {
         <span class="comment">// 1. Let ObjRec be envRec.[[ObjectRecord]].
         // 2. Let globalObject be ObjRec.[[BindingObject]].
         </span><span class="kw">let </span>global_object = <span class="self">self</span>.realm().global_object().clone();
 
         <span class="comment">// 3. Let hasProperty be ? HasOwnProperty(globalObject, N).
-        </span><span class="kw">let </span>name = PropertyKey::from(<span class="self">self</span>.interner().resolve_expect(name.sym()).utf16());
-        <span class="kw">let </span>has_property = global_object.has_own_property(name, <span class="self">self</span>)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>has_property = global_object.has_own_property(name.clone(), <span class="self">self</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 4. If hasProperty is true, return true.
         </span><span class="kw">if </span>has_property {
@@ -1779,7 +1776,7 @@
     /// [spec]: https://tc39.es/ecma262/#sec-createglobalvarbinding
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_global_var_binding(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        name: Identifier,
+        name: JsString,
         configurable: bool,
     ) -&gt; JsResult&lt;()&gt; {
         <span class="comment">// 1. Let ObjRec be envRec.[[ObjectRecord]].
@@ -1787,8 +1784,7 @@
         </span><span class="kw">let </span>global_object = <span class="self">self</span>.realm().global_object().clone();
 
         <span class="comment">// 3. Let hasProperty be ? HasOwnProperty(globalObject, N).
-        </span><span class="kw">let </span>name = PropertyKey::from(<span class="self">self</span>.interner().resolve_expect(name.sym()).utf16());
-        <span class="kw">let </span>has_property = global_object.has_own_property(name.clone(), <span class="self">self</span>)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>has_property = global_object.has_own_property(name.clone(), <span class="self">self</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 4. Let extensible be ? IsExtensible(globalObject).
         </span><span class="kw">let </span>extensible = global_object.is_extensible(<span class="self">self</span>)<span class="question-mark">?</span>;
@@ -1872,13 +1868,13 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-hasrestrictedglobalproperty
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>has_restricted_global_property(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: Identifier) -&gt; JsResult&lt;bool&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>has_restricted_global_property(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>JsString) -&gt; JsResult&lt;bool&gt; {
         <span class="comment">// 1. Let ObjRec be envRec.[[ObjectRecord]].
         // 2. Let globalObject be ObjRec.[[BindingObject]].
         </span><span class="kw">let </span>global_object = <span class="self">self</span>.realm().global_object().clone();
 
         <span class="comment">// 3. Let existingProp be ? globalObject.[[GetOwnProperty]](N).
-        </span><span class="kw">let </span>name = PropertyKey::from(<span class="self">self</span>.interner().resolve_expect(name.sym()).utf16());
+        </span><span class="kw">let </span>name = name.clone().into();
         <span class="kw">let </span>existing_prop = global_object.__get_own_property__(<span class="kw-2">&amp;</span>name, <span class="self">self</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 4. If existingProp is undefined, return false.

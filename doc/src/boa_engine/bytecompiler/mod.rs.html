@@ -1479,6 +1479,50 @@
 <a href="#1479" id="1479">1479</a>
 <a href="#1480" id="1480">1480</a>
 <a href="#1481" id="1481">1481</a>
+<a href="#1482" id="1482">1482</a>
+<a href="#1483" id="1483">1483</a>
+<a href="#1484" id="1484">1484</a>
+<a href="#1485" id="1485">1485</a>
+<a href="#1486" id="1486">1486</a>
+<a href="#1487" id="1487">1487</a>
+<a href="#1488" id="1488">1488</a>
+<a href="#1489" id="1489">1489</a>
+<a href="#1490" id="1490">1490</a>
+<a href="#1491" id="1491">1491</a>
+<a href="#1492" id="1492">1492</a>
+<a href="#1493" id="1493">1493</a>
+<a href="#1494" id="1494">1494</a>
+<a href="#1495" id="1495">1495</a>
+<a href="#1496" id="1496">1496</a>
+<a href="#1497" id="1497">1497</a>
+<a href="#1498" id="1498">1498</a>
+<a href="#1499" id="1499">1499</a>
+<a href="#1500" id="1500">1500</a>
+<a href="#1501" id="1501">1501</a>
+<a href="#1502" id="1502">1502</a>
+<a href="#1503" id="1503">1503</a>
+<a href="#1504" id="1504">1504</a>
+<a href="#1505" id="1505">1505</a>
+<a href="#1506" id="1506">1506</a>
+<a href="#1507" id="1507">1507</a>
+<a href="#1508" id="1508">1508</a>
+<a href="#1509" id="1509">1509</a>
+<a href="#1510" id="1510">1510</a>
+<a href="#1511" id="1511">1511</a>
+<a href="#1512" id="1512">1512</a>
+<a href="#1513" id="1513">1513</a>
+<a href="#1514" id="1514">1514</a>
+<a href="#1515" id="1515">1515</a>
+<a href="#1516" id="1516">1516</a>
+<a href="#1517" id="1517">1517</a>
+<a href="#1518" id="1518">1518</a>
+<a href="#1519" id="1519">1519</a>
+<a href="#1520" id="1520">1520</a>
+<a href="#1521" id="1521">1521</a>
+<a href="#1522" id="1522">1522</a>
+<a href="#1523" id="1523">1523</a>
+<a href="#1524" id="1524">1524</a>
+<a href="#1525" id="1525">1525</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module contains the bytecode compiler.
 
 </span><span class="kw">mod </span>class;
@@ -1526,6 +1570,22 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>function::FunctionCompiler;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>jump_control::JumpControlInfo;
 <span class="kw">use </span>thin_vec::ThinVec;
+
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait </span>ToJsString {
+    <span class="kw">fn </span>to_js_string(<span class="kw-2">&amp;</span><span class="self">self</span>, interner: <span class="kw-2">&amp;</span>Interner) -&gt; JsString;
+}
+
+<span class="kw">impl </span>ToJsString <span class="kw">for </span>Sym {
+    <span class="kw">fn </span>to_js_string(<span class="kw-2">&amp;</span><span class="self">self</span>, interner: <span class="kw-2">&amp;</span>Interner) -&gt; JsString {
+        <span class="macro">js_string!</span>(interner.resolve_expect(<span class="kw-2">*</span><span class="self">self</span>).utf16())
+    }
+}
+
+<span class="kw">impl </span>ToJsString <span class="kw">for </span>Identifier {
+    <span class="kw">fn </span>to_js_string(<span class="kw-2">&amp;</span><span class="self">self</span>, interner: <span class="kw-2">&amp;</span>Interner) -&gt; JsString {
+        <span class="self">self</span>.sym().to_js_string(interner)
+    }
+}
 
 <span class="doccomment">/// Describes how a node has been defined in the source code.
 </span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq)]
@@ -1715,7 +1775,7 @@
 #[allow(clippy::struct_excessive_bools)]
 </span><span class="kw">pub struct </span>ByteCompiler&lt;<span class="lifetime">&#39;ctx</span>&gt; {
     <span class="doccomment">/// Name of this function.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) function_name: Sym,
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) function_name: JsString,
 
     <span class="doccomment">/// The number of arguments expected.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) length: u32,
@@ -1770,7 +1830,7 @@
     <span class="doccomment">/// Creates a new [`ByteCompiler`].
     </span><span class="attr">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(
-        name: Sym,
+        name: JsString,
         strict: bool,
         json_parse: bool,
         variable_environment: Rc&lt;CompileTimeEnvironment&gt;,
@@ -1859,6 +1919,10 @@
         index
     }
 
+    <span class="kw">fn </span>get_or_insert_string(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: JsString) -&gt; u32 {
+        <span class="self">self</span>.get_or_insert_literal(Literal::String(value))
+    }
+
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>get_or_insert_private_name(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: PrivateName) -&gt; u32 {
         <span class="self">self</span>.get_or_insert_name(Identifier::new(name.description()))
@@ -1871,7 +1935,7 @@
         }
 
         <span class="kw">let </span>index = <span class="self">self</span>.bindings.len() <span class="kw">as </span>u32;
-        <span class="self">self</span>.bindings.push(binding);
+        <span class="self">self</span>.bindings.push(binding.clone());
         <span class="self">self</span>.bindings_map.insert(binding, index);
         index
     }
@@ -1884,7 +1948,7 @@
         index
     }
 
-    <span class="kw">fn </span>emit_binding(<span class="kw-2">&amp;mut </span><span class="self">self</span>, opcode: BindingOpcode, name: Identifier) {
+    <span class="kw">fn </span>emit_binding(<span class="kw-2">&amp;mut </span><span class="self">self</span>, opcode: BindingOpcode, name: JsString) {
         <span class="kw">match </span>opcode {
             BindingOpcode::Var =&gt; {
                 <span class="kw">let </span>binding = <span class="self">self</span>.variable_environment.get_identifier_reference(name);
@@ -1893,37 +1957,41 @@
                     <span class="self">self</span>.emit_with_varying_operand(Opcode::DefVar, index);
                 }
             }
-            BindingOpcode::InitVar =&gt; <span class="kw">match </span><span class="self">self</span>.lexical_environment.set_mutable_binding(name) {
-                <span class="prelude-val">Ok</span>(binding) =&gt; {
-                    <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
-                    <span class="self">self</span>.emit_with_varying_operand(Opcode::DefInitVar, index);
+            BindingOpcode::InitVar =&gt; {
+                <span class="kw">match </span><span class="self">self</span>.lexical_environment.set_mutable_binding(name.clone()) {
+                    <span class="prelude-val">Ok</span>(binding) =&gt; {
+                        <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
+                        <span class="self">self</span>.emit_with_varying_operand(Opcode::DefInitVar, index);
+                    }
+                    <span class="prelude-val">Err</span>(BindingLocatorError::MutateImmutable) =&gt; {
+                        <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_string(name);
+                        <span class="self">self</span>.emit_with_varying_operand(Opcode::ThrowMutateImmutable, index);
+                    }
+                    <span class="prelude-val">Err</span>(BindingLocatorError::Silent) =&gt; {
+                        <span class="self">self</span>.emit_opcode(Opcode::Pop);
+                    }
                 }
-                <span class="prelude-val">Err</span>(BindingLocatorError::MutateImmutable) =&gt; {
-                    <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name(name);
-                    <span class="self">self</span>.emit_with_varying_operand(Opcode::ThrowMutateImmutable, index);
-                }
-                <span class="prelude-val">Err</span>(BindingLocatorError::Silent) =&gt; {
-                    <span class="self">self</span>.emit_opcode(Opcode::Pop);
-                }
-            },
+            }
             BindingOpcode::InitLexical =&gt; {
                 <span class="kw">let </span>binding = <span class="self">self</span>.lexical_environment.get_identifier_reference(name);
                 <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding.locator());
                 <span class="self">self</span>.emit_with_varying_operand(Opcode::PutLexicalValue, index);
             }
-            BindingOpcode::SetName =&gt; <span class="kw">match </span><span class="self">self</span>.lexical_environment.set_mutable_binding(name) {
-                <span class="prelude-val">Ok</span>(binding) =&gt; {
-                    <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
-                    <span class="self">self</span>.emit_with_varying_operand(Opcode::SetName, index);
+            BindingOpcode::SetName =&gt; {
+                <span class="kw">match </span><span class="self">self</span>.lexical_environment.set_mutable_binding(name.clone()) {
+                    <span class="prelude-val">Ok</span>(binding) =&gt; {
+                        <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
+                        <span class="self">self</span>.emit_with_varying_operand(Opcode::SetName, index);
+                    }
+                    <span class="prelude-val">Err</span>(BindingLocatorError::MutateImmutable) =&gt; {
+                        <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_string(name);
+                        <span class="self">self</span>.emit_with_varying_operand(Opcode::ThrowMutateImmutable, index);
+                    }
+                    <span class="prelude-val">Err</span>(BindingLocatorError::Silent) =&gt; {
+                        <span class="self">self</span>.emit_opcode(Opcode::Pop);
+                    }
                 }
-                <span class="prelude-val">Err</span>(BindingLocatorError::MutateImmutable) =&gt; {
-                    <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name(name);
-                    <span class="self">self</span>.emit_with_varying_operand(Opcode::ThrowMutateImmutable, index);
-                }
-                <span class="prelude-val">Err</span>(BindingLocatorError::Silent) =&gt; {
-                    <span class="self">self</span>.emit_opcode(Opcode::Pop);
-                }
-            },
+            }
         }
     }
 
@@ -2163,9 +2231,14 @@
         <span class="self">self</span>.patch_jump_with_target(label, target);
     }
 
+    <span class="kw">fn </span>resolve_identifier_expect(<span class="kw-2">&amp;</span><span class="self">self</span>, identifier: Identifier) -&gt; JsString {
+        <span class="macro">js_string!</span>(<span class="self">self</span>.interner().resolve_expect(identifier.sym()).utf16())
+    }
+
     <span class="kw">fn </span>access_get(<span class="kw-2">&amp;mut </span><span class="self">self</span>, access: Access&lt;<span class="lifetime">&#39;_</span>&gt;, use_expr: bool) {
         <span class="kw">match </span>access {
             Access::Variable { name } =&gt; {
+                <span class="kw">let </span>name = <span class="self">self</span>.resolve_identifier_expect(name);
                 <span class="kw">let </span>binding = <span class="self">self</span>.lexical_environment.get_identifier_reference(name);
                 <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding.locator());
                 <span class="self">self</span>.emit_with_varying_operand(Opcode::GetName, index);
@@ -2231,7 +2304,10 @@
     {
         <span class="kw">match </span>access {
             Access::Variable { name } =&gt; {
-                <span class="kw">let </span>binding = <span class="self">self</span>.lexical_environment.get_identifier_reference(name);
+                <span class="kw">let </span>name = <span class="self">self</span>.resolve_identifier_expect(name);
+                <span class="kw">let </span>binding = <span class="self">self
+                    </span>.lexical_environment
+                    .get_identifier_reference(name.clone());
                 <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding.locator());
 
                 <span class="kw">if </span>!binding.is_lexical() {
@@ -2244,13 +2320,13 @@
                 }
 
                 <span class="kw">if </span>binding.is_lexical() {
-                    <span class="kw">match </span><span class="self">self</span>.lexical_environment.set_mutable_binding(name) {
+                    <span class="kw">match </span><span class="self">self</span>.lexical_environment.set_mutable_binding(name.clone()) {
                         <span class="prelude-val">Ok</span>(binding) =&gt; {
                             <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
                             <span class="self">self</span>.emit_with_varying_operand(Opcode::SetName, index);
                         }
                         <span class="prelude-val">Err</span>(BindingLocatorError::MutateImmutable) =&gt; {
-                            <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name(name);
+                            <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_string(name);
                             <span class="self">self</span>.emit_with_varying_operand(Opcode::ThrowMutateImmutable, index);
                         }
                         <span class="prelude-val">Err</span>(BindingLocatorError::Silent) =&gt; {
@@ -2343,6 +2419,7 @@
                 }
             },
             Access::Variable { name } =&gt; {
+                <span class="kw">let </span>name = name.to_js_string(<span class="self">self</span>.interner());
                 <span class="kw">let </span>binding = <span class="self">self</span>.lexical_environment.get_identifier_reference(name);
                 <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding.locator());
                 <span class="self">self</span>.emit_with_varying_operand(Opcode::DeleteName, index);
@@ -2565,14 +2642,17 @@
         <span class="kw">for </span>variable <span class="kw">in </span>decl.<span class="number">0</span>.as_ref() {
             <span class="kw">match </span>variable.binding() {
                 Binding::Identifier(ident) =&gt; {
+                    <span class="kw">let </span>ident = ident.to_js_string(<span class="self">self</span>.interner());
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(expr) = variable.init() {
-                        <span class="kw">let </span>binding = <span class="self">self</span>.lexical_environment.get_identifier_reference(<span class="kw-2">*</span>ident);
+                        <span class="kw">let </span>binding = <span class="self">self
+                            </span>.lexical_environment
+                            .get_identifier_reference(ident.clone());
                         <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding.locator());
                         <span class="self">self</span>.emit_with_varying_operand(Opcode::GetLocator, index);
                         <span class="self">self</span>.compile_expr(expr, <span class="bool-val">true</span>);
                         <span class="self">self</span>.emit_opcode(Opcode::SetNameByLocator);
                     } <span class="kw">else </span>{
-                        <span class="self">self</span>.emit_binding(BindingOpcode::Var, <span class="kw-2">*</span>ident);
+                        <span class="self">self</span>.emit_binding(BindingOpcode::Var, ident);
                     }
                 }
                 Binding::Pattern(pattern) =&gt; {
@@ -2595,12 +2675,13 @@
                 <span class="kw">for </span>variable <span class="kw">in </span>decls.as_ref() {
                     <span class="kw">match </span>variable.binding() {
                         Binding::Identifier(ident) =&gt; {
+                            <span class="kw">let </span>ident = ident.to_js_string(<span class="self">self</span>.interner());
                             <span class="kw">if let </span><span class="prelude-val">Some</span>(expr) = variable.init() {
                                 <span class="self">self</span>.compile_expr(expr, <span class="bool-val">true</span>);
                             } <span class="kw">else </span>{
                                 <span class="self">self</span>.emit_opcode(Opcode::PushUndefined);
                             }
-                            <span class="self">self</span>.emit_binding(BindingOpcode::InitLexical, <span class="kw-2">*</span>ident);
+                            <span class="self">self</span>.emit_binding(BindingOpcode::InitLexical, ident);
                         }
                         Binding::Pattern(pattern) =&gt; {
                             <span class="kw">if let </span><span class="prelude-val">Some</span>(init) = variable.init() {
@@ -2618,11 +2699,12 @@
                 <span class="kw">for </span>variable <span class="kw">in </span>decls.as_ref() {
                     <span class="kw">match </span>variable.binding() {
                         Binding::Identifier(ident) =&gt; {
+                            <span class="kw">let </span>ident = ident.to_js_string(<span class="self">self</span>.interner());
                             <span class="kw">let </span>init = variable
                                 .init()
                                 .expect(<span class="string">&quot;const declaration must have initializer&quot;</span>);
                             <span class="self">self</span>.compile_expr(init, <span class="bool-val">true</span>);
-                            <span class="self">self</span>.emit_binding(BindingOpcode::InitLexical, <span class="kw-2">*</span>ident);
+                            <span class="self">self</span>.emit_binding(BindingOpcode::InitLexical, ident);
                         }
                         Binding::Pattern(pattern) =&gt; {
                             <span class="kw">if let </span><span class="prelude-val">Some</span>(init) = variable.init() {
@@ -2659,17 +2741,23 @@
                     .name()
                     .expect(<span class="string">&quot;function declaration must have name&quot;</span>);
                 <span class="kw">if </span><span class="self">self</span>.annex_b_function_names.contains(<span class="kw-2">&amp;</span>name) {
-                    <span class="kw">let </span>binding = <span class="self">self</span>.lexical_environment.get_identifier_reference(name);
+                    <span class="kw">let </span>name = name.to_js_string(<span class="self">self</span>.interner());
+                    <span class="kw">let </span>binding = <span class="self">self
+                        </span>.lexical_environment
+                        .get_identifier_reference(name.clone());
                     <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding.locator());
                     <span class="self">self</span>.emit_with_varying_operand(Opcode::GetName, index);
 
-                    <span class="kw">match </span><span class="self">self</span>.variable_environment.set_mutable_binding_var(name) {
+                    <span class="kw">match </span><span class="self">self
+                        </span>.variable_environment
+                        .set_mutable_binding_var(name.clone())
+                    {
                         <span class="prelude-val">Ok</span>(binding) =&gt; {
                             <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_binding(binding);
                             <span class="self">self</span>.emit_with_varying_operand(Opcode::SetName, index);
                         }
                         <span class="prelude-val">Err</span>(BindingLocatorError::MutateImmutable) =&gt; {
-                            <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name(name);
+                            <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_string(name);
                             <span class="self">self</span>.emit_with_varying_operand(Opcode::ThrowMutateImmutable, index);
                         }
                         <span class="prelude-val">Err</span>(BindingLocatorError::Silent) =&gt; {
@@ -2700,18 +2788,20 @@
             ..
         } = function;
 
+        <span class="kw">let </span>name = <span class="kw">if let </span><span class="prelude-val">Some</span>(name) = name {
+            <span class="prelude-val">Some</span>(name.sym().to_js_string(<span class="self">self</span>.interner()))
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Some</span>(<span class="macro">js_string!</span>())
+        };
+
         <span class="kw">let </span>binding_identifier = <span class="kw">if </span>has_binding_identifier {
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(name) = name {
-                <span class="prelude-val">Some</span>(name.sym())
-            } <span class="kw">else </span>{
-                <span class="prelude-val">Some</span>(Sym::EMPTY_STRING)
-            }
+            name.clone()
         } <span class="kw">else </span>{
             <span class="prelude-val">None
         </span>};
 
         <span class="kw">let </span>code = FunctionCompiler::new()
-            .name(name.map(Identifier::sym))
+            .name(name)
             .generator(generator)
             .r#async(r#async)
             .strict(<span class="self">self</span>.strict())
@@ -2745,7 +2835,8 @@
             NodeKind::Declaration =&gt; {
                 <span class="self">self</span>.emit_binding(
                     BindingOpcode::InitVar,
-                    name.expect(<span class="string">&quot;function declaration must have a name&quot;</span>),
+                    name.expect(<span class="string">&quot;function declaration must have a name&quot;</span>)
+                        .to_js_string(<span class="self">self</span>.interner()),
                 );
             }
             NodeKind::Expression =&gt; {
@@ -2771,18 +2862,20 @@
             ..
         } = function;
 
+        <span class="kw">let </span>name = <span class="kw">if let </span><span class="prelude-val">Some</span>(name) = name {
+            <span class="prelude-val">Some</span>(name.sym().to_js_string(<span class="self">self</span>.interner()))
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Some</span>(<span class="macro">js_string!</span>())
+        };
+
         <span class="kw">let </span>binding_identifier = <span class="kw">if </span>has_binding_identifier {
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(name) = name {
-                <span class="prelude-val">Some</span>(name.sym())
-            } <span class="kw">else </span>{
-                <span class="prelude-val">Some</span>(Sym::EMPTY_STRING)
-            }
+            name.clone()
         } <span class="kw">else </span>{
             <span class="prelude-val">None
         </span>};
 
         <span class="kw">let </span>code = FunctionCompiler::new()
-            .name(name.map(Identifier::sym))
+            .name(name)
             .generator(generator)
             .r#async(r#async)
             .strict(<span class="self">self</span>.strict())
@@ -2816,18 +2909,20 @@
             ..
         } = function;
 
+        <span class="kw">let </span>name = <span class="kw">if let </span><span class="prelude-val">Some</span>(name) = name {
+            <span class="prelude-val">Some</span>(name.sym().to_js_string(<span class="self">self</span>.interner()))
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Some</span>(<span class="macro">js_string!</span>())
+        };
+
         <span class="kw">let </span>binding_identifier = <span class="kw">if </span>has_binding_identifier {
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(name) = name {
-                <span class="prelude-val">Some</span>(name.sym())
-            } <span class="kw">else </span>{
-                <span class="prelude-val">Some</span>(Sym::EMPTY_STRING)
-            }
+            name.clone()
         } <span class="kw">else </span>{
             <span class="prelude-val">None
         </span>};
 
         <span class="kw">let </span>code = FunctionCompiler::new()
-            .name(name.map(Identifier::sym))
+            .name(name)
             .generator(generator)
             .r#async(r#async)
             .strict(<span class="bool-val">true</span>)
@@ -2932,15 +3027,8 @@
         }
         <span class="self">self</span>.r#return(<span class="bool-val">false</span>);
 
-        <span class="kw">let </span>name = <span class="self">self
-            </span>.context
-            .interner()
-            .resolve_expect(<span class="self">self</span>.function_name)
-            .utf16()
-            .into();
-
         CodeBlock {
-            name,
+            name: <span class="self">self</span>.function_name,
             length: <span class="self">self</span>.length,
             this_mode: <span class="self">self</span>.this_mode,
             params: <span class="self">self</span>.params,

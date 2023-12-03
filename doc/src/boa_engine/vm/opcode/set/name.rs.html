@@ -152,6 +152,13 @@
 <a href="#152" id="152">152</a>
 <a href="#153" id="153">153</a>
 <a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
+<a href="#156" id="156">156</a>
+<a href="#157" id="157">157</a>
+<a href="#158" id="158">158</a>
+<a href="#159" id="159">159</a>
+<a href="#160" id="160">160</a>
+<a href="#161" id="161">161</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     environments::{BindingLocator, Environment},
     vm::{opcode::Operation, CompletionType},
@@ -208,15 +215,15 @@
 
 <span class="kw">impl </span>SetName {
     <span class="kw">fn </span>operation(context: <span class="kw-2">&amp;mut </span>Context, index: usize) -&gt; JsResult&lt;CompletionType&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>binding_locator = context.vm.frame().code_block.bindings[index];
+        <span class="kw">let </span><span class="kw-2">mut </span>binding_locator = context.vm.frame().code_block.bindings[index].clone();
         <span class="kw">let </span>value = context.vm.pop();
 
         context.find_runtime_binding(<span class="kw-2">&amp;mut </span>binding_locator)<span class="question-mark">?</span>;
 
-        verify_initialized(binding_locator, context)<span class="question-mark">?</span>;
+        verify_initialized(<span class="kw-2">&amp;</span>binding_locator, context)<span class="question-mark">?</span>;
 
         context.set_binding(
-            binding_locator,
+            <span class="kw-2">&amp;</span>binding_locator,
             value,
             context.vm.frame().code_block.strict(),
         )<span class="question-mark">?</span>;
@@ -267,10 +274,10 @@
             .expect(<span class="string">&quot;locator should have been popped before&quot;</span>);
         <span class="kw">let </span>value = context.vm.pop();
 
-        verify_initialized(binding_locator, context)<span class="question-mark">?</span>;
+        verify_initialized(<span class="kw-2">&amp;</span>binding_locator, context)<span class="question-mark">?</span>;
 
         context.set_binding(
-            binding_locator,
+            <span class="kw-2">&amp;</span>binding_locator,
             value,
             context.vm.frame().code_block.strict(),
         )<span class="question-mark">?</span>;
@@ -280,21 +287,28 @@
 }
 
 <span class="doccomment">/// Checks that the binding pointed by `locator` exists and is initialized.
-</span><span class="kw">fn </span>verify_initialized(locator: BindingLocator, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;()&gt; {
-    <span class="kw">if </span>!context.is_initialized_binding(<span class="kw-2">&amp;</span>locator)<span class="question-mark">? </span>{
-        <span class="kw">let </span>key = context.interner().resolve_expect(locator.name().sym());
+</span><span class="kw">fn </span>verify_initialized(locator: <span class="kw-2">&amp;</span>BindingLocator, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;()&gt; {
+    <span class="kw">if </span>!context.is_initialized_binding(locator)<span class="question-mark">? </span>{
+        <span class="kw">let </span>key = locator.name();
         <span class="kw">let </span>strict = context.vm.frame().code_block.strict();
 
         <span class="kw">let </span>message = <span class="kw">if </span>locator.is_global() {
-            strict.then(|| <span class="macro">format!</span>(<span class="string">&quot;cannot assign to uninitialized global property `{key}`&quot;</span>))
+            strict.then(|| {
+                <span class="macro">format!</span>(
+                    <span class="string">&quot;cannot assign to uninitialized global property `{}`&quot;</span>,
+                    key.to_std_string_escaped()
+                )
+            })
         } <span class="kw">else </span>{
             <span class="kw">match </span>context.environment_expect(locator.environment_index()) {
-                Environment::Declarative(<span class="kw">_</span>) =&gt; {
-                    <span class="prelude-val">Some</span>(<span class="macro">format!</span>(<span class="string">&quot;cannot assign to uninitialized binding `{key}`&quot;</span>))
-                }
-                Environment::Object(<span class="kw">_</span>) <span class="kw">if </span>strict =&gt; {
-                    <span class="prelude-val">Some</span>(<span class="macro">format!</span>(<span class="string">&quot;cannot assign to uninitialized property `{key}`&quot;</span>))
-                }
+                Environment::Declarative(<span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(<span class="macro">format!</span>(
+                    <span class="string">&quot;cannot assign to uninitialized binding `{}`&quot;</span>,
+                    key.to_std_string_escaped()
+                )),
+                Environment::Object(<span class="kw">_</span>) <span class="kw">if </span>strict =&gt; <span class="prelude-val">Some</span>(<span class="macro">format!</span>(
+                    <span class="string">&quot;cannot assign to uninitialized property `{}`&quot;</span>,
+                    key.to_std_string_escaped()
+                )),
                 Environment::Object(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
             }
         };

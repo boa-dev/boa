@@ -587,8 +587,16 @@
 <a href="#587" id="587">587</a>
 <a href="#588" id="588">588</a>
 <a href="#589" id="589">589</a>
-</pre></div><pre class="rust"><code><span class="kw">use super</span>::{ByteCompiler, Literal, Operand};
-<span class="kw">use </span><span class="kw">crate</span>::vm::{BindingOpcode, CodeBlock, CodeBlockFlags, Opcode};
+<a href="#590" id="590">590</a>
+<a href="#591" id="591">591</a>
+<a href="#592" id="592">592</a>
+<a href="#593" id="593">593</a>
+<a href="#594" id="594">594</a>
+</pre></div><pre class="rust"><code><span class="kw">use super</span>::{ByteCompiler, Literal, Operand, ToJsString};
+<span class="kw">use crate</span>::{
+    js_string,
+    vm::{BindingOpcode, CodeBlock, CodeBlockFlags, Opcode},
+};
 <span class="kw">use </span>boa_ast::{
     expression::Identifier,
     function::{Class, ClassElement, FormalParameterList},
@@ -618,22 +626,24 @@
         </span><span class="kw">let </span>strict = <span class="self">self</span>.strict();
         <span class="self">self</span>.code_block_flags |= CodeBlockFlags::STRICT;
 
-        <span class="kw">let </span>class_name = class.name().map_or(Sym::EMPTY_STRING, Identifier::sym);
+        <span class="kw">let </span>class_name = class
+            .name()
+            .map_or(Sym::EMPTY_STRING, Identifier::sym)
+            .to_js_string(<span class="self">self</span>.interner());
 
-        <span class="kw">let </span>old_lex_env = <span class="kw">match </span>class.name() {
-            <span class="prelude-val">Some</span>(name) <span class="kw">if </span>class.has_binding_identifier() =&gt; {
-                <span class="kw">let </span>old_lex_env = <span class="self">self</span>.lexical_environment.clone();
-                <span class="kw">let </span>env_index = <span class="self">self</span>.push_compile_environment(<span class="bool-val">false</span>);
-                <span class="self">self</span>.emit_with_varying_operand(Opcode::PushDeclarativeEnvironment, env_index);
-                <span class="self">self</span>.lexical_environment
-                    .create_immutable_binding(name, <span class="bool-val">true</span>);
-                <span class="prelude-val">Some</span>(old_lex_env)
-            }
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
-        };
+        <span class="kw">let </span>old_lex_env = <span class="kw">if </span>class.has_binding_identifier() {
+            <span class="kw">let </span>old_lex_env = <span class="self">self</span>.lexical_environment.clone();
+            <span class="kw">let </span>env_index = <span class="self">self</span>.push_compile_environment(<span class="bool-val">false</span>);
+            <span class="self">self</span>.emit_with_varying_operand(Opcode::PushDeclarativeEnvironment, env_index);
+            <span class="self">self</span>.lexical_environment
+                .create_immutable_binding(class_name.clone(), <span class="bool-val">true</span>);
+            <span class="prelude-val">Some</span>(old_lex_env)
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>};
 
         <span class="kw">let </span><span class="kw-2">mut </span>compiler = ByteCompiler::new(
-            class_name,
+            class_name.clone(),
             <span class="bool-val">true</span>,
             <span class="self">self</span>.json_parse,
             <span class="self">self</span>.variable_environment.clone(),
@@ -711,7 +721,7 @@
 
         <span class="kw">if </span>old_lex_env.is_some() {
             <span class="self">self</span>.emit_opcode(Opcode::Dup);
-            <span class="self">self</span>.emit_binding(BindingOpcode::InitLexical, class_name.into());
+            <span class="self">self</span>.emit_binding(BindingOpcode::InitLexical, class_name.clone());
         }
 
         <span class="comment">// TODO: set function name for getter and setters
@@ -866,7 +876,7 @@
                         }
                     }
                     <span class="kw">let </span><span class="kw-2">mut </span>field_compiler = ByteCompiler::new(
-                        Sym::EMPTY_STRING,
+                        <span class="macro">js_string!</span>(),
                         <span class="bool-val">true</span>,
                         <span class="self">self</span>.json_parse,
                         <span class="self">self</span>.variable_environment.clone(),
@@ -894,7 +904,7 @@
                     <span class="self">self</span>.emit_opcode(Opcode::Dup);
                     <span class="kw">let </span>name_index = <span class="self">self</span>.get_or_insert_private_name(<span class="kw-2">*</span>name);
                     <span class="kw">let </span><span class="kw-2">mut </span>field_compiler = ByteCompiler::new(
-                        class_name,
+                        class_name.clone(),
                         <span class="bool-val">true</span>,
                         <span class="self">self</span>.json_parse,
                         <span class="self">self</span>.variable_environment.clone(),
@@ -932,7 +942,7 @@
                         </span>}
                     };
                     <span class="kw">let </span><span class="kw-2">mut </span>field_compiler = ByteCompiler::new(
-                        class_name,
+                        class_name.clone(),
                         <span class="bool-val">true</span>,
                         <span class="self">self</span>.json_parse,
                         <span class="self">self</span>.variable_environment.clone(),
@@ -966,7 +976,7 @@
                 }
                 ClassElement::StaticBlock(body) =&gt; {
                     <span class="kw">let </span><span class="kw-2">mut </span>compiler = ByteCompiler::new(
-                        Sym::EMPTY_STRING,
+                        Sym::EMPTY_STRING.to_js_string(<span class="self">self</span>.interner()),
                         <span class="bool-val">true</span>,
                         <span class="bool-val">false</span>,
                         <span class="self">self</span>.variable_environment.clone(),
@@ -1169,7 +1179,7 @@
         <span class="self">self</span>.emit_opcode(Opcode::PopPrivateEnvironment);
 
         <span class="kw">if </span>!expression {
-            <span class="self">self</span>.emit_binding(BindingOpcode::InitVar, class_name.into());
+            <span class="self">self</span>.emit_binding(BindingOpcode::InitVar, class_name);
         }
 
         <span class="comment">// NOTE: Reset strict mode to before class declaration/expression evalutation.

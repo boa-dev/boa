@@ -596,14 +596,6 @@
 <a href="#596" id="596">596</a>
 <a href="#597" id="597">597</a>
 <a href="#598" id="598">598</a>
-<a href="#599" id="599">599</a>
-<a href="#600" id="600">600</a>
-<a href="#601" id="601">601</a>
-<a href="#602" id="602">602</a>
-<a href="#603" id="603">603</a>
-<a href="#604" id="604">604</a>
-<a href="#605" id="605">605</a>
-<a href="#606" id="606">606</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s ECMAScript Virtual Machine
 //!
 //! The Virtual Machine (VM) handles generating instructions, then executing them.
@@ -621,8 +613,6 @@
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;trace&quot;</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::sys::time::Instant;
-<span class="attr">#[cfg(feature = <span class="string">&quot;trace&quot;</span>)]
-</span><span class="kw">use </span>boa_interner::ToInternedString;
 
 <span class="kw">mod </span>call_frame;
 <span class="kw">mod </span>code_block;
@@ -875,13 +865,7 @@
             <span class="string">&quot; VM Start &quot;</span>.to_string()
         };
 
-        <span class="macro">println!</span>(
-            <span class="string">&quot;{}&quot;</span>,
-            <span class="self">self</span>.vm
-                .frame()
-                .code_block
-                .to_interned_string(<span class="self">self</span>.interner())
-        );
+        <span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.vm.frame().code_block);
         <span class="macro">println!</span>(
             <span class="string">&quot;{msg:-^width$}&quot;</span>,
             width = <span class="self">Self</span>::COLUMN_WIDTH * <span class="self">Self</span>::NUMBER_OF_COLUMNS - <span class="number">10
@@ -910,7 +894,7 @@
             </span>.vm
             .frame()
             .code_block
-            .instruction_operands(<span class="kw-2">&amp;</span>instruction, <span class="self">self</span>.interner());
+            .instruction_operands(<span class="kw-2">&amp;</span>instruction);
 
         <span class="kw">let </span>opcode = instruction.opcode();
         <span class="kw">match </span>opcode {

@@ -212,7 +212,7 @@
     <span class="attr">#[allow(clippy::unnecessary_wraps)]
     </span><span class="kw">fn </span>operation(context: <span class="kw-2">&amp;mut </span>Context, index: usize) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="comment">// TODO: spec specifies to return `empty` on empty vars, but we&#39;re trying to initialize.
-        </span><span class="kw">let </span>binding_locator = context.vm.frame().code_block.bindings[index];
+        </span><span class="kw">let </span>binding_locator = context.vm.frame().code_block.bindings[index].clone();
 
         context.vm.environments.put_value_if_uninitialized(
             binding_locator.environment_index(),
@@ -254,10 +254,10 @@
 <span class="kw">impl </span>DefInitVar {
     <span class="kw">fn </span>operation(context: <span class="kw-2">&amp;mut </span>Context, index: usize) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>value = context.vm.pop();
-        <span class="kw">let </span><span class="kw-2">mut </span>binding_locator = context.vm.frame().code_block.bindings[index];
+        <span class="kw">let </span><span class="kw-2">mut </span>binding_locator = context.vm.frame().code_block.bindings[index].clone();
         context.find_runtime_binding(<span class="kw-2">&amp;mut </span>binding_locator)<span class="question-mark">?</span>;
         context.set_binding(
-            binding_locator,
+            <span class="kw-2">&amp;</span>binding_locator,
             value,
             context.vm.frame().code_block.strict(),
         )<span class="question-mark">?</span>;
@@ -298,7 +298,7 @@
     <span class="attr">#[allow(clippy::unnecessary_wraps)]
     </span><span class="kw">fn </span>operation(context: <span class="kw-2">&amp;mut </span>Context, index: usize) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="kw">let </span>value = context.vm.pop();
-        <span class="kw">let </span>binding_locator = context.vm.frame().code_block.bindings[index];
+        <span class="kw">let </span>binding_locator = context.vm.frame().code_block.bindings[index].clone();
         context.vm.environments.put_lexical_value(
             binding_locator.environment_index(),
             binding_locator.binding_index(),

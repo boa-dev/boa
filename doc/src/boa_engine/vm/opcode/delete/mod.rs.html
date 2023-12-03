@@ -232,11 +232,11 @@
 
 <span class="kw">impl </span>DeleteName {
     <span class="kw">fn </span>operation(context: <span class="kw-2">&amp;mut </span>Context, index: usize) -&gt; JsResult&lt;CompletionType&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>binding_locator = context.vm.frame().code_block.bindings[index];
+        <span class="kw">let </span><span class="kw-2">mut </span>binding_locator = context.vm.frame().code_block.bindings[index].clone();
 
         context.find_runtime_binding(<span class="kw-2">&amp;mut </span>binding_locator)<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>deleted = context.delete_binding(binding_locator)<span class="question-mark">?</span>;
+        <span class="kw">let </span>deleted = context.delete_binding(<span class="kw-2">&amp;</span>binding_locator)<span class="question-mark">?</span>;
 
         context.vm.push(deleted);
         <span class="prelude-val">Ok</span>(CompletionType::Normal)

@@ -228,13 +228,13 @@
 </span><span class="kw">use </span>std::io::Read;
 
 <span class="kw">use </span>boa_gc::{Finalize, Gc, GcRefCell, Trace};
-<span class="kw">use </span>boa_interner::Sym;
 <span class="kw">use </span>boa_parser::{Parser, Source};
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>rustc_hash::FxHashMap;
 
 <span class="kw">use crate</span>::{
     bytecompiler::ByteCompiler,
+    js_string,
     realm::Realm,
     vm::{ActiveRunnable, CallFrame, CallFrameFlags, CodeBlock},
     Context, HostDefined, JsResult, JsString, JsValue, Module,
@@ -333,7 +333,7 @@
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Script compilation&quot;</span>, <span class="string">&quot;Main&quot;</span>);
 
         <span class="kw">let </span><span class="kw-2">mut </span>compiler = ByteCompiler::new(
-            Sym::MAIN,
+            <span class="macro">js_string!</span>(<span class="string">&quot;&lt;main&gt;&quot;</span>),
             <span class="self">self</span>.inner.source.strict(),
             <span class="bool-val">false</span>,
             <span class="self">self</span>.inner.realm.environment().compile_env(),
