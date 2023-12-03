@@ -122,3 +122,15 @@ fn switch() {
         "#,
     );
 }
+
+#[test]
+fn with() {
+    test_formatting(
+        r#"
+        with (this) {
+            {
+            }
+        }
+        "#,
+    );
+}
