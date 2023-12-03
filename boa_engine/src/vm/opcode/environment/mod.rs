@@ -1,4 +1,5 @@
 use crate::{
+    builtins::function::OrdinaryFunction,
     error::JsNativeError,
     object::internal_methods::InternalMethodContext,
     vm::{opcode::Operation, CompletionType},
@@ -47,11 +48,14 @@ impl Operation for Super {
             let this = env
                 .get_this_binding()?
                 .expect("`get_this_environment` ensures this returns `Some`");
-            let function_object = env.slots().function_object().borrow();
-            let function = function_object
-                .as_function()
-                .expect("must be function object");
-            function.get_home_object().or(this.as_object()).cloned()
+
+            env.slots()
+                .function_object()
+                .downcast_ref::<OrdinaryFunction>()
+                .expect("must be function object")
+                .get_home_object()
+                .or(this.as_object())
+                .cloned()
         };
 
         let value = home_object

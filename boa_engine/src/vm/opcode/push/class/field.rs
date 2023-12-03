@@ -1,4 +1,5 @@
 use crate::{
+    builtins::function::OrdinaryFunction,
     object::JsFunction,
     vm::{opcode::Operation, CompletionType},
     Context, JsResult,
@@ -25,17 +26,17 @@ impl Operation for PushClassField {
         let field_function_object = field_function_value
             .as_object()
             .expect("field value must be function object");
-        let mut field_function_object_borrow = field_function_object.borrow_mut();
-        let field_function = field_function_object_borrow
-            .as_function_mut()
-            .expect("field value must be function object");
         let class_object = class_value
             .as_object()
             .expect("class must be function object");
-        field_function.set_home_object(class_object.clone());
+
+        field_function_object
+            .downcast_mut::<OrdinaryFunction>()
+            .expect("field value must be function object")
+            .set_home_object(class_object.clone());
+
         class_object
-            .borrow_mut()
-            .as_function_mut()
+            .downcast_mut::<OrdinaryFunction>()
             .expect("class must be function object")
             .push_field(
                 field_name_key,
@@ -62,18 +63,17 @@ impl PushClassFieldPrivate {
         let field_function_object = field_function_value
             .as_object()
             .expect("field value must be function object");
-        let mut field_function_object_borrow = field_function_object.borrow_mut();
-        let field_function = field_function_object_borrow
-            .as_function_mut()
-            .expect("field value must be function object");
         let class_object = class_value
             .as_object()
             .expect("class must be function object");
-        field_function.set_home_object(class_object.clone());
+
+        field_function_object
+            .downcast_mut::<OrdinaryFunction>()
+            .expect("field value must be function object")
+            .set_home_object(class_object.clone());
 
         class_object
-            .borrow_mut()
-            .as_function_mut()
+            .downcast_mut::<OrdinaryFunction>()
             .expect("class must be function object")
             .push_field_private(
                 class_object.private_name(name),

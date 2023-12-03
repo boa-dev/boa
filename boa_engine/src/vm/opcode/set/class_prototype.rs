@@ -1,10 +1,10 @@
 use crate::{
     object::{
-        internal_methods::InternalMethodContext, JsObject, ObjectData, CONSTRUCTOR, PROTOTYPE,
+        internal_methods::InternalMethodContext, JsObject, CONSTRUCTOR, PROTOTYPE,
     },
     property::PropertyDescriptorBuilder,
     vm::{opcode::Operation, CompletionType},
-    Context, JsResult, JsValue,
+    Context, JsResult, JsValue, builtins::{function::OrdinaryFunction, OrdinaryObject},
 };
 
 /// `SetClassProtoType` implements the Opcode Operation for `Opcode::SetClassPrototype`
@@ -32,7 +32,7 @@ impl Operation for SetClassPrototype {
         let proto = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            ObjectData::ordinary(),
+            OrdinaryObject,
         );
         let class = context.vm.pop();
 
@@ -49,11 +49,10 @@ impl Operation for SetClassPrototype {
                     context,
                 )
                 .expect("cannot fail per spec");
-            let mut class_object_mut = class_object.borrow_mut();
-            let class_function = class_object_mut
-                .as_function_mut()
-                .expect("class must be function object");
-            class_function.set_home_object(proto.clone());
+            class_object
+                .downcast_mut::<OrdinaryFunction>()
+                .expect("class must be function object")
+                .set_home_object(proto.clone());
         }
 
         proto

@@ -1,5 +1,5 @@
 use crate::{
-    builtins::function::set_function_name,
+    builtins::function::{set_function_name, OrdinaryFunction},
     object::internal_methods::InternalMethodContext,
     property::PropertyDescriptor,
     vm::{opcode::Operation, CompletionType},
@@ -29,11 +29,10 @@ impl DefineClassStaticSetterByName {
                 .as_object()
                 .expect("method must be function object");
             set_function_name(function_object, &key, Some(JsString::from("set")), context);
-            let mut function_object = function_object.borrow_mut();
-            let function_mut = function_object
-                .as_function_mut()
-                .expect("method must be function object");
-            function_mut.set_home_object(class.clone());
+            function_object
+                .downcast_mut::<OrdinaryFunction>()
+                .expect("method must be function object")
+                .set_home_object(class.clone());
         }
         let get = class
             .__get_own_property__(&key, &mut InternalMethodContext::new(context))?
@@ -99,11 +98,10 @@ impl DefineClassSetterByName {
                 .as_object()
                 .expect("method must be function object");
             set_function_name(function_object, &key, Some(JsString::from("set")), context);
-            let mut function_object = function_object.borrow_mut();
-            let function_mut = function_object
-                .as_function_mut()
-                .expect("method must be function object");
-            function_mut.set_home_object(class_proto.clone());
+            function_object
+                .downcast_mut::<OrdinaryFunction>()
+                .expect("method must be function object")
+                .set_home_object(class_proto.clone());
         }
         let get = class_proto
             .__get_own_property__(&key, &mut InternalMethodContext::new(context))?
@@ -172,11 +170,10 @@ impl Operation for DefineClassStaticSetterByValue {
                 .as_object()
                 .expect("method must be function object");
             set_function_name(function_object, &key, Some(JsString::from("set")), context);
-            let mut function_object = function_object.borrow_mut();
-            let function_mut = function_object
-                .as_function_mut()
-                .expect("method must be function object");
-            function_mut.set_home_object(class.clone());
+            function_object
+                .downcast_mut::<OrdinaryFunction>()
+                .expect("method must be function object")
+                .set_home_object(class.clone());
         }
         let get = class
             .__get_own_property__(&key, &mut InternalMethodContext::new(context))?
@@ -224,11 +221,10 @@ impl Operation for DefineClassSetterByValue {
                 .as_object()
                 .expect("method must be function object");
             set_function_name(function_object, &key, Some(JsString::from("set")), context);
-            let mut function_object = function_object.borrow_mut();
-            let function_mut = function_object
-                .as_function_mut()
-                .expect("method must be function object");
-            function_mut.set_home_object(class_proto.clone());
+            function_object
+                .downcast_mut::<OrdinaryFunction>()
+                .expect("method must be function object")
+                .set_home_object(class_proto.clone());
         }
         let get = class_proto
             .__get_own_property__(&key, &mut InternalMethodContext::new(context))?

@@ -8,7 +8,7 @@ use crate::{
         generator::{GeneratorContext, GeneratorState},
     },
     error::JsNativeError,
-    object::{ObjectData, PROTOTYPE},
+    object::PROTOTYPE,
     string::utf16,
     vm::{
         call_frame::GeneratorResumeKind,
@@ -82,28 +82,32 @@ impl Operation for Generator {
                 Clone::clone,
             );
 
-        let data = if r#async {
-            ObjectData::async_generator(AsyncGenerator {
-                state: AsyncGeneratorState::SuspendedStart,
-                context: Some(GeneratorContext::new(stack, call_frame)),
-                queue: VecDeque::new(),
-            })
-        } else {
-            ObjectData::generator(crate::builtins::generator::Generator {
-                state: GeneratorState::SuspendedStart {
-                    context: GeneratorContext::new(stack, call_frame),
+        let generator = if r#async {
+            JsObject::from_proto_and_data_with_shared_shape(
+                context.root_shape(),
+                proto,
+                AsyncGenerator {
+                    state: AsyncGeneratorState::SuspendedStart,
+                    context: Some(GeneratorContext::new(stack, call_frame)),
+                    queue: VecDeque::new(),
                 },
-            })
+            )
+        } else {
+            JsObject::from_proto_and_data_with_shared_shape(
+                context.root_shape(),
+                proto,
+                crate::builtins::generator::Generator {
+                    state: GeneratorState::SuspendedStart {
+                        context: GeneratorContext::new(stack, call_frame),
+                    },
+                },
+            )
         };
-
-        let generator =
-            JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), proto, data);
 
         if r#async {
             let gen_clone = generator.clone();
-            let mut generator_mut = generator.borrow_mut();
-            let gen = generator_mut
-                .as_async_generator_mut()
+            let mut gen = generator
+                .downcast_mut::<AsyncGenerator>()
                 .expect("must be object here");
             let gen_context = gen.context.as_mut().expect("must exist");
             // TODO: try to move this to the context itself.
@@ -140,19 +144,18 @@ impl Operation for AsyncGeneratorClose {
             .clone()
             .expect("There should be a object");
 
-        let mut generator_object_mut = generator_object.borrow_mut();
-        let generator = generator_object_mut
-            .as_async_generator_mut()
+        let mut gen = generator_object
+            .downcast_mut::<AsyncGenerator>()
             .expect("must be async generator");
 
-        generator.state = AsyncGeneratorState::Completed;
-        generator.context = None;
+        gen.state = AsyncGeneratorState::Completed;
+        gen.context = None;
 
-        let next = generator
+        let next = gen
             .queue
             .pop_front()
             .expect("must have item in queue");
-        drop(generator_object_mut);
+        drop(gen);
 
         let return_value = context.vm.get_return_value();
         context.vm.set_return_value(JsValue::undefined());

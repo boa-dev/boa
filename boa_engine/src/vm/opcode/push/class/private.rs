@@ -4,7 +4,7 @@ use crate::{
     property::PropertyDescriptor,
     string::utf16,
     vm::{opcode::Operation, CompletionType},
-    Context, JsResult,
+    Context, JsResult, builtins::function::OrdinaryFunction,
 };
 
 /// `PushClassPrivateMethod` implements the Opcode Operation for `Opcode::PushClassPrivateMethod`
@@ -40,8 +40,7 @@ impl PushClassPrivateMethod {
         let class_object = class.as_object().expect("class must be function object");
 
         class_object
-            .borrow_mut()
-            .as_function_mut()
+            .downcast_mut::<OrdinaryFunction>()
             .expect("class must be function object")
             .push_private_method(
                 class_object.private_name(name),
@@ -90,8 +89,7 @@ impl PushClassPrivateGetter {
         let class_object = class.as_object().expect("class must be function object");
 
         class_object
-            .borrow_mut()
-            .as_function_mut()
+            .downcast_mut::<OrdinaryFunction>()
             .expect("class must be function object")
             .push_private_method(
                 class_object.private_name(name),
@@ -143,8 +141,7 @@ impl PushClassPrivateSetter {
         let class_object = class.as_object().expect("class must be function object");
 
         class_object
-            .borrow_mut()
-            .as_function_mut()
+            .downcast_mut::<OrdinaryFunction>()
             .expect("class must be function object")
             .push_private_method(
                 class_object.private_name(name),

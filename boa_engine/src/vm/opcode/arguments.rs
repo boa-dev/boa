@@ -1,5 +1,5 @@
 use crate::{
-    builtins::function::arguments::Arguments,
+    builtins::function::arguments::{MappedArguments, UnmappedArguments},
     vm::{CallFrame, CompletionType},
     Context, JsResult,
 };
@@ -30,7 +30,7 @@ impl Operation for CreateMappedArgumentsObject {
         let args = context.vm.stack[arguments_start..].to_vec();
 
         let env = context.vm.environments.current();
-        let arguments = Arguments::create_mapped_arguments_object(
+        let arguments = MappedArguments::new(
             &function_object,
             &code.params,
             &args,
@@ -57,7 +57,7 @@ impl Operation for CreateUnmappedArgumentsObject {
     fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let arguments_start = context.vm.frame().fp as usize + CallFrame::FIRST_ARGUMENT_POSITION;
         let args = context.vm.stack[arguments_start..].to_vec();
-        let arguments = Arguments::create_unmapped_arguments_object(&args, context);
+        let arguments = UnmappedArguments::new(&args, context);
         context.vm.push(arguments);
         Ok(CompletionType::Normal)
     }
