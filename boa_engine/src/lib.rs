@@ -122,6 +122,8 @@ pub mod prelude {
         symbol::JsSymbol,
         value::JsValue,
     };
+    pub use boa_gc::{Finalize, Trace};
+    pub use boa_macros::JsData;
     pub use boa_parser::Source;
 }
 

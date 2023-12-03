@@ -33,7 +33,7 @@ use regexp::{advance_string_index, RegExp};
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-regexp-string-iterator-objects
 #[derive(Debug, Clone, Finalize, Trace, JsData)]
-pub struct RegExpStringIterator {
+pub(crate) struct RegExpStringIterator {
     matcher: JsObject,
     string: JsString,
     global: bool,
@@ -123,7 +123,7 @@ impl RegExpStringIterator {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%regexpstringiteratorprototype%.next
-    pub fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let mut iterator = this
             .as_object()
             .and_then(|o| o.downcast_mut::<Self>())

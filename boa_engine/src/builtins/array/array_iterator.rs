@@ -29,7 +29,7 @@ use boa_profiler::Profiler;
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-array-iterator-objects
 #[derive(Debug, Clone, Finalize, Trace, JsData)]
-pub struct ArrayIterator {
+pub(crate) struct ArrayIterator {
     array: JsObject,
     next_index: u64,
     #[unsafe_ignore_trace]

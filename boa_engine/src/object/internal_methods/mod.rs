@@ -323,7 +323,7 @@ pub(crate) static ORDINARY_INTERNAL_METHODS: InternalObjectMethods = InternalObj
 /// resort to `dyn Object`.
 ///
 /// For a guide on how to implement exotic internal methods, see `ORDINARY_INTERNAL_METHODS`.
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 #[allow(clippy::type_complexity)]
 pub struct InternalObjectMethods {
     pub(crate) __get_prototype_of__: fn(&JsObject, &mut Context) -> JsResult<JsPrototype>,

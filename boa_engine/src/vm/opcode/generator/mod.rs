@@ -151,10 +151,7 @@ impl Operation for AsyncGeneratorClose {
         gen.state = AsyncGeneratorState::Completed;
         gen.context = None;
 
-        let next = gen
-            .queue
-            .pop_front()
-            .expect("must have item in queue");
+        let next = gen.queue.pop_front().expect("must have item in queue");
         drop(gen);
 
         let return_value = context.vm.get_return_value();

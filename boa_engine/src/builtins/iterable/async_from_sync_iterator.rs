@@ -22,7 +22,7 @@ use boa_profiler::Profiler;
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-properties-of-async-from-sync-iterator-instances
 #[derive(Clone, Debug, Finalize, Trace, JsData)]
-pub struct AsyncFromSyncIterator {
+pub(crate) struct AsyncFromSyncIterator {
     // The [[SyncIteratorRecord]] internal slot.
     sync_iterator_record: IteratorRecord,
 }

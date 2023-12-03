@@ -104,7 +104,7 @@ impl Operation for Await {
                         .and_then(|f| f.async_generator.clone())
                     {
                         async_generator
-                        .downcast_mut::<AsyncGenerator>()
+                            .downcast_mut::<AsyncGenerator>()
                             .expect("must be async generator")
                             .context = Some(gen);
                     }

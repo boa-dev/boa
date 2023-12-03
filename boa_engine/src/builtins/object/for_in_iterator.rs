@@ -31,7 +31,7 @@ use std::collections::VecDeque;
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-for-in-iterator-objects
 #[derive(Debug, Clone, Finalize, Trace, JsData)]
-pub struct ForInIterator {
+pub(crate) struct ForInIterator {
     object: JsValue,
     visited_keys: FxHashSet<JsString>,
     remaining_keys: VecDeque<JsString>,

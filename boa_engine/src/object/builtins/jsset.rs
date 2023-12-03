@@ -4,7 +4,7 @@ use std::ops::Deref;
 use boa_gc::{Finalize, Trace};
 
 use crate::{
-    builtins::{Set, set::ordered_set::OrderedSet},
+    builtins::{set::ordered_set::OrderedSet, Set},
     error::JsNativeError,
     object::{JsFunction, JsObject, JsObjectType, JsSetIterator},
     value::TryFromJs,

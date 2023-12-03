@@ -247,17 +247,6 @@ pub enum PrivateElement {
     },
 }
 
-impl<T> Object<T> {
-    pub(crate) fn new(data: T) -> Self {
-        Self {
-            data,
-            properties: PropertyMap::default(),
-            extensible: true,
-            private_elements: ThinVec::new(),
-        }
-    }
-}
-
 impl<T: ?Sized> Object<T> {
     /// Returns the shape of the object.
     #[must_use]

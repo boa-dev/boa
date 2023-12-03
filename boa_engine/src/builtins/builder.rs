@@ -28,7 +28,7 @@ pub(crate) struct ConstructorNoProto;
 pub(crate) struct OrdinaryFunction;
 
 /// Indicates if the marker is a constructor.
-trait IsConstructor {
+pub(crate) trait IsConstructor {
     const IS_CONSTRUCTOR: bool;
 }
 

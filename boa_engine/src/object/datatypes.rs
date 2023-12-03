@@ -15,15 +15,34 @@ use std::{
 };
 
 use boa_gc::{Ephemeron, Gc, GcRefCell, Trace, WeakGc, WeakMap};
-pub use boa_macros::JsData;
 
 use super::internal_methods::{InternalObjectMethods, ORDINARY_INTERNAL_METHODS};
 
+/// Represents a type that can be stored inside a `JsObject`.
+///
+/// This can be automatically derived using a macro.
+///
+/// # Example
+///
+/// ```
+/// use boa_engine::{Finalize, JsData, JsObject, Trace};
+///
+/// #[derive(Trace, Finalize, JsData)]
+/// struct CustomStruct {
+///     #[unsafe_ignore_trace]
+///     counter: usize,
+/// }
+///
+/// let object =
+///     JsObject::from_proto_and_data(None, CustomStruct { counter: 5 });
+///
+/// assert_eq!(object.downcast_ref::<CustomStruct>().unwrap().counter, 5);
+/// ```
 pub trait JsData {
     #[doc(hidden)]
     fn internal_methods(&self) -> &'static InternalObjectMethods
     where
-        Self: Sized,
+        Self: Sized, // Avoids adding this method to `NativeObject`'s vtable.
     {
         &ORDINARY_INTERNAL_METHODS
     }

@@ -1,10 +1,11 @@
 use crate::{
+    builtins::function::OrdinaryFunction,
     js_string,
     object::{internal_methods::InternalMethodContext, PrivateElement},
     property::PropertyDescriptor,
     string::utf16,
     vm::{opcode::Operation, CompletionType},
-    Context, JsResult, builtins::function::OrdinaryFunction,
+    Context, JsResult,
 };
 
 /// `PushClassPrivateMethod` implements the Opcode Operation for `Opcode::PushClassPrivateMethod`

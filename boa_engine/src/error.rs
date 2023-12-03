@@ -241,7 +241,8 @@ impl JsError {
                 let obj = val
                     .as_object()
                     .ok_or_else(|| TryNativeError::NotAnErrorObject(val.clone()))?;
-                let error = *obj.downcast_ref::<ErrorKind>()
+                let error = *obj
+                    .downcast_ref::<ErrorKind>()
                     .ok_or_else(|| TryNativeError::NotAnErrorObject(val.clone()))?;
 
                 let try_get_property = |key: JsString, name, context: &mut Context| {
@@ -946,11 +947,8 @@ impl JsNativeError {
             }
         };
 
-        let o = JsObject::from_proto_and_data_with_shared_shape(
-            context.root_shape(),
-            prototype,
-            tag,
-        );
+        let o =
+            JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), prototype, tag);
 
         o.create_non_enumerable_data_property_or_throw(
             js_string!("message"),

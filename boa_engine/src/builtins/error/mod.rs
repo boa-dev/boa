@@ -19,7 +19,7 @@ use crate::{
     property::Attribute,
     realm::Realm,
     string::{common::StaticJsStrings, utf16},
-    Context, JsArgs, JsResult, JsString, JsValue, JsData,
+    Context, JsArgs, JsData, JsResult, JsString, JsValue,
 };
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;

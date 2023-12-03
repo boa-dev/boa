@@ -359,11 +359,8 @@ impl Array {
                 .create(Array, vec![JsValue::new(length)]));
         }
 
-        let array = JsObject::from_proto_and_data_with_shared_shape(
-            context.root_shape(),
-            prototype,
-            Array,
-        );
+        let array =
+            JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), prototype, Array);
 
         // 6. Perform ! OrdinaryDefineOwnProperty(A, "length", PropertyDescriptor { [[Value]]: 𝔽(length), [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: false }).
         ordinary_define_own_property(
@@ -406,11 +403,7 @@ impl Array {
             .intrinsics()
             .templates()
             .array()
-            .create_with_indexed_properties(
-                Array,
-                vec![JsValue::new(length)],
-                elements,
-            )
+            .create_with_indexed_properties(Array, vec![JsValue::new(length)], elements)
     }
 
     /// Utility function for concatenating array objects.

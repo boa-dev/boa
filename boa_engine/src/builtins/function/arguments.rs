@@ -16,7 +16,7 @@ use rustc_hash::FxHashMap;
 
 #[derive(Debug, Copy, Clone, Trace, Finalize, JsData)]
 #[boa_gc(empty_trace)]
-pub struct UnmappedArguments;
+pub(crate) struct UnmappedArguments;
 
 impl UnmappedArguments {
     /// Creates a new unmapped Arguments ordinary object.
@@ -75,7 +75,7 @@ impl UnmappedArguments {
 ///
 /// This struct stores all the data to access mapped function parameters in their environment.
 #[derive(Debug, Clone, Trace, Finalize)]
-pub struct MappedArguments {
+pub(crate) struct MappedArguments {
     binding_indices: Vec<Option<u32>>,
     environment: Gc<DeclarativeEnvironment>,
 }

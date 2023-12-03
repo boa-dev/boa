@@ -29,7 +29,7 @@ use boa_profiler::Profiler;
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-map-iterator-objects
 #[derive(Debug, Finalize, Trace, JsData)]
-pub struct MapIterator {
+pub(crate) struct MapIterator {
     iterated_map: Option<JsObject>,
     map_next_index: usize,
     #[unsafe_ignore_trace]

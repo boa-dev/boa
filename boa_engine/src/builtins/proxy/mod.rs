@@ -246,41 +246,6 @@ impl Proxy {
     }
 }
 
-/// Definitions of the internal object methods for array exotic objects.
-///
-/// More information:
-///  - [ECMAScript reference][spec]
-///
-/// [spec]: https://tc39.es/ecma262/#sec-array-exotic-objects
-pub(crate) static PROXY_EXOTIC_INTERNAL_METHODS_BASIC: InternalObjectMethods =
-    InternalObjectMethods {
-        __get_prototype_of__: proxy_exotic_get_prototype_of,
-        __set_prototype_of__: proxy_exotic_set_prototype_of,
-        __is_extensible__: proxy_exotic_is_extensible,
-        __prevent_extensions__: proxy_exotic_prevent_extensions,
-        __get_own_property__: proxy_exotic_get_own_property,
-        __define_own_property__: proxy_exotic_define_own_property,
-        __has_property__: proxy_exotic_has_property,
-        __get__: proxy_exotic_get,
-        __set__: proxy_exotic_set,
-        __delete__: proxy_exotic_delete,
-        __own_property_keys__: proxy_exotic_own_property_keys,
-        ..ORDINARY_INTERNAL_METHODS
-    };
-
-pub(crate) static PROXY_EXOTIC_INTERNAL_METHODS_WITH_CALL: InternalObjectMethods =
-    InternalObjectMethods {
-        __call__: proxy_exotic_call,
-        ..PROXY_EXOTIC_INTERNAL_METHODS_BASIC
-    };
-
-pub(crate) static PROXY_EXOTIC_INTERNAL_METHODS_ALL: InternalObjectMethods =
-    InternalObjectMethods {
-        __call__: proxy_exotic_call,
-        __construct__: proxy_exotic_construct,
-        ..PROXY_EXOTIC_INTERNAL_METHODS_BASIC
-    };
-
 /// `10.5.1 [[GetPrototypeOf]] ( )`
 ///
 /// More information:

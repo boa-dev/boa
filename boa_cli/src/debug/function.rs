@@ -1,8 +1,9 @@
 use boa_engine::{
+    builtins::function::OrdinaryFunction,
     js_string,
     object::ObjectInitializer,
     vm::flowgraph::{Direction, Graph},
-    Context, JsArgs, JsNativeError, JsObject, JsResult, JsValue, NativeFunction, builtins::function::OrdinaryFunction,
+    Context, JsArgs, JsNativeError, JsObject, JsResult, JsValue, NativeFunction,
 };
 
 use crate::FlowgraphFormat;

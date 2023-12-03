@@ -19,7 +19,7 @@ use boa_macros::utf16;
 
 use super::{is_valid_integer_index, TypedArrayKind};
 
-// An `IntegerIndexed` object is just an alias for a `TypedArray` object.
+/// An `IntegerIndexed` object is just an alias for a `TypedArray` object.
 pub type IntegerIndexed = TypedArray;
 
 /// A `TypedArrayObject` is an exotic object that performs special handling of integer
