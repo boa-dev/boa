@@ -64,7 +64,7 @@ impl Default for GcConfig {
     fn default() -> Self {
         Self {
             threshold: 1024,
-            used_space_percentage: 80,
+            used_space_percentage: 70,
         }
     }
 }
