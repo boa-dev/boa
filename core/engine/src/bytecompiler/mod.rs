@@ -327,8 +327,7 @@ impl<'ctx> ByteCompiler<'ctx> {
             params: FormalParameterList::default(),
             current_open_environments_count: 0,
 
-            // This starts at two because the first value is the `this` value, then function object.
-            current_stack_value_count: 2,
+            current_stack_value_count: 0,
             code_block_flags,
             handlers: ThinVec::default(),
             ic: Vec::default(),

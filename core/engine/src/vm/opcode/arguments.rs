@@ -1,6 +1,6 @@
 use crate::{
     builtins::function::arguments::{MappedArguments, UnmappedArguments},
-    vm::{CallFrame, CompletionType},
+    vm::CompletionType,
     Context, JsResult,
 };
 
@@ -19,7 +19,6 @@ impl Operation for CreateMappedArgumentsObject {
     const COST: u8 = 8;
 
     fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let arguments_start = context.vm.frame().fp as usize + CallFrame::FIRST_ARGUMENT_POSITION;
         let function_object = context
             .vm
             .frame()
@@ -27,7 +26,7 @@ impl Operation for CreateMappedArgumentsObject {
             .clone()
             .expect("there should be a function object");
         let code = context.vm.frame().code_block().clone();
-        let args = context.vm.stack[arguments_start..].to_vec();
+        let args = context.vm.frame().arguments(&context.vm).to_vec();
 
         let env = context.vm.environments.current();
         let arguments = MappedArguments::new(
@@ -55,8 +54,7 @@ impl Operation for CreateUnmappedArgumentsObject {
     const COST: u8 = 4;
 
     fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let arguments_start = context.vm.frame().fp as usize + CallFrame::FIRST_ARGUMENT_POSITION;
-        let args = context.vm.stack[arguments_start..].to_vec();
+        let args = context.vm.frame().arguments(&context.vm).to_vec();
         let arguments = UnmappedArguments::new(&args, context);
         context.vm.push(arguments);
         Ok(CompletionType::Normal)

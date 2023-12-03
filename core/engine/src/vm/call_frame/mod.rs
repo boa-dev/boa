@@ -81,22 +81,48 @@ impl CallFrame {
 impl CallFrame {
     /// This is the size of the function prologue.
     ///
-    /// The position of the elements are relative to the [`CallFrame::fp`].
+    /// The position of the elements are relative to the [`CallFrame::fp`] (frame pointer).
     ///
     /// ```text
-    ///   --- frame pointer                             arguments
-    ///  /                      __________________________/
-    /// /                      /                          \
-    /// | 0: this | 1: func | 2: arg1 | ... | (2 + N): argN |
-    ///    \            /
-    ///     ------------
-    ///     |
-    /// function prolugue
+    ///                      Setup by the caller
+    ///   ┌─────────────────────────────────────────────────────────┐ ┌───── frame pointer
+    ///   ▼                                                         ▼ ▼
+    /// | -(2 + N): this | -(1 + N): func | -N: arg1 | ... | -1: argN | 0: local1 | ... | K: localK |
+    ///   ▲                              ▲   ▲                      ▲   ▲                         ▲
+    ///   └──────────────────────────────┘   └──────────────────────┘   └─────────────────────────┘
+    ///         function prolugue                    arguments              Setup by the callee
     /// ```
-    pub(crate) const FUNCTION_PROLOGUE: usize = 2;
-    pub(crate) const THIS_POSITION: usize = 0;
-    pub(crate) const FUNCTION_POSITION: usize = 1;
-    pub(crate) const FIRST_ARGUMENT_POSITION: usize = 2;
+    ///
+    /// ### Example
+    ///
+    /// The following function calls, generate the following stack:
+    ///
+    /// ```JavaScript
+    /// function x(a) {
+    /// }
+    /// function y(b, c) {
+    ///     return x(b + c)
+    /// }
+    ///
+    /// y(1, 2)
+    /// ```
+    ///
+    /// ```text
+    ///   caller prolugue     caller arguments   callee prolugue   callee arguments
+    ///   ______|____________   _____|_____   _________|_________   __|_
+    ///  /                   \ /           \ /                   \ /    \
+    /// | 0: undefined | 1: y | 2: 1 | 3: 2 | 4: undefined | 5: x | 6: 3 |
+    ///                                     /                            ^
+    ///            caller frame pointer  --+                  callee frame pointer
+    /// ```
+    ///
+    /// Some questions:
+    ///
+    /// - Who is responsible for cleaning up the stack after a call? The caller.
+    ///
+    pub(crate) const FUNCTION_PROLOGUE: u32 = 2;
+    pub(crate) const THIS_POSITION: u32 = 2;
+    pub(crate) const FUNCTION_POSITION: u32 = 1;
 
     /// Creates a new `CallFrame` with the provided `CodeBlock`.
     pub(crate) fn new(
@@ -142,17 +168,37 @@ impl CallFrame {
     }
 
     pub(crate) fn this(&self, vm: &Vm) -> JsValue {
-        let this_index = self.fp as usize + Self::THIS_POSITION;
-        vm.stack[this_index].clone()
+        let this_index = self.fp - self.argument_count - Self::THIS_POSITION;
+        vm.stack[this_index as usize].clone()
     }
 
     pub(crate) fn function(&self, vm: &Vm) -> Option<JsObject> {
-        let function_index = self.fp as usize + Self::FUNCTION_POSITION;
-        if let Some(object) = vm.stack[function_index].as_object() {
+        let function_index = self.fp - self.argument_count - Self::FUNCTION_POSITION;
+        if let Some(object) = vm.stack[function_index as usize].as_object() {
             return Some(object.clone());
         }
 
         None
+    }
+
+    pub(crate) fn arguments<'stack>(&self, vm: &'stack Vm) -> &'stack [JsValue] {
+        let fp = self.fp as usize;
+        let argument_count = self.argument_count as usize;
+        let arguments_start = fp - argument_count;
+        &vm.stack[arguments_start..fp]
+    }
+
+    pub(crate) fn argument<'stack>(&self, index: usize, vm: &'stack Vm) -> Option<&'stack JsValue> {
+        self.arguments(vm).get(index)
+    }
+
+    pub(crate) fn restore_fp(&self) -> u32 {
+        self.fp - self.argument_count - Self::FUNCTION_PROLOGUE
+    }
+
+    pub(crate) fn restore_stack(&self, vm: &mut Vm) {
+        let fp = self.restore_fp();
+        vm.stack.truncate(fp as usize);
     }
 
     /// Does this have the [`CallFrameFlags::EXIT_EARLY`] flag.

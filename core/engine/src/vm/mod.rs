@@ -167,20 +167,14 @@ impl Vm {
 
     pub(crate) fn push_frame_with_stack(
         &mut self,
-        mut frame: CallFrame,
+        frame: CallFrame,
         this: JsValue,
         function: JsValue,
     ) {
-        let current_stack_length = self.stack.len();
-        frame.set_frame_pointer(current_stack_length as u32);
-
         self.push(this);
         self.push(function);
 
-        std::mem::swap(&mut self.environments, &mut frame.environments);
-        std::mem::swap(&mut self.realm, &mut frame.realm);
-
-        self.frames.push(frame);
+        self.push_frame(frame);
     }
 
     pub(crate) fn pop_frame(&mut self) -> Option<CallFrame> {
@@ -422,7 +416,7 @@ impl Context {
                             break;
                         }
 
-                        fp = frame.fp as usize;
+                        fp = frame.restore_fp() as usize;
                         env_fp = frame.env_fp as usize;
                         self.vm.pop_frame();
                     }
@@ -449,7 +443,8 @@ impl Context {
         match result {
             CompletionType::Normal => {}
             CompletionType::Return => {
-                self.vm.stack.truncate(self.vm.frame().fp as usize);
+                let restore_fp = self.vm.frame().restore_fp() as usize;
+                self.vm.stack.truncate(restore_fp);
 
                 let result = self.vm.take_return_value();
                 if self.vm.frame().exit_early() {
@@ -460,7 +455,7 @@ impl Context {
                 self.vm.pop_frame();
             }
             CompletionType::Throw => {
-                let mut fp = self.vm.frame().fp;
+                let mut fp = self.vm.frame().restore_fp();
                 let mut env_fp = self.vm.frame().env_fp;
                 if self.vm.frame().exit_early() {
                     self.vm.environments.truncate(env_fp as usize);
@@ -476,8 +471,8 @@ impl Context {
                 self.vm.pop_frame();
 
                 while let Some(frame) = self.vm.frames.last_mut() {
-                    fp = frame.fp;
-                    env_fp = frame.fp;
+                    fp = frame.restore_fp();
+                    env_fp = frame.env_fp;
                     let pc = frame.pc;
                     let exit_early = frame.exit_early();
 

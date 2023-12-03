@@ -64,28 +64,20 @@ pub(crate) struct GeneratorContext {
 }
 
 impl GeneratorContext {
-    /// Creates a new `GeneratorContext` from the raw `Context` state components.
-    pub(crate) fn new(stack: Vec<JsValue>, call_frame: CallFrame) -> Self {
-        Self {
-            stack,
-            call_frame: Some(call_frame),
-        }
-    }
-
     /// Creates a new `GeneratorContext` from the current `Context` state.
     pub(crate) fn from_current(context: &mut Context) -> Self {
         let mut frame = context.vm.frame().clone();
         frame.environments = context.vm.environments.clone();
         frame.realm = context.realm().clone();
-        let fp = context.vm.frame().fp as usize;
-        let this = Self {
+        let fp = frame.restore_fp() as usize;
+        let stack = context.vm.stack.split_off(fp);
+
+        frame.fp = CallFrame::FUNCTION_PROLOGUE + frame.argument_count;
+
+        Self {
             call_frame: Some(frame),
-            stack: context.vm.stack[fp..].to_vec(),
-        };
-
-        context.vm.stack.truncate(fp);
-
-        this
+            stack,
+        }
     }
 
     /// Resumes execution with `GeneratorContext` as the current execution context.
@@ -96,11 +88,11 @@ impl GeneratorContext {
         context: &mut Context,
     ) -> CompletionRecord {
         std::mem::swap(&mut context.vm.stack, &mut self.stack);
-        context
-            .vm
-            .push_frame(self.call_frame.take().expect("should have a call frame"));
+        let frame = self.call_frame.take().expect("should have a call frame");
+        let fp = frame.fp;
+        context.vm.push_frame(frame);
 
-        context.vm.frame_mut().fp = 0;
+        context.vm.frame_mut().fp = fp;
         context.vm.frame_mut().set_exit_early(true);
 
         if let Some(value) = value {

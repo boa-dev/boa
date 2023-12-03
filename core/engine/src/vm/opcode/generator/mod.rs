@@ -13,7 +13,7 @@ use crate::{
     vm::{
         call_frame::GeneratorResumeKind,
         opcode::{Operation, ReThrow},
-        CallFrame, CompletionType,
+        CompletionType,
     },
     Context, JsError, JsObject, JsResult, JsValue,
 };
@@ -37,35 +37,11 @@ impl Operation for Generator {
     fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let r#async = context.vm.read::<u8>() != 0;
 
-        let frame = context.vm.frame();
-        let code_block = frame.code_block().clone();
-        let active_runnable = frame.active_runnable.clone();
-        let active_function = frame.function(&context.vm);
-        let environments = frame.environments.clone();
-        let realm = frame.realm.clone();
-        let pc = frame.pc;
-
-        let mut dummy_call_frame = CallFrame::new(code_block, active_runnable, environments, realm);
-        dummy_call_frame.pc = pc;
-        let mut call_frame = std::mem::replace(context.vm.frame_mut(), dummy_call_frame);
-
-        context
-            .vm
-            .frame_mut()
-            .set_exit_early(call_frame.exit_early());
-
-        call_frame.environments = context.vm.environments.clone();
-        call_frame.realm = context.realm().clone();
-
-        let fp = call_frame.fp as usize;
-
-        let stack = context.vm.stack[fp..].to_vec();
-        context.vm.stack.truncate(fp);
-
-        call_frame.fp = 0;
-
+        let active_function = context.vm.frame().function(&context.vm);
         let this_function_object =
             active_function.expect("active function should be set to the generator");
+
+        let frame = GeneratorContext::from_current(context);
 
         let proto = this_function_object
             .get(PROTOTYPE, context)
@@ -88,7 +64,7 @@ impl Operation for Generator {
                 proto,
                 AsyncGenerator {
                     state: AsyncGeneratorState::SuspendedStart,
-                    context: Some(GeneratorContext::new(stack, call_frame)),
+                    context: Some(frame),
                     queue: VecDeque::new(),
                 },
             )
@@ -97,9 +73,7 @@ impl Operation for Generator {
                 context.root_shape(),
                 proto,
                 crate::builtins::generator::Generator {
-                    state: GeneratorState::SuspendedStart {
-                        context: GeneratorContext::new(stack, call_frame),
-                    },
+                    state: GeneratorState::SuspendedStart { context: frame },
                 },
             )
         };
