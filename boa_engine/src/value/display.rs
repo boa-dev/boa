@@ -1,8 +1,13 @@
 use std::borrow::Cow;
 
 use crate::{
-    builtins::promise::PromiseState, object::ObjectKind, property::PropertyDescriptor,
-    string::utf16, JsError, JsString,
+    builtins::{
+        error::ErrorKind, map::ordered_map::OrderedMap, promise::PromiseState,
+        set::ordered_set::OrderedSet, Array, Promise,
+    },
+    property::PropertyDescriptor,
+    string::utf16,
+    JsError, JsString,
 };
 
 use super::{fmt, Display, HashSet, JsValue};
@@ -100,149 +105,143 @@ pub(crate) fn log_string_from(x: &JsValue, print_internals: bool, print_children
         JsValue::Object(ref v) => {
             // Can use the private "type" field of an Object to match on
             // which type of Object it represents for special printing
-            match v.borrow().kind() {
-                ObjectKind::String(ref string) => {
-                    format!("String {{ \"{}\" }}", string.to_std_string_escaped())
+            let v_bor = v.borrow();
+            if let Some(s) = v_bor.downcast_ref::<JsString>() {
+                format!("String {{ \"{}\" }}", s.to_std_string_escaped())
+            } else if let Some(b) = v_bor.downcast_ref::<bool>() {
+                format!("Boolean {{ {b} }}")
+            } else if let Some(r) = v_bor.downcast_ref::<f64>() {
+                if r.is_sign_negative() && *r == 0.0 {
+                    "Number { -0 }".to_string()
+                } else {
+                    let mut buffer = ryu_js::Buffer::new();
+                    format!("Number {{ {} }}", buffer.format(*r))
                 }
-                ObjectKind::Boolean(boolean) => format!("Boolean {{ {boolean} }}"),
-                ObjectKind::Number(rational) => {
-                    if rational.is_sign_negative() && *rational == 0.0 {
-                        "Number { -0 }".to_string()
-                    } else {
-                        let mut buffer = ryu_js::Buffer::new();
-                        format!("Number {{ {} }}", buffer.format(*rational))
-                    }
-                }
-                ObjectKind::Array => {
-                    let len = v
-                        .borrow()
-                        .properties()
-                        .get(&utf16!("length").into())
-                        .expect("array object must have 'length' property")
-                        // FIXME: handle accessor descriptors
-                        .expect_value()
-                        .as_number()
-                        .map(|n| n as i32)
-                        .unwrap_or_default();
+            } else if v_bor.is::<Array>() {
+                let len = v_bor
+                    .properties()
+                    .get(&utf16!("length").into())
+                    .expect("array object must have 'length' property")
+                    // FIXME: handle accessor descriptors
+                    .expect_value()
+                    .as_number()
+                    .map(|n| n as i32)
+                    .unwrap_or_default();
 
-                    if print_children {
-                        if len == 0 {
-                            return String::from("[]");
-                        }
-
-                        let arr = (0..len)
-                            .map(|i| {
-                                // Introduce recursive call to stringify any objects
-                                // which are part of the Array
-
-                                // FIXME: handle accessor descriptors
-                                if let Some(value) = v
-                                    .borrow()
-                                    .properties()
-                                    .get(&i.into())
-                                    .and_then(|x| x.value().cloned())
-                                {
-                                    log_string_from(&value, print_internals, false)
-                                } else {
-                                    String::from("<empty>")
-                                }
-                            })
-                            .collect::<Vec<String>>()
-                            .join(", ");
-
-                        format!("[ {arr} ]")
-                    } else {
-                        format!("Array({len})")
-                    }
-                }
-                ObjectKind::Map(ref map) => {
-                    let size = map.len();
-                    if size == 0 {
-                        return String::from("Map(0)");
+                if print_children {
+                    if len == 0 {
+                        return String::from("[]");
                     }
 
-                    if print_children {
-                        let mappings = map
-                            .iter()
-                            .map(|(key, value)| {
-                                let key = log_string_from(key, print_internals, false);
-                                let value = log_string_from(value, print_internals, false);
-                                format!("{key} → {value}")
-                            })
-                            .collect::<Vec<String>>()
-                            .join(", ");
-                        format!("Map {{ {mappings} }}")
-                    } else {
-                        format!("Map({size})")
-                    }
-                }
-                ObjectKind::Set(ref set) => {
-                    let size = set.len();
+                    let arr = (0..len)
+                        .map(|i| {
+                            // Introduce recursive call to stringify any objects
+                            // which are part of the Array
 
-                    if size == 0 {
-                        return String::from("Set(0)");
-                    }
-
-                    if print_children {
-                        let entries = set
-                            .iter()
-                            .map(|value| log_string_from(value, print_internals, false))
-                            .collect::<Vec<String>>()
-                            .join(", ");
-                        format!("Set {{ {entries} }}")
-                    } else {
-                        format!("Set({size})")
-                    }
-                }
-                ObjectKind::Error(_) => {
-                    let name: Cow<'static, str> = v
-                        .get_property(&utf16!("name").into())
-                        .as_ref()
-                        .and_then(PropertyDescriptor::value)
-                        .map_or_else(
-                            || "<error>".into(),
-                            |v| {
-                                v.as_string()
-                                    .map_or_else(
-                                        || v.display().to_string(),
-                                        JsString::to_std_string_escaped,
-                                    )
-                                    .into()
-                            },
-                        );
-                    let message = v
-                        .get_property(&utf16!("message").into())
-                        .as_ref()
-                        .and_then(PropertyDescriptor::value)
-                        .map(|v| {
-                            v.as_string().map_or_else(
-                                || v.display().to_string(),
-                                JsString::to_std_string_escaped,
-                            )
+                            // FIXME: handle accessor descriptors
+                            if let Some(value) = v_bor
+                                .properties()
+                                .get(&i.into())
+                                .and_then(|x| x.value().cloned())
+                            {
+                                log_string_from(&value, print_internals, false)
+                            } else {
+                                String::from("<empty>")
+                            }
                         })
-                        .unwrap_or_default();
-                    if name.is_empty() {
-                        message
-                    } else if message.is_empty() {
-                        name.to_string()
-                    } else {
-                        format!("{name}: {message}")
+                        .collect::<Vec<String>>()
+                        .join(", ");
+
+                    format!("[ {arr} ]")
+                } else {
+                    format!("Array({len})")
+                }
+            } else if let Some(map) = v_bor.downcast_ref::<OrderedMap<JsValue>>() {
+                let size = map.len();
+                if size == 0 {
+                    return String::from("Map(0)");
+                }
+
+                if print_children {
+                    let mappings = map
+                        .iter()
+                        .map(|(key, value)| {
+                            let key = log_string_from(key, print_internals, false);
+                            let value = log_string_from(value, print_internals, false);
+                            format!("{key} → {value}")
+                        })
+                        .collect::<Vec<String>>()
+                        .join(", ");
+                    format!("Map {{ {mappings} }}")
+                } else {
+                    format!("Map({size})")
+                }
+            } else if let Some(set) = v_bor.downcast_ref::<OrderedSet>() {
+                let size = set.len();
+
+                if size == 0 {
+                    return String::from("Set(0)");
+                }
+
+                if print_children {
+                    let entries = set
+                        .iter()
+                        .map(|value| log_string_from(value, print_internals, false))
+                        .collect::<Vec<String>>()
+                        .join(", ");
+                    format!("Set {{ {entries} }}")
+                } else {
+                    format!("Set({size})")
+                }
+            } else if v_bor.is::<ErrorKind>() {
+                drop(v_bor);
+                let name: Cow<'static, str> = v
+                    .get_property(&utf16!("name").into())
+                    .as_ref()
+                    .and_then(PropertyDescriptor::value)
+                    .map_or_else(
+                        || "<error>".into(),
+                        |v| {
+                            v.as_string()
+                                .map_or_else(
+                                    || v.display().to_string(),
+                                    JsString::to_std_string_escaped,
+                                )
+                                .into()
+                        },
+                    );
+                let message = v
+                    .get_property(&utf16!("message").into())
+                    .as_ref()
+                    .and_then(PropertyDescriptor::value)
+                    .map(|v| {
+                        v.as_string().map_or_else(
+                            || v.display().to_string(),
+                            JsString::to_std_string_escaped,
+                        )
+                    })
+                    .unwrap_or_default();
+                if name.is_empty() {
+                    message
+                } else if message.is_empty() {
+                    name.to_string()
+                } else {
+                    format!("{name}: {message}")
+                }
+            } else if let Some(promise) = v_bor.downcast_ref::<Promise>() {
+                format!(
+                    "Promise {{ {} }}",
+                    match promise.state() {
+                        PromiseState::Pending => Cow::Borrowed("<pending>"),
+                        PromiseState::Fulfilled(val) => Cow::Owned(val.display().to_string()),
+                        PromiseState::Rejected(reason) => Cow::Owned(format!(
+                            "<rejected> {}",
+                            JsError::from_opaque(reason.clone())
+                        )),
                     }
-                }
-                ObjectKind::Promise(ref promise) => {
-                    format!(
-                        "Promise {{ {} }}",
-                        match promise.state() {
-                            PromiseState::Pending => Cow::Borrowed("<pending>"),
-                            PromiseState::Fulfilled(val) => Cow::Owned(val.display().to_string()),
-                            PromiseState::Rejected(reason) => Cow::Owned(format!(
-                                "<rejected> {}",
-                                JsError::from_opaque(reason.clone())
-                            )),
-                        }
-                    )
-                }
-                _ => x.display_obj(print_internals),
+                )
+            } else {
+                x.display_obj(print_internals)
             }
         }
         _ => x.display().to_string(),
@@ -255,9 +254,9 @@ impl JsValue {
     pub fn display_obj(&self, print_internals: bool) -> String {
         // A simple helper for getting the address of a value
         // TODO: Find a more general place for this, as it can be used in other situations as well
-        fn address_of<T>(t: &T) -> usize {
+        fn address_of<T: ?Sized>(t: &T) -> usize {
             let my_ptr: *const T = t;
-            my_ptr as usize
+            my_ptr.cast::<()>() as usize
         }
 
         fn display_obj_internal(

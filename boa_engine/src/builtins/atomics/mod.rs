@@ -15,26 +15,17 @@ mod futex;
 use std::sync::atomic::Ordering;
 
 use crate::{
-    builtins::BuiltInObject,
-    context::intrinsics::Intrinsics,
-    js_string,
-    object::{JsObject, Object},
-    property::Attribute,
-    realm::Realm,
-    string::common::StaticJsStrings,
-    symbol::JsSymbol,
-    sys::time::Duration,
-    value::IntegerOrInfinity,
-    Context, JsArgs, JsNativeError, JsResult, JsString, JsValue,
+    builtins::BuiltInObject, context::intrinsics::Intrinsics, js_string, object::JsObject,
+    property::Attribute, realm::Realm, string::common::StaticJsStrings, symbol::JsSymbol,
+    sys::time::Duration, value::IntegerOrInfinity, Context, JsArgs, JsNativeError, JsResult,
+    JsString, JsValue,
 };
 use boa_gc::GcRef;
 use boa_profiler::Profiler;
 
 use super::{
-    array_buffer::BufferRef,
-    typed_array::{
-        Atomic, ContentType, Element, IntegerIndexed, TypedArrayElement, TypedArrayKind,
-    },
+    array_buffer::{BufferRef, SharedArrayBuffer},
+    typed_array::{Atomic, ContentType, Element, TypedArray, TypedArrayElement, TypedArrayKind},
     BuiltInBuilder, IntrinsicObject,
 };
 
@@ -507,7 +498,7 @@ impl Atomics {
         // 6. If IsSharedArrayBuffer(buffer) is false, return +0𝔽.
         let buffer = ii.viewed_array_buffer();
         let buffer = buffer.borrow();
-        let Some(shared) = buffer.as_shared_array_buffer() else {
+        let Some(shared) = buffer.downcast_ref::<SharedArrayBuffer>() else {
             return Ok(0.into());
         };
 
@@ -525,12 +516,12 @@ impl Atomics {
 fn validate_integer_typed_array(
     array: &JsValue,
     waitable: bool,
-) -> JsResult<GcRef<'_, IntegerIndexed>> {
+) -> JsResult<GcRef<'_, TypedArray>> {
     // 1. If waitable is not present, set waitable to false.
     // 2. Perform ? ValidateTypedArray(typedArray).
     let ii = array
         .as_object()
-        .and_then(|o| GcRef::try_map(o.borrow(), Object::as_typed_array))
+        .and_then(|o| o.downcast_ref::<TypedArray>())
         .ok_or_else(|| JsNativeError::typ().with_message("value is not a typed array object"))?;
     if ii.is_detached() {
         return Err(JsNativeError::typ()
@@ -570,7 +561,7 @@ fn validate_integer_typed_array(
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-validateatomicaccess
 fn validate_atomic_access(
-    array: &IntegerIndexed,
+    array: &TypedArray,
     request_index: &JsValue,
     context: &mut Context,
 ) -> JsResult<usize> {

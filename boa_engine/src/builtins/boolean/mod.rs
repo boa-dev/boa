@@ -17,7 +17,7 @@ use crate::{
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
+    object::{internal_methods::get_prototype_from_constructor, JsObject},
     realm::Realm,
     string::common::StaticJsStrings,
     Context, JsResult, JsString, JsValue,
@@ -70,11 +70,8 @@ impl BuiltInConstructor for Boolean {
         }
         let prototype =
             get_prototype_from_constructor(new_target, StandardConstructors::boolean, context)?;
-        let boolean = JsObject::from_proto_and_data_with_shared_shape(
-            context.root_shape(),
-            prototype,
-            ObjectData::boolean(data),
-        );
+        let boolean =
+            JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), prototype, data);
 
         Ok(boolean.into())
     }
@@ -90,7 +87,11 @@ impl Boolean {
     fn this_boolean_value(value: &JsValue) -> JsResult<bool> {
         value
             .as_boolean()
-            .or_else(|| value.as_object().and_then(|obj| obj.borrow().as_boolean()))
+            .or_else(|| {
+                value
+                    .as_object()
+                    .and_then(|obj| obj.downcast_ref::<bool>().as_deref().copied())
+            })
             .ok_or_else(|| {
                 JsNativeError::typ()
                     .with_message("'this' is not a boolean")

@@ -9,6 +9,7 @@
 //! [spec]: https://tc39.es/ecma262/#sec-array-objects
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array
 
+use boa_gc::{Finalize, Trace};
 use boa_macros::utf16;
 use boa_profiler::Profiler;
 use thin_vec::ThinVec;
@@ -21,10 +22,14 @@ use crate::{
     error::JsNativeError,
     js_string,
     object::{
-        internal_methods::{get_prototype_from_constructor, InternalMethodContext},
-        JsObject, ObjectData, CONSTRUCTOR,
+        internal_methods::{
+            get_prototype_from_constructor, ordinary_define_own_property,
+            ordinary_get_own_property, InternalObjectMethods, ORDINARY_INTERNAL_METHODS,
+            InternalMethodContext
+        },
+        JsData, JsObject, CONSTRUCTOR,
     },
-    property::{Attribute, PropertyDescriptor, PropertyNameKind},
+    property::{Attribute, PropertyDescriptor, PropertyKey, PropertyNameKind},
     realm::Realm,
     string::common::StaticJsStrings,
     symbol::JsSymbol,
@@ -48,8 +53,26 @@ pub(crate) enum Direction {
 }
 
 /// JavaScript `Array` built-in implementation.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Trace, Finalize)]
+#[boa_gc(empty_trace)]
 pub(crate) struct Array;
+
+/// Definitions of the internal object methods for array exotic objects.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-array-exotic-objects
+pub(crate) static ARRAY_EXOTIC_INTERNAL_METHODS: InternalObjectMethods = InternalObjectMethods {
+    __define_own_property__: array_exotic_define_own_property,
+    ..ORDINARY_INTERNAL_METHODS
+};
+
+impl JsData for Array {
+    fn internal_methods(&self) -> &'static InternalObjectMethods {
+        &ARRAY_EXOTIC_INTERNAL_METHODS
+    }
+}
 
 impl IntrinsicObject for Array {
     fn init(realm: &Realm) {
@@ -311,7 +334,7 @@ impl Array {
                 .intrinsics()
                 .templates()
                 .array()
-                .create(ObjectData::array(), vec![JsValue::new(length)]));
+                .create(Array, vec![JsValue::new(length)]));
         }
 
         // 7. Return A.
@@ -333,17 +356,17 @@ impl Array {
                 .intrinsics()
                 .templates()
                 .array()
-                .create(ObjectData::array(), vec![JsValue::new(length)]));
+                .create(Array, vec![JsValue::new(length)]));
         }
 
         let array = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            ObjectData::array(),
+            Array,
         );
 
         // 6. Perform ! OrdinaryDefineOwnProperty(A, "length", PropertyDescriptor { [[Value]]: 𝔽(length), [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: false }).
-        crate::object::internal_methods::ordinary_define_own_property(
+        ordinary_define_own_property(
             &array,
             &utf16!("length").into(),
             PropertyDescriptor::builder()
@@ -384,7 +407,7 @@ impl Array {
             .templates()
             .array()
             .create_with_indexed_properties(
-                ObjectData::array(),
+                Array,
                 vec![JsValue::new(length)],
                 elements,
             )
@@ -1036,7 +1059,7 @@ impl Array {
         if let Some(func) = func.as_callable() {
             func.call(&array.into(), &[], context)
         } else {
-            crate::builtins::object::Object::to_string(&array.into(), &[], context)
+            crate::builtins::object::OrdinaryObject::to_string(&array.into(), &[], context)
         }
     }
 
@@ -3400,4 +3423,241 @@ pub(crate) fn find_via_predicate(
 
     // 5. Return the Record { [[Index]]: -1𝔽, [[Value]]: undefined }
     Ok((JsValue::new(-1), JsValue::undefined()))
+}
+
+/// Define an own property for an array exotic object.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-array-exotic-objects-defineownproperty-p-desc
+fn array_exotic_define_own_property(
+    obj: &JsObject,
+    key: &PropertyKey,
+    desc: PropertyDescriptor,
+    context: &mut InternalMethodContext<'_>,
+) -> JsResult<bool> {
+    // 1. Assert: IsPropertyKey(P) is true.
+    match key {
+        // 2. If P is "length", then
+        PropertyKey::String(ref s) if s == utf16!("length") => {
+            // a. Return ? ArraySetLength(A, Desc).
+
+            array_set_length(obj, desc, context)
+        }
+        // 3. Else if P is an array index, then
+        PropertyKey::Index(index) => {
+            let index = index.get();
+
+            // a. Let oldLenDesc be OrdinaryGetOwnProperty(A, "length").
+            let old_len_desc = ordinary_get_own_property(obj, &utf16!("length").into(), context)?
+                .expect("the property descriptor must exist");
+
+            // b. Assert: ! IsDataDescriptor(oldLenDesc) is true.
+            debug_assert!(old_len_desc.is_data_descriptor());
+
+            // c. Assert: oldLenDesc.[[Configurable]] is false.
+            debug_assert!(!old_len_desc.expect_configurable());
+
+            // d. Let oldLen be oldLenDesc.[[Value]].
+            // e. Assert: oldLen is a non-negative integral Number.
+            // f. Let index be ! ToUint32(P).
+            let old_len = old_len_desc
+                .expect_value()
+                .to_u32(context)
+                .expect("this ToUint32 call must not fail");
+
+            // g. If index ≥ oldLen and oldLenDesc.[[Writable]] is false, return false.
+            if index >= old_len && !old_len_desc.expect_writable() {
+                return Ok(false);
+            }
+
+            // h. Let succeeded be ! OrdinaryDefineOwnProperty(A, P, Desc).
+            if ordinary_define_own_property(obj, key, desc, context)? {
+                // j. If index ≥ oldLen, then
+                if index >= old_len {
+                    // i. Set oldLenDesc.[[Value]] to index + 1𝔽.
+                    let old_len_desc = PropertyDescriptor::builder()
+                        .value(index + 1)
+                        .maybe_writable(old_len_desc.writable())
+                        .maybe_enumerable(old_len_desc.enumerable())
+                        .maybe_configurable(old_len_desc.configurable());
+
+                    // ii. Set succeeded to OrdinaryDefineOwnProperty(A, "length", oldLenDesc).
+                    let succeeded = ordinary_define_own_property(
+                        obj,
+                        &utf16!("length").into(),
+                        old_len_desc.into(),
+                        context,
+                    )?;
+
+                    // iii. Assert: succeeded is true.
+                    debug_assert!(succeeded);
+                }
+
+                // k. Return true.
+                Ok(true)
+            } else {
+                // i. If succeeded is false, return false.
+                Ok(false)
+            }
+        }
+        // 4. Return OrdinaryDefineOwnProperty(A, P, Desc).
+        _ => ordinary_define_own_property(obj, key, desc, context),
+    }
+}
+
+/// Abstract operation `ArraySetLength ( A, Desc )`
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-arraysetlength
+fn array_set_length(
+    obj: &JsObject,
+    desc: PropertyDescriptor,
+    context: &mut InternalMethodContext<'_>,
+) -> JsResult<bool> {
+    // 1. If Desc.[[Value]] is absent, then
+    let Some(new_len_val) = desc.value() else {
+        // a. Return OrdinaryDefineOwnProperty(A, "length", Desc).
+        return ordinary_define_own_property(obj, &utf16!("length").into(), desc, context);
+    };
+
+    // 3. Let newLen be ? ToUint32(Desc.[[Value]]).
+    let new_len = new_len_val.to_u32(context)?;
+
+    // 4. Let numberLen be ? ToNumber(Desc.[[Value]]).
+    let number_len = new_len_val.to_number(context)?;
+
+    // 5. If SameValueZero(newLen, numberLen) is false, throw a RangeError exception.
+    #[allow(clippy::float_cmp)]
+    if f64::from(new_len) != number_len {
+        return Err(JsNativeError::range()
+            .with_message("bad length for array")
+            .into());
+    }
+
+    // 2. Let newLenDesc be a copy of Desc.
+    // 6. Set newLenDesc.[[Value]] to newLen.
+    let mut new_len_desc = PropertyDescriptor::builder()
+        .value(new_len)
+        .maybe_writable(desc.writable())
+        .maybe_enumerable(desc.enumerable())
+        .maybe_configurable(desc.configurable());
+
+    // 7. Let oldLenDesc be OrdinaryGetOwnProperty(A, "length").
+    let old_len_desc = ordinary_get_own_property(obj, &utf16!("length").into(), context)?
+        .expect("the property descriptor must exist");
+
+    // 8. Assert: ! IsDataDescriptor(oldLenDesc) is true.
+    debug_assert!(old_len_desc.is_data_descriptor());
+
+    // 9. Assert: oldLenDesc.[[Configurable]] is false.
+    debug_assert!(!old_len_desc.expect_configurable());
+
+    // 10. Let oldLen be oldLenDesc.[[Value]].
+    let old_len = old_len_desc.expect_value();
+
+    // 11. If newLen ≥ oldLen, then
+    if new_len >= old_len.to_u32(context)? {
+        // a. Return OrdinaryDefineOwnProperty(A, "length", newLenDesc).
+        return ordinary_define_own_property(
+            obj,
+            &utf16!("length").into(),
+            new_len_desc.build(),
+            context,
+        );
+    }
+
+    // 12. If oldLenDesc.[[Writable]] is false, return false.
+    if !old_len_desc.expect_writable() {
+        return Ok(false);
+    }
+
+    // 13. If newLenDesc.[[Writable]] is absent or has the value true, let newWritable be true.
+    let new_writable = if new_len_desc.inner().writable().unwrap_or(true) {
+        true
+    }
+    // 14. Else,
+    else {
+        // a. NOTE: Setting the [[Writable]] attribute to false is deferred in case any
+        // elements cannot be deleted.
+        // c. Set newLenDesc.[[Writable]] to true.
+        new_len_desc = new_len_desc.writable(true);
+
+        // b. Let newWritable be false.
+        false
+    };
+
+    // 15. Let succeeded be ! OrdinaryDefineOwnProperty(A, "length", newLenDesc).
+    // 16. If succeeded is false, return false.
+    if !ordinary_define_own_property(
+        obj,
+        &utf16!("length").into(),
+        new_len_desc.clone().build(),
+        context,
+    )
+    .expect("this OrdinaryDefineOwnProperty call must not fail")
+    {
+        return Ok(false);
+    }
+
+    // 17. For each own property key P of A that is an array index, whose numeric value is
+    // greater than or equal to newLen, in descending numeric index order, do
+    let ordered_keys = {
+        let mut keys: Vec<_> = obj
+            .borrow()
+            .properties
+            .index_property_keys()
+            .filter(|idx| new_len <= *idx && *idx < u32::MAX)
+            .collect();
+        keys.sort_unstable_by(|x, y| y.cmp(x));
+        keys
+    };
+
+    for index in ordered_keys {
+        // a. Let deleteSucceeded be ! A.[[Delete]](P).
+        // b. If deleteSucceeded is false, then
+        if !obj.__delete__(&index.into(), context)? {
+            // i. Set newLenDesc.[[Value]] to ! ToUint32(P) + 1𝔽.
+            new_len_desc = new_len_desc.value(index + 1);
+
+            // ii. If newWritable is false, set newLenDesc.[[Writable]] to false.
+            if !new_writable {
+                new_len_desc = new_len_desc.writable(false);
+            }
+
+            // iii. Perform ! OrdinaryDefineOwnProperty(A, "length", newLenDesc).
+            ordinary_define_own_property(
+                obj,
+                &utf16!("length").into(),
+                new_len_desc.build(),
+                context,
+            )
+            .expect("this OrdinaryDefineOwnProperty call must not fail");
+
+            // iv. Return false.
+            return Ok(false);
+        }
+    }
+
+    // 18. If newWritable is false, then
+    if !new_writable {
+        // a. Set succeeded to ! OrdinaryDefineOwnProperty(A, "length",
+        // PropertyDescriptor { [[Writable]]: false }).
+        let succeeded = ordinary_define_own_property(
+            obj,
+            &utf16!("length").into(),
+            PropertyDescriptor::builder().writable(false).build(),
+            context,
+        )
+        .expect("this OrdinaryDefineOwnProperty call must not fail");
+
+        // b. Assert: succeeded is true.
+        debug_assert!(succeeded);
+    }
+
+    // 19. Return true.
+    Ok(true)
 }

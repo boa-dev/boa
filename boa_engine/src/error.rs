@@ -6,7 +6,6 @@ use crate::{
     builtins::{error::ErrorKind, Array},
     js_string,
     object::JsObject,
-    object::ObjectData,
     property::PropertyDescriptor,
     realm::Realm,
     string::utf16,
@@ -242,9 +241,7 @@ impl JsError {
                 let obj = val
                     .as_object()
                     .ok_or_else(|| TryNativeError::NotAnErrorObject(val.clone()))?;
-                let error = obj
-                    .borrow()
-                    .as_error()
+                let error = *obj.downcast_ref::<ErrorKind>()
                     .ok_or_else(|| TryNativeError::NotAnErrorObject(val.clone()))?;
 
                 let try_get_property = |key: JsString, name, context: &mut Context| {
@@ -952,7 +949,7 @@ impl JsNativeError {
         let o = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            ObjectData::error(tag),
+            tag,
         );
 
         o.create_non_enumerable_data_property_or_throw(

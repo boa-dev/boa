@@ -1,6 +1,6 @@
 mod options;
 
-use boa_gc::{empty_trace, Finalize, Trace};
+use boa_gc::{Finalize, Trace};
 use boa_macros::utf16;
 use boa_profiler::Profiler;
 use fixed_decimal::FixedDecimal;
@@ -18,11 +18,11 @@ use crate::{
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, ObjectData, ObjectInitializer},
+    object::{internal_methods::get_prototype_from_constructor, ObjectInitializer},
     property::Attribute,
     realm::Realm,
     string::common::StaticJsStrings,
-    Context, JsArgs, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
+    Context, JsArgs, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 
 use super::{
@@ -35,17 +35,14 @@ use super::{
     Service,
 };
 
-#[derive(Debug, Finalize)]
+#[derive(Debug, Trace, Finalize, JsData)]
+// SAFETY: `PluralRules` doesn't contain any traceable data.
+#[boa_gc(unsafe_empty_trace)]
 pub(crate) struct PluralRules {
     locale: Locale,
     native: PluralRulesWithRanges<NativePluralRules>,
     rule_type: PluralRuleType,
     format_options: DigitFormatOptions,
-}
-
-// SAFETY: `PluralRules` doesn't contain any traceable data.
-unsafe impl Trace for PluralRules {
-    empty_trace!();
 }
 
 impl Service for PluralRules {
@@ -170,12 +167,12 @@ impl BuiltInConstructor for PluralRules {
         Ok(JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             proto,
-            ObjectData::native_object(Self {
+            Self {
                 locale,
                 native,
                 rule_type,
                 format_options,
-            }),
+            },
         )
         .into())
     }

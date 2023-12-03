@@ -1,22 +1,101 @@
 use crate::{
     environments::DeclarativeEnvironment,
-    object::{JsObject, ObjectData},
-    Context, JsValue,
+    object::{
+        internal_methods::{
+            ordinary_define_own_property, ordinary_delete, ordinary_get, ordinary_get_own_property,
+            ordinary_set, InternalObjectMethods, ORDINARY_INTERNAL_METHODS, InternalMethodContext,
+        },
+        JsObject,
+    },
+    property::{DescriptorKind, PropertyDescriptor, PropertyKey},
+    Context, JsData, JsResult, JsValue,
 };
 use boa_ast::{function::FormalParameterList, operations::bound_names};
 use boa_gc::{Finalize, Gc, Trace};
 use rustc_hash::FxHashMap;
 
-/// `ParameterMap` represents the `[[ParameterMap]]` internal slot on a Arguments exotic object.
+#[derive(Debug, Copy, Clone, Trace, Finalize, JsData)]
+#[boa_gc(empty_trace)]
+pub struct UnmappedArguments;
+
+impl UnmappedArguments {
+    /// Creates a new unmapped Arguments ordinary object.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-createunmappedargumentsobject
+    pub(crate) fn new(arguments_list: &[JsValue], context: &mut Context) -> JsObject {
+        // 1. Let len be the number of elements in argumentsList.
+        let len = arguments_list.len();
+
+        let values_function = context.intrinsics().objects().array_prototype_values();
+        let throw_type_error = context.intrinsics().objects().throw_type_error();
+
+        // 2. Let obj be ! OrdinaryObjectCreate(%Object.prototype%, « [[ParameterMap]] »).
+        // 3. Set obj.[[ParameterMap]] to undefined.
+        // skipped because the `Arguments` enum ensures ordinary argument objects don't have a `[[ParameterMap]]`
+        let obj = context
+            .intrinsics()
+            .templates()
+            .unmapped_arguments()
+            .create(
+                Self,
+                vec![
+                    // 4. Perform DefinePropertyOrThrow(obj, "length", PropertyDescriptor { [[Value]]: 𝔽(len),
+                    // [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: true }).
+                    len.into(),
+                    // 7. Perform ! DefinePropertyOrThrow(obj, @@iterator, PropertyDescriptor {
+                    // [[Value]]: %Array.prototype.values%, [[Writable]]: true, [[Enumerable]]: false,
+                    // [[Configurable]]: true }).
+                    values_function.into(),
+                    // 8. Perform ! DefinePropertyOrThrow(obj, "callee", PropertyDescriptor {
+                    // [[Get]]: %ThrowTypeError%, [[Set]]: %ThrowTypeError%, [[Enumerable]]: false,
+                    // [[Configurable]]: false }).
+                    throw_type_error.clone().into(), // get
+                    throw_type_error.into(),         // set
+                ],
+            );
+
+        // 5. Let index be 0.
+        // 6. Repeat, while index < len,
+        //    a. Let val be argumentsList[index].
+        //    b. Perform ! CreateDataPropertyOrThrow(obj, ! ToString(𝔽(index)), val).
+        //    c. Set index to index + 1.
+        obj.borrow_mut()
+            .properties_mut()
+            .override_indexed_properties(arguments_list.iter().cloned().collect());
+
+        // 9. Return obj.
+        obj
+    }
+}
+
+/// `MappedArguments` represents an Arguments exotic object.
 ///
 /// This struct stores all the data to access mapped function parameters in their environment.
 #[derive(Debug, Clone, Trace, Finalize)]
-pub struct ParameterMap {
+pub struct MappedArguments {
     binding_indices: Vec<Option<u32>>,
     environment: Gc<DeclarativeEnvironment>,
 }
 
-impl ParameterMap {
+impl JsData for MappedArguments {
+    fn internal_methods(&self) -> &'static InternalObjectMethods {
+        static METHODS: InternalObjectMethods = InternalObjectMethods {
+            __get_own_property__: arguments_exotic_get_own_property,
+            __define_own_property__: arguments_exotic_define_own_property,
+            __get__: arguments_exotic_get,
+            __set__: arguments_exotic_set,
+            __delete__: arguments_exotic_delete,
+            ..ORDINARY_INTERNAL_METHODS
+        };
+
+        &METHODS
+    }
+}
+
+impl MappedArguments {
     /// Deletes the binding with the given index from the parameter map.
     pub(crate) fn delete(&mut self, index: u32) {
         if let Some(binding) = self.binding_indices.get_mut(index as usize) {
@@ -56,71 +135,11 @@ impl ParameterMap {
     }
 }
 
-#[derive(Debug, Clone, Trace, Finalize)]
-pub enum Arguments {
-    Unmapped,
-    Mapped(ParameterMap),
-}
-
-impl Arguments {
-    /// Creates a new unmapped Arguments ordinary object.
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-createunmappedargumentsobject
-    pub(crate) fn create_unmapped_arguments_object(
-        arguments_list: &[JsValue],
-        context: &mut Context,
-    ) -> JsObject {
-        // 1. Let len be the number of elements in argumentsList.
-        let len = arguments_list.len();
-
-        let values_function = context.intrinsics().objects().array_prototype_values();
-        let throw_type_error = context.intrinsics().objects().throw_type_error();
-
-        // 2. Let obj be ! OrdinaryObjectCreate(%Object.prototype%, « [[ParameterMap]] »).
-        // 3. Set obj.[[ParameterMap]] to undefined.
-        // skipped because the `Arguments` enum ensures ordinary argument objects don't have a `[[ParameterMap]]`
-        let obj = context
-            .intrinsics()
-            .templates()
-            .unmapped_arguments()
-            .create(
-                ObjectData::arguments(Self::Unmapped),
-                vec![
-                    // 4. Perform DefinePropertyOrThrow(obj, "length", PropertyDescriptor { [[Value]]: 𝔽(len),
-                    // [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: true }).
-                    len.into(),
-                    // 7. Perform ! DefinePropertyOrThrow(obj, @@iterator, PropertyDescriptor {
-                    // [[Value]]: %Array.prototype.values%, [[Writable]]: true, [[Enumerable]]: false,
-                    // [[Configurable]]: true }).
-                    values_function.into(),
-                    // 8. Perform ! DefinePropertyOrThrow(obj, "callee", PropertyDescriptor {
-                    // [[Get]]: %ThrowTypeError%, [[Set]]: %ThrowTypeError%, [[Enumerable]]: false,
-                    // [[Configurable]]: false }).
-                    throw_type_error.clone().into(), // get
-                    throw_type_error.into(),         // set
-                ],
-            );
-
-        // 5. Let index be 0.
-        // 6. Repeat, while index < len,
-        //    a. Let val be argumentsList[index].
-        //    b. Perform ! CreateDataPropertyOrThrow(obj, ! ToString(𝔽(index)), val).
-        //    c. Set index to index + 1.
-        obj.borrow_mut()
-            .properties_mut()
-            .override_indexed_properties(arguments_list.iter().cloned().collect());
-
-        // 9. Return obj.
-        obj
-    }
-
+impl MappedArguments {
     /// Creates a new mapped Arguments exotic object.
     ///
     /// <https://tc39.es/ecma262/#sec-createmappedargumentsobject>
-    pub(crate) fn create_mapped_arguments_object(
+    pub(crate) fn new(
         func: &JsObject,
         formals: &FormalParameterList,
         arguments_list: &[JsValue],
@@ -194,7 +213,7 @@ impl Arguments {
             property_index += 1;
         }
 
-        let mut map = ParameterMap {
+        let mut map = MappedArguments {
             binding_indices: vec![None; property_index],
             environment: env.clone(),
         };
@@ -208,7 +227,7 @@ impl Arguments {
 
         // 11. Set obj.[[ParameterMap]] to map.
         let obj = context.intrinsics().templates().mapped_arguments().create(
-            ObjectData::arguments(Self::Mapped(map)),
+            map,
             vec![
                 // 16. Perform ! DefinePropertyOrThrow(obj, "length", PropertyDescriptor { [[Value]]: 𝔽(len),
                 // [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: true }).
@@ -237,4 +256,230 @@ impl Arguments {
         // 22. Return obj.
         obj
     }
+}
+
+/// `[[GetOwnProperty]]` for arguments exotic objects.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-arguments-exotic-objects-getownproperty-p
+pub(crate) fn arguments_exotic_get_own_property(
+    obj: &JsObject,
+    key: &PropertyKey,
+    context: &mut InternalMethodContext<'_>,
+) -> JsResult<Option<PropertyDescriptor>> {
+    // 1. Let desc be OrdinaryGetOwnProperty(args, P).
+    // 2. If desc is undefined, return desc.
+    let Some(desc) = ordinary_get_own_property(obj, key, context)? else {
+        return Ok(None);
+    };
+
+    // 3. Let map be args.[[ParameterMap]].
+    // 4. Let isMapped be ! HasOwnProperty(map, P).
+    // 5. If isMapped is true, then
+    if let PropertyKey::Index(index) = key {
+        if let Some(value) = obj
+            .downcast_ref::<MappedArguments>()
+            .expect("arguments exotic method must only be callable from arguments objects")
+            .get(index.get())
+        {
+            // a. Set desc.[[Value]] to Get(map, P).
+            return Ok(Some(
+                PropertyDescriptor::builder()
+                    .value(value)
+                    .maybe_writable(desc.writable())
+                    .maybe_enumerable(desc.enumerable())
+                    .maybe_configurable(desc.configurable())
+                    .build(),
+            ));
+        }
+    }
+
+    // 6. Return desc.
+    Ok(Some(desc))
+}
+
+/// `[[DefineOwnProperty]]` for arguments exotic objects.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-arguments-exotic-objects-defineownproperty-p-desc
+#[allow(clippy::needless_pass_by_value)]
+pub(crate) fn arguments_exotic_define_own_property(
+    obj: &JsObject,
+    key: &PropertyKey,
+    desc: PropertyDescriptor,
+    context: &mut InternalMethodContext<'_>,
+) -> JsResult<bool> {
+    // 2. Let isMapped be HasOwnProperty(map, P).
+    let mapped = if let &PropertyKey::Index(index) = &key {
+        // 1. Let map be args.[[ParameterMap]].
+        obj.downcast_ref::<MappedArguments>()
+            .expect("arguments exotic method must only be callable from arguments objects")
+            .get(index.get())
+            .map(|value| (index, value))
+    } else {
+        None
+    };
+
+    let new_arg_desc = match desc.kind() {
+        // 4. If isMapped is true and IsDataDescriptor(Desc) is true, then
+        // a. If Desc.[[Value]] is not present and Desc.[[Writable]] is present and its
+        // value is false, then
+        DescriptorKind::Data {
+            writable: Some(false),
+            value: None,
+        } =>
+        // i. Set newArgDesc to a copy of Desc.
+        // ii. Set newArgDesc.[[Value]] to Get(map, P).
+        {
+            if let Some((_, value)) = &mapped {
+                PropertyDescriptor::builder()
+                    .value(value.clone())
+                    .writable(false)
+                    .maybe_enumerable(desc.enumerable())
+                    .maybe_configurable(desc.configurable())
+                    .build()
+            } else {
+                desc.clone()
+            }
+        }
+
+        // 3. Let newArgDesc be Desc.
+        _ => desc.clone(),
+    };
+
+    // 5. Let allowed be ? OrdinaryDefineOwnProperty(args, P, newArgDesc).
+    // 6. If allowed is false, return false.
+    if !ordinary_define_own_property(obj, key, new_arg_desc, context)? {
+        return Ok(false);
+    }
+
+    // 7. If isMapped is true, then
+    if let Some((index, _)) = mapped {
+        // 1. Let map be args.[[ParameterMap]].
+        let mut map = obj
+            .downcast_mut::<MappedArguments>()
+            .expect("arguments exotic method must only be callable from arguments objects");
+
+        // a. If IsAccessorDescriptor(Desc) is true, then
+        if desc.is_accessor_descriptor() {
+            // i. Call map.[[Delete]](P).
+            map.delete(index.get());
+        }
+        // b. Else,
+        else {
+            // i. If Desc.[[Value]] is present, then
+            if let Some(value) = desc.value() {
+                // 1. Let setStatus be Set(map, P, Desc.[[Value]], false).
+                // 2. Assert: setStatus is true because formal parameters mapped by argument objects are always writable.
+                map.set(index.get(), value);
+            }
+
+            // ii. If Desc.[[Writable]] is present and its value is false, then
+            if desc.writable() == Some(false) {
+                // 1. Call map.[[Delete]](P).
+                map.delete(index.get());
+            }
+        }
+    }
+
+    // 8. Return true.
+    Ok(true)
+}
+
+/// `[[Get]]` for arguments exotic objects.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-arguments-exotic-objects-get-p-receiver
+pub(crate) fn arguments_exotic_get(
+    obj: &JsObject,
+    key: &PropertyKey,
+    receiver: JsValue,
+    context: &mut InternalMethodContext<'_>,
+) -> JsResult<JsValue> {
+    if let PropertyKey::Index(index) = key {
+        // 1. Let map be args.[[ParameterMap]].
+        // 2. Let isMapped be ! HasOwnProperty(map, P).
+        if let Some(value) = obj
+            .downcast_ref::<MappedArguments>()
+            .expect("arguments exotic method must only be callable from arguments objects")
+            .get(index.get())
+        {
+            // a. Assert: map contains a formal parameter mapping for P.
+            // b. Return Get(map, P).
+            return Ok(value);
+        }
+    }
+
+    // 3. If isMapped is false, then
+    // a. Return ? OrdinaryGet(args, P, Receiver).
+    ordinary_get(obj, key, receiver, context)
+}
+
+/// `[[Set]]` for arguments exotic objects.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-arguments-exotic-objects-set-p-v-receiver
+pub(crate) fn arguments_exotic_set(
+    obj: &JsObject,
+    key: PropertyKey,
+    value: JsValue,
+    receiver: JsValue,
+    context: &mut InternalMethodContext<'_>,
+) -> JsResult<bool> {
+    // 1. If SameValue(args, Receiver) is false, then
+    // a. Let isMapped be false.
+    // 2. Else,
+    if let PropertyKey::Index(index) = &key {
+        if JsValue::same_value(&obj.clone().into(), &receiver) {
+            // a. Let map be args.[[ParameterMap]].
+            // b. Let isMapped be ! HasOwnProperty(map, P).
+            // 3. If isMapped is true, then
+            // a. Let setStatus be Set(map, P, V, false).
+            // b. Assert: setStatus is true because formal parameters mapped by argument objects are always writable.
+            obj.downcast_ref::<MappedArguments>()
+                .expect("arguments exotic method must only be callable from arguments objects")
+                .set(index.get(), &value);
+        }
+    }
+
+    // 4. Return ? OrdinarySet(args, P, V, Receiver).
+    ordinary_set(obj, key, value, receiver, context)
+}
+
+/// `[[Delete]]` for arguments exotic objects.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-arguments-exotic-objects-delete-p
+pub(crate) fn arguments_exotic_delete(
+    obj: &JsObject,
+    key: &PropertyKey,
+    context: &mut InternalMethodContext<'_>,
+) -> JsResult<bool> {
+    // 3. Let result be ? OrdinaryDelete(args, P).
+    let result = ordinary_delete(obj, key, context)?;
+
+    if result {
+        if let PropertyKey::Index(index) = key {
+            // 1. Let map be args.[[ParameterMap]].
+            // 2. Let isMapped be ! HasOwnProperty(map, P).
+            // 4. If result is true and isMapped is true, then
+            // a. Call map.[[Delete]](P).
+            obj.downcast_mut::<MappedArguments>()
+                .expect("arguments exotic method must only be callable from arguments objects")
+                .delete(index.get());
+        }
+    }
+
+    // 5. Return result.
+    Ok(result)
 }

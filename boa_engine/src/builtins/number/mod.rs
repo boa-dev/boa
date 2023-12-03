@@ -18,7 +18,7 @@ use crate::{
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
+    object::{internal_methods::get_prototype_from_constructor, JsObject},
     property::Attribute,
     realm::Realm,
     string::common::StaticJsStrings,
@@ -126,11 +126,8 @@ impl BuiltInConstructor for Number {
         }
         let prototype =
             get_prototype_from_constructor(new_target, StandardConstructors::number, context)?;
-        let this = JsObject::from_proto_and_data_with_shared_shape(
-            context.root_shape(),
-            prototype,
-            ObjectData::number(data),
-        );
+        let this =
+            JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), prototype, data);
         Ok(this.into())
     }
 }
@@ -194,7 +191,11 @@ impl Number {
     fn this_number_value(value: &JsValue) -> JsResult<f64> {
         value
             .as_number()
-            .or_else(|| value.as_object().and_then(|obj| obj.borrow().as_number()))
+            .or_else(|| {
+                value
+                    .as_object()
+                    .and_then(|obj| obj.downcast_ref::<f64>().as_deref().copied())
+            })
             .ok_or_else(|| {
                 JsNativeError::typ()
                     .with_message("'this' is not a number")

@@ -1,6 +1,6 @@
 use std::ops::Range;
 
-use boa_gc::{empty_trace, Finalize, Trace};
+use boa_gc::{Finalize, Trace};
 use boa_macros::utf16;
 use boa_profiler::Profiler;
 use icu_locid::Locale;
@@ -15,13 +15,11 @@ use crate::{
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
-    object::{
-        internal_methods::get_prototype_from_constructor, JsObject, ObjectData, ObjectInitializer,
-    },
+    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectInitializer},
     property::Attribute,
     realm::Realm,
     string::common::StaticJsStrings,
-    Context, JsArgs, JsNativeError, JsResult, JsString, JsSymbol, JsValue,
+    Context, JsArgs, JsData, JsNativeError, JsResult, JsString, JsSymbol, JsValue,
 };
 
 mod iterator;
@@ -37,15 +35,12 @@ use super::{
     Service,
 };
 
-#[derive(Debug, Finalize)]
+#[derive(Debug, Trace, Finalize, JsData)]
+// SAFETY: `Segmenter` doesn't contain any traceable data.
+#[boa_gc(unsafe_empty_trace)]
 pub(crate) struct Segmenter {
     locale: Locale,
     native: NativeSegmenter,
-}
-
-// SAFETY: `Segmenter` doesn't contain any traceable data.
-unsafe impl Trace for Segmenter {
-    empty_trace!();
 }
 
 #[derive(Debug)]
@@ -180,11 +175,8 @@ impl BuiltInConstructor for Segmenter {
         let proto =
             get_prototype_from_constructor(new_target, StandardConstructors::segmenter, context)?;
 
-        let segmenter = JsObject::from_proto_and_data_with_shared_shape(
-            context.root_shape(),
-            proto,
-            ObjectData::native_object(segmenter),
-        );
+        let segmenter =
+            JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), proto, segmenter);
 
         // 14. Return segmenter.
         Ok(segmenter.into())
@@ -232,14 +224,14 @@ impl Segmenter {
     fn resolved_options(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let segmenter be the this value.
         // 2. Perform ? RequireInternalSlot(segmenter, [[InitializedSegmenter]]).
-        let segmenter = this.as_object().map(JsObject::borrow).ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message("`resolved_options` can only be called on an `Intl.Segmenter` object")
-        })?;
-        let segmenter = segmenter.downcast_ref::<Self>().ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message("`resolved_options` can only be called on an `Intl.Segmenter` object")
-        })?;
+        let segmenter = this
+            .as_object()
+            .and_then(|o| o.downcast_ref::<Self>())
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message(
+                    "`resolved_options` can only be called on an `Intl.Segmenter` object",
+                )
+            })?;
 
         // 3. Let options be OrdinaryObjectCreate(%Object.prototype%).
         // 4. For each row of Table 19, except the header row, in table order, do

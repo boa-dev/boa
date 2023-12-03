@@ -8,10 +8,9 @@ use crate::{
     builtins::{iterable::create_iter_result_object, BuiltInBuilder, IntrinsicObject},
     context::intrinsics::Intrinsics,
     js_string,
-    object::ObjectData,
     property::Attribute,
     realm::Realm,
-    Context, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
+    Context, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 
 use super::{create_segment_data_object, Segmenter};
@@ -46,7 +45,7 @@ impl NativeSegmentIterator<'_, '_> {
     }
 }
 
-#[derive(Debug, Trace, Finalize)]
+#[derive(Debug, Trace, Finalize, JsData)]
 pub(crate) struct SegmentIterator {
     segmenter: JsObject,
     string: JsString,
@@ -90,11 +89,11 @@ impl SegmentIterator {
                 .objects()
                 .iterator_prototypes()
                 .segment(),
-            ObjectData::native_object(Self {
+            Self {
                 segmenter,
                 string,
                 next_segment_index: 0,
-            }),
+            },
         )
     }
     /// [`%SegmentIteratorPrototype%.next ( )`][spec]
@@ -103,14 +102,13 @@ impl SegmentIterator {
     fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let iterator be the this value.
         // 2. Perform ? RequireInternalSlot(iterator, [[IteratingSegmenter]]).
-        let mut iter = this.as_object().map(JsObject::borrow_mut).ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message("`next` can only be called on a `Segment Iterator` object")
-        })?;
-        let iter = iter.downcast_mut::<Self>().ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message("`next` can only be called on a `Segment Iterator` object")
-        })?;
+        let mut iter = this
+            .as_object()
+            .and_then(|o| o.downcast_mut::<Self>())
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message("`next` can only be called on a `Segment Iterator` object")
+            })?;
 
         // 5. Let startIndex be iterator.[[IteratedStringNextSegmentCodeUnitIndex]].
         let start = iter.next_segment_index;

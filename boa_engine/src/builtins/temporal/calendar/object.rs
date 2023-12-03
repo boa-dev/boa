@@ -20,6 +20,9 @@ use boa_temporal::{
     TemporalResult, TinyAsciiStr,
 };
 use num_traits::ToPrimitive;
+use plain_date::PlainDate;
+use plain_month_day::PlainMonthDay;
+use plain_year_month::PlainYearMonth;
 
 /// A user-defined, custom calendar that is only known at runtime
 /// and executed at runtime.
@@ -85,7 +88,7 @@ impl CalendarProtocol for CustomRuntimeCalendar {
                 .with_message("datefromFields must return a valid PlainDate object.")
         })?;
 
-        let pd = obj.as_plain_date().ok_or_else(|| {
+        let pd = obj.downcast_ref::<PlainDate>().ok_or_else(|| {
             TemporalError::r#type().with_message("Object returned was not a PlainDate")
         })?;
 
@@ -139,7 +142,7 @@ impl CalendarProtocol for CustomRuntimeCalendar {
                 .with_message("yearMonthFromFields must return a valid PlainYearMonth object.")
         })?;
 
-        let ym = obj.as_plain_year_month().ok_or_else(|| {
+        let ym = obj.downcast_ref::<PlainYearMonth>().ok_or_else(|| {
             TemporalError::r#type().with_message("Object returned was not a PlainDate")
         })?;
 
@@ -193,7 +196,7 @@ impl CalendarProtocol for CustomRuntimeCalendar {
                 .with_message("yearMonthFromFields must return a valid PlainYearMonth object.")
         })?;
 
-        let md = obj.as_plain_month_day().ok_or_else(|| {
+        let md = obj.downcast_ref::<PlainMonthDay>().ok_or_else(|| {
             TemporalError::r#type().with_message("Object returned was not a PlainDate")
         })?;
 

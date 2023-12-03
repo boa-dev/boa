@@ -76,6 +76,7 @@
 #[cfg(not(target_has_atomic = "ptr"))]
 compile_error!("Boa requires a lock free `AtomicUsize` in order to work properly.");
 
+extern crate self as boa_engine;
 extern crate static_assertions as sa;
 
 pub mod bigint;
@@ -109,12 +110,17 @@ mod tests;
 /// A convenience module that re-exports the most commonly-used Boa APIs
 pub mod prelude {
     pub use crate::{
+        bigint::JsBigInt,
+        context::Context,
         error::{JsError, JsNativeError, JsNativeErrorKind},
+        host_defined::HostDefined,
         module::Module,
         native_function::NativeFunction,
-        object::JsObject,
+        object::{JsData, JsObject, NativeObject},
         script::Script,
-        Context, JsBigInt, JsResult, JsString, JsValue,
+        string::JsString,
+        symbol::JsSymbol,
+        value::JsValue,
     };
     pub use boa_parser::Source;
 }
@@ -123,21 +129,7 @@ use std::result::Result as StdResult;
 
 // Export things to root level
 #[doc(inline)]
-pub use crate::{
-    bigint::JsBigInt,
-    context::Context,
-    error::{JsError, JsNativeError, JsNativeErrorKind},
-    host_defined::HostDefined,
-    module::Module,
-    native_function::NativeFunction,
-    object::JsObject,
-    script::Script,
-    string::JsString,
-    symbol::JsSymbol,
-    value::JsValue,
-};
-#[doc(inline)]
-pub use boa_parser::Source;
+pub use prelude::*;
 
 /// The result of a Javascript expression is represented like this so it can succeed (`Ok`) or fail (`Err`)
 pub type JsResult<T> = StdResult<T, JsError>;

@@ -10,7 +10,7 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/eval
 
 use crate::{
-    builtins::BuiltInObject,
+    builtins::{function::OrdinaryFunction, BuiltInObject},
     bytecompiler::ByteCompiler,
     context::intrinsics::Intrinsics,
     environments::Environment,
@@ -146,7 +146,7 @@ impl Eval {
                 }
 
                 let function_object = function_object
-                    .as_function()
+                    .downcast_ref::<OrdinaryFunction>()
                     .expect("must be function object");
 
                 // iv. If F.[[ConstructorKind]] is derived, set inDerivedConstructor to true.

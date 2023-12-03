@@ -140,11 +140,10 @@ impl SliceRef<'_> {
 
         // 4. Let targetBlock be targetBuffer.[[ArrayBufferData]].
         {
-            let mut target_buffer_mut = target_buffer.borrow_mut();
-            let target_array_buffer = target_buffer_mut
-                .as_array_buffer_mut()
+            let mut target_buffer = target_buffer
+                .downcast_mut::<ArrayBuffer>()
                 .expect("This must be an ArrayBuffer");
-            let target_block = target_array_buffer
+            let target_block = target_buffer
                 .data
                 .as_deref_mut()
                 .expect("ArrayBuffer cannot be detached here");

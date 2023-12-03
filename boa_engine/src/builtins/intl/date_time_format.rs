@@ -10,14 +10,15 @@
 use crate::{
     builtins::{
         options::OptionType, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
+        OrdinaryObject,
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
+    object::{internal_methods::get_prototype_from_constructor, JsObject},
     realm::Realm,
     string::{common::StaticJsStrings, utf16},
-    Context, JsResult, JsString, JsValue,
+    Context, JsData, JsResult, JsString, JsValue,
 };
 
 use boa_gc::{Finalize, Trace};
@@ -39,7 +40,7 @@ impl OptionType for HourCycle {
 }
 
 /// JavaScript `Intl.DateTimeFormat` object.
-#[derive(Debug, Clone, Trace, Finalize)]
+#[derive(Debug, Clone, Trace, Finalize, JsData)]
 pub(crate) struct DateTimeFormat {
     initialized_date_time_format: bool,
     locale: JsString,
@@ -123,7 +124,7 @@ impl BuiltInConstructor for DateTimeFormat {
         let date_time_format = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            ObjectData::native_object(Self {
+            Self {
                 initialized_date_time_format: true,
                 locale: js_string!("en-US"),
                 calendar: js_string!("gregory"),
@@ -143,7 +144,7 @@ impl BuiltInConstructor for DateTimeFormat {
                 hour_cycle: js_string!("h24"),
                 pattern: js_string!("{hour}:{minute}"),
                 bound_format: js_string!("undefined"),
-            }),
+            },
         );
 
         // TODO 3. Perform ? InitializeDateTimeFormat(dateTimeFormat, locales, options).
@@ -194,7 +195,7 @@ pub(crate) fn to_date_time_options(
     let options = JsObject::from_proto_and_data_with_shared_shape(
         context.root_shape(),
         options,
-        ObjectData::ordinary(),
+        OrdinaryObject,
     );
 
     // 3. Let needDefaults be true.

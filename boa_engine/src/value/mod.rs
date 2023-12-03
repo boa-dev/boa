@@ -16,11 +16,11 @@ mod tests;
 use crate::{
     builtins::{
         number::{f64_to_int32, f64_to_uint32},
-        Number,
+        Number, Promise,
     },
     error::JsNativeError,
     js_string,
-    object::{JsObject, ObjectData},
+    object::JsObject,
     property::{PropertyDescriptor, PropertyKey},
     symbol::JsSymbol,
     Context, JsBigInt, JsResult, JsString,
@@ -186,14 +186,14 @@ impl JsValue {
     #[inline]
     #[must_use]
     pub fn is_promise(&self) -> bool {
-        matches!(self, Self::Object(obj) if obj.is_promise())
+        matches!(self, Self::Object(obj) if obj.is::<Promise>())
     }
 
     /// Returns the promise if the value is a promise, otherwise `None`.
     #[inline]
     #[must_use]
     pub fn as_promise(&self) -> Option<&JsObject> {
-        self.as_object().filter(|obj| obj.is_promise())
+        self.as_object().filter(|obj| obj.is::<Promise>())
     }
 
     /// Returns true if the value is a symbol.
@@ -501,31 +501,32 @@ impl JsValue {
                 .intrinsics()
                 .templates()
                 .boolean()
-                .create(ObjectData::boolean(*boolean), Vec::default())),
+                .create(*boolean, Vec::default())),
             Self::Integer(integer) => Ok(context
                 .intrinsics()
                 .templates()
                 .number()
-                .create(ObjectData::number(f64::from(*integer)), Vec::default())),
+                .create(f64::from(*integer), Vec::default())),
             Self::Rational(rational) => Ok(context
                 .intrinsics()
                 .templates()
                 .number()
-                .create(ObjectData::number(*rational), Vec::default())),
-            Self::String(ref string) => Ok(context.intrinsics().templates().string().create(
-                ObjectData::string(string.clone()),
-                vec![string.len().into()],
-            )),
+                .create(*rational, Vec::default())),
+            Self::String(ref string) => Ok(context
+                .intrinsics()
+                .templates()
+                .string()
+                .create(string.clone(), vec![string.len().into()])),
             Self::Symbol(ref symbol) => Ok(context
                 .intrinsics()
                 .templates()
                 .symbol()
-                .create(ObjectData::symbol(symbol.clone()), Vec::default())),
+                .create(symbol.clone(), Vec::default())),
             Self::BigInt(ref bigint) => Ok(context
                 .intrinsics()
                 .templates()
                 .bigint()
-                .create(ObjectData::big_int(bigint.clone()), Vec::default())),
+                .create(bigint.clone(), Vec::default())),
             Self::Object(jsobject) => Ok(jsobject.clone()),
         }
     }

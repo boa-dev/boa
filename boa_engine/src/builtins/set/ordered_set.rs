@@ -1,19 +1,19 @@
 //! Implements a set type that preserves insertion order.
 
-use crate::{builtins::map::ordered_map::MapKey, object::JsObject, JsValue};
+use crate::{builtins::map::ordered_map::MapKey, object::JsObject, JsData, JsValue};
 use boa_gc::{custom_trace, Finalize, Trace};
 use indexmap::IndexSet;
-use std::{collections::hash_map::RandomState, fmt::Debug, hash::BuildHasher};
+use std::fmt::Debug;
 
 /// A type wrapping `indexmap::IndexSet`
-#[derive(Clone, Finalize)]
-pub struct OrderedSet<S = RandomState> {
-    inner: IndexSet<MapKey, S>,
+#[derive(Clone, Finalize, JsData)]
+pub struct OrderedSet {
+    inner: IndexSet<MapKey>,
     lock: u32,
     empty_count: usize,
 }
 
-unsafe impl<S: BuildHasher> Trace for OrderedSet<S> {
+unsafe impl Trace for OrderedSet {
     custom_trace!(this, {
         for v in &this.inner {
             if let MapKey::Key(v) = v {
@@ -180,7 +180,9 @@ impl Finalize for SetLock {
         let Ok(mut set) = self.0.try_borrow_mut() else {
             return;
         };
-        let set = set.as_set_mut().expect("SetLock does not point to a set");
+        let set = set
+            .downcast_mut::<OrderedSet>()
+            .expect("SetLock does not point to a set");
         set.unlock();
     }
 }

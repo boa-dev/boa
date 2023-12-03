@@ -12,20 +12,26 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function
 
 use crate::{
-    builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
+    builtins::{
+        BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject, OrdinaryObject,
+    },
     bytecompiler::FunctionCompiler,
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
-    environments::{EnvironmentStack, PrivateEnvironment},
+    environments::{EnvironmentStack, FunctionSlots, PrivateEnvironment, ThisBindingStatus},
     error::JsNativeError,
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
-    object::{JsFunction, PrivateElement, PrivateName},
+    native_function::NativeFunctionObject,
+    object::{internal_methods::get_prototype_from_constructor, JsObject},
+    object::{
+        internal_methods::{CallValue, InternalObjectMethods, ORDINARY_INTERNAL_METHODS},
+        JsData, JsFunction, PrivateElement, PrivateName,
+    },
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
     string::{common::StaticJsStrings, utf16},
     symbol::JsSymbol,
     value::IntegerOrInfinity,
-    vm::{ActiveRunnable, CodeBlock},
+    vm::{ActiveRunnable, CallFrame, CallFrameFlags, CodeBlock},
     Context, JsArgs, JsResult, JsString, JsValue,
 };
 use boa_ast::{
@@ -42,7 +48,12 @@ use boa_profiler::Profiler;
 use std::io::Read;
 use thin_vec::ThinVec;
 
+use super::Proxy;
+
 pub(crate) mod arguments;
+mod bound;
+
+pub use bound::BoundFunction;
 
 #[cfg(test)]
 mod tests;
@@ -171,6 +182,27 @@ pub struct OrdinaryFunction {
 
     /// The `[[PrivateMethods]]` internal slot.
     private_methods: ThinVec<(PrivateName, PrivateElement)>,
+}
+
+impl JsData for OrdinaryFunction {
+    fn internal_methods(&self) -> &'static InternalObjectMethods {
+        static FUNCTION_METHODS: InternalObjectMethods = InternalObjectMethods {
+            __call__: function_call,
+            ..ORDINARY_INTERNAL_METHODS
+        };
+
+        static CONSTRUCTOR_METHODS: InternalObjectMethods = InternalObjectMethods {
+            __call__: function_call,
+            __construct__: function_construct,
+            ..ORDINARY_INTERNAL_METHODS
+        };
+
+        if self.code.has_prototype_property() {
+            &CONSTRUCTOR_METHODS
+        } else {
+            &FUNCTION_METHODS
+        }
+    }
 }
 
 impl OrdinaryFunction {
@@ -752,15 +784,12 @@ impl BuiltInFunctionObject {
             return Err(JsNativeError::typ().with_message("not a function").into());
         };
 
-        let object = object.borrow();
-        if object.is_native_function() {
+        let object_borrow = object.borrow();
+        if object_borrow.is::<NativeFunctionObject>() {
             let name = {
                 // Is there a case here where if there is no name field on a value
                 // name should default to None? Do all functions have names set?
-                let value = this
-                    .as_object()
-                    .expect("checked that `this` was an object above")
-                    .get(utf16!("name"), &mut *context)?;
+                let value = object.get(utf16!("name"), &mut *context)?;
                 if value.is_null_or_undefined() {
                     js_string!()
                 } else {
@@ -770,12 +799,12 @@ impl BuiltInFunctionObject {
             return Ok(
                 js_string!(utf16!("function "), &name, utf16!("() { [native code] }")).into(),
             );
-        } else if object.is_proxy() || object.is_bound_function() {
+        } else if object_borrow.is::<Proxy>() || object_borrow.is::<BoundFunction>() {
             return Ok(js_string!(utf16!("function () { [native code] }")).into());
         }
 
-        let function = object
-            .as_function()
+        let function = object_borrow
+            .downcast_ref::<OrdinaryFunction>()
             .ok_or_else(|| JsNativeError::typ().with_message("not a function"))?;
 
         let code = function.codeblock();
@@ -865,70 +894,191 @@ pub(crate) fn set_function_name(
         .expect("defining the `name` property must not fail per the spec");
 }
 
-/// Binds a `Function Object` when `bind` is called.
-#[derive(Debug, Trace, Finalize)]
-pub struct BoundFunction {
-    target_function: JsObject,
-    this: JsValue,
-    args: Vec<JsValue>,
+/// Call this object.
+///
+/// # Panics
+///
+/// Panics if the object is currently mutably borrowed.
+// <https://tc39.es/ecma262/#sec-prepareforordinarycall>
+// <https://tc39.es/ecma262/#sec-ecmascript-function-objects-call-thisargument-argumentslist>
+pub(crate) fn function_call(
+    function_object: &JsObject,
+    argument_count: usize,
+    context: &mut Context,
+) -> JsResult<CallValue> {
+    context.check_runtime_limits()?;
+
+    let function = function_object
+        .downcast_ref::<OrdinaryFunction>()
+        .expect("not a function");
+    let realm = function.realm().clone();
+
+    if function.code.is_class_constructor() {
+        debug_assert!(
+            function.is_ordinary(),
+            "only ordinary functions can be classes"
+        );
+        return Err(JsNativeError::typ()
+            .with_message("class constructor cannot be invoked without 'new'")
+            .with_realm(realm)
+            .into());
+    }
+
+    let code = function.code.clone();
+    let environments = function.environments.clone();
+    let script_or_module = function.script_or_module.clone();
+
+    drop(function);
+
+    let env_fp = environments.len() as u32;
+
+    let frame = CallFrame::new(code.clone(), script_or_module, environments, realm)
+        .with_argument_count(argument_count as u32)
+        .with_env_fp(env_fp);
+
+    context.vm.push_frame(frame);
+
+    let fp = context.vm.stack.len() - argument_count - CallFrame::FUNCTION_PROLOGUE;
+    context.vm.frame_mut().fp = fp as u32;
+
+    let this = context.vm.stack[fp + CallFrame::THIS_POSITION].clone();
+
+    let lexical_this_mode = code.this_mode == ThisMode::Lexical;
+
+    let this = if lexical_this_mode {
+        ThisBindingStatus::Lexical
+    } else if code.strict() {
+        ThisBindingStatus::Initialized(this.clone())
+    } else if this.is_null_or_undefined() {
+        ThisBindingStatus::Initialized(context.realm().global_this().clone().into())
+    } else {
+        ThisBindingStatus::Initialized(
+            this.to_object(context)
+                .expect("conversion cannot fail")
+                .into(),
+        )
+    };
+
+    let mut last_env = 0;
+
+    if code.has_binding_identifier() {
+        let index = context
+            .vm
+            .environments
+            .push_lexical(code.constant_compile_time_environment(last_env));
+        context
+            .vm
+            .environments
+            .put_lexical_value(index, 0, function_object.clone().into());
+        last_env += 1;
+    }
+
+    context.vm.environments.push_function(
+        code.constant_compile_time_environment(last_env),
+        FunctionSlots::new(this, function_object.clone(), None),
+    );
+
+    Ok(CallValue::Ready)
 }
 
-impl BoundFunction {
-    /// Abstract operation `BoundFunctionCreate`
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-boundfunctioncreate
-    pub fn create(
-        target_function: JsObject,
-        this: JsValue,
-        args: Vec<JsValue>,
-        context: &mut Context,
-    ) -> JsResult<JsObject> {
-        // 1. Let proto be ? targetFunction.[[GetPrototypeOf]]().
-        let proto = target_function.__get_prototype_of__(context)?;
-        let is_constructor = target_function.is_constructor();
+/// Construct an instance of this object with the specified arguments.
+///
+/// # Panics
+///
+/// Panics if the object is currently mutably borrowed.
+// <https://tc39.es/ecma262/#sec-ecmascript-function-objects-construct-argumentslist-newtarget>
+fn function_construct(
+    this_function_object: &JsObject,
+    argument_count: usize,
+    context: &mut Context,
+) -> JsResult<CallValue> {
+    context.check_runtime_limits()?;
 
-        // 2. Let internalSlotsList be the internal slots listed in Table 35, plus [[Prototype]] and [[Extensible]].
-        // 3. Let obj be ! MakeBasicObject(internalSlotsList).
-        // 4. Set obj.[[Prototype]] to proto.
-        // 5. Set obj.[[Call]] as described in 10.4.1.1.
-        // 6. If IsConstructor(targetFunction) is true, then
-        // a. Set obj.[[Construct]] as described in 10.4.1.2.
-        // 7. Set obj.[[BoundTargetFunction]] to targetFunction.
-        // 8. Set obj.[[BoundThis]] to boundThis.
-        // 9. Set obj.[[BoundArguments]] to boundArgs.
-        // 10. Return obj.
-        Ok(JsObject::from_proto_and_data_with_shared_shape(
+    let function = this_function_object
+        .downcast_ref::<OrdinaryFunction>()
+        .expect("not a function");
+    let realm = function.realm().clone();
+
+    debug_assert!(
+        function.is_ordinary(),
+        "only ordinary functions can be constructed"
+    );
+
+    let code = function.code.clone();
+    let environments = function.environments.clone();
+    let script_or_module = function.script_or_module.clone();
+    drop(function);
+
+    let env_fp = environments.len() as u32;
+
+    let new_target = context.vm.pop();
+
+    let at = context.vm.stack.len() - argument_count;
+
+    let this = if code.is_derived_constructor() {
+        None
+    } else {
+        // If the prototype of the constructor is not an object, then use the default object
+        // prototype as prototype for the new object
+        // see <https://tc39.es/ecma262/#sec-ordinarycreatefromconstructor>
+        // see <https://tc39.es/ecma262/#sec-getprototypefromconstructor>
+        let prototype =
+            get_prototype_from_constructor(&new_target, StandardConstructors::object, context)?;
+        let this = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
-            proto,
-            ObjectData::bound_function(
-                Self {
-                    target_function,
-                    this,
-                    args,
-                },
-                is_constructor,
+            prototype,
+            OrdinaryObject,
+        );
+
+        this.initialize_instance_elements(this_function_object, context)?;
+
+        Some(this)
+    };
+
+    let frame = CallFrame::new(code.clone(), script_or_module, environments, realm)
+        .with_argument_count(argument_count as u32)
+        .with_env_fp(env_fp)
+        .with_flags(CallFrameFlags::CONSTRUCT);
+
+    context.vm.push_frame(frame);
+
+    context.vm.frame_mut().fp = at as u32 - 1;
+
+    let mut last_env = 0;
+
+    if code.has_binding_identifier() {
+        let index = context
+            .vm
+            .environments
+            .push_lexical(code.constant_compile_time_environment(last_env));
+        context
+            .vm
+            .environments
+            .put_lexical_value(index, 0, this_function_object.clone().into());
+        last_env += 1;
+    }
+
+    context.vm.environments.push_function(
+        code.constant_compile_time_environment(last_env),
+        FunctionSlots::new(
+            this.clone().map_or(ThisBindingStatus::Uninitialized, |o| {
+                ThisBindingStatus::Initialized(o.into())
+            }),
+            this_function_object.clone(),
+            Some(
+                new_target
+                    .as_object()
+                    .expect("new.target should be an object")
+                    .clone(),
             ),
-        ))
-    }
+        ),
+    );
 
-    /// Get a reference to the bound function's this.
-    #[must_use]
-    pub const fn this(&self) -> &JsValue {
-        &self.this
-    }
+    // Insert `this` value
+    context
+        .vm
+        .stack
+        .insert(at - 1, this.map(JsValue::new).unwrap_or_default());
 
-    /// Get a reference to the bound function's target function.
-    #[must_use]
-    pub const fn target_function(&self) -> &JsObject {
-        &self.target_function
-    }
-
-    /// Get a reference to the bound function's args.
-    #[must_use]
-    pub fn args(&self) -> &[JsValue] {
-        self.args.as_slice()
-    }
+    Ok(CallValue::Ready)
 }

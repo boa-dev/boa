@@ -6,14 +6,13 @@ use crate::{
     builtins::{BuiltInBuilder, IntrinsicObject},
     context::intrinsics::Intrinsics,
     js_string,
-    object::ObjectData,
     realm::Realm,
-    Context, JsArgs, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
+    Context, JsArgs, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 
 use super::{create_segment_data_object, SegmentIterator, Segmenter};
 
-#[derive(Debug, Trace, Finalize)]
+#[derive(Debug, Trace, Finalize, JsData)]
 pub(crate) struct Segments {
     segmenter: JsObject,
     string: JsString,
@@ -47,7 +46,7 @@ impl Segments {
         JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             context.intrinsics().objects().segments_prototype(),
-            ObjectData::native_object(Self { segmenter, string }),
+            Self { segmenter, string },
         )
     }
 
@@ -57,14 +56,13 @@ impl Segments {
     fn containing(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let segments be the this value.
         // 2. Perform ? RequireInternalSlot(segments, [[SegmentsSegmenter]]).
-        let segments = this.as_object().map(JsObject::borrow).ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message("`containing` can only be called on a `Segments` object")
-        })?;
-        let segments = segments.downcast_ref::<Self>().ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message("`containing` can only be called on a `Segments` object")
-        })?;
+        let segments = this
+            .as_object()
+            .and_then(|o| o.downcast_ref::<Self>())
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message("`containing` can only be called on a `Segments` object")
+            })?;
 
         // 3. Let segmenter be segments.[[SegmentsSegmenter]].
         let segmenter = segments.segmenter.borrow();

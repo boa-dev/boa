@@ -1,24 +1,24 @@
 use crate::{
     js_string,
-    object::JsObject,
+    object::{JsData, JsObject},
     property::{PropertyDescriptor, PropertyKey},
-    Context, JsResult,
+    Context, JsResult, JsString,
 };
 
 use super::{InternalMethodContext, InternalObjectMethods, ORDINARY_INTERNAL_METHODS};
 
-/// Definitions of the internal object methods for string exotic objects.
-///
-/// More information:
-///  - [ECMAScript reference][spec]
-///
-/// [spec]: https://tc39.es/ecma262/#sec-string-exotic-objects
-pub(crate) static STRING_EXOTIC_INTERNAL_METHODS: InternalObjectMethods = InternalObjectMethods {
-    __get_own_property__: string_exotic_get_own_property,
-    __define_own_property__: string_exotic_define_own_property,
-    __own_property_keys__: string_exotic_own_property_keys,
-    ..ORDINARY_INTERNAL_METHODS
-};
+impl JsData for JsString {
+    fn internal_methods(&self) -> &'static InternalObjectMethods {
+        static METHODS: InternalObjectMethods = InternalObjectMethods {
+            __get_own_property__: string_exotic_get_own_property,
+            __define_own_property__: string_exotic_define_own_property,
+            __own_property_keys__: string_exotic_own_property_keys,
+            ..ORDINARY_INTERNAL_METHODS
+        };
+
+        &METHODS
+    }
+}
 
 /// Gets own property of 'String' exotic object
 ///
@@ -92,8 +92,9 @@ pub(crate) fn string_exotic_own_property_keys(
     // 2. Let str be O.[[StringData]].
     // 3. Assert: Type(str) is String.
     let string = obj
-        .as_string()
-        .expect("string exotic method should only be callable from string objects");
+        .downcast_ref::<JsString>()
+        .expect("string exotic method should only be callable from string objects")
+        .clone();
     // 4. Let len be the length of str.
     let len = string.len();
 
@@ -150,9 +151,9 @@ fn string_get_own_property(obj: &JsObject, key: &PropertyKey) -> Option<Property
     // 8. Let str be S.[[StringData]].
     // 9. Assert: Type(str) is String.
     let string = obj
-        .borrow()
-        .as_string()
-        .expect("string exotic method should only be callable from string objects");
+        .downcast_ref::<JsString>()
+        .expect("string exotic method should only be callable from string objects")
+        .clone();
 
     // 10. Let len be the length of str.
     // 11. If ℝ(index) < 0 or len ≤ ℝ(index), return undefined.

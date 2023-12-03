@@ -1,6 +1,7 @@
 //! Boa's implementation of ECMAScript's bigint primitive type.
 
-use crate::{builtins::Number, error::JsNativeError, JsResult};
+use crate::{builtins::Number, error::JsNativeError, JsData, JsResult};
+use boa_gc::{Finalize, Trace};
 use num_integer::Integer;
 use num_traits::{pow::Pow, FromPrimitive, One, ToPrimitive, Zero};
 use std::{
@@ -17,7 +18,9 @@ use serde::{Deserialize, Serialize};
 
 /// JavaScript bigint primitive rust type.
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Trace, Finalize, JsData)]
+// Safety: `JsBigInt` doesn't contain any traceable types.
+#[boa_gc(unsafe_empty_trace)]
 pub struct JsBigInt {
     inner: Rc<RawBigInt>,
 }

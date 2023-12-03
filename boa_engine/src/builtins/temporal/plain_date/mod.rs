@@ -8,19 +8,21 @@ use crate::{
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, ObjectData},
+    object::internal_methods::get_prototype_from_constructor,
     property::Attribute,
     realm::Realm,
     string::{common::StaticJsStrings, utf16},
-    Context, JsArgs, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
+    Context, JsArgs, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
+use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
 use boa_temporal::{date::Date as InnerDate, datetime::DateTime, options::ArithmeticOverflow};
 
-use super::calendar;
+use super::{calendar, PlainDateTime, ZonedDateTime};
 
 /// The `Temporal.PlainDate` object.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Trace, Finalize, JsData)]
+#[boa_gc(unsafe_empty_trace)] // TODO: Remove this!!! `InnerDate` could contain `Trace` types.
 pub struct PlainDate {
     pub(crate) inner: InnerDate,
 }
@@ -434,8 +436,7 @@ pub(crate) fn create_temporal_date(
     // 6. Set object.[[ISOMonth]] to isoMonth.
     // 7. Set object.[[ISODay]] to isoDay.
     // 8. Set object.[[Calendar]] to calendar.
-    let obj =
-        JsObject::from_proto_and_data(prototype, ObjectData::plain_date(PlainDate::new(inner)));
+    let obj = JsObject::from_proto_and_data(prototype, PlainDate::new(inner));
 
     // 9. Return object.
     Ok(obj)
@@ -459,13 +460,10 @@ pub(crate) fn to_temporal_date(
     // 4. If Type(item) is Object, then
     if let Some(object) = item.as_object() {
         // a. If item has an [[InitializedTemporalDate]] internal slot, then
-        if object.is_plain_date() {
-            // i. Return item.
-            let obj = object.borrow();
-            let date = obj.as_plain_date().expect("obj must be a PlainDate.");
+        if let Some(date) = object.downcast_ref::<PlainDate>() {
             return Ok(PlainDate::new(date.inner.clone()));
         // b. If item has an [[InitializedTemporalZonedDateTime]] internal slot, then
-        } else if object.is_zoned_date_time() {
+        } else if let Some(data) = object.downcast_ref::<ZonedDateTime>() {
             return Err(JsNativeError::range()
                 .with_message("ZonedDateTime not yet implemented.")
                 .into());
@@ -475,18 +473,12 @@ pub(crate) fn to_temporal_date(
             // iv. Return ! CreateTemporalDate(plainDateTime.[[ISOYear]], plainDateTime.[[ISOMonth]], plainDateTime.[[ISODay]], plainDateTime.[[Calendar]]).
 
             // c. If item has an [[InitializedTemporalDateTime]] internal slot, then
-        } else if object.is_plain_date_time() {
+        } else if let Some(date_time) = object.downcast_ref::<PlainDateTime>() {
             // i. Perform ? ToTemporalOverflow(options).
             let _o = get_option(&options_obj, utf16!("overflow"), context)?
                 .unwrap_or(ArithmeticOverflow::Constrain);
 
-            let obj = object.borrow();
-            let date_time = obj
-                .as_plain_date_time()
-                .expect("obj must be a PlainDateTime");
-
             let date = InnerDate::from_datetime(date_time.inner());
-            drop(obj);
 
             // ii. Return ! CreateTemporalDate(item.[[ISOYear]], item.[[ISOMonth]], item.[[ISODay]], item.[[Calendar]]).
             return Ok(PlainDate::new(date));

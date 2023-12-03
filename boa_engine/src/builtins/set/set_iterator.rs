@@ -5,7 +5,7 @@
 //!
 //! [spec]: https://tc39.es/ecma262/#sec-set-iterator-objects
 
-use super::ordered_set::SetLock;
+use super::ordered_set::{OrderedSet, SetLock};
 use crate::{
     builtins::{
         iterable::create_iter_result_object, Array, BuiltInBuilder, IntrinsicObject, JsValue,
@@ -13,11 +13,11 @@ use crate::{
     context::intrinsics::Intrinsics,
     error::JsNativeError,
     js_string,
-    object::{JsObject, ObjectData},
+    object::JsObject,
     property::{Attribute, PropertyNameKind},
     realm::Realm,
     symbol::JsSymbol,
-    Context, JsResult,
+    Context, JsData, JsResult,
 };
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
@@ -28,7 +28,7 @@ use boa_profiler::Profiler;
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-set-iterator-objects
-#[derive(Debug, Finalize, Trace)]
+#[derive(Debug, Finalize, Trace, JsData)]
 pub struct SetIterator {
     iterated_set: JsValue,
     next_index: usize,
@@ -91,7 +91,7 @@ impl SetIterator {
         let set_iterator = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             context.intrinsics().objects().iterator_prototypes().set(),
-            ObjectData::set_iterator(Self::new(set, kind, lock)),
+            Self::new(set, kind, lock),
         );
         set_iterator.into()
     }
@@ -105,12 +105,15 @@ impl SetIterator {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%setiteratorprototype%.next
     pub(crate) fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let mut set_iterator = this.as_object().map(JsObject::borrow_mut);
-
-        let set_iterator = set_iterator
-            .as_mut()
-            .and_then(|obj| obj.as_set_iterator_mut())
+        let mut set_iterator = this
+            .as_object()
+            .and_then(|o| o.downcast_mut::<Self>())
             .ok_or_else(|| JsNativeError::typ().with_message("`this` is not an SetIterator"))?;
+
+        // The borrow checker cannot see that we're splitting the `GcRefMut` in two
+        // disjointed parts. However, if we manipulate a `&mut` instead, it can
+        // deduce that invariant.
+        let set_iterator = &mut *set_iterator;
         {
             let m = &set_iterator.iterated_set;
             let mut index = set_iterator.next_index;
@@ -127,7 +130,7 @@ impl SetIterator {
             let entries = m.as_object().map(JsObject::borrow);
             let entries = entries
                 .as_ref()
-                .and_then(|obj| obj.as_set())
+                .and_then(|obj| obj.downcast_ref::<OrderedSet>())
                 .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Set"))?;
 
             let num_entries = entries.full_len();

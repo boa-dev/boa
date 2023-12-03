@@ -30,7 +30,7 @@ use crate::{
     symbol::JsSymbol,
     value::IntegerOrInfinity,
     vm::{CallFrame, CallFrameFlags},
-    Context, JsArgs, JsResult, JsString, JsValue,
+    Context, JsArgs, JsBigInt, JsResult, JsString, JsValue,
 };
 use boa_gc::Gc;
 use boa_parser::{Parser, Source};
@@ -315,7 +315,7 @@ impl Json {
                             );
                         } else if let Some(obj) = v.as_object() {
                             // i. If v has a [[StringData]] or [[NumberData]] internal slot, set item to ? ToString(v).
-                            if obj.is_string() || obj.is_number() {
+                            if obj.is::<JsString>() || obj.is::<f64>() {
                                 property_set.insert(v.to_string(context)?);
                             }
                         }
@@ -333,12 +333,12 @@ impl Json {
         // 5. If Type(space) is Object, then
         if let Some(space_obj) = space.as_object() {
             // a. If space has a [[NumberData]] internal slot, then
-            if space_obj.is_number() {
+            if space_obj.is::<f64>() {
                 // i. Set space to ? ToNumber(space).
                 space = space.to_number(context)?.into();
             }
             // b. Else if space has a [[StringData]] internal slot, then
-            else if space_obj.is_string() {
+            else if space_obj.is::<JsString>() {
                 // i. Set space to ? ToString(space).
                 space = space.to_string(context)?.into();
             }
@@ -438,22 +438,22 @@ impl Json {
         // 4. If Type(value) is Object, then
         if let Some(obj) = value.as_object().cloned() {
             // a. If value has a [[NumberData]] internal slot, then
-            if obj.is_number() {
+            if obj.is::<f64>() {
                 // i. Set value to ? ToNumber(value).
                 value = value.to_number(context)?.into();
             }
             // b. Else if value has a [[StringData]] internal slot, then
-            else if obj.is_string() {
+            else if obj.is::<JsString>() {
                 // i. Set value to ? ToString(value).
                 value = value.to_string(context)?.into();
             }
             // c. Else if value has a [[BooleanData]] internal slot, then
-            else if let Some(boolean) = obj.borrow().as_boolean() {
+            else if let Some(boolean) = obj.downcast_ref::<bool>() {
                 // i. Set value to value.[[BooleanData]].
-                value = boolean.into();
+                value = (*boolean).into();
             }
             // d. Else if value has a [[BigIntData]] internal slot, then
-            else if let Some(bigint) = obj.borrow().as_bigint() {
+            else if let Some(bigint) = obj.downcast_ref::<JsBigInt>() {
                 // i. Set value to value.[[BigIntData]].
                 value = bigint.clone().into();
             }

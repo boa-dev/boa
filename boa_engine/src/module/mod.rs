@@ -22,20 +22,21 @@
 //! [module]: https://tc39.es/ecma262/#sec-abstract-module-records
 
 mod loader;
+mod namespace;
 mod source;
 mod synthetic;
 pub use loader::*;
+pub use namespace::ModuleNamespace;
 use source::SourceTextModule;
 pub use synthetic::{SyntheticModule, SyntheticModuleInitializer};
 
 use std::cell::{Cell, RefCell};
+use std::collections::HashSet;
 use std::hash::Hash;
 use std::io::Read;
 use std::rc::Rc;
-use std::{collections::HashSet, hash::BuildHasherDefault};
 
-use indexmap::IndexSet;
-use rustc_hash::{FxHashSet, FxHasher};
+use rustc_hash::FxHashSet;
 
 use boa_gc::{Finalize, Gc, GcRefCell, Trace};
 use boa_interner::Interner;
@@ -45,8 +46,7 @@ use boa_profiler::Profiler;
 use crate::{
     builtins::promise::{PromiseCapability, PromiseState},
     environments::DeclarativeEnvironment,
-    js_string,
-    object::{JsObject, JsPromise, ObjectData},
+    object::{JsObject, JsPromise},
     realm::Realm,
     Context, HostDefined, JsError, JsResult, JsString, JsValue, NativeFunction,
 };
@@ -572,56 +572,5 @@ impl Hash for Module {
     #[inline]
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         std::ptr::hash(self.inner.as_ref(), state);
-    }
-}
-
-/// Module namespace exotic object.
-///
-/// Exposes the bindings exported by a [`Module`] to be accessed from ECMAScript code.
-#[derive(Debug, Trace, Finalize)]
-pub struct ModuleNamespace {
-    module: Module,
-    #[unsafe_ignore_trace]
-    exports: IndexSet<JsString, BuildHasherDefault<FxHasher>>,
-}
-
-impl ModuleNamespace {
-    /// Abstract operation [`ModuleNamespaceCreate ( module, exports )`][spec].
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-modulenamespacecreate
-    pub(crate) fn create(module: Module, names: Vec<JsString>, context: &mut Context) -> JsObject {
-        // 1. Assert: module.[[Namespace]] is empty.
-        // ignored since this is ensured by `Module::namespace`.
-
-        // 6. Let sortedExports be a List whose elements are the elements of exports ordered as if an Array of the same values had been sorted using %Array.prototype.sort% using undefined as comparefn.
-        let mut exports = names.into_iter().collect::<IndexSet<_, _>>();
-        exports.sort();
-
-        // 2. Let internalSlotsList be the internal slots listed in Table 32.
-        // 3. Let M be MakeBasicObject(internalSlotsList).
-        // 4. Set M's essential internal methods to the definitions specified in 10.4.6.
-        // 5. Set M.[[Module]] to module.
-        // 7. Set M.[[Exports]] to sortedExports.
-        // 8. Create own properties of M corresponding to the definitions in 28.3.
-        let namespace = context.intrinsics().templates().namespace().create(
-            ObjectData::module_namespace(Self { module, exports }),
-            vec![js_string!("Module").into()],
-        );
-
-        // 9. Set module.[[Namespace]] to M.
-        // Ignored because this is done by `Module::namespace`
-
-        // 10. Return M.
-        namespace
-    }
-
-    /// Gets the export names of the Module Namespace object.
-    pub(crate) const fn exports(&self) -> &IndexSet<JsString, BuildHasherDefault<FxHasher>> {
-        &self.exports
-    }
-
-    /// Gest the module associated with this Module Namespace object.
-    pub(crate) const fn module(&self) -> &Module {
-        &self.module
     }
 }

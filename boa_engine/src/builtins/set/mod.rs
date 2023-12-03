@@ -23,7 +23,7 @@ use crate::{
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
+    object::{internal_methods::get_prototype_from_constructor, JsObject},
     property::{Attribute, PropertyNameKind},
     realm::Realm,
     string::{common::StaticJsStrings, utf16},
@@ -128,7 +128,7 @@ impl BuiltInConstructor for Set {
         let set = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            ObjectData::set(OrderedSet::default()),
+            OrderedSet::default(),
         );
 
         // 4. If iterable is either undefined or null, return set.
@@ -178,7 +178,7 @@ impl Set {
         JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            ObjectData::set(OrderedSet::new()),
+            OrderedSet::new(),
         )
     }
 
@@ -229,12 +229,10 @@ impl Set {
 
         // 1. Let S be the this value.
         // 2. Perform ? RequireInternalSlot(S, [[SetData]]).
-        let Some(mut object) = this.as_object().map(JsObject::borrow_mut) else {
-            return Err(JsNativeError::typ()
-                .with_message("Method Set.prototype.add called on incompatible receiver")
-                .into());
-        };
-        let Some(s) = object.as_set_mut() else {
+        let Some(mut set) = this
+            .as_object()
+            .and_then(|o| o.downcast_mut::<OrderedSet>())
+        else {
             return Err(JsNativeError::typ()
                 .with_message("Method Set.prototype.add called on incompatible receiver")
                 .into());
@@ -251,7 +249,7 @@ impl Set {
         };
 
         // 5. Append value to S.[[SetData]].
-        s.add(value.clone());
+        set.add(value.clone());
 
         Ok(this.clone())
         // 6. Return S.
@@ -268,14 +266,14 @@ impl Set {
     /// [spec]: https://tc39.es/ecma262/#sec-set.prototype.clear
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/clear
     pub(crate) fn clear(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        let mut object = this
+        let Some(mut set) = this
             .as_object()
-            .map(JsObject::borrow_mut)
-            .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Set"))?;
-
-        let set = object
-            .as_set_mut()
-            .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Set"))?;
+            .and_then(|o| o.downcast_mut::<OrderedSet>())
+        else {
+            return Err(JsNativeError::typ()
+                .with_message("'this' is not a Set")
+                .into());
+        };
 
         set.clear();
 
@@ -298,12 +296,10 @@ impl Set {
 
         // 1. Let S be the this value.
         // 2. Perform ? RequireInternalSlot(S, [[SetData]]).
-        let Some(mut object) = this.as_object().map(JsObject::borrow_mut) else {
-            return Err(JsNativeError::typ()
-                .with_message("Method Set.prototype.delete called on incompatible receiver")
-                .into());
-        };
-        let Some(s) = object.as_set_mut() else {
+        let Some(mut set) = this
+            .as_object()
+            .and_then(|o| o.downcast_mut::<OrderedSet>())
+        else {
             return Err(JsNativeError::typ()
                 .with_message("Method Set.prototype.delete called on incompatible receiver")
                 .into());
@@ -320,7 +316,7 @@ impl Set {
         // i. Replace the element of S.[[SetData]] whose value is e with an element whose value is empty.
         // ii. Return true.
         // 4. Return false.
-        Ok(s.delete(value).into())
+        Ok(set.delete(value).into())
     }
 
     /// `Set.prototype.entries( )`
@@ -338,10 +334,10 @@ impl Set {
         _: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        let Some(lock) = this
-            .as_object()
-            .and_then(|o| o.borrow_mut().as_set_mut().map(|set| set.lock(o.clone())))
-        else {
+        let Some(lock) = this.as_object().and_then(|o| {
+            o.downcast_mut::<OrderedSet>()
+                .map(|mut set| set.lock(o.clone()))
+        }) else {
             return Err(JsNativeError::typ()
                 .with_message("Method Set.prototype.entries called on incompatible receiver")
                 .into());
@@ -372,10 +368,10 @@ impl Set {
     ) -> JsResult<JsValue> {
         // 1. Let S be the this value.
         // 2. Perform ? RequireInternalSlot(S, [[SetData]]).
-        let Some(lock) = this
-            .as_object()
-            .and_then(|o| o.borrow_mut().as_set_mut().map(|set| set.lock(o.clone())))
-        else {
+        let Some(lock) = this.as_object().and_then(|o| {
+            o.downcast_mut::<OrderedSet>()
+                .map(|mut set| set.lock(o.clone()))
+        }) else {
             return Err(JsNativeError::typ()
                 .with_message("Method Set.prototype.forEach called on incompatible receiver")
                 .into());
@@ -398,14 +394,17 @@ impl Set {
         // 7. Repeat, while index < numEntries,
         while index < Self::get_size_full(this)? {
             // a. Let e be entries[index].
-            let Some(e) = this
+            let Some(set) = this
                 .as_object()
-                .and_then(|o| o.borrow().as_set().map(|s| s.get_index(index).cloned()))
+                .and_then(|o| o.downcast_ref::<OrderedSet>())
             else {
                 return Err(JsNativeError::typ()
                     .with_message("Method Set.prototype.forEach called on incompatible receiver")
                     .into());
             };
+
+            let e = set.get_index(index).cloned();
+            drop(set);
 
             // b. Set index to index + 1.
             index += 1;
@@ -444,12 +443,10 @@ impl Set {
 
         // 1. Let S be the this value.
         // 2. Perform ? RequireInternalSlot(S, [[SetData]]).
-        let Some(mut object) = this.as_object().map(JsObject::borrow_mut) else {
-            return Err(JsNativeError::typ()
-                .with_message("Method Set.prototype.has called on incompatible receiver")
-                .into());
-        };
-        let Some(s) = object.as_set_mut() else {
+        let Some(set) = this
+            .as_object()
+            .and_then(|o| o.downcast_ref::<OrderedSet>())
+        else {
             return Err(JsNativeError::typ()
                 .with_message("Method Set.prototype.has called on incompatible receiver")
                 .into());
@@ -464,7 +461,7 @@ impl Set {
         // 3. For each element e of S.[[SetData]], do
         // a. If e is not empty and SameValueZero(e, value) is true, return true.
         // 4. Return false.
-        Ok(s.contains(value).into())
+        Ok(set.contains(value).into())
     }
 
     /// `Set.prototype.values( )`
@@ -482,10 +479,10 @@ impl Set {
         _: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        let Some(lock) = this
-            .as_object()
-            .and_then(|o| o.borrow_mut().as_set_mut().map(|set| set.lock(o.clone())))
-        else {
+        let Some(lock) = this.as_object().and_then(|o| {
+            o.downcast_mut::<OrderedSet>()
+                .map(|mut set| set.lock(o.clone()))
+        }) else {
             return Err(JsNativeError::typ()
                 .with_message("Method Set.prototype.values called on incompatible receiver")
                 .into());
@@ -506,7 +503,11 @@ impl Set {
     /// Helper function to get the size of the `Set` object.
     pub(crate) fn get_size(set: &JsValue) -> JsResult<usize> {
         set.as_object()
-            .and_then(|obj| obj.borrow().as_set().map(OrderedSet::len))
+            .and_then(|obj| {
+                obj.borrow()
+                    .downcast_ref::<OrderedSet>()
+                    .map(OrderedSet::len)
+            })
             .ok_or_else(|| {
                 JsNativeError::typ()
                     .with_message("'this' is not a Set")
@@ -517,7 +518,11 @@ impl Set {
     /// Helper function to get the full size of the `Set` object.
     pub(crate) fn get_size_full(set: &JsValue) -> JsResult<usize> {
         set.as_object()
-            .and_then(|obj| obj.borrow().as_set().map(OrderedSet::full_len))
+            .and_then(|obj| {
+                obj.borrow()
+                    .downcast_ref::<OrderedSet>()
+                    .map(OrderedSet::full_len)
+            })
             .ok_or_else(|| {
                 JsNativeError::typ()
                     .with_message("'this' is not a Set")

@@ -25,9 +25,9 @@ use crate::{
     js_string,
     string::{common::StaticJsStrings, utf16},
     tagged::{Tagged, UnwrappedTagged},
-    JsString,
+    JsData, JsString,
 };
-use boa_gc::{empty_trace, Finalize, Trace};
+use boa_gc::{Finalize, Trace};
 
 use num_enum::{IntoPrimitive, TryFromPrimitive};
 
@@ -131,6 +131,10 @@ struct Inner {
 }
 
 /// This represents a JavaScript symbol primitive.
+#[derive(Trace, Finalize, JsData)]
+// Safety: JsSymbol does not contain any objects which needs to be traced,
+// so this is safe.
+#[boa_gc(unsafe_empty_trace)]
 pub struct JsSymbol {
     repr: Tagged<Inner>,
 }
@@ -139,14 +143,6 @@ pub struct JsSymbol {
 unsafe impl Send for JsSymbol {}
 // SAFETY: `JsSymbol` uses `Arc` to do the reference counting, making this type thread-safe.
 unsafe impl Sync for JsSymbol {}
-
-impl Finalize for JsSymbol {}
-
-// Safety: JsSymbol does not contain any objects which needs to be traced,
-// so this is safe.
-unsafe impl Trace for JsSymbol {
-    empty_trace!();
-}
 
 macro_rules! well_known_symbols {
     ( $( $(#[$attr:meta])* ($name:ident, $variant:path) ),+$(,)? ) => {

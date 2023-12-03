@@ -114,7 +114,7 @@ impl FunctionCompiler {
             .set(CodeBlockFlags::IS_GENERATOR, self.generator);
         compiler.code_block_flags.set(
             CodeBlockFlags::HAS_PROTOTYPE_PROPERTY,
-            !self.arrow && !self.method,
+            !self.arrow && !self.method && !self.r#async && !self.generator,
         );
 
         if self.arrow {

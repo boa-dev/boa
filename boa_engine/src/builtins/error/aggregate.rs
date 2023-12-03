@@ -14,7 +14,7 @@ use crate::{
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
+    object::{internal_methods::get_prototype_from_constructor, JsObject},
     property::{Attribute, PropertyDescriptorBuilder},
     realm::Realm,
     string::{common::StaticJsStrings, utf16},
@@ -85,7 +85,7 @@ impl BuiltInConstructor for AggregateError {
         let o = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            ObjectData::error(ErrorKind::Aggregate),
+            ErrorKind::Aggregate,
         );
 
         // 3. If message is not undefined, then

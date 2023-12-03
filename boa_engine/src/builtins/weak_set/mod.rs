@@ -11,15 +11,17 @@ use crate::{
     builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
+    object::{internal_methods::get_prototype_from_constructor, ErasedVTableObject, JsObject},
     property::Attribute,
     realm::Realm,
     string::{common::StaticJsStrings, utf16},
     symbol::JsSymbol,
     Context, JsArgs, JsNativeError, JsResult, JsString, JsValue,
 };
-use boa_gc::{Finalize, Trace, WeakMap};
+use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
+
+type NativeWeakSet = boa_gc::WeakMap<ErasedVTableObject, ()>;
 
 #[derive(Debug, Trace, Finalize)]
 pub(crate) struct WeakSet;
@@ -84,7 +86,7 @@ impl BuiltInConstructor for WeakSet {
         let weak_set = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            ObjectData::weak_set(WeakMap::new()),
+            NativeWeakSet::new(),
         );
 
         // 4. If iterable is either undefined or null, return set.
@@ -140,15 +142,12 @@ impl WeakSet {
     ) -> JsResult<JsValue> {
         // 1. Let S be the this value.
         // 2. Perform ? RequireInternalSlot(S, [[WeakSetData]]).
-        let Some(obj) = this.as_object() else {
-            return Err(JsNativeError::typ()
-                .with_message("WeakSet.add: called with non-object value")
-                .into());
-        };
-        let mut obj_borrow = obj.borrow_mut();
-        let o = obj_borrow.as_weak_set_mut().ok_or_else(|| {
-            JsNativeError::typ().with_message("WeakSet.add: called with non-object value")
-        })?;
+        let mut set = this
+            .as_object()
+            .and_then(|o| o.downcast_mut::<NativeWeakSet>())
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("WeakSet.add: called with non-object value")
+            })?;
 
         // 3. If Type(value) is not Object, throw a TypeError exception.
         let value = args.get_or_undefined(0);
@@ -162,14 +161,14 @@ impl WeakSet {
 
         // 4. Let entries be the List that is S.[[WeakSetData]].
         // 5. For each element e of entries, do
-        if o.contains_key(value.inner()) {
+        if set.contains_key(value.inner()) {
             // a. If e is not empty and SameValue(e, value) is true, then
             // i. Return S.
             return Ok(this.clone());
         }
 
         // 6. Append value as the last element of entries.
-        o.insert(value.inner(), ());
+        set.insert(value.inner(), ());
 
         // 7. Return S.
         Ok(this.clone())
@@ -192,15 +191,12 @@ impl WeakSet {
     ) -> JsResult<JsValue> {
         // 1. Let S be the this value.
         // 2. Perform ? RequireInternalSlot(S, [[WeakSetData]]).
-        let Some(obj) = this.as_object() else {
-            return Err(JsNativeError::typ()
-                .with_message("WeakSet.delete: called with non-object value")
-                .into());
-        };
-        let mut obj_borrow = obj.borrow_mut();
-        let o = obj_borrow.as_weak_set_mut().ok_or_else(|| {
-            JsNativeError::typ().with_message("WeakSet.delete: called with non-object value")
-        })?;
+        let mut set = this
+            .as_object()
+            .and_then(|o| o.downcast_mut::<NativeWeakSet>())
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("WeakSet.delete: called with non-object value")
+            })?;
 
         // 3. If Type(value) is not Object, return false.
         let value = args.get_or_undefined(0);
@@ -214,12 +210,12 @@ impl WeakSet {
         // i. Replace the element of entries whose value is e with an element whose value is empty.
         // ii. Return true.
         // 6. Return false.
-        Ok(o.remove(value.inner()).is_some().into())
+        Ok(set.remove(value.inner()).is_some().into())
     }
 
     /// `WeakSet.prototype.has( value )`
     ///
-    /// The has() method returns a boolean indicating whether an object exists in a `WeakSet` or not.   
+    /// The has() method returns a boolean indicating whether an object exists in a `WeakSet` or not.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -234,15 +230,12 @@ impl WeakSet {
     ) -> JsResult<JsValue> {
         // 1. Let S be the this value.
         // 2. Perform ? RequireInternalSlot(S, [[WeakSetData]]).
-        let Some(obj) = this.as_object() else {
-            return Err(JsNativeError::typ()
-                .with_message("WeakSet.has: called with non-object value")
-                .into());
-        };
-        let obj_borrow = obj.borrow();
-        let o = obj_borrow.as_weak_set().ok_or_else(|| {
-            JsNativeError::typ().with_message("WeakSet.has: called with non-object value")
-        })?;
+        let set = this
+            .as_object()
+            .and_then(|o| o.downcast_ref::<NativeWeakSet>())
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("WeakSet.has: called with non-object value")
+            })?;
 
         // 3. Let entries be the List that is S.[[WeakSetData]].
         // 4. If Type(value) is not Object, return false.
@@ -254,6 +247,6 @@ impl WeakSet {
         // 5. For each element e of entries, do
         // a. If e is not empty and SameValue(e, value) is true, return true.
         // 6. Return false.
-        Ok(o.contains_key(value.inner()).into())
+        Ok(set.contains_key(value.inner()).into())
     }
 }

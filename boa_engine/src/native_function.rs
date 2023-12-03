@@ -6,10 +6,17 @@
 use boa_gc::{custom_trace, Finalize, Gc, Trace};
 
 use crate::{
-    builtins::function::ConstructorKind,
-    object::{FunctionObjectBuilder, JsFunction, JsPromise},
+    builtins::{function::ConstructorKind, OrdinaryObject},
+    context::intrinsics::StandardConstructors,
+    object::{
+        internal_methods::{
+            get_prototype_from_constructor, CallValue, InternalObjectMethods,
+            ORDINARY_INTERNAL_METHODS,
+        },
+        FunctionObjectBuilder, JsData, JsFunction, JsPromise,
+    },
     realm::Realm,
-    Context, JsResult, JsValue,
+    Context, JsNativeError, JsObject, JsResult, JsValue,
 };
 
 /// The required signature for all native built-in function pointers.
@@ -68,6 +75,27 @@ unsafe impl Trace for NativeFunctionObject {
         mark(&this.f);
         mark(&this.realm);
     });
+}
+
+impl JsData for NativeFunctionObject {
+    fn internal_methods(&self) -> &'static InternalObjectMethods {
+        static FUNCTION: InternalObjectMethods = InternalObjectMethods {
+            __call__: native_function_call,
+            ..ORDINARY_INTERNAL_METHODS
+        };
+
+        static CONSTRUCTOR: InternalObjectMethods = InternalObjectMethods {
+            __call__: native_function_call,
+            __construct__: native_function_construct,
+            ..ORDINARY_INTERNAL_METHODS
+        };
+
+        if self.constructor.is_some() {
+            &CONSTRUCTOR
+        } else {
+            &FUNCTION
+        }
+    }
 }
 
 /// A callable Rust function that can be invoked by the engine.
@@ -302,4 +330,120 @@ impl NativeFunction {
     pub fn to_js_function(self, realm: &Realm) -> JsFunction {
         FunctionObjectBuilder::new(realm, self).build()
     }
+}
+
+/// Call this object.
+///
+/// # Panics
+///
+/// Panics if the object is currently mutably borrowed.
+// <https://tc39.es/ecma262/#sec-built-in-function-objects-call-thisargument-argumentslist>
+pub(crate) fn native_function_call(
+    obj: &JsObject,
+    argument_count: usize,
+    context: &mut Context,
+) -> JsResult<CallValue> {
+    let args = context.vm.pop_n_values(argument_count);
+    let _func = context.vm.pop();
+    let this = context.vm.pop();
+
+    // We technically don't need this since native functions don't push any new frames to the
+    // vm, but we'll eventually have to combine the native stack with the vm stack.
+    context.check_runtime_limits()?;
+    let this_function_object = obj.clone();
+
+    let NativeFunctionObject {
+        f: function,
+        constructor,
+        realm,
+    } = obj
+        .downcast_ref::<NativeFunctionObject>()
+        .expect("the object should be a native function object")
+        .clone();
+
+    let mut realm = realm.unwrap_or_else(|| context.realm().clone());
+
+    context.swap_realm(&mut realm);
+    context.vm.native_active_function = Some(this_function_object);
+
+    let result = if constructor.is_some() {
+        function.call(&JsValue::undefined(), &args, context)
+    } else {
+        function.call(&this, &args, context)
+    }
+    .map_err(|err| err.inject_realm(context.realm().clone()));
+
+    context.vm.native_active_function = None;
+    context.swap_realm(&mut realm);
+
+    context.vm.push(result?);
+
+    Ok(CallValue::Complete)
+}
+
+/// Construct an instance of this object with the specified arguments.
+///
+/// # Panics
+///
+/// Panics if the object is currently mutably borrowed.
+// <https://tc39.es/ecma262/#sec-built-in-function-objects-construct-argumentslist-newtarget>
+fn native_function_construct(
+    obj: &JsObject,
+    argument_count: usize,
+    context: &mut Context,
+) -> JsResult<CallValue> {
+    // We technically don't need this since native functions don't push any new frames to the
+    // vm, but we'll eventually have to combine the native stack with the vm stack.
+    context.check_runtime_limits()?;
+    let this_function_object = obj.clone();
+
+    let NativeFunctionObject {
+        f: function,
+        constructor,
+        realm,
+    } = obj
+        .downcast_ref::<NativeFunctionObject>()
+        .expect("the object should be a native function object")
+        .clone();
+
+    let mut realm = realm.unwrap_or_else(|| context.realm().clone());
+
+    context.swap_realm(&mut realm);
+    context.vm.native_active_function = Some(this_function_object);
+
+    let new_target = context.vm.pop();
+    let args = context.vm.pop_n_values(argument_count);
+    let _func = context.vm.pop();
+
+    let result = function
+        .call(&new_target, &args, context)
+        .map_err(|err| err.inject_realm(context.realm().clone()))
+        .and_then(|v| match v {
+            JsValue::Object(ref o) => Ok(o.clone()),
+            val => {
+                if constructor.expect("must be a constructor").is_base() || val.is_undefined() {
+                    let prototype = get_prototype_from_constructor(
+                        &new_target,
+                        StandardConstructors::object,
+                        context,
+                    )?;
+                    Ok(JsObject::from_proto_and_data_with_shared_shape(
+                        context.root_shape(),
+                        prototype,
+                        OrdinaryObject,
+                    ))
+                } else {
+                    Err(JsNativeError::typ()
+                        .with_message("derived constructor can only return an Object or undefined")
+                        .into())
+                }
+            }
+        });
+
+    context.vm.native_active_function = None;
+    context.swap_realm(&mut realm);
+
+    context.vm.push(result?);
+
+    Ok(CallValue::Complete)
 }

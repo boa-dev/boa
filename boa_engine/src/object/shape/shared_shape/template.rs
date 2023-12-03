@@ -2,7 +2,7 @@ use boa_gc::{Finalize, Trace};
 use thin_vec::ThinVec;
 
 use crate::{
-    object::{shape::slot::SlotAttributes, JsObject, Object, ObjectData, PropertyMap},
+    object::{shape::slot::SlotAttributes, JsObject, NativeObject, Object, PropertyMap},
     property::{Attribute, PropertyKey},
     JsValue,
 };
@@ -104,9 +104,11 @@ impl ObjectTemplate {
     /// Create an object from the [`ObjectTemplate`]
     ///
     /// The storage must match the properties provided.
-    pub(crate) fn create(&self, data: ObjectData, storage: Vec<JsValue>) -> JsObject {
+    pub(crate) fn create<T: NativeObject>(&self, data: T, storage: Vec<JsValue>) -> JsObject {
+        let internal_methods = data.internal_methods();
+
         let mut object = Object {
-            kind: data.kind,
+            data,
             extensible: true,
             properties: PropertyMap::new(self.shape.clone().into(), ThinVec::default()),
             private_elements: ThinVec::new(),
@@ -114,21 +116,22 @@ impl ObjectTemplate {
 
         object.properties.storage = storage;
 
-        JsObject::from_object_and_vtable(object, data.internal_methods)
+        JsObject::from_object_and_vtable(object, internal_methods)
     }
 
     /// Create an object from the [`ObjectTemplate`]
     ///
     /// The storage must match the properties provided. It does not apply to
     /// the indexed propeties.
-    pub(crate) fn create_with_indexed_properties(
+    pub(crate) fn create_with_indexed_properties<T: NativeObject>(
         &self,
-        data: ObjectData,
+        data: T,
         storage: Vec<JsValue>,
         elements: ThinVec<JsValue>,
     ) -> JsObject {
+        let internal_methods = data.internal_methods();
         let mut object = Object {
-            kind: data.kind,
+            data,
             extensible: true,
             properties: PropertyMap::new(self.shape.clone().into(), elements),
             private_elements: ThinVec::new(),
@@ -136,6 +139,6 @@ impl ObjectTemplate {
 
         object.properties.storage = storage;
 
-        JsObject::from_object_and_vtable(object, data.internal_methods)
+        JsObject::from_object_and_vtable(object, internal_methods)
     }
 }

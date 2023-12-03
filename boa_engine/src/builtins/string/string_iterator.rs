@@ -10,11 +10,11 @@ use crate::{
     context::intrinsics::Intrinsics,
     error::JsNativeError,
     js_string,
-    object::{JsObject, ObjectData},
+    object::JsObject,
     property::Attribute,
     realm::Realm,
     symbol::JsSymbol,
-    Context, JsResult, JsString, JsValue,
+    Context, JsData, JsResult, JsString, JsValue,
 };
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
@@ -25,7 +25,7 @@ use boa_profiler::Profiler;
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-string-iterator-objects
-#[derive(Debug, Clone, Finalize, Trace)]
+#[derive(Debug, Clone, Finalize, Trace, JsData)]
 pub struct StringIterator {
     string: JsString,
     next_index: usize,
@@ -67,19 +67,18 @@ impl StringIterator {
                 .objects()
                 .iterator_prototypes()
                 .string(),
-            ObjectData::string_iterator(Self {
+            Self {
                 string,
                 next_index: 0,
-            }),
+            },
         )
     }
 
     /// `StringIterator.prototype.next( )`
     pub fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let mut string_iterator = this.as_object().map(JsObject::borrow_mut);
-        let string_iterator = string_iterator
-            .as_mut()
-            .and_then(|obj| obj.as_string_iterator_mut())
+        let mut string_iterator = this
+            .as_object()
+            .and_then(|o| o.downcast_mut::<Self>())
             .ok_or_else(|| JsNativeError::typ().with_message("`this` is not an ArrayIterator"))?;
 
         if string_iterator.string.is_empty() {

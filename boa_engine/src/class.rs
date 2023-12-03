@@ -108,7 +108,7 @@ use crate::{
     error::JsNativeError,
     native_function::NativeFunction,
     object::{
-        ConstructorBuilder, FunctionBinding, JsFunction, JsObject, NativeObject, ObjectData,
+        ConstructorBuilder, FunctionBinding, JsFunction, JsObject, NativeObject,
         PROTOTYPE,
     },
     property::{Attribute, PropertyDescriptor, PropertyKey},
@@ -202,7 +202,7 @@ pub trait Class: NativeObject + Sized {
         let object = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            ObjectData::native_object(data),
+            data,
         );
 
         Self::object_constructor(&object, args, context)?;
@@ -237,7 +237,7 @@ pub trait Class: NativeObject + Sized {
         let object = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            ObjectData::native_object(data),
+            data,
         );
 
         Self::object_constructor(&object, &[], context)?;

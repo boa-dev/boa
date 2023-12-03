@@ -146,7 +146,7 @@ impl BigInt {
             .or_else(|| {
                 value
                     .as_object()
-                    .and_then(|obj| obj.borrow().as_bigint().cloned())
+                    .and_then(|obj| obj.downcast_ref::<JsBigInt>().as_deref().cloned())
             })
             // 3. Throw a TypeError exception.
             .ok_or_else(|| {

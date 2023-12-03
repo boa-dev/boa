@@ -5,7 +5,7 @@ use crate::{
     context::intrinsics::Intrinsics,
     error::JsNativeError,
     js_string,
-    object::{JsObject, ObjectData},
+    object::JsObject,
     realm::Realm,
     symbol::JsSymbol,
     Context, JsResult, JsValue,
@@ -38,6 +38,8 @@ macro_rules! if_abrupt_close_iterator {
 
 // Export macro to crate level
 pub(crate) use if_abrupt_close_iterator;
+
+use super::OrdinaryObject;
 
 /// The built-in iterator prototypes.
 #[derive(Debug, Default, Trace, Finalize)]
@@ -206,7 +208,7 @@ pub fn create_iter_result_object(value: JsValue, done: bool, context: &mut Conte
         .intrinsics()
         .templates()
         .iterator_result()
-        .create(ObjectData::ordinary(), vec![value, done.into()]);
+        .create(OrdinaryObject, vec![value, done.into()]);
 
     // 5. Return obj.
     obj.into()

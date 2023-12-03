@@ -7,16 +7,19 @@ use crate::{
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, ObjectData, CONSTRUCTOR},
+    object::{internal_methods::get_prototype_from_constructor, CONSTRUCTOR},
     property::Attribute,
     realm::Realm,
     string::{common::StaticJsStrings, utf16},
-    Context, JsArgs, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
+    Context, JsArgs, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
+use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
 
 /// The `Temporal.TimeZone` object.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Trace, Finalize, JsData)]
+// SAFETY: `TimeZone` doesn't contain traceable data.
+#[boa_gc(unsafe_empty_trace)]
 pub struct TimeZone {
     pub(crate) initialized_temporal_time_zone: bool,
     pub(crate) identifier: String,
@@ -131,12 +134,12 @@ impl BuiltInConstructor for TimeZone {
 impl TimeZone {
     // NOTE: id, toJSON, toString currently share the exact same implementation -> Consolidate into one function and define multiple accesors?
     pub(crate) fn get_id(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        let o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
-            JsNativeError::typ().with_message("this value must be a Temporal.TimeZone")
-        })?;
-        let tz = o.as_time_zone().ok_or_else(|| {
-            JsNativeError::typ().with_message("this value must be a Temporal.TimeZone")
-        })?;
+        let tz = this
+            .as_object()
+            .and_then(|o| o.downcast_ref::<Self>())
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("this value must be a Temporal.TimeZone")
+            })?;
         Ok(JsString::from(tz.identifier.clone()).into())
     }
 
@@ -149,11 +152,7 @@ impl TimeZone {
         // 2. Perform ? RequireInternalSlot(timeZone, [[InitializedTemporalTimeZone]]).
         let _tz = this
             .as_object()
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("this value must be a Temporal.TimeZone")
-            })?
-            .borrow()
-            .as_time_zone()
+            .and_then(|o| o.downcast_ref::<Self>())
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("this value must be a Temporal.TimeZone")
             })?;
@@ -178,11 +177,7 @@ impl TimeZone {
         // 2. Perform ? RequireInternalSlot(timeZone, [[InitializedTemporalTimeZone]]).
         let _tz = this
             .as_object()
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("this value must be a Temporal.TimeZone")
-            })?
-            .borrow()
-            .as_time_zone()
+            .and_then(|o| o.downcast_ref::<Self>())
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("this value must be a Temporal.TimeZone")
             })?;
@@ -250,13 +245,12 @@ impl TimeZone {
     pub(crate) fn to_string(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let timeZone be the this value.
         // 2. Perform ? RequireInternalSlot(timeZone, [[InitializedTemporalTimeZone]]).
-        let o = this.as_object().ok_or_else(|| {
-            JsNativeError::typ().with_message("this value must be a Temporal.TimeZone")
-        })?;
-        let o = o.borrow();
-        let tz = o.as_time_zone().ok_or_else(|| {
-            JsNativeError::typ().with_message("this value must be a Temporal.TimeZone")
-        })?;
+        let tz = this
+            .as_object()
+            .and_then(|o| o.downcast_ref::<Self>())
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("this value must be a Temporal.TimeZone")
+            })?;
         // 3. Return timeZone.[[Identifier]].
         Ok(JsString::from(tz.identifier.clone()).into())
     }
@@ -343,11 +337,11 @@ pub(super) fn create_temporal_time_zone(
     // 6. Return object.
     let object = JsObject::from_proto_and_data(
         prototype,
-        ObjectData::time_zone(TimeZone {
+        TimeZone {
             initialized_temporal_time_zone: false,
             identifier,
             offset_nanoseconds,
-        }),
+        },
     );
     Ok(object.into())
 }

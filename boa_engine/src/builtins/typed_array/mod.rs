@@ -36,14 +36,14 @@ mod integer_indexed_object;
 
 pub(crate) use builtin::{is_valid_integer_index, BuiltinTypedArray};
 pub(crate) use element::{Atomic, ClampedU8, Element};
-pub use integer_indexed_object::IntegerIndexed;
+pub use integer_indexed_object::{IntegerIndexed, TypedArray};
 
-pub(crate) trait TypedArray {
+pub(crate) trait TypedArrayMarker {
     type Element: Element;
     const ERASED: TypedArrayKind;
 }
 
-impl<T: TypedArray> IntrinsicObject for T {
+impl<T: TypedArrayMarker> IntrinsicObject for T {
     fn get(intrinsics: &Intrinsics) -> JsObject {
         Self::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
     }
@@ -86,18 +86,18 @@ impl<T: TypedArray> IntrinsicObject for T {
     }
 }
 
-impl<T: TypedArray> BuiltInObject for T {
-    const NAME: JsString = <Self as TypedArray>::ERASED.js_name();
+impl<T: TypedArrayMarker> BuiltInObject for T {
+    const NAME: JsString = <Self as TypedArrayMarker>::ERASED.js_name();
     const ATTRIBUTE: Attribute = Attribute::WRITABLE
         .union(Attribute::NON_ENUMERABLE)
         .union(Attribute::CONFIGURABLE);
 }
 
-impl<T: TypedArray> BuiltInConstructor for T {
+impl<T: TypedArrayMarker> BuiltInConstructor for T {
     const LENGTH: usize = 3;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
-        <Self as TypedArray>::ERASED.standard_constructor();
+        <Self as TypedArrayMarker>::ERASED.standard_constructor();
 
     /// `23.2.5.1 TypedArray ( ...args )`
     ///
@@ -143,7 +143,7 @@ impl<T: TypedArray> BuiltInConstructor for T {
                 get_prototype_from_constructor(new_target, T::STANDARD_CONSTRUCTOR, context)?;
 
             // ii. If firstArgument has a [[TypedArrayName]] internal slot, then
-            let o = if first_argument.is_typed_array() {
+            let o = if first_argument.is::<TypedArray>() {
                 // 1. Perform ? InitializeTypedArrayFromTypedArray(O, firstArgument).
                 BuiltinTypedArray::initialize_from_typed_array::<T>(proto, first_argument, context)?
             } else if first_argument.is_buffer() {
@@ -216,7 +216,7 @@ impl<T: TypedArray> BuiltInConstructor for T {
 #[derive(Debug, Copy, Clone)]
 pub struct Int8Array;
 
-impl TypedArray for Int8Array {
+impl TypedArrayMarker for Int8Array {
     type Element = i8;
 
     const ERASED: TypedArrayKind = TypedArrayKind::Int8;
@@ -226,7 +226,7 @@ impl TypedArray for Int8Array {
 #[derive(Debug, Copy, Clone)]
 pub struct Uint8Array;
 
-impl TypedArray for Uint8Array {
+impl TypedArrayMarker for Uint8Array {
     type Element = u8;
 
     const ERASED: TypedArrayKind = TypedArrayKind::Uint8;
@@ -236,7 +236,7 @@ impl TypedArray for Uint8Array {
 #[derive(Debug, Copy, Clone)]
 pub struct Uint8ClampedArray;
 
-impl TypedArray for Uint8ClampedArray {
+impl TypedArrayMarker for Uint8ClampedArray {
     type Element = ClampedU8;
 
     const ERASED: TypedArrayKind = TypedArrayKind::Uint8Clamped;
@@ -246,7 +246,7 @@ impl TypedArray for Uint8ClampedArray {
 #[derive(Debug, Copy, Clone)]
 pub struct Int16Array;
 
-impl TypedArray for Int16Array {
+impl TypedArrayMarker for Int16Array {
     type Element = i16;
 
     const ERASED: TypedArrayKind = TypedArrayKind::Int16;
@@ -256,7 +256,7 @@ impl TypedArray for Int16Array {
 #[derive(Debug, Copy, Clone)]
 pub struct Uint16Array;
 
-impl TypedArray for Uint16Array {
+impl TypedArrayMarker for Uint16Array {
     type Element = u16;
 
     const ERASED: TypedArrayKind = TypedArrayKind::Uint16;
@@ -266,7 +266,7 @@ impl TypedArray for Uint16Array {
 #[derive(Debug, Copy, Clone)]
 pub struct Int32Array;
 
-impl TypedArray for Int32Array {
+impl TypedArrayMarker for Int32Array {
     type Element = i32;
 
     const ERASED: TypedArrayKind = TypedArrayKind::Int32;
@@ -276,7 +276,7 @@ impl TypedArray for Int32Array {
 #[derive(Debug, Copy, Clone)]
 pub struct Uint32Array;
 
-impl TypedArray for Uint32Array {
+impl TypedArrayMarker for Uint32Array {
     type Element = u32;
 
     const ERASED: TypedArrayKind = TypedArrayKind::Uint32;
@@ -286,7 +286,7 @@ impl TypedArray for Uint32Array {
 #[derive(Debug, Copy, Clone)]
 pub struct BigInt64Array;
 
-impl TypedArray for BigInt64Array {
+impl TypedArrayMarker for BigInt64Array {
     type Element = i64;
 
     const ERASED: TypedArrayKind = TypedArrayKind::BigInt64;
@@ -296,7 +296,7 @@ impl TypedArray for BigInt64Array {
 #[derive(Debug, Copy, Clone)]
 pub struct BigUint64Array;
 
-impl TypedArray for BigUint64Array {
+impl TypedArrayMarker for BigUint64Array {
     type Element = u64;
 
     const ERASED: TypedArrayKind = TypedArrayKind::BigUint64;
@@ -306,7 +306,7 @@ impl TypedArray for BigUint64Array {
 #[derive(Debug, Copy, Clone)]
 pub struct Float32Array;
 
-impl TypedArray for Float32Array {
+impl TypedArrayMarker for Float32Array {
     type Element = f32;
 
     const ERASED: TypedArrayKind = TypedArrayKind::Float32;
@@ -316,7 +316,7 @@ impl TypedArray for Float32Array {
 #[derive(Debug, Copy, Clone)]
 pub struct Float64Array;
 
-impl TypedArray for Float64Array {
+impl TypedArrayMarker for Float64Array {
     type Element = f64;
 
     const ERASED: TypedArrayKind = TypedArrayKind::Float64;

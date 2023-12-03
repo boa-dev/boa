@@ -28,7 +28,7 @@ use crate::{
     tagged::{Tagged, UnwrappedTagged},
     JsBigInt,
 };
-use boa_gc::{empty_trace, Finalize, Trace};
+use boa_gc::{Finalize, Trace};
 pub use boa_macros::utf16;
 
 use std::{
@@ -204,18 +204,15 @@ const DATA_OFFSET: usize = std::mem::size_of::<RawJsString>();
 ///
 /// [`JsString`] implements <code>[Deref]<Target = \[u16\]></code>, inheriting all of
 /// <code>\[u16\]</code>'s methods.
-#[derive(Finalize)]
+#[derive(Trace, Finalize)]
+// Safety: `JsString` does not contain any objects which needs to be traced, so this is safe.
+#[boa_gc(unsafe_empty_trace)]
 pub struct JsString {
     ptr: Tagged<RawJsString>,
 }
 
 // JsString should always be pointer sized.
 sa::assert_eq_size!(JsString, *const ());
-
-// Safety: `JsString` does not contain any objects which needs to be traced, so this is safe.
-unsafe impl Trace for JsString {
-    empty_trace!();
-}
 
 impl JsString {
     /// Obtains the underlying [`&[u16]`][slice] slice of a [`JsString`]

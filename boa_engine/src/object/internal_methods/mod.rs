@@ -20,18 +20,8 @@ use crate::{
 };
 use boa_profiler::Profiler;
 
-pub(super) mod arguments;
-pub(super) mod array;
-pub(super) mod bound_function;
-pub(super) mod function;
-pub(super) mod immutable_prototype;
-pub(super) mod integer_indexed;
-pub(super) mod module_namespace;
-pub(super) mod proxy;
-pub(super) mod string;
-
-pub(crate) use array::ARRAY_EXOTIC_INTERNAL_METHODS;
-pub(crate) use integer_indexed::integer_indexed_element_set;
+pub(crate) mod immutable_prototype;
+pub(crate) mod string;
 
 /// A lightweight wrapper around [`Context`] used in [`InternalObjectMethods`].
 #[derive(Debug)]
@@ -335,7 +325,7 @@ pub(crate) static ORDINARY_INTERNAL_METHODS: InternalObjectMethods = InternalObj
 /// For a guide on how to implement exotic internal methods, see `ORDINARY_INTERNAL_METHODS`.
 #[derive(Clone, Copy)]
 #[allow(clippy::type_complexity)]
-pub(crate) struct InternalObjectMethods {
+pub struct InternalObjectMethods {
     pub(crate) __get_prototype_of__: fn(&JsObject, &mut Context) -> JsResult<JsPrototype>,
     pub(crate) __set_prototype_of__: fn(&JsObject, JsPrototype, &mut Context) -> JsResult<bool>,
     pub(crate) __is_extensible__: fn(&JsObject, &mut Context) -> JsResult<bool>,

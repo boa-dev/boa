@@ -14,6 +14,7 @@ use icu_provider::DataLocale;
 use crate::{
     builtins::{
         options::get_option, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
+        OrdinaryObject,
     },
     context::{
         intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
@@ -23,13 +24,13 @@ use crate::{
     native_function::NativeFunction,
     object::{
         internal_methods::get_prototype_from_constructor, FunctionObjectBuilder, JsFunction,
-        JsObject, ObjectData,
+        JsObject,
     },
     property::Attribute,
     realm::Realm,
     string::{common::StaticJsStrings, utf16},
     symbol::JsSymbol,
-    Context, JsArgs, JsNativeError, JsResult, JsString, JsValue,
+    Context, JsArgs, JsData, JsNativeError, JsResult, JsString, JsValue,
 };
 
 use super::{
@@ -41,7 +42,7 @@ use super::{
 mod options;
 pub(crate) use options::*;
 
-#[derive(Debug)]
+#[derive(Debug, Finalize, JsData)]
 pub(crate) struct Collator {
     locale: Locale,
     collation: Value,
@@ -53,8 +54,6 @@ pub(crate) struct Collator {
     collator: NativeCollator,
     bound_compare: Option<JsFunction>,
 }
-
-impl Finalize for Collator {}
 
 // SAFETY: only `bound_compare` is a traceable object.
 unsafe impl Trace for Collator {
@@ -350,7 +349,7 @@ impl BuiltInConstructor for Collator {
         let collator = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            ObjectData::native_object(Self {
+            Self {
                 locale,
                 collation,
                 numeric,
@@ -360,7 +359,7 @@ impl BuiltInConstructor for Collator {
                 ignore_punctuation,
                 collator,
                 bound_compare: None,
-            }),
+            },
         );
 
         // 31. Return collator.
@@ -413,8 +412,7 @@ impl Collator {
                 .with_message("`resolvedOptions` can only be called on a `Collator` object")
         })?;
         let collator_obj = this.clone();
-        let mut collator = this.borrow_mut();
-        let collator = collator.downcast_mut::<Self>().ok_or_else(|| {
+        let mut collator = this.downcast_mut::<Self>().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message("`resolvedOptions` can only be called on a `Collator` object")
         })?;
@@ -434,7 +432,6 @@ impl Collator {
                     |_, args, collator, context| {
                         // 1. Let collator be F.[[Collator]].
                         // 2. Assert: Type(collator) is Object and collator has an [[InitializedCollator]] internal slot.
-                        let collator = collator.borrow();
                         let collator = collator
                             .downcast_ref::<Self>()
                             .expect("checked above that the object was a collator object");
@@ -479,21 +476,20 @@ impl Collator {
     fn resolved_options(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let collator be the this value.
         // 2. Perform ? RequireInternalSlot(collator, [[InitializedCollator]]).
-        let collator = this.as_object().map(JsObject::borrow).ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message("`resolvedOptions` can only be called on a `Collator` object")
-        })?;
-        let collator = collator.downcast_ref::<Self>().ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message("`resolvedOptions` can only be called on a `Collator` object")
-        })?;
+        let collator = this
+            .as_object()
+            .and_then(|o| o.downcast_ref::<Self>())
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message("`resolvedOptions` can only be called on a `Collator` object")
+            })?;
 
         // 3. Let options be OrdinaryObjectCreate(%Object.prototype%).
         let options = context
             .intrinsics()
             .templates()
             .ordinary_object()
-            .create(ObjectData::ordinary(), vec![]);
+            .create(OrdinaryObject, vec![]);
 
         // 4. For each row of Table 4, except the header row, in table order, do
         //     a. Let p be the Property value of the current row.

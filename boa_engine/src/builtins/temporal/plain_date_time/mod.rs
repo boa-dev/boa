@@ -7,14 +7,16 @@ use crate::{
     property::Attribute,
     realm::Realm,
     string::common::StaticJsStrings,
-    Context, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
+    Context, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
+use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
 
 use boa_temporal::datetime::DateTime as InnerDateTime;
 
 /// The `Temporal.PlainDateTime` object.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Trace, Finalize, JsData)]
+#[boa_gc(unsafe_empty_trace)] // TODO: Remove this!!! `InnerDateTime` could contain `Trace` types.
 pub struct PlainDateTime {
     pub(crate) inner: InnerDateTime,
 }

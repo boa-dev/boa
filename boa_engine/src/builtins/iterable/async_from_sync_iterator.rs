@@ -7,10 +7,10 @@ use crate::{
     context::intrinsics::Intrinsics,
     js_string,
     native_function::NativeFunction,
-    object::{FunctionObjectBuilder, JsObject, ObjectData},
+    object::{FunctionObjectBuilder, JsObject},
     realm::Realm,
     string::utf16,
-    Context, JsArgs, JsResult, JsValue,
+    Context, JsArgs, JsData, JsResult, JsValue,
 };
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
@@ -21,7 +21,7 @@ use boa_profiler::Profiler;
 ///  - [ECMA reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-properties-of-async-from-sync-iterator-instances
-#[derive(Clone, Debug, Finalize, Trace)]
+#[derive(Clone, Debug, Finalize, Trace, JsData)]
 pub struct AsyncFromSyncIterator {
     // The [[SyncIteratorRecord]] internal slot.
     sync_iterator_record: IteratorRecord,
@@ -73,9 +73,9 @@ impl AsyncFromSyncIterator {
                 .objects()
                 .iterator_prototypes()
                 .async_from_sync_iterator(),
-            ObjectData::async_from_sync_iterator(Self {
+            Self {
                 sync_iterator_record,
-            }),
+            },
         );
 
         // 3. Let nextMethod be ! Get(asyncIterator, "next").
@@ -100,9 +100,7 @@ impl AsyncFromSyncIterator {
         // 4. Let syncIteratorRecord be O.[[SyncIteratorRecord]].
         let sync_iterator_record = this
             .as_object()
-            .expect("async from sync iterator prototype must be object")
-            .borrow()
-            .as_async_from_sync_iterator()
+            .and_then(|o| o.downcast_ref::<Self>())
             .expect("async from sync iterator prototype must be object")
             .sync_iterator_record
             .clone();
@@ -129,7 +127,7 @@ impl AsyncFromSyncIterator {
             .and_then(IteratorResult::from_value);
 
         // 7. IfAbruptRejectPromise(result, promiseCapability).
-        if_abrupt_reject_promise!(result, promise_capability, context);
+        let result = if_abrupt_reject_promise!(result, promise_capability, context);
 
         // 8. Return AsyncFromSyncIteratorContinuation(result, promiseCapability).
         Self::continuation(&result, &promise_capability, context)
@@ -147,9 +145,7 @@ impl AsyncFromSyncIterator {
         // 4. Let syncIterator be O.[[SyncIteratorRecord]].[[Iterator]].
         let sync_iterator = this
             .as_object()
-            .expect("async from sync iterator prototype must be object")
-            .borrow()
-            .as_async_from_sync_iterator()
+            .and_then(|o| o.downcast_ref::<Self>())
             .expect("async from sync iterator prototype must be object")
             .sync_iterator_record
             .iterator()
@@ -166,7 +162,7 @@ impl AsyncFromSyncIterator {
         let r#return = sync_iterator.get_method(utf16!("return"), context);
 
         // 6. IfAbruptRejectPromise(return, promiseCapability).
-        if_abrupt_reject_promise!(r#return, promise_capability, context);
+        let r#return = if_abrupt_reject_promise!(r#return, promise_capability, context);
 
         let result = match (r#return, args.get(0)) {
             // 7. If return is undefined, then
@@ -201,7 +197,7 @@ impl AsyncFromSyncIterator {
         let result = result.and_then(IteratorResult::from_value);
 
         // 10. IfAbruptRejectPromise(result, promiseCapability).
-        if_abrupt_reject_promise!(result, promise_capability, context);
+        let result = if_abrupt_reject_promise!(result, promise_capability, context);
 
         // 12. Return AsyncFromSyncIteratorContinuation(result, promiseCapability).
         Self::continuation(&result, &promise_capability, context)
@@ -219,9 +215,7 @@ impl AsyncFromSyncIterator {
         // 4. Let syncIterator be O.[[SyncIteratorRecord]].[[Iterator]].
         let sync_iterator = this
             .as_object()
-            .expect("async from sync iterator prototype must be object")
-            .borrow()
-            .as_async_from_sync_iterator()
+            .and_then(|o| o.downcast_ref::<Self>())
             .expect("async from sync iterator prototype must be object")
             .sync_iterator_record
             .iterator()
@@ -238,7 +232,7 @@ impl AsyncFromSyncIterator {
         let throw = sync_iterator.get_method(utf16!("throw"), context);
 
         // 6. IfAbruptRejectPromise(throw, promiseCapability).
-        if_abrupt_reject_promise!(throw, promise_capability, context);
+        let throw = if_abrupt_reject_promise!(throw, promise_capability, context);
 
         let result = match (throw, args.get(0)) {
             // 7. If throw is undefined, then
@@ -273,7 +267,7 @@ impl AsyncFromSyncIterator {
         let result = result.and_then(IteratorResult::from_value);
 
         // 10. IfAbruptRejectPromise(result, promiseCapability).
-        if_abrupt_reject_promise!(result, promise_capability, context);
+        let result = if_abrupt_reject_promise!(result, promise_capability, context);
 
         // 12. Return AsyncFromSyncIteratorContinuation(result, promiseCapability).
         Self::continuation(&result, &promise_capability, context)
@@ -298,13 +292,13 @@ impl AsyncFromSyncIterator {
         let done = result.complete(context);
 
         // 3. IfAbruptRejectPromise(done, promiseCapability).
-        if_abrupt_reject_promise!(done, promise_capability, context);
+        let done = if_abrupt_reject_promise!(done, promise_capability, context);
 
         // 4. Let value be Completion(IteratorValue(result)).
         let value = result.value(context);
 
         // 5. IfAbruptRejectPromise(value, promiseCapability).
-        if_abrupt_reject_promise!(value, promise_capability, context);
+        let value = if_abrupt_reject_promise!(value, promise_capability, context);
 
         // 6. Let valueWrapper be Completion(PromiseResolve(%Promise%, value)).
         let value_wrapper = Promise::promise_resolve(
@@ -314,7 +308,7 @@ impl AsyncFromSyncIterator {
         );
 
         // 7. IfAbruptRejectPromise(valueWrapper, promiseCapability).
-        if_abrupt_reject_promise!(value_wrapper, promise_capability, context);
+        let value_wrapper = if_abrupt_reject_promise!(value_wrapper, promise_capability, context);
 
         // 8. Let unwrap be a new Abstract Closure with parameters (value)
         // that captures done and performs the following steps when called:

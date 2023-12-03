@@ -21,7 +21,7 @@ use crate::{
     error::JsNativeError,
     js_string,
     native_function::NativeFunctionObject,
-    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
+    object::{internal_methods::get_prototype_from_constructor, JsObject},
     property::Attribute,
     realm::Realm,
     string::{common::StaticJsStrings, utf16},
@@ -90,7 +90,7 @@ impl BuiltInConstructor for TypeError {
         let o = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            ObjectData::error(ErrorKind::Type),
+            ErrorKind::Type,
         );
 
         // 3. If message is not undefined, then
@@ -124,7 +124,7 @@ impl IntrinsicObject for ThrowTypeError {
 
         let mut obj = obj.borrow_mut();
 
-        *obj.as_native_function_mut()
+        *obj.downcast_mut::<NativeFunctionObject>()
             .expect("`%ThrowTypeError%` must be a function") = NativeFunctionObject {
             f: NativeFunction::from_fn_ptr(|_, _, _| {
                 Err(JsNativeError::typ()

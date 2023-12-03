@@ -232,7 +232,11 @@ impl Symbol {
     fn this_symbol_value(value: &JsValue) -> JsResult<JsSymbol> {
         value
             .as_symbol()
-            .or_else(|| value.as_object().and_then(|obj| obj.borrow().as_symbol()))
+            .or_else(|| {
+                value
+                    .as_object()
+                    .and_then(|obj| obj.downcast_ref::<JsSymbol>().as_deref().cloned())
+            })
             .ok_or_else(|| {
                 JsNativeError::typ()
                     .with_message("'this' is not a Symbol")
