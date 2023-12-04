@@ -8,6 +8,7 @@ use crate::{
     Context, JsBigInt, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 use boa_profiler::Profiler;
+use boa_temporal::duration::Duration as TemporalDuration;
 
 /// The `Temporal.ZonedDateTime` object.
 #[derive(Debug, Clone)]
@@ -64,7 +65,7 @@ pub(crate) fn add_zoned_date_time(
     epoch_nanos: &JsBigInt,
     time_zone: &JsObject,
     calendar: &JsObject,
-    duration: super::duration::DurationRecord,
+    duration: TemporalDuration,
     options: Option<&JsObject>,
 ) -> JsResult<JsBigInt> {
     // 1. If options is not present, set options to undefined.

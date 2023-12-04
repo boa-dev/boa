@@ -441,6 +441,7 @@ dependencies = [
  "boa_macros",
  "boa_parser",
  "boa_profiler",
+ "boa_temporal",
  "bytemuck",
  "cfg-if",
  "chrono",
@@ -604,6 +605,18 @@ dependencies = [
  "indoc",
  "rustc-hash",
  "textwrap",
+]
+
+[[package]]
+name = "boa_temporal"
+version = "0.17.0"
+dependencies = [
+ "bitflags 2.4.1",
+ "icu_calendar",
+ "num-bigint",
+ "num-traits",
+ "rustc-hash",
+ "tinystr",
 ]
 
 [[package]]

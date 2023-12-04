@@ -13,6 +13,7 @@ members = [
     "boa_parser",
     "boa_profiler",
     "boa_runtime",
+    "boa_temporal",
     "boa_tester",
     "boa_wasm",
 ]
@@ -38,6 +39,7 @@ boa_macros = { version = "~0.17.0", path = "boa_macros" }
 boa_parser = { version = "~0.17.0", path = "boa_parser" }
 boa_profiler = { version = "~0.17.0", path = "boa_profiler" }
 boa_runtime = { version = "~0.17.0", path = "boa_runtime" }
+boa_temporal = {version = "~0.17.0", path = "boa_temporal" }
 
 # Shared deps
 arbitrary = "1"

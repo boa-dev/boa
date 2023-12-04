@@ -5,8 +5,8 @@
 //! [spec]: https://tc39.es/proposal-temporal/
 
 mod calendar;
-mod date_equations;
 mod duration;
+mod error;
 mod fields;
 mod instant;
 mod now;
@@ -22,11 +22,7 @@ mod zoned_date_time;
 #[cfg(test)]
 mod tests;
 
-pub(crate) use fields::TemporalFields;
-
-use self::options::{
-    get_temporal_rounding_increment, get_temporal_unit, TemporalUnit, TemporalUnitGroup,
-};
+use self::options::{get_temporal_rounding_increment, get_temporal_unit, TemporalUnitGroup};
 pub use self::{
     calendar::*, duration::*, instant::*, now::*, plain_date::*, plain_date_time::*,
     plain_month_day::*, plain_time::*, plain_year_month::*, time_zone::*, zoned_date_time::*,
@@ -47,6 +43,7 @@ use crate::{
     Context, JsBigInt, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 use boa_profiler::Profiler;
+use boa_temporal::options::TemporalUnit;
 
 // Relavant numeric constants
 /// Nanoseconds per day constant: 8.64e+13
@@ -192,7 +189,7 @@ fn to_zero_padded_decimal_string(n: u64, min_length: usize) -> String {
 /// Abstract Operation 13.1 [`IteratorToListOfType`][proposal]
 ///
 /// [proposal]: https://tc39.es/proposal-temporal/#sec-iteratortolistoftype
-pub(crate) fn iterator_to_list_of_types(
+pub(crate) fn _iterator_to_list_of_types(
     iterator: &mut IteratorRecord,
     element_types: &[Type],
     context: &mut Context,
@@ -229,7 +226,7 @@ pub(crate) fn iterator_to_list_of_types(
 // Note: implemented on IsoDateRecord.
 
 // Abstract Operation 13.3 `EpochDaysToEpochMs`
-pub(crate) fn epoch_days_to_epoch_ms(day: i32, time: i32) -> f64 {
+pub(crate) fn _epoch_days_to_epoch_ms(day: i32, time: i32) -> f64 {
     f64::from(day).mul_add(f64::from(MS_PER_DAY), f64::from(time))
 }
 
@@ -370,7 +367,7 @@ fn apply_unsigned_rounding_mode(
 }
 
 /// 13.28 `RoundNumberToIncrement ( x, increment, roundingMode )`
-pub(crate) fn round_number_to_increment(
+pub(crate) fn _round_number_to_increment(
     x: f64,
     increment: f64,
     rounding_mode: RoundingMode,

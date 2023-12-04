@@ -15,21 +15,16 @@ use crate::{
     Context, JsArgs, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 use boa_profiler::Profiler;
+use boa_temporal::{duration::Duration as InnerDuration, options::TemporalUnit};
 
 use super::{
-    options::{
-        get_temporal_rounding_increment, get_temporal_unit, TemporalUnit, TemporalUnitGroup,
-    },
-    plain_date::{self, PlainDate},
+    options::{get_temporal_rounding_increment, get_temporal_unit, TemporalUnitGroup},
+    plain_date::PlainDate,
     to_integer_if_integral, DateTimeValues, PlainDateTime,
 };
 
-mod record;
-
 #[cfg(test)]
 mod tests;
-
-pub(crate) use record::{DateDuration, DurationRecord, TimeDuration};
 
 /// The `Temporal.Duration` object.
 ///
@@ -38,7 +33,13 @@ pub(crate) use record::{DateDuration, DurationRecord, TimeDuration};
 /// [spec]: https://tc39.es/proposal-temporal/#sec-properties-of-temporal-duration-instances
 #[derive(Debug, Clone, Copy)]
 pub struct Duration {
-    pub(crate) inner: DurationRecord,
+    pub(crate) inner: InnerDuration,
+}
+
+impl Duration {
+    pub(crate) fn new(inner: InnerDuration) -> Self {
+        Self { inner }
+    }
 }
 
 impl BuiltInObject for Duration {
@@ -241,17 +242,18 @@ impl BuiltInConstructor for Duration {
                 .map_or(Ok(0), |ns| to_integer_if_integral(ns, context))?,
         );
 
-        let record = DurationRecord::new(
-            DateDuration::new(years, months, weeks, days),
-            TimeDuration::new(
-                hours,
-                minutes,
-                seconds,
-                milliseconds,
-                microseconds,
-                nanoseconds,
-            ),
-        );
+        let record = InnerDuration::new(
+            years,
+            months,
+            weeks,
+            days,
+            hours,
+            minutes,
+            seconds,
+            milliseconds,
+            microseconds,
+            nanoseconds,
+        )?;
 
         // 12. Return ? CreateTemporalDuration(y, mo, w, d, h, m, s, ms, mis, ns, NewTarget).
         create_temporal_duration(record, Some(new_target), context).map(Into::into)
@@ -270,17 +272,19 @@ impl Duration {
             JsNativeError::typ().with_message("the this object must be a Duration object.")
         })?;
 
+        let inner = &duration.inner;
+
         match field {
-            DateTimeValues::Year => Ok(JsValue::Rational(duration.inner.years())),
-            DateTimeValues::Month => Ok(JsValue::Rational(duration.inner.months())),
-            DateTimeValues::Week => Ok(JsValue::Rational(duration.inner.weeks())),
-            DateTimeValues::Day => Ok(JsValue::Rational(duration.inner.days())),
-            DateTimeValues::Hour => Ok(JsValue::Rational(duration.inner.hours())),
-            DateTimeValues::Minute => Ok(JsValue::Rational(duration.inner.minutes())),
-            DateTimeValues::Second => Ok(JsValue::Rational(duration.inner.seconds())),
-            DateTimeValues::Millisecond => Ok(JsValue::Rational(duration.inner.milliseconds())),
-            DateTimeValues::Microsecond => Ok(JsValue::Rational(duration.inner.microseconds())),
-            DateTimeValues::Nanosecond => Ok(JsValue::Rational(duration.inner.nanoseconds())),
+            DateTimeValues::Year => Ok(JsValue::Rational(inner.date().years())),
+            DateTimeValues::Month => Ok(JsValue::Rational(inner.date().months())),
+            DateTimeValues::Week => Ok(JsValue::Rational(inner.date().weeks())),
+            DateTimeValues::Day => Ok(JsValue::Rational(inner.date().days())),
+            DateTimeValues::Hour => Ok(JsValue::Rational(inner.time().hours())),
+            DateTimeValues::Minute => Ok(JsValue::Rational(inner.time().minutes())),
+            DateTimeValues::Second => Ok(JsValue::Rational(inner.time().seconds())),
+            DateTimeValues::Millisecond => Ok(JsValue::Rational(inner.time().milliseconds())),
+            DateTimeValues::Microsecond => Ok(JsValue::Rational(inner.time().microseconds())),
+            DateTimeValues::Nanosecond => Ok(JsValue::Rational(inner.time().nanoseconds())),
             DateTimeValues::MonthCode => unreachable!(
                 "Any other DateTimeValue fields on Duration would be an implementation error."
             ),
@@ -399,122 +403,123 @@ impl Duration {
 
         // 3. Let temporalDurationLike be ? ToTemporalPartialDurationRecord(temporalDurationLike).
         let temporal_duration_like =
-            DurationRecord::from_partial_js_object(args.get_or_undefined(0), context)?;
+            to_temporal_partial_duration(args.get_or_undefined(0), context)?;
 
         // 4. If temporalDurationLike.[[Years]] is not undefined, then
         // a. Let years be temporalDurationLike.[[Years]].
         // 5. Else,
         // a. Let years be duration.[[Years]].
-        let years = if temporal_duration_like.years().is_nan() {
-            duration.inner.years()
+        let years = if temporal_duration_like.date().years().is_nan() {
+            duration.inner.date().years()
         } else {
-            temporal_duration_like.years()
+            temporal_duration_like.date().years()
         };
 
         // 6. If temporalDurationLike.[[Months]] is not undefined, then
         // a. Let months be temporalDurationLike.[[Months]].
         // 7. Else,
         // a. Let months be duration.[[Months]].
-        let months = if temporal_duration_like.months().is_nan() {
-            duration.inner.months()
+        let months = if temporal_duration_like.date().months().is_nan() {
+            duration.inner.date().months()
         } else {
-            temporal_duration_like.months()
+            temporal_duration_like.date().months()
         };
 
         // 8. If temporalDurationLike.[[Weeks]] is not undefined, then
         // a. Let weeks be temporalDurationLike.[[Weeks]].
         // 9. Else,
         // a. Let weeks be duration.[[Weeks]].
-        let weeks = if temporal_duration_like.weeks().is_nan() {
-            duration.inner.weeks()
+        let weeks = if temporal_duration_like.date().weeks().is_nan() {
+            duration.inner.date().weeks()
         } else {
-            temporal_duration_like.weeks()
+            temporal_duration_like.date().weeks()
         };
 
         // 10. If temporalDurationLike.[[Days]] is not undefined, then
         // a. Let days be temporalDurationLike.[[Days]].
         // 11. Else,
         // a. Let days be duration.[[Days]].
-        let days = if temporal_duration_like.days().is_nan() {
-            duration.inner.days()
+        let days = if temporal_duration_like.date().days().is_nan() {
+            duration.inner.date().days()
         } else {
-            temporal_duration_like.days()
+            temporal_duration_like.date().days()
         };
 
         // 12. If temporalDurationLike.[[Hours]] is not undefined, then
         // a. Let hours be temporalDurationLike.[[Hours]].
         // 13. Else,
         // a. Let hours be duration.[[Hours]].
-        let hours = if temporal_duration_like.hours().is_nan() {
-            duration.inner.hours()
+        let hours = if temporal_duration_like.time().hours().is_nan() {
+            duration.inner.time().hours()
         } else {
-            temporal_duration_like.hours()
+            temporal_duration_like.time().hours()
         };
 
         // 14. If temporalDurationLike.[[Minutes]] is not undefined, then
         // a. Let minutes be temporalDurationLike.[[Minutes]].
         // 15. Else,
         // a. Let minutes be duration.[[Minutes]].
-        let minutes = if temporal_duration_like.minutes().is_nan() {
-            duration.inner.minutes()
+        let minutes = if temporal_duration_like.time().minutes().is_nan() {
+            duration.inner.time().minutes()
         } else {
-            temporal_duration_like.minutes()
+            temporal_duration_like.time().minutes()
         };
 
         // 16. If temporalDurationLike.[[Seconds]] is not undefined, then
         // a. Let seconds be temporalDurationLike.[[Seconds]].
         // 17. Else,
         // a. Let seconds be duration.[[Seconds]].
-        let seconds = if temporal_duration_like.seconds().is_nan() {
-            duration.inner.seconds()
+        let seconds = if temporal_duration_like.time().seconds().is_nan() {
+            duration.inner.time().seconds()
         } else {
-            temporal_duration_like.seconds()
+            temporal_duration_like.time().seconds()
         };
 
         // 18. If temporalDurationLike.[[Milliseconds]] is not undefined, then
         // a. Let milliseconds be temporalDurationLike.[[Milliseconds]].
         // 19. Else,
         // a. Let milliseconds be duration.[[Milliseconds]].
-        let milliseconds = if temporal_duration_like.milliseconds().is_nan() {
-            duration.inner.milliseconds()
+        let milliseconds = if temporal_duration_like.time().milliseconds().is_nan() {
+            duration.inner.time().milliseconds()
         } else {
-            temporal_duration_like.milliseconds()
+            temporal_duration_like.time().milliseconds()
         };
 
         // 20. If temporalDurationLike.[[Microseconds]] is not undefined, then
         // a. Let microseconds be temporalDurationLike.[[Microseconds]].
         // 21. Else,
         // a. Let microseconds be duration.[[Microseconds]].
-        let microseconds = if temporal_duration_like.microseconds().is_nan() {
-            duration.inner.microseconds()
+        let microseconds = if temporal_duration_like.time().microseconds().is_nan() {
+            duration.inner.time().microseconds()
         } else {
-            temporal_duration_like.microseconds()
+            temporal_duration_like.time().microseconds()
         };
 
         // 22. If temporalDurationLike.[[Nanoseconds]] is not undefined, then
         // a. Let nanoseconds be temporalDurationLike.[[Nanoseconds]].
         // 23. Else,
         // a. Let nanoseconds be duration.[[Nanoseconds]].
-        let nanoseconds = if temporal_duration_like.nanoseconds().is_nan() {
-            duration.inner.nanoseconds()
+        let nanoseconds = if temporal_duration_like.time().nanoseconds().is_nan() {
+            duration.inner.time().nanoseconds()
         } else {
-            temporal_duration_like.nanoseconds()
+            temporal_duration_like.time().nanoseconds()
         };
 
         // 24. Return ? CreateTemporalDuration(years, months, weeks, days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds).
-        let new_duration = DurationRecord::new(
-            DateDuration::new(years, months, weeks, days),
-            TimeDuration::new(
-                hours,
-                minutes,
-                seconds,
-                milliseconds,
-                microseconds,
-                nanoseconds,
-            ),
-        );
+        let new_duration = InnerDuration::new(
+            years,
+            months,
+            weeks,
+            days,
+            hours,
+            minutes,
+            seconds,
+            milliseconds,
+            microseconds,
+            nanoseconds,
+        )?;
 
-        new_duration.as_object(context).map(Into::into)
+        create_temporal_duration(new_duration, None, context).map(Into::into)
     }
 
     /// 7.3.16 `Temporal.Duration.prototype.negated ( )`
@@ -544,7 +549,7 @@ impl Duration {
 
         let abs = duration.inner.abs();
 
-        abs.as_object(context).map(Into::into)
+        create_temporal_duration(abs, None, context).map(Into::into)
     }
 
     /// 7.3.18 `Temporal.Duration.prototype.add ( other [ , options ] )`
@@ -630,7 +635,7 @@ impl Duration {
         let rounding_increment = get_temporal_rounding_increment(&round_to, context)?;
 
         // 14. Let roundingMode be ? ToTemporalRoundingMode(roundTo, "halfExpand").
-        let rounding_mode = get_option(&round_to, utf16!("roundingMode"), context)?
+        let _rounding_mode = get_option(&round_to, utf16!("roundingMode"), context)?
             .unwrap_or(RoundingMode::HalfExpand);
 
         // 15. Let smallestUnit be ? GetTemporalUnit(roundTo, "smallestUnit", datetime, undefined).
@@ -697,19 +702,20 @@ impl Duration {
         // 25. Let hoursToDaysConversionMayOccur be false.
         // 26. If duration.[[Days]] ≠ 0 and zonedRelativeTo is not undefined, set hoursToDaysConversionMayOccur to true.
         // 27. Else if abs(duration.[[Hours]]) ≥ 24, set hoursToDaysConversionMayOccur to true.
-        let conversion_may_occur = if duration.inner.days() != 0.0 && zoned_relative_to.is_some() {
-            true
-        } else {
-            24f64 <= duration.inner.hours().abs()
-        };
+        let conversion_may_occur =
+            if duration.inner.date().days() != 0.0 && zoned_relative_to.is_some() {
+                true
+            } else {
+                24f64 <= duration.inner.time().hours().abs()
+            };
 
         // 28. If smallestUnit is "nanosecond" and roundingIncrement = 1, let roundingGranularityIsNoop be true; else let roundingGranularityIsNoop be false.
         let is_noop = smallest_unit == TemporalUnit::Nanosecond && rounding_increment == 1;
 
         // 29. If duration.[[Years]] = 0 and duration.[[Months]] = 0 and duration.[[Weeks]] = 0, let calendarUnitsPresent be false; else let calendarUnitsPresent be true.
-        let calendar_units_present = !(duration.inner.years() == 0f64
-            || duration.inner.months() == 0f64
-            || duration.inner.weeks() == 0f64);
+        let calendar_units_present = !(duration.inner.date().years() == 0f64
+            || duration.inner.date().months() == 0f64
+            || duration.inner.date().weeks() == 0f64);
 
         // 30. If roundingGranularityIsNoop is true, and largestUnit is existingLargestUnit,
         // and calendarUnitsPresent is false, and hoursToDaysConversionMayOccur is false,
@@ -740,10 +746,10 @@ impl Duration {
             || largest_unit == TemporalUnit::Week
             || largest_unit == TemporalUnit::Day
             || calendar_units_present
-            || duration.inner.days() != 0f64;
+            || duration.inner.date().days() != 0f64;
 
         // 33. If zonedRelativeTo is not undefined and plainDateTimeOrRelativeToWillBeUsed is true, then
-        let (plain_relative_to, precalc_pdt) = if zoned_relative_to.is_some()
+        let (_plain_relative_to, _precalc_pdt) = if zoned_relative_to.is_some()
             && pdt_or_rel_will_be_used
         {
             // TODO(TimeZone): Implement GetPlainDateTimeFor
@@ -763,29 +769,10 @@ impl Duration {
         };
 
         // 34. Let unbalanceResult be ? UnbalanceDateDurationRelative(duration.[[Years]], duration.[[Months]], duration.[[Weeks]], duration.[[Days]], largestUnit, plainRelativeTo).
-        let unbalance_result = duration.inner.unbalance_duration_relative(
-            largest_unit,
-            plain_relative_to.as_ref(),
-            context,
-        )?;
-
         // 35. Let roundRecord be ? RoundDuration(unbalanceResult.[[Years]], unbalanceResult.[[Months]],
         // unbalanceResult.[[Weeks]], unbalanceResult.[[Days]], duration.[[Hours]], duration.[[Minutes]],
         // duration.[[Seconds]], duration.[[Milliseconds]], duration.[[Microseconds]], duration.[[Nanoseconds]],
         // roundingIncrement, smallestUnit, roundingMode, plainRelativeTo, zonedRelativeTo, precalculatedPlainDateTime).
-        let (_round_result, _) = duration.inner.round_duration(
-            unbalance_result,
-            rounding_increment.into(),
-            smallest_unit,
-            rounding_mode,
-            (
-                plain_relative_to.as_ref(),
-                zoned_relative_to.as_ref(),
-                precalc_pdt.as_ref(),
-            ),
-            context,
-        )?;
-
         // 36. Let roundResult be roundRecord.[[DurationRecord]].
         // 37. If zonedRelativeTo is not undefined, then
         // a. Set roundResult to ? AdjustRoundedDurationDays(roundResult.[[Years]], roundResult.[[Months]], roundResult.[[Weeks]], roundResult.[[Days]], roundResult.[[Hours]], roundResult.[[Minutes]], roundResult.[[Seconds]], roundResult.[[Milliseconds]], roundResult.[[Microseconds]], roundResult.[[Nanoseconds]], roundingIncrement, smallestUnit, roundingMode, zonedRelativeTo, precalculatedPlainDateTime).
@@ -887,7 +874,7 @@ impl Duration {
 // -- Duration Abstract Operations --
 
 /// 7.5.8 `ToTemporalDuration ( item )`
-pub(crate) fn to_temporal_duration(item: &JsValue) -> JsResult<DurationRecord> {
+pub(crate) fn to_temporal_duration(item: &JsValue) -> JsResult<InnerDuration> {
     // 1a. If Type(item) is Object
     if item.is_object() {
         // 1b. and item has an [[InitializedTemporalDuration]] internal slot, then
@@ -911,7 +898,7 @@ pub(crate) fn to_temporal_duration(item: &JsValue) -> JsResult<DurationRecord> {
 /// 7.5.9 `ToTemporalDurationRecord ( temporalDurationLike )`
 pub(crate) fn to_temporal_duration_record(
     _temporal_duration_like: &JsValue,
-) -> JsResult<DurationRecord> {
+) -> JsResult<InnerDuration> {
     Err(JsNativeError::range()
         .with_message("Duration Parsing is not yet complete.")
         .into())
@@ -919,16 +906,11 @@ pub(crate) fn to_temporal_duration_record(
 
 /// 7.5.14 `CreateTemporalDuration ( years, months, weeks, days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds [ , newTarget ] )`
 pub(crate) fn create_temporal_duration(
-    record: DurationRecord,
+    inner: InnerDuration,
     new_target: Option<&JsValue>,
     context: &mut Context,
 ) -> JsResult<JsObject> {
     // 1. If ! IsValidDuration(years, months, weeks, days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds) is false, throw a RangeError exception.
-    if !record.is_valid_duration() {
-        return Err(JsNativeError::range()
-            .with_message("Duration values are not valid.")
-            .into());
-    }
 
     // 2. If newTarget is not present, set newTarget to %Temporal.Duration%.
     let new_target = if let Some(target) = new_target {
@@ -958,38 +940,105 @@ pub(crate) fn create_temporal_duration(
     // 12. Set object.[[Microseconds]] to ℝ(𝔽(microseconds)).
     // 13. Set object.[[Nanoseconds]] to ℝ(𝔽(nanoseconds)).
 
-    let obj =
-        JsObject::from_proto_and_data(prototype, ObjectData::duration(Duration { inner: record }));
+    let obj = JsObject::from_proto_and_data(prototype, ObjectData::duration(Duration::new(inner)));
     // 14. Return object.
     Ok(obj)
 }
 
-/// 7.5.23 `DaysUntil ( earlier, later )`
-pub(crate) fn days_until(earlier: &PlainDate, later: &PlainDate) -> i32 {
-    // 1. Let epochDays1 be ISODateToEpochDays(earlier.[[ISOYear]], earlier.[[ISOMonth]] - 1, earlier.[[ISODay]]).
-    let epoch_days_one = earlier.inner.as_epoch_days();
-
-    // 2. Let epochDays2 be ISODateToEpochDays(later.[[ISOYear]], later.[[ISOMonth]] - 1, later.[[ISODay]]).
-    let epoch_days_two = later.inner.as_epoch_days();
-
-    // 3. Return epochDays2 - epochDays1.
-    epoch_days_two - epoch_days_one
-}
-
-/// Abstract Operation 7.5.24 `MoveRelativeDate ( calendar, relativeTo, duration, dateAdd )`
-fn move_relative_date(
-    calendar: &JsValue,
-    relative_to: &PlainDate,
-    duration: &DurationRecord,
+/// Equivalent to 7.5.13 `ToTemporalPartialDurationRecord ( temporalDurationLike )`
+pub(crate) fn to_temporal_partial_duration(
+    duration_like: &JsValue,
     context: &mut Context,
-) -> JsResult<(PlainDate, f64)> {
-    let new_date = plain_date::add_date(
-        calendar,
-        relative_to,
-        duration,
-        &JsValue::undefined(),
-        context,
-    )?;
-    let days = days_until(relative_to, &new_date);
-    Ok((new_date, f64::from(days)))
+) -> JsResult<InnerDuration> {
+    // 1. If Type(temporalDurationLike) is not Object, then
+    let JsValue::Object(unknown_object) = duration_like else {
+        // a. Throw a TypeError exception.
+        return Err(JsNativeError::typ()
+            .with_message("temporalDurationLike must be an object.")
+            .into());
+    };
+
+    // 2. Let result be a new partial Duration Record with each field set to undefined.
+    let mut result = InnerDuration::partial();
+
+    // 3. NOTE: The following steps read properties and perform independent validation in alphabetical order.
+    // 4. Let days be ? Get(temporalDurationLike, "days").
+    let days = unknown_object.get(utf16!("days"), context)?;
+    if !days.is_undefined() {
+        // 5. If days is not undefined, set result.[[Days]] to ? ToIntegerIfIntegral(days).
+        result.set_days(f64::from(to_integer_if_integral(&days, context)?));
+    }
+
+    // 6. Let hours be ? Get(temporalDurationLike, "hours").
+    let hours = unknown_object.get(utf16!("hours"), context)?;
+    // 7. If hours is not undefined, set result.[[Hours]] to ? ToIntegerIfIntegral(hours).
+    if !hours.is_undefined() {
+        result.set_days(f64::from(to_integer_if_integral(&hours, context)?));
+    }
+
+    // 8. Let microseconds be ? Get(temporalDurationLike, "microseconds").
+    let microseconds = unknown_object.get(utf16!("microseconds"), context)?;
+    // 9. If microseconds is not undefined, set result.[[Microseconds]] to ? ToIntegerIfIntegral(microseconds).
+    if !microseconds.is_undefined() {
+        result.set_days(f64::from(to_integer_if_integral(&microseconds, context)?));
+    }
+
+    // 10. Let milliseconds be ? Get(temporalDurationLike, "milliseconds").
+    let milliseconds = unknown_object.get(utf16!("milliseconds"), context)?;
+    // 11. If milliseconds is not undefined, set result.[[Milliseconds]] to ? ToIntegerIfIntegral(milliseconds).
+    if !milliseconds.is_undefined() {
+        result.set_days(f64::from(to_integer_if_integral(&milliseconds, context)?));
+    }
+
+    // 12. Let minutes be ? Get(temporalDurationLike, "minutes").
+    let minutes = unknown_object.get(utf16!("minutes"), context)?;
+    // 13. If minutes is not undefined, set result.[[Minutes]] to ? ToIntegerIfIntegral(minutes).
+    if !minutes.is_undefined() {
+        result.set_days(f64::from(to_integer_if_integral(&minutes, context)?));
+    }
+
+    // 14. Let months be ? Get(temporalDurationLike, "months").
+    let months = unknown_object.get(utf16!("months"), context)?;
+    // 15. If months is not undefined, set result.[[Months]] to ? ToIntegerIfIntegral(months).
+    if !months.is_undefined() {
+        result.set_days(f64::from(to_integer_if_integral(&months, context)?));
+    }
+
+    // 16. Let nanoseconds be ? Get(temporalDurationLike, "nanoseconds").
+    let nanoseconds = unknown_object.get(utf16!("nanoseconds"), context)?;
+    // 17. If nanoseconds is not undefined, set result.[[Nanoseconds]] to ? ToIntegerIfIntegral(nanoseconds).
+    if !nanoseconds.is_undefined() {
+        result.set_days(f64::from(to_integer_if_integral(&nanoseconds, context)?));
+    }
+
+    // 18. Let seconds be ? Get(temporalDurationLike, "seconds").
+    let seconds = unknown_object.get(utf16!("seconds"), context)?;
+    // 19. If seconds is not undefined, set result.[[Seconds]] to ? ToIntegerIfIntegral(seconds).
+    if !seconds.is_undefined() {
+        result.set_days(f64::from(to_integer_if_integral(&seconds, context)?));
+    }
+
+    // 20. Let weeks be ? Get(temporalDurationLike, "weeks").
+    let weeks = unknown_object.get(utf16!("weeks"), context)?;
+    // 21. If weeks is not undefined, set result.[[Weeks]] to ? ToIntegerIfIntegral(weeks).
+    if !weeks.is_undefined() {
+        result.set_days(f64::from(to_integer_if_integral(&weeks, context)?));
+    }
+
+    // 22. Let years be ? Get(temporalDurationLike, "years").
+    let years = unknown_object.get(utf16!("years"), context)?;
+    // 23. If years is not undefined, set result.[[Years]] to ? ToIntegerIfIntegral(years).
+    if !years.is_undefined() {
+        result.set_days(f64::from(to_integer_if_integral(&years, context)?));
+    }
+
+    // 24. If years is undefined, and months is undefined, and weeks is undefined, and days is undefined, and hours is undefined, and minutes is undefined, and seconds is undefined, and milliseconds is undefined, and microseconds is undefined, and nanoseconds is undefined, throw a TypeError exception.
+    if result.into_iter().all(f64::is_nan) {
+        return Err(JsNativeError::typ()
+            .with_message("no valid Duration fields on temporalDurationLike.")
+            .into());
+    }
+
+    // 25. Return result.
+    Ok(result)
 }

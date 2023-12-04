@@ -11,15 +11,22 @@ use crate::{
 };
 use boa_profiler::Profiler;
 
-use self::iso::IsoDateTimeRecord;
-
-pub(crate) mod iso;
+use boa_temporal::datetime::DateTime as InnerDateTime;
 
 /// The `Temporal.PlainDateTime` object.
 #[derive(Debug, Clone)]
 pub struct PlainDateTime {
-    pub(crate) inner: IsoDateTimeRecord,
-    pub(crate) calendar: JsValue,
+    pub(crate) inner: InnerDateTime,
+}
+
+impl PlainDateTime {
+    fn new(inner: InnerDateTime) -> Self {
+        Self { inner }
+    }
+
+    pub(crate) fn inner(&self) -> &InnerDateTime {
+        &self.inner
+    }
 }
 
 impl BuiltInObject for PlainDateTime {
