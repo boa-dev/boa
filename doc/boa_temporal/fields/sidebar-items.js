@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["FieldConversion","FieldValue"],"fn":["month_code_to_integer"],"struct":["FieldMap","TemporalFields"]};

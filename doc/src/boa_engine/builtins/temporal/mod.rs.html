@@ -651,9 +651,6 @@
 <a href="#651" id="651">651</a>
 <a href="#652" id="652">652</a>
 <a href="#653" id="653">653</a>
-<a href="#654" id="654">654</a>
-<a href="#655" id="655">655</a>
-<a href="#656" id="656">656</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! The ECMAScript `Temporal` stage 3 built-in implementation.
 //!
 //! More information:
@@ -661,8 +658,8 @@
 //! [spec]: https://tc39.es/proposal-temporal/
 
 </span><span class="kw">mod </span>calendar;
-<span class="kw">mod </span>date_equations;
 <span class="kw">mod </span>duration;
+<span class="kw">mod </span>error;
 <span class="kw">mod </span>fields;
 <span class="kw">mod </span>instant;
 <span class="kw">mod </span>now;
@@ -678,11 +675,7 @@
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>fields::TemporalFields;
-
-<span class="kw">use </span><span class="self">self</span>::options::{
-    get_temporal_rounding_increment, get_temporal_unit, TemporalUnit, TemporalUnitGroup,
-};
+<span class="kw">use </span><span class="self">self</span>::options::{get_temporal_rounding_increment, get_temporal_unit, TemporalUnitGroup};
 <span class="kw">pub use </span><span class="self">self</span>::{
     calendar::<span class="kw-2">*</span>, duration::<span class="kw-2">*</span>, instant::<span class="kw-2">*</span>, now::<span class="kw-2">*</span>, plain_date::<span class="kw-2">*</span>, plain_date_time::<span class="kw-2">*</span>,
     plain_month_day::<span class="kw-2">*</span>, plain_time::<span class="kw-2">*</span>, plain_year_month::<span class="kw-2">*</span>, time_zone::<span class="kw-2">*</span>, zoned_date_time::<span class="kw-2">*</span>,
@@ -703,6 +696,7 @@
     Context, JsBigInt, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 <span class="kw">use </span>boa_profiler::Profiler;
+<span class="kw">use </span>boa_temporal::options::TemporalUnit;
 
 <span class="comment">// Relavant numeric constants
 </span><span class="doccomment">/// Nanoseconds per day constant: 8.64e+13
@@ -848,7 +842,7 @@
 <span class="doccomment">/// Abstract Operation 13.1 [`IteratorToListOfType`][proposal]
 ///
 /// [proposal]: https://tc39.es/proposal-temporal/#sec-iteratortolistoftype
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>iterator_to_list_of_types(
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>_iterator_to_list_of_types(
     iterator: <span class="kw-2">&amp;mut </span>IteratorRecord,
     element_types: <span class="kw-2">&amp;</span>[Type],
     context: <span class="kw-2">&amp;mut </span>Context,
@@ -885,7 +879,7 @@
 </span><span class="comment">// Note: implemented on IsoDateRecord.
 
 // Abstract Operation 13.3 `EpochDaysToEpochMs`
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>epoch_days_to_epoch_ms(day: i32, time: i32) -&gt; f64 {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>_epoch_days_to_epoch_ms(day: i32, time: i32) -&gt; f64 {
     f64::from(day).mul_add(f64::from(MS_PER_DAY), f64::from(time))
 }
 
@@ -1026,7 +1020,7 @@
 }
 
 <span class="doccomment">/// 13.28 `RoundNumberToIncrement ( x, increment, roundingMode )`
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>round_number_to_increment(
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>_round_number_to_increment(
     x: f64,
     increment: f64,
     rounding_mode: RoundingMode,

@@ -146,6 +146,13 @@
 <a href="#146" id="146">146</a>
 <a href="#147" id="147">147</a>
 <a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of the ECMAScript `Temporal.PlainDateTime` builtin object.
 </span><span class="attr">#![allow(dead_code, unused_variables)]
 
@@ -159,15 +166,22 @@
 };
 <span class="kw">use </span>boa_profiler::Profiler;
 
-<span class="kw">use </span><span class="self">self</span>::iso::IsoDateTimeRecord;
-
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>iso;
+<span class="kw">use </span>boa_temporal::datetime::DateTime <span class="kw">as </span>InnerDateTime;
 
 <span class="doccomment">/// The `Temporal.PlainDateTime` object.
 </span><span class="attr">#[derive(Debug, Clone)]
 </span><span class="kw">pub struct </span>PlainDateTime {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) inner: IsoDateTimeRecord,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) calendar: JsValue,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) inner: InnerDateTime,
+}
+
+<span class="kw">impl </span>PlainDateTime {
+    <span class="kw">fn </span>new(inner: InnerDateTime) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{ inner }
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>inner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>InnerDateTime {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.inner
+    }
 }
 
 <span class="kw">impl </span>BuiltInObject <span class="kw">for </span>PlainDateTime {

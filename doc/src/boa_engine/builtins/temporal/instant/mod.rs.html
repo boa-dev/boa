@@ -745,62 +745,14 @@
 <a href="#745" id="745">745</a>
 <a href="#746" id="746">746</a>
 <a href="#747" id="747">747</a>
-<a href="#748" id="748">748</a>
-<a href="#749" id="749">749</a>
-<a href="#750" id="750">750</a>
-<a href="#751" id="751">751</a>
-<a href="#752" id="752">752</a>
-<a href="#753" id="753">753</a>
-<a href="#754" id="754">754</a>
-<a href="#755" id="755">755</a>
-<a href="#756" id="756">756</a>
-<a href="#757" id="757">757</a>
-<a href="#758" id="758">758</a>
-<a href="#759" id="759">759</a>
-<a href="#760" id="760">760</a>
-<a href="#761" id="761">761</a>
-<a href="#762" id="762">762</a>
-<a href="#763" id="763">763</a>
-<a href="#764" id="764">764</a>
-<a href="#765" id="765">765</a>
-<a href="#766" id="766">766</a>
-<a href="#767" id="767">767</a>
-<a href="#768" id="768">768</a>
-<a href="#769" id="769">769</a>
-<a href="#770" id="770">770</a>
-<a href="#771" id="771">771</a>
-<a href="#772" id="772">772</a>
-<a href="#773" id="773">773</a>
-<a href="#774" id="774">774</a>
-<a href="#775" id="775">775</a>
-<a href="#776" id="776">776</a>
-<a href="#777" id="777">777</a>
-<a href="#778" id="778">778</a>
-<a href="#779" id="779">779</a>
-<a href="#780" id="780">780</a>
-<a href="#781" id="781">781</a>
-<a href="#782" id="782">782</a>
-<a href="#783" id="783">783</a>
-<a href="#784" id="784">784</a>
-<a href="#785" id="785">785</a>
-<a href="#786" id="786">786</a>
-<a href="#787" id="787">787</a>
-<a href="#788" id="788">788</a>
-<a href="#789" id="789">789</a>
-<a href="#790" id="790">790</a>
-<a href="#791" id="791">791</a>
-<a href="#792" id="792">792</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s `Temporal.Instant` builtin object.
 </span><span class="attr">#![allow(dead_code)]
 
 </span><span class="kw">use crate</span>::{
     builtins::{
         options::{get_option, get_options_object, RoundingMode},
-        temporal::{
-            duration::{DateDuration, DurationRecord, TimeDuration},
-            options::{
-                get_temporal_rounding_increment, get_temporal_unit, TemporalUnit, TemporalUnitGroup,
-            },
+        temporal::options::{
+            get_temporal_rounding_increment, get_temporal_unit, TemporalUnitGroup,
         },
         BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
     },
@@ -813,8 +765,9 @@
     Context, JsArgs, JsBigInt, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 <span class="kw">use </span>boa_profiler::Profiler;
+<span class="kw">use </span>boa_temporal::{duration::Duration, options::TemporalUnit};
 
-<span class="kw">use super</span>::{duration, ns_max_instant, ns_min_instant, MIS_PER_DAY, MS_PER_DAY, NS_PER_DAY};
+<span class="kw">use super</span>::{ns_max_instant, ns_min_instant, MIS_PER_DAY, MS_PER_DAY, NS_PER_DAY};
 
 <span class="kw">const </span>NANOSECONDS_PER_SECOND: i64 = <span class="number">10_000_000_000</span>;
 <span class="kw">const </span>NANOSECONDS_PER_MINUTE: i64 = <span class="number">600_000_000_000</span>;
@@ -1359,70 +1312,41 @@
 </span><span class="kw">fn </span>diff_instant(
     ns1: <span class="kw-2">&amp;</span>JsBigInt,
     ns2: <span class="kw-2">&amp;</span>JsBigInt,
-    rounding_increment: f64,
-    smallest_unit: TemporalUnit,
-    largest_unit: TemporalUnit,
-    rounding_mode: RoundingMode,
-    context: <span class="kw-2">&amp;mut </span>Context,
-) -&gt; JsResult&lt;DurationRecord&gt; {
+    _rounding_increment: f64,
+    _smallest_unit: TemporalUnit,
+    _largest_unit: TemporalUnit,
+    _rounding_mode: RoundingMode,
+    _context: <span class="kw-2">&amp;mut </span>Context,
+) -&gt; JsResult&lt;Duration&gt; {
     <span class="comment">// 1. Let difference be ℝ(ns2) - ℝ(ns1).
     </span><span class="kw">let </span>difference = JsBigInt::sub(ns1, ns2);
     <span class="comment">// 2. Let nanoseconds be remainder(difference, 1000).
-    </span><span class="kw">let </span>nanoseconds = JsBigInt::rem(<span class="kw-2">&amp;</span>difference, <span class="kw-2">&amp;</span>JsBigInt::from(<span class="number">1000</span>));
+    </span><span class="kw">let </span>_nanoseconds = JsBigInt::rem(<span class="kw-2">&amp;</span>difference, <span class="kw-2">&amp;</span>JsBigInt::from(<span class="number">1000</span>));
     <span class="comment">// 3. Let microseconds be remainder(truncate(difference / 1000), 1000).
     </span><span class="kw">let </span>truncated_micro = JsBigInt::try_from((<span class="kw-2">&amp;</span>difference.to_f64() / <span class="number">1000_f64</span>).trunc())
         .map_err(|e| JsNativeError::typ().with_message(e.to_string()))<span class="question-mark">?</span>;
-    <span class="kw">let </span>microseconds = JsBigInt::rem(<span class="kw-2">&amp;</span>truncated_micro, <span class="kw-2">&amp;</span>JsBigInt::from(<span class="number">1000</span>));
+    <span class="kw">let </span>_microseconds = JsBigInt::rem(<span class="kw-2">&amp;</span>truncated_micro, <span class="kw-2">&amp;</span>JsBigInt::from(<span class="number">1000</span>));
 
     <span class="comment">// 4. Let milliseconds be remainder(truncate(difference / 106), 1000).
     </span><span class="kw">let </span>truncated_milli = JsBigInt::try_from((<span class="kw-2">&amp;</span>difference.to_f64() / <span class="number">1_000_000_f64</span>).trunc())
         .map_err(|e| JsNativeError::typ().with_message(e.to_string()))<span class="question-mark">?</span>;
-    <span class="kw">let </span>milliseconds = JsBigInt::rem(<span class="kw-2">&amp;</span>truncated_milli, <span class="kw-2">&amp;</span>JsBigInt::from(<span class="number">1000</span>));
+    <span class="kw">let </span>_milliseconds = JsBigInt::rem(<span class="kw-2">&amp;</span>truncated_milli, <span class="kw-2">&amp;</span>JsBigInt::from(<span class="number">1000</span>));
 
     <span class="comment">// 5. Let seconds be truncate(difference / 10^9).
-    </span><span class="kw">let </span>seconds = (<span class="kw-2">&amp;</span>difference.to_f64() / <span class="number">1_000_000_000_f64</span>).trunc();
+    </span><span class="kw">let </span>_seconds = (<span class="kw-2">&amp;</span>difference.to_f64() / <span class="number">1_000_000_000_f64</span>).trunc();
 
-    <span class="comment">// Create TimeDuration
-    </span><span class="kw">let </span><span class="kw-2">mut </span>time_duration = DurationRecord::from_day_and_time(
-        <span class="number">0f64</span>,
-        TimeDuration::new(
-            <span class="number">0f64</span>,
-            <span class="number">0f64</span>,
-            seconds,
-            milliseconds.to_f64(),
-            microseconds.to_f64(),
-            nanoseconds.to_f64(),
-        ),
-    );
-
-    <span class="comment">// 6. If smallestUnit is &quot;nanosecond&quot; and roundingIncrement is 1, then
-    </span><span class="kw">if </span>smallest_unit == TemporalUnit::Nanosecond &amp;&amp; (rounding_increment - <span class="number">1f64</span>).abs() &lt; f64::EPSILON
-    {
-        <span class="comment">// a. Return ! BalanceTimeDuration(0, 0, 0, seconds, milliseconds, microseconds, nanoseconds, largestUnit).
-        </span>time_duration.balance_time_duration(largest_unit, <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
-        <span class="kw">return </span><span class="prelude-val">Ok</span>(time_duration);
-    }
-
-    <span class="comment">// 7. Let roundResult be ! RoundDuration(0, 0, 0, 0, 0, 0, seconds, milliseconds, microseconds, nanoseconds, roundingIncrement, smallestUnit, largestUnit, roundingMode).
-
-    </span><span class="kw">let </span>(<span class="kw-2">mut </span>round_result, _total) = time_duration.round_duration(
-        DateDuration::default(),
-        rounding_increment,
-        smallest_unit,
-        rounding_mode,
-        (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>),
-        context,
-    )<span class="question-mark">?</span>;
-
-    <span class="comment">// 8. Assert: roundResult.[[Days]] is 0.
-    </span><span class="macro">assert_eq!</span>(round_result.days() <span class="kw">as </span>i32, <span class="number">0</span>);
-
-    <span class="comment">// 9. Return ! BalanceTimeDuration(0, roundResult.[[Hours]], roundResult.[[Minutes]],
+    <span class="comment">// TODO: Update to new Temporal library
+    // 6. If smallestUnit is &quot;nanosecond&quot; and roundingIncrement is 1, then
+    // a. Return ! BalanceTimeDuration(0, 0, 0, seconds, milliseconds, microseconds, nanoseconds, largestUnit).
+    // 7. Let roundResult be ! RoundDuration(0, 0, 0, 0, 0, 0, seconds, milliseconds, microseconds, nanoseconds, roundingIncrement, smallestUnit, largestUnit, roundingMode).
+    // 8. Assert: roundResult.[[Days]] is 0.
+    // 9. Return ! BalanceTimeDuration(0, roundResult.[[Hours]], roundResult.[[Minutes]],
     //    roundResult.[[Seconds]], roundResult.[[Milliseconds]], roundResult.[[Microseconds]],
     //    roundResult.[[Nanoseconds]], largestUnit).
-    </span>round_result.balance_time_duration(largest_unit, <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
 
-    <span class="prelude-val">Ok</span>(round_result)
+    </span><span class="prelude-val">Err</span>(JsNativeError::error()
+        .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
+        .into())
 }
 
 <span class="doccomment">/// 8.5.8 `RoundTemporalInstant ( ns, increment, unit, roundingMode )`
@@ -1483,7 +1407,7 @@
     context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;JsValue&gt; {
     <span class="comment">// 1. If operation is since, let sign be -1. Otherwise, let sign be 1.
-    </span><span class="kw">let </span>sign = <span class="kw">if </span>op { <span class="number">1_f64 </span>} <span class="kw">else </span>{ -<span class="number">1_f64 </span>};
+    </span><span class="kw">let </span>_sign = <span class="kw">if </span>op { <span class="number">1_f64 </span>} <span class="kw">else </span>{ -<span class="number">1_f64 </span>};
     <span class="comment">// 2. Set other to ? ToTemporalInstant(other).
     </span><span class="kw">let </span>other = to_temporal_instant(other)<span class="question-mark">?</span>;
     <span class="comment">// 3. Let resolvedOptions be ? CopyOptions(options).
@@ -1502,7 +1426,7 @@
     )<span class="question-mark">?</span>;
 
     <span class="comment">// 5. Let result be DifferenceInstant(instant.[[Nanoseconds]], other.[[Nanoseconds]], settings.[[RoundingIncrement]], settings.[[SmallestUnit]], settings.[[LargestUnit]], settings.[[RoundingMode]]).
-    </span><span class="kw">let </span>result = diff_instant(
+    </span><span class="kw">let </span>_result = diff_instant(
         <span class="kw-2">&amp;</span>instant.nanoseconds,
         <span class="kw-2">&amp;</span>other.nanoseconds,
         settings.<span class="number">3</span>,
@@ -1512,24 +1436,10 @@
         context,
     )<span class="question-mark">?</span>;
 
+    <span class="comment">// TODO: diff_instant will error so this shouldn&#39;t run.
+    </span><span class="macro">unimplemented!</span>();
     <span class="comment">// 6. Return ! CreateTemporalDuration(0, 0, 0, 0, sign × result.[[Hours]], sign × result.[[Minutes]], sign × result.[[Seconds]], sign × result.[[Milliseconds]], sign × result.[[Microseconds]], sign × result.[[Nanoseconds]]).
-    </span><span class="prelude-val">Ok</span>(duration::create_temporal_duration(
-        duration::DurationRecord::new(
-            DateDuration::default(),
-            TimeDuration::new(
-                sign * result.hours(),
-                sign * result.minutes(),
-                sign * result.seconds(),
-                sign * result.milliseconds(),
-                sign * result.microseconds(),
-                sign * result.nanoseconds(),
-            ),
-        ),
-        <span class="prelude-val">None</span>,
-        context,
-    )<span class="question-mark">?
-    </span>.into())
-}
+</span>}
 
 <span class="doccomment">/// 8.5.11 `AddDurationToOrSubtractDurationFromInstant ( operation, instant, temporalDurationLike )`
 </span><span class="attr">#[inline]
@@ -1544,25 +1454,25 @@
     <span class="comment">// 2. Let duration be ? ToTemporalDurationRecord(temporalDurationLike).
     </span><span class="kw">let </span>duration = <span class="kw">super</span>::to_temporal_duration_record(temporal_duration_like)<span class="question-mark">?</span>;
     <span class="comment">// 3. If duration.[[Days]] is not 0, throw a RangeError exception.
-    </span><span class="kw">if </span>duration.days() != <span class="number">0_f64 </span>{
+    </span><span class="kw">if </span>duration.date().days() != <span class="number">0_f64 </span>{
         <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
             .with_message(<span class="string">&quot;DurationDays cannot be 0&quot;</span>)
             .into());
     }
     <span class="comment">// 4. If duration.[[Months]] is not 0, throw a RangeError exception.
-    </span><span class="kw">if </span>duration.months() != <span class="number">0_f64 </span>{
+    </span><span class="kw">if </span>duration.date().months() != <span class="number">0_f64 </span>{
         <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
             .with_message(<span class="string">&quot;DurationMonths cannot be 0&quot;</span>)
             .into());
     }
     <span class="comment">// 5. If duration.[[Weeks]] is not 0, throw a RangeError exception.
-    </span><span class="kw">if </span>duration.weeks() != <span class="number">0_f64 </span>{
+    </span><span class="kw">if </span>duration.date().weeks() != <span class="number">0_f64 </span>{
         <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
             .with_message(<span class="string">&quot;DurationWeeks cannot be 0&quot;</span>)
             .into());
     }
     <span class="comment">// 6. If duration.[[Years]] is not 0, throw a RangeError exception.
-    </span><span class="kw">if </span>duration.years() != <span class="number">0_f64 </span>{
+    </span><span class="kw">if </span>duration.date().years() != <span class="number">0_f64 </span>{
         <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
             .with_message(<span class="string">&quot;DurationYears cannot be 0&quot;</span>)
             .into());
@@ -1572,12 +1482,12 @@
     // sign × duration.[[Microseconds]], sign × duration.[[Nanoseconds]]).
     </span><span class="kw">let </span>new = add_instant(
         <span class="kw-2">&amp;</span>instant.nanoseconds,
-        sign * duration.hours() <span class="kw">as </span>i32,
-        sign * duration.minutes() <span class="kw">as </span>i32,
-        sign * duration.seconds() <span class="kw">as </span>i32,
-        sign * duration.milliseconds() <span class="kw">as </span>i32,
-        sign * duration.microseconds() <span class="kw">as </span>i32,
-        sign * duration.nanoseconds() <span class="kw">as </span>i32,
+        sign * duration.time().hours() <span class="kw">as </span>i32,
+        sign * duration.time().minutes() <span class="kw">as </span>i32,
+        sign * duration.time().seconds() <span class="kw">as </span>i32,
+        sign * duration.time().milliseconds() <span class="kw">as </span>i32,
+        sign * duration.time().microseconds() <span class="kw">as </span>i32,
+        sign * duration.time().nanoseconds() <span class="kw">as </span>i32,
     )<span class="question-mark">?</span>;
     <span class="comment">// 8. Return ! CreateTemporalInstant(ns).
     </span>create_temporal_instant(new, <span class="prelude-val">None</span>, context)

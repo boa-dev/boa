@@ -131,6 +131,7 @@
 <a href="#131" id="131">131</a>
 <a href="#132" id="132">132</a>
 <a href="#133" id="133">133</a>
+<a href="#134" id="134">134</a>
 </pre></div><pre class="rust"><code><span class="attr">#![allow(dead_code, unused_variables)]
 </span><span class="kw">use crate</span>::{
     builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
@@ -141,6 +142,7 @@
     Context, JsBigInt, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 <span class="kw">use </span>boa_profiler::Profiler;
+<span class="kw">use </span>boa_temporal::duration::Duration <span class="kw">as </span>TemporalDuration;
 
 <span class="doccomment">/// The `Temporal.ZonedDateTime` object.
 </span><span class="attr">#[derive(Debug, Clone)]
@@ -197,7 +199,7 @@
     epoch_nanos: <span class="kw-2">&amp;</span>JsBigInt,
     time_zone: <span class="kw-2">&amp;</span>JsObject,
     calendar: <span class="kw-2">&amp;</span>JsObject,
-    duration: <span class="kw">super</span>::duration::DurationRecord,
+    duration: TemporalDuration,
     options: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsObject&gt;,
 ) -&gt; JsResult&lt;JsBigInt&gt; {
     <span class="comment">// 1. If options is not present, set options to undefined.

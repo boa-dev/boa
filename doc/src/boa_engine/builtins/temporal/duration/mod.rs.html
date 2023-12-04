@@ -993,6 +993,55 @@
 <a href="#993" id="993">993</a>
 <a href="#994" id="994">994</a>
 <a href="#995" id="995">995</a>
+<a href="#996" id="996">996</a>
+<a href="#997" id="997">997</a>
+<a href="#998" id="998">998</a>
+<a href="#999" id="999">999</a>
+<a href="#1000" id="1000">1000</a>
+<a href="#1001" id="1001">1001</a>
+<a href="#1002" id="1002">1002</a>
+<a href="#1003" id="1003">1003</a>
+<a href="#1004" id="1004">1004</a>
+<a href="#1005" id="1005">1005</a>
+<a href="#1006" id="1006">1006</a>
+<a href="#1007" id="1007">1007</a>
+<a href="#1008" id="1008">1008</a>
+<a href="#1009" id="1009">1009</a>
+<a href="#1010" id="1010">1010</a>
+<a href="#1011" id="1011">1011</a>
+<a href="#1012" id="1012">1012</a>
+<a href="#1013" id="1013">1013</a>
+<a href="#1014" id="1014">1014</a>
+<a href="#1015" id="1015">1015</a>
+<a href="#1016" id="1016">1016</a>
+<a href="#1017" id="1017">1017</a>
+<a href="#1018" id="1018">1018</a>
+<a href="#1019" id="1019">1019</a>
+<a href="#1020" id="1020">1020</a>
+<a href="#1021" id="1021">1021</a>
+<a href="#1022" id="1022">1022</a>
+<a href="#1023" id="1023">1023</a>
+<a href="#1024" id="1024">1024</a>
+<a href="#1025" id="1025">1025</a>
+<a href="#1026" id="1026">1026</a>
+<a href="#1027" id="1027">1027</a>
+<a href="#1028" id="1028">1028</a>
+<a href="#1029" id="1029">1029</a>
+<a href="#1030" id="1030">1030</a>
+<a href="#1031" id="1031">1031</a>
+<a href="#1032" id="1032">1032</a>
+<a href="#1033" id="1033">1033</a>
+<a href="#1034" id="1034">1034</a>
+<a href="#1035" id="1035">1035</a>
+<a href="#1036" id="1036">1036</a>
+<a href="#1037" id="1037">1037</a>
+<a href="#1038" id="1038">1038</a>
+<a href="#1039" id="1039">1039</a>
+<a href="#1040" id="1040">1040</a>
+<a href="#1041" id="1041">1041</a>
+<a href="#1042" id="1042">1042</a>
+<a href="#1043" id="1043">1043</a>
+<a href="#1044" id="1044">1044</a>
 </pre></div><pre class="rust"><code><span class="comment">// Boa&#39;s implementation of the `Temporal.Duration` Builtin Object.
 
 </span><span class="kw">use crate</span>::{
@@ -1010,21 +1059,16 @@
     Context, JsArgs, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 <span class="kw">use </span>boa_profiler::Profiler;
+<span class="kw">use </span>boa_temporal::{duration::Duration <span class="kw">as </span>InnerDuration, options::TemporalUnit};
 
 <span class="kw">use super</span>::{
-    options::{
-        get_temporal_rounding_increment, get_temporal_unit, TemporalUnit, TemporalUnitGroup,
-    },
-    plain_date::{<span class="self">self</span>, PlainDate},
+    options::{get_temporal_rounding_increment, get_temporal_unit, TemporalUnitGroup},
+    plain_date::PlainDate,
     to_integer_if_integral, DateTimeValues, PlainDateTime,
 };
 
-<span class="kw">mod </span>record;
-
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
-
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>record::{DateDuration, DurationRecord, TimeDuration};
 
 <span class="doccomment">/// The `Temporal.Duration` object.
 ///
@@ -1033,7 +1077,13 @@
 /// [spec]: https://tc39.es/proposal-temporal/#sec-properties-of-temporal-duration-instances
 </span><span class="attr">#[derive(Debug, Clone, Copy)]
 </span><span class="kw">pub struct </span>Duration {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) inner: DurationRecord,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) inner: InnerDuration,
+}
+
+<span class="kw">impl </span>Duration {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(inner: InnerDuration) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{ inner }
+    }
 }
 
 <span class="kw">impl </span>BuiltInObject <span class="kw">for </span>Duration {
@@ -1236,17 +1286,18 @@
                 .map_or(<span class="prelude-val">Ok</span>(<span class="number">0</span>), |ns| to_integer_if_integral(ns, context))<span class="question-mark">?</span>,
         );
 
-        <span class="kw">let </span>record = DurationRecord::new(
-            DateDuration::new(years, months, weeks, days),
-            TimeDuration::new(
-                hours,
-                minutes,
-                seconds,
-                milliseconds,
-                microseconds,
-                nanoseconds,
-            ),
-        );
+        <span class="kw">let </span>record = InnerDuration::new(
+            years,
+            months,
+            weeks,
+            days,
+            hours,
+            minutes,
+            seconds,
+            milliseconds,
+            microseconds,
+            nanoseconds,
+        )<span class="question-mark">?</span>;
 
         <span class="comment">// 12. Return ? CreateTemporalDuration(y, mo, w, d, h, m, s, ms, mis, ns, NewTarget).
         </span>create_temporal_duration(record, <span class="prelude-val">Some</span>(new_target), context).map(Into::into)
@@ -1265,17 +1316,19 @@
             JsNativeError::typ().with_message(<span class="string">&quot;the this object must be a Duration object.&quot;</span>)
         })<span class="question-mark">?</span>;
 
+        <span class="kw">let </span>inner = <span class="kw-2">&amp;</span>duration.inner;
+
         <span class="kw">match </span>field {
-            DateTimeValues::Year =&gt; <span class="prelude-val">Ok</span>(JsValue::Rational(duration.inner.years())),
-            DateTimeValues::Month =&gt; <span class="prelude-val">Ok</span>(JsValue::Rational(duration.inner.months())),
-            DateTimeValues::Week =&gt; <span class="prelude-val">Ok</span>(JsValue::Rational(duration.inner.weeks())),
-            DateTimeValues::Day =&gt; <span class="prelude-val">Ok</span>(JsValue::Rational(duration.inner.days())),
-            DateTimeValues::Hour =&gt; <span class="prelude-val">Ok</span>(JsValue::Rational(duration.inner.hours())),
-            DateTimeValues::Minute =&gt; <span class="prelude-val">Ok</span>(JsValue::Rational(duration.inner.minutes())),
-            DateTimeValues::Second =&gt; <span class="prelude-val">Ok</span>(JsValue::Rational(duration.inner.seconds())),
-            DateTimeValues::Millisecond =&gt; <span class="prelude-val">Ok</span>(JsValue::Rational(duration.inner.milliseconds())),
-            DateTimeValues::Microsecond =&gt; <span class="prelude-val">Ok</span>(JsValue::Rational(duration.inner.microseconds())),
-            DateTimeValues::Nanosecond =&gt; <span class="prelude-val">Ok</span>(JsValue::Rational(duration.inner.nanoseconds())),
+            DateTimeValues::Year =&gt; <span class="prelude-val">Ok</span>(JsValue::Rational(inner.date().years())),
+            DateTimeValues::Month =&gt; <span class="prelude-val">Ok</span>(JsValue::Rational(inner.date().months())),
+            DateTimeValues::Week =&gt; <span class="prelude-val">Ok</span>(JsValue::Rational(inner.date().weeks())),
+            DateTimeValues::Day =&gt; <span class="prelude-val">Ok</span>(JsValue::Rational(inner.date().days())),
+            DateTimeValues::Hour =&gt; <span class="prelude-val">Ok</span>(JsValue::Rational(inner.time().hours())),
+            DateTimeValues::Minute =&gt; <span class="prelude-val">Ok</span>(JsValue::Rational(inner.time().minutes())),
+            DateTimeValues::Second =&gt; <span class="prelude-val">Ok</span>(JsValue::Rational(inner.time().seconds())),
+            DateTimeValues::Millisecond =&gt; <span class="prelude-val">Ok</span>(JsValue::Rational(inner.time().milliseconds())),
+            DateTimeValues::Microsecond =&gt; <span class="prelude-val">Ok</span>(JsValue::Rational(inner.time().microseconds())),
+            DateTimeValues::Nanosecond =&gt; <span class="prelude-val">Ok</span>(JsValue::Rational(inner.time().nanoseconds())),
             DateTimeValues::MonthCode =&gt; <span class="macro">unreachable!</span>(
                 <span class="string">&quot;Any other DateTimeValue fields on Duration would be an implementation error.&quot;
             </span>),
@@ -1394,122 +1447,123 @@
 
         <span class="comment">// 3. Let temporalDurationLike be ? ToTemporalPartialDurationRecord(temporalDurationLike).
         </span><span class="kw">let </span>temporal_duration_like =
-            DurationRecord::from_partial_js_object(args.get_or_undefined(<span class="number">0</span>), context)<span class="question-mark">?</span>;
+            to_temporal_partial_duration(args.get_or_undefined(<span class="number">0</span>), context)<span class="question-mark">?</span>;
 
         <span class="comment">// 4. If temporalDurationLike.[[Years]] is not undefined, then
         // a. Let years be temporalDurationLike.[[Years]].
         // 5. Else,
         // a. Let years be duration.[[Years]].
-        </span><span class="kw">let </span>years = <span class="kw">if </span>temporal_duration_like.years().is_nan() {
-            duration.inner.years()
+        </span><span class="kw">let </span>years = <span class="kw">if </span>temporal_duration_like.date().years().is_nan() {
+            duration.inner.date().years()
         } <span class="kw">else </span>{
-            temporal_duration_like.years()
+            temporal_duration_like.date().years()
         };
 
         <span class="comment">// 6. If temporalDurationLike.[[Months]] is not undefined, then
         // a. Let months be temporalDurationLike.[[Months]].
         // 7. Else,
         // a. Let months be duration.[[Months]].
-        </span><span class="kw">let </span>months = <span class="kw">if </span>temporal_duration_like.months().is_nan() {
-            duration.inner.months()
+        </span><span class="kw">let </span>months = <span class="kw">if </span>temporal_duration_like.date().months().is_nan() {
+            duration.inner.date().months()
         } <span class="kw">else </span>{
-            temporal_duration_like.months()
+            temporal_duration_like.date().months()
         };
 
         <span class="comment">// 8. If temporalDurationLike.[[Weeks]] is not undefined, then
         // a. Let weeks be temporalDurationLike.[[Weeks]].
         // 9. Else,
         // a. Let weeks be duration.[[Weeks]].
-        </span><span class="kw">let </span>weeks = <span class="kw">if </span>temporal_duration_like.weeks().is_nan() {
-            duration.inner.weeks()
+        </span><span class="kw">let </span>weeks = <span class="kw">if </span>temporal_duration_like.date().weeks().is_nan() {
+            duration.inner.date().weeks()
         } <span class="kw">else </span>{
-            temporal_duration_like.weeks()
+            temporal_duration_like.date().weeks()
         };
 
         <span class="comment">// 10. If temporalDurationLike.[[Days]] is not undefined, then
         // a. Let days be temporalDurationLike.[[Days]].
         // 11. Else,
         // a. Let days be duration.[[Days]].
-        </span><span class="kw">let </span>days = <span class="kw">if </span>temporal_duration_like.days().is_nan() {
-            duration.inner.days()
+        </span><span class="kw">let </span>days = <span class="kw">if </span>temporal_duration_like.date().days().is_nan() {
+            duration.inner.date().days()
         } <span class="kw">else </span>{
-            temporal_duration_like.days()
+            temporal_duration_like.date().days()
         };
 
         <span class="comment">// 12. If temporalDurationLike.[[Hours]] is not undefined, then
         // a. Let hours be temporalDurationLike.[[Hours]].
         // 13. Else,
         // a. Let hours be duration.[[Hours]].
-        </span><span class="kw">let </span>hours = <span class="kw">if </span>temporal_duration_like.hours().is_nan() {
-            duration.inner.hours()
+        </span><span class="kw">let </span>hours = <span class="kw">if </span>temporal_duration_like.time().hours().is_nan() {
+            duration.inner.time().hours()
         } <span class="kw">else </span>{
-            temporal_duration_like.hours()
+            temporal_duration_like.time().hours()
         };
 
         <span class="comment">// 14. If temporalDurationLike.[[Minutes]] is not undefined, then
         // a. Let minutes be temporalDurationLike.[[Minutes]].
         // 15. Else,
         // a. Let minutes be duration.[[Minutes]].
-        </span><span class="kw">let </span>minutes = <span class="kw">if </span>temporal_duration_like.minutes().is_nan() {
-            duration.inner.minutes()
+        </span><span class="kw">let </span>minutes = <span class="kw">if </span>temporal_duration_like.time().minutes().is_nan() {
+            duration.inner.time().minutes()
         } <span class="kw">else </span>{
-            temporal_duration_like.minutes()
+            temporal_duration_like.time().minutes()
         };
 
         <span class="comment">// 16. If temporalDurationLike.[[Seconds]] is not undefined, then
         // a. Let seconds be temporalDurationLike.[[Seconds]].
         // 17. Else,
         // a. Let seconds be duration.[[Seconds]].
-        </span><span class="kw">let </span>seconds = <span class="kw">if </span>temporal_duration_like.seconds().is_nan() {
-            duration.inner.seconds()
+        </span><span class="kw">let </span>seconds = <span class="kw">if </span>temporal_duration_like.time().seconds().is_nan() {
+            duration.inner.time().seconds()
         } <span class="kw">else </span>{
-            temporal_duration_like.seconds()
+            temporal_duration_like.time().seconds()
         };
 
         <span class="comment">// 18. If temporalDurationLike.[[Milliseconds]] is not undefined, then
         // a. Let milliseconds be temporalDurationLike.[[Milliseconds]].
         // 19. Else,
         // a. Let milliseconds be duration.[[Milliseconds]].
-        </span><span class="kw">let </span>milliseconds = <span class="kw">if </span>temporal_duration_like.milliseconds().is_nan() {
-            duration.inner.milliseconds()
+        </span><span class="kw">let </span>milliseconds = <span class="kw">if </span>temporal_duration_like.time().milliseconds().is_nan() {
+            duration.inner.time().milliseconds()
         } <span class="kw">else </span>{
-            temporal_duration_like.milliseconds()
+            temporal_duration_like.time().milliseconds()
         };
 
         <span class="comment">// 20. If temporalDurationLike.[[Microseconds]] is not undefined, then
         // a. Let microseconds be temporalDurationLike.[[Microseconds]].
         // 21. Else,
         // a. Let microseconds be duration.[[Microseconds]].
-        </span><span class="kw">let </span>microseconds = <span class="kw">if </span>temporal_duration_like.microseconds().is_nan() {
-            duration.inner.microseconds()
+        </span><span class="kw">let </span>microseconds = <span class="kw">if </span>temporal_duration_like.time().microseconds().is_nan() {
+            duration.inner.time().microseconds()
         } <span class="kw">else </span>{
-            temporal_duration_like.microseconds()
+            temporal_duration_like.time().microseconds()
         };
 
         <span class="comment">// 22. If temporalDurationLike.[[Nanoseconds]] is not undefined, then
         // a. Let nanoseconds be temporalDurationLike.[[Nanoseconds]].
         // 23. Else,
         // a. Let nanoseconds be duration.[[Nanoseconds]].
-        </span><span class="kw">let </span>nanoseconds = <span class="kw">if </span>temporal_duration_like.nanoseconds().is_nan() {
-            duration.inner.nanoseconds()
+        </span><span class="kw">let </span>nanoseconds = <span class="kw">if </span>temporal_duration_like.time().nanoseconds().is_nan() {
+            duration.inner.time().nanoseconds()
         } <span class="kw">else </span>{
-            temporal_duration_like.nanoseconds()
+            temporal_duration_like.time().nanoseconds()
         };
 
         <span class="comment">// 24. Return ? CreateTemporalDuration(years, months, weeks, days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds).
-        </span><span class="kw">let </span>new_duration = DurationRecord::new(
-            DateDuration::new(years, months, weeks, days),
-            TimeDuration::new(
-                hours,
-                minutes,
-                seconds,
-                milliseconds,
-                microseconds,
-                nanoseconds,
-            ),
-        );
+        </span><span class="kw">let </span>new_duration = InnerDuration::new(
+            years,
+            months,
+            weeks,
+            days,
+            hours,
+            minutes,
+            seconds,
+            milliseconds,
+            microseconds,
+            nanoseconds,
+        )<span class="question-mark">?</span>;
 
-        new_duration.as_object(context).map(Into::into)
+        create_temporal_duration(new_duration, <span class="prelude-val">None</span>, context).map(Into::into)
     }
 
     <span class="doccomment">/// 7.3.16 `Temporal.Duration.prototype.negated ( )`
@@ -1539,7 +1593,7 @@
 
         <span class="kw">let </span>abs = duration.inner.abs();
 
-        abs.as_object(context).map(Into::into)
+        create_temporal_duration(abs, <span class="prelude-val">None</span>, context).map(Into::into)
     }
 
     <span class="doccomment">/// 7.3.18 `Temporal.Duration.prototype.add ( other [ , options ] )`
@@ -1625,7 +1679,7 @@
         </span><span class="kw">let </span>rounding_increment = get_temporal_rounding_increment(<span class="kw-2">&amp;</span>round_to, context)<span class="question-mark">?</span>;
 
         <span class="comment">// 14. Let roundingMode be ? ToTemporalRoundingMode(roundTo, &quot;halfExpand&quot;).
-        </span><span class="kw">let </span>rounding_mode = get_option(<span class="kw-2">&amp;</span>round_to, <span class="macro">utf16!</span>(<span class="string">&quot;roundingMode&quot;</span>), context)<span class="question-mark">?
+        </span><span class="kw">let </span>_rounding_mode = get_option(<span class="kw-2">&amp;</span>round_to, <span class="macro">utf16!</span>(<span class="string">&quot;roundingMode&quot;</span>), context)<span class="question-mark">?
             </span>.unwrap_or(RoundingMode::HalfExpand);
 
         <span class="comment">// 15. Let smallestUnit be ? GetTemporalUnit(roundTo, &quot;smallestUnit&quot;, datetime, undefined).
@@ -1692,19 +1746,20 @@
         <span class="comment">// 25. Let hoursToDaysConversionMayOccur be false.
         // 26. If duration.[[Days]] ≠ 0 and zonedRelativeTo is not undefined, set hoursToDaysConversionMayOccur to true.
         // 27. Else if abs(duration.[[Hours]]) ≥ 24, set hoursToDaysConversionMayOccur to true.
-        </span><span class="kw">let </span>conversion_may_occur = <span class="kw">if </span>duration.inner.days() != <span class="number">0.0 </span>&amp;&amp; zoned_relative_to.is_some() {
-            <span class="bool-val">true
-        </span>} <span class="kw">else </span>{
-            <span class="number">24f64 </span>&lt;= duration.inner.hours().abs()
-        };
+        </span><span class="kw">let </span>conversion_may_occur =
+            <span class="kw">if </span>duration.inner.date().days() != <span class="number">0.0 </span>&amp;&amp; zoned_relative_to.is_some() {
+                <span class="bool-val">true
+            </span>} <span class="kw">else </span>{
+                <span class="number">24f64 </span>&lt;= duration.inner.time().hours().abs()
+            };
 
         <span class="comment">// 28. If smallestUnit is &quot;nanosecond&quot; and roundingIncrement = 1, let roundingGranularityIsNoop be true; else let roundingGranularityIsNoop be false.
         </span><span class="kw">let </span>is_noop = smallest_unit == TemporalUnit::Nanosecond &amp;&amp; rounding_increment == <span class="number">1</span>;
 
         <span class="comment">// 29. If duration.[[Years]] = 0 and duration.[[Months]] = 0 and duration.[[Weeks]] = 0, let calendarUnitsPresent be false; else let calendarUnitsPresent be true.
-        </span><span class="kw">let </span>calendar_units_present = !(duration.inner.years() == <span class="number">0f64
-            </span>|| duration.inner.months() == <span class="number">0f64
-            </span>|| duration.inner.weeks() == <span class="number">0f64</span>);
+        </span><span class="kw">let </span>calendar_units_present = !(duration.inner.date().years() == <span class="number">0f64
+            </span>|| duration.inner.date().months() == <span class="number">0f64
+            </span>|| duration.inner.date().weeks() == <span class="number">0f64</span>);
 
         <span class="comment">// 30. If roundingGranularityIsNoop is true, and largestUnit is existingLargestUnit,
         // and calendarUnitsPresent is false, and hoursToDaysConversionMayOccur is false,
@@ -1735,10 +1790,10 @@
             || largest_unit == TemporalUnit::Week
             || largest_unit == TemporalUnit::Day
             || calendar_units_present
-            || duration.inner.days() != <span class="number">0f64</span>;
+            || duration.inner.date().days() != <span class="number">0f64</span>;
 
         <span class="comment">// 33. If zonedRelativeTo is not undefined and plainDateTimeOrRelativeToWillBeUsed is true, then
-        </span><span class="kw">let </span>(plain_relative_to, precalc_pdt) = <span class="kw">if </span>zoned_relative_to.is_some()
+        </span><span class="kw">let </span>(_plain_relative_to, _precalc_pdt) = <span class="kw">if </span>zoned_relative_to.is_some()
             &amp;&amp; pdt_or_rel_will_be_used
         {
             <span class="comment">// TODO(TimeZone): Implement GetPlainDateTimeFor
@@ -1758,30 +1813,11 @@
         };
 
         <span class="comment">// 34. Let unbalanceResult be ? UnbalanceDateDurationRelative(duration.[[Years]], duration.[[Months]], duration.[[Weeks]], duration.[[Days]], largestUnit, plainRelativeTo).
-        </span><span class="kw">let </span>unbalance_result = duration.inner.unbalance_duration_relative(
-            largest_unit,
-            plain_relative_to.as_ref(),
-            context,
-        )<span class="question-mark">?</span>;
-
-        <span class="comment">// 35. Let roundRecord be ? RoundDuration(unbalanceResult.[[Years]], unbalanceResult.[[Months]],
+        // 35. Let roundRecord be ? RoundDuration(unbalanceResult.[[Years]], unbalanceResult.[[Months]],
         // unbalanceResult.[[Weeks]], unbalanceResult.[[Days]], duration.[[Hours]], duration.[[Minutes]],
         // duration.[[Seconds]], duration.[[Milliseconds]], duration.[[Microseconds]], duration.[[Nanoseconds]],
         // roundingIncrement, smallestUnit, roundingMode, plainRelativeTo, zonedRelativeTo, precalculatedPlainDateTime).
-        </span><span class="kw">let </span>(_round_result, <span class="kw">_</span>) = duration.inner.round_duration(
-            unbalance_result,
-            rounding_increment.into(),
-            smallest_unit,
-            rounding_mode,
-            (
-                plain_relative_to.as_ref(),
-                zoned_relative_to.as_ref(),
-                precalc_pdt.as_ref(),
-            ),
-            context,
-        )<span class="question-mark">?</span>;
-
-        <span class="comment">// 36. Let roundResult be roundRecord.[[DurationRecord]].
+        // 36. Let roundResult be roundRecord.[[DurationRecord]].
         // 37. If zonedRelativeTo is not undefined, then
         // a. Set roundResult to ? AdjustRoundedDurationDays(roundResult.[[Years]], roundResult.[[Months]], roundResult.[[Weeks]], roundResult.[[Days]], roundResult.[[Hours]], roundResult.[[Minutes]], roundResult.[[Seconds]], roundResult.[[Milliseconds]], roundResult.[[Microseconds]], roundResult.[[Nanoseconds]], roundingIncrement, smallestUnit, roundingMode, zonedRelativeTo, precalculatedPlainDateTime).
         // b. Let balanceResult be ? BalanceTimeDurationRelative(roundResult.[[Days]], roundResult.[[Hours]], roundResult.[[Minutes]], roundResult.[[Seconds]], roundResult.[[Milliseconds]], roundResult.[[Microseconds]], roundResult.[[Nanoseconds]], largestUnit, zonedRelativeTo, precalculatedPlainDateTime).
@@ -1882,7 +1918,7 @@
 <span class="comment">// -- Duration Abstract Operations --
 
 </span><span class="doccomment">/// 7.5.8 `ToTemporalDuration ( item )`
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_temporal_duration(item: <span class="kw-2">&amp;</span>JsValue) -&gt; JsResult&lt;DurationRecord&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_temporal_duration(item: <span class="kw-2">&amp;</span>JsValue) -&gt; JsResult&lt;InnerDuration&gt; {
     <span class="comment">// 1a. If Type(item) is Object
     </span><span class="kw">if </span>item.is_object() {
         <span class="comment">// 1b. and item has an [[InitializedTemporalDuration]] internal slot, then
@@ -1906,7 +1942,7 @@
 <span class="doccomment">/// 7.5.9 `ToTemporalDurationRecord ( temporalDurationLike )`
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_temporal_duration_record(
     _temporal_duration_like: <span class="kw-2">&amp;</span>JsValue,
-) -&gt; JsResult&lt;DurationRecord&gt; {
+) -&gt; JsResult&lt;InnerDuration&gt; {
     <span class="prelude-val">Err</span>(JsNativeError::range()
         .with_message(<span class="string">&quot;Duration Parsing is not yet complete.&quot;</span>)
         .into())
@@ -1914,18 +1950,13 @@
 
 <span class="doccomment">/// 7.5.14 `CreateTemporalDuration ( years, months, weeks, days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds [ , newTarget ] )`
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_temporal_duration(
-    record: DurationRecord,
+    inner: InnerDuration,
     new_target: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsValue&gt;,
     context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;JsObject&gt; {
     <span class="comment">// 1. If ! IsValidDuration(years, months, weeks, days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds) is false, throw a RangeError exception.
-    </span><span class="kw">if </span>!record.is_valid_duration() {
-        <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
-            .with_message(<span class="string">&quot;Duration values are not valid.&quot;</span>)
-            .into());
-    }
 
-    <span class="comment">// 2. If newTarget is not present, set newTarget to %Temporal.Duration%.
+    // 2. If newTarget is not present, set newTarget to %Temporal.Duration%.
     </span><span class="kw">let </span>new_target = <span class="kw">if let </span><span class="prelude-val">Some</span>(target) = new_target {
         target.clone()
     } <span class="kw">else </span>{
@@ -1953,39 +1984,106 @@
     // 12. Set object.[[Microseconds]] to ℝ(𝔽(microseconds)).
     // 13. Set object.[[Nanoseconds]] to ℝ(𝔽(nanoseconds)).
 
-    </span><span class="kw">let </span>obj =
-        JsObject::from_proto_and_data(prototype, ObjectData::duration(Duration { inner: record }));
+    </span><span class="kw">let </span>obj = JsObject::from_proto_and_data(prototype, ObjectData::duration(Duration::new(inner)));
     <span class="comment">// 14. Return object.
     </span><span class="prelude-val">Ok</span>(obj)
 }
 
-<span class="doccomment">/// 7.5.23 `DaysUntil ( earlier, later )`
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>days_until(earlier: <span class="kw-2">&amp;</span>PlainDate, later: <span class="kw-2">&amp;</span>PlainDate) -&gt; i32 {
-    <span class="comment">// 1. Let epochDays1 be ISODateToEpochDays(earlier.[[ISOYear]], earlier.[[ISOMonth]] - 1, earlier.[[ISODay]]).
-    </span><span class="kw">let </span>epoch_days_one = earlier.inner.as_epoch_days();
-
-    <span class="comment">// 2. Let epochDays2 be ISODateToEpochDays(later.[[ISOYear]], later.[[ISOMonth]] - 1, later.[[ISODay]]).
-    </span><span class="kw">let </span>epoch_days_two = later.inner.as_epoch_days();
-
-    <span class="comment">// 3. Return epochDays2 - epochDays1.
-    </span>epoch_days_two - epoch_days_one
-}
-
-<span class="doccomment">/// Abstract Operation 7.5.24 `MoveRelativeDate ( calendar, relativeTo, duration, dateAdd )`
-</span><span class="kw">fn </span>move_relative_date(
-    calendar: <span class="kw-2">&amp;</span>JsValue,
-    relative_to: <span class="kw-2">&amp;</span>PlainDate,
-    duration: <span class="kw-2">&amp;</span>DurationRecord,
+<span class="doccomment">/// Equivalent to 7.5.13 `ToTemporalPartialDurationRecord ( temporalDurationLike )`
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_temporal_partial_duration(
+    duration_like: <span class="kw-2">&amp;</span>JsValue,
     context: <span class="kw-2">&amp;mut </span>Context,
-) -&gt; JsResult&lt;(PlainDate, f64)&gt; {
-    <span class="kw">let </span>new_date = plain_date::add_date(
-        calendar,
-        relative_to,
-        duration,
-        <span class="kw-2">&amp;</span>JsValue::undefined(),
-        context,
-    )<span class="question-mark">?</span>;
-    <span class="kw">let </span>days = days_until(relative_to, <span class="kw-2">&amp;</span>new_date);
-    <span class="prelude-val">Ok</span>((new_date, f64::from(days)))
+) -&gt; JsResult&lt;InnerDuration&gt; {
+    <span class="comment">// 1. If Type(temporalDurationLike) is not Object, then
+    </span><span class="kw">let </span>JsValue::Object(unknown_object) = duration_like <span class="kw">else </span>{
+        <span class="comment">// a. Throw a TypeError exception.
+        </span><span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+            .with_message(<span class="string">&quot;temporalDurationLike must be an object.&quot;</span>)
+            .into());
+    };
+
+    <span class="comment">// 2. Let result be a new partial Duration Record with each field set to undefined.
+    </span><span class="kw">let </span><span class="kw-2">mut </span>result = InnerDuration::partial();
+
+    <span class="comment">// 3. NOTE: The following steps read properties and perform independent validation in alphabetical order.
+    // 4. Let days be ? Get(temporalDurationLike, &quot;days&quot;).
+    </span><span class="kw">let </span>days = unknown_object.get(<span class="macro">utf16!</span>(<span class="string">&quot;days&quot;</span>), context)<span class="question-mark">?</span>;
+    <span class="kw">if </span>!days.is_undefined() {
+        <span class="comment">// 5. If days is not undefined, set result.[[Days]] to ? ToIntegerIfIntegral(days).
+        </span>result.set_days(f64::from(to_integer_if_integral(<span class="kw-2">&amp;</span>days, context)<span class="question-mark">?</span>));
+    }
+
+    <span class="comment">// 6. Let hours be ? Get(temporalDurationLike, &quot;hours&quot;).
+    </span><span class="kw">let </span>hours = unknown_object.get(<span class="macro">utf16!</span>(<span class="string">&quot;hours&quot;</span>), context)<span class="question-mark">?</span>;
+    <span class="comment">// 7. If hours is not undefined, set result.[[Hours]] to ? ToIntegerIfIntegral(hours).
+    </span><span class="kw">if </span>!hours.is_undefined() {
+        result.set_days(f64::from(to_integer_if_integral(<span class="kw-2">&amp;</span>hours, context)<span class="question-mark">?</span>));
+    }
+
+    <span class="comment">// 8. Let microseconds be ? Get(temporalDurationLike, &quot;microseconds&quot;).
+    </span><span class="kw">let </span>microseconds = unknown_object.get(<span class="macro">utf16!</span>(<span class="string">&quot;microseconds&quot;</span>), context)<span class="question-mark">?</span>;
+    <span class="comment">// 9. If microseconds is not undefined, set result.[[Microseconds]] to ? ToIntegerIfIntegral(microseconds).
+    </span><span class="kw">if </span>!microseconds.is_undefined() {
+        result.set_days(f64::from(to_integer_if_integral(<span class="kw-2">&amp;</span>microseconds, context)<span class="question-mark">?</span>));
+    }
+
+    <span class="comment">// 10. Let milliseconds be ? Get(temporalDurationLike, &quot;milliseconds&quot;).
+    </span><span class="kw">let </span>milliseconds = unknown_object.get(<span class="macro">utf16!</span>(<span class="string">&quot;milliseconds&quot;</span>), context)<span class="question-mark">?</span>;
+    <span class="comment">// 11. If milliseconds is not undefined, set result.[[Milliseconds]] to ? ToIntegerIfIntegral(milliseconds).
+    </span><span class="kw">if </span>!milliseconds.is_undefined() {
+        result.set_days(f64::from(to_integer_if_integral(<span class="kw-2">&amp;</span>milliseconds, context)<span class="question-mark">?</span>));
+    }
+
+    <span class="comment">// 12. Let minutes be ? Get(temporalDurationLike, &quot;minutes&quot;).
+    </span><span class="kw">let </span>minutes = unknown_object.get(<span class="macro">utf16!</span>(<span class="string">&quot;minutes&quot;</span>), context)<span class="question-mark">?</span>;
+    <span class="comment">// 13. If minutes is not undefined, set result.[[Minutes]] to ? ToIntegerIfIntegral(minutes).
+    </span><span class="kw">if </span>!minutes.is_undefined() {
+        result.set_days(f64::from(to_integer_if_integral(<span class="kw-2">&amp;</span>minutes, context)<span class="question-mark">?</span>));
+    }
+
+    <span class="comment">// 14. Let months be ? Get(temporalDurationLike, &quot;months&quot;).
+    </span><span class="kw">let </span>months = unknown_object.get(<span class="macro">utf16!</span>(<span class="string">&quot;months&quot;</span>), context)<span class="question-mark">?</span>;
+    <span class="comment">// 15. If months is not undefined, set result.[[Months]] to ? ToIntegerIfIntegral(months).
+    </span><span class="kw">if </span>!months.is_undefined() {
+        result.set_days(f64::from(to_integer_if_integral(<span class="kw-2">&amp;</span>months, context)<span class="question-mark">?</span>));
+    }
+
+    <span class="comment">// 16. Let nanoseconds be ? Get(temporalDurationLike, &quot;nanoseconds&quot;).
+    </span><span class="kw">let </span>nanoseconds = unknown_object.get(<span class="macro">utf16!</span>(<span class="string">&quot;nanoseconds&quot;</span>), context)<span class="question-mark">?</span>;
+    <span class="comment">// 17. If nanoseconds is not undefined, set result.[[Nanoseconds]] to ? ToIntegerIfIntegral(nanoseconds).
+    </span><span class="kw">if </span>!nanoseconds.is_undefined() {
+        result.set_days(f64::from(to_integer_if_integral(<span class="kw-2">&amp;</span>nanoseconds, context)<span class="question-mark">?</span>));
+    }
+
+    <span class="comment">// 18. Let seconds be ? Get(temporalDurationLike, &quot;seconds&quot;).
+    </span><span class="kw">let </span>seconds = unknown_object.get(<span class="macro">utf16!</span>(<span class="string">&quot;seconds&quot;</span>), context)<span class="question-mark">?</span>;
+    <span class="comment">// 19. If seconds is not undefined, set result.[[Seconds]] to ? ToIntegerIfIntegral(seconds).
+    </span><span class="kw">if </span>!seconds.is_undefined() {
+        result.set_days(f64::from(to_integer_if_integral(<span class="kw-2">&amp;</span>seconds, context)<span class="question-mark">?</span>));
+    }
+
+    <span class="comment">// 20. Let weeks be ? Get(temporalDurationLike, &quot;weeks&quot;).
+    </span><span class="kw">let </span>weeks = unknown_object.get(<span class="macro">utf16!</span>(<span class="string">&quot;weeks&quot;</span>), context)<span class="question-mark">?</span>;
+    <span class="comment">// 21. If weeks is not undefined, set result.[[Weeks]] to ? ToIntegerIfIntegral(weeks).
+    </span><span class="kw">if </span>!weeks.is_undefined() {
+        result.set_days(f64::from(to_integer_if_integral(<span class="kw-2">&amp;</span>weeks, context)<span class="question-mark">?</span>));
+    }
+
+    <span class="comment">// 22. Let years be ? Get(temporalDurationLike, &quot;years&quot;).
+    </span><span class="kw">let </span>years = unknown_object.get(<span class="macro">utf16!</span>(<span class="string">&quot;years&quot;</span>), context)<span class="question-mark">?</span>;
+    <span class="comment">// 23. If years is not undefined, set result.[[Years]] to ? ToIntegerIfIntegral(years).
+    </span><span class="kw">if </span>!years.is_undefined() {
+        result.set_days(f64::from(to_integer_if_integral(<span class="kw-2">&amp;</span>years, context)<span class="question-mark">?</span>));
+    }
+
+    <span class="comment">// 24. If years is undefined, and months is undefined, and weeks is undefined, and days is undefined, and hours is undefined, and minutes is undefined, and seconds is undefined, and milliseconds is undefined, and microseconds is undefined, and nanoseconds is undefined, throw a TypeError exception.
+    </span><span class="kw">if </span>result.into_iter().all(f64::is_nan) {
+        <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+            .with_message(<span class="string">&quot;no valid Duration fields on temporalDurationLike.&quot;</span>)
+            .into());
+    }
+
+    <span class="comment">// 25. Return result.
+    </span><span class="prelude-val">Ok</span>(result)
 }
 </code></pre></div></section></main></body></html>

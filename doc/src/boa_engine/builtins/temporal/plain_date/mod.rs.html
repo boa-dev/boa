@@ -546,125 +546,14 @@
 <a href="#546" id="546">546</a>
 <a href="#547" id="547">547</a>
 <a href="#548" id="548">548</a>
-<a href="#549" id="549">549</a>
-<a href="#550" id="550">550</a>
-<a href="#551" id="551">551</a>
-<a href="#552" id="552">552</a>
-<a href="#553" id="553">553</a>
-<a href="#554" id="554">554</a>
-<a href="#555" id="555">555</a>
-<a href="#556" id="556">556</a>
-<a href="#557" id="557">557</a>
-<a href="#558" id="558">558</a>
-<a href="#559" id="559">559</a>
-<a href="#560" id="560">560</a>
-<a href="#561" id="561">561</a>
-<a href="#562" id="562">562</a>
-<a href="#563" id="563">563</a>
-<a href="#564" id="564">564</a>
-<a href="#565" id="565">565</a>
-<a href="#566" id="566">566</a>
-<a href="#567" id="567">567</a>
-<a href="#568" id="568">568</a>
-<a href="#569" id="569">569</a>
-<a href="#570" id="570">570</a>
-<a href="#571" id="571">571</a>
-<a href="#572" id="572">572</a>
-<a href="#573" id="573">573</a>
-<a href="#574" id="574">574</a>
-<a href="#575" id="575">575</a>
-<a href="#576" id="576">576</a>
-<a href="#577" id="577">577</a>
-<a href="#578" id="578">578</a>
-<a href="#579" id="579">579</a>
-<a href="#580" id="580">580</a>
-<a href="#581" id="581">581</a>
-<a href="#582" id="582">582</a>
-<a href="#583" id="583">583</a>
-<a href="#584" id="584">584</a>
-<a href="#585" id="585">585</a>
-<a href="#586" id="586">586</a>
-<a href="#587" id="587">587</a>
-<a href="#588" id="588">588</a>
-<a href="#589" id="589">589</a>
-<a href="#590" id="590">590</a>
-<a href="#591" id="591">591</a>
-<a href="#592" id="592">592</a>
-<a href="#593" id="593">593</a>
-<a href="#594" id="594">594</a>
-<a href="#595" id="595">595</a>
-<a href="#596" id="596">596</a>
-<a href="#597" id="597">597</a>
-<a href="#598" id="598">598</a>
-<a href="#599" id="599">599</a>
-<a href="#600" id="600">600</a>
-<a href="#601" id="601">601</a>
-<a href="#602" id="602">602</a>
-<a href="#603" id="603">603</a>
-<a href="#604" id="604">604</a>
-<a href="#605" id="605">605</a>
-<a href="#606" id="606">606</a>
-<a href="#607" id="607">607</a>
-<a href="#608" id="608">608</a>
-<a href="#609" id="609">609</a>
-<a href="#610" id="610">610</a>
-<a href="#611" id="611">611</a>
-<a href="#612" id="612">612</a>
-<a href="#613" id="613">613</a>
-<a href="#614" id="614">614</a>
-<a href="#615" id="615">615</a>
-<a href="#616" id="616">616</a>
-<a href="#617" id="617">617</a>
-<a href="#618" id="618">618</a>
-<a href="#619" id="619">619</a>
-<a href="#620" id="620">620</a>
-<a href="#621" id="621">621</a>
-<a href="#622" id="622">622</a>
-<a href="#623" id="623">623</a>
-<a href="#624" id="624">624</a>
-<a href="#625" id="625">625</a>
-<a href="#626" id="626">626</a>
-<a href="#627" id="627">627</a>
-<a href="#628" id="628">628</a>
-<a href="#629" id="629">629</a>
-<a href="#630" id="630">630</a>
-<a href="#631" id="631">631</a>
-<a href="#632" id="632">632</a>
-<a href="#633" id="633">633</a>
-<a href="#634" id="634">634</a>
-<a href="#635" id="635">635</a>
-<a href="#636" id="636">636</a>
-<a href="#637" id="637">637</a>
-<a href="#638" id="638">638</a>
-<a href="#639" id="639">639</a>
-<a href="#640" id="640">640</a>
-<a href="#641" id="641">641</a>
-<a href="#642" id="642">642</a>
-<a href="#643" id="643">643</a>
-<a href="#644" id="644">644</a>
-<a href="#645" id="645">645</a>
-<a href="#646" id="646">646</a>
-<a href="#647" id="647">647</a>
-<a href="#648" id="648">648</a>
-<a href="#649" id="649">649</a>
-<a href="#650" id="650">650</a>
-<a href="#651" id="651">651</a>
-<a href="#652" id="652">652</a>
-<a href="#653" id="653">653</a>
-<a href="#654" id="654">654</a>
-<a href="#655" id="655">655</a>
-<a href="#656" id="656">656</a>
-<a href="#657" id="657">657</a>
-<a href="#658" id="658">658</a>
-<a href="#659" id="659">659</a>
-<a href="#660" id="660">660</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of the ECMAScript `Temporal.PlainDate` builtin object.
 </span><span class="attr">#![allow(dead_code, unused_variables)]
 
-</span><span class="kw">use crate</span>::{
+</span><span class="kw">use </span>std::str::FromStr;
+
+<span class="kw">use crate</span>::{
     builtins::{
         options::{get_option, get_options_object},
-        temporal::options::TemporalUnit,
         BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
@@ -677,27 +566,24 @@
 };
 <span class="kw">use </span>boa_parser::temporal::{IsoCursor, TemporalDateTimeString};
 <span class="kw">use </span>boa_profiler::Profiler;
-
-<span class="kw">use super</span>::{
-    calendar, duration::DurationRecord, options::ArithmeticOverflow,
-    plain_date::iso::IsoDateRecord, plain_date_time, DateDuration, TimeDuration,
+<span class="kw">use </span>boa_temporal::{
+    calendar::{AvailableCalendars, CalendarSlot},
+    date::Date <span class="kw">as </span>InnerDate,
+    datetime::DateTime,
+    options::ArithmeticOverflow,
 };
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>iso;
+<span class="kw">use </span><span class="kw">super</span>::calendar;
 
 <span class="doccomment">/// The `Temporal.PlainDate` object.
 </span><span class="attr">#[derive(Debug, Clone)]
 </span><span class="kw">pub struct </span>PlainDate {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) inner: IsoDateRecord,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) calendar: JsValue, <span class="comment">// Calendar can probably be stored as a JsObject.
-</span>}
+    <span class="kw">pub</span>(<span class="kw">crate</span>) inner: InnerDate,
+}
 
 <span class="kw">impl </span>PlainDate {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(record: IsoDateRecord, calendar: JsValue) -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{
-            inner: record,
-            calendar,
-        }
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(inner: InnerDate) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{ inner }
     }
 }
 
@@ -879,12 +765,18 @@
         <span class="kw">let </span>iso_year = <span class="kw">super</span>::to_integer_with_truncation(args.get_or_undefined(<span class="number">0</span>), context)<span class="question-mark">?</span>;
         <span class="kw">let </span>iso_month = <span class="kw">super</span>::to_integer_with_truncation(args.get_or_undefined(<span class="number">1</span>), context)<span class="question-mark">?</span>;
         <span class="kw">let </span>iso_day = <span class="kw">super</span>::to_integer_with_truncation(args.get_or_undefined(<span class="number">2</span>), context)<span class="question-mark">?</span>;
-        <span class="kw">let </span>default_calendar = JsValue::from(<span class="macro">js_string!</span>(<span class="string">&quot;iso8601&quot;</span>));
-        <span class="kw">let </span>calendar_like = args.get(<span class="number">3</span>).unwrap_or(<span class="kw-2">&amp;</span>default_calendar);
+        <span class="kw">let </span>calendar_slot =
+            calendar::to_temporal_calendar_slot_value(args.get_or_undefined(<span class="number">3</span>), context)<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>iso = IsoDateRecord::new(iso_year, iso_month, iso_day);
+        <span class="kw">let </span>date = InnerDate::new(
+            iso_year,
+            iso_month,
+            iso_day,
+            calendar_slot,
+            ArithmeticOverflow::Reject,
+        )<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(create_temporal_date(iso, calendar_like.clone(), <span class="prelude-val">Some</span>(new_target), context)<span class="question-mark">?</span>.into())
+        <span class="prelude-val">Ok</span>(create_temporal_date(date, <span class="prelude-val">Some</span>(new_target), context)<span class="question-mark">?</span>.into())
     }
 }
 
@@ -1050,7 +942,7 @@
 </span><span class="kw">impl </span>PlainDate {
     <span class="doccomment">/// Utitily function for translating a `Temporal.PlainDate` into a `JsObject`.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>as_object(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsObject&gt; {
-        create_temporal_date(<span class="self">self</span>.inner, <span class="self">self</span>.calendar.clone(), <span class="prelude-val">None</span>, context)
+        create_temporal_date(<span class="self">self</span>.inner.clone(), <span class="prelude-val">None</span>, context)
     }
 }
 
@@ -1059,24 +951,19 @@
 
 </span><span class="doccomment">/// 3.5.3 `CreateTemporalDate ( isoYear, isoMonth, isoDay, calendar [ , newTarget ] )`
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_temporal_date(
-    iso_date: IsoDateRecord,
-    calendar: JsValue,
+    inner: InnerDate,
     new_target: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsValue&gt;,
     context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;JsObject&gt; {
     <span class="comment">// 1. If IsValidISODate(isoYear, isoMonth, isoDay) is false, throw a RangeError exception.
-    </span><span class="kw">if </span>!iso_date.is_valid() {
+    </span><span class="kw">if </span>!inner.is_valid() {
         <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
             .with_message(<span class="string">&quot;Date is not a valid ISO date.&quot;</span>)
             .into());
     };
 
-    <span class="kw">let </span>iso_date_time = plain_date_time::iso::IsoDateTimeRecord::default()
-        .with_date(iso_date.year(), iso_date.month(), iso_date.day())
-        .with_time(<span class="number">12</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>);
-
     <span class="comment">// 2. If ISODateTimeWithinLimits(isoYear, isoMonth, isoDay, 12, 0, 0, 0, 0, 0) is false, throw a RangeError exception.
-    </span><span class="kw">if </span>iso_date_time.is_valid() {
+    </span><span class="kw">if </span>!DateTime::validate(<span class="kw-2">&amp;</span>inner) {
         <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
             .with_message(<span class="string">&quot;Date is not within ISO date time limits.&quot;</span>)
             .into());
@@ -1103,10 +990,8 @@
     // 6. Set object.[[ISOMonth]] to isoMonth.
     // 7. Set object.[[ISODay]] to isoDay.
     // 8. Set object.[[Calendar]] to calendar.
-    </span><span class="kw">let </span>obj = JsObject::from_proto_and_data(
-        prototype,
-        ObjectData::plain_date(PlainDate::new(iso_date, calendar)),
-    );
+    </span><span class="kw">let </span>obj =
+        JsObject::from_proto_and_data(prototype, ObjectData::plain_date(PlainDate::new(inner)));
 
     <span class="comment">// 9. Return object.
     </span><span class="prelude-val">Ok</span>(obj)
@@ -1134,10 +1019,7 @@
             <span class="comment">// i. Return item.
             </span><span class="kw">let </span>obj = object.borrow();
             <span class="kw">let </span>date = obj.as_plain_date().expect(<span class="string">&quot;obj must be a PlainDate.&quot;</span>);
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(PlainDate {
-                inner: date.inner,
-                calendar: date.calendar.clone(),
-            });
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(PlainDate::new(date.inner.clone()));
         <span class="comment">// b. If item has an [[InitializedTemporalZonedDateTime]] internal slot, then
         </span>} <span class="kw">else if </span>object.is_zoned_date_time() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
@@ -1159,16 +1041,11 @@
                 .as_plain_date_time()
                 .expect(<span class="string">&quot;obj must be a PlainDateTime&quot;</span>);
 
-            <span class="kw">let </span>iso = date_time.inner.iso_date();
-            <span class="kw">let </span>calendar = date_time.calendar.clone();
-
+            <span class="kw">let </span>date = InnerDate::from_datetime(date_time.inner());
             drop(obj);
 
             <span class="comment">// ii. Return ! CreateTemporalDate(item.[[ISOYear]], item.[[ISOMonth]], item.[[ISODay]], item.[[Calendar]]).
-            </span><span class="kw">return </span><span class="prelude-val">Ok</span>(PlainDate {
-                inner: iso,
-                calendar,
-            });
+            </span><span class="kw">return </span><span class="prelude-val">Ok</span>(PlainDate::new(date));
         }
 
         <span class="comment">// d. Let calendar be ? GetTemporalCalendarSlotValueWithISODefault(item).
@@ -1181,141 +1058,40 @@
     }
 
     <span class="comment">// 5. If item is not a String, throw a TypeError exception.
-    </span><span class="kw">match </span>item {
-        JsValue::String(s) =&gt; {
-            <span class="comment">// 6. Let result be ? ParseTemporalDateString(item).
-            </span><span class="kw">let </span>result = TemporalDateTimeString::parse(
-                <span class="bool-val">false</span>,
-                <span class="kw-2">&amp;mut </span>IsoCursor::new(<span class="kw-2">&amp;</span>s.to_std_string_escaped()),
-            )
-            .map_err(|err| JsNativeError::range().with_message(err.to_string()))<span class="question-mark">?</span>;
-
-            <span class="comment">// 7. Assert: IsValidISODate(result.[[Year]], result.[[Month]], result.[[Day]]) is true.
-            // 8. Let calendar be result.[[Calendar]].
-            // 9. If calendar is undefined, set calendar to &quot;iso8601&quot;.
-            </span><span class="kw">let </span>identifier = result
-                .date
-                .calendar
-                .map_or_else(|| <span class="macro">js_string!</span>(<span class="string">&quot;iso8601&quot;</span>), JsString::from);
-
-            <span class="comment">// 10. If IsBuiltinCalendar(calendar) is false, throw a RangeError exception.
-            </span><span class="kw">if </span>!<span class="kw">super</span>::calendar::is_builtin_calendar(<span class="kw-2">&amp;</span>identifier) {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
-                    .with_message(<span class="string">&quot;not a valid calendar identifier.&quot;</span>)
-                    .into());
-            }
-
-            <span class="comment">// TODO: impl to ASCII-lowercase on JsStirng
-            // 11. Set calendar to the ASCII-lowercase of calendar.
-
-            // 12. Perform ? ToTemporalOverflow(options).
-            </span><span class="kw">let </span>_result = get_option(<span class="kw-2">&amp;</span>options_obj, <span class="macro">utf16!</span>(<span class="string">&quot;overflow&quot;</span>), context)<span class="question-mark">?
-                </span>.unwrap_or(ArithmeticOverflow::Constrain);
-
-            <span class="comment">// 13. Return ? CreateTemporalDate(result.[[Year]], result.[[Month]], result.[[Day]], calendar).
-            </span><span class="prelude-val">Ok</span>(PlainDate {
-                inner: IsoDateRecord::new(result.date.year, result.date.month, result.date.day),
-                calendar: identifier.into(),
-            })
-        }
-        <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(JsNativeError::typ()
+    </span><span class="kw">let </span>JsValue::String(date_like_string) = item <span class="kw">else </span>{
+        <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
             .with_message(<span class="string">&quot;ToTemporalDate item must be an object or string.&quot;</span>)
-            .into()),
-    }
-}
+            .into());
+    };
 
-<span class="comment">// 3.5.5. DifferenceIsoDate
-// Implemented on IsoDateRecord.
+    <span class="comment">// 6. Let result be ? ParseTemporalDateString(item).
+    </span><span class="kw">let </span>result = TemporalDateTimeString::parse(
+        <span class="bool-val">false</span>,
+        <span class="kw-2">&amp;mut </span>IsoCursor::new(<span class="kw-2">&amp;</span>date_like_string.to_std_string_escaped()),
+    )
+    .map_err(|err| JsNativeError::range().with_message(err.to_string()))<span class="question-mark">?</span>;
 
-</span><span class="doccomment">/// 3.5.6 `DifferenceDate ( calendar, one, two, options )`
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>difference_date(
-    calendar: <span class="kw-2">&amp;</span>JsValue,
-    one: <span class="kw-2">&amp;</span>PlainDate,
-    two: <span class="kw-2">&amp;</span>PlainDate,
-    largest_unit: TemporalUnit,
-    context: <span class="kw-2">&amp;mut </span>Context,
-) -&gt; JsResult&lt;DurationRecord&gt; {
-    <span class="comment">// 1. Assert: one.[[Calendar]] and two.[[Calendar]] have been determined to be equivalent as with CalendarEquals.
-    // 2. Assert: options is an ordinary Object.
-    // 3. Assert: options.[[Prototype]] is null.
-    // 4. Assert: options has a &quot;largestUnit&quot; data property.
-    // 5. If one.[[ISOYear]] = two.[[ISOYear]] and one.[[ISOMonth]] = two.[[ISOMonth]] and one.[[ISODay]] = two.[[ISODay]], then
-    </span><span class="kw">if </span>one.inner.year() == two.inner.year()
-        &amp;&amp; one.inner.month() == two.inner.month()
-        &amp;&amp; one.inner.day() == two.inner.day()
-    {
-        <span class="comment">// a. Return ! CreateTemporalDuration(0, 0, 0, 0, 0, 0, 0, 0, 0, 0).
-        </span><span class="kw">return </span><span class="prelude-val">Ok</span>(DurationRecord::default());
-    }
-    <span class="comment">// 6. If ! Get(options, &quot;largestUnit&quot;) is &quot;day&quot;, then
-    </span><span class="kw">if </span>largest_unit == TemporalUnit::Day {
-        <span class="comment">// a. Let days be DaysUntil(one, two).
-        </span><span class="kw">let </span>days = <span class="kw">super</span>::duration::days_until(one, two);
-        <span class="comment">// b. Return ! CreateTemporalDuration(0, 0, 0, days, 0, 0, 0, 0, 0, 0).
-        </span><span class="kw">return </span><span class="prelude-val">Ok</span>(DurationRecord::new(
-            DateDuration::new(<span class="number">0.0</span>, <span class="number">0.0</span>, <span class="number">0.0</span>, f64::from(days)),
-            TimeDuration::default(),
-        ));
-    }
+    <span class="comment">// 7. Assert: IsValidISODate(result.[[Year]], result.[[Month]], result.[[Day]]) is true.
+    // 8. Let calendar be result.[[Calendar]].
+    // 9. If calendar is undefined, set calendar to &quot;iso8601&quot;.
+    </span><span class="kw">let </span>identifier = result.date.calendar.unwrap_or(<span class="string">&quot;iso8601&quot;</span>.to_string());
 
-    <span class="comment">// Create the options object prior to sending it to the calendars.
-    </span><span class="kw">let </span>options_obj = JsObject::with_null_proto();
+    <span class="comment">// 10. If IsBuiltinCalendar(calendar) is false, throw a RangeError exception.
+    </span><span class="kw">let _ </span>= AvailableCalendars::from_str(identifier.to_ascii_lowercase().as_str())<span class="question-mark">?</span>;
 
-    options_obj.create_data_property_or_throw(
-        <span class="macro">utf16!</span>(<span class="string">&quot;largestUnit&quot;</span>),
-        JsString::from(largest_unit.to_string()),
-        context,
-    )<span class="question-mark">?</span>;
+    <span class="comment">// 11. Set calendar to the ASCII-lowercase of calendar.
+    </span><span class="kw">let </span>calendar = CalendarSlot::Identifier(identifier.to_ascii_lowercase());
 
-    <span class="comment">// 7. Return ? CalendarDateUntil(calendar, one, two, options).
-    </span>calendar::calendar_date_until(calendar, one, two, <span class="kw-2">&amp;</span>options_obj.into(), context)
-}
+    <span class="comment">// 12. Perform ? ToTemporalOverflow(options).
+    </span><span class="kw">let _ </span>= get_option::&lt;ArithmeticOverflow&gt;(<span class="kw-2">&amp;</span>options_obj, <span class="macro">utf16!</span>(<span class="string">&quot;overflow&quot;</span>), context)<span class="question-mark">?</span>;
 
-<span class="comment">// 3.5.7 RegulateIsoDate
-// Implemented on IsoDateRecord.
-
-// 3.5.8 IsValidIsoDate
-// Implemented on IsoDateRecord.
-
-// 3.5.9 BalanceIsoDate
-// Implemented on IsoDateRecord.
-
-// 3.5.12 AddISODate ( year, month, day, years, months, weeks, days, overflow )
-// Implemented on IsoDateRecord
-
-</span><span class="doccomment">/// 3.5.13 `AddDate ( calendar, plainDate, duration [ , options [ , dateAdd ]] )`
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>add_date(
-    calendar: <span class="kw-2">&amp;</span>JsValue,
-    plain_date: <span class="kw-2">&amp;</span>PlainDate,
-    duration: <span class="kw-2">&amp;</span>DurationRecord,
-    options: <span class="kw-2">&amp;</span>JsValue,
-    context: <span class="kw-2">&amp;mut </span>Context,
-) -&gt; JsResult&lt;PlainDate&gt; {
-    <span class="comment">// 1. If options is not present, set options to undefined.
-    // 2. If duration.[[Years]] ≠ 0, or duration.[[Months]] ≠ 0, or duration.[[Weeks]] ≠ 0, then
-    </span><span class="kw">if </span>duration.years() != <span class="number">0.0 </span>|| duration.months() != <span class="number">0.0 </span>|| duration.weeks() != <span class="number">0.0 </span>{
-        <span class="comment">// a. If dateAdd is not present, then
-        // i. Set dateAdd to unused.
-        // ii. If calendar is an Object, set dateAdd to ? GetMethod(calendar, &quot;dateAdd&quot;).
-        // b. Return ? CalendarDateAdd(calendar, plainDate, duration, options, dateAdd).
-        </span><span class="kw">return </span>calendar::calendar_date_add(calendar, plain_date, duration, options, context);
-    }
-
-    <span class="comment">// 3. Let overflow be ? ToTemporalOverflow(options).
-    </span><span class="kw">let </span>options_obj = get_options_object(options)<span class="question-mark">?</span>;
-    <span class="kw">let </span>overflow = get_option(<span class="kw-2">&amp;</span>options_obj, <span class="macro">utf16!</span>(<span class="string">&quot;overflow&quot;</span>), context)<span class="question-mark">?
-        </span>.unwrap_or(ArithmeticOverflow::Constrain);
-
-    <span class="kw">let </span><span class="kw-2">mut </span>intermediate = <span class="kw-2">*</span>duration;
-    <span class="comment">// 4. Let days be ? BalanceTimeDuration(duration.[[Days]], duration.[[Hours]], duration.[[Minutes]], duration.[[Seconds]], duration.[[Milliseconds]], duration.[[Microseconds]], duration.[[Nanoseconds]], &quot;day&quot;).[[Days]].
-    </span>intermediate.balance_time_duration(TemporalUnit::Day, <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
-
-    <span class="comment">// 5. Let result be ? AddISODate(plainDate.[[ISOYear]], plainDate.[[ISOMonth]], plainDate.[[ISODay]], 0, 0, 0, days, overflow).
-    </span><span class="kw">let </span>result = plain_date
-        .inner
-        .add_iso_date(intermediate.date(), overflow)<span class="question-mark">?</span>;
-
-    <span class="comment">// 6. Return ! CreateTemporalDate(result.[[Year]], result.[[Month]], result.[[Day]], calendar).
-    </span><span class="prelude-val">Ok</span>(PlainDate::new(result, plain_date.calendar.clone()))
+    <span class="comment">// 13. Return ? CreateTemporalDate(result.[[Year]], result.[[Month]], result.[[Day]], calendar).
+    </span><span class="prelude-val">Ok</span>(PlainDate::new(InnerDate::new(
+        result.date.year,
+        result.date.month,
+        result.date.day,
+        calendar,
+        ArithmeticOverflow::Reject,
+    )<span class="question-mark">?</span>))
 }
 </code></pre></div></section></main></body></html>

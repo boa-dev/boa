@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["iso"],"struct":["PlainDateTime"]};
+window.SIDEBAR_ITEMS = {"struct":["PlainDateTime"]};
