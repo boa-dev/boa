@@ -4,7 +4,7 @@ use crate::{
     try_break,
     visitor::{VisitWith, Visitor, VisitorMut},
 };
-use boa_interner::{Interner, ToInternedString};
+use boa_interner::{Interner, ToIndentedString, ToInternedString};
 use core::ops::ControlFlow;
 
 /// The `with` statement extends the scope chain for a statement.
@@ -52,12 +52,12 @@ impl From<With> for Statement {
     }
 }
 
-impl ToInternedString for With {
-    fn to_interned_string(&self, interner: &Interner) -> String {
+impl ToIndentedString for With {
+    fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         format!(
-            "with ({}) {{{}}}",
-            self.expression.to_interned_string(interner),
-            self.statement.to_interned_string(interner)
+            "with ({}) {}",
+            self.expression().to_interned_string(interner),
+            self.statement().to_indented_string(interner, indentation)
         )
     }
 }
