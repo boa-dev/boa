@@ -85,7 +85,7 @@
     try_break,
     visitor::{VisitWith, Visitor, VisitorMut},
 };
-<span class="kw">use </span>boa_interner::{Interner, ToInternedString};
+<span class="kw">use </span>boa_interner::{Interner, ToIndentedString, ToInternedString};
 <span class="kw">use </span>core::ops::ControlFlow;
 
 <span class="doccomment">/// The `with` statement extends the scope chain for a statement.
@@ -133,12 +133,12 @@
     }
 }
 
-<span class="kw">impl </span>ToInternedString <span class="kw">for </span>With {
-    <span class="kw">fn </span>to_interned_string(<span class="kw-2">&amp;</span><span class="self">self</span>, interner: <span class="kw-2">&amp;</span>Interner) -&gt; String {
+<span class="kw">impl </span>ToIndentedString <span class="kw">for </span>With {
+    <span class="kw">fn </span>to_indented_string(<span class="kw-2">&amp;</span><span class="self">self</span>, interner: <span class="kw-2">&amp;</span>Interner, indentation: usize) -&gt; String {
         <span class="macro">format!</span>(
-            <span class="string">&quot;with ({}) {{{}}}&quot;</span>,
-            <span class="self">self</span>.expression.to_interned_string(interner),
-            <span class="self">self</span>.statement.to_interned_string(interner)
+            <span class="string">&quot;with ({}) {}&quot;</span>,
+            <span class="self">self</span>.expression().to_interned_string(interner),
+            <span class="self">self</span>.statement().to_indented_string(interner, indentation)
         )
     }
 }
