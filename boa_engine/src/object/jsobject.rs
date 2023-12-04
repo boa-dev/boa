@@ -77,15 +77,7 @@ impl JsObject {
             vtable,
         });
 
-        // SAFETY: This just makes the casting from sized to unsized. Should eventually be replaced by
-        // https://github.com/rust-lang/rust/issues/18598
-        let gc: Gc<VTableObject<dyn NativeObject>> = unsafe {
-            let ptr = Gc::into_raw(gc);
-            let ptr: NonNull<GcBox<VTableObject<dyn NativeObject>>> = ptr;
-            Gc::from_raw(ptr)
-        };
-
-        Self { inner: gc }
+        Self { inner: upcast(gc) }
     }
 
     /// Creates a new ordinary object with its prototype set to the `Object` prototype.
