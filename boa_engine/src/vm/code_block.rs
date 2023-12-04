@@ -5,12 +5,15 @@
 use crate::{
     builtins::function::{OrdinaryFunction, ThisMode},
     environments::{BindingLocator, CompileTimeEnvironment},
-    object::{JsObject, ObjectData},
+    object::{
+        shape::{slot::Slot, Shape, WeakShape},
+        JsObject, ObjectData,
+    },
     Context, JsBigInt, JsString, JsValue,
 };
 use bitflags::bitflags;
 use boa_ast::function::FormalParameterList;
-use boa_gc::{empty_trace, Finalize, Gc, Trace};
+use boa_gc::{empty_trace, Finalize, Gc, GcRefCell, Trace};
 use boa_profiler::Profiler;
 use std::{cell::Cell, fmt::Display, mem::size_of, rc::Rc};
 use thin_vec::ThinVec;
@@ -117,6 +120,43 @@ pub(crate) enum Constant {
     CompileTimeEnvironment(#[unsafe_ignore_trace] Rc<CompileTimeEnvironment>),
 }
 
+/// An inline cache entry for a property access.
+#[derive(Clone, Debug, Trace, Finalize)]
+pub(crate) struct InlineCache {
+    /// The property that is accessed.
+    pub(crate) name: JsString,
+
+    /// A pointer is kept to the shape to avoid the shape from being deallocated.
+    pub(crate) shape: GcRefCell<WeakShape>,
+
+    /// The [`Slot`] of the property.
+    #[unsafe_ignore_trace]
+    pub(crate) slot: Cell<Slot>,
+}
+
+impl InlineCache {
+    pub(crate) const fn new(name: JsString) -> Self {
+        Self {
+            name,
+            shape: GcRefCell::new(WeakShape::None),
+            slot: Cell::new(Slot::new()),
+        }
+    }
+
+    pub(crate) fn set(&self, shape: &Shape, slot: Slot) {
+        *self.shape.borrow_mut() = shape.into();
+        self.slot.set(slot);
+    }
+
+    pub(crate) fn slot(&self) -> Slot {
+        self.slot.get()
+    }
+
+    pub(crate) fn matches(&self, shape: &Shape) -> bool {
+        self.shape.borrow().to_addr_usize() == shape.to_addr_usize()
+    }
+}
+
 /// The internal representation of a JavaScript function.
 ///
 /// A `CodeBlock` is generated for each function compiled by the
@@ -142,6 +182,7 @@ pub struct CodeBlock {
     pub(crate) params: FormalParameterList,
 
     /// Bytecode
+    #[unsafe_ignore_trace]
     pub(crate) bytecode: Box<[u8]>,
 
     pub(crate) constants: ThinVec<Constant>,
@@ -153,6 +194,9 @@ pub struct CodeBlock {
     /// Exception [`Handler`]s.
     #[unsafe_ignore_trace]
     pub(crate) handlers: ThinVec<Handler>,
+
+    /// inline caching
+    pub(crate) ic: Box<[InlineCache]>,
 }
 
 /// ---- `CodeBlock` public API ----
@@ -172,6 +216,7 @@ impl CodeBlock {
             this_mode: ThisMode::Global,
             params: FormalParameterList::default(),
             handlers: ThinVec::default(),
+            ic: Box::default(),
         }
     }
 
@@ -450,9 +495,7 @@ impl CodeBlock {
                         .to_std_string_escaped()
                 )
             }
-            Instruction::GetPropertyByName { index }
-            | Instruction::SetPropertyByName { index }
-            | Instruction::DefineOwnPropertyByName { index }
+            Instruction::DefineOwnPropertyByName { index }
             | Instruction::DefineClassStaticMethodByName { index }
             | Instruction::DefineClassMethodByName { index }
             | Instruction::SetPropertyGetterByName { index }
@@ -479,6 +522,18 @@ impl CodeBlock {
                     index.value(),
                     self.constant_string(index.value() as usize)
                         .to_std_string_escaped(),
+                )
+            }
+            Instruction::GetPropertyByName { index } | Instruction::SetPropertyByName { index } => {
+                let ic = &self.ic[index.value() as usize];
+                let slot = ic.slot();
+                format!(
+                    "{:04}: '{}', Shape: 0x{:x}, Slot: index: {}, attributes {:?}",
+                    index.value(),
+                    ic.name.to_std_string_escaped(),
+                    ic.shape.borrow().to_addr_usize(),
+                    slot.index,
+                    slot.attributes,
                 )
             }
             Instruction::PushPrivateEnvironment { name_indices } => {

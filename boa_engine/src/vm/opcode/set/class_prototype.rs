@@ -1,5 +1,7 @@
 use crate::{
-    object::{JsObject, ObjectData, CONSTRUCTOR, PROTOTYPE},
+    object::{
+        internal_methods::InternalMethodContext, JsObject, ObjectData, CONSTRUCTOR, PROTOTYPE,
+    },
     property::PropertyDescriptorBuilder,
     vm::{opcode::Operation, CompletionType},
     Context, JsResult, JsValue,
@@ -63,7 +65,7 @@ impl Operation for SetClassPrototype {
                     .enumerable(false)
                     .configurable(true)
                     .build(),
-                context,
+                &mut InternalMethodContext::new(context),
             )
             .expect("cannot fail per spec");
 

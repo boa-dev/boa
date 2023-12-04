@@ -1,4 +1,5 @@
 use crate::{
+    object::internal_methods::InternalMethodContext,
     property::PropertyDescriptor,
     vm::{opcode::Operation, CompletionType},
     Context, JsNativeError, JsResult,
@@ -29,7 +30,7 @@ impl DefineOwnPropertyByName {
                 .enumerable(true)
                 .configurable(true)
                 .build(),
-            context,
+            &mut InternalMethodContext::new(context),
         )?;
         Ok(CompletionType::Normal)
     }
@@ -86,7 +87,7 @@ impl Operation for DefineOwnPropertyByValue {
                 .enumerable(true)
                 .configurable(true)
                 .build(),
-            context,
+            &mut InternalMethodContext::new(context),
         )?;
         if !success {
             return Err(JsNativeError::typ()

@@ -1,5 +1,6 @@
 use crate::{
     builtins::function::set_function_name,
+    object::internal_methods::InternalMethodContext,
     property::PropertyDescriptor,
     vm::{opcode::Operation, CompletionType},
     Context, JsResult, JsString,
@@ -35,7 +36,7 @@ impl DefineClassStaticSetterByName {
             function_mut.set_home_object(class.clone());
         }
         let get = class
-            .__get_own_property__(&key, context)?
+            .__get_own_property__(&key, &mut InternalMethodContext::new(context))?
             .as_ref()
             .and_then(PropertyDescriptor::get)
             .cloned();
@@ -48,7 +49,7 @@ impl DefineClassStaticSetterByName {
                 .enumerable(false)
                 .configurable(true)
                 .build(),
-            context,
+            &mut InternalMethodContext::new(context),
         )?;
         Ok(CompletionType::Normal)
     }
@@ -105,7 +106,7 @@ impl DefineClassSetterByName {
             function_mut.set_home_object(class_proto.clone());
         }
         let get = class_proto
-            .__get_own_property__(&key, context)?
+            .__get_own_property__(&key, &mut InternalMethodContext::new(context))?
             .as_ref()
             .and_then(PropertyDescriptor::get)
             .cloned();
@@ -118,7 +119,7 @@ impl DefineClassSetterByName {
                 .enumerable(false)
                 .configurable(true)
                 .build(),
-            context,
+            &mut InternalMethodContext::new(context),
         )?;
 
         Ok(CompletionType::Normal)
@@ -178,7 +179,7 @@ impl Operation for DefineClassStaticSetterByValue {
             function_mut.set_home_object(class.clone());
         }
         let get = class
-            .__get_own_property__(&key, context)?
+            .__get_own_property__(&key, &mut InternalMethodContext::new(context))?
             .as_ref()
             .and_then(PropertyDescriptor::get)
             .cloned();
@@ -230,7 +231,7 @@ impl Operation for DefineClassSetterByValue {
             function_mut.set_home_object(class_proto.clone());
         }
         let get = class_proto
-            .__get_own_property__(&key, context)?
+            .__get_own_property__(&key, &mut InternalMethodContext::new(context))?
             .as_ref()
             .and_then(PropertyDescriptor::get)
             .cloned();
@@ -243,7 +244,7 @@ impl Operation for DefineClassSetterByValue {
                 .enumerable(false)
                 .configurable(true)
                 .build(),
-            context,
+            &mut InternalMethodContext::new(context),
         )?;
 
         Ok(CompletionType::Normal)

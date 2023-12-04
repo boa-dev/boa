@@ -16,7 +16,11 @@ use boa_gc::{Finalize, Trace};
 
 use crate::property::PropertyKey;
 
-use self::{shared_shape::TransitionKey, slot::Slot};
+use self::{
+    shared_shape::{TransitionKey, WeakSharedShape},
+    slot::Slot,
+    unique_shape::WeakUniqueShape,
+};
 
 use super::JsPrototype;
 
@@ -222,6 +226,38 @@ impl From<SharedShape> for Shape {
     fn from(shape: SharedShape) -> Self {
         Self {
             inner: Inner::Shared(shape),
+        }
+    }
+}
+
+/// Represents a weak reaference to an object's [`Shape`].
+#[derive(Debug, Trace, Finalize, Clone)]
+pub(crate) enum WeakShape {
+    Unique(WeakUniqueShape),
+    Shared(WeakSharedShape),
+    None,
+}
+
+impl WeakShape {
+    /// Return location in memory of the [`Shape`].
+    ///
+    /// Returns `0` if the shape has been freed.
+    #[inline]
+    #[must_use]
+    pub(crate) fn to_addr_usize(&self) -> usize {
+        match self {
+            WeakShape::Shared(shape) => shape.to_addr_usize(),
+            WeakShape::Unique(shape) => shape.to_addr_usize(),
+            WeakShape::None => 0,
+        }
+    }
+}
+
+impl From<&Shape> for WeakShape {
+    fn from(value: &Shape) -> Self {
+        match &value.inner {
+            Inner::Shared(shape) => WeakShape::Shared(shape.into()),
+            Inner::Unique(shape) => WeakShape::Unique(shape.into()),
         }
     }
 }

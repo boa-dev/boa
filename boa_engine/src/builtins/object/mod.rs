@@ -23,8 +23,8 @@ use crate::{
     js_string,
     native_function::NativeFunction,
     object::{
-        internal_methods::get_prototype_from_constructor, FunctionObjectBuilder, IntegrityLevel,
-        JsObject, ObjectData, ObjectKind,
+        internal_methods::{get_prototype_from_constructor, InternalMethodContext},
+        FunctionObjectBuilder, IntegrityLevel, JsObject, ObjectData, ObjectKind,
     },
     property::{Attribute, PropertyDescriptor, PropertyKey, PropertyNameKind},
     realm::Realm,
@@ -211,7 +211,7 @@ impl Object {
         let obj = this.to_object(context)?;
 
         // 2. Return ? O.[[GetPrototypeOf]]().
-        let proto = obj.__get_prototype_of__(context)?;
+        let proto = obj.__get_prototype_of__(&mut InternalMethodContext::new(context))?;
 
         Ok(proto.map_or(JsValue::Null, JsValue::new))
     }
@@ -248,7 +248,8 @@ impl Object {
         };
 
         // 4. Let status be ? O.[[SetPrototypeOf]](proto).
-        let status = object.__set_prototype_of__(proto, context)?;
+        let status =
+            object.__set_prototype_of__(proto, &mut InternalMethodContext::new(context))?;
 
         // 5. If status is false, throw a TypeError exception.
         if !status {
@@ -371,7 +372,8 @@ impl Object {
         // 3. Repeat
         loop {
             // a. Let desc be ? O.[[GetOwnProperty]](key).
-            let desc = obj.__get_own_property__(&key, context)?;
+
+            let desc = obj.__get_own_property__(&key, &mut InternalMethodContext::new(context))?;
 
             // b. If desc is not undefined, then
             if let Some(current_desc) = desc {
@@ -383,7 +385,7 @@ impl Object {
                     Ok(JsValue::undefined())
                 };
             }
-            match obj.__get_prototype_of__(context)? {
+            match obj.__get_prototype_of__(&mut InternalMethodContext::new(context))? {
                 // c. Set O to ? O.[[GetPrototypeOf]]().
                 Some(o) => obj = o,
                 // d. If O is null, return undefined.
@@ -415,7 +417,8 @@ impl Object {
         // 3. Repeat
         loop {
             // a. Let desc be ? O.[[GetOwnProperty]](key).
-            let desc = obj.__get_own_property__(&key, context)?;
+
+            let desc = obj.__get_own_property__(&key, &mut InternalMethodContext::new(context))?;
 
             // b. If desc is not undefined, then
             if let Some(current_desc) = desc {
@@ -427,7 +430,7 @@ impl Object {
                     Ok(JsValue::undefined())
                 };
             }
-            match obj.__get_prototype_of__(context)? {
+            match obj.__get_prototype_of__(&mut InternalMethodContext::new(context))? {
                 // c. Set O to ? O.[[GetPrototypeOf]]().
                 Some(o) => obj = o,
                 // d. If O is null, return undefined.
@@ -496,7 +499,8 @@ impl Object {
         let key = args.get_or_undefined(1).to_property_key(context)?;
 
         // 3. Let desc be ? obj.[[GetOwnProperty]](key).
-        let desc = obj.__get_own_property__(&key, context)?;
+
+        let desc = obj.__get_own_property__(&key, &mut InternalMethodContext::new(context))?;
 
         // 4. Return FromPropertyDescriptor(desc).
         Ok(Self::from_property_descriptor(desc, context))
@@ -521,7 +525,7 @@ impl Object {
         let obj = args.get_or_undefined(0).to_object(context)?;
 
         // 2. Let ownKeys be ? obj.[[OwnPropertyKeys]]().
-        let own_keys = obj.__own_property_keys__(context)?;
+        let own_keys = obj.__own_property_keys__(&mut InternalMethodContext::new(context))?;
 
         // 3. Let descriptors be OrdinaryObjectCreate(%Object.prototype%).
         let descriptors = JsObject::with_object_proto(context.intrinsics());
@@ -529,7 +533,8 @@ impl Object {
         // 4. For each element key of ownKeys, do
         for key in own_keys {
             // a. Let desc be ? obj.[[GetOwnProperty]](key).
-            let desc = obj.__get_own_property__(&key, context)?;
+
+            let desc = obj.__get_own_property__(&key, &mut InternalMethodContext::new(context))?;
 
             // b. Let descriptor be FromPropertyDescriptor(desc).
             let descriptor = Self::from_property_descriptor(desc, context);
@@ -642,7 +647,7 @@ impl Object {
 
         // 2. Return ? obj.[[GetPrototypeOf]]().
         Ok(obj
-            .__get_prototype_of__(context)?
+            .__get_prototype_of__(&mut InternalMethodContext::new(context))?
             .map_or(JsValue::Null, JsValue::new))
     }
 
@@ -693,7 +698,7 @@ impl Object {
         };
 
         // 4. Let status be ? O.[[SetPrototypeOf]](proto).
-        let status = obj.__set_prototype_of__(proto, context)?;
+        let status = obj.__set_prototype_of__(proto, &mut InternalMethodContext::new(context))?;
 
         // 5. If status is false, throw a TypeError exception.
         if !status {
@@ -931,9 +936,10 @@ impl Object {
         };
 
         let key = key.to_property_key(context)?;
+
         let own_prop = this
             .to_object(context)?
-            .__get_own_property__(&key, context)?;
+            .__get_own_property__(&key, &mut InternalMethodContext::new(context))?;
 
         own_prop
             .as_ref()
@@ -972,11 +978,14 @@ impl Object {
                     .to_object(context)
                     .expect("this ToObject call must not fail");
                 // 3.a.ii. Let keys be ? from.[[OwnPropertyKeys]]().
-                let keys = from.__own_property_keys__(context)?;
+                let keys = from.__own_property_keys__(&mut InternalMethodContext::new(context))?;
                 // 3.a.iii. For each element nextKey of keys, do
                 for key in keys {
                     // 3.a.iii.1. Let desc be ? from.[[GetOwnProperty]](nextKey).
-                    if let Some(desc) = from.__get_own_property__(&key, context)? {
+
+                    if let Some(desc) =
+                        from.__get_own_property__(&key, &mut InternalMethodContext::new(context))?
+                    {
                         // 3.a.iii.2. If desc is not undefined and desc.[[Enumerable]] is true, then
                         if desc.expect_enumerable() {
                             // 3.a.iii.2.a. Let propValue be ? Get(from, nextKey).
@@ -1187,7 +1196,7 @@ impl Object {
 
         if let Some(o) = o.as_object() {
             // 2. Let status be ? O.[[PreventExtensions]]().
-            let status = o.__prevent_extensions__(context)?;
+            let status = o.__prevent_extensions__(&mut InternalMethodContext::new(context))?;
             // 3. If status is false, throw a TypeError exception.
             if !status {
                 return Err(JsNativeError::typ()
@@ -1444,7 +1453,7 @@ fn object_define_properties(
     let props = &props.to_object(context)?;
 
     // 3. Let keys be ? props.[[OwnPropertyKeys]]().
-    let keys = props.__own_property_keys__(context)?;
+    let keys = props.__own_property_keys__(&mut InternalMethodContext::new(context))?;
 
     // 4. Let descriptors be a new empty List.
     let mut descriptors: Vec<(PropertyKey, PropertyDescriptor)> = Vec::new();
@@ -1453,7 +1462,10 @@ fn object_define_properties(
     for next_key in keys {
         // a. Let propDesc be ? props.[[GetOwnProperty]](nextKey).
         // b. If propDesc is not undefined and propDesc.[[Enumerable]] is true, then
-        if let Some(prop_desc) = props.__get_own_property__(&next_key, context)? {
+
+        if let Some(prop_desc) =
+            props.__get_own_property__(&next_key, &mut InternalMethodContext::new(context))?
+        {
             if prop_desc.expect_enumerable() {
                 // i. Let descObj be ? Get(props, nextKey).
                 let desc_obj = props.get(next_key.clone(), context)?;
@@ -1501,7 +1513,7 @@ fn get_own_property_keys(
     let obj = o.to_object(context)?;
 
     // 2. Let keys be ? obj.[[OwnPropertyKeys]]().
-    let keys = obj.__own_property_keys__(context)?;
+    let keys = obj.__own_property_keys__(&mut InternalMethodContext::new(context))?;
 
     // 3. Let nameList be a new empty List.
     // 4. For each element nextKey of keys, do

@@ -616,7 +616,7 @@ impl Context {
 
         // 3. Let existingProp be ? globalObject.[[GetOwnProperty]](N).
         let name = name.clone().into();
-        let existing_prop = global_object.__get_own_property__(&name, self)?;
+        let existing_prop = global_object.__get_own_property__(&name, &mut self.into())?;
 
         // 4. If existingProp is undefined, return ? IsExtensible(globalObject).
         let Some(existing_prop) = existing_prop else {
@@ -723,7 +723,8 @@ impl Context {
         let global_object = self.realm().global_object().clone();
 
         // 3. Let existingProp be ? globalObject.[[GetOwnProperty]](N).
-        let existing_prop = global_object.__get_own_property__(&name.clone().into(), self)?;
+        let existing_prop =
+            global_object.__get_own_property__(&name.clone().into(), &mut self.into())?;
 
         // 4. If existingProp is undefined or existingProp.[[Configurable]] is true, then
         let desc = if existing_prop.is_none()
@@ -770,7 +771,7 @@ impl Context {
 
         // 3. Let existingProp be ? globalObject.[[GetOwnProperty]](N).
         let name = name.clone().into();
-        let existing_prop = global_object.__get_own_property__(&name, self)?;
+        let existing_prop = global_object.__get_own_property__(&name, &mut self.into())?;
 
         // 4. If existingProp is undefined, return false.
         let Some(existing_prop) = existing_prop else {

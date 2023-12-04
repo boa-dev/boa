@@ -279,6 +279,28 @@ impl PropertyMap {
 
     /// Get the property with the given key from the [`PropertyMap`].
     #[must_use]
+    pub(crate) fn get_with_slot(
+        &self,
+        key: &PropertyKey,
+        out_slot: &mut Slot,
+    ) -> Option<PropertyDescriptor> {
+        if let PropertyKey::Index(index) = key {
+            return self.indexed_properties.get(index.get());
+        }
+        if let Some(slot) = self.shape.lookup(key) {
+            out_slot.index = slot.index;
+
+            // Remove all descriptor attributes, but keep inline caching bits.
+            out_slot.attributes =
+                (out_slot.attributes & SlotAttributes::INLINE_CACHE_BITS) | slot.attributes;
+            return Some(self.get_storage(slot));
+        }
+
+        None
+    }
+
+    /// Get the property with the given key from the [`PropertyMap`].
+    #[must_use]
     pub(crate) fn get_storage(&self, Slot { index, attributes }: Slot) -> PropertyDescriptor {
         let index = index as usize;
         let mut builder = PropertyDescriptor::builder()
@@ -300,6 +322,17 @@ impl PropertyMap {
 
     /// Insert the given property descriptor with the given key [`PropertyMap`].
     pub fn insert(&mut self, key: &PropertyKey, property: PropertyDescriptor) -> bool {
+        let mut dummy_slot = Slot::new();
+        self.insert_with_slot(key, property, &mut dummy_slot)
+    }
+
+    /// Insert the given property descriptor with the given key [`PropertyMap`].
+    pub(crate) fn insert_with_slot(
+        &mut self,
+        key: &PropertyKey,
+        property: PropertyDescriptor,
+        out_slot: &mut Slot,
+    ) -> bool {
         if let PropertyKey::Index(index) = key {
             return self.indexed_properties.insert(index.get(), property);
         }
@@ -346,6 +379,9 @@ impl PropertyMap {
             } else {
                 self.storage[index] = property.expect_value().clone();
             }
+            out_slot.index = slot.index;
+            out_slot.attributes =
+                (out_slot.attributes & SlotAttributes::INLINE_CACHE_BITS) | attributes;
             return true;
         }
 
@@ -363,6 +399,10 @@ impl PropertyMap {
                 attributes
             })
         );
+
+        out_slot.index = self.storage.len() as u32;
+        out_slot.attributes =
+            (out_slot.attributes & SlotAttributes::INLINE_CACHE_BITS) | attributes;
 
         if attributes.is_accessor_descriptor() {
             self.storage.push(

@@ -39,6 +39,7 @@ pub(crate) use {
     call_frame::CallFrameFlags,
     code_block::{
         create_function_object, create_function_object_fast, CodeBlockFlags, Constant, Handler,
+        InlineCache,
     },
     completion_record::CompletionRecord,
     opcode::BindingOpcode,

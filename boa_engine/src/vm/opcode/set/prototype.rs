@@ -1,4 +1,5 @@
 use crate::{
+    object::internal_methods::InternalMethodContext,
     vm::{opcode::Operation, CompletionType},
     Context, JsResult,
 };
@@ -29,7 +30,7 @@ impl Operation for SetPrototype {
 
         let object = object.as_object().expect("object is not an object");
         object
-            .__set_prototype_of__(prototype, context)
+            .__set_prototype_of__(prototype, &mut InternalMethodContext::new(context))
             .expect("cannot fail per spec");
 
         Ok(CompletionType::Normal)

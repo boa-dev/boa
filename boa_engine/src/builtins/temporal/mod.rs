@@ -597,7 +597,7 @@ pub(crate) fn copy_data_properties(
         // c. If excluded is false, then
         if !excluded {
             // i. Let desc be ? from.[[GetOwnProperty]](nextKey).
-            let desc = from.__get_own_property__(&next_key, context)?;
+            let desc = from.__get_own_property__(&next_key, &mut context.into())?;
             // ii. If desc is not undefined and desc.[[Enumerable]] is true, then
             match desc {
                 Some(d)
