@@ -17,7 +17,7 @@ use boa_temporal::{
     month_day::MonthDay,
     options::ArithmeticOverflow,
     year_month::YearMonth,
-    TemporalResult, TinyStr4, TinyStr8,
+    TemporalResult, TinyAsciiStr,
 };
 use num_traits::ToPrimitive;
 
@@ -222,7 +222,11 @@ impl CalendarProtocol for CustomRuntimeCalendar {
         Err(TemporalError::general("Not yet implemented."))
     }
 
-    fn era(&self, _: &CalendarDateLike, _: &mut dyn Any) -> TemporalResult<Option<TinyStr8>> {
+    fn era(
+        &self,
+        _: &CalendarDateLike,
+        _: &mut dyn Any,
+    ) -> TemporalResult<Option<TinyAsciiStr<8>>> {
         // Return undefined as custom calendars do not implement -> Currently.
         Ok(None)
     }
@@ -322,7 +326,7 @@ impl CalendarProtocol for CustomRuntimeCalendar {
         &self,
         date_like: &CalendarDateLike,
         context: &mut dyn Any,
-    ) -> TemporalResult<TinyStr4> {
+    ) -> TemporalResult<TinyAsciiStr<4>> {
         let context = context
             .downcast_mut::<Context>()
             .expect("Context was not provided for a CustomCalendar.");
@@ -344,7 +348,7 @@ impl CalendarProtocol for CustomRuntimeCalendar {
             return Err(TemporalError::r#type().with_message("monthCode return must be a String."));
         };
 
-        let result = TinyStr4::from_str(&result.to_std_string_escaped())
+        let result = TinyAsciiStr::<4>::from_str(&result.to_std_string_escaped())
             .map_err(|_| TemporalError::general("Unexpected monthCode value."))?;
 
         Ok(result)

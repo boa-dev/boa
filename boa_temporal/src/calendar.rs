@@ -22,7 +22,7 @@ use crate::{
     TemporalError, TemporalResult,
 };
 
-use tinystr::{TinyStr4, TinyStr8};
+use tinystr::TinyAsciiStr;
 
 use self::iso::IsoCalendar;
 
@@ -200,7 +200,7 @@ pub trait CalendarProtocol: CalendarProtocolClone {
         &self,
         date_like: &CalendarDateLike,
         context: &mut dyn Any,
-    ) -> TemporalResult<Option<TinyStr8>>;
+    ) -> TemporalResult<Option<TinyAsciiStr<8>>>;
     /// Returns the era year for a given `temporaldatelike`
     fn era_year(
         &self,
@@ -217,7 +217,7 @@ pub trait CalendarProtocol: CalendarProtocolClone {
         &self,
         date_like: &CalendarDateLike,
         context: &mut dyn Any,
-    ) -> TemporalResult<TinyStr4>;
+    ) -> TemporalResult<TinyAsciiStr<4>>;
     /// Returns the `day` for a given `temporaldatelike`
     fn day(&self, date_like: &CalendarDateLike, context: &mut dyn Any) -> TemporalResult<u8>;
     /// Returns a value representing the day of the week for a date.
@@ -401,7 +401,7 @@ impl CalendarSlot {
         &self,
         date_like: &CalendarDateLike,
         context: &mut dyn Any,
-    ) -> TemporalResult<TinyStr4> {
+    ) -> TemporalResult<TinyAsciiStr<4>> {
         match self {
             Self::Identifier(id) => {
                 let protocol = AvailableCalendars::from_str(id)?.to_protocol();

@@ -6,7 +6,7 @@ use crate::{error::TemporalError, TemporalResult};
 
 use bitflags::bitflags;
 // use rustc_hash::FxHashSet;
-use tinystr::{TinyStr16, TinyStr4};
+use tinystr::{TinyAsciiStr, TinyStr16, TinyStr4};
 
 bitflags! {
     /// FieldMap maps the currently active fields on the `TemporalField`
@@ -467,7 +467,7 @@ impl TemporalFields {
     }
 }
 
-fn month_code_to_integer(mc: TinyStr4) -> TemporalResult<i32> {
+fn month_code_to_integer(mc: TinyAsciiStr<4>) -> TemporalResult<i32> {
     match mc.as_str() {
         "M01" => Ok(1),
         "M02" => Ok(2),

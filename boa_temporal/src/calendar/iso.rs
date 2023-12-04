@@ -13,7 +13,7 @@ use crate::{
 };
 use std::any::Any;
 
-use tinystr::{TinyStr4, TinyStr8};
+use tinystr::TinyAsciiStr;
 
 use super::{CalendarDateLike, CalendarFieldsType, CalendarProtocol, CalendarSlot};
 
@@ -132,7 +132,11 @@ impl CalendarProtocol for IsoCalendar {
     }
 
     /// `Temporal.Calendar.prototype.era( dateLike )` for iso8601 calendar.
-    fn era(&self, _: &CalendarDateLike, _: &mut dyn Any) -> TemporalResult<Option<TinyStr8>> {
+    fn era(
+        &self,
+        _: &CalendarDateLike,
+        _: &mut dyn Any,
+    ) -> TemporalResult<Option<TinyAsciiStr<8>>> {
         // Returns undefined on iso8601.
         Ok(None)
     }
@@ -158,7 +162,7 @@ impl CalendarProtocol for IsoCalendar {
         &self,
         date_like: &CalendarDateLike,
         _: &mut dyn Any,
-    ) -> TemporalResult<TinyStr4> {
+    ) -> TemporalResult<TinyAsciiStr<4>> {
         let date = date_like.as_iso_date().as_icu4x()?;
         Ok(date.month().code.0)
     }

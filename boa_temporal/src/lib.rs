@@ -43,7 +43,7 @@ pub mod zoneddatetime;
 
 // TODO: evaluate positives and negatives of using tinystr.
 // Re-exporting tinystr as a convenience, as it is currently tied into the API.
-pub use tinystr::{TinyAsciiStr, TinyStr16, TinyStr4, TinyStr8};
+pub use tinystr::TinyAsciiStr;
 
 pub use error::TemporalError;
 
