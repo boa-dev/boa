@@ -514,18 +514,6 @@
 <a href="#514" id="514">514</a>
 <a href="#515" id="515">515</a>
 <a href="#516" id="516">516</a>
-<a href="#517" id="517">517</a>
-<a href="#518" id="518">518</a>
-<a href="#519" id="519">519</a>
-<a href="#520" id="520">520</a>
-<a href="#521" id="521">521</a>
-<a href="#522" id="522">522</a>
-<a href="#523" id="523">523</a>
-<a href="#524" id="524">524</a>
-<a href="#525" id="525">525</a>
-<a href="#526" id="526">526</a>
-<a href="#527" id="527">527</a>
-<a href="#528" id="528">528</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s **`boa_gc`** crate implements a garbage collector.
 //!
 //! # Crate Overview
@@ -574,9 +562,9 @@
 <span class="macro">thread_local!</span>(<span class="kw">static </span>BOA_GC: RefCell&lt;BoaGc&gt; = RefCell::new( BoaGc {
     config: GcConfig::default(),
     runtime: GcRuntimeData::default(),
-    strong_start: Cell::new(<span class="prelude-val">None</span>),
-    weak_start: Cell::new(<span class="prelude-val">None</span>),
-    weak_map_start: Cell::new(<span class="prelude-val">None</span>),
+    strongs: Vec::default(),
+    weaks: Vec::default(),
+    weak_maps: Vec::default(),
 }));
 
 <span class="attr">#[derive(Debug, Clone, Copy)]
@@ -607,9 +595,9 @@
 </span><span class="kw">struct </span>BoaGc {
     config: GcConfig,
     runtime: GcRuntimeData,
-    strong_start: Cell&lt;<span class="prelude-ty">Option</span>&lt;GcPointer&gt;&gt;,
-    weak_start: Cell&lt;<span class="prelude-ty">Option</span>&lt;EphemeronPointer&gt;&gt;,
-    weak_map_start: Cell&lt;<span class="prelude-ty">Option</span>&lt;ErasedWeakMapBoxPointer&gt;&gt;,
+    strongs: Vec&lt;GcPointer&gt;,
+    weaks: Vec&lt;EphemeronPointer&gt;,
+    weak_maps: Vec&lt;ErasedWeakMapBoxPointer&gt;,
 }
 
 <span class="kw">impl </span>Drop <span class="kw">for </span>BoaGc {
@@ -661,12 +649,11 @@
             <span class="kw">let </span><span class="kw-2">mut </span>gc = st.borrow_mut();
 
             <span class="self">Self</span>::manage_state(<span class="kw-2">&amp;mut </span>gc);
-            value.header.next.set(gc.strong_start.take());
             <span class="comment">// Safety: value cannot be a null pointer, since `Box` cannot return null pointers.
             </span><span class="kw">let </span>ptr = <span class="kw">unsafe </span>{ NonNull::new_unchecked(Box::into_raw(Box::new(value))) };
             <span class="kw">let </span>erased: NonNull&lt;GcBox&lt;<span class="kw">dyn </span>Trace&gt;&gt; = ptr;
 
-            gc.strong_start.set(<span class="prelude-val">Some</span>(erased));
+            gc.strongs.push(erased);
             gc.runtime.bytes_allocated += element_size;
 
             ptr
@@ -682,12 +669,11 @@
             <span class="kw">let </span><span class="kw-2">mut </span>gc = st.borrow_mut();
 
             <span class="self">Self</span>::manage_state(<span class="kw-2">&amp;mut </span>gc);
-            value.header.next.set(gc.weak_start.take());
             <span class="comment">// Safety: value cannot be a null pointer, since `Box` cannot return null pointers.
             </span><span class="kw">let </span>ptr = <span class="kw">unsafe </span>{ NonNull::new_unchecked(Box::into_raw(Box::new(value))) };
             <span class="kw">let </span>erased: NonNull&lt;<span class="kw">dyn </span>ErasedEphemeronBox&gt; = ptr;
 
-            gc.weak_start.set(<span class="prelude-val">Some</span>(erased));
+            gc.weaks.push(erased);
             gc.runtime.bytes_allocated += element_size;
 
             ptr
@@ -703,18 +689,15 @@
         <span class="kw">let </span>weak = WeakGc::new(<span class="kw-2">&amp;</span>weak_map.inner);
 
         BOA_GC.with(|st| {
-            <span class="kw">let </span>gc = st.borrow_mut();
+            <span class="kw">let </span><span class="kw-2">mut </span>gc = st.borrow_mut();
 
-            <span class="kw">let </span>weak_box = WeakMapBox {
-                map: weak,
-                next: Cell::new(gc.weak_map_start.take()),
-            };
+            <span class="kw">let </span>weak_box = WeakMapBox { map: weak };
 
             <span class="comment">// Safety: value cannot be a null pointer, since `Box` cannot return null pointers.
             </span><span class="kw">let </span>ptr = <span class="kw">unsafe </span>{ NonNull::new_unchecked(Box::into_raw(Box::new(weak_box))) };
             <span class="kw">let </span>erased: ErasedWeakMapBoxPointer = ptr;
 
-            gc.weak_map_start.set(<span class="prelude-val">Some</span>(erased));
+            gc.weak_maps.push(erased);
 
             weak_map
         })
@@ -761,7 +744,7 @@
 
         <span class="self">Self</span>::trace_non_roots(gc);
 
-        <span class="kw">let </span>unreachables = <span class="self">Self</span>::mark_heap(<span class="kw-2">&amp;</span>gc.strong_start, <span class="kw-2">&amp;</span>gc.weak_start, <span class="kw-2">&amp;</span>gc.weak_map_start);
+        <span class="kw">let </span>unreachables = <span class="self">Self</span>::mark_heap(<span class="kw-2">&amp;</span>gc.strongs, <span class="kw-2">&amp;</span>gc.weaks, <span class="kw-2">&amp;</span>gc.weak_maps);
 
         <span class="comment">// Only finalize if there are any unreachable nodes.
         </span><span class="kw">if </span>!unreachables.strong.is_empty() || !unreachables.weak.is_empty() {
@@ -769,64 +752,63 @@
             // SAFETY: All passed pointers are valid, since we won&#39;t deallocate until `Self::sweep`.
             </span><span class="kw">unsafe </span>{ <span class="self">Self</span>::finalize(unreachables) };
 
-            <span class="kw">let </span>_final_unreachables =
-                <span class="self">Self</span>::mark_heap(<span class="kw-2">&amp;</span>gc.strong_start, <span class="kw-2">&amp;</span>gc.weak_start, <span class="kw-2">&amp;</span>gc.weak_map_start);
+            <span class="kw">let </span>_final_unreachables = <span class="self">Self</span>::mark_heap(<span class="kw-2">&amp;</span>gc.strongs, <span class="kw-2">&amp;</span>gc.weaks, <span class="kw-2">&amp;</span>gc.weak_maps);
         }
 
         <span class="comment">// SAFETY: The head of our linked list is always valid per the invariants of our GC.
         </span><span class="kw">unsafe </span>{
             <span class="self">Self</span>::sweep(
-                <span class="kw-2">&amp;</span>gc.strong_start,
-                <span class="kw-2">&amp;</span>gc.weak_start,
+                <span class="kw-2">&amp;mut </span>gc.strongs,
+                <span class="kw-2">&amp;mut </span>gc.weaks,
                 <span class="kw-2">&amp;mut </span>gc.runtime.bytes_allocated,
             );
         }
 
         <span class="comment">// Weak maps have to be cleared after the sweep, since the process dereferences GcBoxes.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>weak_map = <span class="kw-2">&amp;</span>gc.weak_map_start;
-        <span class="kw">while let </span><span class="prelude-val">Some</span>(w) = weak_map.get() {
+        </span>gc.weak_maps.retain(|w| {
             <span class="comment">// SAFETY: The caller must ensure the validity of every node of `heap_start`.
             </span><span class="kw">let </span>node_ref = <span class="kw">unsafe </span>{ w.as_ref() };
 
             <span class="kw">if </span>node_ref.is_live() {
                 node_ref.clear_dead_entries();
-                weak_map = node_ref.next();
-            } <span class="kw">else </span>{
-                weak_map.set(node_ref.next().take());
 
+                <span class="bool-val">true
+            </span>} <span class="kw">else </span>{
                 <span class="comment">// SAFETY:
                 // The `Allocator` must always ensure its start node is a valid, non-null pointer that
                 // was allocated by `Box::from_raw(Box::new(..))`.
                 </span><span class="kw">let </span>_unmarked_node = <span class="kw">unsafe </span>{ Box::from_raw(w.as_ptr()) };
-            }
-        }
+
+                <span class="bool-val">false
+            </span>}
+        });
+
+        gc.strongs.shrink_to(gc.strongs.len() &gt;&gt; <span class="number">2</span>);
+        gc.weaks.shrink_to(gc.weaks.len() &gt;&gt; <span class="number">2</span>);
+        gc.weak_maps.shrink_to(gc.weak_maps.len() &gt;&gt; <span class="number">2</span>);
     }
 
     <span class="kw">fn </span>trace_non_roots(gc: <span class="kw-2">&amp;</span>BoaGc) {
         <span class="comment">// Count all the handles located in GC heap.
         // Then, we can find whether there is a reference from other places, and they are the roots.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>strong = <span class="kw-2">&amp;</span>gc.strong_start;
-        <span class="kw">while let </span><span class="prelude-val">Some</span>(node) = strong.get() {
+        </span><span class="kw">for </span>node <span class="kw">in </span><span class="kw-2">&amp;</span>gc.strongs {
             <span class="comment">// SAFETY: node must be valid as this phase cannot drop any node.
             </span><span class="kw">let </span>node_ref = <span class="kw">unsafe </span>{ node.as_ref() };
             node_ref.value().trace_non_roots();
-            strong = <span class="kw-2">&amp;</span>node_ref.header.next;
         }
 
-        <span class="kw">let </span><span class="kw-2">mut </span>weak = <span class="kw-2">&amp;</span>gc.weak_start;
-        <span class="kw">while let </span><span class="prelude-val">Some</span>(eph) = weak.get() {
+        <span class="kw">for </span>eph <span class="kw">in </span><span class="kw-2">&amp;</span>gc.weaks {
             <span class="comment">// SAFETY: node must be valid as this phase cannot drop any node.
             </span><span class="kw">let </span>eph_ref = <span class="kw">unsafe </span>{ eph.as_ref() };
             eph_ref.trace_non_roots();
-            weak = <span class="kw-2">&amp;</span>eph_ref.header().next;
         }
     }
 
     <span class="doccomment">/// Walk the heap and mark any nodes deemed reachable
     </span><span class="kw">fn </span>mark_heap(
-        <span class="kw-2">mut </span>strong: <span class="kw-2">&amp;</span>Cell&lt;<span class="prelude-ty">Option</span>&lt;NonNull&lt;GcBox&lt;<span class="kw">dyn </span>Trace&gt;&gt;&gt;&gt;,
-        <span class="kw-2">mut </span>weak: <span class="kw-2">&amp;</span>Cell&lt;<span class="prelude-ty">Option</span>&lt;NonNull&lt;<span class="kw">dyn </span>ErasedEphemeronBox&gt;&gt;&gt;,
-        <span class="kw-2">mut </span>weak_map: <span class="kw-2">&amp;</span>Cell&lt;<span class="prelude-ty">Option</span>&lt;ErasedWeakMapBoxPointer&gt;&gt;,
+        strongs: <span class="kw-2">&amp;</span>[GcPointer],
+        weaks: <span class="kw-2">&amp;</span>[EphemeronPointer],
+        weak_maps: <span class="kw-2">&amp;</span>[ErasedWeakMapBoxPointer],
     ) -&gt; Unreachables {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Gc Marking&quot;</span>, <span class="string">&quot;gc&quot;</span>);
 
@@ -837,7 +819,7 @@
         <span class="comment">// === Preliminary mark phase ===
         //
         // 0. Get the naive list of possibly dead nodes.
-        </span><span class="kw">while let </span><span class="prelude-val">Some</span>(node) = strong.get() {
+        </span><span class="kw">for </span>node <span class="kw">in </span>strongs {
             <span class="comment">// SAFETY: node must be valid as this phase cannot drop any node.
             </span><span class="kw">let </span>node_ref = <span class="kw">unsafe </span>{ node.as_ref() };
             <span class="kw">if </span>node_ref.get_non_root_count() &lt; node_ref.get_ref_count() {
@@ -846,13 +828,12 @@
                     node_ref.mark_and_trace();
                 }
             } <span class="kw">else if </span>!node_ref.is_marked() {
-                strong_dead.push(node);
+                strong_dead.push(<span class="kw-2">*</span>node);
             }
-            strong = <span class="kw-2">&amp;</span>node_ref.header.next;
         }
 
         <span class="comment">// 0.1. Early return if there are no ephemerons in the GC
-        </span><span class="kw">if </span>weak.get().is_none() {
+        </span><span class="kw">if </span>weaks.is_empty() {
             strong_dead.retain_mut(|node| {
                 <span class="comment">// SAFETY: node must be valid as this phase cannot drop any node.
                 </span><span class="kw">unsafe </span>{ !node.as_ref().is_marked() }
@@ -869,7 +850,7 @@
         // 1. Get the naive list of ephemerons that are supposedly dead or their key is dead and
         // trace all the ephemerons that have roots and their keys are live. Also remove from
         // this list the ephemerons that are marked but their value is dead.
-        </span><span class="kw">while let </span><span class="prelude-val">Some</span>(eph) = weak.get() {
+        </span><span class="kw">for </span>eph <span class="kw">in </span>weaks {
             <span class="comment">// SAFETY: node must be valid as this phase cannot drop any node.
             </span><span class="kw">let </span>eph_ref = <span class="kw">unsafe </span>{ eph.as_ref() };
             <span class="kw">let </span>header = eph_ref.header();
@@ -878,20 +859,17 @@
             }
             <span class="comment">// SAFETY: the garbage collector ensures `eph_ref` always points to valid data.
             </span><span class="kw">if unsafe </span>{ !eph_ref.trace() } {
-                pending_ephemerons.push(eph);
+                pending_ephemerons.push(<span class="kw-2">*</span>eph);
             }
-            weak = <span class="kw-2">&amp;</span>header.next;
         }
 
         <span class="comment">// 2. Trace all the weak pointers in the live weak maps to make sure they do not get swept.
-        </span><span class="kw">while let </span><span class="prelude-val">Some</span>(w) = weak_map.get() {
+        </span><span class="kw">for </span>w <span class="kw">in </span>weak_maps {
             <span class="comment">// SAFETY: node must be valid as this phase cannot drop any node.
             </span><span class="kw">let </span>node_ref = <span class="kw">unsafe </span>{ w.as_ref() };
 
             <span class="comment">// SAFETY: The garbage collector ensures that all nodes are valid.
             </span><span class="kw">unsafe </span>{ node_ref.trace() };
-
-            weak_map = node_ref.next();
         }
 
         <span class="comment">// 3. Iterate through all pending ephemerons, removing the ones which have been successfully
@@ -951,81 +929,79 @@
     /// - Providing a list of pointers that weren&#39;t allocated by `Box::into_raw(Box::new(..))`
     /// will result in Undefined Behaviour.
     </span><span class="kw">unsafe fn </span>sweep(
-        <span class="kw-2">mut </span>strong: <span class="kw-2">&amp;</span>Cell&lt;<span class="prelude-ty">Option</span>&lt;NonNull&lt;GcBox&lt;<span class="kw">dyn </span>Trace&gt;&gt;&gt;&gt;,
-        <span class="kw-2">mut </span>weak: <span class="kw-2">&amp;</span>Cell&lt;<span class="prelude-ty">Option</span>&lt;NonNull&lt;<span class="kw">dyn </span>ErasedEphemeronBox&gt;&gt;&gt;,
+        strong: <span class="kw-2">&amp;mut </span>Vec&lt;GcPointer&gt;,
+        weak: <span class="kw-2">&amp;mut </span>Vec&lt;EphemeronPointer&gt;,
         total_allocated: <span class="kw-2">&amp;mut </span>usize,
     ) {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Gc Sweeping&quot;</span>, <span class="string">&quot;gc&quot;</span>);
         <span class="kw">let </span>_guard = DropGuard::new();
 
-        <span class="kw">while let </span><span class="prelude-val">Some</span>(node) = strong.get() {
+        strong.retain(|node| {
             <span class="comment">// SAFETY: The caller must ensure the validity of every node of `heap_start`.
             </span><span class="kw">let </span>node_ref = <span class="kw">unsafe </span>{ node.as_ref() };
             <span class="kw">if </span>node_ref.is_marked() {
                 node_ref.header.unmark();
                 node_ref.reset_non_root_count();
-                strong = <span class="kw-2">&amp;</span>node_ref.header.next;
-            } <span class="kw">else </span>{
+
+                <span class="bool-val">true
+            </span>} <span class="kw">else </span>{
                 <span class="comment">// SAFETY: The algorithm ensures only unmarked/unreachable pointers are dropped.
                 // The caller must ensure all pointers were allocated by `Box::into_raw(Box::new(..))`.
                 </span><span class="kw">let </span>unmarked_node = <span class="kw">unsafe </span>{ Box::from_raw(node.as_ptr()) };
                 <span class="kw">let </span>unallocated_bytes = mem::size_of_val(<span class="kw-2">&amp;*</span>unmarked_node);
                 <span class="kw-2">*</span>total_allocated -= unallocated_bytes;
-                strong.set(unmarked_node.header.next.take());
-            }
-        }
 
-        <span class="kw">while let </span><span class="prelude-val">Some</span>(eph) = weak.get() {
+                <span class="bool-val">false
+            </span>}
+        });
+
+        weak.retain(|eph| {
             <span class="comment">// SAFETY: The caller must ensure the validity of every node of `heap_start`.
             </span><span class="kw">let </span>eph_ref = <span class="kw">unsafe </span>{ eph.as_ref() };
             <span class="kw">let </span>header = eph_ref.header();
             <span class="kw">if </span>header.is_marked() {
                 header.unmark();
                 header.reset_non_root_count();
-                weak = <span class="kw-2">&amp;</span>header.next;
-            } <span class="kw">else </span>{
+
+                <span class="bool-val">true
+            </span>} <span class="kw">else </span>{
                 <span class="comment">// SAFETY: The algorithm ensures only unmarked/unreachable pointers are dropped.
                 // The caller must ensure all pointers were allocated by `Box::into_raw(Box::new(..))`.
                 </span><span class="kw">let </span>unmarked_eph = <span class="kw">unsafe </span>{ Box::from_raw(eph.as_ptr()) };
                 <span class="kw">let </span>unallocated_bytes = mem::size_of_val(<span class="kw-2">&amp;*</span>unmarked_eph);
                 <span class="kw-2">*</span>total_allocated -= unallocated_bytes;
-                weak.set(unmarked_eph.header().next.take());
-            }
-        }
+
+                <span class="bool-val">false
+            </span>}
+        });
     }
 
     <span class="comment">// Clean up the heap when BoaGc is dropped
-    </span><span class="kw">fn </span>dump(gc: <span class="kw-2">&amp;</span>BoaGc) {
+    </span><span class="kw">fn </span>dump(gc: <span class="kw-2">&amp;mut </span>BoaGc) {
         <span class="comment">// Weak maps have to be dropped first, since the process dereferences GcBoxes.
         // This can be done without initializing a dropguard since no GcBox&#39;s are being dropped.
-        </span><span class="kw">let </span>weak_map_head = <span class="kw-2">&amp;</span>gc.weak_map_start;
-        <span class="kw">while let </span><span class="prelude-val">Some</span>(node) = weak_map_head.get() {
+        </span><span class="kw">for </span>node <span class="kw">in </span>std::mem::take(<span class="kw-2">&amp;mut </span>gc.weak_maps) {
             <span class="comment">// SAFETY:
             // The `Allocator` must always ensure its start node is a valid, non-null pointer that
             // was allocated by `Box::from_raw(Box::new(..))`.
-            </span><span class="kw">let </span>unmarked_node = <span class="kw">unsafe </span>{ Box::from_raw(node.as_ptr()) };
-            weak_map_head.set(unmarked_node.next().take());
+            </span><span class="kw">let </span>_unmarked_node = <span class="kw">unsafe </span>{ Box::from_raw(node.as_ptr()) };
         }
 
         <span class="comment">// Not initializing a dropguard since this should only be invoked when BOA_GC is being dropped.
         </span><span class="kw">let </span>_guard = DropGuard::new();
 
-        <span class="kw">let </span>strong_head = <span class="kw-2">&amp;</span>gc.strong_start;
-        <span class="kw">while let </span><span class="prelude-val">Some</span>(node) = strong_head.get() {
+        <span class="kw">for </span>node <span class="kw">in </span>std::mem::take(<span class="kw-2">&amp;mut </span>gc.strongs) {
             <span class="comment">// SAFETY:
             // The `Allocator` must always ensure its start node is a valid, non-null pointer that
             // was allocated by `Box::from_raw(Box::new(..))`.
-            </span><span class="kw">let </span>unmarked_node = <span class="kw">unsafe </span>{ Box::from_raw(node.as_ptr()) };
-            strong_head.set(unmarked_node.header.next.take());
+            </span><span class="kw">let </span>_unmarked_node = <span class="kw">unsafe </span>{ Box::from_raw(node.as_ptr()) };
         }
 
-        <span class="kw">let </span>eph_head = <span class="kw-2">&amp;</span>gc.weak_start;
-        <span class="kw">while let </span><span class="prelude-val">Some</span>(node) = eph_head.get() {
+        <span class="kw">for </span>node <span class="kw">in </span>std::mem::take(<span class="kw-2">&amp;mut </span>gc.weaks) {
             <span class="comment">// SAFETY:
             // The `Allocator` must always ensure its start node is a valid, non-null pointer that
             // was allocated by `Box::from_raw(Box::new(..))`.
-            </span><span class="kw">let </span>unmarked_node = <span class="kw">unsafe </span>{ Box::from_raw(node.as_ptr()) };
-            eph_head.set(unmarked_node.header().next.take());
+            </span><span class="kw">let </span>_unmarked_node = <span class="kw">unsafe </span>{ Box::from_raw(node.as_ptr()) };
         }
     }
 }
@@ -1051,7 +1027,7 @@
     BOA_GC.with(|current| {
         <span class="kw">let </span>gc = current.borrow();
 
-        gc.weak_map_start.get().is_some()
+        !gc.weak_maps.is_empty()
     })
 }
 </code></pre></div></section></main></body></html>
