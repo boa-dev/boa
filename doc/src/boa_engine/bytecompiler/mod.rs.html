@@ -1523,6 +1523,26 @@
 <a href="#1523" id="1523">1523</a>
 <a href="#1524" id="1524">1524</a>
 <a href="#1525" id="1525">1525</a>
+<a href="#1526" id="1526">1526</a>
+<a href="#1527" id="1527">1527</a>
+<a href="#1528" id="1528">1528</a>
+<a href="#1529" id="1529">1529</a>
+<a href="#1530" id="1530">1530</a>
+<a href="#1531" id="1531">1531</a>
+<a href="#1532" id="1532">1532</a>
+<a href="#1533" id="1533">1533</a>
+<a href="#1534" id="1534">1534</a>
+<a href="#1535" id="1535">1535</a>
+<a href="#1536" id="1536">1536</a>
+<a href="#1537" id="1537">1537</a>
+<a href="#1538" id="1538">1538</a>
+<a href="#1539" id="1539">1539</a>
+<a href="#1540" id="1540">1540</a>
+<a href="#1541" id="1541">1541</a>
+<a href="#1542" id="1542">1542</a>
+<a href="#1543" id="1543">1543</a>
+<a href="#1544" id="1544">1544</a>
+<a href="#1545" id="1545">1545</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module contains the bytecode compiler.
 
 </span><span class="kw">mod </span>class;
@@ -1543,8 +1563,8 @@
     environments::{BindingLocator, BindingLocatorError, CompileTimeEnvironment},
     js_string,
     vm::{
-        BindingOpcode, CodeBlock, CodeBlockFlags, Constant, GeneratorResumeKind, Handler, Opcode,
-        VaryingOperandKind,
+        BindingOpcode, CodeBlock, CodeBlockFlags, Constant, GeneratorResumeKind, Handler,
+        InlineCache, Opcode, VaryingOperandKind,
     },
     Context, JsBigInt, JsString,
 };
@@ -1804,6 +1824,7 @@
     current_stack_value_count: u32,
     <span class="kw">pub</span>(<span class="kw">crate</span>) code_block_flags: CodeBlockFlags,
     handlers: ThinVec&lt;Handler&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) ic: Vec&lt;InlineCache&gt;,
     literals_map: FxHashMap&lt;Literal, u32&gt;,
     names_map: FxHashMap&lt;Identifier, u32&gt;,
     bindings_map: FxHashMap&lt;BindingLocator, u32&gt;,
@@ -1855,6 +1876,7 @@
             </span>current_stack_value_count: <span class="number">2</span>,
             code_block_flags,
             handlers: ThinVec::default(),
+            ic: Vec::default(),
 
             literals_map: FxHashMap::default(),
             names_map: FxHashMap::default(),
@@ -2065,6 +2087,29 @@
     <span class="kw">fn </span>emit_i64(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: i64) {
         <span class="self">self</span>.emit_u64(value <span class="kw">as </span>u64);
     }
+    <span class="kw">fn </span>emit_get_property_by_name(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ident: Sym) {
+        <span class="kw">let </span>ic_index = <span class="self">self</span>.ic.len() <span class="kw">as </span>u32;
+
+        <span class="kw">let </span>name_index = <span class="self">self</span>.get_or_insert_name(Identifier::new(ident));
+        <span class="kw">let </span>Constant::String(<span class="kw-2">ref </span>name) = <span class="self">self</span>.constants[name_index <span class="kw">as </span>usize].clone() <span class="kw">else </span>{
+            <span class="macro">unreachable!</span>(<span class="string">&quot;there should be a string at index&quot;</span>)
+        };
+        <span class="self">self</span>.ic.push(InlineCache::new(name.clone()));
+
+        <span class="self">self</span>.emit_with_varying_operand(Opcode::GetPropertyByName, ic_index);
+    }
+
+    <span class="kw">fn </span>emit_set_property_by_name(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ident: Sym) {
+        <span class="kw">let </span>ic_index = <span class="self">self</span>.ic.len() <span class="kw">as </span>u32;
+
+        <span class="kw">let </span>name_index = <span class="self">self</span>.get_or_insert_name(Identifier::new(ident));
+        <span class="kw">let </span>Constant::String(<span class="kw-2">ref </span>name) = <span class="self">self</span>.constants[name_index <span class="kw">as </span>usize].clone() <span class="kw">else </span>{
+            <span class="macro">unreachable!</span>(<span class="string">&quot;there should be a string at index&quot;</span>)
+        };
+        <span class="self">self</span>.ic.push(InlineCache::new(name.clone()));
+
+        <span class="self">self</span>.emit_with_varying_operand(Opcode::SetPropertyByName, ic_index);
+    }
 
     <span class="kw">fn </span>emit_u64(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: u64) {
         <span class="self">self</span>.bytecode.extend(value.to_ne_bytes());
@@ -2223,7 +2268,7 @@
 
         <span class="comment">// This is done to avoid unneeded bounds checks.
         </span><span class="macro">assert!</span>(<span class="self">self</span>.bytecode.len() &gt; index + U32_SIZE &amp;&amp; usize::MAX - U32_SIZE &gt;= index);
-        <span class="self">self</span>.bytecode[index + <span class="number">1</span>..=index + U32_SIZE].copy_from_slice(bytes.as_slice());
+        <span class="self">self</span>.bytecode[index + <span class="number">1</span>..=index + U32_SIZE].clone_from_slice(bytes.as_slice());
     }
 
     <span class="kw">fn </span>patch_jump(<span class="kw-2">&amp;mut </span><span class="self">self</span>, label: Label) {
@@ -2246,10 +2291,9 @@
             Access::Property { access } =&gt; <span class="kw">match </span>access {
                 PropertyAccess::Simple(access) =&gt; <span class="kw">match </span>access.field() {
                     PropertyAccessField::Const(name) =&gt; {
-                        <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name((<span class="kw-2">*</span>name).into());
                         <span class="self">self</span>.compile_expr(access.target(), <span class="bool-val">true</span>);
                         <span class="self">self</span>.emit_opcode(Opcode::Dup);
-                        <span class="self">self</span>.emit_with_varying_operand(Opcode::GetPropertyByName, index);
+                        <span class="self">self</span>.emit_get_property_by_name(<span class="kw-2">*</span>name);
                     }
                     PropertyAccessField::Expr(expr) =&gt; {
                         <span class="self">self</span>.compile_expr(access.target(), <span class="bool-val">true</span>);
@@ -2265,10 +2309,10 @@
                 }
                 PropertyAccess::Super(access) =&gt; <span class="kw">match </span>access.field() {
                     PropertyAccessField::Const(field) =&gt; {
-                        <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name((<span class="kw-2">*</span>field).into());
                         <span class="self">self</span>.emit_opcode(Opcode::Super);
                         <span class="self">self</span>.emit_opcode(Opcode::This);
-                        <span class="self">self</span>.emit_with_varying_operand(Opcode::GetPropertyByName, index);
+
+                        <span class="self">self</span>.emit_get_property_by_name(<span class="kw-2">*</span>field);
                     }
                     PropertyAccessField::Expr(expr) =&gt; {
                         <span class="self">self</span>.emit_opcode(Opcode::Super);
@@ -2343,9 +2387,8 @@
                         <span class="self">self</span>.compile_expr(access.target(), <span class="bool-val">true</span>);
                         <span class="self">self</span>.emit_opcode(Opcode::Dup);
                         expr_fn(<span class="self">self</span>, <span class="number">2</span>);
-                        <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name((<span class="kw-2">*</span>name).into());
 
-                        <span class="self">self</span>.emit_with_varying_operand(Opcode::SetPropertyByName, index);
+                        <span class="self">self</span>.emit_set_property_by_name(<span class="kw-2">*</span>name);
                         <span class="kw">if </span>!use_expr {
                             <span class="self">self</span>.emit_opcode(Opcode::Pop);
                         }
@@ -2375,8 +2418,7 @@
                         <span class="self">self</span>.emit_opcode(Opcode::Super);
                         <span class="self">self</span>.emit_opcode(Opcode::This);
                         expr_fn(<span class="self">self</span>, <span class="number">1</span>);
-                        <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name((<span class="kw-2">*</span>name).into());
-                        <span class="self">self</span>.emit_with_varying_operand(Opcode::SetPropertyByName, index);
+                        <span class="self">self</span>.emit_set_property_by_name(<span class="kw-2">*</span>name);
                         <span class="kw">if </span>!use_expr {
                             <span class="self">self</span>.emit_opcode(Opcode::Pop);
                         }
@@ -2483,8 +2525,7 @@
                 <span class="self">self</span>.emit_opcode(Opcode::Dup);
                 <span class="kw">match </span>access.field() {
                     PropertyAccessField::Const(field) =&gt; {
-                        <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name((<span class="kw-2">*</span>field).into());
-                        <span class="self">self</span>.emit_with_varying_operand(Opcode::GetPropertyByName, index);
+                        <span class="self">self</span>.emit_get_property_by_name(<span class="kw-2">*</span>field);
                     }
                     PropertyAccessField::Expr(field) =&gt; {
                         <span class="self">self</span>.compile_expr(field, <span class="bool-val">true</span>);
@@ -2504,8 +2545,7 @@
                 <span class="self">self</span>.emit_opcode(Opcode::This);
                 <span class="kw">match </span>access.field() {
                     PropertyAccessField::Const(field) =&gt; {
-                        <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name((<span class="kw-2">*</span>field).into());
-                        <span class="self">self</span>.emit_with_varying_operand(Opcode::GetPropertyByName, index);
+                        <span class="self">self</span>.emit_get_property_by_name(<span class="kw-2">*</span>field);
                     }
                     PropertyAccessField::Expr(expr) =&gt; {
                         <span class="self">self</span>.compile_expr(expr, <span class="bool-val">true</span>);
@@ -2590,8 +2630,7 @@
                 <span class="self">self</span>.emit_opcode(Opcode::Dup);
                 <span class="kw">match </span>field {
                     PropertyAccessField::Const(name) =&gt; {
-                        <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name((<span class="kw-2">*</span>name).into());
-                        <span class="self">self</span>.emit_with_varying_operand(Opcode::GetPropertyByName, index);
+                        <span class="self">self</span>.emit_get_property_by_name(<span class="kw-2">*</span>name);
                     }
                     PropertyAccessField::Expr(expr) =&gt; {
                         <span class="self">self</span>.compile_expr(expr, <span class="bool-val">true</span>);
@@ -3037,6 +3076,7 @@
             bindings: <span class="self">self</span>.bindings.into_boxed_slice(),
             handlers: <span class="self">self</span>.handlers,
             flags: Cell::new(<span class="self">self</span>.code_block_flags),
+            ic: <span class="self">self</span>.ic.into_boxed_slice(),
         }
     }
 

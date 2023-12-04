@@ -314,8 +314,10 @@
 <a href="#314" id="314">314</a>
 <a href="#315" id="315">315</a>
 <a href="#316" id="316">316</a>
+<a href="#317" id="317">317</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     error::JsNativeError,
+    object::internal_methods::InternalMethodContext,
     vm::{opcode::Operation, CompletionType},
     Context, JsResult, JsValue,
 };
@@ -370,7 +372,7 @@
         };
 
         <span class="kw">let </span>value = home_object
-            .map(|o| o.__get_prototype_of__(context))
+            .map(|o| o.__get_prototype_of__(<span class="kw-2">&amp;mut </span>InternalMethodContext::new(context)))
             .transpose()<span class="question-mark">?
             </span>.flatten()
             .map_or_else(JsValue::null, JsValue::from);
@@ -401,7 +403,7 @@
             .expect(<span class="string">&quot;super call must be in function environment&quot;</span>);
         <span class="kw">let </span>active_function = this_env.slots().function_object().clone();
         <span class="kw">let </span>super_constructor = active_function
-            .__get_prototype_of__(context)
+            .__get_prototype_of__(<span class="kw-2">&amp;mut </span>InternalMethodContext::new(context))
             .expect(<span class="string">&quot;function object must have prototype&quot;</span>);
 
         context
@@ -558,7 +560,7 @@
             .clone();
         <span class="kw">let </span>active_function = this_env.slots().function_object().clone();
         <span class="kw">let </span>super_constructor = active_function
-            .__get_prototype_of__(context)
+            .__get_prototype_of__(<span class="kw-2">&amp;mut </span>InternalMethodContext::new(context))
             .expect(<span class="string">&quot;function object must have prototype&quot;</span>)
             .expect(<span class="string">&quot;function object must have prototype&quot;</span>);
 

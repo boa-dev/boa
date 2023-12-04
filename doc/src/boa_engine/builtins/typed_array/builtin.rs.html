@@ -5857,7 +5857,7 @@
             </span><span class="kw">let </span>target_index = target_offset + k;
 
             <span class="comment">// d. Perform ? IntegerIndexedElementSet(target, targetIndex, value).
-            </span>integer_indexed_element_set(target, target_index <span class="kw">as </span>f64, <span class="kw-2">&amp;</span>value, context)<span class="question-mark">?</span>;
+            </span>integer_indexed_element_set(target, target_index <span class="kw">as </span>f64, <span class="kw-2">&amp;</span>value, <span class="kw-2">&amp;mut </span>context.into())<span class="question-mark">?</span>;
 
             <span class="comment">// e. Set k to k + 1.
         </span>}

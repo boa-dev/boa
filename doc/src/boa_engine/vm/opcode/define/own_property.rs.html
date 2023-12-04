@@ -96,7 +96,9 @@
 <a href="#96" id="96">96</a>
 <a href="#97" id="97">97</a>
 <a href="#98" id="98">98</a>
+<a href="#99" id="99">99</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
+    object::internal_methods::InternalMethodContext,
     property::PropertyDescriptor,
     vm::{opcode::Operation, CompletionType},
     Context, JsNativeError, JsResult,
@@ -127,7 +129,7 @@
                 .enumerable(<span class="bool-val">true</span>)
                 .configurable(<span class="bool-val">true</span>)
                 .build(),
-            context,
+            <span class="kw-2">&amp;mut </span>InternalMethodContext::new(context),
         )<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
@@ -184,7 +186,7 @@
                 .enumerable(<span class="bool-val">true</span>)
                 .configurable(<span class="bool-val">true</span>)
                 .build(),
-            context,
+            <span class="kw-2">&amp;mut </span>InternalMethodContext::new(context),
         )<span class="question-mark">?</span>;
         <span class="kw">if </span>!success {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()

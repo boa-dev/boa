@@ -2396,7 +2396,7 @@
 <span class="kw">fn </span>object_implements_calendar_protocol(calendar_like: <span class="kw-2">&amp;</span>JsObject, context: <span class="kw-2">&amp;mut </span>Context) -&gt; bool {
     CALENDAR_PROTOCOL_METHODS.into_iter().all(|method| {
         calendar_like
-            .__has_property__(<span class="kw-2">&amp;</span>JsString::from(method).into(), context)
+            .__has_property__(<span class="kw-2">&amp;</span>JsString::from(method).into(), <span class="kw-2">&amp;mut </span>context.into())
             .unwrap_or(<span class="bool-val">false</span>)
     })
 }

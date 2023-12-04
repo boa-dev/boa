@@ -851,7 +851,7 @@
     context::intrinsics::Intrinsics,
     error::JsNativeError,
     js_string,
-    object::JsObject,
+    object::{internal_methods::InternalMethodContext, JsObject},
     property::{Attribute, PropertyNameKind},
     realm::Realm,
     string::{common::StaticJsStrings, utf16, CodePoint},
@@ -1025,7 +1025,7 @@
                     <span class="comment">// 3. If newElement is undefined, then
                     </span><span class="kw">if </span>new_element.is_undefined() {
                         <span class="comment">// a. Perform ? val.[[Delete]](prop).
-                        </span>obj.__delete__(<span class="kw-2">&amp;</span>i.into(), context)<span class="question-mark">?</span>;
+                        </span>obj.__delete__(<span class="kw-2">&amp;</span>i.into(), <span class="kw-2">&amp;mut </span>InternalMethodContext::new(context))<span class="question-mark">?</span>;
                     }
                     <span class="comment">// 4. Else,
                     </span><span class="kw">else </span>{
@@ -1054,7 +1054,7 @@
                     <span class="comment">// 2. If newElement is undefined, then
                     </span><span class="kw">if </span>new_element.is_undefined() {
                         <span class="comment">// a. Perform ? val.[[Delete]](P).
-                        </span>obj.__delete__(<span class="kw-2">&amp;</span>p.into(), context)<span class="question-mark">?</span>;
+                        </span>obj.__delete__(<span class="kw-2">&amp;</span>p.into(), <span class="kw-2">&amp;mut </span>InternalMethodContext::new(context))<span class="question-mark">?</span>;
                     }
                     <span class="comment">// 3. Else,
                     </span><span class="kw">else </span>{

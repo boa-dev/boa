@@ -409,6 +409,28 @@
 <a href="#409" id="409">409</a>
 <a href="#410" id="410">410</a>
 <a href="#411" id="411">411</a>
+<a href="#412" id="412">412</a>
+<a href="#413" id="413">413</a>
+<a href="#414" id="414">414</a>
+<a href="#415" id="415">415</a>
+<a href="#416" id="416">416</a>
+<a href="#417" id="417">417</a>
+<a href="#418" id="418">418</a>
+<a href="#419" id="419">419</a>
+<a href="#420" id="420">420</a>
+<a href="#421" id="421">421</a>
+<a href="#422" id="422">422</a>
+<a href="#423" id="423">423</a>
+<a href="#424" id="424">424</a>
+<a href="#425" id="425">425</a>
+<a href="#426" id="426">426</a>
+<a href="#427" id="427">427</a>
+<a href="#428" id="428">428</a>
+<a href="#429" id="429">429</a>
+<a href="#430" id="430">430</a>
+<a href="#431" id="431">431</a>
+<a href="#432" id="432">432</a>
+<a href="#433" id="433">433</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Reflect` object.
 //!
 //! The `Reflect` global object is a built-in object that provides methods for interceptable
@@ -427,7 +449,7 @@
     context::intrinsics::Intrinsics,
     error::JsNativeError,
     js_string,
-    object::JsObject,
+    object::{internal_methods::InternalMethodContext, JsObject},
     property::Attribute,
     realm::Realm,
     string::common::StaticJsStrings,
@@ -577,7 +599,11 @@
             </span>.into();
 
         target
-            .__define_own_property__(<span class="kw-2">&amp;</span>key, prop_desc.to_property_descriptor(context)<span class="question-mark">?</span>, context)
+            .__define_own_property__(
+                <span class="kw-2">&amp;</span>key,
+                prop_desc.to_property_descriptor(context)<span class="question-mark">?</span>,
+                <span class="kw-2">&amp;mut </span>InternalMethodContext::new(context),
+            )
             .map(Into::into)
     }
 
@@ -600,7 +626,9 @@
             .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;target must be an object&quot;</span>))<span class="question-mark">?</span>;
         <span class="kw">let </span>key = args.get_or_undefined(<span class="number">1</span>).to_property_key(context)<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(target.__delete__(<span class="kw-2">&amp;</span>key, context)<span class="question-mark">?</span>.into())
+        <span class="prelude-val">Ok</span>(target
+            .__delete__(<span class="kw-2">&amp;</span>key, <span class="kw-2">&amp;mut </span>InternalMethodContext::new(context))<span class="question-mark">?
+            </span>.into())
     }
 
     <span class="doccomment">/// Gets a property of an object.
@@ -626,7 +654,8 @@
             .cloned()
             .unwrap_or_else(|| target.clone().into());
         <span class="comment">// 4. Return ? target.[[Get]](key, receiver).
-        </span>target.__get__(<span class="kw-2">&amp;</span>key, receiver, context)
+
+        </span>target.__get__(<span class="kw-2">&amp;</span>key, receiver, <span class="kw-2">&amp;mut </span>InternalMethodContext::new(context))
     }
 
     <span class="doccomment">/// Gets a property of an object.
@@ -675,7 +704,7 @@
             .and_then(JsValue::as_object)
             .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;target must be an object&quot;</span>))<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(target
-            .__get_prototype_of__(context)<span class="question-mark">?
+            .__get_prototype_of__(<span class="kw-2">&amp;mut </span>InternalMethodContext::new(context))<span class="question-mark">?
             </span>.map_or(JsValue::Null, JsValue::new))
     }
 
@@ -696,7 +725,10 @@
             .get(<span class="number">1</span>)
             .unwrap_or(<span class="kw-2">&amp;</span>JsValue::undefined())
             .to_property_key(context)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(target.__has_property__(<span class="kw-2">&amp;</span>key, context)<span class="question-mark">?</span>.into())
+
+        <span class="prelude-val">Ok</span>(target
+            .__has_property__(<span class="kw-2">&amp;</span>key, <span class="kw-2">&amp;mut </span>InternalMethodContext::new(context))<span class="question-mark">?
+            </span>.into())
     }
 
     <span class="doccomment">/// Returns `true` if the object is extensible, `false` otherwise.
@@ -716,7 +748,9 @@
             .get(<span class="number">0</span>)
             .and_then(JsValue::as_object)
             .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;target must be an object&quot;</span>))<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(target.__is_extensible__(context)<span class="question-mark">?</span>.into())
+        <span class="prelude-val">Ok</span>(target
+            .__is_extensible__(<span class="kw-2">&amp;mut </span>InternalMethodContext::new(context))<span class="question-mark">?
+            </span>.into())
     }
 
     <span class="doccomment">/// Returns an array of object own property keys.
@@ -738,7 +772,7 @@
             .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;target must be an object&quot;</span>))<span class="question-mark">?</span>;
 
         <span class="kw">let </span>keys: Vec&lt;JsValue&gt; = target
-            .__own_property_keys__(context)<span class="question-mark">?
+            .__own_property_keys__(<span class="kw-2">&amp;mut </span>InternalMethodContext::new(context))<span class="question-mark">?
             </span>.into_iter()
             .map(Into::into)
             .collect();
@@ -764,7 +798,9 @@
             .and_then(JsValue::as_object)
             .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;target must be an object&quot;</span>))<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(target.__prevent_extensions__(context)<span class="question-mark">?</span>.into())
+        <span class="prelude-val">Ok</span>(target
+            .__prevent_extensions__(<span class="kw-2">&amp;mut </span>InternalMethodContext::new(context))<span class="question-mark">?
+            </span>.into())
     }
 
     <span class="doccomment">/// Sets a property of an object.
@@ -786,8 +822,14 @@
             .get(<span class="number">3</span>)
             .cloned()
             .unwrap_or_else(|| target.clone().into());
+
         <span class="prelude-val">Ok</span>(target
-            .__set__(key, value.clone(), receiver, context)<span class="question-mark">?
+            .__set__(
+                key,
+                value.clone(),
+                receiver,
+                <span class="kw-2">&amp;mut </span>InternalMethodContext::new(context),
+            )<span class="question-mark">?
             </span>.into())
     }
 
@@ -817,7 +859,9 @@
                     .into())
             }
         };
-        <span class="prelude-val">Ok</span>(target.__set_prototype_of__(proto, context)<span class="question-mark">?</span>.into())
+        <span class="prelude-val">Ok</span>(target
+            .__set_prototype_of__(proto, <span class="kw-2">&amp;mut </span>InternalMethodContext::new(context))<span class="question-mark">?
+            </span>.into())
     }
 }
 </code></pre></div></section></main></body></html>

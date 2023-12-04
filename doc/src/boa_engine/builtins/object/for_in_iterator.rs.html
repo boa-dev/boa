@@ -152,6 +152,8 @@
 <a href="#152" id="152">152</a>
 <a href="#153" id="153">153</a>
 <a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
+<a href="#156" id="156">156</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module implements the `ForInIterator` object.
 //!
 //! More information:
@@ -167,7 +169,7 @@
     context::intrinsics::Intrinsics,
     error::JsNativeError,
     js_string,
-    object::{JsObject, ObjectData},
+    object::{internal_methods::InternalMethodContext, JsObject, ObjectData},
     property::PropertyKey,
     realm::Realm,
     Context, JsResult, JsString, JsValue,
@@ -260,7 +262,8 @@
         <span class="kw">let </span><span class="kw-2">mut </span>object = iterator.object.to_object(context)<span class="question-mark">?</span>;
         <span class="kw">loop </span>{
             <span class="kw">if </span>!iterator.object_was_visited {
-                <span class="kw">let </span>keys = object.__own_property_keys__(context)<span class="question-mark">?</span>;
+                <span class="kw">let </span>keys =
+                    object.__own_property_keys__(<span class="kw-2">&amp;mut </span>InternalMethodContext::new(context))<span class="question-mark">?</span>;
                 <span class="kw">for </span>k <span class="kw">in </span>keys {
                     <span class="kw">match </span>k {
                         PropertyKey::String(<span class="kw-2">ref </span>k) =&gt; {
@@ -278,9 +281,10 @@
             }
             <span class="kw">while let </span><span class="prelude-val">Some</span>(r) = iterator.remaining_keys.pop_front() {
                 <span class="kw">if </span>!iterator.visited_keys.contains(<span class="kw-2">&amp;</span>r) {
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(desc) =
-                        object.__get_own_property__(<span class="kw-2">&amp;</span>PropertyKey::from(r.clone()), context)<span class="question-mark">?
-                    </span>{
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(desc) = object.__get_own_property__(
+                        <span class="kw-2">&amp;</span>PropertyKey::from(r.clone()),
+                        <span class="kw-2">&amp;mut </span>InternalMethodContext::new(context),
+                    )<span class="question-mark">? </span>{
                         iterator.visited_keys.insert(r.clone());
                         <span class="kw">if </span>desc.expect_enumerable() {
                             <span class="kw">return </span><span class="prelude-val">Ok</span>(create_iter_result_object(JsValue::new(r), <span class="bool-val">false</span>, context));

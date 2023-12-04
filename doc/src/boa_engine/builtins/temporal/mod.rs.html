@@ -1250,7 +1250,7 @@
         <span class="comment">// c. If excluded is false, then
         </span><span class="kw">if </span>!excluded {
             <span class="comment">// i. Let desc be ? from.[[GetOwnProperty]](nextKey).
-            </span><span class="kw">let </span>desc = from.__get_own_property__(<span class="kw-2">&amp;</span>next_key, context)<span class="question-mark">?</span>;
+            </span><span class="kw">let </span>desc = from.__get_own_property__(<span class="kw-2">&amp;</span>next_key, <span class="kw-2">&amp;mut </span>context.into())<span class="question-mark">?</span>;
             <span class="comment">// ii. If desc is not undefined and desc.[[Enumerable]] is true, then
             </span><span class="kw">match </span>desc {
                 <span class="prelude-val">Some</span>(d)

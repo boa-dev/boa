@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["Constant"],"fn":["create_function_object","create_function_object_fast"],"struct":["CodeBlock","CodeBlockFlags","Handler"],"trait":["Readable"]};
+window.SIDEBAR_ITEMS = {"enum":["Constant"],"fn":["create_function_object","create_function_object_fast"],"struct":["CodeBlock","CodeBlockFlags","Handler","InlineCache"],"trait":["Readable"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["Inner","UniqueShape"]};
+window.SIDEBAR_ITEMS = {"struct":["Inner","UniqueShape","WeakUniqueShape"]};

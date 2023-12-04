@@ -448,7 +448,7 @@
     Context, JsResult, JsString, JsValue,
 };
 
-<span class="kw">use super</span>::{InternalObjectMethods, ORDINARY_INTERNAL_METHODS};
+<span class="kw">use super</span>::{InternalMethodContext, InternalObjectMethods, ORDINARY_INTERNAL_METHODS};
 
 <span class="doccomment">/// Definitions of the internal object methods for integer-indexed exotic objects.
 ///
@@ -501,7 +501,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>integer_indexed_exotic_get_own_property(
     obj: <span class="kw-2">&amp;</span>JsObject,
     key: <span class="kw-2">&amp;</span>PropertyKey,
-    context: <span class="kw-2">&amp;mut </span>Context,
+    context: <span class="kw-2">&amp;mut </span>InternalMethodContext&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;PropertyDescriptor&gt;&gt; {
     <span class="kw">let </span>p = <span class="kw">match </span>key {
         PropertyKey::String(key) =&gt; {
@@ -543,7 +543,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>integer_indexed_exotic_has_property(
     obj: <span class="kw-2">&amp;</span>JsObject,
     key: <span class="kw-2">&amp;</span>PropertyKey,
-    context: <span class="kw-2">&amp;mut </span>Context,
+    context: <span class="kw-2">&amp;mut </span>InternalMethodContext&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsResult&lt;bool&gt; {
     <span class="kw">let </span>p = <span class="kw">match </span>key {
         PropertyKey::String(key) =&gt; {
@@ -574,7 +574,7 @@
     obj: <span class="kw-2">&amp;</span>JsObject,
     key: <span class="kw-2">&amp;</span>PropertyKey,
     desc: PropertyDescriptor,
-    context: <span class="kw-2">&amp;mut </span>Context,
+    context: <span class="kw-2">&amp;mut </span>InternalMethodContext&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsResult&lt;bool&gt; {
     <span class="kw">let </span>p = <span class="kw">match </span>key {
         PropertyKey::String(key) =&gt; {
@@ -636,7 +636,7 @@
     obj: <span class="kw-2">&amp;</span>JsObject,
     key: <span class="kw-2">&amp;</span>PropertyKey,
     receiver: JsValue,
-    context: <span class="kw-2">&amp;mut </span>Context,
+    context: <span class="kw-2">&amp;mut </span>InternalMethodContext&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsResult&lt;JsValue&gt; {
     <span class="kw">let </span>p = <span class="kw">match </span>key {
         PropertyKey::String(key) =&gt; {
@@ -669,7 +669,7 @@
     key: PropertyKey,
     value: JsValue,
     receiver: JsValue,
-    context: <span class="kw-2">&amp;mut </span>Context,
+    context: <span class="kw-2">&amp;mut </span>InternalMethodContext&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsResult&lt;bool&gt; {
     <span class="kw">let </span>p = <span class="kw">match </span><span class="kw-2">&amp;</span>key {
         PropertyKey::String(key) =&gt; {
@@ -711,7 +711,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>integer_indexed_exotic_delete(
     obj: <span class="kw-2">&amp;</span>JsObject,
     key: <span class="kw-2">&amp;</span>PropertyKey,
-    context: <span class="kw-2">&amp;mut </span>Context,
+    context: <span class="kw-2">&amp;mut </span>InternalMethodContext&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsResult&lt;bool&gt; {
     <span class="kw">let </span>p = <span class="kw">match </span><span class="kw-2">&amp;</span>key {
         PropertyKey::String(key) =&gt; {
@@ -827,7 +827,7 @@
     obj: <span class="kw-2">&amp;</span>JsObject,
     index: f64,
     value: <span class="kw-2">&amp;</span>JsValue,
-    context: <span class="kw-2">&amp;mut </span>Context,
+    context: <span class="kw-2">&amp;mut </span>InternalMethodContext&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsResult&lt;()&gt; {
     <span class="kw">let </span>obj_borrow = obj.borrow();
     <span class="kw">let </span>inner = obj_borrow.as_typed_array().expect(

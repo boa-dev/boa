@@ -366,7 +366,6 @@
 <a href="#366" id="366">366</a>
 <a href="#367" id="367">367</a>
 <a href="#368" id="368">368</a>
-<a href="#369" id="369">369</a>
 </pre></div><pre class="rust"><code><span class="kw">mod </span>assign;
 <span class="kw">mod </span>binary;
 <span class="kw">mod </span>object_literal;
@@ -608,8 +607,7 @@
                         <span class="self">self</span>.emit_opcode(Opcode::Dup);
                         <span class="kw">match </span>access.field() {
                             PropertyAccessField::Const(field) =&gt; {
-                                <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name((<span class="kw-2">*</span>field).into());
-                                <span class="self">self</span>.emit_with_varying_operand(Opcode::GetPropertyByName, index);
+                                <span class="self">self</span>.emit_get_property_by_name(<span class="kw-2">*</span>field);
                             }
                             PropertyAccessField::Expr(field) =&gt; {
                                 <span class="self">self</span>.compile_expr(field, <span class="bool-val">true</span>);

@@ -226,8 +226,10 @@
 <a href="#226" id="226">226</a>
 <a href="#227" id="227">227</a>
 <a href="#228" id="228">228</a>
+<a href="#229" id="229">229</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::function::set_function_name,
+    object::internal_methods::InternalMethodContext,
     property::PropertyDescriptor,
     vm::{opcode::Operation, CompletionType},
     Context, JsResult,
@@ -271,7 +273,7 @@
                 .enumerable(<span class="bool-val">false</span>)
                 .configurable(<span class="bool-val">true</span>)
                 .build(),
-            context,
+            <span class="kw-2">&amp;mut </span>InternalMethodContext::new(context),
         )<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
@@ -336,7 +338,7 @@
                 .enumerable(<span class="bool-val">false</span>)
                 .configurable(<span class="bool-val">true</span>)
                 .build(),
-            context,
+            <span class="kw-2">&amp;mut </span>InternalMethodContext::new(context),
         )<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
@@ -449,7 +451,7 @@
                 .enumerable(<span class="bool-val">false</span>)
                 .configurable(<span class="bool-val">true</span>)
                 .build(),
-            context,
+            <span class="kw-2">&amp;mut </span>InternalMethodContext::new(context),
         )<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }

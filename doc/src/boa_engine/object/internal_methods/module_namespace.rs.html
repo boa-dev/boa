@@ -346,7 +346,7 @@
 <span class="kw">use super</span>::{
     immutable_prototype, ordinary_define_own_property, ordinary_delete, ordinary_get,
     ordinary_get_own_property, ordinary_has_property, ordinary_own_property_keys,
-    InternalObjectMethods, ORDINARY_INTERNAL_METHODS,
+    InternalMethodContext, InternalObjectMethods, ORDINARY_INTERNAL_METHODS,
 };
 
 <span class="doccomment">/// Definitions of the internal object methods for [**Module Namespace Exotic Objects**][spec].
@@ -419,7 +419,7 @@
 </span><span class="kw">fn </span>module_namespace_exotic_get_own_property(
     obj: <span class="kw-2">&amp;</span>JsObject,
     key: <span class="kw-2">&amp;</span>PropertyKey,
-    context: <span class="kw-2">&amp;mut </span>Context,
+    context: <span class="kw-2">&amp;mut </span>InternalMethodContext&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;PropertyDescriptor&gt;&gt; {
     <span class="comment">// 1. If P is a Symbol, return OrdinaryGetOwnProperty(O, P).
     </span><span class="kw">let </span>key = <span class="kw">match </span>key {
@@ -463,7 +463,7 @@
     obj: <span class="kw-2">&amp;</span>JsObject,
     key: <span class="kw-2">&amp;</span>PropertyKey,
     desc: PropertyDescriptor,
-    context: <span class="kw-2">&amp;mut </span>Context,
+    context: <span class="kw-2">&amp;mut </span>InternalMethodContext&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsResult&lt;bool&gt; {
     <span class="comment">// 1. If P is a Symbol, return ! OrdinaryDefineOwnProperty(O, P, Desc).
     </span><span class="kw">if let </span>PropertyKey::Symbol(<span class="kw">_</span>) = key {
@@ -499,7 +499,7 @@
 </span><span class="kw">fn </span>module_namespace_exotic_has_property(
     obj: <span class="kw-2">&amp;</span>JsObject,
     key: <span class="kw-2">&amp;</span>PropertyKey,
-    context: <span class="kw-2">&amp;mut </span>Context,
+    context: <span class="kw-2">&amp;mut </span>InternalMethodContext&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsResult&lt;bool&gt; {
     <span class="comment">// 1. If P is a Symbol, return ! OrdinaryHasProperty(O, P).
     </span><span class="kw">let </span>key = <span class="kw">match </span>key {
@@ -528,7 +528,7 @@
     obj: <span class="kw-2">&amp;</span>JsObject,
     key: <span class="kw-2">&amp;</span>PropertyKey,
     receiver: JsValue,
-    context: <span class="kw-2">&amp;mut </span>Context,
+    context: <span class="kw-2">&amp;mut </span>InternalMethodContext&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsResult&lt;JsValue&gt; {
     <span class="comment">// 1. If P is a Symbol, then
     //     a. Return ! OrdinaryGet(O, P, Receiver).
@@ -608,7 +608,7 @@
     _key: PropertyKey,
     _value: JsValue,
     _receiver: JsValue,
-    _context: <span class="kw-2">&amp;mut </span>Context,
+    _context: <span class="kw-2">&amp;mut </span>InternalMethodContext&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsResult&lt;bool&gt; {
     <span class="comment">// 1. Return false.
     </span><span class="prelude-val">Ok</span>(<span class="bool-val">false</span>)
@@ -620,7 +620,7 @@
 </span><span class="kw">fn </span>module_namespace_exotic_delete(
     obj: <span class="kw-2">&amp;</span>JsObject,
     key: <span class="kw-2">&amp;</span>PropertyKey,
-    context: <span class="kw-2">&amp;mut </span>Context,
+    context: <span class="kw-2">&amp;mut </span>InternalMethodContext&lt;<span class="lifetime">&#39;_</span>&gt;,
 ) -&gt; JsResult&lt;bool&gt; {
     <span class="comment">// 1. If P is a Symbol, then
     //     a. Return ! OrdinaryDelete(O, P).

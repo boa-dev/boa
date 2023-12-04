@@ -1103,6 +1103,7 @@
 <a href="#1103" id="1103">1103</a>
 <a href="#1104" id="1104">1104</a>
 <a href="#1105" id="1105">1105</a>
+<a href="#1106" id="1106">1106</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! The ECMAScript context.
 
 </span><span class="kw">mod </span>hooks;
@@ -1721,7 +1722,7 @@
 
         <span class="comment">// 3. Let existingProp be ? globalObject.[[GetOwnProperty]](N).
         </span><span class="kw">let </span>name = name.clone().into();
-        <span class="kw">let </span>existing_prop = global_object.__get_own_property__(<span class="kw-2">&amp;</span>name, <span class="self">self</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span>existing_prop = global_object.__get_own_property__(<span class="kw-2">&amp;</span>name, <span class="kw-2">&amp;mut </span><span class="self">self</span>.into())<span class="question-mark">?</span>;
 
         <span class="comment">// 4. If existingProp is undefined, return ? IsExtensible(globalObject).
         </span><span class="kw">let </span><span class="prelude-val">Some</span>(existing_prop) = existing_prop <span class="kw">else </span>{
@@ -1828,7 +1829,8 @@
         </span><span class="kw">let </span>global_object = <span class="self">self</span>.realm().global_object().clone();
 
         <span class="comment">// 3. Let existingProp be ? globalObject.[[GetOwnProperty]](N).
-        </span><span class="kw">let </span>existing_prop = global_object.__get_own_property__(<span class="kw-2">&amp;</span>name.clone().into(), <span class="self">self</span>)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>existing_prop =
+            global_object.__get_own_property__(<span class="kw-2">&amp;</span>name.clone().into(), <span class="kw-2">&amp;mut </span><span class="self">self</span>.into())<span class="question-mark">?</span>;
 
         <span class="comment">// 4. If existingProp is undefined or existingProp.[[Configurable]] is true, then
         </span><span class="kw">let </span>desc = <span class="kw">if </span>existing_prop.is_none()
@@ -1875,7 +1877,7 @@
 
         <span class="comment">// 3. Let existingProp be ? globalObject.[[GetOwnProperty]](N).
         </span><span class="kw">let </span>name = name.clone().into();
-        <span class="kw">let </span>existing_prop = global_object.__get_own_property__(<span class="kw-2">&amp;</span>name, <span class="self">self</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span>existing_prop = global_object.__get_own_property__(<span class="kw-2">&amp;</span>name, <span class="kw-2">&amp;mut </span><span class="self">self</span>.into())<span class="question-mark">?</span>;
 
         <span class="comment">// 4. If existingProp is undefined, return false.
         </span><span class="kw">let </span><span class="prelude-val">Some</span>(existing_prop) = existing_prop <span class="kw">else </span>{

@@ -230,8 +230,6 @@
 <a href="#230" id="230">230</a>
 <a href="#231" id="231">231</a>
 <a href="#232" id="232">232</a>
-<a href="#233" id="233">233</a>
-<a href="#234" id="234">234</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     bytecompiler::{Access, ByteCompiler, Operand, ToJsString},
     environments::BindingLocatorError,
@@ -333,13 +331,12 @@
                 Access::Property { access } =&gt; <span class="kw">match </span>access {
                     PropertyAccess::Simple(access) =&gt; <span class="kw">match </span>access.field() {
                         PropertyAccessField::Const(name) =&gt; {
-                            <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name((<span class="kw-2">*</span>name).into());
                             <span class="self">self</span>.compile_expr(access.target(), <span class="bool-val">true</span>);
                             <span class="self">self</span>.emit_opcode(Opcode::Dup);
                             <span class="self">self</span>.emit_opcode(Opcode::Dup);
                             <span class="self">self</span>.emit_opcode(Opcode::Dup);
 
-                            <span class="self">self</span>.emit_with_varying_operand(Opcode::GetPropertyByName, index);
+                            <span class="self">self</span>.emit_get_property_by_name(<span class="kw-2">*</span>name);
                             <span class="kw">if </span>short_circuit {
                                 pop_count = <span class="number">2</span>;
                                 early_exit = <span class="prelude-val">Some</span>(<span class="self">self</span>.emit_opcode_with_operand(opcode));
@@ -349,7 +346,7 @@
                                 <span class="self">self</span>.emit_opcode(opcode);
                             }
 
-                            <span class="self">self</span>.emit_with_varying_operand(Opcode::SetPropertyByName, index);
+                            <span class="self">self</span>.emit_set_property_by_name(<span class="kw-2">*</span>name);
                             <span class="kw">if </span>!use_expr {
                                 <span class="self">self</span>.emit_opcode(Opcode::Pop);
                             }
@@ -399,14 +396,13 @@
                     }
                     PropertyAccess::Super(access) =&gt; <span class="kw">match </span>access.field() {
                         PropertyAccessField::Const(name) =&gt; {
-                            <span class="kw">let </span>index = <span class="self">self</span>.get_or_insert_name((<span class="kw-2">*</span>name).into());
                             <span class="self">self</span>.emit_opcode(Opcode::Super);
                             <span class="self">self</span>.emit_opcode(Opcode::Dup);
                             <span class="self">self</span>.emit_opcode(Opcode::This);
                             <span class="self">self</span>.emit_opcode(Opcode::Swap);
                             <span class="self">self</span>.emit_opcode(Opcode::This);
 
-                            <span class="self">self</span>.emit_with_varying_operand(Opcode::GetPropertyByName, index);
+                            <span class="self">self</span>.emit_get_property_by_name(<span class="kw-2">*</span>name);
                             <span class="kw">if </span>short_circuit {
                                 pop_count = <span class="number">2</span>;
                                 early_exit = <span class="prelude-val">Some</span>(<span class="self">self</span>.emit_opcode_with_operand(opcode));
@@ -416,7 +412,7 @@
                                 <span class="self">self</span>.emit_opcode(opcode);
                             }
 
-                            <span class="self">self</span>.emit_with_varying_operand(Opcode::SetPropertyByName, index);
+                            <span class="self">self</span>.emit_set_property_by_name(<span class="kw-2">*</span>name);
                             <span class="kw">if </span>!use_expr {
                                 <span class="self">self</span>.emit_opcode(Opcode::Pop);
                             }

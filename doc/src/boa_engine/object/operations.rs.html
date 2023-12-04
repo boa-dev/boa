@@ -1273,6 +1273,69 @@
 <a href="#1273" id="1273">1273</a>
 <a href="#1274" id="1274">1274</a>
 <a href="#1275" id="1275">1275</a>
+<a href="#1276" id="1276">1276</a>
+<a href="#1277" id="1277">1277</a>
+<a href="#1278" id="1278">1278</a>
+<a href="#1279" id="1279">1279</a>
+<a href="#1280" id="1280">1280</a>
+<a href="#1281" id="1281">1281</a>
+<a href="#1282" id="1282">1282</a>
+<a href="#1283" id="1283">1283</a>
+<a href="#1284" id="1284">1284</a>
+<a href="#1285" id="1285">1285</a>
+<a href="#1286" id="1286">1286</a>
+<a href="#1287" id="1287">1287</a>
+<a href="#1288" id="1288">1288</a>
+<a href="#1289" id="1289">1289</a>
+<a href="#1290" id="1290">1290</a>
+<a href="#1291" id="1291">1291</a>
+<a href="#1292" id="1292">1292</a>
+<a href="#1293" id="1293">1293</a>
+<a href="#1294" id="1294">1294</a>
+<a href="#1295" id="1295">1295</a>
+<a href="#1296" id="1296">1296</a>
+<a href="#1297" id="1297">1297</a>
+<a href="#1298" id="1298">1298</a>
+<a href="#1299" id="1299">1299</a>
+<a href="#1300" id="1300">1300</a>
+<a href="#1301" id="1301">1301</a>
+<a href="#1302" id="1302">1302</a>
+<a href="#1303" id="1303">1303</a>
+<a href="#1304" id="1304">1304</a>
+<a href="#1305" id="1305">1305</a>
+<a href="#1306" id="1306">1306</a>
+<a href="#1307" id="1307">1307</a>
+<a href="#1308" id="1308">1308</a>
+<a href="#1309" id="1309">1309</a>
+<a href="#1310" id="1310">1310</a>
+<a href="#1311" id="1311">1311</a>
+<a href="#1312" id="1312">1312</a>
+<a href="#1313" id="1313">1313</a>
+<a href="#1314" id="1314">1314</a>
+<a href="#1315" id="1315">1315</a>
+<a href="#1316" id="1316">1316</a>
+<a href="#1317" id="1317">1317</a>
+<a href="#1318" id="1318">1318</a>
+<a href="#1319" id="1319">1319</a>
+<a href="#1320" id="1320">1320</a>
+<a href="#1321" id="1321">1321</a>
+<a href="#1322" id="1322">1322</a>
+<a href="#1323" id="1323">1323</a>
+<a href="#1324" id="1324">1324</a>
+<a href="#1325" id="1325">1325</a>
+<a href="#1326" id="1326">1326</a>
+<a href="#1327" id="1327">1327</a>
+<a href="#1328" id="1328">1328</a>
+<a href="#1329" id="1329">1329</a>
+<a href="#1330" id="1330">1330</a>
+<a href="#1331" id="1331">1331</a>
+<a href="#1332" id="1332">1332</a>
+<a href="#1333" id="1333">1333</a>
+<a href="#1334" id="1334">1334</a>
+<a href="#1335" id="1335">1335</a>
+<a href="#1336" id="1336">1336</a>
+<a href="#1337" id="1337">1337</a>
+<a href="#1338" id="1338">1338</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::{function::ClassFieldDefinition, Array},
     context::intrinsics::{StandardConstructor, StandardConstructors},
@@ -1285,7 +1348,7 @@
     Context, JsResult, JsSymbol, JsValue,
 };
 
-<span class="kw">use </span><span class="kw">super</span>::ObjectKind;
+<span class="kw">use super</span>::{internal_methods::InternalMethodContext, ObjectKind};
 
 <span class="doccomment">/// Object integrity level.
 </span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -1348,7 +1411,11 @@
         <span class="comment">// 1. Assert: Type(O) is Object.
         // 2. Assert: IsPropertyKey(P) is true.
         // 3. Return ? O.[[Get]](P, O).
-        </span><span class="self">self</span>.__get__(<span class="kw-2">&amp;</span>key.into(), <span class="self">self</span>.clone().into(), context)
+        </span><span class="self">self</span>.__get__(
+            <span class="kw-2">&amp;</span>key.into(),
+            <span class="self">self</span>.clone().into(),
+            <span class="kw-2">&amp;mut </span>InternalMethodContext::new(context),
+        )
     }
 
     <span class="doccomment">/// set property of object or throw if bool flag is passed.
@@ -1367,7 +1434,12 @@
         // 2. Assert: IsPropertyKey(P) is true.
         // 3. Assert: Type(Throw) is Boolean.
         // 4. Let success be ? O.[[Set]](P, V, O).
-        </span><span class="kw">let </span>success = <span class="self">self</span>.__set__(key.clone(), value.into(), <span class="self">self</span>.clone().into(), context)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>success = <span class="self">self</span>.__set__(
+            key.clone(),
+            value.into(),
+            <span class="self">self</span>.clone().into(),
+            <span class="kw-2">&amp;mut </span>InternalMethodContext::new(context),
+        )<span class="question-mark">?</span>;
         <span class="comment">// 5. If success is false and Throw is true, throw a TypeError exception.
         </span><span class="kw">if </span>!success &amp;&amp; throw {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
@@ -1389,6 +1461,38 @@
         key: K,
         value: V,
         context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;bool&gt;
+    <span class="kw">where
+        </span>K: Into&lt;PropertyKey&gt;,
+        V: Into&lt;JsValue&gt;,
+    {
+        <span class="comment">// 1. Assert: Type(O) is Object.
+        // 2. Assert: IsPropertyKey(P) is true.
+        // 3. Let newDesc be the PropertyDescriptor { [[Value]]: V, [[Writable]]: true, [[Enumerable]]: true, [[Configurable]]: true }.
+        </span><span class="kw">let </span>new_desc = PropertyDescriptor::builder()
+            .value(value)
+            .writable(<span class="bool-val">true</span>)
+            .enumerable(<span class="bool-val">true</span>)
+            .configurable(<span class="bool-val">true</span>);
+        <span class="comment">// 4. Return ? O.[[DefineOwnProperty]](P, newDesc).
+        </span><span class="self">self</span>.__define_own_property__(
+            <span class="kw-2">&amp;</span>key.into(),
+            new_desc.into(),
+            <span class="kw-2">&amp;mut </span>InternalMethodContext::new(context),
+        )
+    }
+
+    <span class="doccomment">/// Create data property
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-createdataproperty
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_data_property_with_slot&lt;K, V&gt;(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        key: K,
+        value: V,
+        context: <span class="kw-2">&amp;mut </span>InternalMethodContext&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; JsResult&lt;bool&gt;
     <span class="kw">where
         </span>K: Into&lt;PropertyKey&gt;,
@@ -1496,7 +1600,11 @@
         <span class="comment">// 1. Assert: Type(O) is Object.
         // 2. Assert: IsPropertyKey(P) is true.
         // 3. Let success be ? O.[[DefineOwnProperty]](P, desc).
-        </span><span class="kw">let </span>success = <span class="self">self</span>.__define_own_property__(<span class="kw-2">&amp;</span>key, desc.into(), context)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>success = <span class="self">self</span>.__define_own_property__(
+            <span class="kw-2">&amp;</span>key,
+            desc.into(),
+            <span class="kw-2">&amp;mut </span>InternalMethodContext::new(context),
+        )<span class="question-mark">?</span>;
         <span class="comment">// 4. If success is false, throw a TypeError exception.
         </span><span class="kw">if </span>!success {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
@@ -1521,7 +1629,7 @@
         <span class="comment">// 1. Assert: Type(O) is Object.
         // 2. Assert: IsPropertyKey(P) is true.
         // 3. Let success be ? O.[[Delete]](P).
-        </span><span class="kw">let </span>success = <span class="self">self</span>.__delete__(<span class="kw-2">&amp;</span>key, context)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>success = <span class="self">self</span>.__delete__(<span class="kw-2">&amp;</span>key, <span class="kw-2">&amp;mut </span>InternalMethodContext::new(context))<span class="question-mark">?</span>;
         <span class="comment">// 4. If success is false, throw a TypeError exception.
         </span><span class="kw">if </span>!success {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
@@ -1545,7 +1653,8 @@
         <span class="comment">// 1. Assert: Type(O) is Object.
         // 2. Assert: IsPropertyKey(P) is true.
         // 3. Return ? O.[[HasProperty]](P).
-        </span><span class="self">self</span>.__has_property__(<span class="kw-2">&amp;</span>key.into(), context)
+
+        </span><span class="self">self</span>.__has_property__(<span class="kw-2">&amp;</span>key.into(), <span class="kw-2">&amp;mut </span>InternalMethodContext::new(context))
     }
 
     <span class="doccomment">/// Check if object has an own property.
@@ -1562,7 +1671,7 @@
         <span class="comment">// 1. Assert: Type(O) is Object.
         // 2. Assert: IsPropertyKey(P) is true.
         // 3. Let desc be ? O.[[GetOwnProperty]](P).
-        </span><span class="kw">let </span>desc = <span class="self">self</span>.__get_own_property__(<span class="kw-2">&amp;</span>key, context)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>desc = <span class="self">self</span>.__get_own_property__(<span class="kw-2">&amp;</span>key, <span class="kw-2">&amp;mut </span>InternalMethodContext::new(context))<span class="question-mark">?</span>;
         <span class="comment">// 4. If desc is undefined, return false.
         // 5. Return true.
         </span><span class="prelude-val">Ok</span>(desc.is_some())
@@ -1678,14 +1787,14 @@
         // 2. Assert: level is either sealed or frozen.
 
         // 3. Let status be ? O.[[PreventExtensions]]().
-        </span><span class="kw">let </span>status = <span class="self">self</span>.__prevent_extensions__(context)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>status = <span class="self">self</span>.__prevent_extensions__(<span class="kw-2">&amp;mut </span>InternalMethodContext::new(context))<span class="question-mark">?</span>;
         <span class="comment">// 4. If status is false, return false.
         </span><span class="kw">if </span>!status {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="bool-val">false</span>);
         }
 
         <span class="comment">// 5. Let keys be ? O.[[OwnPropertyKeys]]().
-        </span><span class="kw">let </span>keys = <span class="self">self</span>.__own_property_keys__(context)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>keys = <span class="self">self</span>.__own_property_keys__(<span class="kw-2">&amp;mut </span>InternalMethodContext::new(context))<span class="question-mark">?</span>;
 
         <span class="kw">match </span>level {
             <span class="comment">// 6. If level is sealed, then
@@ -1706,7 +1815,8 @@
                 <span class="comment">// b. For each element k of keys, do
                 </span><span class="kw">for </span>k <span class="kw">in </span>keys {
                     <span class="comment">// i. Let currentDesc be ? O.[[GetOwnProperty]](k).
-                    </span><span class="kw">let </span>current_desc = <span class="self">self</span>.__get_own_property__(<span class="kw-2">&amp;</span>k, context)<span class="question-mark">?</span>;
+                    </span><span class="kw">let </span>current_desc =
+                        <span class="self">self</span>.__get_own_property__(<span class="kw-2">&amp;</span>k, <span class="kw-2">&amp;mut </span>InternalMethodContext::new(context))<span class="question-mark">?</span>;
                     <span class="comment">// ii. If currentDesc is not undefined, then
                     </span><span class="kw">if let </span><span class="prelude-val">Some</span>(current_desc) = current_desc {
                         <span class="comment">// 1. If IsAccessorDescriptor(currentDesc) is true, then
@@ -1756,12 +1866,13 @@
 
         <span class="comment">// 5. NOTE: If the object is extensible, none of its properties are examined.
         // 6. Let keys be ? O.[[OwnPropertyKeys]]().
-        </span><span class="kw">let </span>keys = <span class="self">self</span>.__own_property_keys__(context)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>keys = <span class="self">self</span>.__own_property_keys__(<span class="kw-2">&amp;mut </span>InternalMethodContext::new(context))<span class="question-mark">?</span>;
 
         <span class="comment">// 7. For each element k of keys, do
         </span><span class="kw">for </span>k <span class="kw">in </span>keys {
             <span class="comment">// a. Let currentDesc be ? O.[[GetOwnProperty]](k).
-            </span><span class="kw">let </span>current_desc = <span class="self">self</span>.__get_own_property__(<span class="kw-2">&amp;</span>k, context)<span class="question-mark">?</span>;
+            </span><span class="kw">let </span>current_desc =
+                <span class="self">self</span>.__get_own_property__(<span class="kw-2">&amp;</span>k, <span class="kw-2">&amp;mut </span>InternalMethodContext::new(context))<span class="question-mark">?</span>;
             <span class="comment">// b. If currentDesc is not undefined, then
             </span><span class="kw">if let </span><span class="prelude-val">Some</span>(current_desc) = current_desc {
                 <span class="comment">// i. If currentDesc.[[Configurable]] is true, return false.
@@ -1870,7 +1981,7 @@
     ) -&gt; JsResult&lt;Vec&lt;JsValue&gt;&gt; {
         <span class="comment">// 1. Assert: Type(O) is Object.
         // 2. Let ownKeys be ? O.[[OwnPropertyKeys]]().
-        </span><span class="kw">let </span>own_keys = <span class="self">self</span>.__own_property_keys__(context)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>own_keys = <span class="self">self</span>.__own_property_keys__(<span class="kw-2">&amp;mut </span>InternalMethodContext::new(context))<span class="question-mark">?</span>;
         <span class="comment">// 3. Let properties be a new empty List.
         </span><span class="kw">let </span><span class="kw-2">mut </span>properties = <span class="macro">vec!</span>[];
 
@@ -1885,7 +1996,8 @@
 
             <span class="kw">if let </span><span class="prelude-val">Some</span>(key_str) = key_str {
                 <span class="comment">// i. Let desc be ? O.[[GetOwnProperty]](key).
-                </span><span class="kw">let </span>desc = <span class="self">self</span>.__get_own_property__(<span class="kw-2">&amp;</span>key, context)<span class="question-mark">?</span>;
+                </span><span class="kw">let </span>desc =
+                    <span class="self">self</span>.__get_own_property__(<span class="kw-2">&amp;</span>key, <span class="kw-2">&amp;mut </span>InternalMethodContext::new(context))<span class="question-mark">?</span>;
                 <span class="comment">// ii. If desc is not undefined and desc.[[Enumerable]] is true, then
                 </span><span class="kw">if let </span><span class="prelude-val">Some</span>(desc) = desc {
                     <span class="kw">if </span>desc.expect_enumerable() {
@@ -1936,7 +2048,12 @@
 
         // 1. Assert: IsPropertyKey(P) is true.
         // 2. Let func be ? GetV(V, P).
-        </span><span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.__get__(<span class="kw-2">&amp;</span>key.into(), <span class="self">self</span>.clone().into(), context)<span class="question-mark">? </span>{
+
+        </span><span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.__get__(
+            <span class="kw-2">&amp;</span>key.into(),
+            <span class="self">self</span>.clone().into(),
+            <span class="kw-2">&amp;mut </span>InternalMethodContext::new(context),
+        )<span class="question-mark">? </span>{
             <span class="comment">// 3. If func is either undefined or null, return undefined.
             </span>JsValue::Undefined | JsValue::Null =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
             <span class="comment">// 5. Return func.
@@ -2341,7 +2458,11 @@
 
         <span class="comment">// 1. If argumentsList is not present, set argumentsList to a new empty List.
         // 2. Let func be ? GetV(V, P).
-        </span><span class="kw">let </span>func = <span class="self">self</span>.__get__(<span class="kw-2">&amp;</span>key.into(), this_value.clone(), context)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>func = <span class="self">self</span>.__get__(
+            <span class="kw-2">&amp;</span>key.into(),
+            this_value.clone(),
+            <span class="kw-2">&amp;mut </span>InternalMethodContext::new(context),
+        )<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Return ? Call(func, V, argumentsList)
         </span>func.call(<span class="kw-2">&amp;</span>this_value, args, context)
@@ -2367,7 +2488,12 @@
         </span><span class="kw">let </span>o = <span class="self">self</span>.to_object(context)<span class="question-mark">?</span>;
 
         <span class="comment">// 2. Return ? O.[[Get]](P, V).
-        </span>o.__get__(<span class="kw-2">&amp;</span>key.into(), <span class="self">self</span>.clone(), context)
+
+        </span>o.__get__(
+            <span class="kw-2">&amp;</span>key.into(),
+            <span class="self">self</span>.clone(),
+            <span class="kw-2">&amp;mut </span>InternalMethodContext::new(context),
+        )
     }
 
     <span class="doccomment">/// Abstract operation `GetMethod ( V, P )`
@@ -2535,7 +2661,7 @@
         <span class="comment">// 6. Repeat,
         </span><span class="kw">loop </span>{
             <span class="comment">// a. Set O to ? O.[[GetPrototypeOf]]().
-            </span>object = <span class="kw">match </span>object.__get_prototype_of__(context)<span class="question-mark">? </span>{
+            </span>object = <span class="kw">match </span>object.__get_prototype_of__(<span class="kw-2">&amp;mut </span>InternalMethodContext::new(context))<span class="question-mark">? </span>{
                 <span class="prelude-val">Some</span>(obj) =&gt; obj,
                 <span class="comment">// b. If O is null, return false.
                 </span><span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="bool-val">false</span>),

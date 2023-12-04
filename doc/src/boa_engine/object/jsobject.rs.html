@@ -1309,13 +1309,15 @@
 <a href="#1309" id="1309">1309</a>
 <a href="#1310" id="1310">1310</a>
 <a href="#1311" id="1311">1311</a>
+<a href="#1312" id="1312">1312</a>
+<a href="#1313" id="1313">1313</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module implements the `JsObject` structure.
 //!
 //! The `JsObject` is a garbage collected Object.
 
 </span><span class="kw">use super</span>::{
     internal_methods::{
-        non_existant_call, non_existant_construct, InternalObjectMethods,
+        non_existant_call, non_existant_construct, InternalMethodContext, InternalObjectMethods,
         ARRAY_EXOTIC_INTERNAL_METHODS,
     },
     shape::RootShape,
@@ -2311,6 +2313,8 @@ Cannot both specify accessors and a value or writable attribute&quot;</span>,
     <span class="kw">where
         </span>K: Into&lt;PropertyKey&gt;,
     {
+        <span class="kw">let </span>context = <span class="kw-2">&amp;mut </span>InternalMethodContext::new(context);
+
         <span class="comment">// 1. Assert: Type(target) is Object.
         // 2. Assert: excludedItems is a List of property keys.
         // 3. If source is undefined or null, return target.

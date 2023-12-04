@@ -140,8 +140,12 @@
 <a href="#140" id="140">140</a>
 <a href="#141" id="141">141</a>
 <a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     error::JsNativeError,
+    object::internal_methods::InternalMethodContext,
     vm::{opcode::Operation, CompletionType},
     Context, JsResult,
 };
@@ -163,8 +167,9 @@
             .code_block()
             .constant_string(index)
             .into();
-        <span class="kw">let </span>result = object.__delete__(<span class="kw-2">&amp;</span>key, context)<span class="question-mark">?</span>;
-        <span class="kw">if </span>!result &amp;&amp; context.vm.frame().code_block.strict() {
+
+        <span class="kw">let </span>result = object.__delete__(<span class="kw-2">&amp;</span>key, <span class="kw-2">&amp;mut </span>InternalMethodContext::new(context))<span class="question-mark">?</span>;
+        <span class="kw">if </span>!result &amp;&amp; context.vm.frame().code_block().strict() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
                 .with_message(<span class="string">&quot;Cannot delete property&quot;</span>)
                 .into());
@@ -212,8 +217,9 @@
         <span class="kw">let </span>value = context.vm.pop();
         <span class="kw">let </span>object = value.to_object(context)<span class="question-mark">?</span>;
         <span class="kw">let </span>property_key = key_value.to_property_key(context)<span class="question-mark">?</span>;
-        <span class="kw">let </span>result = object.__delete__(<span class="kw-2">&amp;</span>property_key, context)<span class="question-mark">?</span>;
-        <span class="kw">if </span>!result &amp;&amp; context.vm.frame().code_block.strict() {
+
+        <span class="kw">let </span>result = object.__delete__(<span class="kw-2">&amp;</span>property_key, <span class="kw-2">&amp;mut </span>InternalMethodContext::new(context))<span class="question-mark">?</span>;
+        <span class="kw">if </span>!result &amp;&amp; context.vm.frame().code_block().strict() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
                 .with_message(<span class="string">&quot;Cannot delete property&quot;</span>)
                 .into());

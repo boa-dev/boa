@@ -150,7 +150,47 @@
 <a href="#150" id="150">150</a>
 <a href="#151" id="151">151</a>
 <a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
+<a href="#156" id="156">156</a>
+<a href="#157" id="157">157</a>
+<a href="#158" id="158">158</a>
+<a href="#159" id="159">159</a>
+<a href="#160" id="160">160</a>
+<a href="#161" id="161">161</a>
+<a href="#162" id="162">162</a>
+<a href="#163" id="163">163</a>
+<a href="#164" id="164">164</a>
+<a href="#165" id="165">165</a>
+<a href="#166" id="166">166</a>
+<a href="#167" id="167">167</a>
+<a href="#168" id="168">168</a>
+<a href="#169" id="169">169</a>
+<a href="#170" id="170">170</a>
+<a href="#171" id="171">171</a>
+<a href="#172" id="172">172</a>
+<a href="#173" id="173">173</a>
+<a href="#174" id="174">174</a>
+<a href="#175" id="175">175</a>
+<a href="#176" id="176">176</a>
+<a href="#177" id="177">177</a>
+<a href="#178" id="178">178</a>
+<a href="#179" id="179">179</a>
+<a href="#180" id="180">180</a>
+<a href="#181" id="181">181</a>
+<a href="#182" id="182">182</a>
+<a href="#183" id="183">183</a>
+<a href="#184" id="184">184</a>
+<a href="#185" id="185">185</a>
+<a href="#186" id="186">186</a>
+<a href="#187" id="187">187</a>
+<a href="#188" id="188">188</a>
+<a href="#189" id="189">189</a>
+<a href="#190" id="190">190</a>
+<a href="#191" id="191">191</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
+    object::{internal_methods::InternalMethodContext, shape::slot::SlotAttributes},
     property::PropertyKey,
     vm::{opcode::Operation, CompletionType},
     Context, JsResult,
@@ -173,13 +213,51 @@
             value.to_object(context)<span class="question-mark">?
         </span>};
 
-        <span class="kw">let </span>key = context
-            .vm
-            .frame()
-            .code_block()
-            .constant_string(index)
-            .into();
+        <span class="kw">let </span>ic = <span class="kw-2">&amp;</span>context.vm.frame().code_block().ic[index];
+        <span class="kw">let </span><span class="kw-2">mut </span>slot = ic.slot();
+        <span class="kw">if </span>slot.is_cachable() {
+            <span class="kw">let </span>object_borrowed = object.borrow();
+            <span class="kw">if </span>ic.matches(object_borrowed.shape()) {
+                <span class="kw">let </span><span class="kw-2">mut </span>result = <span class="kw">if </span>slot.attributes.contains(SlotAttributes::PROTOTYPE) {
+                    <span class="kw">let </span>prototype = object
+                        .borrow()
+                        .properties()
+                        .shape
+                        .prototype()
+                        .expect(<span class="string">&quot;prototype should have value&quot;</span>);
+                    <span class="kw">let </span>prototype = prototype.borrow();
+                    prototype.properties().storage[slot.index <span class="kw">as </span>usize].clone()
+                } <span class="kw">else </span>{
+                    object_borrowed.properties().storage[slot.index <span class="kw">as </span>usize].clone()
+                };
+
+                drop(object_borrowed);
+                <span class="kw">if </span>slot.attributes.has_get() &amp;&amp; result.is_object() {
+                    result = result.as_object().expect(<span class="string">&quot;should contain getter&quot;</span>).call(
+                        <span class="kw-2">&amp;</span>receiver,
+                        <span class="kw-2">&amp;</span>[],
+                        context,
+                    )<span class="question-mark">?</span>;
+                }
+                context.vm.push(result);
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(CompletionType::Normal);
+            }
+        }
+
+        <span class="kw">let </span>key: PropertyKey = ic.name.clone().into();
+
+        <span class="kw">let </span>context = <span class="kw-2">&amp;mut </span>InternalMethodContext::new(context);
         <span class="kw">let </span>result = object.__get__(<span class="kw-2">&amp;</span>key, receiver, context)<span class="question-mark">?</span>;
+
+        slot = <span class="kw-2">*</span>context.slot();
+
+        <span class="comment">// Cache the property.
+        </span><span class="kw">if </span>slot.attributes.is_cachable() {
+            <span class="kw">let </span>ic = <span class="kw-2">&amp;</span>context.vm.frame().code_block.ic[index];
+            <span class="kw">let </span>object_borrowed = object.borrow();
+            <span class="kw">let </span>shape = object_borrowed.shape();
+            ic.set(shape, slot);
+        }
 
         context.vm.push(result);
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
@@ -247,7 +325,7 @@
         }
 
         <span class="comment">// Slow path:
-        </span><span class="kw">let </span>result = object.__get__(<span class="kw-2">&amp;</span>key, receiver, context)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>result = object.__get__(<span class="kw-2">&amp;</span>key, receiver, <span class="kw-2">&amp;mut </span>InternalMethodContext::new(context))<span class="question-mark">?</span>;
 
         context.vm.push(result);
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
@@ -295,7 +373,7 @@
         }
 
         <span class="comment">// Slow path:
-        </span><span class="kw">let </span>result = object.__get__(<span class="kw-2">&amp;</span>key, receiver, context)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>result = object.__get__(<span class="kw-2">&amp;</span>key, receiver, <span class="kw-2">&amp;mut </span>InternalMethodContext::new(context))<span class="question-mark">?</span>;
 
         context.vm.push(key);
         context.vm.push(result);

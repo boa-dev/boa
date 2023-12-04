@@ -1521,6 +1521,18 @@
 <a href="#1521" id="1521">1521</a>
 <a href="#1522" id="1522">1522</a>
 <a href="#1523" id="1523">1523</a>
+<a href="#1524" id="1524">1524</a>
+<a href="#1525" id="1525">1525</a>
+<a href="#1526" id="1526">1526</a>
+<a href="#1527" id="1527">1527</a>
+<a href="#1528" id="1528">1528</a>
+<a href="#1529" id="1529">1529</a>
+<a href="#1530" id="1530">1530</a>
+<a href="#1531" id="1531">1531</a>
+<a href="#1532" id="1532">1532</a>
+<a href="#1533" id="1533">1533</a>
+<a href="#1534" id="1534">1534</a>
+<a href="#1535" id="1535">1535</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Object` object.
 //!
 //! The `Object` class represents one of ECMAScript&#39;s data types.
@@ -1546,8 +1558,8 @@
     js_string,
     native_function::NativeFunction,
     object::{
-        internal_methods::get_prototype_from_constructor, FunctionObjectBuilder, IntegrityLevel,
-        JsObject, ObjectData, ObjectKind,
+        internal_methods::{get_prototype_from_constructor, InternalMethodContext},
+        FunctionObjectBuilder, IntegrityLevel, JsObject, ObjectData, ObjectKind,
     },
     property::{Attribute, PropertyDescriptor, PropertyKey, PropertyNameKind},
     realm::Realm,
@@ -1734,7 +1746,7 @@
         </span><span class="kw">let </span>obj = this.to_object(context)<span class="question-mark">?</span>;
 
         <span class="comment">// 2. Return ? O.[[GetPrototypeOf]]().
-        </span><span class="kw">let </span>proto = obj.__get_prototype_of__(context)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>proto = obj.__get_prototype_of__(<span class="kw-2">&amp;mut </span>InternalMethodContext::new(context))<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(proto.map_or(JsValue::Null, JsValue::new))
     }
@@ -1771,7 +1783,8 @@
         };
 
         <span class="comment">// 4. Let status be ? O.[[SetPrototypeOf]](proto).
-        </span><span class="kw">let </span>status = object.__set_prototype_of__(proto, context)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>status =
+            object.__set_prototype_of__(proto, <span class="kw-2">&amp;mut </span>InternalMethodContext::new(context))<span class="question-mark">?</span>;
 
         <span class="comment">// 5. If status is false, throw a TypeError exception.
         </span><span class="kw">if </span>!status {
@@ -1894,7 +1907,8 @@
         <span class="comment">// 3. Repeat
         </span><span class="kw">loop </span>{
             <span class="comment">// a. Let desc be ? O.[[GetOwnProperty]](key).
-            </span><span class="kw">let </span>desc = obj.__get_own_property__(<span class="kw-2">&amp;</span>key, context)<span class="question-mark">?</span>;
+
+            </span><span class="kw">let </span>desc = obj.__get_own_property__(<span class="kw-2">&amp;</span>key, <span class="kw-2">&amp;mut </span>InternalMethodContext::new(context))<span class="question-mark">?</span>;
 
             <span class="comment">// b. If desc is not undefined, then
             </span><span class="kw">if let </span><span class="prelude-val">Some</span>(current_desc) = desc {
@@ -1906,7 +1920,7 @@
                     </span><span class="prelude-val">Ok</span>(JsValue::undefined())
                 };
             }
-            <span class="kw">match </span>obj.__get_prototype_of__(context)<span class="question-mark">? </span>{
+            <span class="kw">match </span>obj.__get_prototype_of__(<span class="kw-2">&amp;mut </span>InternalMethodContext::new(context))<span class="question-mark">? </span>{
                 <span class="comment">// c. Set O to ? O.[[GetPrototypeOf]]().
                 </span><span class="prelude-val">Some</span>(o) =&gt; obj = o,
                 <span class="comment">// d. If O is null, return undefined.
@@ -1938,7 +1952,8 @@
         <span class="comment">// 3. Repeat
         </span><span class="kw">loop </span>{
             <span class="comment">// a. Let desc be ? O.[[GetOwnProperty]](key).
-            </span><span class="kw">let </span>desc = obj.__get_own_property__(<span class="kw-2">&amp;</span>key, context)<span class="question-mark">?</span>;
+
+            </span><span class="kw">let </span>desc = obj.__get_own_property__(<span class="kw-2">&amp;</span>key, <span class="kw-2">&amp;mut </span>InternalMethodContext::new(context))<span class="question-mark">?</span>;
 
             <span class="comment">// b. If desc is not undefined, then
             </span><span class="kw">if let </span><span class="prelude-val">Some</span>(current_desc) = desc {
@@ -1950,7 +1965,7 @@
                     </span><span class="prelude-val">Ok</span>(JsValue::undefined())
                 };
             }
-            <span class="kw">match </span>obj.__get_prototype_of__(context)<span class="question-mark">? </span>{
+            <span class="kw">match </span>obj.__get_prototype_of__(<span class="kw-2">&amp;mut </span>InternalMethodContext::new(context))<span class="question-mark">? </span>{
                 <span class="comment">// c. Set O to ? O.[[GetPrototypeOf]]().
                 </span><span class="prelude-val">Some</span>(o) =&gt; obj = o,
                 <span class="comment">// d. If O is null, return undefined.
@@ -2019,7 +2034,8 @@
         </span><span class="kw">let </span>key = args.get_or_undefined(<span class="number">1</span>).to_property_key(context)<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Let desc be ? obj.[[GetOwnProperty]](key).
-        </span><span class="kw">let </span>desc = obj.__get_own_property__(<span class="kw-2">&amp;</span>key, context)<span class="question-mark">?</span>;
+
+        </span><span class="kw">let </span>desc = obj.__get_own_property__(<span class="kw-2">&amp;</span>key, <span class="kw-2">&amp;mut </span>InternalMethodContext::new(context))<span class="question-mark">?</span>;
 
         <span class="comment">// 4. Return FromPropertyDescriptor(desc).
         </span><span class="prelude-val">Ok</span>(<span class="self">Self</span>::from_property_descriptor(desc, context))
@@ -2044,7 +2060,7 @@
         </span><span class="kw">let </span>obj = args.get_or_undefined(<span class="number">0</span>).to_object(context)<span class="question-mark">?</span>;
 
         <span class="comment">// 2. Let ownKeys be ? obj.[[OwnPropertyKeys]]().
-        </span><span class="kw">let </span>own_keys = obj.__own_property_keys__(context)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>own_keys = obj.__own_property_keys__(<span class="kw-2">&amp;mut </span>InternalMethodContext::new(context))<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Let descriptors be OrdinaryObjectCreate(%Object.prototype%).
         </span><span class="kw">let </span>descriptors = JsObject::with_object_proto(context.intrinsics());
@@ -2052,7 +2068,8 @@
         <span class="comment">// 4. For each element key of ownKeys, do
         </span><span class="kw">for </span>key <span class="kw">in </span>own_keys {
             <span class="comment">// a. Let desc be ? obj.[[GetOwnProperty]](key).
-            </span><span class="kw">let </span>desc = obj.__get_own_property__(<span class="kw-2">&amp;</span>key, context)<span class="question-mark">?</span>;
+
+            </span><span class="kw">let </span>desc = obj.__get_own_property__(<span class="kw-2">&amp;</span>key, <span class="kw-2">&amp;mut </span>InternalMethodContext::new(context))<span class="question-mark">?</span>;
 
             <span class="comment">// b. Let descriptor be FromPropertyDescriptor(desc).
             </span><span class="kw">let </span>descriptor = <span class="self">Self</span>::from_property_descriptor(desc, context);
@@ -2165,7 +2182,7 @@
 
         <span class="comment">// 2. Return ? obj.[[GetPrototypeOf]]().
         </span><span class="prelude-val">Ok</span>(obj
-            .__get_prototype_of__(context)<span class="question-mark">?
+            .__get_prototype_of__(<span class="kw-2">&amp;mut </span>InternalMethodContext::new(context))<span class="question-mark">?
             </span>.map_or(JsValue::Null, JsValue::new))
     }
 
@@ -2216,7 +2233,7 @@
         };
 
         <span class="comment">// 4. Let status be ? O.[[SetPrototypeOf]](proto).
-        </span><span class="kw">let </span>status = obj.__set_prototype_of__(proto, context)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>status = obj.__set_prototype_of__(proto, <span class="kw-2">&amp;mut </span>InternalMethodContext::new(context))<span class="question-mark">?</span>;
 
         <span class="comment">// 5. If status is false, throw a TypeError exception.
         </span><span class="kw">if </span>!status {
@@ -2454,9 +2471,10 @@
         };
 
         <span class="kw">let </span>key = key.to_property_key(context)<span class="question-mark">?</span>;
+
         <span class="kw">let </span>own_prop = this
             .to_object(context)<span class="question-mark">?
-            </span>.__get_own_property__(<span class="kw-2">&amp;</span>key, context)<span class="question-mark">?</span>;
+            </span>.__get_own_property__(<span class="kw-2">&amp;</span>key, <span class="kw-2">&amp;mut </span>InternalMethodContext::new(context))<span class="question-mark">?</span>;
 
         own_prop
             .as_ref()
@@ -2495,11 +2513,14 @@
                     .to_object(context)
                     .expect(<span class="string">&quot;this ToObject call must not fail&quot;</span>);
                 <span class="comment">// 3.a.ii. Let keys be ? from.[[OwnPropertyKeys]]().
-                </span><span class="kw">let </span>keys = from.__own_property_keys__(context)<span class="question-mark">?</span>;
+                </span><span class="kw">let </span>keys = from.__own_property_keys__(<span class="kw-2">&amp;mut </span>InternalMethodContext::new(context))<span class="question-mark">?</span>;
                 <span class="comment">// 3.a.iii. For each element nextKey of keys, do
                 </span><span class="kw">for </span>key <span class="kw">in </span>keys {
                     <span class="comment">// 3.a.iii.1. Let desc be ? from.[[GetOwnProperty]](nextKey).
-                    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(desc) = from.__get_own_property__(<span class="kw-2">&amp;</span>key, context)<span class="question-mark">? </span>{
+
+                    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(desc) =
+                        from.__get_own_property__(<span class="kw-2">&amp;</span>key, <span class="kw-2">&amp;mut </span>InternalMethodContext::new(context))<span class="question-mark">?
+                    </span>{
                         <span class="comment">// 3.a.iii.2. If desc is not undefined and desc.[[Enumerable]] is true, then
                         </span><span class="kw">if </span>desc.expect_enumerable() {
                             <span class="comment">// 3.a.iii.2.a. Let propValue be ? Get(from, nextKey).
@@ -2710,7 +2731,7 @@
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(o) = o.as_object() {
             <span class="comment">// 2. Let status be ? O.[[PreventExtensions]]().
-            </span><span class="kw">let </span>status = o.__prevent_extensions__(context)<span class="question-mark">?</span>;
+            </span><span class="kw">let </span>status = o.__prevent_extensions__(<span class="kw-2">&amp;mut </span>InternalMethodContext::new(context))<span class="question-mark">?</span>;
             <span class="comment">// 3. If status is false, throw a TypeError exception.
             </span><span class="kw">if </span>!status {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
@@ -2967,7 +2988,7 @@
     </span><span class="kw">let </span>props = <span class="kw-2">&amp;</span>props.to_object(context)<span class="question-mark">?</span>;
 
     <span class="comment">// 3. Let keys be ? props.[[OwnPropertyKeys]]().
-    </span><span class="kw">let </span>keys = props.__own_property_keys__(context)<span class="question-mark">?</span>;
+    </span><span class="kw">let </span>keys = props.__own_property_keys__(<span class="kw-2">&amp;mut </span>InternalMethodContext::new(context))<span class="question-mark">?</span>;
 
     <span class="comment">// 4. Let descriptors be a new empty List.
     </span><span class="kw">let </span><span class="kw-2">mut </span>descriptors: Vec&lt;(PropertyKey, PropertyDescriptor)&gt; = Vec::new();
@@ -2976,7 +2997,10 @@
     </span><span class="kw">for </span>next_key <span class="kw">in </span>keys {
         <span class="comment">// a. Let propDesc be ? props.[[GetOwnProperty]](nextKey).
         // b. If propDesc is not undefined and propDesc.[[Enumerable]] is true, then
-        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(prop_desc) = props.__get_own_property__(<span class="kw-2">&amp;</span>next_key, context)<span class="question-mark">? </span>{
+
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(prop_desc) =
+            props.__get_own_property__(<span class="kw-2">&amp;</span>next_key, <span class="kw-2">&amp;mut </span>InternalMethodContext::new(context))<span class="question-mark">?
+        </span>{
             <span class="kw">if </span>prop_desc.expect_enumerable() {
                 <span class="comment">// i. Let descObj be ? Get(props, nextKey).
                 </span><span class="kw">let </span>desc_obj = props.get(next_key.clone(), context)<span class="question-mark">?</span>;
@@ -3024,7 +3048,7 @@
     </span><span class="kw">let </span>obj = o.to_object(context)<span class="question-mark">?</span>;
 
     <span class="comment">// 2. Let keys be ? obj.[[OwnPropertyKeys]]().
-    </span><span class="kw">let </span>keys = obj.__own_property_keys__(context)<span class="question-mark">?</span>;
+    </span><span class="kw">let </span>keys = obj.__own_property_keys__(<span class="kw-2">&amp;mut </span>InternalMethodContext::new(context))<span class="question-mark">?</span>;
 
     <span class="comment">// 3. Let nameList be a new empty List.
     // 4. For each element nextKey of keys, do

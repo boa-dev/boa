@@ -242,8 +242,11 @@
 <a href="#242" id="242">242</a>
 <a href="#243" id="243">243</a>
 <a href="#244" id="244">244</a>
+<a href="#245" id="245">245</a>
+<a href="#246" id="246">246</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::function::set_function_name,
+    object::internal_methods::InternalMethodContext,
     property::PropertyDescriptor,
     vm::{opcode::Operation, CompletionType},
     Context, JsResult, JsString,
@@ -279,7 +282,7 @@
             function_mut.set_home_object(class.clone());
         }
         <span class="kw">let </span>set = class
-            .__get_own_property__(<span class="kw-2">&amp;</span>key, context)<span class="question-mark">?
+            .__get_own_property__(<span class="kw-2">&amp;</span>key, <span class="kw-2">&amp;mut </span>InternalMethodContext::new(context))<span class="question-mark">?
             </span>.as_ref()
             .and_then(PropertyDescriptor::set)
             .cloned();
@@ -291,7 +294,7 @@
                 .enumerable(<span class="bool-val">false</span>)
                 .configurable(<span class="bool-val">true</span>)
                 .build(),
-            context,
+            <span class="kw-2">&amp;mut </span>InternalMethodContext::new(context),
         )<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
@@ -348,7 +351,7 @@
             function_mut.set_home_object(class_proto.clone());
         }
         <span class="kw">let </span>set = class_proto
-            .__get_own_property__(<span class="kw-2">&amp;</span>key, context)<span class="question-mark">?
+            .__get_own_property__(<span class="kw-2">&amp;</span>key, <span class="kw-2">&amp;mut </span>InternalMethodContext::new(context))<span class="question-mark">?
             </span>.as_ref()
             .and_then(PropertyDescriptor::set)
             .cloned();
@@ -360,7 +363,7 @@
                 .enumerable(<span class="bool-val">false</span>)
                 .configurable(<span class="bool-val">true</span>)
                 .build(),
-            context,
+            <span class="kw-2">&amp;mut </span>InternalMethodContext::new(context),
         )<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
@@ -418,8 +421,9 @@
                 .expect(<span class="string">&quot;method must be function object&quot;</span>);
             function_mut.set_home_object(class.clone());
         }
+
         <span class="kw">let </span>set = class
-            .__get_own_property__(<span class="kw-2">&amp;</span>key, context)<span class="question-mark">?
+            .__get_own_property__(<span class="kw-2">&amp;</span>key, <span class="kw-2">&amp;mut </span>InternalMethodContext::new(context))<span class="question-mark">?
             </span>.as_ref()
             .and_then(PropertyDescriptor::set)
             .cloned();
@@ -469,7 +473,7 @@
             function_mut.set_home_object(class_proto.clone());
         }
         <span class="kw">let </span>set = class_proto
-            .__get_own_property__(<span class="kw-2">&amp;</span>key, context)<span class="question-mark">?
+            .__get_own_property__(<span class="kw-2">&amp;</span>key, <span class="kw-2">&amp;mut </span>InternalMethodContext::new(context))<span class="question-mark">?
             </span>.as_ref()
             .and_then(PropertyDescriptor::set)
             .cloned();
@@ -481,7 +485,7 @@
                 .enumerable(<span class="bool-val">false</span>)
                 .configurable(<span class="bool-val">true</span>)
                 .build(),
-            context,
+            <span class="kw-2">&amp;mut </span>InternalMethodContext::new(context),
         )<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }

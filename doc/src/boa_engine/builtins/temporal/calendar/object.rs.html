@@ -1730,7 +1730,7 @@
             .__get__(
                 <span class="kw-2">&amp;</span>PropertyKey::from(<span class="macro">utf16!</span>(<span class="string">&quot;id&quot;</span>)),
                 JsValue::undefined(),
-                context,
+                <span class="kw-2">&amp;mut </span>context.into(),
             )
             .expect(<span class="string">&quot;method must exist on a object that implements the CalendarProtocol.&quot;</span>);
 
