@@ -19,12 +19,14 @@ use crate::sys::time::Instant;
 mod call_frame;
 mod code_block;
 mod completion_record;
+mod inline_cache;
 mod opcode;
-
 mod runtime_limits;
 
 #[cfg(feature = "flowgraph")]
 pub mod flowgraph;
+
+pub(crate) use inline_cache::InlineCache;
 
 // TODO: see if this can be exposed on all features.
 #[allow(unused_imports)]
@@ -39,7 +41,6 @@ pub(crate) use {
     call_frame::CallFrameFlags,
     code_block::{
         create_function_object, create_function_object_fast, CodeBlockFlags, Constant, Handler,
-        InlineCache,
     },
     completion_record::CompletionRecord,
     opcode::BindingOpcode,

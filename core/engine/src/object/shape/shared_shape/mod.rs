@@ -482,7 +482,7 @@ impl SharedShape {
 }
 
 /// Represents a weak reference to [`SharedShape`].
-#[derive(Debug, Trace, Finalize, Clone)]
+#[derive(Debug, Trace, Finalize, Clone, PartialEq)]
 pub(crate) struct WeakSharedShape {
     inner: WeakGc<Inner>,
 }
@@ -497,6 +497,16 @@ impl WeakSharedShape {
         self.inner.upgrade().map_or(0, |inner| {
             let ptr: *const _ = inner.as_ref();
             ptr as usize
+        })
+    }
+
+    /// Upgrade returns a [`SharedShape`] pointer for the internal value if the pointer is still live,
+    /// or [`None`] if the value was already garbage collected.
+    #[inline]
+    #[must_use]
+    pub(crate) fn upgrade(&self) -> Option<SharedShape> {
+        Some(SharedShape {
+            inner: self.inner.upgrade()?,
         })
     }
 }

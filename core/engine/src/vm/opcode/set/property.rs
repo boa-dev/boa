@@ -27,52 +27,43 @@ impl SetPropertyByName {
         };
 
         let ic = &context.vm.frame().code_block().ic[index];
-        let mut slot = ic.slot();
-        if slot.is_cachable() {
-            let object_borrowed = object.borrow();
-            if ic.matches(object_borrowed.shape()) {
-                let slot_index = slot.index as usize;
 
-                if slot.attributes.is_accessor_descriptor() {
-                    let result = if slot.attributes.contains(SlotAttributes::PROTOTYPE) {
-                        let prototype = object_borrowed
-                            .properties()
-                            .shape
-                            .prototype()
-                            .expect("prototype should have value");
-                        let prototype = prototype.borrow();
+        let object_borrowed = object.borrow();
+        if let Some((shape, slot)) = ic.match_or_reset(object_borrowed.shape()) {
+            let slot_index = slot.index as usize;
 
-                        prototype.properties().storage[slot_index + 1].clone()
-                    } else {
-                        object_borrowed.properties().storage[slot_index + 1].clone()
-                    };
+            if slot.attributes.is_accessor_descriptor() {
+                let result = if slot.attributes.contains(SlotAttributes::PROTOTYPE) {
+                    let prototype = shape.prototype().expect("prototype should have value");
+                    let prototype = prototype.borrow();
 
-                    drop(object_borrowed);
-                    if slot.attributes.has_set() && result.is_object() {
-                        result.as_object().expect("should contain getter").call(
-                            &receiver,
-                            &[value.clone()],
-                            context,
-                        )?;
-                    }
-                } else if slot.attributes.contains(SlotAttributes::PROTOTYPE) {
-                    let prototype = object_borrowed
-                        .properties()
-                        .shape
-                        .prototype()
-                        .expect("prototype should have value");
-                    let mut prototype = prototype.borrow_mut();
-
-                    prototype.properties_mut().storage[slot_index] = value.clone();
+                    prototype.properties().storage[slot_index + 1].clone()
                 } else {
-                    drop(object_borrowed);
-                    let mut object_borrowed = object.borrow_mut();
-                    object_borrowed.properties_mut().storage[slot_index] = value.clone();
+                    object_borrowed.properties().storage[slot_index + 1].clone()
+                };
+
+                drop(object_borrowed);
+                if slot.attributes.has_set() && result.is_object() {
+                    result.as_object().expect("should contain getter").call(
+                        &receiver,
+                        &[value.clone()],
+                        context,
+                    )?;
                 }
-                context.vm.push(value);
-                return Ok(CompletionType::Normal);
+            } else if slot.attributes.contains(SlotAttributes::PROTOTYPE) {
+                let prototype = shape.prototype().expect("prototype should have value");
+                let mut prototype = prototype.borrow_mut();
+
+                prototype.properties_mut().storage[slot_index] = value.clone();
+            } else {
+                drop(object_borrowed);
+                let mut object_borrowed = object.borrow_mut();
+                object_borrowed.properties_mut().storage[slot_index] = value.clone();
             }
+            context.vm.push(value);
+            return Ok(CompletionType::Normal);
         }
+        drop(object_borrowed);
 
         let name: PropertyKey = ic.name.clone().into();
 
@@ -84,9 +75,8 @@ impl SetPropertyByName {
                 .into());
         }
 
-        slot = *context.slot();
-
         // Cache the property.
+        let slot = *context.slot();
         if succeeded && slot.is_cachable() {
             let ic = &context.vm.frame().code_block.ic[index];
             let object_borrowed = object.borrow();

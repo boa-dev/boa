@@ -241,7 +241,7 @@ impl UniqueShape {
 }
 
 /// Represents a weak reference to [`UniqueShape`].
-#[derive(Debug, Clone, Trace, Finalize)]
+#[derive(Debug, Clone, Trace, Finalize, PartialEq)]
 pub(crate) struct WeakUniqueShape {
     inner: WeakGc<Inner>,
 }
@@ -256,6 +256,16 @@ impl WeakUniqueShape {
         self.inner.upgrade().map_or(0, |inner| {
             let ptr: *const _ = inner.as_ref();
             ptr as usize
+        })
+    }
+
+    /// Upgrade returns a [`UniqueShape`] pointer for the internal value if the pointer is still live,
+    /// or [`None`] if the value was already garbage collected.
+    #[inline]
+    #[must_use]
+    pub(crate) fn upgrade(&self) -> Option<UniqueShape> {
+        Some(UniqueShape {
+            inner: self.inner.upgrade()?,
         })
     }
 }

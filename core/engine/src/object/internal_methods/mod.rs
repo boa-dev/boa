@@ -577,8 +577,6 @@ pub(crate) fn ordinary_has_property(
     // 2. Let hasOwn be ? O.[[GetOwnProperty]](P).
     // 3. If hasOwn is not undefined, return true.
     if obj.__get_own_property__(key, context)?.is_some() {
-        context.slot().attributes |= SlotAttributes::FOUND;
-
         Ok(true)
     } else {
         // 4. Let parent be ? O.[[GetPrototypeOf]]().
@@ -627,8 +625,6 @@ pub(crate) fn ordinary_get(
             }
         }
         Some(ref desc) => {
-            context.slot().attributes |= SlotAttributes::FOUND;
-
             match desc.kind() {
                 // 4. If IsDataDescriptor(desc) is true, return desc.[[Value]].
                 DescriptorKind::Data {
@@ -746,8 +742,6 @@ pub(crate) fn ordinary_set(
         // ii. Return ? CreateDataProperty(Receiver, P, V).
         return receiver.create_data_property_with_slot(key, value, context);
     }
-
-    context.slot().attributes |= SlotAttributes::FOUND;
 
     // 4. Assert: IsAccessorDescriptor(ownDesc) is true.
     debug_assert!(own_desc.is_accessor_descriptor());
@@ -902,7 +896,6 @@ pub(crate) fn validate_and_apply_property_descriptor(
                 },
                 slot,
             );
-            slot.attributes |= SlotAttributes::FOUND;
         }
 
         // e. Return true.
