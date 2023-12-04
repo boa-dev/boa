@@ -314,7 +314,7 @@
         //   `unsafe` block.
         // - `set_kv`: `weak` is a newly created `EphemeronBox`, meaning it isn&#39;t possible to
         //   collect it since `weak` is still live.
-        </span><span class="kw">unsafe </span>{ weak.inner().inner_ptr().as_mut().set(<span class="kw-2">&amp;</span>gc, gc.clone()) }
+        </span><span class="kw">unsafe </span>{ weak.inner().inner_ptr().as_mut().set(<span class="kw-2">&amp;</span>gc, ()) }
 
         gc
     }

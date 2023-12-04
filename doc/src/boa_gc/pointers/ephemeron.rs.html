@@ -124,6 +124,23 @@
 <a href="#124" id="124">124</a>
 <a href="#125" id="125">125</a>
 <a href="#126" id="126">126</a>
+<a href="#127" id="127">127</a>
+<a href="#128" id="128">128</a>
+<a href="#129" id="129">129</a>
+<a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
+<a href="#134" id="134">134</a>
+<a href="#135" id="135">135</a>
+<a href="#136" id="136">136</a>
+<a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     finalizer_safe,
     internals::EphemeronBox,
@@ -157,6 +174,23 @@
         <span class="comment">// SAFETY: this is safe because `Ephemeron` is tracked to always point to a valid pointer
         // `inner_ptr`.
         </span><span class="kw">unsafe </span>{ <span class="self">self</span>.inner_ptr.as_ref().value().cloned() }
+    }
+
+    <span class="doccomment">/// Gets the stored key of this `Ephemeron`, or `None` if the key was already garbage collected.
+    </span><span class="attr">#[inline]
+    #[must_use]
+    </span><span class="kw">pub fn </span>key(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Gc&lt;K&gt;&gt; {
+        <span class="comment">// SAFETY: this is safe because `Ephemeron` is tracked to always point to a valid pointer
+        // `inner_ptr`.
+        </span><span class="kw">let </span>key_ptr = <span class="kw">unsafe </span>{ <span class="self">self</span>.inner_ptr.as_ref().key_ptr() }<span class="question-mark">?</span>;
+
+        <span class="comment">// SAFETY: Returned pointer is valid, so this is safe.
+        </span><span class="kw">unsafe </span>{
+            key_ptr.as_ref().inc_ref_count();
+        }
+
+        <span class="comment">// SAFETY: The gc pointer&#39;s reference count has been incremented, so this is safe.
+        </span><span class="prelude-val">Some</span>(<span class="kw">unsafe </span>{ Gc::from_raw(key_ptr) })
     }
 
     <span class="doccomment">/// Checks if the [`Ephemeron`] has a value.

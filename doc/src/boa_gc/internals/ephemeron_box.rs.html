@@ -259,6 +259,18 @@
 <a href="#259" id="259">259</a>
 <a href="#260" id="260">260</a>
 <a href="#261" id="261">261</a>
+<a href="#262" id="262">262</a>
+<a href="#263" id="263">263</a>
+<a href="#264" id="264">264</a>
+<a href="#265" id="265">265</a>
+<a href="#266" id="266">266</a>
+<a href="#267" id="267">267</a>
+<a href="#268" id="268">268</a>
+<a href="#269" id="269">269</a>
+<a href="#270" id="270">270</a>
+<a href="#271" id="271">271</a>
+<a href="#272" id="272">272</a>
+<a href="#273" id="273">273</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{trace::Trace, Gc, GcBox};
 <span class="kw">use </span>std::{
     cell::{Cell, UnsafeCell},
@@ -400,6 +412,21 @@
         data.as_ref().map(|data| <span class="kw-2">&amp;</span>data.value)
     }
 
+    <span class="doccomment">/// Returns the pointer to the ephemeron&#39;s key or None.
+    ///
+    /// # Safety
+    ///
+    /// The caller must ensure there are no live mutable references to the ephemeron box&#39;s data
+    /// before calling this method.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe fn </span>key_ptr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;NonNull&lt;GcBox&lt;K&gt;&gt;&gt; {
+        <span class="comment">// SAFETY: the garbage collector ensures the ephemeron doesn&#39;t mutate until
+        // finalization.
+        </span><span class="kw">unsafe </span>{
+            <span class="kw">let </span>data = <span class="kw-2">&amp;*</span><span class="self">self</span>.data.get();
+            data.as_ref().map(|data| data.key)
+        }
+    }
+
     <span class="doccomment">/// Returns a reference to the ephemeron&#39;s key or None.
     ///
     /// # Safety
@@ -409,10 +436,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe fn </span>key(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>GcBox&lt;K&gt;&gt; {
         <span class="comment">// SAFETY: the garbage collector ensures the ephemeron doesn&#39;t mutate until
         // finalization.
-        </span><span class="kw">unsafe </span>{
-            <span class="kw">let </span>data = <span class="kw-2">&amp;*</span><span class="self">self</span>.data.get();
-            data.as_ref().map(|data| data.key.as_ref())
-        }
+        </span><span class="kw">unsafe </span>{ <span class="self">self</span>.key_ptr().map(|data| data.as_ref()) }
     }
 
     <span class="doccomment">/// Marks this `EphemeronBox` as live.
