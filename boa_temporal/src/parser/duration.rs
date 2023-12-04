@@ -1,16 +1,14 @@
-use boa_ast::Position;
-
 use crate::{
-    error::{Error, ParseResult},
-    temporal::{
+    parser::{
         grammar::{
             is_day_designator, is_decimal_separator, is_duration_designator, is_hour_designator,
             is_minute_designator, is_month_designator, is_second_designator, is_sign,
             is_time_designator, is_week_designator, is_year_designator,
         },
         time::parse_fraction,
-        IsoCursor,
+        Cursor,
     },
+    TemporalError, TemporalResult,
 };
 
 /// A ISO8601 `DurationRecord` Parse Node.
@@ -54,8 +52,11 @@ pub(crate) struct TimeDuration {
     pub(crate) fseconds: f64,
 }
 
-pub(crate) fn parse_duration(cursor: &mut IsoCursor) -> ParseResult<DurationParseRecord> {
-    let sign = if cursor.check(is_sign).ok_or_else(|| Error::AbruptEnd)? {
+pub(crate) fn parse_duration(cursor: &mut Cursor) -> TemporalResult<DurationParseRecord> {
+    let sign = if cursor
+        .check(is_sign)
+        .ok_or_else(TemporalError::abrupt_end)?
+    {
         let sign = cursor.check_or(false, |ch| ch == '+');
         cursor.advance();
         sign
@@ -65,12 +66,11 @@ pub(crate) fn parse_duration(cursor: &mut IsoCursor) -> ParseResult<DurationPars
 
     if !cursor
         .check(is_duration_designator)
-        .ok_or_else(|| Error::AbruptEnd)?
+        .ok_or_else(TemporalError::abrupt_end)?
     {
-        return Err(Error::general(
-            "DurationString missing DurationDesignator.",
-            Position::new(1, cursor.pos() + 1),
-        ));
+        return Err(
+            TemporalError::syntax().with_message("DurationString missing DurationDesignator.")
+        );
     }
 
     cursor.advance();
@@ -89,10 +89,7 @@ pub(crate) fn parse_duration(cursor: &mut IsoCursor) -> ParseResult<DurationPars
     };
 
     if cursor.peek().is_some() {
-        return Err(Error::general(
-            "Unrecognized value in DurationString.",
-            Position::new(1, cursor.pos()),
-        ));
+        return Err(TemporalError::syntax().with_message("Unrecognized value in DurationString."));
     }
 
     Ok(DurationParseRecord {
@@ -111,7 +108,7 @@ enum DateUnit {
     Day,
 }
 
-pub(crate) fn parse_date_duration(cursor: &mut IsoCursor) -> ParseResult<DateDuration> {
+pub(crate) fn parse_date_duration(cursor: &mut Cursor) -> TemporalResult<DateDuration> {
     let mut date = DateDuration::default();
 
     let mut previous_unit = DateUnit::None;
@@ -125,52 +122,46 @@ pub(crate) fn parse_date_duration(cursor: &mut IsoCursor) -> ParseResult<DateDur
         let value = cursor
             .slice(digit_start, cursor.pos())
             .parse::<i32>()
-            .map_err(|err| {
-                Error::general(err.to_string(), Position::new(digit_start, cursor.pos()))
-            })?;
+            .map_err(|err| TemporalError::syntax().with_message(err.to_string()))?;
 
         match cursor.peek() {
             Some(ch) if is_year_designator(ch) => {
                 if previous_unit > DateUnit::Year {
-                    return Err(Error::general(
-                        "Not a valid DateDuration order",
-                        Position::new(1, cursor.pos()),
-                    ));
+                    return Err(
+                        TemporalError::syntax().with_message("Not a valid DateDuration order")
+                    );
                 }
                 date.years = value;
                 previous_unit = DateUnit::Year;
             }
             Some(ch) if is_month_designator(ch) => {
                 if previous_unit > DateUnit::Month {
-                    return Err(Error::general(
-                        "Not a valid DateDuration order",
-                        Position::new(1, cursor.pos()),
-                    ));
+                    return Err(
+                        TemporalError::syntax().with_message("Not a valid DateDuration order")
+                    );
                 }
                 date.months = value;
                 previous_unit = DateUnit::Month;
             }
             Some(ch) if is_week_designator(ch) => {
                 if previous_unit > DateUnit::Week {
-                    return Err(Error::general(
-                        "Not a valid DateDuration order",
-                        Position::new(1, cursor.pos()),
-                    ));
+                    return Err(
+                        TemporalError::syntax().with_message("Not a valid DateDuration order")
+                    );
                 }
                 date.weeks = value;
                 previous_unit = DateUnit::Week;
             }
             Some(ch) if is_day_designator(ch) => {
                 if previous_unit > DateUnit::Day {
-                    return Err(Error::general(
-                        "Not a valid DateDuration order",
-                        Position::new(1, cursor.pos()),
-                    ));
+                    return Err(
+                        TemporalError::syntax().with_message("Not a valid DateDuration order")
+                    );
                 }
                 date.days = value;
                 previous_unit = DateUnit::Day;
             }
-            Some(_) | None => return Err(Error::AbruptEnd),
+            Some(_) | None => return Err(TemporalError::abrupt_end()),
         }
 
         cursor.advance();
@@ -187,14 +178,13 @@ enum TimeUnit {
     Second,
 }
 
-pub(crate) fn parse_time_duration(cursor: &mut IsoCursor) -> ParseResult<TimeDuration> {
+pub(crate) fn parse_time_duration(cursor: &mut Cursor) -> TemporalResult<TimeDuration> {
     let mut time = TimeDuration::default();
 
     if !cursor.check_or(false, |ch| ch.is_ascii()) {
-        return Err(Error::general(
-            "No time values provided after TimeDesignator.",
-            Position::new(1, cursor.pos()),
-        ));
+        return Err(
+            TemporalError::syntax().with_message("No time values provided after TimeDesignator.")
+        );
     }
 
     let mut previous_unit = TimeUnit::None;
@@ -209,9 +199,7 @@ pub(crate) fn parse_time_duration(cursor: &mut IsoCursor) -> ParseResult<TimeDur
         let value = cursor
             .slice(digit_start, cursor.pos())
             .parse::<i32>()
-            .map_err(|err| {
-                Error::general(err.to_string(), Position::new(digit_start, cursor.pos()))
-            })?;
+            .map_err(|err| TemporalError::syntax().with_message(err.to_string()))?;
 
         let fraction = if cursor.check_or(false, is_decimal_separator) {
             fraction_present = true;
@@ -223,10 +211,9 @@ pub(crate) fn parse_time_duration(cursor: &mut IsoCursor) -> ParseResult<TimeDur
         match cursor.peek() {
             Some(ch) if is_hour_designator(ch) => {
                 if previous_unit > TimeUnit::Hour {
-                    return Err(Error::general(
-                        "Not a valid DateDuration order",
-                        Position::new(1, cursor.pos()),
-                    ));
+                    return Err(
+                        TemporalError::syntax().with_message("Not a valid DateDuration order")
+                    );
                 }
                 time.hours = value;
                 time.fhours = fraction;
@@ -234,10 +221,9 @@ pub(crate) fn parse_time_duration(cursor: &mut IsoCursor) -> ParseResult<TimeDur
             }
             Some(ch) if is_minute_designator(ch) => {
                 if previous_unit > TimeUnit::Minute {
-                    return Err(Error::general(
-                        "Not a valid DateDuration order",
-                        Position::new(1, cursor.pos()),
-                    ));
+                    return Err(
+                        TemporalError::syntax().with_message("Not a valid DateDuration order")
+                    );
                 }
                 time.minutes = value;
                 time.fminutes = fraction;
@@ -245,26 +231,23 @@ pub(crate) fn parse_time_duration(cursor: &mut IsoCursor) -> ParseResult<TimeDur
             }
             Some(ch) if is_second_designator(ch) => {
                 if previous_unit > TimeUnit::Second {
-                    return Err(Error::general(
-                        "Not a valid DateDuration order",
-                        Position::new(1, cursor.pos()),
-                    ));
+                    return Err(
+                        TemporalError::syntax().with_message("Not a valid DateDuration order")
+                    );
                 }
                 time.seconds = value;
                 time.fseconds = fraction;
                 previous_unit = TimeUnit::Second;
             }
-            Some(_) | None => return Err(Error::AbruptEnd),
+            Some(_) | None => return Err(TemporalError::abrupt_end()),
         }
 
         cursor.advance();
 
         if fraction_present {
             if cursor.check_or(false, |ch| ch.is_ascii_digit()) {
-                return Err(Error::general(
-                    "Invalid TimeDuration continuation after FractionPart.",
-                    Position::new(1, cursor.pos()),
-                ));
+                return Err(TemporalError::syntax()
+                    .with_message("Invalid TimeDuration continuation after FractionPart."));
             }
 
             break;

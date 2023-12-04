@@ -12,6 +12,8 @@ pub enum ErrorKind {
     Type,
     /// RangeError
     Range,
+    /// SyntaxError
+    Syntax,
 }
 
 impl fmt::Display for ErrorKind {
@@ -20,6 +22,7 @@ impl fmt::Display for ErrorKind {
             Self::Generic => "Error",
             Self::Type => "TypeError",
             Self::Range => "RangeError",
+            Self::Syntax => "SyntaxError",
         }
         .fmt(f)
     }
@@ -59,6 +62,18 @@ impl TemporalError {
     #[must_use]
     pub fn r#type() -> Self {
         Self::new(ErrorKind::Type)
+    }
+
+    /// Create a syntax error.
+    #[must_use]
+    pub fn syntax() -> Self {
+        Self::new(ErrorKind::Syntax)
+    }
+
+    /// Create an abrupt end error.
+    #[must_use]
+    pub fn abrupt_end() -> Self {
+        Self::syntax().with_message("Abrupt end to parsing target.")
     }
 
     /// Add a message to the error.

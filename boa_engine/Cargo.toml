@@ -47,7 +47,7 @@ trace = ["js"]
 annex-b = ["boa_parser/annex-b"]
 
 # Stage 3 proposals
-temporal = ["boa_parser/temporal", "dep:icu_calendar"]
+temporal = ["dep:icu_calendar"]
 
 # Enable experimental features, like Stage 3 proposals.
 experimental = ["temporal"]

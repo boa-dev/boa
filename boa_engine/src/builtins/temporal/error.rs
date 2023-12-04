@@ -8,6 +8,7 @@ impl From<TemporalError> for JsNativeError {
             ErrorKind::Range => JsNativeError::range().with_message(value.message()),
             ErrorKind::Type => JsNativeError::typ().with_message(value.message()),
             ErrorKind::Generic => JsNativeError::error().with_message(value.message()),
+            ErrorKind::Syntax => JsNativeError::syntax().with_message(value.message()),
         }
     }
 }

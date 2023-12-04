@@ -25,7 +25,6 @@ icu_properties.workspace = true
 
 [features]
 annex-b = []
-temporal = ["boa_ast/temporal"]
 
 [lints]
 workspace = true

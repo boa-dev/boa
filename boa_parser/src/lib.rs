@@ -28,8 +28,6 @@ pub mod error;
 pub mod lexer;
 pub mod parser;
 mod source;
-#[cfg(feature = "temporal")]
-pub mod temporal;
 
 pub use error::Error;
 pub use lexer::Lexer;

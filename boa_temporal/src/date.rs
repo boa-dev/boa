@@ -1,14 +1,15 @@
 //! The `PlainDate` representation.
 
 use crate::{
-    calendar::CalendarSlot,
+    calendar::{AvailableCalendars, CalendarSlot},
     datetime::DateTime,
     duration::{DateDuration, Duration},
     iso::{IsoDate, IsoDateSlots},
     options::{ArithmeticOverflow, TemporalUnit},
-    TemporalResult,
+    parser::parse_date_time,
+    TemporalError, TemporalResult,
 };
-use std::any::Any;
+use std::{any::Any, str::FromStr};
 
 /// The `Temporal.PlainDate` equivalent
 #[derive(Debug, Default, Clone)]
@@ -216,5 +217,30 @@ impl Date {
         largest_unit: TemporalUnit,
     ) -> TemporalResult<Duration> {
         self.contextual_difference_date(other, largest_unit, &mut ())
+    }
+}
+
+// ==== Trait impls ====
+
+impl FromStr for Date {
+    type Err = TemporalError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let parse_record = parse_date_time(s)?;
+
+        let calendar = parse_record.calendar.unwrap_or("iso8601".to_owned());
+        let _ = AvailableCalendars::from_str(calendar.to_ascii_lowercase().as_str())?;
+
+        let date = IsoDate::new(
+            parse_record.date.year,
+            parse_record.date.month,
+            parse_record.date.day,
+            ArithmeticOverflow::Reject,
+        )?;
+
+        Ok(Self::new_unchecked(
+            date,
+            CalendarSlot::Identifier(calendar),
+        ))
     }
 }

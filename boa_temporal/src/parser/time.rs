@@ -2,12 +2,9 @@
 
 use super::{
     grammar::{is_decimal_separator, is_time_separator},
-    IsoCursor,
+    Cursor,
 };
-use crate::{
-    error::{Error, ParseResult},
-    lexer::Error as LexError,
-};
+use crate::{TemporalError, TemporalResult};
 
 /// Parsed Time info
 #[derive(Debug, Default, Clone, Copy)]
@@ -22,10 +19,8 @@ pub(crate) struct TimeSpec {
     pub(crate) fraction: f64,
 }
 
-use boa_ast::Position;
-
 /// Parse `TimeSpec`
-pub(crate) fn parse_time_spec(cursor: &mut IsoCursor) -> ParseResult<TimeSpec> {
+pub(crate) fn parse_time_spec(cursor: &mut Cursor) -> TemporalResult<TimeSpec> {
     let hour = parse_hour(cursor)?;
     let mut separator = false;
 
@@ -50,9 +45,7 @@ pub(crate) fn parse_time_spec(cursor: &mut IsoCursor) -> ParseResult<TimeSpec> {
         if separator && is_time_separator {
             cursor.advance();
         } else if is_time_separator {
-            return Err(
-                LexError::syntax("Invalid TimeSeparator", Position::new(1, cursor.pos())).into(),
-            );
+            return Err(TemporalError::syntax().with_message("Invalid TimeSeparator"));
         }
     } else {
         return Ok(TimeSpec {
@@ -79,17 +72,13 @@ pub(crate) fn parse_time_spec(cursor: &mut IsoCursor) -> ParseResult<TimeSpec> {
     })
 }
 
-pub(crate) fn parse_hour(cursor: &mut IsoCursor) -> ParseResult<u8> {
+pub(crate) fn parse_hour(cursor: &mut Cursor) -> TemporalResult<u8> {
     let hour_value = cursor
         .slice(cursor.pos(), cursor.pos() + 2)
         .parse::<u8>()
-        .map_err(|e| Error::general(e.to_string(), Position::new(1, cursor.pos())))?;
+        .map_err(|e| TemporalError::syntax().with_message(e.to_string()))?;
     if !(0..=23).contains(&hour_value) {
-        return Err(LexError::syntax(
-            "Hour must be in a range of 0-23",
-            Position::new(1, cursor.pos() + 1),
-        )
-        .into());
+        return Err(TemporalError::syntax().with_message("Hour must be in a range of 0-23"));
     }
     cursor.advance_n(2);
     Ok(hour_value)
@@ -97,19 +86,15 @@ pub(crate) fn parse_hour(cursor: &mut IsoCursor) -> ParseResult<u8> {
 
 // NOTE: `TimeSecond` is a 60 inclusive `MinuteSecond`.
 /// Parse `MinuteSecond`
-pub(crate) fn parse_minute_second(cursor: &mut IsoCursor, inclusive: bool) -> ParseResult<u8> {
+pub(crate) fn parse_minute_second(cursor: &mut Cursor, inclusive: bool) -> TemporalResult<u8> {
     let min_sec_value = cursor
         .slice(cursor.pos(), cursor.pos() + 2)
         .parse::<u8>()
-        .map_err(|e| Error::general(e.to_string(), Position::new(1, cursor.pos())))?;
+        .map_err(|e| TemporalError::syntax().with_message(e.to_string()))?;
 
     let valid_range = if inclusive { 0..=60 } else { 0..=59 };
     if !valid_range.contains(&min_sec_value) {
-        return Err(LexError::syntax(
-            "MinuteSecond must be in a range of 0-59",
-            Position::new(1, cursor.pos() + 1),
-        )
-        .into());
+        return Err(TemporalError::syntax().with_message("MinuteSecond must be in a range of 0-59"));
     }
 
     cursor.advance_n(2);
@@ -120,27 +105,26 @@ pub(crate) fn parse_minute_second(cursor: &mut IsoCursor, inclusive: bool) -> Pa
 ///
 /// This is primarily used in ISO8601 to add percision past
 /// a second.
-pub(crate) fn parse_fraction(cursor: &mut IsoCursor) -> ParseResult<f64> {
+pub(crate) fn parse_fraction(cursor: &mut Cursor) -> TemporalResult<f64> {
     // Decimal is skipped by next call.
     let mut fraction_components = Vec::from(['.']);
     while let Some(ch) = cursor.next() {
         if !ch.is_ascii_digit() {
             if fraction_components.len() > 10 {
-                return Err(Error::general(
-                    "Fraction exceeds 9 DecimalDigits",
-                    Position::new(1, cursor.pos() - 1),
-                ));
+                return Err(
+                    TemporalError::syntax().with_message("Fraction exceeds 9 DecimalDigits")
+                );
             }
 
             let fraction_value = fraction_components
                 .iter()
                 .collect::<String>()
                 .parse::<f64>()
-                .map_err(|e| Error::general(e.to_string(), Position::new(1, cursor.pos() - 1)))?;
+                .map_err(|e| TemporalError::syntax().with_message(e.to_string()))?;
             return Ok(fraction_value);
         }
         fraction_components.push(ch);
     }
 
-    Err(Error::AbruptEnd)
+    Err(TemporalError::abrupt_end())
 }

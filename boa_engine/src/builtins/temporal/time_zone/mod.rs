@@ -364,10 +364,10 @@ pub(super) fn create_temporal_time_zone(
 /// [spec]: https://tc39.es/ecma262/#sec-parsetimezoneoffsetstring
 #[allow(clippy::unnecessary_wraps, unused)]
 fn parse_timezone_offset_string(offset_string: &str, context: &mut Context) -> JsResult<i64> {
-    use boa_parser::temporal::{IsoCursor, TemporalTimeZoneString};
+    use boa_temporal::parser::{Cursor, TemporalTimeZoneString};
 
     // 1. Let parseResult be ParseText(StringToCodePoints(offsetString), UTCOffset).
-    let parse_result = TemporalTimeZoneString::parse(&mut IsoCursor::new(offset_string))?;
+    let parse_result = TemporalTimeZoneString::parse(&mut Cursor::new(offset_string))?;
 
     // 2. Assert: parseResult is not a List of errors.
     // 3. Assert: parseResult contains a TemporalSign Parse Node.
