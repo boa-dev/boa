@@ -33,6 +33,23 @@ impl<K: Trace, V: Trace + Clone> Ephemeron<K, V> {
         unsafe { self.inner_ptr.as_ref().value().cloned() }
     }
 
+    /// Gets the stored key of this `Ephemeron`, or `None` if the key was already garbage collected.
+    #[inline]
+    #[must_use]
+    pub fn key(&self) -> Option<Gc<K>> {
+        // SAFETY: this is safe because `Ephemeron` is tracked to always point to a valid pointer
+        // `inner_ptr`.
+        let key_ptr = unsafe { self.inner_ptr.as_ref().key_ptr() }?;
+
+        // SAFETY: Returned pointer is valid, so this is safe.
+        unsafe {
+            key_ptr.as_ref().inc_ref_count();
+        }
+
+        // SAFETY: The gc pointer's reference count has been incremented, so this is safe.
+        Some(unsafe { Gc::from_raw(key_ptr) })
+    }
+
     /// Checks if the [`Ephemeron`] has a value.
     #[must_use]
     pub fn has_value(&self) -> bool {

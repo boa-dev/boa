@@ -59,7 +59,7 @@ impl<T: Trace> Gc<T> {
         //   `unsafe` block.
         // - `set_kv`: `weak` is a newly created `EphemeronBox`, meaning it isn't possible to
         //   collect it since `weak` is still live.
-        unsafe { weak.inner().inner_ptr().as_mut().set(&gc, gc.clone()) }
+        unsafe { weak.inner().inner_ptr().as_mut().set(&gc, ()) }
 
         gc
     }
