@@ -937,7 +937,7 @@ pub(crate) fn create_temporal_duration(
     // 12. Set object.[[Microseconds]] to ℝ(𝔽(microseconds)).
     // 13. Set object.[[Nanoseconds]] to ℝ(𝔽(nanoseconds)).
 
-    let obj = JsObject::from_proto_and_data(prototype, Duration::new( inner));
+    let obj = JsObject::from_proto_and_data(prototype, Duration::new(inner));
     // 14. Return object.
     Ok(obj)
 }

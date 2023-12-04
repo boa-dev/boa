@@ -105,10 +105,7 @@ pub(crate) fn create_temporal_month_day(
     // 6. Set object.[[ISODay]] to isoDay.
     // 7. Set object.[[Calendar]] to calendar.
     // 8. Set object.[[ISOYear]] to referenceISOYear.
-    let obj = JsObject::from_proto_and_data(
-        proto,
-        PlainMonthDay::new(inner),
-    );
+    let obj = JsObject::from_proto_and_data(proto, PlainMonthDay::new(inner));
 
     // 9. Return object.
     Ok(obj.into())

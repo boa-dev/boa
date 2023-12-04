@@ -301,8 +301,7 @@ pub(crate) fn create_temporal_year_month(
     // 7. Set object.[[Calendar]] to calendar.
     // 8. Set object.[[ISODay]] to referenceISODay.
 
-    let obj =
-        JsObject::from_proto_and_data(proto, PlainYearMonth::new(ym));
+    let obj = JsObject::from_proto_and_data(proto, PlainYearMonth::new(ym));
 
     // 9. Return object.
     Ok(obj.into())
