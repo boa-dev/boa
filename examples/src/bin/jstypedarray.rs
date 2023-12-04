@@ -185,6 +185,17 @@ fn main() -> JsResult<()> {
     assert_eq!(array.get(6, context)?, JsValue::new(7.0));
     assert_eq!(array.get(7, context)?, JsValue::new(8.0));
 
+    // toLocaleString
+    // let array = JsUint32Array::from_iter(vec![500, 8123, 12], context)?;
+    // let locales: Option<JsValue> = Some(js_string!("de-DE").into());
+    // let options = Some(context.eval(Source::from_bytes(
+    //     r##"let options = { style: "currency", currency: "EUR" }; options;"##,
+    // ))?);
+    // assert_eq!(
+    //     array.to_locale_string(locales, options, context)?,
+    //     js_string!("500,00 €,8.123,00 €,12,00 €").into()
+    // );
+
     context
         .register_global_property(
             js_string!("myUint8Array"),

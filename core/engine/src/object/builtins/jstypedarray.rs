@@ -284,6 +284,21 @@ impl JsTypedArray {
         })
     }
 
+    /// Calls `TypedArray.prototype.toLocaleString()`
+    #[inline]
+    pub fn to_locale_string(
+        &self,
+        reserved1: Option<JsValue>,
+        reserved2: Option<JsValue>,
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        BuiltinTypedArray::to_locale_string(
+            &self.inner.clone().into(),
+            &[reserved1.into_or_undefined(), reserved2.into_or_undefined()],
+            context,
+        )
+    }
+
     /// Calls `TypedArray.prototype.filter()`.
     #[inline]
     pub fn filter(

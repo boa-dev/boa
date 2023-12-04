@@ -2436,7 +2436,7 @@ impl BuiltinTypedArray {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%typedarray%.prototype.tolocalestring
     /// [spec-402]: https://402.ecma-international.org/10.0/#sup-array.prototype.tolocalestring
-    fn to_locale_string(
+    pub(crate) fn to_locale_string(
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
