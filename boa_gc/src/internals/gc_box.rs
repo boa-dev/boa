@@ -1,9 +1,5 @@
 use crate::Trace;
-use std::{
-    cell::Cell,
-    fmt,
-    ptr::{self, NonNull},
-};
+use std::{cell::Cell, fmt, ptr};
 
 const MARK_MASK: u32 = 1 << (u32::BITS - 1);
 const NON_ROOTS_MASK: u32 = !MARK_MASK;
@@ -20,7 +16,6 @@ const NON_ROOTS_MAX: u32 = NON_ROOTS_MASK;
 pub(crate) struct GcBoxHeader {
     ref_count: Cell<u32>,
     non_root_count: Cell<u32>,
-    pub(crate) next: Cell<Option<NonNull<GcBox<dyn Trace>>>>,
 }
 
 impl GcBoxHeader {
@@ -29,7 +24,6 @@ impl GcBoxHeader {
         Self {
             ref_count: Cell::new(1),
             non_root_count: Cell::new(0),
-            next: Cell::new(None),
         }
     }
 

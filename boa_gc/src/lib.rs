@@ -46,9 +46,9 @@ thread_local!(static GC_DROPPING: Cell<bool> = Cell::new(false));
 thread_local!(static BOA_GC: RefCell<BoaGc> = RefCell::new( BoaGc {
     config: GcConfig::default(),
     runtime: GcRuntimeData::default(),
-    strong_start: Cell::new(None),
-    weak_start: Cell::new(None),
-    weak_map_start: Cell::new(None),
+    strongs: Vec::default(),
+    weaks: Vec::default(),
+    weak_maps: Vec::default(),
 }));
 
 #[derive(Debug, Clone, Copy)]
@@ -79,9 +79,9 @@ struct GcRuntimeData {
 struct BoaGc {
     config: GcConfig,
     runtime: GcRuntimeData,
-    strong_start: Cell<Option<GcPointer>>,
-    weak_start: Cell<Option<EphemeronPointer>>,
-    weak_map_start: Cell<Option<ErasedWeakMapBoxPointer>>,
+    strongs: Vec<GcPointer>,
+    weaks: Vec<EphemeronPointer>,
+    weak_maps: Vec<ErasedWeakMapBoxPointer>,
 }
 
 impl Drop for BoaGc {
@@ -133,12 +133,11 @@ impl Allocator {
             let mut gc = st.borrow_mut();
 
             Self::manage_state(&mut gc);
-            value.header.next.set(gc.strong_start.take());
             // Safety: value cannot be a null pointer, since `Box` cannot return null pointers.
             let ptr = unsafe { NonNull::new_unchecked(Box::into_raw(Box::new(value))) };
             let erased: NonNull<GcBox<dyn Trace>> = ptr;
 
-            gc.strong_start.set(Some(erased));
+            gc.strongs.push(erased);
             gc.runtime.bytes_allocated += element_size;
 
             ptr
@@ -154,12 +153,11 @@ impl Allocator {
             let mut gc = st.borrow_mut();
 
             Self::manage_state(&mut gc);
-            value.header.next.set(gc.weak_start.take());
             // Safety: value cannot be a null pointer, since `Box` cannot return null pointers.
             let ptr = unsafe { NonNull::new_unchecked(Box::into_raw(Box::new(value))) };
             let erased: NonNull<dyn ErasedEphemeronBox> = ptr;
 
-            gc.weak_start.set(Some(erased));
+            gc.weaks.push(erased);
             gc.runtime.bytes_allocated += element_size;
 
             ptr
@@ -175,18 +173,15 @@ impl Allocator {
         let weak = WeakGc::new(&weak_map.inner);
 
         BOA_GC.with(|st| {
-            let gc = st.borrow_mut();
+            let mut gc = st.borrow_mut();
 
-            let weak_box = WeakMapBox {
-                map: weak,
-                next: Cell::new(gc.weak_map_start.take()),
-            };
+            let weak_box = WeakMapBox { map: weak };
 
             // Safety: value cannot be a null pointer, since `Box` cannot return null pointers.
             let ptr = unsafe { NonNull::new_unchecked(Box::into_raw(Box::new(weak_box))) };
             let erased: ErasedWeakMapBoxPointer = ptr;
 
-            gc.weak_map_start.set(Some(erased));
+            gc.weak_maps.push(erased);
 
             weak_map
         })
@@ -233,7 +228,7 @@ impl Collector {
 
         Self::trace_non_roots(gc);
 
-        let unreachables = Self::mark_heap(&gc.strong_start, &gc.weak_start, &gc.weak_map_start);
+        let unreachables = Self::mark_heap(&gc.strongs, &gc.weaks, &gc.weak_maps);
 
         // Only finalize if there are any unreachable nodes.
         if !unreachables.strong.is_empty() || !unreachables.weak.is_empty() {
@@ -241,64 +236,63 @@ impl Collector {
             // SAFETY: All passed pointers are valid, since we won't deallocate until `Self::sweep`.
             unsafe { Self::finalize(unreachables) };
 
-            let _final_unreachables =
-                Self::mark_heap(&gc.strong_start, &gc.weak_start, &gc.weak_map_start);
+            let _final_unreachables = Self::mark_heap(&gc.strongs, &gc.weaks, &gc.weak_maps);
         }
 
         // SAFETY: The head of our linked list is always valid per the invariants of our GC.
         unsafe {
             Self::sweep(
-                &gc.strong_start,
-                &gc.weak_start,
+                &mut gc.strongs,
+                &mut gc.weaks,
                 &mut gc.runtime.bytes_allocated,
             );
         }
 
         // Weak maps have to be cleared after the sweep, since the process dereferences GcBoxes.
-        let mut weak_map = &gc.weak_map_start;
-        while let Some(w) = weak_map.get() {
+        gc.weak_maps.retain(|w| {
             // SAFETY: The caller must ensure the validity of every node of `heap_start`.
             let node_ref = unsafe { w.as_ref() };
 
             if node_ref.is_live() {
                 node_ref.clear_dead_entries();
-                weak_map = node_ref.next();
-            } else {
-                weak_map.set(node_ref.next().take());
 
+                true
+            } else {
                 // SAFETY:
                 // The `Allocator` must always ensure its start node is a valid, non-null pointer that
                 // was allocated by `Box::from_raw(Box::new(..))`.
                 let _unmarked_node = unsafe { Box::from_raw(w.as_ptr()) };
+
+                false
             }
-        }
+        });
+
+        gc.strongs.shrink_to(gc.strongs.len() >> 2);
+        gc.weaks.shrink_to(gc.weaks.len() >> 2);
+        gc.weak_maps.shrink_to(gc.weak_maps.len() >> 2);
     }
 
     fn trace_non_roots(gc: &BoaGc) {
         // Count all the handles located in GC heap.
         // Then, we can find whether there is a reference from other places, and they are the roots.
-        let mut strong = &gc.strong_start;
-        while let Some(node) = strong.get() {
+        for node in &gc.strongs {
             // SAFETY: node must be valid as this phase cannot drop any node.
             let node_ref = unsafe { node.as_ref() };
             node_ref.value().trace_non_roots();
-            strong = &node_ref.header.next;
         }
 
-        let mut weak = &gc.weak_start;
-        while let Some(eph) = weak.get() {
+        for eph in &gc.weaks {
             // SAFETY: node must be valid as this phase cannot drop any node.
             let eph_ref = unsafe { eph.as_ref() };
             eph_ref.trace_non_roots();
-            weak = &eph_ref.header().next;
         }
     }
 
     /// Walk the heap and mark any nodes deemed reachable
     fn mark_heap(
-        mut strong: &Cell<Option<NonNull<GcBox<dyn Trace>>>>,
-        mut weak: &Cell<Option<NonNull<dyn ErasedEphemeronBox>>>,
-        mut weak_map: &Cell<Option<ErasedWeakMapBoxPointer>>,
+        strongs: &[GcPointer],
+        weaks: &[EphemeronPointer],
+        weak_maps: &[ErasedWeakMapBoxPointer],
     ) -> Unreachables {
         let _timer = Profiler::global().start_event("Gc Marking", "gc");
 
@@ -309,7 +303,7 @@ impl Collector {
         // === Preliminary mark phase ===
         //
         // 0. Get the naive list of possibly dead nodes.
-        while let Some(node) = strong.get() {
+        for node in strongs {
             // SAFETY: node must be valid as this phase cannot drop any node.
             let node_ref = unsafe { node.as_ref() };
             if node_ref.get_non_root_count() < node_ref.get_ref_count() {
@@ -318,13 +312,12 @@ impl Collector {
                     node_ref.mark_and_trace();
                 }
             } else if !node_ref.is_marked() {
-                strong_dead.push(node);
+                strong_dead.push(*node);
             }
-            strong = &node_ref.header.next;
         }
 
         // 0.1. Early return if there are no ephemerons in the GC
-        if weak.get().is_none() {
+        if weaks.is_empty() {
             strong_dead.retain_mut(|node| {
                 // SAFETY: node must be valid as this phase cannot drop any node.
                 unsafe { !node.as_ref().is_marked() }
@@ -341,7 +334,7 @@ impl Collector {
         // 1. Get the naive list of ephemerons that are supposedly dead or their key is dead and
         // trace all the ephemerons that have roots and their keys are live. Also remove from
         // this list the ephemerons that are marked but their value is dead.
-        while let Some(eph) = weak.get() {
+        for eph in weaks {
             // SAFETY: node must be valid as this phase cannot drop any node.
             let eph_ref = unsafe { eph.as_ref() };
             let header = eph_ref.header();
@@ -350,20 +343,17 @@ impl Collector {
             }
             // SAFETY: the garbage collector ensures `eph_ref` always points to valid data.
             if unsafe { !eph_ref.trace() } {
-                pending_ephemerons.push(eph);
+                pending_ephemerons.push(*eph);
             }
-            weak = &header.next;
         }
 
         // 2. Trace all the weak pointers in the live weak maps to make sure they do not get swept.
-        while let Some(w) = weak_map.get() {
+        for w in weak_maps {
             // SAFETY: node must be valid as this phase cannot drop any node.
             let node_ref = unsafe { w.as_ref() };
 
             // SAFETY: The garbage collector ensures that all nodes are valid.
             unsafe { node_ref.trace() };
-
-            weak_map = node_ref.next();
         }
 
         // 3. Iterate through all pending ephemerons, removing the ones which have been successfully
@@ -423,81 +413,79 @@ impl Collector {
     /// - Providing a list of pointers that weren't allocated by `Box::into_raw(Box::new(..))`
     /// will result in Undefined Behaviour.
     unsafe fn sweep(
-        mut strong: &Cell<Option<NonNull<GcBox<dyn Trace>>>>,
-        mut weak: &Cell<Option<NonNull<dyn ErasedEphemeronBox>>>,
+        strong: &mut Vec<GcPointer>,
+        weak: &mut Vec<EphemeronPointer>,
         total_allocated: &mut usize,
     ) {
         let _timer = Profiler::global().start_event("Gc Sweeping", "gc");
         let _guard = DropGuard::new();
 
-        while let Some(node) = strong.get() {
+        strong.retain(|node| {
             // SAFETY: The caller must ensure the validity of every node of `heap_start`.
             let node_ref = unsafe { node.as_ref() };
             if node_ref.is_marked() {
                 node_ref.header.unmark();
                 node_ref.reset_non_root_count();
-                strong = &node_ref.header.next;
+
+                true
             } else {
                 // SAFETY: The algorithm ensures only unmarked/unreachable pointers are dropped.
                 // The caller must ensure all pointers were allocated by `Box::into_raw(Box::new(..))`.
                 let unmarked_node = unsafe { Box::from_raw(node.as_ptr()) };
                 let unallocated_bytes = mem::size_of_val(&*unmarked_node);
                 *total_allocated -= unallocated_bytes;
-                strong.set(unmarked_node.header.next.take());
-            }
-        }
 
-        while let Some(eph) = weak.get() {
+                false
+            }
+        });
+
+        weak.retain(|eph| {
             // SAFETY: The caller must ensure the validity of every node of `heap_start`.
             let eph_ref = unsafe { eph.as_ref() };
             let header = eph_ref.header();
             if header.is_marked() {
                 header.unmark();
                 header.reset_non_root_count();
-                weak = &header.next;
+
+                true
             } else {
                 // SAFETY: The algorithm ensures only unmarked/unreachable pointers are dropped.
                 // The caller must ensure all pointers were allocated by `Box::into_raw(Box::new(..))`.
                 let unmarked_eph = unsafe { Box::from_raw(eph.as_ptr()) };
                 let unallocated_bytes = mem::size_of_val(&*unmarked_eph);
                 *total_allocated -= unallocated_bytes;
-                weak.set(unmarked_eph.header().next.take());
+
+                false
             }
-        }
+        });
     }
 
     // Clean up the heap when BoaGc is dropped
-    fn dump(gc: &BoaGc) {
+    fn dump(gc: &mut BoaGc) {
         // Weak maps have to be dropped first, since the process dereferences GcBoxes.
         // This can be done without initializing a dropguard since no GcBox's are being dropped.
-        let weak_map_head = &gc.weak_map_start;
-        while let Some(node) = weak_map_head.get() {
+        for node in std::mem::take(&mut gc.weak_maps) {
             // SAFETY:
             // The `Allocator` must always ensure its start node is a valid, non-null pointer that
             // was allocated by `Box::from_raw(Box::new(..))`.
-            let unmarked_node = unsafe { Box::from_raw(node.as_ptr()) };
-            weak_map_head.set(unmarked_node.next().take());
+            let _unmarked_node = unsafe { Box::from_raw(node.as_ptr()) };
         }
 
         // Not initializing a dropguard since this should only be invoked when BOA_GC is being dropped.
         let _guard = DropGuard::new();
 
-        let strong_head = &gc.strong_start;
-        while let Some(node) = strong_head.get() {
+        for node in std::mem::take(&mut gc.strongs) {
             // SAFETY:
             // The `Allocator` must always ensure its start node is a valid, non-null pointer that
             // was allocated by `Box::from_raw(Box::new(..))`.
-            let unmarked_node = unsafe { Box::from_raw(node.as_ptr()) };
-            strong_head.set(unmarked_node.header.next.take());
+            let _unmarked_node = unsafe { Box::from_raw(node.as_ptr()) };
         }
 
-        let eph_head = &gc.weak_start;
-        while let Some(node) = eph_head.get() {
+        for node in std::mem::take(&mut gc.weaks) {
             // SAFETY:
             // The `Allocator` must always ensure its start node is a valid, non-null pointer that
             // was allocated by `Box::from_raw(Box::new(..))`.
-            let unmarked_node = unsafe { Box::from_raw(node.as_ptr()) };
-            eph_head.set(unmarked_node.header().next.take());
+            let _unmarked_node = unsafe { Box::from_raw(node.as_ptr()) };
         }
     }
 }
@@ -523,6 +511,6 @@ pub fn has_weak_maps() -> bool {
     BOA_GC.with(|current| {
         let gc = current.borrow();
 
-        gc.weak_map_start.get().is_some()
+        !gc.weak_maps.is_empty()
     })
 }
