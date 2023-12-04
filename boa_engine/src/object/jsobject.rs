@@ -137,15 +137,7 @@ impl JsObject {
             vtable: internal_methods,
         });
 
-        // SAFETY: This just makes the casting from sized to unsized. Should eventually be replaced by
-        // https://github.com/rust-lang/rust/issues/18598
-        let gc: Gc<VTableObject<dyn NativeObject>> = unsafe {
-            let ptr = Gc::into_raw(gc);
-            let ptr: NonNull<GcBox<VTableObject<dyn NativeObject>>> = ptr;
-            Gc::from_raw(ptr)
-        };
-
-        Self { inner: gc }
+        Self { inner: upcast(gc) }
     }
 
     /// Creates a new object with the provided prototype and object data.
@@ -174,15 +166,7 @@ impl JsObject {
             vtable: internal_methods,
         });
 
-        // SAFETY: This just makes the casting from sized to unsized. Should eventually be replaced by
-        // https://github.com/rust-lang/rust/issues/18598
-        let gc: Gc<VTableObject<dyn NativeObject>> = unsafe {
-            let ptr = Gc::into_raw(gc);
-            let ptr: NonNull<GcBox<VTableObject<dyn NativeObject>>> = ptr;
-            Gc::from_raw(ptr)
-        };
-
-        Self { inner: gc }
+        Self { inner: upcast(gc) }
     }
 
     /// Immutably borrows the `Object`.
@@ -839,5 +823,16 @@ impl Debug for JsObject {
         } else {
             f.write_str("{ ... }")
         }
+    }
+}
+
+/// Upcasts the reference to an object from a specific type `T` to an erased type `dyn NativeObject`.
+fn upcast<T: NativeObject>(ptr: Gc<VTableObject<T>>) -> Gc<VTableObject<dyn NativeObject>> {
+    // SAFETY: This just makes the casting from sized to unsized. Should eventually be replaced by
+    // https://github.com/rust-lang/rust/issues/18598
+    unsafe {
+        let ptr = Gc::into_raw(ptr);
+        let ptr: NonNull<GcBox<VTableObject<dyn NativeObject>>> = ptr;
+        Gc::from_raw(ptr)
     }
 }
