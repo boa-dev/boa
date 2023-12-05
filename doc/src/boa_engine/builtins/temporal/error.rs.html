@@ -18,6 +18,7 @@
 <a href="#18" id="18">18</a>
 <a href="#19" id="19">19</a>
 <a href="#20" id="20">20</a>
+<a href="#21" id="21">21</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>boa_temporal::error::{ErrorKind, TemporalError};
 
 <span class="kw">use crate</span>::{JsError, JsNativeError};
@@ -28,6 +29,7 @@
             ErrorKind::Range =&gt; JsNativeError::range().with_message(value.message()),
             ErrorKind::Type =&gt; JsNativeError::typ().with_message(value.message()),
             ErrorKind::Generic =&gt; JsNativeError::error().with_message(value.message()),
+            ErrorKind::Syntax =&gt; JsNativeError::syntax().with_message(value.message()),
         }
     }
 }

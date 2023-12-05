@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["parse_annotation_key","parse_annotation_set","parse_annotation_value","parse_annotations","parse_kv_annotation"],"struct":["AnnotationSet","KeyValueAnnotation","RecognizedAnnotations"]};

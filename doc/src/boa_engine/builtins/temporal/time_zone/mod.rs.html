@@ -851,10 +851,10 @@
 /// [spec]: https://tc39.es/ecma262/#sec-parsetimezoneoffsetstring
 </span><span class="attr">#[allow(clippy::unnecessary_wraps, unused)]
 </span><span class="kw">fn </span>parse_timezone_offset_string(offset_string: <span class="kw-2">&amp;</span>str, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;i64&gt; {
-    <span class="kw">use </span>boa_parser::temporal::{IsoCursor, TemporalTimeZoneString};
+    <span class="kw">use </span>boa_temporal::parser::{Cursor, TemporalTimeZoneString};
 
     <span class="comment">// 1. Let parseResult be ParseText(StringToCodePoints(offsetString), UTCOffset).
-    </span><span class="kw">let </span>parse_result = TemporalTimeZoneString::parse(<span class="kw-2">&amp;mut </span>IsoCursor::new(offset_string))<span class="question-mark">?</span>;
+    </span><span class="kw">let </span>parse_result = TemporalTimeZoneString::parse(<span class="kw-2">&amp;mut </span>Cursor::new(offset_string))<span class="question-mark">?</span>;
 
     <span class="comment">// 2. Assert: parseResult is not a List of errors.
     // 3. Assert: parseResult contains a TemporalSign Parse Node.

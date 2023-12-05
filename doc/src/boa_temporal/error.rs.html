@@ -96,6 +96,21 @@
 <a href="#96" id="96">96</a>
 <a href="#97" id="97">97</a>
 <a href="#98" id="98">98</a>
+<a href="#99" id="99">99</a>
+<a href="#100" id="100">100</a>
+<a href="#101" id="101">101</a>
+<a href="#102" id="102">102</a>
+<a href="#103" id="103">103</a>
+<a href="#104" id="104">104</a>
+<a href="#105" id="105">105</a>
+<a href="#106" id="106">106</a>
+<a href="#107" id="107">107</a>
+<a href="#108" id="108">108</a>
+<a href="#109" id="109">109</a>
+<a href="#110" id="110">110</a>
+<a href="#111" id="111">111</a>
+<a href="#112" id="112">112</a>
+<a href="#113" id="113">113</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! An error type for Temporal Errors.
 
 </span><span class="kw">use </span>core::fmt;
@@ -110,6 +125,8 @@
     </span>Type,
     <span class="doccomment">/// RangeError
     </span>Range,
+    <span class="doccomment">/// SyntaxError
+    </span>Syntax,
 }
 
 <span class="kw">impl </span>fmt::Display <span class="kw">for </span>ErrorKind {
@@ -118,6 +135,7 @@
             <span class="self">Self</span>::Generic =&gt; <span class="string">&quot;Error&quot;</span>,
             <span class="self">Self</span>::Type =&gt; <span class="string">&quot;TypeError&quot;</span>,
             <span class="self">Self</span>::Range =&gt; <span class="string">&quot;RangeError&quot;</span>,
+            <span class="self">Self</span>::Syntax =&gt; <span class="string">&quot;SyntaxError&quot;</span>,
         }
         .fmt(f)
     }
@@ -157,6 +175,18 @@
     </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>r#type() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new(ErrorKind::Type)
+    }
+
+    <span class="doccomment">/// Create a syntax error.
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub fn </span>syntax() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new(ErrorKind::Syntax)
+    }
+
+    <span class="doccomment">/// Create an abrupt end error.
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub fn </span>abrupt_end() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::syntax().with_message(<span class="string">&quot;Abrupt end to parsing target.&quot;</span>)
     }
 
     <span class="doccomment">/// Add a message to the error.
