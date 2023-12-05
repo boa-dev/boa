@@ -8,8 +8,8 @@ use boa_gc::{Finalize, Trace};
 use crate::object::internal_methods::immutable_prototype::immutable_prototype_exotic_set_prototype_of;
 use crate::object::internal_methods::{
     ordinary_define_own_property, ordinary_delete, ordinary_get, ordinary_get_own_property,
-    ordinary_has_property, ordinary_own_property_keys, InternalObjectMethods,
-    ORDINARY_INTERNAL_METHODS, InternalMethodContext,
+    ordinary_has_property, ordinary_own_property_keys, InternalMethodContext,
+    InternalObjectMethods, ORDINARY_INTERNAL_METHODS,
 };
 use crate::object::{JsData, JsPrototype};
 use crate::property::{PropertyDescriptor, PropertyKey};

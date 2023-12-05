@@ -7,7 +7,8 @@ use crate::{
     object::{
         internal_methods::{
             ordinary_define_own_property, ordinary_delete, ordinary_get, ordinary_get_own_property,
-            ordinary_has_property, ordinary_set, InternalObjectMethods, ORDINARY_INTERNAL_METHODS, InternalMethodContext,
+            ordinary_has_property, ordinary_set, InternalMethodContext, InternalObjectMethods,
+            ORDINARY_INTERNAL_METHODS,
         },
         JsData, JsObject,
     },

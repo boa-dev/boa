@@ -1,10 +1,9 @@
 use crate::{
-    object::{
-        internal_methods::InternalMethodContext, JsObject, CONSTRUCTOR, PROTOTYPE,
-    },
+    builtins::{function::OrdinaryFunction, OrdinaryObject},
+    object::{internal_methods::InternalMethodContext, JsObject, CONSTRUCTOR, PROTOTYPE},
     property::PropertyDescriptorBuilder,
     vm::{opcode::Operation, CompletionType},
-    Context, JsResult, JsValue, builtins::{function::OrdinaryFunction, OrdinaryObject},
+    Context, JsResult, JsValue,
 };
 
 /// `SetClassProtoType` implements the Opcode Operation for `Opcode::SetClassPrototype`

@@ -24,8 +24,8 @@ use crate::{
     object::{
         internal_methods::{
             get_prototype_from_constructor, ordinary_define_own_property,
-            ordinary_get_own_property, InternalObjectMethods, ORDINARY_INTERNAL_METHODS,
-            InternalMethodContext
+            ordinary_get_own_property, InternalMethodContext, InternalObjectMethods,
+            ORDINARY_INTERNAL_METHODS,
         },
         JsData, JsObject, CONSTRUCTOR,
     },

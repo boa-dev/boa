@@ -3,7 +3,9 @@
 //! The `JsObject` is a garbage collected Object.
 
 use super::{
-    internal_methods::{non_existant_call, non_existant_construct, InternalMethodContext, InternalObjectMethods},
+    internal_methods::{
+        non_existant_call, non_existant_construct, InternalMethodContext, InternalObjectMethods,
+    },
     shape::RootShape,
     JsPrototype, NativeObject, Object, PrivateName, PropertyMap,
 };

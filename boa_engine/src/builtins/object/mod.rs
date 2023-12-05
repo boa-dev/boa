@@ -25,8 +25,8 @@ use crate::{
     js_string,
     native_function::NativeFunction,
     object::{
-internal_methods::{get_prototype_from_constructor, InternalMethodContext}, FunctionObjectBuilder, IntegrityLevel,
-        JsObject,
+        internal_methods::{get_prototype_from_constructor, InternalMethodContext},
+        FunctionObjectBuilder, IntegrityLevel, JsObject,
     },
     property::{Attribute, PropertyDescriptor, PropertyKey, PropertyNameKind},
     realm::Realm,
