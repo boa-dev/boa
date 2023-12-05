@@ -143,16 +143,16 @@ impl BuiltInConstructor for PluralRules {
                 matcher,
                 ..Default::default()
             },
-            context.icu(),
+            context.intl_provider(),
         );
 
         let native = match rule_type {
             PluralRuleType::Cardinal => PluralRulesWithRanges::try_new_cardinal_unstable(
-                context.icu().provider(),
+                context.intl_provider(),
                 &DataLocale::from(&locale),
             ),
             PluralRuleType::Ordinal => PluralRulesWithRanges::try_new_ordinal_unstable(
-                context.icu().provider(),
+                context.intl_provider(),
                 &DataLocale::from(&locale),
             ),
             _ => {

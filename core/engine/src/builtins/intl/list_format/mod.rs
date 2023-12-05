@@ -126,7 +126,7 @@ impl BuiltInConstructor for ListFormat {
                 matcher,
                 ..Default::default()
             },
-            context.icu(),
+            context.intl_provider(),
         );
 
         // 11. Let type be ? GetOption(options, "type", string, « "conjunction", "disjunction", "unit" », "conjunction").
@@ -144,17 +144,17 @@ impl BuiltInConstructor for ListFormat {
         let data_locale = DataLocale::from(&locale);
         let formatter = match typ {
             ListFormatType::Conjunction => ListFormatter::try_new_and_with_length_unstable(
-                context.icu().provider(),
+                context.intl_provider(),
                 &data_locale,
                 style,
             ),
             ListFormatType::Disjunction => ListFormatter::try_new_or_with_length_unstable(
-                context.icu().provider(),
+                context.intl_provider(),
                 &data_locale,
                 style,
             ),
             ListFormatType::Unit => ListFormatter::try_new_unit_with_length_unstable(
-                context.icu().provider(),
+                context.intl_provider(),
                 &data_locale,
                 style,
             ),

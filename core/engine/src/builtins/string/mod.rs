@@ -1754,16 +1754,16 @@ impl String {
                 .next()
                 // 3. Else,
                 //     a. Let requestedLocale be ! DefaultLocale().
-                .unwrap_or_else(|| default_locale(context.icu().locale_canonicalizer()))
+                .unwrap_or_else(|| default_locale(context.intl_provider().locale_canonicalizer()))
                 .id;
             // 4. Let noExtensionsLocale be the String value that is requestedLocale with any Unicode locale extension sequences (6.2.1) removed.
             // 5. Let availableLocales be a List with language tags that includes the languages for which the Unicode Character Database contains language sensitive case mappings. Implementations may add additional language tags if they support case mapping for additional locales.
             // 6. Let locale be ! BestAvailableLocale(availableLocales, noExtensionsLocale).
             // 7. If locale is undefined, set locale to "und".
-            let lang = best_available_locale::<CaseMapV1Marker>(lang, context.icu().provider())
+            let lang = best_available_locale::<CaseMapV1Marker>(lang, context.intl_provider())
                 .unwrap_or(LanguageIdentifier::UND);
 
-            let casemapper = context.icu().case_mapper();
+            let casemapper = context.intl_provider().case_mapper();
 
             // 8. Let codePoints be StringToCodePoints(S).
             let result = string.map_valid_segments(|segment| {
@@ -2143,7 +2143,7 @@ impl String {
             }
             #[cfg(feature = "intl")]
             {
-                context.icu().string_normalizers()
+                context.intl_provider().string_normalizers()
             }
         };
 

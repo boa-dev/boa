@@ -17,8 +17,8 @@ use crate::{
         OrdinaryObject,
     },
     context::{
+        icu::IntlProvider,
         intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
-        BoaProvider,
     },
     js_string,
     native_function::NativeFunction,
@@ -79,7 +79,7 @@ impl Service for Collator {
 
     type LocaleOptions = CollatorLocaleOptions;
 
-    fn resolve(locale: &mut Locale, options: &mut Self::LocaleOptions, provider: &BoaProvider) {
+    fn resolve(locale: &mut Locale, options: &mut Self::LocaleOptions, provider: &IntlProvider) {
         let collation = options
             .collation
             .take()
@@ -274,8 +274,11 @@ impl BuiltInConstructor for Collator {
 
         // 18. Let relevantExtensionKeys be %Collator%.[[RelevantExtensionKeys]].
         // 19. Let r be ResolveLocale(%Collator%.[[AvailableLocales]], requestedLocales, opt, relevantExtensionKeys, localeData).
-        let mut locale =
-            resolve_locale::<Self>(&requested_locales, &mut intl_options, context.icu());
+        let mut locale = resolve_locale::<Self>(
+            &requested_locales,
+            &mut intl_options,
+            context.intl_provider(),
+        );
 
         let collator_locale = {
             // `collator_locale` needs to be different from the resolved locale because ECMA402 doesn't
@@ -332,7 +335,7 @@ impl BuiltInConstructor for Collator {
             .unzip();
 
         let collator =
-            NativeCollator::try_new_unstable(context.icu().provider(), &collator_locale, {
+            NativeCollator::try_new_unstable(context.intl_provider(), &collator_locale, {
                 let mut options = icu_collator::CollatorOptions::new();
                 options.strength = strength;
                 options.case_level = case_level;
