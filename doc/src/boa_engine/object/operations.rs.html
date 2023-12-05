@@ -1336,10 +1336,17 @@
 <a href="#1336" id="1336">1336</a>
 <a href="#1337" id="1337">1337</a>
 <a href="#1338" id="1338">1338</a>
+<a href="#1339" id="1339">1339</a>
+<a href="#1340" id="1340">1340</a>
+<a href="#1341" id="1341">1341</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
-    builtins::{function::ClassFieldDefinition, Array},
+    builtins::{
+        function::{BoundFunction, ClassFieldDefinition, OrdinaryFunction},
+        Array, Proxy,
+    },
     context::intrinsics::{StandardConstructor, StandardConstructors},
     error::JsNativeError,
+    native_function::NativeFunctionObject,
     object::{JsObject, PrivateElement, PrivateName, CONSTRUCTOR, PROTOTYPE},
     property::{PropertyDescriptor, PropertyDescriptorBuilder, PropertyKey, PropertyNameKind},
     realm::Realm,
@@ -1348,7 +1355,7 @@
     Context, JsResult, JsSymbol, JsValue,
 };
 
-<span class="kw">use super</span>::{internal_methods::InternalMethodContext, ObjectKind};
+<span class="kw">use </span><span class="kw">super</span>::internal_methods::InternalMethodContext;
 
 <span class="doccomment">/// Object integrity level.
 </span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -2084,7 +2091,7 @@
 
         <span class="comment">// 3. If argument is a Proxy exotic object, then
         </span><span class="kw">let </span>object = <span class="self">self</span>.borrow();
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(proxy) = object.as_proxy() {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(proxy) = object.downcast_ref::&lt;Proxy&gt;() {
             <span class="comment">// a. If argument.[[ProxyHandler]] is null, throw a TypeError exception.
             // b. Let target be argument.[[ProxyTarget]].
             </span><span class="kw">let </span>(target, <span class="kw">_</span>) = proxy.try_data()<span class="question-mark">?</span>;
@@ -2102,21 +2109,21 @@
     /// [spec]: https://tc39.es/ecma262/#sec-getfunctionrealm
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_function_realm(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;Realm&gt; {
         <span class="kw">let </span>constructor = <span class="self">self</span>.borrow();
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(fun) = constructor.as_function() {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(fun) = constructor.downcast_ref::&lt;OrdinaryFunction&gt;() {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(fun.realm().clone());
         }
 
-        <span class="kw">if let </span>ObjectKind::NativeFunction(f) = constructor.kind() {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(f) = constructor.downcast_ref::&lt;NativeFunctionObject&gt;() {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(f.realm.clone().unwrap_or_else(|| context.realm().clone()));
         }
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(bound) = constructor.as_bound_function() {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(bound) = constructor.downcast_ref::&lt;BoundFunction&gt;() {
             <span class="kw">let </span>fun = bound.target_function().clone();
             drop(constructor);
             <span class="kw">return </span>fun.get_function_realm(context);
         }
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(proxy) = constructor.as_proxy() {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(proxy) = constructor.downcast_ref::&lt;Proxy&gt;() {
             <span class="kw">let </span>(fun, <span class="kw">_</span>) = proxy.try_data()<span class="question-mark">?</span>;
             drop(constructor);
             <span class="kw">return </span>fun.get_function_realm(context);
@@ -2412,9 +2419,8 @@
         constructor: <span class="kw-2">&amp;</span><span class="self">Self</span>,
         context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;()&gt; {
-        <span class="kw">let </span>constructor_borrow = constructor.borrow();
-        <span class="kw">let </span>constructor_function = constructor_borrow
-            .as_function()
+        <span class="kw">let </span>constructor_function = constructor
+            .downcast_ref::&lt;OrdinaryFunction&gt;()
             .expect(<span class="string">&quot;class constructor must be function object&quot;</span>);
 
         <span class="comment">// 1. Let methods be the value of constructor.[[PrivateMethods]].
@@ -2634,7 +2640,7 @@
         };
 
         <span class="comment">// 2. If C has a [[BoundTargetFunction]] internal slot, then
-        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(bound_function) = function.borrow().as_bound_function() {
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(bound_function) = function.downcast_ref::&lt;BoundFunction&gt;() {
             <span class="comment">// a. Let BC be C.[[BoundTargetFunction]].
             // b. Return ? InstanceofOperator(O, BC).
             </span><span class="kw">return </span><span class="self">Self</span>::instance_of(

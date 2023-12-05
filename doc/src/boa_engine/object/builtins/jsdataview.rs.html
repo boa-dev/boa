@@ -494,15 +494,12 @@
 <a href="#494" id="494">494</a>
 <a href="#495" id="495">495</a>
 <a href="#496" id="496">496</a>
-<a href="#497" id="497">497</a>
-<a href="#498" id="498">498</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! A Rust API wrapper for Boa&#39;s `DataView` Builtin ECMAScript Object
 </span><span class="kw">use crate</span>::{
-    builtins::DataView,
+    builtins::{array_buffer::ArrayBuffer, DataView},
     context::intrinsics::StandardConstructors,
     object::{
         internal_methods::get_prototype_from_constructor, JsArrayBuffer, JsObject, JsObjectType,
-        ObjectData,
     },
     value::TryFromJs,
     Context, JsNativeError, JsResult, JsValue,
@@ -545,8 +542,7 @@
         context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="kw">let </span>(byte_offset, byte_length) = {
-            <span class="kw">let </span>borrowed_buffer = array_buffer.borrow();
-            <span class="kw">let </span>buffer = borrowed_buffer.as_array_buffer().ok_or_else(|| {
+            <span class="kw">let </span>buffer = array_buffer.downcast_ref::&lt;ArrayBuffer&gt;().ok_or_else(|| {
                 JsNativeError::typ().with_message(<span class="string">&quot;buffer must be an ArrayBuffer&quot;</span>)
             })<span class="question-mark">?</span>;
 
@@ -596,11 +592,11 @@
         <span class="kw">let </span>obj = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            ObjectData::data_view(DataView {
+            DataView {
                 viewed_array_buffer: (<span class="kw-2">**</span>array_buffer).clone(),
                 byte_length,
                 byte_offset,
-            }),
+            },
         );
 
         <span class="prelude-val">Ok</span>(<span class="self">Self </span>{ inner: obj })
@@ -609,7 +605,7 @@
     <span class="doccomment">/// Create a new `JsDataView` object from an existing object.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>from_object(object: JsObject) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
-        <span class="kw">if </span>object.is_data_view() {
+        <span class="kw">if </span>object.is::&lt;DataView&gt;() {
             <span class="prelude-val">Ok</span>(<span class="self">Self </span>{ inner: object })
         } <span class="kw">else </span>{
             <span class="prelude-val">Err</span>(JsNativeError::typ()

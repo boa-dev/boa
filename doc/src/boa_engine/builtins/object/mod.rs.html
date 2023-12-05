@@ -1533,6 +1533,20 @@
 <a href="#1533" id="1533">1533</a>
 <a href="#1534" id="1534">1534</a>
 <a href="#1535" id="1535">1535</a>
+<a href="#1536" id="1536">1536</a>
+<a href="#1537" id="1537">1537</a>
+<a href="#1538" id="1538">1538</a>
+<a href="#1539" id="1539">1539</a>
+<a href="#1540" id="1540">1540</a>
+<a href="#1541" id="1541">1541</a>
+<a href="#1542" id="1542">1542</a>
+<a href="#1543" id="1543">1543</a>
+<a href="#1544" id="1544">1544</a>
+<a href="#1545" id="1545">1545</a>
+<a href="#1546" id="1546">1546</a>
+<a href="#1547" id="1547">1547</a>
+<a href="#1548" id="1548">1548</a>
+<a href="#1549" id="1549">1549</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Object` object.
 //!
 //! The `Object` class represents one of ECMAScript&#39;s data types.
@@ -1550,7 +1564,9 @@
 
 </span><span class="kw">use </span>std::ops::Deref;
 
-<span class="kw">use super</span>::{Array, BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
+<span class="kw">use super</span>::{
+    error::ErrorObject, Array, BuiltInBuilder, BuiltInConstructor, Date, IntrinsicObject, RegExp,
+};
 <span class="kw">use crate</span>::{
     builtins::{map, BuiltInObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
@@ -1559,15 +1575,16 @@
     native_function::NativeFunction,
     object::{
         internal_methods::{get_prototype_from_constructor, InternalMethodContext},
-        FunctionObjectBuilder, IntegrityLevel, JsObject, ObjectData, ObjectKind,
+        FunctionObjectBuilder, IntegrityLevel, JsObject,
     },
     property::{Attribute, PropertyDescriptor, PropertyKey, PropertyNameKind},
     realm::Realm,
     string::{common::StaticJsStrings, utf16},
     symbol::JsSymbol,
     value::JsValue,
-    Context, JsArgs, JsResult, JsString,
+    Context, JsArgs, JsData, JsResult, JsString,
 };
+<span class="kw">use </span>boa_gc::{Finalize, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>tap::{Conv, Pipe};
 
@@ -1575,11 +1592,12 @@
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
 
-<span class="doccomment">/// The global JavaScript object.
-</span><span class="attr">#[derive(Debug, Clone, Copy)]
-</span><span class="kw">pub struct </span>Object;
+<span class="doccomment">/// An ordinary Javascript `Object`.
+</span><span class="attr">#[derive(Debug, Default, Clone, Copy, Trace, Finalize, JsData)]
+#[boa_gc(empty_trace)]
+</span><span class="kw">pub struct </span>OrdinaryObject;
 
-<span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>Object {
+<span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>OrdinaryObject {
     <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
         <span class="kw">let </span>_timer = Profiler::global().start_event(std::any::type_name::&lt;<span class="self">Self</span>&gt;(), <span class="string">&quot;init&quot;</span>);
 
@@ -1679,11 +1697,11 @@
     }
 }
 
-<span class="kw">impl </span>BuiltInObject <span class="kw">for </span>Object {
+<span class="kw">impl </span>BuiltInObject <span class="kw">for </span>OrdinaryObject {
     <span class="kw">const </span>NAME: JsString = StaticJsStrings::OBJECT;
 }
 
-<span class="kw">impl </span>BuiltInConstructor <span class="kw">for </span>Object {
+<span class="kw">impl </span>BuiltInConstructor <span class="kw">for </span>OrdinaryObject {
     <span class="kw">const </span>LENGTH: usize = <span class="number">1</span>;
 
     <span class="kw">const </span>STANDARD_CONSTRUCTOR: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>StandardConstructors) -&gt; <span class="kw-2">&amp;</span>StandardConstructor =
@@ -1708,7 +1726,7 @@
             <span class="kw">let </span>object = JsObject::from_proto_and_data_with_shared_shape(
                 context.root_shape(),
                 prototype,
-                ObjectData::ordinary(),
+                OrdinaryObject,
             );
             <span class="kw">return </span><span class="prelude-val">Ok</span>(object.into());
         }
@@ -1725,7 +1743,7 @@
     }
 }
 
-<span class="kw">impl </span>Object {
+<span class="kw">impl </span>OrdinaryObject {
     <span class="doccomment">/// `get Object.prototype.__proto__`
     ///
     /// The `__proto__` getter function exposes the value of the
@@ -1992,7 +2010,7 @@
             JsValue::Object(<span class="kw">_</span>) | JsValue::Null =&gt; JsObject::from_proto_and_data_with_shared_shape(
                 context.root_shape(),
                 prototype.as_object().cloned(),
-                ObjectData::ordinary(),
+                OrdinaryObject,
             ),
             <span class="kw">_ </span>=&gt; {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
@@ -2373,25 +2391,35 @@
         </span><span class="kw">let </span>builtin_tag = <span class="kw">if </span>o.is_array_abstract()<span class="question-mark">? </span>{
             <span class="macro">utf16!</span>(<span class="string">&quot;Array&quot;</span>)
         } <span class="kw">else </span>{
-            <span class="comment">// 6. Else if O has a [[ParameterMap]] internal slot, let builtinTag be &quot;Arguments&quot;.
-            // 7. Else if O has a [[Call]] internal method, let builtinTag be &quot;Function&quot;.
-            // 8. Else if O has an [[ErrorData]] internal slot, let builtinTag be &quot;Error&quot;.
-            // 9. Else if O has a [[BooleanData]] internal slot, let builtinTag be &quot;Boolean&quot;.
-            // 10. Else if O has a [[NumberData]] internal slot, let builtinTag be &quot;Number&quot;.
-            // 11. Else if O has a [[StringData]] internal slot, let builtinTag be &quot;String&quot;.
-            // 12. Else if O has a [[DateValue]] internal slot, let builtinTag be &quot;Date&quot;.
-            // 13. Else if O has a [[RegExpMatcher]] internal slot, let builtinTag be &quot;RegExp&quot;.
-            // 14. Else, let builtinTag be &quot;Object&quot;.
-            </span><span class="kw">match </span>o.borrow().kind() {
-                ObjectKind::Arguments(<span class="kw">_</span>) =&gt; <span class="macro">utf16!</span>(<span class="string">&quot;Arguments&quot;</span>),
-                <span class="kw">_ if </span>o.is_callable() =&gt; <span class="macro">utf16!</span>(<span class="string">&quot;Function&quot;</span>),
-                ObjectKind::Error(<span class="kw">_</span>) =&gt; <span class="macro">utf16!</span>(<span class="string">&quot;Error&quot;</span>),
-                ObjectKind::Boolean(<span class="kw">_</span>) =&gt; <span class="macro">utf16!</span>(<span class="string">&quot;Boolean&quot;</span>),
-                ObjectKind::Number(<span class="kw">_</span>) =&gt; <span class="macro">utf16!</span>(<span class="string">&quot;Number&quot;</span>),
-                ObjectKind::String(<span class="kw">_</span>) =&gt; <span class="macro">utf16!</span>(<span class="string">&quot;String&quot;</span>),
-                ObjectKind::Date(<span class="kw">_</span>) =&gt; <span class="macro">utf16!</span>(<span class="string">&quot;Date&quot;</span>),
-                ObjectKind::RegExp(<span class="kw">_</span>) =&gt; <span class="macro">utf16!</span>(<span class="string">&quot;RegExp&quot;</span>),
-                <span class="kw">_ </span>=&gt; <span class="macro">utf16!</span>(<span class="string">&quot;Object&quot;</span>),
+            <span class="kw">let </span>o_borrow = o.borrow();
+
+            <span class="kw">if </span>o_borrow.is_arguments() {
+                <span class="comment">// 6. Else if O has a [[ParameterMap]] internal slot, let builtinTag be &quot;Arguments&quot;.
+                </span><span class="macro">utf16!</span>(<span class="string">&quot;Arguments&quot;</span>)
+            } <span class="kw">else if </span>o.is_callable() {
+                <span class="comment">// 7. Else if O has a [[Call]] internal method, let builtinTag be &quot;Function&quot;.
+                </span><span class="macro">utf16!</span>(<span class="string">&quot;Function&quot;</span>)
+            } <span class="kw">else if </span>o.is::&lt;ErrorObject&gt;() {
+                <span class="comment">// 8. Else if O has an [[ErrorData]] internal slot, let builtinTag be &quot;Error&quot;.
+                </span><span class="macro">utf16!</span>(<span class="string">&quot;Error&quot;</span>)
+            } <span class="kw">else if </span>o.is::&lt;bool&gt;() {
+                <span class="comment">// 9. Else if O has a [[BooleanData]] internal slot, let builtinTag be &quot;Boolean&quot;.
+                </span><span class="macro">utf16!</span>(<span class="string">&quot;Boolean&quot;</span>)
+            } <span class="kw">else if </span>o.is::&lt;f64&gt;() {
+                <span class="comment">// 10. Else if O has a [[NumberData]] internal slot, let builtinTag be &quot;Number&quot;.
+                </span><span class="macro">utf16!</span>(<span class="string">&quot;Number&quot;</span>)
+            } <span class="kw">else if </span>o.is::&lt;JsString&gt;() {
+                <span class="comment">// 11. Else if O has a [[StringData]] internal slot, let builtinTag be &quot;String&quot;.
+                </span><span class="macro">utf16!</span>(<span class="string">&quot;String&quot;</span>)
+            } <span class="kw">else if </span>o.is::&lt;Date&gt;() {
+                <span class="comment">// 12. Else if O has a [[DateValue]] internal slot, let builtinTag be &quot;Date&quot;.
+                </span><span class="macro">utf16!</span>(<span class="string">&quot;Date&quot;</span>)
+            } <span class="kw">else if </span>o.is::&lt;RegExp&gt;() {
+                <span class="comment">// 13. Else if O has a [[RegExpMatcher]] internal slot, let builtinTag be &quot;RegExp&quot;.
+                </span><span class="macro">utf16!</span>(<span class="string">&quot;RegExp&quot;</span>)
+            } <span class="kw">else </span>{
+                <span class="comment">// 14. Else, let builtinTag be &quot;Object&quot;.
+                </span><span class="macro">utf16!</span>(<span class="string">&quot;Object&quot;</span>)
             }
         };
 

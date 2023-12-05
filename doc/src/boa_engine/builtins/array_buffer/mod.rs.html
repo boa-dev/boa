@@ -495,7 +495,6 @@
 <a href="#495" id="495">495</a>
 <a href="#496" id="496">496</a>
 <a href="#497" id="497">497</a>
-<a href="#498" id="498">498</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `ArrayBuffer` and `SharedArrayBuffer` objects
 //!
 //! More information:
@@ -521,20 +520,22 @@
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
+    object::{internal_methods::get_prototype_from_constructor, JsObject},
     property::Attribute,
     realm::Realm,
     string::common::StaticJsStrings,
     symbol::JsSymbol,
     value::IntegerOrInfinity,
-    Context, JsArgs, JsResult, JsString, JsValue,
+    Context, JsArgs, JsData, JsResult, JsString, JsValue,
 };
 <span class="kw">use </span>boa_gc::{Finalize, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
 
 <span class="kw">use </span><span class="self">self</span>::utils::{SliceRef, SliceRefMut};
 
-<span class="kw">use super</span>::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
+<span class="kw">use super</span>::{
+    typed_array::TypedArray, BuiltInBuilder, BuiltInConstructor, DataView, IntrinsicObject,
+};
 
 <span class="attr">#[derive(Debug, Clone, Copy)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>BufferRef&lt;<span class="lifetime">&#39;a</span>&gt; {
@@ -571,7 +572,7 @@
 }
 
 <span class="doccomment">/// The internal representation of an `ArrayBuffer` object.
-</span><span class="attr">#[derive(Debug, Clone, Trace, Finalize)]
+</span><span class="attr">#[derive(Debug, Clone, Trace, Finalize, JsData)]
 </span><span class="kw">pub struct </span>ArrayBuffer {
     <span class="doccomment">/// The `[[ArrayBufferData]]` internal slot.
     </span>data: <span class="prelude-ty">Option</span>&lt;Vec&lt;u8&gt;&gt;,
@@ -734,7 +735,7 @@
         </span><span class="prelude-val">Ok</span>(args
             .get_or_undefined(<span class="number">0</span>)
             .as_object()
-            .map(|obj| obj.borrow().has_viewed_array_buffer())
+            .map(|obj| obj.is::&lt;TypedArray&gt;() || obj.is::&lt;DataView&gt;())
             .unwrap_or_default()
             .into())
     }
@@ -752,14 +753,14 @@
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).
-        </span><span class="kw">let </span>obj = this.as_object().ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;ArrayBuffer.byteLength called with non-object value&quot;</span>)
-        })<span class="question-mark">?</span>;
-        <span class="kw">let </span>obj = obj.borrow();
-        <span class="comment">// 3. If IsSharedArrayBuffer(O) is true, throw a TypeError exception.
-        </span><span class="kw">let </span>buf = obj.as_array_buffer().ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;ArrayBuffer.byteLength called with invalid object&quot;</span>)
-        })<span class="question-mark">?</span>;
+        // 3. If IsSharedArrayBuffer(O) is true, throw a TypeError exception.
+        </span><span class="kw">let </span>buf = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message(<span class="string">&quot;ArrayBuffer.byteLength called with non `ArrayBuffer` object&quot;</span>)
+            })<span class="question-mark">?</span>;
 
         <span class="comment">// 4. If IsDetachedBuffer(O) is true, return +0𝔽.
         // 5. Let length be O.[[ArrayBufferByteLength]].
@@ -776,13 +777,12 @@
     </span><span class="kw">fn </span>slice(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).
+        // 3. If IsSharedArrayBuffer(O) is true, throw a TypeError exception.
         </span><span class="kw">let </span>obj = this.as_object().ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;ArrayBuffer.slice called with non-object value&quot;</span>)
         })<span class="question-mark">?</span>;
-        <span class="kw">let </span>obj_borrow = obj.borrow();
 
-        <span class="comment">// 3. If IsSharedArrayBuffer(O) is true, throw a TypeError exception.
-        </span><span class="kw">let </span>buf = obj_borrow.as_array_buffer().ok_or_else(|| {
+        <span class="kw">let </span>buf = obj.downcast_ref::&lt;<span class="self">Self</span>&gt;().ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;ArrayBuffer.slice called with invalid object&quot;</span>)
         })<span class="question-mark">?</span>;
 
@@ -810,15 +810,14 @@
         </span><span class="kw">let </span>new = ctor.construct(<span class="kw-2">&amp;</span>[new_len.into()], <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>ctor), context)<span class="question-mark">?</span>;
 
         {
-            <span class="kw">let </span>new_obj = new.borrow();
             <span class="comment">// 17. Perform ? RequireInternalSlot(new, [[ArrayBufferData]]).
             // 18. If IsSharedArrayBuffer(new) is true, throw a TypeError exception.
-            </span><span class="kw">let </span>new_array_buffer = new_obj.as_array_buffer().ok_or_else(|| {
+            </span><span class="kw">let </span>new = new.downcast_ref::&lt;<span class="self">Self</span>&gt;().ok_or_else(|| {
                 JsNativeError::typ().with_message(<span class="string">&quot;ArrayBuffer constructor returned invalid object&quot;</span>)
             })<span class="question-mark">?</span>;
 
             <span class="comment">// 19. If IsDetachedBuffer(new) is true, throw a TypeError exception.
-            </span><span class="kw">if </span>new_array_buffer.is_detached() {
+            </span><span class="kw">if </span>new.is_detached() {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
                     .with_message(<span class="string">&quot;ArrayBuffer constructor returned detached ArrayBuffer&quot;</span>)
                     .into());
@@ -836,13 +835,12 @@
         }
 
         {
-            <span class="kw">let </span><span class="kw-2">mut </span>new_obj_borrow = new.borrow_mut();
-            <span class="kw">let </span>new_array_buffer = new_obj_borrow
-                .as_array_buffer_mut()
+            <span class="kw">let </span><span class="kw-2">mut </span>new = new
+                .downcast_mut::&lt;<span class="self">Self</span>&gt;()
                 .expect(<span class="string">&quot;Already checked that `new_obj` was an `ArrayBuffer`&quot;</span>);
 
             <span class="comment">// 21. If new.[[ArrayBufferByteLength]] &lt; newLen, throw a TypeError exception.
-            </span><span class="kw">if </span>(new_array_buffer.len() <span class="kw">as </span>u64) &lt; new_len {
+            </span><span class="kw">if </span>(new.len() <span class="kw">as </span>u64) &lt; new_len {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
                     .with_message(<span class="string">&quot;new ArrayBuffer length too small&quot;</span>)
                     .into());
@@ -858,7 +856,7 @@
             };
 
             <span class="comment">// 25. Let toBuf be new.[[ArrayBufferData]].
-            </span><span class="kw">let </span>to_buf = new_array_buffer
+            </span><span class="kw">let </span>to_buf = new
                 .data
                 .as_mut()
                 .expect(<span class="string">&quot;ArrayBuffer cannot be detached here&quot;</span>);
@@ -899,10 +897,10 @@
         </span><span class="kw">let </span>obj = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            ObjectData::array_buffer(<span class="self">Self </span>{
+            <span class="self">Self </span>{
                 data: <span class="prelude-val">Some</span>(block),
                 detach_key: JsValue::Undefined,
-            }),
+            },
         );
 
         <span class="comment">// 5. Return obj.

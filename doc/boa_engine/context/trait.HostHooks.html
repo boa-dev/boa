@@ -3,35 +3,35 @@
     fn <a href="#method.make_job_callback" class="fn">make_job_callback</a>(
         &amp;self,
         callback: <a class="struct" href="../object/builtins/jsfunction/struct.JsFunction.html" title="struct boa_engine::object::builtins::jsfunction::JsFunction">JsFunction</a>,
-        _context: &amp;mut <a class="struct" href="../struct.Context.html" title="struct boa_engine::Context">Context</a>
+        _context: &amp;mut <a class="struct" href="struct.Context.html" title="struct boa_engine::context::Context">Context</a>
     ) -&gt; <a class="struct" href="../job/struct.JobCallback.html" title="struct boa_engine::job::JobCallback">JobCallback</a> { ... }
 <span class="item-spacer"></span>    fn <a href="#method.call_job_callback" class="fn">call_job_callback</a>(
         &amp;self,
         job: <a class="struct" href="../job/struct.JobCallback.html" title="struct boa_engine::job::JobCallback">JobCallback</a>,
-        this: &amp;<a class="enum" href="../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
-        args: &amp;[<a class="enum" href="../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-        context: &amp;mut <a class="struct" href="../struct.Context.html" title="struct boa_engine::Context">Context</a>
-    ) -&gt; <a class="type" href="../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt; { ... }
+        this: &amp;<a class="enum" href="../value/enum.JsValue.html" title="enum boa_engine::value::JsValue">JsValue</a>,
+        args: &amp;[<a class="enum" href="../value/enum.JsValue.html" title="enum boa_engine::value::JsValue">JsValue</a>],
+        context: &amp;mut <a class="struct" href="struct.Context.html" title="struct boa_engine::context::Context">Context</a>
+    ) -&gt; <a class="type" href="../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../value/enum.JsValue.html" title="enum boa_engine::value::JsValue">JsValue</a>&gt; { ... }
 <span class="item-spacer"></span>    fn <a href="#method.promise_rejection_tracker" class="fn">promise_rejection_tracker</a>(
         &amp;self,
         _promise: &amp;<a class="struct" href="../object/jsobject/struct.JsObject.html" title="struct boa_engine::object::jsobject::JsObject">JsObject</a>,
         _operation: <a class="enum" href="../builtins/promise/enum.OperationType.html" title="enum boa_engine::builtins::promise::OperationType">OperationType</a>,
-        _context: &amp;mut <a class="struct" href="../struct.Context.html" title="struct boa_engine::Context">Context</a>
+        _context: &amp;mut <a class="struct" href="struct.Context.html" title="struct boa_engine::context::Context">Context</a>
     ) { ... }
 <span class="item-spacer"></span>    fn <a href="#method.ensure_can_compile_strings" class="fn">ensure_can_compile_strings</a>(
         &amp;self,
         _realm: <a class="struct" href="../realm/struct.Realm.html" title="struct boa_engine::realm::Realm">Realm</a>,
-        _context: &amp;mut <a class="struct" href="../struct.Context.html" title="struct boa_engine::Context">Context</a>
+        _context: &amp;mut <a class="struct" href="struct.Context.html" title="struct boa_engine::context::Context">Context</a>
     ) -&gt; <a class="type" href="../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.74.0/std/primitive.unit.html">()</a>&gt; { ... }
 <span class="item-spacer"></span>    fn <a href="#method.has_source_text_available" class="fn">has_source_text_available</a>(
         &amp;self,
         _function: &amp;<a class="struct" href="../object/builtins/jsfunction/struct.JsFunction.html" title="struct boa_engine::object::builtins::jsfunction::JsFunction">JsFunction</a>,
-        _context: &amp;mut <a class="struct" href="../struct.Context.html" title="struct boa_engine::Context">Context</a>
+        _context: &amp;mut <a class="struct" href="struct.Context.html" title="struct boa_engine::context::Context">Context</a>
     ) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.74.0/std/primitive.bool.html">bool</a> { ... }
 <span class="item-spacer"></span>    fn <a href="#method.ensure_can_add_private_element" class="fn">ensure_can_add_private_element</a>(
         &amp;self,
         _o: &amp;<a class="struct" href="../object/jsobject/struct.JsObject.html" title="struct boa_engine::object::jsobject::JsObject">JsObject</a>,
-        _context: &amp;mut <a class="struct" href="../struct.Context.html" title="struct boa_engine::Context">Context</a>
+        _context: &amp;mut <a class="struct" href="struct.Context.html" title="struct boa_engine::context::Context">Context</a>
     ) -&gt; <a class="type" href="../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.74.0/std/primitive.unit.html">()</a>&gt; { ... }
 <span class="item-spacer"></span>    fn <a href="#method.create_global_object" class="fn">create_global_object</a>(&amp;self, intrinsics: &amp;<a class="struct" href="intrinsics/struct.Intrinsics.html" title="struct boa_engine::context::intrinsics::Intrinsics">Intrinsics</a>) -&gt; <a class="struct" href="../object/jsobject/struct.JsObject.html" title="struct boa_engine::object::jsobject::JsObject">JsObject</a> { ... }
 <span class="item-spacer"></span>    fn <a href="#method.create_global_this" class="fn">create_global_this</a>(&amp;self, _intrinsics: &amp;<a class="struct" href="intrinsics/struct.Intrinsics.html" title="struct boa_engine::context::intrinsics::Intrinsics">Intrinsics</a>) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.74.0/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="struct" href="../object/jsobject/struct.JsObject.html" title="struct boa_engine::object::jsobject::JsObject">JsObject</a>&gt; { ... }
@@ -41,7 +41,7 @@
         &amp;self,
         local: <a class="struct" href="https://docs.rs/chrono/latest/chrono/naive/datetime/struct.NaiveDateTime.html" title="struct chrono::naive::datetime::NaiveDateTime">NaiveDateTime</a>
     ) -&gt; <a class="enum" href="https://docs.rs/chrono/latest/chrono/offset/enum.LocalResult.html" title="enum chrono::offset::LocalResult">LocalResult</a>&lt;<a class="struct" href="https://docs.rs/chrono/latest/chrono/datetime/struct.DateTime.html" title="struct chrono::datetime::DateTime">DateTime</a>&lt;<a class="struct" href="https://docs.rs/chrono/latest/chrono/offset/fixed/struct.FixedOffset.html" title="struct chrono::offset::fixed::FixedOffset">FixedOffset</a>&gt;&gt; { ... }
-<span class="item-spacer"></span>    fn <a href="#method.max_buffer_size" class="fn">max_buffer_size</a>(&amp;self, _context: &amp;mut <a class="struct" href="../struct.Context.html" title="struct boa_engine::Context">Context</a>) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.74.0/std/primitive.u64.html">u64</a> { ... }
+<span class="item-spacer"></span>    fn <a href="#method.max_buffer_size" class="fn">max_buffer_size</a>(&amp;self, _context: &amp;mut <a class="struct" href="struct.Context.html" title="struct boa_engine::context::Context">Context</a>) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.74.0/std/primitive.u64.html">u64</a> { ... }
 }</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p><a href="https://tc39.es/ecma262/#sec-host-hooks-summary"><code>Host Hooks</code></a> customizable by the host code or engine.</p>
 <p>Every hook contains on its <code>Requirements</code> section the spec requirements
 that the hook must abide to for spec compliance.</p>
@@ -79,7 +79,7 @@ need to be redefined:</p>
 </div></details><h2 id="provided-methods" class="small-section-header">Provided Methods<a href="#provided-methods" class="anchor">§</a></h2><div class="methods"><details class="toggle method-toggle" open><summary><section id="method.make_job_callback" class="method"><a class="src rightside" href="../../src/boa_engine/context/hooks.rs.html#61-66">source</a><h4 class="code-header">fn <a href="#method.make_job_callback" class="fn">make_job_callback</a>(
     &amp;self,
     callback: <a class="struct" href="../object/builtins/jsfunction/struct.JsFunction.html" title="struct boa_engine::object::builtins::jsfunction::JsFunction">JsFunction</a>,
-    _context: &amp;mut <a class="struct" href="../struct.Context.html" title="struct boa_engine::Context">Context</a>
+    _context: &amp;mut <a class="struct" href="struct.Context.html" title="struct boa_engine::context::Context">Context</a>
 ) -&gt; <a class="struct" href="../job/struct.JobCallback.html" title="struct boa_engine::job::JobCallback">JobCallback</a></h4></section></summary><div class="docblock"><p><a href="https://tc39.es/ecma262/#sec-hostmakejobcallback"><code>HostMakeJobCallback ( callback )</code></a></p>
 <h5 id="requirements"><a href="#requirements">Requirements</a></h5>
 <ul>
@@ -88,10 +88,10 @@ need to be redefined:</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.call_job_callback" class="method"><a class="src rightside" href="../../src/boa_engine/context/hooks.rs.html#75-88">source</a><h4 class="code-header">fn <a href="#method.call_job_callback" class="fn">call_job_callback</a>(
     &amp;self,
     job: <a class="struct" href="../job/struct.JobCallback.html" title="struct boa_engine::job::JobCallback">JobCallback</a>,
-    this: &amp;<a class="enum" href="../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>,
-    args: &amp;[<a class="enum" href="../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>],
-    context: &amp;mut <a class="struct" href="../struct.Context.html" title="struct boa_engine::Context">Context</a>
-) -&gt; <a class="type" href="../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../enum.JsValue.html" title="enum boa_engine::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><a href="https://tc39.es/ecma262/#sec-hostcalljobcallback"><code>HostCallJobCallback ( jobCallback, V, argumentsList )</code></a></p>
+    this: &amp;<a class="enum" href="../value/enum.JsValue.html" title="enum boa_engine::value::JsValue">JsValue</a>,
+    args: &amp;[<a class="enum" href="../value/enum.JsValue.html" title="enum boa_engine::value::JsValue">JsValue</a>],
+    context: &amp;mut <a class="struct" href="struct.Context.html" title="struct boa_engine::context::Context">Context</a>
+) -&gt; <a class="type" href="../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="../value/enum.JsValue.html" title="enum boa_engine::value::JsValue">JsValue</a>&gt;</h4></section></summary><div class="docblock"><p><a href="https://tc39.es/ecma262/#sec-hostcalljobcallback"><code>HostCallJobCallback ( jobCallback, V, argumentsList )</code></a></p>
 <h5 id="requirements-1"><a href="#requirements-1">Requirements</a></h5>
 <ul>
 <li>It must perform and return the result of <code>Call(jobCallback.[[Callback]], V, argumentsList)</code>.</li>
@@ -100,7 +100,7 @@ need to be redefined:</p>
     &amp;self,
     _promise: &amp;<a class="struct" href="../object/jsobject/struct.JsObject.html" title="struct boa_engine::object::jsobject::JsObject">JsObject</a>,
     _operation: <a class="enum" href="../builtins/promise/enum.OperationType.html" title="enum boa_engine::builtins::promise::OperationType">OperationType</a>,
-    _context: &amp;mut <a class="struct" href="../struct.Context.html" title="struct boa_engine::Context">Context</a>
+    _context: &amp;mut <a class="struct" href="struct.Context.html" title="struct boa_engine::context::Context">Context</a>
 )</h4></section></summary><div class="docblock"><p><a href="https://tc39.es/ecma262/#sec-host-promise-rejection-tracker"><code>HostPromiseRejectionTracker ( promise, operation )</code></a></p>
 <h5 id="requirements-2"><a href="#requirements-2">Requirements</a></h5>
 <ul>
@@ -110,7 +110,7 @@ ensured by the return type.</li>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.ensure_can_compile_strings" class="method"><a class="src rightside" href="../../src/boa_engine/context/hooks.rs.html#116-119">source</a><h4 class="code-header">fn <a href="#method.ensure_can_compile_strings" class="fn">ensure_can_compile_strings</a>(
     &amp;self,
     _realm: <a class="struct" href="../realm/struct.Realm.html" title="struct boa_engine::realm::Realm">Realm</a>,
-    _context: &amp;mut <a class="struct" href="../struct.Context.html" title="struct boa_engine::Context">Context</a>
+    _context: &amp;mut <a class="struct" href="struct.Context.html" title="struct boa_engine::context::Context">Context</a>
 ) -&gt; <a class="type" href="../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.74.0/std/primitive.unit.html">()</a>&gt;</h4></section></summary><div class="docblock"><p><a href="https://tc39.es/ecma262/#sec-hostensurecancompilestrings"><code>HostEnsureCanCompileStrings ( calleeRealm )</code></a></p>
 <h5 id="requirements-3"><a href="#requirements-3">Requirements</a></h5>
 <ul>
@@ -120,7 +120,7 @@ containing unused. This is already ensured by the return type.</li>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.has_source_text_available" class="method"><a class="src rightside" href="../../src/boa_engine/context/hooks.rs.html#129-132">source</a><h4 class="code-header">fn <a href="#method.has_source_text_available" class="fn">has_source_text_available</a>(
     &amp;self,
     _function: &amp;<a class="struct" href="../object/builtins/jsfunction/struct.JsFunction.html" title="struct boa_engine::object::builtins::jsfunction::JsFunction">JsFunction</a>,
-    _context: &amp;mut <a class="struct" href="../struct.Context.html" title="struct boa_engine::Context">Context</a>
+    _context: &amp;mut <a class="struct" href="struct.Context.html" title="struct boa_engine::context::Context">Context</a>
 ) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.74.0/std/primitive.bool.html">bool</a></h4></section></summary><div class="docblock"><p><a href="https://tc39.es/ecma262/#sec-hosthassourcetextavailable"><code>HostHasSourceTextAvailable ( func )</code></a></p>
 <h5 id="requirements-4"><a href="#requirements-4">Requirements</a></h5>
 <ul>
@@ -130,7 +130,7 @@ specific <code>func</code> as its argument, it must return the same result.</li>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.ensure_can_add_private_element" class="method"><a class="src rightside" href="../../src/boa_engine/context/hooks.rs.html#145-151">source</a><h4 class="code-header">fn <a href="#method.ensure_can_add_private_element" class="fn">ensure_can_add_private_element</a>(
     &amp;self,
     _o: &amp;<a class="struct" href="../object/jsobject/struct.JsObject.html" title="struct boa_engine::object::jsobject::JsObject">JsObject</a>,
-    _context: &amp;mut <a class="struct" href="../struct.Context.html" title="struct boa_engine::Context">Context</a>
+    _context: &amp;mut <a class="struct" href="struct.Context.html" title="struct boa_engine::context::Context">Context</a>
 ) -&gt; <a class="type" href="../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.74.0/std/primitive.unit.html">()</a>&gt;</h4></section></summary><div class="docblock"><p><a href="https://tc39.es/ecma262/#sec-hostensurecanaddprivateelement"><code>HostEnsureCanAddPrivateElement ( O )</code></a></p>
 <h5 id="requirements-5"><a href="#requirements-5">Requirements</a></h5>
 <ul>
@@ -140,9 +140,9 @@ specific <code>func</code> as its argument, it must return the same result.</li>
 of <em>Completion Record</em>.</li>
 <li>This abstract operation should only be overriden by ECMAScript hosts that are web browsers.</li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.create_global_object" class="method"><a class="src rightside" href="../../src/boa_engine/context/hooks.rs.html#158-160">source</a><h4 class="code-header">fn <a href="#method.create_global_object" class="fn">create_global_object</a>(&amp;self, intrinsics: &amp;<a class="struct" href="intrinsics/struct.Intrinsics.html" title="struct boa_engine::context::intrinsics::Intrinsics">Intrinsics</a>) -&gt; <a class="struct" href="../object/jsobject/struct.JsObject.html" title="struct boa_engine::object::jsobject::JsObject">JsObject</a></h4></section></summary><div class="docblock"><p>Creates the global object of a new <a href="../struct.Context.html" title="struct boa_engine::Context"><code>Context</code></a> from the initial intrinsics.</p>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.create_global_object" class="method"><a class="src rightside" href="../../src/boa_engine/context/hooks.rs.html#158-160">source</a><h4 class="code-header">fn <a href="#method.create_global_object" class="fn">create_global_object</a>(&amp;self, intrinsics: &amp;<a class="struct" href="intrinsics/struct.Intrinsics.html" title="struct boa_engine::context::intrinsics::Intrinsics">Intrinsics</a>) -&gt; <a class="struct" href="../object/jsobject/struct.JsObject.html" title="struct boa_engine::object::jsobject::JsObject">JsObject</a></h4></section></summary><div class="docblock"><p>Creates the global object of a new <a href="struct.Context.html" title="struct boa_engine::context::Context"><code>Context</code></a> from the initial intrinsics.</p>
 <p>Equivalent to the step 7 of <a href="https://tc39.es/ecma262/#sec-initializehostdefinedrealm"><code>InitializeHostDefinedRealm ( )</code></a>.</p>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.create_global_this" class="method"><a class="src rightside" href="../../src/boa_engine/context/hooks.rs.html#167-169">source</a><h4 class="code-header">fn <a href="#method.create_global_this" class="fn">create_global_this</a>(&amp;self, _intrinsics: &amp;<a class="struct" href="intrinsics/struct.Intrinsics.html" title="struct boa_engine::context::intrinsics::Intrinsics">Intrinsics</a>) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.74.0/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="struct" href="../object/jsobject/struct.JsObject.html" title="struct boa_engine::object::jsobject::JsObject">JsObject</a>&gt;</h4></section></summary><div class="docblock"><p>Creates the global <code>this</code> of a new <a href="../struct.Context.html" title="struct boa_engine::Context"><code>Context</code></a> from the initial intrinsics.</p>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.create_global_this" class="method"><a class="src rightside" href="../../src/boa_engine/context/hooks.rs.html#167-169">source</a><h4 class="code-header">fn <a href="#method.create_global_this" class="fn">create_global_this</a>(&amp;self, _intrinsics: &amp;<a class="struct" href="intrinsics/struct.Intrinsics.html" title="struct boa_engine::context::intrinsics::Intrinsics">Intrinsics</a>) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.74.0/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="struct" href="../object/jsobject/struct.JsObject.html" title="struct boa_engine::object::jsobject::JsObject">JsObject</a>&gt;</h4></section></summary><div class="docblock"><p>Creates the global <code>this</code> of a new <a href="struct.Context.html" title="struct boa_engine::context::Context"><code>Context</code></a> from the initial intrinsics.</p>
 <p>Equivalent to the step 8 of <a href="https://tc39.es/ecma262/#sec-initializehostdefinedrealm"><code>InitializeHostDefinedRealm ( )</code></a>.</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.utc_now" class="method"><a class="src rightside" href="../../src/boa_engine/context/hooks.rs.html#177-179">source</a><h4 class="code-header">fn <a href="#method.utc_now" class="fn">utc_now</a>(&amp;self) -&gt; <a class="struct" href="https://docs.rs/chrono/latest/chrono/naive/datetime/struct.NaiveDateTime.html" title="struct chrono::naive::datetime::NaiveDateTime">NaiveDateTime</a></h4></section></summary><div class="docblock"><p>Gets the current UTC time of the host.</p>
 <p>Defaults to using <a href="https://docs.rs/chrono/latest/chrono/offset/utc/struct.Utc.html#method.now" title="associated function chrono::offset::utc::Utc::now"><code>Utc::now</code></a> on all targets, which can cause panics if the target
@@ -156,7 +156,7 @@ doesn’t support <a href="../sys/fallback/time/struct.SystemTime.html#method.no
 ) -&gt; <a class="enum" href="https://docs.rs/chrono/latest/chrono/offset/enum.LocalResult.html" title="enum chrono::offset::LocalResult">LocalResult</a>&lt;<a class="struct" href="https://docs.rs/chrono/latest/chrono/datetime/struct.DateTime.html" title="struct chrono::datetime::DateTime">DateTime</a>&lt;<a class="struct" href="https://docs.rs/chrono/latest/chrono/offset/fixed/struct.FixedOffset.html" title="struct chrono::offset::fixed::FixedOffset">FixedOffset</a>&gt;&gt;</h4></section></summary><div class="docblock"><p>Converts the naive local datetime <code>local</code> to a local timezone datetime.</p>
 <p>Defaults to using <a href="https://docs.rs/chrono/latest/chrono/offset/local/struct.Local.html" title="struct chrono::offset::local::Local"><code>Local</code></a> on all targets, which can cause panics if the target
 doesn’t support <a href="../sys/fallback/time/struct.SystemTime.html#method.now" title="associated function boa_engine::sys::fallback::time::SystemTime::now"><code>SystemTime::now</code></a>.</p>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.max_buffer_size" class="method"><a class="src rightside" href="../../src/boa_engine/context/hooks.rs.html#230-232">source</a><h4 class="code-header">fn <a href="#method.max_buffer_size" class="fn">max_buffer_size</a>(&amp;self, _context: &amp;mut <a class="struct" href="../struct.Context.html" title="struct boa_engine::Context">Context</a>) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.74.0/std/primitive.u64.html">u64</a></h4></section></summary><div class="docblock"><p>Gets the maximum size in bits that can be allocated for an <code>ArrayBuffer</code> or a
+</div></details><details class="toggle method-toggle" open><summary><section id="method.max_buffer_size" class="method"><a class="src rightside" href="../../src/boa_engine/context/hooks.rs.html#230-232">source</a><h4 class="code-header">fn <a href="#method.max_buffer_size" class="fn">max_buffer_size</a>(&amp;self, _context: &amp;mut <a class="struct" href="struct.Context.html" title="struct boa_engine::context::Context">Context</a>) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.74.0/std/primitive.u64.html">u64</a></h4></section></summary><div class="docblock"><p>Gets the maximum size in bits that can be allocated for an <code>ArrayBuffer</code> or a
 <code>SharedArrayBuffer</code>.</p>
 <p>This hook will be called before any buffer allocation, which allows to dinamically change
 the maximum size at runtime. By default, this is set to 1.5GiB per the recommendations of the

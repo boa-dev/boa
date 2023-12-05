@@ -139,11 +139,14 @@
 <a href="#139" id="139">139</a>
 <a href="#140" id="140">140</a>
 <a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>boa_gc::{Finalize, Trace};
 <span class="kw">use </span>thin_vec::ThinVec;
 
 <span class="kw">use crate</span>::{
-    object::{shape::slot::SlotAttributes, JsObject, Object, ObjectData, PropertyMap},
+    object::{shape::slot::SlotAttributes, JsObject, NativeObject, Object, PropertyMap},
     property::{Attribute, PropertyKey},
     JsValue,
 };
@@ -245,9 +248,11 @@
     <span class="doccomment">/// Create an object from the [`ObjectTemplate`]
     ///
     /// The storage must match the properties provided.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create(<span class="kw-2">&amp;</span><span class="self">self</span>, data: ObjectData, storage: Vec&lt;JsValue&gt;) -&gt; JsObject {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create&lt;T: NativeObject&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, data: T, storage: Vec&lt;JsValue&gt;) -&gt; JsObject {
+        <span class="kw">let </span>internal_methods = data.internal_methods();
+
         <span class="kw">let </span><span class="kw-2">mut </span>object = Object {
-            kind: data.kind,
+            data,
             extensible: <span class="bool-val">true</span>,
             properties: PropertyMap::new(<span class="self">self</span>.shape.clone().into(), ThinVec::default()),
             private_elements: ThinVec::new(),
@@ -255,21 +260,22 @@
 
         object.properties.storage = storage;
 
-        JsObject::from_object_and_vtable(object, data.internal_methods)
+        JsObject::from_object_and_vtable(object, internal_methods)
     }
 
     <span class="doccomment">/// Create an object from the [`ObjectTemplate`]
     ///
     /// The storage must match the properties provided. It does not apply to
     /// the indexed propeties.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_with_indexed_properties(
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_with_indexed_properties&lt;T: NativeObject&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        data: ObjectData,
+        data: T,
         storage: Vec&lt;JsValue&gt;,
         elements: ThinVec&lt;JsValue&gt;,
     ) -&gt; JsObject {
+        <span class="kw">let </span>internal_methods = data.internal_methods();
         <span class="kw">let </span><span class="kw-2">mut </span>object = Object {
-            kind: data.kind,
+            data,
             extensible: <span class="bool-val">true</span>,
             properties: PropertyMap::new(<span class="self">self</span>.shape.clone().into(), elements),
             private_elements: ThinVec::new(),
@@ -277,7 +283,7 @@
 
         object.properties.storage = storage;
 
-        JsObject::from_object_and_vtable(object, data.internal_methods)
+        JsObject::from_object_and_vtable(object, internal_methods)
     }
 }
 </code></pre></div></section></main></body></html>

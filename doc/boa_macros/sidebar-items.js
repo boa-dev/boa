@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"derive":["Finalize","Trace","TryFromJs"],"fn":["derive_finalize","derive_trace","generate_conversion","to_compile_errors"],"macro":["utf16"],"struct":["Static","Syms"]};
+window.SIDEBAR_ITEMS = {"derive":["Finalize","JsData","Trace","TryFromJs"],"fn":["derive_finalize","derive_js_data","derive_trace","generate_conversion","to_compile_errors"],"macro":["utf16"],"struct":["Static","Syms"]};

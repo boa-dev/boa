@@ -1053,9 +1053,6 @@
 <a href="#1053" id="1053">1053</a>
 <a href="#1054" id="1054">1054</a>
 <a href="#1055" id="1055">1055</a>
-<a href="#1056" id="1056">1056</a>
-<a href="#1057" id="1057">1057</a>
-<a href="#1058" id="1058">1058</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! A UTF-16–encoded, reference counted, immutable string.
 //!
 //! This module contains the [`JsString`] type, the [`js_string`][crate::js_string] macro and the
@@ -1086,7 +1083,7 @@
     tagged::{Tagged, UnwrappedTagged},
     JsBigInt,
 };
-<span class="kw">use </span>boa_gc::{empty_trace, Finalize, Trace};
+<span class="kw">use </span>boa_gc::{Finalize, Trace};
 <span class="kw">pub use </span>boa_macros::utf16;
 
 <span class="kw">use </span>std::{
@@ -1262,18 +1259,15 @@
 ///
 /// [`JsString`] implements &lt;code&gt;[Deref]&lt;Target = \[u16\]&gt;&lt;/code&gt;, inheriting all of
 /// &lt;code&gt;\[u16\]&lt;/code&gt;&#39;s methods.
-</span><span class="attr">#[derive(Finalize)]
+</span><span class="attr">#[derive(Trace, Finalize)]
+</span><span class="comment">// Safety: `JsString` does not contain any objects which needs to be traced, so this is safe.
+</span><span class="attr">#[boa_gc(unsafe_empty_trace)]
 </span><span class="kw">pub struct </span>JsString {
     ptr: Tagged&lt;RawJsString&gt;,
 }
 
 <span class="comment">// JsString should always be pointer sized.
 </span><span class="macro">sa::assert_eq_size!</span>(JsString, <span class="kw-2">*const </span>());
-
-<span class="comment">// Safety: `JsString` does not contain any objects which needs to be traced, so this is safe.
-</span><span class="kw">unsafe impl </span>Trace <span class="kw">for </span>JsString {
-    <span class="macro">empty_trace!</span>();
-}
 
 <span class="kw">impl </span>JsString {
     <span class="doccomment">/// Obtains the underlying [`&amp;[u16]`][slice] slice of a [`JsString`]

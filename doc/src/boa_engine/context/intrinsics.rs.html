@@ -1743,22 +1743,17 @@
 <a href="#1743" id="1743">1743</a>
 <a href="#1744" id="1744">1744</a>
 <a href="#1745" id="1745">1745</a>
-<a href="#1746" id="1746">1746</a>
-<a href="#1747" id="1747">1747</a>
-<a href="#1748" id="1748">1748</a>
-<a href="#1749" id="1749">1749</a>
-<a href="#1750" id="1750">1750</a>
-<a href="#1751" id="1751">1751</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Data structures that contain intrinsic objects and constructors.
 
 </span><span class="kw">use </span>boa_gc::{Finalize, Trace};
 
 <span class="kw">use crate</span>::{
-    builtins::{iterable::IteratorPrototypes, uri::UriFunctions},
+    builtins::{iterable::IteratorPrototypes, uri::UriFunctions, Array, OrdinaryObject},
     js_string,
     object::{
+        internal_methods::immutable_prototype::IMMUTABLE_PROTOTYPE_EXOTIC_INTERNAL_METHODS,
         shape::{shared_shape::template::ObjectTemplate, RootShape},
-        JsFunction, JsObject, ObjectData, CONSTRUCTOR, PROTOTYPE,
+        JsFunction, JsObject, Object, CONSTRUCTOR, PROTOTYPE,
     },
     property::{Attribute, PropertyKey},
     JsSymbol,
@@ -1943,9 +1938,9 @@
 <span class="kw">impl </span>Default <span class="kw">for </span>StandardConstructors {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            object: StandardConstructor::with_prototype(JsObject::from_proto_and_data(
-                <span class="prelude-val">None</span>,
-                ObjectData::object_prototype(),
+            object: StandardConstructor::with_prototype(JsObject::from_object_and_vtable(
+                Object::&lt;OrdinaryObject&gt;::default(),
+                <span class="kw-2">&amp;</span>IMMUTABLE_PROTOTYPE_EXOTIC_INTERNAL_METHODS,
             )),
             async_generator_function: StandardConstructor::default(),
             proxy: StandardConstructor::default(),
@@ -1956,22 +1951,15 @@
             },
             async_function: StandardConstructor::default(),
             generator_function: StandardConstructor::default(),
-            array: StandardConstructor::with_prototype(JsObject::from_proto_and_data(
-                <span class="prelude-val">None</span>,
-                ObjectData::array(),
-            )),
+            array: StandardConstructor::with_prototype(JsObject::from_proto_and_data(<span class="prelude-val">None</span>, Array)),
             bigint: StandardConstructor::default(),
-            number: StandardConstructor::with_prototype(JsObject::from_proto_and_data(
-                <span class="prelude-val">None</span>,
-                ObjectData::number(<span class="number">0.0</span>),
-            )),
+            number: StandardConstructor::with_prototype(JsObject::from_proto_and_data(<span class="prelude-val">None</span>, <span class="number">0.0</span>)),
             boolean: StandardConstructor::with_prototype(JsObject::from_proto_and_data(
-                <span class="prelude-val">None</span>,
-                ObjectData::boolean(<span class="bool-val">false</span>),
+                <span class="prelude-val">None</span>, <span class="bool-val">false</span>,
             )),
             string: StandardConstructor::with_prototype(JsObject::from_proto_and_data(
                 <span class="prelude-val">None</span>,
-                ObjectData::string(<span class="macro">js_string!</span>()),
+                <span class="macro">js_string!</span>(),
             )),
             regexp: StandardConstructor::default(),
             symbol: StandardConstructor::default(),

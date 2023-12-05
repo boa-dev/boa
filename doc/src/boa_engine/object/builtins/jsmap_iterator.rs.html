@@ -92,7 +92,7 @@
     <span class="doccomment">/// Create a [`JsMapIterator`] from a [`JsObject`]. If object is not a `MapIterator`, throw `TypeError`
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>from_object(object: JsObject) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
-        <span class="kw">if </span>object.is_map_iterator() {
+        <span class="kw">if </span>object.is::&lt;MapIterator&gt;() {
             <span class="prelude-val">Ok</span>(<span class="self">Self </span>{ inner: object })
         } <span class="kw">else </span>{
             <span class="prelude-val">Err</span>(JsNativeError::typ()

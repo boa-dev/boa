@@ -3,19 +3,19 @@
     fn <a href="#tymethod.load_imported_module" class="fn">load_imported_module</a>(
         &amp;self,
         referrer: <a class="enum" href="enum.Referrer.html" title="enum boa_engine::module::loader::Referrer">Referrer</a>,
-        specifier: <a class="struct" href="../../struct.JsString.html" title="struct boa_engine::JsString">JsString</a>,
-        finish_load: <a class="struct" href="https://doc.rust-lang.org/1.74.0/alloc/boxed/struct.Box.html" title="struct alloc::boxed::Box">Box</a>&lt;dyn <a class="trait" href="https://doc.rust-lang.org/1.74.0/core/ops/function/trait.FnOnce.html" title="trait core::ops::function::FnOnce">FnOnce</a>(<a class="type" href="../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="struct" href="../../struct.Module.html" title="struct boa_engine::Module">Module</a>&gt;, &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>)&gt;,
-        context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>
+        specifier: <a class="struct" href="../../string/struct.JsString.html" title="struct boa_engine::string::JsString">JsString</a>,
+        finish_load: <a class="struct" href="https://doc.rust-lang.org/1.74.0/alloc/boxed/struct.Box.html" title="struct alloc::boxed::Box">Box</a>&lt;dyn <a class="trait" href="https://doc.rust-lang.org/1.74.0/core/ops/function/trait.FnOnce.html" title="trait core::ops::function::FnOnce">FnOnce</a>(<a class="type" href="../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="struct" href="../struct.Module.html" title="struct boa_engine::module::Module">Module</a>&gt;, &amp;mut <a class="struct" href="../../context/struct.Context.html" title="struct boa_engine::context::Context">Context</a>)&gt;,
+        context: &amp;mut <a class="struct" href="../../context/struct.Context.html" title="struct boa_engine::context::Context">Context</a>
     );
 
     // Provided methods
-    fn <a href="#method.register_module" class="fn">register_module</a>(&amp;self, _specifier: <a class="struct" href="../../struct.JsString.html" title="struct boa_engine::JsString">JsString</a>, _module: <a class="struct" href="../../struct.Module.html" title="struct boa_engine::Module">Module</a>) { ... }
-<span class="item-spacer"></span>    fn <a href="#method.get_module" class="fn">get_module</a>(&amp;self, _specifier: <a class="struct" href="../../struct.JsString.html" title="struct boa_engine::JsString">JsString</a>) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.74.0/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="struct" href="../../struct.Module.html" title="struct boa_engine::Module">Module</a>&gt; { ... }
+    fn <a href="#method.register_module" class="fn">register_module</a>(&amp;self, _specifier: <a class="struct" href="../../string/struct.JsString.html" title="struct boa_engine::string::JsString">JsString</a>, _module: <a class="struct" href="../struct.Module.html" title="struct boa_engine::module::Module">Module</a>) { ... }
+<span class="item-spacer"></span>    fn <a href="#method.get_module" class="fn">get_module</a>(&amp;self, _specifier: <a class="struct" href="../../string/struct.JsString.html" title="struct boa_engine::string::JsString">JsString</a>) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.74.0/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="struct" href="../struct.Module.html" title="struct boa_engine::module::Module">Module</a>&gt; { ... }
 <span class="item-spacer"></span>    fn <a href="#method.init_import_meta" class="fn">init_import_meta</a>(
         &amp;self,
         _import_meta: &amp;<a class="struct" href="../../object/jsobject/struct.JsObject.html" title="struct boa_engine::object::jsobject::JsObject">JsObject</a>,
-        _module: &amp;<a class="struct" href="../../struct.Module.html" title="struct boa_engine::Module">Module</a>,
-        _context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>
+        _module: &amp;<a class="struct" href="../struct.Module.html" title="struct boa_engine::module::Module">Module</a>,
+        _context: &amp;mut <a class="struct" href="../../context/struct.Context.html" title="struct boa_engine::context::Context">Context</a>
     ) { ... }
 }</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Module loading related host hooks.</p>
 <p>This trait allows to customize the behaviour of the engine on module load requests and
@@ -23,9 +23,9 @@
 </div></details><h2 id="required-methods" class="small-section-header">Required Methods<a href="#required-methods" class="anchor">§</a></h2><div class="methods"><details class="toggle method-toggle" open><summary><section id="tymethod.load_imported_module" class="method"><a class="src rightside" href="../../../src/boa_engine/module/loader.rs.html#64-70">source</a><h4 class="code-header">fn <a href="#tymethod.load_imported_module" class="fn">load_imported_module</a>(
     &amp;self,
     referrer: <a class="enum" href="enum.Referrer.html" title="enum boa_engine::module::loader::Referrer">Referrer</a>,
-    specifier: <a class="struct" href="../../struct.JsString.html" title="struct boa_engine::JsString">JsString</a>,
-    finish_load: <a class="struct" href="https://doc.rust-lang.org/1.74.0/alloc/boxed/struct.Box.html" title="struct alloc::boxed::Box">Box</a>&lt;dyn <a class="trait" href="https://doc.rust-lang.org/1.74.0/core/ops/function/trait.FnOnce.html" title="trait core::ops::function::FnOnce">FnOnce</a>(<a class="type" href="../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="struct" href="../../struct.Module.html" title="struct boa_engine::Module">Module</a>&gt;, &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>)&gt;,
-    context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>
+    specifier: <a class="struct" href="../../string/struct.JsString.html" title="struct boa_engine::string::JsString">JsString</a>,
+    finish_load: <a class="struct" href="https://doc.rust-lang.org/1.74.0/alloc/boxed/struct.Box.html" title="struct alloc::boxed::Box">Box</a>&lt;dyn <a class="trait" href="https://doc.rust-lang.org/1.74.0/core/ops/function/trait.FnOnce.html" title="trait core::ops::function::FnOnce">FnOnce</a>(<a class="type" href="../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="struct" href="../struct.Module.html" title="struct boa_engine::module::Module">Module</a>&gt;, &amp;mut <a class="struct" href="../../context/struct.Context.html" title="struct boa_engine::context::Context">Context</a>)&gt;,
+    context: &amp;mut <a class="struct" href="../../context/struct.Context.html" title="struct boa_engine::context::Context">Context</a>
 )</h4></section></summary><div class="docblock"><p>Host hook <a href="https://tc39.es/ecma262/#sec-HostLoadImportedModule"><code>HostLoadImportedModule ( referrer, specifier, hostDefined, payload )</code></a>.</p>
 <p>This hook allows to customize the module loading functionality of the engine. Technically,
 this should call the <a href="https://tc39.es/ecma262/#sec-FinishLoadingImportedModule"><code>FinishLoadingImportedModule</code></a> operation, but this simpler API just provides
@@ -44,21 +44,21 @@ time.</li>
 <li>The operation must treat payload as an opaque value to be passed through to
 <code>FinishLoadingImportedModule</code>. (can be ignored)</li>
 </ul>
-</div></details></div><h2 id="provided-methods" class="small-section-header">Provided Methods<a href="#provided-methods" class="anchor">§</a></h2><div class="methods"><details class="toggle method-toggle" open><summary><section id="method.register_module" class="method"><a class="src rightside" href="../../../src/boa_engine/module/loader.rs.html#79">source</a><h4 class="code-header">fn <a href="#method.register_module" class="fn">register_module</a>(&amp;self, _specifier: <a class="struct" href="../../struct.JsString.html" title="struct boa_engine::JsString">JsString</a>, _module: <a class="struct" href="../../struct.Module.html" title="struct boa_engine::Module">Module</a>)</h4></section></summary><div class="docblock"><p>Registers a new module into the module loader.</p>
+</div></details></div><h2 id="provided-methods" class="small-section-header">Provided Methods<a href="#provided-methods" class="anchor">§</a></h2><div class="methods"><details class="toggle method-toggle" open><summary><section id="method.register_module" class="method"><a class="src rightside" href="../../../src/boa_engine/module/loader.rs.html#79">source</a><h4 class="code-header">fn <a href="#method.register_module" class="fn">register_module</a>(&amp;self, _specifier: <a class="struct" href="../../string/struct.JsString.html" title="struct boa_engine::string::JsString">JsString</a>, _module: <a class="struct" href="../struct.Module.html" title="struct boa_engine::module::Module">Module</a>)</h4></section></summary><div class="docblock"><p>Registers a new module into the module loader.</p>
 <p>This is a convenience method for module loaders caching already parsed modules, since it
 allows registering a new module through the <code>&amp;dyn ModuleLoader</code> provided by
-<a href="../../struct.Context.html#method.module_loader" title="method boa_engine::Context::module_loader"><code>Context::module_loader</code></a>.</p>
+<a href="../../context/struct.Context.html#method.module_loader" title="method boa_engine::context::Context::module_loader"><code>Context::module_loader</code></a>.</p>
 <p>Does nothing by default.</p>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.get_module" class="method"><a class="src rightside" href="../../../src/boa_engine/module/loader.rs.html#88-90">source</a><h4 class="code-header">fn <a href="#method.get_module" class="fn">get_module</a>(&amp;self, _specifier: <a class="struct" href="../../struct.JsString.html" title="struct boa_engine::JsString">JsString</a>) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.74.0/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="struct" href="../../struct.Module.html" title="struct boa_engine::Module">Module</a>&gt;</h4></section></summary><div class="docblock"><p>Gets the module associated with the provided specifier.</p>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.get_module" class="method"><a class="src rightside" href="../../../src/boa_engine/module/loader.rs.html#88-90">source</a><h4 class="code-header">fn <a href="#method.get_module" class="fn">get_module</a>(&amp;self, _specifier: <a class="struct" href="../../string/struct.JsString.html" title="struct boa_engine::string::JsString">JsString</a>) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.74.0/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="struct" href="../struct.Module.html" title="struct boa_engine::module::Module">Module</a>&gt;</h4></section></summary><div class="docblock"><p>Gets the module associated with the provided specifier.</p>
 <p>This is a convenience method for module loaders caching already parsed modules, since it
 allows getting a cached module through the <code>&amp;dyn ModuleLoader</code> provided by
-<a href="../../struct.Context.html#method.module_loader" title="method boa_engine::Context::module_loader"><code>Context::module_loader</code></a>.</p>
+<a href="../../context/struct.Context.html#method.module_loader" title="method boa_engine::context::Context::module_loader"><code>Context::module_loader</code></a>.</p>
 <p>Returns <code>None</code> by default.</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.init_import_meta" class="method"><a class="src rightside" href="../../../src/boa_engine/module/loader.rs.html#104">source</a><h4 class="code-header">fn <a href="#method.init_import_meta" class="fn">init_import_meta</a>(
     &amp;self,
     _import_meta: &amp;<a class="struct" href="../../object/jsobject/struct.JsObject.html" title="struct boa_engine::object::jsobject::JsObject">JsObject</a>,
-    _module: &amp;<a class="struct" href="../../struct.Module.html" title="struct boa_engine::Module">Module</a>,
-    _context: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa_engine::Context">Context</a>
+    _module: &amp;<a class="struct" href="../struct.Module.html" title="struct boa_engine::module::Module">Module</a>,
+    _context: &amp;mut <a class="struct" href="../../context/struct.Context.html" title="struct boa_engine::context::Context">Context</a>
 )</h4></section></summary><div class="docblock"><p>Host hooks <a href="https://tc39.es/ecma262/#sec-hostgetimportmetaproperties"><code>HostGetImportMetaProperties ( moduleRecord )</code></a> and
 <a href="https://tc39.es/ecma262/#sec-hostfinalizeimportmeta"><code>HostFinalizeImportMeta ( importMeta, moduleRecord )</code></a>.</p>
 <p>This unifies both APIs into a single hook that can be overriden on both cases.

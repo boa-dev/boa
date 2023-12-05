@@ -301,7 +301,7 @@
             .set(CodeBlockFlags::IS_GENERATOR, <span class="self">self</span>.generator);
         compiler.code_block_flags.set(
             CodeBlockFlags::HAS_PROTOTYPE_PROPERTY,
-            !<span class="self">self</span>.arrow &amp;&amp; !<span class="self">self</span>.method,
+            !<span class="self">self</span>.arrow &amp;&amp; !<span class="self">self</span>.method &amp;&amp; !<span class="self">self</span>.r#async &amp;&amp; !<span class="self">self</span>.generator,
         );
 
         <span class="kw">if </span><span class="self">self</span>.arrow {

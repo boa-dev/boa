@@ -375,10 +375,6 @@
 <a href="#375" id="375">375</a>
 <a href="#376" id="376">376</a>
 <a href="#377" id="377">377</a>
-<a href="#378" id="378">378</a>
-<a href="#379" id="379">379</a>
-<a href="#380" id="380">380</a>
-<a href="#381" id="381">381</a>
 </pre></div><pre class="rust"><code><span class="attr">#![allow(unstable_name_collisions)]
 
 </span><span class="kw">use </span>std::{alloc, sync::Arc};
@@ -393,11 +389,11 @@
     builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, ObjectData},
+    object::internal_methods::get_prototype_from_constructor,
     property::Attribute,
     realm::Realm,
     string::common::StaticJsStrings,
-    Context, JsArgs, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
+    Context, JsArgs, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 
 <span class="kw">use super</span>::{get_slice_range, utils::copy_shared_to_shared, SliceRange};
@@ -406,7 +402,7 @@
 ///
 /// This struct implements `Send` and `Sync`, meaning it can be shared between threads
 /// running different JS code at the same time.
-</span><span class="attr">#[derive(Debug, Clone, Trace, Finalize)]
+</span><span class="attr">#[derive(Debug, Clone, Trace, Finalize, JsData)]
 </span><span class="kw">pub struct </span>SharedArrayBuffer {
     <span class="doccomment">/// The `[[ArrayBufferData]]` internal slot.
     </span><span class="comment">// Shared buffers cannot be detached.
@@ -536,16 +532,14 @@
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).
-        </span><span class="kw">let </span>obj = this.as_object().ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message(<span class="string">&quot;SharedArrayBuffer.byteLength called with non-object value&quot;</span>)
-        })<span class="question-mark">?</span>;
-        <span class="kw">let </span>obj = obj.borrow();
-        <span class="comment">// 3. If IsSharedArrayBuffer(O) is true, throw a TypeError exception.
-        </span><span class="kw">let </span>buf = obj.as_shared_array_buffer().ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message(<span class="string">&quot;SharedArrayBuffer.byteLength called with invalid object&quot;</span>)
-        })<span class="question-mark">?</span>;
+        // 3. If IsSharedArrayBuffer(O) is true, throw a TypeError exception.
+        </span><span class="kw">let </span>buf = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message(<span class="string">&quot;SharedArrayBuffer.byteLength called with invalid value&quot;</span>)
+            })<span class="question-mark">?</span>;
 
         <span class="comment">// TODO: 4. Let length be ArrayBufferByteLength(O, seq-cst).
         // 5. Return 𝔽(length).
@@ -565,10 +559,9 @@
         </span><span class="kw">let </span>obj = this.as_object().ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;ArrayBuffer.slice called with non-object value&quot;</span>)
         })<span class="question-mark">?</span>;
-        <span class="kw">let </span>obj_borrow = obj.borrow();
 
         <span class="comment">// 3. If IsSharedArrayBuffer(O) is false, throw a TypeError exception.
-        </span><span class="kw">let </span>buf = obj_borrow.as_shared_array_buffer().ok_or_else(|| {
+        </span><span class="kw">let </span>buf = obj.downcast_ref::&lt;<span class="self">Self</span>&gt;().ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;ArrayBuffer.slice called with invalid object&quot;</span>)
         })<span class="question-mark">?</span>;
 
@@ -591,21 +584,20 @@
         {
             <span class="comment">// 16. Perform ? RequireInternalSlot(new, [[ArrayBufferData]]).
             // 17. If IsSharedArrayBuffer(new) is false, throw a TypeError exception.
-            </span><span class="kw">let </span>new_obj = new.borrow();
-            <span class="kw">let </span>new_buf = new_obj.as_shared_array_buffer().ok_or_else(|| {
+            </span><span class="kw">let </span>new = new.downcast_ref::&lt;<span class="self">Self</span>&gt;().ok_or_else(|| {
                 JsNativeError::typ()
                     .with_message(<span class="string">&quot;SharedArrayBuffer constructor returned invalid object&quot;</span>)
             })<span class="question-mark">?</span>;
 
             <span class="comment">// 18. If new.[[ArrayBufferData]] is O.[[ArrayBufferData]], throw a TypeError exception.
-            </span><span class="kw">if </span>std::ptr::eq(buf.data().as_ptr(), new_buf.data().as_ptr()) {
+            </span><span class="kw">if </span>std::ptr::eq(buf.data().as_ptr(), new.data().as_ptr()) {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
                     .with_message(<span class="string">&quot;cannot reuse the same `SharedArrayBuffer` for a slice operation&quot;</span>)
                     .into());
             }
 
             <span class="comment">// TODO: 19. If ArrayBufferByteLength(new, seq-cst) &lt; newLen, throw a TypeError exception.
-            </span><span class="kw">if </span>(new_buf.len() <span class="kw">as </span>u64) &lt; new_len {
+            </span><span class="kw">if </span>(new.len() <span class="kw">as </span>u64) &lt; new_len {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
                     .with_message(<span class="string">&quot;invalid size of constructed shared array&quot;</span>)
                     .into());
@@ -615,7 +607,7 @@
             </span><span class="kw">let </span>from_buf = buf.data();
 
             <span class="comment">// 21. Let toBuf be new.[[ArrayBufferData]].
-            </span><span class="kw">let </span>to_buf = new_buf.data();
+            </span><span class="kw">let </span>to_buf = new.data();
 
             <span class="comment">// 22. Perform CopyDataBlockBytes(toBuf, 0, fromBuf, first, newLen).
             </span><span class="kw">let </span>first = first <span class="kw">as </span>usize;
@@ -679,7 +671,7 @@
         </span><span class="kw">let </span>obj = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            ObjectData::shared_array_buffer(<span class="self">Self </span>{ data }),
+            <span class="self">Self </span>{ data },
         );
 
         <span class="comment">// 11. Return obj.

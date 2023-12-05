@@ -2368,6 +2368,10 @@
 <a href="#2368" id="2368">2368</a>
 <a href="#2369" id="2369">2369</a>
 <a href="#2370" id="2370">2370</a>
+<a href="#2371" id="2371">2371</a>
+<a href="#2372" id="2372">2372</a>
+<a href="#2373" id="2373">2373</a>
+<a href="#2374" id="2374">2374</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Promise` object.
 
 </span><span class="attr">#[cfg(test)]
@@ -2383,7 +2387,7 @@
     native_function::NativeFunction,
     object::{
         internal_methods::get_prototype_from_constructor, FunctionObjectBuilder, JsFunction,
-        JsObject, ObjectData, CONSTRUCTOR,
+        JsObject, CONSTRUCTOR,
     },
     property::Attribute,
     realm::Realm,
@@ -2393,6 +2397,7 @@
     Context, JsArgs, JsError, JsResult, JsString,
 };
 <span class="kw">use </span>boa_gc::{custom_trace, Finalize, Gc, GcRefCell, Trace};
+<span class="kw">use </span>boa_macros::JsData;
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>std::{cell::Cell, rc::Rc};
 <span class="kw">use </span>tap::{Conv, Pipe};
@@ -2442,7 +2447,7 @@
 }
 
 <span class="doccomment">/// The internal representation of a `Promise` object.
-</span><span class="attr">#[derive(Debug, Trace, Finalize)]
+</span><span class="attr">#[derive(Debug, Trace, Finalize, JsData)]
 </span><span class="kw">pub struct </span>Promise {
     state: PromiseState,
     fulfill_reactions: Vec&lt;ReactionRecord&gt;,
@@ -2507,8 +2512,8 @@
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-ifabruptrejectpromise
 </span><span class="macro">macro_rules! </span>if_abrupt_reject_promise {
-    (<span class="macro-nonterminal">$value</span>:ident, <span class="macro-nonterminal">$capability</span>:expr, <span class="macro-nonterminal">$context</span>: expr) =&gt; {
-        <span class="kw">let </span><span class="macro-nonterminal">$value </span>= <span class="kw">match </span><span class="macro-nonterminal">$value </span>{
+    (<span class="macro-nonterminal">$value</span>:expr, <span class="macro-nonterminal">$capability</span>:expr, <span class="macro-nonterminal">$context</span>: expr) =&gt; {
+        <span class="kw">match </span><span class="macro-nonterminal">$value </span>{
             <span class="comment">// 1. If value is an abrupt completion, then
             </span><span class="prelude-val">Err</span>(err) =&gt; {
                 <span class="kw">let </span>err = err.to_opaque(<span class="macro-nonterminal">$context</span>);
@@ -2522,7 +2527,7 @@
             }
             <span class="comment">// 2. Else if value is a Completion Record, set value to value.[[Value]].
             </span><span class="prelude-val">Ok</span>(value) =&gt; value,
-        };
+        }
     };
 }
 
@@ -2789,7 +2794,7 @@
             // 5. Set promise.[[PromiseFulfillReactions]] to a new empty List.
             // 6. Set promise.[[PromiseRejectReactions]] to a new empty List.
             // 7. Set promise.[[PromiseIsHandled]] to false.
-            </span>ObjectData::promise(<span class="self">Self</span>::new()),
+            </span><span class="self">Self</span>::new(),
         );
 
         <span class="comment">// 8. Let resolvingFunctions be CreateResolvingFunctions(promise).
@@ -2848,7 +2853,9 @@
         context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let C be the this value.
-        </span><span class="kw">let </span>c = this.as_object().ok_or_else(|| {
+
+        </span><span class="kw">use </span><span class="kw">super</span>::OrdinaryObject;
+        <span class="kw">let </span>c = this.as_object().ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;Promise.all() called on a non-object&quot;</span>)
         })<span class="question-mark">?</span>;
 
@@ -2863,7 +2870,7 @@
         // 5. Perform ! CreateDataPropertyOrThrow(obj, &quot;resolve&quot;, promiseCapability.[[Resolve]]).
         // 6. Perform ! CreateDataPropertyOrThrow(obj, &quot;reject&quot;, promiseCapability.[[Reject]]).
         </span><span class="kw">let </span>obj = context.intrinsics().templates().with_resolvers().create(
-            ObjectData::ordinary(),
+            OrdinaryObject,
             <span class="macro">vec!</span>[promise.into(), resolve.into(), reject.into()],
         );
 
@@ -2896,14 +2903,15 @@
         </span><span class="kw">let </span>promise_resolve = <span class="self">Self</span>::get_promise_resolve(c, context);
 
         <span class="comment">// 4. IfAbruptRejectPromise(promiseResolve, promiseCapability).
-        </span><span class="macro">if_abrupt_reject_promise!</span>(promise_resolve, promise_capability, context);
+        </span><span class="kw">let </span>promise_resolve =
+            <span class="macro">if_abrupt_reject_promise!</span>(promise_resolve, promise_capability, context);
 
         <span class="comment">// 5. Let iteratorRecord be Completion(GetIterator(iterable)).
         </span><span class="kw">let </span>iterator_record = args.get_or_undefined(<span class="number">0</span>).get_iterator(context, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>);
 
         <span class="comment">// 6. IfAbruptRejectPromise(iteratorRecord, promiseCapability).
-        </span><span class="macro">if_abrupt_reject_promise!</span>(iterator_record, promise_capability, context);
-        <span class="kw">let </span><span class="kw-2">mut </span>iterator_record = iterator_record;
+        </span><span class="kw">let </span><span class="kw-2">mut </span>iterator_record =
+            <span class="macro">if_abrupt_reject_promise!</span>(iterator_record, promise_capability, context);
 
         <span class="comment">// 7. Let result be Completion(PerformPromiseAll(iteratorRecord, C, promiseCapability, promiseResolve)).
         </span><span class="kw">let </span><span class="kw-2">mut </span>result = <span class="self">Self</span>::perform_promise_all(
@@ -2923,7 +2931,7 @@
             }
 
             <span class="comment">// b. IfAbruptRejectPromise(result, promiseCapability).
-            </span><span class="macro">if_abrupt_reject_promise!</span>(result, promise_capability, context);
+            </span><span class="kw">let </span>result = <span class="macro">if_abrupt_reject_promise!</span>(result, promise_capability, context);
 
             <span class="kw">return </span><span class="prelude-val">Ok</span>(result);
         }
@@ -3123,14 +3131,15 @@
         </span><span class="kw">let </span>promise_resolve = <span class="self">Self</span>::get_promise_resolve(c, context);
 
         <span class="comment">// 4. IfAbruptRejectPromise(promiseResolve, promiseCapability).
-        </span><span class="macro">if_abrupt_reject_promise!</span>(promise_resolve, promise_capability, context);
+        </span><span class="kw">let </span>promise_resolve =
+            <span class="macro">if_abrupt_reject_promise!</span>(promise_resolve, promise_capability, context);
 
         <span class="comment">// 5. Let iteratorRecord be Completion(GetIterator(iterable)).
         </span><span class="kw">let </span>iterator_record = args.get_or_undefined(<span class="number">0</span>).get_iterator(context, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>);
 
         <span class="comment">// 6. IfAbruptRejectPromise(iteratorRecord, promiseCapability).
-        </span><span class="macro">if_abrupt_reject_promise!</span>(iterator_record, promise_capability, context);
-        <span class="kw">let </span><span class="kw-2">mut </span>iterator_record = iterator_record;
+        </span><span class="kw">let </span><span class="kw-2">mut </span>iterator_record =
+            <span class="macro">if_abrupt_reject_promise!</span>(iterator_record, promise_capability, context);
 
         <span class="comment">// 7. Let result be Completion(PerformPromiseAllSettled(iteratorRecord, C, promiseCapability, promiseResolve)).
         </span><span class="kw">let </span><span class="kw-2">mut </span>result = <span class="self">Self</span>::perform_promise_all_settled(
@@ -3150,7 +3159,7 @@
             }
 
             <span class="comment">// b. IfAbruptRejectPromise(result, promiseCapability).
-            </span><span class="macro">if_abrupt_reject_promise!</span>(result, promise_capability, context);
+            </span><span class="kw">let </span>result = <span class="macro">if_abrupt_reject_promise!</span>(result, promise_capability, context);
 
             <span class="kw">return </span><span class="prelude-val">Ok</span>(result);
         }
@@ -3458,14 +3467,15 @@
         </span><span class="kw">let </span>promise_resolve = <span class="self">Self</span>::get_promise_resolve(c, context);
 
         <span class="comment">// 4. IfAbruptRejectPromise(promiseResolve, promiseCapability).
-        </span><span class="macro">if_abrupt_reject_promise!</span>(promise_resolve, promise_capability, context);
+        </span><span class="kw">let </span>promise_resolve =
+            <span class="macro">if_abrupt_reject_promise!</span>(promise_resolve, promise_capability, context);
 
         <span class="comment">// 5. Let iteratorRecord be Completion(GetIterator(iterable)).
         </span><span class="kw">let </span>iterator_record = args.get_or_undefined(<span class="number">0</span>).get_iterator(context, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>);
 
         <span class="comment">// 6. IfAbruptRejectPromise(iteratorRecord, promiseCapability).
-        </span><span class="macro">if_abrupt_reject_promise!</span>(iterator_record, promise_capability, context);
-        <span class="kw">let </span><span class="kw-2">mut </span>iterator_record = iterator_record;
+        </span><span class="kw">let </span><span class="kw-2">mut </span>iterator_record =
+            <span class="macro">if_abrupt_reject_promise!</span>(iterator_record, promise_capability, context);
 
         <span class="comment">// 7. Let result be Completion(PerformPromiseAny(iteratorRecord, C, promiseCapability, promiseResolve)).
         </span><span class="kw">let </span><span class="kw-2">mut </span>result = <span class="self">Self</span>::perform_promise_any(
@@ -3485,7 +3495,7 @@
             }
 
             <span class="comment">// b. IfAbruptRejectPromise(result, promiseCapability).
-            </span><span class="macro">if_abrupt_reject_promise!</span>(result, promise_capability, context);
+            </span><span class="kw">let </span>result = <span class="macro">if_abrupt_reject_promise!</span>(result, promise_capability, context);
 
             <span class="kw">return </span><span class="prelude-val">Ok</span>(result);
         }
@@ -3701,14 +3711,15 @@
         </span><span class="kw">let </span>promise_resolve = <span class="self">Self</span>::get_promise_resolve(c, context);
 
         <span class="comment">// 4. IfAbruptRejectPromise(promiseResolve, promiseCapability).
-        </span><span class="macro">if_abrupt_reject_promise!</span>(promise_resolve, promise_capability, context);
+        </span><span class="kw">let </span>promise_resolve =
+            <span class="macro">if_abrupt_reject_promise!</span>(promise_resolve, promise_capability, context);
 
         <span class="comment">// 5. Let iteratorRecord be Completion(GetIterator(iterable)).
         </span><span class="kw">let </span>iterator_record = iterable.get_iterator(context, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>);
 
         <span class="comment">// 6. IfAbruptRejectPromise(iteratorRecord, promiseCapability).
-        </span><span class="macro">if_abrupt_reject_promise!</span>(iterator_record, promise_capability, context);
-        <span class="kw">let </span><span class="kw-2">mut </span>iterator_record = iterator_record;
+        </span><span class="kw">let </span><span class="kw-2">mut </span>iterator_record =
+            <span class="macro">if_abrupt_reject_promise!</span>(iterator_record, promise_capability, context);
 
         <span class="comment">// 7. Let result be Completion(PerformPromiseRace(iteratorRecord, C, promiseCapability, promiseResolve)).
         </span><span class="kw">let </span><span class="kw-2">mut </span>result = <span class="self">Self</span>::perform_promise_race(
@@ -3728,7 +3739,7 @@
             }
 
             <span class="comment">// b. IfAbruptRejectPromise(result, promiseCapability).
-            </span><span class="macro">if_abrupt_reject_promise!</span>(result, promise_capability, context);
+            </span><span class="kw">let </span>result = <span class="macro">if_abrupt_reject_promise!</span>(result, promise_capability, context);
 
             <span class="prelude-val">Ok</span>(result)
         } <span class="kw">else </span>{
@@ -4219,17 +4230,17 @@
         };
 
         <span class="kw">let </span>(state, handled) = {
-            <span class="kw">let </span>promise = promise.borrow();
-            <span class="kw">let </span>promise = promise.as_promise().expect(<span class="string">&quot;IsPromise(promise) is false&quot;</span>);
+            <span class="kw">let </span>promise = promise
+                .downcast_ref::&lt;<span class="self">Self</span>&gt;()
+                .expect(<span class="string">&quot;IsPromise(promise) is false&quot;</span>);
             (promise.state.clone(), promise.handled)
         };
 
         <span class="kw">match </span>state {
             <span class="comment">// 9. If promise.[[PromiseState]] is pending, then
             </span>PromiseState::Pending =&gt; {
-                <span class="kw">let </span><span class="kw-2">mut </span>promise = promise.borrow_mut();
-                <span class="kw">let </span>promise = promise
-                    .as_promise_mut()
+                <span class="kw">let </span><span class="kw-2">mut </span>promise = promise
+                    .downcast_mut::&lt;<span class="self">Self</span>&gt;()
                     .expect(<span class="string">&quot;IsPromise(promise) is false&quot;</span>);
                 <span class="comment">//   a. Append fulfillReaction as the last element of the List that is promise.[[PromiseFulfillReactions]].
                 </span>promise.fulfill_reactions.push(fulfill_reaction);
@@ -4272,8 +4283,7 @@
 
                 <span class="comment">// 12. Set promise.[[PromiseIsHandled]] to true.
                 </span>promise
-                    .borrow_mut()
-                    .as_promise_mut()
+                    .downcast_mut::&lt;<span class="self">Self</span>&gt;()
                     .expect(<span class="string">&quot;IsPromise(promise) is false&quot;</span>)
                     .handled = <span class="bool-val">true</span>;
             }
@@ -4364,9 +4374,8 @@
         ///
         /// Panics if `Promise` is not pending.
         </span><span class="kw">fn </span>fulfill_promise(promise: <span class="kw-2">&amp;</span>JsObject, value: JsValue, context: <span class="kw-2">&amp;mut </span>Context) {
-            <span class="kw">let </span><span class="kw-2">mut </span>promise = promise.borrow_mut();
-            <span class="kw">let </span>promise = promise
-                .as_promise_mut()
+            <span class="kw">let </span><span class="kw-2">mut </span>promise = promise
+                .downcast_mut::&lt;Promise&gt;()
                 .expect(<span class="string">&quot;IsPromise(promise) is false&quot;</span>);
 
             <span class="comment">// 1. Assert: The value of promise.[[PromiseState]] is pending.
@@ -4409,9 +4418,8 @@
         /// Panics if `Promise` is not pending.
         </span><span class="kw">fn </span>reject_promise(promise: <span class="kw-2">&amp;</span>JsObject, reason: JsValue, context: <span class="kw-2">&amp;mut </span>Context) {
             <span class="kw">let </span>handled = {
-                <span class="kw">let </span><span class="kw-2">mut </span>promise = promise.borrow_mut();
-                <span class="kw">let </span>promise = promise
-                    .as_promise_mut()
+                <span class="kw">let </span><span class="kw-2">mut </span>promise = promise
+                    .downcast_mut::&lt;Promise&gt;()
                     .expect(<span class="string">&quot;IsPromise(promise) is false&quot;</span>);
 
                 <span class="comment">// 1. Assert: The value of promise.[[PromiseState]] is pending.

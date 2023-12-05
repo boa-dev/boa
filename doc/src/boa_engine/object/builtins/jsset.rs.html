@@ -203,7 +203,7 @@
 <span class="kw">use </span>boa_gc::{Finalize, Trace};
 
 <span class="kw">use crate</span>::{
-    builtins::Set,
+    builtins::{set::ordered_set::OrderedSet, Set},
     error::JsNativeError,
     object::{JsFunction, JsObject, JsObjectType, JsSetIterator},
     value::TryFromJs,
@@ -343,7 +343,7 @@
     <span class="doccomment">/// Utility: Creates `JsSet` from `JsObject`, if not a Set throw `TypeError`.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>from_object(object: JsObject) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
-        <span class="kw">if </span>object.is_set() {
+        <span class="kw">if </span>object.is::&lt;OrderedSet&gt;() {
             <span class="prelude-val">Ok</span>(<span class="self">Self </span>{ inner: object })
         } <span class="kw">else </span>{
             <span class="prelude-val">Err</span>(JsNativeError::typ()

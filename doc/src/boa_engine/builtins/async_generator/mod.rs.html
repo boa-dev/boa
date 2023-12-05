@@ -686,15 +686,6 @@
 <a href="#686" id="686">686</a>
 <a href="#687" id="687">687</a>
 <a href="#688" id="688">688</a>
-<a href="#689" id="689">689</a>
-<a href="#690" id="690">690</a>
-<a href="#691" id="691">691</a>
-<a href="#692" id="692">692</a>
-<a href="#693" id="693">693</a>
-<a href="#694" id="694">694</a>
-<a href="#695" id="695">695</a>
-<a href="#696" id="696">696</a>
-<a href="#697" id="697">697</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `AsyncGenerator` object.
 //!
 //! More information:
@@ -718,7 +709,7 @@
     symbol::JsSymbol,
     value::JsValue,
     vm::{CompletionRecord, GeneratorResumeKind},
-    Context, JsArgs, JsError, JsResult, JsString,
+    Context, JsArgs, JsData, JsError, JsResult, JsString,
 };
 <span class="kw">use </span>boa_gc::{Finalize, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
@@ -752,7 +743,7 @@
 }
 
 <span class="doccomment">/// The internal representation of an `AsyncGenerator` object.
-</span><span class="attr">#[derive(Debug, Clone, Finalize, Trace)]
+</span><span class="attr">#[derive(Debug, Clone, Finalize, Trace, JsData)]
 </span><span class="kw">pub struct </span>AsyncGenerator {
     <span class="doccomment">/// The `[[AsyncGeneratorState]]` internal slot.
     </span><span class="attr">#[unsafe_ignore_trace]
@@ -828,26 +819,25 @@
 
         <span class="comment">// 3. Let result be Completion(AsyncGeneratorValidate(generator, empty)).
         // 4. IfAbruptRejectPromise(result, promiseCapability).
-        </span><span class="kw">let </span>generator_object: JsResult&lt;<span class="kw">_</span>&gt; = generator.as_object().ok_or_else(|| {
+        </span><span class="kw">let </span>result: JsResult&lt;<span class="kw">_</span>&gt; = generator.as_object().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message(<span class="string">&quot;generator resumed on non generator object&quot;</span>)
                 .into()
         });
-        <span class="macro">if_abrupt_reject_promise!</span>(generator_object, promise_capability, context);
-        <span class="kw">let </span><span class="kw-2">mut </span>generator_obj_mut = generator_object.borrow_mut();
-        <span class="kw">let </span>generator: JsResult&lt;<span class="kw">_</span>&gt; = generator_obj_mut.as_async_generator_mut().ok_or_else(|| {
+        <span class="kw">let </span>generator_object = <span class="macro">if_abrupt_reject_promise!</span>(result, promise_capability, context);
+        <span class="kw">let </span>result: JsResult&lt;<span class="kw">_</span>&gt; = generator_object.downcast_mut::&lt;<span class="self">Self</span>&gt;().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message(<span class="string">&quot;generator resumed on non generator object&quot;</span>)
                 .into()
         });
-        <span class="macro">if_abrupt_reject_promise!</span>(generator, promise_capability, context);
+        <span class="kw">let </span><span class="kw-2">mut </span>generator = <span class="macro">if_abrupt_reject_promise!</span>(result, promise_capability, context);
 
         <span class="comment">// 5. Let state be generator.[[AsyncGeneratorState]].
         </span><span class="kw">let </span>state = generator.state;
 
         <span class="comment">// 6. If state is completed, then
         </span><span class="kw">if </span>state == AsyncGeneratorState::Completed {
-            drop(generator_obj_mut);
+            drop(generator);
 
             <span class="comment">// a. Let iteratorResult be CreateIterResultObject(undefined, true).
             </span><span class="kw">let </span>iterator_result = create_iter_result_object(JsValue::undefined(), <span class="bool-val">true</span>, context);
@@ -878,7 +868,7 @@
                 .take()
                 .expect(<span class="string">&quot;generator context cannot be empty here&quot;</span>);
 
-            drop(generator_obj_mut);
+            drop(generator);
 
             <span class="self">Self</span>::resume(
                 generator_object,
@@ -916,19 +906,18 @@
 
         <span class="comment">// 3. Let result be Completion(AsyncGeneratorValidate(generator, empty)).
         // 4. IfAbruptRejectPromise(result, promiseCapability).
-        </span><span class="kw">let </span>generator_object: JsResult&lt;<span class="kw">_</span>&gt; = generator.as_object().ok_or_else(|| {
+        </span><span class="kw">let </span>result: JsResult&lt;<span class="kw">_</span>&gt; = generator.as_object().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message(<span class="string">&quot;generator resumed on non generator object&quot;</span>)
                 .into()
         });
-        <span class="macro">if_abrupt_reject_promise!</span>(generator_object, promise_capability, context);
-        <span class="kw">let </span><span class="kw-2">mut </span>generator_obj_mut = generator_object.borrow_mut();
-        <span class="kw">let </span>generator: JsResult&lt;<span class="kw">_</span>&gt; = generator_obj_mut.as_async_generator_mut().ok_or_else(|| {
+        <span class="kw">let </span>generator_object = <span class="macro">if_abrupt_reject_promise!</span>(result, promise_capability, context);
+        <span class="kw">let </span>result: JsResult&lt;<span class="kw">_</span>&gt; = generator_object.downcast_mut::&lt;<span class="self">Self</span>&gt;().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message(<span class="string">&quot;generator resumed on non generator object&quot;</span>)
                 .into()
         });
-        <span class="macro">if_abrupt_reject_promise!</span>(generator, promise_capability, context);
+        <span class="kw">let </span><span class="kw-2">mut </span>generator = <span class="macro">if_abrupt_reject_promise!</span>(result, promise_capability, context);
 
         <span class="comment">// 5. Let completion be Completion Record { [[Type]]: return, [[Value]]: value, [[Target]]: empty }.
         </span><span class="kw">let </span>return_value = args.get_or_undefined(<span class="number">0</span>).clone();
@@ -946,7 +935,7 @@
             </span>generator.state = AsyncGeneratorState::AwaitingReturn;
 
             <span class="comment">// b. Perform ! AsyncGeneratorAwaitReturn(generator).
-            </span>drop(generator_obj_mut);
+            </span>drop(generator);
             <span class="self">Self</span>::await_return(generator_object.clone(), return_value, context);
         }
         <span class="comment">// 9. Else if state is suspendedYield, then
@@ -957,7 +946,7 @@
                 .take()
                 .expect(<span class="string">&quot;generator context cannot be empty here&quot;</span>);
 
-            drop(generator_obj_mut);
+            drop(generator);
             <span class="self">Self</span>::resume(
                 generator_object,
                 state,
@@ -994,19 +983,18 @@
 
         <span class="comment">// 3. Let result be Completion(AsyncGeneratorValidate(generator, empty)).
         // 4. IfAbruptRejectPromise(result, promiseCapability).
-        </span><span class="kw">let </span>generator_object: JsResult&lt;<span class="kw">_</span>&gt; = generator.as_object().ok_or_else(|| {
+        </span><span class="kw">let </span>result: JsResult&lt;<span class="kw">_</span>&gt; = generator.as_object().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message(<span class="string">&quot;generator resumed on non generator object&quot;</span>)
                 .into()
         });
-        <span class="macro">if_abrupt_reject_promise!</span>(generator_object, promise_capability, context);
-        <span class="kw">let </span><span class="kw-2">mut </span>generator_obj_mut = generator_object.borrow_mut();
-        <span class="kw">let </span>generator: JsResult&lt;<span class="kw">_</span>&gt; = generator_obj_mut.as_async_generator_mut().ok_or_else(|| {
+        <span class="kw">let </span>generator_object = <span class="macro">if_abrupt_reject_promise!</span>(result, promise_capability, context);
+        <span class="kw">let </span>result: JsResult&lt;<span class="kw">_</span>&gt; = generator_object.downcast_mut::&lt;<span class="self">Self</span>&gt;().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message(<span class="string">&quot;generator resumed on non generator object&quot;</span>)
                 .into()
         });
-        <span class="macro">if_abrupt_reject_promise!</span>(generator, promise_capability, context);
+        <span class="kw">let </span><span class="kw-2">mut </span>generator = <span class="macro">if_abrupt_reject_promise!</span>(result, promise_capability, context);
 
         <span class="comment">// 5. Let state be generator.[[AsyncGeneratorState]].
         </span><span class="kw">let </span><span class="kw-2">mut </span>state = generator.state;
@@ -1023,7 +1011,7 @@
 
         <span class="comment">// 7. If state is completed, then
         </span><span class="kw">if </span>state == AsyncGeneratorState::Completed {
-            drop(generator_obj_mut);
+            drop(generator);
 
             <span class="comment">// a. Perform ! Call(promiseCapability.[[Reject]], undefined, « exception »).
             </span>promise_capability
@@ -1052,7 +1040,7 @@
                 .context
                 .take()
                 .expect(<span class="string">&quot;generator context cannot be empty here&quot;</span>);
-            drop(generator_obj_mut);
+            drop(generator);
 
             <span class="comment">// a. Perform AsyncGeneratorResume(generator, completion).
             </span><span class="self">Self</span>::resume(
@@ -1177,8 +1165,7 @@
 
         // 5. Set generator.[[AsyncGeneratorState]] to executing.
         </span>generator
-            .borrow_mut()
-            .as_async_generator_mut()
+            .downcast_mut::&lt;<span class="self">Self</span>&gt;()
             .expect(<span class="string">&quot;already checked before&quot;</span>)
             .state = AsyncGeneratorState::Executing;
 
@@ -1194,8 +1181,7 @@
         <span class="comment">// 7. Resume the suspended evaluation of genContext using completion as the result of the operation that suspended it. Let result be the Completion Record returned by the resumed computation.
 
         </span>generator
-            .borrow_mut()
-            .as_async_generator_mut()
+            .downcast_mut::&lt;<span class="self">Self</span>&gt;()
             .expect(<span class="string">&quot;already checked before&quot;</span>)
             .context = <span class="prelude-val">Some</span>(generator_context);
 
@@ -1232,14 +1218,13 @@
         <span class="kw">let </span>promise = <span class="kw">match </span>promise_completion {
             <span class="prelude-val">Ok</span>(value) =&gt; value,
             <span class="prelude-val">Err</span>(value) =&gt; {
-                <span class="kw">let </span><span class="kw-2">mut </span>generator_borrow_mut = generator.borrow_mut();
-                <span class="kw">let </span>gen = generator_borrow_mut
-                    .as_async_generator_mut()
+                <span class="kw">let </span><span class="kw-2">mut </span>gen = generator
+                    .downcast_mut::&lt;<span class="self">Self</span>&gt;()
                     .expect(<span class="string">&quot;already checked before&quot;</span>);
                 gen.state = AsyncGeneratorState::Completed;
                 gen.context = <span class="prelude-val">None</span>;
                 <span class="kw">let </span>next = gen.queue.pop_front().expect(<span class="string">&quot;queue must not be empty&quot;</span>);
-                drop(generator_borrow_mut);
+                drop(gen);
                 <span class="self">Self</span>::complete_step(<span class="kw-2">&amp;</span>next, <span class="prelude-val">Err</span>(value), <span class="bool-val">true</span>, <span class="prelude-val">None</span>, context);
                 <span class="self">Self</span>::drain_queue(<span class="kw-2">&amp;</span>generator, context);
                 <span class="kw">return</span>;
@@ -1253,9 +1238,8 @@
             NativeFunction::from_copy_closure_with_captures(
                 |_this, args, generator, context| {
                     <span class="kw">let </span>next = {
-                        <span class="kw">let </span><span class="kw-2">mut </span>generator_borrow_mut = generator.borrow_mut();
-                        <span class="kw">let </span>gen = generator_borrow_mut
-                            .as_async_generator_mut()
+                        <span class="kw">let </span><span class="kw-2">mut </span>gen = generator
+                            .downcast_mut::&lt;<span class="self">Self</span>&gt;()
                             .expect(<span class="string">&quot;already checked before&quot;</span>);
 
                         <span class="comment">// a. Set generator.[[AsyncGeneratorState]] to completed.
@@ -1290,9 +1274,8 @@
             context.realm(),
             NativeFunction::from_copy_closure_with_captures(
                 |_this, args, generator, context| {
-                    <span class="kw">let </span><span class="kw-2">mut </span>generator_borrow_mut = generator.borrow_mut();
-                    <span class="kw">let </span>gen = generator_borrow_mut
-                        .as_async_generator_mut()
+                    <span class="kw">let </span><span class="kw-2">mut </span>gen = generator
+                        .downcast_mut::&lt;<span class="self">Self</span>&gt;()
                         .expect(<span class="string">&quot;already checked before&quot;</span>);
 
                     <span class="comment">// a. Set generator.[[AsyncGeneratorState]] to completed.
@@ -1304,7 +1287,7 @@
 
                     <span class="comment">// c. Perform AsyncGeneratorCompleteStep(generator, result, true).
                     </span><span class="kw">let </span>next = gen.queue.pop_front().expect(<span class="string">&quot;must have one entry&quot;</span>);
-                    drop(generator_borrow_mut);
+                    drop(gen);
                     <span class="self">Self</span>::complete_step(<span class="kw-2">&amp;</span>next, result, <span class="bool-val">true</span>, <span class="prelude-val">None</span>, context);
 
                     <span class="comment">// d. Perform AsyncGeneratorDrainQueue(generator).
@@ -1337,9 +1320,8 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-asyncgeneratordrainqueue
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>drain_queue(generator: <span class="kw-2">&amp;</span>JsObject, context: <span class="kw-2">&amp;mut </span>Context) {
-        <span class="kw">let </span><span class="kw-2">mut </span>generator_borrow_mut = generator.borrow_mut();
-        <span class="kw">let </span>gen = generator_borrow_mut
-            .as_async_generator_mut()
+        <span class="kw">let </span><span class="kw-2">mut </span>gen = generator
+            .downcast_mut::&lt;<span class="self">Self</span>&gt;()
             .expect(<span class="string">&quot;already checked before&quot;</span>);
 
         <span class="comment">// 1. Assert: generator.[[AsyncGeneratorState]] is completed.
@@ -1365,7 +1347,7 @@
                 </span>CompletionRecord::Return(val) =&gt; {
                     <span class="comment">// i. Set generator.[[AsyncGeneratorState]] to awaiting-return.
                     </span>gen.state = AsyncGeneratorState::AwaitingReturn;
-                    drop(generator_borrow_mut);
+                    drop(gen);
 
                     <span class="comment">// ii. Perform ! AsyncGeneratorAwaitReturn(generator).
                     </span><span class="self">Self</span>::await_return(generator.clone(), val, context);

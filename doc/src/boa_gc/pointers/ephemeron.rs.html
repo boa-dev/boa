@@ -160,11 +160,11 @@
 /// [eph]: https://docs.racket-lang.org/reference/ephemerons.html
 /// [acm]: https://dl.acm.org/doi/10.1145/263700.263733
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>Ephemeron&lt;K: Trace + <span class="lifetime">&#39;static</span>, V: Trace + <span class="lifetime">&#39;static</span>&gt; {
+</span><span class="kw">pub struct </span>Ephemeron&lt;K: Trace + <span class="question-mark">?</span>Sized + <span class="lifetime">&#39;static</span>, V: Trace + <span class="lifetime">&#39;static</span>&gt; {
     inner_ptr: NonNull&lt;EphemeronBox&lt;K, V&gt;&gt;,
 }
 
-<span class="kw">impl</span>&lt;K: Trace, V: Trace + Clone&gt; Ephemeron&lt;K, V&gt; {
+<span class="kw">impl</span>&lt;K: Trace + <span class="question-mark">?</span>Sized, V: Trace + Clone&gt; Ephemeron&lt;K, V&gt; {
     <span class="doccomment">/// Gets the stored value of this `Ephemeron`, or `None` if the key was already garbage collected.
     ///
     /// This needs to return a clone of the value because holding a reference to it between
@@ -202,7 +202,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;K: Trace, V: Trace&gt; Ephemeron&lt;K, V&gt; {
+<span class="kw">impl</span>&lt;K: Trace + <span class="question-mark">?</span>Sized, V: Trace&gt; Ephemeron&lt;K, V&gt; {
     <span class="doccomment">/// Creates a new `Ephemeron`.
     </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>new(key: <span class="kw-2">&amp;</span>Gc&lt;K&gt;, value: V) -&gt; <span class="self">Self </span>{
@@ -238,7 +238,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;K: Trace, V: Trace&gt; Finalize <span class="kw">for </span>Ephemeron&lt;K, V&gt; {
+<span class="kw">impl</span>&lt;K: Trace + <span class="question-mark">?</span>Sized, V: Trace&gt; Finalize <span class="kw">for </span>Ephemeron&lt;K, V&gt; {
     <span class="kw">fn </span>finalize(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="comment">// SAFETY: inner_ptr should be alive when calling finalize.
         // We don&#39;t call inner_ptr() to avoid overhead of calling finalizer_safe().
@@ -250,7 +250,7 @@
 
 <span class="comment">// SAFETY: `Ephemeron`s trace implementation only marks its inner box because we want to stop
 // tracing through weakly held pointers.
-</span><span class="kw">unsafe impl</span>&lt;K: Trace, V: Trace&gt; Trace <span class="kw">for </span>Ephemeron&lt;K, V&gt; {
+</span><span class="kw">unsafe impl</span>&lt;K: Trace + <span class="question-mark">?</span>Sized, V: Trace&gt; Trace <span class="kw">for </span>Ephemeron&lt;K, V&gt; {
     <span class="kw">unsafe fn </span>trace(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="comment">// SAFETY: We need to mark the inner box of the `Ephemeron` since it is reachable
         // from a root and this means it cannot be dropped.
@@ -268,7 +268,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;K: Trace, V: Trace&gt; Clone <span class="kw">for </span>Ephemeron&lt;K, V&gt; {
+<span class="kw">impl</span>&lt;K: Trace + <span class="question-mark">?</span>Sized, V: Trace&gt; Clone <span class="kw">for </span>Ephemeron&lt;K, V&gt; {
     <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>ptr = <span class="self">self</span>.inner_ptr();
         <span class="self">self</span>.inner().inc_ref_count();
@@ -277,7 +277,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;K: Trace, V: Trace&gt; Drop <span class="kw">for </span>Ephemeron&lt;K, V&gt; {
+<span class="kw">impl</span>&lt;K: Trace + <span class="question-mark">?</span>Sized, V: Trace&gt; Drop <span class="kw">for </span>Ephemeron&lt;K, V&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">if </span>finalizer_safe() {
             Finalize::finalize(<span class="self">self</span>);

@@ -118,16 +118,11 @@
 <a href="#118" id="118">118</a>
 <a href="#119" id="119">119</a>
 <a href="#120" id="120">120</a>
-<a href="#121" id="121">121</a>
-<a href="#122" id="122">122</a>
-<a href="#123" id="123">123</a>
-<a href="#124" id="124">124</a>
-<a href="#125" id="125">125</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! A Rust API wrapper for Boa&#39;s `SharedArrayBuffer` Builtin ECMAScript Object
 </span><span class="kw">use crate</span>::{
     builtins::array_buffer::SharedArrayBuffer,
     error::JsNativeError,
-    object::{JsObject, JsObjectType, ObjectData},
+    object::{JsObject, JsObjectType},
     value::TryFromJs,
     Context, JsResult, JsValue,
 };
@@ -167,11 +162,8 @@
             .shared_array_buffer()
             .prototype();
 
-        <span class="kw">let </span>inner = JsObject::from_proto_and_data_with_shared_shape(
-            context.root_shape(),
-            proto,
-            ObjectData::shared_array_buffer(buffer),
-        );
+        <span class="kw">let </span>inner =
+            JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), proto, buffer);
 
         <span class="self">Self </span>{ inner }
     }
@@ -183,7 +175,7 @@
     /// the object.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>from_object(object: JsObject) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
-        <span class="kw">if </span>object.is_shared_array_buffer() {
+        <span class="kw">if </span>object.is::&lt;SharedArrayBuffer&gt;() {
             <span class="prelude-val">Ok</span>(<span class="self">Self </span>{ inner: object })
         } <span class="kw">else </span>{
             <span class="prelude-val">Err</span>(JsNativeError::typ()
@@ -196,8 +188,7 @@
     </span><span class="attr">#[inline]
     #[must_use]
     </span><span class="kw">pub fn </span>byte_length(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
-        <span class="self">self</span>.borrow()
-            .as_shared_array_buffer()
+        <span class="self">self</span>.downcast_ref::&lt;SharedArrayBuffer&gt;()
             .expect(<span class="string">&quot;should be an array buffer&quot;</span>)
             .len()
     }
@@ -206,8 +197,7 @@
     </span><span class="attr">#[inline]
     #[must_use]
     </span><span class="kw">pub fn </span>inner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SharedArrayBuffer {
-        <span class="self">self</span>.borrow()
-            .as_shared_array_buffer()
+        <span class="self">self</span>.downcast_ref::&lt;SharedArrayBuffer&gt;()
             .expect(<span class="string">&quot;should be an array buffer&quot;</span>)
             .clone()
     }

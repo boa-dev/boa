@@ -421,12 +421,6 @@
 <a href="#421" id="421">421</a>
 <a href="#422" id="422">422</a>
 <a href="#423" id="423">423</a>
-<a href="#424" id="424">424</a>
-<a href="#425" id="425">425</a>
-<a href="#426" id="426">426</a>
-<a href="#427" id="427">427</a>
-<a href="#428" id="428">428</a>
-<a href="#429" id="429">429</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s **`boa_engine`** crate implements ECMAScript&#39;s standard library of builtin objects
 //! and an ECMAScript context, bytecompiler, and virtual machine for code execution.
 //!
@@ -505,6 +499,7 @@
 #[cfg(not(target_has_atomic = <span class="string">&quot;ptr&quot;</span>))]
 </span><span class="macro">compile_error!</span>(<span class="string">&quot;Boa requires a lock free `AtomicUsize` in order to work properly.&quot;</span>);
 
+<span class="kw">extern crate </span><span class="self">self </span><span class="kw">as </span>boa_engine;
 <span class="kw">extern crate </span>static_assertions <span class="kw">as </span>sa;
 
 <span class="kw">pub mod </span>bigint;
@@ -538,13 +533,20 @@
 <span class="doccomment">/// A convenience module that re-exports the most commonly-used Boa APIs
 </span><span class="kw">pub mod </span>prelude {
     <span class="kw">pub use crate</span>::{
+        bigint::JsBigInt,
+        context::Context,
         error::{JsError, JsNativeError, JsNativeErrorKind},
+        host_defined::HostDefined,
         module::Module,
         native_function::NativeFunction,
-        object::JsObject,
+        object::{JsData, JsObject, NativeObject},
         script::Script,
-        Context, JsBigInt, JsResult, JsString, JsValue,
+        string::JsString,
+        symbol::JsSymbol,
+        value::JsValue,
     };
+    <span class="kw">pub use </span>boa_gc::{Finalize, Trace};
+    <span class="kw">pub use </span>boa_macros::JsData;
     <span class="kw">pub use </span>boa_parser::Source;
 }
 
@@ -552,21 +554,7 @@
 
 <span class="comment">// Export things to root level
 </span><span class="attr">#[doc(inline)]
-</span><span class="kw">pub use crate</span>::{
-    bigint::JsBigInt,
-    context::Context,
-    error::{JsError, JsNativeError, JsNativeErrorKind},
-    host_defined::HostDefined,
-    module::Module,
-    native_function::NativeFunction,
-    object::JsObject,
-    script::Script,
-    string::JsString,
-    symbol::JsSymbol,
-    value::JsValue,
-};
-<span class="attr">#[doc(inline)]
-</span><span class="kw">pub use </span>boa_parser::Source;
+</span><span class="kw">pub use </span>prelude::<span class="kw-2">*</span>;
 
 <span class="doccomment">/// The result of a Javascript expression is represented like this so it can succeed (`Ok`) or fail (`Err`)
 </span><span class="kw">pub type </span>JsResult&lt;T&gt; = StdResult&lt;T, JsError&gt;;

@@ -1064,16 +1064,6 @@
 <a href="#1064" id="1064">1064</a>
 <a href="#1065" id="1065">1065</a>
 <a href="#1066" id="1066">1066</a>
-<a href="#1067" id="1067">1067</a>
-<a href="#1068" id="1068">1068</a>
-<a href="#1069" id="1069">1069</a>
-<a href="#1070" id="1070">1070</a>
-<a href="#1071" id="1071">1071</a>
-<a href="#1072" id="1072">1072</a>
-<a href="#1073" id="1073">1073</a>
-<a href="#1074" id="1074">1074</a>
-<a href="#1075" id="1075">1075</a>
-<a href="#1076" id="1076">1076</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module defines the object internal methods.
 //!
 //! More information:
@@ -1096,18 +1086,8 @@
 };
 <span class="kw">use </span>boa_profiler::Profiler;
 
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">mod </span>arguments;
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">mod </span>array;
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">mod </span>bound_function;
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">mod </span>function;
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">mod </span>immutable_prototype;
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">mod </span>integer_indexed;
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">mod </span>module_namespace;
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">mod </span>proxy;
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">mod </span>string;
-
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>array::ARRAY_EXOTIC_INTERNAL_METHODS;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>integer_indexed::integer_indexed_element_set;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>immutable_prototype;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>string;
 
 <span class="doccomment">/// A lightweight wrapper around [`Context`] used in [`InternalObjectMethods`].
 </span><span class="attr">#[derive(Debug)]
@@ -1409,9 +1389,9 @@
 /// resort to `dyn Object`.
 ///
 /// For a guide on how to implement exotic internal methods, see `ORDINARY_INTERNAL_METHODS`.
-</span><span class="attr">#[derive(Clone, Copy)]
+</span><span class="attr">#[derive(Debug, Clone, Copy)]
 #[allow(clippy::type_complexity)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>InternalObjectMethods {
+</span><span class="kw">pub struct </span>InternalObjectMethods {
     <span class="kw">pub</span>(<span class="kw">crate</span>) __get_prototype_of__: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>JsObject, <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsPrototype&gt;,
     <span class="kw">pub</span>(<span class="kw">crate</span>) __set_prototype_of__: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>JsObject, JsPrototype, <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt;,
     <span class="kw">pub</span>(<span class="kw">crate</span>) __is_extensible__: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>JsObject, <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt;,

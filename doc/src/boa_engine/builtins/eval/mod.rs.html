@@ -286,7 +286,7 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/eval
 
 </span><span class="kw">use crate</span>::{
-    builtins::BuiltInObject,
+    builtins::{function::OrdinaryFunction, BuiltInObject},
     bytecompiler::ByteCompiler,
     context::intrinsics::Intrinsics,
     environments::Environment,
@@ -422,7 +422,7 @@
                 }
 
                 <span class="kw">let </span>function_object = function_object
-                    .as_function()
+                    .downcast_ref::&lt;OrdinaryFunction&gt;()
                     .expect(<span class="string">&quot;must be function object&quot;</span>);
 
                 <span class="comment">// iv. If F.[[ConstructorKind]] is derived, set inDerivedConstructor to true.

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"macro":["default_impls","fn_impls","fn_one","tuple_impls","type_arg_tuple_based_impls"],"trait":["JsData"]};

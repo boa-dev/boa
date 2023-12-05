@@ -590,15 +590,6 @@
 <a href="#590" id="590">590</a>
 <a href="#591" id="591">591</a>
 <a href="#592" id="592">592</a>
-<a href="#593" id="593">593</a>
-<a href="#594" id="594">594</a>
-<a href="#595" id="595">595</a>
-<a href="#596" id="596">596</a>
-<a href="#597" id="597">597</a>
-<a href="#598" id="598">598</a>
-<a href="#599" id="599">599</a>
-<a href="#600" id="600">600</a>
-<a href="#601" id="601">601</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Atomics` object.
 //!
 //! The `Atomics` object contains synchronization methods to orchestrate multithreading
@@ -616,26 +607,17 @@
 <span class="kw">use </span>std::sync::atomic::Ordering;
 
 <span class="kw">use crate</span>::{
-    builtins::BuiltInObject,
-    context::intrinsics::Intrinsics,
-    js_string,
-    object::{JsObject, Object},
-    property::Attribute,
-    realm::Realm,
-    string::common::StaticJsStrings,
-    symbol::JsSymbol,
-    sys::time::Duration,
-    value::IntegerOrInfinity,
-    Context, JsArgs, JsNativeError, JsResult, JsString, JsValue,
+    builtins::BuiltInObject, context::intrinsics::Intrinsics, js_string, object::JsObject,
+    property::Attribute, realm::Realm, string::common::StaticJsStrings, symbol::JsSymbol,
+    sys::time::Duration, value::IntegerOrInfinity, Context, JsArgs, JsNativeError, JsResult,
+    JsString, JsValue,
 };
 <span class="kw">use </span>boa_gc::GcRef;
 <span class="kw">use </span>boa_profiler::Profiler;
 
 <span class="kw">use super</span>::{
-    array_buffer::BufferRef,
-    typed_array::{
-        Atomic, ContentType, Element, IntegerIndexed, TypedArrayElement, TypedArrayKind,
-    },
+    array_buffer::{BufferRef, SharedArrayBuffer},
+    typed_array::{Atomic, ContentType, Element, TypedArray, TypedArrayElement, TypedArrayKind},
     BuiltInBuilder, IntrinsicObject,
 };
 
@@ -1108,7 +1090,7 @@
         // 6. If IsSharedArrayBuffer(buffer) is false, return +0𝔽.
         </span><span class="kw">let </span>buffer = ii.viewed_array_buffer();
         <span class="kw">let </span>buffer = buffer.borrow();
-        <span class="kw">let </span><span class="prelude-val">Some</span>(shared) = buffer.as_shared_array_buffer() <span class="kw">else </span>{
+        <span class="kw">let </span><span class="prelude-val">Some</span>(shared) = buffer.downcast_ref::&lt;SharedArrayBuffer&gt;() <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="number">0</span>.into());
         };
 
@@ -1126,12 +1108,12 @@
 </span><span class="kw">fn </span>validate_integer_typed_array(
     array: <span class="kw-2">&amp;</span>JsValue,
     waitable: bool,
-) -&gt; JsResult&lt;GcRef&lt;<span class="lifetime">&#39;_</span>, IntegerIndexed&gt;&gt; {
+) -&gt; JsResult&lt;GcRef&lt;<span class="lifetime">&#39;_</span>, TypedArray&gt;&gt; {
     <span class="comment">// 1. If waitable is not present, set waitable to false.
     // 2. Perform ? ValidateTypedArray(typedArray).
     </span><span class="kw">let </span>ii = array
         .as_object()
-        .and_then(|o| GcRef::try_map(o.borrow(), Object::as_typed_array))
+        .and_then(JsObject::downcast_ref::&lt;TypedArray&gt;)
         .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
     <span class="kw">if </span>ii.is_detached() {
         <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
@@ -1171,7 +1153,7 @@
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-validateatomicaccess
 </span><span class="kw">fn </span>validate_atomic_access(
-    array: <span class="kw-2">&amp;</span>IntegerIndexed,
+    array: <span class="kw-2">&amp;</span>TypedArray,
     request_index: <span class="kw-2">&amp;</span>JsValue,
     context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;usize&gt; {

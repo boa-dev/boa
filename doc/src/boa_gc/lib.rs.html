@@ -580,7 +580,7 @@
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             threshold: <span class="number">1024</span>,
-            used_space_percentage: <span class="number">80</span>,
+            used_space_percentage: <span class="number">70</span>,
         }
     }
 }
@@ -660,7 +660,7 @@
         })
     }
 
-    <span class="kw">fn </span>alloc_ephemeron&lt;K: Trace, V: Trace&gt;(
+    <span class="kw">fn </span>alloc_ephemeron&lt;K: Trace + <span class="question-mark">?</span>Sized, V: Trace&gt;(
         value: EphemeronBox&lt;K, V&gt;,
     ) -&gt; NonNull&lt;EphemeronBox&lt;K, V&gt;&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;New EphemeronBox&quot;</span>, <span class="string">&quot;BoaAlloc&quot;</span>);
@@ -680,7 +680,7 @@
         })
     }
 
-    <span class="kw">fn </span>alloc_weak_map&lt;K: Trace, V: Trace + Clone&gt;() -&gt; WeakMap&lt;K, V&gt; {
+    <span class="kw">fn </span>alloc_weak_map&lt;K: Trace + <span class="question-mark">?</span>Sized, V: Trace + Clone&gt;() -&gt; WeakMap&lt;K, V&gt; {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;New WeakMap&quot;</span>, <span class="string">&quot;BoaAlloc&quot;</span>);
 
         <span class="kw">let </span>weak_map = WeakMap {

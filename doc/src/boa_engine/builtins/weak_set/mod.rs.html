@@ -250,13 +250,6 @@
 <a href="#250" id="250">250</a>
 <a href="#251" id="251">251</a>
 <a href="#252" id="252">252</a>
-<a href="#253" id="253">253</a>
-<a href="#254" id="254">254</a>
-<a href="#255" id="255">255</a>
-<a href="#256" id="256">256</a>
-<a href="#257" id="257">257</a>
-<a href="#258" id="258">258</a>
-<a href="#259" id="259">259</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s `WeakSet` builtin object.
 //!
 //! More information:
@@ -270,15 +263,17 @@
     builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
+    object::{internal_methods::get_prototype_from_constructor, ErasedVTableObject, JsObject},
     property::Attribute,
     realm::Realm,
     string::{common::StaticJsStrings, utf16},
     symbol::JsSymbol,
     Context, JsArgs, JsNativeError, JsResult, JsString, JsValue,
 };
-<span class="kw">use </span>boa_gc::{Finalize, Trace, WeakMap};
+<span class="kw">use </span>boa_gc::{Finalize, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
+
+<span class="kw">type </span>NativeWeakSet = boa_gc::WeakMap&lt;ErasedVTableObject, ()&gt;;
 
 <span class="attr">#[derive(Debug, Trace, Finalize)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>WeakSet;
@@ -343,7 +338,7 @@
         <span class="kw">let </span>weak_set = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            ObjectData::weak_set(WeakMap::new()),
+            NativeWeakSet::new(),
         );
 
         <span class="comment">// 4. If iterable is either undefined or null, return set.
@@ -399,15 +394,12 @@
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let S be the this value.
         // 2. Perform ? RequireInternalSlot(S, [[WeakSetData]]).
-        </span><span class="kw">let </span><span class="prelude-val">Some</span>(obj) = this.as_object() <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;WeakSet.add: called with non-object value&quot;</span>)
-                .into());
-        };
-        <span class="kw">let </span><span class="kw-2">mut </span>obj_borrow = obj.borrow_mut();
-        <span class="kw">let </span>o = obj_borrow.as_weak_set_mut().ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;WeakSet.add: called with non-object value&quot;</span>)
-        })<span class="question-mark">?</span>;
+        </span><span class="kw">let </span><span class="kw-2">mut </span>set = this
+            .as_object()
+            .and_then(JsObject::downcast_mut::&lt;NativeWeakSet&gt;)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message(<span class="string">&quot;WeakSet.add: called with non-object value&quot;</span>)
+            })<span class="question-mark">?</span>;
 
         <span class="comment">// 3. If Type(value) is not Object, throw a TypeError exception.
         </span><span class="kw">let </span>value = args.get_or_undefined(<span class="number">0</span>);
@@ -421,14 +413,14 @@
 
         <span class="comment">// 4. Let entries be the List that is S.[[WeakSetData]].
         // 5. For each element e of entries, do
-        </span><span class="kw">if </span>o.contains_key(value.inner()) {
+        </span><span class="kw">if </span>set.contains_key(value.inner()) {
             <span class="comment">// a. If e is not empty and SameValue(e, value) is true, then
             // i. Return S.
             </span><span class="kw">return </span><span class="prelude-val">Ok</span>(this.clone());
         }
 
         <span class="comment">// 6. Append value as the last element of entries.
-        </span>o.insert(value.inner(), ());
+        </span>set.insert(value.inner(), ());
 
         <span class="comment">// 7. Return S.
         </span><span class="prelude-val">Ok</span>(this.clone())
@@ -451,15 +443,12 @@
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let S be the this value.
         // 2. Perform ? RequireInternalSlot(S, [[WeakSetData]]).
-        </span><span class="kw">let </span><span class="prelude-val">Some</span>(obj) = this.as_object() <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;WeakSet.delete: called with non-object value&quot;</span>)
-                .into());
-        };
-        <span class="kw">let </span><span class="kw-2">mut </span>obj_borrow = obj.borrow_mut();
-        <span class="kw">let </span>o = obj_borrow.as_weak_set_mut().ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;WeakSet.delete: called with non-object value&quot;</span>)
-        })<span class="question-mark">?</span>;
+        </span><span class="kw">let </span><span class="kw-2">mut </span>set = this
+            .as_object()
+            .and_then(JsObject::downcast_mut::&lt;NativeWeakSet&gt;)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message(<span class="string">&quot;WeakSet.delete: called with non-object value&quot;</span>)
+            })<span class="question-mark">?</span>;
 
         <span class="comment">// 3. If Type(value) is not Object, return false.
         </span><span class="kw">let </span>value = args.get_or_undefined(<span class="number">0</span>);
@@ -473,12 +462,12 @@
         // i. Replace the element of entries whose value is e with an element whose value is empty.
         // ii. Return true.
         // 6. Return false.
-        </span><span class="prelude-val">Ok</span>(o.remove(value.inner()).is_some().into())
+        </span><span class="prelude-val">Ok</span>(set.remove(value.inner()).is_some().into())
     }
 
     <span class="doccomment">/// `WeakSet.prototype.has( value )`
     ///
-    /// The has() method returns a boolean indicating whether an object exists in a `WeakSet` or not.   
+    /// The has() method returns a boolean indicating whether an object exists in a `WeakSet` or not.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -493,15 +482,12 @@
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let S be the this value.
         // 2. Perform ? RequireInternalSlot(S, [[WeakSetData]]).
-        </span><span class="kw">let </span><span class="prelude-val">Some</span>(obj) = this.as_object() <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;WeakSet.has: called with non-object value&quot;</span>)
-                .into());
-        };
-        <span class="kw">let </span>obj_borrow = obj.borrow();
-        <span class="kw">let </span>o = obj_borrow.as_weak_set().ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;WeakSet.has: called with non-object value&quot;</span>)
-        })<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>set = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::&lt;NativeWeakSet&gt;)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message(<span class="string">&quot;WeakSet.has: called with non-object value&quot;</span>)
+            })<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Let entries be the List that is S.[[WeakSetData]].
         // 4. If Type(value) is not Object, return false.
@@ -513,7 +499,7 @@
         <span class="comment">// 5. For each element e of entries, do
         // a. If e is not empty and SameValue(e, value) is true, return true.
         // 6. Return false.
-        </span><span class="prelude-val">Ok</span>(o.contains_key(value.inner()).into())
+        </span><span class="prelude-val">Ok</span>(set.contains_key(value.inner()).into())
     }
 }
 </code></pre></div></section></main></body></html>

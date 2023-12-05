@@ -479,12 +479,6 @@
 <a href="#479" id="479">479</a>
 <a href="#480" id="480">480</a>
 <a href="#481" id="481">481</a>
-<a href="#482" id="482">482</a>
-<a href="#483" id="483">483</a>
-<a href="#484" id="484">484</a>
-<a href="#485" id="485">485</a>
-<a href="#486" id="486">486</a>
-<a href="#487" id="487">487</a>
 </pre></div><pre class="rust"><code><span class="attr">#![allow(dead_code)]
 
 </span><span class="kw">use crate</span>::{
@@ -494,16 +488,19 @@
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, ObjectData, CONSTRUCTOR},
+    object::{internal_methods::get_prototype_from_constructor, CONSTRUCTOR},
     property::Attribute,
     realm::Realm,
     string::{common::StaticJsStrings, utf16},
-    Context, JsArgs, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
+    Context, JsArgs, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
+<span class="kw">use </span>boa_gc::{Finalize, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
 
 <span class="doccomment">/// The `Temporal.TimeZone` object.
-</span><span class="attr">#[derive(Debug, Clone)]
+</span><span class="attr">#[derive(Debug, Clone, Trace, Finalize, JsData)]
+</span><span class="comment">// SAFETY: `TimeZone` doesn&#39;t contain traceable data.
+</span><span class="attr">#[boa_gc(unsafe_empty_trace)]
 </span><span class="kw">pub struct </span>TimeZone {
     <span class="kw">pub</span>(<span class="kw">crate</span>) initialized_temporal_time_zone: bool,
     <span class="kw">pub</span>(<span class="kw">crate</span>) identifier: String,
@@ -618,12 +615,12 @@
 <span class="kw">impl </span>TimeZone {
     <span class="comment">// NOTE: id, toJSON, toString currently share the exact same implementation -&gt; Consolidate into one function and define multiple accesors?
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_id(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
-        <span class="kw">let </span>o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;this value must be a Temporal.TimeZone&quot;</span>)
-        })<span class="question-mark">?</span>;
-        <span class="kw">let </span>tz = o.as_time_zone().ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;this value must be a Temporal.TimeZone&quot;</span>)
-        })<span class="question-mark">?</span>;
+        <span class="kw">let </span>tz = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message(<span class="string">&quot;this value must be a Temporal.TimeZone&quot;</span>)
+            })<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(JsString::from(tz.identifier.clone()).into())
     }
 
@@ -636,11 +633,7 @@
         // 2. Perform ? RequireInternalSlot(timeZone, [[InitializedTemporalTimeZone]]).
         </span><span class="kw">let </span>_tz = this
             .as_object()
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message(<span class="string">&quot;this value must be a Temporal.TimeZone&quot;</span>)
-            })<span class="question-mark">?
-            </span>.borrow()
-            .as_time_zone()
+            .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message(<span class="string">&quot;this value must be a Temporal.TimeZone&quot;</span>)
             })<span class="question-mark">?</span>;
@@ -665,11 +658,7 @@
         // 2. Perform ? RequireInternalSlot(timeZone, [[InitializedTemporalTimeZone]]).
         </span><span class="kw">let </span>_tz = this
             .as_object()
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message(<span class="string">&quot;this value must be a Temporal.TimeZone&quot;</span>)
-            })<span class="question-mark">?
-            </span>.borrow()
-            .as_time_zone()
+            .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message(<span class="string">&quot;this value must be a Temporal.TimeZone&quot;</span>)
             })<span class="question-mark">?</span>;
@@ -737,13 +726,12 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_string(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let timeZone be the this value.
         // 2. Perform ? RequireInternalSlot(timeZone, [[InitializedTemporalTimeZone]]).
-        </span><span class="kw">let </span>o = this.as_object().ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;this value must be a Temporal.TimeZone&quot;</span>)
-        })<span class="question-mark">?</span>;
-        <span class="kw">let </span>o = o.borrow();
-        <span class="kw">let </span>tz = o.as_time_zone().ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;this value must be a Temporal.TimeZone&quot;</span>)
-        })<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>tz = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message(<span class="string">&quot;this value must be a Temporal.TimeZone&quot;</span>)
+            })<span class="question-mark">?</span>;
         <span class="comment">// 3. Return timeZone.[[Identifier]].
         </span><span class="prelude-val">Ok</span>(JsString::from(tz.identifier.clone()).into())
     }
@@ -830,11 +818,11 @@
     <span class="comment">// 6. Return object.
     </span><span class="kw">let </span>object = JsObject::from_proto_and_data(
         prototype,
-        ObjectData::time_zone(TimeZone {
+        TimeZone {
             initialized_temporal_time_zone: <span class="bool-val">false</span>,
             identifier,
             offset_nanoseconds,
-        }),
+        },
     );
     <span class="prelude-val">Ok</span>(object.into())
 }

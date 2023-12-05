@@ -153,6 +153,8 @@
 <a href="#153" id="153">153</a>
 <a href="#154" id="154">154</a>
 <a href="#155" id="155">155</a>
+<a href="#156" id="156">156</a>
+<a href="#157" id="157">157</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of the ECMAScript `Temporal.PlainDateTime` builtin object.
 </span><span class="attr">#![allow(dead_code, unused_variables)]
 
@@ -162,14 +164,16 @@
     property::Attribute,
     realm::Realm,
     string::common::StaticJsStrings,
-    Context, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
+    Context, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
+<span class="kw">use </span>boa_gc::{Finalize, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
 
 <span class="kw">use </span>boa_temporal::datetime::DateTime <span class="kw">as </span>InnerDateTime;
 
 <span class="doccomment">/// The `Temporal.PlainDateTime` object.
-</span><span class="attr">#[derive(Debug, Clone)]
+</span><span class="attr">#[derive(Debug, Clone, Trace, Finalize, JsData)]
+#[boa_gc(unsafe_empty_trace)] </span><span class="comment">// TODO: Remove this!!! `InnerDateTime` could contain `Trace` types.
 </span><span class="kw">pub struct </span>PlainDateTime {
     <span class="kw">pub</span>(<span class="kw">crate</span>) inner: InnerDateTime,
 }

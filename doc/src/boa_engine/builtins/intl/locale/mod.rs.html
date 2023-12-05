@@ -761,13 +761,6 @@
 <a href="#761" id="761">761</a>
 <a href="#762" id="762">762</a>
 <a href="#763" id="763">763</a>
-<a href="#764" id="764">764</a>
-<a href="#765" id="765">765</a>
-<a href="#766" id="766">766</a>
-<a href="#767" id="767">767</a>
-<a href="#768" id="768">768</a>
-<a href="#769" id="769">769</a>
-<a href="#770" id="770">770</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::options::get_option,
     realm::Realm,
@@ -792,7 +785,7 @@
     builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
+    object::{internal_methods::get_prototype_from_constructor, JsObject},
     property::Attribute,
     symbol::JsSymbol,
     Context, JsArgs, JsNativeError, JsResult, JsString, JsValue,
@@ -1138,11 +1131,8 @@
         <span class="comment">// 6. Let locale be ? OrdinaryCreateFromConstructor(NewTarget, &quot;%Locale.prototype%&quot;, internalSlotsList).
         </span><span class="kw">let </span>prototype =
             get_prototype_from_constructor(new_target, StandardConstructors::locale, context)<span class="question-mark">?</span>;
-        <span class="kw">let </span>locale = JsObject::from_proto_and_data_with_shared_shape(
-            context.root_shape(),
-            prototype,
-            ObjectData::native_object(tag),
-        );
+        <span class="kw">let </span>locale =
+            JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), prototype, tag);
 
         <span class="comment">// 37. Return locale.
         </span><span class="prelude-val">Ok</span>(locale.into())
@@ -1180,12 +1170,10 @@
 
         <span class="comment">// 4. Return ! Construct(%Locale%, maximal).
         </span><span class="kw">let </span>prototype = context.intrinsics().constructors().locale().prototype();
-        <span class="prelude-val">Ok</span>(JsObject::from_proto_and_data_with_shared_shape(
-            context.root_shape(),
-            prototype,
-            ObjectData::native_object(loc),
+        <span class="prelude-val">Ok</span>(
+            JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), prototype, loc)
+                .into(),
         )
-        .into())
     }
 
     <span class="doccomment">/// [`Intl.Locale.prototype.minimize ( )`][spec]
@@ -1218,12 +1206,10 @@
 
         <span class="comment">// 4. Return ! Construct(%Locale%, minimal).
         </span><span class="kw">let </span>prototype = context.intrinsics().constructors().locale().prototype();
-        <span class="prelude-val">Ok</span>(JsObject::from_proto_and_data_with_shared_shape(
-            context.root_shape(),
-            prototype,
-            ObjectData::native_object(loc),
+        <span class="prelude-val">Ok</span>(
+            JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), prototype, loc)
+                .into(),
         )
-        .into())
     }
 
     <span class="doccomment">/// [`Intl.Locale.prototype.toString ( )`][spec].

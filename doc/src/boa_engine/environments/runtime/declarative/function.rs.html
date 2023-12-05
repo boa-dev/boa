@@ -208,7 +208,7 @@
 <a href="#208" id="208">208</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>boa_gc::{custom_trace, Finalize, GcRefCell, Trace};
 
-<span class="kw">use crate</span>::{JsNativeError, JsObject, JsResult, JsValue};
+<span class="kw">use crate</span>::{builtins::function::OrdinaryFunction, JsNativeError, JsObject, JsResult, JsValue};
 
 <span class="kw">use </span><span class="kw">super</span>::PoisonableEnvironment;
 
@@ -301,6 +301,7 @@
     /// # Panics
     ///
     /// Panics if the function object of the environment is not a function.
+    </span><span class="attr">#[track_caller]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>has_super_binding(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="comment">// 1.If envRec.[[ThisBindingStatus]] is lexical, return false.
         </span><span class="kw">if </span><span class="macro">matches!</span>(<span class="kw-2">&amp;*</span><span class="self">self</span>.slots.this.borrow(), ThisBindingStatus::Lexical) {
@@ -310,8 +311,7 @@
         <span class="comment">// 2. If envRec.[[FunctionObject]].[[HomeObject]] is undefined, return false; otherwise, return true.
         </span><span class="self">self</span>.slots
             .function_object
-            .borrow()
-            .as_function()
+            .downcast_ref::&lt;OrdinaryFunction&gt;()
             .expect(<span class="string">&quot;function object must be function&quot;</span>)
             .get_home_object()
             .is_some()

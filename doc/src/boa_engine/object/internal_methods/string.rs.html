@@ -169,27 +169,28 @@
 <a href="#169" id="169">169</a>
 <a href="#170" id="170">170</a>
 <a href="#171" id="171">171</a>
+<a href="#172" id="172">172</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     js_string,
-    object::JsObject,
+    object::{JsData, JsObject},
     property::{PropertyDescriptor, PropertyKey},
-    Context, JsResult,
+    Context, JsResult, JsString,
 };
 
 <span class="kw">use super</span>::{InternalMethodContext, InternalObjectMethods, ORDINARY_INTERNAL_METHODS};
 
-<span class="doccomment">/// Definitions of the internal object methods for string exotic objects.
-///
-/// More information:
-///  - [ECMAScript reference][spec]
-///
-/// [spec]: https://tc39.es/ecma262/#sec-string-exotic-objects
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>STRING_EXOTIC_INTERNAL_METHODS: InternalObjectMethods = InternalObjectMethods {
-    __get_own_property__: string_exotic_get_own_property,
-    __define_own_property__: string_exotic_define_own_property,
-    __own_property_keys__: string_exotic_own_property_keys,
-    ..ORDINARY_INTERNAL_METHODS
-};
+<span class="kw">impl </span>JsData <span class="kw">for </span>JsString {
+    <span class="kw">fn </span>internal_methods(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>InternalObjectMethods {
+        <span class="kw">static </span>METHODS: InternalObjectMethods = InternalObjectMethods {
+            __get_own_property__: string_exotic_get_own_property,
+            __define_own_property__: string_exotic_define_own_property,
+            __own_property_keys__: string_exotic_own_property_keys,
+            ..ORDINARY_INTERNAL_METHODS
+        };
+
+        <span class="kw-2">&amp;</span>METHODS
+    }
+}
 
 <span class="doccomment">/// Gets own property of &#39;String&#39; exotic object
 ///
@@ -263,8 +264,9 @@
     <span class="comment">// 2. Let str be O.[[StringData]].
     // 3. Assert: Type(str) is String.
     </span><span class="kw">let </span>string = obj
-        .as_string()
-        .expect(<span class="string">&quot;string exotic method should only be callable from string objects&quot;</span>);
+        .downcast_ref::&lt;JsString&gt;()
+        .expect(<span class="string">&quot;string exotic method should only be callable from string objects&quot;</span>)
+        .clone();
     <span class="comment">// 4. Let len be the length of str.
     </span><span class="kw">let </span>len = string.len();
 
@@ -321,9 +323,9 @@
     <span class="comment">// 8. Let str be S.[[StringData]].
     // 9. Assert: Type(str) is String.
     </span><span class="kw">let </span>string = obj
-        .borrow()
-        .as_string()
-        .expect(<span class="string">&quot;string exotic method should only be callable from string objects&quot;</span>);
+        .downcast_ref::&lt;JsString&gt;()
+        .expect(<span class="string">&quot;string exotic method should only be callable from string objects&quot;</span>)
+        .clone();
 
     <span class="comment">// 10. Let len be the length of str.
     // 11. If ℝ(index) &lt; 0 or len ≤ ℝ(index), return undefined.

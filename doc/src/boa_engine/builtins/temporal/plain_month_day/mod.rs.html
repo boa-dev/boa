@@ -110,24 +110,25 @@
 <a href="#110" id="110">110</a>
 <a href="#111" id="111">111</a>
 <a href="#112" id="112">112</a>
-<a href="#113" id="113">113</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of the ECMAScript `Temporal.PlainMonthDay` builtin object.
 </span><span class="attr">#![allow(dead_code, unused_variables)]
 </span><span class="kw">use crate</span>::{
     builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
-    object::{internal_methods::get_prototype_from_constructor, ObjectData},
+    object::internal_methods::get_prototype_from_constructor,
     property::Attribute,
     realm::Realm,
     string::common::StaticJsStrings,
-    Context, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
+    Context, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
+<span class="kw">use </span>boa_gc::{Finalize, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
 
 <span class="kw">use </span>boa_temporal::{datetime::DateTime, month_day::MonthDay <span class="kw">as </span>InnerMonthDay};
 
 <span class="doccomment">/// The `Temporal.PlainMonthDay` object.
-</span><span class="attr">#[derive(Debug, Clone)]
+</span><span class="attr">#[derive(Debug, Clone, Trace, Finalize, JsData)]
+#[boa_gc(unsafe_empty_trace)] </span><span class="comment">// TODO: Remove this!!! `InnerMonthDay` could contain `Trace` types.
 </span><span class="kw">pub struct </span>PlainMonthDay {
     <span class="kw">pub</span>(<span class="kw">crate</span>) inner: InnerMonthDay,
 }
@@ -216,10 +217,7 @@
     // 6. Set object.[[ISODay]] to isoDay.
     // 7. Set object.[[Calendar]] to calendar.
     // 8. Set object.[[ISOYear]] to referenceISOYear.
-    </span><span class="kw">let </span>obj = JsObject::from_proto_and_data(
-        proto,
-        ObjectData::plain_month_day(PlainMonthDay::new(inner)),
-    );
+    </span><span class="kw">let </span>obj = JsObject::from_proto_and_data(proto, PlainMonthDay::new(inner));
 
     <span class="comment">// 9. Return object.
     </span><span class="prelude-val">Ok</span>(obj.into())

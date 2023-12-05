@@ -288,6 +288,7 @@
 <a href="#288" id="288">288</a>
 <a href="#289" id="289">289</a>
 <a href="#290" id="290">290</a>
+<a href="#291" id="291">291</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module implements the global `Intl.DateTimeFormat` object.
 //!
 //! `Intl.DateTimeFormat` is a built-in object that has properties and methods for date and time i18n.
@@ -300,14 +301,15 @@
 </span><span class="kw">use crate</span>::{
     builtins::{
         options::OptionType, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
+        OrdinaryObject,
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
+    object::{internal_methods::get_prototype_from_constructor, JsObject},
     realm::Realm,
     string::{common::StaticJsStrings, utf16},
-    Context, JsResult, JsString, JsValue,
+    Context, JsData, JsResult, JsString, JsValue,
 };
 
 <span class="kw">use </span>boa_gc::{Finalize, Trace};
@@ -329,7 +331,7 @@
 }
 
 <span class="doccomment">/// JavaScript `Intl.DateTimeFormat` object.
-</span><span class="attr">#[derive(Debug, Clone, Trace, Finalize)]
+</span><span class="attr">#[derive(Debug, Clone, Trace, Finalize, JsData)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>DateTimeFormat {
     initialized_date_time_format: bool,
     locale: JsString,
@@ -413,7 +415,7 @@
         </span><span class="kw">let </span>date_time_format = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            ObjectData::native_object(<span class="self">Self </span>{
+            <span class="self">Self </span>{
                 initialized_date_time_format: <span class="bool-val">true</span>,
                 locale: <span class="macro">js_string!</span>(<span class="string">&quot;en-US&quot;</span>),
                 calendar: <span class="macro">js_string!</span>(<span class="string">&quot;gregory&quot;</span>),
@@ -433,7 +435,7 @@
                 hour_cycle: <span class="macro">js_string!</span>(<span class="string">&quot;h24&quot;</span>),
                 pattern: <span class="macro">js_string!</span>(<span class="string">&quot;{hour}:{minute}&quot;</span>),
                 bound_format: <span class="macro">js_string!</span>(<span class="string">&quot;undefined&quot;</span>),
-            }),
+            },
         );
 
         <span class="comment">// TODO 3. Perform ? InitializeDateTimeFormat(dateTimeFormat, locales, options).
@@ -484,7 +486,7 @@
     <span class="kw">let </span>options = JsObject::from_proto_and_data_with_shared_shape(
         context.root_shape(),
         options,
-        ObjectData::ordinary(),
+        OrdinaryObject,
     );
 
     <span class="comment">// 3. Let needDefaults be true.

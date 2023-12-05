@@ -40,7 +40,7 @@
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{pointers::RawWeakMap, GcRefCell, Trace, WeakGc};
 
 <span class="doccomment">/// A box that is used to track [`WeakMap`][`crate::WeakMap`]s.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>WeakMapBox&lt;K: Trace + Sized + <span class="lifetime">&#39;static</span>, V: Trace + Sized + <span class="lifetime">&#39;static</span>&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>WeakMapBox&lt;K: Trace + <span class="question-mark">?</span>Sized + <span class="lifetime">&#39;static</span>, V: Trace + Sized + <span class="lifetime">&#39;static</span>&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) map: WeakGc&lt;GcRefCell&lt;RawWeakMap&lt;K, V&gt;&gt;&gt;,
 }
 
@@ -56,7 +56,7 @@
     </span><span class="kw">unsafe fn </span>trace(<span class="kw-2">&amp;</span><span class="self">self</span>);
 }
 
-<span class="kw">impl</span>&lt;K: Trace, V: Trace + Clone&gt; ErasedWeakMapBox <span class="kw">for </span>WeakMapBox&lt;K, V&gt; {
+<span class="kw">impl</span>&lt;K: Trace + <span class="question-mark">?</span>Sized, V: Trace + Clone&gt; ErasedWeakMapBox <span class="kw">for </span>WeakMapBox&lt;K, V&gt; {
     <span class="kw">fn </span>clear_dead_entries(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(map) = <span class="self">self</span>.map.upgrade() {
             <span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="kw-2">mut </span>map) = map.try_borrow_mut() {

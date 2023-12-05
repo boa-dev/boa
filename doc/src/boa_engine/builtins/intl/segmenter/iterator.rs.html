@@ -151,8 +151,6 @@
 <a href="#151" id="151">151</a>
 <a href="#152" id="152">152</a>
 <a href="#153" id="153">153</a>
-<a href="#154" id="154">154</a>
-<a href="#155" id="155">155</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>boa_gc::{Finalize, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>icu_segmenter::{
@@ -163,10 +161,9 @@
     builtins::{iterable::create_iter_result_object, BuiltInBuilder, IntrinsicObject},
     context::intrinsics::Intrinsics,
     js_string,
-    object::ObjectData,
     property::Attribute,
     realm::Realm,
-    Context, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
+    Context, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 
 <span class="kw">use super</span>::{create_segment_data_object, Segmenter};
@@ -201,7 +198,7 @@
     }
 }
 
-<span class="attr">#[derive(Debug, Trace, Finalize)]
+<span class="attr">#[derive(Debug, Trace, Finalize, JsData)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>SegmentIterator {
     segmenter: JsObject,
     string: JsString,
@@ -245,11 +242,11 @@
                 .objects()
                 .iterator_prototypes()
                 .segment(),
-            ObjectData::native_object(<span class="self">Self </span>{
+            <span class="self">Self </span>{
                 segmenter,
                 string,
                 next_segment_index: <span class="number">0</span>,
-            }),
+            },
         )
     }
     <span class="doccomment">/// [`%SegmentIteratorPrototype%.next ( )`][spec]
@@ -258,14 +255,13 @@
     </span><span class="kw">fn </span>next(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let iterator be the this value.
         // 2. Perform ? RequireInternalSlot(iterator, [[IteratingSegmenter]]).
-        </span><span class="kw">let </span><span class="kw-2">mut </span>iter = this.as_object().map(JsObject::borrow_mut).ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message(<span class="string">&quot;`next` can only be called on a `Segment Iterator` object&quot;</span>)
-        })<span class="question-mark">?</span>;
-        <span class="kw">let </span>iter = iter.downcast_mut::&lt;<span class="self">Self</span>&gt;().ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message(<span class="string">&quot;`next` can only be called on a `Segment Iterator` object&quot;</span>)
-        })<span class="question-mark">?</span>;
+        </span><span class="kw">let </span><span class="kw-2">mut </span>iter = this
+            .as_object()
+            .and_then(JsObject::downcast_mut::&lt;<span class="self">Self</span>&gt;)
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message(<span class="string">&quot;`next` can only be called on a `Segment Iterator` object&quot;</span>)
+            })<span class="question-mark">?</span>;
 
         <span class="comment">// 5. Let startIndex be iterator.[[IteratedStringNextSegmentCodeUnitIndex]].
         </span><span class="kw">let </span>start = iter.next_segment_index;

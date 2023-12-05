@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["bound_function_exotic_call","bound_function_exotic_construct"],"struct":["BoundFunction"]};

@@ -1013,20 +1013,19 @@
 <a href="#1013" id="1013">1013</a>
 <a href="#1014" id="1014">1014</a>
 <a href="#1015" id="1015">1015</a>
-<a href="#1016" id="1016">1016</a>
-<a href="#1017" id="1017">1017</a>
-<a href="#1018" id="1018">1018</a>
-<a href="#1019" id="1019">1019</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! `CodeBlock`
 //!
 //! This module is for the `CodeBlock` which implements a function representation in the VM
 
 </span><span class="kw">use crate</span>::{
-    builtins::function::{OrdinaryFunction, ThisMode},
+    builtins::{
+        function::{OrdinaryFunction, ThisMode},
+        OrdinaryObject,
+    },
     environments::{BindingLocator, CompileTimeEnvironment},
     object::{
         shape::{slot::Slot, Shape, WeakShape},
-        JsObject, ObjectData,
+        JsObject,
     },
     Context, JsBigInt, JsString, JsValue,
 };
@@ -1911,8 +1910,6 @@
         context.realm().clone(),
     );
 
-    <span class="kw">let </span>data = ObjectData::ordinary_function(function, !is_async &amp;&amp; !is_generator);
-
     <span class="kw">let </span>templates = context.intrinsics().templates();
 
     <span class="kw">let </span>(<span class="kw-2">mut </span>template, storage, constructor_prototype) = <span class="kw">if </span>is_generator {
@@ -1923,7 +1920,7 @@
             } <span class="kw">else </span>{
                 context.intrinsics().objects().generator()
             },
-            ObjectData::ordinary(),
+            OrdinaryObject,
         );
 
         (
@@ -1940,7 +1937,7 @@
     } <span class="kw">else </span>{
         <span class="kw">let </span>constructor_prototype = templates
             .function_prototype()
-            .create(ObjectData::ordinary(), <span class="macro">vec!</span>[JsValue::undefined()]);
+            .create(OrdinaryObject, <span class="macro">vec!</span>[JsValue::undefined()]);
 
         <span class="kw">let </span>template = templates.function_with_prototype_without_proto();
 
@@ -1953,7 +1950,7 @@
 
     template.set_prototype(prototype);
 
-    <span class="kw">let </span>constructor = template.create(data, storage);
+    <span class="kw">let </span>constructor = template.create(function, storage);
 
     <span class="kw">if let </span><span class="prelude-val">Some</span>(constructor_prototype) = <span class="kw-2">&amp;</span>constructor_prototype {
         constructor_prototype.borrow_mut().properties_mut().storage[<span class="number">0</span>] = constructor.clone().into();
@@ -1984,11 +1981,6 @@
         context.realm().clone(),
     );
 
-    <span class="kw">let </span>data = ObjectData::ordinary_function(
-        function,
-        has_prototype_property &amp;&amp; !is_async &amp;&amp; !is_generator,
-    );
-
     <span class="kw">if </span>is_generator {
         <span class="kw">let </span>prototype = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
@@ -1997,7 +1989,7 @@
             } <span class="kw">else </span>{
                 context.intrinsics().objects().generator()
             },
-            ObjectData::ordinary(),
+            OrdinaryObject,
         );
         <span class="kw">let </span>template = <span class="kw">if </span>is_async {
             context.intrinsics().templates().async_generator_function()
@@ -2005,31 +1997,31 @@
             context.intrinsics().templates().generator_function()
         };
 
-        template.create(data, <span class="macro">vec!</span>[length, name, prototype.into()])
+        template.create(function, <span class="macro">vec!</span>[length, name, prototype.into()])
     } <span class="kw">else if </span>is_async {
         context
             .intrinsics()
             .templates()
             .async_function()
-            .create(data, <span class="macro">vec!</span>[length, name])
+            .create(function, <span class="macro">vec!</span>[length, name])
     } <span class="kw">else if </span>!has_prototype_property {
         context
             .intrinsics()
             .templates()
             .function()
-            .create(data, <span class="macro">vec!</span>[length, name])
+            .create(function, <span class="macro">vec!</span>[length, name])
     } <span class="kw">else </span>{
         <span class="kw">let </span>prototype = context
             .intrinsics()
             .templates()
             .function_prototype()
-            .create(ObjectData::ordinary(), <span class="macro">vec!</span>[JsValue::undefined()]);
+            .create(OrdinaryObject, <span class="macro">vec!</span>[JsValue::undefined()]);
 
         <span class="kw">let </span>constructor = context
             .intrinsics()
             .templates()
             .function_with_prototype()
-            .create(data, <span class="macro">vec!</span>[length, name, prototype.clone().into()]);
+            .create(function, <span class="macro">vec!</span>[length, name, prototype.clone().into()]);
 
         prototype.borrow_mut().properties_mut().storage[<span class="number">0</span>] = constructor.clone().into();
 

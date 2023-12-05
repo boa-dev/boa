@@ -315,7 +315,12 @@
 <a href="#315" id="315">315</a>
 <a href="#316" id="316">316</a>
 <a href="#317" id="317">317</a>
+<a href="#318" id="318">318</a>
+<a href="#319" id="319">319</a>
+<a href="#320" id="320">320</a>
+<a href="#321" id="321">321</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
+    builtins::function::OrdinaryFunction,
     error::JsNativeError,
     object::internal_methods::InternalMethodContext,
     vm::{opcode::Operation, CompletionType},
@@ -364,11 +369,14 @@
             <span class="kw">let </span>this = env
                 .get_this_binding()<span class="question-mark">?
                 </span>.expect(<span class="string">&quot;`get_this_environment` ensures this returns `Some`&quot;</span>);
-            <span class="kw">let </span>function_object = env.slots().function_object().borrow();
-            <span class="kw">let </span>function = function_object
-                .as_function()
-                .expect(<span class="string">&quot;must be function object&quot;</span>);
-            function.get_home_object().or(this.as_object()).cloned()
+
+            env.slots()
+                .function_object()
+                .downcast_ref::&lt;OrdinaryFunction&gt;()
+                .expect(<span class="string">&quot;must be function object&quot;</span>)
+                .get_home_object()
+                .or(this.as_object())
+                .cloned()
         };
 
         <span class="kw">let </span>value = home_object

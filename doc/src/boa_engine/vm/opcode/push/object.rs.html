@@ -27,7 +27,7 @@
 <a href="#27" id="27">27</a>
 <a href="#28" id="28">28</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
-    object::ObjectData,
+    builtins::OrdinaryObject,
     vm::{opcode::Operation, CompletionType},
     Context, JsResult,
 };
@@ -49,7 +49,7 @@
             .intrinsics()
             .templates()
             .ordinary_object()
-            .create(ObjectData::ordinary(), Vec::default());
+            .create(OrdinaryObject, Vec::default());
         context.vm.push(o);
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }

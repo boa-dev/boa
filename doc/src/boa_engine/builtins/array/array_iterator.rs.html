@@ -162,16 +162,17 @@
 
 </span><span class="kw">use crate</span>::{
     builtins::{
-        iterable::create_iter_result_object, Array, BuiltInBuilder, IntrinsicObject, JsValue,
+        iterable::create_iter_result_object, typed_array::TypedArray, Array, BuiltInBuilder,
+        IntrinsicObject, JsValue,
     },
     context::intrinsics::Intrinsics,
     error::JsNativeError,
     js_string,
-    object::{JsObject, ObjectData},
+    object::JsObject,
     property::{Attribute, PropertyNameKind},
     realm::Realm,
     symbol::JsSymbol,
-    Context, JsResult,
+    Context, JsData, JsResult,
 };
 <span class="kw">use </span>boa_gc::{Finalize, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
@@ -182,8 +183,8 @@
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-array-iterator-objects
-</span><span class="attr">#[derive(Debug, Clone, Finalize, Trace)]
-</span><span class="kw">pub struct </span>ArrayIterator {
+</span><span class="attr">#[derive(Debug, Clone, Finalize, Trace, JsData)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>ArrayIterator {
     array: JsObject,
     next_index: u64,
     <span class="attr">#[unsafe_ignore_trace]
@@ -243,7 +244,7 @@
         <span class="kw">let </span>array_iterator = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             context.intrinsics().objects().iterator_prototypes().array(),
-            ObjectData::array_iterator(<span class="self">Self</span>::new(array, kind)),
+            <span class="self">Self</span>::new(array, kind),
         );
         array_iterator.into()
     }
@@ -257,10 +258,9 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%arrayiteratorprototype%.next
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>next(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>array_iterator = this.as_object().map(JsObject::borrow_mut);
-        <span class="kw">let </span>array_iterator = array_iterator
-            .as_mut()
-            .and_then(|obj| obj.as_array_iterator_mut())
+        <span class="kw">let </span><span class="kw-2">mut </span>array_iterator = this
+            .as_object()
+            .and_then(JsObject::downcast_mut::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;`this` is not an ArrayIterator&quot;</span>))<span class="question-mark">?</span>;
         <span class="kw">let </span>index = array_iterator.next_index;
         <span class="kw">if </span>array_iterator.done {
@@ -271,7 +271,7 @@
             ));
         }
 
-        <span class="kw">let </span>len = <span class="kw">if let </span><span class="prelude-val">Some</span>(f) = array_iterator.array.borrow().as_typed_array() {
+        <span class="kw">let </span>len = <span class="kw">if let </span><span class="prelude-val">Some</span>(f) = array_iterator.array.downcast_ref::&lt;TypedArray&gt;() {
             <span class="kw">if </span>f.is_detached() {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
                     .with_message(

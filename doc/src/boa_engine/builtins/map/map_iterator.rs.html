@@ -159,7 +159,7 @@
 //!
 //! [spec]: https://tc39.es/ecma262/#sec-map-iterator-objects
 
-</span><span class="kw">use </span><span class="kw">super</span>::ordered_map::MapLock;
+</span><span class="kw">use </span><span class="kw">super</span>::ordered_map::{MapLock, OrderedMap};
 <span class="kw">use crate</span>::{
     builtins::{
         iterable::create_iter_result_object, Array, BuiltInBuilder, IntrinsicObject, JsValue,
@@ -167,11 +167,11 @@
     context::intrinsics::Intrinsics,
     error::JsNativeError,
     js_string,
-    object::{JsObject, ObjectData},
+    object::JsObject,
     property::{Attribute, PropertyNameKind},
     realm::Realm,
     symbol::JsSymbol,
-    Context, JsResult,
+    Context, JsData, JsResult,
 };
 <span class="kw">use </span>boa_gc::{Finalize, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
@@ -182,8 +182,8 @@
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-map-iterator-objects
-</span><span class="attr">#[derive(Debug, Finalize, Trace)]
-</span><span class="kw">pub struct </span>MapIterator {
+</span><span class="attr">#[derive(Debug, Finalize, Trace, JsData)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>MapIterator {
     iterated_map: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
     map_next_index: usize,
     <span class="attr">#[unsafe_ignore_trace]
@@ -232,7 +232,7 @@
         context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(map_obj) = map.as_object() {
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(map) = map_obj.borrow_mut().as_map_mut() {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>map) = map_obj.downcast_mut::&lt;OrderedMap&lt;JsValue&gt;&gt;() {
                 <span class="kw">let </span>lock = map.lock(map_obj.clone());
                 <span class="kw">let </span>iter = <span class="self">Self </span>{
                     iterated_map: <span class="prelude-val">Some</span>(map_obj.clone()),
@@ -243,7 +243,7 @@
                 <span class="kw">let </span>map_iterator = JsObject::from_proto_and_data_with_shared_shape(
                     context.root_shape(),
                     context.intrinsics().objects().iterator_prototypes().map(),
-                    ObjectData::map_iterator(iter),
+                    iter,
                 );
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(map_iterator.into());
             }
@@ -262,18 +262,18 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%mapiteratorprototype%.next
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>next(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>map_iterator = this.as_object().map(JsObject::borrow_mut);
-        <span class="kw">let </span>map_iterator = map_iterator
-            .as_mut()
-            .and_then(|obj| obj.as_map_iterator_mut())
+        <span class="kw">let </span><span class="kw-2">mut </span>map_iterator = this
+            .as_object()
+            .and_then(JsObject::downcast_mut::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;`this` is not a MapIterator&quot;</span>))<span class="question-mark">?</span>;
 
         <span class="kw">let </span>item_kind = map_iterator.map_iteration_kind;
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(obj) = map_iterator.iterated_map.take() {
             <span class="kw">let </span>e = {
-                <span class="kw">let </span>map = obj.borrow();
-                <span class="kw">let </span>entries = map.as_map().expect(<span class="string">&quot;iterator should only iterate maps&quot;</span>);
+                <span class="kw">let </span>entries = obj
+                    .downcast_ref::&lt;OrderedMap&lt;JsValue&gt;&gt;()
+                    .expect(<span class="string">&quot;iterator should only iterate maps&quot;</span>);
                 <span class="kw">let </span>len = entries.full_len();
                 <span class="kw">loop </span>{
                     <span class="kw">let </span>element = entries

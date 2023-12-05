@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["Proxy"]};
+window.SIDEBAR_ITEMS = {"fn":["proxy_exotic_call","proxy_exotic_construct","proxy_exotic_define_own_property","proxy_exotic_delete","proxy_exotic_get","proxy_exotic_get_own_property","proxy_exotic_get_prototype_of","proxy_exotic_has_property","proxy_exotic_is_extensible","proxy_exotic_own_property_keys","proxy_exotic_prevent_extensions","proxy_exotic_set","proxy_exotic_set_prototype_of"],"struct":["Proxy"]};

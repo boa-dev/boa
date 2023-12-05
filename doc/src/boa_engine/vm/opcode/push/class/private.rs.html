@@ -176,9 +176,8 @@
 <a href="#176" id="176">176</a>
 <a href="#177" id="177">177</a>
 <a href="#178" id="178">178</a>
-<a href="#179" id="179">179</a>
-<a href="#180" id="180">180</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
+    builtins::function::OrdinaryFunction,
     js_string,
     object::{internal_methods::InternalMethodContext, PrivateElement},
     property::PropertyDescriptor,
@@ -220,8 +219,7 @@
         <span class="kw">let </span>class_object = class.as_object().expect(<span class="string">&quot;class must be function object&quot;</span>);
 
         class_object
-            .borrow_mut()
-            .as_function_mut()
+            .downcast_mut::&lt;OrdinaryFunction&gt;()
             .expect(<span class="string">&quot;class must be function object&quot;</span>)
             .push_private_method(
                 class_object.private_name(name),
@@ -270,8 +268,7 @@
         <span class="kw">let </span>class_object = class.as_object().expect(<span class="string">&quot;class must be function object&quot;</span>);
 
         class_object
-            .borrow_mut()
-            .as_function_mut()
+            .downcast_mut::&lt;OrdinaryFunction&gt;()
             .expect(<span class="string">&quot;class must be function object&quot;</span>)
             .push_private_method(
                 class_object.private_name(name),
@@ -323,8 +320,7 @@
         <span class="kw">let </span>class_object = class.as_object().expect(<span class="string">&quot;class must be function object&quot;</span>);
 
         class_object
-            .borrow_mut()
-            .as_function_mut()
+            .downcast_mut::&lt;OrdinaryFunction&gt;()
             .expect(<span class="string">&quot;class must be function object&quot;</span>)
             .push_private_method(
                 class_object.private_name(name),

@@ -373,6 +373,10 @@
 <a href="#373" id="373">373</a>
 <a href="#374" id="374">374</a>
 <a href="#375" id="375">375</a>
+<a href="#376" id="376">376</a>
+<a href="#377" id="377">377</a>
+<a href="#378" id="378">378</a>
+<a href="#379" id="379">379</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Symbol` object.
 //!
 //! The data type symbol is a primitive data type.
@@ -607,7 +611,11 @@
     <span class="kw">fn </span>this_symbol_value(value: <span class="kw-2">&amp;</span>JsValue) -&gt; JsResult&lt;JsSymbol&gt; {
         value
             .as_symbol()
-            .or_else(|| value.as_object().and_then(|obj| obj.borrow().as_symbol()))
+            .or_else(|| {
+                value
+                    .as_object()
+                    .and_then(|obj| obj.downcast_ref::&lt;JsSymbol&gt;().as_deref().cloned())
+            })
             .ok_or_else(|| {
                 JsNativeError::typ()
                     .with_message(<span class="string">&quot;&#39;this&#39; is not a Symbol&quot;</span>)

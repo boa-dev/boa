@@ -624,7 +624,7 @@
 </pre></div><pre class="rust"><code><span class="doccomment">//! Rust API wrappers for the `TypedArray` Builtin ECMAScript Objects
 </span><span class="kw">use crate</span>::{
     builtins::typed_array::BuiltinTypedArray,
-    builtins::BuiltInConstructor,
+    builtins::{typed_array::TypedArray, BuiltInConstructor},
     error::JsNativeError,
     object::{JsArrayBuffer, JsFunction, JsObject, JsObjectType},
     value::{IntoOrUndefined, TryFromJs},
@@ -648,7 +648,7 @@
     /// object.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>from_object(object: JsObject) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
-        <span class="kw">if </span>object.is_typed_array() {
+        <span class="kw">if </span>object.is::&lt;TypedArray&gt;() {
             <span class="prelude-val">Ok</span>(<span class="self">Self </span>{ inner: object })
         } <span class="kw">else </span>{
             <span class="prelude-val">Err</span>(JsNativeError::typ()
@@ -1073,7 +1073,7 @@
             </span>)]
             #[inline]
             </span><span class="kw">pub fn </span>from_object(object: JsObject) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
-                <span class="kw">if </span>object.<span class="macro-nonterminal">$checker_function</span>() {
+                <span class="kw">if </span>object.borrow().<span class="macro-nonterminal">$checker_function</span>() {
                     <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
                         inner: JsTypedArray {
                             inner: object.into(),

@@ -340,12 +340,16 @@
 <a href="#340" id="340">340</a>
 <a href="#341" id="341">341</a>
 <a href="#342" id="342">342</a>
-<a href="#343" id="343">343</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::borrow::Cow;
 
 <span class="kw">use crate</span>::{
-    builtins::promise::PromiseState, object::ObjectKind, property::PropertyDescriptor,
-    string::utf16, JsError, JsString,
+    builtins::{
+        error::ErrorObject, map::ordered_map::OrderedMap, promise::PromiseState,
+        set::ordered_set::OrderedSet, Array, Promise,
+    },
+    property::PropertyDescriptor,
+    string::utf16,
+    JsError, JsString,
 };
 
 <span class="kw">use super</span>::{fmt, Display, HashSet, JsValue};
@@ -443,149 +447,143 @@
         </span>JsValue::Object(<span class="kw-2">ref </span>v) =&gt; {
             <span class="comment">// Can use the private &quot;type&quot; field of an Object to match on
             // which type of Object it represents for special printing
-            </span><span class="kw">match </span>v.borrow().kind() {
-                ObjectKind::String(<span class="kw-2">ref </span>string) =&gt; {
-                    <span class="macro">format!</span>(<span class="string">&quot;String {{ \&quot;{}\&quot; }}&quot;</span>, string.to_std_string_escaped())
+            </span><span class="kw">let </span>v_bor = v.borrow();
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(s) = v_bor.downcast_ref::&lt;JsString&gt;() {
+                <span class="macro">format!</span>(<span class="string">&quot;String {{ \&quot;{}\&quot; }}&quot;</span>, s.to_std_string_escaped())
+            } <span class="kw">else if let </span><span class="prelude-val">Some</span>(b) = v_bor.downcast_ref::&lt;bool&gt;() {
+                <span class="macro">format!</span>(<span class="string">&quot;Boolean {{ {b} }}&quot;</span>)
+            } <span class="kw">else if let </span><span class="prelude-val">Some</span>(r) = v_bor.downcast_ref::&lt;f64&gt;() {
+                <span class="kw">if </span>r.is_sign_negative() &amp;&amp; <span class="kw-2">*</span>r == <span class="number">0.0 </span>{
+                    <span class="string">&quot;Number { -0 }&quot;</span>.to_string()
+                } <span class="kw">else </span>{
+                    <span class="kw">let </span><span class="kw-2">mut </span>buffer = ryu_js::Buffer::new();
+                    <span class="macro">format!</span>(<span class="string">&quot;Number {{ {} }}&quot;</span>, buffer.format(<span class="kw-2">*</span>r))
                 }
-                ObjectKind::Boolean(boolean) =&gt; <span class="macro">format!</span>(<span class="string">&quot;Boolean {{ {boolean} }}&quot;</span>),
-                ObjectKind::Number(rational) =&gt; {
-                    <span class="kw">if </span>rational.is_sign_negative() &amp;&amp; <span class="kw-2">*</span>rational == <span class="number">0.0 </span>{
-                        <span class="string">&quot;Number { -0 }&quot;</span>.to_string()
-                    } <span class="kw">else </span>{
-                        <span class="kw">let </span><span class="kw-2">mut </span>buffer = ryu_js::Buffer::new();
-                        <span class="macro">format!</span>(<span class="string">&quot;Number {{ {} }}&quot;</span>, buffer.format(<span class="kw-2">*</span>rational))
-                    }
-                }
-                ObjectKind::Array =&gt; {
-                    <span class="kw">let </span>len = v
-                        .borrow()
-                        .properties()
-                        .get(<span class="kw-2">&amp;</span><span class="macro">utf16!</span>(<span class="string">&quot;length&quot;</span>).into())
-                        .expect(<span class="string">&quot;array object must have &#39;length&#39; property&quot;</span>)
-                        <span class="comment">// FIXME: handle accessor descriptors
-                        </span>.expect_value()
-                        .as_number()
-                        .map(|n| n <span class="kw">as </span>i32)
-                        .unwrap_or_default();
+            } <span class="kw">else if </span>v_bor.is::&lt;Array&gt;() {
+                <span class="kw">let </span>len = v_bor
+                    .properties()
+                    .get(<span class="kw-2">&amp;</span><span class="macro">utf16!</span>(<span class="string">&quot;length&quot;</span>).into())
+                    .expect(<span class="string">&quot;array object must have &#39;length&#39; property&quot;</span>)
+                    <span class="comment">// FIXME: handle accessor descriptors
+                    </span>.expect_value()
+                    .as_number()
+                    .map(|n| n <span class="kw">as </span>i32)
+                    .unwrap_or_default();
 
-                    <span class="kw">if </span>print_children {
-                        <span class="kw">if </span>len == <span class="number">0 </span>{
-                            <span class="kw">return </span>String::from(<span class="string">&quot;[]&quot;</span>);
-                        }
-
-                        <span class="kw">let </span>arr = (<span class="number">0</span>..len)
-                            .map(|i| {
-                                <span class="comment">// Introduce recursive call to stringify any objects
-                                // which are part of the Array
-
-                                // FIXME: handle accessor descriptors
-                                </span><span class="kw">if let </span><span class="prelude-val">Some</span>(value) = v
-                                    .borrow()
-                                    .properties()
-                                    .get(<span class="kw-2">&amp;</span>i.into())
-                                    .and_then(|x| x.value().cloned())
-                                {
-                                    log_string_from(<span class="kw-2">&amp;</span>value, print_internals, <span class="bool-val">false</span>)
-                                } <span class="kw">else </span>{
-                                    String::from(<span class="string">&quot;&lt;empty&gt;&quot;</span>)
-                                }
-                            })
-                            .collect::&lt;Vec&lt;String&gt;&gt;()
-                            .join(<span class="string">&quot;, &quot;</span>);
-
-                        <span class="macro">format!</span>(<span class="string">&quot;[ {arr} ]&quot;</span>)
-                    } <span class="kw">else </span>{
-                        <span class="macro">format!</span>(<span class="string">&quot;Array({len})&quot;</span>)
-                    }
-                }
-                ObjectKind::Map(<span class="kw-2">ref </span>map) =&gt; {
-                    <span class="kw">let </span>size = map.len();
-                    <span class="kw">if </span>size == <span class="number">0 </span>{
-                        <span class="kw">return </span>String::from(<span class="string">&quot;Map(0)&quot;</span>);
+                <span class="kw">if </span>print_children {
+                    <span class="kw">if </span>len == <span class="number">0 </span>{
+                        <span class="kw">return </span>String::from(<span class="string">&quot;[]&quot;</span>);
                     }
 
-                    <span class="kw">if </span>print_children {
-                        <span class="kw">let </span>mappings = map
-                            .iter()
-                            .map(|(key, value)| {
-                                <span class="kw">let </span>key = log_string_from(key, print_internals, <span class="bool-val">false</span>);
-                                <span class="kw">let </span>value = log_string_from(value, print_internals, <span class="bool-val">false</span>);
-                                <span class="macro">format!</span>(<span class="string">&quot;{key} → {value}&quot;</span>)
-                            })
-                            .collect::&lt;Vec&lt;String&gt;&gt;()
-                            .join(<span class="string">&quot;, &quot;</span>);
-                        <span class="macro">format!</span>(<span class="string">&quot;Map {{ {mappings} }}&quot;</span>)
-                    } <span class="kw">else </span>{
-                        <span class="macro">format!</span>(<span class="string">&quot;Map({size})&quot;</span>)
-                    }
-                }
-                ObjectKind::Set(<span class="kw-2">ref </span>set) =&gt; {
-                    <span class="kw">let </span>size = set.len();
+                    <span class="kw">let </span>arr = (<span class="number">0</span>..len)
+                        .map(|i| {
+                            <span class="comment">// Introduce recursive call to stringify any objects
+                            // which are part of the Array
 
-                    <span class="kw">if </span>size == <span class="number">0 </span>{
-                        <span class="kw">return </span>String::from(<span class="string">&quot;Set(0)&quot;</span>);
-                    }
-
-                    <span class="kw">if </span>print_children {
-                        <span class="kw">let </span>entries = set
-                            .iter()
-                            .map(|value| log_string_from(value, print_internals, <span class="bool-val">false</span>))
-                            .collect::&lt;Vec&lt;String&gt;&gt;()
-                            .join(<span class="string">&quot;, &quot;</span>);
-                        <span class="macro">format!</span>(<span class="string">&quot;Set {{ {entries} }}&quot;</span>)
-                    } <span class="kw">else </span>{
-                        <span class="macro">format!</span>(<span class="string">&quot;Set({size})&quot;</span>)
-                    }
-                }
-                ObjectKind::Error(<span class="kw">_</span>) =&gt; {
-                    <span class="kw">let </span>name: Cow&lt;<span class="lifetime">&#39;static</span>, str&gt; = v
-                        .get_property(<span class="kw-2">&amp;</span><span class="macro">utf16!</span>(<span class="string">&quot;name&quot;</span>).into())
-                        .as_ref()
-                        .and_then(PropertyDescriptor::value)
-                        .map_or_else(
-                            || <span class="string">&quot;&lt;error&gt;&quot;</span>.into(),
-                            |v| {
-                                v.as_string()
-                                    .map_or_else(
-                                        || v.display().to_string(),
-                                        JsString::to_std_string_escaped,
-                                    )
-                                    .into()
-                            },
-                        );
-                    <span class="kw">let </span>message = v
-                        .get_property(<span class="kw-2">&amp;</span><span class="macro">utf16!</span>(<span class="string">&quot;message&quot;</span>).into())
-                        .as_ref()
-                        .and_then(PropertyDescriptor::value)
-                        .map(|v| {
-                            v.as_string().map_or_else(
-                                || v.display().to_string(),
-                                JsString::to_std_string_escaped,
-                            )
+                            // FIXME: handle accessor descriptors
+                            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(value) = v_bor
+                                .properties()
+                                .get(<span class="kw-2">&amp;</span>i.into())
+                                .and_then(|x| x.value().cloned())
+                            {
+                                log_string_from(<span class="kw-2">&amp;</span>value, print_internals, <span class="bool-val">false</span>)
+                            } <span class="kw">else </span>{
+                                String::from(<span class="string">&quot;&lt;empty&gt;&quot;</span>)
+                            }
                         })
-                        .unwrap_or_default();
-                    <span class="kw">if </span>name.is_empty() {
-                        message
-                    } <span class="kw">else if </span>message.is_empty() {
-                        name.to_string()
-                    } <span class="kw">else </span>{
-                        <span class="macro">format!</span>(<span class="string">&quot;{name}: {message}&quot;</span>)
+                        .collect::&lt;Vec&lt;String&gt;&gt;()
+                        .join(<span class="string">&quot;, &quot;</span>);
+
+                    <span class="macro">format!</span>(<span class="string">&quot;[ {arr} ]&quot;</span>)
+                } <span class="kw">else </span>{
+                    <span class="macro">format!</span>(<span class="string">&quot;Array({len})&quot;</span>)
+                }
+            } <span class="kw">else if let </span><span class="prelude-val">Some</span>(map) = v_bor.downcast_ref::&lt;OrderedMap&lt;JsValue&gt;&gt;() {
+                <span class="kw">let </span>size = map.len();
+                <span class="kw">if </span>size == <span class="number">0 </span>{
+                    <span class="kw">return </span>String::from(<span class="string">&quot;Map(0)&quot;</span>);
+                }
+
+                <span class="kw">if </span>print_children {
+                    <span class="kw">let </span>mappings = map
+                        .iter()
+                        .map(|(key, value)| {
+                            <span class="kw">let </span>key = log_string_from(key, print_internals, <span class="bool-val">false</span>);
+                            <span class="kw">let </span>value = log_string_from(value, print_internals, <span class="bool-val">false</span>);
+                            <span class="macro">format!</span>(<span class="string">&quot;{key} → {value}&quot;</span>)
+                        })
+                        .collect::&lt;Vec&lt;String&gt;&gt;()
+                        .join(<span class="string">&quot;, &quot;</span>);
+                    <span class="macro">format!</span>(<span class="string">&quot;Map {{ {mappings} }}&quot;</span>)
+                } <span class="kw">else </span>{
+                    <span class="macro">format!</span>(<span class="string">&quot;Map({size})&quot;</span>)
+                }
+            } <span class="kw">else if let </span><span class="prelude-val">Some</span>(set) = v_bor.downcast_ref::&lt;OrderedSet&gt;() {
+                <span class="kw">let </span>size = set.len();
+
+                <span class="kw">if </span>size == <span class="number">0 </span>{
+                    <span class="kw">return </span>String::from(<span class="string">&quot;Set(0)&quot;</span>);
+                }
+
+                <span class="kw">if </span>print_children {
+                    <span class="kw">let </span>entries = set
+                        .iter()
+                        .map(|value| log_string_from(value, print_internals, <span class="bool-val">false</span>))
+                        .collect::&lt;Vec&lt;String&gt;&gt;()
+                        .join(<span class="string">&quot;, &quot;</span>);
+                    <span class="macro">format!</span>(<span class="string">&quot;Set {{ {entries} }}&quot;</span>)
+                } <span class="kw">else </span>{
+                    <span class="macro">format!</span>(<span class="string">&quot;Set({size})&quot;</span>)
+                }
+            } <span class="kw">else if </span>v_bor.is::&lt;ErrorObject&gt;() {
+                drop(v_bor);
+                <span class="kw">let </span>name: Cow&lt;<span class="lifetime">&#39;static</span>, str&gt; = v
+                    .get_property(<span class="kw-2">&amp;</span><span class="macro">utf16!</span>(<span class="string">&quot;name&quot;</span>).into())
+                    .as_ref()
+                    .and_then(PropertyDescriptor::value)
+                    .map_or_else(
+                        || <span class="string">&quot;&lt;error&gt;&quot;</span>.into(),
+                        |v| {
+                            v.as_string()
+                                .map_or_else(
+                                    || v.display().to_string(),
+                                    JsString::to_std_string_escaped,
+                                )
+                                .into()
+                        },
+                    );
+                <span class="kw">let </span>message = v
+                    .get_property(<span class="kw-2">&amp;</span><span class="macro">utf16!</span>(<span class="string">&quot;message&quot;</span>).into())
+                    .as_ref()
+                    .and_then(PropertyDescriptor::value)
+                    .map(|v| {
+                        v.as_string().map_or_else(
+                            || v.display().to_string(),
+                            JsString::to_std_string_escaped,
+                        )
+                    })
+                    .unwrap_or_default();
+                <span class="kw">if </span>name.is_empty() {
+                    message
+                } <span class="kw">else if </span>message.is_empty() {
+                    name.to_string()
+                } <span class="kw">else </span>{
+                    <span class="macro">format!</span>(<span class="string">&quot;{name}: {message}&quot;</span>)
+                }
+            } <span class="kw">else if let </span><span class="prelude-val">Some</span>(promise) = v_bor.downcast_ref::&lt;Promise&gt;() {
+                <span class="macro">format!</span>(
+                    <span class="string">&quot;Promise {{ {} }}&quot;</span>,
+                    <span class="kw">match </span>promise.state() {
+                        PromiseState::Pending =&gt; Cow::Borrowed(<span class="string">&quot;&lt;pending&gt;&quot;</span>),
+                        PromiseState::Fulfilled(val) =&gt; Cow::Owned(val.display().to_string()),
+                        PromiseState::Rejected(reason) =&gt; Cow::Owned(<span class="macro">format!</span>(
+                            <span class="string">&quot;&lt;rejected&gt; {}&quot;</span>,
+                            JsError::from_opaque(reason.clone())
+                        )),
                     }
-                }
-                ObjectKind::Promise(<span class="kw-2">ref </span>promise) =&gt; {
-                    <span class="macro">format!</span>(
-                        <span class="string">&quot;Promise {{ {} }}&quot;</span>,
-                        <span class="kw">match </span>promise.state() {
-                            PromiseState::Pending =&gt; Cow::Borrowed(<span class="string">&quot;&lt;pending&gt;&quot;</span>),
-                            PromiseState::Fulfilled(val) =&gt; Cow::Owned(val.display().to_string()),
-                            PromiseState::Rejected(reason) =&gt; Cow::Owned(<span class="macro">format!</span>(
-                                <span class="string">&quot;&lt;rejected&gt; {}&quot;</span>,
-                                JsError::from_opaque(reason.clone())
-                            )),
-                        }
-                    )
-                }
-                <span class="kw">_ </span>=&gt; x.display_obj(print_internals),
+                )
+            } <span class="kw">else </span>{
+                x.display_obj(print_internals)
             }
         }
         <span class="kw">_ </span>=&gt; x.display().to_string(),
@@ -598,9 +596,9 @@
     </span><span class="kw">pub fn </span>display_obj(<span class="kw-2">&amp;</span><span class="self">self</span>, print_internals: bool) -&gt; String {
         <span class="comment">// A simple helper for getting the address of a value
         // TODO: Find a more general place for this, as it can be used in other situations as well
-        </span><span class="kw">fn </span>address_of&lt;T&gt;(t: <span class="kw-2">&amp;</span>T) -&gt; usize {
+        </span><span class="kw">fn </span>address_of&lt;T: <span class="question-mark">?</span>Sized&gt;(t: <span class="kw-2">&amp;</span>T) -&gt; usize {
             <span class="kw">let </span>my_ptr: <span class="kw-2">*const </span>T = t;
-            my_ptr <span class="kw">as </span>usize
+            my_ptr.cast::&lt;()&gt;() <span class="kw">as </span>usize
         }
 
         <span class="kw">fn </span>display_obj_internal(

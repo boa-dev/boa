@@ -513,12 +513,9 @@
 <a href="#513" id="513">513</a>
 <a href="#514" id="514">514</a>
 <a href="#515" id="515">515</a>
-<a href="#516" id="516">516</a>
-<a href="#517" id="517">517</a>
-<a href="#518" id="518">518</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::fmt::Write;
 
-<span class="kw">use </span>boa_gc::{empty_trace, Finalize, Trace};
+<span class="kw">use </span>boa_gc::{Finalize, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>icu_list::{provider::AndListV1Marker, ListFormatter, ListLength};
 <span class="kw">use </span>icu_locid::Locale;
@@ -527,16 +524,16 @@
 <span class="kw">use crate</span>::{
     builtins::{
         options::{get_option, get_options_object},
-        Array, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
+        Array, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject, OrdinaryObject,
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
+    object::{internal_methods::get_prototype_from_constructor, JsObject},
     property::Attribute,
     realm::Realm,
     string::{common::StaticJsStrings, utf16},
     symbol::JsSymbol,
-    Context, JsArgs, JsNativeError, JsResult, JsString, JsValue,
+    Context, JsArgs, JsData, JsNativeError, JsResult, JsString, JsValue,
 };
 
 <span class="kw">use super</span>::{
@@ -548,17 +545,14 @@
 <span class="kw">mod </span>options;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>options::<span class="kw-2">*</span>;
 
-<span class="attr">#[derive(Debug, Finalize)]
+<span class="attr">#[derive(Debug, Trace, Finalize, JsData)]
+</span><span class="comment">// Safety: `ListFormat` only contains non-traceable types.
+</span><span class="attr">#[boa_gc(unsafe_empty_trace)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>ListFormat {
     locale: Locale,
     typ: ListFormatType,
     style: ListLength,
     native: ListFormatter,
-}
-
-<span class="comment">// SAFETY: `ListFormat` doesn&#39;t contain traceable data.
-</span><span class="kw">unsafe impl </span>Trace <span class="kw">for </span>ListFormat {
-    <span class="macro">empty_trace!</span>();
 }
 
 <span class="kw">impl </span>Service <span class="kw">for </span>ListFormat {
@@ -688,12 +682,12 @@
         <span class="kw">let </span>list_format = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            ObjectData::native_object(<span class="self">Self </span>{
+            <span class="self">Self </span>{
                 locale,
                 typ,
                 style,
                 native: formatter,
-            }),
+            },
         );
 
         <span class="comment">// 19. Return listFormat.
@@ -898,7 +892,7 @@
                 .intrinsics()
                 .templates()
                 .ordinary_object()
-                .create(ObjectData::ordinary(), <span class="macro">vec!</span>[]);
+                .create(OrdinaryObject, <span class="macro">vec!</span>[]);
 
             <span class="comment">// b. Perform ! CreateDataPropertyOrThrow(O, &quot;type&quot;, part.[[Type]]).
             </span>o.create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;type&quot;</span>), <span class="macro">js_string!</span>(part.typ()), context)
@@ -947,7 +941,7 @@
             .intrinsics()
             .templates()
             .ordinary_object()
-            .create(ObjectData::ordinary(), <span class="macro">vec!</span>[]);
+            .create(OrdinaryObject, <span class="macro">vec!</span>[]);
 
         <span class="comment">// 4. For each row of Table 11, except the header row, in table order, do
         //     a. Let p be the Property value of the current row.

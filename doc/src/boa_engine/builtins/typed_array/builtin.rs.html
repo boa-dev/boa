@@ -3557,45 +3557,8 @@
 <a href="#3557" id="3557">3557</a>
 <a href="#3558" id="3558">3558</a>
 <a href="#3559" id="3559">3559</a>
-<a href="#3560" id="3560">3560</a>
-<a href="#3561" id="3561">3561</a>
-<a href="#3562" id="3562">3562</a>
-<a href="#3563" id="3563">3563</a>
-<a href="#3564" id="3564">3564</a>
-<a href="#3565" id="3565">3565</a>
-<a href="#3566" id="3566">3566</a>
-<a href="#3567" id="3567">3567</a>
-<a href="#3568" id="3568">3568</a>
-<a href="#3569" id="3569">3569</a>
-<a href="#3570" id="3570">3570</a>
-<a href="#3571" id="3571">3571</a>
-<a href="#3572" id="3572">3572</a>
-<a href="#3573" id="3573">3573</a>
-<a href="#3574" id="3574">3574</a>
-<a href="#3575" id="3575">3575</a>
-<a href="#3576" id="3576">3576</a>
-<a href="#3577" id="3577">3577</a>
-<a href="#3578" id="3578">3578</a>
-<a href="#3579" id="3579">3579</a>
-<a href="#3580" id="3580">3580</a>
-<a href="#3581" id="3581">3581</a>
-<a href="#3582" id="3582">3582</a>
-<a href="#3583" id="3583">3583</a>
-<a href="#3584" id="3584">3584</a>
-<a href="#3585" id="3585">3585</a>
-<a href="#3586" id="3586">3586</a>
-<a href="#3587" id="3587">3587</a>
-<a href="#3588" id="3588">3588</a>
-<a href="#3589" id="3589">3589</a>
-<a href="#3590" id="3590">3590</a>
-<a href="#3591" id="3591">3591</a>
-<a href="#3592" id="3592">3592</a>
-<a href="#3593" id="3593">3593</a>
-<a href="#3594" id="3594">3594</a>
-<a href="#3595" id="3595">3595</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{cmp, ptr, sync::atomic};
 
-<span class="kw">use </span>boa_gc::GcRef;
 <span class="kw">use </span>boa_macros::utf16;
 <span class="kw">use </span>num_traits::Zero;
 
@@ -3611,10 +3574,7 @@
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
-    object::{
-        internal_methods::{get_prototype_from_constructor, integer_indexed_element_set},
-        Object, ObjectData,
-    },
+    object::internal_methods::get_prototype_from_constructor,
     property::{Attribute, PropertyNameKind},
     realm::Realm,
     string::common::StaticJsStrings,
@@ -3622,7 +3582,10 @@
     Context, JsArgs, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 
-<span class="kw">use super</span>::{ContentType, IntegerIndexed, TypedArray, TypedArrayKind};
+<span class="kw">use super</span>::{
+    integer_indexed_object::integer_indexed_element_set, ContentType, TypedArray, TypedArrayKind,
+    TypedArrayMarker,
+};
 
 <span class="doccomment">/// The JavaScript `%TypedArray%` object.
 ///
@@ -3964,8 +3927,8 @@
         </span><span class="kw">let </span>obj = this.as_object().ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;Value is not a typed array object&quot;</span>)
         })<span class="question-mark">?</span>;
-        <span class="kw">let </span>obj_borrow = obj.borrow();
-        <span class="kw">let </span>o = obj_borrow.as_typed_array().ok_or_else(|| {
+
+        <span class="kw">let </span>o = obj.downcast_ref::&lt;TypedArray&gt;().ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;Value is not a typed array object&quot;</span>)
         })<span class="question-mark">?</span>;
         <span class="kw">if </span>o.is_detached() {
@@ -3977,7 +3940,7 @@
         <span class="comment">// 3. Let len be O.[[ArrayLength]].
         </span><span class="kw">let </span>len = o.array_length() <span class="kw">as </span>i64;
 
-        drop(obj_borrow);
+        drop(o);
 
         <span class="comment">// 4. Let relativeIndex be ? ToIntegerOrInfinity(index).
         </span><span class="kw">let </span>relative_index = args.get_or_undefined(<span class="number">0</span>).to_integer_or_infinity(context)<span class="question-mark">?</span>;
@@ -4017,8 +3980,7 @@
         </span><span class="kw">let </span>obj = this.as_object().ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;Value is not a typed array object&quot;</span>)
         })<span class="question-mark">?</span>;
-        <span class="kw">let </span>obj_borrow = obj.borrow();
-        <span class="kw">let </span>typed_array = obj_borrow.as_typed_array().ok_or_else(|| {
+        <span class="kw">let </span>typed_array = obj.downcast_ref::&lt;TypedArray&gt;().ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;Value is not a typed array object&quot;</span>)
         })<span class="question-mark">?</span>;
 
@@ -4040,8 +4002,7 @@
         </span><span class="kw">let </span>obj = this.as_object().ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;Value is not a typed array object&quot;</span>)
         })<span class="question-mark">?</span>;
-        <span class="kw">let </span>obj_borrow = obj.borrow();
-        <span class="kw">let </span>typed_array = obj_borrow.as_typed_array().ok_or_else(|| {
+        <span class="kw">let </span>typed_array = obj.downcast_ref::&lt;TypedArray&gt;().ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;Value is not a typed array object&quot;</span>)
         })<span class="question-mark">?</span>;
 
@@ -4069,8 +4030,7 @@
         </span><span class="kw">let </span>obj = this.as_object().ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;Value is not a typed array object&quot;</span>)
         })<span class="question-mark">?</span>;
-        <span class="kw">let </span>obj_borrow = obj.borrow();
-        <span class="kw">let </span>typed_array = obj_borrow.as_typed_array().ok_or_else(|| {
+        <span class="kw">let </span>typed_array = obj.downcast_ref::&lt;TypedArray&gt;().ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;Value is not a typed array object&quot;</span>)
         })<span class="question-mark">?</span>;
 
@@ -4098,8 +4058,7 @@
         })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>len = {
-            <span class="kw">let </span>obj_borrow = obj.borrow();
-            <span class="kw">let </span>o = obj_borrow.as_typed_array().ok_or_else(|| {
+            <span class="kw">let </span>o = obj.downcast_ref::&lt;TypedArray&gt;().ok_or_else(|| {
                 JsNativeError::typ().with_message(<span class="string">&quot;Value is not a typed array object&quot;</span>)
             })<span class="question-mark">?</span>;
 
@@ -4166,8 +4125,7 @@
 
         <span class="comment">// 17. If count &gt; 0, then
         </span><span class="kw">if </span>count &gt; <span class="number">0 </span>{
-            <span class="kw">let </span>obj_borrow = obj.borrow();
-            <span class="kw">let </span>o = obj_borrow.as_typed_array().ok_or_else(|| {
+            <span class="kw">let </span>o = obj.downcast_ref::&lt;TypedArray&gt;().ok_or_else(|| {
                 JsNativeError::typ().with_message(<span class="string">&quot;Value is not a typed array object&quot;</span>)
             })<span class="question-mark">?</span>;
 
@@ -4239,8 +4197,7 @@
         </span><span class="kw">let </span>o = this.as_object().ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;Value is not a typed array object&quot;</span>)
         })<span class="question-mark">?</span>;
-        <span class="kw">if </span>o.borrow()
-            .as_typed_array()
+        <span class="kw">if </span>o.downcast_ref::&lt;TypedArray&gt;()
             .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?
             </span>.is_detached()
         {
@@ -4273,8 +4230,8 @@
         </span><span class="kw">let </span>obj = this.as_object().ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;Value is not a typed array object&quot;</span>)
         })<span class="question-mark">?</span>;
-        <span class="kw">let </span>obj_borrow = obj.borrow();
-        <span class="kw">let </span>o = obj_borrow.as_typed_array().ok_or_else(|| {
+
+        <span class="kw">let </span>o = obj.downcast_ref::&lt;TypedArray&gt;().ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;Value is not a typed array object&quot;</span>)
         })<span class="question-mark">?</span>;
         <span class="kw">if </span>o.is_detached() {
@@ -4286,7 +4243,7 @@
         <span class="comment">// 3. Let len be O.[[ArrayLength]].
         </span><span class="kw">let </span>len = o.array_length();
 
-        drop(obj_borrow);
+        drop(o);
 
         <span class="comment">// 4. If IsCallable(callbackfn) is false, throw a TypeError exception.
         </span><span class="kw">let </span>callback_fn = <span class="kw">match </span>args.get_or_undefined(<span class="number">0</span>).as_object() {
@@ -4342,8 +4299,8 @@
         </span><span class="kw">let </span>obj = this.as_object().ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;Value is not a typed array object&quot;</span>)
         })<span class="question-mark">?</span>;
-        <span class="kw">let </span>obj_borrow = obj.borrow();
-        <span class="kw">let </span>o = obj_borrow.as_typed_array().ok_or_else(|| {
+
+        <span class="kw">let </span>o = obj.downcast_ref::&lt;TypedArray&gt;().ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;Value is not a typed array object&quot;</span>)
         })<span class="question-mark">?</span>;
         <span class="kw">if </span>o.is_detached() {
@@ -4399,7 +4356,7 @@
                 .into());
         }
 
-        drop(obj_borrow);
+        drop(o);
 
         <span class="comment">// 15. Repeat, while k &lt; final,
         </span><span class="kw">while </span>k &lt; r#final {
@@ -4432,8 +4389,8 @@
         </span><span class="kw">let </span>obj = this.as_object().ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;Value is not a typed array object&quot;</span>)
         })<span class="question-mark">?</span>;
-        <span class="kw">let </span>obj_borrow = obj.borrow();
-        <span class="kw">let </span>o = obj_borrow.as_typed_array().ok_or_else(|| {
+
+        <span class="kw">let </span>o = obj.downcast_ref::&lt;TypedArray&gt;().ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;Value is not a typed array object&quot;</span>)
         })<span class="question-mark">?</span>;
         <span class="kw">if </span>o.is_detached() {
@@ -4447,7 +4404,7 @@
         <span class="comment">// 3. Let len be O.[[ArrayLength]].
         </span><span class="kw">let </span>len = o.array_length();
 
-        drop(obj_borrow);
+        drop(o);
 
         <span class="comment">// 4. If IsCallable(callbackfn) is false, throw a TypeError exception.
         </span><span class="kw">let </span>callback_fn =
@@ -4524,8 +4481,8 @@
         </span><span class="kw">let </span>obj = this.as_object().ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;Value is not a typed array object&quot;</span>)
         })<span class="question-mark">?</span>;
-        <span class="kw">let </span>obj_borrow = obj.borrow();
-        <span class="kw">let </span>o = obj_borrow.as_typed_array().ok_or_else(|| {
+
+        <span class="kw">let </span>o = obj.downcast_ref::&lt;TypedArray&gt;().ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;Value is not a typed array object&quot;</span>)
         })<span class="question-mark">?</span>;
         <span class="kw">if </span>o.is_detached() {
@@ -4537,7 +4494,7 @@
         <span class="comment">// 3. Let len be O.[[ArrayLength]].
         </span><span class="kw">let </span>len = o.array_length();
 
-        drop(obj_borrow);
+        drop(o);
 
         <span class="kw">let </span>predicate = args.get_or_undefined(<span class="number">0</span>);
         <span class="kw">let </span>this_arg = args.get_or_undefined(<span class="number">1</span>);
@@ -4573,8 +4530,8 @@
         </span><span class="kw">let </span>obj = this.as_object().ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;Value is not a typed array object&quot;</span>)
         })<span class="question-mark">?</span>;
-        <span class="kw">let </span>obj_borrow = obj.borrow();
-        <span class="kw">let </span>o = obj_borrow.as_typed_array().ok_or_else(|| {
+
+        <span class="kw">let </span>o = obj.downcast_ref::&lt;TypedArray&gt;().ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;Value is not a typed array object&quot;</span>)
         })<span class="question-mark">?</span>;
         <span class="kw">if </span>o.is_detached() {
@@ -4586,7 +4543,7 @@
         <span class="comment">// 3. Let len be O.[[ArrayLength]].
         </span><span class="kw">let </span>len = o.array_length();
 
-        drop(obj_borrow);
+        drop(o);
 
         <span class="kw">let </span>predicate = args.get_or_undefined(<span class="number">0</span>);
         <span class="kw">let </span>this_arg = args.get_or_undefined(<span class="number">1</span>);
@@ -4622,8 +4579,8 @@
         </span><span class="kw">let </span>obj = this.as_object().ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;Value is not a typed array object&quot;</span>)
         })<span class="question-mark">?</span>;
-        <span class="kw">let </span>obj_borrow = obj.borrow();
-        <span class="kw">let </span>o = obj_borrow.as_typed_array().ok_or_else(|| {
+
+        <span class="kw">let </span>o = obj.downcast_ref::&lt;TypedArray&gt;().ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;Value is not a typed array object&quot;</span>)
         })<span class="question-mark">?</span>;
         <span class="kw">if </span>o.is_detached() {
@@ -4669,8 +4626,8 @@
         </span><span class="kw">let </span>obj = this.as_object().ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;Value is not a typed array object&quot;</span>)
         })<span class="question-mark">?</span>;
-        <span class="kw">let </span>obj_borrow = obj.borrow();
-        <span class="kw">let </span>o = obj_borrow.as_typed_array().ok_or_else(|| {
+
+        <span class="kw">let </span>o = obj.downcast_ref::&lt;TypedArray&gt;().ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;Value is not a typed array object&quot;</span>)
         })<span class="question-mark">?</span>;
         <span class="kw">if </span>o.is_detached() {
@@ -4716,8 +4673,8 @@
         </span><span class="kw">let </span>obj = this.as_object().ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;Value is not a typed array object&quot;</span>)
         })<span class="question-mark">?</span>;
-        <span class="kw">let </span>obj_borrow = obj.borrow();
-        <span class="kw">let </span>o = obj_borrow.as_typed_array().ok_or_else(|| {
+
+        <span class="kw">let </span>o = obj.downcast_ref::&lt;TypedArray&gt;().ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;Value is not a typed array object&quot;</span>)
         })<span class="question-mark">?</span>;
         <span class="kw">if </span>o.is_detached() {
@@ -4729,7 +4686,7 @@
         <span class="comment">// 3. Let len be O.[[ArrayLength]].
         </span><span class="kw">let </span>len = o.array_length();
 
-        drop(obj_borrow);
+        drop(o);
 
         <span class="comment">// 4. If IsCallable(callbackfn) is false, throw a TypeError exception.
         </span><span class="kw">let </span>callback_fn =
@@ -4777,8 +4734,8 @@
         </span><span class="kw">let </span>obj = this.as_object().ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;Value is not a typed array object&quot;</span>)
         })<span class="question-mark">?</span>;
-        <span class="kw">let </span>obj_borrow = obj.borrow();
-        <span class="kw">let </span>o = obj_borrow.as_typed_array().ok_or_else(|| {
+
+        <span class="kw">let </span>o = obj.downcast_ref::&lt;TypedArray&gt;().ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;Value is not a typed array object&quot;</span>)
         })<span class="question-mark">?</span>;
         <span class="kw">if </span>o.is_detached() {
@@ -4790,7 +4747,7 @@
         <span class="comment">// 3. Let len be O.[[ArrayLength]].
         </span><span class="kw">let </span>len = o.array_length() <span class="kw">as </span>i64;
 
-        drop(obj_borrow);
+        drop(o);
 
         <span class="comment">// 4. If len is 0, return false.
         </span><span class="kw">if </span>len == <span class="number">0 </span>{
@@ -4858,8 +4815,8 @@
         </span><span class="kw">let </span>obj = this.as_object().ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;Value is not a typed array object&quot;</span>)
         })<span class="question-mark">?</span>;
-        <span class="kw">let </span>obj_borrow = obj.borrow();
-        <span class="kw">let </span>o = obj_borrow.as_typed_array().ok_or_else(|| {
+
+        <span class="kw">let </span>o = obj.downcast_ref::&lt;TypedArray&gt;().ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;Value is not a typed array object&quot;</span>)
         })<span class="question-mark">?</span>;
         <span class="kw">if </span>o.is_detached() {
@@ -4871,7 +4828,7 @@
         <span class="comment">// 3. Let len be O.[[ArrayLength]].
         </span><span class="kw">let </span>len = o.array_length() <span class="kw">as </span>i64;
 
-        drop(obj_borrow);
+        drop(o);
 
         <span class="comment">// 4. If len is 0, return -1𝔽.
         </span><span class="kw">if </span>len == <span class="number">0 </span>{
@@ -4948,8 +4905,8 @@
         </span><span class="kw">let </span>obj = this.as_object().ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;Value is not a typed array object&quot;</span>)
         })<span class="question-mark">?</span>;
-        <span class="kw">let </span>obj_borrow = obj.borrow();
-        <span class="kw">let </span>o = obj_borrow.as_typed_array().ok_or_else(|| {
+
+        <span class="kw">let </span>o = obj.downcast_ref::&lt;TypedArray&gt;().ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;Value is not a typed array object&quot;</span>)
         })<span class="question-mark">?</span>;
         <span class="kw">if </span>o.is_detached() {
@@ -4961,7 +4918,7 @@
         <span class="comment">// 3. Let len be O.[[ArrayLength]].
         </span><span class="kw">let </span>len = o.array_length();
 
-        drop(obj_borrow);
+        drop(o);
 
         <span class="comment">// 4. If separator is undefined, let sep be the single-element String &quot;,&quot;.
         </span><span class="kw">let </span>separator = args.get_or_undefined(<span class="number">0</span>);
@@ -5009,8 +4966,7 @@
         </span><span class="kw">let </span>o = this.as_object().ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;Value is not a typed array object&quot;</span>)
         })<span class="question-mark">?</span>;
-        <span class="kw">if </span>o.borrow()
-            .as_typed_array()
+        <span class="kw">if </span>o.downcast_ref::&lt;TypedArray&gt;()
             .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?
             </span>.is_detached()
         {
@@ -5043,8 +4999,8 @@
         </span><span class="kw">let </span>obj = this.as_object().ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;Value is not a typed array object&quot;</span>)
         })<span class="question-mark">?</span>;
-        <span class="kw">let </span>obj_borrow = obj.borrow();
-        <span class="kw">let </span>o = obj_borrow.as_typed_array().ok_or_else(|| {
+
+        <span class="kw">let </span>o = obj.downcast_ref::&lt;TypedArray&gt;().ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;Value is not a typed array object&quot;</span>)
         })<span class="question-mark">?</span>;
         <span class="kw">if </span>o.is_detached() {
@@ -5056,7 +5012,7 @@
         <span class="comment">// 3. Let len be O.[[ArrayLength]].
         </span><span class="kw">let </span>len = o.array_length() <span class="kw">as </span>i64;
 
-        drop(obj_borrow);
+        drop(o);
 
         <span class="comment">// 4. If len is 0, return -1𝔽.
         </span><span class="kw">if </span>len == <span class="number">0 </span>{
@@ -5122,8 +5078,8 @@
         </span><span class="kw">let </span>obj = this.as_object().ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;Value is not a typed array object&quot;</span>)
         })<span class="question-mark">?</span>;
-        <span class="kw">let </span>obj_borrow = obj.borrow();
-        <span class="kw">let </span>typed_array = obj_borrow.as_typed_array().ok_or_else(|| {
+
+        <span class="kw">let </span>typed_array = obj.downcast_ref::&lt;TypedArray&gt;().ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;Value is not a typed array object&quot;</span>)
         })<span class="question-mark">?</span>;
 
@@ -5154,8 +5110,8 @@
         </span><span class="kw">let </span>obj = this.as_object().ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;Value is not a typed array object&quot;</span>)
         })<span class="question-mark">?</span>;
-        <span class="kw">let </span>obj_borrow = obj.borrow();
-        <span class="kw">let </span>o = obj_borrow.as_typed_array().ok_or_else(|| {
+
+        <span class="kw">let </span>o = obj.downcast_ref::&lt;TypedArray&gt;().ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;Value is not a typed array object&quot;</span>)
         })<span class="question-mark">?</span>;
         <span class="kw">if </span>o.is_detached() {
@@ -5169,7 +5125,7 @@
         <span class="comment">// 3. Let len be O.[[ArrayLength]].
         </span><span class="kw">let </span>len = o.array_length();
 
-        drop(obj_borrow);
+        drop(o);
 
         <span class="comment">// 4. If IsCallable(callbackfn) is false, throw a TypeError exception.
         </span><span class="kw">let </span>callback_fn = <span class="kw">match </span>args.get_or_undefined(<span class="number">0</span>).as_object() {
@@ -5224,8 +5180,8 @@
         </span><span class="kw">let </span>obj = this.as_object().ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;Value is not a typed array object&quot;</span>)
         })<span class="question-mark">?</span>;
-        <span class="kw">let </span>obj_borrow = obj.borrow();
-        <span class="kw">let </span>o = obj_borrow.as_typed_array().ok_or_else(|| {
+
+        <span class="kw">let </span>o = obj.downcast_ref::&lt;TypedArray&gt;().ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;Value is not a typed array object&quot;</span>)
         })<span class="question-mark">?</span>;
         <span class="kw">if </span>o.is_detached() {
@@ -5237,7 +5193,7 @@
         <span class="comment">// 3. Let len be O.[[ArrayLength]].
         </span><span class="kw">let </span>len = o.array_length();
 
-        drop(obj_borrow);
+        drop(o);
 
         <span class="comment">// 4. If IsCallable(callbackfn) is false, throw a TypeError exception.
         </span><span class="kw">let </span>callback_fn =
@@ -5311,8 +5267,8 @@
         </span><span class="kw">let </span>obj = this.as_object().ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;Value is not a typed array object&quot;</span>)
         })<span class="question-mark">?</span>;
-        <span class="kw">let </span>obj_borrow = obj.borrow();
-        <span class="kw">let </span>o = obj_borrow.as_typed_array().ok_or_else(|| {
+
+        <span class="kw">let </span>o = obj.downcast_ref::&lt;TypedArray&gt;().ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;Value is not a typed array object&quot;</span>)
         })<span class="question-mark">?</span>;
         <span class="kw">if </span>o.is_detached() {
@@ -5324,7 +5280,7 @@
         <span class="comment">// 3. Let len be O.[[ArrayLength]].
         </span><span class="kw">let </span>len = o.array_length() <span class="kw">as </span>i64;
 
-        drop(obj_borrow);
+        drop(o);
 
         <span class="comment">// 4. If IsCallable(callbackfn) is false, throw a TypeError exception.
         </span><span class="kw">let </span>callback_fn = <span class="kw">match </span>args.get_or_undefined(<span class="number">0</span>).as_object() {
@@ -5401,8 +5357,8 @@
         </span><span class="kw">let </span>obj = this.as_object().ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;Value is not a typed array object&quot;</span>)
         })<span class="question-mark">?</span>;
-        <span class="kw">let </span>obj_borrow = obj.borrow();
-        <span class="kw">let </span>o = obj_borrow.as_typed_array().ok_or_else(|| {
+
+        <span class="kw">let </span>o = obj.downcast_ref::&lt;TypedArray&gt;().ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;Value is not a typed array object&quot;</span>)
         })<span class="question-mark">?</span>;
         <span class="kw">if </span>o.is_detached() {
@@ -5414,7 +5370,7 @@
         <span class="comment">// 3. Let len be O.[[ArrayLength]].
         </span><span class="kw">let </span>len = o.array_length();
 
-        drop(obj_borrow);
+        drop(o);
 
         <span class="comment">// 4. Let middle be floor(len / 2).
         </span><span class="kw">let </span>middle = len / <span class="number">2</span>;
@@ -5461,7 +5417,7 @@
         </span><span class="kw">let </span>obj = this.as_object().ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;Value is not a typed array object&quot;</span>)
         })<span class="question-mark">?</span>;
-        <span class="kw">let </span>array = GcRef::try_map(obj.borrow(), Object::as_typed_array).ok_or_else(|| {
+        <span class="kw">let </span>array = obj.downcast_ref::&lt;TypedArray&gt;().ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;Value is not a typed array object&quot;</span>)
         })<span class="question-mark">?</span>;
         <span class="kw">if </span>array.is_detached() {
@@ -5516,7 +5472,7 @@
         </span><span class="kw">let </span>target = this.as_object().ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;TypedArray.set must be called on typed array object&quot;</span>)
         })<span class="question-mark">?</span>;
-        <span class="kw">if </span>!target.is_typed_array() {
+        <span class="kw">if </span>!target.is::&lt;TypedArray&gt;() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
                 .with_message(<span class="string">&quot;TypedArray.set must be called on typed array object&quot;</span>)
                 .into());
@@ -5544,7 +5500,7 @@
         <span class="kw">let </span>source = args.get_or_undefined(<span class="number">0</span>);
         <span class="kw">match </span>source {
             <span class="comment">// 6. If source is an Object that has a [[TypedArrayName]] internal slot, then
-            </span>JsValue::Object(source) <span class="kw">if </span>source.is_typed_array() =&gt; {
+            </span>JsValue::Object(source) <span class="kw">if </span>source.is::&lt;TypedArray&gt;() =&gt; {
                 <span class="comment">// a. Perform ? SetTypedArrayFromTypedArray(target, targetOffset, source).
                 </span><span class="self">Self</span>::set_typed_array_from_typed_array(target, <span class="kw-2">&amp;</span>target_offset, source, context)<span class="question-mark">?</span>;
             }
@@ -5573,12 +5529,12 @@
     ) -&gt; JsResult&lt;()&gt; {
         <span class="kw">let </span>target_borrow = target.borrow();
         <span class="kw">let </span>target_array = target_borrow
-            .as_typed_array()
+            .downcast_ref::&lt;TypedArray&gt;()
             .expect(<span class="string">&quot;Target must be a typed array&quot;</span>);
 
         <span class="kw">let </span>source_borrow = source.borrow();
         <span class="kw">let </span>source_array = source_borrow
-            .as_typed_array()
+            .downcast_ref::&lt;TypedArray&gt;()
             .expect(<span class="string">&quot;Source must be a typed array&quot;</span>);
 
         <span class="comment">// TODO: Implement growable buffers.
@@ -5808,7 +5764,7 @@
         <span class="kw">let </span>target_length = {
             <span class="kw">let </span>target_borrow = target.borrow();
             <span class="kw">let </span>target_array = target_borrow
-                .as_typed_array()
+                .downcast_ref::&lt;TypedArray&gt;()
                 .expect(<span class="string">&quot;Target must be a typed array&quot;</span>);
 
             <span class="comment">// 1. Let targetBuffer be target.[[ViewedArrayBuffer]].
@@ -5882,8 +5838,8 @@
         </span><span class="kw">let </span>obj = this.as_object().ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;Value is not a typed array object&quot;</span>)
         })<span class="question-mark">?</span>;
-        <span class="kw">let </span>obj_borrow = obj.borrow();
-        <span class="kw">let </span>o = obj_borrow.as_typed_array().ok_or_else(|| {
+
+        <span class="kw">let </span>o = obj.downcast_ref::&lt;TypedArray&gt;().ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;Value is not a typed array object&quot;</span>)
         })<span class="question-mark">?</span>;
         <span class="kw">if </span>o.is_detached() {
@@ -5929,13 +5885,13 @@
 
         <span class="comment">// 13. Let A be ? TypedArraySpeciesCreate(O, « 𝔽(count) »).
         </span><span class="kw">let </span>a = <span class="self">Self</span>::species_create(obj, o.kind(), <span class="kw-2">&amp;</span>[count.into()], context)<span class="question-mark">?</span>;
-        <span class="kw">let </span>a_borrow = a.borrow();
-        <span class="kw">let </span>a_array = a_borrow
-            .as_typed_array()
-            .expect(<span class="string">&quot;This must be a typed array&quot;</span>);
 
         <span class="comment">// 14. If count &gt; 0, then
         </span><span class="kw">if </span>count &gt; <span class="number">0 </span>{
+            <span class="kw">let </span>a_array = a
+                .downcast_ref::&lt;TypedArray&gt;()
+                .expect(<span class="string">&quot;This must be a typed array&quot;</span>);
+
             <span class="comment">// a. If IsDetachedBuffer(O.[[ViewedArrayBuffer]]) is true, throw a TypeError exception.
             </span><span class="kw">if </span>o.is_detached() {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
@@ -5954,8 +5910,7 @@
             <span class="comment">// f. If srcType is different from targetType, then
             </span><span class="attr">#[allow(clippy::if_not_else)]
             </span><span class="kw">if </span>src_type != target_type {
-                drop(obj_borrow);
-                drop(a_borrow);
+                drop(a_array);
 
                 <span class="comment">// i. Let n be 0.
                 </span><span class="kw">let </span><span class="kw-2">mut </span>n = <span class="number">0</span>;
@@ -6027,12 +5982,7 @@
                         byte_count,
                     );
                 }
-
-                drop(target_buffer_obj_borrow);
-                drop(a_borrow);
             }
-        } <span class="kw">else </span>{
-            drop(a_borrow);
         }
 
         <span class="comment">// 15. Return A.
@@ -6055,8 +6005,8 @@
         </span><span class="kw">let </span>obj = this.as_object().ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;Value is not a typed array object&quot;</span>)
         })<span class="question-mark">?</span>;
-        <span class="kw">let </span>obj_borrow = obj.borrow();
-        <span class="kw">let </span>o = obj_borrow.as_typed_array().ok_or_else(|| {
+
+        <span class="kw">let </span>o = obj.downcast_ref::&lt;TypedArray&gt;().ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;Value is not a typed array object&quot;</span>)
         })<span class="question-mark">?</span>;
         <span class="kw">if </span>o.is_detached() {
@@ -6068,7 +6018,7 @@
         <span class="comment">// 3. Let len be O.[[ArrayLength]].
         </span><span class="kw">let </span>len = o.array_length();
 
-        drop(obj_borrow);
+        drop(o);
 
         <span class="comment">// 4. If IsCallable(callbackfn) is false, throw a TypeError exception.
         </span><span class="kw">let </span>callback_fn = <span class="kw">match </span>args.get_or_undefined(<span class="number">0</span>).as_object() {
@@ -6139,8 +6089,7 @@
         <span class="comment">// 4. Let len be IntegerIndexedObjectLength(iieoRecord).
         </span><span class="kw">let </span>len =
             {
-                <span class="kw">let </span>obj_borrow = obj.borrow();
-                <span class="kw">let </span>o = obj_borrow.as_typed_array().ok_or_else(|| {
+                <span class="kw">let </span>o = obj.downcast_ref::&lt;TypedArray&gt;().ok_or_else(|| {
                     JsNativeError::typ()
                         .with_message(<span class="string">&quot;TypedArray.sort must be called on typed array object&quot;</span>)
                 })<span class="question-mark">?</span>;
@@ -6204,7 +6153,7 @@
         })<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Let iieoRecord be ? ValidateTypedArray(O, seq-cst).
-        </span><span class="kw">let </span>array = GcRef::try_map(obj.borrow(), Object::as_typed_array).ok_or_else(|| {
+        </span><span class="kw">let </span>array = obj.downcast_ref::&lt;TypedArray&gt;().ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;Value is not a typed array object&quot;</span>)
         })<span class="question-mark">?</span>;
         <span class="kw">if </span>array.is_detached() {
@@ -6263,8 +6212,8 @@
         </span><span class="kw">let </span>obj = this.as_object().ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;Value is not a typed array object&quot;</span>)
         })<span class="question-mark">?</span>;
-        <span class="kw">let </span>obj_borrow = obj.borrow();
-        <span class="kw">let </span>o = obj_borrow.as_typed_array().ok_or_else(|| {
+
+        <span class="kw">let </span>o = obj.downcast_ref::&lt;TypedArray&gt;().ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;Value is not a typed array object&quot;</span>)
         })<span class="question-mark">?</span>;
 
@@ -6352,8 +6301,7 @@
         })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>len = {
-            <span class="kw">let </span>obj_borrow = array.borrow();
-            <span class="kw">let </span>o = obj_borrow.as_typed_array().ok_or_else(|| {
+            <span class="kw">let </span>o = array.downcast_ref::&lt;TypedArray&gt;().ok_or_else(|| {
                 JsNativeError::typ().with_message(<span class="string">&quot;Value is not a typed array object&quot;</span>)
             })<span class="question-mark">?</span>;
             <span class="kw">if </span>o.is_detached() {
@@ -6433,8 +6381,7 @@
         </span><span class="kw">let </span>o = this.as_object().ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;Value is not a typed array object&quot;</span>)
         })<span class="question-mark">?</span>;
-        <span class="kw">if </span>o.borrow()
-            .as_typed_array()
+        <span class="kw">if </span>o.downcast_ref::&lt;TypedArray&gt;()
             .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?
             </span>.is_detached()
         {
@@ -6466,7 +6413,7 @@
         })<span class="question-mark">?</span>;
 
         <span class="comment">// 2. Let iieoRecord be ? ValidateTypedArray(O, seq-cst).
-        </span><span class="kw">let </span>array = GcRef::try_map(obj.borrow(), Object::as_typed_array).ok_or_else(|| {
+        </span><span class="kw">let </span>array = obj.downcast_ref::&lt;TypedArray&gt;().ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="string">&quot;Value is not a typed array object&quot;</span>)
         })<span class="question-mark">?</span>;
         <span class="kw">if </span>array.is_detached() {
@@ -6561,8 +6508,7 @@
         </span><span class="prelude-val">Ok</span>(this
             .as_object()
             .and_then(|obj| {
-                obj.borrow()
-                    .as_typed_array()
+                obj.downcast_ref::&lt;TypedArray&gt;()
                     .map(|o| o.kind().js_name().into())
             })
             .unwrap_or(JsValue::Undefined))
@@ -6592,8 +6538,7 @@
         <span class="comment">// 4. Assert: result has [[TypedArrayName]] and [[ContentType]] internal slots.
         // 5. If result.[[ContentType]] ≠ exemplar.[[ContentType]], throw a TypeError exception.
         </span><span class="kw">if </span>result
-            .borrow()
-            .as_typed_array()
+            .downcast_ref::&lt;TypedArray&gt;()
             .expect(<span class="string">&quot;This can only be a typed array object&quot;</span>)
             .kind()
             .content_type()
@@ -6622,11 +6567,12 @@
         <span class="comment">// 1. Let newTypedArray be ? Construct(constructor, argumentList).
         </span><span class="kw">let </span>new_typed_array = constructor.construct(args, <span class="prelude-val">Some</span>(constructor), context)<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>obj_borrow = new_typed_array.borrow();
         <span class="comment">// 2. Perform ? ValidateTypedArray(newTypedArray).
-        </span><span class="kw">let </span>o = obj_borrow.as_typed_array().ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;Value is not a typed array object&quot;</span>)
-        })<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>o = new_typed_array
+            .downcast_ref::&lt;TypedArray&gt;()
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message(<span class="string">&quot;Value is not a typed array object&quot;</span>)
+            })<span class="question-mark">?</span>;
         <span class="kw">if </span>o.is_detached() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
                 .with_message(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>)
@@ -6650,10 +6596,10 @@
     }
 
     <span class="doccomment">/// &lt;https://tc39.es/ecma262/#sec-allocatetypedarraybuffer&gt;
-    </span><span class="kw">fn </span>allocate_buffer&lt;T: TypedArray&gt;(
+    </span><span class="kw">fn </span>allocate_buffer&lt;T: TypedArrayMarker&gt;(
         length: u64,
         context: <span class="kw-2">&amp;mut </span>Context,
-    ) -&gt; JsResult&lt;IntegerIndexed&gt; {
+    ) -&gt; JsResult&lt;TypedArray&gt; {
         <span class="comment">// 1. Assert: O.[[ViewedArrayBuffer]] is undefined.
 
         // 2. Let constructorName be the String value of O.[[TypedArrayName]].
@@ -6681,11 +6627,11 @@
         // 9. Set O.[[ArrayLength]] to length.
 
         // 10. Return O.
-        </span><span class="prelude-val">Ok</span>(IntegerIndexed::new(data, T::ERASED, <span class="number">0</span>, byte_length, length))
+        </span><span class="prelude-val">Ok</span>(TypedArray::new(data, T::ERASED, <span class="number">0</span>, byte_length, length))
     }
 
     <span class="doccomment">/// &lt;https://tc39.es/ecma262/#sec-initializetypedarrayfromlist&gt;
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>initialize_from_list&lt;T: TypedArray&gt;(
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>initialize_from_list&lt;T: TypedArrayMarker&gt;(
         proto: JsObject,
         values: Vec&lt;JsValue&gt;,
         context: <span class="kw-2">&amp;mut </span>Context,
@@ -6694,11 +6640,7 @@
         </span><span class="kw">let </span>len = values.len() <span class="kw">as </span>u64;
         <span class="comment">// 2. Perform ? AllocateTypedArrayBuffer(O, len).
         </span><span class="kw">let </span>buf = <span class="self">Self</span>::allocate_buffer::&lt;T&gt;(len, context)<span class="question-mark">?</span>;
-        <span class="kw">let </span>obj = JsObject::from_proto_and_data_with_shared_shape(
-            context.root_shape(),
-            proto,
-            ObjectData::integer_indexed(buf),
-        );
+        <span class="kw">let </span>obj = JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), proto, buf);
 
         <span class="comment">// 3. Let k be 0.
         // 4. Repeat, while k &lt; len,
@@ -6725,7 +6667,7 @@
     /// For more information, check the [spec][spec].
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-allocatetypedarray
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>allocate&lt;T: TypedArray&gt;(
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>allocate&lt;T: TypedArrayMarker&gt;(
         new_target: <span class="kw-2">&amp;</span>JsValue,
         length: u64,
         context: <span class="kw-2">&amp;mut </span>Context,
@@ -6747,11 +6689,8 @@
         </span><span class="kw">let </span>indexed = <span class="self">Self</span>::allocate_buffer::&lt;T&gt;(length, context)<span class="question-mark">?</span>;
 
         <span class="comment">// 2. Let obj be ! IntegerIndexedObjectCreate(proto).
-        </span><span class="kw">let </span>obj = JsObject::from_proto_and_data_with_shared_shape(
-            context.root_shape(),
-            proto,
-            ObjectData::integer_indexed(indexed),
-        );
+        </span><span class="kw">let </span>obj =
+            JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), proto, indexed);
 
         <span class="comment">// 9. Return obj.
         </span><span class="prelude-val">Ok</span>(obj)
@@ -6763,14 +6702,14 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-initializetypedarrayfromtypedarray
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>initialize_from_typed_array&lt;T: TypedArray&gt;(
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>initialize_from_typed_array&lt;T: TypedArrayMarker&gt;(
         proto: JsObject,
         src_array: <span class="kw-2">&amp;</span>JsObject,
         context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsObject&gt; {
         <span class="kw">let </span>src_array = src_array.borrow();
         <span class="kw">let </span>src_array = src_array
-            .as_typed_array()
+            .downcast_ref::&lt;TypedArray&gt;()
             .expect(<span class="string">&quot;this must be a typed array&quot;</span>);
         <span class="kw">let </span>src_data = src_array.viewed_array_buffer();
         <span class="kw">let </span>src_data = src_data.borrow();
@@ -6828,70 +6767,70 @@
                 byte_length,
                 context,
             )<span class="question-mark">?</span>;
-            <span class="kw">let </span><span class="kw-2">mut </span>data_obj_b = data_obj.borrow_mut();
-            <span class="kw">let </span>data = data_obj_b
-                .as_array_buffer_mut()
-                .expect(<span class="string">&quot;Must be ArrayBuffer&quot;</span>);
-            <span class="kw">let </span><span class="kw-2">mut </span>data =
-                SliceRefMut::Slice(data.data_mut().expect(<span class="string">&quot;a new buffer cannot be detached&quot;</span>));
+            {
+                <span class="kw">let </span><span class="kw-2">mut </span>data = data_obj
+                    .downcast_mut::&lt;ArrayBuffer&gt;()
+                    .expect(<span class="string">&quot;Must be ArrayBuffer&quot;</span>);
+                <span class="kw">let </span><span class="kw-2">mut </span>data =
+                    SliceRefMut::Slice(data.data_mut().expect(<span class="string">&quot;a new buffer cannot be detached&quot;</span>));
 
-            <span class="comment">// b. If srcArray.[[ContentType]] is not O.[[ContentType]], throw a TypeError exception.
-            </span><span class="kw">if </span>src_type.content_type() != element_type.content_type() {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                    .with_message(<span class="string">&quot;Cannot initialize typed array from different content type&quot;</span>)
-                    .into());
-            }
-
-            <span class="kw">let </span>src_element_size = src_element_size <span class="kw">as </span>usize;
-            <span class="kw">let </span>target_element_size = target_element_size <span class="kw">as </span>usize;
-
-            <span class="comment">// c. Let srcByteIndex be srcByteOffset.
-            </span><span class="kw">let </span><span class="kw-2">mut </span>src_byte_index = src_byte_offset <span class="kw">as </span>usize;
-
-            <span class="comment">// d. Let targetByteIndex be 0.
-            </span><span class="kw">let </span><span class="kw-2">mut </span>target_byte_index = <span class="number">0</span>;
-
-            <span class="comment">// e. Let count be elementLength.
-            </span><span class="kw">let </span><span class="kw-2">mut </span>count = element_length;
-
-            <span class="comment">// f. Repeat, while count &gt; 0,
-            </span><span class="kw">while </span>count &gt; <span class="number">0 </span>{
-                <span class="comment">// i. Let value be GetValueFromBuffer(srcData, srcByteIndex, srcType, true, Unordered).
-                // SAFETY: All integer indexed objects are always in-bounds and properly
-                // aligned to their underlying buffer.
-                </span><span class="kw">let </span>value = <span class="kw">unsafe </span>{
-                    src_data
-                        .subslice(src_byte_index..)
-                        .get_value(src_type, atomic::Ordering::Relaxed)
-                };
-
-                <span class="kw">let </span>value = JsValue::from(value);
-
-                <span class="comment">// TODO: cast between types instead of converting to `JsValue`.
-                </span><span class="kw">let </span>value = element_type
-                    .get_element(<span class="kw-2">&amp;</span>value, context)
-                    .expect(<span class="string">&quot;value must be bigint or float&quot;</span>);
-
-                <span class="comment">// ii. Perform SetValueInBuffer(data, targetByteIndex, elementType, value, true, Unordered).
-
-                // SAFETY: The newly created buffer has at least `element_size * element_length`
-                // bytes available, which makes `target_byte_index` always in-bounds.
-                </span><span class="kw">unsafe </span>{
-                    data.subslice_mut(target_byte_index..)
-                        .set_value(value, atomic::Ordering::Relaxed);
+                <span class="comment">// b. If srcArray.[[ContentType]] is not O.[[ContentType]], throw a TypeError exception.
+                </span><span class="kw">if </span>src_type.content_type() != element_type.content_type() {
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                        .with_message(<span class="string">&quot;Cannot initialize typed array from different content type&quot;</span>)
+                        .into());
                 }
 
-                <span class="comment">// iii. Set srcByteIndex to srcByteIndex + srcElementSize.
-                </span>src_byte_index += src_element_size;
+                <span class="kw">let </span>src_element_size = src_element_size <span class="kw">as </span>usize;
+                <span class="kw">let </span>target_element_size = target_element_size <span class="kw">as </span>usize;
 
-                <span class="comment">// iv. Set targetByteIndex to targetByteIndex + elementSize.
-                </span>target_byte_index += target_element_size;
+                <span class="comment">// c. Let srcByteIndex be srcByteOffset.
+                </span><span class="kw">let </span><span class="kw-2">mut </span>src_byte_index = src_byte_offset <span class="kw">as </span>usize;
 
-                <span class="comment">// v. Set count to count - 1.
-                </span>count -= <span class="number">1</span>;
+                <span class="comment">// d. Let targetByteIndex be 0.
+                </span><span class="kw">let </span><span class="kw-2">mut </span>target_byte_index = <span class="number">0</span>;
+
+                <span class="comment">// e. Let count be elementLength.
+                </span><span class="kw">let </span><span class="kw-2">mut </span>count = element_length;
+
+                <span class="comment">// f. Repeat, while count &gt; 0,
+                </span><span class="kw">while </span>count &gt; <span class="number">0 </span>{
+                    <span class="comment">// i. Let value be GetValueFromBuffer(srcData, srcByteIndex, srcType, true, Unordered).
+                    // SAFETY: All integer indexed objects are always in-bounds and properly
+                    // aligned to their underlying buffer.
+                    </span><span class="kw">let </span>value = <span class="kw">unsafe </span>{
+                        src_data
+                            .subslice(src_byte_index..)
+                            .get_value(src_type, atomic::Ordering::Relaxed)
+                    };
+
+                    <span class="kw">let </span>value = JsValue::from(value);
+
+                    <span class="comment">// TODO: cast between types instead of converting to `JsValue`.
+                    </span><span class="kw">let </span>value = element_type
+                        .get_element(<span class="kw-2">&amp;</span>value, context)
+                        .expect(<span class="string">&quot;value must be bigint or float&quot;</span>);
+
+                    <span class="comment">// ii. Perform SetValueInBuffer(data, targetByteIndex, elementType, value, true, Unordered).
+
+                    // SAFETY: The newly created buffer has at least `element_size * element_length`
+                    // bytes available, which makes `target_byte_index` always in-bounds.
+                    </span><span class="kw">unsafe </span>{
+                        data.subslice_mut(target_byte_index..)
+                            .set_value(value, atomic::Ordering::Relaxed);
+                    }
+
+                    <span class="comment">// iii. Set srcByteIndex to srcByteIndex + srcElementSize.
+                    </span>src_byte_index += src_element_size;
+
+                    <span class="comment">// iv. Set targetByteIndex to targetByteIndex + elementSize.
+                    </span>target_byte_index += target_element_size;
+
+                    <span class="comment">// v. Set count to count - 1.
+                    </span>count -= <span class="number">1</span>;
+                }
             }
 
-            drop(data_obj_b);
             data_obj
         };
 
@@ -6902,13 +6841,7 @@
         </span><span class="kw">let </span>obj = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             proto,
-            ObjectData::integer_indexed(IntegerIndexed::new(
-                new_buffer,
-                element_type,
-                <span class="number">0</span>,
-                byte_length,
-                element_length,
-            )),
+            TypedArray::new(new_buffer, element_type, <span class="number">0</span>, byte_length, element_length),
         );
 
         <span class="comment">// 16. Return unused.
@@ -6921,7 +6854,7 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-initializetypedarrayfromarraybuffer
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>initialize_from_array_buffer&lt;T: TypedArray&gt;(
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>initialize_from_array_buffer&lt;T: TypedArrayMarker&gt;(
         proto: JsObject,
         buffer: JsObject,
         byte_offset: <span class="kw-2">&amp;</span>JsValue,
@@ -7006,13 +6939,13 @@
         </span><span class="kw">let </span>obj = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             proto,
-            ObjectData::integer_indexed(IntegerIndexed::new(
+            TypedArray::new(
                 buffer,
                 T::ERASED,
                 offset,
                 new_byte_length,
                 new_byte_length / element_size,
-            )),
+            ),
         );
 
         <span class="comment">// 13. Return unused.
@@ -7025,7 +6958,7 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-initializetypedarrayfromarraylike
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>initialize_from_array_like&lt;T: TypedArray&gt;(
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>initialize_from_array_like&lt;T: TypedArrayMarker&gt;(
         proto: JsObject,
         array_like: <span class="kw-2">&amp;</span>JsObject,
         context: <span class="kw-2">&amp;mut </span>Context,
@@ -7035,11 +6968,7 @@
 
         <span class="comment">// 2. Perform ? AllocateTypedArrayBuffer(O, len).
         </span><span class="kw">let </span>buf = <span class="self">Self</span>::allocate_buffer::&lt;T&gt;(len, context)<span class="question-mark">?</span>;
-        <span class="kw">let </span>obj = JsObject::from_proto_and_data_with_shared_shape(
-            context.root_shape(),
-            proto,
-            ObjectData::integer_indexed(buf),
-        );
+        <span class="kw">let </span>obj = JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), proto, buf);
 
         <span class="comment">// 3. Let k be 0.
         // 4. Repeat, while k &lt; len,
@@ -7160,8 +7089,7 @@
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-isvalidintegerindex
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_valid_integer_index(obj: <span class="kw-2">&amp;</span>JsObject, index: f64) -&gt; bool {
-    <span class="kw">let </span>obj = obj.borrow();
-    <span class="kw">let </span>inner = obj.as_typed_array().expect(
+    <span class="kw">let </span>inner = obj.downcast_ref::&lt;TypedArray&gt;().expect(
         <span class="string">&quot;integer indexed exotic method should only be callable from integer indexed objects&quot;</span>,
     );
 

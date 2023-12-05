@@ -455,7 +455,7 @@
     builtins::map::{add_entries_from_iterable, ordered_map::OrderedMap},
     builtins::Map,
     error::JsNativeError,
-    object::{JsFunction, JsMapIterator, JsObject, JsObjectType, ObjectData},
+    object::{JsFunction, JsMapIterator, JsObject, JsObjectType},
     string::utf16,
     value::TryFromJs,
     Context, JsResult, JsValue,
@@ -597,7 +597,7 @@
     /// ```
     /// # use boa_engine::{
     /// #    builtins::map::ordered_map::OrderedMap,
-    /// #    object::{builtins::JsMap, JsObject, ObjectData},
+    /// #    object::{builtins::JsMap, JsObject},
     /// #    Context, JsValue, JsResult,
     /// # };
     /// # fn main() -&gt; JsResult&lt;()&gt; {
@@ -605,7 +605,7 @@
     /// // `some_object` can be any JavaScript `Map` object.
     /// let some_object = JsObject::from_proto_and_data(
     ///     context.intrinsics().constructors().map().prototype(),
-    ///     ObjectData::map(OrderedMap::new()),
+    ///     OrderedMap::&lt;JsValue&gt;::new(),
     /// );
     ///
     /// // Create `JsMap` object with incoming object.
@@ -628,7 +628,7 @@
     /// ```
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>from_object(object: JsObject) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
-        <span class="kw">if </span>object.is_map() {
+        <span class="kw">if </span>object.is::&lt;OrderedMap&lt;JsValue&gt;&gt;() {
             <span class="prelude-val">Ok</span>(<span class="self">Self </span>{ inner: object })
         } <span class="kw">else </span>{
             <span class="prelude-val">Err</span>(JsNativeError::typ()
@@ -646,7 +646,7 @@
         </span>JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            ObjectData::map(OrderedMap::new()),
+            &lt;OrderedMap&lt;JsValue&gt;&gt;::new(),
         )
     }
 

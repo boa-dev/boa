@@ -212,10 +212,14 @@
 <a href="#212" id="212">212</a>
 <a href="#213" id="213">213</a>
 <a href="#214" id="214">214</a>
+<a href="#215" id="215">215</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>boa_gc::{Gc, GcRefCell};
 
 <span class="kw">use crate</span>::{
-    builtins::{generator::GeneratorContext, promise::PromiseCapability, Promise},
+    builtins::{
+        async_generator::AsyncGenerator, generator::GeneratorContext, promise::PromiseCapability,
+        Promise,
+    },
     native_function::NativeFunction,
     object::FunctionObjectBuilder,
     vm::{opcode::Operation, CompletionType, GeneratorResumeKind},
@@ -272,8 +276,7 @@
                         .and_then(|f| f.async_generator.clone())
                     {
                         async_generator
-                            .borrow_mut()
-                            .as_async_generator_mut()
+                            .downcast_mut::&lt;AsyncGenerator&gt;()
                             .expect(<span class="string">&quot;must be async generator&quot;</span>)
                             .context = <span class="prelude-val">Some</span>(gen);
                     }
@@ -316,8 +319,7 @@
                         .and_then(|f| f.async_generator.clone())
                     {
                         async_generator
-                            .borrow_mut()
-                            .as_async_generator_mut()
+                            .downcast_mut::&lt;AsyncGenerator&gt;()
                             .expect(<span class="string">&quot;must be async generator&quot;</span>)
                             .context = <span class="prelude-val">Some</span>(gen);
                     }

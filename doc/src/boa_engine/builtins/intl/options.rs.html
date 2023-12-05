@@ -143,8 +143,8 @@
 <span class="kw">use </span>num_traits::FromPrimitive;
 
 <span class="kw">use crate</span>::{
-    builtins::options::ParsableOptionType,
-    object::{JsObject, ObjectData},
+    builtins::{options::ParsableOptionType, OrdinaryObject},
+    object::JsObject,
     Context, JsNativeError, JsResult, JsValue,
 };
 
@@ -271,7 +271,7 @@
         </span><span class="kw">return </span><span class="prelude-val">Ok</span>(JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             <span class="prelude-val">None</span>,
-            ObjectData::ordinary(),
+            OrdinaryObject,
         ));
     }
 

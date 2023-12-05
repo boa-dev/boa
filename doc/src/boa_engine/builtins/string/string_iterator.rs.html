@@ -109,7 +109,6 @@
 <a href="#109" id="109">109</a>
 <a href="#110" id="110">110</a>
 <a href="#111" id="111">111</a>
-<a href="#112" id="112">112</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module implements the `StringIterator` object.
 //!
 //! More information:
@@ -122,11 +121,11 @@
     context::intrinsics::Intrinsics,
     error::JsNativeError,
     js_string,
-    object::{JsObject, ObjectData},
+    object::JsObject,
     property::Attribute,
     realm::Realm,
     symbol::JsSymbol,
-    Context, JsResult, JsString, JsValue,
+    Context, JsData, JsResult, JsString, JsValue,
 };
 <span class="kw">use </span>boa_gc::{Finalize, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
@@ -137,8 +136,8 @@
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-string-iterator-objects
-</span><span class="attr">#[derive(Debug, Clone, Finalize, Trace)]
-</span><span class="kw">pub struct </span>StringIterator {
+</span><span class="attr">#[derive(Debug, Clone, Finalize, Trace, JsData)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>StringIterator {
     string: JsString,
     next_index: usize,
 }
@@ -171,7 +170,7 @@
 
 <span class="kw">impl </span>StringIterator {
     <span class="doccomment">/// Create a new `StringIterator`.
-    </span><span class="kw">pub fn </span>create_string_iterator(string: JsString, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsObject {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_string_iterator(string: JsString, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsObject {
         JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             context
@@ -179,19 +178,18 @@
                 .objects()
                 .iterator_prototypes()
                 .string(),
-            ObjectData::string_iterator(<span class="self">Self </span>{
+            <span class="self">Self </span>{
                 string,
                 next_index: <span class="number">0</span>,
-            }),
+            },
         )
     }
 
     <span class="doccomment">/// `StringIterator.prototype.next( )`
-    </span><span class="kw">pub fn </span>next(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>string_iterator = this.as_object().map(JsObject::borrow_mut);
-        <span class="kw">let </span>string_iterator = string_iterator
-            .as_mut()
-            .and_then(|obj| obj.as_string_iterator_mut())
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>next(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>string_iterator = this
+            .as_object()
+            .and_then(JsObject::downcast_mut::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;`this` is not an ArrayIterator&quot;</span>))<span class="question-mark">?</span>;
 
         <span class="kw">if </span>string_iterator.string.is_empty() {

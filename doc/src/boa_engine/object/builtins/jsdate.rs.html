@@ -608,7 +608,7 @@
 
 <span class="kw">use crate</span>::{
     builtins::Date,
-    object::{JsObject, JsObjectType, ObjectData},
+    object::{JsObject, JsObjectType},
     value::TryFromJs,
     Context, JsNativeError, JsResult, JsValue,
 };
@@ -653,7 +653,7 @@
         <span class="kw">let </span>inner = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            ObjectData::date(Date::utc_now(context.host_hooks())),
+            Date::utc_now(context.host_hooks()),
         );
 
         <span class="self">Self </span>{ inner }
@@ -662,7 +662,7 @@
     <span class="doccomment">/// Create a new `JsDate` object from an existing object.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>from_object(object: JsObject) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
-        <span class="kw">if </span>object.is_date() {
+        <span class="kw">if </span>object.is::&lt;Date&gt;() {
             <span class="prelude-val">Ok</span>(<span class="self">Self </span>{ inner: object })
         } <span class="kw">else </span>{
             <span class="prelude-val">Err</span>(JsNativeError::typ()
@@ -1161,7 +1161,7 @@
             inner: JsObject::from_proto_and_data_with_shared_shape(
                 context.root_shape(),
                 prototype,
-                ObjectData::date(date_time),
+                date_time,
             ),
         })
     }

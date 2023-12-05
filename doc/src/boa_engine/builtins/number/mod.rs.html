@@ -934,6 +934,7 @@
 <a href="#934" id="934">934</a>
 <a href="#935" id="935">935</a>
 <a href="#936" id="936">936</a>
+<a href="#937" id="937">937</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Number` object.
 //!
 //! The `Number` ECMAScript object is a wrapper object allowing you to work with numerical values.
@@ -954,7 +955,7 @@
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
+    object::{internal_methods::get_prototype_from_constructor, JsObject},
     property::Attribute,
     realm::Realm,
     string::common::StaticJsStrings,
@@ -1062,11 +1063,8 @@
         }
         <span class="kw">let </span>prototype =
             get_prototype_from_constructor(new_target, StandardConstructors::number, context)<span class="question-mark">?</span>;
-        <span class="kw">let </span>this = JsObject::from_proto_and_data_with_shared_shape(
-            context.root_shape(),
-            prototype,
-            ObjectData::number(data),
-        );
+        <span class="kw">let </span>this =
+            JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), prototype, data);
         <span class="prelude-val">Ok</span>(this.into())
     }
 }
@@ -1130,7 +1128,11 @@
     </span><span class="kw">fn </span>this_number_value(value: <span class="kw-2">&amp;</span>JsValue) -&gt; JsResult&lt;f64&gt; {
         value
             .as_number()
-            .or_else(|| value.as_object().and_then(|obj| obj.borrow().as_number()))
+            .or_else(|| {
+                value
+                    .as_object()
+                    .and_then(|obj| obj.downcast_ref::&lt;f64&gt;().as_deref().copied())
+            })
             .ok_or_else(|| {
                 JsNativeError::typ()
                     .with_message(<span class="string">&quot;&#39;this&#39; is not a number&quot;</span>)

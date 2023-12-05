@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["IntegerIndexed"]};
+window.SIDEBAR_ITEMS = {"fn":["canonical_numeric_index_string","integer_indexed_element_get","integer_indexed_element_set","integer_indexed_exotic_define_own_property","integer_indexed_exotic_delete","integer_indexed_exotic_get","integer_indexed_exotic_get_own_property","integer_indexed_exotic_has_property","integer_indexed_exotic_own_property_keys","integer_indexed_exotic_set"],"struct":["TypedArray"],"type":["IntegerIndexed"]};

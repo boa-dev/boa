@@ -1213,13 +1213,31 @@
 <a href="#1213" id="1213">1213</a>
 <a href="#1214" id="1214">1214</a>
 <a href="#1215" id="1215">1215</a>
+<a href="#1216" id="1216">1216</a>
+<a href="#1217" id="1217">1217</a>
+<a href="#1218" id="1218">1218</a>
+<a href="#1219" id="1219">1219</a>
+<a href="#1220" id="1220">1220</a>
+<a href="#1221" id="1221">1221</a>
+<a href="#1222" id="1222">1222</a>
+<a href="#1223" id="1223">1223</a>
+<a href="#1224" id="1224">1224</a>
+<a href="#1225" id="1225">1225</a>
+<a href="#1226" id="1226">1226</a>
+<a href="#1227" id="1227">1227</a>
+<a href="#1228" id="1228">1228</a>
+<a href="#1229" id="1229">1229</a>
+<a href="#1230" id="1230">1230</a>
+<a href="#1231" id="1231">1231</a>
+<a href="#1232" id="1232">1232</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! An implementation of the `Temporal` proposal&#39;s Calendar builtin.
 
 </span><span class="kw">use </span>std::str::FromStr;
 
 <span class="kw">use super</span>::{
     create_temporal_date, create_temporal_duration, create_temporal_month_day,
-    create_temporal_year_month, fields, options::TemporalUnitGroup,
+    create_temporal_year_month, fields, options::TemporalUnitGroup, PlainDate, PlainDateTime,
+    PlainMonthDay, PlainYearMonth, ZonedDateTime,
 };
 <span class="kw">use crate</span>::{
     builtins::{
@@ -1229,12 +1247,13 @@
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, ObjectData},
+    object::internal_methods::get_prototype_from_constructor,
     property::Attribute,
     realm::Realm,
     string::{common::StaticJsStrings, utf16},
-    Context, JsArgs, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
+    Context, JsArgs, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
+<span class="kw">use </span>boa_gc::{Finalize, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>boa_temporal::{
     calendar::{
@@ -1253,7 +1272,9 @@
 </span><span class="kw">mod </span>tests;
 
 <span class="doccomment">/// The `Temporal.Calendar` object.
-</span><span class="attr">#[derive(Debug)]
+</span><span class="attr">#[derive(Debug, Trace, Finalize, JsData)]
+</span><span class="comment">// SAFETY: `Calendar` doesn&#39;t contain traceable types.
+</span><span class="attr">#[boa_gc(unsafe_empty_trace)]
 </span><span class="kw">pub struct </span>Calendar {
     slot: CalendarSlot,
 }
@@ -1375,14 +1396,13 @@
     }
 
     <span class="kw">fn </span>get_id(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
-        <span class="kw">let </span>o = this.as_object().ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;this value of Calendar must be an object.&quot;</span>)
-        })<span class="question-mark">?</span>;
-        <span class="kw">let </span>o = o.borrow();
-        <span class="kw">let </span>calendar = o.as_calendar().ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message(<span class="string">&quot;the this value of Calendar must be a Calendar object.&quot;</span>)
-        })<span class="question-mark">?</span>;
+        <span class="kw">let </span>calendar = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message(<span class="string">&quot;the this value of Calendar must be a Calendar object.&quot;</span>)
+            })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>protocol = <span class="kw">match </span><span class="kw-2">&amp;</span>calendar.slot {
             CalendarSlot::Identifier(s) =&gt; AvailableCalendars::from_str(s)<span class="question-mark">?</span>.to_protocol(),
@@ -1400,13 +1420,13 @@
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let calendar be the this value.
         // 2. Perform ? RequireInternalSlot(calendar, [[InitializedTemporalCalendar]]).
-        </span><span class="kw">let </span>o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;this value of Calendar must be an object.&quot;</span>)
-        })<span class="question-mark">?</span>;
-        <span class="kw">let </span>calendar = o.as_calendar().ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message(<span class="string">&quot;the this value of Calendar must be a Calendar object.&quot;</span>)
-        })<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>calendar = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message(<span class="string">&quot;this value of Calendar must be a Calendar object.&quot;</span>)
+            })<span class="question-mark">?</span>;
 
         <span class="comment">// Retrieve the current CalendarProtocol.
         </span><span class="kw">let </span>protocol = <span class="kw">match </span><span class="kw-2">&amp;</span>calendar.slot {
@@ -1483,13 +1503,13 @@
         args: <span class="kw-2">&amp;</span>[JsValue],
         context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
-        <span class="kw">let </span>o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;this value of Calendar must be an object.&quot;</span>)
-        })<span class="question-mark">?</span>;
-        <span class="kw">let </span>calendar = o.as_calendar().ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message(<span class="string">&quot;the this value of Calendar must be a Calendar object.&quot;</span>)
-        })<span class="question-mark">?</span>;
+        <span class="kw">let </span>calendar = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message(<span class="string">&quot;this value of Calendar must be a Calendar object.&quot;</span>)
+            })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>protocol = <span class="kw">match </span><span class="kw-2">&amp;</span>calendar.slot {
             CalendarSlot::Identifier(s) =&gt; AvailableCalendars::from_str(s)<span class="question-mark">?</span>.to_protocol(),
@@ -1561,13 +1581,13 @@
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let calendar be the this value.
         // 2. Perform ? RequireInternalSlot(calendar, [[InitializedTemporalCalendar]]).
-        </span><span class="kw">let </span>o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;this value of Calendar must be an object.&quot;</span>)
-        })<span class="question-mark">?</span>;
-        <span class="kw">let </span>calendar = o.as_calendar().ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message(<span class="string">&quot;the this value of Calendar must be a Calendar object.&quot;</span>)
-        })<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>calendar = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message(<span class="string">&quot;this value of Calendar must be a Calendar object.&quot;</span>)
+            })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>protocol = <span class="kw">match </span><span class="kw-2">&amp;</span>calendar.slot {
             CalendarSlot::Identifier(s) =&gt; AvailableCalendars::from_str(s)<span class="question-mark">?</span>.to_protocol(),
@@ -1634,13 +1654,13 @@
         <span class="comment">// 1. Let calendar be the this value.
         // 2. Perform ? RequireInternalSlot(calendar, [[InitializedTemporalCalendar]]).
         // 3. Assert: calendar.[[Identifier]] is &quot;iso8601&quot;.
-        </span><span class="kw">let </span>o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;this value of Calendar must be an object.&quot;</span>)
-        })<span class="question-mark">?</span>;
-        <span class="kw">let </span>calendar = o.as_calendar().ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message(<span class="string">&quot;the this value of Calendar must be a Calendar object.&quot;</span>)
-        })<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>calendar = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message(<span class="string">&quot;this value of Calendar must be a Calendar object.&quot;</span>)
+            })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>protocol = <span class="kw">match </span><span class="kw-2">&amp;</span>calendar.slot {
             CalendarSlot::Identifier(s) =&gt; AvailableCalendars::from_str(s)<span class="question-mark">?</span>.to_protocol(),
@@ -1676,13 +1696,13 @@
         <span class="comment">// 1. Let calendar be the this value.
         // 2. Perform ? RequireInternalSlot(calendar, [[InitializedTemporalCalendar]]).
         // 3. Assert: calendar.[[Identifier]] is &quot;iso8601&quot;.
-        </span><span class="kw">let </span>o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;this value of Calendar must be an object.&quot;</span>)
-        })<span class="question-mark">?</span>;
-        <span class="kw">let </span>calendar = o.as_calendar().ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message(<span class="string">&quot;the this value of Calendar must be a Calendar object.&quot;</span>)
-        })<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>calendar = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message(<span class="string">&quot;this value of Calendar must be a Calendar object.&quot;</span>)
+            })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>protocol = <span class="kw">match </span><span class="kw-2">&amp;</span>calendar.slot {
             CalendarSlot::Identifier(s) =&gt; AvailableCalendars::from_str(s)<span class="question-mark">?</span>.to_protocol(),
@@ -1715,13 +1735,13 @@
 
     <span class="doccomment">/// 15.8.2.6 `Temporal.Calendar.prototype.era ( temporalDateLike )`
     </span><span class="kw">fn </span>era(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
-        <span class="kw">let </span>o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;this value of Calendar must be an object.&quot;</span>)
-        })<span class="question-mark">?</span>;
-        <span class="kw">let </span>calendar = o.as_calendar().ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message(<span class="string">&quot;the this value of Calendar must be a Calendar object.&quot;</span>)
-        })<span class="question-mark">?</span>;
+        <span class="kw">let </span>calendar = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message(<span class="string">&quot;this value of Calendar must be a Calendar object.&quot;</span>)
+            })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>protocol = <span class="kw">match </span><span class="kw-2">&amp;</span>calendar.slot {
             CalendarSlot::Identifier(s) =&gt; AvailableCalendars::from_str(s)<span class="question-mark">?</span>.to_protocol(),
@@ -1739,13 +1759,13 @@
 
     <span class="doccomment">/// 15.8.2.7 `Temporal.Calendar.prototype.eraYear ( temporalDateLike )`
     </span><span class="kw">fn </span>era_year(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
-        <span class="kw">let </span>o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;this value of Calendar must be an object.&quot;</span>)
-        })<span class="question-mark">?</span>;
-        <span class="kw">let </span>calendar = o.as_calendar().ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message(<span class="string">&quot;the this value of Calendar must be a Calendar object.&quot;</span>)
-        })<span class="question-mark">?</span>;
+        <span class="kw">let </span>calendar = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message(<span class="string">&quot;this value of Calendar must be a Calendar object.&quot;</span>)
+            })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>protocol = <span class="kw">match </span><span class="kw-2">&amp;</span>calendar.slot {
             CalendarSlot::Identifier(s) =&gt; AvailableCalendars::from_str(s)<span class="question-mark">?</span>.to_protocol(),
@@ -1763,13 +1783,13 @@
 
     <span class="doccomment">/// 15.8.2.8 `Temporal.Calendar.prototype.year ( temporalDateLike )`
     </span><span class="kw">fn </span>year(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
-        <span class="kw">let </span>o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;this value of Calendar must be an object.&quot;</span>)
-        })<span class="question-mark">?</span>;
-        <span class="kw">let </span>calendar = o.as_calendar().ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message(<span class="string">&quot;the this value of Calendar must be a Calendar object.&quot;</span>)
-        })<span class="question-mark">?</span>;
+        <span class="kw">let </span>calendar = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message(<span class="string">&quot;this value of Calendar must be a Calendar object.&quot;</span>)
+            })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>protocol = <span class="kw">match </span><span class="kw-2">&amp;</span>calendar.slot {
             CalendarSlot::Identifier(s) =&gt; AvailableCalendars::from_str(s)<span class="question-mark">?</span>.to_protocol(),
@@ -1785,13 +1805,13 @@
 
     <span class="doccomment">/// 15.8.2.9 `Temporal.Calendar.prototype.month ( temporalDateLike )`
     </span><span class="kw">fn </span>month(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
-        <span class="kw">let </span>o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;this value of Calendar must be an object.&quot;</span>)
-        })<span class="question-mark">?</span>;
-        <span class="kw">let </span>calendar = o.as_calendar().ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message(<span class="string">&quot;the this value of Calendar must be a Calendar object.&quot;</span>)
-        })<span class="question-mark">?</span>;
+        <span class="kw">let </span>calendar = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message(<span class="string">&quot;this value of Calendar must be a Calendar object.&quot;</span>)
+            })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>protocol = <span class="kw">match </span><span class="kw-2">&amp;</span>calendar.slot {
             CalendarSlot::Identifier(s) =&gt; AvailableCalendars::from_str(s)<span class="question-mark">?</span>.to_protocol(),
@@ -1812,13 +1832,13 @@
 
     <span class="doccomment">/// 15.8.2.10 `Temporal.Calendar.prototype.monthCode ( temporalDateLike )`
     </span><span class="kw">fn </span>month_code(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
-        <span class="kw">let </span>o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;this value of Calendar must be an object.&quot;</span>)
-        })<span class="question-mark">?</span>;
-        <span class="kw">let </span>calendar = o.as_calendar().ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message(<span class="string">&quot;the this value of Calendar must be a Calendar object.&quot;</span>)
-        })<span class="question-mark">?</span>;
+        <span class="kw">let </span>calendar = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message(<span class="string">&quot;this value of Calendar must be a Calendar object.&quot;</span>)
+            })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>protocol = <span class="kw">match </span><span class="kw-2">&amp;</span>calendar.slot {
             CalendarSlot::Identifier(s) =&gt; AvailableCalendars::from_str(s)<span class="question-mark">?</span>.to_protocol(),
@@ -1834,13 +1854,13 @@
 
     <span class="doccomment">/// 15.8.2.11 `Temporal.Calendar.prototype.day ( temporalDateLike )`
     </span><span class="kw">fn </span>day(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
-        <span class="kw">let </span>o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;this value of Calendar must be an object.&quot;</span>)
-        })<span class="question-mark">?</span>;
-        <span class="kw">let </span>calendar = o.as_calendar().ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message(<span class="string">&quot;the this value of Calendar must be a Calendar object.&quot;</span>)
-        })<span class="question-mark">?</span>;
+        <span class="kw">let </span>calendar = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message(<span class="string">&quot;this value of Calendar must be a Calendar object.&quot;</span>)
+            })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>protocol = <span class="kw">match </span><span class="kw-2">&amp;</span>calendar.slot {
             CalendarSlot::Identifier(s) =&gt; AvailableCalendars::from_str(s)<span class="question-mark">?</span>.to_protocol(),
@@ -1858,13 +1878,13 @@
     </span><span class="kw">fn </span>day_of_week(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let calendar be the this value.
         // 2. Perform ? RequireInternalSlot(calendar, [[InitializedTemporalCalendar]]).
-        </span><span class="kw">let </span>o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;this value of Calendar must be an object.&quot;</span>)
-        })<span class="question-mark">?</span>;
-        <span class="kw">let </span>calendar = o.as_calendar().ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message(<span class="string">&quot;the this value of Calendar must be a Calendar object.&quot;</span>)
-        })<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>calendar = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message(<span class="string">&quot;this value of Calendar must be a Calendar object.&quot;</span>)
+            })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>protocol = <span class="kw">match </span><span class="kw-2">&amp;</span>calendar.slot {
             CalendarSlot::Identifier(s) =&gt; AvailableCalendars::from_str(s)<span class="question-mark">?</span>.to_protocol(),
@@ -1881,14 +1901,13 @@
 
     <span class="doccomment">/// 15.8.2.13 `Temporal.Calendar.prototype.dayOfYear ( temporalDateLike )`
     </span><span class="kw">fn </span>day_of_year(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
-        <span class="kw">let </span>o = this.as_object().ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;this value of Calendar must be an object.&quot;</span>)
-        })<span class="question-mark">?</span>;
-        <span class="kw">let </span>o = o.borrow();
-        <span class="kw">let </span>calendar = o.as_calendar().ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message(<span class="string">&quot;the this value of Calendar must be a Calendar object.&quot;</span>)
-        })<span class="question-mark">?</span>;
+        <span class="kw">let </span>calendar = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message(<span class="string">&quot;this value of Calendar must be a Calendar object.&quot;</span>)
+            })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>protocol = <span class="kw">match </span><span class="kw-2">&amp;</span>calendar.slot {
             CalendarSlot::Identifier(s) =&gt; AvailableCalendars::from_str(s)<span class="question-mark">?</span>.to_protocol(),
@@ -1905,13 +1924,13 @@
 
     <span class="doccomment">/// 15.8.2.14 `Temporal.Calendar.prototype.weekOfYear ( temporalDateLike )`
     </span><span class="kw">fn </span>week_of_year(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
-        <span class="kw">let </span>o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;this value of Calendar must be an object.&quot;</span>)
-        })<span class="question-mark">?</span>;
-        <span class="kw">let </span>calendar = o.as_calendar().ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message(<span class="string">&quot;the this value of Calendar must be a Calendar object.&quot;</span>)
-        })<span class="question-mark">?</span>;
+        <span class="kw">let </span>calendar = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message(<span class="string">&quot;this value of Calendar must be a Calendar object.&quot;</span>)
+            })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>protocol = <span class="kw">match </span><span class="kw-2">&amp;</span>calendar.slot {
             CalendarSlot::Identifier(s) =&gt; AvailableCalendars::from_str(s)<span class="question-mark">?</span>.to_protocol(),
@@ -1928,13 +1947,13 @@
 
     <span class="doccomment">/// 15.8.2.15 `Temporal.Calendar.prototype.yearOfWeek ( temporalDateLike )`
     </span><span class="kw">fn </span>year_of_week(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
-        <span class="kw">let </span>o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;this value of Calendar must be an object.&quot;</span>)
-        })<span class="question-mark">?</span>;
-        <span class="kw">let </span>calendar = o.as_calendar().ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message(<span class="string">&quot;the this value of Calendar must be a Calendar object.&quot;</span>)
-        })<span class="question-mark">?</span>;
+        <span class="kw">let </span>calendar = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message(<span class="string">&quot;this value of Calendar must be a Calendar object.&quot;</span>)
+            })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>protocol = <span class="kw">match </span><span class="kw-2">&amp;</span>calendar.slot {
             CalendarSlot::Identifier(s) =&gt; AvailableCalendars::from_str(s)<span class="question-mark">?</span>.to_protocol(),
@@ -1951,13 +1970,13 @@
 
     <span class="doccomment">/// 15.8.2.16 `Temporal.Calendar.prototype.daysInWeek ( temporalDateLike )`
     </span><span class="kw">fn </span>days_in_week(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
-        <span class="kw">let </span>o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;this value of Calendar must be an object.&quot;</span>)
-        })<span class="question-mark">?</span>;
-        <span class="kw">let </span>calendar = o.as_calendar().ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message(<span class="string">&quot;the this value of Calendar must be a Calendar object.&quot;</span>)
-        })<span class="question-mark">?</span>;
+        <span class="kw">let </span>calendar = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message(<span class="string">&quot;this value of Calendar must be a Calendar object.&quot;</span>)
+            })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>protocol = <span class="kw">match </span><span class="kw-2">&amp;</span>calendar.slot {
             CalendarSlot::Identifier(s) =&gt; AvailableCalendars::from_str(s)<span class="question-mark">?</span>.to_protocol(),
@@ -1974,13 +1993,13 @@
 
     <span class="doccomment">/// 15.8.2.17 `Temporal.Calendar.prototype.daysInMonth ( temporalDateLike )`
     </span><span class="kw">fn </span>days_in_month(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
-        <span class="kw">let </span>o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;this value of Calendar must be an object.&quot;</span>)
-        })<span class="question-mark">?</span>;
-        <span class="kw">let </span>calendar = o.as_calendar().ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message(<span class="string">&quot;the this value of Calendar must be a Calendar object.&quot;</span>)
-        })<span class="question-mark">?</span>;
+        <span class="kw">let </span>calendar = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message(<span class="string">&quot;this value of Calendar must be a Calendar object.&quot;</span>)
+            })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>protocol = <span class="kw">match </span><span class="kw-2">&amp;</span>calendar.slot {
             CalendarSlot::Identifier(s) =&gt; AvailableCalendars::from_str(s)<span class="question-mark">?</span>.to_protocol(),
@@ -1996,13 +2015,13 @@
 
     <span class="doccomment">/// 15.8.2.18 `Temporal.Calendar.prototype.daysInYear ( temporalDateLike )`
     </span><span class="kw">fn </span>days_in_year(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
-        <span class="kw">let </span>o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;this value of Calendar must be an object.&quot;</span>)
-        })<span class="question-mark">?</span>;
-        <span class="kw">let </span>calendar = o.as_calendar().ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message(<span class="string">&quot;the this value of Calendar must be a Calendar object.&quot;</span>)
-        })<span class="question-mark">?</span>;
+        <span class="kw">let </span>calendar = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message(<span class="string">&quot;this value of Calendar must be a Calendar object.&quot;</span>)
+            })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>protocol = <span class="kw">match </span><span class="kw-2">&amp;</span>calendar.slot {
             CalendarSlot::Identifier(s) =&gt; AvailableCalendars::from_str(s)<span class="question-mark">?</span>.to_protocol(),
@@ -2021,13 +2040,13 @@
         args: <span class="kw-2">&amp;</span>[JsValue],
         context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
-        <span class="kw">let </span>o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;this value of Calendar must be an object.&quot;</span>)
-        })<span class="question-mark">?</span>;
-        <span class="kw">let </span>calendar = o.as_calendar().ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message(<span class="string">&quot;the this value of Calendar must be a Calendar object.&quot;</span>)
-        })<span class="question-mark">?</span>;
+        <span class="kw">let </span>calendar = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message(<span class="string">&quot;this value of Calendar must be a Calendar object.&quot;</span>)
+            })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>protocol = <span class="kw">match </span><span class="kw-2">&amp;</span>calendar.slot {
             CalendarSlot::Identifier(s) =&gt; AvailableCalendars::from_str(s)<span class="question-mark">?</span>.to_protocol(),
@@ -2043,13 +2062,13 @@
 
     <span class="doccomment">/// 15.8.2.20 `Temporal.Calendar.prototype.inLeapYear ( temporalDateLike )`
     </span><span class="kw">fn </span>in_leap_year(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
-        <span class="kw">let </span>o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;this value of Calendar must be an object.&quot;</span>)
-        })<span class="question-mark">?</span>;
-        <span class="kw">let </span>calendar = o.as_calendar().ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message(<span class="string">&quot;the this value of Calendar must be a Calendar object.&quot;</span>)
-        })<span class="question-mark">?</span>;
+        <span class="kw">let </span>calendar = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message(<span class="string">&quot;this value of Calendar must be a Calendar object.&quot;</span>)
+            })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>protocol = <span class="kw">match </span><span class="kw-2">&amp;</span>calendar.slot {
             CalendarSlot::Identifier(s) =&gt; AvailableCalendars::from_str(s)<span class="question-mark">?</span>.to_protocol(),
@@ -2067,13 +2086,13 @@
     </span><span class="kw">fn </span>fields(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let calendar be the this value.
         // 2. Perform ? RequireInternalSlot(calendar, [[InitializedTemporalCalendar]]).
-        </span><span class="kw">let </span>o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;this value of Calendar must be an object.&quot;</span>)
-        })<span class="question-mark">?</span>;
-        <span class="kw">let </span>calendar = o.as_calendar().ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message(<span class="string">&quot;the this value of Calendar must be a Calendar object.&quot;</span>)
-        })<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>calendar = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message(<span class="string">&quot;this value of Calendar must be a Calendar object.&quot;</span>)
+            })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>protocol = <span class="kw">match </span><span class="kw-2">&amp;</span>calendar.slot {
             CalendarSlot::Identifier(s) =&gt; AvailableCalendars::from_str(s)<span class="question-mark">?</span>.to_protocol(),
@@ -2157,13 +2176,13 @@
     </span><span class="kw">fn </span>merge_fields(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let calendar be the this value.
         // 2. Perform ? RequireInternalSlot(calendar, [[InitializedTemporalCalendar]]).
-        </span><span class="kw">let </span>o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;this value of Calendar must be an object.&quot;</span>)
-        })<span class="question-mark">?</span>;
-        <span class="kw">let </span>calendar = o.as_calendar().ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message(<span class="string">&quot;the this value of Calendar must be a Calendar object.&quot;</span>)
-        })<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>calendar = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message(<span class="string">&quot;this value of Calendar must be a Calendar object.&quot;</span>)
+            })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>protocol = <span class="kw">match </span><span class="kw-2">&amp;</span>calendar.slot {
             CalendarSlot::Identifier(s) =&gt; AvailableCalendars::from_str(s)<span class="question-mark">?</span>.to_protocol(),
@@ -2273,11 +2292,43 @@
     </span><span class="kw">let </span>proto =
         get_prototype_from_constructor(<span class="kw-2">&amp;</span>new_target, StandardConstructors::calendar, context)<span class="question-mark">?</span>;
 
-    <span class="kw">let </span>obj = JsObject::from_proto_and_data(proto, ObjectData::calendar(Calendar::new(identifier)));
+    <span class="kw">let </span>obj = JsObject::from_proto_and_data(proto, Calendar::new(identifier));
 
     <span class="comment">// 4. Set object.[[Identifier]] to the ASCII-lowercase of identifier.
     // 5. Return object.
     </span><span class="prelude-val">Ok</span>(obj.into())
+}
+
+<span class="kw">fn </span>extract_from_temporal_type&lt;DF, DTF, YMF, MDF, ZDTF, Ret&gt;(
+    object: <span class="kw-2">&amp;</span>JsObject,
+    date_f: DF,
+    datetime_f: DTF,
+    year_month_f: YMF,
+    month_day_f: MDF,
+    zoned_datetime_f: ZDTF,
+) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;Ret&gt;&gt;
+<span class="kw">where
+    </span>DF: FnOnce(<span class="kw-2">&amp;</span>PlainDate) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;Ret&gt;&gt;,
+    DTF: FnOnce(<span class="kw-2">&amp;</span>PlainDateTime) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;Ret&gt;&gt;,
+    YMF: FnOnce(<span class="kw-2">&amp;</span>PlainYearMonth) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;Ret&gt;&gt;,
+    MDF: FnOnce(<span class="kw-2">&amp;</span>PlainMonthDay) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;Ret&gt;&gt;,
+    ZDTF: FnOnce(<span class="kw-2">&amp;</span>ZonedDateTime) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;Ret&gt;&gt;,
+{
+    <span class="kw">let </span>o = object.borrow();
+
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(date) = o.downcast_ref::&lt;PlainDate&gt;() {
+        <span class="kw">return </span>date_f(date);
+    } <span class="kw">else if let </span><span class="prelude-val">Some</span>(dt) = o.downcast_ref::&lt;PlainDateTime&gt;() {
+        <span class="kw">return </span>datetime_f(dt);
+    } <span class="kw">else if let </span><span class="prelude-val">Some</span>(ym) = o.downcast_ref::&lt;PlainYearMonth&gt;() {
+        <span class="kw">return </span>year_month_f(ym);
+    } <span class="kw">else if let </span><span class="prelude-val">Some</span>(md) = o.downcast_ref::&lt;PlainMonthDay&gt;() {
+        <span class="kw">return </span>month_day_f(md);
+    } <span class="kw">else if let </span><span class="prelude-val">Some</span>(dt) = o.downcast_ref::&lt;ZonedDateTime&gt;() {
+        <span class="kw">return </span>zoned_datetime_f(dt);
+    }
+
+    <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
 }
 
 <span class="doccomment">/// 12.2.21 `GetTemporalCalendarSlotValueWithISODefault ( item )`
@@ -2288,42 +2339,19 @@
 ) -&gt; JsResult&lt;CalendarSlot&gt; {
     <span class="comment">// 1. If item has an [[InitializedTemporalDate]], [[InitializedTemporalDateTime]], [[InitializedTemporalMonthDay]], [[InitializedTemporalYearMonth]], or [[InitializedTemporalZonedDateTime]] internal slot, then
     // a. Return item.[[Calendar]].
-    </span><span class="kw">if </span>item.is_plain_date() {
-        <span class="kw">let </span>obj = item.borrow();
-        <span class="kw">let </span>date = obj.as_plain_date();
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(date) = date {
-            <span class="kw">let </span>calendar = date.inner.calendar().clone();
-            drop(obj);
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(calendar);
-        }
-    } <span class="kw">else if </span>item.is_plain_date_time() {
-        <span class="kw">let </span>obj = item.borrow();
-        <span class="kw">let </span>date_time = obj.as_plain_date_time();
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(dt) = date_time {
-            <span class="kw">let </span>calendar = dt.inner.calendar().clone();
-            drop(obj);
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(calendar);
-        }
-    } <span class="kw">else if </span>item.is_plain_year_month() {
-        <span class="kw">let </span>obj = item.borrow();
-        <span class="kw">let </span>year_month = obj.as_plain_year_month();
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(ym) = year_month {
-            <span class="kw">let </span>calendar = ym.inner.calendar().clone();
-            drop(obj);
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(calendar);
-        }
-    } <span class="kw">else if </span>item.is_plain_month_day() {
-        <span class="kw">let </span>obj = item.borrow();
-        <span class="kw">let </span>month_day = obj.as_plain_month_day();
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(md) = month_day {
-            <span class="kw">let </span>calendar = md.inner.calendar().clone();
-            drop(obj);
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(calendar);
-        }
-    } <span class="kw">else if </span>item.is_zoned_date_time() {
-        <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
-            .with_message(<span class="string">&quot;Not yet implemented.&quot;</span>)
-            .into());
+    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(calendar) = extract_from_temporal_type(
+        item,
+        |d| <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(d.inner.calendar().clone())),
+        |dt| <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(dt.inner.calendar().clone())),
+        |ym| <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(ym.inner.calendar().clone())),
+        |md| <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(md.inner.calendar().clone())),
+        |zdt| {
+            <span class="prelude-val">Err</span>(JsNativeError::range()
+                .with_message(<span class="string">&quot;Not yet implemented.&quot;</span>)
+                .into())
+        },
+    )<span class="question-mark">? </span>{
+        <span class="kw">return </span><span class="prelude-val">Ok</span>(calendar);
     }
 
     <span class="comment">// 2. Let calendarLike be ? Get(item, &quot;calendar&quot;).
@@ -2347,22 +2375,31 @@
     </span>} <span class="kw">else if let </span><span class="prelude-val">Some</span>(calendar_like) = calendar_like.as_object() {
         <span class="comment">// a. If temporalCalendarLike has an [[InitializedTemporalDate]], [[InitializedTemporalDateTime]], [[InitializedTemporalMonthDay]], [[InitializedTemporalYearMonth]], or [[InitializedTemporalZonedDateTime]] internal slot, then
         // i. Return temporalCalendarLike.[[Calendar]].
-        </span><span class="kw">if </span>calendar_like.is_plain_date() {
-            <span class="kw">let </span>obj = calendar_like.borrow();
-            <span class="kw">let </span>date = obj.as_plain_date();
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(date) = date {
-                <span class="kw">let </span>calendar = date.inner.calendar().clone();
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(calendar);
-            }
-        } <span class="kw">else if </span>calendar_like.is_plain_date_time()
-            || calendar_like.is_plain_year_month()
-            || calendar_like.is_plain_month_day()
-            || calendar_like.is_zoned_date_time()
-        {
-            <span class="comment">// TODO(nekevss): Separate out and reimplement the handling of different branches.
-            </span><span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
-                .with_message(<span class="string">&quot;Not yet implemented.&quot;</span>)
-                .into());
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(calendar) = extract_from_temporal_type(
+            calendar_like,
+            |d| <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(d.inner.calendar().clone())),
+            |_dt| {
+                <span class="prelude-val">Err</span>(JsNativeError::range()
+                    .with_message(<span class="string">&quot;Not yet implemented.&quot;</span>)
+                    .into())
+            },
+            |_ym| {
+                <span class="prelude-val">Err</span>(JsNativeError::range()
+                    .with_message(<span class="string">&quot;Not yet implemented.&quot;</span>)
+                    .into())
+            },
+            |_md| {
+                <span class="prelude-val">Err</span>(JsNativeError::range()
+                    .with_message(<span class="string">&quot;Not yet implemented.&quot;</span>)
+                    .into())
+            },
+            |_zdt| {
+                <span class="prelude-val">Err</span>(JsNativeError::range()
+                    .with_message(<span class="string">&quot;Not yet implemented.&quot;</span>)
+                    .into())
+            },
+        )<span class="question-mark">? </span>{
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(calendar);
         }
 
         <span class="comment">// TODO: implement ObjectImplementsTemporalCalendarProtocol
@@ -2403,29 +2440,26 @@
 
 <span class="doccomment">/// Utility function for taking a `JsValue` and converting it to a temporal library `CalendarDateLike` enum.
 </span><span class="kw">fn </span>to_calendar_date_like(date_like: <span class="kw-2">&amp;</span>JsValue, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CalendarDateLike&gt; {
-    <span class="kw">match </span>date_like {
-        JsValue::Object(o) <span class="kw">if </span>o.is_plain_date_time() =&gt; {
-            <span class="kw">let </span>obj = o.borrow();
-            <span class="kw">let </span>date_time = obj.as_plain_date_time().expect(<span class="string">&quot;obj must be a DateTime.&quot;</span>);
+    <span class="kw">let </span><span class="prelude-val">Some</span>(obj) = date_like.as_object() <span class="kw">else </span>{
+        <span class="kw">let </span>date = temporal::plain_date::to_temporal_date(date_like, <span class="prelude-val">None</span>, context)<span class="question-mark">?</span>;
 
-            <span class="prelude-val">Ok</span>(CalendarDateLike::DateTime(date_time.inner.clone()))
-        }
-        JsValue::Object(o) <span class="kw">if </span>o.is_plain_date() =&gt; {
-            <span class="kw">let </span>obj = o.borrow();
-            <span class="kw">let </span>date = obj.as_plain_date().expect(<span class="string">&quot;Must be a Date&quot;</span>);
+        <span class="kw">return </span><span class="prelude-val">Ok</span>(CalendarDateLike::Date(date.inner.clone()));
+    };
 
-            <span class="prelude-val">Ok</span>(CalendarDateLike::Date(date.inner.clone()))
-        }
-        JsValue::Object(o) <span class="kw">if </span>o.is_plain_year_month() =&gt; {
-            <span class="kw">let </span>obj = o.borrow();
-            <span class="kw">let </span>ym = obj.as_plain_year_month().expect(<span class="string">&quot;must be a YearMonth.&quot;</span>);
+    <span class="kw">let </span><span class="prelude-val">Some</span>(date_like) = extract_from_temporal_type(
+        obj,
+        |d| <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(CalendarDateLike::Date(d.inner.clone()))),
+        |dt| <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(CalendarDateLike::DateTime(dt.inner.clone()))),
+        |ym| <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(CalendarDateLike::YearMonth(ym.inner.clone()))),
+        |<span class="kw">_</span>| <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
+        |<span class="kw">_</span>| <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
+    )<span class="question-mark">?
+    </span><span class="kw">else </span>{
+        <span class="kw">let </span>date = temporal::plain_date::to_temporal_date(date_like, <span class="prelude-val">None</span>, context)<span class="question-mark">?</span>;
 
-            <span class="prelude-val">Ok</span>(CalendarDateLike::YearMonth(ym.inner.clone()))
-        }
-        <span class="kw">_ </span>=&gt; {
-            <span class="kw">let </span>date = temporal::plain_date::to_temporal_date(date_like, <span class="prelude-val">None</span>, context)<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(CalendarDateLike::Date(date.inner.clone()))
-        }
-    }
+        <span class="kw">return </span><span class="prelude-val">Ok</span>(CalendarDateLike::Date(date.inner.clone()));
+    };
+
+    <span class="prelude-val">Ok</span>(date_like)
 }
 </code></pre></div></section></main></body></html>

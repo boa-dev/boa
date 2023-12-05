@@ -600,6 +600,8 @@
 <a href="#600" id="600">600</a>
 <a href="#601" id="601">601</a>
 <a href="#602" id="602">602</a>
+<a href="#603" id="603">603</a>
+<a href="#604" id="604">604</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s `IteratorRecord` and iterator prototype objects.
 
 </span><span class="kw">use crate</span>::{
@@ -607,7 +609,7 @@
     context::intrinsics::Intrinsics,
     error::JsNativeError,
     js_string,
-    object::{JsObject, ObjectData},
+    object::JsObject,
     realm::Realm,
     symbol::JsSymbol,
     Context, JsResult, JsValue,
@@ -640,6 +642,8 @@
 
 <span class="comment">// Export macro to crate level
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>if_abrupt_close_iterator;
+
+<span class="kw">use </span><span class="kw">super</span>::OrdinaryObject;
 
 <span class="doccomment">/// The built-in iterator prototypes.
 </span><span class="attr">#[derive(Debug, Default, Trace, Finalize)]
@@ -808,7 +812,7 @@
         .intrinsics()
         .templates()
         .iterator_result()
-        .create(ObjectData::ordinary(), <span class="macro">vec!</span>[value, done.into()]);
+        .create(OrdinaryObject, <span class="macro">vec!</span>[value, done.into()]);
 
     <span class="comment">// 5. Return obj.
     </span>obj.into()

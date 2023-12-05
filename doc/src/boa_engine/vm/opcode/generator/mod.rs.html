@@ -370,7 +370,7 @@
         generator::{GeneratorContext, GeneratorState},
     },
     error::JsNativeError,
-    object::{ObjectData, PROTOTYPE},
+    object::PROTOTYPE,
     string::utf16,
     vm::{
         call_frame::GeneratorResumeKind,
@@ -444,28 +444,32 @@
                 Clone::clone,
             );
 
-        <span class="kw">let </span>data = <span class="kw">if </span>r#async {
-            ObjectData::async_generator(AsyncGenerator {
-                state: AsyncGeneratorState::SuspendedStart,
-                context: <span class="prelude-val">Some</span>(GeneratorContext::new(stack, call_frame)),
-                queue: VecDeque::new(),
-            })
-        } <span class="kw">else </span>{
-            ObjectData::generator(<span class="kw">crate</span>::builtins::generator::Generator {
-                state: GeneratorState::SuspendedStart {
-                    context: GeneratorContext::new(stack, call_frame),
+        <span class="kw">let </span>generator = <span class="kw">if </span>r#async {
+            JsObject::from_proto_and_data_with_shared_shape(
+                context.root_shape(),
+                proto,
+                AsyncGenerator {
+                    state: AsyncGeneratorState::SuspendedStart,
+                    context: <span class="prelude-val">Some</span>(GeneratorContext::new(stack, call_frame)),
+                    queue: VecDeque::new(),
                 },
-            })
+            )
+        } <span class="kw">else </span>{
+            JsObject::from_proto_and_data_with_shared_shape(
+                context.root_shape(),
+                proto,
+                <span class="kw">crate</span>::builtins::generator::Generator {
+                    state: GeneratorState::SuspendedStart {
+                        context: GeneratorContext::new(stack, call_frame),
+                    },
+                },
+            )
         };
-
-        <span class="kw">let </span>generator =
-            JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), proto, data);
 
         <span class="kw">if </span>r#async {
             <span class="kw">let </span>gen_clone = generator.clone();
-            <span class="kw">let </span><span class="kw-2">mut </span>generator_mut = generator.borrow_mut();
-            <span class="kw">let </span>gen = generator_mut
-                .as_async_generator_mut()
+            <span class="kw">let </span><span class="kw-2">mut </span>gen = generator
+                .downcast_mut::&lt;AsyncGenerator&gt;()
                 .expect(<span class="string">&quot;must be object here&quot;</span>);
             <span class="kw">let </span>gen_context = gen.context.as_mut().expect(<span class="string">&quot;must exist&quot;</span>);
             <span class="comment">// TODO: try to move this to the context itself.
@@ -502,19 +506,15 @@
             .clone()
             .expect(<span class="string">&quot;There should be a object&quot;</span>);
 
-        <span class="kw">let </span><span class="kw-2">mut </span>generator_object_mut = generator_object.borrow_mut();
-        <span class="kw">let </span>generator = generator_object_mut
-            .as_async_generator_mut()
+        <span class="kw">let </span><span class="kw-2">mut </span>gen = generator_object
+            .downcast_mut::&lt;AsyncGenerator&gt;()
             .expect(<span class="string">&quot;must be async generator&quot;</span>);
 
-        generator.state = AsyncGeneratorState::Completed;
-        generator.context = <span class="prelude-val">None</span>;
+        gen.state = AsyncGeneratorState::Completed;
+        gen.context = <span class="prelude-val">None</span>;
 
-        <span class="kw">let </span>next = generator
-            .queue
-            .pop_front()
-            .expect(<span class="string">&quot;must have item in queue&quot;</span>);
-        drop(generator_object_mut);
+        <span class="kw">let </span>next = gen.queue.pop_front().expect(<span class="string">&quot;must have item in queue&quot;</span>);
+        drop(gen);
 
         <span class="kw">let </span>return_value = context.vm.get_return_value();
         context.vm.set_return_value(JsValue::undefined());

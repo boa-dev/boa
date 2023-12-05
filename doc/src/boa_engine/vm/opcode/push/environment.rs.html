@@ -132,6 +132,7 @@
 <a href="#132" id="132">132</a>
 <a href="#133" id="133">133</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
+    builtins::function::OrdinaryFunction,
     environments::PrivateEnvironment,
     vm::{opcode::Operation, CompletionType},
     Context, JsResult,
@@ -232,11 +233,10 @@
         }
 
         <span class="kw">let </span>ptr: <span class="kw-2">*const </span><span class="kw">_ </span>= class.as_ref();
-        <span class="kw">let </span>environment = Gc::new(PrivateEnvironment::new(ptr <span class="kw">as </span>usize, names));
+        <span class="kw">let </span>environment = Gc::new(PrivateEnvironment::new(ptr.cast::&lt;()&gt;() <span class="kw">as </span>usize, names));
 
         class
-            .borrow_mut()
-            .as_function_mut()
+            .downcast_mut::&lt;OrdinaryFunction&gt;()
             .expect(<span class="string">&quot;class object must be function&quot;</span>)
             .push_private_environment(environment.clone());
         context.vm.environments.push_private(environment);

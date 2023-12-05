@@ -674,7 +674,7 @@
         <span class="kw">if </span>args.get_or_undefined(<span class="number">0</span>).is_object() {
             <span class="comment">// This function is the same as Object.prototype.getOwnPropertyDescriptor, that why
             // it is invoked here.
-            </span>builtins::object::Object::get_own_property_descriptor(
+            </span>builtins::object::OrdinaryObject::get_own_property_descriptor(
                 <span class="kw-2">&amp;</span>JsValue::undefined(),
                 args,
                 context,

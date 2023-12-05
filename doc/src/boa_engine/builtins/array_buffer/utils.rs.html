@@ -455,7 +455,6 @@
 <a href="#455" id="455">455</a>
 <a href="#456" id="456">456</a>
 <a href="#457" id="457">457</a>
-<a href="#458" id="458">458</a>
 </pre></div><pre class="rust"><code><span class="attr">#![allow(unstable_name_collisions)]
 
 </span><span class="kw">use </span>std::{ptr, slice::SliceIndex, sync::atomic};
@@ -598,11 +597,10 @@
 
         // 4. Let targetBlock be targetBuffer.[[ArrayBufferData]].
         </span>{
-            <span class="kw">let </span><span class="kw-2">mut </span>target_buffer_mut = target_buffer.borrow_mut();
-            <span class="kw">let </span>target_array_buffer = target_buffer_mut
-                .as_array_buffer_mut()
+            <span class="kw">let </span><span class="kw-2">mut </span>target_buffer = target_buffer
+                .downcast_mut::&lt;ArrayBuffer&gt;()
                 .expect(<span class="string">&quot;This must be an ArrayBuffer&quot;</span>);
-            <span class="kw">let </span>target_block = target_array_buffer
+            <span class="kw">let </span>target_block = target_buffer
                 .data
                 .as_deref_mut()
                 .expect(<span class="string">&quot;ArrayBuffer cannot be detached here&quot;</span>);

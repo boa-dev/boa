@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["create_temporal_calendar","get_temporal_calendar_slot_value_with_default","object_implements_calendar_protocol","to_calendar_date_like","to_temporal_calendar_slot_value"],"mod":["object"],"struct":["Calendar"]};
+window.SIDEBAR_ITEMS = {"fn":["create_temporal_calendar","extract_from_temporal_type","get_temporal_calendar_slot_value_with_default","object_implements_calendar_protocol","to_calendar_date_like","to_temporal_calendar_slot_value"],"mod":["object"],"struct":["Calendar"]};

@@ -184,22 +184,24 @@
 <a href="#184" id="184">184</a>
 <a href="#185" id="185">185</a>
 <a href="#186" id="186">186</a>
+<a href="#187" id="187">187</a>
+<a href="#188" id="188">188</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Implements a set type that preserves insertion order.
 
-</span><span class="kw">use crate</span>::{builtins::map::ordered_map::MapKey, object::JsObject, JsValue};
+</span><span class="kw">use crate</span>::{builtins::map::ordered_map::MapKey, object::JsObject, JsData, JsValue};
 <span class="kw">use </span>boa_gc::{custom_trace, Finalize, Trace};
 <span class="kw">use </span>indexmap::IndexSet;
-<span class="kw">use </span>std::{collections::hash_map::RandomState, fmt::Debug, hash::BuildHasher};
+<span class="kw">use </span>std::fmt::Debug;
 
 <span class="doccomment">/// A type wrapping `indexmap::IndexSet`
-</span><span class="attr">#[derive(Clone, Finalize)]
-</span><span class="kw">pub struct </span>OrderedSet&lt;S = RandomState&gt; {
-    inner: IndexSet&lt;MapKey, S&gt;,
+</span><span class="attr">#[derive(Clone, Finalize, JsData)]
+</span><span class="kw">pub struct </span>OrderedSet {
+    inner: IndexSet&lt;MapKey&gt;,
     lock: u32,
     empty_count: usize,
 }
 
-<span class="kw">unsafe impl</span>&lt;S: BuildHasher&gt; Trace <span class="kw">for </span>OrderedSet&lt;S&gt; {
+<span class="kw">unsafe impl </span>Trace <span class="kw">for </span>OrderedSet {
     <span class="macro">custom_trace!</span>(this, {
         <span class="kw">for </span>v <span class="kw">in </span><span class="kw-2">&amp;</span>this.inner {
             <span class="kw">if let </span>MapKey::Key(v) = v {
@@ -366,7 +368,9 @@
         </span><span class="kw">let </span><span class="prelude-val">Ok</span>(<span class="kw-2">mut </span>set) = <span class="self">self</span>.<span class="number">0</span>.try_borrow_mut() <span class="kw">else </span>{
             <span class="kw">return</span>;
         };
-        <span class="kw">let </span>set = set.as_set_mut().expect(<span class="string">&quot;SetLock does not point to a set&quot;</span>);
+        <span class="kw">let </span>set = set
+            .downcast_mut::&lt;OrderedSet&gt;()
+            .expect(<span class="string">&quot;SetLock does not point to a set&quot;</span>);
         set.unlock();
     }
 }

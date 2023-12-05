@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["BuiltInBuilder","BuiltInCallable","BuiltInConstructorWithPrototype","Callable","Constructor","ConstructorNoProto","OrdinaryFunction","OrdinaryObject"],"trait":["ApplyToObject","IsConstructor"]};

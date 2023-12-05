@@ -124,7 +124,7 @@
     builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
+    object::{internal_methods::get_prototype_from_constructor, JsObject},
     property::Attribute,
     realm::Realm,
     string::{common::StaticJsStrings, utf16},
@@ -132,7 +132,7 @@
 };
 <span class="kw">use </span>boa_profiler::Profiler;
 
-<span class="kw">use super</span>::{Error, ErrorKind};
+<span class="kw">use super</span>::{Error, ErrorObject};
 
 <span class="doccomment">/// JavaScript `SyntaxError` implementation.
 </span><span class="attr">#[derive(Debug, Clone, Copy)]
@@ -196,7 +196,7 @@
         <span class="kw">let </span>o = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            ObjectData::error(ErrorKind::Syntax),
+            ErrorObject::Syntax,
         );
 
         <span class="comment">// 3. If message is not undefined, then

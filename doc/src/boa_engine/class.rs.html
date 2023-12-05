@@ -376,15 +376,6 @@
 <a href="#376" id="376">376</a>
 <a href="#377" id="377">377</a>
 <a href="#378" id="378">378</a>
-<a href="#379" id="379">379</a>
-<a href="#380" id="380">380</a>
-<a href="#381" id="381">381</a>
-<a href="#382" id="382">382</a>
-<a href="#383" id="383">383</a>
-<a href="#384" id="384">384</a>
-<a href="#385" id="385">385</a>
-<a href="#386" id="386">386</a>
-<a href="#387" id="387">387</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Traits and structs for implementing native classes.
 //!
 //! Native classes are implemented through the [`Class`][class-trait] trait.
@@ -398,12 +389,12 @@
 //! #    class::{Class, ClassBuilder},
 //! #    Context, JsResult, JsValue,
 //! #    JsArgs, Source, JsObject, js_string,
-//! #    JsNativeError,
+//! #    JsNativeError, JsData,
 //! # };
 //! # use boa_gc::{Finalize, Trace};
 //! #
 //! // Can also be a struct containing `Trace` types.
-//! #[derive(Debug, Trace, Finalize)]
+//! #[derive(Debug, Trace, Finalize, JsData)]
 //! enum Animal {
 //!     Cat,
 //!     Dog,
@@ -494,10 +485,7 @@
     context::intrinsics::StandardConstructor,
     error::JsNativeError,
     native_function::NativeFunction,
-    object::{
-        ConstructorBuilder, FunctionBinding, JsFunction, JsObject, NativeObject, ObjectData,
-        PROTOTYPE,
-    },
+    object::{ConstructorBuilder, FunctionBinding, JsFunction, JsObject, NativeObject, PROTOTYPE},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     Context, JsResult, JsValue,
 };
@@ -586,11 +574,8 @@
 
         <span class="kw">let </span>data = <span class="self">Self</span>::data_constructor(new_target, args, context)<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>object = JsObject::from_proto_and_data_with_shared_shape(
-            context.root_shape(),
-            prototype,
-            ObjectData::native_object(data),
-        );
+        <span class="kw">let </span>object =
+            JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), prototype, data);
 
         <span class="self">Self</span>::object_constructor(<span class="kw-2">&amp;</span>object, args, context)<span class="question-mark">?</span>;
 
@@ -621,11 +606,8 @@
             })<span class="question-mark">?
             </span>.prototype();
 
-        <span class="kw">let </span>object = JsObject::from_proto_and_data_with_shared_shape(
-            context.root_shape(),
-            prototype,
-            ObjectData::native_object(data),
-        );
+        <span class="kw">let </span>object =
+            JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), prototype, data);
 
         <span class="self">Self</span>::object_constructor(<span class="kw-2">&amp;</span>object, <span class="kw-2">&amp;</span>[], context)<span class="question-mark">?</span>;
 

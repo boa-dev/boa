@@ -492,12 +492,9 @@
 <a href="#492" id="492">492</a>
 <a href="#493" id="493">493</a>
 <a href="#494" id="494">494</a>
-<a href="#495" id="495">495</a>
-<a href="#496" id="496">496</a>
-<a href="#497" id="497">497</a>
 </pre></div><pre class="rust"><code><span class="kw">mod </span>options;
 
-<span class="kw">use </span>boa_gc::{empty_trace, Finalize, Trace};
+<span class="kw">use </span>boa_gc::{Finalize, Trace};
 <span class="kw">use </span>boa_macros::utf16;
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>fixed_decimal::FixedDecimal;
@@ -515,11 +512,11 @@
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, ObjectData, ObjectInitializer},
+    object::{internal_methods::get_prototype_from_constructor, ObjectInitializer},
     property::Attribute,
     realm::Realm,
     string::common::StaticJsStrings,
-    Context, JsArgs, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
+    Context, JsArgs, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 
 <span class="kw">use super</span>::{
@@ -532,17 +529,14 @@
     Service,
 };
 
-<span class="attr">#[derive(Debug, Finalize)]
+<span class="attr">#[derive(Debug, Trace, Finalize, JsData)]
+</span><span class="comment">// SAFETY: `PluralRules` doesn&#39;t contain any traceable data.
+</span><span class="attr">#[boa_gc(unsafe_empty_trace)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>PluralRules {
     locale: Locale,
     native: PluralRulesWithRanges&lt;NativePluralRules&gt;,
     rule_type: PluralRuleType,
     format_options: DigitFormatOptions,
-}
-
-<span class="comment">// SAFETY: `PluralRules` doesn&#39;t contain any traceable data.
-</span><span class="kw">unsafe impl </span>Trace <span class="kw">for </span>PluralRules {
-    <span class="macro">empty_trace!</span>();
 }
 
 <span class="kw">impl </span>Service <span class="kw">for </span>PluralRules {
@@ -667,12 +661,12 @@
         </span><span class="prelude-val">Ok</span>(JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             proto,
-            ObjectData::native_object(<span class="self">Self </span>{
+            <span class="self">Self </span>{
                 locale,
                 native,
                 rule_type,
                 format_options,
-            }),
+            },
         )
         .into())
     }

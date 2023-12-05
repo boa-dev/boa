@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["Arguments"],"struct":["ParameterMap"]};
+window.SIDEBAR_ITEMS = {"fn":["arguments_exotic_define_own_property","arguments_exotic_delete","arguments_exotic_get","arguments_exotic_get_own_property","arguments_exotic_set"],"struct":["MappedArguments","UnmappedArguments"]};

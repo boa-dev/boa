@@ -1128,6 +1128,7 @@
 <a href="#1128" id="1128">1128</a>
 <a href="#1129" id="1129">1129</a>
 <a href="#1130" id="1130">1130</a>
+<a href="#1131" id="1131">1131</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s ECMAScript Value implementation.
 //!
 //! Javascript values, utility methods and conversion between Javascript values and Rust values.
@@ -1146,11 +1147,11 @@
 <span class="kw">use crate</span>::{
     builtins::{
         number::{f64_to_int32, f64_to_uint32},
-        Number,
+        Number, Promise,
     },
     error::JsNativeError,
     js_string,
-    object::{JsObject, ObjectData},
+    object::JsObject,
     property::{PropertyDescriptor, PropertyKey},
     symbol::JsSymbol,
     Context, JsBigInt, JsResult, JsString,
@@ -1316,14 +1317,14 @@
     </span><span class="attr">#[inline]
     #[must_use]
     </span><span class="kw">pub fn </span>is_promise(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::Object(obj) <span class="kw">if </span>obj.is_promise())
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::Object(obj) <span class="kw">if </span>obj.is::&lt;Promise&gt;())
     }
 
     <span class="doccomment">/// Returns the promise if the value is a promise, otherwise `None`.
     </span><span class="attr">#[inline]
     #[must_use]
     </span><span class="kw">pub fn </span>as_promise(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsObject&gt; {
-        <span class="self">self</span>.as_object().filter(|obj| obj.is_promise())
+        <span class="self">self</span>.as_object().filter(|obj| obj.is::&lt;Promise&gt;())
     }
 
     <span class="doccomment">/// Returns true if the value is a symbol.
@@ -1631,31 +1632,32 @@
                 .intrinsics()
                 .templates()
                 .boolean()
-                .create(ObjectData::boolean(<span class="kw-2">*</span>boolean), Vec::default())),
+                .create(<span class="kw-2">*</span>boolean, Vec::default())),
             <span class="self">Self</span>::Integer(integer) =&gt; <span class="prelude-val">Ok</span>(context
                 .intrinsics()
                 .templates()
                 .number()
-                .create(ObjectData::number(f64::from(<span class="kw-2">*</span>integer)), Vec::default())),
+                .create(f64::from(<span class="kw-2">*</span>integer), Vec::default())),
             <span class="self">Self</span>::Rational(rational) =&gt; <span class="prelude-val">Ok</span>(context
                 .intrinsics()
                 .templates()
                 .number()
-                .create(ObjectData::number(<span class="kw-2">*</span>rational), Vec::default())),
-            <span class="self">Self</span>::String(<span class="kw-2">ref </span>string) =&gt; <span class="prelude-val">Ok</span>(context.intrinsics().templates().string().create(
-                ObjectData::string(string.clone()),
-                <span class="macro">vec!</span>[string.len().into()],
-            )),
+                .create(<span class="kw-2">*</span>rational, Vec::default())),
+            <span class="self">Self</span>::String(<span class="kw-2">ref </span>string) =&gt; <span class="prelude-val">Ok</span>(context
+                .intrinsics()
+                .templates()
+                .string()
+                .create(string.clone(), <span class="macro">vec!</span>[string.len().into()])),
             <span class="self">Self</span>::Symbol(<span class="kw-2">ref </span>symbol) =&gt; <span class="prelude-val">Ok</span>(context
                 .intrinsics()
                 .templates()
                 .symbol()
-                .create(ObjectData::symbol(symbol.clone()), Vec::default())),
+                .create(symbol.clone(), Vec::default())),
             <span class="self">Self</span>::BigInt(<span class="kw-2">ref </span>bigint) =&gt; <span class="prelude-val">Ok</span>(context
                 .intrinsics()
                 .templates()
                 .bigint()
-                .create(ObjectData::big_int(bigint.clone()), Vec::default())),
+                .create(bigint.clone(), Vec::default())),
             <span class="self">Self</span>::Object(jsobject) =&gt; <span class="prelude-val">Ok</span>(jsobject.clone()),
         }
     }

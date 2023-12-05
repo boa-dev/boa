@@ -223,12 +223,8 @@
 <a href="#223" id="223">223</a>
 <a href="#224" id="224">224</a>
 <a href="#225" id="225">225</a>
-<a href="#226" id="226">226</a>
-<a href="#227" id="227">227</a>
-<a href="#228" id="228">228</a>
-<a href="#229" id="229">229</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
-    builtins::function::set_function_name,
+    builtins::function::{set_function_name, OrdinaryFunction},
     object::internal_methods::InternalMethodContext,
     property::PropertyDescriptor,
     vm::{opcode::Operation, CompletionType},
@@ -258,11 +254,10 @@
                 .as_object()
                 .expect(<span class="string">&quot;method must be function object&quot;</span>);
             set_function_name(function_object, <span class="kw-2">&amp;</span>key, <span class="prelude-val">None</span>, context);
-            <span class="kw">let </span><span class="kw-2">mut </span>function_object = function_object.borrow_mut();
-            <span class="kw">let </span>function_mut = function_object
-                .as_function_mut()
-                .expect(<span class="string">&quot;method must be function object&quot;</span>);
-            function_mut.set_home_object(class.clone());
+            function_object
+                .downcast_mut::&lt;OrdinaryFunction&gt;()
+                .expect(<span class="string">&quot;method must be function object&quot;</span>)
+                .set_home_object(class.clone());
         }
 
         class.__define_own_property__(
@@ -323,11 +318,10 @@
                 .as_object()
                 .expect(<span class="string">&quot;method must be function object&quot;</span>);
             set_function_name(function_object, <span class="kw-2">&amp;</span>key, <span class="prelude-val">None</span>, context);
-            <span class="kw">let </span><span class="kw-2">mut </span>function_object = function_object.borrow_mut();
-            <span class="kw">let </span>function_mut = function_object
-                .as_function_mut()
-                .expect(<span class="string">&quot;method must be function object&quot;</span>);
-            function_mut.set_home_object(class_proto.clone());
+            function_object
+                .downcast_mut::&lt;OrdinaryFunction&gt;()
+                .expect(<span class="string">&quot;method must be function object&quot;</span>)
+                .set_home_object(class_proto.clone());
         }
 
         class_proto.__define_own_property__(
@@ -390,11 +384,10 @@
                 .as_object()
                 .expect(<span class="string">&quot;method must be function object&quot;</span>);
             set_function_name(function_object, <span class="kw-2">&amp;</span>key, <span class="prelude-val">None</span>, context);
-            <span class="kw">let </span><span class="kw-2">mut </span>function_object_mut = function_object.borrow_mut();
-            <span class="kw">let </span>function_mut = function_object_mut
-                .as_function_mut()
-                .expect(<span class="string">&quot;method must be function object&quot;</span>);
-            function_mut.set_home_object(class.clone());
+            function_object
+                .downcast_mut::&lt;OrdinaryFunction&gt;()
+                .expect(<span class="string">&quot;method must be function object&quot;</span>)
+                .set_home_object(class.clone());
         }
 
         class.define_property_or_throw(
@@ -436,11 +429,10 @@
                 .as_object()
                 .expect(<span class="string">&quot;method must be function object&quot;</span>);
             set_function_name(function_object, <span class="kw-2">&amp;</span>key, <span class="prelude-val">None</span>, context);
-            <span class="kw">let </span><span class="kw-2">mut </span>function_object = function_object.borrow_mut();
-            <span class="kw">let </span>function_mut = function_object
-                .as_function_mut()
-                .expect(<span class="string">&quot;method must be function object&quot;</span>);
-            function_mut.set_home_object(class_proto.clone());
+            function_object
+                .downcast_mut::&lt;OrdinaryFunction&gt;()
+                .expect(<span class="string">&quot;method must be function object&quot;</span>)
+                .set_home_object(class_proto.clone());
         }
 
         class_proto.__define_own_property__(

@@ -1904,22 +1904,6 @@
 <a href="#1904" id="1904">1904</a>
 <a href="#1905" id="1905">1905</a>
 <a href="#1906" id="1906">1906</a>
-<a href="#1907" id="1907">1907</a>
-<a href="#1908" id="1908">1908</a>
-<a href="#1909" id="1909">1909</a>
-<a href="#1910" id="1910">1910</a>
-<a href="#1911" id="1911">1911</a>
-<a href="#1912" id="1912">1912</a>
-<a href="#1913" id="1913">1913</a>
-<a href="#1914" id="1914">1914</a>
-<a href="#1915" id="1915">1915</a>
-<a href="#1916" id="1916">1916</a>
-<a href="#1917" id="1917">1917</a>
-<a href="#1918" id="1918">1918</a>
-<a href="#1919" id="1919">1919</a>
-<a href="#1920" id="1920">1920</a>
-<a href="#1921" id="1921">1921</a>
-<a href="#1922" id="1922">1922</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `RegExp` object.
 //!
 //! The `RegExp` object is used for matching text with a pattern.
@@ -1936,16 +1920,15 @@
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
-    object::{
-        internal_methods::get_prototype_from_constructor, JsObject, Object, ObjectData, CONSTRUCTOR,
-    },
+    object::{internal_methods::get_prototype_from_constructor, JsObject, CONSTRUCTOR},
     property::Attribute,
     realm::Realm,
     string::{common::StaticJsStrings, utf16, CodePoint},
     symbol::JsSymbol,
     value::JsValue,
-    Context, JsArgs, JsResult, JsString,
+    Context, JsArgs, JsData, JsResult, JsString,
 };
+<span class="kw">use </span>boa_gc::{Finalize, Trace};
 <span class="kw">use </span>boa_parser::lexer::regex::RegExpFlags;
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>regress::{Flags, Range, Regex};
@@ -1959,7 +1942,9 @@
 </span><span class="kw">mod </span>tests;
 
 <span class="doccomment">/// The internal representation of a `RegExp` object.
-</span><span class="attr">#[derive(Debug, Clone)]
+</span><span class="attr">#[derive(Debug, Clone, Trace, Finalize, JsData)]
+</span><span class="comment">// Safety: `RegExp` does not contain any objects which needs to be traced, so this is safe.
+</span><span class="attr">#[boa_gc(unsafe_empty_trace)]
 </span><span class="kw">pub struct </span>RegExp {
     <span class="doccomment">/// Regex matcher.
     </span>matcher: Regex,
@@ -2134,9 +2119,7 @@
         <span class="comment">// 4. If pattern is an Object and pattern has a [[RegExpMatcher]] internal slot, then
         </span><span class="kw">let </span>(p, f) = <span class="kw">if let </span><span class="prelude-val">Some</span>(pattern) = pattern
             .as_object()
-            .map(JsObject::borrow)
-            .as_deref()
-            .and_then(Object::as_regexp)
+            .and_then(JsObject::downcast_ref::&lt;RegExp&gt;)
         {
             <span class="comment">// a. Let P be pattern.[[OriginalSource]].
             </span><span class="kw">let </span>p = pattern.original_source.clone().into();
@@ -2208,7 +2191,7 @@
         }
 
         <span class="comment">// 4. If argument has a [[RegExpMatcher]] internal slot, return true.
-        </span><span class="kw">if </span>argument.is_regexp() {
+        </span><span class="kw">if </span>argument.is::&lt;RegExp&gt;() {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(argument));
         }
 
@@ -2290,7 +2273,6 @@
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// Has the steps  of `RegExpInitialize`.
         </span><span class="kw">let </span>regexp = <span class="self">Self</span>::compile_native_regexp(pattern, flags, context)<span class="question-mark">?</span>;
-        <span class="kw">let </span>data = ObjectData::regexp(regexp);
 
         <span class="comment">// 22. Perform ? Set(obj, &quot;lastIndex&quot;, +0𝔽, true).
         </span><span class="kw">let </span>obj = <span class="kw">if let </span><span class="prelude-val">Some</span>(prototype) = prototype {
@@ -2300,13 +2282,13 @@
                 .regexp_without_proto()
                 .clone();
             template.set_prototype(prototype);
-            template.create(data, <span class="macro">vec!</span>[<span class="number">0</span>.into()])
+            template.create(regexp, <span class="macro">vec!</span>[<span class="number">0</span>.into()])
         } <span class="kw">else </span>{
             context
                 .intrinsics()
                 .templates()
                 .regexp()
-                .create(data, <span class="macro">vec!</span>[<span class="number">0</span>.into()])
+                .create(regexp, <span class="macro">vec!</span>[<span class="number">0</span>.into()])
         };
 
         <span class="comment">// 23. Return obj.
@@ -2343,7 +2325,7 @@
 
     <span class="kw">fn </span>regexp_has_flag(this: <span class="kw-2">&amp;</span>JsValue, flag: u8, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(object) = this.as_object() {
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(regexp) = object.borrow().as_regexp() {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(regexp) = object.downcast_ref::&lt;RegExp&gt;() {
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(JsValue::new(<span class="kw">match </span>flag {
                     <span class="string">b&#39;d&#39; </span>=&gt; regexp.flags.contains(RegExpFlags::HAS_INDICES),
                     <span class="string">b&#39;g&#39; </span>=&gt; regexp.flags.contains(RegExpFlags::GLOBAL),
@@ -2603,9 +2585,7 @@
                 .into());
         };
 
-        <span class="kw">let </span>object = object.borrow();
-
-        <span class="kw">match </span>object.as_regexp() {
+        <span class="kw">match </span>object.downcast_ref::&lt;RegExp&gt;() {
             <span class="comment">// 3. If R does not have an [[OriginalSource]] internal slot, then
             </span><span class="prelude-val">None </span>=&gt; {
                 <span class="comment">// a. If SameValue(R, %RegExp.prototype%) is true, return &quot;(?:)&quot;.
@@ -2723,7 +2703,7 @@
         // 2. Perform ? RequireInternalSlot(R, [[RegExpMatcher]]).
         </span><span class="kw">let </span>obj = this
             .as_object()
-            .filter(|obj| obj.is_regexp())
+            .filter(|obj| obj.is::&lt;RegExp&gt;())
             .ok_or_else(|| {
                 JsNativeError::typ().with_message(<span class="string">&quot;RegExp.prototype.exec called with invalid value&quot;</span>)
             })<span class="question-mark">?</span>;
@@ -2770,7 +2750,7 @@
         }
 
         <span class="comment">// 5. Perform ? RequireInternalSlot(R, [[RegExpMatcher]]).
-        </span><span class="kw">if </span>!this.is_regexp() {
+        </span><span class="kw">if </span>!this.is::&lt;RegExp&gt;() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
                 .with_message(<span class="string">&quot;RegExpExec called with invalid value&quot;</span>)
                 .into());
@@ -2791,16 +2771,13 @@
         input: <span class="kw-2">&amp;</span>JsString,
         context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;JsObject&gt;&gt; {
-        <span class="kw">let </span>rx = {
-            <span class="kw">let </span>obj = this.borrow();
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(rx) = obj.as_regexp() {
-                rx.clone()
-            } <span class="kw">else </span>{
-                <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                    .with_message(<span class="string">&quot;RegExpBuiltinExec called with invalid value&quot;</span>)
-                    .into());
-            }
-        };
+        <span class="kw">let </span>rx = this
+            .downcast_ref::&lt;RegExp&gt;()
+            .as_deref()
+            .cloned()
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message(<span class="string">&quot;RegExpBuiltinExec called with invalid value&quot;</span>)
+            })<span class="question-mark">?</span>;
 
         <span class="comment">// 1. Let length be the length of S.
         </span><span class="kw">let </span>length = input.len() <span class="kw">as </span>u64;
@@ -3198,23 +3175,16 @@
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/toString
     </span><span class="attr">#[allow(clippy::wrong_self_convention)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_string(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
-        <span class="kw">let </span>(body, flags) = <span class="kw">if let </span><span class="prelude-val">Some</span>(object) = this.as_object() {
-            <span class="kw">let </span>object = object.borrow();
-            <span class="kw">let </span>regex = object.as_regexp().ok_or_else(|| {
+        <span class="kw">let </span>(body, flags) = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::&lt;RegExp&gt;)
+            .map(|rx| (rx.original_source.clone(), rx.original_flags.clone()))
+            .ok_or_else(|| {
                 JsNativeError::typ().with_message(<span class="macro">format!</span>(
                     <span class="string">&quot;Method RegExp.prototype.toString called on incompatible receiver {}&quot;</span>,
                     this.display()
                 ))
             })<span class="question-mark">?</span>;
-            (regex.original_source.clone(), regex.original_flags.clone())
-        } <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="macro">format!</span>(
-                    <span class="string">&quot;Method RegExp.prototype.toString called on incompatible receiver {}&quot;</span>,
-                    this.display()
-                ))
-                .into());
-        };
         <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="macro">utf16!</span>(<span class="string">&quot;/&quot;</span>), <span class="kw-2">&amp;</span>body, <span class="macro">utf16!</span>(<span class="string">&quot;/&quot;</span>), <span class="kw-2">&amp;</span>flags).into())
     }
 
@@ -3764,7 +3734,7 @@
 
         </span><span class="kw">let </span>this = this
             .as_object()
-            .filter(|o| o.borrow().is_regexp())
+            .filter(|o| o.is::&lt;RegExp&gt;())
             .cloned()
             .ok_or_else(|| {
                 JsNativeError::typ()
@@ -3774,8 +3744,7 @@
         <span class="kw">let </span>flags = args.get_or_undefined(<span class="number">1</span>);
         <span class="comment">// 3. If pattern is an Object and pattern has a [[RegExpMatcher]] internal slot, then
         </span><span class="kw">let </span>(pattern, flags) = <span class="kw">if let </span><span class="prelude-val">Some</span>((p, f)) = pattern.as_object().and_then(|o| {
-            <span class="kw">let </span>o = o.borrow();
-            o.as_regexp()
+            o.downcast_ref::&lt;RegExp&gt;()
                 .map(|rx| (rx.original_source.clone(), rx.original_flags.clone()))
         }) {
             <span class="comment">//     a. If flags is not undefined, throw a TypeError exception.
@@ -3801,9 +3770,8 @@
 
         <span class="comment">// 5. Return ? RegExpInitialize(O, P, F).
         </span>{
-            <span class="kw">let </span><span class="kw-2">mut </span>obj = this.borrow_mut();
-
-            <span class="kw-2">*</span>obj.as_regexp_mut()
+            <span class="kw-2">*</span>this
+                .downcast_mut::&lt;RegExp&gt;()
                 .expect(<span class="string">&quot;already checked that the object was a RegExp&quot;</span>) = regexp;
         }
 

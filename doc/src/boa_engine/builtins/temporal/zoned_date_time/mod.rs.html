@@ -132,6 +132,7 @@
 <a href="#132" id="132">132</a>
 <a href="#133" id="133">133</a>
 <a href="#134" id="134">134</a>
+<a href="#135" id="135">135</a>
 </pre></div><pre class="rust"><code><span class="attr">#![allow(dead_code, unused_variables)]
 </span><span class="kw">use crate</span>::{
     builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
@@ -139,13 +140,14 @@
     property::Attribute,
     realm::Realm,
     string::common::StaticJsStrings,
-    Context, JsBigInt, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
+    Context, JsBigInt, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
+<span class="kw">use </span>boa_gc::{Finalize, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>boa_temporal::duration::Duration <span class="kw">as </span>TemporalDuration;
 
 <span class="doccomment">/// The `Temporal.ZonedDateTime` object.
-</span><span class="attr">#[derive(Debug, Clone)]
+</span><span class="attr">#[derive(Debug, Clone, Trace, Finalize, JsData)]
 </span><span class="kw">pub struct </span>ZonedDateTime {
     nanoseconds: JsBigInt,
     time_zone: JsObject,

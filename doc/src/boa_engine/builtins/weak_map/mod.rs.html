@@ -265,16 +265,6 @@
 <a href="#265" id="265">265</a>
 <a href="#266" id="266">266</a>
 <a href="#267" id="267">267</a>
-<a href="#268" id="268">268</a>
-<a href="#269" id="269">269</a>
-<a href="#270" id="270">270</a>
-<a href="#271" id="271">271</a>
-<a href="#272" id="272">272</a>
-<a href="#273" id="273">273</a>
-<a href="#274" id="274">274</a>
-<a href="#275" id="275">275</a>
-<a href="#276" id="276">276</a>
-<a href="#277" id="277">277</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s `WeakMap` builtin object.
 //!
 //! More information:
@@ -291,7 +281,7 @@
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
+    object::{internal_methods::get_prototype_from_constructor, ErasedVTableObject, JsObject},
     property::Attribute,
     realm::Realm,
     string::{common::StaticJsStrings, utf16},
@@ -300,6 +290,8 @@
 };
 <span class="kw">use </span>boa_gc::{Finalize, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
+
+<span class="kw">type </span>NativeWeakMap = boa_gc::WeakMap&lt;ErasedVTableObject, JsValue&gt;;
 
 <span class="attr">#[derive(Debug, Trace, Finalize)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>WeakMap;
@@ -365,7 +357,7 @@
         <span class="kw">let </span>map = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            ObjectData::weak_map(boa_gc::WeakMap::new()),
+            NativeWeakMap::new(),
         );
 
         <span class="comment">// 4. If iterable is either undefined or null, return map.
@@ -405,15 +397,12 @@
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[WeakMapData]]).
-        </span><span class="kw">let </span><span class="prelude-val">Some</span>(obj) = this.as_object() <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;WeakMap.delete: called with non-object value&quot;</span>)
-                .into());
-        };
-        <span class="kw">let </span><span class="kw-2">mut </span>obj_borrow = obj.borrow_mut();
-        <span class="kw">let </span>m = obj_borrow.as_weak_map_mut().ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;WeakMap.delete: called with non-object value&quot;</span>)
-        })<span class="question-mark">?</span>;
+        </span><span class="kw">let </span><span class="kw-2">mut </span>map = this
+            .as_object()
+            .and_then(JsObject::downcast_mut::&lt;NativeWeakMap&gt;)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message(<span class="string">&quot;WeakMap.delete: called with non-object value&quot;</span>)
+            })<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Let entries be M.[[WeakMapData]].
         // 4. If key is not an Object, return false.
@@ -427,7 +416,7 @@
         // ii. Set p.[[Value]] to empty.
         // iii. Return true.
         // 6. Return false.
-        </span><span class="prelude-val">Ok</span>(m.remove(key.inner()).is_some().into())
+        </span><span class="prelude-val">Ok</span>(map.remove(key.inner()).is_some().into())
     }
 
     <span class="doccomment">/// `WeakMap.prototype.get ( key )`
@@ -445,15 +434,12 @@
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[WeakMapData]]).
-        </span><span class="kw">let </span><span class="prelude-val">Some</span>(obj) = this.as_object() <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;WeakMap.get: called with non-object value&quot;</span>)
-                .into());
-        };
-        <span class="kw">let </span><span class="kw-2">mut </span>obj_borrow = obj.borrow_mut();
-        <span class="kw">let </span>m = obj_borrow.as_weak_map_mut().ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;WeakMap.get: called with non-object value&quot;</span>)
-        })<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>map = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::&lt;NativeWeakMap&gt;)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message(<span class="string">&quot;WeakMap.get: called with non-object value&quot;</span>)
+            })<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Let entries be M.[[WeakMapData]].
         // 4. If key is not an Object, return undefined.
@@ -464,7 +450,7 @@
         <span class="comment">// 5. For each Record { [[Key]], [[Value]] } p of entries, do
         // a. If p.[[Key]] is not empty and SameValue(p.[[Key]], key) is true, return p.[[Value]].
         // 6. Return undefined.
-        </span><span class="prelude-val">Ok</span>(m.get(key.inner()).unwrap_or_default())
+        </span><span class="prelude-val">Ok</span>(map.get(key.inner()).unwrap_or_default())
     }
 
     <span class="doccomment">/// `WeakMap.prototype.has ( key )`
@@ -482,15 +468,12 @@
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[WeakMapData]]).
-        </span><span class="kw">let </span><span class="prelude-val">Some</span>(obj) = this.as_object() <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;WeakMap.has: called with non-object value&quot;</span>)
-                .into());
-        };
-        <span class="kw">let </span><span class="kw-2">mut </span>obj_borrow = obj.borrow_mut();
-        <span class="kw">let </span>m = obj_borrow.as_weak_map_mut().ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;WeakMap.has: called with non-object value&quot;</span>)
-        })<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>map = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::&lt;NativeWeakMap&gt;)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message(<span class="string">&quot;WeakMap.has: called with non-object value&quot;</span>)
+            })<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Let entries be M.[[WeakMapData]].
         // 4. If key is not an Object, return false.
@@ -501,7 +484,7 @@
         <span class="comment">// 5. For each Record { [[Key]], [[Value]] } p of entries, do
         // a. If p.[[Key]] is not empty and SameValue(p.[[Key]], key) is true, return true.
         // 6. Return false.
-        </span><span class="prelude-val">Ok</span>(m.contains_key(key.inner()).into())
+        </span><span class="prelude-val">Ok</span>(map.contains_key(key.inner()).into())
     }
 
     <span class="doccomment">/// `WeakMap.prototype.set ( key, value )`
@@ -519,15 +502,12 @@
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[WeakMapData]]).
-        </span><span class="kw">let </span><span class="prelude-val">Some</span>(obj) = this.as_object() <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;WeakMap.set: called with non-object value&quot;</span>)
-                .into());
-        };
-        <span class="kw">let </span><span class="kw-2">mut </span>obj_borrow = obj.borrow_mut();
-        <span class="kw">let </span>m = obj_borrow.as_weak_map_mut().ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;WeakMap.set: called with non-object value&quot;</span>)
-        })<span class="question-mark">?</span>;
+        </span><span class="kw">let </span><span class="kw-2">mut </span>map = this
+            .as_object()
+            .and_then(JsObject::downcast_mut::&lt;NativeWeakMap&gt;)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message(<span class="string">&quot;WeakMap.set: called with non-object value&quot;</span>)
+            })<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Let entries be M.[[WeakMapData]].
         // 4. If key is not an Object, throw a TypeError exception.
@@ -546,7 +526,7 @@
         // ii. Return M.
         // 6. Let p be the Record { [[Key]]: key, [[Value]]: value }.
         // 7. Append p to entries.
-        </span>m.insert(key.inner(), args.get_or_undefined(<span class="number">1</span>).clone());
+        </span>map.insert(key.inner(), args.get_or_undefined(<span class="number">1</span>).clone());
 
         <span class="comment">// 8. Return M.
         </span><span class="prelude-val">Ok</span>(this.clone())

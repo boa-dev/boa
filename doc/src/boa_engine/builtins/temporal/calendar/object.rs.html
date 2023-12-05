@@ -881,6 +881,9 @@
 <a href="#881" id="881">881</a>
 <a href="#882" id="882">882</a>
 <a href="#883" id="883">883</a>
+<a href="#884" id="884">884</a>
+<a href="#885" id="885">885</a>
+<a href="#886" id="886">886</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of a user-defined Anonymous Calendar.
 
 </span><span class="kw">use crate</span>::{
@@ -903,6 +906,9 @@
     TemporalResult, TinyAsciiStr,
 };
 <span class="kw">use </span>num_traits::ToPrimitive;
+<span class="kw">use </span>plain_date::PlainDate;
+<span class="kw">use </span>plain_month_day::PlainMonthDay;
+<span class="kw">use </span>plain_year_month::PlainYearMonth;
 
 <span class="doccomment">/// A user-defined, custom calendar that is only known at runtime
 /// and executed at runtime.
@@ -968,7 +974,7 @@
                 .with_message(<span class="string">&quot;datefromFields must return a valid PlainDate object.&quot;</span>)
         })<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>pd = obj.as_plain_date().ok_or_else(|| {
+        <span class="kw">let </span>pd = obj.downcast_ref::&lt;PlainDate&gt;().ok_or_else(|| {
             TemporalError::r#type().with_message(<span class="string">&quot;Object returned was not a PlainDate&quot;</span>)
         })<span class="question-mark">?</span>;
 
@@ -1022,7 +1028,7 @@
                 .with_message(<span class="string">&quot;yearMonthFromFields must return a valid PlainYearMonth object.&quot;</span>)
         })<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>ym = obj.as_plain_year_month().ok_or_else(|| {
+        <span class="kw">let </span>ym = obj.downcast_ref::&lt;PlainYearMonth&gt;().ok_or_else(|| {
             TemporalError::r#type().with_message(<span class="string">&quot;Object returned was not a PlainDate&quot;</span>)
         })<span class="question-mark">?</span>;
 
@@ -1076,7 +1082,7 @@
                 .with_message(<span class="string">&quot;yearMonthFromFields must return a valid PlainYearMonth object.&quot;</span>)
         })<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>md = obj.as_plain_month_day().ok_or_else(|| {
+        <span class="kw">let </span>md = obj.downcast_ref::&lt;PlainMonthDay&gt;().ok_or_else(|| {
             TemporalError::r#type().with_message(<span class="string">&quot;Object returned was not a PlainDate&quot;</span>)
         })<span class="question-mark">?</span>;
 

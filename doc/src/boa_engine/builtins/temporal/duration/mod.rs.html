@@ -1039,9 +1039,6 @@
 <a href="#1039" id="1039">1039</a>
 <a href="#1040" id="1040">1040</a>
 <a href="#1041" id="1041">1041</a>
-<a href="#1042" id="1042">1042</a>
-<a href="#1043" id="1043">1043</a>
-<a href="#1044" id="1044">1044</a>
 </pre></div><pre class="rust"><code><span class="comment">// Boa&#39;s implementation of the `Temporal.Duration` Builtin Object.
 
 </span><span class="kw">use crate</span>::{
@@ -1052,12 +1049,13 @@
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, ObjectData},
+    object::internal_methods::get_prototype_from_constructor,
     property::Attribute,
     realm::Realm,
     string::{common::StaticJsStrings, utf16},
-    Context, JsArgs, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
+    Context, JsArgs, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
+<span class="kw">use </span>boa_gc::{Finalize, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>boa_temporal::{duration::Duration <span class="kw">as </span>InnerDuration, options::TemporalUnit};
 
@@ -1075,7 +1073,8 @@
 /// Per [spec], `Duration` records are float64-representable integers
 ///
 /// [spec]: https://tc39.es/proposal-temporal/#sec-properties-of-temporal-duration-instances
-</span><span class="attr">#[derive(Debug, Clone, Copy)]
+</span><span class="attr">#[derive(Debug, Clone, Copy, Trace, Finalize, JsData)]
+#[boa_gc(empty_trace)]
 </span><span class="kw">pub struct </span>Duration {
     <span class="kw">pub</span>(<span class="kw">crate</span>) inner: InnerDuration,
 }
@@ -1309,12 +1308,12 @@
 </span><span class="kw">impl </span>Duration {
     <span class="comment">// Internal utility function for getting `Duration` field values.
     </span><span class="kw">fn </span>get_internal_field(this: <span class="kw-2">&amp;</span>JsValue, field: <span class="kw-2">&amp;</span>DateTimeValues) -&gt; JsResult&lt;JsValue&gt; {
-        <span class="kw">let </span>o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;this value of Duration must be an object.&quot;</span>)
-        })<span class="question-mark">?</span>;
-        <span class="kw">let </span>duration = o.as_duration().ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;the this object must be a Duration object.&quot;</span>)
-        })<span class="question-mark">?</span>;
+        <span class="kw">let </span>duration = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message(<span class="string">&quot;this value must be a Duration object.&quot;</span>)
+            })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>inner = <span class="kw-2">&amp;</span>duration.inner;
 
@@ -1389,12 +1388,12 @@
     </span><span class="kw">fn </span>get_sign(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let duration be the this value.
         // 2. Perform ? RequireInternalSlot(duration, [[InitializedTemporalDuration]]).
-        </span><span class="kw">let </span>o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;this value of Duration must be an object.&quot;</span>)
-        })<span class="question-mark">?</span>;
-        <span class="kw">let </span>duration = o.as_duration().ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;the this object must be a Duration object.&quot;</span>)
-        })<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>duration = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message(<span class="string">&quot;this value must be a Duration object.&quot;</span>)
+            })<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Return 𝔽(! DurationSign(duration.[[Years]], duration.[[Months]], duration.[[Weeks]],
         // duration.[[Days]], duration.[[Hours]], duration.[[Minutes]], duration.[[Seconds]],
@@ -1406,12 +1405,12 @@
     </span><span class="kw">fn </span>get_blank(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let duration be the this value.
         // 2. Perform ? RequireInternalSlot(duration, [[InitializedTemporalDuration]]).
-        </span><span class="kw">let </span>o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;this value of Duration must be an object.&quot;</span>)
-        })<span class="question-mark">?</span>;
-        <span class="kw">let </span>duration = o.as_duration().ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;the this object must be a Duration object.&quot;</span>)
-        })<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>duration = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message(<span class="string">&quot;this value must be a Duration object.&quot;</span>)
+            })<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Let sign be ! DurationSign(duration.[[Years]], duration.[[Months]], duration.[[Weeks]],
         // duration.[[Days]], duration.[[Hours]], duration.[[Minutes]], duration.[[Seconds]],
@@ -1438,12 +1437,12 @@
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let duration be the this value.
         // 2. Perform ? RequireInternalSlot(duration, [[InitializedTemporalDuration]]).
-        </span><span class="kw">let </span>o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;this value of Duration must be an object.&quot;</span>)
-        })<span class="question-mark">?</span>;
-        <span class="kw">let </span>duration = o.as_duration().ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;the this object must be a Duration object.&quot;</span>)
-        })<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>duration = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message(<span class="string">&quot;this value must be a Duration object.&quot;</span>)
+            })<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Let temporalDurationLike be ? ToTemporalPartialDurationRecord(temporalDurationLike).
         </span><span class="kw">let </span>temporal_duration_like =
@@ -1584,12 +1583,12 @@
         // 3. Return ! CreateTemporalDuration(abs(duration.[[Years]]), abs(duration.[[Months]]),
         //    abs(duration.[[Weeks]]), abs(duration.[[Days]]), abs(duration.[[Hours]]), abs(duration.[[Minutes]]),
         //    abs(duration.[[Seconds]]), abs(duration.[[Milliseconds]]), abs(duration.[[Microseconds]]), abs(duration.[[Nanoseconds]])).
-        </span><span class="kw">let </span>o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;this value of Duration must be an object.&quot;</span>)
-        })<span class="question-mark">?</span>;
-        <span class="kw">let </span>duration = o.as_duration().ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;the this object must be a Duration object.&quot;</span>)
-        })<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>duration = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message(<span class="string">&quot;this value must be a Duration object.&quot;</span>)
+            })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>abs = duration.inner.abs();
 
@@ -1619,12 +1618,12 @@
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let duration be the this value.
         // 2. Perform ? RequireInternalSlot(duration, [[InitializedTemporalDuration]]).
-        </span><span class="kw">let </span>o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;this value of Duration must be an object.&quot;</span>)
-        })<span class="question-mark">?</span>;
-        <span class="kw">let </span>duration = o.as_duration().ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;the this object must be a Duration object.&quot;</span>)
-        })<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>duration = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message(<span class="string">&quot;this value must be a Duration object.&quot;</span>)
+            })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>round_to = args.get_or_undefined(<span class="number">0</span>);
         <span class="kw">let </span>round_to = <span class="kw">match </span>round_to {
@@ -1840,12 +1839,12 @@
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let duration be the this value.
         // 2. Perform ? RequireInternalSlot(duration, [[InitializedTemporalDuration]]).
-        </span><span class="kw">let </span>o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;this value of Duration must be an object.&quot;</span>)
-        })<span class="question-mark">?</span>;
-        <span class="kw">let </span>_duration = o.as_duration().ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;the this object must be a Duration object.&quot;</span>)
-        })<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>_duration = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message(<span class="string">&quot;this value must be a Duration object.&quot;</span>)
+            })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>total_of = args.get_or_undefined(<span class="number">0</span>);
 
@@ -1920,17 +1919,12 @@
 </span><span class="doccomment">/// 7.5.8 `ToTemporalDuration ( item )`
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_temporal_duration(item: <span class="kw-2">&amp;</span>JsValue) -&gt; JsResult&lt;InnerDuration&gt; {
     <span class="comment">// 1a. If Type(item) is Object
-    </span><span class="kw">if </span>item.is_object() {
-        <span class="comment">// 1b. and item has an [[InitializedTemporalDuration]] internal slot, then
-        </span><span class="kw">let </span>o = item
-            .as_object()
-            .expect(<span class="string">&quot;Value must be an object in this instance.&quot;</span>);
-        <span class="kw">if </span>o.is_duration() {
-            <span class="comment">// a. Return item.
-            </span><span class="kw">let </span>obj = o.borrow();
-            <span class="kw">let </span>duration = obj.as_duration().expect(<span class="string">&quot;must be a duration.&quot;</span>);
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(duration.inner);
-        }
+    // 1b. and item has an [[InitializedTemporalDuration]] internal slot, then
+    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(duration) = item
+        .as_object()
+        .and_then(JsObject::downcast_ref::&lt;Duration&gt;)
+    {
+        <span class="kw">return </span><span class="prelude-val">Ok</span>(duration.inner);
     }
 
     <span class="comment">// 2. Let result be ? ToTemporalDurationRecord(item).
@@ -1984,7 +1978,7 @@
     // 12. Set object.[[Microseconds]] to ℝ(𝔽(microseconds)).
     // 13. Set object.[[Nanoseconds]] to ℝ(𝔽(nanoseconds)).
 
-    </span><span class="kw">let </span>obj = JsObject::from_proto_and_data(prototype, ObjectData::duration(Duration::new(inner)));
+    </span><span class="kw">let </span>obj = JsObject::from_proto_and_data(prototype, Duration::new(inner));
     <span class="comment">// 14. Return object.
     </span><span class="prelude-val">Ok</span>(obj)
 }

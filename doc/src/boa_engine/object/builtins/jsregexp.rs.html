@@ -355,7 +355,7 @@
     <span class="doccomment">/// Create a `JsRegExp` from a regular expression `JsObject`
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>from_object(object: JsObject) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
-        <span class="kw">if </span>object.is_regexp() {
+        <span class="kw">if </span>object.is::&lt;RegExp&gt;() {
             <span class="prelude-val">Ok</span>(<span class="self">Self </span>{ inner: object })
         } <span class="kw">else </span>{
             <span class="prelude-val">Err</span>(JsNativeError::typ()

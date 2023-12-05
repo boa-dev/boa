@@ -358,17 +358,17 @@
 }
 
 <span class="doccomment">/// The inner allocation of an [`Ephemeron`][crate::Ephemeron] pointer.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>EphemeronBox&lt;K: Trace + <span class="lifetime">&#39;static</span>, V: Trace + <span class="lifetime">&#39;static</span>&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>EphemeronBox&lt;K: Trace + <span class="question-mark">?</span>Sized + <span class="lifetime">&#39;static</span>, V: Trace + <span class="lifetime">&#39;static</span>&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) header: EphemeronBoxHeader,
     data: UnsafeCell&lt;<span class="prelude-ty">Option</span>&lt;Data&lt;K, V&gt;&gt;&gt;,
 }
 
-<span class="kw">struct </span>Data&lt;K: Trace + <span class="lifetime">&#39;static</span>, V: Trace + <span class="lifetime">&#39;static</span>&gt; {
+<span class="kw">struct </span>Data&lt;K: Trace + <span class="question-mark">?</span>Sized + <span class="lifetime">&#39;static</span>, V: Trace + <span class="lifetime">&#39;static</span>&gt; {
     key: NonNull&lt;GcBox&lt;K&gt;&gt;,
     value: V,
 }
 
-<span class="kw">impl</span>&lt;K: Trace, V: Trace&gt; EphemeronBox&lt;K, V&gt; {
+<span class="kw">impl</span>&lt;K: Trace + <span class="question-mark">?</span>Sized, V: Trace&gt; EphemeronBox&lt;K, V&gt; {
     <span class="doccomment">/// Creates a new `EphemeronBox` that tracks `key` and has `value` as its inner data.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(key: <span class="kw-2">&amp;</span>Gc&lt;K&gt;, value: V) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
@@ -492,7 +492,7 @@
     </span><span class="kw">fn </span>finalize_and_clear(<span class="kw-2">&amp;</span><span class="self">self</span>);
 }
 
-<span class="kw">impl</span>&lt;K: Trace, V: Trace&gt; ErasedEphemeronBox <span class="kw">for </span>EphemeronBox&lt;K, V&gt; {
+<span class="kw">impl</span>&lt;K: Trace + <span class="question-mark">?</span>Sized, V: Trace&gt; ErasedEphemeronBox <span class="kw">for </span>EphemeronBox&lt;K, V&gt; {
     <span class="kw">fn </span>header(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>EphemeronBoxHeader {
         <span class="kw-2">&amp;</span><span class="self">self</span>.header
     }

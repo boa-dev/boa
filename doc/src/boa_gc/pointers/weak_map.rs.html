@@ -457,6 +457,12 @@
 <a href="#457" id="457">457</a>
 <a href="#458" id="458">458</a>
 <a href="#459" id="459">459</a>
+<a href="#460" id="460">460</a>
+<a href="#461" id="461">461</a>
+<a href="#462" id="462">462</a>
+<a href="#463" id="463">463</a>
+<a href="#464" id="464">464</a>
+<a href="#465" id="465">465</a>
 </pre></div><pre class="rust"><code><span class="comment">// Implementation taken partly from https://docs.rs/hashbrown/0.14.0/src/hashbrown/lib.rs.html,
 // but with some adjustments to use `Ephemeron&lt;K,V&gt;` instead of `(K,V)`
 
@@ -470,12 +476,18 @@
 <span class="kw">use </span>std::{fmt, hash::BuildHasher, marker::PhantomData, mem};
 
 <span class="doccomment">/// A map that holds weak references to its keys and is traced by the garbage collector.
-</span><span class="attr">#[derive(Clone, Debug, Default, Trace, Finalize)]
-</span><span class="kw">pub struct </span>WeakMap&lt;K: Trace + Sized + <span class="lifetime">&#39;static</span>, V: Trace + Sized + <span class="lifetime">&#39;static</span>&gt; {
+</span><span class="attr">#[derive(Clone, Debug, Default, Finalize)]
+</span><span class="kw">pub struct </span>WeakMap&lt;K: Trace + <span class="question-mark">?</span>Sized + <span class="lifetime">&#39;static</span>, V: Trace + <span class="lifetime">&#39;static</span>&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) inner: Gc&lt;GcRefCell&lt;RawWeakMap&lt;K, V&gt;&gt;&gt;,
 }
 
-<span class="kw">impl</span>&lt;K: Trace, V: Trace + Clone&gt; WeakMap&lt;K, V&gt; {
+<span class="kw">unsafe impl</span>&lt;K: Trace + <span class="question-mark">?</span>Sized + <span class="lifetime">&#39;static</span>, V: Trace + <span class="lifetime">&#39;static</span>&gt; Trace <span class="kw">for </span>WeakMap&lt;K, V&gt; {
+    <span class="macro">custom_trace!</span>(this, {
+        mark(<span class="kw-2">&amp;</span>this.inner);
+    });
+}
+
+<span class="kw">impl</span>&lt;K: Trace + <span class="question-mark">?</span>Sized, V: Trace + Clone&gt; WeakMap&lt;K, V&gt; {
     <span class="doccomment">/// Creates a new `WeakMap`.
     </span><span class="attr">#[must_use]
     #[inline]
@@ -517,7 +529,7 @@
 /// held.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>RawWeakMap&lt;K, V, S = DefaultHashBuilder&gt;
 <span class="kw">where
-    </span>K: Trace + <span class="lifetime">&#39;static</span>,
+    </span>K: Trace + <span class="question-mark">?</span>Sized + <span class="lifetime">&#39;static</span>,
     V: Trace + <span class="lifetime">&#39;static</span>,
 {
     hash_builder: S,
@@ -526,7 +538,7 @@
 
 <span class="kw">impl</span>&lt;K, V, S&gt; Finalize <span class="kw">for </span>RawWeakMap&lt;K, V, S&gt;
 <span class="kw">where
-    </span>K: Trace + <span class="lifetime">&#39;static</span>,
+    </span>K: Trace + <span class="question-mark">?</span>Sized + <span class="lifetime">&#39;static</span>,
     V: Trace + <span class="lifetime">&#39;static</span>,
 {
 }
@@ -534,7 +546,7 @@
 <span class="comment">// SAFETY: The implementation correctly marks all ephemerons inside the map.
 </span><span class="kw">unsafe impl</span>&lt;K, V, S&gt; Trace <span class="kw">for </span>RawWeakMap&lt;K, V, S&gt;
 <span class="kw">where
-    </span>K: Trace + <span class="lifetime">&#39;static</span>,
+    </span>K: Trace + <span class="question-mark">?</span>Sized + <span class="lifetime">&#39;static</span>,
     V: Trace + <span class="lifetime">&#39;static</span>,
 {
     <span class="macro">custom_trace!</span>(this, {
@@ -547,7 +559,7 @@
 <span class="kw">impl</span>&lt;K, V, S&gt; Default <span class="kw">for </span>RawWeakMap&lt;K, V, S&gt;
 <span class="kw">where
     </span>S: Default,
-    K: Trace + <span class="lifetime">&#39;static</span>,
+    K: Trace + <span class="question-mark">?</span>Sized + <span class="lifetime">&#39;static</span>,
     V: Trace + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
@@ -557,7 +569,7 @@
 
 <span class="kw">impl</span>&lt;K, V&gt; RawWeakMap&lt;K, V, DefaultHashBuilder&gt;
 <span class="kw">where
-    </span>K: Trace + <span class="lifetime">&#39;static</span>,
+    </span>K: Trace + <span class="question-mark">?</span>Sized + <span class="lifetime">&#39;static</span>,
     V: Trace + <span class="lifetime">&#39;static</span>,
 {
     <span class="doccomment">/// Creates an empty `RawWeakMap`.
@@ -580,7 +592,7 @@
 
 <span class="kw">impl</span>&lt;K, V, S&gt; RawWeakMap&lt;K, V, S&gt;
 <span class="kw">where
-    </span>K: Trace + <span class="lifetime">&#39;static</span>,
+    </span>K: Trace + <span class="question-mark">?</span>Sized + <span class="lifetime">&#39;static</span>,
     V: Trace + <span class="lifetime">&#39;static</span>,
 {
     <span class="doccomment">/// Creates an empty `RawWeakMap` which will use the given hash builder to hash
@@ -685,7 +697,7 @@
 
 <span class="kw">impl</span>&lt;K, V, S&gt; RawWeakMap&lt;K, V, S&gt;
 <span class="kw">where
-    </span>K: Trace + <span class="lifetime">&#39;static</span>,
+    </span>K: Trace + <span class="question-mark">?</span>Sized + <span class="lifetime">&#39;static</span>,
     V: Trace + Clone + <span class="lifetime">&#39;static</span>,
     S: BuildHasher,
 {
@@ -798,7 +810,7 @@
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Iter&lt;<span class="lifetime">&#39;a</span>, K, V&gt;
 <span class="kw">where
-    </span>K: Trace + <span class="lifetime">&#39;static</span>,
+    </span>K: Trace + <span class="question-mark">?</span>Sized + <span class="lifetime">&#39;static</span>,
     V: Trace + <span class="lifetime">&#39;static</span>,
 {
     inner: RawIter&lt;Ephemeron&lt;K, V&gt;&gt;,
@@ -807,7 +819,7 @@
 
 <span class="kw">impl</span>&lt;K, V&gt; Clone <span class="kw">for </span>Iter&lt;<span class="lifetime">&#39;_</span>, K, V&gt;
 <span class="kw">where
-    </span>K: Trace + <span class="lifetime">&#39;static</span>,
+    </span>K: Trace + <span class="question-mark">?</span>Sized + <span class="lifetime">&#39;static</span>,
     V: Trace + <span class="lifetime">&#39;static</span>,
 {
     <span class="attr">#[inline]
@@ -821,7 +833,7 @@
 
 <span class="kw">impl</span>&lt;K, V&gt; fmt::Debug <span class="kw">for </span>Iter&lt;<span class="lifetime">&#39;_</span>, K, V&gt;
 <span class="kw">where
-    </span>K: Trace + <span class="lifetime">&#39;static </span>+ fmt::Debug,
+    </span>K: Trace + <span class="question-mark">?</span>Sized + <span class="lifetime">&#39;static </span>+ fmt::Debug,
     V: Trace + <span class="lifetime">&#39;static </span>+ fmt::Debug,
 {
     <span class="attr">#[inline]
@@ -832,7 +844,7 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, K, V&gt; Iterator <span class="kw">for </span>Iter&lt;<span class="lifetime">&#39;a</span>, K, V&gt;
 <span class="kw">where
-    </span>K: Trace + <span class="lifetime">&#39;static</span>,
+    </span>K: Trace + <span class="question-mark">?</span>Sized + <span class="lifetime">&#39;static</span>,
     V: Trace + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">type </span>Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Ephemeron&lt;K, V&gt;;
@@ -852,7 +864,7 @@
 
 <span class="kw">impl</span>&lt;K, V, S&gt; fmt::Debug <span class="kw">for </span>RawWeakMap&lt;K, V, S&gt;
 <span class="kw">where
-    </span>K: fmt::Debug + Trace + Finalize,
+    </span>K: fmt::Debug + <span class="question-mark">?</span>Sized + Trace + Finalize,
     V: fmt::Debug + Trace + Finalize,
 {
     <span class="attr">#[inline]
@@ -864,7 +876,7 @@
 <span class="kw">fn </span>make_hasher&lt;K, V, S&gt;(hash_builder: <span class="kw-2">&amp;</span>S) -&gt; <span class="kw">impl </span>Fn(<span class="kw-2">&amp;</span>Ephemeron&lt;K, V&gt;) -&gt; u64 + <span class="lifetime">&#39;_
 </span><span class="kw">where
     </span>S: BuildHasher,
-    K: Trace + <span class="lifetime">&#39;static</span>,
+    K: Trace + <span class="question-mark">?</span>Sized + <span class="lifetime">&#39;static</span>,
     V: Trace + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">move </span>|val| make_hash_from_eph::&lt;K, V, S&gt;(hash_builder, val)
@@ -873,7 +885,7 @@
 <span class="kw">fn </span>make_hash_from_eph&lt;K, V, S&gt;(hash_builder: <span class="kw-2">&amp;</span>S, eph: <span class="kw-2">&amp;</span>Ephemeron&lt;K, V&gt;) -&gt; u64
 <span class="kw">where
     </span>S: BuildHasher,
-    K: Trace + <span class="lifetime">&#39;static</span>,
+    K: Trace + <span class="question-mark">?</span>Sized + <span class="lifetime">&#39;static</span>,
     V: Trace + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">use </span>std::hash::Hasher;
@@ -894,7 +906,7 @@
 <span class="kw">fn </span>make_hash_from_gc&lt;K, S&gt;(hash_builder: <span class="kw-2">&amp;</span>S, gc: <span class="kw-2">&amp;</span>Gc&lt;K&gt;) -&gt; u64
 <span class="kw">where
     </span>S: BuildHasher,
-    K: Trace + <span class="lifetime">&#39;static</span>,
+    K: Trace + <span class="question-mark">?</span>Sized + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">use </span>std::hash::Hasher;
     <span class="kw">let </span><span class="kw-2">mut </span>state = hash_builder.build_hasher();
@@ -904,7 +916,7 @@
 
 <span class="kw">fn </span>equivalent_key&lt;K, V&gt;(k: <span class="kw-2">&amp;</span>Gc&lt;K&gt;) -&gt; <span class="kw">impl </span>Fn(<span class="kw-2">&amp;</span>Ephemeron&lt;K, V&gt;) -&gt; bool + <span class="lifetime">&#39;_
 </span><span class="kw">where
-    </span>K: Trace + <span class="lifetime">&#39;static</span>,
+    </span>K: Trace + <span class="question-mark">?</span>Sized + <span class="lifetime">&#39;static</span>,
     V: Trace + <span class="lifetime">&#39;static</span>,
 {
     <span class="comment">// SAFETY: The return value of `key` is only used inside eq, which

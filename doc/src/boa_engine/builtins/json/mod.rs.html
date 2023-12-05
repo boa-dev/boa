@@ -858,7 +858,7 @@
     symbol::JsSymbol,
     value::IntegerOrInfinity,
     vm::{CallFrame, CallFrameFlags},
-    Context, JsArgs, JsResult, JsString, JsValue,
+    Context, JsArgs, JsBigInt, JsResult, JsString, JsValue,
 };
 <span class="kw">use </span>boa_gc::Gc;
 <span class="kw">use </span>boa_parser::{Parser, Source};
@@ -1143,7 +1143,7 @@
                             );
                         } <span class="kw">else if let </span><span class="prelude-val">Some</span>(obj) = v.as_object() {
                             <span class="comment">// i. If v has a [[StringData]] or [[NumberData]] internal slot, set item to ? ToString(v).
-                            </span><span class="kw">if </span>obj.is_string() || obj.is_number() {
+                            </span><span class="kw">if </span>obj.is::&lt;JsString&gt;() || obj.is::&lt;f64&gt;() {
                                 property_set.insert(v.to_string(context)<span class="question-mark">?</span>);
                             }
                         }
@@ -1161,12 +1161,12 @@
         <span class="comment">// 5. If Type(space) is Object, then
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(space_obj) = space.as_object() {
             <span class="comment">// a. If space has a [[NumberData]] internal slot, then
-            </span><span class="kw">if </span>space_obj.is_number() {
+            </span><span class="kw">if </span>space_obj.is::&lt;f64&gt;() {
                 <span class="comment">// i. Set space to ? ToNumber(space).
                 </span>space = space.to_number(context)<span class="question-mark">?</span>.into();
             }
             <span class="comment">// b. Else if space has a [[StringData]] internal slot, then
-            </span><span class="kw">else if </span>space_obj.is_string() {
+            </span><span class="kw">else if </span>space_obj.is::&lt;JsString&gt;() {
                 <span class="comment">// i. Set space to ? ToString(space).
                 </span>space = space.to_string(context)<span class="question-mark">?</span>.into();
             }
@@ -1266,22 +1266,22 @@
         <span class="comment">// 4. If Type(value) is Object, then
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(obj) = value.as_object().cloned() {
             <span class="comment">// a. If value has a [[NumberData]] internal slot, then
-            </span><span class="kw">if </span>obj.is_number() {
+            </span><span class="kw">if </span>obj.is::&lt;f64&gt;() {
                 <span class="comment">// i. Set value to ? ToNumber(value).
                 </span>value = value.to_number(context)<span class="question-mark">?</span>.into();
             }
             <span class="comment">// b. Else if value has a [[StringData]] internal slot, then
-            </span><span class="kw">else if </span>obj.is_string() {
+            </span><span class="kw">else if </span>obj.is::&lt;JsString&gt;() {
                 <span class="comment">// i. Set value to ? ToString(value).
                 </span>value = value.to_string(context)<span class="question-mark">?</span>.into();
             }
             <span class="comment">// c. Else if value has a [[BooleanData]] internal slot, then
-            </span><span class="kw">else if let </span><span class="prelude-val">Some</span>(boolean) = obj.borrow().as_boolean() {
+            </span><span class="kw">else if let </span><span class="prelude-val">Some</span>(boolean) = obj.downcast_ref::&lt;bool&gt;() {
                 <span class="comment">// i. Set value to value.[[BooleanData]].
-                </span>value = boolean.into();
+                </span>value = (<span class="kw-2">*</span>boolean).into();
             }
             <span class="comment">// d. Else if value has a [[BigIntData]] internal slot, then
-            </span><span class="kw">else if let </span><span class="prelude-val">Some</span>(bigint) = obj.borrow().as_bigint() {
+            </span><span class="kw">else if let </span><span class="prelude-val">Some</span>(bigint) = obj.downcast_ref::&lt;JsBigInt&gt;() {
                 <span class="comment">// i. Set value to value.[[BigIntData]].
                 </span>value = bigint.clone().into();
             }

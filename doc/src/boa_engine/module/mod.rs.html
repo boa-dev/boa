@@ -574,57 +574,6 @@
 <a href="#574" id="574">574</a>
 <a href="#575" id="575">575</a>
 <a href="#576" id="576">576</a>
-<a href="#577" id="577">577</a>
-<a href="#578" id="578">578</a>
-<a href="#579" id="579">579</a>
-<a href="#580" id="580">580</a>
-<a href="#581" id="581">581</a>
-<a href="#582" id="582">582</a>
-<a href="#583" id="583">583</a>
-<a href="#584" id="584">584</a>
-<a href="#585" id="585">585</a>
-<a href="#586" id="586">586</a>
-<a href="#587" id="587">587</a>
-<a href="#588" id="588">588</a>
-<a href="#589" id="589">589</a>
-<a href="#590" id="590">590</a>
-<a href="#591" id="591">591</a>
-<a href="#592" id="592">592</a>
-<a href="#593" id="593">593</a>
-<a href="#594" id="594">594</a>
-<a href="#595" id="595">595</a>
-<a href="#596" id="596">596</a>
-<a href="#597" id="597">597</a>
-<a href="#598" id="598">598</a>
-<a href="#599" id="599">599</a>
-<a href="#600" id="600">600</a>
-<a href="#601" id="601">601</a>
-<a href="#602" id="602">602</a>
-<a href="#603" id="603">603</a>
-<a href="#604" id="604">604</a>
-<a href="#605" id="605">605</a>
-<a href="#606" id="606">606</a>
-<a href="#607" id="607">607</a>
-<a href="#608" id="608">608</a>
-<a href="#609" id="609">609</a>
-<a href="#610" id="610">610</a>
-<a href="#611" id="611">611</a>
-<a href="#612" id="612">612</a>
-<a href="#613" id="613">613</a>
-<a href="#614" id="614">614</a>
-<a href="#615" id="615">615</a>
-<a href="#616" id="616">616</a>
-<a href="#617" id="617">617</a>
-<a href="#618" id="618">618</a>
-<a href="#619" id="619">619</a>
-<a href="#620" id="620">620</a>
-<a href="#621" id="621">621</a>
-<a href="#622" id="622">622</a>
-<a href="#623" id="623">623</a>
-<a href="#624" id="624">624</a>
-<a href="#625" id="625">625</a>
-<a href="#626" id="626">626</a>
-<a href="#627" id="627">627</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of the ECMAScript&#39;s module system.
 //!
 //! This module contains the [`Module`] type, which represents an [**Abstract Module Record**][module],
@@ -649,20 +598,21 @@
 //! [module]: https://tc39.es/ecma262/#sec-abstract-module-records
 
 </span><span class="kw">mod </span>loader;
+<span class="kw">mod </span>namespace;
 <span class="kw">mod </span>source;
 <span class="kw">mod </span>synthetic;
 <span class="kw">pub use </span>loader::<span class="kw-2">*</span>;
+<span class="kw">pub use </span>namespace::ModuleNamespace;
 <span class="kw">use </span>source::SourceTextModule;
 <span class="kw">pub use </span>synthetic::{SyntheticModule, SyntheticModuleInitializer};
 
 <span class="kw">use </span>std::cell::{Cell, RefCell};
+<span class="kw">use </span>std::collections::HashSet;
 <span class="kw">use </span>std::hash::Hash;
 <span class="kw">use </span>std::io::Read;
 <span class="kw">use </span>std::rc::Rc;
-<span class="kw">use </span>std::{collections::HashSet, hash::BuildHasherDefault};
 
-<span class="kw">use </span>indexmap::IndexSet;
-<span class="kw">use </span>rustc_hash::{FxHashSet, FxHasher};
+<span class="kw">use </span>rustc_hash::FxHashSet;
 
 <span class="kw">use </span>boa_gc::{Finalize, Gc, GcRefCell, Trace};
 <span class="kw">use </span>boa_interner::Interner;
@@ -672,8 +622,7 @@
 <span class="kw">use crate</span>::{
     builtins::promise::{PromiseCapability, PromiseState},
     environments::DeclarativeEnvironment,
-    js_string,
-    object::{JsObject, JsPromise, ObjectData},
+    object::{JsObject, JsPromise},
     realm::Realm,
     Context, HostDefined, JsError, JsResult, JsString, JsValue, NativeFunction,
 };
@@ -1199,57 +1148,6 @@
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>hash&lt;H: std::hash::Hasher&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, state: <span class="kw-2">&amp;mut </span>H) {
         std::ptr::hash(<span class="self">self</span>.inner.as_ref(), state);
-    }
-}
-
-<span class="doccomment">/// Module namespace exotic object.
-///
-/// Exposes the bindings exported by a [`Module`] to be accessed from ECMAScript code.
-</span><span class="attr">#[derive(Debug, Trace, Finalize)]
-</span><span class="kw">pub struct </span>ModuleNamespace {
-    module: Module,
-    <span class="attr">#[unsafe_ignore_trace]
-    </span>exports: IndexSet&lt;JsString, BuildHasherDefault&lt;FxHasher&gt;&gt;,
-}
-
-<span class="kw">impl </span>ModuleNamespace {
-    <span class="doccomment">/// Abstract operation [`ModuleNamespaceCreate ( module, exports )`][spec].
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-modulenamespacecreate
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create(module: Module, names: Vec&lt;JsString&gt;, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsObject {
-        <span class="comment">// 1. Assert: module.[[Namespace]] is empty.
-        // ignored since this is ensured by `Module::namespace`.
-
-        // 6. Let sortedExports be a List whose elements are the elements of exports ordered as if an Array of the same values had been sorted using %Array.prototype.sort% using undefined as comparefn.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>exports = names.into_iter().collect::&lt;IndexSet&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt;&gt;();
-        exports.sort();
-
-        <span class="comment">// 2. Let internalSlotsList be the internal slots listed in Table 32.
-        // 3. Let M be MakeBasicObject(internalSlotsList).
-        // 4. Set M&#39;s essential internal methods to the definitions specified in 10.4.6.
-        // 5. Set M.[[Module]] to module.
-        // 7. Set M.[[Exports]] to sortedExports.
-        // 8. Create own properties of M corresponding to the definitions in 28.3.
-        </span><span class="kw">let </span>namespace = context.intrinsics().templates().namespace().create(
-            ObjectData::module_namespace(<span class="self">Self </span>{ module, exports }),
-            <span class="macro">vec!</span>[<span class="macro">js_string!</span>(<span class="string">&quot;Module&quot;</span>).into()],
-        );
-
-        <span class="comment">// 9. Set module.[[Namespace]] to M.
-        // Ignored because this is done by `Module::namespace`
-
-        // 10. Return M.
-        </span>namespace
-    }
-
-    <span class="doccomment">/// Gets the export names of the Module Namespace object.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>exports(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>IndexSet&lt;JsString, BuildHasherDefault&lt;FxHasher&gt;&gt; {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.exports
-    }
-
-    <span class="doccomment">/// Gest the module associated with this Module Namespace object.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>module(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Module {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.module
     }
 }
 </code></pre></div></section></main></body></html>

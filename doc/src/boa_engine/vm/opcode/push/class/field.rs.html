@@ -104,6 +104,7 @@
 <a href="#104" id="104">104</a>
 <a href="#105" id="105">105</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
+    builtins::function::OrdinaryFunction,
     object::JsFunction,
     vm::{opcode::Operation, CompletionType},
     Context, JsResult,
@@ -130,17 +131,17 @@
         <span class="kw">let </span>field_function_object = field_function_value
             .as_object()
             .expect(<span class="string">&quot;field value must be function object&quot;</span>);
-        <span class="kw">let </span><span class="kw-2">mut </span>field_function_object_borrow = field_function_object.borrow_mut();
-        <span class="kw">let </span>field_function = field_function_object_borrow
-            .as_function_mut()
-            .expect(<span class="string">&quot;field value must be function object&quot;</span>);
         <span class="kw">let </span>class_object = class_value
             .as_object()
             .expect(<span class="string">&quot;class must be function object&quot;</span>);
-        field_function.set_home_object(class_object.clone());
+
+        field_function_object
+            .downcast_mut::&lt;OrdinaryFunction&gt;()
+            .expect(<span class="string">&quot;field value must be function object&quot;</span>)
+            .set_home_object(class_object.clone());
+
         class_object
-            .borrow_mut()
-            .as_function_mut()
+            .downcast_mut::&lt;OrdinaryFunction&gt;()
             .expect(<span class="string">&quot;class must be function object&quot;</span>)
             .push_field(
                 field_name_key,
@@ -167,18 +168,17 @@
         <span class="kw">let </span>field_function_object = field_function_value
             .as_object()
             .expect(<span class="string">&quot;field value must be function object&quot;</span>);
-        <span class="kw">let </span><span class="kw-2">mut </span>field_function_object_borrow = field_function_object.borrow_mut();
-        <span class="kw">let </span>field_function = field_function_object_borrow
-            .as_function_mut()
-            .expect(<span class="string">&quot;field value must be function object&quot;</span>);
         <span class="kw">let </span>class_object = class_value
             .as_object()
             .expect(<span class="string">&quot;class must be function object&quot;</span>);
-        field_function.set_home_object(class_object.clone());
+
+        field_function_object
+            .downcast_mut::&lt;OrdinaryFunction&gt;()
+            .expect(<span class="string">&quot;field value must be function object&quot;</span>)
+            .set_home_object(class_object.clone());
 
         class_object
-            .borrow_mut()
-            .as_function_mut()
+            .downcast_mut::&lt;OrdinaryFunction&gt;()
             .expect(<span class="string">&quot;class must be function object&quot;</span>)
             .push_field_private(
                 class_object.private_name(name),

@@ -232,17 +232,12 @@
 <a href="#232" id="232">232</a>
 <a href="#233" id="233">233</a>
 <a href="#234" id="234">234</a>
-<a href="#235" id="235">235</a>
-<a href="#236" id="236">236</a>
-<a href="#237" id="237">237</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! A Rust API wrapper for Boa&#39;s `ArrayBuffer` Builtin ECMAScript Object
 </span><span class="kw">use crate</span>::{
     builtins::array_buffer::ArrayBuffer,
     context::intrinsics::StandardConstructors,
     error::JsNativeError,
-    object::{
-        internal_methods::get_prototype_from_constructor, JsObject, JsObjectType, ObjectData,
-    },
+    object::{internal_methods::get_prototype_from_constructor, JsObject, JsObjectType},
     value::TryFromJs,
     Context, JsResult, JsValue,
 };
@@ -343,7 +338,7 @@
         </span><span class="kw">let </span>obj = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            ObjectData::array_buffer(ArrayBuffer::from_data(block, JsValue::Undefined)),
+            ArrayBuffer::from_data(block, JsValue::Undefined),
         );
 
         <span class="prelude-val">Ok</span>(<span class="self">Self </span>{ inner: obj })
@@ -354,7 +349,7 @@
     /// This does not clone the fields of the array buffer, it only does a shallow clone of the object.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>from_object(object: JsObject) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
-        <span class="kw">if </span>object.is_array_buffer() {
+        <span class="kw">if </span>object.is::&lt;ArrayBuffer&gt;() {
             <span class="prelude-val">Ok</span>(<span class="self">Self </span>{ inner: object })
         } <span class="kw">else </span>{
             <span class="prelude-val">Err</span>(JsNativeError::typ()
@@ -425,8 +420,7 @@
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>detach(<span class="kw-2">&amp;</span><span class="self">self</span>, detach_key: <span class="kw-2">&amp;</span>JsValue) -&gt; JsResult&lt;Vec&lt;u8&gt;&gt; {
         <span class="self">self</span>.inner
-            .borrow_mut()
-            .as_array_buffer_mut()
+            .downcast_mut::&lt;ArrayBuffer&gt;()
             .expect(<span class="string">&quot;inner must be an ArrayBuffer&quot;</span>)
             .detach(detach_key)<span class="question-mark">?
             </span>.ok_or_else(|| {

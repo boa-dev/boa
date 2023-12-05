@@ -1365,16 +1365,14 @@
 <a href="#1365" id="1365">1365</a>
 <a href="#1366" id="1366">1366</a>
 <a href="#1367" id="1367">1367</a>
-<a href="#1368" id="1368">1368</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Error-related types and conversions.
 
 </span><span class="kw">use </span>std::{error, fmt};
 
 <span class="kw">use crate</span>::{
-    builtins::{error::ErrorKind, Array},
+    builtins::{error::ErrorObject, Array},
     js_string,
     object::JsObject,
-    object::ObjectData,
     property::PropertyDescriptor,
     realm::Realm,
     string::utf16,
@@ -1551,12 +1549,13 @@
     ///
     /// ```rust
     /// # use boa_engine::{Context, JsError, JsNativeError};
+    /// # use boa_engine::builtins::error::ErrorObject;
     /// let context = &amp;mut Context::default();
     /// let error: JsError =
     ///     JsNativeError::eval().with_message(&quot;invalid script&quot;).into();
     /// let error_val = error.to_opaque(context);
     ///
-    /// assert!(error_val.as_object().unwrap().borrow().is_error());
+    /// assert!(error_val.as_object().unwrap().is::&lt;ErrorObject&gt;());
     /// ```
     </span><span class="kw">pub fn </span>to_opaque(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsValue {
         <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.inner {
@@ -1610,9 +1609,8 @@
                 <span class="kw">let </span>obj = val
                     .as_object()
                     .ok_or_else(|| TryNativeError::NotAnErrorObject(val.clone()))<span class="question-mark">?</span>;
-                <span class="kw">let </span>error = obj
-                    .borrow()
-                    .as_error()
+                <span class="kw">let </span>error = <span class="kw-2">*</span>obj
+                    .downcast_ref::&lt;ErrorObject&gt;()
                     .ok_or_else(|| TryNativeError::NotAnErrorObject(val.clone()))<span class="question-mark">?</span>;
 
                 <span class="kw">let </span>try_get_property = |key: JsString, name, context: <span class="kw-2">&amp;mut </span>Context| {
@@ -1645,14 +1643,14 @@
                 <span class="kw">let </span>cause = try_get_property(<span class="macro">js_string!</span>(<span class="string">&quot;cause&quot;</span>), <span class="string">&quot;cause&quot;</span>, context)<span class="question-mark">?</span>;
 
                 <span class="kw">let </span>kind = <span class="kw">match </span>error {
-                    ErrorKind::Error =&gt; JsNativeErrorKind::Error,
-                    ErrorKind::Eval =&gt; JsNativeErrorKind::Eval,
-                    ErrorKind::Type =&gt; JsNativeErrorKind::Type,
-                    ErrorKind::Range =&gt; JsNativeErrorKind::Range,
-                    ErrorKind::Reference =&gt; JsNativeErrorKind::Reference,
-                    ErrorKind::Syntax =&gt; JsNativeErrorKind::Syntax,
-                    ErrorKind::Uri =&gt; JsNativeErrorKind::Uri,
-                    ErrorKind::Aggregate =&gt; {
+                    ErrorObject::Error =&gt; JsNativeErrorKind::Error,
+                    ErrorObject::Eval =&gt; JsNativeErrorKind::Eval,
+                    ErrorObject::Type =&gt; JsNativeErrorKind::Type,
+                    ErrorObject::Range =&gt; JsNativeErrorKind::Range,
+                    ErrorObject::Reference =&gt; JsNativeErrorKind::Reference,
+                    ErrorObject::Syntax =&gt; JsNativeErrorKind::Syntax,
+                    ErrorObject::Uri =&gt; JsNativeErrorKind::Uri,
+                    ErrorObject::Aggregate =&gt; {
                         <span class="kw">let </span>errors = obj.get(<span class="macro">utf16!</span>(<span class="string">&quot;errors&quot;</span>), context).map_err(|e| {
                             TryNativeError::InaccessibleProperty {
                                 property: <span class="string">&quot;errors&quot;</span>,
@@ -2262,12 +2260,13 @@
     ///
     /// ```rust
     /// # use boa_engine::{Context, JsError, JsNativeError, js_string};
+    /// # use boa_engine::builtins::error::ErrorObject;
     /// let context = &amp;mut Context::default();
     ///
     /// let error = JsNativeError::error().with_message(&quot;error!&quot;);
     /// let error_obj = error.to_opaque(context);
     ///
-    /// assert!(error_obj.borrow().is_error());
+    /// assert!(error_obj.is::&lt;ErrorObject&gt;());
     /// assert_eq!(
     ///     error_obj.get(js_string!(&quot;message&quot;), context).unwrap(),
     ///     js_string!(&quot;error!&quot;).into()
@@ -2292,20 +2291,22 @@
         <span class="kw">let </span>(prototype, tag) = <span class="kw">match </span>kind {
             JsNativeErrorKind::Aggregate(<span class="kw">_</span>) =&gt; (
                 constructors.aggregate_error().prototype(),
-                ErrorKind::Aggregate,
+                ErrorObject::Aggregate,
             ),
-            JsNativeErrorKind::Error =&gt; (constructors.error().prototype(), ErrorKind::Error),
-            JsNativeErrorKind::Eval =&gt; (constructors.eval_error().prototype(), ErrorKind::Eval),
-            JsNativeErrorKind::Range =&gt; (constructors.range_error().prototype(), ErrorKind::Range),
+            JsNativeErrorKind::Error =&gt; (constructors.error().prototype(), ErrorObject::Error),
+            JsNativeErrorKind::Eval =&gt; (constructors.eval_error().prototype(), ErrorObject::Eval),
+            JsNativeErrorKind::Range =&gt; {
+                (constructors.range_error().prototype(), ErrorObject::Range)
+            }
             JsNativeErrorKind::Reference =&gt; (
                 constructors.reference_error().prototype(),
-                ErrorKind::Reference,
+                ErrorObject::Reference,
             ),
             JsNativeErrorKind::Syntax =&gt; {
-                (constructors.syntax_error().prototype(), ErrorKind::Syntax)
+                (constructors.syntax_error().prototype(), ErrorObject::Syntax)
             }
-            JsNativeErrorKind::Type =&gt; (constructors.type_error().prototype(), ErrorKind::Type),
-            JsNativeErrorKind::Uri =&gt; (constructors.uri_error().prototype(), ErrorKind::Uri),
+            JsNativeErrorKind::Type =&gt; (constructors.type_error().prototype(), ErrorObject::Type),
+            JsNativeErrorKind::Uri =&gt; (constructors.uri_error().prototype(), ErrorObject::Uri),
             <span class="attr">#[cfg(feature = <span class="string">&quot;fuzz&quot;</span>)]
             </span>JsNativeErrorKind::NoInstructionsRemain =&gt; {
                 <span class="macro">unreachable!</span>(
@@ -2317,11 +2318,8 @@
             }
         };
 
-        <span class="kw">let </span>o = JsObject::from_proto_and_data_with_shared_shape(
-            context.root_shape(),
-            prototype,
-            ObjectData::error(tag),
-        );
+        <span class="kw">let </span>o =
+            JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), prototype, tag);
 
         o.create_non_enumerable_data_property_or_throw(
             <span class="macro">js_string!</span>(<span class="string">&quot;message&quot;</span>),
@@ -2513,18 +2511,18 @@
     }
 }
 
-<span class="kw">impl </span>PartialEq&lt;ErrorKind&gt; <span class="kw">for </span>JsNativeErrorKind {
-    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>ErrorKind) -&gt; bool {
+<span class="kw">impl </span>PartialEq&lt;ErrorObject&gt; <span class="kw">for </span>JsNativeErrorKind {
+    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>ErrorObject) -&gt; bool {
         <span class="macro">matches!</span>(
             (<span class="self">self</span>, other),
-            (<span class="self">Self</span>::Aggregate(<span class="kw">_</span>), ErrorKind::Aggregate)
-                | (<span class="self">Self</span>::Error, ErrorKind::Error)
-                | (<span class="self">Self</span>::Eval, ErrorKind::Eval)
-                | (<span class="self">Self</span>::Range, ErrorKind::Range)
-                | (<span class="self">Self</span>::Reference, ErrorKind::Reference)
-                | (<span class="self">Self</span>::Syntax, ErrorKind::Syntax)
-                | (<span class="self">Self</span>::Type, ErrorKind::Type)
-                | (<span class="self">Self</span>::Uri, ErrorKind::Uri)
+            (<span class="self">Self</span>::Aggregate(<span class="kw">_</span>), ErrorObject::Aggregate)
+                | (<span class="self">Self</span>::Error, ErrorObject::Error)
+                | (<span class="self">Self</span>::Eval, ErrorObject::Eval)
+                | (<span class="self">Self</span>::Range, ErrorObject::Range)
+                | (<span class="self">Self</span>::Reference, ErrorObject::Reference)
+                | (<span class="self">Self</span>::Syntax, ErrorObject::Syntax)
+                | (<span class="self">Self</span>::Type, ErrorObject::Type)
+                | (<span class="self">Self</span>::Uri, ErrorObject::Uri)
         )
     }
 }

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["WeakSet"]};
+window.SIDEBAR_ITEMS = {"struct":["WeakSet"],"type":["NativeWeakSet"]};

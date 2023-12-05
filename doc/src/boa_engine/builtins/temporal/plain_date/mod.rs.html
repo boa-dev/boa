@@ -515,14 +515,6 @@
 <a href="#515" id="515">515</a>
 <a href="#516" id="516">516</a>
 <a href="#517" id="517">517</a>
-<a href="#518" id="518">518</a>
-<a href="#519" id="519">519</a>
-<a href="#520" id="520">520</a>
-<a href="#521" id="521">521</a>
-<a href="#522" id="522">522</a>
-<a href="#523" id="523">523</a>
-<a href="#524" id="524">524</a>
-<a href="#525" id="525">525</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of the ECMAScript `Temporal.PlainDate` builtin object.
 </span><span class="attr">#![allow(dead_code, unused_variables)]
 
@@ -533,19 +525,21 @@
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, ObjectData},
+    object::internal_methods::get_prototype_from_constructor,
     property::Attribute,
     realm::Realm,
     string::{common::StaticJsStrings, utf16},
-    Context, JsArgs, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
+    Context, JsArgs, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
+<span class="kw">use </span>boa_gc::{Finalize, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>boa_temporal::{date::Date <span class="kw">as </span>InnerDate, datetime::DateTime, options::ArithmeticOverflow};
 
-<span class="kw">use </span><span class="kw">super</span>::calendar;
+<span class="kw">use super</span>::{calendar, PlainDateTime, ZonedDateTime};
 
 <span class="doccomment">/// The `Temporal.PlainDate` object.
-</span><span class="attr">#[derive(Debug, Clone)]
+</span><span class="attr">#[derive(Debug, Clone, Trace, Finalize, JsData)]
+#[boa_gc(unsafe_empty_trace)] </span><span class="comment">// TODO: Remove this!!! `InnerDate` could contain `Trace` types.
 </span><span class="kw">pub struct </span>PlainDate {
     <span class="kw">pub</span>(<span class="kw">crate</span>) inner: InnerDate,
 }
@@ -959,8 +953,7 @@
     // 6. Set object.[[ISOMonth]] to isoMonth.
     // 7. Set object.[[ISODay]] to isoDay.
     // 8. Set object.[[Calendar]] to calendar.
-    </span><span class="kw">let </span>obj =
-        JsObject::from_proto_and_data(prototype, ObjectData::plain_date(PlainDate::new(inner)));
+    </span><span class="kw">let </span>obj = JsObject::from_proto_and_data(prototype, PlainDate::new(inner));
 
     <span class="comment">// 9. Return object.
     </span><span class="prelude-val">Ok</span>(obj)
@@ -984,13 +977,10 @@
     <span class="comment">// 4. If Type(item) is Object, then
     </span><span class="kw">if let </span><span class="prelude-val">Some</span>(object) = item.as_object() {
         <span class="comment">// a. If item has an [[InitializedTemporalDate]] internal slot, then
-        </span><span class="kw">if </span>object.is_plain_date() {
-            <span class="comment">// i. Return item.
-            </span><span class="kw">let </span>obj = object.borrow();
-            <span class="kw">let </span>date = obj.as_plain_date().expect(<span class="string">&quot;obj must be a PlainDate.&quot;</span>);
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(date) = object.downcast_ref::&lt;PlainDate&gt;() {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(PlainDate::new(date.inner.clone()));
         <span class="comment">// b. If item has an [[InitializedTemporalZonedDateTime]] internal slot, then
-        </span>} <span class="kw">else if </span>object.is_zoned_date_time() {
+        </span>} <span class="kw">else if let </span><span class="prelude-val">Some</span>(data) = object.downcast_ref::&lt;ZonedDateTime&gt;() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
                 .with_message(<span class="string">&quot;ZonedDateTime not yet implemented.&quot;</span>)
                 .into());
@@ -1000,18 +990,12 @@
             // iv. Return ! CreateTemporalDate(plainDateTime.[[ISOYear]], plainDateTime.[[ISOMonth]], plainDateTime.[[ISODay]], plainDateTime.[[Calendar]]).
 
             // c. If item has an [[InitializedTemporalDateTime]] internal slot, then
-        </span>} <span class="kw">else if </span>object.is_plain_date_time() {
+        </span>} <span class="kw">else if let </span><span class="prelude-val">Some</span>(date_time) = object.downcast_ref::&lt;PlainDateTime&gt;() {
             <span class="comment">// i. Perform ? ToTemporalOverflow(options).
             </span><span class="kw">let </span>_o = get_option(<span class="kw-2">&amp;</span>options_obj, <span class="macro">utf16!</span>(<span class="string">&quot;overflow&quot;</span>), context)<span class="question-mark">?
                 </span>.unwrap_or(ArithmeticOverflow::Constrain);
 
-            <span class="kw">let </span>obj = object.borrow();
-            <span class="kw">let </span>date_time = obj
-                .as_plain_date_time()
-                .expect(<span class="string">&quot;obj must be a PlainDateTime&quot;</span>);
-
             <span class="kw">let </span>date = InnerDate::from_datetime(date_time.inner());
-            drop(obj);
 
             <span class="comment">// ii. Return ! CreateTemporalDate(item.[[ISOYear]], item.[[ISOMonth]], item.[[ISODay]], item.[[Calendar]]).
             </span><span class="kw">return </span><span class="prelude-val">Ok</span>(PlainDate::new(date));

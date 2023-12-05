@@ -3,7 +3,7 @@
     property: &amp;[<a class="primitive" href="https://doc.rust-lang.org/1.74.0/std/primitive.u16.html">u16</a>],
     minimum: T,
     maximum: T,
-    context: &amp;mut <a class="struct" href="../../../struct.Context.html" title="struct boa_engine::Context">Context</a>
+    context: &amp;mut <a class="struct" href="../../../context/struct.Context.html" title="struct boa_engine::context::Context">Context</a>
 ) -&gt; <a class="type" href="../../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="https://doc.rust-lang.org/1.74.0/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;T&gt;&gt;<span class="where fmt-newline">where
     T: <a class="trait" href="https://doc.rust-lang.org/1.74.0/core/convert/trait.Into.html" title="trait core::convert::Into">Into</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.74.0/std/primitive.f64.html">f64</a>&gt; + <a class="trait" href="https://docs.rs/num-traits/0.2/num_traits/cast/trait.FromPrimitive.html" title="trait num_traits::cast::FromPrimitive">FromPrimitive</a>,</span></code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Abstract operation <code>GetNumberOption ( options, property, minimum, maximum, fallback )</code></p>
 <p>Extracts the value of the property named <code>property</code> from the provided <code>options</code>

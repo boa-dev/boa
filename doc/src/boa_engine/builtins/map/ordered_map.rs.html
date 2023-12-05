@@ -227,16 +227,14 @@
 <a href="#227" id="227">227</a>
 <a href="#228" id="228">228</a>
 <a href="#229" id="229">229</a>
-<a href="#230" id="230">230</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Implements a map type that preserves insertion order.
 
-</span><span class="kw">use crate</span>::{object::JsObject, JsValue};
+</span><span class="kw">use crate</span>::{object::JsObject, JsData, JsValue};
 <span class="kw">use </span>boa_gc::{custom_trace, Finalize, Trace};
 <span class="kw">use </span>indexmap::{Equivalent, IndexMap};
 <span class="kw">use </span>std::{
-    collections::hash_map::RandomState,
     fmt::Debug,
-    hash::{BuildHasher, Hash, Hasher},
+    hash::{Hash, Hasher},
 };
 
 <span class="attr">#[derive(PartialEq, Eq, Clone, Debug)]
@@ -265,15 +263,14 @@
 }
 
 <span class="doccomment">/// A structure wrapping `indexmap::IndexMap`.
-</span><span class="attr">#[derive(Clone)]
-</span><span class="kw">pub struct </span>OrderedMap&lt;V, S = RandomState&gt; {
-    map: IndexMap&lt;MapKey, <span class="prelude-ty">Option</span>&lt;V&gt;, S&gt;,
+</span><span class="attr">#[derive(Clone, Finalize, JsData)]
+</span><span class="kw">pub struct </span>OrderedMap&lt;V&gt; {
+    map: IndexMap&lt;MapKey, <span class="prelude-ty">Option</span>&lt;V&gt;&gt;,
     lock: u32,
     empty_count: usize,
 }
 
-<span class="kw">impl</span>&lt;V: Trace, S: BuildHasher&gt; Finalize <span class="kw">for </span>OrderedMap&lt;V, S&gt; {}
-<span class="kw">unsafe impl</span>&lt;V: Trace, S: BuildHasher&gt; Trace <span class="kw">for </span>OrderedMap&lt;V, S&gt; {
+<span class="kw">unsafe impl</span>&lt;V: Trace&gt; Trace <span class="kw">for </span>OrderedMap&lt;V&gt; {
     <span class="macro">custom_trace!</span>(this, {
         <span class="kw">for </span>(k, v) <span class="kw">in </span><span class="kw-2">&amp;</span>this.map {
             <span class="kw">if let </span>MapKey::Key(key) = k {
@@ -454,8 +451,9 @@
         </span><span class="kw">let </span><span class="prelude-val">Ok</span>(<span class="kw-2">mut </span>map) = <span class="self">self</span>.<span class="number">0</span>.try_borrow_mut() <span class="kw">else </span>{
             <span class="kw">return</span>;
         };
-        <span class="kw">let </span>map = map.as_map_mut().expect(<span class="string">&quot;MapLock does not point to a map&quot;</span>);
-        map.unlock();
+        map.downcast_mut::&lt;OrderedMap&lt;JsValue&gt;&gt;()
+            .expect(<span class="string">&quot;MapLock does not point to a map&quot;</span>)
+            .unlock();
     }
 }
 </code></pre></div></section></main></body></html>

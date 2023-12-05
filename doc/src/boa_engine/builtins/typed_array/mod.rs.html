@@ -645,14 +645,14 @@
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>builtin::{is_valid_integer_index, BuiltinTypedArray};
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>element::{Atomic, ClampedU8, Element};
-<span class="kw">pub use </span>integer_indexed_object::IntegerIndexed;
+<span class="kw">pub use </span>integer_indexed_object::{IntegerIndexed, TypedArray};
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait </span>TypedArray {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait </span>TypedArrayMarker {
     <span class="kw">type </span>Element: Element;
     <span class="kw">const </span>ERASED: TypedArrayKind;
 }
 
-<span class="kw">impl</span>&lt;T: TypedArray&gt; IntrinsicObject <span class="kw">for </span>T {
+<span class="kw">impl</span>&lt;T: TypedArrayMarker&gt; IntrinsicObject <span class="kw">for </span>T {
     <span class="kw">fn </span>get(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) -&gt; JsObject {
         <span class="self">Self</span>::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
     }
@@ -695,18 +695,18 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T: TypedArray&gt; BuiltInObject <span class="kw">for </span>T {
-    <span class="kw">const </span>NAME: JsString = &lt;<span class="self">Self </span><span class="kw">as </span>TypedArray&gt;::ERASED.js_name();
+<span class="kw">impl</span>&lt;T: TypedArrayMarker&gt; BuiltInObject <span class="kw">for </span>T {
+    <span class="kw">const </span>NAME: JsString = &lt;<span class="self">Self </span><span class="kw">as </span>TypedArrayMarker&gt;::ERASED.js_name();
     <span class="kw">const </span>ATTRIBUTE: Attribute = Attribute::WRITABLE
         .union(Attribute::NON_ENUMERABLE)
         .union(Attribute::CONFIGURABLE);
 }
 
-<span class="kw">impl</span>&lt;T: TypedArray&gt; BuiltInConstructor <span class="kw">for </span>T {
+<span class="kw">impl</span>&lt;T: TypedArrayMarker&gt; BuiltInConstructor <span class="kw">for </span>T {
     <span class="kw">const </span>LENGTH: usize = <span class="number">3</span>;
 
     <span class="kw">const </span>STANDARD_CONSTRUCTOR: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>StandardConstructors) -&gt; <span class="kw-2">&amp;</span>StandardConstructor =
-        &lt;<span class="self">Self </span><span class="kw">as </span>TypedArray&gt;::ERASED.standard_constructor();
+        &lt;<span class="self">Self </span><span class="kw">as </span>TypedArrayMarker&gt;::ERASED.standard_constructor();
 
     <span class="doccomment">/// `23.2.5.1 TypedArray ( ...args )`
     ///
@@ -752,7 +752,7 @@
                 get_prototype_from_constructor(new_target, T::STANDARD_CONSTRUCTOR, context)<span class="question-mark">?</span>;
 
             <span class="comment">// ii. If firstArgument has a [[TypedArrayName]] internal slot, then
-            </span><span class="kw">let </span>o = <span class="kw">if </span>first_argument.is_typed_array() {
+            </span><span class="kw">let </span>o = <span class="kw">if </span>first_argument.is::&lt;TypedArray&gt;() {
                 <span class="comment">// 1. Perform ? InitializeTypedArrayFromTypedArray(O, firstArgument).
                 </span>BuiltinTypedArray::initialize_from_typed_array::&lt;T&gt;(proto, first_argument, context)<span class="question-mark">?
             </span>} <span class="kw">else if </span>first_argument.is_buffer() {
@@ -825,7 +825,7 @@
 </span><span class="attr">#[derive(Debug, Copy, Clone)]
 </span><span class="kw">pub struct </span>Int8Array;
 
-<span class="kw">impl </span>TypedArray <span class="kw">for </span>Int8Array {
+<span class="kw">impl </span>TypedArrayMarker <span class="kw">for </span>Int8Array {
     <span class="kw">type </span>Element = i8;
 
     <span class="kw">const </span>ERASED: TypedArrayKind = TypedArrayKind::Int8;
@@ -835,7 +835,7 @@
 </span><span class="attr">#[derive(Debug, Copy, Clone)]
 </span><span class="kw">pub struct </span>Uint8Array;
 
-<span class="kw">impl </span>TypedArray <span class="kw">for </span>Uint8Array {
+<span class="kw">impl </span>TypedArrayMarker <span class="kw">for </span>Uint8Array {
     <span class="kw">type </span>Element = u8;
 
     <span class="kw">const </span>ERASED: TypedArrayKind = TypedArrayKind::Uint8;
@@ -845,7 +845,7 @@
 </span><span class="attr">#[derive(Debug, Copy, Clone)]
 </span><span class="kw">pub struct </span>Uint8ClampedArray;
 
-<span class="kw">impl </span>TypedArray <span class="kw">for </span>Uint8ClampedArray {
+<span class="kw">impl </span>TypedArrayMarker <span class="kw">for </span>Uint8ClampedArray {
     <span class="kw">type </span>Element = ClampedU8;
 
     <span class="kw">const </span>ERASED: TypedArrayKind = TypedArrayKind::Uint8Clamped;
@@ -855,7 +855,7 @@
 </span><span class="attr">#[derive(Debug, Copy, Clone)]
 </span><span class="kw">pub struct </span>Int16Array;
 
-<span class="kw">impl </span>TypedArray <span class="kw">for </span>Int16Array {
+<span class="kw">impl </span>TypedArrayMarker <span class="kw">for </span>Int16Array {
     <span class="kw">type </span>Element = i16;
 
     <span class="kw">const </span>ERASED: TypedArrayKind = TypedArrayKind::Int16;
@@ -865,7 +865,7 @@
 </span><span class="attr">#[derive(Debug, Copy, Clone)]
 </span><span class="kw">pub struct </span>Uint16Array;
 
-<span class="kw">impl </span>TypedArray <span class="kw">for </span>Uint16Array {
+<span class="kw">impl </span>TypedArrayMarker <span class="kw">for </span>Uint16Array {
     <span class="kw">type </span>Element = u16;
 
     <span class="kw">const </span>ERASED: TypedArrayKind = TypedArrayKind::Uint16;
@@ -875,7 +875,7 @@
 </span><span class="attr">#[derive(Debug, Copy, Clone)]
 </span><span class="kw">pub struct </span>Int32Array;
 
-<span class="kw">impl </span>TypedArray <span class="kw">for </span>Int32Array {
+<span class="kw">impl </span>TypedArrayMarker <span class="kw">for </span>Int32Array {
     <span class="kw">type </span>Element = i32;
 
     <span class="kw">const </span>ERASED: TypedArrayKind = TypedArrayKind::Int32;
@@ -885,7 +885,7 @@
 </span><span class="attr">#[derive(Debug, Copy, Clone)]
 </span><span class="kw">pub struct </span>Uint32Array;
 
-<span class="kw">impl </span>TypedArray <span class="kw">for </span>Uint32Array {
+<span class="kw">impl </span>TypedArrayMarker <span class="kw">for </span>Uint32Array {
     <span class="kw">type </span>Element = u32;
 
     <span class="kw">const </span>ERASED: TypedArrayKind = TypedArrayKind::Uint32;
@@ -895,7 +895,7 @@
 </span><span class="attr">#[derive(Debug, Copy, Clone)]
 </span><span class="kw">pub struct </span>BigInt64Array;
 
-<span class="kw">impl </span>TypedArray <span class="kw">for </span>BigInt64Array {
+<span class="kw">impl </span>TypedArrayMarker <span class="kw">for </span>BigInt64Array {
     <span class="kw">type </span>Element = i64;
 
     <span class="kw">const </span>ERASED: TypedArrayKind = TypedArrayKind::BigInt64;
@@ -905,7 +905,7 @@
 </span><span class="attr">#[derive(Debug, Copy, Clone)]
 </span><span class="kw">pub struct </span>BigUint64Array;
 
-<span class="kw">impl </span>TypedArray <span class="kw">for </span>BigUint64Array {
+<span class="kw">impl </span>TypedArrayMarker <span class="kw">for </span>BigUint64Array {
     <span class="kw">type </span>Element = u64;
 
     <span class="kw">const </span>ERASED: TypedArrayKind = TypedArrayKind::BigUint64;
@@ -915,7 +915,7 @@
 </span><span class="attr">#[derive(Debug, Copy, Clone)]
 </span><span class="kw">pub struct </span>Float32Array;
 
-<span class="kw">impl </span>TypedArray <span class="kw">for </span>Float32Array {
+<span class="kw">impl </span>TypedArrayMarker <span class="kw">for </span>Float32Array {
     <span class="kw">type </span>Element = f32;
 
     <span class="kw">const </span>ERASED: TypedArrayKind = TypedArrayKind::Float32;
@@ -925,7 +925,7 @@
 </span><span class="attr">#[derive(Debug, Copy, Clone)]
 </span><span class="kw">pub struct </span>Float64Array;
 
-<span class="kw">impl </span>TypedArray <span class="kw">for </span>Float64Array {
+<span class="kw">impl </span>TypedArrayMarker <span class="kw">for </span>Float64Array {
     <span class="kw">type </span>Element = f64;
 
     <span class="kw">const </span>ERASED: TypedArrayKind = TypedArrayKind::Float64;

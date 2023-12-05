@@ -461,7 +461,7 @@
 </pre></div><pre class="rust"><code><span class="kw">use </span>boa_macros::utf16;
 
 <span class="kw">use crate</span>::{
-    builtins::function::set_function_name,
+    builtins::{function::set_function_name, Proxy},
     object::{internal_methods::InternalMethodContext, shape::slot::SlotAttributes},
     property::{PropertyDescriptor, PropertyKey},
     vm::{opcode::Operation, CompletionType},
@@ -631,7 +631,7 @@
                             // because we have to the call prototypes [[set]] on non-existing property,
                             // and proxy objects can override [[set]].
                             </span><span class="kw">let </span>prototype = shape.prototype();
-                            <span class="kw">if </span>prototype.map_or(<span class="bool-val">false</span>, |x| x.is_proxy()) {
+                            <span class="kw">if </span>prototype.map_or(<span class="bool-val">false</span>, |x| x.is::&lt;Proxy&gt;()) {
                                 <span class="kw">break </span><span class="lifetime">&#39;fast_path</span>;
                             }
 

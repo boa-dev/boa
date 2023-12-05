@@ -723,7 +723,7 @@
     object::{JsObject, ObjectInitializer},
     string::utf16,
     value::{JsValue, Numeric},
-    Context, JsArgs, JsResult, JsString,
+    Context, JsArgs, JsData, JsResult, JsString,
 };
 <span class="kw">use </span>boa_gc::{Finalize, Trace};
 <span class="comment">// use boa_profiler::Profiler;
@@ -826,7 +826,7 @@
 }
 
 <span class="doccomment">/// This is the internal console object state.
-</span><span class="attr">#[derive(Debug, Default, Trace, Finalize)]
+</span><span class="attr">#[derive(Debug, Default, Trace, Finalize, JsData)]
 </span><span class="kw">pub struct </span>Console {
     count_map: FxHashMap&lt;JsString, u32&gt;,
     timer_map: FxHashMap&lt;JsString, u128&gt;,

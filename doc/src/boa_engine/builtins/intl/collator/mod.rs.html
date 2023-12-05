@@ -566,10 +566,6 @@
 <a href="#566" id="566">566</a>
 <a href="#567" id="567">567</a>
 <a href="#568" id="568">568</a>
-<a href="#569" id="569">569</a>
-<a href="#570" id="570">570</a>
-<a href="#571" id="571">571</a>
-<a href="#572" id="572">572</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>boa_gc::{custom_trace, Finalize, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>icu_collator::{
@@ -586,6 +582,7 @@
 <span class="kw">use crate</span>::{
     builtins::{
         options::get_option, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
+        OrdinaryObject,
     },
     context::{
         intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
@@ -595,13 +592,13 @@
     native_function::NativeFunction,
     object::{
         internal_methods::get_prototype_from_constructor, FunctionObjectBuilder, JsFunction,
-        JsObject, ObjectData,
+        JsObject,
     },
     property::Attribute,
     realm::Realm,
     string::{common::StaticJsStrings, utf16},
     symbol::JsSymbol,
-    Context, JsArgs, JsNativeError, JsResult, JsString, JsValue,
+    Context, JsArgs, JsData, JsNativeError, JsResult, JsString, JsValue,
 };
 
 <span class="kw">use super</span>::{
@@ -613,7 +610,7 @@
 <span class="kw">mod </span>options;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>options::<span class="kw-2">*</span>;
 
-<span class="attr">#[derive(Debug)]
+<span class="attr">#[derive(Debug, Finalize, JsData)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Collator {
     locale: Locale,
     collation: Value,
@@ -625,8 +622,6 @@
     collator: NativeCollator,
     bound_compare: <span class="prelude-ty">Option</span>&lt;JsFunction&gt;,
 }
-
-<span class="kw">impl </span>Finalize <span class="kw">for </span>Collator {}
 
 <span class="comment">// SAFETY: only `bound_compare` is a traceable object.
 </span><span class="kw">unsafe impl </span>Trace <span class="kw">for </span>Collator {
@@ -922,7 +917,7 @@
         <span class="kw">let </span>collator = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            ObjectData::native_object(<span class="self">Self </span>{
+            <span class="self">Self </span>{
                 locale,
                 collation,
                 numeric,
@@ -932,7 +927,7 @@
                 ignore_punctuation,
                 collator,
                 bound_compare: <span class="prelude-val">None</span>,
-            }),
+            },
         );
 
         <span class="comment">// 31. Return collator.
@@ -985,8 +980,7 @@
                 .with_message(<span class="string">&quot;`resolvedOptions` can only be called on a `Collator` object&quot;</span>)
         })<span class="question-mark">?</span>;
         <span class="kw">let </span>collator_obj = this.clone();
-        <span class="kw">let </span><span class="kw-2">mut </span>collator = this.borrow_mut();
-        <span class="kw">let </span>collator = collator.downcast_mut::&lt;<span class="self">Self</span>&gt;().ok_or_else(|| {
+        <span class="kw">let </span><span class="kw-2">mut </span>collator = this.downcast_mut::&lt;<span class="self">Self</span>&gt;().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message(<span class="string">&quot;`resolvedOptions` can only be called on a `Collator` object&quot;</span>)
         })<span class="question-mark">?</span>;
@@ -1006,8 +1000,7 @@
                     |<span class="kw">_</span>, args, collator, context| {
                         <span class="comment">// 1. Let collator be F.[[Collator]].
                         // 2. Assert: Type(collator) is Object and collator has an [[InitializedCollator]] internal slot.
-                        </span><span class="kw">let </span>collator = collator.borrow();
-                        <span class="kw">let </span>collator = collator
+                        </span><span class="kw">let </span>collator = collator
                             .downcast_ref::&lt;<span class="self">Self</span>&gt;()
                             .expect(<span class="string">&quot;checked above that the object was a collator object&quot;</span>);
 
@@ -1051,21 +1044,20 @@
     </span><span class="kw">fn </span>resolved_options(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let collator be the this value.
         // 2. Perform ? RequireInternalSlot(collator, [[InitializedCollator]]).
-        </span><span class="kw">let </span>collator = this.as_object().map(JsObject::borrow).ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message(<span class="string">&quot;`resolvedOptions` can only be called on a `Collator` object&quot;</span>)
-        })<span class="question-mark">?</span>;
-        <span class="kw">let </span>collator = collator.downcast_ref::&lt;<span class="self">Self</span>&gt;().ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message(<span class="string">&quot;`resolvedOptions` can only be called on a `Collator` object&quot;</span>)
-        })<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>collator = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message(<span class="string">&quot;`resolvedOptions` can only be called on a `Collator` object&quot;</span>)
+            })<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Let options be OrdinaryObjectCreate(%Object.prototype%).
         </span><span class="kw">let </span>options = context
             .intrinsics()
             .templates()
             .ordinary_object()
-            .create(ObjectData::ordinary(), <span class="macro">vec!</span>[]);
+            .create(OrdinaryObject, <span class="macro">vec!</span>[]);
 
         <span class="comment">// 4. For each row of Table 4, except the header row, in table order, do
         //     a. Let p be the Property value of the current row.

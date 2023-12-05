@@ -168,7 +168,7 @@
     error::JsNativeError,
     js_string,
     native_function::NativeFunctionObject,
-    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
+    object::{internal_methods::get_prototype_from_constructor, JsObject},
     property::Attribute,
     realm::Realm,
     string::{common::StaticJsStrings, utf16},
@@ -176,7 +176,7 @@
 };
 <span class="kw">use </span>boa_profiler::Profiler;
 
-<span class="kw">use super</span>::{Error, ErrorKind};
+<span class="kw">use super</span>::{Error, ErrorObject};
 
 <span class="doccomment">/// JavaScript `TypeError` implementation.
 </span><span class="attr">#[derive(Debug, Clone, Copy)]
@@ -237,7 +237,7 @@
         <span class="kw">let </span>o = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            ObjectData::error(ErrorKind::Type),
+            ErrorObject::Type,
         );
 
         <span class="comment">// 3. If message is not undefined, then
@@ -271,7 +271,7 @@
 
         <span class="kw">let </span><span class="kw-2">mut </span>obj = obj.borrow_mut();
 
-        <span class="kw-2">*</span>obj.as_native_function_mut()
+        <span class="kw-2">*</span>obj.downcast_mut::&lt;NativeFunctionObject&gt;()
             .expect(<span class="string">&quot;`%ThrowTypeError%` must be a function&quot;</span>) = NativeFunctionObject {
             f: NativeFunction::from_fn_ptr(|<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>| {
                 <span class="prelude-val">Err</span>(JsNativeError::typ()

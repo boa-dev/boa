@@ -745,6 +745,8 @@
 <a href="#745" id="745">745</a>
 <a href="#746" id="746">746</a>
 <a href="#747" id="747">747</a>
+<a href="#748" id="748">748</a>
+<a href="#749" id="749">749</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s `Temporal.Instant` builtin object.
 </span><span class="attr">#![allow(dead_code)]
 
@@ -758,12 +760,14 @@
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, ObjectData},
+    object::internal_methods::get_prototype_from_constructor,
     property::Attribute,
     realm::Realm,
     string::{common::StaticJsStrings, utf16},
-    Context, JsArgs, JsBigInt, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
+    Context, JsArgs, JsBigInt, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol,
+    JsValue,
 };
+<span class="kw">use </span>boa_gc::{Finalize, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>boa_temporal::{duration::Duration, options::TemporalUnit};
 
@@ -774,7 +778,7 @@
 <span class="kw">const </span>NANOSECONDS_PER_HOUR: i64 = <span class="number">36_000_000_000_000</span>;
 
 <span class="doccomment">/// The `Temporal.Instant` object.
-</span><span class="attr">#[derive(Debug, Clone)]
+</span><span class="attr">#[derive(Debug, Clone, Trace, Finalize, JsData)]
 </span><span class="kw">pub struct </span>Instant {
     <span class="kw">pub</span>(<span class="kw">crate</span>) nanoseconds: JsBigInt,
 }
@@ -897,12 +901,12 @@
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let instant be the this value.
         // 2. Perform ? RequireInternalSlot(instant, [[InitializedTemporalInstant]]).
-        </span><span class="kw">let </span>o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;this value of Instant must be an object.&quot;</span>)
-        })<span class="question-mark">?</span>;
-        <span class="kw">let </span>instant = o.as_instant().ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;the this object must be an instant object.&quot;</span>)
-        })<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>instant = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message(<span class="string">&quot;the this object must be an instant object.&quot;</span>)
+            })<span class="question-mark">?</span>;
         <span class="comment">// 3. Let ns be instant.[[Nanoseconds]].
         </span><span class="kw">let </span>ns = <span class="kw-2">&amp;</span>instant.nanoseconds;
         <span class="comment">// 4. Let s be floor(ℝ(ns) / 10e9).
@@ -919,12 +923,12 @@
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let instant be the this value.
         // 2. Perform ? RequireInternalSlot(instant, [[InitializedTemporalInstant]]).
-        </span><span class="kw">let </span>o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;this value of Instant must be an object.&quot;</span>)
-        })<span class="question-mark">?</span>;
-        <span class="kw">let </span>instant = o.as_instant().ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;the this object must be an instant object.&quot;</span>)
-        })<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>instant = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message(<span class="string">&quot;the this object must be an instant object.&quot;</span>)
+            })<span class="question-mark">?</span>;
         <span class="comment">// 3. Let ns be instant.[[Nanoseconds]].
         </span><span class="kw">let </span>ns = <span class="kw-2">&amp;</span>instant.nanoseconds;
         <span class="comment">// 4. Let ms be floor(ℝ(ns) / 106).
@@ -941,12 +945,12 @@
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let instant be the this value.
         // 2. Perform ? RequireInternalSlot(instant, [[InitializedTemporalInstant]]).
-        </span><span class="kw">let </span>o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;this value of Instant must be an object.&quot;</span>)
-        })<span class="question-mark">?</span>;
-        <span class="kw">let </span>instant = o.as_instant().ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;the this object must be an instant object.&quot;</span>)
-        })<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>instant = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message(<span class="string">&quot;the this object must be an instant object.&quot;</span>)
+            })<span class="question-mark">?</span>;
         <span class="comment">// 3. Let ns be instant.[[Nanoseconds]].
         </span><span class="kw">let </span>ns = <span class="kw-2">&amp;</span>instant.nanoseconds;
         <span class="comment">// 4. Let µs be floor(ℝ(ns) / 103).
@@ -966,12 +970,12 @@
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let instant be the this value.
         // 2. Perform ? RequireInternalSlot(instant, [[InitializedTemporalInstant]]).
-        </span><span class="kw">let </span>o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;this value of Instant must be an object.&quot;</span>)
-        })<span class="question-mark">?</span>;
-        <span class="kw">let </span>instant = o.as_instant().ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;the this object must be an instant object.&quot;</span>)
-        })<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>instant = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message(<span class="string">&quot;the this object must be an instant object.&quot;</span>)
+            })<span class="question-mark">?</span>;
         <span class="comment">// 3. Let ns be instant.[[Nanoseconds]].
         </span><span class="kw">let </span>ns = <span class="kw-2">&amp;</span>instant.nanoseconds;
         <span class="comment">// 4. Return ns.
@@ -986,16 +990,16 @@
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let instant be the this value.
         // 2. Perform ? RequireInternalSlot(instant, [[InitializedTemporalInstant]]).
-        </span><span class="kw">let </span>o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;this value of Instant must be an object.&quot;</span>)
-        })<span class="question-mark">?</span>;
-        <span class="kw">let </span>instant = o.as_instant().ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;the this object must be an instant object.&quot;</span>)
-        })<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>instant = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message(<span class="string">&quot;the this object must be an instant object.&quot;</span>)
+            })<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Return ? AddDurationToOrSubtractDurationFromInstant(add, instant, temporalDurationLike).
         </span><span class="kw">let </span>temporal_duration_like = args.get_or_undefined(<span class="number">0</span>);
-        add_or_subtract_duration_from_instant(<span class="bool-val">true</span>, instant, temporal_duration_like, context)
+        add_or_subtract_duration_from_instant(<span class="bool-val">true</span>, <span class="kw-2">&amp;</span>instant, temporal_duration_like, context)
     }
 
     <span class="doccomment">/// 8.3.8 `Temporal.Instant.prototype.subtract ( temporalDurationLike )`
@@ -1006,16 +1010,16 @@
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let instant be the this value.
         // 2. Perform ? RequireInternalSlot(instant, [[InitializedTemporalInstant]]).
-        </span><span class="kw">let </span>o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;this value of Instant must be an object.&quot;</span>)
-        })<span class="question-mark">?</span>;
-        <span class="kw">let </span>instant = o.as_instant().ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;the this object must be an instant object.&quot;</span>)
-        })<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>instant = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message(<span class="string">&quot;the this object must be an instant object.&quot;</span>)
+            })<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Return ? AddDurationToOrSubtractDurationFromInstant(subtract, instant, temporalDurationLike).
         </span><span class="kw">let </span>temporal_duration_like = args.get_or_undefined(<span class="number">0</span>);
-        add_or_subtract_duration_from_instant(<span class="bool-val">false</span>, instant, temporal_duration_like, context)
+        add_or_subtract_duration_from_instant(<span class="bool-val">false</span>, <span class="kw-2">&amp;</span>instant, temporal_duration_like, context)
     }
 
     <span class="doccomment">/// 8.3.9 `Temporal.Instant.prototype.until ( other [ , options ] )`
@@ -1026,17 +1030,17 @@
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let instant be the this value.
         // 2. Perform ? RequireInternalSlot(instant, [[InitializedTemporalInstant]]).
-        </span><span class="kw">let </span>o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;this value of Instant must be an object.&quot;</span>)
-        })<span class="question-mark">?</span>;
-        <span class="kw">let </span>instant = o.as_instant().ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;the this object must be an instant object.&quot;</span>)
-        })<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>instant = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message(<span class="string">&quot;the this object must be an instant object.&quot;</span>)
+            })<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Return ? DifferenceTemporalInstant(until, instant, other, options).
         </span><span class="kw">let </span>other = args.get_or_undefined(<span class="number">0</span>);
         <span class="kw">let </span>option = args.get_or_undefined(<span class="number">1</span>);
-        diff_temporal_instant(<span class="bool-val">true</span>, instant, other, option, context)
+        diff_temporal_instant(<span class="bool-val">true</span>, <span class="kw-2">&amp;</span>instant, other, option, context)
     }
 
     <span class="doccomment">/// 8.3.10 `Temporal.Instant.prototype.since ( other [ , options ] )`
@@ -1047,17 +1051,17 @@
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let instant be the this value.
         // 2. Perform ? RequireInternalSlot(instant, [[InitializedTemporalInstant]]).
-        </span><span class="kw">let </span>o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;this value of Instant must be an object.&quot;</span>)
-        })<span class="question-mark">?</span>;
-        <span class="kw">let </span>instant = o.as_instant().ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;the this object must be an instant object.&quot;</span>)
-        })<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>instant = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message(<span class="string">&quot;the this object must be an instant object.&quot;</span>)
+            })<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Return ? DifferenceTemporalInstant(since, instant, other, options).
         </span><span class="kw">let </span>other = args.get_or_undefined(<span class="number">0</span>);
         <span class="kw">let </span>option = args.get_or_undefined(<span class="number">1</span>);
-        diff_temporal_instant(<span class="bool-val">false</span>, instant, other, option, context)
+        diff_temporal_instant(<span class="bool-val">false</span>, <span class="kw-2">&amp;</span>instant, other, option, context)
     }
 
     <span class="doccomment">/// 8.3.11 `Temporal.Instant.prototype.round ( roundTo )`
@@ -1068,12 +1072,12 @@
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let instant be the this value.
         // 2. Perform ? RequireInternalSlot(instant, [[InitializedTemporalInstant]]).
-        </span><span class="kw">let </span>o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;this value of Instant must be an object.&quot;</span>)
-        })<span class="question-mark">?</span>;
-        <span class="kw">let </span>instant = o.as_instant().ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;the this object must be an instant object.&quot;</span>)
-        })<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>instant = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message(<span class="string">&quot;the this object must be an instant object.&quot;</span>)
+            })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>round_to = args.get_or_undefined(<span class="number">0</span>);
         <span class="comment">// 3. If roundTo is undefined, then
@@ -1168,12 +1172,12 @@
         // 2. Perform ? RequireInternalSlot(instant, [[InitializedTemporalInstant]]).
         // 4. If instant.[[Nanoseconds]] ≠ other.[[Nanoseconds]], return false.
         // 5. Return true.
-        </span><span class="kw">let </span>o = this.as_object().map(JsObject::borrow).ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;this value of Instant must be an object.&quot;</span>)
-        })<span class="question-mark">?</span>;
-        <span class="kw">let </span>instant = o.as_instant().ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;the this object must be an instant object.&quot;</span>)
-        })<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>instant = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message(<span class="string">&quot;the this object must be an instant object.&quot;</span>)
+            })<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Set other to ? ToTemporalInstant(other).
         </span><span class="kw">let </span>other = args.get_or_undefined(<span class="number">0</span>);
@@ -1253,9 +1257,9 @@
     <span class="comment">// 4. Set object.[[Nanoseconds]] to epochNanoseconds.
     </span><span class="kw">let </span>obj = JsObject::from_proto_and_data(
         proto,
-        ObjectData::instant(Instant {
+        Instant {
             nanoseconds: epoch_nanos,
-        }),
+        },
     );
 
     <span class="comment">// 5. Return object.

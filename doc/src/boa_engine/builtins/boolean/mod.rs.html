@@ -124,6 +124,7 @@
 <a href="#124" id="124">124</a>
 <a href="#125" id="125">125</a>
 <a href="#126" id="126">126</a>
+<a href="#127" id="127">127</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Boolean` object.
 //!
 //! The `Boolean` object is an object wrapper for a boolean value.
@@ -143,7 +144,7 @@
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
+    object::{internal_methods::get_prototype_from_constructor, JsObject},
     realm::Realm,
     string::common::StaticJsStrings,
     Context, JsResult, JsString, JsValue,
@@ -196,11 +197,8 @@
         }
         <span class="kw">let </span>prototype =
             get_prototype_from_constructor(new_target, StandardConstructors::boolean, context)<span class="question-mark">?</span>;
-        <span class="kw">let </span>boolean = JsObject::from_proto_and_data_with_shared_shape(
-            context.root_shape(),
-            prototype,
-            ObjectData::boolean(data),
-        );
+        <span class="kw">let </span>boolean =
+            JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), prototype, data);
 
         <span class="prelude-val">Ok</span>(boolean.into())
     }
@@ -216,7 +214,11 @@
     </span><span class="kw">fn </span>this_boolean_value(value: <span class="kw-2">&amp;</span>JsValue) -&gt; JsResult&lt;bool&gt; {
         value
             .as_boolean()
-            .or_else(|| value.as_object().and_then(|obj| obj.borrow().as_boolean()))
+            .or_else(|| {
+                value
+                    .as_object()
+                    .and_then(|obj| obj.downcast_ref::&lt;bool&gt;().as_deref().copied())
+            })
             .ok_or_else(|| {
                 JsNativeError::typ()
                     .with_message(<span class="string">&quot;&#39;this&#39; is not a boolean&quot;</span>)

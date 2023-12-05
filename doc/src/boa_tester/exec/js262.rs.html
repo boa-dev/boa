@@ -336,6 +336,7 @@
 <a href="#336" id="336">336</a>
 <a href="#337" id="337">337</a>
 <a href="#338" id="338">338</a>
+<a href="#339" id="339">339</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{
     cell::RefCell,
     rc::Rc,
@@ -345,7 +346,7 @@
 };
 
 <span class="kw">use </span>boa_engine::{
-    builtins::array_buffer::SharedArrayBuffer,
+    builtins::array_buffer::{ArrayBuffer, SharedArrayBuffer},
     js_string,
     native_function::NativeFunction,
     object::{builtins::JsSharedArrayBuffer, JsObject, ObjectInitializer},
@@ -480,7 +481,9 @@
     <span class="kw">let </span><span class="kw-2">mut </span>array_buffer = array_buffer.borrow_mut();
 
     <span class="comment">// 1. Assert: IsSharedArrayBuffer(arrayBuffer) is false.
-    </span><span class="kw">let </span>array_buffer = array_buffer.as_array_buffer_mut().ok_or_else(type_err)<span class="question-mark">?</span>;
+    </span><span class="kw">let </span>array_buffer = array_buffer
+        .downcast_mut::&lt;ArrayBuffer&gt;()
+        .ok_or_else(type_err)<span class="question-mark">?</span>;
 
     <span class="comment">// 2. If key is not present, set key to undefined.
     </span><span class="kw">let </span>key = args.get_or_undefined(<span class="number">1</span>);
@@ -571,8 +574,7 @@
                 JsNativeError::typ().with_message(<span class="string">&quot;argument was not a shared array&quot;</span>)
             })<span class="question-mark">?</span>;
             <span class="kw">let </span>buffer = buffer
-                .borrow()
-                .as_shared_array_buffer()
+                .downcast_ref::&lt;SharedArrayBuffer&gt;()
                 .ok_or_else(|| {
                     JsNativeError::typ().with_message(<span class="string">&quot;argument was not a shared array&quot;</span>)
                 })<span class="question-mark">?

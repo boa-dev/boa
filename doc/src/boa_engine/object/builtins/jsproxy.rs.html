@@ -552,16 +552,13 @@
 <a href="#552" id="552">552</a>
 <a href="#553" id="553">553</a>
 <a href="#554" id="554">554</a>
-<a href="#555" id="555">555</a>
-<a href="#556" id="556">556</a>
-<a href="#557" id="557">557</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! A Rust API wrapper for the `Proxy` Builtin ECMAScript Object
 </span><span class="kw">use </span>boa_gc::{Finalize, Trace};
 
 <span class="kw">use crate</span>::{
     builtins::Proxy,
     native_function::{NativeFunction, NativeFunctionPointer},
-    object::{FunctionObjectBuilder, JsObject, JsObjectType, ObjectData},
+    object::{FunctionObjectBuilder, JsObject, JsObjectType},
     string::utf16,
     value::TryFromJs,
     Context, JsNativeError, JsResult, JsValue,
@@ -596,7 +593,7 @@
     /// `TypeError`.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>from_object(object: JsObject) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
-        <span class="kw">if </span>object.borrow().is_proxy() {
+        <span class="kw">if </span>object.borrow().is::&lt;Proxy&gt;() {
             <span class="prelude-val">Ok</span>(<span class="self">Self </span>{ inner: object })
         } <span class="kw">else </span>{
             <span class="prelude-val">Err</span>(JsNativeError::typ()
@@ -1085,13 +1082,10 @@
                 .expect(<span class="string">&quot;new object should be writable&quot;</span>);
         }
 
-        <span class="kw">let </span>callable = <span class="self">self</span>.target.is_callable();
-        <span class="kw">let </span>constructor = <span class="self">self</span>.target.is_constructor();
-
         <span class="kw">let </span>proxy = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             context.intrinsics().constructors().object().prototype(),
-            ObjectData::proxy(Proxy::new(<span class="self">self</span>.target, handler), callable, constructor),
+            Proxy::new(<span class="self">self</span>.target, handler),
         );
 
         JsProxy { inner: proxy }

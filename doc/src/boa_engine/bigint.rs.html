@@ -492,9 +492,13 @@
 <a href="#492" id="492">492</a>
 <a href="#493" id="493">493</a>
 <a href="#494" id="494">494</a>
+<a href="#495" id="495">495</a>
+<a href="#496" id="496">496</a>
+<a href="#497" id="497">497</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s bigint primitive type.
 
-</span><span class="kw">use crate</span>::{builtins::Number, error::JsNativeError, JsResult};
+</span><span class="kw">use crate</span>::{builtins::Number, error::JsNativeError, JsData, JsResult};
+<span class="kw">use </span>boa_gc::{Finalize, Trace};
 <span class="kw">use </span>num_integer::Integer;
 <span class="kw">use </span>num_traits::{pow::Pow, FromPrimitive, One, ToPrimitive, Zero};
 <span class="kw">use </span>std::{
@@ -511,7 +515,9 @@
 
 <span class="doccomment">/// JavaScript bigint primitive rust type.
 </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;deser&quot;</span>, derive(Serialize, Deserialize))]
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Trace, Finalize, JsData)]
+</span><span class="comment">// Safety: `JsBigInt` doesn&#39;t contain any traceable types.
+</span><span class="attr">#[boa_gc(unsafe_empty_trace)]
 </span><span class="kw">pub struct </span>JsBigInt {
     inner: Rc&lt;RawBigInt&gt;,
 }

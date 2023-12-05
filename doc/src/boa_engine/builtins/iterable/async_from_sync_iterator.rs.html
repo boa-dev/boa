@@ -345,12 +345,6 @@
 <a href="#345" id="345">345</a>
 <a href="#346" id="346">346</a>
 <a href="#347" id="347">347</a>
-<a href="#348" id="348">348</a>
-<a href="#349" id="349">349</a>
-<a href="#350" id="350">350</a>
-<a href="#351" id="351">351</a>
-<a href="#352" id="352">352</a>
-<a href="#353" id="353">353</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::{
         iterable::{create_iter_result_object, IteratorRecord, IteratorResult},
@@ -360,10 +354,10 @@
     context::intrinsics::Intrinsics,
     js_string,
     native_function::NativeFunction,
-    object::{FunctionObjectBuilder, JsObject, ObjectData},
+    object::{FunctionObjectBuilder, JsObject},
     realm::Realm,
     string::utf16,
-    Context, JsArgs, JsResult, JsValue,
+    Context, JsArgs, JsData, JsResult, JsValue,
 };
 <span class="kw">use </span>boa_gc::{Finalize, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
@@ -374,8 +368,8 @@
 ///  - [ECMA reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-properties-of-async-from-sync-iterator-instances
-</span><span class="attr">#[derive(Clone, Debug, Finalize, Trace)]
-</span><span class="kw">pub struct </span>AsyncFromSyncIterator {
+</span><span class="attr">#[derive(Clone, Debug, Finalize, Trace, JsData)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>AsyncFromSyncIterator {
     <span class="comment">// The [[SyncIteratorRecord]] internal slot.
     </span>sync_iterator_record: IteratorRecord,
 }
@@ -426,9 +420,9 @@
                 .objects()
                 .iterator_prototypes()
                 .async_from_sync_iterator(),
-            ObjectData::async_from_sync_iterator(<span class="self">Self </span>{
+            <span class="self">Self </span>{
                 sync_iterator_record,
-            }),
+            },
         );
 
         <span class="comment">// 3. Let nextMethod be ! Get(asyncIterator, &quot;next&quot;).
@@ -453,9 +447,7 @@
         // 4. Let syncIteratorRecord be O.[[SyncIteratorRecord]].
         </span><span class="kw">let </span>sync_iterator_record = this
             .as_object()
-            .expect(<span class="string">&quot;async from sync iterator prototype must be object&quot;</span>)
-            .borrow()
-            .as_async_from_sync_iterator()
+            .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .expect(<span class="string">&quot;async from sync iterator prototype must be object&quot;</span>)
             .sync_iterator_record
             .clone();
@@ -482,7 +474,7 @@
             .and_then(IteratorResult::from_value);
 
         <span class="comment">// 7. IfAbruptRejectPromise(result, promiseCapability).
-        </span><span class="macro">if_abrupt_reject_promise!</span>(result, promise_capability, context);
+        </span><span class="kw">let </span>result = <span class="macro">if_abrupt_reject_promise!</span>(result, promise_capability, context);
 
         <span class="comment">// 8. Return AsyncFromSyncIteratorContinuation(result, promiseCapability).
         </span><span class="self">Self</span>::continuation(<span class="kw-2">&amp;</span>result, <span class="kw-2">&amp;</span>promise_capability, context)
@@ -500,9 +492,7 @@
         // 4. Let syncIterator be O.[[SyncIteratorRecord]].[[Iterator]].
         </span><span class="kw">let </span>sync_iterator = this
             .as_object()
-            .expect(<span class="string">&quot;async from sync iterator prototype must be object&quot;</span>)
-            .borrow()
-            .as_async_from_sync_iterator()
+            .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .expect(<span class="string">&quot;async from sync iterator prototype must be object&quot;</span>)
             .sync_iterator_record
             .iterator()
@@ -519,7 +509,7 @@
         </span><span class="kw">let </span>r#return = sync_iterator.get_method(<span class="macro">utf16!</span>(<span class="string">&quot;return&quot;</span>), context);
 
         <span class="comment">// 6. IfAbruptRejectPromise(return, promiseCapability).
-        </span><span class="macro">if_abrupt_reject_promise!</span>(r#return, promise_capability, context);
+        </span><span class="kw">let </span>r#return = <span class="macro">if_abrupt_reject_promise!</span>(r#return, promise_capability, context);
 
         <span class="kw">let </span>result = <span class="kw">match </span>(r#return, args.get(<span class="number">0</span>)) {
             <span class="comment">// 7. If return is undefined, then
@@ -554,7 +544,7 @@
         </span><span class="kw">let </span>result = result.and_then(IteratorResult::from_value);
 
         <span class="comment">// 10. IfAbruptRejectPromise(result, promiseCapability).
-        </span><span class="macro">if_abrupt_reject_promise!</span>(result, promise_capability, context);
+        </span><span class="kw">let </span>result = <span class="macro">if_abrupt_reject_promise!</span>(result, promise_capability, context);
 
         <span class="comment">// 12. Return AsyncFromSyncIteratorContinuation(result, promiseCapability).
         </span><span class="self">Self</span>::continuation(<span class="kw-2">&amp;</span>result, <span class="kw-2">&amp;</span>promise_capability, context)
@@ -572,9 +562,7 @@
         // 4. Let syncIterator be O.[[SyncIteratorRecord]].[[Iterator]].
         </span><span class="kw">let </span>sync_iterator = this
             .as_object()
-            .expect(<span class="string">&quot;async from sync iterator prototype must be object&quot;</span>)
-            .borrow()
-            .as_async_from_sync_iterator()
+            .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .expect(<span class="string">&quot;async from sync iterator prototype must be object&quot;</span>)
             .sync_iterator_record
             .iterator()
@@ -591,7 +579,7 @@
         </span><span class="kw">let </span>throw = sync_iterator.get_method(<span class="macro">utf16!</span>(<span class="string">&quot;throw&quot;</span>), context);
 
         <span class="comment">// 6. IfAbruptRejectPromise(throw, promiseCapability).
-        </span><span class="macro">if_abrupt_reject_promise!</span>(throw, promise_capability, context);
+        </span><span class="kw">let </span>throw = <span class="macro">if_abrupt_reject_promise!</span>(throw, promise_capability, context);
 
         <span class="kw">let </span>result = <span class="kw">match </span>(throw, args.get(<span class="number">0</span>)) {
             <span class="comment">// 7. If throw is undefined, then
@@ -626,7 +614,7 @@
         </span><span class="kw">let </span>result = result.and_then(IteratorResult::from_value);
 
         <span class="comment">// 10. IfAbruptRejectPromise(result, promiseCapability).
-        </span><span class="macro">if_abrupt_reject_promise!</span>(result, promise_capability, context);
+        </span><span class="kw">let </span>result = <span class="macro">if_abrupt_reject_promise!</span>(result, promise_capability, context);
 
         <span class="comment">// 12. Return AsyncFromSyncIteratorContinuation(result, promiseCapability).
         </span><span class="self">Self</span>::continuation(<span class="kw-2">&amp;</span>result, <span class="kw-2">&amp;</span>promise_capability, context)
@@ -651,13 +639,13 @@
         </span><span class="kw">let </span>done = result.complete(context);
 
         <span class="comment">// 3. IfAbruptRejectPromise(done, promiseCapability).
-        </span><span class="macro">if_abrupt_reject_promise!</span>(done, promise_capability, context);
+        </span><span class="kw">let </span>done = <span class="macro">if_abrupt_reject_promise!</span>(done, promise_capability, context);
 
         <span class="comment">// 4. Let value be Completion(IteratorValue(result)).
         </span><span class="kw">let </span>value = result.value(context);
 
         <span class="comment">// 5. IfAbruptRejectPromise(value, promiseCapability).
-        </span><span class="macro">if_abrupt_reject_promise!</span>(value, promise_capability, context);
+        </span><span class="kw">let </span>value = <span class="macro">if_abrupt_reject_promise!</span>(value, promise_capability, context);
 
         <span class="comment">// 6. Let valueWrapper be Completion(PromiseResolve(%Promise%, value)).
         </span><span class="kw">let </span>value_wrapper = Promise::promise_resolve(
@@ -667,7 +655,7 @@
         );
 
         <span class="comment">// 7. IfAbruptRejectPromise(valueWrapper, promiseCapability).
-        </span><span class="macro">if_abrupt_reject_promise!</span>(value_wrapper, promise_capability, context);
+        </span><span class="kw">let </span>value_wrapper = <span class="macro">if_abrupt_reject_promise!</span>(value_wrapper, promise_capability, context);
 
         <span class="comment">// 8. Let unwrap be a new Abstract Closure with parameters (value)
         // that captures done and performs the following steps when called:

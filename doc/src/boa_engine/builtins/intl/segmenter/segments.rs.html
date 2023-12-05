@@ -128,8 +128,6 @@
 <a href="#128" id="128">128</a>
 <a href="#129" id="129">129</a>
 <a href="#130" id="130">130</a>
-<a href="#131" id="131">131</a>
-<a href="#132" id="132">132</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>boa_gc::{Finalize, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>itertools::Itertools;
@@ -138,14 +136,13 @@
     builtins::{BuiltInBuilder, IntrinsicObject},
     context::intrinsics::Intrinsics,
     js_string,
-    object::ObjectData,
     realm::Realm,
-    Context, JsArgs, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
+    Context, JsArgs, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 
 <span class="kw">use super</span>::{create_segment_data_object, SegmentIterator, Segmenter};
 
-<span class="attr">#[derive(Debug, Trace, Finalize)]
+<span class="attr">#[derive(Debug, Trace, Finalize, JsData)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Segments {
     segmenter: JsObject,
     string: JsString,
@@ -179,7 +176,7 @@
         </span>JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             context.intrinsics().objects().segments_prototype(),
-            ObjectData::native_object(<span class="self">Self </span>{ segmenter, string }),
+            <span class="self">Self </span>{ segmenter, string },
         )
     }
 
@@ -189,14 +186,13 @@
     </span><span class="kw">fn </span>containing(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let segments be the this value.
         // 2. Perform ? RequireInternalSlot(segments, [[SegmentsSegmenter]]).
-        </span><span class="kw">let </span>segments = this.as_object().map(JsObject::borrow).ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message(<span class="string">&quot;`containing` can only be called on a `Segments` object&quot;</span>)
-        })<span class="question-mark">?</span>;
-        <span class="kw">let </span>segments = segments.downcast_ref::&lt;<span class="self">Self</span>&gt;().ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message(<span class="string">&quot;`containing` can only be called on a `Segments` object&quot;</span>)
-        })<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>segments = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message(<span class="string">&quot;`containing` can only be called on a `Segments` object&quot;</span>)
+            })<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Let segmenter be segments.[[SegmentsSegmenter]].
         </span><span class="kw">let </span>segmenter = segments.segmenter.borrow();
