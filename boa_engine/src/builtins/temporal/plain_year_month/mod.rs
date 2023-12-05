@@ -4,19 +4,21 @@ use crate::{
     builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, ObjectData},
+    object::internal_methods::get_prototype_from_constructor,
     property::Attribute,
     realm::Realm,
     string::{common::StaticJsStrings, utf16},
-    Context, JsArgs, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
+    Context, JsArgs, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
+use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
 
 use super::calendar::to_temporal_calendar_slot_value;
 use boa_temporal::{options::ArithmeticOverflow, year_month::YearMonth as InnerYearMonth};
 
 /// The `Temporal.PlainYearMonth` object.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Trace, Finalize, JsData)]
+#[boa_gc(unsafe_empty_trace)] // TODO: Remove this!!! `InnerYearMonth` could contain `Trace` types.
 pub struct PlainYearMonth {
     pub(crate) inner: InnerYearMonth,
 }
@@ -299,8 +301,7 @@ pub(crate) fn create_temporal_year_month(
     // 7. Set object.[[Calendar]] to calendar.
     // 8. Set object.[[ISODay]] to referenceISODay.
 
-    let obj =
-        JsObject::from_proto_and_data(proto, ObjectData::plain_year_month(PlainYearMonth::new(ym)));
+    let obj = JsObject::from_proto_and_data(proto, PlainYearMonth::new(ym));
 
     // 9. Return object.
     Ok(obj.into())

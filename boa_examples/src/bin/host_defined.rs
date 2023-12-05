@@ -1,20 +1,20 @@
 // This example goes into the details on how to store user defined structs/state that is shared.
 
 use boa_engine::{
-    js_string, native_function::NativeFunction, Context, JsArgs, JsError, JsNativeError, JsValue,
-    Source,
+    js_string, native_function::NativeFunction, Context, JsArgs, JsData, JsError, JsNativeError,
+    JsValue, Source,
 };
 use boa_gc::{Finalize, Trace};
 
 /// Custom host-defined struct that has some state, and can be shared between JavaScript and rust.
-#[derive(Default, Trace, Finalize)]
+#[derive(Default, Trace, Finalize, JsData)]
 struct CustomHostDefinedStruct {
     #[unsafe_ignore_trace]
     counter: usize,
 }
 
 /// Custom host-defined struct that has some state, and can be shared between JavaScript and rust.
-#[derive(Trace, Finalize)]
+#[derive(Trace, Finalize, JsData)]
 struct AnotherCustomHostDefinedStruct {
     #[unsafe_ignore_trace]
     counter: usize,
@@ -27,7 +27,7 @@ impl AnotherCustomHostDefinedStruct {
 }
 
 /// Custom host-defined struct that tracks the number of calls to the `getRealmValue` and `setRealmValue` functions.
-#[derive(Default, Trace, Finalize)]
+#[derive(Default, Trace, Finalize, JsData)]
 struct HostDefinedMetrics {
     #[unsafe_ignore_trace]
     counter: usize,

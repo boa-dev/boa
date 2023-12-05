@@ -4,7 +4,7 @@ use boa_gc::{Finalize, Trace};
 use crate::{
     builtins::Proxy,
     native_function::{NativeFunction, NativeFunctionPointer},
-    object::{FunctionObjectBuilder, JsObject, JsObjectType, ObjectData},
+    object::{FunctionObjectBuilder, JsObject, JsObjectType},
     string::utf16,
     value::TryFromJs,
     Context, JsNativeError, JsResult, JsValue,
@@ -39,7 +39,7 @@ impl JsProxy {
     /// `TypeError`.
     #[inline]
     pub fn from_object(object: JsObject) -> JsResult<Self> {
-        if object.borrow().is_proxy() {
+        if object.borrow().is::<Proxy>() {
             Ok(Self { inner: object })
         } else {
             Err(JsNativeError::typ()
@@ -528,13 +528,10 @@ impl JsProxyBuilder {
                 .expect("new object should be writable");
         }
 
-        let callable = self.target.is_callable();
-        let constructor = self.target.is_constructor();
-
         let proxy = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             context.intrinsics().constructors().object().prototype(),
-            ObjectData::proxy(Proxy::new(self.target, handler), callable, constructor),
+            Proxy::new(self.target, handler),
         );
 
         JsProxy { inner: proxy }

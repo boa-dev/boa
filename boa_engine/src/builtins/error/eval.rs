@@ -15,7 +15,7 @@ use crate::{
     builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
+    object::{internal_methods::get_prototype_from_constructor, JsObject},
     property::Attribute,
     realm::Realm,
     string::{common::StaticJsStrings, utf16},
@@ -23,7 +23,7 @@ use crate::{
 };
 use boa_profiler::Profiler;
 
-use super::{Error, ErrorKind};
+use super::{Error, ErrorObject};
 
 /// JavaScript `EvalError` implementation.
 #[derive(Debug, Clone, Copy)]
@@ -84,7 +84,7 @@ impl BuiltInConstructor for EvalError {
         let o = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            ObjectData::error(ErrorKind::Eval),
+            ErrorObject::Eval,
         );
 
         // 3. If message is not undefined, then

@@ -5,7 +5,7 @@ use boa_engine::{
     js_string,
     native_function::NativeFunction,
     property::Attribute,
-    Context, JsArgs, JsResult, JsString, JsValue, Source,
+    Context, JsArgs, JsData, JsResult, JsString, JsValue, Source,
 };
 
 use boa_gc::{Finalize, Trace};
@@ -18,7 +18,7 @@ use boa_runtime::Console;
 //
 // The fields of the struct are not accessible by Javascript unless we create accessors for them.
 /// Represents a `Person` object.
-#[derive(Debug, Trace, Finalize)]
+#[derive(Debug, Trace, Finalize, JsData)]
 struct Person {
     /// The name of the person.
     name: JsString,

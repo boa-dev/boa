@@ -13,7 +13,7 @@ use crate::{
     native_function::NativeFunction,
     object::{
         internal_methods::get_prototype_from_constructor, FunctionObjectBuilder, JsFunction,
-        JsObject, ObjectData, CONSTRUCTOR,
+        JsObject, CONSTRUCTOR,
     },
     property::Attribute,
     realm::Realm,
@@ -23,6 +23,7 @@ use crate::{
     Context, JsArgs, JsError, JsResult, JsString,
 };
 use boa_gc::{custom_trace, Finalize, Gc, GcRefCell, Trace};
+use boa_macros::JsData;
 use boa_profiler::Profiler;
 use std::{cell::Cell, rc::Rc};
 use tap::{Conv, Pipe};
@@ -72,7 +73,7 @@ impl PromiseState {
 }
 
 /// The internal representation of a `Promise` object.
-#[derive(Debug, Trace, Finalize)]
+#[derive(Debug, Trace, Finalize, JsData)]
 pub struct Promise {
     state: PromiseState,
     fulfill_reactions: Vec<ReactionRecord>,
@@ -137,8 +138,8 @@ unsafe impl Trace for ResolvingFunctions {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-ifabruptrejectpromise
 macro_rules! if_abrupt_reject_promise {
-    ($value:ident, $capability:expr, $context: expr) => {
-        let $value = match $value {
+    ($value:expr, $capability:expr, $context: expr) => {
+        match $value {
             // 1. If value is an abrupt completion, then
             Err(err) => {
                 let err = err.to_opaque($context);
@@ -152,7 +153,7 @@ macro_rules! if_abrupt_reject_promise {
             }
             // 2. Else if value is a Completion Record, set value to value.[[Value]].
             Ok(value) => value,
-        };
+        }
     };
 }
 
@@ -419,7 +420,7 @@ impl BuiltInConstructor for Promise {
             // 5. Set promise.[[PromiseFulfillReactions]] to a new empty List.
             // 6. Set promise.[[PromiseRejectReactions]] to a new empty List.
             // 7. Set promise.[[PromiseIsHandled]] to false.
-            ObjectData::promise(Self::new()),
+            Self::new(),
         );
 
         // 8. Let resolvingFunctions be CreateResolvingFunctions(promise).
@@ -478,6 +479,8 @@ impl Promise {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let C be the this value.
+
+        use super::OrdinaryObject;
         let c = this.as_object().ok_or_else(|| {
             JsNativeError::typ().with_message("Promise.all() called on a non-object")
         })?;
@@ -493,7 +496,7 @@ impl Promise {
         // 5. Perform ! CreateDataPropertyOrThrow(obj, "resolve", promiseCapability.[[Resolve]]).
         // 6. Perform ! CreateDataPropertyOrThrow(obj, "reject", promiseCapability.[[Reject]]).
         let obj = context.intrinsics().templates().with_resolvers().create(
-            ObjectData::ordinary(),
+            OrdinaryObject,
             vec![promise.into(), resolve.into(), reject.into()],
         );
 
@@ -526,14 +529,15 @@ impl Promise {
         let promise_resolve = Self::get_promise_resolve(c, context);
 
         // 4. IfAbruptRejectPromise(promiseResolve, promiseCapability).
-        if_abrupt_reject_promise!(promise_resolve, promise_capability, context);
+        let promise_resolve =
+            if_abrupt_reject_promise!(promise_resolve, promise_capability, context);
 
         // 5. Let iteratorRecord be Completion(GetIterator(iterable)).
         let iterator_record = args.get_or_undefined(0).get_iterator(context, None, None);
 
         // 6. IfAbruptRejectPromise(iteratorRecord, promiseCapability).
-        if_abrupt_reject_promise!(iterator_record, promise_capability, context);
-        let mut iterator_record = iterator_record;
+        let mut iterator_record =
+            if_abrupt_reject_promise!(iterator_record, promise_capability, context);
 
         // 7. Let result be Completion(PerformPromiseAll(iteratorRecord, C, promiseCapability, promiseResolve)).
         let mut result = Self::perform_promise_all(
@@ -553,7 +557,7 @@ impl Promise {
             }
 
             // b. IfAbruptRejectPromise(result, promiseCapability).
-            if_abrupt_reject_promise!(result, promise_capability, context);
+            let result = if_abrupt_reject_promise!(result, promise_capability, context);
 
             return Ok(result);
         }
@@ -753,14 +757,15 @@ impl Promise {
         let promise_resolve = Self::get_promise_resolve(c, context);
 
         // 4. IfAbruptRejectPromise(promiseResolve, promiseCapability).
-        if_abrupt_reject_promise!(promise_resolve, promise_capability, context);
+        let promise_resolve =
+            if_abrupt_reject_promise!(promise_resolve, promise_capability, context);
 
         // 5. Let iteratorRecord be Completion(GetIterator(iterable)).
         let iterator_record = args.get_or_undefined(0).get_iterator(context, None, None);
 
         // 6. IfAbruptRejectPromise(iteratorRecord, promiseCapability).
-        if_abrupt_reject_promise!(iterator_record, promise_capability, context);
-        let mut iterator_record = iterator_record;
+        let mut iterator_record =
+            if_abrupt_reject_promise!(iterator_record, promise_capability, context);
 
         // 7. Let result be Completion(PerformPromiseAllSettled(iteratorRecord, C, promiseCapability, promiseResolve)).
         let mut result = Self::perform_promise_all_settled(
@@ -780,7 +785,7 @@ impl Promise {
             }
 
             // b. IfAbruptRejectPromise(result, promiseCapability).
-            if_abrupt_reject_promise!(result, promise_capability, context);
+            let result = if_abrupt_reject_promise!(result, promise_capability, context);
 
             return Ok(result);
         }
@@ -1088,14 +1093,15 @@ impl Promise {
         let promise_resolve = Self::get_promise_resolve(c, context);
 
         // 4. IfAbruptRejectPromise(promiseResolve, promiseCapability).
-        if_abrupt_reject_promise!(promise_resolve, promise_capability, context);
+        let promise_resolve =
+            if_abrupt_reject_promise!(promise_resolve, promise_capability, context);
 
         // 5. Let iteratorRecord be Completion(GetIterator(iterable)).
         let iterator_record = args.get_or_undefined(0).get_iterator(context, None, None);
 
         // 6. IfAbruptRejectPromise(iteratorRecord, promiseCapability).
-        if_abrupt_reject_promise!(iterator_record, promise_capability, context);
-        let mut iterator_record = iterator_record;
+        let mut iterator_record =
+            if_abrupt_reject_promise!(iterator_record, promise_capability, context);
 
         // 7. Let result be Completion(PerformPromiseAny(iteratorRecord, C, promiseCapability, promiseResolve)).
         let mut result = Self::perform_promise_any(
@@ -1115,7 +1121,7 @@ impl Promise {
             }
 
             // b. IfAbruptRejectPromise(result, promiseCapability).
-            if_abrupt_reject_promise!(result, promise_capability, context);
+            let result = if_abrupt_reject_promise!(result, promise_capability, context);
 
             return Ok(result);
         }
@@ -1331,14 +1337,15 @@ impl Promise {
         let promise_resolve = Self::get_promise_resolve(c, context);
 
         // 4. IfAbruptRejectPromise(promiseResolve, promiseCapability).
-        if_abrupt_reject_promise!(promise_resolve, promise_capability, context);
+        let promise_resolve =
+            if_abrupt_reject_promise!(promise_resolve, promise_capability, context);
 
         // 5. Let iteratorRecord be Completion(GetIterator(iterable)).
         let iterator_record = iterable.get_iterator(context, None, None);
 
         // 6. IfAbruptRejectPromise(iteratorRecord, promiseCapability).
-        if_abrupt_reject_promise!(iterator_record, promise_capability, context);
-        let mut iterator_record = iterator_record;
+        let mut iterator_record =
+            if_abrupt_reject_promise!(iterator_record, promise_capability, context);
 
         // 7. Let result be Completion(PerformPromiseRace(iteratorRecord, C, promiseCapability, promiseResolve)).
         let mut result = Self::perform_promise_race(
@@ -1358,7 +1365,7 @@ impl Promise {
             }
 
             // b. IfAbruptRejectPromise(result, promiseCapability).
-            if_abrupt_reject_promise!(result, promise_capability, context);
+            let result = if_abrupt_reject_promise!(result, promise_capability, context);
 
             Ok(result)
         } else {
@@ -1849,17 +1856,17 @@ impl Promise {
         };
 
         let (state, handled) = {
-            let promise = promise.borrow();
-            let promise = promise.as_promise().expect("IsPromise(promise) is false");
+            let promise = promise
+                .downcast_ref::<Self>()
+                .expect("IsPromise(promise) is false");
             (promise.state.clone(), promise.handled)
         };
 
         match state {
             // 9. If promise.[[PromiseState]] is pending, then
             PromiseState::Pending => {
-                let mut promise = promise.borrow_mut();
-                let promise = promise
-                    .as_promise_mut()
+                let mut promise = promise
+                    .downcast_mut::<Self>()
                     .expect("IsPromise(promise) is false");
                 //   a. Append fulfillReaction as the last element of the List that is promise.[[PromiseFulfillReactions]].
                 promise.fulfill_reactions.push(fulfill_reaction);
@@ -1902,8 +1909,7 @@ impl Promise {
 
                 // 12. Set promise.[[PromiseIsHandled]] to true.
                 promise
-                    .borrow_mut()
-                    .as_promise_mut()
+                    .downcast_mut::<Self>()
                     .expect("IsPromise(promise) is false")
                     .handled = true;
             }
@@ -1994,9 +2000,8 @@ impl Promise {
         ///
         /// Panics if `Promise` is not pending.
         fn fulfill_promise(promise: &JsObject, value: JsValue, context: &mut Context) {
-            let mut promise = promise.borrow_mut();
-            let promise = promise
-                .as_promise_mut()
+            let mut promise = promise
+                .downcast_mut::<Promise>()
                 .expect("IsPromise(promise) is false");
 
             // 1. Assert: The value of promise.[[PromiseState]] is pending.
@@ -2039,9 +2044,8 @@ impl Promise {
         /// Panics if `Promise` is not pending.
         fn reject_promise(promise: &JsObject, reason: JsValue, context: &mut Context) {
             let handled = {
-                let mut promise = promise.borrow_mut();
-                let promise = promise
-                    .as_promise_mut()
+                let mut promise = promise
+                    .downcast_mut::<Promise>()
                     .expect("IsPromise(promise) is false");
 
                 // 1. Assert: The value of promise.[[PromiseState]] is pending.

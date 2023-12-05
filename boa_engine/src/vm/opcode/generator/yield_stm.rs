@@ -46,8 +46,7 @@ impl Operation for AsyncGeneratorYield {
             .expect("`AsyncGeneratorYield` must only be called inside async generators");
         let completion = Ok(value);
         let next = async_gen
-            .borrow_mut()
-            .as_async_generator_mut()
+            .downcast_mut::<AsyncGenerator>()
             .expect("must be async generator object")
             .queue
             .pop_front()
@@ -58,7 +57,7 @@ impl Operation for AsyncGeneratorYield {
 
         let mut generator_object_mut = async_gen.borrow_mut();
         let gen = generator_object_mut
-            .as_async_generator_mut()
+            .downcast_mut::<AsyncGenerator>()
             .expect("must be async generator object");
 
         if let Some(next) = gen.queue.front() {

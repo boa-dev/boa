@@ -11,12 +11,12 @@
 //! #    class::{Class, ClassBuilder},
 //! #    Context, JsResult, JsValue,
 //! #    JsArgs, Source, JsObject, js_string,
-//! #    JsNativeError,
+//! #    JsNativeError, JsData,
 //! # };
 //! # use boa_gc::{Finalize, Trace};
 //! #
 //! // Can also be a struct containing `Trace` types.
-//! #[derive(Debug, Trace, Finalize)]
+//! #[derive(Debug, Trace, Finalize, JsData)]
 //! enum Animal {
 //!     Cat,
 //!     Dog,
@@ -107,10 +107,7 @@ use crate::{
     context::intrinsics::StandardConstructor,
     error::JsNativeError,
     native_function::NativeFunction,
-    object::{
-        ConstructorBuilder, FunctionBinding, JsFunction, JsObject, NativeObject, ObjectData,
-        PROTOTYPE,
-    },
+    object::{ConstructorBuilder, FunctionBinding, JsFunction, JsObject, NativeObject, PROTOTYPE},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     Context, JsResult, JsValue,
 };
@@ -199,11 +196,8 @@ pub trait Class: NativeObject + Sized {
 
         let data = Self::data_constructor(new_target, args, context)?;
 
-        let object = JsObject::from_proto_and_data_with_shared_shape(
-            context.root_shape(),
-            prototype,
-            ObjectData::native_object(data),
-        );
+        let object =
+            JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), prototype, data);
 
         Self::object_constructor(&object, args, context)?;
 
@@ -234,11 +228,8 @@ pub trait Class: NativeObject + Sized {
             })?
             .prototype();
 
-        let object = JsObject::from_proto_and_data_with_shared_shape(
-            context.root_shape(),
-            prototype,
-            ObjectData::native_object(data),
-        );
+        let object =
+            JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), prototype, data);
 
         Self::object_constructor(&object, &[], context)?;
 

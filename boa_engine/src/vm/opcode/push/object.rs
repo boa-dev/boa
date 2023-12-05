@@ -1,5 +1,5 @@
 use crate::{
-    object::ObjectData,
+    builtins::OrdinaryObject,
     vm::{opcode::Operation, CompletionType},
     Context, JsResult,
 };
@@ -21,7 +21,7 @@ impl Operation for PushEmptyObject {
             .intrinsics()
             .templates()
             .ordinary_object()
-            .create(ObjectData::ordinary(), Vec::default());
+            .create(OrdinaryObject, Vec::default());
         context.vm.push(o);
         Ok(CompletionType::Normal)
     }

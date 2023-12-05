@@ -7,16 +7,17 @@
 
 use crate::{
     builtins::{
-        iterable::create_iter_result_object, Array, BuiltInBuilder, IntrinsicObject, JsValue,
+        iterable::create_iter_result_object, typed_array::TypedArray, Array, BuiltInBuilder,
+        IntrinsicObject, JsValue,
     },
     context::intrinsics::Intrinsics,
     error::JsNativeError,
     js_string,
-    object::{JsObject, ObjectData},
+    object::JsObject,
     property::{Attribute, PropertyNameKind},
     realm::Realm,
     symbol::JsSymbol,
-    Context, JsResult,
+    Context, JsData, JsResult,
 };
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
@@ -27,8 +28,8 @@ use boa_profiler::Profiler;
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-array-iterator-objects
-#[derive(Debug, Clone, Finalize, Trace)]
-pub struct ArrayIterator {
+#[derive(Debug, Clone, Finalize, Trace, JsData)]
+pub(crate) struct ArrayIterator {
     array: JsObject,
     next_index: u64,
     #[unsafe_ignore_trace]
@@ -88,7 +89,7 @@ impl ArrayIterator {
         let array_iterator = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             context.intrinsics().objects().iterator_prototypes().array(),
-            ObjectData::array_iterator(Self::new(array, kind)),
+            Self::new(array, kind),
         );
         array_iterator.into()
     }
@@ -102,10 +103,9 @@ impl ArrayIterator {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%arrayiteratorprototype%.next
     pub(crate) fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let mut array_iterator = this.as_object().map(JsObject::borrow_mut);
-        let array_iterator = array_iterator
-            .as_mut()
-            .and_then(|obj| obj.as_array_iterator_mut())
+        let mut array_iterator = this
+            .as_object()
+            .and_then(JsObject::downcast_mut::<Self>)
             .ok_or_else(|| JsNativeError::typ().with_message("`this` is not an ArrayIterator"))?;
         let index = array_iterator.next_index;
         if array_iterator.done {
@@ -116,7 +116,7 @@ impl ArrayIterator {
             ));
         }
 
-        let len = if let Some(f) = array_iterator.array.borrow().as_typed_array() {
+        let len = if let Some(f) = array_iterator.array.downcast_ref::<TypedArray>() {
             if f.is_detached() {
                 return Err(JsNativeError::typ()
                     .with_message(

@@ -1,7 +1,11 @@
 use crate::{
-    builtins::{function::ClassFieldDefinition, Array},
+    builtins::{
+        function::{BoundFunction, ClassFieldDefinition, OrdinaryFunction},
+        Array, Proxy,
+    },
     context::intrinsics::{StandardConstructor, StandardConstructors},
     error::JsNativeError,
+    native_function::NativeFunctionObject,
     object::{JsObject, PrivateElement, PrivateName, CONSTRUCTOR, PROTOTYPE},
     property::{PropertyDescriptor, PropertyDescriptorBuilder, PropertyKey, PropertyNameKind},
     realm::Realm,
@@ -10,7 +14,7 @@ use crate::{
     Context, JsResult, JsSymbol, JsValue,
 };
 
-use super::{internal_methods::InternalMethodContext, ObjectKind};
+use super::internal_methods::InternalMethodContext;
 
 /// Object integrity level.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -746,7 +750,7 @@ impl JsObject {
 
         // 3. If argument is a Proxy exotic object, then
         let object = self.borrow();
-        if let Some(proxy) = object.as_proxy() {
+        if let Some(proxy) = object.downcast_ref::<Proxy>() {
             // a. If argument.[[ProxyHandler]] is null, throw a TypeError exception.
             // b. Let target be argument.[[ProxyTarget]].
             let (target, _) = proxy.try_data()?;
@@ -764,21 +768,21 @@ impl JsObject {
     /// [spec]: https://tc39.es/ecma262/#sec-getfunctionrealm
     pub(crate) fn get_function_realm(&self, context: &mut Context) -> JsResult<Realm> {
         let constructor = self.borrow();
-        if let Some(fun) = constructor.as_function() {
+        if let Some(fun) = constructor.downcast_ref::<OrdinaryFunction>() {
             return Ok(fun.realm().clone());
         }
 
-        if let ObjectKind::NativeFunction(f) = constructor.kind() {
+        if let Some(f) = constructor.downcast_ref::<NativeFunctionObject>() {
             return Ok(f.realm.clone().unwrap_or_else(|| context.realm().clone()));
         }
 
-        if let Some(bound) = constructor.as_bound_function() {
+        if let Some(bound) = constructor.downcast_ref::<BoundFunction>() {
             let fun = bound.target_function().clone();
             drop(constructor);
             return fun.get_function_realm(context);
         }
 
-        if let Some(proxy) = constructor.as_proxy() {
+        if let Some(proxy) = constructor.downcast_ref::<Proxy>() {
             let (fun, _) = proxy.try_data()?;
             drop(constructor);
             return fun.get_function_realm(context);
@@ -1074,9 +1078,8 @@ impl JsObject {
         constructor: &Self,
         context: &mut Context,
     ) -> JsResult<()> {
-        let constructor_borrow = constructor.borrow();
-        let constructor_function = constructor_borrow
-            .as_function()
+        let constructor_function = constructor
+            .downcast_ref::<OrdinaryFunction>()
             .expect("class constructor must be function object");
 
         // 1. Let methods be the value of constructor.[[PrivateMethods]].
@@ -1296,7 +1299,7 @@ impl JsValue {
         };
 
         // 2. If C has a [[BoundTargetFunction]] internal slot, then
-        if let Some(bound_function) = function.borrow().as_bound_function() {
+        if let Some(bound_function) = function.downcast_ref::<BoundFunction>() {
             // a. Let BC be C.[[BoundTargetFunction]].
             // b. Return ? InstanceofOperator(O, BC).
             return Self::instance_of(

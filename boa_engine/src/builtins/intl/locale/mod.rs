@@ -22,7 +22,7 @@ use crate::{
     builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
+    object::{internal_methods::get_prototype_from_constructor, JsObject},
     property::Attribute,
     symbol::JsSymbol,
     Context, JsArgs, JsNativeError, JsResult, JsString, JsValue,
@@ -368,11 +368,8 @@ impl BuiltInConstructor for Locale {
         // 6. Let locale be ? OrdinaryCreateFromConstructor(NewTarget, "%Locale.prototype%", internalSlotsList).
         let prototype =
             get_prototype_from_constructor(new_target, StandardConstructors::locale, context)?;
-        let locale = JsObject::from_proto_and_data_with_shared_shape(
-            context.root_shape(),
-            prototype,
-            ObjectData::native_object(tag),
-        );
+        let locale =
+            JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), prototype, tag);
 
         // 37. Return locale.
         Ok(locale.into())
@@ -410,12 +407,10 @@ impl Locale {
 
         // 4. Return ! Construct(%Locale%, maximal).
         let prototype = context.intrinsics().constructors().locale().prototype();
-        Ok(JsObject::from_proto_and_data_with_shared_shape(
-            context.root_shape(),
-            prototype,
-            ObjectData::native_object(loc),
+        Ok(
+            JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), prototype, loc)
+                .into(),
         )
-        .into())
     }
 
     /// [`Intl.Locale.prototype.minimize ( )`][spec]
@@ -448,12 +443,10 @@ impl Locale {
 
         // 4. Return ! Construct(%Locale%, minimal).
         let prototype = context.intrinsics().constructors().locale().prototype();
-        Ok(JsObject::from_proto_and_data_with_shared_shape(
-            context.root_shape(),
-            prototype,
-            ObjectData::native_object(loc),
+        Ok(
+            JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), prototype, loc)
+                .into(),
         )
-        .into())
     }
 
     /// [`Intl.Locale.prototype.toString ( )`][spec].

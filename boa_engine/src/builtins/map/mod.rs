@@ -15,7 +15,7 @@ use crate::{
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
+    object::{internal_methods::get_prototype_from_constructor, JsObject},
     property::{Attribute, PropertyNameKind},
     realm::Realm,
     string::{common::StaticJsStrings, utf16},
@@ -141,7 +141,7 @@ impl BuiltInConstructor for Map {
         let map = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            ObjectData::map(OrderedMap::new()),
+            <OrderedMap<JsValue>>::new(),
         );
 
         // 4. If iterable is either undefined or null, return map.
@@ -229,7 +229,7 @@ impl Map {
         if let Some(object) = this.as_object() {
             // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
             // 3. Let entries be the List that is M.[[MapData]].
-            if let Some(map) = object.borrow_mut().as_map_mut() {
+            if let Some(mut map) = object.downcast_mut::<OrderedMap<JsValue>>() {
                 let key = match key {
                     JsValue::Rational(r) => {
                         // 5. If key is -0𝔽, set key to +0𝔽.
@@ -273,7 +273,7 @@ impl Map {
         if let Some(object) = this.as_object() {
             // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
             // 3. Let entries be the List that is M.[[MapData]].
-            if let Some(map) = object.borrow_mut().as_map_mut() {
+            if let Some(map) = object.downcast_mut::<OrderedMap<JsValue>>() {
                 // 4. Let count be 0.
                 // 5. For each Record { [[Key]], [[Value]] } p of entries, do
                 // a. If p.[[Key]] is not empty, set count to count + 1.
@@ -309,7 +309,7 @@ impl Map {
         if let Some(object) = this.as_object() {
             // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
             // 3. Let entries be the List that is M.[[MapData]].
-            if let Some(map) = object.borrow_mut().as_map_mut() {
+            if let Some(mut map) = object.downcast_mut::<OrderedMap<JsValue>>() {
                 // a. If p.[[Key]] is not empty and SameValueZero(p.[[Key]], key) is true, then
                 // i. Set p.[[Key]] to empty.
                 // ii. Set p.[[Value]] to empty.
@@ -345,7 +345,7 @@ impl Map {
         if let JsValue::Object(ref object) = this {
             // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
             // 3. Let entries be the List that is M.[[MapData]].
-            if let Some(map) = object.borrow().as_map() {
+            if let Some(map) = object.downcast_ref::<OrderedMap<JsValue>>() {
                 // 4. For each Record { [[Key]], [[Value]] } p of entries, do
                 // a. If p.[[Key]] is not empty and SameValueZero(p.[[Key]], key) is true, return p.[[Value]].
                 // 5. Return undefined.
@@ -373,7 +373,7 @@ impl Map {
         // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
         if let Some(object) = this.as_object() {
             // 3. Let entries be the List that is M.[[MapData]].
-            if let Some(map) = object.borrow_mut().as_map_mut() {
+            if let Some(mut map) = object.downcast_mut::<OrderedMap<JsValue>>() {
                 // 4. For each Record { [[Key]], [[Value]] } p of entries, do
                 // a. Set p.[[Key]] to empty.
                 // b. Set p.[[Value]] to empty.
@@ -410,7 +410,7 @@ impl Map {
         if let JsValue::Object(ref object) = this {
             // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
             // 3. Let entries be the List that is M.[[MapData]].
-            if let Some(map) = object.borrow().as_map() {
+            if let Some(map) = object.downcast_ref::<OrderedMap<JsValue>>() {
                 // 4. For each Record { [[Key]], [[Value]] } p of entries, do
                 // a. If p.[[Key]] is not empty and SameValueZero(p.[[Key]], key) is true, return true.
                 // 5. Return false.
@@ -442,7 +442,7 @@ impl Map {
         // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
         let map = this
             .as_object()
-            .filter(|obj| obj.is_map())
+            .filter(|obj| obj.is::<OrderedMap<JsValue>>())
             .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a Map"))?;
 
         // 3. If IsCallable(callbackfn) is false, throw a TypeError exception.
@@ -463,8 +463,7 @@ impl Map {
         // Keys that are deleted after the call to forEach begins and before being visited
         // are not visited unless the key is added again before the forEach call completes.
         let _lock = map
-            .borrow_mut()
-            .as_map_mut()
+            .downcast_mut::<OrderedMap<JsValue>>()
             .expect("checked that `this` was a map")
             .lock(map.clone());
 
@@ -473,8 +472,9 @@ impl Map {
         let mut index = 0;
         loop {
             let arguments = {
-                let map = map.borrow();
-                let map = map.as_map().expect("checked that `this` was a map");
+                let map = map
+                    .downcast_ref::<OrderedMap<JsValue>>()
+                    .expect("checked that `this` was a map");
                 if index < map.full_len() {
                     map.get_index(index)
                         .map(|(k, v)| [v.clone(), k.clone(), this.clone()])
@@ -602,7 +602,7 @@ impl Map {
         }
 
         // 2. Let map be ! Construct(%Map%).
-        let mut map = OrderedMap::new();
+        let mut map: OrderedMap<JsValue> = OrderedMap::new();
 
         // 3. For each Record { [[Key]], [[Elements]] } g of groups, do
         for (key, elements) in groups {
@@ -617,12 +617,10 @@ impl Map {
         let proto = context.intrinsics().constructors().map().prototype();
 
         // 4. Return map.
-        Ok(JsObject::from_proto_and_data_with_shared_shape(
-            context.root_shape(),
-            proto,
-            ObjectData::map(map),
+        Ok(
+            JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), proto, map)
+                .into(),
         )
-        .into())
     }
 }
 

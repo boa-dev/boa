@@ -1,7 +1,7 @@
 use boa_macros::utf16;
 
 use crate::{
-    builtins::function::set_function_name,
+    builtins::{function::set_function_name, Proxy},
     object::{internal_methods::InternalMethodContext, shape::slot::SlotAttributes},
     property::{PropertyDescriptor, PropertyKey},
     vm::{opcode::Operation, CompletionType},
@@ -171,7 +171,7 @@ impl Operation for SetPropertyByValue {
                             // because we have to the call prototypes [[set]] on non-existing property,
                             // and proxy objects can override [[set]].
                             let prototype = shape.prototype();
-                            if prototype.map_or(false, |x| x.is_proxy()) {
+                            if prototype.map_or(false, |x| x.is::<Proxy>()) {
                                 break 'fast_path;
                             }
 

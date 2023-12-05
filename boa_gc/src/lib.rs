@@ -64,7 +64,7 @@ impl Default for GcConfig {
     fn default() -> Self {
         Self {
             threshold: 1024,
-            used_space_percentage: 80,
+            used_space_percentage: 70,
         }
     }
 }
@@ -144,7 +144,7 @@ impl Allocator {
         })
     }
 
-    fn alloc_ephemeron<K: Trace, V: Trace>(
+    fn alloc_ephemeron<K: Trace + ?Sized, V: Trace>(
         value: EphemeronBox<K, V>,
     ) -> NonNull<EphemeronBox<K, V>> {
         let _timer = Profiler::global().start_event("New EphemeronBox", "BoaAlloc");
@@ -164,7 +164,7 @@ impl Allocator {
         })
     }
 
-    fn alloc_weak_map<K: Trace, V: Trace + Clone>() -> WeakMap<K, V> {
+    fn alloc_weak_map<K: Trace + ?Sized, V: Trace + Clone>() -> WeakMap<K, V> {
         let _timer = Profiler::global().start_event("New WeakMap", "BoaAlloc");
 
         let weak_map = WeakMap {

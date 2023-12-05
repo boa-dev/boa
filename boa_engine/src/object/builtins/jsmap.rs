@@ -3,7 +3,7 @@ use crate::{
     builtins::map::{add_entries_from_iterable, ordered_map::OrderedMap},
     builtins::Map,
     error::JsNativeError,
-    object::{JsFunction, JsMapIterator, JsObject, JsObjectType, ObjectData},
+    object::{JsFunction, JsMapIterator, JsObject, JsObjectType},
     string::utf16,
     value::TryFromJs,
     Context, JsResult, JsValue,
@@ -145,7 +145,7 @@ impl JsMap {
     /// ```
     /// # use boa_engine::{
     /// #    builtins::map::ordered_map::OrderedMap,
-    /// #    object::{builtins::JsMap, JsObject, ObjectData},
+    /// #    object::{builtins::JsMap, JsObject},
     /// #    Context, JsValue, JsResult,
     /// # };
     /// # fn main() -> JsResult<()> {
@@ -153,7 +153,7 @@ impl JsMap {
     /// // `some_object` can be any JavaScript `Map` object.
     /// let some_object = JsObject::from_proto_and_data(
     ///     context.intrinsics().constructors().map().prototype(),
-    ///     ObjectData::map(OrderedMap::new()),
+    ///     OrderedMap::<JsValue>::new(),
     /// );
     ///
     /// // Create `JsMap` object with incoming object.
@@ -176,7 +176,7 @@ impl JsMap {
     /// ```
     #[inline]
     pub fn from_object(object: JsObject) -> JsResult<Self> {
-        if object.is_map() {
+        if object.is::<OrderedMap<JsValue>>() {
             Ok(Self { inner: object })
         } else {
             Err(JsNativeError::typ()
@@ -194,7 +194,7 @@ impl JsMap {
         JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            ObjectData::map(OrderedMap::new()),
+            <OrderedMap<JsValue>>::new(),
         )
     }
 

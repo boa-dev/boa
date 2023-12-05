@@ -3,10 +3,9 @@
 use std::{error, fmt};
 
 use crate::{
-    builtins::{error::ErrorKind, Array},
+    builtins::{error::ErrorObject, Array},
     js_string,
     object::JsObject,
-    object::ObjectData,
     property::PropertyDescriptor,
     realm::Realm,
     string::utf16,
@@ -183,12 +182,13 @@ impl JsError {
     ///
     /// ```rust
     /// # use boa_engine::{Context, JsError, JsNativeError};
+    /// # use boa_engine::builtins::error::ErrorObject;
     /// let context = &mut Context::default();
     /// let error: JsError =
     ///     JsNativeError::eval().with_message("invalid script").into();
     /// let error_val = error.to_opaque(context);
     ///
-    /// assert!(error_val.as_object().unwrap().borrow().is_error());
+    /// assert!(error_val.as_object().unwrap().is::<ErrorObject>());
     /// ```
     pub fn to_opaque(&self, context: &mut Context) -> JsValue {
         match &self.inner {
@@ -242,9 +242,8 @@ impl JsError {
                 let obj = val
                     .as_object()
                     .ok_or_else(|| TryNativeError::NotAnErrorObject(val.clone()))?;
-                let error = obj
-                    .borrow()
-                    .as_error()
+                let error = *obj
+                    .downcast_ref::<ErrorObject>()
                     .ok_or_else(|| TryNativeError::NotAnErrorObject(val.clone()))?;
 
                 let try_get_property = |key: JsString, name, context: &mut Context| {
@@ -277,14 +276,14 @@ impl JsError {
                 let cause = try_get_property(js_string!("cause"), "cause", context)?;
 
                 let kind = match error {
-                    ErrorKind::Error => JsNativeErrorKind::Error,
-                    ErrorKind::Eval => JsNativeErrorKind::Eval,
-                    ErrorKind::Type => JsNativeErrorKind::Type,
-                    ErrorKind::Range => JsNativeErrorKind::Range,
-                    ErrorKind::Reference => JsNativeErrorKind::Reference,
-                    ErrorKind::Syntax => JsNativeErrorKind::Syntax,
-                    ErrorKind::Uri => JsNativeErrorKind::Uri,
-                    ErrorKind::Aggregate => {
+                    ErrorObject::Error => JsNativeErrorKind::Error,
+                    ErrorObject::Eval => JsNativeErrorKind::Eval,
+                    ErrorObject::Type => JsNativeErrorKind::Type,
+                    ErrorObject::Range => JsNativeErrorKind::Range,
+                    ErrorObject::Reference => JsNativeErrorKind::Reference,
+                    ErrorObject::Syntax => JsNativeErrorKind::Syntax,
+                    ErrorObject::Uri => JsNativeErrorKind::Uri,
+                    ErrorObject::Aggregate => {
                         let errors = obj.get(utf16!("errors"), context).map_err(|e| {
                             TryNativeError::InaccessibleProperty {
                                 property: "errors",
@@ -894,12 +893,13 @@ impl JsNativeError {
     ///
     /// ```rust
     /// # use boa_engine::{Context, JsError, JsNativeError, js_string};
+    /// # use boa_engine::builtins::error::ErrorObject;
     /// let context = &mut Context::default();
     ///
     /// let error = JsNativeError::error().with_message("error!");
     /// let error_obj = error.to_opaque(context);
     ///
-    /// assert!(error_obj.borrow().is_error());
+    /// assert!(error_obj.is::<ErrorObject>());
     /// assert_eq!(
     ///     error_obj.get(js_string!("message"), context).unwrap(),
     ///     js_string!("error!").into()
@@ -924,20 +924,22 @@ impl JsNativeError {
         let (prototype, tag) = match kind {
             JsNativeErrorKind::Aggregate(_) => (
                 constructors.aggregate_error().prototype(),
-                ErrorKind::Aggregate,
+                ErrorObject::Aggregate,
             ),
-            JsNativeErrorKind::Error => (constructors.error().prototype(), ErrorKind::Error),
-            JsNativeErrorKind::Eval => (constructors.eval_error().prototype(), ErrorKind::Eval),
-            JsNativeErrorKind::Range => (constructors.range_error().prototype(), ErrorKind::Range),
+            JsNativeErrorKind::Error => (constructors.error().prototype(), ErrorObject::Error),
+            JsNativeErrorKind::Eval => (constructors.eval_error().prototype(), ErrorObject::Eval),
+            JsNativeErrorKind::Range => {
+                (constructors.range_error().prototype(), ErrorObject::Range)
+            }
             JsNativeErrorKind::Reference => (
                 constructors.reference_error().prototype(),
-                ErrorKind::Reference,
+                ErrorObject::Reference,
             ),
             JsNativeErrorKind::Syntax => {
-                (constructors.syntax_error().prototype(), ErrorKind::Syntax)
+                (constructors.syntax_error().prototype(), ErrorObject::Syntax)
             }
-            JsNativeErrorKind::Type => (constructors.type_error().prototype(), ErrorKind::Type),
-            JsNativeErrorKind::Uri => (constructors.uri_error().prototype(), ErrorKind::Uri),
+            JsNativeErrorKind::Type => (constructors.type_error().prototype(), ErrorObject::Type),
+            JsNativeErrorKind::Uri => (constructors.uri_error().prototype(), ErrorObject::Uri),
             #[cfg(feature = "fuzz")]
             JsNativeErrorKind::NoInstructionsRemain => {
                 unreachable!(
@@ -949,11 +951,8 @@ impl JsNativeError {
             }
         };
 
-        let o = JsObject::from_proto_and_data_with_shared_shape(
-            context.root_shape(),
-            prototype,
-            ObjectData::error(tag),
-        );
+        let o =
+            JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), prototype, tag);
 
         o.create_non_enumerable_data_property_or_throw(
             js_string!("message"),
@@ -1145,18 +1144,18 @@ impl JsNativeErrorKind {
     }
 }
 
-impl PartialEq<ErrorKind> for JsNativeErrorKind {
-    fn eq(&self, other: &ErrorKind) -> bool {
+impl PartialEq<ErrorObject> for JsNativeErrorKind {
+    fn eq(&self, other: &ErrorObject) -> bool {
         matches!(
             (self, other),
-            (Self::Aggregate(_), ErrorKind::Aggregate)
-                | (Self::Error, ErrorKind::Error)
-                | (Self::Eval, ErrorKind::Eval)
-                | (Self::Range, ErrorKind::Range)
-                | (Self::Reference, ErrorKind::Reference)
-                | (Self::Syntax, ErrorKind::Syntax)
-                | (Self::Type, ErrorKind::Type)
-                | (Self::Uri, ErrorKind::Uri)
+            (Self::Aggregate(_), ErrorObject::Aggregate)
+                | (Self::Error, ErrorObject::Error)
+                | (Self::Eval, ErrorObject::Eval)
+                | (Self::Range, ErrorObject::Range)
+                | (Self::Reference, ErrorObject::Reference)
+                | (Self::Syntax, ErrorObject::Syntax)
+                | (Self::Type, ErrorObject::Type)
+                | (Self::Uri, ErrorObject::Uri)
         )
     }
 }

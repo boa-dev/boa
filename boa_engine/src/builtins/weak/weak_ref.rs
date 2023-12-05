@@ -5,7 +5,7 @@ use crate::{
     builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
+    object::{internal_methods::get_prototype_from_constructor, ErasedVTableObject, JsObject},
     property::Attribute,
     realm::Realm,
     string::common::StaticJsStrings,
@@ -87,7 +87,7 @@ impl BuiltInConstructor for WeakRef {
         let weak_ref = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            ObjectData::weak_ref(WeakGc::new(target.inner())),
+            WeakGc::new(target.inner()),
         );
 
         // 4. Perform AddToKeptObjects(target).
@@ -108,17 +108,14 @@ impl WeakRef {
     pub(crate) fn deref(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let weakRef be the this value.
         // 2. Perform ? RequireInternalSlot(weakRef, [[WeakRefTarget]]).
-        let weak_ref = this.as_object().map(JsObject::borrow).ok_or_else(|| {
-            JsNativeError::typ().with_message(format!(
-                "WeakRef.prototype.deref: expected `this` to be an `object`, got value of type `{}`",
-                this.type_of()
-            ))
-        })?;
-
-        let weak_ref = weak_ref.as_weak_ref().ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message("WeakRef.prototype.deref: expected `this` to be a `WeakRef` object")
-        })?;
+        let weak_ref = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<WeakGc<ErasedVTableObject>>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message(
+                    "WeakRef.prototype.deref: expected `this` to be a `WeakRef` object",
+                )
+            })?;
 
         // 3. Return WeakRefDeref(weakRef).
 

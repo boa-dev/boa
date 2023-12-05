@@ -3,8 +3,8 @@ use std::{fmt::Display, str::FromStr};
 use num_traits::FromPrimitive;
 
 use crate::{
-    builtins::options::ParsableOptionType,
-    object::{JsObject, ObjectData},
+    builtins::{options::ParsableOptionType, OrdinaryObject},
+    object::JsObject,
     Context, JsNativeError, JsResult, JsValue,
 };
 
@@ -131,7 +131,7 @@ pub(super) fn coerce_options_to_object(
         return Ok(JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             None,
-            ObjectData::ordinary(),
+            OrdinaryObject,
         ));
     }
 

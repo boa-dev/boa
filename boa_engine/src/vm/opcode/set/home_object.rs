@@ -1,4 +1,5 @@
 use crate::{
+    builtins::function::OrdinaryFunction,
     vm::{opcode::Operation, CompletionType},
     Context, JsResult,
 };
@@ -19,15 +20,12 @@ impl Operation for SetHomeObject {
         let function = context.vm.pop();
         let home = context.vm.pop();
 
-        {
-            let function_object = function.as_object().expect("must be object");
-            let home_object = home.as_object().expect("must be object");
-            let mut function_object_mut = function_object.borrow_mut();
-            let function_mut = function_object_mut
-                .as_function_mut()
-                .expect("must be function object");
-            function_mut.set_home_object(home_object.clone());
-        }
+        function
+            .as_object()
+            .expect("must be object")
+            .downcast_mut::<OrdinaryFunction>()
+            .expect("must be function object")
+            .set_home_object(home.as_object().expect("must be object").clone());
 
         context.vm.push(home);
         context.vm.push(function);

@@ -1,5 +1,5 @@
 use crate::{
-    builtins::function::set_function_name,
+    builtins::function::{set_function_name, OrdinaryFunction},
     object::internal_methods::InternalMethodContext,
     property::PropertyDescriptor,
     vm::{opcode::Operation, CompletionType},
@@ -29,11 +29,10 @@ impl DefineClassStaticMethodByName {
                 .as_object()
                 .expect("method must be function object");
             set_function_name(function_object, &key, None, context);
-            let mut function_object = function_object.borrow_mut();
-            let function_mut = function_object
-                .as_function_mut()
-                .expect("method must be function object");
-            function_mut.set_home_object(class.clone());
+            function_object
+                .downcast_mut::<OrdinaryFunction>()
+                .expect("method must be function object")
+                .set_home_object(class.clone());
         }
 
         class.__define_own_property__(
@@ -94,11 +93,10 @@ impl DefineClassMethodByName {
                 .as_object()
                 .expect("method must be function object");
             set_function_name(function_object, &key, None, context);
-            let mut function_object = function_object.borrow_mut();
-            let function_mut = function_object
-                .as_function_mut()
-                .expect("method must be function object");
-            function_mut.set_home_object(class_proto.clone());
+            function_object
+                .downcast_mut::<OrdinaryFunction>()
+                .expect("method must be function object")
+                .set_home_object(class_proto.clone());
         }
 
         class_proto.__define_own_property__(
@@ -161,11 +159,10 @@ impl Operation for DefineClassStaticMethodByValue {
                 .as_object()
                 .expect("method must be function object");
             set_function_name(function_object, &key, None, context);
-            let mut function_object_mut = function_object.borrow_mut();
-            let function_mut = function_object_mut
-                .as_function_mut()
-                .expect("method must be function object");
-            function_mut.set_home_object(class.clone());
+            function_object
+                .downcast_mut::<OrdinaryFunction>()
+                .expect("method must be function object")
+                .set_home_object(class.clone());
         }
 
         class.define_property_or_throw(
@@ -207,11 +204,10 @@ impl Operation for DefineClassMethodByValue {
                 .as_object()
                 .expect("method must be function object");
             set_function_name(function_object, &key, None, context);
-            let mut function_object = function_object.borrow_mut();
-            let function_mut = function_object
-                .as_function_mut()
-                .expect("method must be function object");
-            function_mut.set_home_object(class_proto.clone());
+            function_object
+                .downcast_mut::<OrdinaryFunction>()
+                .expect("method must be function object")
+                .set_home_object(class_proto.clone());
         }
 
         class_proto.__define_own_property__(

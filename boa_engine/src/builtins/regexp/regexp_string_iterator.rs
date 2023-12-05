@@ -15,12 +15,12 @@ use crate::{
     context::intrinsics::Intrinsics,
     error::JsNativeError,
     js_string,
-    object::{JsObject, ObjectData},
+    object::JsObject,
     property::Attribute,
     realm::Realm,
     string::utf16,
     symbol::JsSymbol,
-    Context, JsResult, JsString, JsValue,
+    Context, JsData, JsResult, JsString, JsValue,
 };
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
@@ -32,8 +32,8 @@ use regexp::{advance_string_index, RegExp};
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-regexp-string-iterator-objects
-#[derive(Debug, Clone, Finalize, Trace)]
-pub struct RegExpStringIterator {
+#[derive(Debug, Clone, Finalize, Trace, JsData)]
+pub(crate) struct RegExpStringIterator {
     matcher: JsObject,
     string: JsString,
     global: bool,
@@ -111,7 +111,7 @@ impl RegExpStringIterator {
                 .objects()
                 .iterator_prototypes()
                 .regexp_string(),
-            ObjectData::reg_exp_string_iterator(Self::new(matcher, string, global, unicode)),
+            Self::new(matcher, string, global, unicode),
         );
 
         regexp_string_iterator.into()
@@ -123,11 +123,10 @@ impl RegExpStringIterator {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%regexpstringiteratorprototype%.next
-    pub fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let mut iterator = this.as_object().map(JsObject::borrow_mut);
-        let iterator = iterator
-            .as_mut()
-            .and_then(|obj| obj.as_regexp_string_iterator_mut())
+    pub(crate) fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let mut iterator = this
+            .as_object()
+            .and_then(JsObject::downcast_mut::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("`this` is not a RegExpStringIterator")
             })?;

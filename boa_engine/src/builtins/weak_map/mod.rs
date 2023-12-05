@@ -14,7 +14,7 @@ use crate::{
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
+    object::{internal_methods::get_prototype_from_constructor, ErasedVTableObject, JsObject},
     property::Attribute,
     realm::Realm,
     string::{common::StaticJsStrings, utf16},
@@ -23,6 +23,8 @@ use crate::{
 };
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
+
+type NativeWeakMap = boa_gc::WeakMap<ErasedVTableObject, JsValue>;
 
 #[derive(Debug, Trace, Finalize)]
 pub(crate) struct WeakMap;
@@ -88,7 +90,7 @@ impl BuiltInConstructor for WeakMap {
         let map = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            ObjectData::weak_map(boa_gc::WeakMap::new()),
+            NativeWeakMap::new(),
         );
 
         // 4. If iterable is either undefined or null, return map.
@@ -128,15 +130,12 @@ impl WeakMap {
     ) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[WeakMapData]]).
-        let Some(obj) = this.as_object() else {
-            return Err(JsNativeError::typ()
-                .with_message("WeakMap.delete: called with non-object value")
-                .into());
-        };
-        let mut obj_borrow = obj.borrow_mut();
-        let m = obj_borrow.as_weak_map_mut().ok_or_else(|| {
-            JsNativeError::typ().with_message("WeakMap.delete: called with non-object value")
-        })?;
+        let mut map = this
+            .as_object()
+            .and_then(JsObject::downcast_mut::<NativeWeakMap>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("WeakMap.delete: called with non-object value")
+            })?;
 
         // 3. Let entries be M.[[WeakMapData]].
         // 4. If key is not an Object, return false.
@@ -150,7 +149,7 @@ impl WeakMap {
         // ii. Set p.[[Value]] to empty.
         // iii. Return true.
         // 6. Return false.
-        Ok(m.remove(key.inner()).is_some().into())
+        Ok(map.remove(key.inner()).is_some().into())
     }
 
     /// `WeakMap.prototype.get ( key )`
@@ -168,15 +167,12 @@ impl WeakMap {
     ) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[WeakMapData]]).
-        let Some(obj) = this.as_object() else {
-            return Err(JsNativeError::typ()
-                .with_message("WeakMap.get: called with non-object value")
-                .into());
-        };
-        let mut obj_borrow = obj.borrow_mut();
-        let m = obj_borrow.as_weak_map_mut().ok_or_else(|| {
-            JsNativeError::typ().with_message("WeakMap.get: called with non-object value")
-        })?;
+        let map = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<NativeWeakMap>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("WeakMap.get: called with non-object value")
+            })?;
 
         // 3. Let entries be M.[[WeakMapData]].
         // 4. If key is not an Object, return undefined.
@@ -187,7 +183,7 @@ impl WeakMap {
         // 5. For each Record { [[Key]], [[Value]] } p of entries, do
         // a. If p.[[Key]] is not empty and SameValue(p.[[Key]], key) is true, return p.[[Value]].
         // 6. Return undefined.
-        Ok(m.get(key.inner()).unwrap_or_default())
+        Ok(map.get(key.inner()).unwrap_or_default())
     }
 
     /// `WeakMap.prototype.has ( key )`
@@ -205,15 +201,12 @@ impl WeakMap {
     ) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[WeakMapData]]).
-        let Some(obj) = this.as_object() else {
-            return Err(JsNativeError::typ()
-                .with_message("WeakMap.has: called with non-object value")
-                .into());
-        };
-        let mut obj_borrow = obj.borrow_mut();
-        let m = obj_borrow.as_weak_map_mut().ok_or_else(|| {
-            JsNativeError::typ().with_message("WeakMap.has: called with non-object value")
-        })?;
+        let map = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<NativeWeakMap>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("WeakMap.has: called with non-object value")
+            })?;
 
         // 3. Let entries be M.[[WeakMapData]].
         // 4. If key is not an Object, return false.
@@ -224,7 +217,7 @@ impl WeakMap {
         // 5. For each Record { [[Key]], [[Value]] } p of entries, do
         // a. If p.[[Key]] is not empty and SameValue(p.[[Key]], key) is true, return true.
         // 6. Return false.
-        Ok(m.contains_key(key.inner()).into())
+        Ok(map.contains_key(key.inner()).into())
     }
 
     /// `WeakMap.prototype.set ( key, value )`
@@ -242,15 +235,12 @@ impl WeakMap {
     ) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[WeakMapData]]).
-        let Some(obj) = this.as_object() else {
-            return Err(JsNativeError::typ()
-                .with_message("WeakMap.set: called with non-object value")
-                .into());
-        };
-        let mut obj_borrow = obj.borrow_mut();
-        let m = obj_borrow.as_weak_map_mut().ok_or_else(|| {
-            JsNativeError::typ().with_message("WeakMap.set: called with non-object value")
-        })?;
+        let mut map = this
+            .as_object()
+            .and_then(JsObject::downcast_mut::<NativeWeakMap>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("WeakMap.set: called with non-object value")
+            })?;
 
         // 3. Let entries be M.[[WeakMapData]].
         // 4. If key is not an Object, throw a TypeError exception.
@@ -269,7 +259,7 @@ impl WeakMap {
         // ii. Return M.
         // 6. Let p be the Record { [[Key]]: key, [[Value]]: value }.
         // 7. Append p to entries.
-        m.insert(key.inner(), args.get_or_undefined(1).clone());
+        map.insert(key.inner(), args.get_or_undefined(1).clone());
 
         // 8. Return M.
         Ok(this.clone())

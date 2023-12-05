@@ -1,37 +1,95 @@
-use std::collections::HashSet;
+use std::{collections::HashSet, hash::BuildHasherDefault};
 
-use crate::{
-    js_string,
-    module::BindingName,
-    object::{JsObject, JsPrototype},
-    property::{PropertyDescriptor, PropertyKey},
-    Context, JsNativeError, JsResult, JsValue,
+use indexmap::IndexSet;
+use rustc_hash::FxHasher;
+
+use boa_gc::{Finalize, Trace};
+
+use crate::object::internal_methods::immutable_prototype::immutable_prototype_exotic_set_prototype_of;
+use crate::object::internal_methods::{
+    ordinary_define_own_property, ordinary_delete, ordinary_get, ordinary_get_own_property,
+    ordinary_has_property, ordinary_own_property_keys, InternalMethodContext,
+    InternalObjectMethods, ORDINARY_INTERNAL_METHODS,
 };
+use crate::object::{JsData, JsPrototype};
+use crate::property::{PropertyDescriptor, PropertyKey};
+use crate::{js_string, object::JsObject, Context, JsResult, JsString, JsValue};
+use crate::{JsNativeError, Module};
 
-use super::{
-    immutable_prototype, ordinary_define_own_property, ordinary_delete, ordinary_get,
-    ordinary_get_own_property, ordinary_has_property, ordinary_own_property_keys,
-    InternalMethodContext, InternalObjectMethods, ORDINARY_INTERNAL_METHODS,
-};
+use super::BindingName;
 
-/// Definitions of the internal object methods for [**Module Namespace Exotic Objects**][spec].
+/// Module namespace exotic object.
 ///
-/// [spec]: https://tc39.es/ecma262/#sec-module-namespace-exotic-objects
-pub(crate) static MODULE_NAMESPACE_EXOTIC_INTERNAL_METHODS: InternalObjectMethods =
-    InternalObjectMethods {
-        __get_prototype_of__: module_namespace_exotic_get_prototype_of,
-        __set_prototype_of__: module_namespace_exotic_set_prototype_of,
-        __is_extensible__: module_namespace_exotic_is_extensible,
-        __prevent_extensions__: module_namespace_exotic_prevent_extensions,
-        __get_own_property__: module_namespace_exotic_get_own_property,
-        __define_own_property__: module_namespace_exotic_define_own_property,
-        __has_property__: module_namespace_exotic_has_property,
-        __get__: module_namespace_exotic_get,
-        __set__: module_namespace_exotic_set,
-        __delete__: module_namespace_exotic_delete,
-        __own_property_keys__: module_namespace_exotic_own_property_keys,
-        ..ORDINARY_INTERNAL_METHODS
-    };
+/// Exposes the bindings exported by a [`Module`] to be accessed from ECMAScript code.
+#[derive(Debug, Trace, Finalize)]
+pub struct ModuleNamespace {
+    module: Module,
+    #[unsafe_ignore_trace]
+    exports: IndexSet<JsString, BuildHasherDefault<FxHasher>>,
+}
+
+impl JsData for ModuleNamespace {
+    fn internal_methods(&self) -> &'static InternalObjectMethods {
+        static METHODS: InternalObjectMethods = InternalObjectMethods {
+            __get_prototype_of__: module_namespace_exotic_get_prototype_of,
+            __set_prototype_of__: module_namespace_exotic_set_prototype_of,
+            __is_extensible__: module_namespace_exotic_is_extensible,
+            __prevent_extensions__: module_namespace_exotic_prevent_extensions,
+            __get_own_property__: module_namespace_exotic_get_own_property,
+            __define_own_property__: module_namespace_exotic_define_own_property,
+            __has_property__: module_namespace_exotic_has_property,
+            __get__: module_namespace_exotic_get,
+            __set__: module_namespace_exotic_set,
+            __delete__: module_namespace_exotic_delete,
+            __own_property_keys__: module_namespace_exotic_own_property_keys,
+            ..ORDINARY_INTERNAL_METHODS
+        };
+
+        &METHODS
+    }
+}
+
+impl ModuleNamespace {
+    /// Abstract operation [`ModuleNamespaceCreate ( module, exports )`][spec].
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-modulenamespacecreate
+    pub(crate) fn create(module: Module, names: Vec<JsString>, context: &mut Context) -> JsObject {
+        // 1. Assert: module.[[Namespace]] is empty.
+        // ignored since this is ensured by `Module::namespace`.
+
+        // 6. Let sortedExports be a List whose elements are the elements of exports ordered as if an Array of the same values had been sorted using %Array.prototype.sort% using undefined as comparefn.
+        let mut exports = names.into_iter().collect::<IndexSet<_, _>>();
+        exports.sort();
+
+        // 2. Let internalSlotsList be the internal slots listed in Table 32.
+        // 3. Let M be MakeBasicObject(internalSlotsList).
+        // 4. Set M's essential internal methods to the definitions specified in 10.4.6.
+        // 5. Set M.[[Module]] to module.
+        // 7. Set M.[[Exports]] to sortedExports.
+        // 8. Create own properties of M corresponding to the definitions in 28.3.
+        let namespace = context
+            .intrinsics()
+            .templates()
+            .namespace()
+            .create(Self { module, exports }, vec![js_string!("Module").into()]);
+
+        // 9. Set module.[[Namespace]] to M.
+        // Ignored because this is done by `Module::namespace`
+
+        // 10. Return M.
+        namespace
+    }
+
+    /// Gets the export names of the Module Namespace object.
+    pub(crate) const fn exports(&self) -> &IndexSet<JsString, BuildHasherDefault<FxHasher>> {
+        &self.exports
+    }
+
+    /// Gest the module associated with this Module Namespace object.
+    pub(crate) const fn module(&self) -> &Module {
+        &self.module
+    }
+}
 
 /// [`[[GetPrototypeOf]] ( )`][spec].
 ///
@@ -56,7 +114,7 @@ fn module_namespace_exotic_set_prototype_of(
 ) -> JsResult<bool> {
     // 1. Return ! SetImmutablePrototype(O, V).
     Ok(
-        immutable_prototype::immutable_prototype_exotic_set_prototype_of(obj, val, context)
+        immutable_prototype_exotic_set_prototype_of(obj, val, context)
             .expect("this must not fail per the spec"),
     )
 }
@@ -94,9 +152,8 @@ fn module_namespace_exotic_get_own_property(
     };
 
     {
-        let obj = obj.borrow();
         let obj = obj
-            .as_module_namespace()
+            .downcast_ref::<ModuleNamespace>()
             .expect("internal method can only be called on module namespace objects");
         // 2. Let exports be O.[[Exports]].
         let exports = obj.exports();
@@ -173,9 +230,8 @@ fn module_namespace_exotic_has_property(
         PropertyKey::String(s) => s.clone(),
     };
 
-    let obj = obj.borrow();
     let obj = obj
-        .as_module_namespace()
+        .downcast_ref::<ModuleNamespace>()
         .expect("internal method can only be called on module namespace objects");
 
     // 2. Let exports be O.[[Exports]].
@@ -203,9 +259,8 @@ fn module_namespace_exotic_get(
         PropertyKey::String(s) => s.clone(),
     };
 
-    let obj = obj.borrow();
     let obj = obj
-        .as_module_namespace()
+        .downcast_ref::<ModuleNamespace>()
         .expect("internal method can only be called on module namespace objects");
 
     // 2. Let exports be O.[[Exports]].
@@ -295,9 +350,8 @@ fn module_namespace_exotic_delete(
         PropertyKey::String(s) => s.clone(),
     };
 
-    let obj = obj.borrow();
     let obj = obj
-        .as_module_namespace()
+        .downcast_ref::<ModuleNamespace>()
         .expect("internal method can only be called on module namespace objects");
 
     // 2. Let exports be O.[[Exports]].
@@ -318,9 +372,8 @@ fn module_namespace_exotic_own_property_keys(
     // 2. Let symbolKeys be OrdinaryOwnPropertyKeys(O).
     let symbol_keys = ordinary_own_property_keys(obj, context)?;
 
-    let obj = obj.borrow();
     let obj = obj
-        .as_module_namespace()
+        .downcast_ref::<ModuleNamespace>()
         .expect("internal method can only be called on module namespace objects");
 
     // 1. Let exports be O.[[Exports]].

@@ -14,13 +14,13 @@ use crate::{
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
+    object::{internal_methods::get_prototype_from_constructor, JsObject},
     property::Attribute,
     realm::Realm,
     string::common::StaticJsStrings,
     symbol::JsSymbol,
     value::JsValue,
-    Context, JsArgs, JsResult, JsString,
+    Context, JsArgs, JsData, JsResult, JsString,
 };
 use boa_gc::{Finalize, Trace};
 use bytemuck::{bytes_of, bytes_of_mut};
@@ -32,7 +32,7 @@ use super::{
 };
 
 /// The internal representation of a `DataView` object.
-#[derive(Debug, Clone, Trace, Finalize)]
+#[derive(Debug, Clone, Trace, Finalize, JsData)]
 pub struct DataView {
     pub(crate) viewed_array_buffer: JsObject,
     pub(crate) byte_length: u64,
@@ -209,14 +209,14 @@ impl BuiltInConstructor for DataView {
         let obj = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            ObjectData::data_view(Self {
+            Self {
                 // 11. Set O.[[ViewedArrayBuffer]] to buffer.
                 viewed_array_buffer: buffer_obj.clone(),
                 // 12. Set O.[[ByteLength]] to viewByteLength.
                 byte_length: view_byte_length,
                 // 13. Set O.[[ByteOffset]] to offset.
                 byte_offset: offset,
-            }),
+            },
         );
 
         // 14. Return O.
@@ -243,14 +243,13 @@ impl DataView {
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[DataView]]).
-        let dataview = this.as_object().map(JsObject::borrow);
-        let dataview = dataview
-            .as_ref()
-            .and_then(|obj| obj.as_data_view())
+        let view = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a DataView"))?;
         // 3. Assert: O has a [[ViewedArrayBuffer]] internal slot.
         // 4. Let buffer be O.[[ViewedArrayBuffer]].
-        let buffer = dataview.viewed_array_buffer.clone();
+        let buffer = view.viewed_array_buffer.clone();
         // 5. Return buffer.
         Ok(buffer.into())
     }
@@ -272,14 +271,13 @@ impl DataView {
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[DataView]]).
-        let dataview = this.as_object().map(JsObject::borrow);
-        let dataview = dataview
-            .as_ref()
-            .and_then(|obj| obj.as_data_view())
+        let view = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a DataView"))?;
         // 3. Assert: O has a [[ViewedArrayBuffer]] internal slot.
         // 4. Let buffer be O.[[ViewedArrayBuffer]].
-        let buffer_borrow = dataview.viewed_array_buffer.borrow();
+        let buffer_borrow = view.viewed_array_buffer.borrow();
         let borrow = buffer_borrow
             .as_buffer()
             .expect("DataView must be constructed with a Buffer");
@@ -290,7 +288,7 @@ impl DataView {
                 .into());
         }
         // 6. Let size be O.[[ByteLength]].
-        let size = dataview.byte_length;
+        let size = view.byte_length;
         // 7. Return 𝔽(size).
         Ok(size.into())
     }
@@ -313,14 +311,13 @@ impl DataView {
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[DataView]]).
-        let dataview = this.as_object().map(JsObject::borrow);
-        let dataview = dataview
-            .as_ref()
-            .and_then(|obj| obj.as_data_view())
+        let view = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a DataView"))?;
         // 3. Assert: O has a [[ViewedArrayBuffer]] internal slot.
         // 4. Let buffer be O.[[ViewedArrayBuffer]].
-        let buffer_borrow = dataview.viewed_array_buffer.borrow();
+        let buffer_borrow = view.viewed_array_buffer.borrow();
         let borrow = buffer_borrow
             .as_buffer()
             .expect("DataView must be constructed with a Buffer");
@@ -331,7 +328,7 @@ impl DataView {
                 .into());
         }
         // 6. Let offset be O.[[ByteOffset]].
-        let offset = dataview.byte_offset;
+        let offset = view.byte_offset;
         // 7. Return 𝔽(offset).
         Ok(offset.into())
     }
@@ -354,10 +351,9 @@ impl DataView {
     ) -> JsResult<JsValue> {
         // 1. Perform ? RequireInternalSlot(view, [[DataView]]).
         // 2. Assert: view has a [[ViewedArrayBuffer]] internal slot.
-        let view = view.as_object().map(JsObject::borrow);
         let view = view
-            .as_ref()
-            .and_then(|obj| obj.as_data_view())
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a DataView"))?;
         // 3. Let getIndex be ? ToIndex(requestIndex).
         let get_index = request_index.to_index(context)?;
@@ -666,10 +662,9 @@ impl DataView {
     ) -> JsResult<JsValue> {
         // 1. Perform ? RequireInternalSlot(view, [[DataView]]).
         // 2. Assert: view has a [[ViewedArrayBuffer]] internal slot.
-        let view = view.as_object().map(JsObject::borrow);
         let view = view
-            .as_ref()
-            .and_then(|obj| obj.as_data_view())
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a DataView"))?;
         // 3. Let getIndex be ? ToIndex(requestIndex).
         let get_index = request_index.to_index(context)?;

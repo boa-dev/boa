@@ -14,16 +14,15 @@ use crate::{
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
-    object::{
-        internal_methods::get_prototype_from_constructor, JsObject, Object, ObjectData, CONSTRUCTOR,
-    },
+    object::{internal_methods::get_prototype_from_constructor, JsObject, CONSTRUCTOR},
     property::Attribute,
     realm::Realm,
     string::{common::StaticJsStrings, utf16, CodePoint},
     symbol::JsSymbol,
     value::JsValue,
-    Context, JsArgs, JsResult, JsString,
+    Context, JsArgs, JsData, JsResult, JsString,
 };
+use boa_gc::{Finalize, Trace};
 use boa_parser::lexer::regex::RegExpFlags;
 use boa_profiler::Profiler;
 use regress::{Flags, Range, Regex};
@@ -37,7 +36,9 @@ pub(crate) use regexp_string_iterator::RegExpStringIterator;
 mod tests;
 
 /// The internal representation of a `RegExp` object.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Trace, Finalize, JsData)]
+// Safety: `RegExp` does not contain any objects which needs to be traced, so this is safe.
+#[boa_gc(unsafe_empty_trace)]
 pub struct RegExp {
     /// Regex matcher.
     matcher: Regex,
@@ -212,9 +213,7 @@ impl BuiltInConstructor for RegExp {
         // 4. If pattern is an Object and pattern has a [[RegExpMatcher]] internal slot, then
         let (p, f) = if let Some(pattern) = pattern
             .as_object()
-            .map(JsObject::borrow)
-            .as_deref()
-            .and_then(Object::as_regexp)
+            .and_then(JsObject::downcast_ref::<RegExp>)
         {
             // a. Let P be pattern.[[OriginalSource]].
             let p = pattern.original_source.clone().into();
@@ -286,7 +285,7 @@ impl RegExp {
         }
 
         // 4. If argument has a [[RegExpMatcher]] internal slot, return true.
-        if argument.is_regexp() {
+        if argument.is::<RegExp>() {
             return Ok(Some(argument));
         }
 
@@ -368,7 +367,6 @@ impl RegExp {
     ) -> JsResult<JsValue> {
         // Has the steps  of `RegExpInitialize`.
         let regexp = Self::compile_native_regexp(pattern, flags, context)?;
-        let data = ObjectData::regexp(regexp);
 
         // 22. Perform ? Set(obj, "lastIndex", +0𝔽, true).
         let obj = if let Some(prototype) = prototype {
@@ -378,13 +376,13 @@ impl RegExp {
                 .regexp_without_proto()
                 .clone();
             template.set_prototype(prototype);
-            template.create(data, vec![0.into()])
+            template.create(regexp, vec![0.into()])
         } else {
             context
                 .intrinsics()
                 .templates()
                 .regexp()
-                .create(data, vec![0.into()])
+                .create(regexp, vec![0.into()])
         };
 
         // 23. Return obj.
@@ -421,7 +419,7 @@ impl RegExp {
 
     fn regexp_has_flag(this: &JsValue, flag: u8, context: &mut Context) -> JsResult<JsValue> {
         if let Some(object) = this.as_object() {
-            if let Some(regexp) = object.borrow().as_regexp() {
+            if let Some(regexp) = object.downcast_ref::<RegExp>() {
                 return Ok(JsValue::new(match flag {
                     b'd' => regexp.flags.contains(RegExpFlags::HAS_INDICES),
                     b'g' => regexp.flags.contains(RegExpFlags::GLOBAL),
@@ -681,9 +679,7 @@ impl RegExp {
                 .into());
         };
 
-        let object = object.borrow();
-
-        match object.as_regexp() {
+        match object.downcast_ref::<RegExp>() {
             // 3. If R does not have an [[OriginalSource]] internal slot, then
             None => {
                 // a. If SameValue(R, %RegExp.prototype%) is true, return "(?:)".
@@ -801,7 +797,7 @@ impl RegExp {
         // 2. Perform ? RequireInternalSlot(R, [[RegExpMatcher]]).
         let obj = this
             .as_object()
-            .filter(|obj| obj.is_regexp())
+            .filter(|obj| obj.is::<RegExp>())
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("RegExp.prototype.exec called with invalid value")
             })?;
@@ -848,7 +844,7 @@ impl RegExp {
         }
 
         // 5. Perform ? RequireInternalSlot(R, [[RegExpMatcher]]).
-        if !this.is_regexp() {
+        if !this.is::<RegExp>() {
             return Err(JsNativeError::typ()
                 .with_message("RegExpExec called with invalid value")
                 .into());
@@ -869,16 +865,13 @@ impl RegExp {
         input: &JsString,
         context: &mut Context,
     ) -> JsResult<Option<JsObject>> {
-        let rx = {
-            let obj = this.borrow();
-            if let Some(rx) = obj.as_regexp() {
-                rx.clone()
-            } else {
-                return Err(JsNativeError::typ()
-                    .with_message("RegExpBuiltinExec called with invalid value")
-                    .into());
-            }
-        };
+        let rx = this
+            .downcast_ref::<RegExp>()
+            .as_deref()
+            .cloned()
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("RegExpBuiltinExec called with invalid value")
+            })?;
 
         // 1. Let length be the length of S.
         let length = input.len() as u64;
@@ -1276,23 +1269,16 @@ impl RegExp {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/toString
     #[allow(clippy::wrong_self_convention)]
     pub(crate) fn to_string(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        let (body, flags) = if let Some(object) = this.as_object() {
-            let object = object.borrow();
-            let regex = object.as_regexp().ok_or_else(|| {
+        let (body, flags) = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<RegExp>)
+            .map(|rx| (rx.original_source.clone(), rx.original_flags.clone()))
+            .ok_or_else(|| {
                 JsNativeError::typ().with_message(format!(
                     "Method RegExp.prototype.toString called on incompatible receiver {}",
                     this.display()
                 ))
             })?;
-            (regex.original_source.clone(), regex.original_flags.clone())
-        } else {
-            return Err(JsNativeError::typ()
-                .with_message(format!(
-                    "Method RegExp.prototype.toString called on incompatible receiver {}",
-                    this.display()
-                ))
-                .into());
-        };
         Ok(js_string!(utf16!("/"), &body, utf16!("/"), &flags).into())
     }
 
@@ -1842,7 +1828,7 @@ impl RegExp {
 
         let this = this
             .as_object()
-            .filter(|o| o.borrow().is_regexp())
+            .filter(|o| o.is::<RegExp>())
             .cloned()
             .ok_or_else(|| {
                 JsNativeError::typ()
@@ -1852,8 +1838,7 @@ impl RegExp {
         let flags = args.get_or_undefined(1);
         // 3. If pattern is an Object and pattern has a [[RegExpMatcher]] internal slot, then
         let (pattern, flags) = if let Some((p, f)) = pattern.as_object().and_then(|o| {
-            let o = o.borrow();
-            o.as_regexp()
+            o.downcast_ref::<RegExp>()
                 .map(|rx| (rx.original_source.clone(), rx.original_flags.clone()))
         }) {
             //     a. If flags is not undefined, throw a TypeError exception.
@@ -1879,9 +1864,8 @@ impl RegExp {
 
         // 5. Return ? RegExpInitialize(O, P, F).
         {
-            let mut obj = this.borrow_mut();
-
-            *obj.as_regexp_mut()
+            *this
+                .downcast_mut::<RegExp>()
                 .expect("already checked that the object was a RegExp") = regexp;
         }
 

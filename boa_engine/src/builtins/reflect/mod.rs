@@ -241,7 +241,7 @@ impl Reflect {
         if args.get_or_undefined(0).is_object() {
             // This function is the same as Object.prototype.getOwnPropertyDescriptor, that why
             // it is invoked here.
-            builtins::object::Object::get_own_property_descriptor(
+            builtins::object::OrdinaryObject::get_own_property_descriptor(
                 &JsValue::undefined(),
                 args,
                 context,

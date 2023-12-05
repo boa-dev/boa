@@ -1,12 +1,11 @@
 //! Implements a map type that preserves insertion order.
 
-use crate::{object::JsObject, JsValue};
+use crate::{object::JsObject, JsData, JsValue};
 use boa_gc::{custom_trace, Finalize, Trace};
 use indexmap::{Equivalent, IndexMap};
 use std::{
-    collections::hash_map::RandomState,
     fmt::Debug,
-    hash::{BuildHasher, Hash, Hasher},
+    hash::{Hash, Hasher},
 };
 
 #[derive(PartialEq, Eq, Clone, Debug)]
@@ -35,15 +34,14 @@ impl Equivalent<MapKey> for JsValue {
 }
 
 /// A structure wrapping `indexmap::IndexMap`.
-#[derive(Clone)]
-pub struct OrderedMap<V, S = RandomState> {
-    map: IndexMap<MapKey, Option<V>, S>,
+#[derive(Clone, Finalize, JsData)]
+pub struct OrderedMap<V> {
+    map: IndexMap<MapKey, Option<V>>,
     lock: u32,
     empty_count: usize,
 }
 
-impl<V: Trace, S: BuildHasher> Finalize for OrderedMap<V, S> {}
-unsafe impl<V: Trace, S: BuildHasher> Trace for OrderedMap<V, S> {
+unsafe impl<V: Trace> Trace for OrderedMap<V> {
     custom_trace!(this, {
         for (k, v) in &this.map {
             if let MapKey::Key(key) = k {
@@ -224,7 +222,8 @@ impl Finalize for MapLock {
         let Ok(mut map) = self.0.try_borrow_mut() else {
             return;
         };
-        let map = map.as_map_mut().expect("MapLock does not point to a map");
-        map.unlock();
+        map.downcast_mut::<OrderedMap<JsValue>>()
+            .expect("MapLock does not point to a map")
+            .unlock();
     }
 }

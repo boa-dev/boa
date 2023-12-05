@@ -1,6 +1,5 @@
 use crate::{
     builtins::Array,
-    object::ObjectData,
     string::utf16,
     vm::{opcode::Operation, CompletionType},
     Context, JsResult, JsValue,
@@ -23,7 +22,7 @@ impl Operation for PushNewArray {
             .intrinsics()
             .templates()
             .array()
-            .create(ObjectData::array(), vec![JsValue::new(0)]);
+            .create(Array, vec![JsValue::new(0)]);
         context.vm.push(array);
         Ok(CompletionType::Normal)
     }

@@ -5,7 +5,7 @@
 //!
 //! [spec]: https://tc39.es/ecma262/#sec-map-iterator-objects
 
-use super::ordered_map::MapLock;
+use super::ordered_map::{MapLock, OrderedMap};
 use crate::{
     builtins::{
         iterable::create_iter_result_object, Array, BuiltInBuilder, IntrinsicObject, JsValue,
@@ -13,11 +13,11 @@ use crate::{
     context::intrinsics::Intrinsics,
     error::JsNativeError,
     js_string,
-    object::{JsObject, ObjectData},
+    object::JsObject,
     property::{Attribute, PropertyNameKind},
     realm::Realm,
     symbol::JsSymbol,
-    Context, JsResult,
+    Context, JsData, JsResult,
 };
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
@@ -28,8 +28,8 @@ use boa_profiler::Profiler;
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-map-iterator-objects
-#[derive(Debug, Finalize, Trace)]
-pub struct MapIterator {
+#[derive(Debug, Finalize, Trace, JsData)]
+pub(crate) struct MapIterator {
     iterated_map: Option<JsObject>,
     map_next_index: usize,
     #[unsafe_ignore_trace]
@@ -78,7 +78,7 @@ impl MapIterator {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         if let Some(map_obj) = map.as_object() {
-            if let Some(map) = map_obj.borrow_mut().as_map_mut() {
+            if let Some(mut map) = map_obj.downcast_mut::<OrderedMap<JsValue>>() {
                 let lock = map.lock(map_obj.clone());
                 let iter = Self {
                     iterated_map: Some(map_obj.clone()),
@@ -89,7 +89,7 @@ impl MapIterator {
                 let map_iterator = JsObject::from_proto_and_data_with_shared_shape(
                     context.root_shape(),
                     context.intrinsics().objects().iterator_prototypes().map(),
-                    ObjectData::map_iterator(iter),
+                    iter,
                 );
                 return Ok(map_iterator.into());
             }
@@ -108,18 +108,18 @@ impl MapIterator {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%mapiteratorprototype%.next
     pub(crate) fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let mut map_iterator = this.as_object().map(JsObject::borrow_mut);
-        let map_iterator = map_iterator
-            .as_mut()
-            .and_then(|obj| obj.as_map_iterator_mut())
+        let mut map_iterator = this
+            .as_object()
+            .and_then(JsObject::downcast_mut::<Self>)
             .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a MapIterator"))?;
 
         let item_kind = map_iterator.map_iteration_kind;
 
         if let Some(obj) = map_iterator.iterated_map.take() {
             let e = {
-                let map = obj.borrow();
-                let entries = map.as_map().expect("iterator should only iterate maps");
+                let entries = obj
+                    .downcast_ref::<OrderedMap<JsValue>>()
+                    .expect("iterator should only iterate maps");
                 let len = entries.full_len();
                 loop {
                     let element = entries

@@ -87,17 +87,17 @@ impl core::fmt::Debug for EphemeronBoxHeader {
 }
 
 /// The inner allocation of an [`Ephemeron`][crate::Ephemeron] pointer.
-pub(crate) struct EphemeronBox<K: Trace + 'static, V: Trace + 'static> {
+pub(crate) struct EphemeronBox<K: Trace + ?Sized + 'static, V: Trace + 'static> {
     pub(crate) header: EphemeronBoxHeader,
     data: UnsafeCell<Option<Data<K, V>>>,
 }
 
-struct Data<K: Trace + 'static, V: Trace + 'static> {
+struct Data<K: Trace + ?Sized + 'static, V: Trace + 'static> {
     key: NonNull<GcBox<K>>,
     value: V,
 }
 
-impl<K: Trace, V: Trace> EphemeronBox<K, V> {
+impl<K: Trace + ?Sized, V: Trace> EphemeronBox<K, V> {
     /// Creates a new `EphemeronBox` that tracks `key` and has `value` as its inner data.
     pub(crate) fn new(key: &Gc<K>, value: V) -> Self {
         Self {
@@ -221,7 +221,7 @@ pub(crate) trait ErasedEphemeronBox {
     fn finalize_and_clear(&self);
 }
 
-impl<K: Trace, V: Trace> ErasedEphemeronBox for EphemeronBox<K, V> {
+impl<K: Trace + ?Sized, V: Trace> ErasedEphemeronBox for EphemeronBox<K, V> {
     fn header(&self) -> &EphemeronBoxHeader {
         &self.header
     }

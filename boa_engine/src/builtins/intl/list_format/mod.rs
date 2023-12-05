@@ -1,6 +1,6 @@
 use std::fmt::Write;
 
-use boa_gc::{empty_trace, Finalize, Trace};
+use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
 use icu_list::{provider::AndListV1Marker, ListFormatter, ListLength};
 use icu_locid::Locale;
@@ -9,16 +9,16 @@ use icu_provider::DataLocale;
 use crate::{
     builtins::{
         options::{get_option, get_options_object},
-        Array, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
+        Array, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject, OrdinaryObject,
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
+    object::{internal_methods::get_prototype_from_constructor, JsObject},
     property::Attribute,
     realm::Realm,
     string::{common::StaticJsStrings, utf16},
     symbol::JsSymbol,
-    Context, JsArgs, JsNativeError, JsResult, JsString, JsValue,
+    Context, JsArgs, JsData, JsNativeError, JsResult, JsString, JsValue,
 };
 
 use super::{
@@ -30,17 +30,14 @@ use super::{
 mod options;
 pub(crate) use options::*;
 
-#[derive(Debug, Finalize)]
+#[derive(Debug, Trace, Finalize, JsData)]
+// Safety: `ListFormat` only contains non-traceable types.
+#[boa_gc(unsafe_empty_trace)]
 pub(crate) struct ListFormat {
     locale: Locale,
     typ: ListFormatType,
     style: ListLength,
     native: ListFormatter,
-}
-
-// SAFETY: `ListFormat` doesn't contain traceable data.
-unsafe impl Trace for ListFormat {
-    empty_trace!();
 }
 
 impl Service for ListFormat {
@@ -170,12 +167,12 @@ impl BuiltInConstructor for ListFormat {
         let list_format = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            ObjectData::native_object(Self {
+            Self {
                 locale,
                 typ,
                 style,
                 native: formatter,
-            }),
+            },
         );
 
         // 19. Return listFormat.
@@ -380,7 +377,7 @@ impl ListFormat {
                 .intrinsics()
                 .templates()
                 .ordinary_object()
-                .create(ObjectData::ordinary(), vec![]);
+                .create(OrdinaryObject, vec![]);
 
             // b. Perform ! CreateDataPropertyOrThrow(O, "type", part.[[Type]]).
             o.create_data_property_or_throw(utf16!("type"), js_string!(part.typ()), context)
@@ -429,7 +426,7 @@ impl ListFormat {
             .intrinsics()
             .templates()
             .ordinary_object()
-            .create(ObjectData::ordinary(), vec![]);
+            .create(OrdinaryObject, vec![]);
 
         // 4. For each row of Table 11, except the header row, in table order, do
         //     a. Let p be the Property value of the current row.

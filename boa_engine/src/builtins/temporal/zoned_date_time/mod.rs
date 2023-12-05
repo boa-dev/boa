@@ -5,13 +5,14 @@ use crate::{
     property::Attribute,
     realm::Realm,
     string::common::StaticJsStrings,
-    Context, JsBigInt, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
+    Context, JsBigInt, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
+use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
 use boa_temporal::duration::Duration as TemporalDuration;
 
 /// The `Temporal.ZonedDateTime` object.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Trace, Finalize, JsData)]
 pub struct ZonedDateTime {
     nanoseconds: JsBigInt,
     time_zone: JsObject,

@@ -15,12 +15,13 @@ use crate::{
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
+    object::{internal_methods::get_prototype_from_constructor, JsObject},
     property::Attribute,
     realm::Realm,
     string::{common::StaticJsStrings, utf16},
-    Context, JsArgs, JsResult, JsString, JsValue,
+    Context, JsArgs, JsData, JsResult, JsString, JsValue,
 };
+use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
 
 pub(crate) mod aggregate;
@@ -44,7 +45,7 @@ pub(crate) use self::uri::UriError;
 
 use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
 
-/// The kind of a `NativeError` object, per the [ECMAScript spec][spec].
+/// A `NativeError` object, per the [ECMAScript spec][spec].
 ///
 /// This is used internally to convert between [`JsObject`] and
 /// [`JsNativeError`] correctly, but it can also be used to manually create `Error`
@@ -56,8 +57,10 @@ use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
 /// [`JsNativeErrorKind`][crate::error::JsNativeErrorKind].
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-error-objects
-#[derive(Debug, Copy, Clone, Eq, PartialEq)]
-pub enum ErrorKind {
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Trace, Finalize, JsData)]
+#[boa_gc(empty_trace)]
+#[non_exhaustive]
+pub enum ErrorObject {
     /// The `AggregateError` object type.
     ///
     /// More information:
@@ -178,7 +181,7 @@ impl BuiltInConstructor for Error {
         let o = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            ObjectData::error(ErrorKind::Error),
+            ErrorObject::Error,
         );
 
         // 3. If message is not undefined, then

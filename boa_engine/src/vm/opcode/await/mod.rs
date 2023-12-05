@@ -1,7 +1,10 @@
 use boa_gc::{Gc, GcRefCell};
 
 use crate::{
-    builtins::{generator::GeneratorContext, promise::PromiseCapability, Promise},
+    builtins::{
+        async_generator::AsyncGenerator, generator::GeneratorContext, promise::PromiseCapability,
+        Promise,
+    },
     native_function::NativeFunction,
     object::FunctionObjectBuilder,
     vm::{opcode::Operation, CompletionType, GeneratorResumeKind},
@@ -58,8 +61,7 @@ impl Operation for Await {
                         .and_then(|f| f.async_generator.clone())
                     {
                         async_generator
-                            .borrow_mut()
-                            .as_async_generator_mut()
+                            .downcast_mut::<AsyncGenerator>()
                             .expect("must be async generator")
                             .context = Some(gen);
                     }
@@ -102,8 +104,7 @@ impl Operation for Await {
                         .and_then(|f| f.async_generator.clone())
                     {
                         async_generator
-                            .borrow_mut()
-                            .as_async_generator_mut()
+                            .downcast_mut::<AsyncGenerator>()
                             .expect("must be async generator")
                             .context = Some(gen);
                     }

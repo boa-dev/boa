@@ -12,11 +12,11 @@ use crate::{
     builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, ObjectData},
+    object::internal_methods::get_prototype_from_constructor,
     property::Attribute,
     realm::Realm,
     string::common::StaticJsStrings,
-    Context, JsArgs, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
+    Context, JsArgs, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 
 use super::{get_slice_range, utils::copy_shared_to_shared, SliceRange};
@@ -25,7 +25,7 @@ use super::{get_slice_range, utils::copy_shared_to_shared, SliceRange};
 ///
 /// This struct implements `Send` and `Sync`, meaning it can be shared between threads
 /// running different JS code at the same time.
-#[derive(Debug, Clone, Trace, Finalize)]
+#[derive(Debug, Clone, Trace, Finalize, JsData)]
 pub struct SharedArrayBuffer {
     /// The `[[ArrayBufferData]]` internal slot.
     // Shared buffers cannot be detached.
@@ -155,16 +155,14 @@ impl SharedArrayBuffer {
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).
-        let obj = this.as_object().ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message("SharedArrayBuffer.byteLength called with non-object value")
-        })?;
-        let obj = obj.borrow();
         // 3. If IsSharedArrayBuffer(O) is true, throw a TypeError exception.
-        let buf = obj.as_shared_array_buffer().ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message("SharedArrayBuffer.byteLength called with invalid object")
-        })?;
+        let buf = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message("SharedArrayBuffer.byteLength called with invalid value")
+            })?;
 
         // TODO: 4. Let length be ArrayBufferByteLength(O, seq-cst).
         // 5. Return 𝔽(length).
@@ -184,10 +182,9 @@ impl SharedArrayBuffer {
         let obj = this.as_object().ok_or_else(|| {
             JsNativeError::typ().with_message("ArrayBuffer.slice called with non-object value")
         })?;
-        let obj_borrow = obj.borrow();
 
         // 3. If IsSharedArrayBuffer(O) is false, throw a TypeError exception.
-        let buf = obj_borrow.as_shared_array_buffer().ok_or_else(|| {
+        let buf = obj.downcast_ref::<Self>().ok_or_else(|| {
             JsNativeError::typ().with_message("ArrayBuffer.slice called with invalid object")
         })?;
 
@@ -210,21 +207,20 @@ impl SharedArrayBuffer {
         {
             // 16. Perform ? RequireInternalSlot(new, [[ArrayBufferData]]).
             // 17. If IsSharedArrayBuffer(new) is false, throw a TypeError exception.
-            let new_obj = new.borrow();
-            let new_buf = new_obj.as_shared_array_buffer().ok_or_else(|| {
+            let new = new.downcast_ref::<Self>().ok_or_else(|| {
                 JsNativeError::typ()
                     .with_message("SharedArrayBuffer constructor returned invalid object")
             })?;
 
             // 18. If new.[[ArrayBufferData]] is O.[[ArrayBufferData]], throw a TypeError exception.
-            if std::ptr::eq(buf.data().as_ptr(), new_buf.data().as_ptr()) {
+            if std::ptr::eq(buf.data().as_ptr(), new.data().as_ptr()) {
                 return Err(JsNativeError::typ()
                     .with_message("cannot reuse the same `SharedArrayBuffer` for a slice operation")
                     .into());
             }
 
             // TODO: 19. If ArrayBufferByteLength(new, seq-cst) < newLen, throw a TypeError exception.
-            if (new_buf.len() as u64) < new_len {
+            if (new.len() as u64) < new_len {
                 return Err(JsNativeError::typ()
                     .with_message("invalid size of constructed shared array")
                     .into());
@@ -234,7 +230,7 @@ impl SharedArrayBuffer {
             let from_buf = buf.data();
 
             // 21. Let toBuf be new.[[ArrayBufferData]].
-            let to_buf = new_buf.data();
+            let to_buf = new.data();
 
             // 22. Perform CopyDataBlockBytes(toBuf, 0, fromBuf, first, newLen).
             let first = first as usize;
@@ -298,7 +294,7 @@ impl SharedArrayBuffer {
         let obj = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            ObjectData::shared_array_buffer(Self { data }),
+            Self { data },
         );
 
         // 11. Return obj.

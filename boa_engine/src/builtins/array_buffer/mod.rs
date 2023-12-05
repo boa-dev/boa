@@ -23,20 +23,22 @@ use crate::{
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
+    object::{internal_methods::get_prototype_from_constructor, JsObject},
     property::Attribute,
     realm::Realm,
     string::common::StaticJsStrings,
     symbol::JsSymbol,
     value::IntegerOrInfinity,
-    Context, JsArgs, JsResult, JsString, JsValue,
+    Context, JsArgs, JsData, JsResult, JsString, JsValue,
 };
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
 
 use self::utils::{SliceRef, SliceRefMut};
 
-use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
+use super::{
+    typed_array::TypedArray, BuiltInBuilder, BuiltInConstructor, DataView, IntrinsicObject,
+};
 
 #[derive(Debug, Clone, Copy)]
 pub(crate) enum BufferRef<'a> {
@@ -73,7 +75,7 @@ impl BufferRefMut<'_> {
 }
 
 /// The internal representation of an `ArrayBuffer` object.
-#[derive(Debug, Clone, Trace, Finalize)]
+#[derive(Debug, Clone, Trace, Finalize, JsData)]
 pub struct ArrayBuffer {
     /// The `[[ArrayBufferData]]` internal slot.
     data: Option<Vec<u8>>,
@@ -236,7 +238,7 @@ impl ArrayBuffer {
         Ok(args
             .get_or_undefined(0)
             .as_object()
-            .map(|obj| obj.borrow().has_viewed_array_buffer())
+            .map(|obj| obj.is::<TypedArray>() || obj.is::<DataView>())
             .unwrap_or_default()
             .into())
     }
@@ -254,14 +256,14 @@ impl ArrayBuffer {
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).
-        let obj = this.as_object().ok_or_else(|| {
-            JsNativeError::typ().with_message("ArrayBuffer.byteLength called with non-object value")
-        })?;
-        let obj = obj.borrow();
         // 3. If IsSharedArrayBuffer(O) is true, throw a TypeError exception.
-        let buf = obj.as_array_buffer().ok_or_else(|| {
-            JsNativeError::typ().with_message("ArrayBuffer.byteLength called with invalid object")
-        })?;
+        let buf = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message("ArrayBuffer.byteLength called with non `ArrayBuffer` object")
+            })?;
 
         // 4. If IsDetachedBuffer(O) is true, return +0𝔽.
         // 5. Let length be O.[[ArrayBufferByteLength]].
@@ -278,13 +280,12 @@ impl ArrayBuffer {
     fn slice(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).
+        // 3. If IsSharedArrayBuffer(O) is true, throw a TypeError exception.
         let obj = this.as_object().ok_or_else(|| {
             JsNativeError::typ().with_message("ArrayBuffer.slice called with non-object value")
         })?;
-        let obj_borrow = obj.borrow();
 
-        // 3. If IsSharedArrayBuffer(O) is true, throw a TypeError exception.
-        let buf = obj_borrow.as_array_buffer().ok_or_else(|| {
+        let buf = obj.downcast_ref::<Self>().ok_or_else(|| {
             JsNativeError::typ().with_message("ArrayBuffer.slice called with invalid object")
         })?;
 
@@ -312,15 +313,14 @@ impl ArrayBuffer {
         let new = ctor.construct(&[new_len.into()], Some(&ctor), context)?;
 
         {
-            let new_obj = new.borrow();
             // 17. Perform ? RequireInternalSlot(new, [[ArrayBufferData]]).
             // 18. If IsSharedArrayBuffer(new) is true, throw a TypeError exception.
-            let new_array_buffer = new_obj.as_array_buffer().ok_or_else(|| {
+            let new = new.downcast_ref::<Self>().ok_or_else(|| {
                 JsNativeError::typ().with_message("ArrayBuffer constructor returned invalid object")
             })?;
 
             // 19. If IsDetachedBuffer(new) is true, throw a TypeError exception.
-            if new_array_buffer.is_detached() {
+            if new.is_detached() {
                 return Err(JsNativeError::typ()
                     .with_message("ArrayBuffer constructor returned detached ArrayBuffer")
                     .into());
@@ -338,13 +338,12 @@ impl ArrayBuffer {
         }
 
         {
-            let mut new_obj_borrow = new.borrow_mut();
-            let new_array_buffer = new_obj_borrow
-                .as_array_buffer_mut()
+            let mut new = new
+                .downcast_mut::<Self>()
                 .expect("Already checked that `new_obj` was an `ArrayBuffer`");
 
             // 21. If new.[[ArrayBufferByteLength]] < newLen, throw a TypeError exception.
-            if (new_array_buffer.len() as u64) < new_len {
+            if (new.len() as u64) < new_len {
                 return Err(JsNativeError::typ()
                     .with_message("new ArrayBuffer length too small")
                     .into());
@@ -360,7 +359,7 @@ impl ArrayBuffer {
             };
 
             // 25. Let toBuf be new.[[ArrayBufferData]].
-            let to_buf = new_array_buffer
+            let to_buf = new
                 .data
                 .as_mut()
                 .expect("ArrayBuffer cannot be detached here");
@@ -401,10 +400,10 @@ impl ArrayBuffer {
         let obj = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            ObjectData::array_buffer(Self {
+            Self {
                 data: Some(block),
                 detach_key: JsValue::Undefined,
-            }),
+            },
         );
 
         // 5. Return obj.

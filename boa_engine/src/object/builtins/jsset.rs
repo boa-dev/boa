@@ -4,7 +4,7 @@ use std::ops::Deref;
 use boa_gc::{Finalize, Trace};
 
 use crate::{
-    builtins::Set,
+    builtins::{set::ordered_set::OrderedSet, Set},
     error::JsNativeError,
     object::{JsFunction, JsObject, JsObjectType, JsSetIterator},
     value::TryFromJs,
@@ -144,7 +144,7 @@ impl JsSet {
     /// Utility: Creates `JsSet` from `JsObject`, if not a Set throw `TypeError`.
     #[inline]
     pub fn from_object(object: JsObject) -> JsResult<Self> {
-        if object.is_set() {
+        if object.is::<OrderedSet>() {
             Ok(Self { inner: object })
         } else {
             Err(JsNativeError::typ()

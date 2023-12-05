@@ -3,9 +3,7 @@ use crate::{
     builtins::array_buffer::ArrayBuffer,
     context::intrinsics::StandardConstructors,
     error::JsNativeError,
-    object::{
-        internal_methods::get_prototype_from_constructor, JsObject, JsObjectType, ObjectData,
-    },
+    object::{internal_methods::get_prototype_from_constructor, JsObject, JsObjectType},
     value::TryFromJs,
     Context, JsResult, JsValue,
 };
@@ -106,7 +104,7 @@ impl JsArrayBuffer {
         let obj = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            ObjectData::array_buffer(ArrayBuffer::from_data(block, JsValue::Undefined)),
+            ArrayBuffer::from_data(block, JsValue::Undefined),
         );
 
         Ok(Self { inner: obj })
@@ -117,7 +115,7 @@ impl JsArrayBuffer {
     /// This does not clone the fields of the array buffer, it only does a shallow clone of the object.
     #[inline]
     pub fn from_object(object: JsObject) -> JsResult<Self> {
-        if object.is_array_buffer() {
+        if object.is::<ArrayBuffer>() {
             Ok(Self { inner: object })
         } else {
             Err(JsNativeError::typ()
@@ -188,8 +186,7 @@ impl JsArrayBuffer {
     #[inline]
     pub fn detach(&self, detach_key: &JsValue) -> JsResult<Vec<u8>> {
         self.inner
-            .borrow_mut()
-            .as_array_buffer_mut()
+            .downcast_mut::<ArrayBuffer>()
             .expect("inner must be an ArrayBuffer")
             .detach(detach_key)?
             .ok_or_else(|| {

@@ -1,10 +1,9 @@
 //! A Rust API wrapper for Boa's `DataView` Builtin ECMAScript Object
 use crate::{
-    builtins::DataView,
+    builtins::{array_buffer::ArrayBuffer, DataView},
     context::intrinsics::StandardConstructors,
     object::{
         internal_methods::get_prototype_from_constructor, JsArrayBuffer, JsObject, JsObjectType,
-        ObjectData,
     },
     value::TryFromJs,
     Context, JsNativeError, JsResult, JsValue,
@@ -47,8 +46,7 @@ impl JsDataView {
         context: &mut Context,
     ) -> JsResult<Self> {
         let (byte_offset, byte_length) = {
-            let borrowed_buffer = array_buffer.borrow();
-            let buffer = borrowed_buffer.as_array_buffer().ok_or_else(|| {
+            let buffer = array_buffer.downcast_ref::<ArrayBuffer>().ok_or_else(|| {
                 JsNativeError::typ().with_message("buffer must be an ArrayBuffer")
             })?;
 
@@ -98,11 +96,11 @@ impl JsDataView {
         let obj = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            ObjectData::data_view(DataView {
+            DataView {
                 viewed_array_buffer: (**array_buffer).clone(),
                 byte_length,
                 byte_offset,
-            }),
+            },
         );
 
         Ok(Self { inner: obj })
@@ -111,7 +109,7 @@ impl JsDataView {
     /// Create a new `JsDataView` object from an existing object.
     #[inline]
     pub fn from_object(object: JsObject) -> JsResult<Self> {
-        if object.is_data_view() {
+        if object.is::<DataView>() {
             Ok(Self { inner: object })
         } else {
             Err(JsNativeError::typ()

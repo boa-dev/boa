@@ -1,6 +1,6 @@
 use boa_gc::{custom_trace, Finalize, GcRefCell, Trace};
 
-use crate::{JsNativeError, JsObject, JsResult, JsValue};
+use crate::{builtins::function::OrdinaryFunction, JsNativeError, JsObject, JsResult, JsValue};
 
 use super::PoisonableEnvironment;
 
@@ -93,6 +93,7 @@ impl FunctionEnvironment {
     /// # Panics
     ///
     /// Panics if the function object of the environment is not a function.
+    #[track_caller]
     pub(crate) fn has_super_binding(&self) -> bool {
         // 1.If envRec.[[ThisBindingStatus]] is lexical, return false.
         if matches!(&*self.slots.this.borrow(), ThisBindingStatus::Lexical) {
@@ -102,8 +103,7 @@ impl FunctionEnvironment {
         // 2. If envRec.[[FunctionObject]].[[HomeObject]] is undefined, return false; otherwise, return true.
         self.slots
             .function_object
-            .borrow()
-            .as_function()
+            .downcast_ref::<OrdinaryFunction>()
             .expect("function object must be function")
             .get_home_object()
             .is_some()

@@ -93,7 +93,7 @@ pub(crate) mod test {
         },
         AssertNativeError {
             source: Cow<'static, str>,
-            kind: builtins::error::ErrorKind,
+            kind: builtins::error::ErrorObject,
             message: &'static str,
         },
         AssertContext {

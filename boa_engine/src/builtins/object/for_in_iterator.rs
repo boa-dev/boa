@@ -13,10 +13,10 @@ use crate::{
     context::intrinsics::Intrinsics,
     error::JsNativeError,
     js_string,
-    object::{internal_methods::InternalMethodContext, JsObject, ObjectData},
+    object::{internal_methods::InternalMethodContext, JsObject},
     property::PropertyKey,
     realm::Realm,
-    Context, JsResult, JsString, JsValue,
+    Context, JsData, JsResult, JsString, JsValue,
 };
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
@@ -30,8 +30,8 @@ use std::collections::VecDeque;
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-for-in-iterator-objects
-#[derive(Debug, Clone, Finalize, Trace)]
-pub struct ForInIterator {
+#[derive(Debug, Clone, Finalize, Trace, JsData)]
+pub(crate) struct ForInIterator {
     object: JsValue,
     visited_keys: FxHashSet<JsString>,
     remaining_keys: VecDeque<JsString>,
@@ -85,7 +85,7 @@ impl ForInIterator {
                 .objects()
                 .iterator_prototypes()
                 .for_in(),
-            ObjectData::for_in_iterator(Self::new(object)),
+            Self::new(object),
         )
     }
 
@@ -98,10 +98,9 @@ impl ForInIterator {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%foriniteratorprototype%.next
     pub(crate) fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let mut iterator = this.as_object().map(JsObject::borrow_mut);
-        let iterator = iterator
-            .as_mut()
-            .and_then(|obj| obj.as_for_in_iterator_mut())
+        let mut iterator = this
+            .as_object()
+            .and_then(JsObject::downcast_mut::<Self>)
             .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a ForInIterator"))?;
         let mut object = iterator.object.to_object(context)?;
         loop {

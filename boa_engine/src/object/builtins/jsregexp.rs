@@ -71,7 +71,7 @@ impl JsRegExp {
     /// Create a `JsRegExp` from a regular expression `JsObject`
     #[inline]
     pub fn from_object(object: JsObject) -> JsResult<Self> {
-        if object.is_regexp() {
+        if object.is::<RegExp>() {
             Ok(Self { inner: object })
         } else {
             Err(JsNativeError::typ()

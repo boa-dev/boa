@@ -3,11 +3,12 @@
 use boa_gc::{Finalize, Trace};
 
 use crate::{
-    builtins::{iterable::IteratorPrototypes, uri::UriFunctions},
+    builtins::{iterable::IteratorPrototypes, uri::UriFunctions, Array, OrdinaryObject},
     js_string,
     object::{
+        internal_methods::immutable_prototype::IMMUTABLE_PROTOTYPE_EXOTIC_INTERNAL_METHODS,
         shape::{shared_shape::template::ObjectTemplate, RootShape},
-        JsFunction, JsObject, ObjectData, CONSTRUCTOR, PROTOTYPE,
+        JsFunction, JsObject, Object, CONSTRUCTOR, PROTOTYPE,
     },
     property::{Attribute, PropertyKey},
     JsSymbol,
@@ -192,9 +193,9 @@ pub struct StandardConstructors {
 impl Default for StandardConstructors {
     fn default() -> Self {
         Self {
-            object: StandardConstructor::with_prototype(JsObject::from_proto_and_data(
-                None,
-                ObjectData::object_prototype(),
+            object: StandardConstructor::with_prototype(JsObject::from_object_and_vtable(
+                Object::<OrdinaryObject>::default(),
+                &IMMUTABLE_PROTOTYPE_EXOTIC_INTERNAL_METHODS,
             )),
             async_generator_function: StandardConstructor::default(),
             proxy: StandardConstructor::default(),
@@ -205,22 +206,15 @@ impl Default for StandardConstructors {
             },
             async_function: StandardConstructor::default(),
             generator_function: StandardConstructor::default(),
-            array: StandardConstructor::with_prototype(JsObject::from_proto_and_data(
-                None,
-                ObjectData::array(),
-            )),
+            array: StandardConstructor::with_prototype(JsObject::from_proto_and_data(None, Array)),
             bigint: StandardConstructor::default(),
-            number: StandardConstructor::with_prototype(JsObject::from_proto_and_data(
-                None,
-                ObjectData::number(0.0),
-            )),
+            number: StandardConstructor::with_prototype(JsObject::from_proto_and_data(None, 0.0)),
             boolean: StandardConstructor::with_prototype(JsObject::from_proto_and_data(
-                None,
-                ObjectData::boolean(false),
+                None, false,
             )),
             string: StandardConstructor::with_prototype(JsObject::from_proto_and_data(
                 None,
-                ObjectData::string(js_string!()),
+                js_string!(),
             )),
             regexp: StandardConstructor::default(),
             symbol: StandardConstructor::default(),

@@ -3,18 +3,20 @@
 use crate::{
     builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
-    object::{internal_methods::get_prototype_from_constructor, ObjectData},
+    object::internal_methods::get_prototype_from_constructor,
     property::Attribute,
     realm::Realm,
     string::common::StaticJsStrings,
-    Context, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
+    Context, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
+use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
 
 use boa_temporal::{datetime::DateTime, month_day::MonthDay as InnerMonthDay};
 
 /// The `Temporal.PlainMonthDay` object.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Trace, Finalize, JsData)]
+#[boa_gc(unsafe_empty_trace)] // TODO: Remove this!!! `InnerMonthDay` could contain `Trace` types.
 pub struct PlainMonthDay {
     pub(crate) inner: InnerMonthDay,
 }
@@ -103,10 +105,7 @@ pub(crate) fn create_temporal_month_day(
     // 6. Set object.[[ISODay]] to isoDay.
     // 7. Set object.[[Calendar]] to calendar.
     // 8. Set object.[[ISOYear]] to referenceISOYear.
-    let obj = JsObject::from_proto_and_data(
-        proto,
-        ObjectData::plain_month_day(PlainMonthDay::new(inner)),
-    );
+    let obj = JsObject::from_proto_and_data(proto, PlainMonthDay::new(inner));
 
     // 9. Return object.
     Ok(obj.into())

@@ -8,6 +8,7 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date
 
 pub(crate) mod utils;
+use boa_gc::{Finalize, Trace};
 use utils::{make_date, make_day, make_time, replace_params, time_clip, DateParameters};
 
 #[cfg(test)]
@@ -21,13 +22,13 @@ use crate::{
     },
     error::JsNativeError,
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
+    object::{internal_methods::get_prototype_from_constructor, JsObject},
     property::Attribute,
     realm::Realm,
     string::{common::StaticJsStrings, utf16},
     symbol::JsSymbol,
     value::{IntegerOrNan, JsValue, PreferredType},
-    Context, JsArgs, JsError, JsResult, JsString,
+    Context, JsArgs, JsData, JsError, JsResult, JsString,
 };
 use boa_profiler::Profiler;
 use chrono::prelude::*;
@@ -44,17 +45,13 @@ macro_rules! some_or_nan {
     };
 }
 
-/// Gets a mutable reference to the inner `Date` object of `val` and stores it on `var`, or returns
+/// Gets a mutable reference to the inner `Date` object of `val`, or returns
 /// a `TypeError` if `val` is not a `Date` object.
 macro_rules! get_mut_date {
-    (let $var:ident = $val:expr) => {
-        let mut $var = $val
-            .as_object()
-            .map(JsObject::borrow_mut)
-            .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
-        let $var = $var
-            .as_date_mut()
-            .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
+    ($val:expr) => {
+        $val.as_object()
+            .and_then(JsObject::downcast_mut::<Date>)
+            .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?
     };
 }
 
@@ -64,13 +61,14 @@ macro_rules! get_mut_date {
 pub(super) fn this_time_value(value: &JsValue) -> JsResult<Option<i64>> {
     Ok(value
         .as_object()
-        .and_then(|obj| obj.borrow().as_date().copied())
+        .and_then(|obj| obj.downcast_ref::<Date>().as_deref().copied())
         .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?
         .0)
 }
 
 /// The internal representation of a `Date` object.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Trace, Finalize, JsData)]
+#[boa_gc(empty_trace)]
 pub struct Date(Option<i64>);
 
 impl Date {
@@ -258,7 +256,7 @@ impl BuiltInConstructor for Date {
             // a. Let value be values[0].
             [value] => match value
                 .as_object()
-                .and_then(|obj| obj.borrow().as_date().copied())
+                .and_then(|obj| obj.downcast_ref::<Self>().as_deref().copied())
             {
                 // b. If value is an Object and value has a [[DateValue]] internal slot, then
                 Some(dt) => {
@@ -313,11 +311,8 @@ impl BuiltInConstructor for Date {
             get_prototype_from_constructor(new_target, StandardConstructors::date, context)?;
 
         // 7. Set O.[[DateValue]] to dv.
-        let obj = JsObject::from_proto_and_data_with_shared_shape(
-            context.root_shape(),
-            prototype,
-            ObjectData::date(dv),
-        );
+        let obj =
+            JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), prototype, dv);
 
         // 8. Return O.
         Ok(obj.into())
@@ -798,7 +793,7 @@ impl Date {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let t be LocalTime(? thisTimeValue(this value)).
-        get_mut_date!(let t = this);
+        let mut t = get_mut_date!(this);
 
         // 2. Let dt be ? ToNumber(date).
         let date = args.get_or_undefined(0).to_integer_or_nan(context)?;
@@ -839,7 +834,7 @@ impl Date {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let t be ? thisTimeValue(this value).
-        get_mut_date!(let t = this);
+        let mut t = get_mut_date!(this);
 
         // 2. If t is NaN, set t to +0𝔽; otherwise, set t to LocalTime(t).
         let datetime =
@@ -907,7 +902,7 @@ impl Date {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let t be ? thisTimeValue(this value).
-        get_mut_date!(let t = this);
+        let mut t = get_mut_date!(this);
 
         // 2. Let h be ? ToNumber(hour).
         let hour = args.get_or_undefined(0).to_integer_or_nan(context)?;
@@ -972,7 +967,7 @@ impl Date {
     ) -> JsResult<JsValue> {
         // 1. Let t be ? thisTimeValue(this value).
         // 1. Let t be LocalTime(? thisTimeValue(this value)).
-        get_mut_date!(let t = this);
+        let mut t = get_mut_date!(this);
 
         // 2. Set ms to ? ToNumber(ms).
         let ms = args.get_or_undefined(0).to_integer_or_nan(context)?;
@@ -1012,7 +1007,7 @@ impl Date {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let t be ? thisTimeValue(this value).
-        get_mut_date!(let t = this);
+        let mut t = get_mut_date!(this);
 
         // 2. Let m be ? ToNumber(min).
         let minute = args.get_or_undefined(0).to_integer_or_nan(context)?;
@@ -1069,7 +1064,7 @@ impl Date {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let t be ? thisTimeValue(this value).
-        get_mut_date!(let t = this);
+        let mut t = get_mut_date!(this);
 
         // 2. Let m be ? ToNumber(month).
         let month = args.get_or_undefined(0).to_integer_or_nan(context)?;
@@ -1117,7 +1112,7 @@ impl Date {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let t be ? thisTimeValue(this value).
-        get_mut_date!(let t = this);
+        let mut t = get_mut_date!(this);
 
         // 2. Let s be ? ToNumber(sec).
         let second = args.get_or_undefined(0).to_integer_or_nan(context)?;
@@ -1172,7 +1167,7 @@ impl Date {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let t be ? thisTimeValue(this value).
-        get_mut_date!(let t = this);
+        let mut t = get_mut_date!(this);
 
         // 2. Let y be ? ToNumber(year).
         // 5. Let yi be ! ToIntegerOrInfinity(y).
@@ -1239,7 +1234,7 @@ impl Date {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Perform ? thisTimeValue(this value).
-        get_mut_date!(let t = this);
+        let mut t = get_mut_date!(this);
 
         // 2. Let t be ? ToNumber(time).
         // 3. Let v be TimeClip(t).

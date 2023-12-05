@@ -15,7 +15,9 @@
 
 use std::ops::Deref;
 
-use super::{Array, BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
+use super::{
+    error::ErrorObject, Array, BuiltInBuilder, BuiltInConstructor, Date, IntrinsicObject, RegExp,
+};
 use crate::{
     builtins::{map, BuiltInObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
@@ -24,15 +26,16 @@ use crate::{
     native_function::NativeFunction,
     object::{
         internal_methods::{get_prototype_from_constructor, InternalMethodContext},
-        FunctionObjectBuilder, IntegrityLevel, JsObject, ObjectData, ObjectKind,
+        FunctionObjectBuilder, IntegrityLevel, JsObject,
     },
     property::{Attribute, PropertyDescriptor, PropertyKey, PropertyNameKind},
     realm::Realm,
     string::{common::StaticJsStrings, utf16},
     symbol::JsSymbol,
     value::JsValue,
-    Context, JsArgs, JsResult, JsString,
+    Context, JsArgs, JsData, JsResult, JsString,
 };
+use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
 use tap::{Conv, Pipe};
 
@@ -40,11 +43,12 @@ pub(crate) mod for_in_iterator;
 #[cfg(test)]
 mod tests;
 
-/// The global JavaScript object.
-#[derive(Debug, Clone, Copy)]
-pub struct Object;
+/// An ordinary Javascript `Object`.
+#[derive(Debug, Default, Clone, Copy, Trace, Finalize, JsData)]
+#[boa_gc(empty_trace)]
+pub struct OrdinaryObject;
 
-impl IntrinsicObject for Object {
+impl IntrinsicObject for OrdinaryObject {
     fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
@@ -144,11 +148,11 @@ impl IntrinsicObject for Object {
     }
 }
 
-impl BuiltInObject for Object {
+impl BuiltInObject for OrdinaryObject {
     const NAME: JsString = StaticJsStrings::OBJECT;
 }
 
-impl BuiltInConstructor for Object {
+impl BuiltInConstructor for OrdinaryObject {
     const LENGTH: usize = 1;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
@@ -173,7 +177,7 @@ impl BuiltInConstructor for Object {
             let object = JsObject::from_proto_and_data_with_shared_shape(
                 context.root_shape(),
                 prototype,
-                ObjectData::ordinary(),
+                OrdinaryObject,
             );
             return Ok(object.into());
         }
@@ -190,7 +194,7 @@ impl BuiltInConstructor for Object {
     }
 }
 
-impl Object {
+impl OrdinaryObject {
     /// `get Object.prototype.__proto__`
     ///
     /// The `__proto__` getter function exposes the value of the
@@ -457,7 +461,7 @@ impl Object {
             JsValue::Object(_) | JsValue::Null => JsObject::from_proto_and_data_with_shared_shape(
                 context.root_shape(),
                 prototype.as_object().cloned(),
-                ObjectData::ordinary(),
+                OrdinaryObject,
             ),
             _ => {
                 return Err(JsNativeError::typ()
@@ -838,25 +842,35 @@ impl Object {
         let builtin_tag = if o.is_array_abstract()? {
             utf16!("Array")
         } else {
-            // 6. Else if O has a [[ParameterMap]] internal slot, let builtinTag be "Arguments".
-            // 7. Else if O has a [[Call]] internal method, let builtinTag be "Function".
-            // 8. Else if O has an [[ErrorData]] internal slot, let builtinTag be "Error".
-            // 9. Else if O has a [[BooleanData]] internal slot, let builtinTag be "Boolean".
-            // 10. Else if O has a [[NumberData]] internal slot, let builtinTag be "Number".
-            // 11. Else if O has a [[StringData]] internal slot, let builtinTag be "String".
-            // 12. Else if O has a [[DateValue]] internal slot, let builtinTag be "Date".
-            // 13. Else if O has a [[RegExpMatcher]] internal slot, let builtinTag be "RegExp".
-            // 14. Else, let builtinTag be "Object".
-            match o.borrow().kind() {
-                ObjectKind::Arguments(_) => utf16!("Arguments"),
-                _ if o.is_callable() => utf16!("Function"),
-                ObjectKind::Error(_) => utf16!("Error"),
-                ObjectKind::Boolean(_) => utf16!("Boolean"),
-                ObjectKind::Number(_) => utf16!("Number"),
-                ObjectKind::String(_) => utf16!("String"),
-                ObjectKind::Date(_) => utf16!("Date"),
-                ObjectKind::RegExp(_) => utf16!("RegExp"),
-                _ => utf16!("Object"),
+            let o_borrow = o.borrow();
+
+            if o_borrow.is_arguments() {
+                // 6. Else if O has a [[ParameterMap]] internal slot, let builtinTag be "Arguments".
+                utf16!("Arguments")
+            } else if o.is_callable() {
+                // 7. Else if O has a [[Call]] internal method, let builtinTag be "Function".
+                utf16!("Function")
+            } else if o.is::<ErrorObject>() {
+                // 8. Else if O has an [[ErrorData]] internal slot, let builtinTag be "Error".
+                utf16!("Error")
+            } else if o.is::<bool>() {
+                // 9. Else if O has a [[BooleanData]] internal slot, let builtinTag be "Boolean".
+                utf16!("Boolean")
+            } else if o.is::<f64>() {
+                // 10. Else if O has a [[NumberData]] internal slot, let builtinTag be "Number".
+                utf16!("Number")
+            } else if o.is::<JsString>() {
+                // 11. Else if O has a [[StringData]] internal slot, let builtinTag be "String".
+                utf16!("String")
+            } else if o.is::<Date>() {
+                // 12. Else if O has a [[DateValue]] internal slot, let builtinTag be "Date".
+                utf16!("Date")
+            } else if o.is::<RegExp>() {
+                // 13. Else if O has a [[RegExpMatcher]] internal slot, let builtinTag be "RegExp".
+                utf16!("RegExp")
+            } else {
+                // 14. Else, let builtinTag be "Object".
+                utf16!("Object")
             }
         };
 

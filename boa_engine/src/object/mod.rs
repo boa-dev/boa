@@ -7,70 +7,31 @@ pub use operations::IntegrityLevel;
 pub use property_map::*;
 use thin_vec::ThinVec;
 
-use self::{
-    internal_methods::{
-        arguments::ARGUMENTS_EXOTIC_INTERNAL_METHODS,
-        array::ARRAY_EXOTIC_INTERNAL_METHODS,
-        bound_function::{
-            BOUND_CONSTRUCTOR_EXOTIC_INTERNAL_METHODS, BOUND_FUNCTION_EXOTIC_INTERNAL_METHODS,
-        },
-        function::{
-            CONSTRUCTOR_INTERNAL_METHODS, FUNCTION_INTERNAL_METHODS,
-            NATIVE_CONSTRUCTOR_INTERNAL_METHODS, NATIVE_FUNCTION_INTERNAL_METHODS,
-        },
-        immutable_prototype::IMMUTABLE_PROTOTYPE_EXOTIC_INTERNAL_METHODS,
-        integer_indexed::INTEGER_INDEXED_EXOTIC_INTERNAL_METHODS,
-        module_namespace::MODULE_NAMESPACE_EXOTIC_INTERNAL_METHODS,
-        proxy::{
-            PROXY_EXOTIC_INTERNAL_METHODS_ALL, PROXY_EXOTIC_INTERNAL_METHODS_BASIC,
-            PROXY_EXOTIC_INTERNAL_METHODS_WITH_CALL,
-        },
-        string::STRING_EXOTIC_INTERNAL_METHODS,
-        InternalObjectMethods, ORDINARY_INTERNAL_METHODS,
-    },
-    shape::Shape,
-};
-#[cfg(feature = "temporal")]
-use crate::builtins::temporal::{
-    Calendar, Duration, Instant, PlainDate, PlainDateTime, PlainMonthDay, PlainTime,
-    PlainYearMonth, TimeZone, ZonedDateTime,
-};
+use self::{internal_methods::ORDINARY_INTERNAL_METHODS, shape::Shape};
 use crate::{
     builtins::{
-        array::ArrayIterator,
         array_buffer::{ArrayBuffer, BufferRef, BufferRefMut, SharedArrayBuffer},
-        async_generator::AsyncGenerator,
-        error::ErrorKind,
-        function::arguments::Arguments,
-        function::{arguments::ParameterMap, BoundFunction, ConstructorKind, OrdinaryFunction},
-        generator::Generator,
-        iterable::AsyncFromSyncIterator,
-        map::ordered_map::OrderedMap,
-        map::MapIterator,
-        object::for_in_iterator::ForInIterator,
-        proxy::Proxy,
-        regexp::RegExpStringIterator,
-        set::ordered_set::OrderedSet,
-        set::SetIterator,
-        string::StringIterator,
-        typed_array::{IntegerIndexed, TypedArrayKind},
-        DataView, Date, Promise, RegExp,
+        function::{
+            arguments::{MappedArguments, UnmappedArguments},
+            ConstructorKind,
+        },
+        typed_array::{TypedArray, TypedArrayKind},
+        OrdinaryObject,
     },
     context::intrinsics::StandardConstructor,
     js_string,
-    module::ModuleNamespace,
     native_function::{NativeFunction, NativeFunctionObject},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
     string::utf16,
-    Context, JsBigInt, JsString, JsSymbol, JsValue,
+    Context, JsString, JsSymbol, JsValue,
 };
 
-use boa_gc::{custom_trace, Finalize, Trace, WeakGc};
+use boa_gc::{Finalize, Trace};
 use std::{
     any::{Any, TypeId},
-    fmt::{self, Debug},
-    ops::{Deref, DerefMut},
+    fmt::Debug,
+    ops::Deref,
 };
 
 #[cfg(test)]
@@ -79,6 +40,7 @@ mod tests;
 pub(crate) mod internal_methods;
 
 pub mod builtins;
+mod datatypes;
 mod jsobject;
 mod operations;
 mod property_map;
@@ -86,6 +48,7 @@ pub mod shape;
 
 pub(crate) use builtins::*;
 
+pub use datatypes::JsData;
 pub use jsobject::*;
 
 pub(crate) trait JsObjectType:
@@ -113,8 +76,8 @@ pub(crate) type ObjectStorage = Vec<JsValue>;
 
 /// This trait allows Rust types to be passed around as objects.
 ///
-/// This is automatically implemented when a type implements `Any` and `Trace`.
-pub trait NativeObject: Any + Trace {
+/// This is automatically implemented when a type implements `Any`, `Trace`, and `JsData`.
+pub trait NativeObject: Any + Trace + JsData {
     /// Convert the Rust type which implements `NativeObject` to a `&dyn Any`.
     fn as_any(&self) -> &dyn Any;
 
@@ -122,23 +85,25 @@ pub trait NativeObject: Any + Trace {
     fn as_mut_any(&mut self) -> &mut dyn Any;
 
     /// Gets the type name of the value.
-    fn type_name_of_value(&self) -> &'static str {
-        fn name_of_val<T: ?Sized>(_val: &T) -> &'static str {
-            std::any::type_name::<T>()
-        }
-
-        name_of_val(self)
-    }
+    fn type_name_of_value(&self) -> &'static str;
 }
 
 // TODO: Use super trait casting in Rust 1.75
-impl<T: Any + Trace> NativeObject for T {
+impl<T: Any + Trace + JsData> NativeObject for T {
     fn as_any(&self) -> &dyn Any {
         self
     }
 
     fn as_mut_any(&mut self) -> &mut dyn Any {
         self
+    }
+
+    fn type_name_of_value(&self) -> &'static str {
+        fn name_of_val<T: ?Sized>(_val: &T) -> &'static str {
+            std::any::type_name::<T>()
+        }
+
+        name_of_val(self)
     }
 }
 
@@ -214,31 +179,31 @@ impl dyn NativeObject {
 
 /// The internal representation of a JavaScript object.
 #[derive(Debug, Finalize)]
-pub struct Object {
-    /// The type of the object.
-    kind: ObjectKind,
+pub struct Object<T: ?Sized> {
     /// The collection of properties contained in the object
-    properties: PropertyMap,
+    pub(crate) properties: PropertyMap,
     /// Whether it can have new properties added to it.
     pub(crate) extensible: bool,
     /// The `[[PrivateElements]]` internal slot.
     private_elements: ThinVec<(PrivateName, PrivateElement)>,
+    /// The inner object data
+    data: T,
 }
 
-impl Default for Object {
+impl<T: Default> Default for Object<T> {
     fn default() -> Self {
         Self {
-            kind: ObjectKind::Ordinary,
             properties: PropertyMap::default(),
             extensible: true,
             private_elements: ThinVec::new(),
+            data: T::default(),
         }
     }
 }
 
-unsafe impl Trace for Object {
+unsafe impl<T: Trace + ?Sized> Trace for Object<T> {
     boa_gc::custom_trace!(this, {
-        mark(&this.kind);
+        mark(&this.data);
         mark(&this.properties);
         for (_, element) in &this.private_elements {
             mark(element);
@@ -282,1533 +247,18 @@ pub enum PrivateElement {
     },
 }
 
-/// Defines the kind of an object and its internal methods
-pub struct ObjectData {
-    pub(crate) kind: ObjectKind,
-    pub(crate) internal_methods: &'static InternalObjectMethods,
-}
-
-impl Debug for ObjectData {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let ptr: *const _ = self.internal_methods;
-        f.debug_struct("ObjectData")
-            .field("kind", &self.kind)
-            .field("internal_methods", &ptr)
-            .finish()
-    }
-}
-
-/// Defines the different types of objects.
-#[derive(Finalize)]
-pub enum ObjectKind {
-    /// The `AsyncFromSyncIterator` object kind.
-    AsyncFromSyncIterator(AsyncFromSyncIterator),
-
-    /// The `AsyncGenerator` object kind.
-    AsyncGenerator(AsyncGenerator),
-
-    /// The `Array` object kind.
-    Array,
-
-    /// The `ArrayIterator` object kind.
-    ArrayIterator(ArrayIterator),
-
-    /// The `ArrayBuffer` object kind.
-    ArrayBuffer(ArrayBuffer),
-
-    /// The `SharedArrayBuffer` object kind.
-    SharedArrayBuffer(SharedArrayBuffer),
-
-    /// The `Map` object kind.
-    Map(OrderedMap<JsValue>),
-
-    /// The `MapIterator` object kind.
-    MapIterator(MapIterator),
-
-    /// The `RegExp` object kind.
-    RegExp(Box<RegExp>),
-
-    /// The `RegExpStringIterator` object kind.
-    RegExpStringIterator(RegExpStringIterator),
-
-    /// The `BigInt` object kind.
-    BigInt(JsBigInt),
-
-    /// The `Boolean` object kind.
-    Boolean(bool),
-
-    /// The `DataView` object kind.
-    DataView(DataView),
-
-    /// The `ForInIterator` object kind.
-    ForInIterator(ForInIterator),
-
-    /// The `Function` object kind.
-    OrdinaryFunction(OrdinaryFunction),
-
-    /// The `BoundFunction` object kind.
-    BoundFunction(BoundFunction),
-
-    /// The `Generator` object kind.
-    Generator(Generator),
-
-    /// A native rust function.
-    NativeFunction(NativeFunctionObject),
-
-    /// The `Set` object kind.
-    Set(OrderedSet),
-
-    /// The `SetIterator` object kind.
-    SetIterator(SetIterator),
-
-    /// The `String` object kind.
-    String(JsString),
-
-    /// The `StringIterator` object kind.
-    StringIterator(StringIterator),
-
-    /// The `Number` object kind.
-    Number(f64),
-
-    /// The `Symbol` object kind.
-    Symbol(JsSymbol),
-
-    /// The `Error` object kind.
-    Error(ErrorKind),
-
-    /// The ordinary object kind.
-    Ordinary,
-
-    /// The `Proxy` object kind.
-    Proxy(Proxy),
-
-    /// The `Date` object kind.
-    Date(Date),
-
-    /// The `Global` object kind.
-    Global,
-
-    /// The arguments exotic object kind.
-    Arguments(Arguments),
-
-    /// The rust native object kind.
-    NativeObject(Box<dyn NativeObject>),
-
-    /// The integer-indexed exotic object kind.
-    IntegerIndexed(IntegerIndexed),
-
-    /// The `Promise` object kind.
-    Promise(Promise),
-
-    /// The `WeakRef` object kind.
-    WeakRef(WeakGc<VTableObject>),
-
-    /// The `WeakMap` object kind.
-    WeakMap(boa_gc::WeakMap<VTableObject, JsValue>),
-
-    /// The `WeakSet` object kind.
-    WeakSet(boa_gc::WeakMap<VTableObject, ()>),
-
-    /// The `ModuleNamespace` object kind.
-    ModuleNamespace(ModuleNamespace),
-
-    /// The `Temporal.Instant` object kind.
-    #[cfg(feature = "temporal")]
-    Instant(Instant),
-
-    /// The `Temporal.PlainDateTime` object kind.
-    #[cfg(feature = "temporal")]
-    PlainDateTime(PlainDateTime),
-
-    /// The `Temporal.PlainDate` object kind.
-    #[cfg(feature = "temporal")]
-    PlainDate(PlainDate),
-
-    /// The `Temporal.PlainTime` object kind.
-    #[cfg(feature = "temporal")]
-    PlainTime(PlainTime),
-
-    /// The `Temporal.PlainYearMonth` object kind.
-    #[cfg(feature = "temporal")]
-    PlainYearMonth(PlainYearMonth),
-
-    /// The `Temporal.PlainMonthDay` object kind.
-    #[cfg(feature = "temporal")]
-    PlainMonthDay(PlainMonthDay),
-
-    /// The `Temporal.TimeZone` object kind.
-    #[cfg(feature = "temporal")]
-    TimeZone(TimeZone),
-
-    /// The `Temporal.Duration` object kind.
-    #[cfg(feature = "temporal")]
-    Duration(Duration),
-
-    /// The `Temporal.ZonedDateTime` object kind.
-    #[cfg(feature = "temporal")]
-    ZonedDateTime(ZonedDateTime),
-
-    /// The `Temporal.Calendar` object kind.
-    #[cfg(feature = "temporal")]
-    Calendar(Calendar),
-}
-
-unsafe impl Trace for ObjectKind {
-    custom_trace! {this, {
-        match this {
-            Self::AsyncFromSyncIterator(a) => mark(a),
-            Self::ArrayIterator(i) => mark(i),
-            Self::ArrayBuffer(b) => mark(b),
-            Self::Map(m) => mark(m),
-            Self::MapIterator(i) => mark(i),
-            Self::RegExpStringIterator(i) => mark(i),
-            Self::DataView(v) => mark(v),
-            Self::ForInIterator(i) => mark(i),
-            Self::OrdinaryFunction(f) => mark(f),
-            Self::BoundFunction(f) => mark(f),
-            Self::Generator(g) => mark(g),
-            Self::NativeFunction(f) => mark(f),
-            Self::Set(s) => mark(s),
-            Self::SetIterator(i) => mark(i),
-            Self::StringIterator(i) => mark(i),
-            Self::Proxy(p) => mark(p),
-            Self::Arguments(a) => mark(a),
-            Self::NativeObject(o) => mark(o),
-            Self::IntegerIndexed(i) => mark(i),
-            Self::Promise(p) => mark(p),
-            Self::AsyncGenerator(g) => mark(g),
-            Self::WeakRef(wr) => mark(wr),
-            Self::WeakMap(wm) => mark(wm),
-            Self::WeakSet(ws) => mark(ws),
-            Self::ModuleNamespace(m) => mark(m),
-            Self::RegExp(_)
-            | Self::BigInt(_)
-            | Self::Boolean(_)
-            | Self::String(_)
-            | Self::Date(_)
-            | Self::Array
-            | Self::Error(_)
-            | Self::Ordinary
-            | Self::Global
-            | Self::Number(_)
-            | Self::Symbol(_)
-            | Self::SharedArrayBuffer(_) => {}
-            #[cfg(feature = "temporal")]
-            Self::Instant(_)
-            | Self::PlainDateTime(_)
-            | Self::PlainDate(_)
-            | Self::PlainTime(_)
-            | Self::PlainYearMonth(_)
-            | Self::PlainMonthDay(_)
-            | Self::TimeZone(_)
-            | Self::Calendar(_)
-            | Self::Duration(_)
-            | Self::ZonedDateTime(_) => {}
-        }
-    }}
-}
-
-impl ObjectData {
-    /// Create the immutable `%Object.prototype%` object data
-    pub(crate) fn object_prototype() -> Self {
-        Self {
-            kind: ObjectKind::Ordinary,
-            internal_methods: &IMMUTABLE_PROTOTYPE_EXOTIC_INTERNAL_METHODS,
-        }
-    }
-
-    /// Create the `AsyncFromSyncIterator` object data
-    #[must_use]
-    pub fn async_from_sync_iterator(async_from_sync_iterator: AsyncFromSyncIterator) -> Self {
-        Self {
-            kind: ObjectKind::AsyncFromSyncIterator(async_from_sync_iterator),
-            internal_methods: &ORDINARY_INTERNAL_METHODS,
-        }
-    }
-
-    /// Create the `AsyncGenerator` object data
-    #[must_use]
-    pub fn async_generator(async_generator: AsyncGenerator) -> Self {
-        Self {
-            kind: ObjectKind::AsyncGenerator(async_generator),
-            internal_methods: &ORDINARY_INTERNAL_METHODS,
-        }
-    }
-
-    /// Create the `Array` object data and reference its exclusive internal methods
-    #[must_use]
-    pub fn array() -> Self {
-        Self {
-            kind: ObjectKind::Array,
-            internal_methods: &ARRAY_EXOTIC_INTERNAL_METHODS,
-        }
-    }
-
-    /// Create the `ArrayIterator` object data
-    #[must_use]
-    pub fn array_iterator(array_iterator: ArrayIterator) -> Self {
-        Self {
-            kind: ObjectKind::ArrayIterator(array_iterator),
-            internal_methods: &ORDINARY_INTERNAL_METHODS,
-        }
-    }
-
-    /// Create the `ArrayBuffer` object data
-    #[must_use]
-    pub fn array_buffer(array_buffer: ArrayBuffer) -> Self {
-        Self {
-            kind: ObjectKind::ArrayBuffer(array_buffer),
-            internal_methods: &ORDINARY_INTERNAL_METHODS,
-        }
-    }
-
-    /// Create the `SharedArrayBuffer` object data
-    #[must_use]
-    pub fn shared_array_buffer(shared_array_buffer: SharedArrayBuffer) -> Self {
-        Self {
-            kind: ObjectKind::SharedArrayBuffer(shared_array_buffer),
-            internal_methods: &ORDINARY_INTERNAL_METHODS,
-        }
-    }
-
-    /// Create the `Map` object data
-    #[must_use]
-    pub fn map(map: OrderedMap<JsValue>) -> Self {
-        Self {
-            kind: ObjectKind::Map(map),
-            internal_methods: &ORDINARY_INTERNAL_METHODS,
-        }
-    }
-
-    /// Create the `MapIterator` object data
-    #[must_use]
-    pub fn map_iterator(map_iterator: MapIterator) -> Self {
-        Self {
-            kind: ObjectKind::MapIterator(map_iterator),
-            internal_methods: &ORDINARY_INTERNAL_METHODS,
-        }
-    }
-
-    /// Create the `RegExp` object data
-    #[must_use]
-    pub fn regexp(reg_exp: RegExp) -> Self {
-        Self {
-            kind: ObjectKind::RegExp(Box::new(reg_exp)),
-            internal_methods: &ORDINARY_INTERNAL_METHODS,
-        }
-    }
-
-    /// Create the `RegExpStringIterator` object data
-    #[must_use]
-    pub fn reg_exp_string_iterator(reg_exp_string_iterator: RegExpStringIterator) -> Self {
-        Self {
-            kind: ObjectKind::RegExpStringIterator(reg_exp_string_iterator),
-            internal_methods: &ORDINARY_INTERNAL_METHODS,
-        }
-    }
-
-    /// Create the `BigInt` object data
-    #[must_use]
-    pub fn big_int(big_int: JsBigInt) -> Self {
-        Self {
-            kind: ObjectKind::BigInt(big_int),
-            internal_methods: &ORDINARY_INTERNAL_METHODS,
-        }
-    }
-
-    /// Create the `Boolean` object data
-    #[must_use]
-    pub fn boolean(boolean: bool) -> Self {
-        Self {
-            kind: ObjectKind::Boolean(boolean),
-            internal_methods: &ORDINARY_INTERNAL_METHODS,
-        }
-    }
-
-    /// Create the `DataView` object data
-    #[must_use]
-    pub fn data_view(data_view: DataView) -> Self {
-        Self {
-            kind: ObjectKind::DataView(data_view),
-            internal_methods: &ORDINARY_INTERNAL_METHODS,
-        }
-    }
-
-    /// Create the `Promise` object data
-    #[must_use]
-    pub fn promise(promise: Promise) -> Self {
-        Self {
-            kind: ObjectKind::Promise(promise),
-            internal_methods: &ORDINARY_INTERNAL_METHODS,
-        }
-    }
-
-    /// Create the `ForInIterator` object data
-    #[must_use]
-    pub fn for_in_iterator(for_in_iterator: ForInIterator) -> Self {
-        Self {
-            kind: ObjectKind::ForInIterator(for_in_iterator),
-            internal_methods: &ORDINARY_INTERNAL_METHODS,
-        }
-    }
-
-    /// Create the ordinary function object data
-    #[must_use]
-    pub fn ordinary_function(function: OrdinaryFunction, constructor: bool) -> Self {
-        let internal_methods = if constructor {
-            &CONSTRUCTOR_INTERNAL_METHODS
-        } else {
-            &FUNCTION_INTERNAL_METHODS
-        };
-
-        Self {
-            internal_methods,
-            kind: ObjectKind::OrdinaryFunction(function),
-        }
-    }
-
-    /// Create the native function object data
-    #[must_use]
-    pub fn native_function(function: NativeFunctionObject) -> Self {
-        let internal_methods = if function.constructor.is_some() {
-            &NATIVE_CONSTRUCTOR_INTERNAL_METHODS
-        } else {
-            &NATIVE_FUNCTION_INTERNAL_METHODS
-        };
-
-        Self {
-            internal_methods,
-            kind: ObjectKind::NativeFunction(function),
-        }
-    }
-
-    /// Create the `BoundFunction` object data
-    #[must_use]
-    pub fn bound_function(bound_function: BoundFunction, constructor: bool) -> Self {
-        Self {
-            kind: ObjectKind::BoundFunction(bound_function),
-            internal_methods: if constructor {
-                &BOUND_CONSTRUCTOR_EXOTIC_INTERNAL_METHODS
-            } else {
-                &BOUND_FUNCTION_EXOTIC_INTERNAL_METHODS
-            },
-        }
-    }
-
-    /// Create the `Generator` object data
-    #[must_use]
-    pub fn generator(generator: Generator) -> Self {
-        Self {
-            kind: ObjectKind::Generator(generator),
-            internal_methods: &ORDINARY_INTERNAL_METHODS,
-        }
-    }
-
-    /// Create the `Set` object data
-    #[must_use]
-    pub fn set(set: OrderedSet) -> Self {
-        Self {
-            kind: ObjectKind::Set(set),
-            internal_methods: &ORDINARY_INTERNAL_METHODS,
-        }
-    }
-
-    /// Create the `SetIterator` object data
-    #[must_use]
-    pub fn set_iterator(set_iterator: SetIterator) -> Self {
-        Self {
-            kind: ObjectKind::SetIterator(set_iterator),
-            internal_methods: &ORDINARY_INTERNAL_METHODS,
-        }
-    }
-
-    /// Create the `String` object data and reference its exclusive internal methods
-    #[must_use]
-    pub fn string(string: JsString) -> Self {
-        Self {
-            kind: ObjectKind::String(string),
-            internal_methods: &STRING_EXOTIC_INTERNAL_METHODS,
-        }
-    }
-
-    /// Create the `StringIterator` object data
-    #[must_use]
-    pub fn string_iterator(string_iterator: StringIterator) -> Self {
-        Self {
-            kind: ObjectKind::StringIterator(string_iterator),
-            internal_methods: &ORDINARY_INTERNAL_METHODS,
-        }
-    }
-
-    /// Create the `Number` object data
-    #[must_use]
-    pub fn number(number: f64) -> Self {
-        Self {
-            kind: ObjectKind::Number(number),
-            internal_methods: &ORDINARY_INTERNAL_METHODS,
-        }
-    }
-
-    /// Create the `Symbol` object data
-    #[must_use]
-    pub fn symbol(symbol: JsSymbol) -> Self {
-        Self {
-            kind: ObjectKind::Symbol(symbol),
-            internal_methods: &ORDINARY_INTERNAL_METHODS,
-        }
-    }
-
-    /// Create the `Error` object data
-    pub(crate) fn error(error: ErrorKind) -> Self {
-        Self {
-            kind: ObjectKind::Error(error),
-            internal_methods: &ORDINARY_INTERNAL_METHODS,
-        }
-    }
-
-    /// Create the `Ordinary` object data
-    #[must_use]
-    pub fn ordinary() -> Self {
-        Self {
-            kind: ObjectKind::Ordinary,
-            internal_methods: &ORDINARY_INTERNAL_METHODS,
-        }
-    }
-
-    /// Create the `Proxy` object data
-    #[must_use]
-    pub fn proxy(proxy: Proxy, call: bool, construct: bool) -> Self {
-        Self {
-            kind: ObjectKind::Proxy(proxy),
-            internal_methods: if call && construct {
-                &PROXY_EXOTIC_INTERNAL_METHODS_ALL
-            } else if call {
-                &PROXY_EXOTIC_INTERNAL_METHODS_WITH_CALL
-            } else {
-                &PROXY_EXOTIC_INTERNAL_METHODS_BASIC
-            },
-        }
-    }
-
-    /// Create the `Date` object data
-    #[must_use]
-    pub fn date(date: Date) -> Self {
-        Self {
-            kind: ObjectKind::Date(date),
-            internal_methods: &ORDINARY_INTERNAL_METHODS,
-        }
-    }
-
-    /// Create the `Arguments` object data
-    #[must_use]
-    pub fn arguments(arguments: Arguments) -> Self {
-        Self {
-            internal_methods: if matches!(arguments, Arguments::Unmapped) {
-                &ORDINARY_INTERNAL_METHODS
-            } else {
-                &ARGUMENTS_EXOTIC_INTERNAL_METHODS
-            },
-            kind: ObjectKind::Arguments(arguments),
-        }
-    }
-
-    /// Creates the `WeakRef` object data
-    #[must_use]
-    pub fn weak_ref(weak_ref: WeakGc<VTableObject>) -> Self {
-        Self {
-            kind: ObjectKind::WeakRef(weak_ref),
-            internal_methods: &ORDINARY_INTERNAL_METHODS,
-        }
-    }
-
-    /// Create the `WeakMap` object data
-    #[must_use]
-    pub fn weak_map(weak_map: boa_gc::WeakMap<VTableObject, JsValue>) -> Self {
-        Self {
-            kind: ObjectKind::WeakMap(weak_map),
-            internal_methods: &ORDINARY_INTERNAL_METHODS,
-        }
-    }
-
-    /// Create the `WeakSet` object data
-    #[must_use]
-    pub fn weak_set(weak_set: boa_gc::WeakMap<VTableObject, ()>) -> Self {
-        Self {
-            kind: ObjectKind::WeakSet(weak_set),
-            internal_methods: &ORDINARY_INTERNAL_METHODS,
-        }
-    }
-
-    /// Create the `NativeObject` object data
-    #[must_use]
-    pub fn native_object<T: NativeObject>(native_object: T) -> Self {
-        Self {
-            kind: ObjectKind::NativeObject(Box::new(native_object)),
-            internal_methods: &ORDINARY_INTERNAL_METHODS,
-        }
-    }
-
-    /// Creates the `IntegerIndexed` object data
-    #[must_use]
-    pub fn integer_indexed(integer_indexed: IntegerIndexed) -> Self {
-        Self {
-            kind: ObjectKind::IntegerIndexed(integer_indexed),
-            internal_methods: &INTEGER_INDEXED_EXOTIC_INTERNAL_METHODS,
-        }
-    }
-
-    /// Creates the `ModuleNamespace` object data
-    #[must_use]
-    pub fn module_namespace(namespace: ModuleNamespace) -> Self {
-        Self {
-            kind: ObjectKind::ModuleNamespace(namespace),
-            internal_methods: &MODULE_NAMESPACE_EXOTIC_INTERNAL_METHODS,
-        }
-    }
-
-    /// Create the `Instant` object data
-    #[cfg(feature = "temporal")]
-    #[must_use]
-    pub fn instant(instant: Instant) -> Self {
-        Self {
-            kind: ObjectKind::Instant(instant),
-            internal_methods: &ORDINARY_INTERNAL_METHODS,
-        }
-    }
-
-    /// Create the `PlainDateTime` object data
-    #[cfg(feature = "temporal")]
-    #[must_use]
-    pub fn plain_date_time(date_time: PlainDateTime) -> Self {
-        Self {
-            kind: ObjectKind::PlainDateTime(date_time),
-            internal_methods: &ORDINARY_INTERNAL_METHODS,
-        }
-    }
-    /// Create the `PlainDate` object data
-    #[cfg(feature = "temporal")]
-    #[must_use]
-    pub fn plain_date(date: PlainDate) -> Self {
-        Self {
-            kind: ObjectKind::PlainDate(date),
-            internal_methods: &ORDINARY_INTERNAL_METHODS,
-        }
-    }
-
-    /// Create the `PlainTime` object data
-    #[cfg(feature = "temporal")]
-    #[must_use]
-    pub fn plain_time(time: PlainTime) -> Self {
-        Self {
-            kind: ObjectKind::PlainTime(time),
-            internal_methods: &ORDINARY_INTERNAL_METHODS,
-        }
-    }
-
-    /// Create the `PlainYearMonth` object data
-    #[cfg(feature = "temporal")]
-    #[must_use]
-    pub fn plain_year_month(year_month: PlainYearMonth) -> Self {
-        Self {
-            kind: ObjectKind::PlainYearMonth(year_month),
-            internal_methods: &ORDINARY_INTERNAL_METHODS,
-        }
-    }
-
-    /// Create the `PlainMonthDay` object data
-    #[cfg(feature = "temporal")]
-    #[must_use]
-    pub fn plain_month_day(month_day: PlainMonthDay) -> Self {
-        Self {
-            kind: ObjectKind::PlainMonthDay(month_day),
-            internal_methods: &ORDINARY_INTERNAL_METHODS,
-        }
-    }
-
-    /// Create the `TimeZone` object data
-    #[cfg(feature = "temporal")]
-    #[must_use]
-    pub fn time_zone(time_zone: TimeZone) -> Self {
-        Self {
-            kind: ObjectKind::TimeZone(time_zone),
-            internal_methods: &ORDINARY_INTERNAL_METHODS,
-        }
-    }
-
-    /// Create the `Duration` object data
-    #[cfg(feature = "temporal")]
-    #[must_use]
-    pub fn duration(duration: Duration) -> Self {
-        Self {
-            kind: ObjectKind::Duration(duration),
-            internal_methods: &ORDINARY_INTERNAL_METHODS,
-        }
-    }
-
-    /// Create the `ZonedDateTime` object data.
-    #[cfg(feature = "temporal")]
-    #[must_use]
-    pub fn zoned_date_time(zoned_date_time: ZonedDateTime) -> Self {
-        Self {
-            kind: ObjectKind::ZonedDateTime(zoned_date_time),
-            internal_methods: &ORDINARY_INTERNAL_METHODS,
-        }
-    }
-
-    /// Create the `Calendar` object data.
-    #[cfg(feature = "temporal")]
-    #[must_use]
-    pub fn calendar(calendar: Calendar) -> Self {
-        Self {
-            kind: ObjectKind::Calendar(calendar),
-            internal_methods: &ORDINARY_INTERNAL_METHODS,
-        }
-    }
-}
-
-impl Debug for ObjectKind {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str(match self {
-            Self::AsyncFromSyncIterator(_) => "AsyncFromSyncIterator",
-            Self::AsyncGenerator(_) => "AsyncGenerator",
-            Self::Array => "Array",
-            Self::ArrayIterator(_) => "ArrayIterator",
-            Self::ArrayBuffer(_) => "ArrayBuffer",
-            Self::SharedArrayBuffer(_) => "SharedArrayBuffer",
-            Self::ForInIterator(_) => "ForInIterator",
-            Self::OrdinaryFunction(_) => "Function",
-            Self::BoundFunction(_) => "BoundFunction",
-            Self::Generator(_) => "Generator",
-            Self::NativeFunction { .. } => "NativeFunction",
-            Self::RegExp(_) => "RegExp",
-            Self::RegExpStringIterator(_) => "RegExpStringIterator",
-            Self::Map(_) => "Map",
-            Self::MapIterator(_) => "MapIterator",
-            Self::Set(_) => "Set",
-            Self::SetIterator(_) => "SetIterator",
-            Self::String(_) => "String",
-            Self::StringIterator(_) => "StringIterator",
-            Self::Symbol(_) => "Symbol",
-            Self::Error(_) => "Error",
-            Self::Ordinary => "Ordinary",
-            Self::Proxy(_) => "Proxy",
-            Self::Boolean(_) => "Boolean",
-            Self::Number(_) => "Number",
-            Self::BigInt(_) => "BigInt",
-            Self::Date(_) => "Date",
-            Self::Global => "Global",
-            Self::Arguments(_) => "Arguments",
-            Self::IntegerIndexed(_) => "TypedArray",
-            Self::DataView(_) => "DataView",
-            Self::Promise(_) => "Promise",
-            Self::WeakRef(_) => "WeakRef",
-            Self::WeakMap(_) => "WeakMap",
-            Self::WeakSet(_) => "WeakSet",
-            Self::ModuleNamespace(_) => "ModuleNamespace",
-            Self::NativeObject(obj) => (**obj).type_name_of_value(),
-            #[cfg(feature = "temporal")]
-            Self::Instant(_) => "Instant",
-            #[cfg(feature = "temporal")]
-            Self::PlainDateTime(_) => "PlainDateTime",
-            #[cfg(feature = "temporal")]
-            Self::PlainDate(_) => "PlainDate",
-            #[cfg(feature = "temporal")]
-            Self::PlainTime(_) => "PlainTime",
-            #[cfg(feature = "temporal")]
-            Self::PlainYearMonth(_) => "PlainYearMonth",
-            #[cfg(feature = "temporal")]
-            Self::PlainMonthDay(_) => "PlainMonthDay",
-            #[cfg(feature = "temporal")]
-            Self::TimeZone(_) => "TimeZone",
-            #[cfg(feature = "temporal")]
-            Self::Duration(_) => "Duration",
-            #[cfg(feature = "temporal")]
-            Self::ZonedDateTime(_) => "ZonedDateTime",
-            #[cfg(feature = "temporal")]
-            Self::Calendar(_) => "Calendar",
-        })
-    }
-}
-
-impl Object {
-    /// Creates a new `Object` with the specified `ObjectKind`.
-    pub(crate) fn with_kind(kind: ObjectKind) -> Self {
-        Self {
-            kind,
-            ..Self::default()
-        }
-    }
-
+impl<T: ?Sized> Object<T> {
     /// Returns the shape of the object.
     #[must_use]
     pub const fn shape(&self) -> &Shape {
         &self.properties.shape
     }
 
-    /// Returns the kind of the object.
+    /// Returns the data of the object.
     #[inline]
     #[must_use]
-    pub const fn kind(&self) -> &ObjectKind {
-        &self.kind
-    }
-
-    /// Checks if it's an `AsyncFromSyncIterator` object.
-    #[inline]
-    #[must_use]
-    pub const fn is_async_from_sync_iterator(&self) -> bool {
-        matches!(self.kind, ObjectKind::AsyncFromSyncIterator(_))
-    }
-
-    /// Returns a reference to the `AsyncFromSyncIterator` data on the object.
-    #[inline]
-    #[must_use]
-    pub const fn as_async_from_sync_iterator(&self) -> Option<&AsyncFromSyncIterator> {
-        match self.kind {
-            ObjectKind::AsyncFromSyncIterator(ref async_from_sync_iterator) => {
-                Some(async_from_sync_iterator)
-            }
-            _ => None,
-        }
-    }
-
-    /// Checks if it's an `AsyncGenerator` object.
-    #[inline]
-    #[must_use]
-    pub const fn is_async_generator(&self) -> bool {
-        matches!(self.kind, ObjectKind::AsyncGenerator(_))
-    }
-
-    /// Returns a reference to the async generator data on the object.
-    #[inline]
-    #[must_use]
-    pub const fn as_async_generator(&self) -> Option<&AsyncGenerator> {
-        match self.kind {
-            ObjectKind::AsyncGenerator(ref async_generator) => Some(async_generator),
-            _ => None,
-        }
-    }
-
-    /// Returns a mutable reference to the async generator data on the object.
-    #[inline]
-    pub fn as_async_generator_mut(&mut self) -> Option<&mut AsyncGenerator> {
-        match self.kind {
-            ObjectKind::AsyncGenerator(ref mut async_generator) => Some(async_generator),
-            _ => None,
-        }
-    }
-
-    /// Checks if the object is a `Array` object.
-    #[inline]
-    #[must_use]
-    pub const fn is_array(&self) -> bool {
-        matches!(self.kind, ObjectKind::Array)
-    }
-
-    #[inline]
-    #[must_use]
-    pub(crate) const fn has_viewed_array_buffer(&self) -> bool {
-        self.is_typed_array() || self.is_data_view()
-    }
-
-    /// Checks if the object is a `DataView` object.
-    #[inline]
-    #[must_use]
-    pub const fn is_data_view(&self) -> bool {
-        matches!(self.kind, ObjectKind::DataView(_))
-    }
-
-    /// Checks if the object is a `ArrayBuffer` object.
-    #[inline]
-    #[must_use]
-    pub const fn is_array_buffer(&self) -> bool {
-        matches!(self.kind, ObjectKind::ArrayBuffer(_))
-    }
-
-    /// Gets the array buffer data if the object is a `ArrayBuffer`.
-    #[inline]
-    #[must_use]
-    pub const fn as_array_buffer(&self) -> Option<&ArrayBuffer> {
-        match &self.kind {
-            ObjectKind::ArrayBuffer(buffer) => Some(buffer),
-            _ => None,
-        }
-    }
-
-    /// Gets the shared array buffer data if the object is a `SharedArrayBuffer`.
-    #[inline]
-    #[must_use]
-    pub const fn as_shared_array_buffer(&self) -> Option<&SharedArrayBuffer> {
-        match &self.kind {
-            ObjectKind::SharedArrayBuffer(buffer) => Some(buffer),
-            _ => None,
-        }
-    }
-
-    /// Gets the mutable array buffer data if the object is a `ArrayBuffer`.
-    #[inline]
-    pub fn as_array_buffer_mut(&mut self) -> Option<&mut ArrayBuffer> {
-        match &mut self.kind {
-            ObjectKind::ArrayBuffer(buffer) => Some(buffer),
-            _ => None,
-        }
-    }
-
-    /// Gets the buffer data if the object is an `ArrayBuffer` or a `SharedArrayBuffer`.
-    #[inline]
-    #[must_use]
-    pub(crate) const fn as_buffer(&self) -> Option<BufferRef<'_>> {
-        match &self.kind {
-            ObjectKind::ArrayBuffer(buffer) => Some(BufferRef::Buffer(buffer)),
-            ObjectKind::SharedArrayBuffer(buffer) => Some(BufferRef::SharedBuffer(buffer)),
-            _ => None,
-        }
-    }
-
-    /// Gets the mutable buffer data if the object is an `ArrayBuffer` or a `SharedArrayBuffer`.
-    #[inline]
-    pub(crate) fn as_buffer_mut(&mut self) -> Option<BufferRefMut<'_>> {
-        match &mut self.kind {
-            ObjectKind::ArrayBuffer(buffer) => Some(BufferRefMut::Buffer(buffer)),
-            ObjectKind::SharedArrayBuffer(buffer) => Some(BufferRefMut::SharedBuffer(buffer)),
-            _ => None,
-        }
-    }
-
-    /// Checks if the object is a `ArrayIterator` object.
-    #[inline]
-    #[must_use]
-    pub const fn is_array_iterator(&self) -> bool {
-        matches!(self.kind, ObjectKind::ArrayIterator(_))
-    }
-
-    /// Gets the array-iterator data if the object is a `ArrayIterator`.
-    #[inline]
-    #[must_use]
-    pub const fn as_array_iterator(&self) -> Option<&ArrayIterator> {
-        match self.kind {
-            ObjectKind::ArrayIterator(ref iter) => Some(iter),
-            _ => None,
-        }
-    }
-
-    /// Gets the mutable array-iterator data if the object is a `ArrayIterator`.
-    #[inline]
-    pub fn as_array_iterator_mut(&mut self) -> Option<&mut ArrayIterator> {
-        match &mut self.kind {
-            ObjectKind::ArrayIterator(iter) => Some(iter),
-            _ => None,
-        }
-    }
-
-    /// Gets the mutable string-iterator data if the object is a `StringIterator`.
-    #[inline]
-    pub fn as_string_iterator_mut(&mut self) -> Option<&mut StringIterator> {
-        match &mut self.kind {
-            ObjectKind::StringIterator(iter) => Some(iter),
-            _ => None,
-        }
-    }
-
-    /// Gets the mutable regexp-string-iterator data if the object is a `RegExpStringIterator`.
-    #[inline]
-    pub fn as_regexp_string_iterator_mut(&mut self) -> Option<&mut RegExpStringIterator> {
-        match &mut self.kind {
-            ObjectKind::RegExpStringIterator(iter) => Some(iter),
-            _ => None,
-        }
-    }
-
-    /// Gets the for-in-iterator data if the object is a `ForInIterator`.
-    #[inline]
-    #[must_use]
-    pub const fn as_for_in_iterator(&self) -> Option<&ForInIterator> {
-        match &self.kind {
-            ObjectKind::ForInIterator(iter) => Some(iter),
-            _ => None,
-        }
-    }
-
-    /// Gets the mutable for-in-iterator data if the object is a `ForInIterator`.
-    #[inline]
-    pub fn as_for_in_iterator_mut(&mut self) -> Option<&mut ForInIterator> {
-        match &mut self.kind {
-            ObjectKind::ForInIterator(iter) => Some(iter),
-            _ => None,
-        }
-    }
-
-    /// Checks if the object is a `Map` object.
-    #[inline]
-    #[must_use]
-    pub const fn is_map(&self) -> bool {
-        matches!(self.kind, ObjectKind::Map(_))
-    }
-
-    /// Gets the map data if the object is a `Map`.
-    #[inline]
-    #[must_use]
-    pub const fn as_map(&self) -> Option<&OrderedMap<JsValue>> {
-        match self.kind {
-            ObjectKind::Map(ref map) => Some(map),
-            _ => None,
-        }
-    }
-
-    /// Gets the mutable map data if the object is a `Map`.
-    #[inline]
-    pub fn as_map_mut(&mut self) -> Option<&mut OrderedMap<JsValue>> {
-        match &mut self.kind {
-            ObjectKind::Map(map) => Some(map),
-            _ => None,
-        }
-    }
-
-    /// Checks if the object is a `MapIterator` object.
-    #[inline]
-    #[must_use]
-    pub const fn is_map_iterator(&self) -> bool {
-        matches!(self.kind, ObjectKind::MapIterator(_))
-    }
-
-    /// Gets the map iterator data if the object is a `MapIterator`.
-    #[inline]
-    #[must_use]
-    pub const fn as_map_iterator_ref(&self) -> Option<&MapIterator> {
-        match &self.kind {
-            ObjectKind::MapIterator(iter) => Some(iter),
-            _ => None,
-        }
-    }
-
-    /// Gets the mutable map iterator data if the object is a `MapIterator`.
-    #[inline]
-    pub fn as_map_iterator_mut(&mut self) -> Option<&mut MapIterator> {
-        match &mut self.kind {
-            ObjectKind::MapIterator(iter) => Some(iter),
-            _ => None,
-        }
-    }
-
-    /// Checks if the object is a `Set` object.
-    #[inline]
-    #[must_use]
-    pub const fn is_set(&self) -> bool {
-        matches!(self.kind, ObjectKind::Set(_))
-    }
-
-    /// Gets the set data if the object is a `Set`.
-    #[inline]
-    #[must_use]
-    pub const fn as_set(&self) -> Option<&OrderedSet> {
-        match self.kind {
-            ObjectKind::Set(ref set) => Some(set),
-            _ => None,
-        }
-    }
-
-    /// Gets the mutable set data if the object is a `Set`.
-    #[inline]
-    pub fn as_set_mut(&mut self) -> Option<&mut OrderedSet> {
-        match &mut self.kind {
-            ObjectKind::Set(set) => Some(set),
-            _ => None,
-        }
-    }
-
-    /// Checks if the object is a `SetIterator` object.
-    #[inline]
-    #[must_use]
-    pub const fn is_set_iterator(&self) -> bool {
-        matches!(self.kind, ObjectKind::SetIterator(_))
-    }
-
-    /// Gets the mutable set iterator data if the object is a `SetIterator`.
-    #[inline]
-    pub fn as_set_iterator_mut(&mut self) -> Option<&mut SetIterator> {
-        match &mut self.kind {
-            ObjectKind::SetIterator(iter) => Some(iter),
-            _ => None,
-        }
-    }
-
-    /// Checks if the object is a `String` object.
-    #[inline]
-    #[must_use]
-    pub const fn is_string(&self) -> bool {
-        matches!(self.kind, ObjectKind::String(_))
-    }
-
-    /// Gets the string data if the object is a `String`.
-    #[inline]
-    #[must_use]
-    pub fn as_string(&self) -> Option<JsString> {
-        match self.kind {
-            ObjectKind::String(ref string) => Some(string.clone()),
-            _ => None,
-        }
-    }
-
-    /// Checks if the object is a `Function` object.
-    #[inline]
-    #[must_use]
-    pub const fn is_ordinary_function(&self) -> bool {
-        matches!(self.kind, ObjectKind::OrdinaryFunction(_))
-    }
-
-    /// Gets the function data if the object is a `Function`.
-    #[inline]
-    #[must_use]
-    pub const fn as_function(&self) -> Option<&OrdinaryFunction> {
-        match self.kind {
-            ObjectKind::OrdinaryFunction(ref function) => Some(function),
-            _ => None,
-        }
-    }
-
-    /// Gets the mutable function data if the object is a `Function`.
-    #[inline]
-    pub fn as_function_mut(&mut self) -> Option<&mut OrdinaryFunction> {
-        match self.kind {
-            ObjectKind::OrdinaryFunction(ref mut function) => Some(function),
-            _ => None,
-        }
-    }
-
-    /// Checks if the object is a `BoundFunction` object.
-    #[inline]
-    #[must_use]
-    pub const fn is_bound_function(&self) -> bool {
-        matches!(self.kind, ObjectKind::BoundFunction(_))
-    }
-
-    /// Gets the bound function data if the object is a `BoundFunction`.
-    #[inline]
-    #[must_use]
-    pub const fn as_bound_function(&self) -> Option<&BoundFunction> {
-        match self.kind {
-            ObjectKind::BoundFunction(ref bound_function) => Some(bound_function),
-            _ => None,
-        }
-    }
-
-    /// Checks if the object is a `Generator` object.
-    #[inline]
-    #[must_use]
-    pub const fn is_generator(&self) -> bool {
-        matches!(self.kind, ObjectKind::Generator(_))
-    }
-
-    /// Gets the generator data if the object is a `Generator`.
-    #[inline]
-    #[must_use]
-    pub const fn as_generator(&self) -> Option<&Generator> {
-        match self.kind {
-            ObjectKind::Generator(ref generator) => Some(generator),
-            _ => None,
-        }
-    }
-
-    /// Gets the mutable generator data if the object is a `Generator`.
-    #[inline]
-    pub fn as_generator_mut(&mut self) -> Option<&mut Generator> {
-        match self.kind {
-            ObjectKind::Generator(ref mut generator) => Some(generator),
-            _ => None,
-        }
-    }
-
-    /// Checks if the object is a `Symbol` object.
-    #[inline]
-    #[must_use]
-    pub const fn is_symbol(&self) -> bool {
-        matches!(self.kind, ObjectKind::Symbol(_))
-    }
-
-    /// Gets the error data if the object is a `Symbol`.
-    #[inline]
-    #[must_use]
-    pub fn as_symbol(&self) -> Option<JsSymbol> {
-        match self.kind {
-            ObjectKind::Symbol(ref symbol) => Some(symbol.clone()),
-            _ => None,
-        }
-    }
-
-    /// Checks if the object is a `Error` object.
-    #[inline]
-    #[must_use]
-    pub const fn is_error(&self) -> bool {
-        matches!(self.kind, ObjectKind::Error(_))
-    }
-
-    /// Gets the error data if the object is a `Error`.
-    #[inline]
-    #[must_use]
-    pub const fn as_error(&self) -> Option<ErrorKind> {
-        match self.kind {
-            ObjectKind::Error(e) => Some(e),
-            _ => None,
-        }
-    }
-
-    /// Checks if the object is a `Boolean` object.
-    #[inline]
-    #[must_use]
-    pub const fn is_boolean(&self) -> bool {
-        matches!(self.kind, ObjectKind::Boolean(_))
-    }
-
-    /// Gets the boolean data if the object is a `Boolean`.
-    #[inline]
-    #[must_use]
-    pub const fn as_boolean(&self) -> Option<bool> {
-        match self.kind {
-            ObjectKind::Boolean(boolean) => Some(boolean),
-            _ => None,
-        }
-    }
-
-    /// Checks if the object is a `Number` object.
-    #[inline]
-    #[must_use]
-    pub const fn is_number(&self) -> bool {
-        matches!(self.kind, ObjectKind::Number(_))
-    }
-
-    /// Gets the number data if the object is a `Number`.
-    #[inline]
-    #[must_use]
-    pub const fn as_number(&self) -> Option<f64> {
-        match self.kind {
-            ObjectKind::Number(number) => Some(number),
-            _ => None,
-        }
-    }
-
-    /// Checks if the object is a `BigInt` object.
-    #[inline]
-    #[must_use]
-    pub const fn is_bigint(&self) -> bool {
-        matches!(self.kind, ObjectKind::BigInt(_))
-    }
-
-    /// Gets the bigint data if the object is a `BigInt`.
-    #[inline]
-    #[must_use]
-    pub const fn as_bigint(&self) -> Option<&JsBigInt> {
-        match self.kind {
-            ObjectKind::BigInt(ref bigint) => Some(bigint),
-            _ => None,
-        }
-    }
-
-    /// Checks if the object is a `Date` object.
-    #[inline]
-    #[must_use]
-    pub const fn is_date(&self) -> bool {
-        matches!(self.kind, ObjectKind::Date(_))
-    }
-
-    /// Gets the date data if the object is a `Date`.
-    #[inline]
-    #[must_use]
-    pub const fn as_date(&self) -> Option<&Date> {
-        match self.kind {
-            ObjectKind::Date(ref date) => Some(date),
-            _ => None,
-        }
-    }
-
-    /// Gets the mutable date data if the object is a `Date`.
-    #[inline]
-    pub fn as_date_mut(&mut self) -> Option<&mut Date> {
-        match self.kind {
-            ObjectKind::Date(ref mut date) => Some(date),
-            _ => None,
-        }
-    }
-
-    /// Checks if it a `RegExp` object.
-    #[inline]
-    #[must_use]
-    pub const fn is_regexp(&self) -> bool {
-        matches!(self.kind, ObjectKind::RegExp(_))
-    }
-
-    /// Gets the regexp data if the object is a regexp.
-    #[inline]
-    #[must_use]
-    pub const fn as_regexp(&self) -> Option<&RegExp> {
-        match self.kind {
-            ObjectKind::RegExp(ref regexp) => Some(regexp),
-            _ => None,
-        }
-    }
-
-    /// Gets a mutable reference to the regexp data if the object is a regexp.
-    #[inline]
-    #[must_use]
-    pub fn as_regexp_mut(&mut self) -> Option<&mut RegExp> {
-        match &mut self.kind {
-            ObjectKind::RegExp(regexp) => Some(regexp),
-            _ => None,
-        }
-    }
-
-    /// Checks if it a `TypedArray` object.
-    #[inline]
-    #[must_use]
-    pub const fn is_typed_array(&self) -> bool {
-        matches!(self.kind, ObjectKind::IntegerIndexed(_))
-    }
-
-    /// Checks if it a `Uint8Array` object.
-    #[inline]
-    #[must_use]
-    pub const fn is_typed_uint8_array(&self) -> bool {
-        if let ObjectKind::IntegerIndexed(ref int) = self.kind {
-            matches!(int.kind(), TypedArrayKind::Uint8)
-        } else {
-            false
-        }
-    }
-
-    /// Checks if it a `Int8Array` object.
-    #[inline]
-    #[must_use]
-    pub const fn is_typed_int8_array(&self) -> bool {
-        if let ObjectKind::IntegerIndexed(ref int) = self.kind {
-            matches!(int.kind(), TypedArrayKind::Int8)
-        } else {
-            false
-        }
-    }
-
-    /// Checks if it a `Uint16Array` object.
-    #[inline]
-    #[must_use]
-    pub const fn is_typed_uint16_array(&self) -> bool {
-        if let ObjectKind::IntegerIndexed(ref int) = self.kind {
-            matches!(int.kind(), TypedArrayKind::Uint16)
-        } else {
-            false
-        }
-    }
-
-    /// Checks if it a `Int16Array` object.
-    #[inline]
-    #[must_use]
-    pub const fn is_typed_int16_array(&self) -> bool {
-        if let ObjectKind::IntegerIndexed(ref int) = self.kind {
-            matches!(int.kind(), TypedArrayKind::Int16)
-        } else {
-            false
-        }
-    }
-
-    /// Checks if it a `Uint32Array` object.
-    #[inline]
-    #[must_use]
-    pub const fn is_typed_uint32_array(&self) -> bool {
-        if let ObjectKind::IntegerIndexed(ref int) = self.kind {
-            matches!(int.kind(), TypedArrayKind::Uint32)
-        } else {
-            false
-        }
-    }
-
-    /// Checks if it a `Int32Array` object.
-    #[inline]
-    #[must_use]
-    pub const fn is_typed_int32_array(&self) -> bool {
-        if let ObjectKind::IntegerIndexed(ref int) = self.kind {
-            matches!(int.kind(), TypedArrayKind::Int32)
-        } else {
-            false
-        }
-    }
-
-    /// Checks if it a `Float32Array` object.
-    #[inline]
-    #[must_use]
-    pub const fn is_typed_float32_array(&self) -> bool {
-        if let ObjectKind::IntegerIndexed(ref int) = self.kind {
-            matches!(int.kind(), TypedArrayKind::Float32)
-        } else {
-            false
-        }
-    }
-
-    /// Checks if it a `Float64Array` object.
-    #[inline]
-    #[must_use]
-    pub const fn is_typed_float64_array(&self) -> bool {
-        if let ObjectKind::IntegerIndexed(ref int) = self.kind {
-            matches!(int.kind(), TypedArrayKind::Float64)
-        } else {
-            false
-        }
-    }
-
-    /// Gets the data view data if the object is a `DataView`.
-    #[inline]
-    #[must_use]
-    pub const fn as_data_view(&self) -> Option<&DataView> {
-        match &self.kind {
-            ObjectKind::DataView(data_view) => Some(data_view),
-            _ => None,
-        }
-    }
-
-    /// Gets the mutable data view data if the object is a `DataView`.
-    #[inline]
-    pub fn as_data_view_mut(&mut self) -> Option<&mut DataView> {
-        match &mut self.kind {
-            ObjectKind::DataView(data_view) => Some(data_view),
-            _ => None,
-        }
-    }
-
-    /// Checks if it is an `Arguments` object.
-    #[inline]
-    #[must_use]
-    pub const fn is_arguments(&self) -> bool {
-        matches!(self.kind, ObjectKind::Arguments(_))
-    }
-
-    /// Gets the mapped arguments data if this is a mapped arguments object.
-    #[inline]
-    #[must_use]
-    pub const fn as_mapped_arguments(&self) -> Option<&ParameterMap> {
-        match self.kind {
-            ObjectKind::Arguments(Arguments::Mapped(ref args)) => Some(args),
-            _ => None,
-        }
-    }
-
-    /// Gets the mutable mapped arguments data if this is a mapped arguments object.
-    #[inline]
-    pub fn as_mapped_arguments_mut(&mut self) -> Option<&mut ParameterMap> {
-        match self.kind {
-            ObjectKind::Arguments(Arguments::Mapped(ref mut args)) => Some(args),
-            _ => None,
-        }
-    }
-
-    /// Gets the typed array data (integer indexed object) if this is a typed array.
-    #[inline]
-    #[must_use]
-    pub const fn as_typed_array(&self) -> Option<&IntegerIndexed> {
-        match self.kind {
-            ObjectKind::IntegerIndexed(ref integer_indexed_object) => Some(integer_indexed_object),
-            _ => None,
-        }
-    }
-
-    /// Gets the typed array data (integer indexed object) if this is a typed array.
-    #[inline]
-    pub fn as_typed_array_mut(&mut self) -> Option<&mut IntegerIndexed> {
-        match self.kind {
-            ObjectKind::IntegerIndexed(ref mut integer_indexed_object) => {
-                Some(integer_indexed_object)
-            }
-            _ => None,
-        }
-    }
-
-    /// Checks if it an ordinary object.
-    #[inline]
-    #[must_use]
-    pub const fn is_ordinary(&self) -> bool {
-        matches!(self.kind, ObjectKind::Ordinary)
-    }
-
-    /// Checks if it's an proxy object.
-    #[inline]
-    #[must_use]
-    pub const fn is_proxy(&self) -> bool {
-        matches!(self.kind, ObjectKind::Proxy(_))
-    }
-
-    /// Gets the proxy data if the object is a `Proxy`.
-    #[inline]
-    #[must_use]
-    pub const fn as_proxy(&self) -> Option<&Proxy> {
-        match self.kind {
-            ObjectKind::Proxy(ref proxy) => Some(proxy),
-            _ => None,
-        }
-    }
-
-    /// Gets the mutable proxy data if the object is a `Proxy`.
-    #[inline]
-    pub fn as_proxy_mut(&mut self) -> Option<&mut Proxy> {
-        match self.kind {
-            ObjectKind::Proxy(ref mut proxy) => Some(proxy),
-            _ => None,
-        }
-    }
-
-    /// Gets the weak map data if the object is a `WeakMap`.
-    #[inline]
-    #[must_use]
-    pub const fn as_weak_map(&self) -> Option<&boa_gc::WeakMap<VTableObject, JsValue>> {
-        match self.kind {
-            ObjectKind::WeakMap(ref weak_map) => Some(weak_map),
-            _ => None,
-        }
-    }
-
-    /// Gets the mutable weak map data if the object is a `WeakMap`.
-    #[inline]
-    pub fn as_weak_map_mut(&mut self) -> Option<&mut boa_gc::WeakMap<VTableObject, JsValue>> {
-        match self.kind {
-            ObjectKind::WeakMap(ref mut weak_map) => Some(weak_map),
-            _ => None,
-        }
-    }
-
-    /// Gets the weak set data if the object is a `WeakSet`.
-    #[inline]
-    #[must_use]
-    pub const fn as_weak_set(&self) -> Option<&boa_gc::WeakMap<VTableObject, ()>> {
-        match self.kind {
-            ObjectKind::WeakSet(ref weak_set) => Some(weak_set),
-            _ => None,
-        }
-    }
-
-    /// Gets the mutable weak set data if the object is a `WeakSet`.
-    #[inline]
-    pub fn as_weak_set_mut(&mut self) -> Option<&mut boa_gc::WeakMap<VTableObject, ()>> {
-        match self.kind {
-            ObjectKind::WeakSet(ref mut weak_set) => Some(weak_set),
-            _ => None,
-        }
-    }
-
-    /// Returns `true` if it holds a native Rust function.
-    #[inline]
-    #[must_use]
-    pub const fn is_native_function(&self) -> bool {
-        matches!(self.kind, ObjectKind::NativeFunction { .. })
-    }
-
-    /// Returns this `NativeFunctionObject` if this object contains a `NativeFunctionObject`.
-    pub(crate) fn as_native_function(&self) -> Option<&NativeFunctionObject> {
-        match &self.kind {
-            ObjectKind::NativeFunction(f) => Some(f),
-            _ => None,
-        }
-    }
-
-    /// Returns a mutable reference to this `NativeFunctionObject` if this object contains a
-    /// `NativeFunctionObject`.
-    pub(crate) fn as_native_function_mut(&mut self) -> Option<&mut NativeFunctionObject> {
-        match &mut self.kind {
-            ObjectKind::NativeFunction(f) => Some(f),
-            _ => None,
-        }
+    pub const fn data(&self) -> &T {
+        &self.data
     }
 
     /// Gets the prototype instance of this object.
@@ -1833,335 +283,6 @@ impl Object {
             // If target is non-extensible, [[SetPrototypeOf]] must return false
             // unless V is the SameValue as the target's observed [[GetPrototypeOf]] value.
             self.prototype() == prototype
-        }
-    }
-
-    /// Returns `true` if it holds an Rust type that implements `NativeObject`.
-    #[inline]
-    #[must_use]
-    pub const fn is_native_object(&self) -> bool {
-        matches!(self.kind, ObjectKind::NativeObject(_))
-    }
-
-    /// Gets the native object data if the object is a `NativeObject`.
-    #[inline]
-    #[must_use]
-    pub fn as_native_object(&self) -> Option<&dyn NativeObject> {
-        match self.kind {
-            ObjectKind::NativeObject(ref object) => Some(object.as_ref()),
-            _ => None,
-        }
-    }
-
-    /// Checks if it is a `Promise` object.
-    #[inline]
-    #[must_use]
-    pub const fn is_promise(&self) -> bool {
-        matches!(self.kind, ObjectKind::Promise(_))
-    }
-
-    /// Gets the promise data if the object is a `Promise`.
-    #[inline]
-    #[must_use]
-    pub const fn as_promise(&self) -> Option<&Promise> {
-        match self.kind {
-            ObjectKind::Promise(ref promise) => Some(promise),
-            _ => None,
-        }
-    }
-
-    /// Gets the mutable promise data if the object is a `Promise`.
-    #[inline]
-    pub fn as_promise_mut(&mut self) -> Option<&mut Promise> {
-        match self.kind {
-            ObjectKind::Promise(ref mut promise) => Some(promise),
-            _ => None,
-        }
-    }
-
-    /// Gets the `WeakRef` data if the object is a `WeakRef`.
-    #[inline]
-    #[must_use]
-    pub const fn as_weak_ref(&self) -> Option<&WeakGc<VTableObject>> {
-        match self.kind {
-            ObjectKind::WeakRef(ref weak_ref) => Some(weak_ref),
-            _ => None,
-        }
-    }
-
-    /// Gets a reference to the module namespace if the object is a `ModuleNamespace`.
-    #[inline]
-    #[must_use]
-    pub const fn as_module_namespace(&self) -> Option<&ModuleNamespace> {
-        match &self.kind {
-            ObjectKind::ModuleNamespace(ns) => Some(ns),
-            _ => None,
-        }
-    }
-
-    /// Gets a mutable reference module namespace if the object is a `ModuleNamespace`.
-    #[inline]
-    pub fn as_module_namespace_mut(&mut self) -> Option<&mut ModuleNamespace> {
-        match &mut self.kind {
-            ObjectKind::ModuleNamespace(ns) => Some(ns),
-            _ => None,
-        }
-    }
-
-    /// Gets the `TimeZone` data if the object is a `Temporal.TimeZone`.
-    #[inline]
-    #[must_use]
-    #[cfg(feature = "temporal")]
-    pub const fn as_time_zone(&self) -> Option<&TimeZone> {
-        match self.kind {
-            ObjectKind::TimeZone(ref tz) => Some(tz),
-            _ => None,
-        }
-    }
-
-    /// Checks if the object is a `TimeZone` object.
-    #[inline]
-    #[must_use]
-    #[cfg(feature = "temporal")]
-    pub const fn is_time_zone(&self) -> bool {
-        matches!(self.kind, ObjectKind::TimeZone(_))
-    }
-
-    /// Gets a mutable reference to `Instant` data if the object is a `Temporal.Instant`.
-    #[inline]
-    #[must_use]
-    #[cfg(feature = "temporal")]
-    pub fn as_instant_mut(&mut self) -> Option<&mut Instant> {
-        match &mut self.kind {
-            ObjectKind::Instant(instant) => Some(instant),
-            _ => None,
-        }
-    }
-
-    /// Gets the `Instant` data if the object is a `Temporal.Instant`.
-    #[inline]
-    #[must_use]
-    #[cfg(feature = "temporal")]
-    pub const fn as_instant(&self) -> Option<&Instant> {
-        match &self.kind {
-            ObjectKind::Instant(instant) => Some(instant),
-            _ => None,
-        }
-    }
-
-    /// Checks if the object is a `Duration` object.
-    #[inline]
-    #[must_use]
-    #[cfg(feature = "temporal")]
-    pub const fn is_duration(&self) -> bool {
-        matches!(self.kind, ObjectKind::Duration(_))
-    }
-
-    /// Gets a mutable reference to `Duration` data if the object is a `Temporal.Duration`.
-    #[inline]
-    #[must_use]
-    #[cfg(feature = "temporal")]
-    pub fn as_duration_mut(&mut self) -> Option<&mut Duration> {
-        match &mut self.kind {
-            ObjectKind::Duration(dur) => Some(dur),
-            _ => None,
-        }
-    }
-
-    /// Gets the `Duration` data if the object is a `Temporal.Duration`.
-    #[inline]
-    #[must_use]
-    #[cfg(feature = "temporal")]
-    pub const fn as_duration(&self) -> Option<&Duration> {
-        match &self.kind {
-            ObjectKind::Duration(dur) => Some(dur),
-            _ => None,
-        }
-    }
-
-    /// Checks if object is a `PlainDateTime` object.
-    #[inline]
-    #[must_use]
-    #[cfg(feature = "temporal")]
-    pub const fn is_plain_date_time(&self) -> bool {
-        matches!(self.kind, ObjectKind::PlainDateTime(_))
-    }
-
-    /// Gets a reference to `PlainDateTime` data if the object is a `Temporal.PlainDateTime`.
-    #[inline]
-    #[must_use]
-    #[cfg(feature = "temporal")]
-    pub const fn as_plain_date_time(&self) -> Option<&PlainDateTime> {
-        match &self.kind {
-            ObjectKind::PlainDateTime(date) => Some(date),
-            _ => None,
-        }
-    }
-
-    /// Checks if object is a `PlainDate` object.
-    #[inline]
-    #[must_use]
-    #[cfg(feature = "temporal")]
-    pub const fn is_plain_date(&self) -> bool {
-        matches!(self.kind, ObjectKind::PlainDate(_))
-    }
-
-    /// Gets a mutable reference to `PlainDate` data if the object is a `Temporal.PlainDate`.
-    #[inline]
-    #[must_use]
-    #[cfg(feature = "temporal")]
-    pub fn as_plain_date_mut(&mut self) -> Option<&mut PlainDate> {
-        match &mut self.kind {
-            ObjectKind::PlainDate(date) => Some(date),
-            _ => None,
-        }
-    }
-
-    /// Gets the `PlainDate` data if the object is a `Temporal.PlainDate`.
-    #[inline]
-    #[must_use]
-    #[cfg(feature = "temporal")]
-    pub const fn as_plain_date(&self) -> Option<&PlainDate> {
-        match &self.kind {
-            ObjectKind::PlainDate(date) => Some(date),
-            _ => None,
-        }
-    }
-
-    /// Checks if object is a `PlainYearMonth` object.
-    #[inline]
-    #[must_use]
-    #[cfg(feature = "temporal")]
-    pub const fn is_plain_year_month(&self) -> bool {
-        matches!(self.kind, ObjectKind::PlainYearMonth(_))
-    }
-
-    /// Gets a mutable reference to `PlainYearMonth` data if the object is a `Temporal.PlainYearMonth`.
-    #[inline]
-    #[must_use]
-    #[cfg(feature = "temporal")]
-    pub fn as_plain_year_month_mut(&mut self) -> Option<&mut PlainYearMonth> {
-        match &mut self.kind {
-            ObjectKind::PlainYearMonth(year_month) => Some(year_month),
-            _ => None,
-        }
-    }
-
-    /// Gets the `PlainYearMonth` data if the object is a `Temporal.PlainYearMonth`.
-    #[inline]
-    #[must_use]
-    #[cfg(feature = "temporal")]
-    pub const fn as_plain_year_month(&self) -> Option<&PlainYearMonth> {
-        match &self.kind {
-            ObjectKind::PlainYearMonth(ym) => Some(ym),
-            _ => None,
-        }
-    }
-
-    /// Checks if object is a `PlainMonthDay` object.
-    #[inline]
-    #[must_use]
-    #[cfg(feature = "temporal")]
-    pub const fn is_plain_month_day(&self) -> bool {
-        matches!(self.kind, ObjectKind::PlainMonthDay(_))
-    }
-
-    /// Gets the `PlainMonthDay` data if the object is a `Temporal.PlainMonthDay`.
-    #[inline]
-    #[must_use]
-    #[cfg(feature = "temporal")]
-    pub const fn as_plain_month_day(&self) -> Option<&PlainMonthDay> {
-        match &self.kind {
-            ObjectKind::PlainMonthDay(md) => Some(md),
-            _ => None,
-        }
-    }
-
-    /// Gets a mutable reference to `PlainMonthDay` data if the object is a `Temporal.PlainMonthDay`.
-    #[inline]
-    #[must_use]
-    #[cfg(feature = "temporal")]
-    pub fn as_plain_month_day_mut(&mut self) -> Option<&mut PlainMonthDay> {
-        match &mut self.kind {
-            ObjectKind::PlainMonthDay(month_day) => Some(month_day),
-            _ => None,
-        }
-    }
-
-    /// Gets the `PlainDate` data if the object is a `Temporal.PlainDate`.
-    #[inline]
-    #[must_use]
-    #[cfg(feature = "temporal")]
-    pub const fn as_zoned_date_time(&self) -> Option<&ZonedDateTime> {
-        match &self.kind {
-            ObjectKind::ZonedDateTime(zdt) => Some(zdt),
-            _ => None,
-        }
-    }
-
-    /// Checks if the object is a `ZonedDateTime` object.
-    #[inline]
-    #[must_use]
-    #[cfg(feature = "temporal")]
-    pub const fn is_zoned_date_time(&self) -> bool {
-        matches!(self.kind, ObjectKind::ZonedDateTime(_))
-    }
-
-    /// Checks if the object is a `Calendar` object.
-    #[inline]
-    #[must_use]
-    #[cfg(feature = "temporal")]
-    pub const fn is_calendar(&self) -> bool {
-        matches!(self.kind, ObjectKind::Calendar(_))
-    }
-
-    /// Gets the `Calendar` data if the object is a `Temporal.Calendar`.
-    #[inline]
-    #[must_use]
-    #[cfg(feature = "temporal")]
-    pub const fn as_calendar(&self) -> Option<&Calendar> {
-        match &self.kind {
-            ObjectKind::Calendar(calendar) => Some(calendar),
-            _ => None,
-        }
-    }
-
-    /// Return `true` if it is a native object and the native type is `T`.
-    #[must_use]
-    pub fn is<T>(&self) -> bool
-    where
-        T: NativeObject,
-    {
-        match self.kind {
-            ObjectKind::NativeObject(ref object) => object.deref().as_any().is::<T>(),
-            _ => false,
-        }
-    }
-
-    /// Downcast a reference to the object,
-    /// if the object is type native object type `T`.
-    #[must_use]
-    pub fn downcast_ref<T>(&self) -> Option<&T>
-    where
-        T: NativeObject,
-    {
-        match self.kind {
-            ObjectKind::NativeObject(ref object) => object.deref().as_any().downcast_ref::<T>(),
-            _ => None,
-        }
-    }
-
-    /// Downcast a mutable reference to the object,
-    /// if the object is type native object type `T`.
-    pub fn downcast_mut<T>(&mut self) -> Option<&mut T>
-    where
-        T: NativeObject,
-    {
-        match self.kind {
-            ObjectKind::NativeObject(ref mut object) => {
-                object.deref_mut().as_mut_any().downcast_mut::<T>()
-            }
-            _ => None,
         }
     }
 
@@ -2220,6 +341,147 @@ impl Object {
         }
 
         self.private_elements.push((name, element));
+    }
+}
+
+impl Object<dyn NativeObject> {
+    /// Return `true` if it is a native object and the native type is `T`.
+    #[must_use]
+    pub fn is<T: NativeObject>(&self) -> bool {
+        self.data.is::<T>()
+    }
+
+    /// Downcast a reference to the object,
+    /// if the object is type native object type `T`.
+    #[must_use]
+    pub fn downcast_ref<T: NativeObject>(&self) -> Option<&T> {
+        self.data.downcast_ref::<T>()
+    }
+
+    /// Downcast a mutable reference to the object,
+    /// if the object is type native object type `T`.
+    pub fn downcast_mut<T: NativeObject>(&mut self) -> Option<&mut T> {
+        self.data.downcast_mut::<T>()
+    }
+
+    /// Gets the buffer data if the object is an `ArrayBuffer` or a `SharedArrayBuffer`.
+    #[inline]
+    #[must_use]
+    pub(crate) fn as_buffer(&self) -> Option<BufferRef<'_>> {
+        if let Some(buffer) = self.downcast_ref::<ArrayBuffer>() {
+            return Some(BufferRef::Buffer(buffer));
+        }
+        self.downcast_ref::<SharedArrayBuffer>()
+            .map(BufferRef::SharedBuffer)
+    }
+
+    /// Gets the mutable buffer data if the object is an `ArrayBuffer` or a `SharedArrayBuffer`.
+    #[inline]
+    pub(crate) fn as_buffer_mut(&mut self) -> Option<BufferRefMut<'_>> {
+        // Workaround for Problem case 3 of the current borrow checker.
+        // https://rust-lang.github.io/rfcs/2094-nll.html#problem-case-3-conditional-control-flow-across-functions
+        if self.is::<ArrayBuffer>() {
+            match self.downcast_mut::<ArrayBuffer>() {
+                Some(buffer) => return Some(BufferRefMut::Buffer(buffer)),
+                None => unreachable!(),
+            }
+        }
+
+        self.downcast_mut::<SharedArrayBuffer>()
+            .map(BufferRefMut::SharedBuffer)
+    }
+
+    /// Checks if this object is an `Arguments` object.
+    pub(crate) fn is_arguments(&self) -> bool {
+        self.is::<UnmappedArguments>() || self.is::<MappedArguments>()
+    }
+
+    /// Checks if it a `Uint8Array` object.
+    #[inline]
+    #[must_use]
+    pub fn is_typed_uint8_array(&self) -> bool {
+        if let Some(int) = self.downcast_ref::<TypedArray>() {
+            matches!(int.kind(), TypedArrayKind::Uint8)
+        } else {
+            false
+        }
+    }
+
+    /// Checks if it a `Int8Array` object.
+    #[inline]
+    #[must_use]
+    pub fn is_typed_int8_array(&self) -> bool {
+        if let Some(int) = self.downcast_ref::<TypedArray>() {
+            matches!(int.kind(), TypedArrayKind::Int8)
+        } else {
+            false
+        }
+    }
+
+    /// Checks if it a `Uint16Array` object.
+    #[inline]
+    #[must_use]
+    pub fn is_typed_uint16_array(&self) -> bool {
+        if let Some(int) = self.downcast_ref::<TypedArray>() {
+            matches!(int.kind(), TypedArrayKind::Uint16)
+        } else {
+            false
+        }
+    }
+
+    /// Checks if it a `Int16Array` object.
+    #[inline]
+    #[must_use]
+    pub fn is_typed_int16_array(&self) -> bool {
+        if let Some(int) = self.downcast_ref::<TypedArray>() {
+            matches!(int.kind(), TypedArrayKind::Int16)
+        } else {
+            false
+        }
+    }
+
+    /// Checks if it a `Uint32Array` object.
+    #[inline]
+    #[must_use]
+    pub fn is_typed_uint32_array(&self) -> bool {
+        if let Some(int) = self.downcast_ref::<TypedArray>() {
+            matches!(int.kind(), TypedArrayKind::Uint32)
+        } else {
+            false
+        }
+    }
+
+    /// Checks if it a `Int32Array` object.
+    #[inline]
+    #[must_use]
+    pub fn is_typed_int32_array(&self) -> bool {
+        if let Some(int) = self.downcast_ref::<TypedArray>() {
+            matches!(int.kind(), TypedArrayKind::Int32)
+        } else {
+            false
+        }
+    }
+
+    /// Checks if it a `Float32Array` object.
+    #[inline]
+    #[must_use]
+    pub fn is_typed_float32_array(&self) -> bool {
+        if let Some(int) = self.downcast_ref::<TypedArray>() {
+            matches!(int.kind(), TypedArrayKind::Float32)
+        } else {
+            false
+        }
+    }
+
+    /// Checks if it a `Float64Array` object.
+    #[inline]
+    #[must_use]
+    pub fn is_typed_float64_array(&self) -> bool {
+        if let Some(int) = self.downcast_ref::<TypedArray>() {
+            matches!(int.kind(), TypedArrayKind::Float64)
+        } else {
+            false
+        }
     }
 }
 
@@ -2336,11 +598,11 @@ impl<'realm> FunctionObjectBuilder<'realm> {
     #[must_use]
     pub fn build(self) -> JsFunction {
         let object = self.realm.intrinsics().templates().function().create(
-            ObjectData::native_function(NativeFunctionObject {
+            NativeFunctionObject {
                 f: self.function,
                 constructor: self.constructor,
                 realm: Some(self.realm.clone()),
-            }),
+            },
             vec![self.length.into(), self.name.into()],
         );
 
@@ -2400,7 +662,7 @@ impl<'ctx> ObjectInitializer<'ctx> {
         let object = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             context.intrinsics().constructors().object().prototype(),
-            ObjectData::native_object(data),
+            data,
         );
         Self { context, object }
     }
@@ -2411,11 +673,8 @@ impl<'ctx> ObjectInitializer<'ctx> {
         proto: JsObject,
         context: &'ctx mut Context,
     ) -> Self {
-        let object = JsObject::from_proto_and_data_with_shared_shape(
-            context.root_shape(),
-            proto,
-            ObjectData::native_object(data),
-        );
+        let object =
+            JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), proto, data);
         Self { context, object }
     }
 
@@ -2502,9 +761,9 @@ impl<'ctx> ObjectInitializer<'ctx> {
 pub struct ConstructorBuilder<'ctx> {
     context: &'ctx mut Context,
     function: NativeFunction,
-    constructor_object: Object,
+    constructor_object: Object<OrdinaryObject>,
     has_prototype_property: bool,
-    prototype: Object,
+    prototype: Object<OrdinaryObject>,
     name: JsString,
     length: usize,
     callable: bool,
@@ -2521,13 +780,13 @@ impl<'ctx> ConstructorBuilder<'ctx> {
             context,
             function,
             constructor_object: Object {
-                kind: ObjectKind::Ordinary,
+                data: OrdinaryObject,
                 properties: PropertyMap::default(),
                 extensible: true,
                 private_elements: ThinVec::new(),
             },
             prototype: Object {
-                kind: ObjectKind::Ordinary,
+                data: OrdinaryObject,
                 properties: PropertyMap::default(),
                 extensible: true,
                 private_elements: ThinVec::new(),
@@ -2786,16 +1045,19 @@ impl<'ctx> ConstructorBuilder<'ctx> {
         };
 
         let constructor = {
-            let mut constructor = self.constructor_object;
+            let mut constructor = Object {
+                properties: self.constructor_object.properties,
+                extensible: self.constructor_object.extensible,
+                private_elements: self.constructor_object.private_elements,
+                data: NativeFunctionObject {
+                    f: self.function,
+                    constructor: self.kind,
+                    realm: Some(self.context.realm().clone()),
+                },
+            };
+
             constructor.insert(utf16!("length"), length);
             constructor.insert(utf16!("name"), name);
-            let data = ObjectData::native_function(NativeFunctionObject {
-                f: self.function,
-                constructor: self.kind,
-                realm: Some(self.context.realm().clone()),
-            });
-
-            constructor.kind = data.kind;
 
             if let Some(proto) = self.custom_prototype.take() {
                 constructor.set_prototype(proto);
@@ -2820,7 +1082,8 @@ impl<'ctx> ConstructorBuilder<'ctx> {
                 );
             }
 
-            JsObject::from_object_and_vtable(constructor, data.internal_methods)
+            let internal_methods = constructor.data.internal_methods();
+            JsObject::from_object_and_vtable(constructor, internal_methods)
         };
 
         {

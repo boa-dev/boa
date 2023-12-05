@@ -1,4 +1,5 @@
 use crate::{
+    builtins::function::OrdinaryFunction,
     environments::PrivateEnvironment,
     vm::{opcode::Operation, CompletionType},
     Context, JsResult,
@@ -99,11 +100,10 @@ impl Operation for PushPrivateEnvironment {
         }
 
         let ptr: *const _ = class.as_ref();
-        let environment = Gc::new(PrivateEnvironment::new(ptr as usize, names));
+        let environment = Gc::new(PrivateEnvironment::new(ptr.cast::<()>() as usize, names));
 
         class
-            .borrow_mut()
-            .as_function_mut()
+            .downcast_mut::<OrdinaryFunction>()
             .expect("class object must be function")
             .push_private_environment(environment.clone());
         context.vm.environments.push_private(environment);
