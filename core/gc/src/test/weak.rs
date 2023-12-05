@@ -164,7 +164,7 @@ fn eph_self_referential() {
             *root.inner.inner.borrow_mut() = Some(eph.clone());
 
             assert!(eph.value().is_some());
-            Harness::assert_exact_bytes_allocated(48);
+            Harness::assert_exact_bytes_allocated(56);
         }
 
         *root.inner.inner.borrow_mut() = None;
@@ -210,7 +210,7 @@ fn eph_self_referential_chain() {
 
             assert!(eph_start.value().is_some());
             assert!(eph_chain2.value().is_some());
-            Harness::assert_exact_bytes_allocated(132);
+            Harness::assert_exact_bytes_allocated(168);
         }
 
         *root.borrow_mut() = None;

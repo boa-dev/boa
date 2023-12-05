@@ -2,7 +2,7 @@ use crate::{
     finalizer_safe,
     internals::{EphemeronBox, GcBox},
     trace::{Finalize, Trace},
-    Allocator, Ephemeron, WeakGc,
+    Allocator, Ephemeron, GcErasedPointer, Tracer, WeakGc,
 };
 use std::{
     cmp::Ordering,
@@ -13,6 +13,39 @@ use std::{
     ptr::NonNull,
     rc::Rc,
 };
+
+/// Zero sized struct that is used to ensure that we do not call trace methods,
+/// , call its finalization method or drop it.
+///
+/// This can only happen if we are accessing an [`GcErasedPointer`] directly which is a bug.
+/// Panics if any of it's methods are called.
+///
+/// Note: Accessing the [`crate::internals::GcHeader`] of [`GcErasedPointer`] is fine.
+pub(crate) struct NonTraceable(());
+
+impl Finalize for NonTraceable {
+    fn finalize(&self) {
+        unreachable!()
+    }
+}
+
+unsafe impl Trace for NonTraceable {
+    unsafe fn trace(&self, _tracer: &mut Tracer) {
+        unreachable!()
+    }
+    fn trace_non_roots(&self) {
+        unreachable!()
+    }
+    fn run_finalizer(&self) {
+        unreachable!()
+    }
+}
+
+impl Drop for NonTraceable {
+    fn drop(&mut self) {
+        unreachable!()
+    }
+}
 
 /// A garbage-collected pointer type over an immutable value.
 pub struct Gc<T: Trace + ?Sized + 'static> {
@@ -98,6 +131,10 @@ impl<T: Trace + ?Sized> Gc<T> {
             marker: PhantomData,
         }
     }
+
+    pub(crate) fn as_erased(&self) -> GcErasedPointer {
+        self.inner_ptr.cast()
+    }
 }
 
 impl<T: Trace + ?Sized> Gc<T> {
@@ -125,11 +162,8 @@ impl<T: Trace + ?Sized> Finalize for Gc<T> {
 // SAFETY: `Gc` maintains it's own rootedness and implements all methods of
 // Trace. It is not possible to root an already rooted `Gc` and vice versa.
 unsafe impl<T: Trace + ?Sized> Trace for Gc<T> {
-    unsafe fn trace(&self) {
-        // SAFETY: Inner must be live and allocated GcBox.
-        unsafe {
-            self.inner().mark_and_trace();
-        }
+    unsafe fn trace(&self, tracer: &mut Tracer) {
+        tracer.enqueue(self.as_erased());
     }
 
     fn trace_non_roots(&self) {

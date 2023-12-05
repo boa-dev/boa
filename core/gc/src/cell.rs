@@ -1,6 +1,9 @@
 //! A garbage collected cell implementation
 
-use crate::trace::{Finalize, Trace};
+use crate::{
+    trace::{Finalize, Trace},
+    Tracer,
+};
 use std::{
     cell::{Cell, UnsafeCell},
     cmp::Ordering,
@@ -218,11 +221,11 @@ impl<T: Trace + ?Sized> Finalize for GcRefCell<T> {}
 // Implementing a Trace while the cell is being written to or incorrectly implementing Trace
 // on GcCell's value may cause Undefined Behavior
 unsafe impl<T: Trace + ?Sized> Trace for GcRefCell<T> {
-    unsafe fn trace(&self) {
+    unsafe fn trace(&self, tracer: &mut Tracer) {
         match self.flags.get().borrowed() {
             BorrowState::Writing => (),
             // SAFETY: Please see GcCell's Trace impl Safety note.
-            _ => unsafe { (*self.cell.get()).trace() },
+            _ => unsafe { (*self.cell.get()).trace(tracer) },
         }
     }
 

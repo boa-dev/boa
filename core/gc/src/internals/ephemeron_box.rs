@@ -1,94 +1,14 @@
-use crate::{trace::Trace, Gc, GcBox};
+use crate::{trace::Trace, Gc, GcBox, Tracer};
 use std::{
-    cell::{Cell, UnsafeCell},
+    cell::UnsafeCell,
     ptr::{self, NonNull},
 };
 
-const MARK_MASK: u32 = 1 << (u32::BITS - 1);
-const NON_ROOTS_MASK: u32 = !MARK_MASK;
-const NON_ROOTS_MAX: u32 = NON_ROOTS_MASK;
-
-/// The `EphemeronBoxHeader` contains the `EphemeronBoxHeader`'s current state for the `Collector`'s
-/// Mark/Sweep as well as a pointer to the next ephemeron in the heap.
-///
-/// `ref_count` is the number of Gc instances, and `non_root_count` is the number of
-/// Gc instances in the heap. `non_root_count` also includes Mark Flag bit.
-///
-/// The next node is set by the `Allocator` during initialization and by the
-/// `Collector` during the sweep phase.
-pub(crate) struct EphemeronBoxHeader {
-    ref_count: Cell<u32>,
-    non_root_count: Cell<u32>,
-}
-
-impl EphemeronBoxHeader {
-    /// Creates a new `EphemeronBoxHeader` with a root of 1 and next set to None.
-    pub(crate) fn new() -> Self {
-        Self {
-            ref_count: Cell::new(1),
-            non_root_count: Cell::new(0),
-        }
-    }
-
-    /// Returns the `EphemeronBoxHeader`'s current ref count
-    pub(crate) fn get_ref_count(&self) -> u32 {
-        self.ref_count.get()
-    }
-
-    /// Returns a count for non-roots.
-    pub(crate) fn get_non_root_count(&self) -> u32 {
-        self.non_root_count.get() & NON_ROOTS_MASK
-    }
-
-    /// Increments `EphemeronBoxHeader`'s non-roots count.
-    pub(crate) fn inc_non_root_count(&self) {
-        let non_root_count = self.non_root_count.get();
-
-        if (non_root_count & NON_ROOTS_MASK) < NON_ROOTS_MAX {
-            self.non_root_count.set(non_root_count.wrapping_add(1));
-        } else {
-            // TODO: implement a better way to handle root overload.
-            panic!("non roots counter overflow");
-        }
-    }
-
-    /// Reset non-roots count to zero.
-    pub(crate) fn reset_non_root_count(&self) {
-        self.non_root_count
-            .set(self.non_root_count.get() & !NON_ROOTS_MASK);
-    }
-
-    /// Returns a bool for whether `GcBoxHeader`'s mark bit is 1.
-    pub(crate) fn is_marked(&self) -> bool {
-        self.non_root_count.get() & MARK_MASK != 0
-    }
-
-    /// Sets `GcBoxHeader`'s mark bit to 1.
-    pub(crate) fn mark(&self) {
-        self.non_root_count
-            .set(self.non_root_count.get() | MARK_MASK);
-    }
-
-    /// Sets `GcBoxHeader`'s mark bit to 0.
-    pub(crate) fn unmark(&self) {
-        self.non_root_count
-            .set(self.non_root_count.get() & !MARK_MASK);
-    }
-}
-
-impl core::fmt::Debug for EphemeronBoxHeader {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        f.debug_struct("EphemeronBoxHeader")
-            .field("marked", &self.is_marked())
-            .field("ref_count", &self.get_ref_count())
-            .field("non_root_count", &self.get_non_root_count())
-            .finish()
-    }
-}
+use super::GcHeader;
 
 /// The inner allocation of an [`Ephemeron`][crate::Ephemeron] pointer.
 pub(crate) struct EphemeronBox<K: Trace + ?Sized + 'static, V: Trace + 'static> {
-    pub(crate) header: EphemeronBoxHeader,
+    pub(crate) header: GcHeader,
     data: UnsafeCell<Option<Data<K, V>>>,
 }
 
@@ -101,7 +21,7 @@ impl<K: Trace + ?Sized, V: Trace> EphemeronBox<K, V> {
     /// Creates a new `EphemeronBox` that tracks `key` and has `value` as its inner data.
     pub(crate) fn new(key: &Gc<K>, value: V) -> Self {
         Self {
-            header: EphemeronBoxHeader::new(),
+            header: GcHeader::new(),
             data: UnsafeCell::new(Some(Data {
                 key: key.inner_ptr(),
                 value,
@@ -112,7 +32,7 @@ impl<K: Trace + ?Sized, V: Trace> EphemeronBox<K, V> {
     /// Creates a new `EphemeronBox` with its inner data in the invalidated state.
     pub(crate) fn new_empty() -> Self {
         Self {
-            header: EphemeronBoxHeader::new(),
+            header: GcHeader::new(),
             data: UnsafeCell::new(None),
         }
     }
@@ -190,12 +110,12 @@ impl<K: Trace + ?Sized, V: Trace> EphemeronBox<K, V> {
 
     #[inline]
     pub(crate) fn inc_ref_count(&self) {
-        self.header.ref_count.set(self.header.ref_count.get() + 1);
+        self.header.inc_ref_count();
     }
 
     #[inline]
     pub(crate) fn dec_ref_count(&self) {
-        self.header.ref_count.set(self.header.ref_count.get() - 1);
+        self.header.dec_ref_count();
     }
 
     #[inline]
@@ -206,13 +126,13 @@ impl<K: Trace + ?Sized, V: Trace> EphemeronBox<K, V> {
 
 pub(crate) trait ErasedEphemeronBox {
     /// Gets the header of the `EphemeronBox`.
-    fn header(&self) -> &EphemeronBoxHeader;
+    fn header(&self) -> &GcHeader;
 
     /// Traces through the `EphemeronBox`'s held value, but only if it's marked and its key is also
     /// marked. Returns `true` if the ephemeron successfuly traced through its value. This also
     /// considers ephemerons that are marked but don't have their value anymore as
     /// "successfully traced".
-    unsafe fn trace(&self) -> bool;
+    unsafe fn trace(&self, tracer: &mut Tracer) -> bool;
 
     fn trace_non_roots(&self);
 
@@ -222,11 +142,11 @@ pub(crate) trait ErasedEphemeronBox {
 }
 
 impl<K: Trace + ?Sized, V: Trace> ErasedEphemeronBox for EphemeronBox<K, V> {
-    fn header(&self) -> &EphemeronBoxHeader {
+    fn header(&self) -> &GcHeader {
         &self.header
     }
 
-    unsafe fn trace(&self) -> bool {
+    unsafe fn trace(&self, tracer: &mut Tracer) -> bool {
         if !self.header.is_marked() {
             return false;
         }
@@ -247,7 +167,7 @@ impl<K: Trace + ?Sized, V: Trace> ErasedEphemeronBox for EphemeronBox<K, V> {
         if is_key_marked {
             // SAFETY: this is safe to call, since we want to trace all reachable objects
             // from a marked ephemeron that holds a live `key`.
-            unsafe { data.value.trace() }
+            unsafe { data.value.trace(tracer) }
         }
 
         is_key_marked

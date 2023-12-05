@@ -161,7 +161,7 @@ pub(crate) enum ThisBindingStatus {
 }
 
 unsafe impl Trace for ThisBindingStatus {
-    custom_trace!(this, {
+    custom_trace!(this, mark, {
         match this {
             Self::Initialized(obj) => mark(obj),
             Self::Lexical | Self::Uninitialized => {}
