@@ -1,19 +1,16 @@
 /// Parsing for Temporal's `Annotations`.
 use crate::{
-    error::{Error, ParseResult},
-    lexer::Error as LexError,
-    temporal::{
+    parser::{
         grammar::{
             is_a_key_char, is_a_key_leading_char, is_annotation_close,
             is_annotation_key_value_separator, is_annotation_value_component, is_critical_flag,
         },
         time_zone,
         time_zone::TimeZoneAnnotation,
-        IsoCursor,
+        Cursor,
     },
+    TemporalError, TemporalResult,
 };
-
-use boa_ast::{Position, Span};
 
 use super::grammar::{is_annotation_open, is_hyphen};
 
@@ -37,20 +34,14 @@ pub(crate) struct AnnotationSet {
 /// Parse a `TimeZoneAnnotation` `Annotations` set
 pub(crate) fn parse_annotation_set(
     zoned: bool,
-    cursor: &mut IsoCursor,
-) -> ParseResult<AnnotationSet> {
+    cursor: &mut Cursor,
+) -> TemporalResult<AnnotationSet> {
     // Parse the first annotation.
     let tz_annotation = time_zone::parse_ambiguous_tz_annotation(cursor)?;
 
     if tz_annotation.is_none() && zoned {
-        return Err(Error::unexpected(
-            "Annotation",
-            Span::new(
-                Position::new(1, cursor.pos() + 1),
-                Position::new(1, cursor.pos() + 2),
-            ),
-            "iso8601 ZonedDateTime requires a TimeZoneAnnotation.",
-        ));
+        return Err(TemporalError::syntax()
+            .with_message("iso8601 ZonedDateTime requires a TimeZoneAnnotation."));
     }
 
     // Parse any `Annotations`
@@ -77,12 +68,11 @@ pub(crate) struct RecognizedAnnotations {
 }
 
 /// Parse any number of `KeyValueAnnotation`s
-pub(crate) fn parse_annotations(cursor: &mut IsoCursor) -> ParseResult<RecognizedAnnotations> {
+pub(crate) fn parse_annotations(cursor: &mut Cursor) -> TemporalResult<RecognizedAnnotations> {
     let mut annotations = RecognizedAnnotations::default();
 
     let mut calendar_crit = false;
     while cursor.check_or(false, is_annotation_open) {
-        let start = Position::new(1, cursor.pos() + 1);
         let kv = parse_kv_annotation(cursor)?;
 
         if &kv.key == "u-ca" {
@@ -93,13 +83,12 @@ pub(crate) fn parse_annotations(cursor: &mut IsoCursor) -> ParseResult<Recognize
             }
 
             if calendar_crit || kv.critical {
-                return Err(Error::general(
+                return Err(TemporalError::syntax().with_message(
                     "Cannot have critical flag with duplicate calendar annotations",
-                    start,
                 ));
             }
         } else if kv.critical {
-            return Err(Error::general("Unrecognized critical annotation.", start));
+            return Err(TemporalError::syntax().with_message("Unrecognized critical annotation."));
         }
     }
 
@@ -107,22 +96,18 @@ pub(crate) fn parse_annotations(cursor: &mut IsoCursor) -> ParseResult<Recognize
 }
 
 /// Parse an annotation with an `AnnotationKey`=`AnnotationValue` pair.
-fn parse_kv_annotation(cursor: &mut IsoCursor) -> ParseResult<KeyValueAnnotation> {
+fn parse_kv_annotation(cursor: &mut Cursor) -> TemporalResult<KeyValueAnnotation> {
     debug_assert!(cursor.check_or(false, is_annotation_open));
 
-    let potential_critical = cursor.next().ok_or_else(|| Error::AbruptEnd)?;
+    let potential_critical = cursor.next().ok_or_else(TemporalError::abrupt_end)?;
     let (leading_char, critical) = if is_critical_flag(potential_critical) {
-        (cursor.next().ok_or_else(|| Error::AbruptEnd)?, true)
+        (cursor.next().ok_or_else(TemporalError::abrupt_end)?, true)
     } else {
         (potential_critical, false)
     };
 
     if !is_a_key_leading_char(leading_char) {
-        return Err(LexError::syntax(
-            "Invalid AnnotationKey leading character",
-            Position::new(1, cursor.pos() + 1),
-        )
-        .into());
+        return Err(TemporalError::syntax().with_message("Invalid AnnotationKey leading character"));
     }
 
     // Parse AnnotationKey.
@@ -147,7 +132,7 @@ fn parse_kv_annotation(cursor: &mut IsoCursor) -> ParseResult<KeyValueAnnotation
 }
 
 /// Parse an `AnnotationKey`.
-fn parse_annotation_key(cursor: &mut IsoCursor) -> ParseResult<String> {
+fn parse_annotation_key(cursor: &mut Cursor) -> TemporalResult<String> {
     let key_start = cursor.pos();
     while let Some(potential_key_char) = cursor.next() {
         // End of key.
@@ -157,19 +142,15 @@ fn parse_annotation_key(cursor: &mut IsoCursor) -> ParseResult<String> {
         }
 
         if !is_a_key_char(potential_key_char) {
-            return Err(LexError::syntax(
-                "Invalid AnnotationKey Character",
-                Position::new(1, cursor.pos() + 1),
-            )
-            .into());
+            return Err(TemporalError::syntax().with_message("Invalid AnnotationKey Character"));
         }
     }
 
-    Err(Error::AbruptEnd)
+    Err(TemporalError::abrupt_end())
 }
 
 /// Parse an `AnnotationValue`.
-fn parse_annotation_value(cursor: &mut IsoCursor) -> ParseResult<String> {
+fn parse_annotation_value(cursor: &mut Cursor) -> TemporalResult<String> {
     let value_start = cursor.pos();
     while let Some(potential_value_char) = cursor.next() {
         if is_annotation_close(potential_value_char) {
@@ -182,24 +163,19 @@ fn parse_annotation_value(cursor: &mut IsoCursor) -> ParseResult<String> {
                 .peek_n(1)
                 .map_or(false, is_annotation_value_component)
             {
-                return Err(LexError::syntax(
-                    "Missing AttributeValueComponent after '-'",
-                    Position::new(1, cursor.pos() + 1),
-                )
-                .into());
+                return Err(TemporalError::syntax()
+                    .with_message("Missing AttributeValueComponent after '-'"));
             }
             cursor.advance();
             continue;
         }
 
         if !is_annotation_value_component(potential_value_char) {
-            return Err(LexError::syntax(
-                "Invalid character in AnnotationValue",
-                Position::new(1, value_start + cursor.pos() + 1),
-            )
-            .into());
+            return Err(
+                TemporalError::syntax().with_message("Invalid character in AnnotationValue")
+            );
         }
     }
 
-    Err(Error::AbruptEnd)
+    Err(TemporalError::abrupt_end())
 }

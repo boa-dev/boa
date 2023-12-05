@@ -1,5 +1,7 @@
 //! AST nodes for Temporal's implementation of ISO8601 grammar.
 
+// TODO: Slowly remove the below nodes in favor of Temporal components.
+
 /// An ISO Date Node consisting of non-validated date fields and calendar value.
 #[derive(Default, Debug)]
 pub struct IsoDate {
@@ -37,9 +39,9 @@ impl IsoTime {
     pub fn from_components(hour: u8, minute: u8, second: u8, fraction: f64) -> Self {
         // Note: Precision on nanoseconds drifts, so opting for round over floor or ceil for now.
         // e.g. 0.329402834 becomes 329.402833.999
-        let millisecond = fraction * 1000.0;
-        let micros = millisecond.rem_euclid(1.0) * 1000.0;
-        let nanos = micros.rem_euclid(1.0) * 1000.0;
+        let millisecond = fraction * 1000f64;
+        let micros = millisecond.rem_euclid(1f64) * 1000f64;
+        let nanos = micros.rem_euclid(1f64) * 1000f64;
 
         Self {
             hour,
@@ -85,29 +87,4 @@ pub struct UTCOffset {
     pub second: u8,
     /// Any sub second components of the `UTCOffset`
     pub fraction: f64,
-}
-
-/// An `IsoDuration` Node output by the ISO parser.
-#[derive(Debug, Default, Clone, Copy)]
-pub struct IsoDuration {
-    /// Years value.
-    pub years: i32,
-    /// Months value.
-    pub months: i32,
-    /// Weeks value.
-    pub weeks: i32,
-    /// Days value.
-    pub days: i32,
-    /// Hours value.
-    pub hours: i32,
-    /// Minutes value.
-    pub minutes: f64,
-    /// Seconds value.
-    pub seconds: f64,
-    /// Milliseconds value.
-    pub milliseconds: f64,
-    /// Microseconds value.
-    pub microseconds: f64,
-    /// Nanoseconds value.
-    pub nanoseconds: f64,
 }

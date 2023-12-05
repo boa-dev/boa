@@ -1,24 +1,39 @@
 //! Implementation of Iso8601 grammar lexing/parsing
 
-use crate::error::ParseResult;
-
-mod annotations;
-mod date_time;
-mod duration;
-mod grammar;
-mod time;
-mod time_zone;
-
-use boa_ast::temporal::{IsoDate, IsoDateTime, IsoDuration, IsoTime, TimeZone};
+use crate::TemporalResult;
 
 use date_time::DateRecord;
+use nodes::{IsoDate, IsoDateTime, IsoTime, TimeZone};
 use time::TimeSpec;
 
-#[cfg(feature = "experimental")]
+mod annotations;
+pub(crate) mod date_time;
+pub(crate) mod duration;
+mod grammar;
+mod nodes;
+mod time;
+pub(crate) mod time_zone;
+
+use self::date_time::DateTimeFlags;
+
 #[cfg(test)]
 mod tests;
 
 // TODO: optimize where possible.
+
+/// A utility function for parsing a `DateTime` string
+pub(crate) fn parse_date_time(target: &str) -> TemporalResult<IsoParseRecord> {
+    date_time::parse_annotated_date_time(DateTimeFlags::empty(), &mut Cursor::new(target))
+}
+
+/// A utility function for parsing an `Instant` string
+#[allow(unused)]
+pub(crate) fn parse_instant(target: &str) -> TemporalResult<IsoParseRecord> {
+    date_time::parse_annotated_date_time(
+        DateTimeFlags::UTC_REQ | DateTimeFlags::TIME_REQ,
+        &mut Cursor::new(target),
+    )
+}
 
 /// An `IsoParseRecord` is an intermediary record returned by ISO parsing functions.
 ///
@@ -35,40 +50,7 @@ pub(crate) struct IsoParseRecord {
     pub(crate) calendar: Option<String>,
 }
 
-/// Parse a [`TemporalDateTimeString`][proposal].
-///
-/// [proposal]: https://tc39.es/proposal-temporal/#prod-TemporalDateTimeString
-#[derive(Debug, Clone, Copy)]
-pub struct TemporalDateTimeString;
-
-impl TemporalDateTimeString {
-    /// Parses a targeted string as a `DateTime`.
-    ///
-    /// # Errors
-    ///
-    /// The parse will error if the provided target is not valid
-    /// Iso8601 grammar.
-    pub fn parse(zoned: bool, cursor: &mut IsoCursor) -> ParseResult<IsoDateTime> {
-        let parse_record = date_time::parse_annotated_date_time(zoned, false, false, cursor)?;
-
-        let date = IsoDate {
-            year: parse_record.date.year,
-            month: parse_record.date.month,
-            day: parse_record.date.day,
-            calendar: parse_record.calendar,
-        };
-
-        let time = parse_record.time.map_or_else(IsoTime::default, |time| {
-            IsoTime::from_components(time.hour, time.minute, time.second, time.fraction)
-        });
-
-        Ok(IsoDateTime {
-            date,
-            time,
-            tz: parse_record.tz,
-        })
-    }
-}
+// TODO: Phase out the below and integrate parsing with Temporal components.
 
 /// Parse a [`TemporalTimeZoneString`][proposal].
 ///
@@ -83,7 +65,7 @@ impl TemporalTimeZoneString {
     ///
     /// The parse will error if the provided target is not valid
     /// Iso8601 grammar.
-    pub fn parse(cursor: &mut IsoCursor) -> ParseResult<TimeZone> {
+    pub fn parse(cursor: &mut Cursor) -> TemporalResult<TimeZone> {
         time_zone::parse_time_zone(cursor)
     }
 }
@@ -101,7 +83,8 @@ impl TemporalYearMonthString {
     ///
     /// The parse will error if the provided target is not valid
     /// Iso8601 grammar.
-    pub fn parse(cursor: &mut IsoCursor) -> ParseResult<IsoDate> {
+    pub fn parse(cursor: &mut Cursor) -> TemporalResult<IsoDate> {
+        // TODO: Remove peek in favor of AnnotatedDateTime flag.
         if date_time::peek_year_month(cursor)? {
             let ym = date_time::parse_year_month(cursor)?;
 
@@ -120,7 +103,7 @@ impl TemporalYearMonthString {
             });
         }
 
-        let parse_record = date_time::parse_annotated_date_time(false, false, false, cursor)?;
+        let parse_record = date_time::parse_annotated_date_time(DateTimeFlags::empty(), cursor)?;
 
         Ok(IsoDate {
             year: parse_record.date.year,
@@ -144,7 +127,8 @@ impl TemporalMonthDayString {
     ///
     /// The parse will error if the provided target is not valid
     /// Iso8601 grammar.
-    pub fn parse(cursor: &mut IsoCursor) -> ParseResult<IsoDate> {
+    pub fn parse(cursor: &mut Cursor) -> TemporalResult<IsoDate> {
+        // TODO: Remove peek in favor of AnnotatedDateTime flag.
         if date_time::peek_month_day(cursor)? {
             let md = date_time::parse_month_day(cursor)?;
 
@@ -163,7 +147,7 @@ impl TemporalMonthDayString {
             });
         }
 
-        let parse_record = date_time::parse_annotated_date_time(false, false, false, cursor)?;
+        let parse_record = date_time::parse_annotated_date_time(DateTimeFlags::empty(), cursor)?;
 
         Ok(IsoDate {
             year: parse_record.date.year,
@@ -187,8 +171,11 @@ impl TemporalInstantString {
     ///
     /// The parse will error if the provided target is not valid
     /// Iso8601 grammar.
-    pub fn parse(cursor: &mut IsoCursor) -> ParseResult<IsoDateTime> {
-        let parse_record = date_time::parse_annotated_date_time(false, true, true, cursor)?;
+    pub fn parse(cursor: &mut Cursor) -> TemporalResult<IsoDateTime> {
+        let parse_record = date_time::parse_annotated_date_time(
+            DateTimeFlags::UTC_REQ | DateTimeFlags::TIME_REQ,
+            cursor,
+        )?;
 
         let date = IsoDate {
             year: parse_record.date.year,
@@ -209,74 +196,16 @@ impl TemporalInstantString {
     }
 }
 
-// TODO: implement TemporalTimeString.
-
-/// Parser for a [`TemporalDurationString`][proposal].
-///
-/// [proposal]: https://tc39.es/proposal-temporal/#prod-TemporalDurationString
-#[derive(Debug, Clone, Copy)]
-pub struct TemporalDurationString;
-
-impl TemporalDurationString {
-    /// Parses a targeted string as a `Duration`.
-    ///
-    /// # Errors
-    ///
-    /// The parse will error if the provided target is not valid
-    /// Iso8601 grammar.
-    pub fn parse(cursor: &mut IsoCursor) -> ParseResult<IsoDuration> {
-        let parse_record = duration::parse_duration(cursor)?;
-
-        let minutes = if parse_record.time.fhours > 0.0 {
-            parse_record.time.fhours * 60.0
-        } else {
-            f64::from(parse_record.time.minutes)
-        };
-
-        let seconds = if parse_record.time.fminutes > 0.0 {
-            parse_record.time.fminutes * 60.0
-        } else if parse_record.time.seconds > 0 {
-            f64::from(parse_record.time.seconds)
-        } else {
-            minutes.rem_euclid(1.0) * 60.0
-        };
-
-        let milliseconds = if parse_record.time.fseconds > 0.0 {
-            parse_record.time.fseconds * 1000.0
-        } else {
-            seconds.rem_euclid(1.0) * 1000.0
-        };
-
-        let micro = milliseconds.rem_euclid(1.0) * 1000.0;
-        let nano = micro.rem_euclid(1.0) * 1000.0;
-
-        let sign = if parse_record.sign { 1 } else { -1 };
-
-        Ok(IsoDuration {
-            years: parse_record.date.years * sign,
-            months: parse_record.date.months * sign,
-            weeks: parse_record.date.weeks * sign,
-            days: parse_record.date.days * sign,
-            hours: parse_record.time.hours * sign,
-            minutes: minutes.floor() * f64::from(sign),
-            seconds: seconds.floor() * f64::from(sign),
-            milliseconds: milliseconds.floor() * f64::from(sign),
-            microseconds: micro.floor() * f64::from(sign),
-            nanoseconds: nano.floor() * f64::from(sign),
-        })
-    }
-}
-
 // ==== Mini cursor implementation for Iso8601 targets ====
 
-/// `IsoCursor` is a small cursor implementation for parsing Iso8601 grammar.
+/// `Cursor` is a small cursor implementation for parsing Iso8601 grammar.
 #[derive(Debug)]
-pub struct IsoCursor {
+pub struct Cursor {
     pos: u32,
     source: Vec<char>,
 }
 
-impl IsoCursor {
+impl Cursor {
     /// Create a new cursor from a source `String` value.
     #[must_use]
     pub fn new(source: &str) -> Self {

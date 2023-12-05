@@ -209,12 +209,12 @@ impl IsoDate {
 /// time slots.
 #[derive(Debug, Default, Clone, Copy)]
 pub struct IsoTime {
-    hour: i32,        // 0..=23
-    minute: i32,      // 0..=59
-    second: i32,      // 0..=59
-    millisecond: i32, // 0..=999
-    microsecond: i32, // 0..=999
-    nanosecond: i32,  // 0..=999
+    pub(crate) hour: i32,        // 0..=23
+    pub(crate) minute: i32,      // 0..=59
+    pub(crate) second: i32,      // 0..=59
+    pub(crate) millisecond: i32, // 0..=999
+    pub(crate) microsecond: i32, // 0..=999
+    pub(crate) nanosecond: i32,  // 0..=999
 }
 
 impl IsoTime {
@@ -279,6 +279,28 @@ impl IsoTime {
             microsecond: 0,
             nanosecond: 0,
         }
+    }
+
+    /// Returns an `IsoTime` based off parse components.
+    pub(crate) fn from_components(
+        hour: i32,
+        minute: i32,
+        second: i32,
+        fraction: f64,
+    ) -> TemporalResult<Self> {
+        let millisecond = fraction * 1000f64;
+        let micros = millisecond.rem_euclid(1f64) * 1000f64;
+        let nanos = micros.rem_euclid(1f64).mul_add(1000f64, 0.5).floor();
+
+        Self::new(
+            hour,
+            minute,
+            second,
+            millisecond as i32,
+            micros as i32,
+            nanos as i32,
+            ArithmeticOverflow::Reject,
+        )
     }
 
     /// Checks if the time is a valid `IsoTime`

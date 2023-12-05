@@ -36,6 +36,7 @@ pub mod fields;
 pub mod iso;
 pub mod month_day;
 pub mod options;
+pub mod parser;
 pub mod time;
 pub(crate) mod utils;
 pub mod year_month;

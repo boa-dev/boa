@@ -1,8 +1,6 @@
 //! Boa's implementation of the ECMAScript `Temporal.PlainDate` builtin object.
 #![allow(dead_code, unused_variables)]
 
-use std::str::FromStr;
-
 use crate::{
     builtins::{
         options::{get_option, get_options_object},
@@ -16,14 +14,8 @@ use crate::{
     string::{common::StaticJsStrings, utf16},
     Context, JsArgs, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
-use boa_parser::temporal::{IsoCursor, TemporalDateTimeString};
 use boa_profiler::Profiler;
-use boa_temporal::{
-    calendar::{AvailableCalendars, CalendarSlot},
-    date::Date as InnerDate,
-    datetime::DateTime,
-    options::ArithmeticOverflow,
-};
+use boa_temporal::{date::Date as InnerDate, datetime::DateTime, options::ArithmeticOverflow};
 
 use super::calendar;
 
@@ -517,32 +509,17 @@ pub(crate) fn to_temporal_date(
     };
 
     // 6. Let result be ? ParseTemporalDateString(item).
-    let result = TemporalDateTimeString::parse(
-        false,
-        &mut IsoCursor::new(&date_like_string.to_std_string_escaped()),
-    )
-    .map_err(|err| JsNativeError::range().with_message(err.to_string()))?;
-
     // 7. Assert: IsValidISODate(result.[[Year]], result.[[Month]], result.[[Day]]) is true.
     // 8. Let calendar be result.[[Calendar]].
     // 9. If calendar is undefined, set calendar to "iso8601".
-    let identifier = result.date.calendar.unwrap_or("iso8601".to_string());
-
     // 10. If IsBuiltinCalendar(calendar) is false, throw a RangeError exception.
-    let _ = AvailableCalendars::from_str(identifier.to_ascii_lowercase().as_str())?;
-
     // 11. Set calendar to the ASCII-lowercase of calendar.
-    let calendar = CalendarSlot::Identifier(identifier.to_ascii_lowercase());
-
     // 12. Perform ? ToTemporalOverflow(options).
-    let _ = get_option::<ArithmeticOverflow>(&options_obj, utf16!("overflow"), context)?;
-
     // 13. Return ? CreateTemporalDate(result.[[Year]], result.[[Month]], result.[[Day]], calendar).
-    Ok(PlainDate::new(InnerDate::new(
-        result.date.year,
-        result.date.month,
-        result.date.day,
-        calendar,
-        ArithmeticOverflow::Reject,
-    )?))
+    let result = date_like_string
+        .to_std_string_escaped()
+        .parse::<InnerDate>()
+        .map_err(|err| JsNativeError::range().with_message(err.to_string()))?;
+
+    Ok(PlainDate::new(result))
 }

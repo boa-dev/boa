@@ -1,10 +1,13 @@
 //! Temporal implementation of `DateTime`
 
+use std::str::FromStr;
+
 use crate::{
     calendar::CalendarSlot,
     iso::{IsoDate, IsoDateSlots, IsoDateTime, IsoTime},
     options::ArithmeticOverflow,
-    TemporalResult,
+    parser::parse_date_time,
+    TemporalError, TemporalResult,
 };
 
 /// The `DateTime` struct.
@@ -91,5 +94,41 @@ impl DateTime {
     #[must_use]
     pub fn calendar(&self) -> &CalendarSlot {
         &self.calendar
+    }
+}
+
+// ==== Trait impls ====
+
+impl FromStr for DateTime {
+    type Err = TemporalError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let parse_record = parse_date_time(s)?;
+
+        let calendar = parse_record.calendar.unwrap_or("iso8601".to_owned());
+
+        let time = if let Some(time) = parse_record.time {
+            IsoTime::from_components(
+                i32::from(time.hour),
+                i32::from(time.minute),
+                i32::from(time.second),
+                time.fraction,
+            )?
+        } else {
+            IsoTime::default()
+        };
+
+        let date = IsoDate::new(
+            parse_record.date.year,
+            parse_record.date.month,
+            parse_record.date.day,
+            ArithmeticOverflow::Reject,
+        )?;
+
+        Ok(Self::new_unchecked(
+            date,
+            time,
+            CalendarSlot::Identifier(calendar),
+        ))
     }
 }

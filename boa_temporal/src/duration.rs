@@ -6,11 +6,12 @@ use crate::{
     date::Date,
     datetime::DateTime,
     options::{ArithmeticOverflow, TemporalRoundingMode, TemporalUnit},
+    parser::{duration::parse_duration, Cursor},
     utils,
     zoneddatetime::ZonedDateTime,
     TemporalError, TemporalResult, NS_PER_DAY,
 };
-use std::any::Any;
+use std::{any::Any, str::FromStr};
 
 // ==== `DateDuration` ====
 
@@ -1686,5 +1687,57 @@ impl Duration {
         // 3. Else,
         // a. Return balanceResult.
         Ok(result)
+    }
+}
+
+// ==== FromStr trait impl ====
+
+impl FromStr for Duration {
+    type Err = TemporalError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let parse_record = parse_duration(&mut Cursor::new(s))?;
+
+        let minutes = if parse_record.time.fhours > 0.0 {
+            parse_record.time.fhours * 60.0
+        } else {
+            f64::from(parse_record.time.minutes)
+        };
+
+        let seconds = if parse_record.time.fminutes > 0.0 {
+            parse_record.time.fminutes * 60.0
+        } else if parse_record.time.seconds > 0 {
+            f64::from(parse_record.time.seconds)
+        } else {
+            minutes.rem_euclid(1.0) * 60.0
+        };
+
+        let milliseconds = if parse_record.time.fseconds > 0.0 {
+            parse_record.time.fseconds * 1000.0
+        } else {
+            seconds.rem_euclid(1.0) * 1000.0
+        };
+
+        let micro = milliseconds.rem_euclid(1.0) * 1000.0;
+        let nano = micro.rem_euclid(1.0) * 1000.0;
+
+        let sign = if parse_record.sign { 1f64 } else { -1f64 };
+
+        Ok(Self {
+            date: DateDuration::new(
+                f64::from(parse_record.date.years) * sign,
+                f64::from(parse_record.date.months) * sign,
+                f64::from(parse_record.date.weeks) * sign,
+                f64::from(parse_record.date.days) * sign,
+            ),
+            time: TimeDuration::new(
+                f64::from(parse_record.time.hours) * sign,
+                minutes.floor() * sign,
+                seconds.floor() * sign,
+                milliseconds.floor() * sign,
+                micro.floor() * sign,
+                nano.floor() * sign,
+            ),
+        })
     }
 }
