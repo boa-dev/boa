@@ -45,7 +45,7 @@ boa_temporal = {version = "~0.17.0", path = "boa_temporal" }
 arbitrary = "1"
 bitflags = "2.4.1"
 chrono = { version = "0.4.31", default-features = false }
-clap = "4.4.10"
+clap = "4.4.11"
 colored = "2.0.4"
 fast-float = "0.2.0"
 hashbrown = { version = "0.14.3", default-features = false }
