@@ -52,7 +52,7 @@ jobs:
       - run: npm ci
       - name: Build Playground
         run: |
-          wasm-pack build --verbose ./ffi/wasm
+          wasm-pack build ./ffi/wasm --verbose
           npm run build
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
