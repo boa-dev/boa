@@ -1,4 +1,4 @@
-import { evaluate } from "./boa_wasm/pkg";
+import { evaluate } from "./ffi/wasm/pkg";
 
 import * as monaco from "monaco-editor/esm/vs/editor/editor.api";
 

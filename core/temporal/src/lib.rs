@@ -10,7 +10,7 @@
 //!
 //! [proposal]: https://github.com/tc39/proposal-temporal
 //! [spec]: https://tc39.es/proposal-temporal/
-#![doc = include_str!("../../ABOUT.md")]
+#![doc = include_str!("../ABOUT.md")]
 #![doc(
     html_logo_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg",
     html_favicon_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"

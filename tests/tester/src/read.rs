@@ -10,6 +10,7 @@ use color_eyre::{
 use rustc_hash::FxHashMap;
 use serde::Deserialize;
 use std::{
+    ffi::OsStr,
     fs, io,
     path::{Path, PathBuf},
 };
@@ -144,10 +145,11 @@ pub(super) fn read_suite(
     let mut tests = Vec::new();
 
     // TODO: iterate in parallel
-    for entry in path.read_dir().wrap_err("retrieving entry")? {
+    for entry in path.read_dir().wrap_err("could not retrieve entry")? {
         let entry = entry?;
+        let filetype = entry.file_type().wrap_err("could not retrieve file type")?;
 
-        if entry.file_type().wrap_err("retrieving file type")?.is_dir() {
+        if filetype.is_dir() {
             suites.push(
                 read_suite(entry.path().as_path(), ignored, ignore_suite).wrap_err_with(|| {
                     let path = entry.path();
@@ -155,27 +157,41 @@ pub(super) fn read_suite(
                     format!("error reading sub-suite {suite}")
                 })?,
             );
-        } else if entry.file_name().to_string_lossy().contains("_FIXTURE") {
             continue;
-        } else {
-            let mut test = read_test(entry.path().as_path()).wrap_err_with(|| {
-                let path = entry.path();
-                let suite = path.display();
-                format!("error reading test {suite}")
-            })?;
-
-            if ignore_suite
-                || ignored.contains_any_flag(test.flags)
-                || ignored.contains_test(&test.name)
-                || test
-                    .features
-                    .iter()
-                    .any(|feat| ignored.contains_feature(feat))
-            {
-                test.set_ignored();
-            }
-            tests.push(test);
         }
+
+        let path = entry.path();
+
+        if path.extension() != Some(OsStr::new("js")) {
+            // Ignore files that aren't executable.
+            continue;
+        }
+
+        if path
+            .file_stem()
+            .is_some_and(|stem| stem.as_encoded_bytes().ends_with(b"FIXTURE"))
+        {
+            // Ignore files that are fixtures.
+            continue;
+        }
+
+        let mut test = read_test(&path).wrap_err_with(|| {
+            let path = entry.path();
+            let suite = path.display();
+            format!("error reading test {suite}")
+        })?;
+
+        if ignore_suite
+            || ignored.contains_any_flag(test.flags)
+            || ignored.contains_test(&test.name)
+            || test
+                .features
+                .iter()
+                .any(|feat| ignored.contains_feature(feat))
+        {
+            test.set_ignored();
+        }
+        tests.push(test);
     }
 
     Ok(TestSuite {

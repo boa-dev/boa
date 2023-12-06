@@ -5,7 +5,7 @@ this directory are [grammar-aware](https://www.fuzzingbook.org/html/Grammars.htm
 [Arbitrary](https://docs.rs/arbitrary/latest/arbitrary/)) and coverage-guided. See [common.rs](fuzz/fuzz_targets/common.rs)
 for implementation specifics.
 
-You can run any fuzzer you wish with the following command (replacing `your-fuzzer` with a fuzzer availble in
+You can run any fuzzer you wish with the following command (replacing `your-fuzzer` with a fuzzer available in
 fuzz_targets, e.g. `parser-idempotency`):
 
 ```bash
@@ -18,7 +18,7 @@ sanitizer and other flags.
 
 ## Parser Fuzzer
 
-The parser fuzzer, located in [parser-idempotency.rs](fuzz/fuzz_targets/parser-idempotency.rs), identifies
+The parser fuzzer, located in [parser-idempotency.rs](./fuzz_targets/parser-idempotency.rs), identifies
 correctness issues in both the parser and the AST-to-source conversion process (e.g., via `to_interned_string`) by
 searching for inputs which are not idempotent over parsing and conversion back to source. It does this by doing the
 following:
@@ -38,13 +38,13 @@ In this way, this fuzzer can identify correctness issues present in the parser.
 
 ## Bytecompiler Fuzzer
 
-The bytecompiler fuzzer, located in [bytecompiler-implied.rs](fuzz_targets/bytecompiler-implied.rs), identifies cases
+The bytecompiler fuzzer, located in [bytecompiler-implied.rs](./fuzz_targets/bytecompiler-implied.rs), identifies cases
 which cause an assertion failure in the bytecompiler. These crashes can cause denial of service issues and may block the
 discovery of crash cases in the VM fuzzer.
 
 ## VM Fuzzer
 
-The VM fuzzer, located in [vm-implied.rs](fuzz_targets/vm-implied.rs), identifies crash cases in the VM. It does so by
+The VM fuzzer, located in [vm-implied.rs](./fuzz_targets/vm-implied.rs), identifies crash cases in the VM. It does so by
 generating an arbitrary AST, converting it to source code (to remove invalid inputs), then executing that source code.
 Because we are not comparing against any invariants other than "does it crash", this fuzzer will only discover faults
 which cause the VM to terminate unexpectedly, e.g. as a result of a panic. It will not discover logic errors present in

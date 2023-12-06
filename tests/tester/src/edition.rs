@@ -29,6 +29,10 @@ static FEATURE_EDITION: phf::Map<&'static str, SpecEdition> = phf::phf_map! {
     // https://github.com/tc39/proposal-regexp-legacy-features
     "legacy-regexp"  => SpecEdition::ESNext,
 
+    // Import Attributes
+    // https://github.com/tc39/proposal-import-attributes/
+    "import-attributes" => SpecEdition::ESNext,
+
     // Import Assertions
     // https://github.com/tc39/proposal-import-assertions/
     "import-assertions"  => SpecEdition::ESNext,
@@ -83,6 +87,10 @@ static FEATURE_EDITION: phf::Map<&'static str, SpecEdition> = phf::phf_map! {
     // Promise.withResolvers
     // https://github.com/tc39/proposal-promise-with-resolvers
     "promise-with-resolvers" => SpecEdition::ESNext,
+
+    // Set methods
+    // https://github.com/tc39/proposal-set-methods
+    "set-methods" => SpecEdition::ESNext,
 
     // Part of the next ES15 edition
     "Atomics.waitAsync"  => SpecEdition::ESNext,

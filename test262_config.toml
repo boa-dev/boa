@@ -1,4 +1,4 @@
-commit = "a9821b4211aa9ae04eb31d344e967d3511a7a83e"
+commit = "6cbb6da9473c56d95358d8e679c5a6d2b4574efb"
 
 [ignored]
 # Not implemented yet:
@@ -24,6 +24,10 @@ features = [
 
     # https://github.com/tc39/proposal-regexp-legacy-features
     "legacy-regexp",
+
+    # Import Attributes
+    # https://github.com/tc39/proposal-import-attributes/
+    "import-attributes",
 
     # https://github.com/tc39/proposal-import-attributes
     "import-assertions",
@@ -57,6 +61,10 @@ features = [
 
     # https://github.com/tc39/proposal-iterator-helpers
     "iterator-helpers",
+
+    # Set methods
+    # https://github.com/tc39/proposal-set-methods
+    "set-methods",
 
     ### Non-standard
     "caller",

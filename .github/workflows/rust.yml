@@ -25,13 +25,13 @@ jobs:
           toolchain: stable
           override: true
           profile: minimal
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: tarpaulin
       - name: Install cargo-tarpaulin
         uses: baptiste0928/cargo-install@v2.2.0
         with:
           crate: cargo-tarpaulin
-      - uses: Swatinem/rust-cache@v2
-        with:
-          key: tarpaulin
       - name: Run tarpaulin
         uses: actions-rs/cargo@v1
         with:
@@ -114,13 +114,13 @@ jobs:
           override: true
           profile: minimal
           components: clippy
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: clippy
       - name: Install cargo-workspaces
         uses: actions-rs/install@v0.1
         with:
           crate: cargo-workspaces
-      - uses: Swatinem/rust-cache@v2
-        with:
-          key: clippy
       - name: Clippy (All features)
         run: cargo workspaces exec cargo clippy --all-features --all-targets
       - name: Clippy (No features)
@@ -162,16 +162,16 @@ jobs:
           toolchain: stable
           override: true
           profile: minimal
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: build-fuzz
       - name: Install cargo-fuzz
         uses: actions-rs/install@v0.1
         with:
           crate: cargo-fuzz
           version: latest
-      - uses: Swatinem/rust-cache@v2
-        with:
-          key: build-fuzz
       - name: Build fuzz
-        run: cargo fuzz build -s none
+        run: cd tests/fuzz && cargo fuzz build -s none --dev
 
   build-run-examples:
     name: Build & run examples
@@ -184,13 +184,13 @@ jobs:
           toolchain: stable
           override: true
           profile: minimal
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: build-run-examples
       - name: Install cargo-workspaces
         uses: actions-rs/install@v0.1
         with:
           crate: cargo-workspaces
-      - uses: Swatinem/rust-cache@v2
-        with:
-          key: build-run-examples
 
       - name: Build (All features)
         run: cargo workspaces exec cargo build --all-features --all-targets --profile ci
@@ -199,7 +199,7 @@ jobs:
 
       - name: Run examples
         run: |
-          cd boa_examples
+          cd examples
           cargo run -p boa_examples --bin 2>&1 \
             | grep -E '^ ' \
             | xargs -n1 sh -c 'cargo run -p boa_examples --profile ci --bin $0 || exit 255'

@@ -8,13 +8,13 @@ edition = "2021"
 cargo-fuzz = true
 
 [dependencies]
-libfuzzer-sys = "0.4.6"
+libfuzzer-sys = "0.4.7"
 
-arbitrary = "1.3.0"
-boa_ast = { path = "../boa_ast", features = ["arbitrary"] }
-boa_engine = { path = "../boa_engine", features = ["fuzz"] }
-boa_interner = { path = "../boa_interner", features = ["arbitrary"] }
-boa_parser = { path = "../boa_parser" }
+arbitrary = "1.3.2"
+boa_ast = { path = "../../core/ast", features = ["arbitrary"] }
+boa_engine = { path = "../../core/engine", features = ["fuzz"] }
+boa_interner = { path = "../../core/interner", features = ["arbitrary"] }
+boa_parser = { path = "../../core/parser" }
 
 # Prevent this from interfering with workspaces
 [workspace]
