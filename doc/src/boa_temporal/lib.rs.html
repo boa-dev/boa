@@ -60,6 +60,8 @@
 <a href="#60" id="60">60</a>
 <a href="#61" id="61">61</a>
 <a href="#62" id="62">62</a>
+<a href="#63" id="63">63</a>
+<a href="#64" id="64">64</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s `boa_temporal` crate is intended to serve as an engine agnostic
 //! implementation the ECMAScript&#39;s Temporal builtin and algorithm.
 </span><span class="attr">#![doc = <span class="macro">include_str!</span>(<span class="string">&quot;../../ABOUT.md&quot;</span>)]
@@ -95,11 +97,13 @@
 <span class="kw">pub mod </span>duration;
 <span class="kw">pub mod </span>error;
 <span class="kw">pub mod </span>fields;
+<span class="kw">pub mod </span>instant;
 <span class="kw">pub mod </span>iso;
 <span class="kw">pub mod </span>month_day;
 <span class="kw">pub mod </span>options;
 <span class="kw">pub mod </span>parser;
 <span class="kw">pub mod </span>time;
+<span class="kw">pub mod </span>tz;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>utils;
 <span class="kw">pub mod </span>year_month;
 <span class="kw">pub mod </span>zoneddatetime;

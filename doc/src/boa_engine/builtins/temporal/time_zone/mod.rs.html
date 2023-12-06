@@ -455,30 +455,6 @@
 <a href="#455" id="455">455</a>
 <a href="#456" id="456">456</a>
 <a href="#457" id="457">457</a>
-<a href="#458" id="458">458</a>
-<a href="#459" id="459">459</a>
-<a href="#460" id="460">460</a>
-<a href="#461" id="461">461</a>
-<a href="#462" id="462">462</a>
-<a href="#463" id="463">463</a>
-<a href="#464" id="464">464</a>
-<a href="#465" id="465">465</a>
-<a href="#466" id="466">466</a>
-<a href="#467" id="467">467</a>
-<a href="#468" id="468">468</a>
-<a href="#469" id="469">469</a>
-<a href="#470" id="470">470</a>
-<a href="#471" id="471">471</a>
-<a href="#472" id="472">472</a>
-<a href="#473" id="473">473</a>
-<a href="#474" id="474">474</a>
-<a href="#475" id="475">475</a>
-<a href="#476" id="476">476</a>
-<a href="#477" id="477">477</a>
-<a href="#478" id="478">478</a>
-<a href="#479" id="479">479</a>
-<a href="#480" id="480">480</a>
-<a href="#481" id="481">481</a>
 </pre></div><pre class="rust"><code><span class="attr">#![allow(dead_code)]
 
 </span><span class="kw">use crate</span>::{
@@ -496,15 +472,14 @@
 };
 <span class="kw">use </span>boa_gc::{Finalize, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
+<span class="kw">use </span>boa_temporal::tz::{TimeZoneSlot, TzProtocol};
 
 <span class="doccomment">/// The `Temporal.TimeZone` object.
 </span><span class="attr">#[derive(Debug, Clone, Trace, Finalize, JsData)]
 </span><span class="comment">// SAFETY: `TimeZone` doesn&#39;t contain traceable data.
 </span><span class="attr">#[boa_gc(unsafe_empty_trace)]
 </span><span class="kw">pub struct </span>TimeZone {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) initialized_temporal_time_zone: bool,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) identifier: String,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) offset_nanoseconds: <span class="prelude-ty">Option</span>&lt;i64&gt;,
+    slot: TimeZoneSlot,
 }
 
 <span class="kw">impl </span>BuiltInObject <span class="kw">for </span>TimeZone {
@@ -614,14 +589,18 @@
 
 <span class="kw">impl </span>TimeZone {
     <span class="comment">// NOTE: id, toJSON, toString currently share the exact same implementation -&gt; Consolidate into one function and define multiple accesors?
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_id(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_id(
+        this: <span class="kw-2">&amp;</span>JsValue,
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>tz = this
             .as_object()
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message(<span class="string">&quot;this value must be a Temporal.TimeZone&quot;</span>)
             })<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(JsString::from(tz.identifier.clone()).into())
+        <span class="prelude-val">Ok</span>(JsString::from(tz.slot.id(context)).into())
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_offset_nanoseconds_for(
@@ -639,10 +618,8 @@
             })<span class="question-mark">?</span>;
         <span class="comment">// 3. Set instant to ? ToTemporalInstant(instant).
         </span><span class="kw">let </span>_i = args.get_or_undefined(<span class="number">0</span>);
-        <span class="comment">// TODO: to_temporal_instant is abstract operation for Temporal.Instant objects.
-        // let instant = to_temporal_instant(i)?;
 
-        // 4. If timeZone.[[OffsetNanoseconds]] is not undefined, return 𝔽(timeZone.[[OffsetNanoseconds]]).
+        <span class="comment">// 4. If timeZone.[[OffsetNanoseconds]] is not undefined, return 𝔽(timeZone.[[OffsetNanoseconds]]).
         // 5. Return 𝔽(GetNamedTimeZoneOffsetNanoseconds(timeZone.[[Identifier]], instant.[[Nanoseconds]])).
         </span><span class="prelude-val">Err</span>(JsNativeError::error()
             .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
@@ -723,7 +700,11 @@
             .into())
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_string(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_string(
+        this: <span class="kw-2">&amp;</span>JsValue,
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let timeZone be the this value.
         // 2. Perform ? RequireInternalSlot(timeZone, [[InitializedTemporalTimeZone]]).
         </span><span class="kw">let </span>tz = this
@@ -733,7 +714,7 @@
                 JsNativeError::typ().with_message(<span class="string">&quot;this value must be a Temporal.TimeZone&quot;</span>)
             })<span class="question-mark">?</span>;
         <span class="comment">// 3. Return timeZone.[[Identifier]].
-        </span><span class="prelude-val">Ok</span>(JsString::from(tz.identifier.clone()).into())
+        </span><span class="prelude-val">Ok</span>(JsString::from(tz.slot.id(context)).into())
     }
 }
 
@@ -792,39 +773,10 @@
     </span><span class="kw">let </span>prototype =
         get_prototype_from_constructor(<span class="kw-2">&amp;</span>new_target, StandardConstructors::time_zone, context)<span class="question-mark">?</span>;
 
-    <span class="comment">// 3. Let offsetNanosecondsResult be Completion(ParseTimeZoneOffsetString(identifier)).
-    </span><span class="kw">let </span>offset_nanoseconds_result = parse_timezone_offset_string(<span class="kw-2">&amp;</span>identifier, context);
-
-    <span class="comment">// 4. If offsetNanosecondsResult is an abrupt completion, then
-    </span><span class="kw">let </span>(identifier, offset_nanoseconds) = <span class="kw">if let </span><span class="prelude-val">Ok</span>(offset_nanoseconds) = offset_nanoseconds_result
-    {
-        <span class="comment">// Switched conditions for more idiomatic rust code structuring
-        // 5. Else,
-        // a. Set object.[[Identifier]] to ! FormatTimeZoneOffsetString(offsetNanosecondsResult.[[Value]]).
-        // b. Set object.[[OffsetNanoseconds]] to offsetNanosecondsResult.[[Value]].
-        </span>(
-            format_time_zone_offset_string(offset_nanoseconds),
-            <span class="prelude-val">Some</span>(offset_nanoseconds),
-        )
-    } <span class="kw">else </span>{
-        <span class="comment">// a. Assert: ! CanonicalizeTimeZoneName(identifier) is identifier.
-        </span><span class="macro">assert_eq!</span>(canonicalize_time_zone_name(<span class="kw-2">&amp;</span>identifier), identifier);
-
-        <span class="comment">// b. Set object.[[Identifier]] to identifier.
-        // c. Set object.[[OffsetNanoseconds]] to undefined.
-        </span>(identifier, <span class="prelude-val">None</span>)
-    };
-
-    <span class="comment">// 6. Return object.
-    </span><span class="kw">let </span>object = JsObject::from_proto_and_data(
-        prototype,
-        TimeZone {
-            initialized_temporal_time_zone: <span class="bool-val">false</span>,
-            identifier,
-            offset_nanoseconds,
-        },
-    );
-    <span class="prelude-val">Ok</span>(object.into())
+    <span class="comment">// TODO: Migrate ISO8601 parsing to `boa_temporal`
+    </span><span class="prelude-val">Err</span>(JsNativeError::error()
+        .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
+        .into())
 }
 
 <span class="doccomment">/// Abstract operation `ParseTimeZoneOffsetString ( offsetString )`
