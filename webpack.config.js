@@ -45,14 +45,17 @@ module.exports = {
     }),
     new CleanWebpackPlugin(),
     new HtmlWebpackPlugin({ template: "index.html" }),
-    // WasmPackPlugin can not work in CI environment
-    !process.env.CI
-      ? new WasmPackPlugin({
-          crateDirectory: path.resolve(__dirname, "./ffi/wasm/"),
-          outDir: path.resolve(__dirname, "./ffi/wasm/pkg/"),
-          forceMode: "production",
-        })
-      : undefined,
+    // WasmPackPlugin doesn't work in CI environment
+    // thanks to https://github.com/wasm-tool/wasm-pack-plugin/issues/90
+    ...(!process.env.CI
+      ? [
+          new WasmPackPlugin({
+            crateDirectory: path.resolve(__dirname, "./ffi/wasm/"),
+            outDir: path.resolve(__dirname, "./ffi/wasm/pkg/"),
+            forceMode: "production",
+          }),
+        ]
+      : []),
     new CopyWebpackPlugin({
       patterns: [
         {
@@ -65,7 +68,7 @@ module.exports = {
         },
       ],
     }),
-  ].filter(Boolean),
+  ],
   module: {
     rules: [
       {
