@@ -103,7 +103,7 @@ impl Debug for IntlProvider {
 }
 
 impl IntlProvider {
-    /// Creates a new [`Icu`] from a [`BufferProvider`].
+    /// Creates a new [`IntlProvider`] from a [`BufferProvider`].
     ///
     /// # Errors
     ///
