@@ -7,32 +7,46 @@
     {
       "type": "lldb",
       "request": "launch",
-      "name": "Launch (Script)",
+      "name": "Debug Boa (Script mode)",
       "windows": {
         "program": "${workspaceFolder}/target/debug/boa.exe"
       },
       "program": "${workspaceFolder}/target/debug/boa",
-      "args": ["${workspaceFolder}/tests/js/test.js", "--debug-object"],
+      "args": ["${workspaceFolder}/${input:filePath}", "--debug-object"],
       "sourceLanguages": ["rust"],
       "preLaunchTask": "Cargo Build boa_cli"
     },
     {
       "type": "lldb",
       "request": "launch",
-      "name": "Launch (Module)",
+      "name": "Debug Boa (Module mode)",
       "windows": {
         "program": "${workspaceFolder}/target/debug/boa.exe"
       },
       "program": "${workspaceFolder}/target/debug/boa",
       "args": [
-        "${workspaceFolder}/tests/js/test.js",
+        "${workspaceFolder}/${input:filePath}",
         "--debug-object",
         "-m",
         "-r",
-        "tests/js"
+        "${workspaceFolder}/${input:modulePath}"
       ],
       "sourceLanguages": ["rust"],
       "preLaunchTask": "Cargo Build boa_cli"
+    }
+  ],
+  "inputs": [
+    {
+      "id": "filePath",
+      "description": "Relative path to the file to run",
+      "default": "debug/script.js",
+      "type": "promptString",
+    },
+    {
+      "id": "modulePath",
+      "description": "Relative path to the module root directory",
+      "default": "debug",
+      "type": "promptString",
     }
   ]
 }

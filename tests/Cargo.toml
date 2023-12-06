@@ -1,0 +1,12 @@
+# This file is a hack to make `cargo-fuzz` recognize the `fuzz` directory as
+# a fuzz target.
+
+[package]
+name = "tests"
+publish = false
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true

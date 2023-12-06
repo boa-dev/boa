@@ -12,39 +12,67 @@ updates:
     directory: /
     schedule:
       interval: daily
+  # CLI
   - package-ecosystem: cargo
-    directory: /boa_cli/
+    directory: /cli/
+    schedule:
+      interval: daily
+  # CORE
+  - package-ecosystem: cargo
+    directory: /core/ast/
     schedule:
       interval: daily
   - package-ecosystem: cargo
-    directory: /boa_engine/
+    directory: /core/engine/
     schedule:
       interval: daily
   - package-ecosystem: cargo
-    directory: /boa_gc/
+    directory: /core/gc/
     schedule:
       interval: daily
   - package-ecosystem: cargo
-    directory: /boa_interner/
+    directory: /core/icu_provider/
     schedule:
       interval: daily
   - package-ecosystem: cargo
-    directory: /boa_profiler/
+    directory: /core/interner/
     schedule:
       interval: daily
   - package-ecosystem: cargo
-    directory: /boa_tester/
+    directory: /core/macros/
     schedule:
       interval: daily
   - package-ecosystem: cargo
-    directory: /boa_wasm/
+    directory: /core/parser/
     schedule:
       interval: daily
   - package-ecosystem: cargo
-    directory: /fuzz/
+    directory: /core/profiler/
     schedule:
       interval: daily
-  - package-ecosystem: gitsubmodule
-    directory: /
+  - package-ecosystem: cargo
+    directory: /core/runtime/
     schedule:
-      interval: weekly
+      interval: daily
+  - package-ecosystem: cargo
+    directory: /core/temporal/
+    schedule:
+      interval: daily
+  # TESTS
+  - package-ecosystem: cargo
+    directory: /tests/tester/
+    schedule:
+      interval: daily
+  - package-ecosystem: cargo
+    directory: /tests/macros/
+    schedule:
+      interval: daily
+  - package-ecosystem: cargo
+    directory: /tests/fuzz/
+    schedule:
+      interval: daily
+  # FFI
+  - package-ecosystem: cargo
+    directory: /ffi/wasm/
+    schedule:
+      interval: daily

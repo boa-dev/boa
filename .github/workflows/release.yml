@@ -67,11 +67,11 @@ jobs:
           path: |
             node_modules
             target
-            boa_wasm/pkg
+            ffi/wasm/pkg
             ~/.cargo/git
             ~/.cargo/registry
           key: ${{ runner.os }}-npm-build-target-${{ hashFiles('**/package-lock.json') }}
-      - run: wasm-pack build ./boa_wasm
+      - run: wasm-pack build ./ffi/wasm
       - run: npm run build:prod
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3

@@ -1,21 +1,21 @@
 [workspace]
 resolver = "2"
 members = [
-    "boa_ast",
-    "boa_cli",
-    "boa_engine",
-    "boa_examples",
-    "boa_gc",
-    "boa_icu_provider",
-    "boa_interner",
-    "boa_macros",
-    "boa_macros_tests",
-    "boa_parser",
-    "boa_profiler",
-    "boa_runtime",
-    "boa_temporal",
-    "boa_tester",
-    "boa_wasm",
+    # CORE
+    "core/*",
+
+    # FFI
+    "ffi/*",
+
+    # TESTS
+    "tests",
+    "tests/fuzz",
+    "tests/macros",
+    "tests/tester",
+
+    # OTHERS
+    "examples",
+    "cli",
 ]
 
 [workspace.package]
@@ -30,16 +30,16 @@ description = "Boa is a Javascript lexer, parser and compiler written in Rust. C
 [workspace.dependencies]
 
 # Repo Crates
-boa_ast = { version = "~0.17.0", path = "boa_ast" }
-boa_engine = { version = "~0.17.0", path = "boa_engine" }
-boa_gc = { version = "~0.17.0", path = "boa_gc" }
-boa_icu_provider = { version = "~0.17.0", path = "boa_icu_provider" }
-boa_interner = { version = "~0.17.0", path = "boa_interner" }
-boa_macros = { version = "~0.17.0", path = "boa_macros" }
-boa_parser = { version = "~0.17.0", path = "boa_parser" }
-boa_profiler = { version = "~0.17.0", path = "boa_profiler" }
-boa_runtime = { version = "~0.17.0", path = "boa_runtime" }
-boa_temporal = {version = "~0.17.0", path = "boa_temporal" }
+boa_ast = { version = "~0.17.0", path = "core/ast" }
+boa_engine = { version = "~0.17.0", path = "core/engine" }
+boa_gc = { version = "~0.17.0", path = "core/gc" }
+boa_icu_provider = { version = "~0.17.0", path = "core/icu_provider" }
+boa_interner = { version = "~0.17.0", path = "core/interner" }
+boa_macros = { version = "~0.17.0", path = "core/macros" }
+boa_parser = { version = "~0.17.0", path = "core/parser" }
+boa_profiler = { version = "~0.17.0", path = "core/profiler" }
+boa_runtime = { version = "~0.17.0", path = "core/runtime" }
+boa_temporal = { version = "~0.17.0", path = "core/temporal" }
 
 # Shared deps
 arbitrary = "1"

@@ -2,7 +2,7 @@
   "scripts": {
     "build": "webpack",
     "serve": "webpack-dev-server",
-    "e2e": "playwright test -c ./boa_wasm/e2e_test/playwright.config.ts",
+    "e2e": "playwright test -c ./ffi/wasm/e2e_test/playwright.config.ts",
     "build:prod": "webpack --mode=production"
   },
   "devDependencies": {

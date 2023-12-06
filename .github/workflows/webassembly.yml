@@ -45,13 +45,13 @@ jobs:
             target
             ~/.cargo/git
             ~/.cargo/registry
-            boa_wasm/pkg
+            ffi/wasm/pkg
           key: ${{ runner.os }}-npm-build-target-${{ hashFiles('**/package-lock.json') }}
       - uses: actions/setup-node@v4
         with:
           node-version: "16"
       - run: npm ci
-      - run: cd boa_wasm && wasm-pack --verbose build --out-name index --out-dir ./pkg
+      - run: cd ffi/wasm && wasm-pack --verbose build --out-name index --out-dir ./pkg
       - run: npm run build
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps

@@ -48,8 +48,8 @@ module.exports = {
     // WasmPackPlugin can not work in CI environment
     !process.env.CI
       ? new WasmPackPlugin({
-          crateDirectory: path.resolve(__dirname, "./boa_wasm/"),
-          outDir: path.resolve(__dirname, "./boa_wasm/pkg/"),
+          crateDirectory: path.resolve(__dirname, "./ffi/wasm/"),
+          outDir: path.resolve(__dirname, "./ffi/wasm/pkg/"),
           forceMode: "production",
         })
       : undefined,
