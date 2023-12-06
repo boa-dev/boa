@@ -1,13 +1,13 @@
-//! `YearMonth`
+//! This module implements `YearMonth` and any directly related algorithms.
 
 use crate::{
-    calendar::CalendarSlot,
+    components::calendar::CalendarSlot,
     iso::{IsoDate, IsoDateSlots},
     options::ArithmeticOverflow,
     TemporalResult,
 };
 
-/// The `YearMonth` struct
+/// The native Rust implementation of `Temporal.YearMonth`.
 #[derive(Debug, Default, Clone)]
 pub struct YearMonth {
     iso: IsoDate,

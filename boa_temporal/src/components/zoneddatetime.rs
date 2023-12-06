@@ -1,13 +1,20 @@
-//! The `ZonedDateTime` module.
+//! This module implements `ZonedDateTime` and any directly related algorithms.
 
 use num_bigint::BigInt;
 use tinystr::TinyStr4;
 
-use crate::{calendar::CalendarSlot, instant::Instant, tz::TimeZoneSlot, TemporalResult};
+use crate::{
+    components::{
+        calendar::{CalendarDateLike, CalendarSlot},
+        tz::TimeZoneSlot,
+        Instant,
+    },
+    TemporalResult,
+};
 
 use core::any::Any;
 
-/// Temporal's `ZonedDateTime` object.
+/// The native Rust implementation of `Temporal.ZonedDateTime`.
 #[derive(Debug, Clone)]
 pub struct ZonedDateTime {
     instant: Instant,
@@ -86,8 +93,7 @@ impl ZonedDateTime {
         let dt = self
             .tz
             .get_datetime_for(&self.instant, &self.calendar, context)?;
-        self.calendar
-            .year(&crate::calendar::CalendarDateLike::DateTime(dt), context)
+        self.calendar.year(&CalendarDateLike::DateTime(dt), context)
     }
 
     /// Returns the `year` value for this `ZonedDateTime`.
@@ -102,7 +108,7 @@ impl ZonedDateTime {
             .tz
             .get_datetime_for(&self.instant, &self.calendar, context)?;
         self.calendar
-            .month(&crate::calendar::CalendarDateLike::DateTime(dt), context)
+            .month(&CalendarDateLike::DateTime(dt), context)
     }
 
     /// Returns the `month` value for this `ZonedDateTime`.
@@ -117,7 +123,7 @@ impl ZonedDateTime {
             .tz
             .get_datetime_for(&self.instant, &self.calendar, context)?;
         self.calendar
-            .month_code(&crate::calendar::CalendarDateLike::DateTime(dt), context)
+            .month_code(&CalendarDateLike::DateTime(dt), context)
     }
 
     /// Returns the `monthCode` value for this `ZonedDateTime`.
@@ -131,8 +137,7 @@ impl ZonedDateTime {
         let dt = self
             .tz
             .get_datetime_for(&self.instant, &self.calendar, context)?;
-        self.calendar
-            .day(&crate::calendar::CalendarDateLike::DateTime(dt), context)
+        self.calendar.day(&CalendarDateLike::DateTime(dt), context)
     }
 
     /// Returns the `day` value for this `ZonedDateTime`.
@@ -221,7 +226,7 @@ impl ZonedDateTime {
 
 #[cfg(test)]
 mod tests {
-    use crate::tz::TimeZone;
+    use crate::components::tz::TimeZone;
     use num_bigint::BigInt;
 
     use super::{CalendarSlot, TimeZoneSlot, ZonedDateTime};

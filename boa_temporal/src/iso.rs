@@ -1,25 +1,26 @@
-//! The `ISO` module implements the internal ISO field slots.
+//! This module implements the internal ISO field slots.
 //!
 //! The three main types of slots are:
 //!   - `IsoDateTime`
 //!   - `IsoDate`
 //!   - `IsoTime`
 //!
-//! An `IsoDate` that represents the `[[ISOYear]]`, `[[ISOMonth]]`, and `[[ISODay]]` internal slots.
-//! An `IsoTime` that represents the `[[ISOHour]]`, `[[ISOMinute]]`, `[[ISOsecond]]`, `[[ISOmillisecond]]`,
+//! An `IsoDate` represents the `[[ISOYear]]`, `[[ISOMonth]]`, and `[[ISODay]]` internal slots.
+//!
+//! An `IsoTime` represents the `[[ISOHour]]`, `[[ISOMinute]]`, `[[ISOsecond]]`, `[[ISOmillisecond]]`,
 //! `[[ISOmicrosecond]]`, and `[[ISOnanosecond]]` internal slots.
+//!
 //! An `IsoDateTime` has the internal slots of both an `IsoDate` and `IsoTime`.
 
 use crate::{
-    duration::DateDuration, error::TemporalError, options::ArithmeticOverflow, utils,
+    components::duration::DateDuration, error::TemporalError, options::ArithmeticOverflow, utils,
     TemporalResult,
 };
 use icu_calendar::{Date as IcuDate, Iso};
 use num_bigint::BigInt;
 use num_traits::{cast::FromPrimitive, ToPrimitive};
 
-/// `IsoDateTime` is the Temporal internal representation of
-/// a `DateTime` record
+/// `IsoDateTime` is the record of the `IsoDate` and `IsoTime` internal slots.
 #[derive(Debug, Default, Clone, Copy)]
 pub struct IsoDateTime {
     date: IsoDate,

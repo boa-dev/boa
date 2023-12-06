@@ -1,15 +1,10 @@
-//! The Temporal Duration.
-//!
-//! TODO: Docs
+//! This module implements `Duration` along with it's methods and components.
 
 use crate::{
-    date::Date,
-    datetime::DateTime,
+    components::{Date, DateTime, ZonedDateTime},
     options::{ArithmeticOverflow, TemporalRoundingMode, TemporalUnit},
     parser::{duration::parse_duration, Cursor},
-    utils,
-    zoneddatetime::ZonedDateTime,
-    TemporalError, TemporalResult, NS_PER_DAY,
+    utils, TemporalError, TemporalResult, NS_PER_DAY,
 };
 use std::{any::Any, str::FromStr};
 
@@ -252,8 +247,10 @@ impl Iterator for TimeIter<'_> {
 
 // ==== `Duration` ====
 
-/// The `Duration` is a native Rust implementation of the `Duration` builtin
-/// object internal fields and is primarily defined by Abtract Operation 7.5.1-5.
+/// The native Rust implementation of `Temporal.Duration`.
+///
+/// `Duration` is made up of a `DateDuration` and `TimeDuration` as primarily
+/// defined by Abtract Operation 7.5.1-5.
 #[derive(Debug, Clone, Copy, Default)]
 pub struct Duration {
     date: DateDuration,

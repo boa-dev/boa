@@ -24,7 +24,7 @@ use crate::{
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
 use boa_temporal::{
-    calendar::{
+    components::calendar::{
         AvailableCalendars, CalendarDateLike, CalendarFieldsType, CalendarSlot,
         CALENDAR_PROTOCOL_METHODS,
     },

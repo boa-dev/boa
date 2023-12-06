@@ -12,7 +12,7 @@ use crate::{
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
 
-use boa_temporal::{datetime::DateTime, month_day::MonthDay as InnerMonthDay};
+use boa_temporal::components::{DateTime, MonthDay as InnerMonthDay};
 
 /// The `Temporal.PlainMonthDay` object.
 #[derive(Debug, Clone, Trace, Finalize, JsData)]

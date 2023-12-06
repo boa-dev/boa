@@ -1,4 +1,4 @@
-//! Implementation of Iso8601 grammar lexing/parsing
+//! This module implements parsing for ISO 8601 grammar.
 
 use crate::TemporalResult;
 

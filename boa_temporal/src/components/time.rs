@@ -1,8 +1,8 @@
-//! Temporal Time Representation.
+//! This module implements `Time` and any directly related algorithms.
 
 use crate::{iso::IsoTime, options::ArithmeticOverflow, TemporalResult};
 
-/// The Temporal `PlainTime` object.
+/// The native Rust implementation of `Temporal.PlainTime`.
 #[derive(Debug, Default, Clone, Copy)]
 #[allow(dead_code)]
 pub struct Time {

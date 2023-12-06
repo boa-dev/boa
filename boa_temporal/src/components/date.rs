@@ -1,9 +1,11 @@
-//! The `PlainDate` representation.
+//! This module implements `Date` and any directly related algorithms.
 
 use crate::{
-    calendar::{AvailableCalendars, CalendarSlot},
-    datetime::DateTime,
-    duration::{DateDuration, Duration},
+    components::{
+        calendar::{AvailableCalendars, CalendarSlot},
+        duration::DateDuration,
+        DateTime, Duration,
+    },
     iso::{IsoDate, IsoDateSlots},
     options::{ArithmeticOverflow, TemporalUnit},
     parser::parse_date_time,
@@ -11,7 +13,7 @@ use crate::{
 };
 use std::{any::Any, str::FromStr};
 
-/// The `Temporal.PlainDate` equivalent
+/// The native Rust implementation of `Temporal.PlainDate`.
 #[derive(Debug, Default, Clone)]
 pub struct Date {
     iso: IsoDate,
