@@ -35,18 +35,17 @@ jobs:
           toolchain: stable
           override: true
           profile: minimal
-      - name: Install wasm-pack
-        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+      - uses: Swatinem/rust-cache@v2
       - name: Cache npm build
         uses: actions/cache@v3
         with:
           path: |
             node_modules
-            target
-            ~/.cargo/git
-            ~/.cargo/registry
-            ffi/wasm/pkg
           key: ${{ runner.os }}-npm-build-target-${{ hashFiles('**/package-lock.json') }}
+      - name: Install wasm-pack
+        uses: baptiste0928/cargo-install@v2.2.0
+        with:
+          crate: wasm-pack
       - uses: actions/setup-node@v4
         with:
           node-version: "16"
