@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_tester/src/read.rs`."><title>read.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-fa3bb1812debf86c.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="boa_tester" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0 (79e9716c9 2023-11-13)" data-channel="1.74.0" data-search-js="search-8be46b629f5f14a8.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-c5bd66d33317d69f.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../boa_tester/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `tests/tester/src/read.rs`."><title>read.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-fa3bb1812debf86c.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="boa_tester" data-themes="" data-resource-suffix="" data-rustdoc-version="1.74.0 (79e9716c9 2023-11-13)" data-channel="1.74.0" data-search-js="search-8be46b629f5f14a8.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-c5bd66d33317d69f.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../boa_tester/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -237,6 +237,22 @@
 <a href="#237" id="237">237</a>
 <a href="#238" id="238">238</a>
 <a href="#239" id="239">239</a>
+<a href="#240" id="240">240</a>
+<a href="#241" id="241">241</a>
+<a href="#242" id="242">242</a>
+<a href="#243" id="243">243</a>
+<a href="#244" id="244">244</a>
+<a href="#245" id="245">245</a>
+<a href="#246" id="246">246</a>
+<a href="#247" id="247">247</a>
+<a href="#248" id="248">248</a>
+<a href="#249" id="249">249</a>
+<a href="#250" id="250">250</a>
+<a href="#251" id="251">251</a>
+<a href="#252" id="252">252</a>
+<a href="#253" id="253">253</a>
+<a href="#254" id="254">254</a>
+<a href="#255" id="255">255</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Module to read the list of test suites from disk.
 
 </span><span class="kw">use crate</span>::{HarnessFile, Ignored};
@@ -249,6 +265,7 @@
 <span class="kw">use </span>rustc_hash::FxHashMap;
 <span class="kw">use </span>serde::Deserialize;
 <span class="kw">use </span>std::{
+    ffi::OsStr,
     fs, io,
     path::{Path, PathBuf},
 };
@@ -383,10 +400,11 @@
     <span class="kw">let </span><span class="kw-2">mut </span>tests = Vec::new();
 
     <span class="comment">// TODO: iterate in parallel
-    </span><span class="kw">for </span>entry <span class="kw">in </span>path.read_dir().wrap_err(<span class="string">&quot;retrieving entry&quot;</span>)<span class="question-mark">? </span>{
+    </span><span class="kw">for </span>entry <span class="kw">in </span>path.read_dir().wrap_err(<span class="string">&quot;could not retrieve entry&quot;</span>)<span class="question-mark">? </span>{
         <span class="kw">let </span>entry = entry<span class="question-mark">?</span>;
+        <span class="kw">let </span>filetype = entry.file_type().wrap_err(<span class="string">&quot;could not retrieve file type&quot;</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">if </span>entry.file_type().wrap_err(<span class="string">&quot;retrieving file type&quot;</span>)<span class="question-mark">?</span>.is_dir() {
+        <span class="kw">if </span>filetype.is_dir() {
             suites.push(
                 read_suite(entry.path().as_path(), ignored, ignore_suite).wrap_err_with(|| {
                     <span class="kw">let </span>path = entry.path();
@@ -394,27 +412,41 @@
                     <span class="macro">format!</span>(<span class="string">&quot;error reading sub-suite {suite}&quot;</span>)
                 })<span class="question-mark">?</span>,
             );
-        } <span class="kw">else if </span>entry.file_name().to_string_lossy().contains(<span class="string">&quot;_FIXTURE&quot;</span>) {
             <span class="kw">continue</span>;
-        } <span class="kw">else </span>{
-            <span class="kw">let </span><span class="kw-2">mut </span>test = read_test(entry.path().as_path()).wrap_err_with(|| {
-                <span class="kw">let </span>path = entry.path();
-                <span class="kw">let </span>suite = path.display();
-                <span class="macro">format!</span>(<span class="string">&quot;error reading test {suite}&quot;</span>)
-            })<span class="question-mark">?</span>;
-
-            <span class="kw">if </span>ignore_suite
-                || ignored.contains_any_flag(test.flags)
-                || ignored.contains_test(<span class="kw-2">&amp;</span>test.name)
-                || test
-                    .features
-                    .iter()
-                    .any(|feat| ignored.contains_feature(feat))
-            {
-                test.set_ignored();
-            }
-            tests.push(test);
         }
+
+        <span class="kw">let </span>path = entry.path();
+
+        <span class="kw">if </span>path.extension() != <span class="prelude-val">Some</span>(OsStr::new(<span class="string">&quot;js&quot;</span>)) {
+            <span class="comment">// Ignore files that aren&#39;t executable.
+            </span><span class="kw">continue</span>;
+        }
+
+        <span class="kw">if </span>path
+            .file_stem()
+            .is_some_and(|stem| stem.as_encoded_bytes().ends_with(<span class="string">b&quot;FIXTURE&quot;</span>))
+        {
+            <span class="comment">// Ignore files that are fixtures.
+            </span><span class="kw">continue</span>;
+        }
+
+        <span class="kw">let </span><span class="kw-2">mut </span>test = read_test(<span class="kw-2">&amp;</span>path).wrap_err_with(|| {
+            <span class="kw">let </span>path = entry.path();
+            <span class="kw">let </span>suite = path.display();
+            <span class="macro">format!</span>(<span class="string">&quot;error reading test {suite}&quot;</span>)
+        })<span class="question-mark">?</span>;
+
+        <span class="kw">if </span>ignore_suite
+            || ignored.contains_any_flag(test.flags)
+            || ignored.contains_test(<span class="kw-2">&amp;</span>test.name)
+            || test
+                .features
+                .iter()
+                .any(|feat| ignored.contains_feature(feat))
+        {
+            test.set_ignored();
+        }
+        tests.push(test);
     }
 
     <span class="prelude-val">Ok</span>(TestSuite {
