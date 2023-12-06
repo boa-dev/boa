@@ -97,7 +97,7 @@ impl Highlighter for RLHelper {
         self.highlighter.highlight(candidate, 0)
     }
 
-    fn highlight_char(&self, line: &str, _: usize) -> bool {
+    fn highlight_char(&self, line: &str, _: usize, _: bool) -> bool {
         !line.is_empty()
     }
 }

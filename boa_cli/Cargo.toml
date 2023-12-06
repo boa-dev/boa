@@ -16,7 +16,7 @@ boa_engine = { workspace = true, features = ["deser", "flowgraph", "trace"] }
 boa_parser.workspace = true
 boa_gc.workspace = true
 boa_runtime.workspace = true
-rustyline = { version = "12.0.0", features = ["derive"]}
+rustyline = { version = "13.0.0", features = ["derive"]}
 clap = { workspace = true, features = ["derive"] }
 serde_json.workspace = true
 colored.workspace = true
