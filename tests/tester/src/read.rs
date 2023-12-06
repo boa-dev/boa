@@ -169,8 +169,7 @@ pub(super) fn read_suite(
 
         if path
             .file_stem()
-            .map(|stem| stem.as_encoded_bytes().ends_with(b"FIXTURE"))
-            .unwrap_or(false)
+            .is_some_and(|stem| stem.as_encoded_bytes().ends_with(b"FIXTURE"))
         {
             // Ignore files that are fixtures.
             continue;
