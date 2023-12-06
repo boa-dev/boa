@@ -14,25 +14,32 @@ use zerofrom::ZeroFrom;
 
 use crate::builtins::string::StringNormalizers;
 
+/// A response data from a [`DataProvider`], erased to unify both types
+/// of providers into a single trait.
 enum ErasedResponse {
     Any(AnyResponse),
     Buffer(DataResponse<BufferMarker>),
 }
 
-trait BoaProvider {
+/// A [`DataProvider`] that can be either a [`BufferProvider`] or an [`AnyProvider`] ...
+/// or both! (please don't).
+trait ErasedProvider {
+    /// Loads data according to the key and request.
     fn load_data(&self, key: DataKey, req: DataRequest<'_>) -> Result<ErasedResponse, DataError>;
 }
 
+/// Wraps a [`BufferProvider`] in order to be able to implement [`ErasedProvider`] for it.
 struct BufferProviderWrapper<T>(T);
 
-impl<T: BufferProvider> BoaProvider for BufferProviderWrapper<T> {
+impl<T: BufferProvider> ErasedProvider for BufferProviderWrapper<T> {
     fn load_data(&self, key: DataKey, req: DataRequest<'_>) -> Result<ErasedResponse, DataError> {
         self.0.load_buffer(key, req).map(ErasedResponse::Buffer)
     }
 }
 
+/// Wraps an [`AnyProvider`] in order to be able to implement [`ErasedProvider`] for it.
 struct AnyProviderWrapper<T>(T);
-impl<T: AnyProvider> BoaProvider for AnyProviderWrapper<T> {
+impl<T: AnyProvider> ErasedProvider for AnyProviderWrapper<T> {
     fn load_data(&self, key: DataKey, req: DataRequest<'_>) -> Result<ErasedResponse, DataError> {
         self.0.load_any(key, req).map(ErasedResponse::Any)
     }
@@ -52,10 +59,9 @@ pub enum IcuError {
     CaseMap(#[from] DataError),
 }
 
-/// Collection of data initialized from a [`DataProvider`] that is used for the functionality of
-/// `Intl`.
+/// Custom [`DataProvider`] for `Intl` that caches some utilities.
 pub(crate) struct IntlProvider {
-    inner_provider: Box<dyn BoaProvider>,
+    inner_provider: Box<dyn ErasedProvider>,
     locale_canonicalizer: LocaleCanonicalizer,
     locale_expander: LocaleExpander,
     string_normalizers: StringNormalizers,
