@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":["calendar","date","datetime","duration","instant","month_day","time","tz","year_month","zoneddatetime"],"struct":["Date","DateTime","Duration","Instant","MonthDay","Time","YearMonth","ZonedDateTime"]};

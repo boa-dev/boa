@@ -495,28 +495,30 @@
 <a href="#495" id="495">495</a>
 <a href="#496" id="496">496</a>
 <a href="#497" id="497">497</a>
-</pre></div><pre class="rust"><code><span class="doccomment">//! The `ISO` module implements the internal ISO field slots.
+<a href="#498" id="498">498</a>
+</pre></div><pre class="rust"><code><span class="doccomment">//! This module implements the internal ISO field slots.
 //!
 //! The three main types of slots are:
 //!   - `IsoDateTime`
 //!   - `IsoDate`
 //!   - `IsoTime`
 //!
-//! An `IsoDate` that represents the `[[ISOYear]]`, `[[ISOMonth]]`, and `[[ISODay]]` internal slots.
-//! An `IsoTime` that represents the `[[ISOHour]]`, `[[ISOMinute]]`, `[[ISOsecond]]`, `[[ISOmillisecond]]`,
+//! An `IsoDate` represents the `[[ISOYear]]`, `[[ISOMonth]]`, and `[[ISODay]]` internal slots.
+//!
+//! An `IsoTime` represents the `[[ISOHour]]`, `[[ISOMinute]]`, `[[ISOsecond]]`, `[[ISOmillisecond]]`,
 //! `[[ISOmicrosecond]]`, and `[[ISOnanosecond]]` internal slots.
+//!
 //! An `IsoDateTime` has the internal slots of both an `IsoDate` and `IsoTime`.
 
 </span><span class="kw">use crate</span>::{
-    duration::DateDuration, error::TemporalError, options::ArithmeticOverflow, utils,
+    components::duration::DateDuration, error::TemporalError, options::ArithmeticOverflow, utils,
     TemporalResult,
 };
 <span class="kw">use </span>icu_calendar::{Date <span class="kw">as </span>IcuDate, Iso};
 <span class="kw">use </span>num_bigint::BigInt;
 <span class="kw">use </span>num_traits::{cast::FromPrimitive, ToPrimitive};
 
-<span class="doccomment">/// `IsoDateTime` is the Temporal internal representation of
-/// a `DateTime` record
+<span class="doccomment">/// `IsoDateTime` is the record of the `IsoDate` and `IsoTime` internal slots.
 </span><span class="attr">#[derive(Debug, Default, Clone, Copy)]
 </span><span class="kw">pub struct </span>IsoDateTime {
     date: IsoDate,

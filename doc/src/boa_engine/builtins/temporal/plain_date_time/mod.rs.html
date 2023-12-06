@@ -169,7 +169,7 @@
 <span class="kw">use </span>boa_gc::{Finalize, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
 
-<span class="kw">use </span>boa_temporal::datetime::DateTime <span class="kw">as </span>InnerDateTime;
+<span class="kw">use </span>boa_temporal::components::DateTime <span class="kw">as </span>InnerDateTime;
 
 <span class="doccomment">/// The `Temporal.PlainDateTime` object.
 </span><span class="attr">#[derive(Debug, Clone, Trace, Finalize, JsData)]

@@ -472,7 +472,7 @@
 };
 <span class="kw">use </span>boa_gc::{Finalize, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
-<span class="kw">use </span>boa_temporal::tz::{TimeZoneSlot, TzProtocol};
+<span class="kw">use </span>boa_temporal::components::tz::{TimeZoneSlot, TzProtocol};
 
 <span class="doccomment">/// The `Temporal.TimeZone` object.
 </span><span class="attr">#[derive(Debug, Clone, Trace, Finalize, JsData)]

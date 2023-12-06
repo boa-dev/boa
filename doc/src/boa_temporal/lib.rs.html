@@ -62,8 +62,28 @@
 <a href="#62" id="62">62</a>
 <a href="#63" id="63">63</a>
 <a href="#64" id="64">64</a>
-</pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s `boa_temporal` crate is intended to serve as an engine agnostic
-//! implementation the ECMAScript&#39;s Temporal builtin and algorithm.
+<a href="#65" id="65">65</a>
+<a href="#66" id="66">66</a>
+<a href="#67" id="67">67</a>
+<a href="#68" id="68">68</a>
+<a href="#69" id="69">69</a>
+<a href="#70" id="70">70</a>
+<a href="#71" id="71">71</a>
+<a href="#72" id="72">72</a>
+<a href="#73" id="73">73</a>
+<a href="#74" id="74">74</a>
+</pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s `boa_temporal` crate is an engine agnostic implementation of ECMAScript&#39;s Temporal.
+//!
+//! IMPORTANT NOTE: Please note that this library is actively being developed and is very
+//! much experimental and NOT STABLE.
+//!
+//! [`Temporal`][proposal] is the Stage 3 proposal for ECMAScript that provides new JS objects and functions
+//! for working with dates and times that fully supports time zones and non-gregorian calendars.
+//!
+//! This library&#39;s primary source is the Temporal Proposal [specification][spec].
+//!
+//! [proposal]: https://github.com/tc39/proposal-temporal
+//! [spec]: https://tc39.es/proposal-temporal/
 </span><span class="attr">#![doc = <span class="macro">include_str!</span>(<span class="string">&quot;../../ABOUT.md&quot;</span>)]
 #![doc(
     html_logo_url = <span class="string">&quot;https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg&quot;</span>,
@@ -91,39 +111,39 @@
     </span>clippy::missing_panics_doc,
 )]
 
-</span><span class="kw">pub mod </span>calendar;
-<span class="kw">pub mod </span>date;
-<span class="kw">pub mod </span>datetime;
-<span class="kw">pub mod </span>duration;
+</span><span class="kw">pub mod </span>components;
 <span class="kw">pub mod </span>error;
 <span class="kw">pub mod </span>fields;
-<span class="kw">pub mod </span>instant;
 <span class="kw">pub mod </span>iso;
-<span class="kw">pub mod </span>month_day;
 <span class="kw">pub mod </span>options;
 <span class="kw">pub mod </span>parser;
-<span class="kw">pub mod </span>time;
-<span class="kw">pub mod </span>tz;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>utils;
-<span class="kw">pub mod </span>year_month;
-<span class="kw">pub mod </span>zoneddatetime;
+
+<span class="attr">#[doc(hidden)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>utils;
 
 <span class="comment">// TODO: evaluate positives and negatives of using tinystr.
 // Re-exporting tinystr as a convenience, as it is currently tied into the API.
 </span><span class="kw">pub use </span>tinystr::TinyAsciiStr;
 
-<span class="kw">pub use </span>error::TemporalError;
+<span class="attr">#[doc(inline)]
+</span><span class="kw">pub use </span>error::TemporalError;
+<span class="attr">#[doc(inline)]
+</span><span class="kw">pub use </span>fields::TemporalFields;
 
 <span class="doccomment">/// The `Temporal` result type
 </span><span class="kw">pub type </span>TemporalResult&lt;T&gt; = <span class="prelude-ty">Result</span>&lt;T, TemporalError&gt;;
 
 <span class="comment">// Relevant numeric constants
 </span><span class="doccomment">/// Nanoseconds per day constant: 8.64e+13
+</span><span class="attr">#[doc(hidden)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>NS_PER_DAY: i64 = <span class="number">86_400_000_000_000</span>;
 <span class="doccomment">/// Milliseconds per day constant: 8.64e+7
+</span><span class="attr">#[doc(hidden)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>MS_PER_DAY: i32 = <span class="number">24 </span>* <span class="number">60 </span>* <span class="number">60 </span>* <span class="number">1000</span>;
 <span class="doccomment">/// Max Instant nanosecond constant
+</span><span class="attr">#[doc(hidden)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>NS_MAX_INSTANT: i128 = NS_PER_DAY <span class="kw">as </span>i128 * <span class="number">100_000_000i128</span>;
 <span class="doccomment">/// Min Instant nanosecond constant
+</span><span class="attr">#[doc(hidden)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>NS_MIN_INSTANT: i128 = -NS_MAX_INSTANT;
 </code></pre></div></section></main></body></html>

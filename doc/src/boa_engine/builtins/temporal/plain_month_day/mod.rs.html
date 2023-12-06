@@ -124,7 +124,7 @@
 <span class="kw">use </span>boa_gc::{Finalize, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
 
-<span class="kw">use </span>boa_temporal::{datetime::DateTime, month_day::MonthDay <span class="kw">as </span>InnerMonthDay};
+<span class="kw">use </span>boa_temporal::components::{DateTime, MonthDay <span class="kw">as </span>InnerMonthDay};
 
 <span class="doccomment">/// The `Temporal.PlainMonthDay` object.
 </span><span class="attr">#[derive(Debug, Clone, Trace, Finalize, JsData)]

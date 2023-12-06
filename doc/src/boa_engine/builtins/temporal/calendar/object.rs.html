@@ -874,16 +874,6 @@
 <a href="#874" id="874">874</a>
 <a href="#875" id="875">875</a>
 <a href="#876" id="876">876</a>
-<a href="#877" id="877">877</a>
-<a href="#878" id="878">878</a>
-<a href="#879" id="879">879</a>
-<a href="#880" id="880">880</a>
-<a href="#881" id="881">881</a>
-<a href="#882" id="882">882</a>
-<a href="#883" id="883">883</a>
-<a href="#884" id="884">884</a>
-<a href="#885" id="885">885</a>
-<a href="#886" id="886">886</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of a user-defined Anonymous Calendar.
 
 </span><span class="kw">use crate</span>::{
@@ -895,15 +885,12 @@
 
 <span class="kw">use </span>boa_macros::utf16;
 <span class="kw">use </span>boa_temporal::{
-    calendar::{CalendarDateLike, CalendarProtocol},
-    date::Date,
-    duration::Duration,
-    error::TemporalError,
-    fields::TemporalFields,
-    month_day::MonthDay,
+    components::{
+        calendar::{CalendarDateLike, CalendarFieldsType, CalendarProtocol},
+        Date, Duration, MonthDay, YearMonth,
+    },
     options::ArithmeticOverflow,
-    year_month::YearMonth,
-    TemporalResult, TinyAsciiStr,
+    TemporalError, TemporalFields, TemporalResult, TinyAsciiStr,
 };
 <span class="kw">use </span>num_traits::ToPrimitive;
 <span class="kw">use </span>plain_date::PlainDate;
@@ -1707,10 +1694,7 @@
 
     <span class="comment">// TODO: Determine fate of fn fields()
 
-    </span><span class="kw">fn </span>field_descriptors(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="kw">_</span>: boa_temporal::calendar::CalendarFieldsType,
-    ) -&gt; Vec&lt;(String, bool)&gt; {
+    </span><span class="kw">fn </span>field_descriptors(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: CalendarFieldsType) -&gt; Vec&lt;(String, bool)&gt; {
         Vec::default()
     }
 
@@ -1718,11 +1702,7 @@
         Vec::default()
     }
 
-    <span class="kw">fn </span>resolve_fields(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>TemporalFields,
-        <span class="kw">_</span>: boa_temporal::calendar::CalendarFieldsType,
-    ) -&gt; TemporalResult&lt;()&gt; {
+    <span class="kw">fn </span>resolve_fields(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>TemporalFields, <span class="kw">_</span>: CalendarFieldsType) -&gt; TemporalResult&lt;()&gt; {
         <span class="prelude-val">Ok</span>(())
     }
 

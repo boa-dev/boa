@@ -133,8 +133,6 @@
 <a href="#133" id="133">133</a>
 <a href="#134" id="134">134</a>
 <a href="#135" id="135">135</a>
-<a href="#136" id="136">136</a>
-<a href="#137" id="137">137</a>
 </pre></div><pre class="rust"><code><span class="attr">#![allow(dead_code, unused_variables)]
 </span><span class="kw">use crate</span>::{
     builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
@@ -146,9 +144,7 @@
 };
 <span class="kw">use </span>boa_gc::{Finalize, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
-<span class="kw">use </span>boa_temporal::{
-    duration::Duration <span class="kw">as </span>TemporalDuration, zoneddatetime::ZonedDateTime <span class="kw">as </span>InnerZdt,
-};
+<span class="kw">use </span>boa_temporal::components::{Duration <span class="kw">as </span>TemporalDuration, ZonedDateTime <span class="kw">as </span>InnerZdt};
 
 <span class="doccomment">/// The `Temporal.ZonedDateTime` object.
 </span><span class="attr">#[derive(Debug, Clone, Finalize, Trace, JsData)]

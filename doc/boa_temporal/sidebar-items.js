@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["MS_PER_DAY","NS_MAX_INSTANT","NS_MIN_INSTANT","NS_PER_DAY"],"mod":["calendar","date","datetime","duration","error","fields","instant","iso","month_day","options","parser","time","tz","utils","year_month","zoneddatetime"],"struct":["TinyAsciiStr"],"type":["TemporalResult"]};
+window.SIDEBAR_ITEMS = {"mod":["components","error","fields","iso","options","parser"],"struct":["TemporalError","TemporalFields","TinyAsciiStr"],"type":["TemporalResult"]};
