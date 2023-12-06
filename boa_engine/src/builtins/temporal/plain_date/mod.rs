@@ -16,7 +16,10 @@ use crate::{
 };
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
-use boa_temporal::{components::{Date as InnerDate, DateTime}, options::ArithmeticOverflow};
+use boa_temporal::{
+    components::{Date as InnerDate, DateTime},
+    options::ArithmeticOverflow,
+};
 
 use super::{calendar, PlainDateTime, ZonedDateTime};
 

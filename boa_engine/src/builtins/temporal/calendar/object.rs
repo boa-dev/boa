@@ -10,7 +10,7 @@ use std::any::Any;
 use boa_macros::utf16;
 use boa_temporal::{
     components::{
-        calendar::{CalendarDateLike, CalendarProtocol, CalendarFieldsType},
+        calendar::{CalendarDateLike, CalendarFieldsType, CalendarProtocol},
         Date, Duration, MonthDay, YearMonth,
     },
     options::ArithmeticOverflow,
@@ -818,10 +818,7 @@ impl CalendarProtocol for CustomRuntimeCalendar {
 
     // TODO: Determine fate of fn fields()
 
-    fn field_descriptors(
-        &self,
-        _: CalendarFieldsType,
-    ) -> Vec<(String, bool)> {
+    fn field_descriptors(&self, _: CalendarFieldsType) -> Vec<(String, bool)> {
         Vec::default()
     }
 
@@ -829,11 +826,7 @@ impl CalendarProtocol for CustomRuntimeCalendar {
         Vec::default()
     }
 
-    fn resolve_fields(
-        &self,
-        _: &mut TemporalFields,
-        _: CalendarFieldsType,
-    ) -> TemporalResult<()> {
+    fn resolve_fields(&self, _: &mut TemporalFields, _: CalendarFieldsType) -> TemporalResult<()> {
         Ok(())
     }
 
