@@ -132,7 +132,11 @@ impl BuiltInConstructor for TimeZone {
 
 impl TimeZone {
     // NOTE: id, toJSON, toString currently share the exact same implementation -> Consolidate into one function and define multiple accesors?
-    pub(crate) fn get_id(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn get_id(
+        this: &JsValue,
+        _: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
         let tz = this
             .as_object()
             .and_then(JsObject::downcast_ref::<Self>)

@@ -14,7 +14,9 @@ use boa_temporal::{
 };
 
 /// The `Temporal.ZonedDateTime` object.
-#[derive(Debug, Clone, Trace, Finalize, JsData)]
+#[derive(Debug, Clone, Finalize, Trace, JsData)]
+// SAFETY: ZonedDateTime does not contain any traceable types.
+#[boa_gc(unsafe_empty_trace)]
 pub struct ZonedDateTime {
     inner: InnerZdt,
 }
