@@ -40,13 +40,13 @@
       "id": "filePath",
       "description": "Relative path to the file to run",
       "default": "debug/script.js",
-      "type": "promptString",
+      "type": "promptString"
     },
     {
       "id": "modulePath",
       "description": "Relative path to the module root directory",
       "default": "debug",
-      "type": "promptString",
+      "type": "promptString"
     }
   ]
 }

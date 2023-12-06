@@ -8,14 +8,16 @@ members = [
     "ffi/*",
 
     # TESTS
-    "tests",
-    "tests/fuzz",
-    "tests/macros",
-    "tests/tester",
+    "tests/*",
 
     # OTHERS
     "examples",
     "cli",
+]
+
+exclude = [
+    "tests/fuzz", # Does weird things on Windows tests
+    "tests/src" # Just a hack to have fuzz inside tests
 ]
 
 [workspace.package]

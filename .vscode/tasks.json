@@ -46,12 +46,7 @@
       "type": "process",
       "label": "Run JS file (Profiler)",
       "command": "cargo",
-      "args": [
-        "run",
-        "--features",
-        "profiler",
-        "${file}"
-      ],
+      "args": ["run", "--features", "profiler", "${file}"],
       "group": "build",
       "options": {
         "env": {

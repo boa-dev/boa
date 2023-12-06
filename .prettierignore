@@ -3,11 +3,10 @@
 *.yml
 target
 node_modules
-boa_engine/benches/bench_scripts/mini_js.js
-boa_engine/benches/bench_scripts/clean_js.js
-boa_wasm/pkg
+core/engine/benches/bench_scripts/mini_js.js
+core/engine/benches/bench_scripts/clean_js.js
+ffi/wasm/pkg
 dist
 test262
-tests/js/test.js
 playwright-report
 test-results
