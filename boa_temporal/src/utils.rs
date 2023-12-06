@@ -1,4 +1,4 @@
-//! Utility equations for Temporal
+//! Utility date and time equations for Temporal
 
 use crate::{
     options::{TemporalRoundingMode, TemporalUnsignedRoundingMode},

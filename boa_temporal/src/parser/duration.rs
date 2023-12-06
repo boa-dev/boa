@@ -11,7 +11,7 @@ use crate::{
     TemporalError, TemporalResult,
 };
 
-/// A ISO8601 `DurationRecord` Parse Node.
+/// An ISO8601 `DurationRecord` Parse Node.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct DurationParseRecord {
     /// Duration Sign

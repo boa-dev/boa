@@ -16,7 +16,7 @@ use crate::{
 };
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
-use boa_temporal::{duration::Duration as InnerDuration, options::TemporalUnit};
+use boa_temporal::{components::Duration as InnerDuration, options::TemporalUnit};
 
 use super::{
     options::{get_temporal_rounding_increment, get_temporal_unit, TemporalUnitGroup},

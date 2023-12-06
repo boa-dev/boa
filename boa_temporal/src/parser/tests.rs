@@ -1,8 +1,7 @@
 use std::str::FromStr;
 
 use crate::{
-    datetime::DateTime,
-    duration::Duration,
+    components::{DateTime, Duration},
     parser::{
         parse_date_time, Cursor, TemporalInstantString, TemporalMonthDayString,
         TemporalYearMonthString,

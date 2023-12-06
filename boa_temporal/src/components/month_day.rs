@@ -1,13 +1,13 @@
-//! `MonthDay`
+//! This module implements `MonthDay` and any directly related algorithms.
 
 use crate::{
-    calendar::CalendarSlot,
+    components::calendar::CalendarSlot,
     iso::{IsoDate, IsoDateSlots},
     options::ArithmeticOverflow,
     TemporalResult,
 };
 
-/// The `MonthDay` struct
+/// The native Rust implementation of `Temporal.PlainMonthDay`
 #[derive(Debug, Default, Clone)]
 pub struct MonthDay {
     iso: IsoDate,

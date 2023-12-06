@@ -1,4 +1,4 @@
-//! Temporal calendar traits and implementations.
+//! This module implements the calendar traits and related components.
 //!
 //! The goal of the calendar module of `boa_temporal` is to provide
 //! Temporal compatible calendar implementations.
@@ -11,15 +11,10 @@
 use std::{any::Any, str::FromStr};
 
 use crate::{
-    date::Date,
-    datetime::DateTime,
-    duration::Duration,
-    fields::TemporalFields,
+    components::{Date, DateTime, Duration, MonthDay, YearMonth},
     iso::{IsoDate, IsoDateSlots},
-    month_day::MonthDay,
     options::{ArithmeticOverflow, TemporalUnit},
-    year_month::YearMonth,
-    TemporalError, TemporalResult,
+    TemporalError, TemporalFields, TemporalResult,
 };
 
 use tinystr::TinyAsciiStr;

@@ -14,7 +14,7 @@ use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
 
 use super::calendar::to_temporal_calendar_slot_value;
-use boa_temporal::{options::ArithmeticOverflow, year_month::YearMonth as InnerYearMonth};
+use boa_temporal::{options::ArithmeticOverflow, components::YearMonth as InnerYearMonth};
 
 /// The `Temporal.PlainYearMonth` object.
 #[derive(Debug, Clone, Trace, Finalize, JsData)]

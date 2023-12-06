@@ -12,7 +12,7 @@ use crate::{
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
 
-use boa_temporal::datetime::DateTime as InnerDateTime;
+use boa_temporal::components::DateTime as InnerDateTime;
 
 /// The `Temporal.PlainDateTime` object.
 #[derive(Debug, Clone, Trace, Finalize, JsData)]

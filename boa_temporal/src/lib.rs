@@ -1,5 +1,15 @@
-//! Boa's `boa_temporal` crate is intended to serve as an engine agnostic
-//! implementation the ECMAScript's Temporal builtin and algorithm.
+//! Boa's `boa_temporal` crate is an engine agnostic implementation of ECMAScript's Temporal.
+//!
+//! IMPORTANT NOTE: Please note that this library is actively being developed and is very
+//! much experimental and NOT STABLE.
+//!
+//! [`Temporal`][proposal] is the Stage 3 proposal for ECMAScript that provides new JS objects and functions
+//! for working with dates and times that fully supports time zones and non-gregorian calendars.
+//!
+//! This library's primary source is the Temporal Proposal [specification][spec].
+//!
+//! [proposal]: https://github.com/tc39/proposal-temporal
+//! [spec]: https://tc39.es/proposal-temporal/
 #![doc = include_str!("../../ABOUT.md")]
 #![doc(
     html_logo_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg",
@@ -27,38 +37,38 @@
     clippy::missing_panics_doc,
 )]
 
-pub mod calendar;
-pub mod date;
-pub mod datetime;
-pub mod duration;
+pub mod components;
 pub mod error;
 pub mod fields;
-pub mod instant;
 pub mod iso;
-pub mod month_day;
 pub mod options;
 pub mod parser;
-pub mod time;
-pub mod tz;
+
+#[doc(hidden)]
 pub(crate) mod utils;
-pub mod year_month;
-pub mod zoneddatetime;
 
 // TODO: evaluate positives and negatives of using tinystr.
 // Re-exporting tinystr as a convenience, as it is currently tied into the API.
 pub use tinystr::TinyAsciiStr;
 
+#[doc(inline)]
 pub use error::TemporalError;
+#[doc(inline)]
+pub use fields::TemporalFields;
 
 /// The `Temporal` result type
 pub type TemporalResult<T> = Result<T, TemporalError>;
 
 // Relevant numeric constants
 /// Nanoseconds per day constant: 8.64e+13
+#[doc(hidden)]
 pub(crate) const NS_PER_DAY: i64 = 86_400_000_000_000;
 /// Milliseconds per day constant: 8.64e+7
+#[doc(hidden)]
 pub(crate) const MS_PER_DAY: i32 = 24 * 60 * 60 * 1000;
 /// Max Instant nanosecond constant
+#[doc(hidden)]
 pub(crate) const NS_MAX_INSTANT: i128 = NS_PER_DAY as i128 * 100_000_000i128;
 /// Min Instant nanosecond constant
+#[doc(hidden)]
 pub(crate) const NS_MIN_INSTANT: i128 = -NS_MAX_INSTANT;

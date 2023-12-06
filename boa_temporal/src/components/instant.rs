@@ -5,7 +5,7 @@ use crate::{TemporalError, TemporalResult};
 use num_bigint::BigInt;
 use num_traits::ToPrimitive;
 
-/// A Temporal Instant
+/// The native Rust implementation of `Temporal.Instant`
 #[derive(Debug, Clone)]
 pub struct Instant {
     pub(crate) nanos: BigInt,
@@ -69,7 +69,7 @@ pub(crate) fn is_valid_epoch_nanos(nanos: &BigInt) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use crate::{instant::Instant, NS_MAX_INSTANT, NS_MIN_INSTANT};
+    use crate::{components::Instant, NS_MAX_INSTANT, NS_MIN_INSTANT};
     use num_bigint::BigInt;
     use num_traits::ToPrimitive;
 

@@ -15,7 +15,7 @@ use crate::{
 };
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
-use boa_temporal::tz::{TimeZoneSlot, TzProtocol};
+use boa_temporal::components::tz::{TimeZoneSlot, TzProtocol};
 
 /// The `Temporal.TimeZone` object.
 #[derive(Debug, Clone, Trace, Finalize, JsData)]

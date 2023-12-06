@@ -1,4 +1,4 @@
-//! `TemporalFields` native Rust representation.
+//! This module implements a native Rust `TemporalField` and components.
 
 use std::str::FromStr;
 
@@ -84,12 +84,10 @@ impl FromStr for FieldConversion {
     }
 }
 
+/// `TemporalFields` acts as a native Rust implementation of the `fields` object
+///
 /// The temporal fields are laid out in the Temporal proposal under section 13.46 `PrepareTemporalFields`
 /// with conversion and defaults laid out by Table 17 (displayed below).
-///
-/// `TemporalFields` is meant to act as a native Rust implementation
-/// of the fields.
-///
 ///
 /// ## Table 17: Temporal field requirements
 ///

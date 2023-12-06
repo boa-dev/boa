@@ -1,4 +1,4 @@
-//! An error type for Temporal Errors.
+//! This module implements `TemporalError`.
 
 use core::fmt;
 

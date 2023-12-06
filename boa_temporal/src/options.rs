@@ -1,4 +1,7 @@
-//! Temporal Options
+//! Native implementation of the `Temporal` options.
+//!
+//! Temporal has various instances where user's can define options for how an
+//! operation may be completed.
 
 use core::{fmt, str::FromStr};
 

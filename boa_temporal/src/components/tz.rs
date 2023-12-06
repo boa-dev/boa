@@ -6,7 +6,8 @@ use num_bigint::BigInt;
 use num_traits::ToPrimitive;
 
 use crate::{
-    calendar::CalendarSlot, datetime::DateTime, instant::Instant, TemporalError, TemporalResult,
+    components::{calendar::CalendarSlot, DateTime, Instant},
+    TemporalError, TemporalResult,
 };
 
 /// Any object that implements the `TzProtocol` must implement the below methods/properties.

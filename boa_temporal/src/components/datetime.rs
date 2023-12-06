@@ -1,17 +1,16 @@
-//! Temporal implementation of `DateTime`
+//! This module implements `DateTime` any directly related algorithms.
 
 use std::str::FromStr;
 
 use crate::{
-    calendar::CalendarSlot,
-    instant::Instant,
+    components::{calendar::CalendarSlot, Instant},
     iso::{IsoDate, IsoDateSlots, IsoDateTime, IsoTime},
     options::ArithmeticOverflow,
     parser::parse_date_time,
     TemporalError, TemporalResult,
 };
 
-/// The `DateTime` struct.
+/// The native Rust implementation of `Temporal.PlainDateTime`
 #[derive(Debug, Default, Clone)]
 pub struct DateTime {
     iso: IsoDateTime,

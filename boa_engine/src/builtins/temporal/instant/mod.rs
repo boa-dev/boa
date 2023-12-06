@@ -20,7 +20,7 @@ use crate::{
 };
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
-use boa_temporal::{duration::Duration, options::TemporalUnit};
+use boa_temporal::{components::Duration, options::TemporalUnit};
 
 use super::{ns_max_instant, ns_min_instant, MIS_PER_DAY, MS_PER_DAY, NS_PER_DAY};
 
