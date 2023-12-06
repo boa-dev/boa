@@ -9,14 +9,16 @@ use crate::{
 };
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
-use boa_temporal::duration::Duration as TemporalDuration;
+use boa_temporal::{
+    duration::Duration as TemporalDuration, zoneddatetime::ZonedDateTime as InnerZdt,
+};
 
 /// The `Temporal.ZonedDateTime` object.
-#[derive(Debug, Clone, Trace, Finalize, JsData)]
+#[derive(Debug, Clone, Finalize, Trace, JsData)]
+// SAFETY: ZonedDateTime does not contain any traceable types.
+#[boa_gc(unsafe_empty_trace)]
 pub struct ZonedDateTime {
-    nanoseconds: JsBigInt,
-    time_zone: JsObject,
-    calendar: JsObject,
+    inner: InnerZdt,
 }
 
 impl BuiltInObject for ZonedDateTime {
