@@ -345,7 +345,13 @@ impl Context {
             VaryingOperandKind::U32 => ".U32",
         };
 
-        self.vm.trace.trace_instruction(duration.as_micros(), varying_operand_kind, opcode.as_str(), &operands, &stack);
+        self.vm.trace.trace_instruction(
+            duration.as_micros(),
+            varying_operand_kind,
+            opcode.as_str(),
+            &operands,
+            &stack,
+        );
 
         result
     }

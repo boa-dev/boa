@@ -5,7 +5,7 @@ use std::cell::Cell;
 use std::collections::VecDeque;
 use std::fmt;
 
-use super::{Vm, Constant};
+use super::{Constant, Vm};
 
 // TODO: Build out further, maybe provide more element visiblity and events/outputs
 /// The `Tracer` trait is a customizable trait that can be provided to `Boa`
@@ -223,12 +223,11 @@ impl VmTrace {
                 for constant in &block.constants {
                     match constant {
                         Constant::Function(block) => queue.push_back(block.clone()),
-                        _=>{},
+                        _ => {}
                     }
                 }
 
-                self.tracer
-                    .emit_bytecode_trace(&block.to_string());
+                self.tracer.emit_bytecode_trace(&block.to_string());
             }
         }
     }
