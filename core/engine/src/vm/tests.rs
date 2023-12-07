@@ -417,3 +417,17 @@ fn cross_context_funtion_call() {
 
     assert_eq!(result, Ok(JsValue::new(100)));
 }
+
+// See: https://github.com/boa-dev/boa/issues/1848
+#[test]
+fn long_object_chain_gc_trace_stack_overflow() {
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+            let old = {};
+            for (let i = 0; i < 100000; i++) {
+                old = { old };
+            }
+        "#}),
+        TestAction::inspect_context(|_| boa_gc::force_collect()),
+    ]);
+}

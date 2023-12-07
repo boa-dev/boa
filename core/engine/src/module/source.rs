@@ -104,7 +104,7 @@ enum Status {
 // useful to have for state machines like `Status`. This is solved by manually implementing
 // `Trace`.
 unsafe impl Trace for Status {
-    custom_trace!(this, {
+    custom_trace!(this, mark, {
         match this {
             Self::Unlinked | Self::Linking { info: _ } => {}
             Self::PreLinked { context, info: _ } | Self::Linked { context, info: _ } => {
@@ -239,7 +239,7 @@ impl std::fmt::Debug for SourceTextContext {
 }
 
 unsafe impl Trace for SourceTextContext {
-    custom_trace!(this, {
+    custom_trace!(this, mark, {
         mark(&this.codeblock);
         mark(&this.environments);
         mark(&this.realm);

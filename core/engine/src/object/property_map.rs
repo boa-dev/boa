@@ -25,7 +25,7 @@ impl<K: Trace> Default for OrderedHashMap<K> {
 }
 
 unsafe impl<K: Trace> Trace for OrderedHashMap<K> {
-    custom_trace!(this, {
+    custom_trace!(this, mark, {
         for (k, v) in &this.0 {
             mark(k);
             mark(v);

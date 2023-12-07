@@ -42,7 +42,7 @@ pub struct OrderedMap<V> {
 }
 
 unsafe impl<V: Trace> Trace for OrderedMap<V> {
-    custom_trace!(this, {
+    custom_trace!(this, mark, {
         for (k, v) in &this.map {
             if let MapKey::Key(key) = k {
                 mark(key);

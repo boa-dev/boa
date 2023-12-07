@@ -10,4 +10,5 @@ pub use gc::Gc;
 pub use weak::WeakGc;
 pub use weak_map::WeakMap;
 
+pub(crate) use gc::NonTraceable;
 pub(crate) use weak_map::RawWeakMap;

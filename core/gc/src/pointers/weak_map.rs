@@ -17,7 +17,7 @@ pub struct WeakMap<K: Trace + ?Sized + 'static, V: Trace + 'static> {
 }
 
 unsafe impl<K: Trace + ?Sized + 'static, V: Trace + 'static> Trace for WeakMap<K, V> {
-    custom_trace!(this, {
+    custom_trace!(this, mark, {
         mark(&this.inner);
     });
 }
@@ -84,7 +84,7 @@ where
     K: Trace + ?Sized + 'static,
     V: Trace + 'static,
 {
-    custom_trace!(this, {
+    custom_trace!(this, mark, {
         for eph in this.iter() {
             mark(eph);
         }

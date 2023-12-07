@@ -81,7 +81,7 @@ pub enum JsValue {
 }
 
 unsafe impl Trace for JsValue {
-    custom_trace! {this, {
+    custom_trace! {this, mark, {
         if let Self::Object(o) = this {
             mark(o);
         }

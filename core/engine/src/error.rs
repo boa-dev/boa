@@ -53,7 +53,7 @@ pub struct JsError {
 
 // SAFETY: just mirroring the default derive to allow destructuring.
 unsafe impl Trace for JsError {
-    custom_trace!(this, mark(&this.inner));
+    custom_trace!(this, mark, mark(&this.inner));
 }
 
 /// Internal representation of a [`JsError`].
@@ -76,6 +76,7 @@ enum Repr {
 unsafe impl Trace for Repr {
     custom_trace!(
         this,
+        mark,
         match &this {
             Self::Native(err) => mark(err),
             Self::Opaque(val) => mark(val),
@@ -549,7 +550,7 @@ impl fmt::Display for JsNativeError {
 
 // SAFETY: just mirroring the default derive to allow destructuring.
 unsafe impl Trace for JsNativeError {
-    custom_trace!(this, {
+    custom_trace!(this, mark, {
         mark(&this.kind);
         mark(&this.cause);
         mark(&this.realm);
@@ -1108,6 +1109,7 @@ pub enum JsNativeErrorKind {
 unsafe impl Trace for JsNativeErrorKind {
     custom_trace!(
         this,
+        mark,
         match &this {
             Self::Aggregate(errors) => mark(errors),
             Self::Error

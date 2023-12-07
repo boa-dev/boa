@@ -18,7 +18,7 @@ pub(crate) enum CompletionRecord {
 // SAFETY: this matches all possible variants and traces
 // their inner contents, which makes this safe.
 unsafe impl Trace for CompletionRecord {
-    custom_trace!(this, {
+    custom_trace!(this, mark, {
         match this {
             Self::Normal(v) => mark(v),
             Self::Return(r) => mark(r),

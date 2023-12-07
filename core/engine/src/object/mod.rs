@@ -178,7 +178,9 @@ impl dyn NativeObject {
 }
 
 /// The internal representation of a JavaScript object.
-#[derive(Debug, Finalize)]
+#[derive(Debug, Finalize, Trace)]
+// SAFETY: This does not implement drop, so this is safe.
+#[boa_gc(unsafe_no_drop)]
 pub struct Object<T: ?Sized> {
     /// The collection of properties contained in the object
     pub(crate) properties: PropertyMap,
@@ -199,16 +201,6 @@ impl<T: Default> Default for Object<T> {
             data: T::default(),
         }
     }
-}
-
-unsafe impl<T: Trace + ?Sized> Trace for Object<T> {
-    boa_gc::custom_trace!(this, {
-        mark(&this.data);
-        mark(&this.properties);
-        for (_, element) in &this.private_elements {
-            mark(element);
-        }
-    });
 }
 
 /// A Private Name.

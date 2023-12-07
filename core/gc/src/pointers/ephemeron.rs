@@ -2,7 +2,7 @@ use crate::{
     finalizer_safe,
     internals::EphemeronBox,
     trace::{Finalize, Trace},
-    Allocator, Gc,
+    Allocator, Gc, Tracer,
 };
 use std::ptr::NonNull;
 
@@ -108,7 +108,7 @@ impl<K: Trace + ?Sized, V: Trace> Finalize for Ephemeron<K, V> {
 // SAFETY: `Ephemeron`s trace implementation only marks its inner box because we want to stop
 // tracing through weakly held pointers.
 unsafe impl<K: Trace + ?Sized, V: Trace> Trace for Ephemeron<K, V> {
-    unsafe fn trace(&self) {
+    unsafe fn trace(&self, _tracer: &mut Tracer) {
         // SAFETY: We need to mark the inner box of the `Ephemeron` since it is reachable
         // from a root and this means it cannot be dropped.
         unsafe {
@@ -116,7 +116,7 @@ unsafe impl<K: Trace + ?Sized, V: Trace> Trace for Ephemeron<K, V> {
         }
     }
 
-    fn trace_non_roots(&self) {
+    unsafe fn trace_non_roots(&self) {
         self.inner().inc_non_root_count();
     }
 

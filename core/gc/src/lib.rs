@@ -25,20 +25,20 @@ pub(crate) mod internals;
 
 use boa_profiler::Profiler;
 use internals::{EphemeronBox, ErasedEphemeronBox, ErasedWeakMapBox, WeakMapBox};
-use pointers::RawWeakMap;
+use pointers::{NonTraceable, RawWeakMap};
 use std::{
     cell::{Cell, RefCell},
     mem,
     ptr::NonNull,
 };
 
-pub use crate::trace::{Finalize, Trace};
+pub use crate::trace::{Finalize, Trace, Tracer};
 pub use boa_macros::{Finalize, Trace};
 pub use cell::{GcRef, GcRefCell, GcRefMut};
 pub use internals::GcBox;
 pub use pointers::{Ephemeron, Gc, WeakGc, WeakMap};
 
-type GcPointer = NonNull<GcBox<dyn Trace>>;
+type GcErasedPointer = NonNull<GcBox<NonTraceable>>;
 type EphemeronPointer = NonNull<dyn ErasedEphemeronBox>;
 type ErasedWeakMapBoxPointer = NonNull<dyn ErasedWeakMapBox>;
 
@@ -79,7 +79,7 @@ struct GcRuntimeData {
 struct BoaGc {
     config: GcConfig,
     runtime: GcRuntimeData,
-    strongs: Vec<GcPointer>,
+    strongs: Vec<GcErasedPointer>,
     weaks: Vec<EphemeronPointer>,
     weak_maps: Vec<ErasedWeakMapBoxPointer>,
 }
@@ -135,7 +135,7 @@ impl Allocator {
             Self::manage_state(&mut gc);
             // Safety: value cannot be a null pointer, since `Box` cannot return null pointers.
             let ptr = unsafe { NonNull::new_unchecked(Box::into_raw(Box::new(value))) };
-            let erased: NonNull<GcBox<dyn Trace>> = ptr;
+            let erased: NonNull<GcBox<NonTraceable>> = ptr.cast();
 
             gc.strongs.push(erased);
             gc.runtime.bytes_allocated += element_size;
@@ -202,7 +202,7 @@ impl Allocator {
 }
 
 struct Unreachables {
-    strong: Vec<NonNull<GcBox<dyn Trace>>>,
+    strong: Vec<GcErasedPointer>,
     weak: Vec<NonNull<dyn ErasedEphemeronBox>>,
 }
 
@@ -228,7 +228,11 @@ impl Collector {
 
         Self::trace_non_roots(gc);
 
-        let unreachables = Self::mark_heap(&gc.strongs, &gc.weaks, &gc.weak_maps);
+        let mut tracer = Tracer::new();
+
+        let unreachables = Self::mark_heap(&mut tracer, &gc.strongs, &gc.weaks, &gc.weak_maps);
+
+        assert!(tracer.is_empty(), "The queue should be empty");
 
         // Only finalize if there are any unreachable nodes.
         if !unreachables.strong.is_empty() || !unreachables.weak.is_empty() {
@@ -236,7 +240,9 @@ impl Collector {
             // SAFETY: All passed pointers are valid, since we won't deallocate until `Self::sweep`.
             unsafe { Self::finalize(unreachables) };
 
-            let _final_unreachables = Self::mark_heap(&gc.strongs, &gc.weaks, &gc.weak_maps);
+            // Reuse the tracer's already allocated capacity.
+            let _final_unreachables =
+                Self::mark_heap(&mut tracer, &gc.strongs, &gc.weaks, &gc.weak_maps);
         }
 
         // SAFETY: The head of our linked list is always valid per the invariants of our GC.
@@ -277,8 +283,12 @@ impl Collector {
         // Then, we can find whether there is a reference from other places, and they are the roots.
         for node in &gc.strongs {
             // SAFETY: node must be valid as this phase cannot drop any node.
-            let node_ref = unsafe { node.as_ref() };
-            node_ref.value().trace_non_roots();
+            let trace_non_roots_fn = unsafe { node.as_ref() }.trace_non_roots_fn();
+
+            // SAFETY: The function pointer is appropriate for this node type because we extract it from it's VTable.
+            unsafe {
+                trace_non_roots_fn(*node);
+            }
         }
 
         for eph in &gc.weaks {
@@ -290,7 +300,8 @@ impl Collector {
 
     /// Walk the heap and mark any nodes deemed reachable
     fn mark_heap(
-        strongs: &[GcPointer],
+        tracer: &mut Tracer,
+        strongs: &[GcErasedPointer],
         weaks: &[EphemeronPointer],
         weak_maps: &[ErasedWeakMapBoxPointer],
     ) -> Unreachables {
@@ -306,10 +317,26 @@ impl Collector {
         for node in strongs {
             // SAFETY: node must be valid as this phase cannot drop any node.
             let node_ref = unsafe { node.as_ref() };
-            if node_ref.get_non_root_count() < node_ref.get_ref_count() {
-                // SAFETY: the gc heap object should be alive if there is a root.
-                unsafe {
-                    node_ref.mark_and_trace();
+            if node_ref.is_rooted() {
+                tracer.enqueue(*node);
+
+                while let Some(node) = tracer.next() {
+                    // SAFETY: the gc heap object should be alive if there is a root.
+                    let node_ref = unsafe { node.as_ref() };
+
+                    if !node_ref.header.is_marked() {
+                        node_ref.header.mark();
+
+                        // SAFETY: if `GcBox::trace_inner()` has been called, then,
+                        // this box must have been deemed as reachable via tracing
+                        // from a root, which by extension means that value has not
+                        // been dropped either.
+
+                        let trace_fn = node_ref.trace_fn();
+
+                        // SAFETY: The function pointer is appropriate for this node type because we extract it from it's VTable.
+                        unsafe { trace_fn(node, tracer) }
+                    }
                 }
             } else if !node_ref.is_marked() {
                 strong_dead.push(*node);
@@ -338,12 +365,22 @@ impl Collector {
             // SAFETY: node must be valid as this phase cannot drop any node.
             let eph_ref = unsafe { eph.as_ref() };
             let header = eph_ref.header();
-            if header.get_non_root_count() < header.get_ref_count() {
+            if header.is_rooted() {
                 header.mark();
             }
             // SAFETY: the garbage collector ensures `eph_ref` always points to valid data.
-            if unsafe { !eph_ref.trace() } {
+            if unsafe { !eph_ref.trace(tracer) } {
                 pending_ephemerons.push(*eph);
+            }
+
+            while let Some(node) = tracer.next() {
+                // SAFETY: node must be valid as this phase cannot drop any node.
+                let trace_fn = unsafe { node.as_ref() }.trace_fn();
+
+                // SAFETY: The function pointer is appropriate for this node type because we extract it from it's VTable.
+                unsafe {
+                    trace_fn(node, tracer);
+                }
             }
         }
 
@@ -353,7 +390,17 @@ impl Collector {
             let node_ref = unsafe { w.as_ref() };
 
             // SAFETY: The garbage collector ensures that all nodes are valid.
-            unsafe { node_ref.trace() };
+            unsafe { node_ref.trace(tracer) };
+
+            while let Some(node) = tracer.next() {
+                // SAFETY: node must be valid as this phase cannot drop any node.
+                let trace_fn = unsafe { node.as_ref() }.trace_fn();
+
+                // SAFETY: The function pointer is appropriate for this node type because we extract it from it's VTable.
+                unsafe {
+                    trace_fn(node, tracer);
+                }
+            }
         }
 
         // 3. Iterate through all pending ephemerons, removing the ones which have been successfully
@@ -365,7 +412,19 @@ impl Collector {
                 // SAFETY: node must be valid as this phase cannot drop any node.
                 let eph_ref = unsafe { eph.as_ref() };
                 // SAFETY: the garbage collector ensures `eph_ref` always points to valid data.
-                unsafe { !eph_ref.trace() }
+                let is_key_marked = unsafe { !eph_ref.trace(tracer) };
+
+                while let Some(node) = tracer.next() {
+                    // SAFETY: node must be valid as this phase cannot drop any node.
+                    let trace_fn = unsafe { node.as_ref() }.trace_fn();
+
+                    // SAFETY: The function pointer is appropriate for this node type because we extract it from it's VTable.
+                    unsafe {
+                        trace_fn(node, tracer);
+                    }
+                }
+
+                is_key_marked
             });
 
             if previous_len == pending_ephemerons.len() {
@@ -396,8 +455,13 @@ impl Collector {
         let _timer = Profiler::global().start_event("Gc Finalization", "gc");
         for node in unreachables.strong {
             // SAFETY: The caller must ensure all pointers inside `unreachables.strong` are valid.
-            let node = unsafe { node.as_ref() };
-            Trace::run_finalizer(node.value());
+            let node_ref = unsafe { node.as_ref() };
+            let run_finalizer_fn = node_ref.run_finalizer_fn();
+
+            // SAFETY: The function pointer is appropriate for this node type because we extract it from it's VTable.
+            unsafe {
+                run_finalizer_fn(node);
+            }
         }
         for node in unreachables.weak {
             // SAFETY: The caller must ensure all pointers inside `unreachables.weak` are valid.
@@ -413,7 +477,7 @@ impl Collector {
     /// - Providing a list of pointers that weren't allocated by `Box::into_raw(Box::new(..))`
     /// will result in Undefined Behaviour.
     unsafe fn sweep(
-        strong: &mut Vec<GcPointer>,
+        strong: &mut Vec<GcErasedPointer>,
         weak: &mut Vec<EphemeronPointer>,
         total_allocated: &mut usize,
     ) {
@@ -431,9 +495,14 @@ impl Collector {
             } else {
                 // SAFETY: The algorithm ensures only unmarked/unreachable pointers are dropped.
                 // The caller must ensure all pointers were allocated by `Box::into_raw(Box::new(..))`.
-                let unmarked_node = unsafe { Box::from_raw(node.as_ptr()) };
-                let unallocated_bytes = mem::size_of_val(&*unmarked_node);
-                *total_allocated -= unallocated_bytes;
+                let drop_fn = node_ref.drop_fn();
+                let size = node_ref.size();
+                *total_allocated -= size;
+
+                // SAFETY: The function pointer is appropriate for this node type because we extract it from it's VTable.
+                unsafe {
+                    drop_fn(*node);
+                }
 
                 false
             }
@@ -478,7 +547,12 @@ impl Collector {
             // SAFETY:
             // The `Allocator` must always ensure its start node is a valid, non-null pointer that
             // was allocated by `Box::from_raw(Box::new(..))`.
-            let _unmarked_node = unsafe { Box::from_raw(node.as_ptr()) };
+            let drop_fn = unsafe { node.as_ref() }.drop_fn();
+
+            // SAFETY: The function pointer is appropriate for this node type because we extract it from it's VTable.
+            unsafe {
+                drop_fn(node);
+            }
         }
 
         for node in std::mem::take(&mut gc.weaks) {

@@ -57,7 +57,7 @@ pub(crate) struct Collator {
 
 // SAFETY: only `bound_compare` is a traceable object.
 unsafe impl Trace for Collator {
-    custom_trace!(this, mark(&this.bound_compare));
+    custom_trace!(this, mark, mark(&this.bound_compare));
 }
 
 impl Collator {

@@ -71,7 +71,7 @@ pub struct NativeFunctionObject {
 
 // SAFETY: this traces all fields that need to be traced by the GC.
 unsafe impl Trace for NativeFunctionObject {
-    custom_trace!(this, {
+    custom_trace!(this, mark, {
         mark(&this.f);
         mark(&this.realm);
     });
@@ -125,7 +125,7 @@ enum Inner {
 // Manual implementation because deriving `Trace` triggers the `single_use_lifetimes` lint.
 // SAFETY: Only closures can contain `Trace` captures, so this implementation is safe.
 unsafe impl Trace for NativeFunction {
-    custom_trace!(this, {
+    custom_trace!(this, mark, {
         if let Inner::Closure(c) = &this.inner {
             mark(c);
         }

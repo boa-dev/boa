@@ -42,7 +42,7 @@ pub enum PromiseState {
 }
 
 unsafe impl Trace for PromiseState {
-    custom_trace!(this, {
+    custom_trace!(this, mark, {
         match this {
             Self::Fulfilled(v) | Self::Rejected(v) => mark(v),
             Self::Pending => {}
@@ -121,7 +121,7 @@ pub struct ResolvingFunctions {
 
 // Manually implementing `Trace` to allow destructuring.
 unsafe impl Trace for ResolvingFunctions {
-    custom_trace!(this, {
+    custom_trace!(this, mark, {
         mark(&this.resolve);
         mark(&this.reject);
     });
@@ -176,7 +176,7 @@ pub(crate) struct PromiseCapability {
 
 // SAFETY: manually implementing `Trace` to allow destructuring.
 unsafe impl Trace for PromiseCapability {
-    custom_trace!(this, {
+    custom_trace!(this, mark, {
         mark(&this.promise);
         mark(&this.functions);
     });
