@@ -12,10 +12,11 @@ repository.workspace = true
 rust-version.workspace = true
 
 [dependencies]
-boa_engine = { workspace = true, features = ["js"] }
+boa_engine = { workspace = true, features = ["js", "trace"] }
 wasm-bindgen = { version = "0.2.91", default-features = false }
 getrandom = { version = "0.2.14", features = ["js"] }
 console_error_panic_hook = "0.1.7"
+js-sys = "0.3.66"
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3.42"

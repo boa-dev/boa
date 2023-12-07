@@ -145,6 +145,7 @@ fn trace(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsVal
 
     let arguments = args.get(2..).unwrap_or(&[]);
 
+    context.init_partial_trace();
     set_trace_flag_in_function_object(callable, true)?;
     let result = callable.call(this, arguments, context);
     set_trace_flag_in_function_object(callable, false)?;
@@ -152,7 +153,7 @@ fn trace(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsVal
     result
 }
 
-fn traceable(_: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+fn traceable(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
     let value = args.get_or_undefined(0);
     let traceable = args.get_or_undefined(1).to_boolean();
 
@@ -162,6 +163,7 @@ fn traceable(_: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue
             .into());
     };
 
+    context.init_partial_trace();
     set_trace_flag_in_function_object(callable, traceable)?;
 
     Ok(value.clone())

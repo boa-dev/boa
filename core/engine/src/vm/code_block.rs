@@ -66,10 +66,19 @@ bitflags! {
 
         /// Arrow and method functions don't have `"prototype"` property.
         const HAS_PROTOTYPE_PROPERTY = 0b1000_0000;
+    }
+}
 
+#[cfg(feature = "trace")]
+bitflags! {
+    /// Trace specific flags for [`CodeBlock`]
+    #[derive(Clone, Copy, Debug, Finalize)]
+    pub(crate) struct TraceFlags: u8 {
         /// Trace instruction execution to `stdout`.
-        #[cfg(feature = "trace")]
-        const TRACEABLE = 0b1000_0000_0000_0000;
+        const TRACEABLE = 0b0000_0001;
+
+        /// Has the `CodeBlock` been traced.
+        const CALLFRAME_TRACED = 0b0000_0010;
     }
 }
 
@@ -134,6 +143,10 @@ pub struct CodeBlock {
     #[unsafe_ignore_trace]
     pub(crate) flags: Cell<CodeBlockFlags>,
 
+    #[cfg(feature = "trace")]
+    #[unsafe_ignore_trace]
+    pub(crate) trace_flags: Cell<TraceFlags>,
+
     /// The number of arguments expected.
     pub(crate) length: u32,
 
@@ -183,6 +196,8 @@ impl CodeBlock {
             params: FormalParameterList::default(),
             handlers: ThinVec::default(),
             ic: Box::default(),
+            #[cfg(feature = "trace")]
+            trace_flags: Cell::new(TraceFlags::empty()),
         }
     }
 
@@ -195,15 +210,31 @@ impl CodeBlock {
     /// Check if the function is traced.
     #[cfg(feature = "trace")]
     pub(crate) fn traceable(&self) -> bool {
-        self.flags.get().contains(CodeBlockFlags::TRACEABLE)
+        self.trace_flags.get().contains(TraceFlags::TRACEABLE)
     }
     /// Enable or disable instruction tracing to `stdout`.
     #[cfg(feature = "trace")]
     #[inline]
     pub fn set_traceable(&self, value: bool) {
-        let mut flags = self.flags.get();
-        flags.set(CodeBlockFlags::TRACEABLE, value);
-        self.flags.set(flags);
+        let mut flags = self.trace_flags.get();
+        flags.set(TraceFlags::TRACEABLE, value);
+        self.trace_flags.set(flags);
+    }
+
+    /// Check whether the frame has been traced.
+    #[cfg(feature = "trace")]
+    pub(crate) fn frame_traced(&self) -> bool {
+        self.trace_flags
+            .get()
+            .contains(TraceFlags::CALLFRAME_TRACED)
+    }
+
+    /// Set the current frame as traced.
+    #[cfg(feature = "trace")]
+    pub(crate) fn set_frame_traced(&self, value: bool) {
+        let mut flags = self.trace_flags.get();
+        flags.set(TraceFlags::CALLFRAME_TRACED, value);
+        self.trace_flags.set(flags);
     }
 
     /// Check if the function is a class constructor.
