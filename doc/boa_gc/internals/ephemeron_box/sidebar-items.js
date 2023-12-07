@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["MARK_MASK","NON_ROOTS_MASK","NON_ROOTS_MAX"],"struct":["Data","EphemeronBox","EphemeronBoxHeader"],"trait":["ErasedEphemeronBox"]};
+window.SIDEBAR_ITEMS = {"struct":["Data","EphemeronBox"],"trait":["ErasedEphemeronBox"]};

@@ -449,7 +449,7 @@
 
 <span class="comment">// Need to manually implement, since `Trace` adds a `Drop` impl which disallows destructuring.
 </span><span class="kw">unsafe impl </span>Trace <span class="kw">for </span>GeneratorState {
-    <span class="macro">custom_trace!</span>(this, {
+    <span class="macro">custom_trace!</span>(this, mark, {
         <span class="kw">match </span><span class="kw-2">&amp;</span>this {
             <span class="self">Self</span>::SuspendedStart { context } | <span class="self">Self</span>::SuspendedYield { context } =&gt; mark(context),
             <span class="self">Self</span>::Executing | <span class="self">Self</span>::Completed =&gt; {}

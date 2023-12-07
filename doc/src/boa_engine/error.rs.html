@@ -1365,6 +1365,8 @@
 <a href="#1365" id="1365">1365</a>
 <a href="#1366" id="1366">1366</a>
 <a href="#1367" id="1367">1367</a>
+<a href="#1368" id="1368">1368</a>
+<a href="#1369" id="1369">1369</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Error-related types and conversions.
 
 </span><span class="kw">use </span>std::{error, fmt};
@@ -1420,7 +1422,7 @@
 
 <span class="comment">// SAFETY: just mirroring the default derive to allow destructuring.
 </span><span class="kw">unsafe impl </span>Trace <span class="kw">for </span>JsError {
-    <span class="macro">custom_trace!</span>(this, mark(<span class="kw-2">&amp;</span>this.inner));
+    <span class="macro">custom_trace!</span>(this, mark, mark(<span class="kw-2">&amp;</span>this.inner));
 }
 
 <span class="doccomment">/// Internal representation of a [`JsError`].
@@ -1443,6 +1445,7 @@
 </span><span class="kw">unsafe impl </span>Trace <span class="kw">for </span>Repr {
     <span class="macro">custom_trace!</span>(
         this,
+        mark,
         <span class="kw">match </span><span class="kw-2">&amp;</span>this {
             <span class="self">Self</span>::Native(err) =&gt; mark(err),
             <span class="self">Self</span>::Opaque(val) =&gt; mark(val),
@@ -1916,7 +1919,7 @@
 
 <span class="comment">// SAFETY: just mirroring the default derive to allow destructuring.
 </span><span class="kw">unsafe impl </span>Trace <span class="kw">for </span>JsNativeError {
-    <span class="macro">custom_trace!</span>(this, {
+    <span class="macro">custom_trace!</span>(this, mark, {
         mark(<span class="kw-2">&amp;</span>this.kind);
         mark(<span class="kw-2">&amp;</span>this.cause);
         mark(<span class="kw-2">&amp;</span>this.realm);
@@ -2475,6 +2478,7 @@
 </span><span class="kw">unsafe impl </span>Trace <span class="kw">for </span>JsNativeErrorKind {
     <span class="macro">custom_trace!</span>(
         this,
+        mark,
         <span class="kw">match </span><span class="kw-2">&amp;</span>this {
             <span class="self">Self</span>::Aggregate(errors) =&gt; mark(errors),
             <span class="self">Self</span>::Error

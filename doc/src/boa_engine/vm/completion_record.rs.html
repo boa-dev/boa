@@ -67,7 +67,7 @@
 <span class="comment">// SAFETY: this matches all possible variants and traces
 // their inner contents, which makes this safe.
 </span><span class="kw">unsafe impl </span>Trace <span class="kw">for </span>CompletionRecord {
-    <span class="macro">custom_trace!</span>(this, {
+    <span class="macro">custom_trace!</span>(this, mark, {
         <span class="kw">match </span>this {
             <span class="self">Self</span>::Normal(v) =&gt; mark(v),
             <span class="self">Self</span>::Return(r) =&gt; mark(r),

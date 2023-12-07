@@ -6,12 +6,20 @@
 <a href="#6" id="6">6</a>
 <a href="#7" id="7">7</a>
 <a href="#8" id="8">8</a>
+<a href="#9" id="9">9</a>
+<a href="#10" id="10">10</a>
+<a href="#11" id="11">11</a>
+<a href="#12" id="12">12</a>
 </pre></div><pre class="rust"><code><span class="kw">mod </span>ephemeron_box;
 <span class="kw">mod </span>gc_box;
+<span class="kw">mod </span>gc_header;
+<span class="kw">mod </span>vtable;
 <span class="kw">mod </span>weak_map_box;
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><span class="self">self</span>::ephemeron_box::{EphemeronBox, ErasedEphemeronBox};
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><span class="self">self</span>::gc_header::GcHeader;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><span class="self">self</span>::weak_map_box::{ErasedWeakMapBox, WeakMapBox};
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>vtable::{vtable_of, DropFn, RunFinalizerFn, TraceFn, TraceNonRootsFn, VTable};
 
 <span class="kw">pub use </span><span class="self">self</span>::gc_box::GcBox;
 </code></pre></div></section></main></body></html>

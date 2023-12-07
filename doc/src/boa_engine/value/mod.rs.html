@@ -1212,7 +1212,7 @@
 }
 
 <span class="kw">unsafe impl </span>Trace <span class="kw">for </span>JsValue {
-    <span class="macro">custom_trace! </span>{this, {
+    <span class="macro">custom_trace! </span>{this, mark, {
         <span class="kw">if let </span><span class="self">Self</span>::Object(o) = this {
             mark(o);
         }

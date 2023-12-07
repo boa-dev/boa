@@ -628,7 +628,7 @@
 
 <span class="comment">// SAFETY: only `bound_compare` is a traceable object.
 </span><span class="kw">unsafe impl </span>Trace <span class="kw">for </span>Collator {
-    <span class="macro">custom_trace!</span>(this, mark(<span class="kw-2">&amp;</span>this.bound_compare));
+    <span class="macro">custom_trace!</span>(this, mark, mark(<span class="kw-2">&amp;</span>this.bound_compare));
 }
 
 <span class="kw">impl </span>Collator {

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["Gc"]};
+window.SIDEBAR_ITEMS = {"struct":["Gc","NonTraceable"]};

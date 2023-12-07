@@ -2416,7 +2416,7 @@
 }
 
 <span class="kw">unsafe impl </span>Trace <span class="kw">for </span>PromiseState {
-    <span class="macro">custom_trace!</span>(this, {
+    <span class="macro">custom_trace!</span>(this, mark, {
         <span class="kw">match </span>this {
             <span class="self">Self</span>::Fulfilled(v) | <span class="self">Self</span>::Rejected(v) =&gt; mark(v),
             <span class="self">Self</span>::Pending =&gt; {}
@@ -2495,7 +2495,7 @@
 
 <span class="comment">// Manually implementing `Trace` to allow destructuring.
 </span><span class="kw">unsafe impl </span>Trace <span class="kw">for </span>ResolvingFunctions {
-    <span class="macro">custom_trace!</span>(this, {
+    <span class="macro">custom_trace!</span>(this, mark, {
         mark(<span class="kw-2">&amp;</span>this.resolve);
         mark(<span class="kw-2">&amp;</span>this.reject);
     });
@@ -2550,7 +2550,7 @@
 
 <span class="comment">// SAFETY: manually implementing `Trace` to allow destructuring.
 </span><span class="kw">unsafe impl </span>Trace <span class="kw">for </span>PromiseCapability {
-    <span class="macro">custom_trace!</span>(this, {
+    <span class="macro">custom_trace!</span>(this, mark, {
         mark(<span class="kw-2">&amp;</span>this.promise);
         mark(<span class="kw-2">&amp;</span>this.functions);
     });

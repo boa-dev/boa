@@ -189,177 +189,17 @@
 <a href="#189" id="189">189</a>
 <a href="#190" id="190">190</a>
 <a href="#191" id="191">191</a>
-<a href="#192" id="192">192</a>
-<a href="#193" id="193">193</a>
-<a href="#194" id="194">194</a>
-<a href="#195" id="195">195</a>
-<a href="#196" id="196">196</a>
-<a href="#197" id="197">197</a>
-<a href="#198" id="198">198</a>
-<a href="#199" id="199">199</a>
-<a href="#200" id="200">200</a>
-<a href="#201" id="201">201</a>
-<a href="#202" id="202">202</a>
-<a href="#203" id="203">203</a>
-<a href="#204" id="204">204</a>
-<a href="#205" id="205">205</a>
-<a href="#206" id="206">206</a>
-<a href="#207" id="207">207</a>
-<a href="#208" id="208">208</a>
-<a href="#209" id="209">209</a>
-<a href="#210" id="210">210</a>
-<a href="#211" id="211">211</a>
-<a href="#212" id="212">212</a>
-<a href="#213" id="213">213</a>
-<a href="#214" id="214">214</a>
-<a href="#215" id="215">215</a>
-<a href="#216" id="216">216</a>
-<a href="#217" id="217">217</a>
-<a href="#218" id="218">218</a>
-<a href="#219" id="219">219</a>
-<a href="#220" id="220">220</a>
-<a href="#221" id="221">221</a>
-<a href="#222" id="222">222</a>
-<a href="#223" id="223">223</a>
-<a href="#224" id="224">224</a>
-<a href="#225" id="225">225</a>
-<a href="#226" id="226">226</a>
-<a href="#227" id="227">227</a>
-<a href="#228" id="228">228</a>
-<a href="#229" id="229">229</a>
-<a href="#230" id="230">230</a>
-<a href="#231" id="231">231</a>
-<a href="#232" id="232">232</a>
-<a href="#233" id="233">233</a>
-<a href="#234" id="234">234</a>
-<a href="#235" id="235">235</a>
-<a href="#236" id="236">236</a>
-<a href="#237" id="237">237</a>
-<a href="#238" id="238">238</a>
-<a href="#239" id="239">239</a>
-<a href="#240" id="240">240</a>
-<a href="#241" id="241">241</a>
-<a href="#242" id="242">242</a>
-<a href="#243" id="243">243</a>
-<a href="#244" id="244">244</a>
-<a href="#245" id="245">245</a>
-<a href="#246" id="246">246</a>
-<a href="#247" id="247">247</a>
-<a href="#248" id="248">248</a>
-<a href="#249" id="249">249</a>
-<a href="#250" id="250">250</a>
-<a href="#251" id="251">251</a>
-<a href="#252" id="252">252</a>
-<a href="#253" id="253">253</a>
-<a href="#254" id="254">254</a>
-<a href="#255" id="255">255</a>
-<a href="#256" id="256">256</a>
-<a href="#257" id="257">257</a>
-<a href="#258" id="258">258</a>
-<a href="#259" id="259">259</a>
-<a href="#260" id="260">260</a>
-<a href="#261" id="261">261</a>
-<a href="#262" id="262">262</a>
-<a href="#263" id="263">263</a>
-<a href="#264" id="264">264</a>
-<a href="#265" id="265">265</a>
-<a href="#266" id="266">266</a>
-<a href="#267" id="267">267</a>
-<a href="#268" id="268">268</a>
-<a href="#269" id="269">269</a>
-<a href="#270" id="270">270</a>
-<a href="#271" id="271">271</a>
-</pre></div><pre class="rust"><code><span class="kw">use crate</span>::{trace::Trace, Gc, GcBox};
+</pre></div><pre class="rust"><code><span class="kw">use crate</span>::{trace::Trace, Gc, GcBox, Tracer};
 <span class="kw">use </span>std::{
-    cell::{Cell, UnsafeCell},
+    cell::UnsafeCell,
     ptr::{<span class="self">self</span>, NonNull},
 };
 
-<span class="kw">const </span>MARK_MASK: u32 = <span class="number">1 </span>&lt;&lt; (u32::BITS - <span class="number">1</span>);
-<span class="kw">const </span>NON_ROOTS_MASK: u32 = !MARK_MASK;
-<span class="kw">const </span>NON_ROOTS_MAX: u32 = NON_ROOTS_MASK;
-
-<span class="doccomment">/// The `EphemeronBoxHeader` contains the `EphemeronBoxHeader`&#39;s current state for the `Collector`&#39;s
-/// Mark/Sweep as well as a pointer to the next ephemeron in the heap.
-///
-/// `ref_count` is the number of Gc instances, and `non_root_count` is the number of
-/// Gc instances in the heap. `non_root_count` also includes Mark Flag bit.
-///
-/// The next node is set by the `Allocator` during initialization and by the
-/// `Collector` during the sweep phase.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>EphemeronBoxHeader {
-    ref_count: Cell&lt;u32&gt;,
-    non_root_count: Cell&lt;u32&gt;,
-}
-
-<span class="kw">impl </span>EphemeronBoxHeader {
-    <span class="doccomment">/// Creates a new `EphemeronBoxHeader` with a root of 1 and next set to None.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{
-            ref_count: Cell::new(<span class="number">1</span>),
-            non_root_count: Cell::new(<span class="number">0</span>),
-        }
-    }
-
-    <span class="doccomment">/// Returns the `EphemeronBoxHeader`&#39;s current ref count
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_ref_count(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u32 {
-        <span class="self">self</span>.ref_count.get()
-    }
-
-    <span class="doccomment">/// Returns a count for non-roots.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_non_root_count(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u32 {
-        <span class="self">self</span>.non_root_count.get() &amp; NON_ROOTS_MASK
-    }
-
-    <span class="doccomment">/// Increments `EphemeronBoxHeader`&#39;s non-roots count.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>inc_non_root_count(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="kw">let </span>non_root_count = <span class="self">self</span>.non_root_count.get();
-
-        <span class="kw">if </span>(non_root_count &amp; NON_ROOTS_MASK) &lt; NON_ROOTS_MAX {
-            <span class="self">self</span>.non_root_count.set(non_root_count.wrapping_add(<span class="number">1</span>));
-        } <span class="kw">else </span>{
-            <span class="comment">// TODO: implement a better way to handle root overload.
-            </span><span class="macro">panic!</span>(<span class="string">&quot;non roots counter overflow&quot;</span>);
-        }
-    }
-
-    <span class="doccomment">/// Reset non-roots count to zero.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>reset_non_root_count(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="self">self</span>.non_root_count
-            .set(<span class="self">self</span>.non_root_count.get() &amp; !NON_ROOTS_MASK);
-    }
-
-    <span class="doccomment">/// Returns a bool for whether `GcBoxHeader`&#39;s mark bit is 1.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_marked(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="self">self</span>.non_root_count.get() &amp; MARK_MASK != <span class="number">0
-    </span>}
-
-    <span class="doccomment">/// Sets `GcBoxHeader`&#39;s mark bit to 1.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>mark(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="self">self</span>.non_root_count
-            .set(<span class="self">self</span>.non_root_count.get() | MARK_MASK);
-    }
-
-    <span class="doccomment">/// Sets `GcBoxHeader`&#39;s mark bit to 0.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>unmark(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="self">self</span>.non_root_count
-            .set(<span class="self">self</span>.non_root_count.get() &amp; !MARK_MASK);
-    }
-}
-
-<span class="kw">impl </span>core::fmt::Debug <span class="kw">for </span>EphemeronBoxHeader {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>core::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; core::fmt::Result {
-        f.debug_struct(<span class="string">&quot;EphemeronBoxHeader&quot;</span>)
-            .field(<span class="string">&quot;marked&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.is_marked())
-            .field(<span class="string">&quot;ref_count&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.get_ref_count())
-            .field(<span class="string">&quot;non_root_count&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.get_non_root_count())
-            .finish()
-    }
-}
+<span class="kw">use </span><span class="kw">super</span>::GcHeader;
 
 <span class="doccomment">/// The inner allocation of an [`Ephemeron`][crate::Ephemeron] pointer.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>EphemeronBox&lt;K: Trace + <span class="question-mark">?</span>Sized + <span class="lifetime">&#39;static</span>, V: Trace + <span class="lifetime">&#39;static</span>&gt; {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) header: EphemeronBoxHeader,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) header: GcHeader,
     data: UnsafeCell&lt;<span class="prelude-ty">Option</span>&lt;Data&lt;K, V&gt;&gt;&gt;,
 }
 
@@ -372,7 +212,7 @@
     <span class="doccomment">/// Creates a new `EphemeronBox` that tracks `key` and has `value` as its inner data.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(key: <span class="kw-2">&amp;</span>Gc&lt;K&gt;, value: V) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            header: EphemeronBoxHeader::new(),
+            header: GcHeader::new(),
             data: UnsafeCell::new(<span class="prelude-val">Some</span>(Data {
                 key: key.inner_ptr(),
                 value,
@@ -383,7 +223,7 @@
     <span class="doccomment">/// Creates a new `EphemeronBox` with its inner data in the invalidated state.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new_empty() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            header: EphemeronBoxHeader::new(),
+            header: GcHeader::new(),
             data: UnsafeCell::new(<span class="prelude-val">None</span>),
         }
     }
@@ -461,12 +301,12 @@
 
     <span class="attr">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>inc_ref_count(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="self">self</span>.header.ref_count.set(<span class="self">self</span>.header.ref_count.get() + <span class="number">1</span>);
+        <span class="self">self</span>.header.inc_ref_count();
     }
 
     <span class="attr">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>dec_ref_count(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="self">self</span>.header.ref_count.set(<span class="self">self</span>.header.ref_count.get() - <span class="number">1</span>);
+        <span class="self">self</span>.header.dec_ref_count();
     }
 
     <span class="attr">#[inline]
@@ -477,13 +317,13 @@
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait </span>ErasedEphemeronBox {
     <span class="doccomment">/// Gets the header of the `EphemeronBox`.
-    </span><span class="kw">fn </span>header(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>EphemeronBoxHeader;
+    </span><span class="kw">fn </span>header(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>GcHeader;
 
     <span class="doccomment">/// Traces through the `EphemeronBox`&#39;s held value, but only if it&#39;s marked and its key is also
     /// marked. Returns `true` if the ephemeron successfuly traced through its value. This also
     /// considers ephemerons that are marked but don&#39;t have their value anymore as
     /// &quot;successfully traced&quot;.
-    </span><span class="kw">unsafe fn </span>trace(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool;
+    </span><span class="kw">unsafe fn </span>trace(<span class="kw-2">&amp;</span><span class="self">self</span>, tracer: <span class="kw-2">&amp;mut </span>Tracer) -&gt; bool;
 
     <span class="kw">fn </span>trace_non_roots(<span class="kw-2">&amp;</span><span class="self">self</span>);
 
@@ -493,11 +333,11 @@
 }
 
 <span class="kw">impl</span>&lt;K: Trace + <span class="question-mark">?</span>Sized, V: Trace&gt; ErasedEphemeronBox <span class="kw">for </span>EphemeronBox&lt;K, V&gt; {
-    <span class="kw">fn </span>header(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>EphemeronBoxHeader {
+    <span class="kw">fn </span>header(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>GcHeader {
         <span class="kw-2">&amp;</span><span class="self">self</span>.header
     }
 
-    <span class="kw">unsafe fn </span>trace(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    <span class="kw">unsafe fn </span>trace(<span class="kw-2">&amp;</span><span class="self">self</span>, tracer: <span class="kw-2">&amp;mut </span>Tracer) -&gt; bool {
         <span class="kw">if </span>!<span class="self">self</span>.header.is_marked() {
             <span class="kw">return </span><span class="bool-val">false</span>;
         }
@@ -518,7 +358,7 @@
         <span class="kw">if </span>is_key_marked {
             <span class="comment">// SAFETY: this is safe to call, since we want to trace all reachable objects
             // from a marked ephemeron that holds a live `key`.
-            </span><span class="kw">unsafe </span>{ data.value.trace() }
+            </span><span class="kw">unsafe </span>{ data.value.trace(tracer) }
         }
 
         is_key_marked

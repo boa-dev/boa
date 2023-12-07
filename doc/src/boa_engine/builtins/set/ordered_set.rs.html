@@ -202,7 +202,7 @@
 }
 
 <span class="kw">unsafe impl </span>Trace <span class="kw">for </span>OrderedSet {
-    <span class="macro">custom_trace!</span>(this, {
+    <span class="macro">custom_trace!</span>(this, mark, {
         <span class="kw">for </span>v <span class="kw">in </span><span class="kw-2">&amp;</span>this.inner {
             <span class="kw">if let </span>MapKey::Key(v) = v {
                 mark(v);

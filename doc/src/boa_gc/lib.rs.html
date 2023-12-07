@@ -514,6 +514,80 @@
 <a href="#514" id="514">514</a>
 <a href="#515" id="515">515</a>
 <a href="#516" id="516">516</a>
+<a href="#517" id="517">517</a>
+<a href="#518" id="518">518</a>
+<a href="#519" id="519">519</a>
+<a href="#520" id="520">520</a>
+<a href="#521" id="521">521</a>
+<a href="#522" id="522">522</a>
+<a href="#523" id="523">523</a>
+<a href="#524" id="524">524</a>
+<a href="#525" id="525">525</a>
+<a href="#526" id="526">526</a>
+<a href="#527" id="527">527</a>
+<a href="#528" id="528">528</a>
+<a href="#529" id="529">529</a>
+<a href="#530" id="530">530</a>
+<a href="#531" id="531">531</a>
+<a href="#532" id="532">532</a>
+<a href="#533" id="533">533</a>
+<a href="#534" id="534">534</a>
+<a href="#535" id="535">535</a>
+<a href="#536" id="536">536</a>
+<a href="#537" id="537">537</a>
+<a href="#538" id="538">538</a>
+<a href="#539" id="539">539</a>
+<a href="#540" id="540">540</a>
+<a href="#541" id="541">541</a>
+<a href="#542" id="542">542</a>
+<a href="#543" id="543">543</a>
+<a href="#544" id="544">544</a>
+<a href="#545" id="545">545</a>
+<a href="#546" id="546">546</a>
+<a href="#547" id="547">547</a>
+<a href="#548" id="548">548</a>
+<a href="#549" id="549">549</a>
+<a href="#550" id="550">550</a>
+<a href="#551" id="551">551</a>
+<a href="#552" id="552">552</a>
+<a href="#553" id="553">553</a>
+<a href="#554" id="554">554</a>
+<a href="#555" id="555">555</a>
+<a href="#556" id="556">556</a>
+<a href="#557" id="557">557</a>
+<a href="#558" id="558">558</a>
+<a href="#559" id="559">559</a>
+<a href="#560" id="560">560</a>
+<a href="#561" id="561">561</a>
+<a href="#562" id="562">562</a>
+<a href="#563" id="563">563</a>
+<a href="#564" id="564">564</a>
+<a href="#565" id="565">565</a>
+<a href="#566" id="566">566</a>
+<a href="#567" id="567">567</a>
+<a href="#568" id="568">568</a>
+<a href="#569" id="569">569</a>
+<a href="#570" id="570">570</a>
+<a href="#571" id="571">571</a>
+<a href="#572" id="572">572</a>
+<a href="#573" id="573">573</a>
+<a href="#574" id="574">574</a>
+<a href="#575" id="575">575</a>
+<a href="#576" id="576">576</a>
+<a href="#577" id="577">577</a>
+<a href="#578" id="578">578</a>
+<a href="#579" id="579">579</a>
+<a href="#580" id="580">580</a>
+<a href="#581" id="581">581</a>
+<a href="#582" id="582">582</a>
+<a href="#583" id="583">583</a>
+<a href="#584" id="584">584</a>
+<a href="#585" id="585">585</a>
+<a href="#586" id="586">586</a>
+<a href="#587" id="587">587</a>
+<a href="#588" id="588">588</a>
+<a href="#589" id="589">589</a>
+<a href="#590" id="590">590</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s **`boa_gc`** crate implements a garbage collector.
 //!
 //! # Crate Overview
@@ -541,20 +615,20 @@
 
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>internals::{EphemeronBox, ErasedEphemeronBox, ErasedWeakMapBox, WeakMapBox};
-<span class="kw">use </span>pointers::RawWeakMap;
+<span class="kw">use </span>pointers::{NonTraceable, RawWeakMap};
 <span class="kw">use </span>std::{
     cell::{Cell, RefCell},
     mem,
     ptr::NonNull,
 };
 
-<span class="kw">pub use </span><span class="kw">crate</span>::trace::{Finalize, Trace};
+<span class="kw">pub use </span><span class="kw">crate</span>::trace::{Finalize, Trace, Tracer};
 <span class="kw">pub use </span>boa_macros::{Finalize, Trace};
 <span class="kw">pub use </span>cell::{GcRef, GcRefCell, GcRefMut};
 <span class="kw">pub use </span>internals::GcBox;
 <span class="kw">pub use </span>pointers::{Ephemeron, Gc, WeakGc, WeakMap};
 
-<span class="kw">type </span>GcPointer = NonNull&lt;GcBox&lt;<span class="kw">dyn </span>Trace&gt;&gt;;
+<span class="kw">type </span>GcErasedPointer = NonNull&lt;GcBox&lt;NonTraceable&gt;&gt;;
 <span class="kw">type </span>EphemeronPointer = NonNull&lt;<span class="kw">dyn </span>ErasedEphemeronBox&gt;;
 <span class="kw">type </span>ErasedWeakMapBoxPointer = NonNull&lt;<span class="kw">dyn </span>ErasedWeakMapBox&gt;;
 
@@ -595,7 +669,7 @@
 </span><span class="kw">struct </span>BoaGc {
     config: GcConfig,
     runtime: GcRuntimeData,
-    strongs: Vec&lt;GcPointer&gt;,
+    strongs: Vec&lt;GcErasedPointer&gt;,
     weaks: Vec&lt;EphemeronPointer&gt;,
     weak_maps: Vec&lt;ErasedWeakMapBoxPointer&gt;,
 }
@@ -651,7 +725,7 @@
             <span class="self">Self</span>::manage_state(<span class="kw-2">&amp;mut </span>gc);
             <span class="comment">// Safety: value cannot be a null pointer, since `Box` cannot return null pointers.
             </span><span class="kw">let </span>ptr = <span class="kw">unsafe </span>{ NonNull::new_unchecked(Box::into_raw(Box::new(value))) };
-            <span class="kw">let </span>erased: NonNull&lt;GcBox&lt;<span class="kw">dyn </span>Trace&gt;&gt; = ptr;
+            <span class="kw">let </span>erased: NonNull&lt;GcBox&lt;NonTraceable&gt;&gt; = ptr.cast();
 
             gc.strongs.push(erased);
             gc.runtime.bytes_allocated += element_size;
@@ -718,7 +792,7 @@
 }
 
 <span class="kw">struct </span>Unreachables {
-    strong: Vec&lt;NonNull&lt;GcBox&lt;<span class="kw">dyn </span>Trace&gt;&gt;&gt;,
+    strong: Vec&lt;GcErasedPointer&gt;,
     weak: Vec&lt;NonNull&lt;<span class="kw">dyn </span>ErasedEphemeronBox&gt;&gt;,
 }
 
@@ -744,7 +818,11 @@
 
         <span class="self">Self</span>::trace_non_roots(gc);
 
-        <span class="kw">let </span>unreachables = <span class="self">Self</span>::mark_heap(<span class="kw-2">&amp;</span>gc.strongs, <span class="kw-2">&amp;</span>gc.weaks, <span class="kw-2">&amp;</span>gc.weak_maps);
+        <span class="kw">let </span><span class="kw-2">mut </span>tracer = Tracer::new();
+
+        <span class="kw">let </span>unreachables = <span class="self">Self</span>::mark_heap(<span class="kw-2">&amp;mut </span>tracer, <span class="kw-2">&amp;</span>gc.strongs, <span class="kw-2">&amp;</span>gc.weaks, <span class="kw-2">&amp;</span>gc.weak_maps);
+
+        <span class="macro">assert!</span>(tracer.is_empty(), <span class="string">&quot;The queue should be empty&quot;</span>);
 
         <span class="comment">// Only finalize if there are any unreachable nodes.
         </span><span class="kw">if </span>!unreachables.strong.is_empty() || !unreachables.weak.is_empty() {
@@ -752,7 +830,9 @@
             // SAFETY: All passed pointers are valid, since we won&#39;t deallocate until `Self::sweep`.
             </span><span class="kw">unsafe </span>{ <span class="self">Self</span>::finalize(unreachables) };
 
-            <span class="kw">let </span>_final_unreachables = <span class="self">Self</span>::mark_heap(<span class="kw-2">&amp;</span>gc.strongs, <span class="kw-2">&amp;</span>gc.weaks, <span class="kw-2">&amp;</span>gc.weak_maps);
+            <span class="comment">// Reuse the tracer&#39;s already allocated capacity.
+            </span><span class="kw">let </span>_final_unreachables =
+                <span class="self">Self</span>::mark_heap(<span class="kw-2">&amp;mut </span>tracer, <span class="kw-2">&amp;</span>gc.strongs, <span class="kw-2">&amp;</span>gc.weaks, <span class="kw-2">&amp;</span>gc.weak_maps);
         }
 
         <span class="comment">// SAFETY: The head of our linked list is always valid per the invariants of our GC.
@@ -793,8 +873,12 @@
         // Then, we can find whether there is a reference from other places, and they are the roots.
         </span><span class="kw">for </span>node <span class="kw">in </span><span class="kw-2">&amp;</span>gc.strongs {
             <span class="comment">// SAFETY: node must be valid as this phase cannot drop any node.
-            </span><span class="kw">let </span>node_ref = <span class="kw">unsafe </span>{ node.as_ref() };
-            node_ref.value().trace_non_roots();
+            </span><span class="kw">let </span>trace_non_roots_fn = <span class="kw">unsafe </span>{ node.as_ref() }.trace_non_roots_fn();
+
+            <span class="comment">// SAFETY: The function pointer is appropriate for this node type because we extract it from it&#39;s VTable.
+            </span><span class="kw">unsafe </span>{
+                trace_non_roots_fn(<span class="kw-2">*</span>node);
+            }
         }
 
         <span class="kw">for </span>eph <span class="kw">in </span><span class="kw-2">&amp;</span>gc.weaks {
@@ -806,7 +890,8 @@
 
     <span class="doccomment">/// Walk the heap and mark any nodes deemed reachable
     </span><span class="kw">fn </span>mark_heap(
-        strongs: <span class="kw-2">&amp;</span>[GcPointer],
+        tracer: <span class="kw-2">&amp;mut </span>Tracer,
+        strongs: <span class="kw-2">&amp;</span>[GcErasedPointer],
         weaks: <span class="kw-2">&amp;</span>[EphemeronPointer],
         weak_maps: <span class="kw-2">&amp;</span>[ErasedWeakMapBoxPointer],
     ) -&gt; Unreachables {
@@ -822,10 +907,26 @@
         </span><span class="kw">for </span>node <span class="kw">in </span>strongs {
             <span class="comment">// SAFETY: node must be valid as this phase cannot drop any node.
             </span><span class="kw">let </span>node_ref = <span class="kw">unsafe </span>{ node.as_ref() };
-            <span class="kw">if </span>node_ref.get_non_root_count() &lt; node_ref.get_ref_count() {
-                <span class="comment">// SAFETY: the gc heap object should be alive if there is a root.
-                </span><span class="kw">unsafe </span>{
-                    node_ref.mark_and_trace();
+            <span class="kw">if </span>node_ref.is_rooted() {
+                tracer.enqueue(<span class="kw-2">*</span>node);
+
+                <span class="kw">while let </span><span class="prelude-val">Some</span>(node) = tracer.next() {
+                    <span class="comment">// SAFETY: the gc heap object should be alive if there is a root.
+                    </span><span class="kw">let </span>node_ref = <span class="kw">unsafe </span>{ node.as_ref() };
+
+                    <span class="kw">if </span>!node_ref.header.is_marked() {
+                        node_ref.header.mark();
+
+                        <span class="comment">// SAFETY: if `GcBox::trace_inner()` has been called, then,
+                        // this box must have been deemed as reachable via tracing
+                        // from a root, which by extension means that value has not
+                        // been dropped either.
+
+                        </span><span class="kw">let </span>trace_fn = node_ref.trace_fn();
+
+                        <span class="comment">// SAFETY: The function pointer is appropriate for this node type because we extract it from it&#39;s VTable.
+                        </span><span class="kw">unsafe </span>{ trace_fn(node, tracer) }
+                    }
                 }
             } <span class="kw">else if </span>!node_ref.is_marked() {
                 strong_dead.push(<span class="kw-2">*</span>node);
@@ -854,12 +955,22 @@
             <span class="comment">// SAFETY: node must be valid as this phase cannot drop any node.
             </span><span class="kw">let </span>eph_ref = <span class="kw">unsafe </span>{ eph.as_ref() };
             <span class="kw">let </span>header = eph_ref.header();
-            <span class="kw">if </span>header.get_non_root_count() &lt; header.get_ref_count() {
+            <span class="kw">if </span>header.is_rooted() {
                 header.mark();
             }
             <span class="comment">// SAFETY: the garbage collector ensures `eph_ref` always points to valid data.
-            </span><span class="kw">if unsafe </span>{ !eph_ref.trace() } {
+            </span><span class="kw">if unsafe </span>{ !eph_ref.trace(tracer) } {
                 pending_ephemerons.push(<span class="kw-2">*</span>eph);
+            }
+
+            <span class="kw">while let </span><span class="prelude-val">Some</span>(node) = tracer.next() {
+                <span class="comment">// SAFETY: node must be valid as this phase cannot drop any node.
+                </span><span class="kw">let </span>trace_fn = <span class="kw">unsafe </span>{ node.as_ref() }.trace_fn();
+
+                <span class="comment">// SAFETY: The function pointer is appropriate for this node type because we extract it from it&#39;s VTable.
+                </span><span class="kw">unsafe </span>{
+                    trace_fn(node, tracer);
+                }
             }
         }
 
@@ -869,7 +980,17 @@
             </span><span class="kw">let </span>node_ref = <span class="kw">unsafe </span>{ w.as_ref() };
 
             <span class="comment">// SAFETY: The garbage collector ensures that all nodes are valid.
-            </span><span class="kw">unsafe </span>{ node_ref.trace() };
+            </span><span class="kw">unsafe </span>{ node_ref.trace(tracer) };
+
+            <span class="kw">while let </span><span class="prelude-val">Some</span>(node) = tracer.next() {
+                <span class="comment">// SAFETY: node must be valid as this phase cannot drop any node.
+                </span><span class="kw">let </span>trace_fn = <span class="kw">unsafe </span>{ node.as_ref() }.trace_fn();
+
+                <span class="comment">// SAFETY: The function pointer is appropriate for this node type because we extract it from it&#39;s VTable.
+                </span><span class="kw">unsafe </span>{
+                    trace_fn(node, tracer);
+                }
+            }
         }
 
         <span class="comment">// 3. Iterate through all pending ephemerons, removing the ones which have been successfully
@@ -881,7 +1002,19 @@
                 <span class="comment">// SAFETY: node must be valid as this phase cannot drop any node.
                 </span><span class="kw">let </span>eph_ref = <span class="kw">unsafe </span>{ eph.as_ref() };
                 <span class="comment">// SAFETY: the garbage collector ensures `eph_ref` always points to valid data.
-                </span><span class="kw">unsafe </span>{ !eph_ref.trace() }
+                </span><span class="kw">let </span>is_key_marked = <span class="kw">unsafe </span>{ !eph_ref.trace(tracer) };
+
+                <span class="kw">while let </span><span class="prelude-val">Some</span>(node) = tracer.next() {
+                    <span class="comment">// SAFETY: node must be valid as this phase cannot drop any node.
+                    </span><span class="kw">let </span>trace_fn = <span class="kw">unsafe </span>{ node.as_ref() }.trace_fn();
+
+                    <span class="comment">// SAFETY: The function pointer is appropriate for this node type because we extract it from it&#39;s VTable.
+                    </span><span class="kw">unsafe </span>{
+                        trace_fn(node, tracer);
+                    }
+                }
+
+                is_key_marked
             });
 
             <span class="kw">if </span>previous_len == pending_ephemerons.len() {
@@ -912,8 +1045,13 @@
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Gc Finalization&quot;</span>, <span class="string">&quot;gc&quot;</span>);
         <span class="kw">for </span>node <span class="kw">in </span>unreachables.strong {
             <span class="comment">// SAFETY: The caller must ensure all pointers inside `unreachables.strong` are valid.
-            </span><span class="kw">let </span>node = <span class="kw">unsafe </span>{ node.as_ref() };
-            Trace::run_finalizer(node.value());
+            </span><span class="kw">let </span>node_ref = <span class="kw">unsafe </span>{ node.as_ref() };
+            <span class="kw">let </span>run_finalizer_fn = node_ref.run_finalizer_fn();
+
+            <span class="comment">// SAFETY: The function pointer is appropriate for this node type because we extract it from it&#39;s VTable.
+            </span><span class="kw">unsafe </span>{
+                run_finalizer_fn(node);
+            }
         }
         <span class="kw">for </span>node <span class="kw">in </span>unreachables.weak {
             <span class="comment">// SAFETY: The caller must ensure all pointers inside `unreachables.weak` are valid.
@@ -929,7 +1067,7 @@
     /// - Providing a list of pointers that weren&#39;t allocated by `Box::into_raw(Box::new(..))`
     /// will result in Undefined Behaviour.
     </span><span class="kw">unsafe fn </span>sweep(
-        strong: <span class="kw-2">&amp;mut </span>Vec&lt;GcPointer&gt;,
+        strong: <span class="kw-2">&amp;mut </span>Vec&lt;GcErasedPointer&gt;,
         weak: <span class="kw-2">&amp;mut </span>Vec&lt;EphemeronPointer&gt;,
         total_allocated: <span class="kw-2">&amp;mut </span>usize,
     ) {
@@ -947,9 +1085,14 @@
             </span>} <span class="kw">else </span>{
                 <span class="comment">// SAFETY: The algorithm ensures only unmarked/unreachable pointers are dropped.
                 // The caller must ensure all pointers were allocated by `Box::into_raw(Box::new(..))`.
-                </span><span class="kw">let </span>unmarked_node = <span class="kw">unsafe </span>{ Box::from_raw(node.as_ptr()) };
-                <span class="kw">let </span>unallocated_bytes = mem::size_of_val(<span class="kw-2">&amp;*</span>unmarked_node);
-                <span class="kw-2">*</span>total_allocated -= unallocated_bytes;
+                </span><span class="kw">let </span>drop_fn = node_ref.drop_fn();
+                <span class="kw">let </span>size = node_ref.size();
+                <span class="kw-2">*</span>total_allocated -= size;
+
+                <span class="comment">// SAFETY: The function pointer is appropriate for this node type because we extract it from it&#39;s VTable.
+                </span><span class="kw">unsafe </span>{
+                    drop_fn(<span class="kw-2">*</span>node);
+                }
 
                 <span class="bool-val">false
             </span>}
@@ -994,7 +1137,12 @@
             <span class="comment">// SAFETY:
             // The `Allocator` must always ensure its start node is a valid, non-null pointer that
             // was allocated by `Box::from_raw(Box::new(..))`.
-            </span><span class="kw">let </span>_unmarked_node = <span class="kw">unsafe </span>{ Box::from_raw(node.as_ptr()) };
+            </span><span class="kw">let </span>drop_fn = <span class="kw">unsafe </span>{ node.as_ref() }.drop_fn();
+
+            <span class="comment">// SAFETY: The function pointer is appropriate for this node type because we extract it from it&#39;s VTable.
+            </span><span class="kw">unsafe </span>{
+                drop_fn(node);
+            }
         }
 
         <span class="kw">for </span>node <span class="kw">in </span>std::mem::take(<span class="kw-2">&amp;mut </span>gc.weaks) {

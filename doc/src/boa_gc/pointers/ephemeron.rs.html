@@ -145,7 +145,7 @@
     finalizer_safe,
     internals::EphemeronBox,
     trace::{Finalize, Trace},
-    Allocator, Gc,
+    Allocator, Gc, Tracer,
 };
 <span class="kw">use </span>std::ptr::NonNull;
 
@@ -251,7 +251,7 @@
 <span class="comment">// SAFETY: `Ephemeron`s trace implementation only marks its inner box because we want to stop
 // tracing through weakly held pointers.
 </span><span class="kw">unsafe impl</span>&lt;K: Trace + <span class="question-mark">?</span>Sized, V: Trace&gt; Trace <span class="kw">for </span>Ephemeron&lt;K, V&gt; {
-    <span class="kw">unsafe fn </span>trace(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+    <span class="kw">unsafe fn </span>trace(<span class="kw-2">&amp;</span><span class="self">self</span>, _tracer: <span class="kw-2">&amp;mut </span>Tracer) {
         <span class="comment">// SAFETY: We need to mark the inner box of the `Ephemeron` since it is reachable
         // from a root and this means it cannot be dropped.
         </span><span class="kw">unsafe </span>{
@@ -259,7 +259,7 @@
         }
     }
 
-    <span class="kw">fn </span>trace_non_roots(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+    <span class="kw">unsafe fn </span>trace_non_roots(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="self">self</span>.inner().inc_non_root_count();
     }
 

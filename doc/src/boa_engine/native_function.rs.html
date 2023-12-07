@@ -520,7 +520,7 @@
 
 <span class="comment">// SAFETY: this traces all fields that need to be traced by the GC.
 </span><span class="kw">unsafe impl </span>Trace <span class="kw">for </span>NativeFunctionObject {
-    <span class="macro">custom_trace!</span>(this, {
+    <span class="macro">custom_trace!</span>(this, mark, {
         mark(<span class="kw-2">&amp;</span>this.f);
         mark(<span class="kw-2">&amp;</span>this.realm);
     });
@@ -574,7 +574,7 @@
 <span class="comment">// Manual implementation because deriving `Trace` triggers the `single_use_lifetimes` lint.
 // SAFETY: Only closures can contain `Trace` captures, so this implementation is safe.
 </span><span class="kw">unsafe impl </span>Trace <span class="kw">for </span>NativeFunction {
-    <span class="macro">custom_trace!</span>(this, {
+    <span class="macro">custom_trace!</span>(this, mark, {
         <span class="kw">if let </span>Inner::Closure(c) = <span class="kw-2">&amp;</span>this.inner {
             mark(c);
         }

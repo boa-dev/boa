@@ -482,7 +482,7 @@
 }
 
 <span class="kw">unsafe impl</span>&lt;K: Trace + <span class="question-mark">?</span>Sized + <span class="lifetime">&#39;static</span>, V: Trace + <span class="lifetime">&#39;static</span>&gt; Trace <span class="kw">for </span>WeakMap&lt;K, V&gt; {
-    <span class="macro">custom_trace!</span>(this, {
+    <span class="macro">custom_trace!</span>(this, mark, {
         mark(<span class="kw-2">&amp;</span>this.inner);
     });
 }
@@ -549,7 +549,7 @@
     </span>K: Trace + <span class="question-mark">?</span>Sized + <span class="lifetime">&#39;static</span>,
     V: Trace + <span class="lifetime">&#39;static</span>,
 {
-    <span class="macro">custom_trace!</span>(this, {
+    <span class="macro">custom_trace!</span>(this, mark, {
         <span class="kw">for </span>eph <span class="kw">in </span>this.iter() {
             mark(eph);
         }

@@ -91,163 +91,27 @@
 <a href="#91" id="91">91</a>
 <a href="#92" id="92">92</a>
 <a href="#93" id="93">93</a>
-<a href="#94" id="94">94</a>
-<a href="#95" id="95">95</a>
-<a href="#96" id="96">96</a>
-<a href="#97" id="97">97</a>
-<a href="#98" id="98">98</a>
-<a href="#99" id="99">99</a>
-<a href="#100" id="100">100</a>
-<a href="#101" id="101">101</a>
-<a href="#102" id="102">102</a>
-<a href="#103" id="103">103</a>
-<a href="#104" id="104">104</a>
-<a href="#105" id="105">105</a>
-<a href="#106" id="106">106</a>
-<a href="#107" id="107">107</a>
-<a href="#108" id="108">108</a>
-<a href="#109" id="109">109</a>
-<a href="#110" id="110">110</a>
-<a href="#111" id="111">111</a>
-<a href="#112" id="112">112</a>
-<a href="#113" id="113">113</a>
-<a href="#114" id="114">114</a>
-<a href="#115" id="115">115</a>
-<a href="#116" id="116">116</a>
-<a href="#117" id="117">117</a>
-<a href="#118" id="118">118</a>
-<a href="#119" id="119">119</a>
-<a href="#120" id="120">120</a>
-<a href="#121" id="121">121</a>
-<a href="#122" id="122">122</a>
-<a href="#123" id="123">123</a>
-<a href="#124" id="124">124</a>
-<a href="#125" id="125">125</a>
-<a href="#126" id="126">126</a>
-<a href="#127" id="127">127</a>
-<a href="#128" id="128">128</a>
-<a href="#129" id="129">129</a>
-<a href="#130" id="130">130</a>
-<a href="#131" id="131">131</a>
-<a href="#132" id="132">132</a>
-<a href="#133" id="133">133</a>
-<a href="#134" id="134">134</a>
-<a href="#135" id="135">135</a>
-<a href="#136" id="136">136</a>
-<a href="#137" id="137">137</a>
-<a href="#138" id="138">138</a>
-<a href="#139" id="139">139</a>
-<a href="#140" id="140">140</a>
-<a href="#141" id="141">141</a>
-<a href="#142" id="142">142</a>
-<a href="#143" id="143">143</a>
-<a href="#144" id="144">144</a>
-<a href="#145" id="145">145</a>
-<a href="#146" id="146">146</a>
-<a href="#147" id="147">147</a>
-<a href="#148" id="148">148</a>
-<a href="#149" id="149">149</a>
-<a href="#150" id="150">150</a>
-<a href="#151" id="151">151</a>
-<a href="#152" id="152">152</a>
-<a href="#153" id="153">153</a>
-<a href="#154" id="154">154</a>
-<a href="#155" id="155">155</a>
-<a href="#156" id="156">156</a>
-<a href="#157" id="157">157</a>
-<a href="#158" id="158">158</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::Trace;
-<span class="kw">use </span>std::{cell::Cell, fmt, ptr};
+<span class="kw">use </span>std::ptr::{<span class="self">self</span>};
 
-<span class="kw">const </span>MARK_MASK: u32 = <span class="number">1 </span>&lt;&lt; (u32::BITS - <span class="number">1</span>);
-<span class="kw">const </span>NON_ROOTS_MASK: u32 = !MARK_MASK;
-<span class="kw">const </span>NON_ROOTS_MAX: u32 = NON_ROOTS_MASK;
-
-<span class="doccomment">/// The `GcBoxheader` contains the `GcBox`&#39;s current state for the `Collector`&#39;s
-/// Mark/Sweep as well as a pointer to the next node in the heap.
-///
-/// `ref_count` is the number of Gc instances, and `non_root_count` is the number of
-/// Gc instances in the heap. `non_root_count` also includes Mark Flag bit.
-///
-/// The next node is set by the `Allocator` during initialization and by the
-/// `Collector` during the sweep phase.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>GcBoxHeader {
-    ref_count: Cell&lt;u32&gt;,
-    non_root_count: Cell&lt;u32&gt;,
-}
-
-<span class="kw">impl </span>GcBoxHeader {
-    <span class="doccomment">/// Creates a new `GcBoxHeader` with a root of 1 and next set to None.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{
-            ref_count: Cell::new(<span class="number">1</span>),
-            non_root_count: Cell::new(<span class="number">0</span>),
-        }
-    }
-
-    <span class="doccomment">/// Returns the `GcBoxHeader`&#39;s current non-roots count
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_non_root_count(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u32 {
-        <span class="self">self</span>.non_root_count.get() &amp; NON_ROOTS_MASK
-    }
-
-    <span class="doccomment">/// Increments `GcBoxHeader`&#39;s non-roots count.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>inc_non_root_count(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="kw">let </span>non_root_count = <span class="self">self</span>.non_root_count.get();
-
-        <span class="kw">if </span>(non_root_count &amp; NON_ROOTS_MASK) &lt; NON_ROOTS_MAX {
-            <span class="self">self</span>.non_root_count.set(non_root_count.wrapping_add(<span class="number">1</span>));
-        } <span class="kw">else </span>{
-            <span class="comment">// TODO: implement a better way to handle root overload.
-            </span><span class="macro">panic!</span>(<span class="string">&quot;non-roots counter overflow&quot;</span>);
-        }
-    }
-
-    <span class="doccomment">/// Decreases `GcBoxHeader`&#39;s current non-roots count.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>reset_non_root_count(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="self">self</span>.non_root_count
-            .set(<span class="self">self</span>.non_root_count.get() &amp; !NON_ROOTS_MASK);
-    }
-
-    <span class="doccomment">/// Returns a bool for whether `GcBoxHeader`&#39;s mark bit is 1.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_marked(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="self">self</span>.non_root_count.get() &amp; MARK_MASK != <span class="number">0
-    </span>}
-
-    <span class="doccomment">/// Sets `GcBoxHeader`&#39;s mark bit to 1.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>mark(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="self">self</span>.non_root_count
-            .set(<span class="self">self</span>.non_root_count.get() | MARK_MASK);
-    }
-
-    <span class="doccomment">/// Sets `GcBoxHeader`&#39;s mark bit to 0.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>unmark(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="self">self</span>.non_root_count
-            .set(<span class="self">self</span>.non_root_count.get() &amp; !MARK_MASK);
-    }
-}
-
-<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>GcBoxHeader {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        f.debug_struct(<span class="string">&quot;GcBoxHeader&quot;</span>)
-            .field(<span class="string">&quot;marked&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.is_marked())
-            .field(<span class="string">&quot;ref_count&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.ref_count.get())
-            .field(<span class="string">&quot;non_root_count&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.get_non_root_count())
-            .finish_non_exhaustive()
-    }
-}
+<span class="kw">use super</span>::{vtable_of, DropFn, GcHeader, RunFinalizerFn, TraceFn, TraceNonRootsFn, VTable};
 
 <span class="doccomment">/// A garbage collected allocation.
 </span><span class="attr">#[derive(Debug)]
+#[repr(C)]
 </span><span class="kw">pub struct </span>GcBox&lt;T: Trace + <span class="question-mark">?</span>Sized + <span class="lifetime">&#39;static</span>&gt; {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) header: GcBoxHeader,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) header: GcHeader,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) vtable: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>VTable,
     value: T,
 }
 
 <span class="kw">impl</span>&lt;T: Trace&gt; GcBox&lt;T&gt; {
     <span class="doccomment">/// Returns a new `GcBox` with a rooted `GcBoxHeader`.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(value: T) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>vtable = vtable_of::&lt;T&gt;();
         <span class="self">Self </span>{
-            header: GcBoxHeader::new(),
+            header: GcHeader::new(),
+            vtable,
             value,
         }
     }
@@ -261,20 +125,6 @@
         </span>ptr::eq(<span class="kw-2">&amp;</span>this.header, <span class="kw-2">&amp;</span>other.header)
     }
 
-    <span class="doccomment">/// Marks this `GcBox` and traces its value.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe fn </span>mark_and_trace(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="kw">if </span>!<span class="self">self</span>.header.is_marked() {
-            <span class="self">self</span>.header.mark();
-            <span class="comment">// SAFETY: if `GcBox::trace_inner()` has been called, then,
-            // this box must have been deemed as reachable via tracing
-            // from a root, which by extension means that value has not
-            // been dropped either.
-            </span><span class="kw">unsafe </span>{
-                <span class="self">self</span>.value.trace();
-            }
-        }
-    }
-
     <span class="doccomment">/// Returns a reference to the `GcBox`&#39;s value.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>value(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
         <span class="kw-2">&amp;</span><span class="self">self</span>.value
@@ -286,23 +136,13 @@
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_ref_count(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u32 {
-        <span class="self">self</span>.header.ref_count.get()
-    }
-
-    <span class="attr">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>inc_ref_count(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="self">self</span>.header.ref_count.set(<span class="self">self</span>.header.ref_count.get() + <span class="number">1</span>);
+        <span class="self">self</span>.header.inc_ref_count();
     }
 
     <span class="attr">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>dec_ref_count(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="self">self</span>.header.ref_count.set(<span class="self">self</span>.header.ref_count.get() - <span class="number">1</span>);
-    }
-
-    <span class="attr">#[inline]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_non_root_count(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u32 {
-        <span class="self">self</span>.header.get_non_root_count()
+        <span class="self">self</span>.header.dec_ref_count();
     }
 
     <span class="attr">#[inline]
@@ -312,6 +152,36 @@
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>reset_non_root_count(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="self">self</span>.header.reset_non_root_count();
+    }
+
+    <span class="doccomment">/// Check if the gc object is rooted.
+    ///
+    /// # Note
+    ///
+    /// This only gives valid result if the we have run through the
+    /// tracing non roots phase.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_rooted(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.header.is_rooted()
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>trace_fn(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TraceFn {
+        <span class="self">self</span>.vtable.trace_fn()
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>trace_non_roots_fn(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TraceNonRootsFn {
+        <span class="self">self</span>.vtable.trace_non_roots_fn()
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>run_finalizer_fn(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RunFinalizerFn {
+        <span class="self">self</span>.vtable.run_finalizer_fn()
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>drop_fn(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; DropFn {
+        <span class="self">self</span>.vtable.drop_fn()
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.vtable.size()
     }
 }
 </code></pre></div></section></main></body></html>

@@ -2115,7 +2115,7 @@
 // useful to have for state machines like `Status`. This is solved by manually implementing
 // `Trace`.
 </span><span class="kw">unsafe impl </span>Trace <span class="kw">for </span>Status {
-    <span class="macro">custom_trace!</span>(this, {
+    <span class="macro">custom_trace!</span>(this, mark, {
         <span class="kw">match </span>this {
             <span class="self">Self</span>::Unlinked | <span class="self">Self</span>::Linking { info: <span class="kw">_ </span>} =&gt; {}
             <span class="self">Self</span>::PreLinked { context, info: <span class="kw">_ </span>} | <span class="self">Self</span>::Linked { context, info: <span class="kw">_ </span>} =&gt; {
@@ -2250,7 +2250,7 @@
 }
 
 <span class="kw">unsafe impl </span>Trace <span class="kw">for </span>SourceTextContext {
-    <span class="macro">custom_trace!</span>(this, {
+    <span class="macro">custom_trace!</span>(this, mark, {
         mark(<span class="kw-2">&amp;</span>this.codeblock);
         mark(<span class="kw-2">&amp;</span>this.environments);
         mark(<span class="kw-2">&amp;</span>this.realm);

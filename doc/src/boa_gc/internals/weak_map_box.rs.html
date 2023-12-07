@@ -37,7 +37,7 @@
 <a href="#37" id="37">37</a>
 <a href="#38" id="38">38</a>
 <a href="#39" id="39">39</a>
-</pre></div><pre class="rust"><code><span class="kw">use crate</span>::{pointers::RawWeakMap, GcRefCell, Trace, WeakGc};
+</pre></div><pre class="rust"><code><span class="kw">use crate</span>::{pointers::RawWeakMap, GcRefCell, Trace, Tracer, WeakGc};
 
 <span class="doccomment">/// A box that is used to track [`WeakMap`][`crate::WeakMap`]s.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>WeakMapBox&lt;K: Trace + <span class="question-mark">?</span>Sized + <span class="lifetime">&#39;static</span>, V: Trace + Sized + <span class="lifetime">&#39;static</span>&gt; {
@@ -53,7 +53,7 @@
     </span><span class="kw">fn </span>is_live(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool;
 
     <span class="doccomment">/// Traces the weak reference inside of the [`WeakMapBox`] if the weak map is live.
-    </span><span class="kw">unsafe fn </span>trace(<span class="kw-2">&amp;</span><span class="self">self</span>);
+    </span><span class="kw">unsafe fn </span>trace(<span class="kw-2">&amp;</span><span class="self">self</span>, tracer: <span class="kw-2">&amp;mut </span>Tracer);
 }
 
 <span class="kw">impl</span>&lt;K: Trace + <span class="question-mark">?</span>Sized, V: Trace + Clone&gt; ErasedWeakMapBox <span class="kw">for </span>WeakMapBox&lt;K, V&gt; {
@@ -69,10 +69,10 @@
         <span class="self">self</span>.map.upgrade().is_some()
     }
 
-    <span class="kw">unsafe fn </span>trace(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+    <span class="kw">unsafe fn </span>trace(<span class="kw-2">&amp;</span><span class="self">self</span>, tracer: <span class="kw-2">&amp;mut </span>Tracer) {
         <span class="kw">if </span><span class="self">self</span>.map.upgrade().is_some() {
             <span class="comment">// SAFETY: When the weak map is live, the weak reference should be traced.
-            </span><span class="kw">unsafe </span>{ <span class="self">self</span>.map.trace() }
+            </span><span class="kw">unsafe </span>{ <span class="self">self</span>.map.trace(tracer) }
         }
     }
 }

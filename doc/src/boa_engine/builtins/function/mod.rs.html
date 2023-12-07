@@ -1226,7 +1226,7 @@
 }
 
 <span class="kw">unsafe impl </span>Trace <span class="kw">for </span>ClassFieldDefinition {
-    <span class="macro">custom_trace! </span>{this, {
+    <span class="macro">custom_trace! </span>{this, mark, {
         <span class="kw">match </span>this {
             <span class="self">Self</span>::Public(_key, func) =&gt; {
                 mark(func);
