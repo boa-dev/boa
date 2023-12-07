@@ -547,11 +547,12 @@ impl Collector {
             // SAFETY:
             // The `Allocator` must always ensure its start node is a valid, non-null pointer that
             // was allocated by `Box::from_raw(Box::new(..))`.
+            let drop_fn = unsafe { node.as_ref() }.drop_fn();
+
+            // SAFETY: The function pointer is appropriate for this node type because we extract it from it's VTable.
             unsafe {
-                let drop_fn = node.as_ref().drop_fn();
                 drop_fn(node);
             }
-            // let _unmarked_node = unsafe { Box::from_raw(node.ptr().as_ptr()) };
         }
 
         for node in std::mem::take(&mut gc.weaks) {

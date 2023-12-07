@@ -15,9 +15,9 @@ use std::{
 };
 
 /// Zero sized struct that is used to ensure that we do not call trace methods,
-/// , call its finalization method or drop it.
+/// call its finalization method or drop it.
 ///
-/// This can only happen if we are accessing an [`GcErasedPointer`] directly which is a bug.
+/// This can only happen if we are accessing a [`GcErasedPointer`] directly which is a bug.
 /// Panics if any of it's methods are called.
 ///
 /// Note: Accessing the [`crate::internals::GcHeader`] of [`GcErasedPointer`] is fine.
