@@ -19,7 +19,10 @@ pub(crate) const fn vtable_of<T: Trace + 'static>() -> &'static VTable {
             // SAFETY: The caller must ensure that the passed erased pointer is `GcBox<Self>`.
             let value = unsafe { this.cast::<GcBox<Self>>().as_ref().value() };
 
-            Self::trace_non_roots(value);
+            // SAFETY: The implementor must ensure that `trace_non_roots` is correctly implemented.
+            unsafe {
+                Self::trace_non_roots(value);
+            }
         }
 
         unsafe fn run_finalizer_fn(this: GcErasedPointer) {
@@ -57,7 +60,6 @@ pub(crate) type TraceNonRootsFn = unsafe fn(this: GcErasedPointer);
 pub(crate) type RunFinalizerFn = unsafe fn(this: GcErasedPointer);
 pub(crate) type DropFn = unsafe fn(this: GcErasedPointer);
 
-/// The
 #[derive(Debug)]
 pub(crate) struct VTable {
     trace_fn: TraceFn,

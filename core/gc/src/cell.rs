@@ -229,7 +229,7 @@ unsafe impl<T: Trace + ?Sized> Trace for GcRefCell<T> {
         }
     }
 
-    fn trace_non_roots(&self) {
+    unsafe fn trace_non_roots(&self) {
         match self.flags.get().borrowed() {
             BorrowState::Writing => (),
             // SAFETY: Please see GcCell's Trace impl Safety note.

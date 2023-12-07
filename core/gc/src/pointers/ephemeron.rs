@@ -116,7 +116,7 @@ unsafe impl<K: Trace + ?Sized, V: Trace> Trace for Ephemeron<K, V> {
         }
     }
 
-    fn trace_non_roots(&self) {
+    unsafe fn trace_non_roots(&self) {
         self.inner().inc_non_root_count();
     }
 

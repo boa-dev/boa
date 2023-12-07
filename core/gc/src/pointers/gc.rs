@@ -33,7 +33,7 @@ unsafe impl Trace for NonTraceable {
     unsafe fn trace(&self, _tracer: &mut Tracer) {
         unreachable!()
     }
-    fn trace_non_roots(&self) {
+    unsafe fn trace_non_roots(&self) {
         unreachable!()
     }
     fn run_finalizer(&self) {
@@ -166,7 +166,7 @@ unsafe impl<T: Trace + ?Sized> Trace for Gc<T> {
         tracer.enqueue(self.as_erased());
     }
 
-    fn trace_non_roots(&self) {
+    unsafe fn trace_non_roots(&self) {
         self.inner().inc_non_root_count();
     }
 

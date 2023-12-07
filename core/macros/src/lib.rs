@@ -224,7 +224,7 @@ fn derive_trace(mut s: Structure<'_>) -> proc_macro2::TokenStream {
                     #[inline(always)]
                     unsafe fn trace(&self, _tracer: &mut ::boa_gc::Tracer) {}
                     #[inline(always)]
-                    fn trace_non_roots(&self) {}
+                    unsafe fn trace_non_roots(&self) {}
                     #[inline]
                     fn run_finalizer(&self) {
                         ::boa_gc::Finalize::finalize(self)
@@ -259,7 +259,7 @@ fn derive_trace(mut s: Structure<'_>) -> proc_macro2::TokenStream {
                 match *self { #trace_body }
             }
             #[inline]
-            fn trace_non_roots(&self) {
+            unsafe fn trace_non_roots(&self) {
                 #[allow(dead_code)]
                 fn mark<T: ::boa_gc::Trace + ?Sized>(it: &T) {
                     // SAFETY: The implementor must ensure that `trace_non_roots` is correctly implemented.
