@@ -473,7 +473,7 @@
                 matcher,
                 ..Default::default()
             },
-            context.icu(),
+            context.intl_provider(),
         );
 
         <span class="comment">// 12. Let granularity be ? GetOption(options, &quot;granularity&quot;, string, « &quot;grapheme&quot;, &quot;word&quot;, &quot;sentence&quot; », &quot;grapheme&quot;).
@@ -482,14 +482,14 @@
 
         </span><span class="kw">let </span>native = <span class="kw">match </span>granularity {
             Granularity::Grapheme =&gt; {
-                GraphemeClusterSegmenter::try_new_unstable(context.icu().provider())
+                GraphemeClusterSegmenter::try_new_unstable(context.intl_provider())
                     .map(|s| NativeSegmenter::Grapheme(Box::new(s)))
             }
 
-            Granularity::Word =&gt; WordSegmenter::try_new_auto_unstable(context.icu().provider())
+            Granularity::Word =&gt; WordSegmenter::try_new_auto_unstable(context.intl_provider())
                 .map(|s| NativeSegmenter::Word(Box::new(s))),
 
-            Granularity::Sentence =&gt; SentenceSegmenter::try_new_unstable(context.icu().provider())
+            Granularity::Sentence =&gt; SentenceSegmenter::try_new_unstable(context.intl_provider())
                 .map(|s| NativeSegmenter::Sentence(Box::new(s))),
         }
         .map_err(|err| JsNativeError::typ().with_message(err.to_string()))<span class="question-mark">?</span>;

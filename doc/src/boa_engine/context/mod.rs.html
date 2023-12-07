@@ -1104,6 +1104,26 @@
 <a href="#1104" id="1104">1104</a>
 <a href="#1105" id="1105">1105</a>
 <a href="#1106" id="1106">1106</a>
+<a href="#1107" id="1107">1107</a>
+<a href="#1108" id="1108">1108</a>
+<a href="#1109" id="1109">1109</a>
+<a href="#1110" id="1110">1110</a>
+<a href="#1111" id="1111">1111</a>
+<a href="#1112" id="1112">1112</a>
+<a href="#1113" id="1113">1113</a>
+<a href="#1114" id="1114">1114</a>
+<a href="#1115" id="1115">1115</a>
+<a href="#1116" id="1116">1116</a>
+<a href="#1117" id="1117">1117</a>
+<a href="#1118" id="1118">1118</a>
+<a href="#1119" id="1119">1119</a>
+<a href="#1120" id="1120">1120</a>
+<a href="#1121" id="1121">1121</a>
+<a href="#1122" id="1122">1122</a>
+<a href="#1123" id="1123">1123</a>
+<a href="#1124" id="1124">1124</a>
+<a href="#1125" id="1125">1125</a>
+<a href="#1126" id="1126">1126</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! The ECMAScript context.
 
 </span><span class="kw">mod </span>hooks;
@@ -1112,8 +1132,10 @@
 <span class="kw">pub mod </span>intrinsics;
 
 <span class="kw">pub use </span>hooks::{DefaultHooks, HostHooks};
+
 <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
-</span><span class="kw">pub use </span>icu::{BoaProvider, IcuError};
+</span><span class="kw">pub use </span>icu::IcuError;
+
 <span class="kw">use </span>intrinsics::Intrinsics;
 
 <span class="attr">#[cfg(not(feature = <span class="string">&quot;intl&quot;</span>))]
@@ -1208,9 +1230,9 @@
 
     can_block: bool,
 
-    <span class="doccomment">/// ICU related utilities
+    <span class="doccomment">/// Intl data provider.
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
-    </span>icu: icu::Icu,
+    </span>intl_provider: icu::IntlProvider,
 
     host_hooks: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><span class="kw">dyn </span>HostHooks,
 
@@ -1240,7 +1262,7 @@
             .field(<span class="string">&quot;optimizer_options&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.optimizer_options);
 
         <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
-        </span>debug.field(<span class="string">&quot;icu&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.icu);
+        </span>debug.field(<span class="string">&quot;intl_provider&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.intl_provider);
 
         debug.finish_non_exhaustive()
     }
@@ -1943,10 +1965,10 @@
         ContextCleanupGuard::new(<span class="self">self</span>, cleanup)
     }
 
-    <span class="doccomment">/// Get the ICU related utilities
+    <span class="doccomment">/// Get the Intl data provider.
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>icu(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>icu::Icu {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.icu
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>intl_provider(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>icu::IntlProvider {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.intl_provider
     }
 }
 
@@ -1954,14 +1976,7 @@
 ///
 /// This builder allows custom initialization of the [`Interner`] within
 /// the context.
-/// Additionally, if the `intl` feature is enabled, [`ContextBuilder`] becomes
-/// the only way to create a new [`Context`], since now it requires a
-/// valid data provider for the `Intl` functionality.
-</span><span class="attr">#[cfg_attr(
-    feature = <span class="string">&quot;intl&quot;</span>,
-    doc = <span class="string">&quot;The required data in a valid provider is specified in [`BoaProvider`]&quot;
-</span>)]
-#[derive(Default)]
+</span><span class="attr">#[derive(Default)]
 </span><span class="kw">pub struct </span>ContextBuilder {
     interner: <span class="prelude-ty">Option</span>&lt;Interner&gt;,
     host_hooks: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><span class="kw">dyn </span>HostHooks&gt;,
@@ -1969,7 +1984,7 @@
     module_loader: <span class="prelude-ty">Option</span>&lt;Rc&lt;<span class="kw">dyn </span>ModuleLoader&gt;&gt;,
     can_block: bool,
     <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
-    </span>icu: <span class="prelude-ty">Option</span>&lt;icu::Icu&gt;,
+    </span>icu: <span class="prelude-ty">Option</span>&lt;icu::IntlProvider&gt;,
     <span class="attr">#[cfg(feature = <span class="string">&quot;fuzz&quot;</span>)]
     </span>instructions_remaining: usize,
 }
@@ -2023,7 +2038,7 @@
         <span class="self">self
     </span>}
 
-    <span class="doccomment">/// Provides an icu data provider to the [`Context`].
+    <span class="doccomment">/// Provides a [`BufferProvider`] data provider to the [`Context`].
     ///
     /// This function is only available if the `intl` feature is enabled.
     ///
@@ -2036,9 +2051,36 @@
     ///
     /// [`LocaleCanonicalizer`]: icu_locid_transform::LocaleCanonicalizer
     /// [`LocaleExpander`]: icu_locid_transform::LocaleExpander
+    /// [`BufferProvider`]: icu_provider::BufferProvider
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
-    </span><span class="kw">pub fn </span>icu_provider(<span class="kw-2">mut </span><span class="self">self</span>, provider: BoaProvider) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, IcuError&gt; {
-        <span class="self">self</span>.icu = <span class="prelude-val">Some</span>(icu::Icu::new(provider)<span class="question-mark">?</span>);
+    </span><span class="kw">pub fn </span>icu_buffer_provider&lt;T: icu_provider::BufferProvider + <span class="lifetime">&#39;static</span>&gt;(
+        <span class="kw-2">mut </span><span class="self">self</span>,
+        provider: T,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, IcuError&gt; {
+        <span class="self">self</span>.icu = <span class="prelude-val">Some</span>(icu::IntlProvider::try_new_with_buffer_provider(provider)<span class="question-mark">?</span>);
+        <span class="prelude-val">Ok</span>(<span class="self">self</span>)
+    }
+
+    <span class="doccomment">/// Provides an [`AnyProvider`] data provider to the [`Context`].
+    ///
+    /// This function is only available if the `intl` feature is enabled.
+    ///
+    /// # Errors
+    ///
+    /// This returns `Err` if the provided provider doesn&#39;t have the required locale information
+    /// to construct both a [`LocaleCanonicalizer`] and a [`LocaleExpander`]. Note that this doesn&#39;t
+    /// mean that the provider will successfully construct all `Intl` services; that check is made
+    /// until the creation of an instance of a service.
+    ///
+    /// [`LocaleCanonicalizer`]: icu_locid_transform::LocaleCanonicalizer
+    /// [`LocaleExpander`]: icu_locid_transform::LocaleExpander
+    /// [`AnyProvider`]: icu_provider::AnyProvider
+    </span><span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+    </span><span class="kw">pub fn </span>icu_any_provider&lt;T: icu_provider::AnyProvider + <span class="lifetime">&#39;static</span>&gt;(
+        <span class="kw-2">mut </span><span class="self">self</span>,
+        provider: T,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, IcuError&gt; {
+        <span class="self">self</span>.icu = <span class="prelude-val">Some</span>(icu::IntlProvider::try_new_with_any_provider(provider)<span class="question-mark">?</span>);
         <span class="prelude-val">Ok</span>(<span class="self">self</span>)
     }
 
@@ -2133,11 +2175,9 @@
             vm,
             strict: <span class="bool-val">false</span>,
             <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
-            </span>icu: <span class="self">self</span>.icu.unwrap_or_else(|| {
-                <span class="kw">let </span>provider = BoaProvider::Buffer(Box::new(icu::StaticProviderAdapter(
-                    boa_icu_provider::buffer(),
-                )));
-                icu::Icu::new(provider).expect(<span class="string">&quot;Failed to initialize default icu data.&quot;</span>)
+            </span>intl_provider: <span class="self">self</span>.icu.unwrap_or_else(|| {
+                icu::IntlProvider::try_new_with_buffer_provider(boa_icu_provider::buffer())
+                    .expect(<span class="string">&quot;Failed to initialize default icu data.&quot;</span>)
             }),
             <span class="attr">#[cfg(feature = <span class="string">&quot;fuzz&quot;</span>)]
             </span>instructions_remaining: <span class="self">self</span>.instructions_remaining,

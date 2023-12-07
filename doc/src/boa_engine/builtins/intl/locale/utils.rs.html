@@ -656,6 +656,10 @@
 <a href="#656" id="656">656</a>
 <a href="#657" id="657">657</a>
 <a href="#658" id="658">658</a>
+<a href="#659" id="659">659</a>
+<a href="#660" id="660">660</a>
+<a href="#661" id="661">661</a>
+<a href="#662" id="662">662</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::{
         intl::{
@@ -665,7 +669,7 @@
         options::get_option,
         Array,
     },
-    context::{icu::Icu, BoaProvider},
+    context::icu::IntlProvider,
     js_string,
     object::JsObject,
     string::utf16,
@@ -796,7 +800,10 @@
             </span>};
 
             <span class="comment">// vi. Let canonicalizedTag be CanonicalizeUnicodeLocaleId(tag).
-            </span>context.icu().locale_canonicalizer().canonicalize(<span class="kw-2">&amp;mut </span>tag);
+            </span>context
+                .intl_provider()
+                .locale_canonicalizer()
+                .canonicalize(<span class="kw-2">&amp;mut </span>tag);
 
             <span class="comment">// vii. If canonicalizedTag is not an element of seen, append canonicalizedTag as the last element of seen.
             </span>seen.insert(tag);
@@ -972,9 +979,12 @@
 /// in order to see if a certain [`Locale`] is supported.
 ///
 /// [spec]: https://tc39.es/ecma402/#sec-lookupmatcher
-</span><span class="kw">fn </span>lookup_matcher&lt;M: KeyedDataMarker&gt;(requested_locales: <span class="kw-2">&amp;</span>[Locale], icu: <span class="kw-2">&amp;</span>Icu) -&gt; Locale
+</span><span class="kw">fn </span>lookup_matcher&lt;M: KeyedDataMarker&gt;(
+    requested_locales: <span class="kw-2">&amp;</span>[Locale],
+    provider: <span class="kw-2">&amp;</span>IntlProvider,
+) -&gt; Locale
 <span class="kw">where
-    </span>BoaProvider: DataProvider&lt;M&gt;,
+    </span>IntlProvider: DataProvider&lt;M&gt;,
 {
     <span class="comment">// 1. Let result be a new Record.
     // 2. For each element locale of requestedLocales, do
@@ -987,7 +997,7 @@
         locale.extensions.private.clear();
 
         <span class="comment">// b. Let availableLocale be ! BestAvailableLocale(availableLocales, noExtensionsLocale).
-        </span><span class="kw">let </span>available_locale = best_available_locale::&lt;M&gt;(id, icu.provider());
+        </span><span class="kw">let </span>available_locale = best_available_locale::&lt;M&gt;(id, provider);
 
         <span class="comment">// c. If availableLocale is not undefined, then
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(available_locale) = available_locale {
@@ -1007,7 +1017,7 @@
     <span class="comment">// 3. Let defLocale be ! DefaultLocale().
     // 4. Set result.[[locale]] to defLocale.
     // 5. Return result.
-    </span>default_locale(icu.locale_canonicalizer())
+    </span>default_locale(provider.locale_canonicalizer())
 }
 
 <span class="doccomment">/// Abstract operation [`BestFitMatcher ( availableLocales, requestedLocales )`][spec]
@@ -1019,22 +1029,25 @@
 /// produced by the `LookupMatcher` abstract operation.
 ///
 /// [spec]: https://tc39.es/ecma402/#sec-bestfitmatcher
-</span><span class="kw">fn </span>best_fit_matcher&lt;M: KeyedDataMarker&gt;(requested_locales: <span class="kw-2">&amp;</span>[Locale], icu: <span class="kw-2">&amp;</span>Icu) -&gt; Locale
+</span><span class="kw">fn </span>best_fit_matcher&lt;M: KeyedDataMarker&gt;(
+    requested_locales: <span class="kw-2">&amp;</span>[Locale],
+    provider: <span class="kw-2">&amp;</span>IntlProvider,
+) -&gt; Locale
 <span class="kw">where
-    </span>BoaProvider: DataProvider&lt;M&gt;,
+    </span>IntlProvider: DataProvider&lt;M&gt;,
 {
     <span class="kw">for </span><span class="kw-2">mut </span>locale <span class="kw">in </span>requested_locales
         .iter()
         .cloned()
         .chain(std::iter::once_with(|| {
-            default_locale(icu.locale_canonicalizer())
+            default_locale(provider.locale_canonicalizer())
         }))
     {
         <span class="kw">let </span>id = std::mem::take(<span class="kw-2">&amp;mut </span>locale.id);
         locale.extensions.transform.clear();
         locale.extensions.private.clear();
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(available) = best_locale_for_provider(id, icu.provider()) {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(available) = best_locale_for_provider(id, provider) {
             locale.id = available;
 
             <span class="kw">return </span>locale;
@@ -1057,11 +1070,11 @@
 </span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::builtins::intl) <span class="kw">fn </span>resolve_locale&lt;S&gt;(
     requested_locales: <span class="kw-2">&amp;</span>[Locale],
     options: <span class="kw-2">&amp;mut </span>IntlOptions&lt;S::LocaleOptions&gt;,
-    icu: <span class="kw-2">&amp;</span>Icu,
+    provider: <span class="kw-2">&amp;</span>IntlProvider,
 ) -&gt; Locale
 <span class="kw">where
     </span>S: Service,
-    BoaProvider: DataProvider&lt;S::LangMarker&gt;,
+    IntlProvider: DataProvider&lt;S::LangMarker&gt;,
 {
     <span class="comment">// 1. Let matcher be options.[[localeMatcher]].
     // 2. If matcher is &quot;lookup&quot;, then
@@ -1070,9 +1083,9 @@
     //    a. Let r be ! BestFitMatcher(availableLocales, requestedLocales).
     // 4. Let foundLocale be r.[[locale]].
     </span><span class="kw">let </span><span class="kw-2">mut </span>found_locale = <span class="kw">if </span>options.matcher == LocaleMatcher::Lookup {
-        lookup_matcher::&lt;S::LangMarker&gt;(requested_locales, icu)
+        lookup_matcher::&lt;S::LangMarker&gt;(requested_locales, provider)
     } <span class="kw">else </span>{
-        best_fit_matcher::&lt;S::LangMarker&gt;(requested_locales, icu)
+        best_fit_matcher::&lt;S::LangMarker&gt;(requested_locales, provider)
     };
 
     <span class="comment">// From here, the spec differs significantly from the implementation,
@@ -1127,12 +1140,10 @@
     // 11. Set result.[[locale]] to foundLocale.
 
     // 12. Return result.
-    </span>S::resolve(
-        <span class="kw-2">&amp;mut </span>found_locale,
-        <span class="kw-2">&amp;mut </span>options.service_options,
-        icu.provider(),
-    );
-    icu.locale_canonicalizer().canonicalize(<span class="kw-2">&amp;mut </span>found_locale);
+    </span>S::resolve(<span class="kw-2">&amp;mut </span>found_locale, <span class="kw-2">&amp;mut </span>options.service_options, provider);
+    provider
+        .locale_canonicalizer()
+        .canonicalize(<span class="kw-2">&amp;mut </span>found_locale);
     found_locale
 }
 
@@ -1151,7 +1162,7 @@
 /// [spec]: https://tc39.es/ecma402/#sec-lookupsupportedlocales
 </span><span class="kw">fn </span>lookup_supported_locales&lt;M: KeyedDataMarker&gt;(
     requested_locales: <span class="kw-2">&amp;</span>[Locale],
-    provider: <span class="kw-2">&amp;</span><span class="kw">impl </span>DataProvider&lt;M&gt;,
+    provider: <span class="kw-2">&amp;</span>(<span class="kw">impl </span>DataProvider&lt;M&gt; + <span class="question-mark">?</span>Sized),
 ) -&gt; Vec&lt;Locale&gt; {
     <span class="comment">// 1. Let subset be a new empty List.
     // 2. For each element locale of requestedLocales, do
@@ -1175,7 +1186,7 @@
 /// [spec]: https://tc39.es/ecma402/#sec-bestfitsupportedlocales
 </span><span class="kw">fn </span>best_fit_supported_locales&lt;M: KeyedDataMarker&gt;(
     requested_locales: <span class="kw-2">&amp;</span>[Locale],
-    provider: <span class="kw-2">&amp;</span><span class="kw">impl </span>DataProvider&lt;M&gt;,
+    provider: <span class="kw-2">&amp;</span>(<span class="kw">impl </span>DataProvider&lt;M&gt; + <span class="question-mark">?</span>Sized),
 ) -&gt; Vec&lt;Locale&gt; {
     requested_locales
         .iter()
@@ -1196,7 +1207,7 @@
     context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;JsObject&gt;
 <span class="kw">where
-    </span>BoaProvider: DataProvider&lt;M&gt;,
+    </span>IntlProvider: DataProvider&lt;M&gt;,
 {
     <span class="comment">// 1. Set options to ? CoerceOptionsToObject(options).
     </span><span class="kw">let </span>options = coerce_options_to_object(options, context)<span class="question-mark">?</span>;
@@ -1208,12 +1219,12 @@
         <span class="comment">// 4. Else,
         //     a. Let supportedLocales be LookupSupportedLocales(availableLocales, requestedLocales).
         </span>LocaleMatcher::Lookup =&gt; {
-            lookup_supported_locales(requested_locales, context.icu().provider())
+            lookup_supported_locales(requested_locales, context.intl_provider())
         }
         <span class="comment">// 3. If matcher is &quot;best fit&quot;, then
         //     a. Let supportedLocales be BestFitSupportedLocales(availableLocales, requestedLocales).
         </span>LocaleMatcher::BestFit =&gt; {
-            best_fit_supported_locales(requested_locales, context.icu().provider())
+            best_fit_supported_locales(requested_locales, context.intl_provider())
         }
     };
 
@@ -1258,7 +1269,7 @@
         builtins::intl::locale::utils::{
             best_available_locale, best_fit_matcher, default_locale, lookup_matcher,
         },
-        context::icu::{BoaProvider, Icu, StaticProviderAdapter},
+        context::icu::IntlProvider,
     };
 
     <span class="attr">#[test]
@@ -1284,10 +1295,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>lookup_match() {
-        <span class="kw">let </span>icu = Icu::new(BoaProvider::Buffer(Box::new(StaticProviderAdapter(
-            boa_icu_provider::buffer(),
-        ))))
-        .unwrap();
+        <span class="kw">let </span>icu = IntlProvider::try_new_with_buffer_provider(boa_icu_provider::buffer()).unwrap();
 
         <span class="comment">// requested: []
 

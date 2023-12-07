@@ -193,7 +193,7 @@
 
 </span><span class="kw">use crate</span>::{
     builtins::{Array, BuiltInBuilder, BuiltInObject, IntrinsicObject},
-    context::{intrinsics::Intrinsics, BoaProvider},
+    context::{icu::IntlProvider, intrinsics::Intrinsics},
     js_string,
     object::JsObject,
     property::Attribute,
@@ -350,7 +350,7 @@
     </span><span class="kw">fn </span>resolve(
         _locale: <span class="kw-2">&amp;mut </span>icu_locid::Locale,
         _options: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::LocaleOptions,
-        _provider: <span class="kw-2">&amp;</span>BoaProvider,
+        _provider: <span class="kw-2">&amp;</span>IntlProvider,
     ) {
     }
 }

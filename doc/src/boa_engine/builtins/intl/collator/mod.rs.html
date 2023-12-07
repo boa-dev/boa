@@ -566,6 +566,9 @@
 <a href="#566" id="566">566</a>
 <a href="#567" id="567">567</a>
 <a href="#568" id="568">568</a>
+<a href="#569" id="569">569</a>
+<a href="#570" id="570">570</a>
+<a href="#571" id="571">571</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>boa_gc::{custom_trace, Finalize, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>icu_collator::{
@@ -585,8 +588,8 @@
         OrdinaryObject,
     },
     context::{
+        icu::IntlProvider,
         intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
-        BoaProvider,
     },
     js_string,
     native_function::NativeFunction,
@@ -647,7 +650,7 @@
 
     <span class="kw">type </span>LocaleOptions = CollatorLocaleOptions;
 
-    <span class="kw">fn </span>resolve(locale: <span class="kw-2">&amp;mut </span>Locale, options: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::LocaleOptions, provider: <span class="kw-2">&amp;</span>BoaProvider) {
+    <span class="kw">fn </span>resolve(locale: <span class="kw-2">&amp;mut </span>Locale, options: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::LocaleOptions, provider: <span class="kw-2">&amp;</span>IntlProvider) {
         <span class="kw">let </span>collation = options
             .collation
             .take()
@@ -842,8 +845,11 @@
 
         <span class="comment">// 18. Let relevantExtensionKeys be %Collator%.[[RelevantExtensionKeys]].
         // 19. Let r be ResolveLocale(%Collator%.[[AvailableLocales]], requestedLocales, opt, relevantExtensionKeys, localeData).
-        </span><span class="kw">let </span><span class="kw-2">mut </span>locale =
-            resolve_locale::&lt;<span class="self">Self</span>&gt;(<span class="kw-2">&amp;</span>requested_locales, <span class="kw-2">&amp;mut </span>intl_options, context.icu());
+        </span><span class="kw">let </span><span class="kw-2">mut </span>locale = resolve_locale::&lt;<span class="self">Self</span>&gt;(
+            <span class="kw-2">&amp;</span>requested_locales,
+            <span class="kw-2">&amp;mut </span>intl_options,
+            context.intl_provider(),
+        );
 
         <span class="kw">let </span>collator_locale = {
             <span class="comment">// `collator_locale` needs to be different from the resolved locale because ECMA402 doesn&#39;t
@@ -900,7 +906,7 @@
             .unzip();
 
         <span class="kw">let </span>collator =
-            NativeCollator::try_new_unstable(context.icu().provider(), <span class="kw-2">&amp;</span>collator_locale, {
+            NativeCollator::try_new_unstable(context.intl_provider(), <span class="kw-2">&amp;</span>collator_locale, {
                 <span class="kw">let </span><span class="kw-2">mut </span>options = icu_collator::CollatorOptions::new();
                 options.strength = strength;
                 options.case_level = case_level;

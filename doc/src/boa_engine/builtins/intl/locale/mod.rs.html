@@ -761,6 +761,15 @@
 <a href="#761" id="761">761</a>
 <a href="#762" id="762">762</a>
 <a href="#763" id="763">763</a>
+<a href="#764" id="764">764</a>
+<a href="#765" id="765">765</a>
+<a href="#766" id="766">766</a>
+<a href="#767" id="767">767</a>
+<a href="#768" id="768">768</a>
+<a href="#769" id="769">769</a>
+<a href="#770" id="770">770</a>
+<a href="#771" id="771">771</a>
+<a href="#772" id="772">772</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::options::get_option,
     realm::Realm,
@@ -1012,7 +1021,10 @@
             </span><span class="kw">let </span>region = get_option(options, <span class="macro">utf16!</span>(<span class="string">&quot;region&quot;</span>), context)<span class="question-mark">?</span>;
 
             <span class="comment">// 10. Set tag to ! CanonicalizeUnicodeLocaleId(tag).
-            </span>context.icu().locale_canonicalizer().canonicalize(<span class="kw-2">&amp;mut </span>tag);
+            </span>context
+                .intl_provider()
+                .locale_canonicalizer()
+                .canonicalize(<span class="kw-2">&amp;mut </span>tag);
 
             <span class="comment">// Skipping some boilerplate since this is easier to do using the `Locale` type, but putting the
             // spec for completion.
@@ -1043,7 +1055,10 @@
             }
 
             <span class="comment">// 17. Return ! CanonicalizeUnicodeLocaleId(tag).
-            </span>context.icu().locale_canonicalizer().canonicalize(<span class="kw-2">&amp;mut </span>tag);
+            </span>context
+                .intl_provider()
+                .locale_canonicalizer()
+                .canonicalize(<span class="kw-2">&amp;mut </span>tag);
         }
 
         <span class="comment">// 12. Let opt be a new Record.
@@ -1126,7 +1141,10 @@
             </span>tag.extensions.unicode.keywords.set(<span class="macro">key!</span>(<span class="string">&quot;nu&quot;</span>), nu);
         }
 
-        context.icu().locale_canonicalizer().canonicalize(<span class="kw-2">&amp;mut </span>tag);
+        context
+            .intl_provider()
+            .locale_canonicalizer()
+            .canonicalize(<span class="kw-2">&amp;mut </span>tag);
 
         <span class="comment">// 6. Let locale be ? OrdinaryCreateFromConstructor(NewTarget, &quot;%Locale.prototype%&quot;, internalSlotsList).
         </span><span class="kw">let </span>prototype =
@@ -1166,7 +1184,7 @@
             </span>.clone();
 
         <span class="comment">// 3. Let maximal be the result of the Add Likely Subtags algorithm applied to loc.[[Locale]]. If an error is signaled, set maximal to loc.[[Locale]].
-        </span>context.icu().locale_expander().maximize(<span class="kw-2">&amp;mut </span>loc);
+        </span>context.intl_provider().locale_expander().maximize(<span class="kw-2">&amp;mut </span>loc);
 
         <span class="comment">// 4. Return ! Construct(%Locale%, maximal).
         </span><span class="kw">let </span>prototype = context.intrinsics().constructors().locale().prototype();
@@ -1202,7 +1220,7 @@
             </span>.clone();
 
         <span class="comment">// 3. Let minimal be the result of the Remove Likely Subtags algorithm applied to loc.[[Locale]]. If an error is signaled, set minimal to loc.[[Locale]].
-        </span>context.icu().locale_expander().minimize(<span class="kw-2">&amp;mut </span>loc);
+        </span>context.intl_provider().locale_expander().minimize(<span class="kw-2">&amp;mut </span>loc);
 
         <span class="comment">// 4. Return ! Construct(%Locale%, minimal).
         </span><span class="kw">let </span>prototype = context.intrinsics().constructors().locale().prototype();

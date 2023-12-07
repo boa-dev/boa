@@ -641,7 +641,7 @@
                 matcher,
                 ..Default::default()
             },
-            context.icu(),
+            context.intl_provider(),
         );
 
         <span class="comment">// 11. Let type be ? GetOption(options, &quot;type&quot;, string, « &quot;conjunction&quot;, &quot;disjunction&quot;, &quot;unit&quot; », &quot;conjunction&quot;).
@@ -659,17 +659,17 @@
         </span><span class="kw">let </span>data_locale = DataLocale::from(<span class="kw-2">&amp;</span>locale);
         <span class="kw">let </span>formatter = <span class="kw">match </span>typ {
             ListFormatType::Conjunction =&gt; ListFormatter::try_new_and_with_length_unstable(
-                context.icu().provider(),
+                context.intl_provider(),
                 <span class="kw-2">&amp;</span>data_locale,
                 style,
             ),
             ListFormatType::Disjunction =&gt; ListFormatter::try_new_or_with_length_unstable(
-                context.icu().provider(),
+                context.intl_provider(),
                 <span class="kw-2">&amp;</span>data_locale,
                 style,
             ),
             ListFormatType::Unit =&gt; ListFormatter::try_new_unit_with_length_unstable(
-                context.icu().provider(),
+                context.intl_provider(),
                 <span class="kw-2">&amp;</span>data_locale,
                 style,
             ),

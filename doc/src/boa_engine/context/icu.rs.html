@@ -133,32 +133,6 @@
 <a href="#133" id="133">133</a>
 <a href="#134" id="134">134</a>
 <a href="#135" id="135">135</a>
-<a href="#136" id="136">136</a>
-<a href="#137" id="137">137</a>
-<a href="#138" id="138">138</a>
-<a href="#139" id="139">139</a>
-<a href="#140" id="140">140</a>
-<a href="#141" id="141">141</a>
-<a href="#142" id="142">142</a>
-<a href="#143" id="143">143</a>
-<a href="#144" id="144">144</a>
-<a href="#145" id="145">145</a>
-<a href="#146" id="146">146</a>
-<a href="#147" id="147">147</a>
-<a href="#148" id="148">148</a>
-<a href="#149" id="149">149</a>
-<a href="#150" id="150">150</a>
-<a href="#151" id="151">151</a>
-<a href="#152" id="152">152</a>
-<a href="#153" id="153">153</a>
-<a href="#154" id="154">154</a>
-<a href="#155" id="155">155</a>
-<a href="#156" id="156">156</a>
-<a href="#157" id="157">157</a>
-<a href="#158" id="158">158</a>
-<a href="#159" id="159">159</a>
-<a href="#160" id="160">160</a>
-<a href="#161" id="161">161</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::fmt::Debug;
 
 <span class="kw">use </span>icu_casemap::CaseMapper;
@@ -175,42 +149,10 @@
 
 <span class="kw">use </span><span class="kw">crate</span>::builtins::string::StringNormalizers;
 
-<span class="doccomment">/// ICU4X data provider used in boa.
-///
-/// Providers can be either [`BufferProvider`]s or [`AnyProvider`]s.
-///
-/// The [`icu_provider`] documentation has more information about data providers.
-</span><span class="kw">pub enum </span>BoaProvider {
-    <span class="doccomment">/// A [`BufferProvider`] data provider.
-    </span>Buffer(Box&lt;<span class="kw">dyn </span>BufferProvider&gt;),
-    <span class="doccomment">/// An [`AnyProvider`] data provider.
-    </span>Any(Box&lt;<span class="kw">dyn </span>AnyProvider&gt;),
-}
-
-<span class="kw">impl </span>Debug <span class="kw">for </span>BoaProvider {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
-        <span class="kw">match </span><span class="self">self </span>{
-            <span class="self">Self</span>::Buffer(<span class="kw">_</span>) =&gt; f.debug_tuple(<span class="string">&quot;Buffer&quot;</span>).field(<span class="kw-2">&amp;</span><span class="string">&quot;..&quot;</span>).finish(),
-            <span class="self">Self</span>::Any(<span class="kw">_</span>) =&gt; f.debug_tuple(<span class="string">&quot;Any&quot;</span>).field(<span class="kw-2">&amp;</span><span class="string">&quot;..&quot;</span>).finish(),
-        }
-    }
-}
-
-<span class="comment">// This blanket implementation mirrors the `DataProvider` implementations of `BufferProvider` and
-// `AnyProvider`, which allows us to use `unstable` constructors in a stable way.
-</span><span class="kw">impl</span>&lt;M&gt; DataProvider&lt;M&gt; <span class="kw">for </span>BoaProvider
-<span class="kw">where
-    </span>M: KeyedDataMarker + <span class="lifetime">&#39;static</span>,
-    <span class="kw">for</span>&lt;<span class="lifetime">&#39;de</span>&gt; YokeTraitHack&lt;&lt;M::Yokeable <span class="kw">as </span>Yokeable&lt;<span class="lifetime">&#39;de</span>&gt;&gt;::Output&gt;: Deserialize&lt;<span class="lifetime">&#39;de</span>&gt;,
-    <span class="kw">for</span>&lt;<span class="lifetime">&#39;a</span>&gt; YokeTraitHack&lt;&lt;M::Yokeable <span class="kw">as </span>Yokeable&lt;<span class="lifetime">&#39;a</span>&gt;&gt;::Output&gt;: Clone,
-    M::Yokeable: ZeroFrom&lt;<span class="lifetime">&#39;static</span>, M::Yokeable&gt; + MaybeSendSync,
-{
-    <span class="kw">fn </span>load(<span class="kw-2">&amp;</span><span class="self">self</span>, req: DataRequest&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;DataResponse&lt;M&gt;, DataError&gt; {
-        <span class="kw">match </span><span class="self">self </span>{
-            BoaProvider::Buffer(provider) =&gt; provider.as_deserializing().load(req),
-            BoaProvider::Any(provider) =&gt; provider.as_downcasting().load(req),
-        }
-    }
+<span class="doccomment">/// A [`DataProvider`] that can be either a [`BufferProvider`] or an [`AnyProvider`].
+</span><span class="kw">enum </span>ErasedProvider {
+    Any(Box&lt;<span class="kw">dyn </span>AnyProvider&gt;),
+    Buffer(Box&lt;<span class="kw">dyn </span>BufferProvider&gt;),
 }
 
 <span class="doccomment">/// Error thrown when the engine cannot initialize the ICU tools from a data provider.
@@ -227,46 +169,82 @@
     </span>CaseMap(<span class="attr">#[from] </span>DataError),
 }
 
-<span class="doccomment">/// Collection of tools initialized from a [`DataProvider`] that are used for the functionality of
-/// `Intl`.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Icu {
-    provider: BoaProvider,
+<span class="doccomment">/// Custom [`DataProvider`] for `Intl` that caches some utilities.
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>IntlProvider {
+    inner_provider: ErasedProvider,
     locale_canonicalizer: LocaleCanonicalizer,
     locale_expander: LocaleExpander,
     string_normalizers: StringNormalizers,
     case_mapper: CaseMapper,
 }
 
-<span class="kw">impl </span>Debug <span class="kw">for </span>Icu {
+<span class="kw">impl</span>&lt;M&gt; DataProvider&lt;M&gt; <span class="kw">for </span>IntlProvider
+<span class="kw">where
+    </span>M: KeyedDataMarker + <span class="lifetime">&#39;static</span>,
+    <span class="kw">for</span>&lt;<span class="lifetime">&#39;de</span>&gt; YokeTraitHack&lt;&lt;M::Yokeable <span class="kw">as </span>Yokeable&lt;<span class="lifetime">&#39;de</span>&gt;&gt;::Output&gt;: Deserialize&lt;<span class="lifetime">&#39;de</span>&gt; + Clone,
+    M::Yokeable: ZeroFrom&lt;<span class="lifetime">&#39;static</span>, M::Yokeable&gt; + MaybeSendSync,
+{
+    <span class="kw">fn </span>load(<span class="kw-2">&amp;</span><span class="self">self</span>, req: DataRequest&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;DataResponse&lt;M&gt;, DataError&gt; {
+        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.inner_provider {
+            ErasedProvider::Any(any) =&gt; any.as_downcasting().load(req),
+            ErasedProvider::Buffer(buffer) =&gt; buffer.as_deserializing().load(req),
+        }
+    }
+}
+
+<span class="kw">impl </span>Debug <span class="kw">for </span>IntlProvider {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
         f.debug_struct(<span class="string">&quot;Icu&quot;</span>)
-            .field(<span class="string">&quot;provider&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.provider)
             .field(<span class="string">&quot;locale_canonicalizer&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.locale_canonicalizer)
             .field(<span class="string">&quot;locale_expander&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.locale_expander)
             .field(<span class="string">&quot;string_normalizers&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.string_normalizers)
             .field(<span class="string">&quot;string_normalizercase_mapper&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.case_mapper)
-            .finish()
+            .finish_non_exhaustive()
     }
 }
 
-<span class="kw">impl </span>Icu {
-    <span class="doccomment">/// Creates a new [`Icu`] from a valid [`BoaProvider`]
+<span class="kw">impl </span>IntlProvider {
+    <span class="doccomment">/// Creates a new [`IntlProvider`] from a [`BufferProvider`].
     ///
     /// # Errors
     ///
     /// Returns an error if any of the tools required cannot be constructed.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(provider: BoaProvider) -&gt; <span class="prelude-ty">Result</span>&lt;Icu, IcuError&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>try_new_with_buffer_provider(
+        provider: (<span class="kw">impl </span>BufferProvider + <span class="lifetime">&#39;static</span>),
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;IntlProvider, IcuError&gt; {
         <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
-            locale_canonicalizer: LocaleCanonicalizer::try_new_unstable(<span class="kw-2">&amp;</span>provider)<span class="question-mark">?</span>,
-            locale_expander: LocaleExpander::try_new_extended_unstable(<span class="kw-2">&amp;</span>provider)<span class="question-mark">?</span>,
+            locale_canonicalizer: LocaleCanonicalizer::try_new_with_buffer_provider(<span class="kw-2">&amp;</span>provider)<span class="question-mark">?</span>,
+            locale_expander: LocaleExpander::try_new_with_buffer_provider(<span class="kw-2">&amp;</span>provider)<span class="question-mark">?</span>,
             string_normalizers: StringNormalizers {
-                nfc: ComposingNormalizer::try_new_nfc_unstable(<span class="kw-2">&amp;</span>provider)<span class="question-mark">?</span>,
-                nfkc: ComposingNormalizer::try_new_nfkc_unstable(<span class="kw-2">&amp;</span>provider)<span class="question-mark">?</span>,
-                nfd: DecomposingNormalizer::try_new_nfd_unstable(<span class="kw-2">&amp;</span>provider)<span class="question-mark">?</span>,
-                nfkd: DecomposingNormalizer::try_new_nfkd_unstable(<span class="kw-2">&amp;</span>provider)<span class="question-mark">?</span>,
+                nfc: ComposingNormalizer::try_new_nfc_with_buffer_provider(<span class="kw-2">&amp;</span>provider)<span class="question-mark">?</span>,
+                nfkc: ComposingNormalizer::try_new_nfkc_with_buffer_provider(<span class="kw-2">&amp;</span>provider)<span class="question-mark">?</span>,
+                nfd: DecomposingNormalizer::try_new_nfd_with_buffer_provider(<span class="kw-2">&amp;</span>provider)<span class="question-mark">?</span>,
+                nfkd: DecomposingNormalizer::try_new_nfkd_with_buffer_provider(<span class="kw-2">&amp;</span>provider)<span class="question-mark">?</span>,
             },
-            case_mapper: CaseMapper::try_new_unstable(<span class="kw-2">&amp;</span>provider)<span class="question-mark">?</span>,
-            provider,
+            case_mapper: CaseMapper::try_new_with_buffer_provider(<span class="kw-2">&amp;</span>provider)<span class="question-mark">?</span>,
+            inner_provider: ErasedProvider::Buffer(Box::new(provider)),
+        })
+    }
+
+    <span class="doccomment">/// Creates a new [`IntlProvider`] from an [`AnyProvider`].
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if any of the tools required cannot be constructed.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>try_new_with_any_provider(
+        provider: (<span class="kw">impl </span>AnyProvider + <span class="lifetime">&#39;static</span>),
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;IntlProvider, IcuError&gt; {
+        <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
+            locale_canonicalizer: LocaleCanonicalizer::try_new_with_any_provider(<span class="kw-2">&amp;</span>provider)<span class="question-mark">?</span>,
+            locale_expander: LocaleExpander::try_new_extended_with_any_provider(<span class="kw-2">&amp;</span>provider)<span class="question-mark">?</span>,
+            string_normalizers: StringNormalizers {
+                nfc: ComposingNormalizer::try_new_nfc_with_any_provider(<span class="kw-2">&amp;</span>provider)<span class="question-mark">?</span>,
+                nfkc: ComposingNormalizer::try_new_nfkc_with_any_provider(<span class="kw-2">&amp;</span>provider)<span class="question-mark">?</span>,
+                nfd: DecomposingNormalizer::try_new_nfd_with_any_provider(<span class="kw-2">&amp;</span>provider)<span class="question-mark">?</span>,
+                nfkd: DecomposingNormalizer::try_new_nfkd_with_any_provider(<span class="kw-2">&amp;</span>provider)<span class="question-mark">?</span>,
+            },
+            case_mapper: CaseMapper::try_new_with_any_provider(<span class="kw-2">&amp;</span>provider)<span class="question-mark">?</span>,
+            inner_provider: ErasedProvider::Any(Box::new(provider)),
         })
     }
 
@@ -288,36 +266,6 @@
     <span class="doccomment">/// Gets the [`CaseMapper`] tool.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>case_mapper(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>CaseMapper {
         <span class="kw-2">&amp;</span><span class="self">self</span>.case_mapper
-    }
-
-    <span class="doccomment">/// Gets the inner icu data provider
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>provider(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>BoaProvider {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.provider
-    }
-}
-
-<span class="doccomment">/// Adapter to allow creating a `Box&lt;dyn Provider&gt;` from
-/// a &amp;&#39;static impl Provider.
-</span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>StaticProviderAdapter&lt;T: <span class="lifetime">&#39;static</span>&gt;(<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>T);
-
-<span class="kw">impl</span>&lt;T: BufferProvider&gt; BufferProvider <span class="kw">for </span>StaticProviderAdapter&lt;T&gt; {
-    <span class="kw">fn </span>load_buffer(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        key: icu_provider::DataKey,
-        req: DataRequest&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;DataResponse&lt;icu_provider::BufferMarker&gt;, DataError&gt; {
-        <span class="self">self</span>.<span class="number">0</span>.load_buffer(key, req)
-    }
-}
-
-<span class="kw">impl</span>&lt;T: AnyProvider&gt; AnyProvider <span class="kw">for </span>StaticProviderAdapter&lt;T&gt; {
-    <span class="kw">fn </span>load_any(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        key: icu_provider::DataKey,
-        req: DataRequest&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;icu_provider::AnyResponse, DataError&gt; {
-        <span class="self">self</span>.<span class="number">0</span>.load_any(key, req)
     }
 }
 </code></pre></div></section></main></body></html>
