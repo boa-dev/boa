@@ -79,27 +79,27 @@ bitflags! {
 impl CodeBlockFlags {
     /// Check if the function is traced.
     #[cfg(feature = "trace")]
-    pub(crate) fn traceable(&self) -> bool {
+    pub(crate) fn traceable(self) -> bool {
         self.contains(CodeBlockFlags::TRACEABLE)
     }
     /// Check if the function is a class constructor.
-    pub(crate) fn is_class_constructor(&self) -> bool {
+    pub(crate) fn is_class_constructor(self) -> bool {
         self.contains(CodeBlockFlags::IS_CLASS_CONSTRUCTOR)
     }
     /// Check if the function is in strict mode.
-    pub(crate) fn strict(&self) -> bool {
+    pub(crate) fn strict(self) -> bool {
         self.contains(CodeBlockFlags::STRICT)
     }
     /// Indicates if the function is an expression and has a binding identifier.
-    pub(crate) fn has_binding_identifier(&self) -> bool {
+    pub(crate) fn has_binding_identifier(self) -> bool {
         self.contains(CodeBlockFlags::HAS_BINDING_IDENTIFIER)
     }
     /// Does this function have the `[[ClassFieldInitializerName]]` internal slot set to non-empty value.
-    pub(crate) fn in_class_field_initializer(&self) -> bool {
+    pub(crate) fn in_class_field_initializer(self) -> bool {
         self.contains(CodeBlockFlags::IN_CLASS_FIELD_INITIALIZER)
     }
     /// Returns true if this function is a derived constructor.
-    pub(crate) fn is_derived_constructor(&self) -> bool {
+    pub(crate) fn is_derived_constructor(self) -> bool {
         self.contains(CodeBlockFlags::IS_DERIVED_CONSTRUCTOR)
     }
     /// Returns true if this function an async function.
