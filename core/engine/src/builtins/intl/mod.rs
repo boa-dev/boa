@@ -15,7 +15,7 @@
 
 use crate::{
     builtins::{Array, BuiltInBuilder, BuiltInObject, IntrinsicObject},
-    context::{intrinsics::Intrinsics, BoaProvider},
+    context::{icu::IntlProvider, intrinsics::Intrinsics},
     js_string,
     object::JsObject,
     property::Attribute,
@@ -172,7 +172,7 @@ trait Service {
     fn resolve(
         _locale: &mut icu_locid::Locale,
         _options: &mut Self::LocaleOptions,
-        _provider: &BoaProvider,
+        _provider: &IntlProvider,
     ) {
     }
 }

@@ -146,7 +146,7 @@ impl BuiltInConstructor for Segmenter {
                 matcher,
                 ..Default::default()
             },
-            context.icu(),
+            context.intl_provider(),
         );
 
         // 12. Let granularity be ? GetOption(options, "granularity", string, « "grapheme", "word", "sentence" », "grapheme").
@@ -155,14 +155,14 @@ impl BuiltInConstructor for Segmenter {
 
         let native = match granularity {
             Granularity::Grapheme => {
-                GraphemeClusterSegmenter::try_new_unstable(context.icu().provider())
+                GraphemeClusterSegmenter::try_new_unstable(context.intl_provider())
                     .map(|s| NativeSegmenter::Grapheme(Box::new(s)))
             }
 
-            Granularity::Word => WordSegmenter::try_new_auto_unstable(context.icu().provider())
+            Granularity::Word => WordSegmenter::try_new_auto_unstable(context.intl_provider())
                 .map(|s| NativeSegmenter::Word(Box::new(s))),
 
-            Granularity::Sentence => SentenceSegmenter::try_new_unstable(context.icu().provider())
+            Granularity::Sentence => SentenceSegmenter::try_new_unstable(context.intl_provider())
                 .map(|s| NativeSegmenter::Sentence(Box::new(s))),
         }
         .map_err(|err| JsNativeError::typ().with_message(err.to_string()))?;

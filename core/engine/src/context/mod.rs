@@ -6,8 +6,10 @@ pub(crate) mod icu;
 pub mod intrinsics;
 
 pub use hooks::{DefaultHooks, HostHooks};
+
 #[cfg(feature = "intl")]
-pub use icu::{BoaProvider, IcuError};
+pub use icu::IcuError;
+
 use intrinsics::Intrinsics;
 
 #[cfg(not(feature = "intl"))]
@@ -102,9 +104,9 @@ pub struct Context {
 
     can_block: bool,
 
-    /// ICU related utilities
+    /// Intl data provider.
     #[cfg(feature = "intl")]
-    icu: icu::Icu,
+    intl_provider: icu::IntlProvider,
 
     host_hooks: &'static dyn HostHooks,
 
@@ -134,7 +136,7 @@ impl std::fmt::Debug for Context {
             .field("optimizer_options", &self.optimizer_options);
 
         #[cfg(feature = "intl")]
-        debug.field("icu", &self.icu);
+        debug.field("intl_provider", &self.intl_provider);
 
         debug.finish_non_exhaustive()
     }
@@ -837,10 +839,10 @@ impl Context {
         ContextCleanupGuard::new(self, cleanup)
     }
 
-    /// Get the ICU related utilities
+    /// Get the Intl data provider.
     #[cfg(feature = "intl")]
-    pub(crate) const fn icu(&self) -> &icu::Icu {
-        &self.icu
+    pub(crate) const fn intl_provider(&self) -> &icu::IntlProvider {
+        &self.intl_provider
     }
 }
 
@@ -848,13 +850,6 @@ impl Context {
 ///
 /// This builder allows custom initialization of the [`Interner`] within
 /// the context.
-/// Additionally, if the `intl` feature is enabled, [`ContextBuilder`] becomes
-/// the only way to create a new [`Context`], since now it requires a
-/// valid data provider for the `Intl` functionality.
-#[cfg_attr(
-    feature = "intl",
-    doc = "The required data in a valid provider is specified in [`BoaProvider`]"
-)]
 #[derive(Default)]
 pub struct ContextBuilder {
     interner: Option<Interner>,
@@ -863,7 +858,7 @@ pub struct ContextBuilder {
     module_loader: Option<Rc<dyn ModuleLoader>>,
     can_block: bool,
     #[cfg(feature = "intl")]
-    icu: Option<icu::Icu>,
+    icu: Option<icu::IntlProvider>,
     #[cfg(feature = "fuzz")]
     instructions_remaining: usize,
 }
@@ -917,7 +912,7 @@ impl ContextBuilder {
         self
     }
 
-    /// Provides an icu data provider to the [`Context`].
+    /// Provides a [`BufferProvider`] data provider to the [`Context`].
     ///
     /// This function is only available if the `intl` feature is enabled.
     ///
@@ -930,9 +925,36 @@ impl ContextBuilder {
     ///
     /// [`LocaleCanonicalizer`]: icu_locid_transform::LocaleCanonicalizer
     /// [`LocaleExpander`]: icu_locid_transform::LocaleExpander
+    /// [`BufferProvider`]: icu_provider::BufferProvider
     #[cfg(feature = "intl")]
-    pub fn icu_provider(mut self, provider: BoaProvider) -> Result<Self, IcuError> {
-        self.icu = Some(icu::Icu::new(provider)?);
+    pub fn icu_buffer_provider<T: icu_provider::BufferProvider + 'static>(
+        mut self,
+        provider: T,
+    ) -> Result<Self, IcuError> {
+        self.icu = Some(icu::IntlProvider::try_new_with_buffer_provider(provider)?);
+        Ok(self)
+    }
+
+    /// Provides an [`AnyProvider`] data provider to the [`Context`].
+    ///
+    /// This function is only available if the `intl` feature is enabled.
+    ///
+    /// # Errors
+    ///
+    /// This returns `Err` if the provided provider doesn't have the required locale information
+    /// to construct both a [`LocaleCanonicalizer`] and a [`LocaleExpander`]. Note that this doesn't
+    /// mean that the provider will successfully construct all `Intl` services; that check is made
+    /// until the creation of an instance of a service.
+    ///
+    /// [`LocaleCanonicalizer`]: icu_locid_transform::LocaleCanonicalizer
+    /// [`LocaleExpander`]: icu_locid_transform::LocaleExpander
+    /// [`AnyProvider`]: icu_provider::AnyProvider
+    #[cfg(feature = "intl")]
+    pub fn icu_any_provider<T: icu_provider::AnyProvider + 'static>(
+        mut self,
+        provider: T,
+    ) -> Result<Self, IcuError> {
+        self.icu = Some(icu::IntlProvider::try_new_with_any_provider(provider)?);
         Ok(self)
     }
 
@@ -1027,11 +1049,9 @@ impl ContextBuilder {
             vm,
             strict: false,
             #[cfg(feature = "intl")]
-            icu: self.icu.unwrap_or_else(|| {
-                let provider = BoaProvider::Buffer(Box::new(icu::StaticProviderAdapter(
-                    boa_icu_provider::buffer(),
-                )));
-                icu::Icu::new(provider).expect("Failed to initialize default icu data.")
+            intl_provider: self.icu.unwrap_or_else(|| {
+                icu::IntlProvider::try_new_with_buffer_provider(boa_icu_provider::buffer())
+                    .expect("Failed to initialize default icu data.")
             }),
             #[cfg(feature = "fuzz")]
             instructions_remaining: self.instructions_remaining,

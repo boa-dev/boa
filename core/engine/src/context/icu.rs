@@ -14,42 +14,10 @@ use zerofrom::ZeroFrom;
 
 use crate::builtins::string::StringNormalizers;
 
-/// ICU4X data provider used in boa.
-///
-/// Providers can be either [`BufferProvider`]s or [`AnyProvider`]s.
-///
-/// The [`icu_provider`] documentation has more information about data providers.
-pub enum BoaProvider {
-    /// A [`BufferProvider`] data provider.
-    Buffer(Box<dyn BufferProvider>),
-    /// An [`AnyProvider`] data provider.
+/// A [`DataProvider`] that can be either a [`BufferProvider`] or an [`AnyProvider`].
+enum ErasedProvider {
     Any(Box<dyn AnyProvider>),
-}
-
-impl Debug for BoaProvider {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Buffer(_) => f.debug_tuple("Buffer").field(&"..").finish(),
-            Self::Any(_) => f.debug_tuple("Any").field(&"..").finish(),
-        }
-    }
-}
-
-// This blanket implementation mirrors the `DataProvider` implementations of `BufferProvider` and
-// `AnyProvider`, which allows us to use `unstable` constructors in a stable way.
-impl<M> DataProvider<M> for BoaProvider
-where
-    M: KeyedDataMarker + 'static,
-    for<'de> YokeTraitHack<<M::Yokeable as Yokeable<'de>>::Output>: Deserialize<'de>,
-    for<'a> YokeTraitHack<<M::Yokeable as Yokeable<'a>>::Output>: Clone,
-    M::Yokeable: ZeroFrom<'static, M::Yokeable> + MaybeSendSync,
-{
-    fn load(&self, req: DataRequest<'_>) -> Result<DataResponse<M>, DataError> {
-        match self {
-            BoaProvider::Buffer(provider) => provider.as_deserializing().load(req),
-            BoaProvider::Any(provider) => provider.as_downcasting().load(req),
-        }
-    }
+    Buffer(Box<dyn BufferProvider>),
 }
 
 /// Error thrown when the engine cannot initialize the ICU tools from a data provider.
@@ -66,46 +34,82 @@ pub enum IcuError {
     CaseMap(#[from] DataError),
 }
 
-/// Collection of tools initialized from a [`DataProvider`] that are used for the functionality of
-/// `Intl`.
-pub(crate) struct Icu {
-    provider: BoaProvider,
+/// Custom [`DataProvider`] for `Intl` that caches some utilities.
+pub(crate) struct IntlProvider {
+    inner_provider: ErasedProvider,
     locale_canonicalizer: LocaleCanonicalizer,
     locale_expander: LocaleExpander,
     string_normalizers: StringNormalizers,
     case_mapper: CaseMapper,
 }
 
-impl Debug for Icu {
+impl<M> DataProvider<M> for IntlProvider
+where
+    M: KeyedDataMarker + 'static,
+    for<'de> YokeTraitHack<<M::Yokeable as Yokeable<'de>>::Output>: Deserialize<'de> + Clone,
+    M::Yokeable: ZeroFrom<'static, M::Yokeable> + MaybeSendSync,
+{
+    fn load(&self, req: DataRequest<'_>) -> Result<DataResponse<M>, DataError> {
+        match &self.inner_provider {
+            ErasedProvider::Any(any) => any.as_downcasting().load(req),
+            ErasedProvider::Buffer(buffer) => buffer.as_deserializing().load(req),
+        }
+    }
+}
+
+impl Debug for IntlProvider {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("Icu")
-            .field("provider", &self.provider)
             .field("locale_canonicalizer", &self.locale_canonicalizer)
             .field("locale_expander", &self.locale_expander)
             .field("string_normalizers", &self.string_normalizers)
             .field("string_normalizercase_mapper", &self.case_mapper)
-            .finish()
+            .finish_non_exhaustive()
     }
 }
 
-impl Icu {
-    /// Creates a new [`Icu`] from a valid [`BoaProvider`]
+impl IntlProvider {
+    /// Creates a new [`IntlProvider`] from a [`BufferProvider`].
     ///
     /// # Errors
     ///
     /// Returns an error if any of the tools required cannot be constructed.
-    pub(crate) fn new(provider: BoaProvider) -> Result<Icu, IcuError> {
+    pub(crate) fn try_new_with_buffer_provider(
+        provider: (impl BufferProvider + 'static),
+    ) -> Result<IntlProvider, IcuError> {
         Ok(Self {
-            locale_canonicalizer: LocaleCanonicalizer::try_new_unstable(&provider)?,
-            locale_expander: LocaleExpander::try_new_extended_unstable(&provider)?,
+            locale_canonicalizer: LocaleCanonicalizer::try_new_with_buffer_provider(&provider)?,
+            locale_expander: LocaleExpander::try_new_with_buffer_provider(&provider)?,
             string_normalizers: StringNormalizers {
-                nfc: ComposingNormalizer::try_new_nfc_unstable(&provider)?,
-                nfkc: ComposingNormalizer::try_new_nfkc_unstable(&provider)?,
-                nfd: DecomposingNormalizer::try_new_nfd_unstable(&provider)?,
-                nfkd: DecomposingNormalizer::try_new_nfkd_unstable(&provider)?,
+                nfc: ComposingNormalizer::try_new_nfc_with_buffer_provider(&provider)?,
+                nfkc: ComposingNormalizer::try_new_nfkc_with_buffer_provider(&provider)?,
+                nfd: DecomposingNormalizer::try_new_nfd_with_buffer_provider(&provider)?,
+                nfkd: DecomposingNormalizer::try_new_nfkd_with_buffer_provider(&provider)?,
             },
-            case_mapper: CaseMapper::try_new_unstable(&provider)?,
-            provider,
+            case_mapper: CaseMapper::try_new_with_buffer_provider(&provider)?,
+            inner_provider: ErasedProvider::Buffer(Box::new(provider)),
+        })
+    }
+
+    /// Creates a new [`IntlProvider`] from an [`AnyProvider`].
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if any of the tools required cannot be constructed.
+    pub(crate) fn try_new_with_any_provider(
+        provider: (impl AnyProvider + 'static),
+    ) -> Result<IntlProvider, IcuError> {
+        Ok(Self {
+            locale_canonicalizer: LocaleCanonicalizer::try_new_with_any_provider(&provider)?,
+            locale_expander: LocaleExpander::try_new_extended_with_any_provider(&provider)?,
+            string_normalizers: StringNormalizers {
+                nfc: ComposingNormalizer::try_new_nfc_with_any_provider(&provider)?,
+                nfkc: ComposingNormalizer::try_new_nfkc_with_any_provider(&provider)?,
+                nfd: DecomposingNormalizer::try_new_nfd_with_any_provider(&provider)?,
+                nfkd: DecomposingNormalizer::try_new_nfkd_with_any_provider(&provider)?,
+            },
+            case_mapper: CaseMapper::try_new_with_any_provider(&provider)?,
+            inner_provider: ErasedProvider::Any(Box::new(provider)),
         })
     }
 
@@ -127,35 +131,5 @@ impl Icu {
     /// Gets the [`CaseMapper`] tool.
     pub(crate) const fn case_mapper(&self) -> &CaseMapper {
         &self.case_mapper
-    }
-
-    /// Gets the inner icu data provider
-    pub(crate) const fn provider(&self) -> &BoaProvider {
-        &self.provider
-    }
-}
-
-/// Adapter to allow creating a `Box<dyn Provider>` from
-/// a &'static impl Provider.
-#[derive(Debug)]
-pub(crate) struct StaticProviderAdapter<T: 'static>(pub(crate) &'static T);
-
-impl<T: BufferProvider> BufferProvider for StaticProviderAdapter<T> {
-    fn load_buffer(
-        &self,
-        key: icu_provider::DataKey,
-        req: DataRequest<'_>,
-    ) -> Result<DataResponse<icu_provider::BufferMarker>, DataError> {
-        self.0.load_buffer(key, req)
-    }
-}
-
-impl<T: AnyProvider> AnyProvider for StaticProviderAdapter<T> {
-    fn load_any(
-        &self,
-        key: icu_provider::DataKey,
-        req: DataRequest<'_>,
-    ) -> Result<icu_provider::AnyResponse, DataError> {
-        self.0.load_any(key, req)
     }
 }

@@ -15,7 +15,7 @@ use crate::{
         options::{IntlOptions, LocaleMatcher},
         Service,
     },
-    context::icu::{BoaProvider, Icu, StaticProviderAdapter},
+    context::icu::IntlProvider,
 };
 
 #[derive(Debug)]
@@ -30,7 +30,7 @@ impl Service for TestService {
 
     type LocaleOptions = TestOptions;
 
-    fn resolve(locale: &mut Locale, options: &mut Self::LocaleOptions, provider: &BoaProvider) {
+    fn resolve(locale: &mut Locale, options: &mut Self::LocaleOptions, provider: &IntlProvider) {
         let loc_hc = locale
             .extensions
             .unicode
@@ -73,11 +73,8 @@ impl Service for TestService {
 
 #[test]
 fn locale_resolution() {
-    let icu = Icu::new(BoaProvider::Buffer(Box::new(StaticProviderAdapter(
-        boa_icu_provider::buffer(),
-    ))))
-    .unwrap();
-    let mut default = default_locale(icu.locale_canonicalizer());
+    let provider = IntlProvider::try_new_with_buffer_provider(boa_icu_provider::buffer()).unwrap();
+    let mut default = default_locale(provider.locale_canonicalizer());
     default
         .extensions
         .unicode
@@ -91,7 +88,7 @@ fn locale_resolution() {
             hc: Some(HourCycle::H11),
         },
     };
-    let locale = resolve_locale::<TestService>(&[], &mut options, &icu);
+    let locale = resolve_locale::<TestService>(&[], &mut options, &provider);
     assert_eq!(locale, default);
 
     // test best fit
@@ -102,10 +99,10 @@ fn locale_resolution() {
         },
     };
 
-    let locale = resolve_locale::<TestService>(&[], &mut options, &icu);
+    let locale = resolve_locale::<TestService>(&[], &mut options, &provider);
     let best = best_locale_for_provider::<<TestService as Service>::LangMarker>(
         default.id.clone(),
-        icu.provider(),
+        &provider,
     )
     .unwrap();
     let mut best = Locale::from(best);
@@ -118,6 +115,6 @@ fn locale_resolution() {
         service_options: TestOptions { hc: None },
     };
 
-    let locale = resolve_locale::<TestService>(&[locale!("es-AR")], &mut options, &icu);
+    let locale = resolve_locale::<TestService>(&[locale!("es-AR")], &mut options, &provider);
     assert_eq!(locale, "es-u-hc-h23".parse().unwrap());
 }
