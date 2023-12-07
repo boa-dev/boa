@@ -169,17 +169,14 @@ impl VmTrace {
     pub(crate) fn trace_call_frame(&self, vm: &Vm) {
         if self.is_full_trace() {
             self.trace_compiled_bytecode(vm);
-            self.call_frame_header(vm);
-        } else if self.is_partial_trace() && vm.frame().code_block().traceable() {
+        } else if vm.frame().code_block().traceable() {
             if !vm.frame().code_block().frame_traced() {
                 self.trace_current_bytecode(vm);
-                vm.frame().code_block().set_frame_traced(true);
             }
-            self.call_frame_header(vm);
             self.activate();
-        } else {
-            self.call_frame_header(vm);
         }
+
+        self.call_frame_header(vm);
     }
 
     /// Emits the current `CallFrame`'s header.
@@ -218,16 +215,16 @@ impl VmTrace {
             queue.push_back(vm.frame().code_block.clone());
 
             while !queue.is_empty() {
-                let block = queue.pop_front().expect("queue must have a value.");
+                let active_block = queue.pop_front().expect("queue must have a value.");
 
-                for constant in &block.constants {
-                    match constant {
-                        Constant::Function(block) => queue.push_back(block.clone()),
-                        _ => {}
+                for constant in &active_block.constants {
+                    if let Constant::Function(block) = constant {
+                        queue.push_back(block.clone());
                     }
                 }
 
-                self.tracer.emit_bytecode_trace(&block.to_string());
+                self.tracer.emit_bytecode_trace(&active_block.to_string());
+                active_block.set_frame_traced(true);
             }
         }
     }
@@ -236,6 +233,7 @@ impl VmTrace {
     pub(crate) fn trace_current_bytecode(&self, vm: &Vm) {
         self.tracer
             .emit_bytecode_trace(&vm.frame().code_block().to_string());
+        vm.frame().code_block().set_frame_traced(true);
     }
 
     /// Emits an exit message for the current `CallFrame`.

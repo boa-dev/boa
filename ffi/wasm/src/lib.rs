@@ -4,7 +4,6 @@
 
 use boa_engine::{Context, Source, vm::trace::Tracer};
 use getrandom as _;
-use js_sys;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen(start)]
@@ -28,6 +27,10 @@ pub fn evaluate(src: &str) -> Result<String, JsValue> {
 
 #[wasm_bindgen]
 /// Evaluate some JavaScript with trace hooks.
+///
+/// # Errors
+///
+/// If the execution of the script throws, returns a `JsValue` with the error string.
 pub fn evaluate_with_debug_hooks(
     src: &str,
     compiled_output_action: &js_sys::Function,
@@ -74,6 +77,7 @@ impl BoaJs {
     /// Create a new BoaJs Object.
     #[must_use]
     #[wasm_bindgen(constructor)]
+    #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
         Self {
             compiled_action: None,
@@ -94,6 +98,10 @@ impl BoaJs {
     }
 
     /// Evaluate some Js Source Code with trace active.
+    ///
+    /// # Errors
+    ///
+    /// If the execution of the script throws, returns a `JsValue` with the error string.
     pub fn evaluate_with_trace(&self, src: &str) -> Result<String, JsValue> {
         // setup executor
         let mut context = Context::default();
@@ -131,6 +139,10 @@ impl BoaJs {
     }
 
     /// Evaluate Js Source code without running trace.
+    ///
+    /// # Errors
+    ///
+    /// If the execution of the script throws, returns a `JsValue` with the error string.
     pub fn evaluate(&self, src: &str) -> Result<String, JsValue> {
         Context::default()
             .eval(Source::from_bytes(src))
