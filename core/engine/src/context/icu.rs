@@ -4,8 +4,8 @@ use icu_casemap::CaseMapper;
 use icu_locid_transform::{LocaleCanonicalizer, LocaleExpander, LocaleTransformError};
 use icu_normalizer::{ComposingNormalizer, DecomposingNormalizer, NormalizerError};
 use icu_provider::{
-    AnyProvider, AnyResponse, BufferMarker, BufferProvider, DataError, DataKey, DataProvider,
-    DataRequest, DataResponse, KeyedDataMarker, MaybeSendSync,
+    AnyProvider, AsDeserializingBufferProvider, AsDowncastingAnyProvider, BufferProvider,
+    DataError, DataProvider, DataRequest, DataResponse, KeyedDataMarker, MaybeSendSync,
 };
 use serde::Deserialize;
 use thiserror::Error;
@@ -14,35 +14,10 @@ use zerofrom::ZeroFrom;
 
 use crate::builtins::string::StringNormalizers;
 
-/// A response data from a [`DataProvider`], erased to unify both types
-/// of providers into a single trait.
-enum ErasedResponse {
-    Any(AnyResponse),
-    Buffer(DataResponse<BufferMarker>),
-}
-
-/// A [`DataProvider`] that can be either a [`BufferProvider`] or an [`AnyProvider`] ...
-/// or both! (please don't).
-trait ErasedProvider {
-    /// Loads data according to the key and request.
-    fn load_data(&self, key: DataKey, req: DataRequest<'_>) -> Result<ErasedResponse, DataError>;
-}
-
-/// Wraps a [`BufferProvider`] in order to be able to implement [`ErasedProvider`] for it.
-struct BufferProviderWrapper<T>(T);
-
-impl<T: BufferProvider> ErasedProvider for BufferProviderWrapper<T> {
-    fn load_data(&self, key: DataKey, req: DataRequest<'_>) -> Result<ErasedResponse, DataError> {
-        self.0.load_buffer(key, req).map(ErasedResponse::Buffer)
-    }
-}
-
-/// Wraps an [`AnyProvider`] in order to be able to implement [`ErasedProvider`] for it.
-struct AnyProviderWrapper<T>(T);
-impl<T: AnyProvider> ErasedProvider for AnyProviderWrapper<T> {
-    fn load_data(&self, key: DataKey, req: DataRequest<'_>) -> Result<ErasedResponse, DataError> {
-        self.0.load_any(key, req).map(ErasedResponse::Any)
-    }
+/// A [`DataProvider`] that can be either a [`BufferProvider`] or an [`AnyProvider`].
+enum ErasedProvider {
+    Any(Box<dyn AnyProvider>),
+    Buffer(Box<dyn BufferProvider>),
 }
 
 /// Error thrown when the engine cannot initialize the ICU tools from a data provider.
@@ -61,7 +36,7 @@ pub enum IcuError {
 
 /// Custom [`DataProvider`] for `Intl` that caches some utilities.
 pub(crate) struct IntlProvider {
-    inner_provider: Box<dyn ErasedProvider>,
+    inner_provider: ErasedProvider,
     locale_canonicalizer: LocaleCanonicalizer,
     locale_expander: LocaleExpander,
     string_normalizers: StringNormalizers,
@@ -75,24 +50,9 @@ where
     M::Yokeable: ZeroFrom<'static, M::Yokeable> + MaybeSendSync,
 {
     fn load(&self, req: DataRequest<'_>) -> Result<DataResponse<M>, DataError> {
-        match self.inner_provider.load_data(M::KEY, req)? {
-            ErasedResponse::Any(response) => {
-                response.downcast().map_err(|e| e.with_req(M::KEY, req))
-            }
-            ErasedResponse::Buffer(response) => {
-                let buffer_format = response.metadata.buffer_format.ok_or_else(|| {
-                    DataError::custom("BufferProvider didn't set BufferFormat")
-                        .with_req(M::KEY, req)
-                })?;
-                Ok(DataResponse {
-                    metadata: response.metadata,
-                    payload: response
-                        .payload
-                        .map(|p| p.into_deserialized(buffer_format))
-                        .transpose()
-                        .map_err(|e| e.with_req(M::KEY, req))?,
-                })
-            }
+        match &self.inner_provider {
+            ErasedProvider::Any(any) => any.as_downcasting().load(req),
+            ErasedProvider::Buffer(buffer) => buffer.as_deserializing().load(req),
         }
     }
 }
@@ -127,7 +87,7 @@ impl IntlProvider {
                 nfkd: DecomposingNormalizer::try_new_nfkd_with_buffer_provider(&provider)?,
             },
             case_mapper: CaseMapper::try_new_with_buffer_provider(&provider)?,
-            inner_provider: Box::new(BufferProviderWrapper(provider)),
+            inner_provider: ErasedProvider::Buffer(Box::new(provider)),
         })
     }
 
@@ -149,7 +109,7 @@ impl IntlProvider {
                 nfkd: DecomposingNormalizer::try_new_nfkd_with_any_provider(&provider)?,
             },
             case_mapper: CaseMapper::try_new_with_any_provider(&provider)?,
-            inner_provider: Box::new(AnyProviderWrapper(provider)),
+            inner_provider: ErasedProvider::Any(Box::new(provider)),
         })
     }
 
