@@ -170,7 +170,7 @@ impl VmTrace {
         if self.is_full_trace() {
             self.trace_compiled_bytecode(vm);
         } else if vm.frame().code_block().traceable() {
-            if !vm.frame().code_block().frame_traced() {
+            if !vm.frame().code_block().was_traced() {
                 self.trace_current_bytecode(vm);
             }
             self.activate();
@@ -214,9 +214,7 @@ impl VmTrace {
             let mut queue = VecDeque::new();
             queue.push_back(vm.frame().code_block.clone());
 
-            while !queue.is_empty() {
-                let active_block = queue.pop_front().expect("queue must have a value.");
-
+            while let Some(active_block) = queue.pop_front() {
                 for constant in &active_block.constants {
                     if let Constant::Function(block) = constant {
                         queue.push_back(block.clone());
