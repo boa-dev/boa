@@ -32,7 +32,7 @@ pub mod flowgraph;
 pub(crate) use inline_cache::InlineCache;
 
 #[cfg(feature = "trace")]
-use trace::{VmTrace, TraceAction};
+use trace::{TraceAction, VmTrace};
 
 // TODO: see if this can be exposed on all features.
 #[allow(unused_imports)]
