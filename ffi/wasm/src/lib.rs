@@ -193,4 +193,8 @@ impl Tracer for WasmTracer {
             action(msg);
         }
     }
+
+    fn name(&self) -> &str {
+        "WASM Debugger Trace"
+    }
 }

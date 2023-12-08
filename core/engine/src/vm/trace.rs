@@ -19,6 +19,8 @@ pub trait Tracer {
     fn emit_instruction_trace(&self, msg: &str);
     /// Trace output from exiting a `CallFrame`.
     fn emit_call_frame_exit_trace(&self, msg: &str);
+    /// Tracer name
+    fn name(&self) -> &str;
 }
 
 #[derive(Debug)]
@@ -40,6 +42,10 @@ impl Tracer for ActiveTracer {
     fn emit_call_frame_exit_trace(&self, msg: &str) {
         println!("{msg}");
     }
+
+    fn name(&self) -> &str {
+        "Default Active Trace"
+    }
 }
 
 pub(crate) struct DefaultTracer;
@@ -52,14 +58,17 @@ impl Tracer for DefaultTracer {
     fn emit_instruction_trace(&self, _: &str) {}
 
     fn emit_call_frame_exit_trace(&self, _: &str) {}
+
+    fn name(&self) -> &str {
+        "Default Empty Trace"
+    }
 }
 
 bitflags! {
     #[derive(Clone, Copy, Debug, PartialEq, Eq)]
     pub(crate) struct TraceOptions: u8 {
+        // Whether the trace is a full trace.
         const FULL_TRACE =  0b0000_0001;
-
-        const ACTIVE = 0b0000_0010;
     }
 }
 
@@ -113,7 +122,8 @@ impl VmTrace {
         self.tracer = Box::new(ActiveTracer);
     }
 
-    pub(crate) fn activate_partial_trace(&mut self) {
+    /// Sets `VmTrace`s tracer to an active tracer.
+    pub fn activate_partial_trace(&mut self) {
         self.tracer = Box::new(ActiveTracer);
     }
 }
@@ -126,34 +136,38 @@ impl VmTrace {
         self.options.get().contains(TraceOptions::FULL_TRACE)
     }
 
-    /// Returns if the trace is only a partial one.
-    pub fn is_partial_trace(&self) -> bool {
-        !self.is_full_trace()
+    /// Returns how the trace should behave with the given context.
+    pub(crate) fn should_trace(&self, vm: &Vm) -> TraceAction {
+        // Check if is no trace or the block is not traceable.
+        if !self.is_full_trace() && !vm.frame().code_block().traceable() {
+            return TraceAction::None;
+        // Check if the block is a full trace.
+        } else if self.is_full_trace() {
+            // The bytecode should only be traced on the first callframe.
+            if vm.frames.len() == 1 {
+                return TraceAction::FullWithBytecode;
+            }
+            return TraceAction::Full;
+        // If the block was previously traced, we should not emit the bytecode again.
+        } else if vm.frame().code_block().was_traced() {
+            return TraceAction::Block;
+        }
+        TraceAction::BlockWithBytecode
     }
+}
 
-    /// Returns if the a partial trace has been determined to be active.
-    pub fn is_active(&self) -> bool {
-        self.options.get().contains(TraceOptions::ACTIVE)
-    }
-
-    /// Sets the `ACTIVE` bitflag to true.
-    pub(crate) fn activate(&self) {
-        let mut flags = self.options.get();
-        flags.set(TraceOptions::ACTIVE, true);
-        self.options.set(flags);
-    }
-
-    /// Sets the `ACTIVE` flag to false.
-    pub(crate) fn inactivate(&self) {
-        let mut flags = self.options.get();
-        flags.set(TraceOptions::ACTIVE, false);
-        self.options.set(flags);
-    }
-
-    /// Returns whether a trace should run on an instruction.
-    pub(crate) fn should_trace(&self) -> bool {
-        self.is_full_trace() || self.is_active()
-    }
+#[derive(Debug, Eq, PartialEq)]
+pub(crate) enum TraceAction {
+    // No trace
+    None = 0,
+    // Full trace
+    Full,
+    // Full trace with bytecode
+    FullWithBytecode,
+    // Partial codeblock trace
+    Block,
+    // Partial codeblock with bytecode
+    BlockWithBytecode,
 }
 
 // ==== Trace Event/Action Methods ====
@@ -167,16 +181,21 @@ impl VmTrace {
 
     /// Trace the current `CallFrame` according to current state
     pub(crate) fn trace_call_frame(&self, vm: &Vm) {
-        if self.is_full_trace() {
-            self.trace_compiled_bytecode(vm);
-        } else if vm.frame().code_block().traceable() {
-            if !vm.frame().code_block().was_traced() {
-                self.trace_current_bytecode(vm);
+        let action = self.should_trace(vm);
+        match action {
+            TraceAction::Full | TraceAction::Block => {
+                self.call_frame_header(vm);
             }
-            self.activate();
+            TraceAction::FullWithBytecode => {
+                self.trace_compiled_bytecode(vm);
+                self.call_frame_header(vm);
+            }
+            TraceAction::BlockWithBytecode => {
+                self.trace_current_bytecode(vm);
+                self.call_frame_header(vm);
+            }
+            TraceAction::None => {}
         }
-
-        self.call_frame_header(vm);
     }
 
     /// Emits the current `CallFrame`'s header.
@@ -209,21 +228,18 @@ impl VmTrace {
 
     /// Searches traces all of the current `CallFrame`'s available `CodeBlock`s.
     pub(crate) fn trace_compiled_bytecode(&self, vm: &Vm) {
-        // We only continue to the compiled output if we are on the global.
-        if vm.frames.len() == 1 {
-            let mut queue = VecDeque::new();
-            queue.push_back(vm.frame().code_block.clone());
+        let mut queue = VecDeque::new();
+        queue.push_back(vm.frame().code_block.clone());
 
-            while let Some(active_block) = queue.pop_front() {
-                for constant in &active_block.constants {
-                    if let Constant::Function(block) = constant {
-                        queue.push_back(block.clone());
-                    }
+        while let Some(active_block) = queue.pop_front() {
+            for constant in &active_block.constants {
+                if let Constant::Function(block) = constant {
+                    queue.push_back(block.clone());
                 }
-
-                self.tracer.emit_bytecode_trace(&active_block.to_string());
-                active_block.set_frame_traced(true);
             }
+
+            self.tracer.emit_bytecode_trace(&active_block.to_string());
+            active_block.set_frame_traced(true);
         }
     }
 
@@ -236,7 +252,7 @@ impl VmTrace {
 
     /// Emits an exit message for the current `CallFrame`.
     pub(crate) fn trace_frame_end(&self, vm: &Vm, return_msg: &str) {
-        if self.should_trace() {
+        if self.should_trace(vm) != TraceAction::None {
             let msg = format!(
                 " Call Frame -- <Exiting {} via {return_msg}> ",
                 vm.frame().code_block().name.to_std_string_escaped()
@@ -248,8 +264,6 @@ impl VmTrace {
 
             self.tracer.emit_call_frame_exit_trace(&frame_footer);
         }
-
-        self.inactivate();
     }
 
     pub(crate) fn trace_instruction(
@@ -275,6 +289,6 @@ impl VmTrace {
 
 impl fmt::Debug for VmTrace {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Current Active Tracer")
+        write!(f, "{}", self.tracer.name())
     }
 }
