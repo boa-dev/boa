@@ -24,6 +24,7 @@ pub struct BasicBlock {
     pub(crate) predecessors: Vec<WeakBasicBlock>,
     pub(crate) instructions: Vec<Instruction>,
     pub(crate) terminator: Terminator,
+    pub(crate) handler: Option<RcBasicBlock>,
 
     pub(crate) flags: BasicBlockFlags,
 }
@@ -68,19 +69,13 @@ impl BasicBlock {
             | Terminator::TemplateLookup { no, yes, .. } => {
                 vec![no.clone(), yes.clone()]
             }
-            Terminator::Return { finally } => {
-                let mut successors = Vec::new();
-                if let Some(finally) = finally {
-                    successors.push(finally.clone());
-                }
-                successors
-            }
+            Terminator::Return => Vec::new(),
         }
     }
 
     pub(crate) fn next(&self, nexts: &mut Vec<RcBasicBlock>) {
         match &self.terminator {
-            Terminator::None => {}
+            Terminator::None | Terminator::Return => {}
             Terminator::JumpUnconditional { target, .. } => {
                 nexts.push(target.clone());
             }
@@ -88,12 +83,6 @@ impl BasicBlock {
             | Terminator::TemplateLookup { no, yes, .. } => {
                 nexts.push(no.clone());
                 nexts.push(yes.clone());
-            }
-            Terminator::Return { finally } => {
-                if let Some(_finally) = finally {
-                    // FIXME: should we include this??
-                    // nexts.push(finally.clone());
-                }
             }
         }
     }

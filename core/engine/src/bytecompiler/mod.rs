@@ -1523,7 +1523,7 @@ impl<'ctx> ByteCompiler<'ctx> {
         self.r#return(false);
 
         // FIXME: remove this, this is used to ensure that `finalize` works correctly.
-        let graph = ControlFlowGraph::generate(&self.bytecode);
+        let graph = ControlFlowGraph::generate(&self.bytecode, &self.handlers);
         let bytecode = graph.finalize().into_boxed_slice();
         assert_eq!(self.bytecode.as_slice(), bytecode.as_ref());
 

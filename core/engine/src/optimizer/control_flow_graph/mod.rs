@@ -10,7 +10,7 @@ use std::{fmt::Debug, rc::Rc};
 use indexmap::IndexSet;
 use rustc_hash::FxHashMap;
 
-use crate::vm::{Instruction, InstructionIterator, Opcode};
+use crate::vm::{CodeBlock, Handler, Instruction, InstructionIterator, Opcode};
 
 use self::basic_block::BasicBlockFlags;
 pub use self::basic_block::{BasicBlock, RcBasicBlock, WeakBasicBlock};
@@ -53,10 +53,7 @@ pub enum Terminator {
     },
 
     /// TODO: doc
-    Return {
-        /// Finally block that the return should jump to, if exists.
-        finally: Option<RcBasicBlock>,
-    },
+    Return,
 }
 
 impl Terminator {
@@ -143,6 +140,11 @@ impl Debug for ControlFlowGraph {
                 }
             }
 
+            if let Some(handler) = &basic_block.handler {
+                let index = index_from_basic_block(handler);
+                write!(f, " -- handler B{index}")?;
+            }
+
             writeln!(f)?;
 
             for (i, result) in basic_block.instructions.iter().enumerate() {
@@ -170,12 +172,8 @@ impl Debug for ControlFlowGraph {
                         let target = index_from_basic_block(yes);
                         write!(f, "TemplateLookup B{target}")?;
                     }
-                    Terminator::Return { finally } => {
+                    Terminator::Return => {
                         write!(f, "Return")?;
-                        if let Some(finally) = finally {
-                            let finally = index_from_basic_block(finally);
-                            write!(f, " -- finally block B{finally}")?;
-                        }
                     }
                 }
                 writeln!(f)?;
@@ -208,12 +206,17 @@ const fn is_jump_kind_instruction(instruction: &Instruction) -> Option<u32> {
 
 impl ControlFlowGraph {
     /// Generate leaders for the [`BasicBlock`]s.
-    fn leaders(bytecode: &[u8]) -> Vec<u32> {
-        let mut leaders: Vec<u32> = vec![];
+    fn leaders(bytecode: &[u8], handlers: &[Handler]) -> Vec<u32> {
+        let mut leaders = Vec::new();
 
         let mut iter = InstructionIterator::new(bytecode);
 
-        while let Some((pc, _, instruction)) = iter.next() {
+        for handler in handlers {
+            leaders.push(handler.start);
+            leaders.push(handler.handler());
+        }
+
+        while let Some((_, _, instruction)) = iter.next() {
             // println!("{pc:4} {instruction:?}");
             match instruction {
                 Instruction::Return => {
@@ -243,8 +246,14 @@ impl ControlFlowGraph {
 
     /// TODO: doc
     #[must_use]
-    pub fn generate(bytecode: &[u8]) -> Self {
-        let leaders = Self::leaders(bytecode);
+    pub fn generate_from_codeblock(code: &CodeBlock) -> Self {
+        Self::generate(&code.bytecode, &code.handlers)
+    }
+
+    /// TODO: doc
+    #[must_use]
+    pub fn generate(bytecode: &[u8], handlers: &[Handler]) -> Self {
+        let leaders = Self::leaders(bytecode, handlers);
         let block_count = leaders.len();
 
         let mut basic_blocks = IndexSet::with_capacity(block_count);
@@ -271,12 +280,22 @@ impl ControlFlowGraph {
         {
             let this = basic_blocks[i].clone();
 
+            let handler = handlers
+                .iter()
+                .rev()
+                .find(|handler| handler.contains(iter.pc() as u32));
+            if let Some(handler) = handler {
+                let handler = basic_block_from_bytecode_position(handler.handler());
+
+                this.borrow_mut().handler = Some(handler);
+            }
+
             let mut bytecode = Vec::new();
             let mut terminator = Terminator::None;
             while let Some((_, _, instruction)) = iter.next() {
                 match instruction {
                     Instruction::Return => {
-                        terminator = Terminator::Return { finally: None };
+                        terminator = Terminator::Return;
                     }
                     Instruction::Jump { address } | Instruction::Default { address } => {
                         let target = basic_block_from_bytecode_position(address);
@@ -434,7 +453,7 @@ impl Drop for ControlFlowGraph {
 ///
 /// # Operations
 ///
-/// - Branch to same blocks -> jump
+/// - Conditional Branch to same blocks -> unconditional
 /// - Unrachable block elimination
 #[derive(Clone, Copy)]
 pub struct GraphSimplification;
@@ -535,7 +554,7 @@ mod test {
             156, 6, 120, 15, 0, 0, 0, 153, 0, 155, 118, 0, 0, 0, 0, 147, 148,
         ];
 
-        let graph = ControlFlowGraph::generate(bytecode);
+        let graph = ControlFlowGraph::generate(bytecode, &[]);
 
         let actual = graph.finalize();
 

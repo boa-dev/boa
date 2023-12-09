@@ -62,20 +62,20 @@ fn graph(_: &JsValue, args: &[JsValue], _context: &mut Context) -> JsResult<JsVa
     };
     let code = function.codeblock();
 
-    let cfg = ControlFlowGraph::generate(code.bytecode());
-    // println!("{:#?}", cfg);
+    let cfg = ControlFlowGraph::generate_from_codeblock(code);
+    println!("{cfg:#?}");
 
     let bytecode = cfg.finalize();
     assert_eq!(code.bytecode(), &bytecode);
 
-    let mut cfg = ControlFlowGraph::generate(&bytecode);
-    println!("Original\n{cfg:#?}\n");
+    // let mut cfg = ControlFlowGraph::generate(&bytecode, &[]);
+    // println!("Original\n{cfg:#?}\n");
 
-    let changed = GraphSimplification::perform(&mut cfg);
-    println!("Simplified({changed}) \n{cfg:#?}");
+    // let changed = GraphSimplification::perform(&mut cfg);
+    // println!("Simplified({changed}) \n{cfg:#?}");
 
-    let changed = GraphEliminateUnreachableBasicBlocks::perform(&mut cfg);
-    println!("Eliminate Unreachble({changed}) \n{cfg:#?}");
+    // let changed = GraphEliminateUnreachableBasicBlocks::perform(&mut cfg);
+    // println!("Eliminate Unreachble({changed}) \n{cfg:#?}");
 
     Ok(JsValue::undefined())
 }
