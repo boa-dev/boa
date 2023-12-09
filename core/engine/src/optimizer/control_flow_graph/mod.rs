@@ -54,7 +54,7 @@ pub(crate) enum Terminator {
     },
 
     /// TODO: doc
-    Return,
+    Return { end: BasicBlockKey },
 }
 
 impl Terminator {
@@ -89,6 +89,7 @@ impl Terminator {
 /// TODO: doc
 pub struct ControlFlowGraph {
     basic_block_start: BasicBlockKey,
+    basic_block_end: BasicBlockKey,
     basic_blocks: SlotMap<BasicBlockKey, BasicBlock>,
 }
 
@@ -122,19 +123,26 @@ impl Debug for ControlFlowGraph {
                 if basic_block.reachable() { "" } else { "not " }
             )?;
 
-            if !basic_block.predecessors.is_empty() {
-                write!(f, " -- predecessors ")?;
-                for predecessor in &basic_block.predecessors {
+            if key == self.basic_block_start {
+                write!(f, " -- start")?;
+            }
+            if key == self.basic_block_end {
+                write!(f, " -- end")?;
+            }
+
+            if !basic_block.previous.is_empty() {
+                write!(f, " -- previous ")?;
+                for predecessor in &basic_block.previous {
                     let index = index_from_basic_block(*predecessor);
                     write!(f, "B{index}, ")?;
                 }
             }
 
-            let successors = basic_block.successors();
-            if !successors.is_empty() {
-                write!(f, " -- successors ")?;
-                for successor in &successors {
-                    let index = index_from_basic_block(*successor);
+            let next = basic_block.next();
+            if !next.is_empty() {
+                write!(f, " -- next ")?;
+                for bb in &next {
+                    let index = index_from_basic_block(*bb);
                     write!(f, "B{index}, ")?;
                 }
             }
@@ -171,8 +179,9 @@ impl Debug for ControlFlowGraph {
                         let target = index_from_basic_block(*yes);
                         write!(f, "TemplateLookup B{target}")?;
                     }
-                    Terminator::Return => {
-                        write!(f, "Return")?;
+                    Terminator::Return { end } => {
+                        let target = index_from_basic_block(*end);
+                        write!(f, "Return B{target}")?;
                     }
                 }
                 writeln!(f)?;
@@ -271,6 +280,8 @@ impl ControlFlowGraph {
             basic_block_keys[index]
         };
 
+        let basic_block_end = basic_block_keys[leaders.len() - 1];
+
         let mut iter = InstructionIterator::new(bytecode);
         for (i, leader) in leaders
             .iter()
@@ -296,12 +307,14 @@ impl ControlFlowGraph {
             while let Some((_, _, instruction)) = iter.next() {
                 match instruction {
                     Instruction::Return => {
-                        terminator = Terminator::Return;
+                        terminator = Terminator::Return {
+                            end: basic_block_end,
+                        };
                     }
                     Instruction::Jump { address } | Instruction::Default { address } => {
                         let target = basic_block_from_bytecode_position(address);
 
-                        basic_blocks[target].predecessors.push(key);
+                        basic_blocks[target].previous.push(key);
 
                         terminator = Terminator::JumpUnconditional {
                             opcode: instruction.opcode(),
@@ -315,8 +328,8 @@ impl ControlFlowGraph {
                         let yes = basic_block_from_bytecode_position(address);
                         let no = basic_block_keys[i + 1];
 
-                        basic_blocks[yes].predecessors.push(key);
-                        basic_blocks[no].predecessors.push(key);
+                        basic_blocks[yes].previous.push(key);
+                        basic_blocks[no].previous.push(key);
 
                         terminator = Terminator::TemplateLookup { no, yes, site };
                     }
@@ -325,8 +338,8 @@ impl ControlFlowGraph {
                             let yes = basic_block_from_bytecode_position(address);
                             let no = basic_block_keys[i + 1];
 
-                            basic_blocks[yes].predecessors.push(key);
-                            basic_blocks[no].predecessors.push(key);
+                            basic_blocks[yes].previous.push(key);
+                            basic_blocks[no].previous.push(key);
 
                             terminator = Terminator::JumpConditional {
                                 opcode: instruction.opcode(),
@@ -351,6 +364,7 @@ impl ControlFlowGraph {
 
         Self {
             basic_block_start: basic_block_keys[0],
+            basic_block_end,
             basic_blocks,
         }
     }
@@ -520,7 +534,7 @@ impl GraphEliminateUnreachableBasicBlocks {
         //         "reachable basic blocks should not be eliminated"
         //     );
 
-        //     basic_block.predecessors.clear();
+        //     basic_block.previous.clear();
         //     basic_block.terminator = Terminator::None;
 
         //     changed |= true;

@@ -16,7 +16,7 @@ bitflags! {
 /// TODO: doc
 #[derive(Default, Clone)]
 pub struct BasicBlock {
-    pub(crate) predecessors: Vec<BasicBlockKey>,
+    pub(crate) previous: Vec<BasicBlockKey>,
     pub(crate) instructions: Vec<Instruction>,
     pub(crate) terminator: Terminator,
     pub(crate) handler: Option<BasicBlockKey>,
@@ -54,23 +54,15 @@ impl BasicBlock {
         self.flags.contains(BasicBlockFlags::REACHABLE)
     }
 
-    pub(crate) fn successors(&self) -> Vec<BasicBlockKey> {
-        match self.terminator {
-            Terminator::None => vec![],
-            Terminator::JumpUnconditional { target, .. } => {
-                vec![target]
-            }
-            Terminator::JumpConditional { no, yes, .. }
-            | Terminator::TemplateLookup { no, yes, .. } => {
-                vec![no, yes]
-            }
-            Terminator::Return => Vec::new(),
-        }
+    pub(crate) fn next(&self) -> Vec<BasicBlockKey> {
+        let mut result = Vec::new();
+        self.next_into(&mut result);
+        result
     }
 
-    pub(crate) fn next(&self, nexts: &mut Vec<BasicBlockKey>) {
+    pub(crate) fn next_into(&self, nexts: &mut Vec<BasicBlockKey>) {
         match self.terminator {
-            Terminator::None | Terminator::Return => {}
+            Terminator::None => {}
             Terminator::JumpUnconditional { target, .. } => {
                 nexts.push(target);
             }
@@ -79,6 +71,7 @@ impl BasicBlock {
                 nexts.push(no);
                 nexts.push(yes);
             }
+            Terminator::Return { end } => nexts.push(end),
         }
     }
 }
