@@ -196,6 +196,11 @@ fn main() -> JsResult<()> {
     //     js_string!("500,00 €,8.123,00 €,12,00 €").into()
     // );
 
+    // toStringTag
+    let array = JsUint8Array::from_iter(vec![1u8, 2u8, 3u8, 4u8, 5u8, 6u8, 7u8, 8u8], context)?;
+    let tag = array.to_string_tag(context)?.to_string(context)?;
+    assert_eq!(tag, js_string!("Uint8Array"));
+
     context
         .register_global_property(
             js_string!("myUint8Array"),

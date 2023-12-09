@@ -842,6 +842,30 @@ impl JsTypedArray {
                 .expect("`with` must always return a `TypedArray` on success"),
         })
     }
+
+    /// It is a getter that returns the same string as the typed array constructor's name. 
+    /// It returns `Ok(JsValue::Undefined)` if the this value is not one of the typed array subclasses.
+    /// 
+    /// Returns `TypedArray.prototype.toStringTag()`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use boa_engine::{JsResult, js_string, object::{builtins::{JsUint8Array}}, Context};
+    /// # fn main() -> JsResult<()> {
+    ///
+    /// let context = &mut Context::default();
+    /// let array = JsUint8Array::from_iter(vec![1u8, 2u8, 3u8, 4u8, 5u8, 6u8, 7u8, 8u8], context)?;
+    /// let tag = array.to_string_tag(context)?.to_string(context)?;
+    /// assert_eq!(tag, js_string!("Uint8Array"));
+    ///
+    /// # Ok(())
+    /// # }
+    /// ```
+    #[inline]
+    pub fn to_string_tag(&self, context: &mut Context) -> JsResult<JsValue> {
+        BuiltinTypedArray::to_string_tag(&self.inner.clone().into(), &[], context)
+    }
 }
 
 impl From<JsTypedArray> for JsObject {
