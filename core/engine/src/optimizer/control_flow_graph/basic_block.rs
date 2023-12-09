@@ -2,7 +2,7 @@ use std::hash::Hash;
 
 use bitflags::bitflags;
 
-use crate::vm::Instruction;
+use crate::vm::{Handler, Instruction};
 
 use super::{BasicBlockKey, Terminator};
 
@@ -13,13 +13,18 @@ bitflags! {
     }
 }
 
+pub(crate) struct BasicBlockHandler {
+    basic_block: BasicBlockKey,
+    handler: Handler,
+}
+
 /// TODO: doc
 #[derive(Default, Clone)]
 pub struct BasicBlock {
     pub(crate) previous: Vec<BasicBlockKey>,
     pub(crate) instructions: Vec<Instruction>,
     pub(crate) terminator: Terminator,
-    pub(crate) handler: Option<BasicBlockKey>,
+    pub(crate) handler: Option<(BasicBlockKey, Handler)>,
 
     pub(crate) flags: BasicBlockFlags,
 }
@@ -61,17 +66,21 @@ impl BasicBlock {
     }
 
     pub(crate) fn next_into(&self, nexts: &mut Vec<BasicBlockKey>) {
-        match self.terminator {
+        match &self.terminator {
             Terminator::None => {}
             Terminator::JumpUnconditional { target, .. } => {
-                nexts.push(target);
+                nexts.push(*target);
             }
             Terminator::JumpConditional { no, yes, .. }
             | Terminator::TemplateLookup { no, yes, .. } => {
-                nexts.push(no);
-                nexts.push(yes);
+                nexts.push(*no);
+                nexts.push(*yes);
             }
-            Terminator::Return { end } => nexts.push(end),
+            Terminator::JumpTable { default, addresses } => {
+                nexts.push(*default);
+                nexts.extend_from_slice(addresses);
+            }
+            Terminator::Return { end } => nexts.push(*end),
         }
     }
 }
