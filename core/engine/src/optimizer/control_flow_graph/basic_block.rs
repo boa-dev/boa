@@ -1,15 +1,10 @@
-use std::{
-    cell::RefCell,
-    hash::{Hash, Hasher},
-    ops::Deref,
-    rc::{Rc, Weak},
-};
+use std::hash::Hash;
 
 use bitflags::bitflags;
 
 use crate::vm::Instruction;
 
-use super::Terminator;
+use super::{BasicBlockKey, Terminator};
 
 bitflags! {
     #[derive(Default, Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -21,10 +16,10 @@ bitflags! {
 /// TODO: doc
 #[derive(Default, Clone)]
 pub struct BasicBlock {
-    pub(crate) predecessors: Vec<WeakBasicBlock>,
+    pub(crate) predecessors: Vec<BasicBlockKey>,
     pub(crate) instructions: Vec<Instruction>,
     pub(crate) terminator: Terminator,
-    pub(crate) handler: Option<RcBasicBlock>,
+    pub(crate) handler: Option<BasicBlockKey>,
 
     pub(crate) flags: BasicBlockFlags,
 }
@@ -59,105 +54,31 @@ impl BasicBlock {
         self.flags.contains(BasicBlockFlags::REACHABLE)
     }
 
-    pub(crate) fn successors(&self) -> Vec<RcBasicBlock> {
-        match &self.terminator {
+    pub(crate) fn successors(&self) -> Vec<BasicBlockKey> {
+        match self.terminator {
             Terminator::None => vec![],
             Terminator::JumpUnconditional { target, .. } => {
-                vec![target.clone()]
+                vec![target]
             }
             Terminator::JumpConditional { no, yes, .. }
             | Terminator::TemplateLookup { no, yes, .. } => {
-                vec![no.clone(), yes.clone()]
+                vec![no, yes]
             }
             Terminator::Return => Vec::new(),
         }
     }
 
-    pub(crate) fn next(&self, nexts: &mut Vec<RcBasicBlock>) {
-        match &self.terminator {
+    pub(crate) fn next(&self, nexts: &mut Vec<BasicBlockKey>) {
+        match self.terminator {
             Terminator::None | Terminator::Return => {}
             Terminator::JumpUnconditional { target, .. } => {
-                nexts.push(target.clone());
+                nexts.push(target);
             }
             Terminator::JumpConditional { no, yes, .. }
             | Terminator::TemplateLookup { no, yes, .. } => {
-                nexts.push(no.clone());
-                nexts.push(yes.clone());
+                nexts.push(no);
+                nexts.push(yes);
             }
         }
-    }
-}
-
-/// Reference counted [`BasicBlock`] with interor mutability.
-#[derive(Default, Clone)]
-pub struct RcBasicBlock {
-    inner: Rc<RefCell<BasicBlock>>,
-}
-
-impl From<Rc<RefCell<BasicBlock>>> for RcBasicBlock {
-    fn from(inner: Rc<RefCell<BasicBlock>>) -> Self {
-        Self { inner }
-    }
-}
-
-impl Deref for RcBasicBlock {
-    type Target = Rc<RefCell<BasicBlock>>;
-    fn deref(&self) -> &Self::Target {
-        &self.inner
-    }
-}
-
-impl PartialEq<RcBasicBlock> for RcBasicBlock {
-    fn eq(&self, other: &RcBasicBlock) -> bool {
-        Rc::ptr_eq(&self.inner, &other.inner)
-    }
-}
-
-impl Eq for RcBasicBlock {}
-
-impl Hash for RcBasicBlock {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        (self.as_ptr() as usize).hash(state);
-    }
-}
-
-impl RcBasicBlock {
-    /// TODO: doc
-    #[must_use]
-    pub fn downgrade(&self) -> WeakBasicBlock {
-        WeakBasicBlock::from(Rc::downgrade(&self.inner))
-    }
-}
-
-/// Reference counted [`BasicBlock`] with interor mutability.
-#[derive(Default, Clone)]
-pub struct WeakBasicBlock {
-    inner: Weak<RefCell<BasicBlock>>,
-}
-
-impl From<Weak<RefCell<BasicBlock>>> for WeakBasicBlock {
-    fn from(inner: Weak<RefCell<BasicBlock>>) -> Self {
-        Self { inner }
-    }
-}
-
-impl Deref for WeakBasicBlock {
-    type Target = Weak<RefCell<BasicBlock>>;
-    fn deref(&self) -> &Self::Target {
-        &self.inner
-    }
-}
-
-impl PartialEq<WeakBasicBlock> for WeakBasicBlock {
-    fn eq(&self, other: &WeakBasicBlock) -> bool {
-        Weak::ptr_eq(&self.inner, &other.inner)
-    }
-}
-
-impl WeakBasicBlock {
-    /// TODO: doc
-    #[must_use]
-    pub fn upgrade(&self) -> Option<RcBasicBlock> {
-        Some(RcBasicBlock::from(self.inner.upgrade()?))
     }
 }

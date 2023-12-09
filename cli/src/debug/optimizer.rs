@@ -2,12 +2,7 @@ use boa_engine::{
     builtins::function::OrdinaryFunction,
     js_string,
     object::{FunctionObjectBuilder, ObjectInitializer},
-    optimizer::{
-        control_flow_graph::{
-            ControlFlowGraph, GraphEliminateUnreachableBasicBlocks, GraphSimplification,
-        },
-        OptimizerOptions,
-    },
+    optimizer::{control_flow_graph::ControlFlowGraph, OptimizerOptions},
     property::Attribute,
     Context, JsArgs, JsNativeError, JsObject, JsResult, JsValue, NativeFunction,
 };

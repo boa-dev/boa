@@ -5,19 +5,20 @@
 
 mod basic_block;
 
-use std::{fmt::Debug, rc::Rc};
+use std::fmt::Debug;
 
-use indexmap::IndexSet;
 use rustc_hash::FxHashMap;
+use slotmap::{new_key_type, SlotMap};
 
 use crate::vm::{CodeBlock, Handler, Instruction, InstructionIterator, Opcode};
 
-use self::basic_block::BasicBlockFlags;
-pub use self::basic_block::{BasicBlock, RcBasicBlock, WeakBasicBlock};
+pub use self::basic_block::BasicBlock;
+
+new_key_type! { pub(crate) struct BasicBlockKey; }
 
 /// TODO: doc
-#[derive(Default, Clone)]
-pub enum Terminator {
+#[derive(Default, Clone, Copy)]
+pub(crate) enum Terminator {
     /// TODO: doc
     #[default]
     None,
@@ -27,7 +28,7 @@ pub enum Terminator {
         /// TODO: doc
         opcode: Opcode,
         /// TODO: doc
-        target: RcBasicBlock,
+        target: BasicBlockKey,
     },
 
     /// TODO: doc
@@ -35,18 +36,18 @@ pub enum Terminator {
         /// TODO: doc
         opcode: Opcode,
         /// TODO: doc
-        no: RcBasicBlock,
+        no: BasicBlockKey,
         /// TODO: doc
-        yes: RcBasicBlock,
+        yes: BasicBlockKey,
     },
 
     /// TODO: doc
     TemplateLookup {
         /// TODO: doc
-        no: RcBasicBlock,
+        no: BasicBlockKey,
 
         /// TODO: doc
-        yes: RcBasicBlock,
+        yes: BasicBlockKey,
 
         /// TODO: doc
         site: u64,
@@ -59,13 +60,13 @@ pub enum Terminator {
 impl Terminator {
     /// Check if [`Terminator::None`].
     #[must_use]
-    pub fn is_none(&self) -> bool {
+    pub(crate) fn is_none(&self) -> bool {
         matches!(self, Terminator::None)
     }
 
     /// Check if [`Terminator::Jump`].
     #[must_use]
-    pub fn is_jump(&self) -> bool {
+    pub(crate) fn is_jump(&self) -> bool {
         matches!(
             self,
             Terminator::JumpUnconditional { .. } | Terminator::JumpConditional { .. }
@@ -74,21 +75,21 @@ impl Terminator {
 
     /// Check if unconditional [`Terminator::Jump`].
     #[must_use]
-    pub fn is_unconditional_jump(&self) -> bool {
+    pub(crate) fn is_unconditional_jump(&self) -> bool {
         matches!(self, Terminator::JumpUnconditional { .. })
     }
 
     /// Check if conditional [`Terminator::Jump`].
     #[must_use]
-    pub fn is_conditional_jump(&self) -> bool {
+    pub(crate) fn is_conditional_jump(&self) -> bool {
         matches!(self, Terminator::JumpConditional { .. })
     }
 }
 
 /// TODO: doc
 pub struct ControlFlowGraph {
-    basic_block_start: RcBasicBlock,
-    basic_blocks: IndexSet<RcBasicBlock>,
+    basic_block_start: BasicBlockKey,
+    basic_blocks: SlotMap<BasicBlockKey, BasicBlock>,
 }
 
 impl Debug for ControlFlowGraph {
@@ -96,9 +97,9 @@ impl Debug for ControlFlowGraph {
         writeln!(f, "BasicBlocks:")?;
 
         let mut seen = FxHashMap::default();
-        let index_from_basic_block = |bb: &RcBasicBlock| {
-            for (i, basic_block) in self.basic_blocks.iter().enumerate() {
-                if basic_block == bb {
+        let index_from_basic_block = |bb: BasicBlockKey| {
+            for (i, (key, _basic_block)) in self.basic_blocks.iter().enumerate() {
+                if key == bb {
                     return i;
                 }
             }
@@ -107,13 +108,13 @@ impl Debug for ControlFlowGraph {
         };
 
         let mut index = 0;
-        for basic_block in &self.basic_blocks {
-            if seen.contains_key(&basic_block.as_ptr()) {
+        for key in self.basic_blocks.keys() {
+            if seen.contains_key(&key) {
                 continue;
             }
-            seen.insert(basic_block.as_ptr(), index);
+            seen.insert(key, index);
 
-            let basic_block = basic_block.borrow();
+            let basic_block = &self.basic_blocks[key];
 
             write!(
                 f,
@@ -124,10 +125,8 @@ impl Debug for ControlFlowGraph {
             if !basic_block.predecessors.is_empty() {
                 write!(f, " -- predecessors ")?;
                 for predecessor in &basic_block.predecessors {
-                    if let Some(predecessor) = predecessor.upgrade() {
-                        let index = index_from_basic_block(&predecessor);
-                        write!(f, "B{index}, ")?;
-                    }
+                    let index = index_from_basic_block(*predecessor);
+                    write!(f, "B{index}, ")?;
                 }
             }
 
@@ -135,13 +134,13 @@ impl Debug for ControlFlowGraph {
             if !successors.is_empty() {
                 write!(f, " -- successors ")?;
                 for successor in &successors {
-                    let index = index_from_basic_block(successor);
+                    let index = index_from_basic_block(*successor);
                     write!(f, "B{index}, ")?;
                 }
             }
 
             if let Some(handler) = &basic_block.handler {
-                let index = index_from_basic_block(handler);
+                let index = index_from_basic_block(*handler);
                 write!(f, " -- handler B{index}")?;
             }
 
@@ -157,11 +156,11 @@ impl Debug for ControlFlowGraph {
                 match terminator {
                     Terminator::None => write!(f, "None")?,
                     Terminator::JumpUnconditional { opcode, target } => {
-                        let target = index_from_basic_block(target);
+                        let target = index_from_basic_block(*target);
                         write!(f, "{} B{target}", opcode.as_str())?;
                     }
                     Terminator::JumpConditional { opcode, no: _, yes } => {
-                        let target = index_from_basic_block(yes);
+                        let target = index_from_basic_block(*yes);
                         write!(f, "{} B{target}", opcode.as_str())?;
                     }
                     Terminator::TemplateLookup {
@@ -169,7 +168,7 @@ impl Debug for ControlFlowGraph {
                         yes,
                         site: _,
                     } => {
-                        let target = index_from_basic_block(yes);
+                        let target = index_from_basic_block(*yes);
                         write!(f, "TemplateLookup B{target}")?;
                     }
                     Terminator::Return => {
@@ -252,13 +251,15 @@ impl ControlFlowGraph {
 
     /// TODO: doc
     #[must_use]
-    pub fn generate(bytecode: &[u8], handlers: &[Handler]) -> Self {
+    pub(crate) fn generate(bytecode: &[u8], handlers: &[Handler]) -> Self {
         let leaders = Self::leaders(bytecode, handlers);
         let block_count = leaders.len();
 
-        let mut basic_blocks = IndexSet::with_capacity(block_count);
+        let mut basic_block_keys = Vec::with_capacity(block_count);
+        let mut basic_blocks = SlotMap::<BasicBlockKey, _>::with_capacity_and_key(block_count);
         for _ in 0..block_count {
-            basic_blocks.insert(RcBasicBlock::default());
+            let key = basic_blocks.insert(BasicBlock::default());
+            basic_block_keys.push(key);
         }
 
         let basic_block_from_bytecode_position = |address: u32| {
@@ -267,7 +268,7 @@ impl ControlFlowGraph {
                 .position(|x| *x == address)
                 .expect("There should be a basic block");
 
-            basic_blocks[index].clone()
+            basic_block_keys[index]
         };
 
         let mut iter = InstructionIterator::new(bytecode);
@@ -278,7 +279,7 @@ impl ControlFlowGraph {
             .skip(1)
             .map(|(i, leader)| (i - 1, leader))
         {
-            let this = basic_blocks[i].clone();
+            let key = basic_block_keys[i];
 
             let handler = handlers
                 .iter()
@@ -287,7 +288,7 @@ impl ControlFlowGraph {
             if let Some(handler) = handler {
                 let handler = basic_block_from_bytecode_position(handler.handler());
 
-                this.borrow_mut().handler = Some(handler);
+                basic_blocks[key].handler = Some(handler);
             }
 
             let mut bytecode = Vec::new();
@@ -300,7 +301,7 @@ impl ControlFlowGraph {
                     Instruction::Jump { address } | Instruction::Default { address } => {
                         let target = basic_block_from_bytecode_position(address);
 
-                        target.borrow_mut().predecessors.push(this.downgrade());
+                        basic_blocks[target].predecessors.push(key);
 
                         terminator = Terminator::JumpUnconditional {
                             opcode: instruction.opcode(),
@@ -312,20 +313,20 @@ impl ControlFlowGraph {
                         site,
                     } => {
                         let yes = basic_block_from_bytecode_position(address);
-                        let no = basic_blocks[i + 1].clone();
+                        let no = basic_block_keys[i + 1];
 
-                        yes.borrow_mut().predecessors.push(this.downgrade());
-                        no.borrow_mut().predecessors.push(this.downgrade());
+                        basic_blocks[yes].predecessors.push(key);
+                        basic_blocks[no].predecessors.push(key);
 
                         terminator = Terminator::TemplateLookup { no, yes, site };
                     }
                     instruction => {
                         if let Some(address) = is_jump_kind_instruction(&instruction) {
                             let yes = basic_block_from_bytecode_position(address);
-                            let no = basic_blocks[i + 1].clone();
+                            let no = basic_block_keys[i + 1];
 
-                            yes.borrow_mut().predecessors.push(this.downgrade());
-                            no.borrow_mut().predecessors.push(this.downgrade());
+                            basic_blocks[yes].predecessors.push(key);
+                            basic_blocks[no].predecessors.push(key);
 
                             terminator = Terminator::JumpConditional {
                                 opcode: instruction.opcode(),
@@ -343,36 +344,28 @@ impl ControlFlowGraph {
                 }
             }
 
-            let mut basic_block = this.borrow_mut();
+            let basic_block = &mut basic_blocks[key];
             basic_block.instructions = bytecode;
             basic_block.terminator = terminator;
         }
 
         Self {
-            basic_block_start: basic_blocks[0].clone(),
+            basic_block_start: basic_block_keys[0],
             basic_blocks,
         }
     }
 
     /// Remove [`BasicBlock`].
-    pub fn remove(&mut self, basic_block: &RcBasicBlock) {
-        self.basic_blocks.shift_remove(basic_block);
-    }
-
-    /// Get [`BasicBlock`] index.
-    #[must_use]
-    pub fn get_index(&self, basic_block: &RcBasicBlock) -> usize {
-        self.basic_blocks
-            .get_index_of(basic_block)
-            .expect("there should be a BasicBlock in CFG")
+    pub(crate) fn remove(&mut self, basic_block: BasicBlockKey) {
+        self.basic_blocks.remove(basic_block);
     }
 
     /// Finalize bytecode.
     #[must_use]
     pub fn finalize(self) -> Vec<u8> {
-        let index_from_basic_block = |bb: &RcBasicBlock| {
-            for (i, basic_block) in self.basic_blocks.iter().enumerate() {
-                if Rc::ptr_eq(basic_block, bb) {
+        let index_from_basic_block = |bb: BasicBlockKey| {
+            for (i, key) in self.basic_blocks.keys().enumerate() {
+                if key == bb {
                     return i;
                 }
             }
@@ -384,8 +377,8 @@ impl ControlFlowGraph {
         let mut labels = Vec::new();
         let mut blocks = Vec::with_capacity(self.basic_blocks.len());
 
-        for basic_block in &self.basic_blocks {
-            let basic_block = basic_block.borrow();
+        for key in self.basic_blocks.keys() {
+            let basic_block = &self.basic_blocks[key];
 
             blocks.push(results.len() as u32);
 
@@ -400,7 +393,7 @@ impl ControlFlowGraph {
                     let start = results.len();
                     results.extend_from_slice(&[0, 0, 0, 0]);
 
-                    let target = index_from_basic_block(target);
+                    let target = index_from_basic_block(*target);
                     labels.push((start as u32, target));
                 }
                 Terminator::JumpConditional { opcode, no: _, yes } => {
@@ -408,7 +401,7 @@ impl ControlFlowGraph {
                     let start = results.len();
                     results.extend_from_slice(&[0, 0, 0, 0]);
 
-                    let target = index_from_basic_block(yes);
+                    let target = index_from_basic_block(*yes);
                     labels.push((start as u32, target));
                 }
                 Terminator::TemplateLookup { yes, site, .. } => {
@@ -417,7 +410,7 @@ impl ControlFlowGraph {
                     results.extend_from_slice(&[0, 0, 0, 0]);
                     results.extend_from_slice(&site.to_ne_bytes());
 
-                    let target = index_from_basic_block(yes);
+                    let target = index_from_basic_block(*yes);
                     labels.push((start as u32, target));
                 }
                 Terminator::Return { .. } => {
@@ -440,15 +433,6 @@ impl ControlFlowGraph {
     }
 }
 
-impl Drop for ControlFlowGraph {
-    fn drop(&mut self) {
-        // NOTE: Untie BasicBlock nodes, so they can be deallocated.
-        for basic_block in &self.basic_blocks {
-            *basic_block.borrow_mut() = BasicBlock::default();
-        }
-    }
-}
-
 /// Simplifies the [`ControlFlowGraph`].
 ///
 /// # Operations
@@ -460,30 +444,32 @@ pub struct GraphSimplification;
 
 impl GraphSimplification {
     /// TODO: doc
-    pub fn perform(graph: &mut ControlFlowGraph) -> bool {
-        let mut changed = false;
-        for basic_block_ptr in &graph.basic_blocks {
-            {
-                let mut basic_block = basic_block_ptr.borrow_mut();
+    pub fn perform(_graph: &mut ControlFlowGraph) -> bool {
+        // let mut changed = false;
 
-                #[allow(clippy::single_match)]
-                match basic_block.terminator.clone() {
-                    Terminator::JumpConditional { no, yes, .. } => {
-                        if no == yes {
-                            basic_block.insert_last(Instruction::Pop);
-                            basic_block.terminator = Terminator::JumpUnconditional {
-                                opcode: Opcode::Jump,
-                                target: yes,
-                            };
+        // for key in graph.basic_blocks.keys() {
+        //     {
+        //         let mut basic_block = basic_block_ptr.borrow_mut();
 
-                            changed |= true;
-                        }
-                    }
-                    _ => {}
-                }
-            }
-        }
-        changed
+        //         #[allow(clippy::single_match)]
+        //         match basic_block.terminator.clone() {
+        //             Terminator::JumpConditional { no, yes, .. } => {
+        //                 if no == yes {
+        //                     basic_block.insert_last(Instruction::Pop);
+        //                     basic_block.terminator = Terminator::JumpUnconditional {
+        //                         opcode: Opcode::Jump,
+        //                         target: yes,
+        //                     };
+
+        //                     changed |= true;
+        //                 }
+        //             }
+        //             _ => {}
+        //         }
+        //     }
+        // }
+        // changed
+        false
     }
 }
 
@@ -493,54 +479,55 @@ pub struct GraphEliminateUnreachableBasicBlocks;
 
 impl GraphEliminateUnreachableBasicBlocks {
     /// TODO: doc
-    pub fn perform(graph: &mut ControlFlowGraph) -> bool {
-        let mut changed = false;
+    pub fn perform(_graph: &mut ControlFlowGraph) -> bool {
+        // let mut changed = false;
 
-        let mut stack = vec![graph.basic_block_start.clone()];
-        while let Some(basic_block_ptr) = stack.pop() {
-            let mut basic_block = basic_block_ptr.borrow_mut();
-            if basic_block.reachable() {
-                break;
-            }
-            basic_block.flags |= BasicBlockFlags::REACHABLE;
-            basic_block.next(&mut stack);
+        // let mut stack = vec![graph.basic_block_start.clone()];
+        // while let Some(basic_block_ptr) = stack.pop() {
+        //     let mut basic_block = basic_block_ptr.borrow_mut();
+        //     if basic_block.reachable() {
+        //         break;
+        //     }
+        //     basic_block.flags |= BasicBlockFlags::REACHABLE;
+        //     basic_block.next(&mut stack);
 
-            // println!("{:p} -- {}", basic_block_ptr.as_ptr(), basic_block.reachable());
-        }
+        //     // println!("{:p} -- {}", basic_block_ptr.as_ptr(), basic_block.reachable());
+        // }
 
-        assert!(
-            graph.basic_block_start.borrow().reachable(),
-            "start basic block node should always be reachable"
-        );
+        // assert!(
+        //     graph.basic_block_start.borrow().reachable(),
+        //     "start basic block node should always be reachable"
+        // );
 
-        let mut delete_list = Vec::new();
-        for (i, basic_block) in graph.basic_blocks.iter().enumerate().rev() {
-            if !basic_block.borrow().reachable() {
-                delete_list.push(i);
-            }
-        }
+        // let mut delete_list = Vec::new();
+        // for (i, basic_block) in graph.basic_blocks.iter().enumerate().rev() {
+        //     if !basic_block.borrow().reachable() {
+        //         delete_list.push(i);
+        //     }
+        // }
 
-        // println!("{delete_list:?}");
+        // // println!("{delete_list:?}");
 
-        for i in delete_list {
-            let basic_block = graph
-                .basic_blocks
-                .shift_remove_index(i)
-                .expect("there should be a BasicBlock in CFG");
-            let mut basic_block = basic_block.borrow_mut();
+        // for i in delete_list {
+        //     let basic_block = graph
+        //         .basic_blocks
+        //         .shift_remove_index(i)
+        //         .expect("there should be a BasicBlock in CFG");
+        //     let mut basic_block = basic_block.borrow_mut();
 
-            assert!(
-                !basic_block.reachable(),
-                "reachable basic blocks should not be eliminated"
-            );
+        //     assert!(
+        //         !basic_block.reachable(),
+        //         "reachable basic blocks should not be eliminated"
+        //     );
 
-            basic_block.predecessors.clear();
-            basic_block.terminator = Terminator::None;
+        //     basic_block.predecessors.clear();
+        //     basic_block.terminator = Terminator::None;
 
-            changed |= true;
-        }
+        //     changed |= true;
+        // }
 
-        changed
+        // changed
+        false
     }
 }
 
