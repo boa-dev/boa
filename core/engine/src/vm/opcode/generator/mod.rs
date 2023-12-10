@@ -41,7 +41,7 @@ impl Operation for Generator {
         let this_function_object =
             active_function.expect("active function should be set to the generator");
 
-        let frame = GeneratorContext::from_current(context);
+        let mut frame = GeneratorContext::from_current(context);
 
         let proto = this_function_object
             .get(PROTOTYPE, context)
@@ -64,7 +64,7 @@ impl Operation for Generator {
                 proto,
                 AsyncGenerator {
                     state: AsyncGeneratorState::SuspendedStart,
-                    context: Some(frame),
+                    context: None,
                     queue: VecDeque::new(),
                 },
             )
@@ -73,23 +73,29 @@ impl Operation for Generator {
                 context.root_shape(),
                 proto,
                 crate::builtins::generator::Generator {
-                    state: GeneratorState::SuspendedStart { context: frame },
+                    state: GeneratorState::Completed,
                 },
             )
         };
 
         if r#async {
-            let gen_clone = generator.clone();
+            let fp = frame
+                .call_frame
+                .as_ref()
+                .map_or(0, |frame| frame.fp as usize);
+            frame.stack[fp] = generator.clone().into();
+
             let mut gen = generator
                 .downcast_mut::<AsyncGenerator>()
                 .expect("must be object here");
-            let gen_context = gen.context.as_mut().expect("must exist");
-            // TODO: try to move this to the context itself.
-            gen_context
-                .call_frame
-                .as_mut()
-                .expect("should have a call frame initialized")
-                .async_generator = Some(gen_clone);
+
+            gen.context = Some(frame);
+        } else {
+            let mut gen = generator
+                .downcast_mut::<crate::builtins::generator::Generator>()
+                .expect("must be object here");
+
+            gen.state = GeneratorState::SuspendedStart { context: frame };
         }
 
         context.vm.set_return_value(generator.into());
@@ -111,14 +117,13 @@ impl Operation for AsyncGeneratorClose {
 
     fn execute(context: &mut Context) -> JsResult<CompletionType> {
         // Step 3.e-g in [AsyncGeneratorStart](https://tc39.es/ecma262/#sec-asyncgeneratorstart)
-        let generator_object = context
+        let async_generator_object = context
             .vm
             .frame()
-            .async_generator
-            .clone()
+            .async_generator_object(&context.vm.stack)
             .expect("There should be a object");
 
-        let mut gen = generator_object
+        let mut gen = async_generator_object
             .downcast_mut::<AsyncGenerator>()
             .expect("must be async generator");
 
@@ -136,7 +141,7 @@ impl Operation for AsyncGeneratorClose {
         } else {
             AsyncGenerator::complete_step(&next, Ok(return_value), true, None, context);
         }
-        AsyncGenerator::drain_queue(&generator_object, context);
+        AsyncGenerator::drain_queue(&async_generator_object, context);
 
         Ok(CompletionType::Normal)
     }

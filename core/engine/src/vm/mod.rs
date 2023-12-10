@@ -162,6 +162,17 @@ impl Vm {
         std::mem::swap(&mut self.environments, &mut frame.environments);
         std::mem::swap(&mut self.realm, &mut frame.realm);
 
+        // NOTE: We need to check if we already pushed the locals,
+        //       since generator-like functions push the same call
+        //       frame with pre-built stack.
+        if !frame.locals_already_pushed() {
+            let locals_count = frame.code_block().locals_count;
+            self.stack.resize_with(
+                current_stack_length + locals_count as usize,
+                JsValue::undefined,
+            );
+        }
+
         self.frames.push(frame);
     }
 

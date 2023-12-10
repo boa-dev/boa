@@ -49,17 +49,16 @@ impl Operation for Await {
                     // d. Resume the suspended evaluation of asyncContext using NormalCompletion(value) as the result of the operation that suspended it.
                     let mut gen = captures.borrow_mut().take().expect("should only run once");
 
+                    // NOTE: We need to get the object before resuming, since it could clear the stack.
+                    let async_generator = gen.async_generator_object();
+
                     gen.resume(
                         Some(args.get_or_undefined(0).clone()),
                         GeneratorResumeKind::Normal,
                         context,
                     );
 
-                    if let Some(async_generator) = gen
-                        .call_frame
-                        .as_ref()
-                        .and_then(|f| f.async_generator.clone())
-                    {
+                    if let Some(async_generator) = async_generator {
                         async_generator
                             .downcast_mut::<AsyncGenerator>()
                             .expect("must be async generator")
@@ -92,17 +91,16 @@ impl Operation for Await {
 
                     let mut gen = captures.borrow_mut().take().expect("should only run once");
 
+                    // NOTE: We need to get the object before resuming, since it could clear the stack.
+                    let async_generator = gen.async_generator_object();
+
                     gen.resume(
                         Some(args.get_or_undefined(0).clone()),
                         GeneratorResumeKind::Throw,
                         context,
                     );
 
-                    if let Some(async_generator) = gen
-                        .call_frame
-                        .as_ref()
-                        .and_then(|f| f.async_generator.clone())
-                    {
+                    if let Some(async_generator) = async_generator {
                         async_generator
                             .downcast_mut::<AsyncGenerator>()
                             .expect("must be async generator")

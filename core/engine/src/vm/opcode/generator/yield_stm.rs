@@ -38,14 +38,13 @@ impl Operation for AsyncGeneratorYield {
     fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let value = context.vm.pop();
 
-        let async_gen = context
+        let async_generator_object = context
             .vm
             .frame()
-            .async_generator
-            .clone()
+            .async_generator_object(&context.vm.stack)
             .expect("`AsyncGeneratorYield` must only be called inside async generators");
         let completion = Ok(value);
-        let next = async_gen
+        let next = async_generator_object
             .downcast_mut::<AsyncGenerator>()
             .expect("must be async generator object")
             .queue
@@ -55,7 +54,7 @@ impl Operation for AsyncGeneratorYield {
         // TODO: 7. Let previousContext be the second to top element of the execution context stack.
         AsyncGenerator::complete_step(&next, completion, false, None, context);
 
-        let mut generator_object_mut = async_gen.borrow_mut();
+        let mut generator_object_mut = async_generator_object.borrow_mut();
         let gen = generator_object_mut
             .downcast_mut::<AsyncGenerator>()
             .expect("must be async generator object");

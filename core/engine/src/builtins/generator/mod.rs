@@ -20,7 +20,7 @@ use crate::{
     string::common::StaticJsStrings,
     symbol::JsSymbol,
     value::JsValue,
-    vm::{CallFrame, CompletionRecord, GeneratorResumeKind},
+    vm::{CallFrame, CallFrameFlags, CompletionRecord, GeneratorResumeKind},
     Context, JsArgs, JsData, JsError, JsResult, JsString,
 };
 use boa_gc::{custom_trace, Finalize, Trace};
@@ -74,6 +74,10 @@ impl GeneratorContext {
 
         frame.fp = CallFrame::FUNCTION_PROLOGUE + frame.argument_count;
 
+        // NOTE: Since we get a pre-built call frame with stack, and we reuse them.
+        //       So we don't need to push the locals in subsuquent calls.
+        frame.flags |= CallFrameFlags::LOCALS_ALREADY_PUSHED;
+
         Self {
             call_frame: Some(frame),
             stack,
@@ -106,6 +110,13 @@ impl GeneratorContext {
         self.call_frame = context.vm.pop_frame();
         assert!(self.call_frame.is_some());
         result
+    }
+
+    /// Returns the async generator object, if the function that this [`GeneratorContext`] is from an async generator, [`None`] otherwise.
+    pub(crate) fn async_generator_object(&self) -> Option<JsObject> {
+        self.call_frame
+            .as_ref()
+            .and_then(|frame| frame.async_generator_object(&self.stack))
     }
 }
 

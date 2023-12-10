@@ -25,6 +25,9 @@ bitflags::bitflags! {
 
         /// Was this [`CallFrame`] created from the `__construct__()` internal object method?
         const CONSTRUCT = 0b0000_0010;
+
+        /// Does this [`CallFrame`] need to push local variables on [`Vm::push_frame()`].
+        const LOCALS_ALREADY_PUSHED = 0b0000_0100;
     }
 }
 
@@ -39,10 +42,6 @@ pub struct CallFrame {
     // On abrupt returns this is used to decide how many environments need to be pop'ed.
     pub(crate) argument_count: u32,
     pub(crate) promise_capability: Option<PromiseCapability>,
-
-    // When an async generator is resumed, the generator object is needed
-    // to fulfill the steps 4.e-j in [AsyncGeneratorStart](https://tc39.es/ecma262/#sec-asyncgeneratorstart).
-    pub(crate) async_generator: Option<JsObject>,
 
     // Iterators and their `[[Done]]` flags that must be closed when an abrupt completion is thrown.
     pub(crate) iterators: ThinVec<IteratorRecord>,
@@ -123,6 +122,7 @@ impl CallFrame {
     pub(crate) const FUNCTION_PROLOGUE: u32 = 2;
     pub(crate) const THIS_POSITION: u32 = 2;
     pub(crate) const FUNCTION_POSITION: u32 = 1;
+    pub(crate) const ASYNC_GENERATOR_OBJECT_LOCAL_INDEX: u32 = 0;
 
     /// Creates a new `CallFrame` with the provided `CodeBlock`.
     pub(crate) fn new(
@@ -138,7 +138,6 @@ impl CallFrame {
             env_fp: 0,
             argument_count: 0,
             promise_capability: None,
-            async_generator: None,
             iterators: ThinVec::new(),
             binding_stack: Vec::new(),
             loop_iteration_count: 0,
@@ -201,6 +200,28 @@ impl CallFrame {
         vm.stack.truncate(fp as usize);
     }
 
+    /// Returns the async generator object, if the function that this [`CallFrame`] is from an async generator, [`None`] otherwise.
+    pub(crate) fn async_generator_object(&self, stack: &[JsValue]) -> Option<JsObject> {
+        if !self.code_block().is_async_generator() {
+            return None;
+        }
+
+        self.local(Self::ASYNC_GENERATOR_OBJECT_LOCAL_INDEX, stack)
+            .as_object()
+            .cloned()
+    }
+
+    /// Returns the local at the given index.
+    ///
+    /// # Panics
+    ///
+    /// If the index is out of bounds.
+    pub(crate) fn local<'stack>(&self, index: u32, stack: &'stack [JsValue]) -> &'stack JsValue {
+        debug_assert!(index < self.code_block().locals_count);
+        let at = self.fp + index;
+        &stack[at as usize]
+    }
+
     /// Does this have the [`CallFrameFlags::EXIT_EARLY`] flag.
     pub(crate) fn exit_early(&self) -> bool {
         self.flags.contains(CallFrameFlags::EXIT_EARLY)
@@ -212,6 +233,10 @@ impl CallFrame {
     /// Does this have the [`CallFrameFlags::CONSTRUCT`] flag.
     pub(crate) fn construct(&self) -> bool {
         self.flags.contains(CallFrameFlags::CONSTRUCT)
+    }
+    /// Does this [`CallFrame`] need to push local variables on [`Vm::push_frame()`].
+    pub(crate) fn locals_already_pushed(&self) -> bool {
+        self.flags.contains(CallFrameFlags::LOCALS_ALREADY_PUSHED)
     }
 }
 
