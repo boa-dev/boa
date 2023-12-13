@@ -25,7 +25,7 @@ use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
 use boa_temporal::{
     components::calendar::{
-        AvailableCalendars, CalendarDateLike, CalendarFieldsType, CalendarSlot,
+        CalendarDateLike, CalendarFieldsType, CalendarProtocol, CalendarSlot,
         CALENDAR_PROTOCOL_METHODS,
     },
     options::{ArithmeticOverflow, TemporalUnit},
@@ -33,9 +33,9 @@ use boa_temporal::{
 
 mod object;
 
-use object::CustomRuntimeCalendar;
+#[doc(inline)]
+pub(crate) use object::JsCustomCalendar;
 
-#[cfg(feature = "experimental")]
 #[cfg(test)]
 mod tests;
 
@@ -44,11 +44,11 @@ mod tests;
 // SAFETY: `Calendar` doesn't contain traceable types.
 #[boa_gc(unsafe_empty_trace)]
 pub struct Calendar {
-    slot: CalendarSlot,
+    slot: CalendarSlot<JsCustomCalendar>,
 }
 
 impl Calendar {
-    pub(crate) fn new(slot: CalendarSlot) -> Self {
+    pub(crate) fn new(slot: CalendarSlot<JsCustomCalendar>) -> Self {
         Self { slot }
     }
 }
@@ -145,11 +145,10 @@ impl BuiltInConstructor for Calendar {
 
         // 3. If IsBuiltinCalendar(id) is false, then
         // a. Throw a RangeError exception.
-        let _ = AvailableCalendars::from_str(&id.to_std_string_escaped())?;
 
         // 4. Return ? CreateTemporalCalendar(id, NewTarget).
         create_temporal_calendar(
-            CalendarSlot::Identifier(id.to_std_string_escaped()),
+            CalendarSlot::<JsCustomCalendar>::from_str(&id.to_std_string_escaped())?,
             Some(new_target.clone()),
             context,
         )
@@ -172,12 +171,7 @@ impl Calendar {
                     .with_message("the this value of Calendar must be a Calendar object.")
             })?;
 
-        let protocol = match &calendar.slot {
-            CalendarSlot::Identifier(s) => AvailableCalendars::from_str(s)?.to_protocol(),
-            CalendarSlot::Protocol(proto) => proto.clone(),
-        };
-
-        Ok(JsString::from(protocol.identifier(context)?.as_str()).into())
+        Ok(JsString::from(calendar.slot.identifier(context)?.as_str()).into())
     }
 
     /// 15.8.2.1 `Temporal.Calendar.prototype.dateFromFields ( fields [ , options ] )` - Supercedes 12.5.4
@@ -195,12 +189,6 @@ impl Calendar {
                 JsNativeError::typ()
                     .with_message("this value of Calendar must be a Calendar object.")
             })?;
-
-        // Retrieve the current CalendarProtocol.
-        let protocol = match &calendar.slot {
-            CalendarSlot::Identifier(s) => AvailableCalendars::from_str(s)?.to_protocol(),
-            CalendarSlot::Protocol(proto) => proto.clone(),
-        };
 
         // 3. If Type(fields) is not Object, throw a TypeError exception.
         let fields = args.get_or_undefined(0);
@@ -220,7 +208,7 @@ impl Calendar {
         ]);
 
         // 6. If calendar.[[Identifier]] is "iso8601", then
-        let mut fields = if protocol.identifier(context)?.as_str() == "iso8601" {
+        let mut fields = if calendar.slot.is_iso() {
             // a. Set fields to ? PrepareTemporalFields(fields, relevantFieldNames, « "year", "day" »).
             let mut required_fields = Vec::from([js_string!("year"), js_string!("day")]);
             fields::prepare_temporal_fields(
@@ -235,7 +223,8 @@ impl Calendar {
         // 7. Else,
         } else {
             // a. Let calendarRelevantFieldDescriptors be CalendarFieldDescriptors(calendar.[[Identifier]], date).
-            let calendar_relevant_fields = protocol.field_descriptors(CalendarFieldsType::Date);
+            let calendar_relevant_fields =
+                calendar.slot.field_descriptors(CalendarFieldsType::Date)?;
             // b. Set fields to ? PrepareTemporalFields(fields, relevantFieldNames, « », calendarRelevantFieldDescriptors).
             fields::prepare_temporal_fields(
                 fields_obj,
@@ -260,7 +249,9 @@ impl Calendar {
         // a. Perform ? CalendarResolveFields(calendar.[[Identifier]], fields, date).
         // b. Let result be ? CalendarDateToISO(calendar.[[Identifier]], fields, overflow).
 
-        let result = protocol.date_from_fields(&mut fields, overflow, context)?;
+        let result = calendar
+            .slot
+            .date_from_fields(&mut fields, overflow, context)?;
 
         create_temporal_date(result, None, context).map(Into::into)
     }
@@ -279,11 +270,6 @@ impl Calendar {
                     .with_message("this value of Calendar must be a Calendar object.")
             })?;
 
-        let protocol = match &calendar.slot {
-            CalendarSlot::Identifier(s) => AvailableCalendars::from_str(s)?.to_protocol(),
-            CalendarSlot::Protocol(proto) => proto.clone(),
-        };
-
         let fields = args.get_or_undefined(0);
         let fields_obj = fields.as_object().ok_or_else(|| {
             JsNativeError::typ().with_message("fields parameter must be an object.")
@@ -299,7 +285,7 @@ impl Calendar {
         ]);
 
         // 6. Set fields to ? PrepareTemporalFields(fields, « "month", "monthCode", "year" », « "year" »).
-        let mut fields = if protocol.identifier(context)?.as_str() == "iso8601" {
+        let mut fields = if calendar.slot.identifier(context)?.as_str() == "iso8601" {
             // a. Set fields to ? PrepareTemporalFields(fields, relevantFieldNames, « "year" »).
             let mut required_fields = Vec::from([js_string!("year")]);
             fields::prepare_temporal_fields(
@@ -315,8 +301,9 @@ impl Calendar {
             // a. Let calendarRelevantFieldDescriptors be CalendarFieldDescriptors(calendar.[[Identifier]], year-month).
             // b. Set fields to ? PrepareTemporalFields(fields, relevantFieldNames, « », calendarRelevantFieldDescriptors).
 
-            let calendar_relevant_fields =
-                protocol.field_descriptors(CalendarFieldsType::YearMonth);
+            let calendar_relevant_fields = calendar
+                .slot
+                .field_descriptors(CalendarFieldsType::YearMonth)?;
             fields::prepare_temporal_fields(
                 fields_obj,
                 &mut relevant_field_names,
@@ -336,7 +323,9 @@ impl Calendar {
         let overflow = get_option::<ArithmeticOverflow>(&options, utf16!("overflow"), context)?
             .unwrap_or(ArithmeticOverflow::Constrain);
 
-        let result = protocol.year_month_from_fields(&mut fields, overflow, context)?;
+        let result = calendar
+            .slot
+            .year_month_from_fields(&mut fields, overflow, context)?;
 
         create_temporal_year_month(result, None, context)
     }
@@ -357,11 +346,6 @@ impl Calendar {
                     .with_message("this value of Calendar must be a Calendar object.")
             })?;
 
-        let protocol = match &calendar.slot {
-            CalendarSlot::Identifier(s) => AvailableCalendars::from_str(s)?.to_protocol(),
-            CalendarSlot::Protocol(proto) => proto.clone(),
-        };
-
         // 3. If Type(fields) is not Object, throw a TypeError exception.
         let fields = args.get_or_undefined(0);
         let fields_obj = fields.as_object().ok_or_else(|| {
@@ -380,7 +364,7 @@ impl Calendar {
         ]);
 
         // 6. If calendar.[[Identifier]] is "iso8601", then
-        let mut fields = if protocol.identifier(context)?.as_str() == "iso8601" {
+        let mut fields = if calendar.slot.identifier(context)?.as_str() == "iso8601" {
             // a. Set fields to ? PrepareTemporalFields(fields, relevantFieldNames, « "day" »).
             let mut required_fields = Vec::from([js_string!("day")]);
             fields::prepare_temporal_fields(
@@ -395,7 +379,9 @@ impl Calendar {
         // 7. Else,
         } else {
             // a. Let calendarRelevantFieldDescriptors be CalendarFieldDescriptors(calendar.[[Identifier]], month-day).
-            let calendar_relevant_fields = protocol.field_descriptors(CalendarFieldsType::MonthDay);
+            let calendar_relevant_fields = calendar
+                .slot
+                .field_descriptors(CalendarFieldsType::MonthDay)?;
             // b. Set fields to ? PrepareTemporalFields(fields, relevantFieldNames, « », calendarRelevantFieldDescriptors).
             fields::prepare_temporal_fields(
                 fields_obj,
@@ -412,7 +398,9 @@ impl Calendar {
         let overflow = get_option(&options, utf16!("overflow"), context)?
             .unwrap_or(ArithmeticOverflow::Constrain);
 
-        let result = protocol.month_day_from_fields(&mut fields, overflow, context)?;
+        let result = calendar
+            .slot
+            .month_day_from_fields(&mut fields, overflow, context)?;
 
         create_temporal_month_day(result, None, context)
     }
@@ -429,11 +417,6 @@ impl Calendar {
                 JsNativeError::typ()
                     .with_message("this value of Calendar must be a Calendar object.")
             })?;
-
-        let protocol = match &calendar.slot {
-            CalendarSlot::Identifier(s) => AvailableCalendars::from_str(s)?.to_protocol(),
-            CalendarSlot::Protocol(proto) => proto.clone(),
-        };
 
         // 4. Set date to ? ToTemporalDate(date).
         let date_like = args.get_or_undefined(0);
@@ -454,7 +437,9 @@ impl Calendar {
         // 8. Let balanceResult be ? BalanceTimeDuration(duration.[[Days]], duration.[[Hours]], duration.[[Minutes]], duration.[[Seconds]], duration.[[Milliseconds]], duration.[[Microseconds]], duration.[[Nanoseconds]], "day").
         duration.balance_time_duration(TemporalUnit::Day)?;
 
-        let result = protocol.date_add(&date.inner, &duration, overflow, context)?;
+        let result = calendar
+            .slot
+            .date_add(&date.inner, &duration, overflow, context)?;
 
         create_temporal_date(result, None, context).map(Into::into)
     }
@@ -471,11 +456,6 @@ impl Calendar {
                 JsNativeError::typ()
                     .with_message("this value of Calendar must be a Calendar object.")
             })?;
-
-        let protocol = match &calendar.slot {
-            CalendarSlot::Identifier(s) => AvailableCalendars::from_str(s)?.to_protocol(),
-            CalendarSlot::Protocol(proto) => proto.clone(),
-        };
 
         // 4. Set one to ? ToTemporalDate(one).
         let one = temporal::plain_date::to_temporal_date(args.get_or_undefined(0), None, context)?;
@@ -496,7 +476,9 @@ impl Calendar {
         )?
         .unwrap_or(TemporalUnit::Day);
 
-        let result = protocol.date_until(&one.inner, &two.inner, largest_unit, context)?;
+        let result = calendar
+            .slot
+            .date_until(&one.inner, &two.inner, largest_unit, context)?;
 
         create_temporal_duration(result, None, context).map(Into::into)
     }
@@ -511,14 +493,10 @@ impl Calendar {
                     .with_message("this value of Calendar must be a Calendar object.")
             })?;
 
-        let protocol = match &calendar.slot {
-            CalendarSlot::Identifier(s) => AvailableCalendars::from_str(s)?.to_protocol(),
-            CalendarSlot::Protocol(proto) => proto.clone(),
-        };
-
         let date_like = to_calendar_date_like(args.get_or_undefined(0), context)?;
 
-        let result = protocol
+        let result = calendar
+            .slot
             .era(&date_like, context)?
             .map_or(JsValue::undefined(), |r| JsString::from(r.as_str()).into());
 
@@ -535,14 +513,10 @@ impl Calendar {
                     .with_message("this value of Calendar must be a Calendar object.")
             })?;
 
-        let protocol = match &calendar.slot {
-            CalendarSlot::Identifier(s) => AvailableCalendars::from_str(s)?.to_protocol(),
-            CalendarSlot::Protocol(proto) => proto.clone(),
-        };
-
         let date_like = to_calendar_date_like(args.get_or_undefined(0), context)?;
 
-        let result = protocol
+        let result = calendar
+            .slot
             .era_year(&date_like, context)?
             .map_or(JsValue::undefined(), JsValue::from);
 
@@ -559,14 +533,9 @@ impl Calendar {
                     .with_message("this value of Calendar must be a Calendar object.")
             })?;
 
-        let protocol = match &calendar.slot {
-            CalendarSlot::Identifier(s) => AvailableCalendars::from_str(s)?.to_protocol(),
-            CalendarSlot::Protocol(proto) => proto.clone(),
-        };
-
         let date_like = to_calendar_date_like(args.get_or_undefined(0), context)?;
 
-        let result = protocol.year(&date_like, context)?;
+        let result = calendar.slot.year(&date_like, context)?;
 
         Ok(result.into())
     }
@@ -581,11 +550,6 @@ impl Calendar {
                     .with_message("this value of Calendar must be a Calendar object.")
             })?;
 
-        let protocol = match &calendar.slot {
-            CalendarSlot::Identifier(s) => AvailableCalendars::from_str(s)?.to_protocol(),
-            CalendarSlot::Protocol(proto) => proto.clone(),
-        };
-
         let date_like = to_calendar_date_like(args.get_or_undefined(0), context)?;
 
         // 3. If Type(temporalDateLike) is Object and temporalDateLike has an [[InitializedTemporalMonthDay]] internal slot, then
@@ -593,7 +557,7 @@ impl Calendar {
         // 4. If Type(temporalDateLike) is not Object or temporalDateLike does not have an [[InitializedTemporalDate]], [[InitializedTemporalDateTime]], or [[InitializedTemporalYearMonth]] internal slot, then
         // 4.a. Set temporalDateLike to ? ToTemporalDate(temporalDateLike).
 
-        let result = protocol.month(&date_like, context)?;
+        let result = calendar.slot.month(&date_like, context)?;
 
         Ok(result.into())
     }
@@ -608,14 +572,9 @@ impl Calendar {
                     .with_message("this value of Calendar must be a Calendar object.")
             })?;
 
-        let protocol = match &calendar.slot {
-            CalendarSlot::Identifier(s) => AvailableCalendars::from_str(s)?.to_protocol(),
-            CalendarSlot::Protocol(proto) => proto.clone(),
-        };
-
         let date_like = to_calendar_date_like(args.get_or_undefined(0), context)?;
 
-        let result = protocol.month_code(&date_like, context)?;
+        let result = calendar.slot.month_code(&date_like, context)?;
 
         Ok(JsString::from(result.as_str()).into())
     }
@@ -630,14 +589,9 @@ impl Calendar {
                     .with_message("this value of Calendar must be a Calendar object.")
             })?;
 
-        let protocol = match &calendar.slot {
-            CalendarSlot::Identifier(s) => AvailableCalendars::from_str(s)?.to_protocol(),
-            CalendarSlot::Protocol(proto) => proto.clone(),
-        };
-
         let date_like = to_calendar_date_like(args.get_or_undefined(0), context)?;
 
-        let result = protocol.day(&date_like, context)?;
+        let result = calendar.slot.day(&date_like, context)?;
 
         Ok(result.into())
     }
@@ -654,15 +608,12 @@ impl Calendar {
                     .with_message("this value of Calendar must be a Calendar object.")
             })?;
 
-        let protocol = match &calendar.slot {
-            CalendarSlot::Identifier(s) => AvailableCalendars::from_str(s)?.to_protocol(),
-            CalendarSlot::Protocol(proto) => proto.clone(),
-        };
-
         // 3. Let temporalDate be ? ToTemporalDate(temporalDateLike).
         let date = temporal::plain_date::to_temporal_date(args.get_or_undefined(0), None, context)?;
 
-        let result = protocol.day_of_week(&CalendarDateLike::Date(date.inner.clone()), context)?;
+        let result = calendar
+            .slot
+            .day_of_week(&CalendarDateLike::Date(date.inner.clone()), context)?;
 
         Ok(result.into())
     }
@@ -677,15 +628,12 @@ impl Calendar {
                     .with_message("this value of Calendar must be a Calendar object.")
             })?;
 
-        let protocol = match &calendar.slot {
-            CalendarSlot::Identifier(s) => AvailableCalendars::from_str(s)?.to_protocol(),
-            CalendarSlot::Protocol(proto) => proto.clone(),
-        };
-
         // 3. Let temporalDate be ? ToTemporalDate(temporalDateLike).
         let date = temporal::plain_date::to_temporal_date(args.get_or_undefined(0), None, context)?;
 
-        let result = protocol.day_of_year(&CalendarDateLike::Date(date.inner.clone()), context)?;
+        let result = calendar
+            .slot
+            .day_of_year(&CalendarDateLike::Date(date.inner.clone()), context)?;
 
         Ok(result.into())
     }
@@ -700,15 +648,12 @@ impl Calendar {
                     .with_message("this value of Calendar must be a Calendar object.")
             })?;
 
-        let protocol = match &calendar.slot {
-            CalendarSlot::Identifier(s) => AvailableCalendars::from_str(s)?.to_protocol(),
-            CalendarSlot::Protocol(proto) => proto.clone(),
-        };
-
         // 3. Let temporalDate be ? ToTemporalDate(temporalDateLike).
         let date = temporal::plain_date::to_temporal_date(args.get_or_undefined(0), None, context)?;
 
-        let result = protocol.week_of_year(&CalendarDateLike::Date(date.inner.clone()), context)?;
+        let result = calendar
+            .slot
+            .week_of_year(&CalendarDateLike::Date(date.inner.clone()), context)?;
 
         Ok(result.into())
     }
@@ -723,15 +668,12 @@ impl Calendar {
                     .with_message("this value of Calendar must be a Calendar object.")
             })?;
 
-        let protocol = match &calendar.slot {
-            CalendarSlot::Identifier(s) => AvailableCalendars::from_str(s)?.to_protocol(),
-            CalendarSlot::Protocol(proto) => proto.clone(),
-        };
-
         // 3. Let temporalDate be ? ToTemporalDate(temporalDateLike).
         let date = temporal::plain_date::to_temporal_date(args.get_or_undefined(0), None, context)?;
 
-        let result = protocol.year_of_week(&CalendarDateLike::Date(date.inner.clone()), context)?;
+        let result = calendar
+            .slot
+            .year_of_week(&CalendarDateLike::Date(date.inner.clone()), context)?;
 
         Ok(result.into())
     }
@@ -746,15 +688,12 @@ impl Calendar {
                     .with_message("this value of Calendar must be a Calendar object.")
             })?;
 
-        let protocol = match &calendar.slot {
-            CalendarSlot::Identifier(s) => AvailableCalendars::from_str(s)?.to_protocol(),
-            CalendarSlot::Protocol(proto) => proto.clone(),
-        };
-
         // 3. Let temporalDate be ? ToTemporalDate(temporalDateLike).
         let date = temporal::plain_date::to_temporal_date(args.get_or_undefined(0), None, context)?;
 
-        let result = protocol.days_in_week(&CalendarDateLike::Date(date.inner.clone()), context)?;
+        let result = calendar
+            .slot
+            .days_in_week(&CalendarDateLike::Date(date.inner.clone()), context)?;
 
         Ok(result.into())
     }
@@ -769,14 +708,9 @@ impl Calendar {
                     .with_message("this value of Calendar must be a Calendar object.")
             })?;
 
-        let protocol = match &calendar.slot {
-            CalendarSlot::Identifier(s) => AvailableCalendars::from_str(s)?.to_protocol(),
-            CalendarSlot::Protocol(proto) => proto.clone(),
-        };
-
         let date_like = to_calendar_date_like(args.get_or_undefined(0), context)?;
 
-        let result = protocol.days_in_month(&date_like, context)?;
+        let result = calendar.slot.days_in_month(&date_like, context)?;
 
         Ok(result.into())
     }
@@ -791,13 +725,8 @@ impl Calendar {
                     .with_message("this value of Calendar must be a Calendar object.")
             })?;
 
-        let protocol = match &calendar.slot {
-            CalendarSlot::Identifier(s) => AvailableCalendars::from_str(s)?.to_protocol(),
-            CalendarSlot::Protocol(proto) => proto.clone(),
-        };
-
         let date_like = to_calendar_date_like(args.get_or_undefined(0), context)?;
-        let result = protocol.days_in_year(&date_like, context)?;
+        let result = calendar.slot.days_in_year(&date_like, context)?;
 
         Ok(result.into())
     }
@@ -816,14 +745,9 @@ impl Calendar {
                     .with_message("this value of Calendar must be a Calendar object.")
             })?;
 
-        let protocol = match &calendar.slot {
-            CalendarSlot::Identifier(s) => AvailableCalendars::from_str(s)?.to_protocol(),
-            CalendarSlot::Protocol(proto) => proto.clone(),
-        };
-
         let date_like = to_calendar_date_like(args.get_or_undefined(0), context)?;
 
-        let result = protocol.months_in_year(&date_like, context)?;
+        let result = calendar.slot.months_in_year(&date_like, context)?;
 
         Ok(result.into())
     }
@@ -838,14 +762,9 @@ impl Calendar {
                     .with_message("this value of Calendar must be a Calendar object.")
             })?;
 
-        let protocol = match &calendar.slot {
-            CalendarSlot::Identifier(s) => AvailableCalendars::from_str(s)?.to_protocol(),
-            CalendarSlot::Protocol(proto) => proto.clone(),
-        };
-
         let date_like = to_calendar_date_like(args.get_or_undefined(0), context)?;
 
-        let result = protocol.in_leap_year(&date_like, context)?;
+        let result = calendar.slot.in_leap_year(&date_like, context)?;
 
         Ok(result.into())
     }
@@ -862,10 +781,36 @@ impl Calendar {
                     .with_message("this value of Calendar must be a Calendar object.")
             })?;
 
-        let protocol = match &calendar.slot {
-            CalendarSlot::Identifier(s) => AvailableCalendars::from_str(s)?.to_protocol(),
-            CalendarSlot::Protocol(proto) => proto.clone(),
-        };
+        // Custom Calendars override the `fields` method.
+        if let CalendarSlot::Protocol(proto) = &calendar.slot {
+            // TODO: Is there a more efficient way to convert from iterable <-> Vec;
+            let mut iterator_record =
+                args.get_or_undefined(0)
+                    .get_iterator(context, Some(IteratorHint::Sync), None)?;
+            let mut fields_list = Vec::default();
+
+            while iterator_record.step(context)? {
+                let next_val = iterator_record.value(context)?;
+
+                if let JsValue::String(item) = next_val {
+                    fields_list.push(item.to_std_string_escaped());
+                } else {
+                    // 1. Let completion be ThrowCompletion(a newly created TypeError object).
+                    let completion = Err(JsNativeError::typ()
+                        .with_message("field must be of type string")
+                        .into());
+                    // 2. Return ? IteratorClose(iteratorRecord, completion).
+                    return iterator_record.close(completion, context);
+                }
+            }
+
+            let result = proto.fields(fields_list, context)?;
+            return Ok(Array::create_array_from_list(
+                result.iter().map(|s| JsString::from(s.clone()).into()),
+                context,
+            )
+            .into());
+        }
 
         // 3. Let iteratorRecord be ? GetIterator(fields, sync).
         let mut iterator_record =
@@ -918,11 +863,12 @@ impl Calendar {
 
         // 7. Let result be fieldNames.
         // 8. If calendar.[[Identifier]] is not "iso8601", then
-        if protocol.identifier(context)?.as_str() != "iso8601" {
+        if !calendar.slot.is_iso() {
             // a. NOTE: Every built-in calendar preserves all input field names in output.
             // b. Let extraFieldDescriptors be CalendarFieldDescriptors(calendar.[[Identifier]], fieldNames).
-            let extended_fields =
-                protocol.field_descriptors(CalendarFieldsType::from(&fields_names[..]));
+            let extended_fields = calendar
+                .slot
+                .field_descriptors(CalendarFieldsType::from(&fields_names[..]))?;
             // c. For each Calendar Field Descriptor Record desc of extraFieldDescriptors, do
             for descriptor in extended_fields {
                 // i. Append desc.[[Property]] to result.
@@ -952,87 +898,46 @@ impl Calendar {
                     .with_message("this value of Calendar must be a Calendar object.")
             })?;
 
-        let protocol = match &calendar.slot {
-            CalendarSlot::Identifier(s) => AvailableCalendars::from_str(s)?.to_protocol(),
-            CalendarSlot::Protocol(proto) => proto.clone(),
-        };
-
         let fields = args.get_or_undefined(0).to_object(context)?;
         let additional_fields = args.get_or_undefined(1).to_object(context)?;
 
         // 3. Let fieldsCopy be ? SnapshotOwnProperties(? ToObject(fields), null, « », « undefined »).
-        let fields_copy = temporal::snapshot_own_properties(
-            &fields,
-            Some(Vec::new()),
-            Some(Vec::from([JsValue::undefined()])),
-            context,
-        )?;
+        let fields_copy = temporal::fields::object_to_temporal_fields(&fields, context)?;
 
         // 4. Let additionalFieldsCopy be ? SnapshotOwnProperties(? ToObject(additionalFields), null, « », « undefined »).
-        let additional_fields_copy = temporal::snapshot_own_properties(
-            &additional_fields,
-            Some(Vec::new()),
-            Some(Vec::from([JsValue::undefined()])),
-            context,
-        )?;
+        let additional_copy =
+            temporal::fields::object_to_temporal_fields(&additional_fields, context)?;
 
-        // 5. NOTE: Every property of fieldsCopy and additionalFieldsCopy is an enumerable data property with non-undefined value, but some property keys may be Symbols.
+        // Custom Calendars override the `fields` method.
+        if let CalendarSlot::Protocol(proto) = &calendar.slot {
+            let result = proto.merge_fields(&fields_copy, &additional_copy, context)?; // TBD
+            return JsObject::from_temporal_fields(&result, context).map(Into::into);
+        }
+
+        // 5. NOTE: Every property of fieldsCopy and additionalFieldsCopy is an enumerable data property with non-undefined value,
+        // but some property keys may be Symbols.
         // 6. Let additionalKeys be ! additionalFieldsCopy.[[OwnPropertyKeys]]().
-        let add_keys = additional_fields_copy
-            .__own_property_keys__(context)?
-            .iter()
-            .map(ToString::to_string)
-            .collect::<Vec<_>>();
-
         // 7. If calendar.[[Identifier]] is "iso8601", then
         // a. Let overriddenKeys be ISOFieldKeysToIgnore(additionalKeys).
         // 8. Else,
         // a. Let overriddenKeys be CalendarFieldKeysToIgnore(calendar, additionalKeys).
-        let overridden_keys = protocol.field_keys_to_ignore(add_keys);
-
         // 9. Let merged be OrdinaryObjectCreate(null).
-        let merged = JsObject::with_null_proto();
-
         // 10. NOTE: The following steps ensure that property iteration order of merged
         // matches that of fields as modified by omitting overridden properties and
         // appending non-overlapping properties from additionalFields in iteration order.
         // 11. Let fieldsKeys be ! fieldsCopy.[[OwnPropertyKeys]]().
-        let field_keys = fields_copy
-            .__own_property_keys__(context)?
-            .iter()
-            .map(|k| JsString::from(k.to_string()))
-            .collect::<Vec<_>>();
-
         // 12. For each element key of fieldsKeys, do
-        for key in field_keys {
-            // a. Let propValue be undefined.
-            // b. If overriddenKeys contains key, then
-            let prop_value = if overridden_keys.contains(&key.to_std_string_escaped()) {
-                // i. Set propValue to ! Get(additionalFieldsCopy, key).
-                additional_fields_copy.get(key.as_slice(), context)?
-            // c. Else,
-            } else {
-                // i. Set propValue to ! Get(fieldsCopy, key).
-                fields_copy.get(key.as_slice(), context)?
-            };
-
-            // d. If propValue is not undefined, perform ! CreateDataPropertyOrThrow(merged, key, propValue).
-            if !prop_value.is_undefined() {
-                merged.create_data_property_or_throw(key.as_slice(), prop_value, context)?;
-            }
-        }
+        // a. Let propValue be undefined.
+        // b. If overriddenKeys contains key, then
+        // i. Set propValue to ! Get(additionalFieldsCopy, key).
+        // c. Else,
+        // i. Set propValue to ! Get(fieldsCopy, key).
+        // d. If propValue is not undefined, perform ! CreateDataPropertyOrThrow(merged, key, propValue).
+        let merged = fields_copy.merge_fields(&additional_copy, &calendar.slot)?;
 
         // 13. Perform ! CopyDataProperties(merged, additionalFieldsCopy, « »).
-        temporal::copy_data_properties(
-            &merged,
-            &additional_fields_copy.into(),
-            &Vec::new(),
-            None,
-            context,
-        )?;
-
         // 14. Return merged.
-        Ok(merged.into())
+        JsObject::from_temporal_fields(&merged, context).map(Into::into)
     }
 }
 
@@ -1040,7 +945,7 @@ impl Calendar {
 
 /// 12.2.1 `CreateTemporalCalendar ( identifier [ , newTarget ] )`
 pub(crate) fn create_temporal_calendar(
-    identifier: CalendarSlot,
+    identifier: CalendarSlot<JsCustomCalendar>,
     new_target: Option<JsValue>,
     context: &mut Context,
 ) -> JsResult<JsValue> {
@@ -1104,7 +1009,7 @@ where
 pub(crate) fn get_temporal_calendar_slot_value_with_default(
     item: &JsObject,
     context: &mut Context,
-) -> JsResult<CalendarSlot> {
+) -> JsResult<CalendarSlot<JsCustomCalendar>> {
     // 1. If item has an [[InitializedTemporalDate]], [[InitializedTemporalDateTime]], [[InitializedTemporalMonthDay]], [[InitializedTemporalYearMonth]], or [[InitializedTemporalZonedDateTime]] internal slot, then
     // a. Return item.[[Calendar]].
     if let Some(calendar) = extract_from_temporal_type(
@@ -1133,12 +1038,12 @@ pub(crate) fn get_temporal_calendar_slot_value_with_default(
 pub(crate) fn to_temporal_calendar_slot_value(
     calendar_like: &JsValue,
     context: &mut Context,
-) -> JsResult<CalendarSlot> {
+) -> JsResult<CalendarSlot<JsCustomCalendar>> {
     // 1. If temporalCalendarLike is undefined and default is present, then
     // a. Assert: IsBuiltinCalendar(default) is true.
     // b. Return default.
     if calendar_like.is_undefined() {
-        return Ok(CalendarSlot::Identifier("iso8601".to_owned()));
+        return Ok(CalendarSlot::default());
     // 2. If Type(temporalCalendarLike) is Object, then
     } else if let Some(calendar_like) = calendar_like.as_object() {
         // a. If temporalCalendarLike has an [[InitializedTemporalDate]], [[InitializedTemporalDateTime]], [[InitializedTemporalMonthDay]], [[InitializedTemporalYearMonth]], or [[InitializedTemporalZonedDateTime]] internal slot, then
@@ -1179,7 +1084,7 @@ pub(crate) fn to_temporal_calendar_slot_value(
         }
 
         // Types: Box<dyn CalendarProtocol> <- UserCalendar
-        let protocol = Box::new(CustomRuntimeCalendar::new(calendar_like));
+        let protocol = JsCustomCalendar::new(calendar_like);
         // c. Return temporalCalendarLike.
         return Ok(CalendarSlot::Protocol(protocol));
     }
@@ -1195,7 +1100,7 @@ pub(crate) fn to_temporal_calendar_slot_value(
     // 4. Let identifier be ? ParseTemporalCalendarString(temporalCalendarLike).
     // 5. If IsBuiltinCalendar(identifier) is false, throw a RangeError exception.
     // 6. Return the ASCII-lowercase of identifier.
-    Ok(CalendarSlot::Identifier("iso8601".to_owned()))
+    Ok(CalendarSlot::default())
 }
 
 fn object_implements_calendar_protocol(calendar_like: &JsObject, context: &mut Context) -> bool {
@@ -1207,7 +1112,10 @@ fn object_implements_calendar_protocol(calendar_like: &JsObject, context: &mut C
 }
 
 /// Utility function for taking a `JsValue` and converting it to a temporal library `CalendarDateLike` enum.
-fn to_calendar_date_like(date_like: &JsValue, context: &mut Context) -> JsResult<CalendarDateLike> {
+fn to_calendar_date_like(
+    date_like: &JsValue,
+    context: &mut Context,
+) -> JsResult<CalendarDateLike<JsCustomCalendar>> {
     let Some(obj) = date_like.as_object() else {
         let date = temporal::plain_date::to_temporal_date(date_like, None, context)?;
 

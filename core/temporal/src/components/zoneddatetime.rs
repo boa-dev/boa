@@ -5,7 +5,7 @@ use tinystr::TinyStr4;
 
 use crate::{
     components::{
-        calendar::{CalendarDateLike, CalendarSlot},
+        calendar::{CalendarDateLike, CalendarProtocol, CalendarSlot},
         tz::TimeZoneSlot,
         Instant,
     },
@@ -16,21 +16,21 @@ use core::any::Any;
 
 /// The native Rust implementation of `Temporal.ZonedDateTime`.
 #[derive(Debug, Clone)]
-pub struct ZonedDateTime {
+pub struct ZonedDateTime<C: CalendarProtocol> {
     instant: Instant,
-    calendar: CalendarSlot,
+    calendar: CalendarSlot<C>,
     tz: TimeZoneSlot,
 }
 
 // ==== Private API ====
 
-impl ZonedDateTime {
+impl<C: CalendarProtocol> ZonedDateTime<C> {
     /// Creates a `ZonedDateTime` without validating the input.
     #[inline]
     #[must_use]
     pub(crate) fn new_unchecked(
         instant: Instant,
-        calendar: CalendarSlot,
+        calendar: CalendarSlot<C>,
         tz: TimeZoneSlot,
     ) -> Self {
         Self {
@@ -43,10 +43,10 @@ impl ZonedDateTime {
 
 // ==== Public API ====
 
-impl ZonedDateTime {
+impl<C: CalendarProtocol> ZonedDateTime<C> {
     /// Creates a new valid `ZonedDateTime`.
     #[inline]
-    pub fn new(nanos: BigInt, calendar: CalendarSlot, tz: TimeZoneSlot) -> TemporalResult<Self> {
+    pub fn new(nanos: BigInt, calendar: CalendarSlot<C>, tz: TimeZoneSlot) -> TemporalResult<Self> {
         let instant = Instant::new(nanos)?;
         Ok(Self::new_unchecked(instant, calendar, tz))
     }
@@ -86,7 +86,7 @@ impl ZonedDateTime {
 
 // ==== Context based API ====
 
-impl ZonedDateTime {
+impl<C: CalendarProtocol> ZonedDateTime<C> {
     /// Returns the `year` value for this `ZonedDateTime`.
     #[inline]
     pub fn contextual_year(&self, context: &mut dyn Any) -> TemporalResult<i32> {
@@ -226,7 +226,9 @@ impl ZonedDateTime {
 
 #[cfg(test)]
 mod tests {
-    use crate::components::tz::TimeZone;
+    use std::str::FromStr;
+
+    use crate::components::{calendar::EmptyCustomCalendar, tz::TimeZone};
     use num_bigint::BigInt;
 
     use super::{CalendarSlot, TimeZoneSlot, ZonedDateTime};
@@ -235,9 +237,9 @@ mod tests {
     fn basic_zdt_test() {
         let nov_30_2023_utc = BigInt::from(1_701_308_952_000_000_000i64);
 
-        let zdt = ZonedDateTime::new(
+        let zdt = ZonedDateTime::<EmptyCustomCalendar>::new(
             nov_30_2023_utc.clone(),
-            CalendarSlot::Identifier("iso8601".to_owned()),
+            CalendarSlot::from_str("iso8601").unwrap(),
             TimeZoneSlot::Tz(TimeZone {
                 iana: None,
                 offset: Some(0),
@@ -252,9 +254,9 @@ mod tests {
         assert_eq!(zdt.minute().unwrap(), 49);
         assert_eq!(zdt.second().unwrap(), 12);
 
-        let zdt_minus_five = ZonedDateTime::new(
+        let zdt_minus_five = ZonedDateTime::<EmptyCustomCalendar>::new(
             nov_30_2023_utc,
-            CalendarSlot::Identifier("iso8601".to_owned()),
+            CalendarSlot::from_str("iso8601").unwrap(),
             TimeZoneSlot::Tz(TimeZone {
                 iana: None,
                 offset: Some(-300),

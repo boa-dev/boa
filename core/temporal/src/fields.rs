@@ -1,8 +1,12 @@
 //! This module implements a native Rust `TemporalField` and components.
 
-use std::str::FromStr;
+use std::{fmt, str::FromStr};
 
-use crate::{error::TemporalError, TemporalResult};
+use crate::{
+    components::calendar::{CalendarProtocol, CalendarSlot},
+    error::TemporalError,
+    TemporalResult,
+};
 
 use bitflags::bitflags;
 // use rustc_hash::FxHashSet;
@@ -54,6 +58,12 @@ pub enum FieldValue {
     Undefined,
     /// Designates the value as a string.
     String(String),
+}
+
+impl From<i32> for FieldValue {
+    fn from(value: i32) -> Self {
+        FieldValue::Integer(value)
+    }
 }
 
 /// The Conversion type of a field.
@@ -149,12 +159,22 @@ impl Default for TemporalFields {
 }
 
 impl TemporalFields {
+    pub(crate) fn era(&self) -> TinyAsciiStr<16> {
+        self.era.unwrap_or("default".parse().expect("less than 8"))
+    }
+
     pub(crate) const fn year(&self) -> Option<i32> {
         self.year
     }
 
     pub(crate) const fn month(&self) -> Option<i32> {
         self.month
+    }
+
+    pub(crate) fn month_code(&self) -> TinyAsciiStr<4> {
+        // Passing along an invalid MonthCode to ICU...might be better to figure out a different approach...TBD.
+        self.month_code
+            .unwrap_or("M00".parse().expect("less than 4"))
     }
 
     pub(crate) const fn day(&self) -> Option<i32> {
@@ -211,6 +231,53 @@ impl TemporalFields {
         }
 
         Ok(())
+    }
+
+    /// Retrieves a field value if set, else None.
+    pub fn get(&self, field: &str) -> Option<FieldValue> {
+        if !self.is_set_field(field) {
+            return None;
+        }
+        match field {
+            "year" => self.year.map(FieldValue::Integer),
+            "month" => self.month.map(FieldValue::Integer),
+            "monthCode" => self.month_code.map(|s| FieldValue::String(s.to_string())),
+            "day" => self.day.map(FieldValue::from),
+            "hour" => Some(FieldValue::Integer(self.hour)),
+            "minute" => Some(FieldValue::Integer(self.minute)),
+            "second" => Some(FieldValue::Integer(self.second)),
+            "millisecond" => Some(FieldValue::Integer(self.millisecond)),
+            "microsecond" => Some(FieldValue::Integer(self.microsecond)),
+            "nanosecond" => Some(FieldValue::Integer(self.nanosecond)),
+            "offset" => self.offset.as_ref().map(|s| FieldValue::String(s.clone())),
+            "era" => self.era.map(|s| FieldValue::String(s.to_string())),
+            "eraYear" => self.era_year.map(FieldValue::Integer),
+            "timeZone" => self
+                .time_zone
+                .as_ref()
+                .map(|s| FieldValue::String(s.clone())),
+            _ => unreachable!(),
+        }
+    }
+
+    fn is_set_field(&self, field: &str) -> bool {
+        match field {
+            "year" => self.bit_map.contains(FieldMap::YEAR),
+            "month" => self.bit_map.contains(FieldMap::MONTH),
+            "monthCode" => self.bit_map.contains(FieldMap::MONTH_CODE),
+            "day" => self.bit_map.contains(FieldMap::DAY),
+            "hour" => self.bit_map.contains(FieldMap::HOUR),
+            "minute" => self.bit_map.contains(FieldMap::MINUTE),
+            "second" => self.bit_map.contains(FieldMap::SECOND),
+            "millisecond" => self.bit_map.contains(FieldMap::MILLISECOND),
+            "microsecond" => self.bit_map.contains(FieldMap::MICROSECOND),
+            "nanosecond" => self.bit_map.contains(FieldMap::NANOSECOND),
+            "offset" => self.bit_map.contains(FieldMap::OFFSET),
+            "era" => self.bit_map.contains(FieldMap::ERA),
+            "eraYear" => self.bit_map.contains(FieldMap::ERA_YEAR),
+            "timeZone" => self.bit_map.contains(FieldMap::TIME_ZONE),
+            _ => unreachable!(),
+        }
     }
 
     #[inline]
@@ -358,78 +425,28 @@ impl TemporalFields {
     }
 }
 
-// TODO: optimize into iter.
 impl TemporalFields {
     /// Returns a vector filled with the key-value pairs marked as active.
+    #[must_use]
     pub fn active_kvs(&self) -> Vec<(String, FieldValue)> {
-        let mut result = Vec::default();
+        self.keys().zip(self.values()).collect()
+    }
 
-        for field in self.bit_map.iter() {
-            match field {
-                FieldMap::YEAR => result.push((
-                    "year".to_owned(),
-                    self.year.map_or(FieldValue::Undefined, FieldValue::Integer),
-                )),
-                FieldMap::MONTH => result.push((
-                    "month".to_owned(),
-                    self.month
-                        .map_or(FieldValue::Undefined, FieldValue::Integer),
-                )),
-                FieldMap::MONTH_CODE => result.push((
-                    "monthCode".to_owned(),
-                    self.month_code
-                        .map_or(FieldValue::Undefined, |s| FieldValue::String(s.to_string())),
-                )),
-                FieldMap::DAY => result.push((
-                    "day".to_owned(),
-                    self.day.map_or(FieldValue::Undefined, FieldValue::Integer),
-                )),
-                FieldMap::HOUR => result.push(("hour".to_owned(), FieldValue::Integer(self.hour))),
-                FieldMap::MINUTE => {
-                    result.push(("minute".to_owned(), FieldValue::Integer(self.minute)));
-                }
-                FieldMap::SECOND => {
-                    result.push(("second".to_owned(), FieldValue::Integer(self.second)));
-                }
-                FieldMap::MILLISECOND => result.push((
-                    "millisecond".to_owned(),
-                    FieldValue::Integer(self.millisecond),
-                )),
-                FieldMap::MICROSECOND => result.push((
-                    "microsecond".to_owned(),
-                    FieldValue::Integer(self.microsecond),
-                )),
-                FieldMap::NANOSECOND => result.push((
-                    "nanosecond".to_owned(),
-                    FieldValue::Integer(self.nanosecond),
-                )),
-                FieldMap::OFFSET => result.push((
-                    "offset".to_owned(),
-                    self.offset
-                        .clone()
-                        .map_or(FieldValue::Undefined, FieldValue::String),
-                )),
-                FieldMap::ERA => result.push((
-                    "era".to_owned(),
-                    self.era
-                        .map_or(FieldValue::Undefined, |s| FieldValue::String(s.to_string())),
-                )),
-                FieldMap::ERA_YEAR => result.push((
-                    "eraYear".to_owned(),
-                    self.era_year
-                        .map_or(FieldValue::Undefined, FieldValue::Integer),
-                )),
-                FieldMap::TIME_ZONE => result.push((
-                    "timeZone".to_owned(),
-                    self.time_zone
-                        .clone()
-                        .map_or(FieldValue::Undefined, FieldValue::String),
-                )),
-                _ => {}
-            }
+    /// Returns an iterator over the current keys.
+    #[must_use]
+    pub fn keys(&self) -> KeyIter {
+        KeyIter {
+            iter: self.bit_map.iter(),
         }
+    }
 
-        result
+    /// Returns an iterator over the current values.
+    #[must_use]
+    pub fn values(&self) -> ValuesIter<'_> {
+        ValuesIter {
+            fields: self,
+            iter: self.bit_map.iter(),
+        }
     }
 
     /// Resolve `TemporalFields` month and monthCode fields.
@@ -462,6 +479,144 @@ impl TemporalFields {
         self.month = Some(new_month);
 
         Ok(())
+    }
+
+    /// Merges two `TemporalFields` values given a specific `CalendarSlot`.
+    pub fn merge_fields<C: CalendarProtocol>(
+        &self,
+        other: &Self,
+        calendar: &CalendarSlot<C>,
+    ) -> TemporalResult<Self> {
+        let add_keys = other.keys().collect::<Vec<_>>();
+        let overridden_keys = calendar.field_keys_to_ignore(&add_keys)?;
+
+        let mut result = Self::default();
+
+        for key in self.keys() {
+            let value = if overridden_keys.contains(&key) {
+                other.get(&key)
+            } else {
+                self.get(&key)
+            };
+
+            if let Some(value) = value {
+                result.set_field_value(&key, &value)?;
+            }
+        }
+
+        Ok(result)
+    }
+}
+
+/// Iterator over `TemporalFields` keys.
+pub struct KeyIter {
+    iter: bitflags::iter::Iter<FieldMap>,
+}
+
+impl fmt::Debug for KeyIter {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "TemporalFields KeyIterator")
+    }
+}
+
+impl Iterator for KeyIter {
+    type Item = String;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let Some(field) = self.iter.next() else {
+            return None;
+        };
+
+        match field {
+            FieldMap::YEAR => Some("year".to_owned()),
+            FieldMap::MONTH => Some("month".to_owned()),
+            FieldMap::MONTH_CODE => Some("monthCode".to_owned()),
+            FieldMap::DAY => Some("day".to_owned()),
+            FieldMap::HOUR => Some("hour".to_owned()),
+            FieldMap::MINUTE => Some("minute".to_owned()),
+            FieldMap::SECOND => Some("second".to_owned()),
+            FieldMap::MILLISECOND => Some("millisecond".to_owned()),
+            FieldMap::MICROSECOND => Some("microsecond".to_owned()),
+            FieldMap::NANOSECOND => Some("nanosecond".to_owned()),
+            FieldMap::OFFSET => Some("offset".to_owned()),
+            FieldMap::ERA => Some("era".to_owned()),
+            FieldMap::ERA_YEAR => Some("eraYear".to_owned()),
+            FieldMap::TIME_ZONE => Some("timeZone".to_owned()),
+            _ => None,
+        }
+    }
+}
+
+/// An iterator over `TemporalFields`'s values.
+pub struct ValuesIter<'a> {
+    fields: &'a TemporalFields,
+    iter: bitflags::iter::Iter<FieldMap>,
+}
+
+impl fmt::Debug for ValuesIter<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "TemporalFields Values Iterator")
+    }
+}
+
+impl Iterator for ValuesIter<'_> {
+    type Item = FieldValue;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let Some(field) = self.iter.next() else {
+            return None;
+        };
+        match field {
+            FieldMap::YEAR => Some(
+                self.fields
+                    .year
+                    .map_or(FieldValue::Undefined, FieldValue::Integer),
+            ),
+            FieldMap::MONTH => Some(
+                self.fields
+                    .month
+                    .map_or(FieldValue::Undefined, FieldValue::Integer),
+            ),
+            FieldMap::MONTH_CODE => Some(
+                self.fields
+                    .month_code
+                    .map_or(FieldValue::Undefined, |s| FieldValue::String(s.to_string())),
+            ),
+            FieldMap::DAY => Some(
+                self.fields
+                    .day
+                    .map_or(FieldValue::Undefined, FieldValue::Integer),
+            ),
+            FieldMap::HOUR => Some(FieldValue::Integer(self.fields.hour)),
+            FieldMap::MINUTE => Some(FieldValue::Integer(self.fields.minute)),
+            FieldMap::SECOND => Some(FieldValue::Integer(self.fields.second)),
+            FieldMap::MILLISECOND => Some(FieldValue::Integer(self.fields.millisecond)),
+            FieldMap::MICROSECOND => Some(FieldValue::Integer(self.fields.microsecond)),
+            FieldMap::NANOSECOND => Some(FieldValue::Integer(self.fields.nanosecond)),
+            FieldMap::OFFSET => Some(
+                self.fields
+                    .offset
+                    .clone()
+                    .map_or(FieldValue::Undefined, FieldValue::String),
+            ),
+            FieldMap::ERA => Some(
+                self.fields
+                    .era
+                    .map_or(FieldValue::Undefined, |s| FieldValue::String(s.to_string())),
+            ),
+            FieldMap::ERA_YEAR => Some(
+                self.fields
+                    .era_year
+                    .map_or(FieldValue::Undefined, FieldValue::Integer),
+            ),
+            FieldMap::TIME_ZONE => Some(
+                self.fields
+                    .time_zone
+                    .clone()
+                    .map_or(FieldValue::Undefined, FieldValue::String),
+            ),
+            _ => None,
+        }
     }
 }
 

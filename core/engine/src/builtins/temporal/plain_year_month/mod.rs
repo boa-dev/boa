@@ -13,18 +13,18 @@ use crate::{
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
 
-use super::calendar::to_temporal_calendar_slot_value;
+use super::{calendar::to_temporal_calendar_slot_value, JsCustomCalendar};
 use boa_temporal::{components::YearMonth as InnerYearMonth, options::ArithmeticOverflow};
 
 /// The `Temporal.PlainYearMonth` object.
 #[derive(Debug, Clone, Trace, Finalize, JsData)]
 #[boa_gc(unsafe_empty_trace)] // TODO: Remove this!!! `InnerYearMonth` could contain `Trace` types.
 pub struct PlainYearMonth {
-    pub(crate) inner: InnerYearMonth,
+    pub(crate) inner: InnerYearMonth<JsCustomCalendar>,
 }
 
 impl PlainYearMonth {
-    pub(crate) fn new(inner: InnerYearMonth) -> Self {
+    pub(crate) fn new(inner: InnerYearMonth<JsCustomCalendar>) -> Self {
         Self { inner }
     }
 }
@@ -269,7 +269,7 @@ impl PlainYearMonth {
 
 // 9.5.5 `CreateTemporalYearMonth ( isoYear, isoMonth, calendar, referenceISODay [ , newTarget ] )`
 pub(crate) fn create_temporal_year_month(
-    ym: InnerYearMonth,
+    ym: InnerYearMonth<JsCustomCalendar>,
     new_target: Option<&JsValue>,
     context: &mut Context,
 ) -> JsResult<JsValue> {

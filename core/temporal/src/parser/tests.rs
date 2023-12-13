@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
 use crate::{
-    components::{DateTime, Duration, MonthDay, YearMonth},
+    components::{calendar::EmptyCustomCalendar, DateTime, Duration, MonthDay, YearMonth},
     parser::{parse_date_time, Cursor, TemporalInstantString},
 };
 
@@ -10,9 +10,11 @@ fn temporal_parser_basic() {
     let basic = "20201108";
     let basic_separated = "2020-11-08";
 
-    let basic_result = basic.parse::<DateTime>().unwrap();
+    let basic_result = basic.parse::<DateTime<EmptyCustomCalendar>>().unwrap();
 
-    let sep_result = basic_separated.parse::<DateTime>().unwrap();
+    let sep_result = basic_separated
+        .parse::<DateTime<EmptyCustomCalendar>>()
+        .unwrap();
 
     assert_eq!(basic_result.iso_date().year(), 2020);
     assert_eq!(basic_result.iso_date().month(), 11);
@@ -32,7 +34,7 @@ fn temporal_date_time_max() {
     let date_time =
         "+002020-11-08T12:28:32.329402834[!America/Argentina/ComodRivadavia][!u-ca=iso8601]";
 
-    let result = date_time.parse::<DateTime>().unwrap();
+    let result = date_time.parse::<DateTime<EmptyCustomCalendar>>().unwrap();
 
     let time_results = result.iso_time();
 
@@ -49,10 +51,10 @@ fn temporal_year_parsing() {
     let long = "+002020-11-08";
     let bad_year = "-000000-11-08";
 
-    let result_good = long.parse::<DateTime>().unwrap();
+    let result_good = long.parse::<DateTime<EmptyCustomCalendar>>().unwrap();
     assert_eq!(result_good.iso_date().year(), 2020);
 
-    let err_result = bad_year.parse::<DateTime>();
+    let err_result = bad_year.parse::<DateTime<EmptyCustomCalendar>>();
     assert!(
         err_result.is_err(),
         "Invalid extended year parsing: \"{bad_year}\" should fail to parse."
@@ -90,7 +92,7 @@ fn temporal_year_month() {
     ];
 
     for ym in possible_year_months {
-        let result = ym.parse::<YearMonth>().unwrap();
+        let result = ym.parse::<YearMonth<EmptyCustomCalendar>>().unwrap();
 
         assert_eq!(result.year(), 2020);
         assert_eq!(result.month(), 11);
@@ -108,7 +110,7 @@ fn temporal_month_day() {
     ];
 
     for md in possible_month_day {
-        let result = md.parse::<MonthDay>().unwrap();
+        let result = md.parse::<MonthDay<EmptyCustomCalendar>>().unwrap();
 
         assert_eq!(result.month(), 11);
         assert_eq!(result.day(), 7);
@@ -124,7 +126,7 @@ fn temporal_invalid_annotations() {
     ];
 
     for invalid in invalid_annotations {
-        let err_result = invalid.parse::<MonthDay>();
+        let err_result = invalid.parse::<MonthDay<EmptyCustomCalendar>>();
         assert!(
             err_result.is_err(),
             "Invalid ISO annotation parsing: \"{invalid}\" should fail parsing."
@@ -240,7 +242,7 @@ fn temporal_invalid_iso_datetime_strings() {
     ];
 
     for invalid_target in INVALID_DATETIME_STRINGS {
-        let error_result = invalid_target.parse::<DateTime>();
+        let error_result = invalid_target.parse::<DateTime<EmptyCustomCalendar>>();
         assert!(
             error_result.is_err(),
             "Invalid ISO8601 `DateTime` target: \"{invalid_target}\" should fail parsing."

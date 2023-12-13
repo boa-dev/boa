@@ -1676,13 +1676,21 @@ dependencies = [
  "calendrical_calculations",
  "databake",
  "displaydoc",
+ "icu_calendar_data",
  "icu_locid",
+ "icu_locid_transform",
  "icu_provider",
  "serde",
  "tinystr",
  "writeable",
  "zerovec",
 ]
+
+[[package]]
+name = "icu_calendar_data"
+version = "1.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "22aec7d032735d9acb256eeef72adcac43c3b7572f19b51576a63d664b524ca2"
 
 [[package]]
 name = "icu_casemap"

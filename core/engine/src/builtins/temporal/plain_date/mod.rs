@@ -21,17 +21,17 @@ use boa_temporal::{
     options::ArithmeticOverflow,
 };
 
-use super::{calendar, PlainDateTime, ZonedDateTime};
+use super::{calendar, JsCustomCalendar, PlainDateTime, ZonedDateTime};
 
 /// The `Temporal.PlainDate` object.
 #[derive(Debug, Clone, Trace, Finalize, JsData)]
 #[boa_gc(unsafe_empty_trace)] // TODO: Remove this!!! `InnerDate` could contain `Trace` types.
 pub struct PlainDate {
-    pub(crate) inner: InnerDate,
+    pub(crate) inner: InnerDate<JsCustomCalendar>,
 }
 
 impl PlainDate {
-    pub(crate) fn new(inner: InnerDate) -> Self {
+    pub(crate) fn new(inner: InnerDate<JsCustomCalendar>) -> Self {
         Self { inner }
     }
 }
@@ -400,7 +400,7 @@ impl PlainDate {
 
 /// 3.5.3 `CreateTemporalDate ( isoYear, isoMonth, isoDay, calendar [ , newTarget ] )`
 pub(crate) fn create_temporal_date(
-    inner: InnerDate,
+    inner: InnerDate<JsCustomCalendar>,
     new_target: Option<&JsValue>,
     context: &mut Context,
 ) -> JsResult<JsObject> {
@@ -412,7 +412,7 @@ pub(crate) fn create_temporal_date(
     };
 
     // 2. If ISODateTimeWithinLimits(isoYear, isoMonth, isoDay, 12, 0, 0, 0, 0, 0) is false, throw a RangeError exception.
-    if !DateTime::validate(&inner) {
+    if !DateTime::<JsCustomCalendar>::validate(&inner) {
         return Err(JsNativeError::range()
             .with_message("Date is not within ISO date time limits.")
             .into());
@@ -513,7 +513,7 @@ pub(crate) fn to_temporal_date(
     // 13. Return ? CreateTemporalDate(result.[[Year]], result.[[Month]], result.[[Day]], calendar).
     let result = date_like_string
         .to_std_string_escaped()
-        .parse::<InnerDate>()
+        .parse::<InnerDate<JsCustomCalendar>>()
         .map_err(|err| JsNativeError::range().with_message(err.to_string()))?;
 
     Ok(PlainDate::new(result))

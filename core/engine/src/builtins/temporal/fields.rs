@@ -3,8 +3,8 @@
 use std::str::FromStr;
 
 use crate::{
-    js_string, property::PropertyKey, value::PreferredType, Context, JsNativeError, JsObject,
-    JsResult, JsString, JsValue,
+    js_string, object::internal_methods::InternalMethodContext, property::PropertyKey,
+    value::PreferredType, Context, JsNativeError, JsObject, JsResult, JsString, JsValue,
 };
 
 use rustc_hash::FxHashSet;
@@ -150,6 +150,82 @@ pub(crate) fn prepare_temporal_fields(
 
     // 9. Return result.
     Ok(result)
+}
+
+// NOTE(nekevss): The below serves as a replacement for `Snapshot` on `Calendar.prototype.mergeFields`.
+//
+// Some potential issues here: `Calendar.prototype.mergeFields` appears to allow extra fields that
+// are not part of a `TemporalFields` record; however, the specification only calls `mergeFields` on an
+// object returned by `PrepareTemporalFields`, so the translation should be fine sound.
+//
+// The restriction/trade-off would occur if someone wanted to include non-normative calendar fields (i.e. something
+// not accounted for in the specification) in a Custom Calendar or use `Calendar.prototype.mergeFields` in
+// general as a way to merge two objects.
+pub(crate) fn object_to_temporal_fields(
+    source: &JsObject,
+    context: &mut Context,
+) -> JsResult<TemporalFields> {
+    // Adapted from `CopyDataProperties` with ExcludedKeys -> << >> && ExcludedValues -> << Undefined >>
+    const VALID_FIELDS: [&str; 14] = [
+        "year",
+        "month",
+        "monthCode",
+        "day",
+        "hour",
+        "minute",
+        "second",
+        "millisecond",
+        "microsecond",
+        "nanosecond",
+        "offset",
+        "timeZone",
+        "era",
+        "eraYear",
+    ];
+    let mut copy = TemporalFields::default();
+
+    let keys = source.__own_property_keys__(context)?;
+
+    for key in &keys {
+        let desc = source.__get_own_property__(key, &mut InternalMethodContext::new(context))?;
+        match desc {
+            // Enforce that the `PropertyKey` is a valid field here.
+            Some(desc)
+                if desc.expect_enumerable() && VALID_FIELDS.contains(&key.to_string().as_str()) =>
+            {
+                let value = source.get(key.clone(), context)?;
+                // Below is repurposed from `PrepareTemporalFields`.
+                if !value.is_undefined() {
+                    let conversion = FieldConversion::from_str(&key.to_string())?;
+                    let converted_value = match conversion {
+                        FieldConversion::ToIntegerWithTruncation => {
+                            let v = to_integer_with_truncation(&value, context)?;
+                            FieldValue::Integer(v)
+                        }
+                        FieldConversion::ToPositiveIntegerWithTruncation => {
+                            let v = to_positive_integer_with_trunc(&value, context)?;
+                            FieldValue::Integer(v)
+                        }
+                        FieldConversion::ToPrimativeAndRequireString => {
+                            let primitive = value.to_primitive(context, PreferredType::String)?;
+                            FieldValue::String(
+                                primitive.to_string(context)?.to_std_string_escaped(),
+                            )
+                        }
+                        FieldConversion::None => {
+                            unreachable!("todo need to implement conversion handling for tz.")
+                        }
+                    };
+                    // TODO: Test the below further and potentially expand handling.
+                    copy.set_field_value(&key.to_string(), &converted_value)
+                        .expect("FieldConversion enforces the appropriate type");
+                }
+            }
+            _ => {}
+        };
+    }
+
+    Ok(copy)
 }
 
 impl JsObject {
