@@ -827,56 +827,6 @@ fn take_while_ascii_pred_non_ascii_stop() {
 }
 
 #[test]
-fn take_while_char_pred_simple() {
-    let mut cur = Cursor::new(&b"abcdefghijk"[..]);
-
-    let mut buf: Vec<u8> = Vec::new();
-
-    cur.take_while_char_pred(&mut buf, &|c| {
-        c == 'a' as u32 || c == 'b' as u32 || c == 'c' as u32
-    })
-    .unwrap();
-
-    assert_eq!(str::from_utf8(buf.as_slice()).unwrap(), "abc");
-}
-
-#[test]
-fn take_while_char_pred_immediate_stop() {
-    let mut cur = Cursor::new(&b"abcdefghijk"[..]);
-
-    let mut buf: Vec<u8> = Vec::new();
-
-    cur.take_while_char_pred(&mut buf, &|_| false).unwrap();
-
-    assert_eq!(str::from_utf8(buf.as_slice()).unwrap(), "");
-}
-
-#[test]
-fn take_while_char_pred_entire_str() {
-    let mut cur = Cursor::new(&b"abcdefghijk"[..]);
-
-    let mut buf: Vec<u8> = Vec::new();
-
-    cur.take_while_char_pred(&mut buf, &|_| true).unwrap();
-
-    assert_eq!(str::from_utf8(buf.as_slice()).unwrap(), "abcdefghijk");
-}
-
-#[test]
-fn take_while_char_pred_utf8_char() {
-    let mut cur = Cursor::new("abc😀defghijk".as_bytes());
-
-    let mut buf: Vec<u8> = Vec::new();
-
-    cur.take_while_char_pred(&mut buf, &|c| {
-        char::try_from(c).map_or(false, |c| c == 'a' || c == 'b' || c == 'c' || c == '😀')
-    })
-    .unwrap();
-
-    assert_eq!(str::from_utf8(buf.as_slice()).unwrap(), "abc😀");
-}
-
-#[test]
 fn illegal_following_numeric_literal() {
     // Checks as per https://tc39.es/ecma262/#sec-literals-numeric-literals that a NumericLiteral cannot
     // be immediately followed by an IdentifierStart or DecimalDigit.

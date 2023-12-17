@@ -128,21 +128,6 @@ where
         })
     }
 
-    /// Applies the predicate to the next UTF-8 character and returns the result.
-    /// Returns false if there is no next character, otherwise returns the result from the
-    /// predicate on the ascii char
-    ///
-    /// The buffer is not incremented.
-    #[cfg(test)]
-    pub(super) fn next_is_char_pred<F>(&mut self, pred: &F) -> io::Result<bool>
-    where
-        F: Fn(u32) -> bool,
-    {
-        let _timer = Profiler::global().start_event("cursor::next_is_char_pred()", "Lexing");
-
-        Ok(self.peek_char()?.map_or(false, pred))
-    }
-
     /// Fills the buffer with all bytes until the stop byte is found.
     /// Returns error when reaching the end of the buffer.
     ///
@@ -179,34 +164,6 @@ where
                 return Ok(());
             } else if let Some(byte) = self.next_byte()? {
                 buf.push(byte);
-            } else {
-                // next_is_pred will return false if the next value is None so the None case should already be handled.
-                unreachable!();
-            }
-        }
-    }
-
-    /// Fills the buffer with characters until the first character for which the predicate (pred) is false.
-    /// It also stops when there is no next character.
-    ///
-    /// Note that all characters up until the stop character are added to the buffer, including the character right before.
-    #[cfg(test)]
-    pub(super) fn take_while_char_pred<F>(&mut self, buf: &mut Vec<u8>, pred: &F) -> io::Result<()>
-    where
-        F: Fn(u32) -> bool,
-    {
-        let _timer = Profiler::global().start_event("cursor::take_while_char_pred()", "Lexing");
-
-        loop {
-            if !self.next_is_char_pred(pred)? {
-                return Ok(());
-            } else if let Some(ch) = self.peek_char()? {
-                for _ in 0..utf8_len(ch) {
-                    buf.push(
-                        self.next_byte()?
-                            .expect("already checked that the next character exists"),
-                    );
-                }
             } else {
                 // next_is_pred will return false if the next value is None so the None case should already be handled.
                 unreachable!();
