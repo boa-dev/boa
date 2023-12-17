@@ -1,4 +1,5 @@
 use crate::{
+    assert_syntax,
     parser::{
         grammar::{
             is_day_designator, is_decimal_separator, is_duration_designator, is_hour_designator,
@@ -57,23 +58,15 @@ pub(crate) fn parse_duration(cursor: &mut Cursor) -> TemporalResult<DurationPars
         .check(is_sign)
         .ok_or_else(TemporalError::abrupt_end)?
     {
-        let sign = cursor.check_or(false, |ch| ch == '+');
-        cursor.advance();
-        sign
+        cursor.expect_next() == '+'
     } else {
         true
     };
 
-    if !cursor
-        .check(is_duration_designator)
-        .ok_or_else(TemporalError::abrupt_end)?
-    {
-        return Err(
-            TemporalError::syntax().with_message("DurationString missing DurationDesignator.")
-        );
-    }
-
-    cursor.advance();
+    assert_syntax!(
+        is_duration_designator(cursor.abrupt_next()?),
+        "DurationDisgnator is missing."
+    );
 
     let date = if cursor.check_or(false, is_time_designator) {
         Some(DateDuration::default())
@@ -88,9 +81,7 @@ pub(crate) fn parse_duration(cursor: &mut Cursor) -> TemporalResult<DurationPars
         None
     };
 
-    if cursor.peek().is_some() {
-        return Err(TemporalError::syntax().with_message("Unrecognized value in DurationString."));
-    }
+    cursor.close()?;
 
     Ok(DurationParseRecord {
         sign,
@@ -115,8 +106,10 @@ pub(crate) fn parse_date_duration(cursor: &mut Cursor) -> TemporalResult<DateDur
     while cursor.check_or(false, |ch| ch.is_ascii_digit()) {
         let digit_start = cursor.pos();
 
-        while cursor.check_or(false, |ch| ch.is_ascii_digit()) {
-            cursor.advance();
+        while cursor.next().is_some() {
+            if !cursor.check_or(false, |ch| ch.is_ascii_digit()) {
+                break;
+            }
         }
 
         let value = cursor
@@ -124,7 +117,7 @@ pub(crate) fn parse_date_duration(cursor: &mut Cursor) -> TemporalResult<DateDur
             .parse::<i32>()
             .map_err(|err| TemporalError::syntax().with_message(err.to_string()))?;
 
-        match cursor.peek() {
+        match cursor.next() {
             Some(ch) if is_year_designator(ch) => {
                 if previous_unit > DateUnit::Year {
                     return Err(
@@ -163,8 +156,6 @@ pub(crate) fn parse_date_duration(cursor: &mut Cursor) -> TemporalResult<DateDur
             }
             Some(_) | None => return Err(TemporalError::abrupt_end()),
         }
-
-        cursor.advance();
     }
 
     Ok(date)
@@ -181,19 +172,20 @@ enum TimeUnit {
 pub(crate) fn parse_time_duration(cursor: &mut Cursor) -> TemporalResult<TimeDuration> {
     let mut time = TimeDuration::default();
 
-    if !cursor.check_or(false, |ch| ch.is_ascii()) {
-        return Err(
-            TemporalError::syntax().with_message("No time values provided after TimeDesignator.")
-        );
-    }
+    assert_syntax!(
+        cursor.check_or(false, |ch| ch.is_ascii_digit()),
+        "TimeDuration designator must have values after."
+    );
 
     let mut previous_unit = TimeUnit::None;
     let mut fraction_present = false;
     while cursor.check_or(false, |ch| ch.is_ascii_digit()) {
         let digit_start = cursor.pos();
 
-        while cursor.check_or(false, |ch| ch.is_ascii_digit()) {
-            cursor.advance();
+        while cursor.next().is_some() {
+            if !cursor.check_or(false, |ch| ch.is_ascii_digit()) {
+                break;
+            }
         }
 
         let value = cursor
@@ -208,7 +200,7 @@ pub(crate) fn parse_time_duration(cursor: &mut Cursor) -> TemporalResult<TimeDur
             0.0
         };
 
-        match cursor.peek() {
+        match cursor.next() {
             Some(ch) if is_hour_designator(ch) => {
                 if previous_unit > TimeUnit::Hour {
                     return Err(
@@ -242,14 +234,11 @@ pub(crate) fn parse_time_duration(cursor: &mut Cursor) -> TemporalResult<TimeDur
             Some(_) | None => return Err(TemporalError::abrupt_end()),
         }
 
-        cursor.advance();
-
         if fraction_present {
-            if cursor.check_or(false, |ch| ch.is_ascii_digit()) {
-                return Err(TemporalError::syntax()
-                    .with_message("Invalid TimeDuration continuation after FractionPart."));
-            }
-
+            assert_syntax!(
+                cursor.check_or(true, |ch| !ch.is_ascii_digit()),
+                "Invalid duration value provided after fraction."
+            );
             break;
         }
     }

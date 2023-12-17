@@ -4,7 +4,7 @@ use super::{
     grammar::{is_decimal_separator, is_time_separator},
     Cursor,
 };
-use crate::{TemporalError, TemporalResult};
+use crate::{assert_syntax, TemporalError, TemporalResult};
 
 /// Parsed Time info
 #[derive(Debug, Default, Clone, Copy)]
@@ -22,14 +22,8 @@ pub(crate) struct TimeSpec {
 /// Parse `TimeSpec`
 pub(crate) fn parse_time_spec(cursor: &mut Cursor) -> TemporalResult<TimeSpec> {
     let hour = parse_hour(cursor)?;
-    let mut separator = false;
 
-    if cursor.check_or(false, |ch| is_time_separator(ch) || ch.is_ascii_digit()) {
-        if cursor.check_or(false, is_time_separator) {
-            separator = true;
-            cursor.advance();
-        }
-    } else {
+    if !cursor.check_or(false, |ch| is_time_separator(ch) || ch.is_ascii_digit()) {
         return Ok(TimeSpec {
             hour,
             minute: 0,
@@ -38,23 +32,23 @@ pub(crate) fn parse_time_spec(cursor: &mut Cursor) -> TemporalResult<TimeSpec> {
         });
     }
 
+    let separator_present = cursor.check_or(false, is_time_separator);
+    cursor.advance_if(separator_present);
+
     let minute = parse_minute_second(cursor, false)?;
 
-    if cursor.check_or(false, |ch| is_time_separator(ch) || ch.is_ascii_digit()) {
-        let is_time_separator = cursor.check_or(false, is_time_separator);
-        if separator && is_time_separator {
-            cursor.advance();
-        } else if is_time_separator {
-            return Err(TemporalError::syntax().with_message("Invalid TimeSeparator"));
-        }
-    } else {
+    if !cursor.check_or(false, |ch| is_time_separator(ch) || ch.is_ascii_digit()) {
         return Ok(TimeSpec {
             hour,
             minute,
             second: 0,
             fraction: 0.0,
         });
+    } else if cursor.check_or(false, is_time_separator) && !separator_present {
+        return Err(TemporalError::syntax().with_message("Invalid TimeSeparator"));
     }
+
+    cursor.advance_if(separator_present);
 
     let second = parse_minute_second(cursor, true)?;
 
@@ -73,22 +67,31 @@ pub(crate) fn parse_time_spec(cursor: &mut Cursor) -> TemporalResult<TimeSpec> {
 }
 
 pub(crate) fn parse_hour(cursor: &mut Cursor) -> TemporalResult<u8> {
+    let start = cursor.pos();
+    for _ in 0..2 {
+        let digit = cursor.abrupt_next()?;
+        assert_syntax!(digit.is_ascii_digit(), "Hour must be a digit.");
+    }
     let hour_value = cursor
-        .slice(cursor.pos(), cursor.pos() + 2)
+        .slice(start, cursor.pos())
         .parse::<u8>()
         .map_err(|e| TemporalError::syntax().with_message(e.to_string()))?;
     if !(0..=23).contains(&hour_value) {
         return Err(TemporalError::syntax().with_message("Hour must be in a range of 0-23"));
     }
-    cursor.advance_n(2);
     Ok(hour_value)
 }
 
 // NOTE: `TimeSecond` is a 60 inclusive `MinuteSecond`.
 /// Parse `MinuteSecond`
 pub(crate) fn parse_minute_second(cursor: &mut Cursor, inclusive: bool) -> TemporalResult<u8> {
+    let start = cursor.pos();
+    for _ in 0..2 {
+        let digit = cursor.abrupt_next()?;
+        assert_syntax!(digit.is_ascii_digit(), "MinuteSecond must be a digit.");
+    }
     let min_sec_value = cursor
-        .slice(cursor.pos(), cursor.pos() + 2)
+        .slice(start, cursor.pos())
         .parse::<u8>()
         .map_err(|e| TemporalError::syntax().with_message(e.to_string()))?;
 
@@ -96,8 +99,6 @@ pub(crate) fn parse_minute_second(cursor: &mut Cursor, inclusive: bool) -> Tempo
     if !valid_range.contains(&min_sec_value) {
         return Err(TemporalError::syntax().with_message("MinuteSecond must be in a range of 0-59"));
     }
-
-    cursor.advance_n(2);
     Ok(min_sec_value)
 }
 
@@ -106,25 +107,28 @@ pub(crate) fn parse_minute_second(cursor: &mut Cursor, inclusive: bool) -> Tempo
 /// This is primarily used in ISO8601 to add percision past
 /// a second.
 pub(crate) fn parse_fraction(cursor: &mut Cursor) -> TemporalResult<f64> {
-    // Decimal is skipped by next call.
-    let mut fraction_components = Vec::from(['.']);
-    while let Some(ch) = cursor.next() {
-        if !ch.is_ascii_digit() {
-            if fraction_components.len() > 10 {
-                return Err(
-                    TemporalError::syntax().with_message("Fraction exceeds 9 DecimalDigits")
-                );
-            }
+    let mut fraction_components = Vec::default();
 
-            let fraction_value = fraction_components
-                .iter()
-                .collect::<String>()
-                .parse::<f64>()
-                .map_err(|e| TemporalError::syntax().with_message(e.to_string()))?;
-            return Ok(fraction_value);
-        }
-        fraction_components.push(ch);
+    // Assert that the first char provided is a decimal separator.
+    assert_syntax!(
+        is_decimal_separator(cursor.abrupt_next()?),
+        "fraction must begin with a valid decimal separator."
+    );
+    fraction_components.push('.');
+
+    while cursor.check_or(false, |ch| ch.is_ascii_digit()) {
+        fraction_components.push(cursor.abrupt_next()?);
     }
 
-    Err(TemporalError::abrupt_end())
+    assert_syntax!(
+        fraction_components.len() <= 10,
+        "Fraction component cannot exceed 9 digits."
+    );
+
+    let fraction_value = fraction_components
+        .iter()
+        .collect::<String>()
+        .parse::<f64>()
+        .map_err(|e| TemporalError::syntax().with_message(e.to_string()))?;
+    Ok(fraction_value)
 }

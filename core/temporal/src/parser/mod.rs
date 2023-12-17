@@ -1,38 +1,116 @@
 //! This module implements parsing for ISO 8601 grammar.
 
-use crate::TemporalResult;
+use crate::{TemporalError, TemporalResult};
 
-use date_time::DateRecord;
+use datetime::DateRecord;
 use nodes::{IsoDate, IsoDateTime, IsoTime, TimeZone};
 use time::TimeSpec;
 
 mod annotations;
-pub(crate) mod date_time;
+pub(crate) mod datetime;
 pub(crate) mod duration;
 mod grammar;
 mod nodes;
 mod time;
 pub(crate) mod time_zone;
 
-use self::date_time::DateTimeFlags;
+use self::{datetime::DateTimeFlags, grammar::is_annotation_open};
 
 #[cfg(test)]
 mod tests;
 
 // TODO: optimize where possible.
 
+/// `assert_syntax!` is a parser specific utility macro for asserting a syntax test, and returning a
+/// the provided message if the test fails.
+#[macro_export]
+macro_rules! assert_syntax {
+    ($cond:expr, $msg:literal) => {
+        if !$cond {
+            return Err(TemporalError::syntax().with_message($msg));
+        }
+    };
+}
+
 /// A utility function for parsing a `DateTime` string
 pub(crate) fn parse_date_time(target: &str) -> TemporalResult<IsoParseRecord> {
-    date_time::parse_annotated_date_time(DateTimeFlags::empty(), &mut Cursor::new(target))
+    datetime::parse_annotated_date_time(DateTimeFlags::empty(), &mut Cursor::new(target))
 }
 
 /// A utility function for parsing an `Instant` string
 #[allow(unused)]
 pub(crate) fn parse_instant(target: &str) -> TemporalResult<IsoParseRecord> {
-    date_time::parse_annotated_date_time(
+    datetime::parse_annotated_date_time(
         DateTimeFlags::UTC_REQ | DateTimeFlags::TIME_REQ,
         &mut Cursor::new(target),
     )
+}
+
+/// A utility function for parsing a `YearMonth` string
+#[allow(unused)]
+pub(crate) fn parse_year_month(target: &str) -> TemporalResult<IsoParseRecord> {
+    let mut cursor = Cursor::new(target);
+    let ym = datetime::parse_year_month(&mut cursor);
+
+    let Ok(year_month) = ym else {
+        cursor.pos = 0;
+        return datetime::parse_annotated_date_time(
+            DateTimeFlags::empty(),
+            &mut Cursor::new(target),
+        );
+    };
+
+    let calendar = if cursor.check_or(false, is_annotation_open) {
+        let set = annotations::parse_annotation_set(false, &mut cursor)?;
+        set.calendar
+    } else {
+        None
+    };
+
+    cursor.close()?;
+
+    Ok(IsoParseRecord {
+        date: DateRecord {
+            year: year_month.0,
+            month: year_month.1,
+            day: 1,
+        },
+        time: None,
+        tz: None,
+        calendar,
+    })
+}
+
+/// A utilty function for parsing a `MonthDay` String.
+#[allow(unused)]
+pub(crate) fn parse_month_day(target: &str) -> TemporalResult<IsoParseRecord> {
+    let mut cursor = Cursor::new(target);
+    let md = datetime::parse_month_day(&mut cursor);
+
+    let Ok(month_day) = md else {
+        cursor.pos = 0;
+        return datetime::parse_annotated_date_time(DateTimeFlags::empty(), &mut cursor);
+    };
+
+    let calendar = if cursor.check_or(false, is_annotation_open) {
+        let set = annotations::parse_annotation_set(false, &mut cursor)?;
+        set.calendar
+    } else {
+        None
+    };
+
+    cursor.close()?;
+
+    Ok(IsoParseRecord {
+        date: DateRecord {
+            year: 0,
+            month: month_day.0,
+            day: month_day.1,
+        },
+        time: None,
+        tz: None,
+        calendar,
+    })
 }
 
 /// An `IsoParseRecord` is an intermediary record returned by ISO parsing functions.
@@ -70,94 +148,6 @@ impl TemporalTimeZoneString {
     }
 }
 
-/// Parse a [`TemporalYearMonthString`][proposal]
-///
-/// [proposal]: https://tc39.es/proposal-temporal/#prod-TemporalYearMonthString
-#[derive(Debug, Clone, Copy)]
-pub struct TemporalYearMonthString;
-
-impl TemporalYearMonthString {
-    /// Parses a targeted string as a `YearMonth`
-    ///
-    /// # Errors
-    ///
-    /// The parse will error if the provided target is not valid
-    /// Iso8601 grammar.
-    pub fn parse(cursor: &mut Cursor) -> TemporalResult<IsoDate> {
-        // TODO: Remove peek in favor of AnnotatedDateTime flag.
-        if date_time::peek_year_month(cursor)? {
-            let ym = date_time::parse_year_month(cursor)?;
-
-            let calendar = if cursor.check_or(false, |ch| ch == '[') {
-                let set = annotations::parse_annotation_set(false, cursor)?;
-                set.calendar
-            } else {
-                None
-            };
-
-            return Ok(IsoDate {
-                year: ym.0,
-                month: ym.1,
-                day: 0,
-                calendar,
-            });
-        }
-
-        let parse_record = date_time::parse_annotated_date_time(DateTimeFlags::empty(), cursor)?;
-
-        Ok(IsoDate {
-            year: parse_record.date.year,
-            month: parse_record.date.month,
-            day: parse_record.date.day,
-            calendar: parse_record.calendar,
-        })
-    }
-}
-
-/// Parse a [`TemporalMonthDayString`][proposal]
-///
-/// [proposal]: https://tc39.es/proposal-temporal/#prod-TemporalMonthDayString
-#[derive(Debug, Clone, Copy)]
-pub struct TemporalMonthDayString;
-
-impl TemporalMonthDayString {
-    /// Parses a targeted string as a `MonthDay`.
-    ///
-    /// # Errors
-    ///
-    /// The parse will error if the provided target is not valid
-    /// Iso8601 grammar.
-    pub fn parse(cursor: &mut Cursor) -> TemporalResult<IsoDate> {
-        // TODO: Remove peek in favor of AnnotatedDateTime flag.
-        if date_time::peek_month_day(cursor)? {
-            let md = date_time::parse_month_day(cursor)?;
-
-            let calendar = if cursor.check_or(false, |ch| ch == '[') {
-                let set = annotations::parse_annotation_set(false, cursor)?;
-                set.calendar
-            } else {
-                None
-            };
-
-            return Ok(IsoDate {
-                year: 0,
-                month: md.0,
-                day: md.1,
-                calendar,
-            });
-        }
-
-        let parse_record = date_time::parse_annotated_date_time(DateTimeFlags::empty(), cursor)?;
-
-        Ok(IsoDate {
-            year: parse_record.date.year,
-            month: parse_record.date.month,
-            day: parse_record.date.day,
-            calendar: parse_record.calendar,
-        })
-    }
-}
-
 /// Parser for a [`TemporalInstantString`][proposal].
 ///
 /// [proposal]: https://tc39.es/proposal-temporal/#prod-TemporalInstantString
@@ -172,7 +162,7 @@ impl TemporalInstantString {
     /// The parse will error if the provided target is not valid
     /// Iso8601 grammar.
     pub fn parse(cursor: &mut Cursor) -> TemporalResult<IsoDateTime> {
-        let parse_record = date_time::parse_annotated_date_time(
+        let parse_record = datetime::parse_annotated_date_time(
             DateTimeFlags::UTC_REQ | DateTimeFlags::TIME_REQ,
             cursor,
         )?;
@@ -225,13 +215,9 @@ impl Cursor {
         self.pos
     }
 
-    /// Peek the value at the current position.
+    /// Peek the value at next position (current + 1).
     fn peek(&self) -> Option<char> {
-        if (self.pos as usize) < self.source.len() {
-            Some(self.source[self.pos as usize])
-        } else {
-            None
-        }
+        self.peek_n(1)
     }
 
     /// Peek the value at n len from current.
@@ -244,25 +230,41 @@ impl Cursor {
         }
     }
 
-    /// Returns boolean if current position passes check.
+    /// Runs the provided check on the current position.
     fn check<F>(&self, f: F) -> Option<bool>
     where
         F: FnOnce(char) -> bool,
     {
-        self.peek().map(f)
+        self.peek_n(0).map(f)
     }
 
-    /// Returns boolean if current position passes check or default if None.
+    /// Runs the provided check on current position returns the default value if None.
     fn check_or<F>(&self, default: bool, f: F) -> bool
     where
         F: FnOnce(char) -> bool,
     {
-        self.peek().map_or(default, f)
+        self.peek_n(0).map_or(default, f)
     }
-    /// Advances the cursor's position and returns the new character.
+
+    /// Returns `Cursor`'s current char and advances to the next position.
     fn next(&mut self) -> Option<char> {
+        let result = self.peek_n(0);
         self.advance();
-        self.peek()
+        result
+    }
+
+    /// Utility method that returns next charactor unwrapped char
+    ///
+    /// # Panics
+    ///
+    /// This will panic if the next value has not been confirmed to exist.
+    fn expect_next(&mut self) -> char {
+        self.next().expect("Invalid use of expect_next.")
+    }
+
+    /// A utility next method that returns an `AbruptEnd` error if invalid.
+    fn abrupt_next(&mut self) -> TemporalResult<char> {
+        self.next().ok_or_else(TemporalError::abrupt_end)
     }
 
     /// Advances the cursor's position by 1.
@@ -270,8 +272,24 @@ impl Cursor {
         self.pos += 1;
     }
 
+    /// Utility function to advance when a condition is true
+    fn advance_if(&mut self, condition: bool) {
+        if condition {
+            self.advance();
+        }
+    }
+
     /// Advances the cursor's position by `n`.
     fn advance_n(&mut self, n: u32) {
         self.pos += n;
+    }
+
+    /// Closes the current cursor by checking if all contents have been consumed. If not, returns an error for invalid syntax.
+    fn close(&mut self) -> TemporalResult<()> {
+        if (self.pos as usize) < self.source.len() {
+            return Err(TemporalError::syntax()
+                .with_message("Unexpected syntax at the end of an ISO target."));
+        }
+        Ok(())
     }
 }
