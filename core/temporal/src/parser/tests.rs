@@ -222,6 +222,6 @@ fn temporal_invalid_iso_datetime_strings() {
 
     for invalid_target in INVALID_DATETIME_STRINGS {
         let error_result = invalid_target.parse::<DateTime>();
-        assert!(error_result.is_err())
+        assert!(error_result.is_err());
     }
 }
