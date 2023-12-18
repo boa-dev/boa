@@ -47,7 +47,6 @@ pub(crate) fn parse_instant(target: &str) -> TemporalResult<IsoParseRecord> {
 }
 
 /// A utility function for parsing a `YearMonth` string
-#[allow(unused)]
 pub(crate) fn parse_year_month(target: &str) -> TemporalResult<IsoParseRecord> {
     let mut cursor = Cursor::new(target);
     let ym = datetime::parse_year_month(&mut cursor);
@@ -82,7 +81,6 @@ pub(crate) fn parse_year_month(target: &str) -> TemporalResult<IsoParseRecord> {
 }
 
 /// A utilty function for parsing a `MonthDay` String.
-#[allow(unused)]
 pub(crate) fn parse_month_day(target: &str) -> TemporalResult<IsoParseRecord> {
     let mut cursor = Cursor::new(target);
     let md = datetime::parse_month_day(&mut cursor);

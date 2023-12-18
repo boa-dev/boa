@@ -39,10 +39,9 @@ pub(crate) fn parse_annotation_set(
 ) -> TemporalResult<AnnotationSet> {
     // Parse the first annotation.
     let tz_annotation = time_zone::parse_ambiguous_tz_annotation(cursor)?;
-    if zoned {
-        assert_syntax!(
-            tz_annotation.is_some(),
-            "TimeZone annotation must exist for ZonedDateTime."
+    if tz_annotation.is_none() && zoned {
+        return Err(
+            TemporalError::syntax().with_message("ZonedDateTime must have a TimeZone annotation.")
         );
     }
 
