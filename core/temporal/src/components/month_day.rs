@@ -24,8 +24,8 @@ impl MonthDay {
         Self { iso, calendar }
     }
 
-    #[inline]
     /// Creates a new valid `MonthDay`.
+    #[inline]
     pub fn new(
         month: i32,
         day: i32,
@@ -37,20 +37,22 @@ impl MonthDay {
     }
 
     /// Returns the `month` value of `MonthDay`.
+    #[inline]
     #[must_use]
     pub fn month(&self) -> u8 {
         self.iso.month()
     }
 
     /// Returns the `day` value of `MonthDay`.
+    #[inline]
     #[must_use]
     pub fn day(&self) -> u8 {
         self.iso.day()
     }
 
+    /// Returns a reference to `MonthDay`'s `CalendarSlot`
     #[inline]
     #[must_use]
-    /// Returns a reference to `MonthDay`'s `CalendarSlot`
     pub fn calendar(&self) -> &CalendarSlot {
         &self.calendar
     }

@@ -39,12 +39,14 @@ impl YearMonth {
     }
 
     /// Returns the `year` value for this `YearMonth`.
+    #[inline]
     #[must_use]
     pub fn year(&self) -> i32 {
         self.iso.year()
     }
 
     /// Returns the `month` value for this `YearMonth`.
+    #[inline]
     #[must_use]
     pub fn month(&self) -> u8 {
         self.iso.month()

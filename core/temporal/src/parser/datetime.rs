@@ -185,6 +185,11 @@ pub(crate) fn parse_year_month(cursor: &mut Cursor) -> TemporalResult<(i32, i32)
 
     let month = parse_date_month(cursor)?;
 
+    assert_syntax!(
+        cursor.check_or(true, is_annotation_open),
+        "Expected an end or AnnotationOpen"
+    );
+
     Ok((year, month))
 }
 
@@ -209,6 +214,11 @@ pub(crate) fn parse_month_day(cursor: &mut Cursor) -> TemporalResult<(i32, i32)>
     cursor.advance_if(cursor.check_or(false, is_hyphen));
 
     let day = parse_date_day(cursor)?;
+
+    assert_syntax!(
+        cursor.check_or(true, is_annotation_open),
+        "Expected an end or AnnotationOpen"
+    );
 
     Ok((month, day))
 }

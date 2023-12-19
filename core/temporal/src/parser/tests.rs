@@ -53,7 +53,10 @@ fn temporal_year_parsing() {
     assert_eq!(result_good.iso_date().year(), 2020);
 
     let err_result = bad_year.parse::<DateTime>();
-    assert!(err_result.is_err());
+    assert!(
+        err_result.is_err(),
+        "Invalid extended year parsing: \"{bad_year}\" should fail to parse."
+    );
 }
 
 #[test]
@@ -83,6 +86,7 @@ fn temporal_year_month() {
         "2020-11[u-ca=iso8601]",
         "+00202011",
         "202011[u-ca=iso8601]",
+        "+002020-11-07T12:28:32[!u-ca=iso8601]",
     ];
 
     for ym in possible_year_months {
@@ -95,7 +99,13 @@ fn temporal_year_month() {
 
 #[test]
 fn temporal_month_day() {
-    let possible_month_day = ["11-07", "1107[+04:00]", "--11-07", "--1107[+04:00]"];
+    let possible_month_day = [
+        "11-07",
+        "1107[+04:00]",
+        "--11-07",
+        "--1107[+04:00]",
+        "+002020-11-07T12:28:32[!u-ca=iso8601]",
+    ];
 
     for md in possible_month_day {
         let result = md.parse::<MonthDay>().unwrap();
@@ -115,7 +125,10 @@ fn temporal_invalid_annotations() {
 
     for invalid in invalid_annotations {
         let err_result = invalid.parse::<MonthDay>();
-        assert!(err_result.is_err());
+        assert!(
+            err_result.is_err(),
+            "Invalid ISO annotation parsing: \"{invalid}\" should fail parsing."
+        );
     }
 }
 
@@ -146,7 +159,10 @@ fn temporal_duration_parsing() {
 
     for dur in durations {
         let ok_result = Duration::from_str(dur);
-        assert!(ok_result.is_ok());
+        assert!(
+            ok_result.is_ok(),
+            "Failing to parse a valid ISO 8601 target: \"{dur}\" should pass."
+        );
     }
 
     let sub_second = durations[2].parse::<Duration>().unwrap();
@@ -173,7 +189,10 @@ fn temporal_invalid_durations() {
 
     for test in invalids {
         let err = test.parse::<Duration>();
-        assert!(err.is_err());
+        assert!(
+            err.is_err(),
+            "Invalid ISO8601 Duration target: \"{test}\" should fail duration parsing."
+        );
     }
 }
 
@@ -222,6 +241,9 @@ fn temporal_invalid_iso_datetime_strings() {
 
     for invalid_target in INVALID_DATETIME_STRINGS {
         let error_result = invalid_target.parse::<DateTime>();
-        assert!(error_result.is_err());
+        assert!(
+            error_result.is_err(),
+            "Invalid ISO8601 `DateTime` target: \"{invalid_target}\" should fail parsing."
+        );
     }
 }

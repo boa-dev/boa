@@ -22,7 +22,7 @@ mod tests;
 // TODO: optimize where possible.
 
 /// `assert_syntax!` is a parser specific utility macro for asserting a syntax test, and returning a
-/// the provided message if the test fails.
+/// `SyntaxError` with the provided message if the test fails.
 #[macro_export]
 macro_rules! assert_syntax {
     ($cond:expr, $msg:literal) => {
@@ -53,10 +53,7 @@ pub(crate) fn parse_year_month(target: &str) -> TemporalResult<IsoParseRecord> {
 
     let Ok(year_month) = ym else {
         cursor.pos = 0;
-        return datetime::parse_annotated_date_time(
-            DateTimeFlags::empty(),
-            &mut Cursor::new(target),
-        );
+        return datetime::parse_annotated_date_time(DateTimeFlags::empty(), &mut cursor);
     };
 
     let calendar = if cursor.check_or(false, is_annotation_open) {
