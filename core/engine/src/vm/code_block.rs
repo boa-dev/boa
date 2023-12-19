@@ -356,6 +356,11 @@ impl CodeBlock {
 
 /// ---- `CodeBlock` private API ----
 impl CodeBlock {
+    /// Get [`CodeBlock`] bytecode.
+    pub fn bytecode(&self) -> &[u8] {
+        &self.bytecode
+    }
+
     /// Read type T from code.
     ///
     /// # Safety
