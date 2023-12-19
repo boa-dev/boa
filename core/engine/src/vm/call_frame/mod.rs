@@ -91,7 +91,7 @@ impl CallFrame {
     ///    \            /
     ///     ------------
     ///     |
-    /// function prolugue
+    /// function prologue
     /// ```
     pub(crate) const FUNCTION_PROLOGUE: usize = 2;
     pub(crate) const THIS_POSITION: usize = 0;

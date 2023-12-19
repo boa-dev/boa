@@ -201,6 +201,7 @@ impl CodeBlock {
                 }
                 Instruction::CallEval { .. }
                 | Instruction::Call { .. }
+                | Instruction::TailCall { .. }
                 | Instruction::New { .. }
                 | Instruction::SuperCall { .. }
                 | Instruction::ConcatToString { .. }
@@ -515,8 +516,7 @@ impl CodeBlock {
                 | Instruction::Reserved54
                 | Instruction::Reserved55
                 | Instruction::Reserved56
-                | Instruction::Reserved57
-                | Instruction::Reserved58 => unreachable!("Reserved opcodes are unrechable"),
+                | Instruction::Reserved57 => unreachable!("Reserved opcodes are unreachable"),
             }
         }
 

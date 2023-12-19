@@ -1700,6 +1700,13 @@ generate_opcodes! {
     /// Stack: this, func, argument_1, ... argument_n **=>** result
     Call { argument_count: VaryingOperand },
 
+    /// Tail call a function.
+    ///
+    /// Operands: argument_count: `u32`
+    ///
+    /// Stack: this, func, argument_1, ... argument_n **=>**
+    TailCall { argument_count: VaryingOperand },
+
     /// Call a function where the arguments contain spreads.
     ///
     /// Operands:
@@ -2220,8 +2227,6 @@ generate_opcodes! {
     Reserved56 => Reserved,
     /// Reserved [`Opcode`].
     Reserved57 => Reserved,
-    /// Reserved [`Opcode`].
-    Reserved58 => Reserved,
 }
 
 /// Specific opcodes for bindings.

@@ -1,9 +1,9 @@
 use crate::{
-    builtins::{promise::PromiseCapability, Promise},
+    builtins::{function::OrdinaryFunction, promise::PromiseCapability, Promise},
     error::JsNativeError,
     module::{ModuleKind, Referrer},
     object::FunctionObjectBuilder,
-    vm::{opcode::Operation, CompletionType},
+    vm::{opcode::Operation, CallFrame, CompletionType},
     Context, JsObject, JsResult, JsValue, NativeFunction,
 };
 
@@ -182,6 +182,68 @@ impl Call {
 impl Operation for Call {
     const NAME: &'static str = "Call";
     const INSTRUCTION: &'static str = "INST - Call";
+    const COST: u8 = 3;
+
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
+        let argument_count = context.vm.read::<u8>();
+        Self::operation(context, argument_count as usize)
+    }
+
+    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
+        let argument_count = context.vm.read::<u16>() as usize;
+        Self::operation(context, argument_count)
+    }
+
+    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
+        let argument_count = context.vm.read::<u32>();
+        Self::operation(context, argument_count as usize)
+    }
+}
+
+/// `TailCall` implements the Opcode Operation for `Opcode::TailCall`
+///
+/// Operation:
+///  - Tail call a function
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct TailCall;
+
+impl TailCall {
+    fn operation(context: &mut Context, argument_count: usize) -> JsResult<CompletionType> {
+        let at = context.vm.stack.len() - argument_count;
+        let func = context.vm.stack[at - 1].clone();
+
+        let Some(object) = func.as_object() else {
+            return Err(JsNativeError::typ()
+                .with_message("not a callable function")
+                .into());
+        };
+
+        let mut early_exit = false;
+        if object.is::<OrdinaryFunction>() {
+            if let Some(caller) = context.vm.pop_frame() {
+                let fp = caller.fp as usize;
+                context
+                    .vm
+                    .stack
+                    .drain(fp..(at - CallFrame::FUNCTION_PROLOGUE));
+                early_exit = caller.exit_early();
+            }
+        }
+
+        object.__call__(argument_count).resolve(context)?;
+
+        // If the caller is early exit, since it has been poped from the frames
+        // we have to mark the current frame as early exit.
+        if early_exit {
+            context.vm.frame_mut().set_exit_early(true);
+        }
+        Ok(CompletionType::Normal)
+    }
+}
+
+impl Operation for TailCall {
+    const NAME: &'static str = "TailCall";
+    const INSTRUCTION: &'static str = "INST - TailCall";
     const COST: u8 = 3;
 
     fn execute(context: &mut Context) -> JsResult<CompletionType> {

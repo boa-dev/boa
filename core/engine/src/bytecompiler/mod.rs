@@ -1510,6 +1510,32 @@ impl<'ctx> ByteCompiler<'ctx> {
         }
     }
 
+    fn optimize(bytecode: &mut Vec<u8>, flags: CodeBlockFlags) {
+        // only perform Tail Call Optimisation in strict mode
+        if flags.contains(CodeBlockFlags::STRICT) && flags.is_ordinary() {
+            // if a sequence of Call, SetReturnValue, CheckReturn, Return is found
+            // replace Call with TailCall to allow frame elimination
+            for i in 0..bytecode.len() {
+                let opcode: Opcode = bytecode[i].into();
+                if !matches!(opcode, Opcode::Call) {
+                    continue;
+                }
+                if bytecode.len() <= i + 5 {
+                    return;
+                }
+
+                let second = bytecode[i + 2].into();
+                let third = bytecode[i + 3].into();
+                let fourth = bytecode[i + 4].into();
+                if let (Opcode::SetReturnValue, Opcode::CheckReturn, Opcode::Return) =
+                    (second, third, fourth)
+                {
+                    bytecode[i] = Opcode::TailCall as u8;
+                }
+            }
+        }
+    }
+
     /// Finish compiling code with the [`ByteCompiler`] and return the generated [`CodeBlock`].
     #[inline]
     #[must_use]
@@ -1520,6 +1546,8 @@ impl<'ctx> ByteCompiler<'ctx> {
             self.patch_handler(async_handler);
         }
         self.r#return(false);
+
+        Self::optimize(&mut self.bytecode, self.code_block_flags);
 
         CodeBlock {
             name: self.function_name,
