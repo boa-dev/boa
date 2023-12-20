@@ -245,18 +245,8 @@
 <a href="#245" id="245">245</a>
 <a href="#246" id="246">246</a>
 <a href="#247" id="247">247</a>
-<a href="#248" id="248">248</a>
-<a href="#249" id="249">249</a>
-<a href="#250" id="250">250</a>
-<a href="#251" id="251">251</a>
-<a href="#252" id="252">252</a>
-<a href="#253" id="253">253</a>
-<a href="#254" id="254">254</a>
-<a href="#255" id="255">255</a>
-<a href="#256" id="256">256</a>
-<a href="#257" id="257">257</a>
-<a href="#258" id="258">258</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
+    assert_syntax,
     parser::{
         grammar::{
             is_day_designator, is_decimal_separator, is_duration_designator, is_hour_designator,
@@ -315,23 +305,15 @@
         .check(is_sign)
         .ok_or_else(TemporalError::abrupt_end)<span class="question-mark">?
     </span>{
-        <span class="kw">let </span>sign = cursor.check_or(<span class="bool-val">false</span>, |ch| ch == <span class="string">&#39;+&#39;</span>);
-        cursor.advance();
-        sign
-    } <span class="kw">else </span>{
+        cursor.expect_next() == <span class="string">&#39;+&#39;
+    </span>} <span class="kw">else </span>{
         <span class="bool-val">true
     </span>};
 
-    <span class="kw">if </span>!cursor
-        .check(is_duration_designator)
-        .ok_or_else(TemporalError::abrupt_end)<span class="question-mark">?
-    </span>{
-        <span class="kw">return </span><span class="prelude-val">Err</span>(
-            TemporalError::syntax().with_message(<span class="string">&quot;DurationString missing DurationDesignator.&quot;</span>)
-        );
-    }
-
-    cursor.advance();
+    <span class="macro">assert_syntax!</span>(
+        is_duration_designator(cursor.abrupt_next()<span class="question-mark">?</span>),
+        <span class="string">&quot;DurationDisgnator is missing.&quot;
+    </span>);
 
     <span class="kw">let </span>date = <span class="kw">if </span>cursor.check_or(<span class="bool-val">false</span>, is_time_designator) {
         <span class="prelude-val">Some</span>(DateDuration::default())
@@ -346,9 +328,7 @@
         <span class="prelude-val">None
     </span>};
 
-    <span class="kw">if </span>cursor.peek().is_some() {
-        <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::syntax().with_message(<span class="string">&quot;Unrecognized value in DurationString.&quot;</span>));
-    }
+    cursor.close()<span class="question-mark">?</span>;
 
     <span class="prelude-val">Ok</span>(DurationParseRecord {
         sign,
@@ -373,8 +353,10 @@
     <span class="kw">while </span>cursor.check_or(<span class="bool-val">false</span>, |ch| ch.is_ascii_digit()) {
         <span class="kw">let </span>digit_start = cursor.pos();
 
-        <span class="kw">while </span>cursor.check_or(<span class="bool-val">false</span>, |ch| ch.is_ascii_digit()) {
-            cursor.advance();
+        <span class="kw">while </span>cursor.next().is_some() {
+            <span class="kw">if </span>!cursor.check_or(<span class="bool-val">false</span>, |ch| ch.is_ascii_digit()) {
+                <span class="kw">break</span>;
+            }
         }
 
         <span class="kw">let </span>value = cursor
@@ -382,7 +364,7 @@
             .parse::&lt;i32&gt;()
             .map_err(|err| TemporalError::syntax().with_message(err.to_string()))<span class="question-mark">?</span>;
 
-        <span class="kw">match </span>cursor.peek() {
+        <span class="kw">match </span>cursor.next() {
             <span class="prelude-val">Some</span>(ch) <span class="kw">if </span>is_year_designator(ch) =&gt; {
                 <span class="kw">if </span>previous_unit &gt; DateUnit::Year {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(
@@ -421,8 +403,6 @@
             }
             <span class="prelude-val">Some</span>(<span class="kw">_</span>) | <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::abrupt_end()),
         }
-
-        cursor.advance();
     }
 
     <span class="prelude-val">Ok</span>(date)
@@ -439,19 +419,20 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>parse_time_duration(cursor: <span class="kw-2">&amp;mut </span>Cursor) -&gt; TemporalResult&lt;TimeDuration&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>time = TimeDuration::default();
 
-    <span class="kw">if </span>!cursor.check_or(<span class="bool-val">false</span>, |ch| ch.is_ascii()) {
-        <span class="kw">return </span><span class="prelude-val">Err</span>(
-            TemporalError::syntax().with_message(<span class="string">&quot;No time values provided after TimeDesignator.&quot;</span>)
-        );
-    }
+    <span class="macro">assert_syntax!</span>(
+        cursor.check_or(<span class="bool-val">false</span>, |ch| ch.is_ascii_digit()),
+        <span class="string">&quot;TimeDuration designator must have values after.&quot;
+    </span>);
 
     <span class="kw">let </span><span class="kw-2">mut </span>previous_unit = TimeUnit::None;
     <span class="kw">let </span><span class="kw-2">mut </span>fraction_present = <span class="bool-val">false</span>;
     <span class="kw">while </span>cursor.check_or(<span class="bool-val">false</span>, |ch| ch.is_ascii_digit()) {
         <span class="kw">let </span>digit_start = cursor.pos();
 
-        <span class="kw">while </span>cursor.check_or(<span class="bool-val">false</span>, |ch| ch.is_ascii_digit()) {
-            cursor.advance();
+        <span class="kw">while </span>cursor.next().is_some() {
+            <span class="kw">if </span>!cursor.check_or(<span class="bool-val">false</span>, |ch| ch.is_ascii_digit()) {
+                <span class="kw">break</span>;
+            }
         }
 
         <span class="kw">let </span>value = cursor
@@ -466,7 +447,7 @@
             <span class="number">0.0
         </span>};
 
-        <span class="kw">match </span>cursor.peek() {
+        <span class="kw">match </span>cursor.next() {
             <span class="prelude-val">Some</span>(ch) <span class="kw">if </span>is_hour_designator(ch) =&gt; {
                 <span class="kw">if </span>previous_unit &gt; TimeUnit::Hour {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(
@@ -500,14 +481,11 @@
             <span class="prelude-val">Some</span>(<span class="kw">_</span>) | <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::abrupt_end()),
         }
 
-        cursor.advance();
-
         <span class="kw">if </span>fraction_present {
-            <span class="kw">if </span>cursor.check_or(<span class="bool-val">false</span>, |ch| ch.is_ascii_digit()) {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::syntax()
-                    .with_message(<span class="string">&quot;Invalid TimeDuration continuation after FractionPart.&quot;</span>));
-            }
-
+            <span class="macro">assert_syntax!</span>(
+                cursor.check_or(<span class="bool-val">true</span>, |ch| !ch.is_ascii_digit()),
+                <span class="string">&quot;Invalid duration value provided after fraction.&quot;
+            </span>);
             <span class="kw">break</span>;
         }
     }

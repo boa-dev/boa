@@ -275,41 +275,127 @@
 <a href="#275" id="275">275</a>
 <a href="#276" id="276">276</a>
 <a href="#277" id="277">277</a>
+<a href="#278" id="278">278</a>
+<a href="#279" id="279">279</a>
+<a href="#280" id="280">280</a>
+<a href="#281" id="281">281</a>
+<a href="#282" id="282">282</a>
+<a href="#283" id="283">283</a>
+<a href="#284" id="284">284</a>
+<a href="#285" id="285">285</a>
+<a href="#286" id="286">286</a>
+<a href="#287" id="287">287</a>
+<a href="#288" id="288">288</a>
+<a href="#289" id="289">289</a>
+<a href="#290" id="290">290</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module implements parsing for ISO 8601 grammar.
 
-</span><span class="kw">use </span><span class="kw">crate</span>::TemporalResult;
+</span><span class="kw">use crate</span>::{TemporalError, TemporalResult};
 
-<span class="kw">use </span>date_time::DateRecord;
+<span class="kw">use </span>datetime::DateRecord;
 <span class="kw">use </span>nodes::{IsoDate, IsoDateTime, IsoTime, TimeZone};
 <span class="kw">use </span>time::TimeSpec;
 
 <span class="kw">mod </span>annotations;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>date_time;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>datetime;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>duration;
 <span class="kw">mod </span>grammar;
 <span class="kw">mod </span>nodes;
 <span class="kw">mod </span>time;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>time_zone;
 
-<span class="kw">use </span><span class="self">self</span>::date_time::DateTimeFlags;
+<span class="kw">use </span><span class="self">self</span>::{datetime::DateTimeFlags, grammar::is_annotation_open};
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
 
 <span class="comment">// TODO: optimize where possible.
 
-</span><span class="doccomment">/// A utility function for parsing a `DateTime` string
+</span><span class="doccomment">/// `assert_syntax!` is a parser specific utility macro for asserting a syntax test, and returning a
+/// `SyntaxError` with the provided message if the test fails.
+</span><span class="attr">#[macro_export]
+</span><span class="macro">macro_rules! </span>assert_syntax {
+    (<span class="macro-nonterminal">$cond</span>:expr, <span class="macro-nonterminal">$msg</span>:literal) =&gt; {
+        <span class="kw">if </span>!<span class="macro-nonterminal">$cond </span>{
+            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::syntax().with_message(<span class="macro-nonterminal">$msg</span>));
+        }
+    };
+}
+
+<span class="doccomment">/// A utility function for parsing a `DateTime` string
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>parse_date_time(target: <span class="kw-2">&amp;</span>str) -&gt; TemporalResult&lt;IsoParseRecord&gt; {
-    date_time::parse_annotated_date_time(DateTimeFlags::empty(), <span class="kw-2">&amp;mut </span>Cursor::new(target))
+    datetime::parse_annotated_date_time(DateTimeFlags::empty(), <span class="kw-2">&amp;mut </span>Cursor::new(target))
 }
 
 <span class="doccomment">/// A utility function for parsing an `Instant` string
 </span><span class="attr">#[allow(unused)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>parse_instant(target: <span class="kw-2">&amp;</span>str) -&gt; TemporalResult&lt;IsoParseRecord&gt; {
-    date_time::parse_annotated_date_time(
+    datetime::parse_annotated_date_time(
         DateTimeFlags::UTC_REQ | DateTimeFlags::TIME_REQ,
         <span class="kw-2">&amp;mut </span>Cursor::new(target),
     )
+}
+
+<span class="doccomment">/// A utility function for parsing a `YearMonth` string
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>parse_year_month(target: <span class="kw-2">&amp;</span>str) -&gt; TemporalResult&lt;IsoParseRecord&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>cursor = Cursor::new(target);
+    <span class="kw">let </span>ym = datetime::parse_year_month(<span class="kw-2">&amp;mut </span>cursor);
+
+    <span class="kw">let </span><span class="prelude-val">Ok</span>(year_month) = ym <span class="kw">else </span>{
+        cursor.pos = <span class="number">0</span>;
+        <span class="kw">return </span>datetime::parse_annotated_date_time(DateTimeFlags::empty(), <span class="kw-2">&amp;mut </span>cursor);
+    };
+
+    <span class="kw">let </span>calendar = <span class="kw">if </span>cursor.check_or(<span class="bool-val">false</span>, is_annotation_open) {
+        <span class="kw">let </span>set = annotations::parse_annotation_set(<span class="bool-val">false</span>, <span class="kw-2">&amp;mut </span>cursor)<span class="question-mark">?</span>;
+        set.calendar
+    } <span class="kw">else </span>{
+        <span class="prelude-val">None
+    </span>};
+
+    cursor.close()<span class="question-mark">?</span>;
+
+    <span class="prelude-val">Ok</span>(IsoParseRecord {
+        date: DateRecord {
+            year: year_month.<span class="number">0</span>,
+            month: year_month.<span class="number">1</span>,
+            day: <span class="number">1</span>,
+        },
+        time: <span class="prelude-val">None</span>,
+        tz: <span class="prelude-val">None</span>,
+        calendar,
+    })
+}
+
+<span class="doccomment">/// A utilty function for parsing a `MonthDay` String.
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>parse_month_day(target: <span class="kw-2">&amp;</span>str) -&gt; TemporalResult&lt;IsoParseRecord&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>cursor = Cursor::new(target);
+    <span class="kw">let </span>md = datetime::parse_month_day(<span class="kw-2">&amp;mut </span>cursor);
+
+    <span class="kw">let </span><span class="prelude-val">Ok</span>(month_day) = md <span class="kw">else </span>{
+        cursor.pos = <span class="number">0</span>;
+        <span class="kw">return </span>datetime::parse_annotated_date_time(DateTimeFlags::empty(), <span class="kw-2">&amp;mut </span>cursor);
+    };
+
+    <span class="kw">let </span>calendar = <span class="kw">if </span>cursor.check_or(<span class="bool-val">false</span>, is_annotation_open) {
+        <span class="kw">let </span>set = annotations::parse_annotation_set(<span class="bool-val">false</span>, <span class="kw-2">&amp;mut </span>cursor)<span class="question-mark">?</span>;
+        set.calendar
+    } <span class="kw">else </span>{
+        <span class="prelude-val">None
+    </span>};
+
+    cursor.close()<span class="question-mark">?</span>;
+
+    <span class="prelude-val">Ok</span>(IsoParseRecord {
+        date: DateRecord {
+            year: <span class="number">0</span>,
+            month: month_day.<span class="number">0</span>,
+            day: month_day.<span class="number">1</span>,
+        },
+        time: <span class="prelude-val">None</span>,
+        tz: <span class="prelude-val">None</span>,
+        calendar,
+    })
 }
 
 <span class="doccomment">/// An `IsoParseRecord` is an intermediary record returned by ISO parsing functions.
@@ -347,94 +433,6 @@
     }
 }
 
-<span class="doccomment">/// Parse a [`TemporalYearMonthString`][proposal]
-///
-/// [proposal]: https://tc39.es/proposal-temporal/#prod-TemporalYearMonthString
-</span><span class="attr">#[derive(Debug, Clone, Copy)]
-</span><span class="kw">pub struct </span>TemporalYearMonthString;
-
-<span class="kw">impl </span>TemporalYearMonthString {
-    <span class="doccomment">/// Parses a targeted string as a `YearMonth`
-    ///
-    /// # Errors
-    ///
-    /// The parse will error if the provided target is not valid
-    /// Iso8601 grammar.
-    </span><span class="kw">pub fn </span>parse(cursor: <span class="kw-2">&amp;mut </span>Cursor) -&gt; TemporalResult&lt;IsoDate&gt; {
-        <span class="comment">// TODO: Remove peek in favor of AnnotatedDateTime flag.
-        </span><span class="kw">if </span>date_time::peek_year_month(cursor)<span class="question-mark">? </span>{
-            <span class="kw">let </span>ym = date_time::parse_year_month(cursor)<span class="question-mark">?</span>;
-
-            <span class="kw">let </span>calendar = <span class="kw">if </span>cursor.check_or(<span class="bool-val">false</span>, |ch| ch == <span class="string">&#39;[&#39;</span>) {
-                <span class="kw">let </span>set = annotations::parse_annotation_set(<span class="bool-val">false</span>, cursor)<span class="question-mark">?</span>;
-                set.calendar
-            } <span class="kw">else </span>{
-                <span class="prelude-val">None
-            </span>};
-
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(IsoDate {
-                year: ym.<span class="number">0</span>,
-                month: ym.<span class="number">1</span>,
-                day: <span class="number">0</span>,
-                calendar,
-            });
-        }
-
-        <span class="kw">let </span>parse_record = date_time::parse_annotated_date_time(DateTimeFlags::empty(), cursor)<span class="question-mark">?</span>;
-
-        <span class="prelude-val">Ok</span>(IsoDate {
-            year: parse_record.date.year,
-            month: parse_record.date.month,
-            day: parse_record.date.day,
-            calendar: parse_record.calendar,
-        })
-    }
-}
-
-<span class="doccomment">/// Parse a [`TemporalMonthDayString`][proposal]
-///
-/// [proposal]: https://tc39.es/proposal-temporal/#prod-TemporalMonthDayString
-</span><span class="attr">#[derive(Debug, Clone, Copy)]
-</span><span class="kw">pub struct </span>TemporalMonthDayString;
-
-<span class="kw">impl </span>TemporalMonthDayString {
-    <span class="doccomment">/// Parses a targeted string as a `MonthDay`.
-    ///
-    /// # Errors
-    ///
-    /// The parse will error if the provided target is not valid
-    /// Iso8601 grammar.
-    </span><span class="kw">pub fn </span>parse(cursor: <span class="kw-2">&amp;mut </span>Cursor) -&gt; TemporalResult&lt;IsoDate&gt; {
-        <span class="comment">// TODO: Remove peek in favor of AnnotatedDateTime flag.
-        </span><span class="kw">if </span>date_time::peek_month_day(cursor)<span class="question-mark">? </span>{
-            <span class="kw">let </span>md = date_time::parse_month_day(cursor)<span class="question-mark">?</span>;
-
-            <span class="kw">let </span>calendar = <span class="kw">if </span>cursor.check_or(<span class="bool-val">false</span>, |ch| ch == <span class="string">&#39;[&#39;</span>) {
-                <span class="kw">let </span>set = annotations::parse_annotation_set(<span class="bool-val">false</span>, cursor)<span class="question-mark">?</span>;
-                set.calendar
-            } <span class="kw">else </span>{
-                <span class="prelude-val">None
-            </span>};
-
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(IsoDate {
-                year: <span class="number">0</span>,
-                month: md.<span class="number">0</span>,
-                day: md.<span class="number">1</span>,
-                calendar,
-            });
-        }
-
-        <span class="kw">let </span>parse_record = date_time::parse_annotated_date_time(DateTimeFlags::empty(), cursor)<span class="question-mark">?</span>;
-
-        <span class="prelude-val">Ok</span>(IsoDate {
-            year: parse_record.date.year,
-            month: parse_record.date.month,
-            day: parse_record.date.day,
-            calendar: parse_record.calendar,
-        })
-    }
-}
-
 <span class="doccomment">/// Parser for a [`TemporalInstantString`][proposal].
 ///
 /// [proposal]: https://tc39.es/proposal-temporal/#prod-TemporalInstantString
@@ -449,7 +447,7 @@
     /// The parse will error if the provided target is not valid
     /// Iso8601 grammar.
     </span><span class="kw">pub fn </span>parse(cursor: <span class="kw-2">&amp;mut </span>Cursor) -&gt; TemporalResult&lt;IsoDateTime&gt; {
-        <span class="kw">let </span>parse_record = date_time::parse_annotated_date_time(
+        <span class="kw">let </span>parse_record = datetime::parse_annotated_date_time(
             DateTimeFlags::UTC_REQ | DateTimeFlags::TIME_REQ,
             cursor,
         )<span class="question-mark">?</span>;
@@ -502,13 +500,9 @@
         <span class="self">self</span>.pos
     }
 
-    <span class="doccomment">/// Peek the value at the current position.
+    <span class="doccomment">/// Peek the value at next position (current + 1).
     </span><span class="kw">fn </span>peek(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;char&gt; {
-        <span class="kw">if </span>(<span class="self">self</span>.pos <span class="kw">as </span>usize) &lt; <span class="self">self</span>.source.len() {
-            <span class="prelude-val">Some</span>(<span class="self">self</span>.source[<span class="self">self</span>.pos <span class="kw">as </span>usize])
-        } <span class="kw">else </span>{
-            <span class="prelude-val">None
-        </span>}
+        <span class="self">self</span>.peek_n(<span class="number">1</span>)
     }
 
     <span class="doccomment">/// Peek the value at n len from current.
@@ -521,25 +515,41 @@
         </span>}
     }
 
-    <span class="doccomment">/// Returns boolean if current position passes check.
+    <span class="doccomment">/// Runs the provided check on the current position.
     </span><span class="kw">fn </span>check&lt;F&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, f: F) -&gt; <span class="prelude-ty">Option</span>&lt;bool&gt;
     <span class="kw">where
         </span>F: FnOnce(char) -&gt; bool,
     {
-        <span class="self">self</span>.peek().map(f)
+        <span class="self">self</span>.peek_n(<span class="number">0</span>).map(f)
     }
 
-    <span class="doccomment">/// Returns boolean if current position passes check or default if None.
+    <span class="doccomment">/// Runs the provided check on current position returns the default value if None.
     </span><span class="kw">fn </span>check_or&lt;F&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, default: bool, f: F) -&gt; bool
     <span class="kw">where
         </span>F: FnOnce(char) -&gt; bool,
     {
-        <span class="self">self</span>.peek().map_or(default, f)
+        <span class="self">self</span>.peek_n(<span class="number">0</span>).map_or(default, f)
     }
-    <span class="doccomment">/// Advances the cursor&#39;s position and returns the new character.
+
+    <span class="doccomment">/// Returns `Cursor`&#39;s current char and advances to the next position.
     </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;char&gt; {
+        <span class="kw">let </span>result = <span class="self">self</span>.peek_n(<span class="number">0</span>);
         <span class="self">self</span>.advance();
-        <span class="self">self</span>.peek()
+        result
+    }
+
+    <span class="doccomment">/// Utility method that returns next charactor unwrapped char
+    ///
+    /// # Panics
+    ///
+    /// This will panic if the next value has not been confirmed to exist.
+    </span><span class="kw">fn </span>expect_next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; char {
+        <span class="self">self</span>.next().expect(<span class="string">&quot;Invalid use of expect_next.&quot;</span>)
+    }
+
+    <span class="doccomment">/// A utility next method that returns an `AbruptEnd` error if invalid.
+    </span><span class="kw">fn </span>abrupt_next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; TemporalResult&lt;char&gt; {
+        <span class="self">self</span>.next().ok_or_else(TemporalError::abrupt_end)
     }
 
     <span class="doccomment">/// Advances the cursor&#39;s position by 1.
@@ -547,9 +557,25 @@
         <span class="self">self</span>.pos += <span class="number">1</span>;
     }
 
+    <span class="doccomment">/// Utility function to advance when a condition is true
+    </span><span class="kw">fn </span>advance_if(<span class="kw-2">&amp;mut </span><span class="self">self</span>, condition: bool) {
+        <span class="kw">if </span>condition {
+            <span class="self">self</span>.advance();
+        }
+    }
+
     <span class="doccomment">/// Advances the cursor&#39;s position by `n`.
     </span><span class="kw">fn </span>advance_n(<span class="kw-2">&amp;mut </span><span class="self">self</span>, n: u32) {
         <span class="self">self</span>.pos += n;
+    }
+
+    <span class="doccomment">/// Closes the current cursor by checking if all contents have been consumed. If not, returns an error for invalid syntax.
+    </span><span class="kw">fn </span>close(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; TemporalResult&lt;()&gt; {
+        <span class="kw">if </span>(<span class="self">self</span>.pos <span class="kw">as </span>usize) &lt; <span class="self">self</span>.source.len() {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::syntax()
+                .with_message(<span class="string">&quot;Unexpected syntax at the end of an ISO target.&quot;</span>));
+        }
+        <span class="prelude-val">Ok</span>(())
     }
 }
 </code></pre></div></section></main></body></html>

@@ -227,11 +227,6 @@
 <a href="#227" id="227">227</a>
 <a href="#228" id="228">228</a>
 <a href="#229" id="229">229</a>
-<a href="#230" id="230">230</a>
-<a href="#231" id="231">231</a>
-<a href="#232" id="232">232</a>
-<a href="#233" id="233">233</a>
-<a href="#234" id="234">234</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! ISO8601 parsing for Time Zone and Offset data.
 
 </span><span class="kw">use super</span>::{
@@ -245,7 +240,7 @@
     time::{parse_fraction, parse_hour, parse_minute_second},
     Cursor,
 };
-<span class="kw">use crate</span>::{TemporalError, TemporalResult};
+<span class="kw">use crate</span>::{assert_syntax, TemporalError, TemporalResult};
 
 <span class="doccomment">/// A `TimeZoneAnnotation`.
 </span><span class="attr">#[derive(Debug, Clone)]
@@ -310,22 +305,20 @@
 }
 
 <span class="kw">fn </span>parse_tz_annotation(cursor: <span class="kw-2">&amp;mut </span>Cursor) -&gt; TemporalResult&lt;TimeZoneAnnotation&gt; {
-    <span class="macro">debug_assert!</span>(is_annotation_open(cursor.peek().expect(<span class="string">&quot;annotation start&quot;</span>)));
+    <span class="macro">assert_syntax!</span>(
+        is_annotation_open(cursor.abrupt_next()<span class="question-mark">?</span>),
+        <span class="string">&quot;Invalid annotation opening character.&quot;
+    </span>);
 
-    <span class="kw">let </span>potential_critical = cursor.next().ok_or_else(TemporalError::abrupt_end)<span class="question-mark">?</span>;
-    <span class="kw">let </span>critical = is_critical_flag(potential_critical);
-
-    <span class="kw">if </span>critical {
-        cursor.advance();
-    }
+    <span class="kw">let </span>critical = cursor.check_or(<span class="bool-val">false</span>, is_critical_flag);
+    cursor.advance_if(critical);
 
     <span class="kw">let </span>tz = parse_time_zone(cursor)<span class="question-mark">?</span>;
 
-    <span class="kw">if </span>!cursor.check_or(<span class="bool-val">false</span>, is_annotation_close) {
-        <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::syntax().with_message(<span class="string">&quot;Invalid TimeZoneAnnotation.&quot;</span>));
-    }
-
-    cursor.advance();
+    <span class="macro">assert_syntax!</span>(
+        is_annotation_close(cursor.abrupt_next()<span class="question-mark">?</span>),
+        <span class="string">&quot;Invalid annotation closing character.&quot;
+    </span>);
 
     <span class="prelude-val">Ok</span>(TimeZoneAnnotation { critical, tz })
 }
@@ -356,21 +349,26 @@
 </span><span class="kw">fn </span>parse_tz_iana_name(cursor: <span class="kw-2">&amp;mut </span>Cursor) -&gt; TemporalResult&lt;TimeZone&gt; {
     <span class="kw">let </span>tz_name_start = cursor.pos();
     <span class="kw">while let </span><span class="prelude-val">Some</span>(potential_value_char) = cursor.next() {
-        <span class="kw">if </span>is_tz_name_separator(potential_value_char) {
-            <span class="kw">if </span>!cursor.peek_n(<span class="number">1</span>).map_or(<span class="bool-val">false</span>, is_tz_char) {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::syntax()
-                    .with_message(<span class="string">&quot;Missing TimeZoneIANANameComponent after &#39;/&#39;&quot;</span>));
-            }
-            <span class="kw">continue</span>;
-        }
-
-        <span class="kw">if </span>!is_tz_char(potential_value_char) {
+        <span class="kw">if </span>cursor.check_or(<span class="bool-val">false</span>, is_annotation_close) {
             <span class="comment">// Return the valid TimeZoneIANAName
             </span><span class="kw">return </span><span class="prelude-val">Ok</span>(TimeZone {
                 name: <span class="prelude-val">Some</span>(cursor.slice(tz_name_start, cursor.pos())),
                 offset: <span class="prelude-val">None</span>,
             });
         }
+
+        <span class="kw">if </span>is_tz_name_separator(potential_value_char) {
+            <span class="macro">assert_syntax!</span>(
+                cursor.peek_n(<span class="number">2</span>).map_or(<span class="bool-val">false</span>, is_tz_char),
+                <span class="string">&quot;Missing IANA name component after &#39;/&#39;&quot;
+            </span>);
+            <span class="kw">continue</span>;
+        }
+
+        <span class="macro">assert_syntax!</span>(
+            is_tz_char(potential_value_char),
+            <span class="string">&quot;Invalid TimeZone IANA name character.&quot;
+        </span>);
     }
 
     <span class="prelude-val">Err</span>(TemporalError::abrupt_end())
@@ -392,14 +390,12 @@
 
     <span class="kw">let </span><span class="kw-2">mut </span>utc_to_minute = parse_utc_offset_minute_precision(cursor)<span class="question-mark">?</span>;
 
-    <span class="kw">if </span>cursor.check_or(<span class="bool-val">false</span>, is_time_separator) {
-        <span class="kw">if </span>!separated {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::syntax().with_message(<span class="string">&quot;Unexpected TimeSeparator&quot;</span>));
-        }
-        cursor.advance();
+    <span class="kw">if </span>cursor.check_or(<span class="bool-val">false</span>, is_time_separator) &amp;&amp; !separated {
+        <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::syntax().with_message(<span class="string">&quot;Invalid time separator in UTC offset.&quot;</span>));
     }
+    cursor.advance_if(cursor.check_or(<span class="bool-val">false</span>, is_time_separator));
 
-    <span class="comment">// Return early on None or next char an AnnotationOpen.
+    <span class="comment">// Return early on None or AnnotationOpen.
     </span><span class="kw">if </span>cursor.check_or(<span class="bool-val">true</span>, is_annotation_open) {
         <span class="kw">return </span><span class="prelude-val">Ok</span>(TimeZone {
             name: <span class="prelude-val">None</span>,
@@ -426,22 +422,19 @@
 
 <span class="doccomment">/// Parse an `UtcOffsetMinutePrecision` node
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>parse_utc_offset_minute_precision(cursor: <span class="kw-2">&amp;mut </span>Cursor) -&gt; TemporalResult&lt;UTCOffset&gt; {
-    <span class="kw">let </span>sign = <span class="kw">if let </span><span class="prelude-val">Some</span>(ch) = cursor.next() {
-        <span class="kw">if </span>ch == <span class="string">&#39;+&#39; </span>{
-            <span class="number">1_i8
+    <span class="kw">let </span>sign = <span class="kw">if </span>cursor.check_or(<span class="bool-val">false</span>, is_sign) {
+        <span class="kw">if </span>cursor.expect_next() == <span class="string">&#39;+&#39; </span>{
+            <span class="number">1
         </span>} <span class="kw">else </span>{
-            -<span class="number">1_i8
+            -<span class="number">1
         </span>}
     } <span class="kw">else </span>{
-        <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::abrupt_end());
-    };
+        <span class="number">1
+    </span>};
     <span class="kw">let </span>hour = parse_hour(cursor)<span class="question-mark">?</span>;
 
     <span class="comment">// If at the end of the utc, then return.
-    </span><span class="kw">if </span>cursor
-        .check(|ch| !(ch.is_ascii_digit() || is_time_separator(ch)))
-        .ok_or_else(TemporalError::abrupt_end)<span class="question-mark">?
-    </span>{
+    </span><span class="kw">if </span>!cursor.check_or(<span class="bool-val">false</span>, |ch| ch.is_ascii_digit() || is_time_separator(ch)) {
         <span class="kw">return </span><span class="prelude-val">Ok</span>(UTCOffset {
             sign,
             hour,
@@ -450,11 +443,8 @@
             fraction: <span class="number">0.0</span>,
         });
     }
-
     <span class="comment">// Advance cursor beyond any TimeSeparator
-    </span><span class="kw">if </span>cursor.check_or(<span class="bool-val">false</span>, is_time_separator) {
-        cursor.advance();
-    }
+    </span>cursor.advance_if(cursor.check_or(<span class="bool-val">false</span>, is_time_separator));
 
     <span class="kw">let </span>minute = parse_minute_second(cursor, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
 

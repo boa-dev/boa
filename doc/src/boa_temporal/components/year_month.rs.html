@@ -51,13 +51,49 @@
 <a href="#51" id="51">51</a>
 <a href="#52" id="52">52</a>
 <a href="#53" id="53">53</a>
+<a href="#54" id="54">54</a>
+<a href="#55" id="55">55</a>
+<a href="#56" id="56">56</a>
+<a href="#57" id="57">57</a>
+<a href="#58" id="58">58</a>
+<a href="#59" id="59">59</a>
+<a href="#60" id="60">60</a>
+<a href="#61" id="61">61</a>
+<a href="#62" id="62">62</a>
+<a href="#63" id="63">63</a>
+<a href="#64" id="64">64</a>
+<a href="#65" id="65">65</a>
+<a href="#66" id="66">66</a>
+<a href="#67" id="67">67</a>
+<a href="#68" id="68">68</a>
+<a href="#69" id="69">69</a>
+<a href="#70" id="70">70</a>
+<a href="#71" id="71">71</a>
+<a href="#72" id="72">72</a>
+<a href="#73" id="73">73</a>
+<a href="#74" id="74">74</a>
+<a href="#75" id="75">75</a>
+<a href="#76" id="76">76</a>
+<a href="#77" id="77">77</a>
+<a href="#78" id="78">78</a>
+<a href="#79" id="79">79</a>
+<a href="#80" id="80">80</a>
+<a href="#81" id="81">81</a>
+<a href="#82" id="82">82</a>
+<a href="#83" id="83">83</a>
+<a href="#84" id="84">84</a>
+<a href="#85" id="85">85</a>
+<a href="#86" id="86">86</a>
+<a href="#87" id="87">87</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module implements `YearMonth` and any directly related algorithms.
 
-</span><span class="kw">use crate</span>::{
+</span><span class="kw">use </span>std::str::FromStr;
+
+<span class="kw">use crate</span>::{
     components::calendar::CalendarSlot,
     iso::{IsoDate, IsoDateSlots},
     options::ArithmeticOverflow,
-    TemporalResult,
+    TemporalError, TemporalResult,
 };
 
 <span class="doccomment">/// The native Rust implementation of `Temporal.YearMonth`.
@@ -89,6 +125,20 @@
         <span class="prelude-val">Ok</span>(<span class="self">Self</span>::new_unchecked(iso, calendar))
     }
 
+    <span class="doccomment">/// Returns the `year` value for this `YearMonth`.
+    </span><span class="attr">#[inline]
+    #[must_use]
+    </span><span class="kw">pub fn </span>year(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; i32 {
+        <span class="self">self</span>.iso.year()
+    }
+
+    <span class="doccomment">/// Returns the `month` value for this `YearMonth`.
+    </span><span class="attr">#[inline]
+    #[must_use]
+    </span><span class="kw">pub fn </span>month(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u8 {
+        <span class="self">self</span>.iso.month()
+    }
+
     <span class="attr">#[inline]
     #[must_use]
     </span><span class="doccomment">/// Returns a reference to `YearMonth`&#39;s `CalendarSlot`
@@ -102,6 +152,24 @@
     </span><span class="doccomment">/// Returns this `YearMonth`&#39;s `IsoDate`
     </span><span class="kw">fn </span>iso_date(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; IsoDate {
         <span class="self">self</span>.iso
+    }
+}
+
+<span class="kw">impl </span>FromStr <span class="kw">for </span>YearMonth {
+    <span class="kw">type </span><span class="prelude-val">Err </span>= TemporalError;
+
+    <span class="kw">fn </span>from_str(s: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Err&gt; {
+        <span class="kw">let </span>record = <span class="kw">crate</span>::parser::parse_year_month(s)<span class="question-mark">?</span>;
+
+        <span class="kw">let </span>calendar = record.calendar.unwrap_or(<span class="string">&quot;iso8601&quot;</span>.into());
+
+        <span class="self">Self</span>::new(
+            record.date.year,
+            record.date.month,
+            <span class="prelude-val">None</span>,
+            CalendarSlot::Identifier(calendar),
+            ArithmeticOverflow::Reject,
+        )
     }
 }
 </code></pre></div></section></main></body></html>

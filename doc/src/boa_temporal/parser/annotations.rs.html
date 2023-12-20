@@ -178,9 +178,9 @@
 <a href="#178" id="178">178</a>
 <a href="#179" id="179">179</a>
 <a href="#180" id="180">180</a>
-<a href="#181" id="181">181</a>
 </pre></div><pre class="rust"><code><span class="doccomment">/// Parsing for Temporal&#39;s `Annotations`.
 </span><span class="kw">use crate</span>::{
+    assert_syntax,
     parser::{
         grammar::{
             is_a_key_char, is_a_key_leading_char, is_annotation_close,
@@ -219,10 +219,10 @@
 ) -&gt; TemporalResult&lt;AnnotationSet&gt; {
     <span class="comment">// Parse the first annotation.
     </span><span class="kw">let </span>tz_annotation = time_zone::parse_ambiguous_tz_annotation(cursor)<span class="question-mark">?</span>;
-
     <span class="kw">if </span>tz_annotation.is_none() &amp;&amp; zoned {
-        <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::syntax()
-            .with_message(<span class="string">&quot;iso8601 ZonedDateTime requires a TimeZoneAnnotation.&quot;</span>));
+        <span class="kw">return </span><span class="prelude-val">Err</span>(
+            TemporalError::syntax().with_message(<span class="string">&quot;ZonedDateTime must have a TimeZone annotation.&quot;</span>)
+        );
     }
 
     <span class="comment">// Parse any `Annotations`
@@ -278,32 +278,27 @@
 
 <span class="doccomment">/// Parse an annotation with an `AnnotationKey`=`AnnotationValue` pair.
 </span><span class="kw">fn </span>parse_kv_annotation(cursor: <span class="kw-2">&amp;mut </span>Cursor) -&gt; TemporalResult&lt;KeyValueAnnotation&gt; {
-    <span class="macro">debug_assert!</span>(cursor.check_or(<span class="bool-val">false</span>, is_annotation_open));
+    <span class="macro">assert_syntax!</span>(
+        is_annotation_open(cursor.abrupt_next()<span class="question-mark">?</span>),
+        <span class="string">&quot;Invalid annotation open character.&quot;
+    </span>);
 
-    <span class="kw">let </span>potential_critical = cursor.next().ok_or_else(TemporalError::abrupt_end)<span class="question-mark">?</span>;
-    <span class="kw">let </span>(leading_char, critical) = <span class="kw">if </span>is_critical_flag(potential_critical) {
-        (cursor.next().ok_or_else(TemporalError::abrupt_end)<span class="question-mark">?</span>, <span class="bool-val">true</span>)
-    } <span class="kw">else </span>{
-        (potential_critical, <span class="bool-val">false</span>)
-    };
-
-    <span class="kw">if </span>!is_a_key_leading_char(leading_char) {
-        <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::syntax().with_message(<span class="string">&quot;Invalid AnnotationKey leading character&quot;</span>));
-    }
+    <span class="kw">let </span>critical = cursor.check_or(<span class="bool-val">false</span>, is_critical_flag);
+    cursor.advance_if(critical);
 
     <span class="comment">// Parse AnnotationKey.
     </span><span class="kw">let </span>annotation_key = parse_annotation_key(cursor)<span class="question-mark">?</span>;
-
-    <span class="macro">debug_assert!</span>(cursor.check_or(<span class="bool-val">false</span>, is_annotation_key_value_separator));
-    <span class="comment">// Advance past the &#39;=&#39; character.
-    </span>cursor.advance();
+    <span class="macro">assert_syntax!</span>(
+        is_annotation_key_value_separator(cursor.abrupt_next()<span class="question-mark">?</span>),
+        <span class="string">&quot;Invalid annotation key-value separator&quot;
+    </span>);
 
     <span class="comment">// Parse AnnotationValue.
     </span><span class="kw">let </span>annotation_value = parse_annotation_value(cursor)<span class="question-mark">?</span>;
-
-    <span class="comment">// Assert that we are at the annotation close and advance cursor past annotation to close.
-    </span><span class="macro">debug_assert!</span>(cursor.check_or(<span class="bool-val">false</span>, is_annotation_close));
-    cursor.advance();
+    <span class="macro">assert_syntax!</span>(
+        is_annotation_close(cursor.abrupt_next()<span class="question-mark">?</span>),
+        <span class="string">&quot;Invalid annotion closing character&quot;
+    </span>);
 
     <span class="prelude-val">Ok</span>(KeyValueAnnotation {
         key: annotation_key,
@@ -315,16 +310,22 @@
 <span class="doccomment">/// Parse an `AnnotationKey`.
 </span><span class="kw">fn </span>parse_annotation_key(cursor: <span class="kw-2">&amp;mut </span>Cursor) -&gt; TemporalResult&lt;String&gt; {
     <span class="kw">let </span>key_start = cursor.pos();
+    <span class="macro">assert_syntax!</span>(
+        is_a_key_leading_char(cursor.abrupt_next()<span class="question-mark">?</span>),
+        <span class="string">&quot;Invalid key leading character.&quot;
+    </span>);
+
     <span class="kw">while let </span><span class="prelude-val">Some</span>(potential_key_char) = cursor.next() {
         <span class="comment">// End of key.
-        </span><span class="kw">if </span>is_annotation_key_value_separator(potential_key_char) {
+        </span><span class="kw">if </span>cursor.check_or(<span class="bool-val">false</span>, is_annotation_key_value_separator) {
             <span class="comment">// Return found key
             </span><span class="kw">return </span><span class="prelude-val">Ok</span>(cursor.slice(key_start, cursor.pos()));
         }
 
-        <span class="kw">if </span>!is_a_key_char(potential_key_char) {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::syntax().with_message(<span class="string">&quot;Invalid AnnotationKey Character&quot;</span>));
-        }
+        <span class="macro">assert_syntax!</span>(
+            is_a_key_char(potential_key_char),
+            <span class="string">&quot;Invalid annotation key character.&quot;
+        </span>);
     }
 
     <span class="prelude-val">Err</span>(TemporalError::abrupt_end())
@@ -333,29 +334,26 @@
 <span class="doccomment">/// Parse an `AnnotationValue`.
 </span><span class="kw">fn </span>parse_annotation_value(cursor: <span class="kw-2">&amp;mut </span>Cursor) -&gt; TemporalResult&lt;String&gt; {
     <span class="kw">let </span>value_start = cursor.pos();
+    cursor.advance();
     <span class="kw">while let </span><span class="prelude-val">Some</span>(potential_value_char) = cursor.next() {
-        <span class="kw">if </span>is_annotation_close(potential_value_char) {
+        <span class="kw">if </span>cursor.check_or(<span class="bool-val">false</span>, is_annotation_close) {
             <span class="comment">// Return the determined AnnotationValue.
             </span><span class="kw">return </span><span class="prelude-val">Ok</span>(cursor.slice(value_start, cursor.pos()));
         }
 
         <span class="kw">if </span>is_hyphen(potential_value_char) {
-            <span class="kw">if </span>!cursor
-                .peek_n(<span class="number">1</span>)
-                .map_or(<span class="bool-val">false</span>, is_annotation_value_component)
-            {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::syntax()
-                    .with_message(<span class="string">&quot;Missing AttributeValueComponent after &#39;-&#39;&quot;</span>));
-            }
+            <span class="macro">assert_syntax!</span>(
+                cursor.peek().map_or(<span class="bool-val">false</span>, is_annotation_value_component),
+                <span class="string">&quot;Missing annotation value compoenent after &#39;-&#39;&quot;
+            </span>);
             cursor.advance();
             <span class="kw">continue</span>;
         }
 
-        <span class="kw">if </span>!is_annotation_value_component(potential_value_char) {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(
-                TemporalError::syntax().with_message(<span class="string">&quot;Invalid character in AnnotationValue&quot;</span>)
-            );
-        }
+        <span class="macro">assert_syntax!</span>(
+            is_annotation_value_component(potential_value_char),
+            <span class="string">&quot;Invalid annotation value component character.&quot;
+        </span>);
     }
 
     <span class="prelude-val">Err</span>(TemporalError::abrupt_end())
