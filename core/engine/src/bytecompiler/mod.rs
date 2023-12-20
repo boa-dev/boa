@@ -1523,8 +1523,13 @@ impl<'ctx> ByteCompiler<'ctx> {
         }
         self.r#return(false);
 
-        if self.is_async_generator() {
-            self.locals_count += 1;
+        if self.is_async() {
+            // NOTE: +3 for the promise capability
+            self.locals_count += 3;
+            if self.is_generator() {
+                // NOTE: +1 for the async generator function
+                self.locals_count += 1;
+            }
         }
         for handler in &mut self.handlers {
             handler.stack_count += self.locals_count;

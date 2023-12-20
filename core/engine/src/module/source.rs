@@ -1327,7 +1327,7 @@ impl SourceTextModule {
 
         // 9. Perform ! module.ExecuteModule(capability).
         // 10. Return unused.
-        self.execute(Some(capability), context)
+        self.execute(Some(&capability), context)
             .expect("async modules cannot directly throw");
     }
 
@@ -1741,7 +1741,7 @@ impl SourceTextModule {
     /// [spec]: https://tc39.es/ecma262/#sec-source-text-module-record-execute-module
     fn execute(
         &self,
-        capability: Option<PromiseCapability>,
+        capability: Option<&PromiseCapability>,
         context: &mut Context,
     ) -> JsResult<()> {
         // 1. Let moduleContext be a new ECMAScript code execution context.
@@ -1763,7 +1763,7 @@ impl SourceTextModule {
         // 6. Set the VariableEnvironment of moduleContext to module.[[Environment]].
         // 7. Set the LexicalEnvironment of moduleContext to module.[[Environment]].
         let env_fp = environments.len() as u32;
-        let mut callframe = CallFrame::new(
+        let callframe = CallFrame::new(
             codeblock,
             Some(ActiveRunnable::Module(self.parent())),
             environments,
@@ -1771,12 +1771,18 @@ impl SourceTextModule {
         )
         .with_env_fp(env_fp)
         .with_flags(CallFrameFlags::EXIT_EARLY);
-        callframe.promise_capability = capability;
 
         // 8. Suspend the running execution context.
         context
             .vm
             .push_frame_with_stack(callframe, JsValue::undefined(), JsValue::null());
+
+        context
+            .vm
+            .frames
+            .last()
+            .expect("there should be a frame")
+            .set_promise_capability(&mut context.vm.stack, capability);
 
         // 9. If module.[[HasTLA]] is false, then
         //    a. Assert: capability is not present.

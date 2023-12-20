@@ -168,10 +168,10 @@ pub(crate) use if_abrupt_reject_promise;
 #[derive(Debug, Clone, Finalize)]
 pub(crate) struct PromiseCapability {
     /// The `[[Promise]]` field.
-    promise: JsObject,
+    pub(crate) promise: JsObject,
 
     /// The resolving functions,
-    functions: ResolvingFunctions,
+    pub(crate) functions: ResolvingFunctions,
 }
 
 // SAFETY: manually implementing `Trace` to allow destructuring.
