@@ -1035,12 +1035,12 @@ fn function_construct(
         .with_env_fp(env_fp)
         .with_flags(CallFrameFlags::CONSTRUCT);
 
-    context.vm.push_frame(frame);
-
     let len = context.vm.stack.len();
 
+    context.vm.push_frame(frame);
+
     // NOTE(HalidOdat): +1 because we insert `this` value below.
-    context.vm.frame_mut().fp = len as u32 + 1;
+    context.vm.frame_mut().rp = len as u32 + 1;
 
     let mut last_env = 0;
 

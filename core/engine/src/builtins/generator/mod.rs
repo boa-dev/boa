@@ -69,13 +69,13 @@ impl GeneratorContext {
         let mut frame = context.vm.frame().clone();
         frame.environments = context.vm.environments.clone();
         frame.realm = context.realm().clone();
-        let fp = frame.restore_fp() as usize;
+        let fp = frame.fp() as usize;
         let stack = context.vm.stack.split_off(fp);
 
-        frame.fp = CallFrame::FUNCTION_PROLOGUE + frame.argument_count;
+        frame.rp = CallFrame::FUNCTION_PROLOGUE + frame.argument_count;
 
         // NOTE: Since we get a pre-built call frame with stack, and we reuse them.
-        //       So we don't need to push the locals in subsuquent calls.
+        //       So we don't need to push the locals in subsequent calls.
         frame.flags |= CallFrameFlags::LOCALS_ALREADY_PUSHED;
 
         Self {
@@ -93,10 +93,10 @@ impl GeneratorContext {
     ) -> CompletionRecord {
         std::mem::swap(&mut context.vm.stack, &mut self.stack);
         let frame = self.call_frame.take().expect("should have a call frame");
-        let fp = frame.fp;
+        let rp = frame.rp;
         context.vm.push_frame(frame);
 
-        context.vm.frame_mut().fp = fp;
+        context.vm.frame_mut().rp = rp;
         context.vm.frame_mut().set_exit_early(true);
 
         if let Some(value) = value {

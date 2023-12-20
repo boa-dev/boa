@@ -158,7 +158,7 @@ impl Vm {
 
     pub(crate) fn push_frame(&mut self, mut frame: CallFrame) {
         let current_stack_length = self.stack.len();
-        frame.set_frame_pointer(current_stack_length as u32);
+        frame.set_register_pointer(current_stack_length as u32);
         std::mem::swap(&mut self.environments, &mut frame.environments);
         std::mem::swap(&mut self.realm, &mut frame.realm);
 
@@ -210,7 +210,7 @@ impl Vm {
 
         let catch_address = handler.handler();
         let environment_sp = frame.env_fp + handler.environment_count;
-        let sp = frame.fp + handler.stack_count;
+        let sp = frame.rp + handler.stack_count;
 
         // Go to handler location.
         frame.pc = catch_address;
@@ -325,7 +325,12 @@ impl Context {
         let result = self.execute_instruction(f);
         let duration = instant.elapsed();
 
-        let fp = self.vm.frames.last().map(|frame| frame.fp as usize);
+        let fp = self
+            .vm
+            .frames
+            .last()
+            .map(CallFrame::fp)
+            .map(|fp| fp as usize);
 
         let stack = {
             let mut stack = String::from("[ ");
@@ -427,7 +432,7 @@ impl Context {
                             break;
                         }
 
-                        fp = frame.restore_fp() as usize;
+                        fp = frame.fp() as usize;
                         env_fp = frame.env_fp as usize;
                         self.vm.pop_frame();
                     }
@@ -454,8 +459,8 @@ impl Context {
         match result {
             CompletionType::Normal => {}
             CompletionType::Return => {
-                let restore_fp = self.vm.frame().restore_fp() as usize;
-                self.vm.stack.truncate(restore_fp);
+                let fp = self.vm.frame().fp() as usize;
+                self.vm.stack.truncate(fp);
 
                 let result = self.vm.take_return_value();
                 if self.vm.frame().exit_early() {
@@ -466,7 +471,7 @@ impl Context {
                 self.vm.pop_frame();
             }
             CompletionType::Throw => {
-                let mut fp = self.vm.frame().restore_fp();
+                let mut fp = self.vm.frame().fp();
                 let mut env_fp = self.vm.frame().env_fp;
                 if self.vm.frame().exit_early() {
                     self.vm.environments.truncate(env_fp as usize);
@@ -482,7 +487,7 @@ impl Context {
                 self.vm.pop_frame();
 
                 while let Some(frame) = self.vm.frames.last_mut() {
-                    fp = frame.restore_fp();
+                    fp = frame.fp();
                     env_fp = frame.env_fp;
                     let pc = frame.pc;
                     let exit_early = frame.exit_early();

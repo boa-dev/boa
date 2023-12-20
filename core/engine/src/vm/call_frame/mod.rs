@@ -36,11 +36,10 @@ bitflags::bitflags! {
 pub struct CallFrame {
     pub(crate) code_block: Gc<CodeBlock>,
     pub(crate) pc: u32,
-    pub(crate) fp: u32,
-    pub(crate) env_fp: u32,
-    // Tracks the number of environments in environment entry.
-    // On abrupt returns this is used to decide how many environments need to be pop'ed.
+    /// The register pointer, points to the first register in the stack.
+    pub(crate) rp: u32,
     pub(crate) argument_count: u32,
+    pub(crate) env_fp: u32,
     pub(crate) promise_capability: Option<PromiseCapability>,
 
     // Iterators and their `[[Done]]` flags that must be closed when an abrupt completion is thrown.
@@ -80,16 +79,18 @@ impl CallFrame {
 impl CallFrame {
     /// This is the size of the function prologue.
     ///
-    /// The position of the elements are relative to the [`CallFrame::fp`] (frame pointer).
+    /// The position of the elements are relative to the [`CallFrame::fp`] (register pointer).
     ///
     /// ```text
     ///                      Setup by the caller
-    ///   ┌─────────────────────────────────────────────────────────┐ ┌───── frame pointer
+    ///   ┌─────────────────────────────────────────────────────────┐ ┌───── register pointer
     ///   ▼                                                         ▼ ▼
     /// | -(2 + N): this | -(1 + N): func | -N: arg1 | ... | -1: argN | 0: local1 | ... | K: localK |
     ///   ▲                              ▲   ▲                      ▲   ▲                         ▲
     ///   └──────────────────────────────┘   └──────────────────────┘   └─────────────────────────┘
-    ///         function prolugue                    arguments              Setup by the callee
+    ///         function prologue                    arguments              Setup by the callee
+    ///   ▲
+    ///   └─ Frame pointer
     /// ```
     ///
     /// ### Example
@@ -107,17 +108,22 @@ impl CallFrame {
     /// ```
     ///
     /// ```text
-    ///   caller prolugue     caller arguments   callee prolugue   callee arguments
-    ///   ______|____________   _____|_____   _________|_________   __|_
-    ///  /                   \ /           \ /                   \ /    \
-    /// | 0: undefined | 1: y | 2: 1 | 3: 2 | 4: undefined | 5: x | 6: 3 |
-    ///                                     /                            ^
-    ///            caller frame pointer  --+                  callee frame pointer
+    ///     caller prologue    caller arguments   callee prologue   callee arguments
+    ///   ┌─────────────────┐   ┌─────────┐   ┌─────────────────┐  ┌──────┐
+    ///   ▼                 ▼   ▼         ▼   │                 ▼  ▼      ▼
+    /// | 0: undefined | 1: y | 2: 1 | 3: 2 | 4: undefined | 5: x | 6:  3  |
+    /// ▲                                   ▲                            ▲
+    /// │       caller register pointer ────┤                            │
+    /// │                                   │                callee register pointer
+    /// │                             callee frame pointer
+    /// │
+    /// └─────  caller frame pointer
+    ///
     /// ```
     ///
     /// Some questions:
     ///
-    /// - Who is responsible for cleaning up the stack after a call? The caller.
+    /// - Who is responsible for cleaning up the stack after a call? The rust caller.
     ///
     pub(crate) const FUNCTION_PROLOGUE: u32 = 2;
     pub(crate) const THIS_POSITION: u32 = 2;
@@ -134,7 +140,7 @@ impl CallFrame {
         Self {
             code_block,
             pc: 0,
-            fp: 0,
+            rp: 0,
             env_fp: 0,
             argument_count: 0,
             promise_capability: None,
@@ -167,12 +173,12 @@ impl CallFrame {
     }
 
     pub(crate) fn this(&self, vm: &Vm) -> JsValue {
-        let this_index = self.fp - self.argument_count - Self::THIS_POSITION;
+        let this_index = self.rp - self.argument_count - Self::THIS_POSITION;
         vm.stack[this_index as usize].clone()
     }
 
     pub(crate) fn function(&self, vm: &Vm) -> Option<JsObject> {
-        let function_index = self.fp - self.argument_count - Self::FUNCTION_POSITION;
+        let function_index = self.rp - self.argument_count - Self::FUNCTION_POSITION;
         if let Some(object) = vm.stack[function_index as usize].as_object() {
             return Some(object.clone());
         }
@@ -181,22 +187,22 @@ impl CallFrame {
     }
 
     pub(crate) fn arguments<'stack>(&self, vm: &'stack Vm) -> &'stack [JsValue] {
-        let fp = self.fp as usize;
+        let rp = self.rp as usize;
         let argument_count = self.argument_count as usize;
-        let arguments_start = fp - argument_count;
-        &vm.stack[arguments_start..fp]
+        let arguments_start = rp - argument_count;
+        &vm.stack[arguments_start..rp]
     }
 
     pub(crate) fn argument<'stack>(&self, index: usize, vm: &'stack Vm) -> Option<&'stack JsValue> {
         self.arguments(vm).get(index)
     }
 
-    pub(crate) fn restore_fp(&self) -> u32 {
-        self.fp - self.argument_count - Self::FUNCTION_PROLOGUE
+    pub(crate) fn fp(&self) -> u32 {
+        self.rp - self.argument_count - Self::FUNCTION_PROLOGUE
     }
 
     pub(crate) fn restore_stack(&self, vm: &mut Vm) {
-        let fp = self.restore_fp();
+        let fp = self.fp();
         vm.stack.truncate(fp as usize);
     }
 
@@ -218,7 +224,7 @@ impl CallFrame {
     /// If the index is out of bounds.
     pub(crate) fn local<'stack>(&self, index: u32, stack: &'stack [JsValue]) -> &'stack JsValue {
         debug_assert!(index < self.code_block().locals_count);
-        let at = self.fp + index;
+        let at = self.rp + index;
         &stack[at as usize]
     }
 
@@ -242,8 +248,8 @@ impl CallFrame {
 
 /// ---- `CallFrame` stack methods ----
 impl CallFrame {
-    pub(crate) fn set_frame_pointer(&mut self, pointer: u32) {
-        self.fp = pointer;
+    pub(crate) fn set_register_pointer(&mut self, pointer: u32) {
+        self.rp = pointer;
     }
 }
 

@@ -82,7 +82,7 @@ impl Operation for Generator {
             let fp = frame
                 .call_frame
                 .as_ref()
-                .map_or(0, |frame| frame.fp as usize);
+                .map_or(0, |frame| frame.rp as usize);
             frame.stack[fp] = generator.clone().into();
 
             let mut gen = generator
