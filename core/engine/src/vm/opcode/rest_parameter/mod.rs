@@ -33,6 +33,7 @@ impl Operation for RestParameterInit {
 
             let array = Array::create_array_from_list(args.iter().cloned(), context);
             context.vm.stack.drain(start..end);
+            //context.vm.stack.splice(start..end, [array.clone().into()]);
 
             context.vm.frame_mut().rp -= (start..end).len() as u32;
             context.vm.frame_mut().argument_count -= (start..end).len() as u32;

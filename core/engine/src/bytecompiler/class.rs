@@ -1,4 +1,4 @@
-use super::{ByteCompiler, Literal, Operand, ToJsString};
+use super::{ByteCompiler, InstructionOperand, Literal, Operand, Operand2, ToJsString};
 use crate::{
     js_string,
     vm::{BindingOpcode, CodeBlock, CodeBlockFlags, Opcode},
@@ -135,7 +135,7 @@ impl ByteCompiler<'_> {
             let _ = compiler.push_scope(&Scope::new(compiler.lexical_scope.clone(), true));
             compiler.emit_opcode(Opcode::PushUndefined);
         }
-        compiler.emit_opcode(Opcode::SetReturnValue);
+        compiler.emit_opcode(Opcode::SetAccumulatorFromStack);
 
         // 17. If ClassHeritageopt is present, set F.[[ConstructorKind]] to derived.
         compiler.code_block_flags.set(
@@ -145,19 +145,43 @@ impl ByteCompiler<'_> {
 
         let code = Gc::new(compiler.finish());
         let index = self.push_function_to_constants(code);
-        self.emit_with_varying_operand(Opcode::GetFunction, index);
 
-        self.emit_opcode(Opcode::Dup);
-        if let Some(node) = &class.super_ref {
+        let class_register = self.register_allocator.alloc();
+        self.emit_get_function(&class_register, index);
+
+        let prototype_register = self.register_allocator.alloc();
+
+        if let Some(node) = class.super_ref {
             self.compile_expr(node, true);
-            self.emit_opcode(Opcode::PushClassPrototype);
+            self.pop_into_register(&prototype_register);
+
+            self.emit2(
+                Opcode::PushClassPrototype,
+                &[
+                    Operand2::Register(&prototype_register),
+                    Operand2::Operand(InstructionOperand::Register(&class_register)),
+                    Operand2::Operand(InstructionOperand::Register(&prototype_register)),
+                ],
+            );
         } else {
             self.emit_opcode(Opcode::PushUndefined);
+            self.pop_into_register(&prototype_register);
         }
-        self.emit_opcode(Opcode::SetClassPrototype);
-        self.emit_opcode(Opcode::Swap);
 
-        let count_label = self.emit_opcode_with_operand(Opcode::PushPrivateEnvironment);
+        let proto_register = self.register_allocator.alloc();
+
+        self.emit2(
+            Opcode::SetClassPrototype,
+            &[
+                Operand2::Register(&proto_register),
+                Operand2::Operand(InstructionOperand::Register(&prototype_register)),
+                Operand2::Operand(InstructionOperand::Register(&class_register)),
+            ],
+        );
+        self.register_allocator.dealloc(prototype_register);
+
+        let count_label =
+            self.emit_push_private_environment(InstructionOperand::Register(&class_register));
         let mut count = 0;
         for element in class.elements {
             match element {
@@ -185,10 +209,17 @@ impl ByteCompiler<'_> {
         if let Some(scope) = class.name_scope {
             let binding = scope.get_identifier_reference(class_name.clone());
             let index = self.get_or_insert_binding(binding);
-            self.emit_opcode(Opcode::Dup);
+            self.push_from_register(&class_register);
             self.emit_binding_access(Opcode::PutLexicalValue, &index);
         }
 
+        self.push_from_register(&proto_register);
+        self.push_from_register(&class_register);
+
+        self.register_allocator.dealloc(proto_register);
+        self.register_allocator.dealloc(class_register);
+
+        // TODO: set function name for getter and setters
         for element in class.elements {
             match element {
                 ClassElement::MethodDefinition(m) => {
@@ -306,13 +337,19 @@ impl ByteCompiler<'_> {
                         field_compiler.emit_opcode(Opcode::PushUndefined);
                         false
                     };
-                    field_compiler.emit_opcode(Opcode::SetReturnValue);
+
+                    field_compiler.emit_opcode(Opcode::SetAccumulatorFromStack);
 
                     field_compiler.code_block_flags |= CodeBlockFlags::IN_CLASS_FIELD_INITIALIZER;
 
                     let code = Gc::new(field_compiler.finish());
                     let index = self.push_function_to_constants(code);
-                    self.emit_with_varying_operand(Opcode::GetFunction, index);
+
+                    let dst = self.register_allocator.alloc();
+                    self.emit_get_function(&dst, index);
+                    self.push_from_register(&dst);
+                    self.register_allocator.dealloc(dst);
+
                     self.emit(
                         Opcode::PushClassField,
                         &[Operand::Bool(is_anonymous_function)],
@@ -340,13 +377,16 @@ impl ByteCompiler<'_> {
                     } else {
                         field_compiler.emit_opcode(Opcode::PushUndefined);
                     }
-                    field_compiler.emit_opcode(Opcode::SetReturnValue);
+                    field_compiler.emit_opcode(Opcode::SetAccumulatorFromStack);
 
                     field_compiler.code_block_flags |= CodeBlockFlags::IN_CLASS_FIELD_INITIALIZER;
 
                     let code = Gc::new(field_compiler.finish());
                     let index = self.push_function_to_constants(code);
-                    self.emit_with_varying_operand(Opcode::GetFunction, index);
+                    let dst = self.register_allocator.alloc();
+                    self.emit_get_function(&dst, index);
+                    self.push_from_register(&dst);
+                    self.register_allocator.dealloc(dst);
                     self.emit_with_varying_operand(Opcode::PushClassFieldPrivate, name_index);
                 }
                 ClassElement::StaticFieldDefinition(field) => {
@@ -385,7 +425,8 @@ impl ByteCompiler<'_> {
                         field_compiler.emit_opcode(Opcode::PushUndefined);
                         false
                     };
-                    field_compiler.emit_opcode(Opcode::SetReturnValue);
+
+                    field_compiler.emit_opcode(Opcode::SetAccumulatorFromStack);
 
                     field_compiler.code_block_flags |= CodeBlockFlags::IN_CLASS_FIELD_INITIALIZER;
 
@@ -422,7 +463,7 @@ impl ByteCompiler<'_> {
                         field_compiler.emit_opcode(Opcode::PushUndefined);
                         false
                     };
-                    field_compiler.emit_opcode(Opcode::SetReturnValue);
+                    field_compiler.emit_opcode(Opcode::SetAccumulatorFromStack);
 
                     field_compiler.code_block_flags |= CodeBlockFlags::IN_CLASS_FIELD_INITIALIZER;
 
@@ -478,7 +519,10 @@ impl ByteCompiler<'_> {
                 StaticElement::StaticBlock(code) => {
                     self.emit_opcode(Opcode::Dup);
                     let index = self.push_function_to_constants(code);
-                    self.emit_with_varying_operand(Opcode::GetFunction, index);
+                    let dst = self.register_allocator.alloc();
+                    self.emit_get_function(&dst, index);
+                    self.push_from_register(&dst);
+                    self.register_allocator.dealloc(dst);
                     self.emit_opcode(Opcode::SetHomeObject);
                     self.emit_with_varying_operand(Opcode::Call, 0);
                     self.emit_opcode(Opcode::Pop);
@@ -492,7 +536,10 @@ impl ByteCompiler<'_> {
                     self.emit_opcode(Opcode::Dup);
                     self.emit_opcode(Opcode::Dup);
                     let index = self.push_function_to_constants(code);
-                    self.emit_with_varying_operand(Opcode::GetFunction, index);
+                    let dst = self.register_allocator.alloc();
+                    self.emit_get_function(&dst, index);
+                    self.push_from_register(&dst);
+                    self.register_allocator.dealloc(dst);
                     self.emit_opcode(Opcode::SetHomeObject);
                     self.emit_with_varying_operand(Opcode::Call, 0);
                     if let Some(name_index) = name_index {
