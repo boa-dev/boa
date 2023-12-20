@@ -132,7 +132,7 @@ impl CallFrame {
     pub(crate) const FUNCTION_PROLOGUE: u32 = 2;
     pub(crate) const THIS_POSITION: u32 = 2;
     pub(crate) const FUNCTION_POSITION: u32 = 1;
-    pub(crate) const ASYNC_GENERATOR_OBJECT_LOCAL_INDEX: u32 = 0;
+    pub(crate) const ASYNC_GENERATOR_OBJECT_REGISTER_INDEX: u32 = 0;
 
     /// Creates a new `CallFrame` with the provided `CodeBlock`.
     pub(crate) fn new(
@@ -216,7 +216,7 @@ impl CallFrame {
             return None;
         }
 
-        self.local(Self::ASYNC_GENERATOR_OBJECT_LOCAL_INDEX, stack)
+        self.local(Self::ASYNC_GENERATOR_OBJECT_REGISTER_INDEX, stack)
             .as_object()
             .cloned()
     }
