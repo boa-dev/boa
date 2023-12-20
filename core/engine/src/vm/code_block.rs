@@ -368,6 +368,40 @@ impl CodeBlock {
     /// Returns an empty `String` if no operands are present.
     pub(crate) fn instruction_operands(&self, instruction: &Instruction) -> String {
         match instruction {
+            Instruction::SetRegisterFromAccumulator { register }
+            | Instruction::SetAccumulator { register } => format!("R{}", register.value()),
+            Instruction::Add { .. }
+            | Instruction::Sub { .. }
+            | Instruction::Div { .. }
+            | Instruction::Mul { .. }
+            | Instruction::Mod { .. }
+            | Instruction::Pow { .. }
+            | Instruction::ShiftRight { .. }
+            | Instruction::ShiftLeft { .. }
+            | Instruction::UnsignedShiftRight { .. }
+            | Instruction::BitOr { .. }
+            | Instruction::BitAnd { .. }
+            | Instruction::BitXor { .. }
+            | Instruction::BitNot { .. }
+            | Instruction::In { .. }
+            | Instruction::Eq { .. }
+            | Instruction::NotEq { .. }
+            | Instruction::GreaterThan { .. }
+            | Instruction::GreaterThanOrEq { .. }
+            | Instruction::LessThan { .. }
+            | Instruction::LessThanOrEq { .. }
+            | Instruction::InstanceOf { .. }
+            | Instruction::StrictNotEq { .. }
+            | Instruction::StrictEq { .. }
+            | Instruction::InPrivate { .. }
+            | Instruction::Inc { .. }
+            | Instruction::Dec { .. }
+            | Instruction::ToNumeric { .. } => "TODO: fix".to_string(),
+            Instruction::PopIntoRegister { dst } => format!("R{}", dst.value()),
+            Instruction::PushFromRegister { src } => format!("R{}", src.value()),
+            Instruction::Move { dst: r1, src: r2 } => {
+                format!("{}, {}", r1.value(), r2.value())
+            }
             Instruction::SetFunctionName { prefix } => match prefix {
                 0 => "prefix: none",
                 1 => "prefix: get",
@@ -408,10 +442,10 @@ impl CodeBlock {
             | Instruction::JumpIfNotUndefined { address: value }
             | Instruction::JumpIfNullOrUndefined { address: value }
             | Instruction::Case { address: value }
-            | Instruction::Default { address: value }
-            | Instruction::LogicalAnd { exit: value }
-            | Instruction::LogicalOr { exit: value }
-            | Instruction::Coalesce { exit: value } => value.to_string(),
+            | Instruction::Default { address: value } => value.to_string(),
+            Instruction::LogicalAnd { exit, lhs: _ }
+            | Instruction::LogicalOr { exit, lhs: _ }
+            | Instruction::Coalesce { exit, lhs: _ } => format!("exit: {exit}, TODO: lhs"),
             Instruction::CallEval {
                 argument_count: value,
             }
@@ -447,10 +481,11 @@ impl CodeBlock {
             Instruction::TemplateCreate { count, site } => {
                 format!("{}, {site}", count.value())
             }
-            Instruction::GetFunction { index } => {
+            Instruction::GetFunction { dst, index } => {
                 let index = index.value() as usize;
                 format!(
-                    "{index:04}: '{}' (length: {})",
+                    "R{} = {index:04}: '{}' (length: {})",
+                    dst.value(),
                     self.constant_function(index).name().to_std_string_escaped(),
                     self.constant_function(index).length
                 )
@@ -481,7 +516,6 @@ impl CodeBlock {
             | Instruction::SetPropertySetterByName { index }
             | Instruction::DefineClassStaticSetterByName { index }
             | Instruction::DefineClassSetterByName { index }
-            | Instruction::InPrivate { index }
             | Instruction::ThrowMutateImmutable { index }
             | Instruction::DeletePropertyByName { index }
             | Instruction::SetPrivateField { index }
@@ -501,7 +535,8 @@ impl CodeBlock {
                         .to_std_string_escaped(),
                 )
             }
-            Instruction::GetPropertyByName { index } | Instruction::SetPropertyByName { index } => {
+            Instruction::GetPropertyByName { index, .. }
+            | Instruction::SetPropertyByName { index } => {
                 let ic = &self.ic[index.value() as usize];
                 let slot = ic.slot();
                 format!(
@@ -513,7 +548,10 @@ impl CodeBlock {
                     slot.attributes,
                 )
             }
-            Instruction::PushPrivateEnvironment { name_indices } => {
+            Instruction::PushPrivateEnvironment {
+                class: _,
+                name_indices,
+            } => {
                 format!("{name_indices:?}")
             }
             Instruction::JumpTable { default, addresses } => {
@@ -558,38 +596,11 @@ impl CodeBlock {
             | Instruction::PushClassPrototype
             | Instruction::SetClassPrototype
             | Instruction::SetHomeObject
-            | Instruction::Add
-            | Instruction::Sub
-            | Instruction::Div
-            | Instruction::Mul
-            | Instruction::Mod
-            | Instruction::Pow
-            | Instruction::ShiftRight
-            | Instruction::ShiftLeft
-            | Instruction::UnsignedShiftRight
-            | Instruction::BitOr
-            | Instruction::BitAnd
-            | Instruction::BitXor
-            | Instruction::BitNot
-            | Instruction::In
-            | Instruction::Eq
-            | Instruction::StrictEq
-            | Instruction::NotEq
-            | Instruction::StrictNotEq
-            | Instruction::GreaterThan
-            | Instruction::GreaterThanOrEq
-            | Instruction::LessThan
-            | Instruction::LessThanOrEq
-            | Instruction::InstanceOf
             | Instruction::TypeOf
             | Instruction::Void
             | Instruction::LogicalNot
             | Instruction::Pos
             | Instruction::Neg
-            | Instruction::Inc
-            | Instruction::IncPost
-            | Instruction::Dec
-            | Instruction::DecPost
             | Instruction::GetPropertyByValue
             | Instruction::GetPropertyByValuePush
             | Instruction::SetPropertyByValue
@@ -659,8 +670,8 @@ impl CodeBlock {
             | Instruction::SetNameByLocator
             | Instruction::PopPrivateEnvironment
             | Instruction::ImportCall
-            | Instruction::GetReturnValue
-            | Instruction::SetReturnValue
+            | Instruction::GetAccumulator
+            | Instruction::SetAccumulatorFromStack
             | Instruction::BindThisValue
             | Instruction::CreateMappedArgumentsObject
             | Instruction::CreateUnmappedArgumentsObject
@@ -716,11 +727,7 @@ impl CodeBlock {
             | Instruction::Reserved46
             | Instruction::Reserved47
             | Instruction::Reserved48
-            | Instruction::Reserved49
-            | Instruction::Reserved50
-            | Instruction::Reserved51
-            | Instruction::Reserved52
-            | Instruction::Reserved53 => unreachable!("Reserved opcodes are unrechable"),
+            | Instruction::Reserved49 => unreachable!("Reserved opcodes are unrechable"),
         }
     }
 }

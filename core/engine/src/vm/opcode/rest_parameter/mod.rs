@@ -18,17 +18,31 @@ impl Operation for RestParameterInit {
 
     fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let argument_count = context.vm.frame().argument_count as usize;
+        let register_count = context.vm.frame().code_block().register_count as usize;
         let param_count = context.vm.frame().code_block().params.as_ref().len();
 
-        let array = if argument_count >= param_count {
+        if argument_count >= param_count {
             let rest_count = argument_count - param_count + 1;
-            let args = context.vm.pop_n_values(rest_count);
-            Array::create_array_from_list(args, context)
-        } else {
-            Array::array_create(0, None, context).expect("could not create an empty array")
-        };
 
-        context.vm.push(array);
+            let len = context.vm.stack.len();
+            let start = len - rest_count - register_count;
+            let end = len - register_count;
+
+            let args = &context.vm.stack[start..end];
+
+            let array = Array::create_array_from_list(args.iter().cloned(), context);
+            context.vm.stack.splice(start..end, [array.clone().into()]);
+
+            context.vm.frame_mut().rp -= (start..end).len() as u32;
+            context.vm.frame_mut().argument_count -= (start..end).len() as u32;
+
+            context.vm.push(array);
+        } else {
+            let array =
+                Array::array_create(0, None, context).expect("could not create an empty array");
+            context.vm.push(array);
+        }
+
         Ok(CompletionType::Normal)
     }
 }

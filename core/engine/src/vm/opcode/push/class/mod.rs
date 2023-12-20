@@ -18,14 +18,17 @@ pub(crate) use private::*;
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct PushClassPrototype;
 
-impl Operation for PushClassPrototype {
-    const NAME: &'static str = "PushClassPrototype";
-    const INSTRUCTION: &'static str = "INST - PushClassPrototype";
-    const COST: u8 = 6;
+impl PushClassPrototype {
+    fn operation(
+        dst: u32,
+        class: u32,
+        superclass: u32,
+        context: &mut Context,
+    ) -> JsResult<CompletionType> {
+        let rp = context.vm.frame().rp;
 
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let superclass = context.vm.pop();
-        let class = context.vm.pop();
+        let class = context.vm.stack[(rp + class) as usize].clone();
+        let superclass = context.vm.stack[(rp + superclass) as usize].clone();
 
         // // Taken from `15.7.14 Runtime Semantics: ClassDefinitionEvaluation`:
         // <https://tc39.es/ecma262/#sec-runtime-semantics-classdefinitionevaluation>
@@ -68,9 +71,34 @@ impl Operation for PushClassPrototype {
             class_object.set_prototype(Some(constructor_parent));
         }
 
-        context.vm.push(class);
-        context.vm.push(proto_parent);
-
+        context.vm.stack[(rp + dst) as usize] = proto_parent;
         Ok(CompletionType::Normal)
+    }
+}
+
+impl Operation for PushClassPrototype {
+    const NAME: &'static str = "PushClassPrototype";
+    const INSTRUCTION: &'static str = "INST - PushClassPrototype";
+    const COST: u8 = 6;
+
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
+        let dst = u32::from(context.vm.read::<u8>());
+        let class = u32::from(context.vm.read::<u8>());
+        let superclass = u32::from(context.vm.read::<u8>());
+        Self::operation(dst, class, superclass, context)
+    }
+
+    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
+        let dst = u32::from(context.vm.read::<u16>());
+        let class = u32::from(context.vm.read::<u16>());
+        let superclass = u32::from(context.vm.read::<u16>());
+        Self::operation(dst, class, superclass, context)
+    }
+
+    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
+        let dst = context.vm.read::<u32>();
+        let class = context.vm.read::<u32>();
+        let superclass = context.vm.read::<u32>();
+        Self::operation(dst, class, superclass, context)
     }
 }
