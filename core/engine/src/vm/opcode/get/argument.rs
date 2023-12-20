@@ -13,12 +13,10 @@ pub(crate) struct GetArgument;
 impl GetArgument {
     #[allow(clippy::unnecessary_wraps)]
     fn operation(context: &mut Context, index: usize) -> JsResult<CompletionType> {
-        let fp = context.vm.frame().fp as usize;
-        let argument_index = fp + 2;
-        let argument_count = context.vm.frame().argument_count as usize;
-
-        let value = context.vm.stack[argument_index..(argument_index + argument_count)]
-            .get(index)
+        let value = context
+            .vm
+            .frame()
+            .argument(index, &context.vm)
             .cloned()
             .unwrap_or_default();
         context.vm.push(value);

@@ -20,7 +20,7 @@ use crate::{
     string::common::StaticJsStrings,
     symbol::JsSymbol,
     value::JsValue,
-    vm::{CallFrame, CompletionRecord, GeneratorResumeKind},
+    vm::{CallFrame, CallFrameFlags, CompletionRecord, GeneratorResumeKind},
     Context, JsArgs, JsData, JsError, JsResult, JsString,
 };
 use boa_gc::{custom_trace, Finalize, Trace};
@@ -64,28 +64,24 @@ pub(crate) struct GeneratorContext {
 }
 
 impl GeneratorContext {
-    /// Creates a new `GeneratorContext` from the raw `Context` state components.
-    pub(crate) fn new(stack: Vec<JsValue>, call_frame: CallFrame) -> Self {
-        Self {
-            stack,
-            call_frame: Some(call_frame),
-        }
-    }
-
     /// Creates a new `GeneratorContext` from the current `Context` state.
     pub(crate) fn from_current(context: &mut Context) -> Self {
         let mut frame = context.vm.frame().clone();
         frame.environments = context.vm.environments.clone();
         frame.realm = context.realm().clone();
-        let fp = context.vm.frame().fp as usize;
-        let this = Self {
+        let fp = frame.fp() as usize;
+        let stack = context.vm.stack.split_off(fp);
+
+        frame.rp = CallFrame::FUNCTION_PROLOGUE + frame.argument_count;
+
+        // NOTE: Since we get a pre-built call frame with stack, and we reuse them.
+        //       So we don't need to push the locals in subsequent calls.
+        frame.flags |= CallFrameFlags::LOCALS_ALREADY_PUSHED;
+
+        Self {
             call_frame: Some(frame),
-            stack: context.vm.stack[fp..].to_vec(),
-        };
-
-        context.vm.stack.truncate(fp);
-
-        this
+            stack,
+        }
     }
 
     /// Resumes execution with `GeneratorContext` as the current execution context.
@@ -96,11 +92,11 @@ impl GeneratorContext {
         context: &mut Context,
     ) -> CompletionRecord {
         std::mem::swap(&mut context.vm.stack, &mut self.stack);
-        context
-            .vm
-            .push_frame(self.call_frame.take().expect("should have a call frame"));
+        let frame = self.call_frame.take().expect("should have a call frame");
+        let rp = frame.rp;
+        context.vm.push_frame(frame);
 
-        context.vm.frame_mut().fp = 0;
+        context.vm.frame_mut().rp = rp;
         context.vm.frame_mut().set_exit_early(true);
 
         if let Some(value) = value {
@@ -114,6 +110,13 @@ impl GeneratorContext {
         self.call_frame = context.vm.pop_frame();
         assert!(self.call_frame.is_some());
         result
+    }
+
+    /// Returns the async generator object, if the function that this [`GeneratorContext`] is from an async generator, [`None`] otherwise.
+    pub(crate) fn async_generator_object(&self) -> Option<JsObject> {
+        self.call_frame
+            .as_ref()
+            .and_then(|frame| frame.async_generator_object(&self.stack))
     }
 }
 

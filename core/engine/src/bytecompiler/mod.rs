@@ -255,6 +255,8 @@ pub struct ByteCompiler<'ctx> {
     /// The number of arguments expected.
     pub(crate) length: u32,
 
+    pub(crate) locals_count: u32,
+
     /// \[\[ThisMode\]\]
     pub(crate) this_mode: ThisMode,
 
@@ -327,8 +329,8 @@ impl<'ctx> ByteCompiler<'ctx> {
             params: FormalParameterList::default(),
             current_open_environments_count: 0,
 
-            // This starts at two because the first value is the `this` value, then function object.
-            current_stack_value_count: 2,
+            locals_count: 0,
+            current_stack_value_count: 0,
             code_block_flags,
             handlers: ThinVec::default(),
             ic: Vec::default(),
@@ -1521,9 +1523,17 @@ impl<'ctx> ByteCompiler<'ctx> {
         }
         self.r#return(false);
 
+        if self.is_async_generator() {
+            self.locals_count += 1;
+        }
+        for handler in &mut self.handlers {
+            handler.stack_count += self.locals_count;
+        }
+
         CodeBlock {
             name: self.function_name,
             length: self.length,
+            locals_count: self.locals_count,
             this_mode: self.this_mode,
             params: self.params,
             bytecode: self.bytecode.into_boxed_slice(),

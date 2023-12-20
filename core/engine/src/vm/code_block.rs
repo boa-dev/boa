@@ -177,6 +177,8 @@ pub struct CodeBlock {
     /// The number of arguments expected.
     pub(crate) length: u32,
 
+    pub(crate) locals_count: u32,
+
     /// \[\[ThisMode\]\]
     pub(crate) this_mode: ThisMode,
 
@@ -216,6 +218,7 @@ impl CodeBlock {
             name,
             flags: Cell::new(flags),
             length,
+            locals_count: 0,
             this_mode: ThisMode::Global,
             params: FormalParameterList::default(),
             handlers: ThinVec::default(),
@@ -284,6 +287,13 @@ impl CodeBlock {
     /// Returns true if this function an generator function.
     pub(crate) fn is_generator(&self) -> bool {
         self.flags.get().contains(CodeBlockFlags::IS_GENERATOR)
+    }
+
+    /// Returns true if this function a async generator function.
+    pub(crate) fn is_async_generator(&self) -> bool {
+        self.flags
+            .get()
+            .contains(CodeBlockFlags::IS_ASYNC | CodeBlockFlags::IS_GENERATOR)
     }
 
     /// Returns true if this function an async function.

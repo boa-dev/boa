@@ -938,10 +938,7 @@ pub(crate) fn function_call(
 
     context.vm.push_frame(frame);
 
-    let fp = context.vm.stack.len() - argument_count - CallFrame::FUNCTION_PROLOGUE;
-    context.vm.frame_mut().fp = fp as u32;
-
-    let this = context.vm.stack[fp + CallFrame::THIS_POSITION].clone();
+    let this = context.vm.frame().this(&context.vm);
 
     let lexical_this_mode = code.this_mode == ThisMode::Lexical;
 
@@ -1013,8 +1010,6 @@ fn function_construct(
 
     let new_target = context.vm.pop();
 
-    let at = context.vm.stack.len() - argument_count;
-
     let this = if code.is_derived_constructor() {
         None
     } else {
@@ -1040,9 +1035,12 @@ fn function_construct(
         .with_env_fp(env_fp)
         .with_flags(CallFrameFlags::CONSTRUCT);
 
+    let len = context.vm.stack.len();
+
     context.vm.push_frame(frame);
 
-    context.vm.frame_mut().fp = at as u32 - 1;
+    // NOTE(HalidOdat): +1 because we insert `this` value below.
+    context.vm.frame_mut().rp = len as u32 + 1;
 
     let mut last_env = 0;
 
@@ -1075,10 +1073,10 @@ fn function_construct(
     );
 
     // Insert `this` value
-    context
-        .vm
-        .stack
-        .insert(at - 1, this.map(JsValue::new).unwrap_or_default());
+    context.vm.stack.insert(
+        len - argument_count - 1,
+        this.map(JsValue::new).unwrap_or_default(),
+    );
 
     Ok(CallValue::Ready)
 }

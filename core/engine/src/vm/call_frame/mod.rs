@@ -25,6 +25,9 @@ bitflags::bitflags! {
 
         /// Was this [`CallFrame`] created from the `__construct__()` internal object method?
         const CONSTRUCT = 0b0000_0010;
+
+        /// Does this [`CallFrame`] need to push local variables on [`Vm::push_frame()`].
+        const LOCALS_ALREADY_PUSHED = 0b0000_0100;
     }
 }
 
@@ -33,16 +36,15 @@ bitflags::bitflags! {
 pub struct CallFrame {
     pub(crate) code_block: Gc<CodeBlock>,
     pub(crate) pc: u32,
-    pub(crate) fp: u32,
-    pub(crate) env_fp: u32,
-    // Tracks the number of environments in environment entry.
-    // On abrupt returns this is used to decide how many environments need to be pop'ed.
+    /// The register pointer, points to the first register in the stack.
+    ///
+    // TODO: Check if storing the frame pointer instead of argument count and computing the
+    //       argument count based on the pointers would be better for accessing the arguments
+    //       and the elements before the register pointer.
+    pub(crate) rp: u32,
     pub(crate) argument_count: u32,
+    pub(crate) env_fp: u32,
     pub(crate) promise_capability: Option<PromiseCapability>,
-
-    // When an async generator is resumed, the generator object is needed
-    // to fulfill the steps 4.e-j in [AsyncGeneratorStart](https://tc39.es/ecma262/#sec-asyncgeneratorstart).
-    pub(crate) async_generator: Option<JsObject>,
 
     // Iterators and their `[[Done]]` flags that must be closed when an abrupt completion is thrown.
     pub(crate) iterators: ThinVec<IteratorRecord>,
@@ -81,22 +83,56 @@ impl CallFrame {
 impl CallFrame {
     /// This is the size of the function prologue.
     ///
-    /// The position of the elements are relative to the [`CallFrame::fp`].
+    /// The position of the elements are relative to the [`CallFrame::fp`] (register pointer).
     ///
     /// ```text
-    ///   --- frame pointer                             arguments
-    ///  /                      __________________________/
-    /// /                      /                          \
-    /// | 0: this | 1: func | 2: arg1 | ... | (2 + N): argN |
-    ///    \            /
-    ///     ------------
-    ///     |
-    /// function prolugue
+    ///                      Setup by the caller
+    ///   ┌─────────────────────────────────────────────────────────┐ ┌───── register pointer
+    ///   ▼                                                         ▼ ▼
+    /// | -(2 + N): this | -(1 + N): func | -N: arg1 | ... | -1: argN | 0: local1 | ... | K: localK |
+    ///   ▲                              ▲   ▲                      ▲   ▲                         ▲
+    ///   └──────────────────────────────┘   └──────────────────────┘   └─────────────────────────┘
+    ///         function prologue                    arguments              Setup by the callee
+    ///   ▲
+    ///   └─ Frame pointer
     /// ```
-    pub(crate) const FUNCTION_PROLOGUE: usize = 2;
-    pub(crate) const THIS_POSITION: usize = 0;
-    pub(crate) const FUNCTION_POSITION: usize = 1;
-    pub(crate) const FIRST_ARGUMENT_POSITION: usize = 2;
+    ///
+    /// ### Example
+    ///
+    /// The following function calls, generate the following stack:
+    ///
+    /// ```JavaScript
+    /// function x(a) {
+    /// }
+    /// function y(b, c) {
+    ///     return x(b + c)
+    /// }
+    ///
+    /// y(1, 2)
+    /// ```
+    ///
+    /// ```text
+    ///     caller prologue    caller arguments   callee prologue   callee arguments
+    ///   ┌─────────────────┐   ┌─────────┐   ┌─────────────────┐  ┌──────┐
+    ///   ▼                 ▼   ▼         ▼   │                 ▼  ▼      ▼
+    /// | 0: undefined | 1: y | 2: 1 | 3: 2 | 4: undefined | 5: x | 6:  3  |
+    /// ▲                                   ▲                            ▲
+    /// │       caller register pointer ────┤                            │
+    /// │                                   │                callee register pointer
+    /// │                             callee frame pointer
+    /// │
+    /// └─────  caller frame pointer
+    ///
+    /// ```
+    ///
+    /// Some questions:
+    ///
+    /// - Who is responsible for cleaning up the stack after a call? The rust caller.
+    ///
+    pub(crate) const FUNCTION_PROLOGUE: u32 = 2;
+    pub(crate) const THIS_POSITION: u32 = 2;
+    pub(crate) const FUNCTION_POSITION: u32 = 1;
+    pub(crate) const ASYNC_GENERATOR_OBJECT_REGISTER_INDEX: u32 = 0;
 
     /// Creates a new `CallFrame` with the provided `CodeBlock`.
     pub(crate) fn new(
@@ -108,11 +144,10 @@ impl CallFrame {
         Self {
             code_block,
             pc: 0,
-            fp: 0,
+            rp: 0,
             env_fp: 0,
             argument_count: 0,
             promise_capability: None,
-            async_generator: None,
             iterators: ThinVec::new(),
             binding_stack: Vec::new(),
             loop_iteration_count: 0,
@@ -142,17 +177,59 @@ impl CallFrame {
     }
 
     pub(crate) fn this(&self, vm: &Vm) -> JsValue {
-        let this_index = self.fp as usize + Self::THIS_POSITION;
-        vm.stack[this_index].clone()
+        let this_index = self.rp - self.argument_count - Self::THIS_POSITION;
+        vm.stack[this_index as usize].clone()
     }
 
     pub(crate) fn function(&self, vm: &Vm) -> Option<JsObject> {
-        let function_index = self.fp as usize + Self::FUNCTION_POSITION;
-        if let Some(object) = vm.stack[function_index].as_object() {
+        let function_index = self.rp - self.argument_count - Self::FUNCTION_POSITION;
+        if let Some(object) = vm.stack[function_index as usize].as_object() {
             return Some(object.clone());
         }
 
         None
+    }
+
+    pub(crate) fn arguments<'stack>(&self, vm: &'stack Vm) -> &'stack [JsValue] {
+        let rp = self.rp as usize;
+        let argument_count = self.argument_count as usize;
+        let arguments_start = rp - argument_count;
+        &vm.stack[arguments_start..rp]
+    }
+
+    pub(crate) fn argument<'stack>(&self, index: usize, vm: &'stack Vm) -> Option<&'stack JsValue> {
+        self.arguments(vm).get(index)
+    }
+
+    pub(crate) fn fp(&self) -> u32 {
+        self.rp - self.argument_count - Self::FUNCTION_PROLOGUE
+    }
+
+    pub(crate) fn restore_stack(&self, vm: &mut Vm) {
+        let fp = self.fp();
+        vm.stack.truncate(fp as usize);
+    }
+
+    /// Returns the async generator object, if the function that this [`CallFrame`] is from an async generator, [`None`] otherwise.
+    pub(crate) fn async_generator_object(&self, stack: &[JsValue]) -> Option<JsObject> {
+        if !self.code_block().is_async_generator() {
+            return None;
+        }
+
+        self.local(Self::ASYNC_GENERATOR_OBJECT_REGISTER_INDEX, stack)
+            .as_object()
+            .cloned()
+    }
+
+    /// Returns the local at the given index.
+    ///
+    /// # Panics
+    ///
+    /// If the index is out of bounds.
+    pub(crate) fn local<'stack>(&self, index: u32, stack: &'stack [JsValue]) -> &'stack JsValue {
+        debug_assert!(index < self.code_block().locals_count);
+        let at = self.rp + index;
+        &stack[at as usize]
     }
 
     /// Does this have the [`CallFrameFlags::EXIT_EARLY`] flag.
@@ -167,12 +244,16 @@ impl CallFrame {
     pub(crate) fn construct(&self) -> bool {
         self.flags.contains(CallFrameFlags::CONSTRUCT)
     }
+    /// Does this [`CallFrame`] need to push local variables on [`Vm::push_frame()`].
+    pub(crate) fn locals_already_pushed(&self) -> bool {
+        self.flags.contains(CallFrameFlags::LOCALS_ALREADY_PUSHED)
+    }
 }
 
 /// ---- `CallFrame` stack methods ----
 impl CallFrame {
-    pub(crate) fn set_frame_pointer(&mut self, pointer: u32) {
-        self.fp = pointer;
+    pub(crate) fn set_register_pointer(&mut self, pointer: u32) {
+        self.rp = pointer;
     }
 }
 
