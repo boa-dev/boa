@@ -1,8 +1,7 @@
-use crate::value::JsVariant;
 use crate::{
-    value::Numeric,
+    value::JsVariant,
     vm::{opcode::Operation, CompletionType},
-    Context, JsBigInt, JsResult,
+    Context, JsBigInt, JsResult, JsValue,
 };
 
 /// `Dec` implements the Opcode Operation for `Opcode::Dec`
@@ -12,58 +11,54 @@ use crate::{
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Dec;
 
+impl Dec {
+    #[allow(clippy::unnecessary_wraps)]
+    fn operation(
+        src: u32,
+        dst: u32,
+        operand_types: u8,
+        context: &mut Context,
+    ) -> JsResult<CompletionType> {
+        let rp = context.vm.frame().rp;
+        let value = context
+            .vm
+            .frame()
+            .read_value::<0>(operand_types, src, &context.vm);
+        let value = match value.variant() {
+            JsVariant::Integer32(number) if number > i32::MIN => JsValue::from(number - 1),
+            JsVariant::Float64(value) => JsValue::from(value - 1f64),
+            JsVariant::BigInt(bigint) => JsBigInt::sub(&bigint, &JsBigInt::one()).into(),
+            _ => unreachable!("there is always a call to ToNumeric before Inc"),
+        };
+
+        context.vm.stack[(rp + dst) as usize] = value;
+        Ok(CompletionType::Normal)
+    }
+}
+
 impl Operation for Dec {
     const NAME: &'static str = "Dec";
     const INSTRUCTION: &'static str = "INST - Dec";
     const COST: u8 = 3;
 
     fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let value = context.vm.pop();
-        match value.variant() {
-            JsVariant::Integer32(number) if number > i32::MIN => {
-                context.vm.push(number - 1);
-            }
-            _ => match value.to_numeric(context)? {
-                Numeric::Number(number) => context.vm.push(number - 1f64),
-                Numeric::BigInt(bigint) => {
-                    context.vm.push(JsBigInt::sub(&bigint, &JsBigInt::one()));
-                }
-            },
-        }
-        Ok(CompletionType::Normal)
+        let operand_types = context.vm.read::<u8>();
+        let dst: u32 = context.vm.read::<u8>().into();
+        let src: u32 = context.vm.read::<u8>().into();
+        Self::operation(src, dst, operand_types, context)
     }
-}
 
-/// `DecPost` implements the Opcode Operation for `Opcode::DecPost`
-///
-/// Operation:
-///  - Unary postfix `--` operator.
-#[derive(Debug, Clone, Copy)]
-pub(crate) struct DecPost;
+    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
+        let operand_types = context.vm.read::<u8>();
+        let dst: u32 = context.vm.read::<u16>().into();
+        let src: u32 = context.vm.read::<u16>().into();
+        Self::operation(src, dst, operand_types, context)
+    }
 
-impl Operation for DecPost {
-    const NAME: &'static str = "DecPost";
-    const INSTRUCTION: &'static str = "INST - DecPost";
-    const COST: u8 = 3;
-
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let value = context.vm.pop();
-        match value.variant() {
-            JsVariant::Integer32(number) if number > i32::MIN => {
-                context.vm.push(number - 1);
-                context.vm.push(value);
-            }
-            _ => {
-                let value = value.to_numeric(context)?;
-                match value {
-                    Numeric::Number(number) => context.vm.push(number - 1f64),
-                    Numeric::BigInt(ref bigint) => {
-                        context.vm.push(JsBigInt::sub(bigint, &JsBigInt::one()));
-                    }
-                }
-                context.vm.push(value);
-            }
-        }
-        Ok(CompletionType::Normal)
+    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
+        let operand_types = context.vm.read::<u8>();
+        let dst: u32 = context.vm.read::<u32>();
+        let src: u32 = context.vm.read::<u32>();
+        Self::operation(src, dst, operand_types, context)
     }
 }

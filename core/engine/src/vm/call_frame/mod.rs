@@ -343,6 +343,26 @@ impl CallFrame {
     pub(crate) fn has_this_value_cached(&self) -> bool {
         self.flags.contains(CallFrameFlags::THIS_VALUE_CACHED)
     }
+
+    pub(crate) fn read_value<const N: u8>(
+        &self,
+        operand_types: u8,
+        operand: u32,
+        vm: &Vm,
+    ) -> JsValue {
+        assert!(N <= 4, "operand type index ({N}) must be less than 4");
+
+        let type_ = (operand_types >> (N * 2)) & 0x0000_0011;
+        match type_ {
+            0 => vm.stack[(self.rp + operand) as usize].clone(),
+            1 => self
+                .argument(operand as usize, vm)
+                .expect("should be argument")
+                .clone(),
+            2 => operand.into(),
+            _ => unreachable!(),
+        }
+    }
 }
 
 /// ---- `CallFrame` stack methods ----
