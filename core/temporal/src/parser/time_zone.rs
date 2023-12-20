@@ -11,7 +11,7 @@ use super::{
     time::{parse_fraction, parse_hour, parse_minute_second},
     Cursor,
 };
-use crate::{TemporalError, TemporalResult};
+use crate::{assert_syntax, TemporalError, TemporalResult};
 
 /// A `TimeZoneAnnotation`.
 #[derive(Debug, Clone)]
@@ -76,22 +76,20 @@ pub(crate) fn parse_ambiguous_tz_annotation(
 }
 
 fn parse_tz_annotation(cursor: &mut Cursor) -> TemporalResult<TimeZoneAnnotation> {
-    debug_assert!(is_annotation_open(cursor.peek().expect("annotation start")));
+    assert_syntax!(
+        is_annotation_open(cursor.abrupt_next()?),
+        "Invalid annotation opening character."
+    );
 
-    let potential_critical = cursor.next().ok_or_else(TemporalError::abrupt_end)?;
-    let critical = is_critical_flag(potential_critical);
-
-    if critical {
-        cursor.advance();
-    }
+    let critical = cursor.check_or(false, is_critical_flag);
+    cursor.advance_if(critical);
 
     let tz = parse_time_zone(cursor)?;
 
-    if !cursor.check_or(false, is_annotation_close) {
-        return Err(TemporalError::syntax().with_message("Invalid TimeZoneAnnotation."));
-    }
-
-    cursor.advance();
+    assert_syntax!(
+        is_annotation_close(cursor.abrupt_next()?),
+        "Invalid annotation closing character."
+    );
 
     Ok(TimeZoneAnnotation { critical, tz })
 }
@@ -122,21 +120,26 @@ pub(crate) fn parse_time_zone(cursor: &mut Cursor) -> TemporalResult<TimeZone> {
 fn parse_tz_iana_name(cursor: &mut Cursor) -> TemporalResult<TimeZone> {
     let tz_name_start = cursor.pos();
     while let Some(potential_value_char) = cursor.next() {
-        if is_tz_name_separator(potential_value_char) {
-            if !cursor.peek_n(1).map_or(false, is_tz_char) {
-                return Err(TemporalError::syntax()
-                    .with_message("Missing TimeZoneIANANameComponent after '/'"));
-            }
-            continue;
-        }
-
-        if !is_tz_char(potential_value_char) {
+        if cursor.check_or(false, is_annotation_close) {
             // Return the valid TimeZoneIANAName
             return Ok(TimeZone {
                 name: Some(cursor.slice(tz_name_start, cursor.pos())),
                 offset: None,
             });
         }
+
+        if is_tz_name_separator(potential_value_char) {
+            assert_syntax!(
+                cursor.peek_n(2).map_or(false, is_tz_char),
+                "Missing IANA name component after '/'"
+            );
+            continue;
+        }
+
+        assert_syntax!(
+            is_tz_char(potential_value_char),
+            "Invalid TimeZone IANA name character."
+        );
     }
 
     Err(TemporalError::abrupt_end())
@@ -158,14 +161,12 @@ pub(crate) fn parse_date_time_utc(cursor: &mut Cursor) -> TemporalResult<TimeZon
 
     let mut utc_to_minute = parse_utc_offset_minute_precision(cursor)?;
 
-    if cursor.check_or(false, is_time_separator) {
-        if !separated {
-            return Err(TemporalError::syntax().with_message("Unexpected TimeSeparator"));
-        }
-        cursor.advance();
+    if cursor.check_or(false, is_time_separator) && !separated {
+        return Err(TemporalError::syntax().with_message("Invalid time separator in UTC offset."));
     }
+    cursor.advance_if(cursor.check_or(false, is_time_separator));
 
-    // Return early on None or next char an AnnotationOpen.
+    // Return early on None or AnnotationOpen.
     if cursor.check_or(true, is_annotation_open) {
         return Ok(TimeZone {
             name: None,
@@ -192,22 +193,19 @@ pub(crate) fn parse_date_time_utc(cursor: &mut Cursor) -> TemporalResult<TimeZon
 
 /// Parse an `UtcOffsetMinutePrecision` node
 pub(crate) fn parse_utc_offset_minute_precision(cursor: &mut Cursor) -> TemporalResult<UTCOffset> {
-    let sign = if let Some(ch) = cursor.next() {
-        if ch == '+' {
-            1_i8
+    let sign = if cursor.check_or(false, is_sign) {
+        if cursor.expect_next() == '+' {
+            1
         } else {
-            -1_i8
+            -1
         }
     } else {
-        return Err(TemporalError::abrupt_end());
+        1
     };
     let hour = parse_hour(cursor)?;
 
     // If at the end of the utc, then return.
-    if cursor
-        .check(|ch| !(ch.is_ascii_digit() || is_time_separator(ch)))
-        .ok_or_else(TemporalError::abrupt_end)?
-    {
+    if !cursor.check_or(false, |ch| ch.is_ascii_digit() || is_time_separator(ch)) {
         return Ok(UTCOffset {
             sign,
             hour,
@@ -216,11 +214,8 @@ pub(crate) fn parse_utc_offset_minute_precision(cursor: &mut Cursor) -> Temporal
             fraction: 0.0,
         });
     }
-
     // Advance cursor beyond any TimeSeparator
-    if cursor.check_or(false, is_time_separator) {
-        cursor.advance();
-    }
+    cursor.advance_if(cursor.check_or(false, is_time_separator));
 
     let minute = parse_minute_second(cursor, false)?;
 

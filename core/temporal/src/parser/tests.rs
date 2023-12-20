@@ -1,11 +1,8 @@
 use std::str::FromStr;
 
 use crate::{
-    components::{DateTime, Duration},
-    parser::{
-        parse_date_time, Cursor, TemporalInstantString, TemporalMonthDayString,
-        TemporalYearMonthString,
-    },
+    components::{DateTime, Duration, MonthDay, YearMonth},
+    parser::{parse_date_time, Cursor, TemporalInstantString},
 };
 
 #[test]
@@ -56,7 +53,10 @@ fn temporal_year_parsing() {
     assert_eq!(result_good.iso_date().year(), 2020);
 
     let err_result = bad_year.parse::<DateTime>();
-    assert!(err_result.is_err());
+    assert!(
+        err_result.is_err(),
+        "Invalid extended year parsing: \"{bad_year}\" should fail to parse."
+    );
 }
 
 #[test]
@@ -81,34 +81,37 @@ fn temporal_annotated_date_time() {
 
 #[test]
 fn temporal_year_month() {
-    let possible_year_months = &[
+    let possible_year_months = [
         "+002020-11",
         "2020-11[u-ca=iso8601]",
         "+00202011",
         "202011[u-ca=iso8601]",
+        "+002020-11-07T12:28:32[!u-ca=iso8601]",
     ];
 
     for ym in possible_year_months {
-        let result = TemporalYearMonthString::parse(&mut Cursor::new(ym)).unwrap();
+        let result = ym.parse::<YearMonth>().unwrap();
 
-        assert_eq!(result.year, 2020);
-        assert_eq!(result.month, 11);
-
-        if let Some(calendar) = result.calendar {
-            assert_eq!(calendar, "iso8601");
-        }
+        assert_eq!(result.year(), 2020);
+        assert_eq!(result.month(), 11);
     }
 }
 
 #[test]
 fn temporal_month_day() {
-    let possible_month_day = ["11-07", "1107[+04:00]", "--11-07", "--1107[+04:00]"];
+    let possible_month_day = [
+        "11-07",
+        "1107[+04:00]",
+        "--11-07",
+        "--1107[+04:00]",
+        "+002020-11-07T12:28:32[!u-ca=iso8601]",
+    ];
 
     for md in possible_month_day {
-        let result = TemporalMonthDayString::parse(&mut Cursor::new(md)).unwrap();
+        let result = md.parse::<MonthDay>().unwrap();
 
-        assert_eq!(result.month, 11);
-        assert_eq!(result.day, 7);
+        assert_eq!(result.month(), 11);
+        assert_eq!(result.day(), 7);
     }
 }
 
@@ -121,8 +124,11 @@ fn temporal_invalid_annotations() {
     ];
 
     for invalid in invalid_annotations {
-        let err_result = TemporalMonthDayString::parse(&mut Cursor::new(invalid));
-        assert!(err_result.is_err());
+        let err_result = invalid.parse::<MonthDay>();
+        assert!(
+            err_result.is_err(),
+            "Invalid ISO annotation parsing: \"{invalid}\" should fail parsing."
+        );
     }
 }
 
@@ -153,7 +159,10 @@ fn temporal_duration_parsing() {
 
     for dur in durations {
         let ok_result = Duration::from_str(dur);
-        assert!(ok_result.is_ok());
+        assert!(
+            ok_result.is_ok(),
+            "Failing to parse a valid ISO 8601 target: \"{dur}\" should pass."
+        );
     }
 
     let sub_second = durations[2].parse::<Duration>().unwrap();
@@ -180,6 +189,61 @@ fn temporal_invalid_durations() {
 
     for test in invalids {
         let err = test.parse::<Duration>();
-        assert!(err.is_err());
+        assert!(
+            err.is_err(),
+            "Invalid ISO8601 Duration target: \"{test}\" should fail duration parsing."
+        );
+    }
+}
+
+#[test]
+fn temporal_invalid_iso_datetime_strings() {
+    // NOTE: The below tests were initially pulled from test262's `argument-string-invalid`
+    const INVALID_DATETIME_STRINGS: [&str; 34] = [
+        "", // 1
+        "invalid iso8601",
+        "2020-01-00",
+        "2020-01-32",
+        "2020-02-30",
+        "2021-02-29",
+        "2020-00-01",
+        "2020-13-01",
+        "2020-01-01T",
+        "2020-01-01T25:00:00",
+        "2020-01-01T01:60:00",
+        "2020-01-01T01:60:61",
+        "2020-01-01junk",
+        "2020-01-01T00:00:00junk",
+        "2020-01-01T00:00:00+00:00junk",
+        "2020-01-01T00:00:00+00:00[UTC]junk",
+        "2020-01-01T00:00:00+00:00[UTC][u-ca=iso8601]junk",
+        "02020-01-01",
+        "2020-001-01",
+        "2020-01-001",
+        "2020-01-01T001",
+        "2020-01-01T01:001",
+        "2020-01-01T01:01:001",
+        "2020-W01-1",
+        "2020-001",
+        "+0002020-01-01",
+        // TODO: Add the non-existent calendar test back to the test cases.
+        // may be valid in other contexts, but insufficient information for PlainDate:
+        "2020-01",
+        "+002020-01",
+        "01-01",
+        "2020-W01",
+        "P1Y",
+        "-P12Y",
+        // valid, but outside the supported range:
+        "-999999-01-01",
+        "+999999-01-01",
+    ];
+
+    for invalid_target in INVALID_DATETIME_STRINGS {
+        let error_result = invalid_target.parse::<DateTime>();
+        assert!(
+            error_result.is_err(),
+            "Invalid ISO8601 `DateTime` target: \"{invalid_target}\" should fail parsing."
+        );
     }
 }

@@ -1,6 +1,7 @@
 //! Parsing for Temporal's ISO8601 `Date` and `DateTime`.
 
 use crate::{
+    assert_syntax,
     parser::{
         annotations,
         grammar::{is_date_time_separator, is_sign, is_utc_designator},
@@ -67,12 +68,13 @@ pub(crate) fn parse_annotated_date_time(
 
     // Peek Annotation presence
     // Throw error if annotation does not exist and zoned is true, else return.
-    let annotation_check = cursor.check_or(false, is_annotation_open);
-    if !annotation_check {
+    if !cursor.check_or(false, is_annotation_open) {
         if flags.contains(DateTimeFlags::ZONED) {
             return Err(TemporalError::syntax()
                 .with_message("ZonedDateTime must have a TimeZoneAnnotation."));
         }
+
+        cursor.close()?;
 
         return Ok(IsoParseRecord {
             date: date_time.date,
@@ -100,6 +102,8 @@ pub(crate) fn parse_annotated_date_time(
     } else {
         None
     };
+
+    cursor.close()?;
 
     Ok(IsoParseRecord {
         date: date_time.date,
@@ -134,10 +138,7 @@ fn parse_date_time(
 
     let time = time::parse_time_spec(cursor)?;
 
-    let time_zone = if cursor
-        .check(|ch| is_sign(ch) || is_utc_designator(ch))
-        .unwrap_or(false)
-    {
+    let time_zone = if cursor.check_or(false, |ch| is_sign(ch) || is_utc_designator(ch)) {
         Some(time_zone::parse_date_time_utc(cursor)?)
     } else {
         if utc_required {
@@ -156,93 +157,40 @@ fn parse_date_time(
 /// Parses `Date` record.
 fn parse_date(cursor: &mut Cursor) -> TemporalResult<DateRecord> {
     let year = parse_date_year(cursor)?;
-    let divided = cursor
+    let hyphenated = cursor
         .check(is_hyphen)
         .ok_or_else(TemporalError::abrupt_end)?;
 
-    if divided {
-        cursor.advance();
-    }
+    cursor.advance_if(hyphenated);
 
     let month = parse_date_month(cursor)?;
 
-    if cursor.check_or(false, is_hyphen) {
-        if !divided {
-            return Err(TemporalError::syntax().with_message("Invalid date separator"));
-        }
-        cursor.advance();
+    if hyphenated {
+        assert_syntax!(cursor.check_or(false, is_hyphen), "Invalid hyphen usage.");
     }
+    cursor.advance_if(cursor.check_or(false, is_hyphen));
 
     let day = parse_date_day(cursor)?;
 
     Ok(DateRecord { year, month, day })
 }
 
-/// Determines if the string can be parsed as a `DateSpecYearMonth`.
-pub(crate) fn peek_year_month(cursor: &Cursor) -> TemporalResult<bool> {
-    let mut ym_peek = if is_sign(cursor.peek().ok_or_else(TemporalError::abrupt_end)?) {
-        7
-    } else {
-        4
-    };
-
-    if cursor
-        .peek_n(ym_peek)
-        .map(is_hyphen)
-        .ok_or_else(TemporalError::abrupt_end)?
-    {
-        ym_peek += 1;
-    }
-
-    ym_peek += 2;
-
-    if cursor.peek_n(ym_peek).map_or(true, is_annotation_open) {
-        Ok(true)
-    } else {
-        Ok(false)
-    }
-}
+// ==== `YearMonth` and `MonthDay` parsing functions ====
 
 /// Parses a `DateSpecYearMonth`
 pub(crate) fn parse_year_month(cursor: &mut Cursor) -> TemporalResult<(i32, i32)> {
     let year = parse_date_year(cursor)?;
 
-    if cursor.check_or(false, is_hyphen) {
-        cursor.advance();
-    }
+    cursor.advance_if(cursor.check_or(false, is_hyphen));
 
     let month = parse_date_month(cursor)?;
 
+    assert_syntax!(
+        cursor.check_or(true, is_annotation_open),
+        "Expected an end or AnnotationOpen"
+    );
+
     Ok((year, month))
-}
-
-/// Determines if the string can be parsed as a `DateSpecYearMonth`.
-pub(crate) fn peek_month_day(cursor: &Cursor) -> TemporalResult<bool> {
-    let mut md_peek = if cursor
-        .peek_n(1)
-        .map(is_hyphen)
-        .ok_or_else(TemporalError::abrupt_end)?
-    {
-        4
-    } else {
-        2
-    };
-
-    if cursor
-        .peek_n(md_peek)
-        .map(is_hyphen)
-        .ok_or_else(TemporalError::abrupt_end)?
-    {
-        md_peek += 1;
-    }
-
-    md_peek += 2;
-
-    if cursor.peek_n(md_peek).map_or(true, is_annotation_open) {
-        Ok(true)
-    } else {
-        Ok(false)
-    }
 }
 
 /// Parses a `DateSpecMonthDay`
@@ -251,7 +199,7 @@ pub(crate) fn parse_month_day(cursor: &mut Cursor) -> TemporalResult<(i32, i32)>
         .check(is_hyphen)
         .ok_or_else(TemporalError::abrupt_end)?;
     let dash_two = cursor
-        .peek_n(1)
+        .peek()
         .map(is_hyphen)
         .ok_or_else(TemporalError::abrupt_end)?;
 
@@ -262,11 +210,15 @@ pub(crate) fn parse_month_day(cursor: &mut Cursor) -> TemporalResult<(i32, i32)>
     }
 
     let month = parse_date_month(cursor)?;
-    if cursor.check_or(false, is_hyphen) {
-        cursor.advance();
-    }
+
+    cursor.advance_if(cursor.check_or(false, is_hyphen));
 
     let day = parse_date_day(cursor)?;
+
+    assert_syntax!(
+        cursor.check_or(true, is_annotation_open),
+        "Expected an end or AnnotationOpen"
+    );
 
     Ok((month, day))
 }
@@ -274,26 +226,20 @@ pub(crate) fn parse_month_day(cursor: &mut Cursor) -> TemporalResult<(i32, i32)>
 // ==== Unit Parsers ====
 
 fn parse_date_year(cursor: &mut Cursor) -> TemporalResult<i32> {
-    if is_sign(cursor.peek().ok_or_else(TemporalError::abrupt_end)?) {
+    if cursor.check_or(false, is_sign) {
+        let sign = if cursor.expect_next() == '+' { 1 } else { -1 };
         let year_start = cursor.pos();
-        let sign = if cursor.check_or(false, |ch| ch == '+') {
-            1
-        } else {
-            -1
-        };
-
-        cursor.advance();
 
         for _ in 0..6 {
-            let year_digit = cursor.peek().ok_or_else(TemporalError::abrupt_end)?;
-            if !year_digit.is_ascii_digit() {
-                return Err(TemporalError::syntax().with_message("DateYear must contain digit"));
-            }
-            cursor.advance();
+            let year_digit = cursor.abrupt_next()?;
+            assert_syntax!(
+                year_digit.is_ascii_digit(),
+                "Year must be made up of digits."
+            );
         }
 
-        let year_string = cursor.slice(year_start + 1, cursor.pos());
-        let year_value = year_string
+        let year_value = cursor
+            .slice(year_start, cursor.pos())
             .parse::<i32>()
             .map_err(|e| TemporalError::syntax().with_message(e.to_string()))?;
 
@@ -304,21 +250,28 @@ fn parse_date_year(cursor: &mut Cursor) -> TemporalResult<i32> {
             return Err(TemporalError::syntax().with_message("Cannot have negative 0 years."));
         }
 
-        return Ok(sign * year_value);
+        let year = sign * year_value;
+
+        if !(-271_820..=275_760).contains(&year) {
+            return Err(TemporalError::range()
+                .with_message("Year is outside of the minimum supported range."));
+        }
+
+        return Ok(year);
     }
 
     let year_start = cursor.pos();
 
     for _ in 0..4 {
-        let year_digit = cursor.peek().ok_or_else(TemporalError::abrupt_end)?;
-        if !year_digit.is_ascii_digit() {
-            return Err(TemporalError::syntax().with_message("DateYear must contain digit"));
-        }
-        cursor.advance();
+        let year_digit = cursor.abrupt_next()?;
+        assert_syntax!(
+            year_digit.is_ascii_digit(),
+            "Year must be made up of digits."
+        );
     }
 
-    let year_string = cursor.slice(year_start, cursor.pos());
-    let year_value = year_string
+    let year_value = cursor
+        .slice(year_start, cursor.pos())
         .parse::<i32>()
         .map_err(|e| TemporalError::syntax().with_message(e.to_string()))?;
 
@@ -326,25 +279,33 @@ fn parse_date_year(cursor: &mut Cursor) -> TemporalResult<i32> {
 }
 
 fn parse_date_month(cursor: &mut Cursor) -> TemporalResult<i32> {
+    let start = cursor.pos();
+    for _ in 0..2 {
+        let digit = cursor.abrupt_next()?;
+        assert_syntax!(digit.is_ascii_digit(), "Month must be a digit");
+    }
     let month_value = cursor
-        .slice(cursor.pos(), cursor.pos() + 2)
+        .slice(start, cursor.pos())
         .parse::<i32>()
         .map_err(|e| TemporalError::syntax().with_message(e.to_string()))?;
     if !(1..=12).contains(&month_value) {
         return Err(TemporalError::syntax().with_message("DateMonth must be in a range of 1-12"));
     }
-    cursor.advance_n(2);
     Ok(month_value)
 }
 
 fn parse_date_day(cursor: &mut Cursor) -> TemporalResult<i32> {
+    let start = cursor.pos();
+    for _ in 0..2 {
+        let digit = cursor.abrupt_next()?;
+        assert_syntax!(digit.is_ascii_digit(), "Date must be a digit");
+    }
     let day_value = cursor
-        .slice(cursor.pos(), cursor.pos() + 2)
+        .slice(start, cursor.pos())
         .parse::<i32>()
         .map_err(|e| TemporalError::syntax().with_message(e.to_string()))?;
     if !(1..=31).contains(&day_value) {
         return Err(TemporalError::syntax().with_message("DateDay must be in a range of 1-31"));
     }
-    cursor.advance_n(2);
     Ok(day_value)
 }

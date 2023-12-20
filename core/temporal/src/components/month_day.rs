@@ -1,10 +1,12 @@
 //! This module implements `MonthDay` and any directly related algorithms.
 
+use std::str::FromStr;
+
 use crate::{
     components::calendar::CalendarSlot,
     iso::{IsoDate, IsoDateSlots},
     options::ArithmeticOverflow,
-    TemporalResult,
+    TemporalError, TemporalResult,
 };
 
 /// The native Rust implementation of `Temporal.PlainMonthDay`
@@ -22,8 +24,8 @@ impl MonthDay {
         Self { iso, calendar }
     }
 
-    #[inline]
     /// Creates a new valid `MonthDay`.
+    #[inline]
     pub fn new(
         month: i32,
         day: i32,
@@ -34,9 +36,23 @@ impl MonthDay {
         Ok(Self::new_unchecked(iso, calendar))
     }
 
+    /// Returns the `month` value of `MonthDay`.
     #[inline]
     #[must_use]
+    pub fn month(&self) -> u8 {
+        self.iso.month()
+    }
+
+    /// Returns the `day` value of `MonthDay`.
+    #[inline]
+    #[must_use]
+    pub fn day(&self) -> u8 {
+        self.iso.day()
+    }
+
     /// Returns a reference to `MonthDay`'s `CalendarSlot`
+    #[inline]
+    #[must_use]
     pub fn calendar(&self) -> &CalendarSlot {
         &self.calendar
     }
@@ -47,5 +63,22 @@ impl IsoDateSlots for MonthDay {
     /// Returns this structs `IsoDate`.
     fn iso_date(&self) -> IsoDate {
         self.iso
+    }
+}
+
+impl FromStr for MonthDay {
+    type Err = TemporalError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let record = crate::parser::parse_month_day(s)?;
+
+        let calendar = record.calendar.unwrap_or("iso8601".into());
+
+        Self::new(
+            record.date.month,
+            record.date.day,
+            CalendarSlot::Identifier(calendar),
+            ArithmeticOverflow::Reject,
+        )
     }
 }

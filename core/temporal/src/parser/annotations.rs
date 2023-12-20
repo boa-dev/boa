@@ -1,5 +1,6 @@
 /// Parsing for Temporal's `Annotations`.
 use crate::{
+    assert_syntax,
     parser::{
         grammar::{
             is_a_key_char, is_a_key_leading_char, is_annotation_close,
@@ -38,10 +39,10 @@ pub(crate) fn parse_annotation_set(
 ) -> TemporalResult<AnnotationSet> {
     // Parse the first annotation.
     let tz_annotation = time_zone::parse_ambiguous_tz_annotation(cursor)?;
-
     if tz_annotation.is_none() && zoned {
-        return Err(TemporalError::syntax()
-            .with_message("iso8601 ZonedDateTime requires a TimeZoneAnnotation."));
+        return Err(
+            TemporalError::syntax().with_message("ZonedDateTime must have a TimeZone annotation.")
+        );
     }
 
     // Parse any `Annotations`
@@ -97,32 +98,27 @@ pub(crate) fn parse_annotations(cursor: &mut Cursor) -> TemporalResult<Recognize
 
 /// Parse an annotation with an `AnnotationKey`=`AnnotationValue` pair.
 fn parse_kv_annotation(cursor: &mut Cursor) -> TemporalResult<KeyValueAnnotation> {
-    debug_assert!(cursor.check_or(false, is_annotation_open));
+    assert_syntax!(
+        is_annotation_open(cursor.abrupt_next()?),
+        "Invalid annotation open character."
+    );
 
-    let potential_critical = cursor.next().ok_or_else(TemporalError::abrupt_end)?;
-    let (leading_char, critical) = if is_critical_flag(potential_critical) {
-        (cursor.next().ok_or_else(TemporalError::abrupt_end)?, true)
-    } else {
-        (potential_critical, false)
-    };
-
-    if !is_a_key_leading_char(leading_char) {
-        return Err(TemporalError::syntax().with_message("Invalid AnnotationKey leading character"));
-    }
+    let critical = cursor.check_or(false, is_critical_flag);
+    cursor.advance_if(critical);
 
     // Parse AnnotationKey.
     let annotation_key = parse_annotation_key(cursor)?;
-
-    debug_assert!(cursor.check_or(false, is_annotation_key_value_separator));
-    // Advance past the '=' character.
-    cursor.advance();
+    assert_syntax!(
+        is_annotation_key_value_separator(cursor.abrupt_next()?),
+        "Invalid annotation key-value separator"
+    );
 
     // Parse AnnotationValue.
     let annotation_value = parse_annotation_value(cursor)?;
-
-    // Assert that we are at the annotation close and advance cursor past annotation to close.
-    debug_assert!(cursor.check_or(false, is_annotation_close));
-    cursor.advance();
+    assert_syntax!(
+        is_annotation_close(cursor.abrupt_next()?),
+        "Invalid annotion closing character"
+    );
 
     Ok(KeyValueAnnotation {
         key: annotation_key,
@@ -134,16 +130,22 @@ fn parse_kv_annotation(cursor: &mut Cursor) -> TemporalResult<KeyValueAnnotation
 /// Parse an `AnnotationKey`.
 fn parse_annotation_key(cursor: &mut Cursor) -> TemporalResult<String> {
     let key_start = cursor.pos();
+    assert_syntax!(
+        is_a_key_leading_char(cursor.abrupt_next()?),
+        "Invalid key leading character."
+    );
+
     while let Some(potential_key_char) = cursor.next() {
         // End of key.
-        if is_annotation_key_value_separator(potential_key_char) {
+        if cursor.check_or(false, is_annotation_key_value_separator) {
             // Return found key
             return Ok(cursor.slice(key_start, cursor.pos()));
         }
 
-        if !is_a_key_char(potential_key_char) {
-            return Err(TemporalError::syntax().with_message("Invalid AnnotationKey Character"));
-        }
+        assert_syntax!(
+            is_a_key_char(potential_key_char),
+            "Invalid annotation key character."
+        );
     }
 
     Err(TemporalError::abrupt_end())
@@ -152,29 +154,26 @@ fn parse_annotation_key(cursor: &mut Cursor) -> TemporalResult<String> {
 /// Parse an `AnnotationValue`.
 fn parse_annotation_value(cursor: &mut Cursor) -> TemporalResult<String> {
     let value_start = cursor.pos();
+    cursor.advance();
     while let Some(potential_value_char) = cursor.next() {
-        if is_annotation_close(potential_value_char) {
+        if cursor.check_or(false, is_annotation_close) {
             // Return the determined AnnotationValue.
             return Ok(cursor.slice(value_start, cursor.pos()));
         }
 
         if is_hyphen(potential_value_char) {
-            if !cursor
-                .peek_n(1)
-                .map_or(false, is_annotation_value_component)
-            {
-                return Err(TemporalError::syntax()
-                    .with_message("Missing AttributeValueComponent after '-'"));
-            }
+            assert_syntax!(
+                cursor.peek().map_or(false, is_annotation_value_component),
+                "Missing annotation value compoenent after '-'"
+            );
             cursor.advance();
             continue;
         }
 
-        if !is_annotation_value_component(potential_value_char) {
-            return Err(
-                TemporalError::syntax().with_message("Invalid character in AnnotationValue")
-            );
-        }
+        assert_syntax!(
+            is_annotation_value_component(potential_value_char),
+            "Invalid annotation value component character."
+        );
     }
 
     Err(TemporalError::abrupt_end())
