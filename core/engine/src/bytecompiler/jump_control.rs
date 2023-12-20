@@ -122,7 +122,7 @@ impl JumpRecord {
                 return_value_on_stack,
             } => {
                 if return_value_on_stack {
-                    compiler.emit_opcode(Opcode::SetReturnValue);
+                    compiler.emit_opcode(Opcode::SetAccumulatorFromStack);
                 }
 
                 match (compiler.is_async(), compiler.is_generator()) {
