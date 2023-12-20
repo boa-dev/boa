@@ -1080,8 +1080,6 @@
 <a href="#1080" id="1080">1080</a>
 <a href="#1081" id="1081">1081</a>
 <a href="#1082" id="1082">1082</a>
-<a href="#1083" id="1083">1083</a>
-<a href="#1084" id="1084">1084</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Function` object and Native Functions.
 //!
 //! Objects wrap `Function`s and expose them via call/construct slots.
@@ -2022,10 +2020,7 @@
 
     context.vm.push_frame(frame);
 
-    <span class="kw">let </span>fp = context.vm.stack.len() - argument_count - CallFrame::FUNCTION_PROLOGUE;
-    context.vm.frame_mut().fp = fp <span class="kw">as </span>u32;
-
-    <span class="kw">let </span>this = context.vm.stack[fp + CallFrame::THIS_POSITION].clone();
+    <span class="kw">let </span>this = context.vm.frame().this(<span class="kw-2">&amp;</span>context.vm);
 
     <span class="kw">let </span>lexical_this_mode = code.this_mode == ThisMode::Lexical;
 
@@ -2097,8 +2092,6 @@
 
     <span class="kw">let </span>new_target = context.vm.pop();
 
-    <span class="kw">let </span>at = context.vm.stack.len() - argument_count;
-
     <span class="kw">let </span>this = <span class="kw">if </span>code.is_derived_constructor() {
         <span class="prelude-val">None
     </span>} <span class="kw">else </span>{
@@ -2124,9 +2117,12 @@
         .with_env_fp(env_fp)
         .with_flags(CallFrameFlags::CONSTRUCT);
 
+    <span class="kw">let </span>len = context.vm.stack.len();
+
     context.vm.push_frame(frame);
 
-    context.vm.frame_mut().fp = at <span class="kw">as </span>u32 - <span class="number">1</span>;
+    <span class="comment">// NOTE(HalidOdat): +1 because we insert `this` value below.
+    </span>context.vm.frame_mut().rp = len <span class="kw">as </span>u32 + <span class="number">1</span>;
 
     <span class="kw">let </span><span class="kw-2">mut </span>last_env = <span class="number">0</span>;
 
@@ -2159,10 +2155,10 @@
     );
 
     <span class="comment">// Insert `this` value
-    </span>context
-        .vm
-        .stack
-        .insert(at - <span class="number">1</span>, this.map(JsValue::new).unwrap_or_default());
+    </span>context.vm.stack.insert(
+        len - argument_count - <span class="number">1</span>,
+        this.map(JsValue::new).unwrap_or_default(),
+    );
 
     <span class="prelude-val">Ok</span>(CallValue::Ready)
 }

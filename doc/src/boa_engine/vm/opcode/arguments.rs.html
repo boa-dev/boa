@@ -60,11 +60,9 @@
 <a href="#60" id="60">60</a>
 <a href="#61" id="61">61</a>
 <a href="#62" id="62">62</a>
-<a href="#63" id="63">63</a>
-<a href="#64" id="64">64</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::function::arguments::{MappedArguments, UnmappedArguments},
-    vm::{CallFrame, CompletionType},
+    vm::CompletionType,
     Context, JsResult,
 };
 
@@ -83,7 +81,6 @@
     <span class="kw">const </span>COST: u8 = <span class="number">8</span>;
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
-        <span class="kw">let </span>arguments_start = context.vm.frame().fp <span class="kw">as </span>usize + CallFrame::FIRST_ARGUMENT_POSITION;
         <span class="kw">let </span>function_object = context
             .vm
             .frame()
@@ -91,7 +88,7 @@
             .clone()
             .expect(<span class="string">&quot;there should be a function object&quot;</span>);
         <span class="kw">let </span>code = context.vm.frame().code_block().clone();
-        <span class="kw">let </span>args = context.vm.stack[arguments_start..].to_vec();
+        <span class="kw">let </span>args = context.vm.frame().arguments(<span class="kw-2">&amp;</span>context.vm).to_vec();
 
         <span class="kw">let </span>env = context.vm.environments.current();
         <span class="kw">let </span>arguments = MappedArguments::new(
@@ -119,8 +116,7 @@
     <span class="kw">const </span>COST: u8 = <span class="number">4</span>;
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
-        <span class="kw">let </span>arguments_start = context.vm.frame().fp <span class="kw">as </span>usize + CallFrame::FIRST_ARGUMENT_POSITION;
-        <span class="kw">let </span>args = context.vm.stack[arguments_start..].to_vec();
+        <span class="kw">let </span>args = context.vm.frame().arguments(<span class="kw-2">&amp;</span>context.vm).to_vec();
         <span class="kw">let </span>arguments = UnmappedArguments::new(<span class="kw-2">&amp;</span>args, context);
         context.vm.push(arguments);
         <span class="prelude-val">Ok</span>(CompletionType::Normal)

@@ -44,8 +44,6 @@
 <a href="#44" id="44">44</a>
 <a href="#45" id="45">45</a>
 <a href="#46" id="46">46</a>
-<a href="#47" id="47">47</a>
-<a href="#48" id="48">48</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     vm::{opcode::Operation, CompletionType},
     Context, JsResult,
@@ -61,12 +59,10 @@
 <span class="kw">impl </span>GetArgument {
     <span class="attr">#[allow(clippy::unnecessary_wraps)]
     </span><span class="kw">fn </span>operation(context: <span class="kw-2">&amp;mut </span>Context, index: usize) -&gt; JsResult&lt;CompletionType&gt; {
-        <span class="kw">let </span>fp = context.vm.frame().fp <span class="kw">as </span>usize;
-        <span class="kw">let </span>argument_index = fp + <span class="number">2</span>;
-        <span class="kw">let </span>argument_count = context.vm.frame().argument_count <span class="kw">as </span>usize;
-
-        <span class="kw">let </span>value = context.vm.stack[argument_index..(argument_index + argument_count)]
-            .get(index)
+        <span class="kw">let </span>value = context
+            .vm
+            .frame()
+            .argument(index, <span class="kw-2">&amp;</span>context.vm)
             .cloned()
             .unwrap_or_default();
         context.vm.push(value);

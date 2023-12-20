@@ -211,8 +211,6 @@
 <a href="#211" id="211">211</a>
 <a href="#212" id="212">212</a>
 <a href="#213" id="213">213</a>
-<a href="#214" id="214">214</a>
-<a href="#215" id="215">215</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>boa_gc::{Gc, GcRefCell};
 
 <span class="kw">use crate</span>::{
@@ -264,17 +262,16 @@
                     // d. Resume the suspended evaluation of asyncContext using NormalCompletion(value) as the result of the operation that suspended it.
                     </span><span class="kw">let </span><span class="kw-2">mut </span>gen = captures.borrow_mut().take().expect(<span class="string">&quot;should only run once&quot;</span>);
 
+                    <span class="comment">// NOTE: We need to get the object before resuming, since it could clear the stack.
+                    </span><span class="kw">let </span>async_generator = gen.async_generator_object();
+
                     gen.resume(
                         <span class="prelude-val">Some</span>(args.get_or_undefined(<span class="number">0</span>).clone()),
                         GeneratorResumeKind::Normal,
                         context,
                     );
 
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(async_generator) = gen
-                        .call_frame
-                        .as_ref()
-                        .and_then(|f| f.async_generator.clone())
-                    {
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(async_generator) = async_generator {
                         async_generator
                             .downcast_mut::&lt;AsyncGenerator&gt;()
                             .expect(<span class="string">&quot;must be async generator&quot;</span>)
@@ -307,17 +304,16 @@
 
                     </span><span class="kw">let </span><span class="kw-2">mut </span>gen = captures.borrow_mut().take().expect(<span class="string">&quot;should only run once&quot;</span>);
 
+                    <span class="comment">// NOTE: We need to get the object before resuming, since it could clear the stack.
+                    </span><span class="kw">let </span>async_generator = gen.async_generator_object();
+
                     gen.resume(
                         <span class="prelude-val">Some</span>(args.get_or_undefined(<span class="number">0</span>).clone()),
                         GeneratorResumeKind::Throw,
                         context,
                     );
 
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(async_generator) = gen
-                        .call_frame
-                        .as_ref()
-                        .and_then(|f| f.async_generator.clone())
-                    {
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(async_generator) = async_generator {
                         async_generator
                             .downcast_mut::&lt;AsyncGenerator&gt;()
                             .expect(<span class="string">&quot;must be async generator&quot;</span>)

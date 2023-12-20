@@ -51,11 +51,11 @@
     <span class="kw">const </span>COST: u8 = <span class="number">6</span>;
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
-        <span class="kw">let </span>arg_count = context.vm.frame().argument_count <span class="kw">as </span>usize;
+        <span class="kw">let </span>argument_count = context.vm.frame().argument_count <span class="kw">as </span>usize;
         <span class="kw">let </span>param_count = context.vm.frame().code_block().params.as_ref().len();
 
-        <span class="kw">let </span>array = <span class="kw">if </span>arg_count &gt;= param_count {
-            <span class="kw">let </span>rest_count = arg_count - param_count + <span class="number">1</span>;
+        <span class="kw">let </span>array = <span class="kw">if </span>argument_count &gt;= param_count {
+            <span class="kw">let </span>rest_count = argument_count - param_count + <span class="number">1</span>;
             <span class="kw">let </span>args = context.vm.pop_n_values(rest_count);
             Array::create_array_from_list(args, context)
         } <span class="kw">else </span>{

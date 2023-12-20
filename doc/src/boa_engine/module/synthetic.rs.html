@@ -696,7 +696,7 @@
         <span class="comment">// 11. Suspend moduleContext and remove it from the execution context stack.
         // 12. Resume the context that is now on the top of the execution context stack as the running execution context.
         </span><span class="kw">let </span>frame = context.vm.pop_frame().expect(<span class="string">&quot;there should be a frame&quot;</span>);
-        context.vm.stack.truncate(frame.fp <span class="kw">as </span>usize);
+        frame.restore_stack(<span class="kw-2">&amp;mut </span>context.vm);
 
         <span class="comment">// 13. Let pc be ! NewPromiseCapability(%Promise%).
         </span><span class="kw">let </span>(promise, ResolvingFunctions { resolve, reject }) = JsPromise::new_pending(context);

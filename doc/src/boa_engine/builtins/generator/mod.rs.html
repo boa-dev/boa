@@ -402,6 +402,9 @@
 <a href="#402" id="402">402</a>
 <a href="#403" id="403">403</a>
 <a href="#404" id="404">404</a>
+<a href="#405" id="405">405</a>
+<a href="#406" id="406">406</a>
+<a href="#407" id="407">407</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Generator` object.
 //!
 //! A Generator is an instance of a generator function and conforms to both the Iterator and Iterable interfaces.
@@ -424,7 +427,7 @@
     string::common::StaticJsStrings,
     symbol::JsSymbol,
     value::JsValue,
-    vm::{CallFrame, CompletionRecord, GeneratorResumeKind},
+    vm::{CallFrame, CallFrameFlags, CompletionRecord, GeneratorResumeKind},
     Context, JsArgs, JsData, JsError, JsResult, JsString,
 };
 <span class="kw">use </span>boa_gc::{custom_trace, Finalize, Trace};
@@ -468,28 +471,24 @@
 }
 
 <span class="kw">impl </span>GeneratorContext {
-    <span class="doccomment">/// Creates a new `GeneratorContext` from the raw `Context` state components.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(stack: Vec&lt;JsValue&gt;, call_frame: CallFrame) -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{
-            stack,
-            call_frame: <span class="prelude-val">Some</span>(call_frame),
-        }
-    }
-
     <span class="doccomment">/// Creates a new `GeneratorContext` from the current `Context` state.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_current(context: <span class="kw-2">&amp;mut </span>Context) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span><span class="kw-2">mut </span>frame = context.vm.frame().clone();
         frame.environments = context.vm.environments.clone();
         frame.realm = context.realm().clone();
-        <span class="kw">let </span>fp = context.vm.frame().fp <span class="kw">as </span>usize;
-        <span class="kw">let </span>this = <span class="self">Self </span>{
+        <span class="kw">let </span>fp = frame.fp() <span class="kw">as </span>usize;
+        <span class="kw">let </span>stack = context.vm.stack.split_off(fp);
+
+        frame.rp = CallFrame::FUNCTION_PROLOGUE + frame.argument_count;
+
+        <span class="comment">// NOTE: Since we get a pre-built call frame with stack, and we reuse them.
+        //       So we don&#39;t need to push the locals in subsequent calls.
+        </span>frame.flags |= CallFrameFlags::LOCALS_ALREADY_PUSHED;
+
+        <span class="self">Self </span>{
             call_frame: <span class="prelude-val">Some</span>(frame),
-            stack: context.vm.stack[fp..].to_vec(),
-        };
-
-        context.vm.stack.truncate(fp);
-
-        this
+            stack,
+        }
     }
 
     <span class="doccomment">/// Resumes execution with `GeneratorContext` as the current execution context.
@@ -500,11 +499,11 @@
         context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; CompletionRecord {
         std::mem::swap(<span class="kw-2">&amp;mut </span>context.vm.stack, <span class="kw-2">&amp;mut </span><span class="self">self</span>.stack);
-        context
-            .vm
-            .push_frame(<span class="self">self</span>.call_frame.take().expect(<span class="string">&quot;should have a call frame&quot;</span>));
+        <span class="kw">let </span>frame = <span class="self">self</span>.call_frame.take().expect(<span class="string">&quot;should have a call frame&quot;</span>);
+        <span class="kw">let </span>rp = frame.rp;
+        context.vm.push_frame(frame);
 
-        context.vm.frame_mut().fp = <span class="number">0</span>;
+        context.vm.frame_mut().rp = rp;
         context.vm.frame_mut().set_exit_early(<span class="bool-val">true</span>);
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(value) = value {
@@ -518,6 +517,13 @@
         <span class="self">self</span>.call_frame = context.vm.pop_frame();
         <span class="macro">assert!</span>(<span class="self">self</span>.call_frame.is_some());
         result
+    }
+
+    <span class="doccomment">/// Returns the async generator object, if the function that this [`GeneratorContext`] is from an async generator, [`None`] otherwise.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>async_generator_object(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;JsObject&gt; {
+        <span class="self">self</span>.call_frame
+            .as_ref()
+            .and_then(|frame| frame.async_generator_object(<span class="kw-2">&amp;</span><span class="self">self</span>.stack))
     }
 }
 
