@@ -228,7 +228,7 @@ impl<C: CalendarProtocol> ZonedDateTime<C> {
 mod tests {
     use std::str::FromStr;
 
-    use crate::components::{calendar::EmptyCustomCalendar, tz::TimeZone};
+    use crate::components::tz::TimeZone;
     use num_bigint::BigInt;
 
     use super::{CalendarSlot, TimeZoneSlot, ZonedDateTime};
@@ -237,7 +237,7 @@ mod tests {
     fn basic_zdt_test() {
         let nov_30_2023_utc = BigInt::from(1_701_308_952_000_000_000i64);
 
-        let zdt = ZonedDateTime::<EmptyCustomCalendar>::new(
+        let zdt = ZonedDateTime::<()>::new(
             nov_30_2023_utc.clone(),
             CalendarSlot::from_str("iso8601").unwrap(),
             TimeZoneSlot::Tz(TimeZone {
@@ -254,7 +254,7 @@ mod tests {
         assert_eq!(zdt.minute().unwrap(), 49);
         assert_eq!(zdt.second().unwrap(), 12);
 
-        let zdt_minus_five = ZonedDateTime::<EmptyCustomCalendar>::new(
+        let zdt_minus_five = ZonedDateTime::<()>::new(
             nov_30_2023_utc,
             CalendarSlot::from_str("iso8601").unwrap(),
             TimeZoneSlot::Tz(TimeZone {

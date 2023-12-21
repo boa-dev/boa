@@ -820,25 +820,23 @@ impl<C: CalendarProtocol> CalendarSlot<C> {
 /// # Panics
 ///
 /// Attempting to use this calendar as a valid calendar is an error and will cause a panic.
-#[derive(Debug, Clone, Copy)]
-pub struct EmptyCustomCalendar;
-
-impl CalendarProtocol for EmptyCustomCalendar {
+impl CalendarProtocol for () {
     fn date_from_fields(
-        &self,
-        _: &mut TemporalFields,
-        _: ArithmeticOverflow,
-        _: &mut dyn Any,
-    ) -> TemporalResult<Date<EmptyCustomCalendar>> {
+            &self,
+            _: &mut TemporalFields,
+            _: ArithmeticOverflow,
+            _: &mut dyn Any,
+        ) -> TemporalResult<Date<Self>> {
         unreachable!();
     }
+
 
     fn month_day_from_fields(
         &self,
         _: &mut TemporalFields,
         _: ArithmeticOverflow,
         _: &mut dyn Any,
-    ) -> TemporalResult<MonthDay<EmptyCustomCalendar>> {
+    ) -> TemporalResult<MonthDay<()>> {
         unreachable!();
     }
 
@@ -863,8 +861,8 @@ impl CalendarProtocol for EmptyCustomCalendar {
 
     fn date_until(
         &self,
-        _: &Date<EmptyCustomCalendar>,
-        _: &Date<EmptyCustomCalendar>,
+        _: &Date<()>,
+        _: &Date<()>,
         _: TemporalUnit,
         _: &mut dyn Any,
     ) -> TemporalResult<Duration> {
@@ -873,7 +871,7 @@ impl CalendarProtocol for EmptyCustomCalendar {
 
     fn era(
         &self,
-        _: &CalendarDateLike<EmptyCustomCalendar>,
+        _: &CalendarDateLike<()>,
         _: &mut dyn Any,
     ) -> TemporalResult<Option<TinyAsciiStr<16>>> {
         unreachable!();
@@ -881,7 +879,7 @@ impl CalendarProtocol for EmptyCustomCalendar {
 
     fn era_year(
         &self,
-        _: &CalendarDateLike<EmptyCustomCalendar>,
+        _: &CalendarDateLike<()>,
         _: &mut dyn Any,
     ) -> TemporalResult<Option<i32>> {
         unreachable!();
@@ -889,7 +887,7 @@ impl CalendarProtocol for EmptyCustomCalendar {
 
     fn year(
         &self,
-        _: &CalendarDateLike<EmptyCustomCalendar>,
+        _: &CalendarDateLike<()>,
         _: &mut dyn Any,
     ) -> TemporalResult<i32> {
         unreachable!();
@@ -897,7 +895,7 @@ impl CalendarProtocol for EmptyCustomCalendar {
 
     fn month(
         &self,
-        _: &CalendarDateLike<EmptyCustomCalendar>,
+        _: &CalendarDateLike<()>,
         _: &mut dyn Any,
     ) -> TemporalResult<u8> {
         unreachable!();
@@ -905,7 +903,7 @@ impl CalendarProtocol for EmptyCustomCalendar {
 
     fn month_code(
         &self,
-        _: &CalendarDateLike<EmptyCustomCalendar>,
+        _: &CalendarDateLike<()>,
         _: &mut dyn Any,
     ) -> TemporalResult<TinyAsciiStr<4>> {
         unreachable!();
@@ -913,7 +911,7 @@ impl CalendarProtocol for EmptyCustomCalendar {
 
     fn day(
         &self,
-        _: &CalendarDateLike<EmptyCustomCalendar>,
+        _: &CalendarDateLike<()>,
         _: &mut dyn Any,
     ) -> TemporalResult<u8> {
         unreachable!();
@@ -921,7 +919,7 @@ impl CalendarProtocol for EmptyCustomCalendar {
 
     fn day_of_week(
         &self,
-        _: &CalendarDateLike<EmptyCustomCalendar>,
+        _: &CalendarDateLike<()>,
         _: &mut dyn Any,
     ) -> TemporalResult<u16> {
         unreachable!();
@@ -929,7 +927,7 @@ impl CalendarProtocol for EmptyCustomCalendar {
 
     fn day_of_year(
         &self,
-        _: &CalendarDateLike<EmptyCustomCalendar>,
+        _: &CalendarDateLike<()>,
         _: &mut dyn Any,
     ) -> TemporalResult<u16> {
         unreachable!();
@@ -937,7 +935,7 @@ impl CalendarProtocol for EmptyCustomCalendar {
 
     fn week_of_year(
         &self,
-        _: &CalendarDateLike<EmptyCustomCalendar>,
+        _: &CalendarDateLike<()>,
         _: &mut dyn Any,
     ) -> TemporalResult<u16> {
         unreachable!();
@@ -945,7 +943,7 @@ impl CalendarProtocol for EmptyCustomCalendar {
 
     fn year_of_week(
         &self,
-        _: &CalendarDateLike<EmptyCustomCalendar>,
+        _: &CalendarDateLike<()>,
         _: &mut dyn Any,
     ) -> TemporalResult<i32> {
         unreachable!();
@@ -953,7 +951,7 @@ impl CalendarProtocol for EmptyCustomCalendar {
 
     fn days_in_week(
         &self,
-        _: &CalendarDateLike<EmptyCustomCalendar>,
+        _: &CalendarDateLike<()>,
         _: &mut dyn Any,
     ) -> TemporalResult<u16> {
         unreachable!();
@@ -961,7 +959,7 @@ impl CalendarProtocol for EmptyCustomCalendar {
 
     fn days_in_month(
         &self,
-        _: &CalendarDateLike<EmptyCustomCalendar>,
+        _: &CalendarDateLike<()>,
         _: &mut dyn Any,
     ) -> TemporalResult<u16> {
         unreachable!();
@@ -969,7 +967,7 @@ impl CalendarProtocol for EmptyCustomCalendar {
 
     fn days_in_year(
         &self,
-        _: &CalendarDateLike<EmptyCustomCalendar>,
+        _: &CalendarDateLike<()>,
         _: &mut dyn Any,
     ) -> TemporalResult<u16> {
         unreachable!();
@@ -977,7 +975,7 @@ impl CalendarProtocol for EmptyCustomCalendar {
 
     fn months_in_year(
         &self,
-        _: &CalendarDateLike<EmptyCustomCalendar>,
+        _: &CalendarDateLike<()>,
         _: &mut dyn Any,
     ) -> TemporalResult<u16> {
         unreachable!();
@@ -985,7 +983,7 @@ impl CalendarProtocol for EmptyCustomCalendar {
 
     fn in_leap_year(
         &self,
-        _: &CalendarDateLike<EmptyCustomCalendar>,
+        _: &CalendarDateLike<()>,
         _: &mut dyn Any,
     ) -> TemporalResult<bool> {
         unreachable!();
