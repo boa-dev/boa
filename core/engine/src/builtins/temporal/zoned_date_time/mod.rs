@@ -18,7 +18,7 @@ use super::JsCustomCalendar;
 // SAFETY: ZonedDateTime does not contain any traceable types.
 #[boa_gc(unsafe_empty_trace)]
 pub struct ZonedDateTime {
-    inner: InnerZdt<JsCustomCalendar>,
+    pub(crate) inner: InnerZdt<JsCustomCalendar>,
 }
 
 impl BuiltInObject for ZonedDateTime {

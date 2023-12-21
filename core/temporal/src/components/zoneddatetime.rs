@@ -54,9 +54,8 @@ impl<C: CalendarProtocol> ZonedDateTime<C> {
     /// Returns the `ZonedDateTime`'s Calendar identifier.
     #[inline]
     #[must_use]
-    pub fn calendar_id(&self) -> String {
-        // TODO: Implement Identifier method on `CalendarSlot`
-        String::from("Not yet implemented.")
+    pub fn calendar(&self) -> &CalendarSlot<C> {
+        &self.calendar
     }
 
     /// Returns the `epochSeconds` value of this `ZonedDateTime`.

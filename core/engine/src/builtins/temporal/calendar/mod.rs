@@ -21,7 +21,7 @@ use crate::{
     string::{common::StaticJsStrings, utf16},
     Context, JsArgs, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
-use boa_gc::{Finalize, Trace};
+use boa_gc::{custom_trace, Finalize, Trace};
 use boa_profiler::Profiler;
 use boa_temporal::{
     components::calendar::{
@@ -38,13 +38,20 @@ pub(crate) use object::JsCustomCalendar;
 
 #[cfg(test)]
 mod tests;
-
 /// The `Temporal.Calendar` object.
-#[derive(Debug, Trace, Finalize, JsData)]
-// SAFETY: `Calendar` doesn't contain traceable types.
-#[boa_gc(unsafe_empty_trace)]
+#[derive(Debug, Finalize, JsData)]
 pub struct Calendar {
     slot: CalendarSlot<JsCustomCalendar>,
+}
+
+unsafe impl Trace for Calendar {
+    custom_trace!(this, mark, {
+        match &this.slot {
+            CalendarSlot::Protocol(custom) => mark(custom),
+            // SAFETY: CalendarSlot::Builtin does not contain any JsValues for the gc to trace.
+            CalendarSlot::Builtin(_) => {}
+        }
+    });
 }
 
 impl Calendar {
@@ -1051,26 +1058,10 @@ pub(crate) fn to_temporal_calendar_slot_value(
         if let Some(calendar) = extract_from_temporal_type(
             calendar_like,
             |d| Ok(Some(d.inner.calendar().clone())),
-            |_dt| {
-                Err(JsNativeError::range()
-                    .with_message("Not yet implemented.")
-                    .into())
-            },
-            |_ym| {
-                Err(JsNativeError::range()
-                    .with_message("Not yet implemented.")
-                    .into())
-            },
-            |_md| {
-                Err(JsNativeError::range()
-                    .with_message("Not yet implemented.")
-                    .into())
-            },
-            |_zdt| {
-                Err(JsNativeError::range()
-                    .with_message("Not yet implemented.")
-                    .into())
-            },
+            |dt| Ok(Some(dt.inner.calendar().clone())),
+            |ym| Ok(Some(ym.inner.calendar().clone())),
+            |md| Ok(Some(md.inner.calendar().clone())),
+            |zdt| Ok(Some(zdt.inner.calendar().clone())),
         )? {
             return Ok(calendar);
         }
@@ -1084,23 +1075,24 @@ pub(crate) fn to_temporal_calendar_slot_value(
         }
 
         // Types: Box<dyn CalendarProtocol> <- UserCalendar
-        let protocol = JsCustomCalendar::new(calendar_like);
+        let custom = JsCustomCalendar::new(calendar_like);
         // c. Return temporalCalendarLike.
-        return Ok(CalendarSlot::Protocol(protocol));
+        return Ok(CalendarSlot::Protocol(custom));
     }
 
     // 3. If temporalCalendarLike is not a String, throw a TypeError exception.
-    if !calendar_like.is_string() {
+    let JsValue::String(calendar_id) = calendar_like else {
         return Err(JsNativeError::typ()
             .with_message("temporalCalendarLike is not a string.")
             .into());
-    }
+    };
 
-    // TODO: 4-6
     // 4. Let identifier be ? ParseTemporalCalendarString(temporalCalendarLike).
     // 5. If IsBuiltinCalendar(identifier) is false, throw a RangeError exception.
     // 6. Return the ASCII-lowercase of identifier.
-    Ok(CalendarSlot::default())
+    Ok(CalendarSlot::<JsCustomCalendar>::from_str(
+        &calendar_id.to_std_string_escaped(),
+    )?)
 }
 
 fn object_implements_calendar_protocol(calendar_like: &JsObject, context: &mut Context) -> bool {

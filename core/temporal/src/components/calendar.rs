@@ -294,6 +294,7 @@ impl<C: CalendarProtocol> FromStr for CalendarSlot<C> {
     type Err = TemporalError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
+        // NOTE(nekesss): Catch the iso identifier here, as `iso8601` is not a valid ID below.
         if s == "iso8601" {
             return Ok(CalendarSlot::Builtin(AnyCalendar::Iso(Iso)));
         }
@@ -815,21 +816,20 @@ impl<C: CalendarProtocol> CalendarSlot<C> {
     }
 }
 
-/// An empty `CalendarProtocol` impl that will panic if treated as a valid calendar.
+/// An empty `CalendarProtocol` implementation on `()`.
 ///
 /// # Panics
 ///
-/// Attempting to use this calendar as a valid calendar is an error and will cause a panic.
+/// Attempting to use this empty calendar implementation as a valid calendar is an error and will cause a panic.
 impl CalendarProtocol for () {
     fn date_from_fields(
-            &self,
-            _: &mut TemporalFields,
-            _: ArithmeticOverflow,
-            _: &mut dyn Any,
-        ) -> TemporalResult<Date<Self>> {
+        &self,
+        _: &mut TemporalFields,
+        _: ArithmeticOverflow,
+        _: &mut dyn Any,
+    ) -> TemporalResult<Date<Self>> {
         unreachable!();
     }
-
 
     fn month_day_from_fields(
         &self,
@@ -877,27 +877,15 @@ impl CalendarProtocol for () {
         unreachable!();
     }
 
-    fn era_year(
-        &self,
-        _: &CalendarDateLike<()>,
-        _: &mut dyn Any,
-    ) -> TemporalResult<Option<i32>> {
+    fn era_year(&self, _: &CalendarDateLike<()>, _: &mut dyn Any) -> TemporalResult<Option<i32>> {
         unreachable!();
     }
 
-    fn year(
-        &self,
-        _: &CalendarDateLike<()>,
-        _: &mut dyn Any,
-    ) -> TemporalResult<i32> {
+    fn year(&self, _: &CalendarDateLike<()>, _: &mut dyn Any) -> TemporalResult<i32> {
         unreachable!();
     }
 
-    fn month(
-        &self,
-        _: &CalendarDateLike<()>,
-        _: &mut dyn Any,
-    ) -> TemporalResult<u8> {
+    fn month(&self, _: &CalendarDateLike<()>, _: &mut dyn Any) -> TemporalResult<u8> {
         unreachable!();
     }
 
@@ -909,83 +897,43 @@ impl CalendarProtocol for () {
         unreachable!();
     }
 
-    fn day(
-        &self,
-        _: &CalendarDateLike<()>,
-        _: &mut dyn Any,
-    ) -> TemporalResult<u8> {
+    fn day(&self, _: &CalendarDateLike<()>, _: &mut dyn Any) -> TemporalResult<u8> {
         unreachable!();
     }
 
-    fn day_of_week(
-        &self,
-        _: &CalendarDateLike<()>,
-        _: &mut dyn Any,
-    ) -> TemporalResult<u16> {
+    fn day_of_week(&self, _: &CalendarDateLike<()>, _: &mut dyn Any) -> TemporalResult<u16> {
         unreachable!();
     }
 
-    fn day_of_year(
-        &self,
-        _: &CalendarDateLike<()>,
-        _: &mut dyn Any,
-    ) -> TemporalResult<u16> {
+    fn day_of_year(&self, _: &CalendarDateLike<()>, _: &mut dyn Any) -> TemporalResult<u16> {
         unreachable!();
     }
 
-    fn week_of_year(
-        &self,
-        _: &CalendarDateLike<()>,
-        _: &mut dyn Any,
-    ) -> TemporalResult<u16> {
+    fn week_of_year(&self, _: &CalendarDateLike<()>, _: &mut dyn Any) -> TemporalResult<u16> {
         unreachable!();
     }
 
-    fn year_of_week(
-        &self,
-        _: &CalendarDateLike<()>,
-        _: &mut dyn Any,
-    ) -> TemporalResult<i32> {
+    fn year_of_week(&self, _: &CalendarDateLike<()>, _: &mut dyn Any) -> TemporalResult<i32> {
         unreachable!();
     }
 
-    fn days_in_week(
-        &self,
-        _: &CalendarDateLike<()>,
-        _: &mut dyn Any,
-    ) -> TemporalResult<u16> {
+    fn days_in_week(&self, _: &CalendarDateLike<()>, _: &mut dyn Any) -> TemporalResult<u16> {
         unreachable!();
     }
 
-    fn days_in_month(
-        &self,
-        _: &CalendarDateLike<()>,
-        _: &mut dyn Any,
-    ) -> TemporalResult<u16> {
+    fn days_in_month(&self, _: &CalendarDateLike<()>, _: &mut dyn Any) -> TemporalResult<u16> {
         unreachable!();
     }
 
-    fn days_in_year(
-        &self,
-        _: &CalendarDateLike<()>,
-        _: &mut dyn Any,
-    ) -> TemporalResult<u16> {
+    fn days_in_year(&self, _: &CalendarDateLike<()>, _: &mut dyn Any) -> TemporalResult<u16> {
         unreachable!();
     }
 
-    fn months_in_year(
-        &self,
-        _: &CalendarDateLike<()>,
-        _: &mut dyn Any,
-    ) -> TemporalResult<u16> {
+    fn months_in_year(&self, _: &CalendarDateLike<()>, _: &mut dyn Any) -> TemporalResult<u16> {
         unreachable!();
     }
 
-    fn in_leap_year(
-        &self,
-        _: &CalendarDateLike<()>,
-        _: &mut dyn Any,
-    ) -> TemporalResult<bool> {
+    fn in_leap_year(&self, _: &CalendarDateLike<()>, _: &mut dyn Any) -> TemporalResult<bool> {
         unreachable!();
     }
 

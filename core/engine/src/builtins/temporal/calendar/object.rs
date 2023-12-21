@@ -13,6 +13,7 @@ use crate::{
 };
 use std::any::Any;
 
+use boa_gc::{Finalize, Trace};
 use boa_macros::utf16;
 use boa_temporal::{
     components::{
@@ -32,7 +33,7 @@ use plain_year_month::PlainYearMonth;
 ///
 /// A user-defined calendar implements all of the `CalendarProtocolMethods`
 /// and therefore satisfies the requirements to be used as a calendar.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Trace, Finalize)]
 pub(crate) struct JsCustomCalendar {
     calendar: JsObject,
 }

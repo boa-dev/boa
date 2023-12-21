@@ -12,9 +12,7 @@ fn temporal_parser_basic() {
 
     let basic_result = basic.parse::<DateTime<()>>().unwrap();
 
-    let sep_result = basic_separated
-        .parse::<DateTime<()>>()
-        .unwrap();
+    let sep_result = basic_separated.parse::<DateTime<()>>().unwrap();
 
     assert_eq!(basic_result.iso_date().year(), 2020);
     assert_eq!(basic_result.iso_date().month(), 11);
