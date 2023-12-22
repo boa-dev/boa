@@ -13,7 +13,7 @@ use crate::{
     vm::{
         call_frame::GeneratorResumeKind,
         opcode::{Operation, ReThrow},
-        CompletionType,
+        CallFrame, CompletionType,
     },
     Context, JsError, JsObject, JsResult, JsValue,
 };
@@ -79,11 +79,12 @@ impl Operation for Generator {
         };
 
         if r#async {
-            let fp = frame
+            let rp = frame
                 .call_frame
                 .as_ref()
                 .map_or(0, |frame| frame.rp as usize);
-            frame.stack[fp] = generator.clone().into();
+            frame.stack[rp + CallFrame::ASYNC_GENERATOR_OBJECT_REGISTER_INDEX as usize] =
+                generator.clone().into();
 
             let mut gen = generator
                 .downcast_mut::<AsyncGenerator>()

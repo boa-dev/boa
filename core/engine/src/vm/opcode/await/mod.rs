@@ -33,6 +33,16 @@ impl Operation for Await {
             context,
         )?;
 
+        let return_value = context
+            .vm
+            .frame()
+            .promise_capability(&context.vm.stack)
+            .as_ref()
+            .map(PromiseCapability::promise)
+            .cloned()
+            .map(JsValue::from)
+            .unwrap_or_default();
+
         let gen = GeneratorContext::from_current(context);
 
         let captures = Gc::new(GcRefCell::new(Some(gen)));
@@ -125,16 +135,6 @@ impl Operation for Await {
             context,
         );
 
-        let return_value = context
-            .vm
-            .frame()
-            .promise_capability
-            .as_ref()
-            .map(PromiseCapability::promise)
-            .cloned()
-            .map(JsValue::from)
-            .unwrap_or_default();
-
         context.vm.set_return_value(return_value);
         Ok(CompletionType::Yield)
     }
@@ -153,7 +153,12 @@ impl Operation for CreatePromiseCapability {
     const COST: u8 = 8;
 
     fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        if context.vm.frame().promise_capability.is_some() {
+        if context
+            .vm
+            .frame()
+            .promise_capability(&context.vm.stack)
+            .is_some()
+        {
             return Ok(CompletionType::Normal);
         }
 
@@ -163,7 +168,12 @@ impl Operation for CreatePromiseCapability {
         )
         .expect("cannot fail per spec");
 
-        context.vm.frame_mut().promise_capability = Some(promise_capability);
+        context
+            .vm
+            .frames
+            .last()
+            .expect("there should be a frame")
+            .set_promise_capability(&mut context.vm.stack, Some(&promise_capability));
         Ok(CompletionType::Normal)
     }
 }
@@ -183,7 +193,8 @@ impl Operation for CompletePromiseCapability {
     fn execute(context: &mut Context) -> JsResult<CompletionType> {
         // If the current executing function is an async function we have to resolve/reject it's promise at the end.
         // The relevant spec section is 3. in [AsyncBlockStart](https://tc39.es/ecma262/#sec-asyncblockstart).
-        let Some(promise_capability) = context.vm.frame_mut().promise_capability.take() else {
+        let Some(promise_capability) = context.vm.frame().promise_capability(&context.vm.stack)
+        else {
             return if context.vm.pending_exception.is_some() {
                 Ok(CompletionType::Throw)
             } else {

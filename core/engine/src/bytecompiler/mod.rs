@@ -255,7 +255,7 @@ pub struct ByteCompiler<'ctx> {
     /// The number of arguments expected.
     pub(crate) length: u32,
 
-    pub(crate) locals_count: u32,
+    pub(crate) register_count: u32,
 
     /// \[\[ThisMode\]\]
     pub(crate) this_mode: ThisMode,
@@ -329,7 +329,7 @@ impl<'ctx> ByteCompiler<'ctx> {
             params: FormalParameterList::default(),
             current_open_environments_count: 0,
 
-            locals_count: 0,
+            register_count: 0,
             current_stack_value_count: 0,
             code_block_flags,
             handlers: ThinVec::default(),
@@ -1523,17 +1523,25 @@ impl<'ctx> ByteCompiler<'ctx> {
         }
         self.r#return(false);
 
-        if self.is_async_generator() {
-            self.locals_count += 1;
+        if self.is_async() {
+            // NOTE: +3 for the promise capability
+            self.register_count += 3;
+            if self.is_generator() {
+                // NOTE: +1 for the async generator function
+                self.register_count += 1;
+            }
         }
+
+        // NOTE: Offset the handlers stack count so we don't pop the registers
+        //       when a exception is thrown.
         for handler in &mut self.handlers {
-            handler.stack_count += self.locals_count;
+            handler.stack_count += self.register_count;
         }
 
         CodeBlock {
             name: self.function_name,
             length: self.length,
-            locals_count: self.locals_count,
+            register_count: self.register_count,
             this_mode: self.this_mode,
             params: self.params,
             bytecode: self.bytecode.into_boxed_slice(),

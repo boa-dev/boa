@@ -177,7 +177,7 @@ pub struct CodeBlock {
     /// The number of arguments expected.
     pub(crate) length: u32,
 
-    pub(crate) locals_count: u32,
+    pub(crate) register_count: u32,
 
     /// \[\[ThisMode\]\]
     pub(crate) this_mode: ThisMode,
@@ -218,7 +218,7 @@ impl CodeBlock {
             name,
             flags: Cell::new(flags),
             length,
-            locals_count: 0,
+            register_count: 0,
             this_mode: ThisMode::Global,
             params: FormalParameterList::default(),
             handlers: ThinVec::default(),

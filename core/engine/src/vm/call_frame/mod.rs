@@ -3,9 +3,12 @@
 //! This module will provides everything needed to implement the `CallFrame`
 
 use crate::{
-    builtins::{iterable::IteratorRecord, promise::PromiseCapability},
+    builtins::{
+        iterable::IteratorRecord,
+        promise::{PromiseCapability, ResolvingFunctions},
+    },
     environments::{BindingLocator, EnvironmentStack},
-    object::JsObject,
+    object::{JsFunction, JsObject},
     realm::Realm,
     vm::CodeBlock,
     JsValue,
@@ -26,8 +29,8 @@ bitflags::bitflags! {
         /// Was this [`CallFrame`] created from the `__construct__()` internal object method?
         const CONSTRUCT = 0b0000_0010;
 
-        /// Does this [`CallFrame`] need to push local variables on [`Vm::push_frame()`].
-        const LOCALS_ALREADY_PUSHED = 0b0000_0100;
+        /// Does this [`CallFrame`] need to push registers on [`Vm::push_frame()`].
+        const REGISTERS_ALREADY_PUSHED = 0b0000_0100;
     }
 }
 
@@ -44,7 +47,6 @@ pub struct CallFrame {
     pub(crate) rp: u32,
     pub(crate) argument_count: u32,
     pub(crate) env_fp: u32,
-    pub(crate) promise_capability: Option<PromiseCapability>,
 
     // Iterators and their `[[Done]]` flags that must be closed when an abrupt completion is thrown.
     pub(crate) iterators: ThinVec<IteratorRecord>,
@@ -132,7 +134,10 @@ impl CallFrame {
     pub(crate) const FUNCTION_PROLOGUE: u32 = 2;
     pub(crate) const THIS_POSITION: u32 = 2;
     pub(crate) const FUNCTION_POSITION: u32 = 1;
-    pub(crate) const ASYNC_GENERATOR_OBJECT_REGISTER_INDEX: u32 = 0;
+    pub(crate) const PROMISE_CAPABILITY_PROMISE_REGISTER_INDEX: u32 = 0;
+    pub(crate) const PROMISE_CAPABILITY_RESOLVE_REGISTER_INDEX: u32 = 1;
+    pub(crate) const PROMISE_CAPABILITY_REJECT_REGISTER_INDEX: u32 = 2;
+    pub(crate) const ASYNC_GENERATOR_OBJECT_REGISTER_INDEX: u32 = 3;
 
     /// Creates a new `CallFrame` with the provided `CodeBlock`.
     pub(crate) fn new(
@@ -147,7 +152,6 @@ impl CallFrame {
             rp: 0,
             env_fp: 0,
             argument_count: 0,
-            promise_capability: None,
             iterators: ThinVec::new(),
             binding_stack: Vec::new(),
             loop_iteration_count: 0,
@@ -216,20 +220,93 @@ impl CallFrame {
             return None;
         }
 
-        self.local(Self::ASYNC_GENERATOR_OBJECT_REGISTER_INDEX, stack)
+        self.register(Self::ASYNC_GENERATOR_OBJECT_REGISTER_INDEX, stack)
             .as_object()
             .cloned()
     }
 
-    /// Returns the local at the given index.
+    pub(crate) fn promise_capability(&self, stack: &[JsValue]) -> Option<PromiseCapability> {
+        if !self.code_block().is_async() {
+            return None;
+        }
+
+        let promise = self
+            .register(Self::PROMISE_CAPABILITY_PROMISE_REGISTER_INDEX, stack)
+            .as_object()
+            .cloned()?;
+        let resolve = self
+            .register(Self::PROMISE_CAPABILITY_RESOLVE_REGISTER_INDEX, stack)
+            .as_object()
+            .cloned()
+            .and_then(JsFunction::from_object)?;
+        let reject = self
+            .register(Self::PROMISE_CAPABILITY_REJECT_REGISTER_INDEX, stack)
+            .as_object()
+            .cloned()
+            .and_then(JsFunction::from_object)?;
+
+        Some(PromiseCapability {
+            promise,
+            functions: ResolvingFunctions { resolve, reject },
+        })
+    }
+
+    pub(crate) fn set_promise_capability(
+        &self,
+        stack: &mut [JsValue],
+        promise_capability: Option<&PromiseCapability>,
+    ) {
+        debug_assert!(
+            self.code_block().is_async(),
+            "Only async functions have a promise capability"
+        );
+
+        self.set_register(
+            Self::PROMISE_CAPABILITY_PROMISE_REGISTER_INDEX,
+            promise_capability
+                .map(PromiseCapability::promise)
+                .cloned()
+                .map_or_else(JsValue::undefined, Into::into),
+            stack,
+        );
+        self.set_register(
+            Self::PROMISE_CAPABILITY_RESOLVE_REGISTER_INDEX,
+            promise_capability
+                .map(PromiseCapability::resolve)
+                .cloned()
+                .map_or_else(JsValue::undefined, Into::into),
+            stack,
+        );
+        self.set_register(
+            Self::PROMISE_CAPABILITY_REJECT_REGISTER_INDEX,
+            promise_capability
+                .map(PromiseCapability::reject)
+                .cloned()
+                .map_or_else(JsValue::undefined, Into::into),
+            stack,
+        );
+    }
+
+    /// Returns the register at the given index.
     ///
     /// # Panics
     ///
     /// If the index is out of bounds.
-    pub(crate) fn local<'stack>(&self, index: u32, stack: &'stack [JsValue]) -> &'stack JsValue {
-        debug_assert!(index < self.code_block().locals_count);
+    pub(crate) fn register<'stack>(&self, index: u32, stack: &'stack [JsValue]) -> &'stack JsValue {
+        debug_assert!(index < self.code_block().register_count);
         let at = self.rp + index;
         &stack[at as usize]
+    }
+
+    /// Sets the register at the given index.
+    ///
+    /// # Panics
+    ///
+    /// If the index is out of bounds.
+    pub(crate) fn set_register(&self, index: u32, value: JsValue, stack: &mut [JsValue]) {
+        debug_assert!(index < self.code_block().register_count);
+        let at = self.rp + index;
+        stack[at as usize] = value;
     }
 
     /// Does this have the [`CallFrameFlags::EXIT_EARLY`] flag.
@@ -244,9 +321,10 @@ impl CallFrame {
     pub(crate) fn construct(&self) -> bool {
         self.flags.contains(CallFrameFlags::CONSTRUCT)
     }
-    /// Does this [`CallFrame`] need to push local variables on [`Vm::push_frame()`].
-    pub(crate) fn locals_already_pushed(&self) -> bool {
-        self.flags.contains(CallFrameFlags::LOCALS_ALREADY_PUSHED)
+    /// Does this [`CallFrame`] need to push registers on [`Vm::push_frame()`].
+    pub(crate) fn registers_already_pushed(&self) -> bool {
+        self.flags
+            .contains(CallFrameFlags::REGISTERS_ALREADY_PUSHED)
     }
 }
 
