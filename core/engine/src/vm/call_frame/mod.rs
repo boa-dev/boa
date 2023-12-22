@@ -29,8 +29,8 @@ bitflags::bitflags! {
         /// Was this [`CallFrame`] created from the `__construct__()` internal object method?
         const CONSTRUCT = 0b0000_0010;
 
-        /// Does this [`CallFrame`] need to push local variables on [`Vm::push_frame()`].
-        const LOCALS_ALREADY_PUSHED = 0b0000_0100;
+        /// Does this [`CallFrame`] need to push registers on [`Vm::push_frame()`].
+        const REGISTERS_ALREADY_PUSHED = 0b0000_0100;
     }
 }
 
@@ -220,7 +220,7 @@ impl CallFrame {
             return None;
         }
 
-        self.local(Self::ASYNC_GENERATOR_OBJECT_REGISTER_INDEX, stack)
+        self.register(Self::ASYNC_GENERATOR_OBJECT_REGISTER_INDEX, stack)
             .as_object()
             .cloned()
     }
@@ -231,16 +231,16 @@ impl CallFrame {
         }
 
         let promise = self
-            .local(Self::PROMISE_CAPABILITY_PROMISE_REGISTER_INDEX, stack)
+            .register(Self::PROMISE_CAPABILITY_PROMISE_REGISTER_INDEX, stack)
             .as_object()
             .cloned()?;
         let resolve = self
-            .local(Self::PROMISE_CAPABILITY_RESOLVE_REGISTER_INDEX, stack)
+            .register(Self::PROMISE_CAPABILITY_RESOLVE_REGISTER_INDEX, stack)
             .as_object()
             .cloned()
             .and_then(JsFunction::from_object)?;
         let reject = self
-            .local(Self::PROMISE_CAPABILITY_REJECT_REGISTER_INDEX, stack)
+            .register(Self::PROMISE_CAPABILITY_REJECT_REGISTER_INDEX, stack)
             .as_object()
             .cloned()
             .and_then(JsFunction::from_object)?;
@@ -261,7 +261,7 @@ impl CallFrame {
             "Only async functions have a promise capability"
         );
 
-        self.set_local(
+        self.set_register(
             Self::PROMISE_CAPABILITY_PROMISE_REGISTER_INDEX,
             promise_capability
                 .map(PromiseCapability::promise)
@@ -269,7 +269,7 @@ impl CallFrame {
                 .map_or_else(JsValue::undefined, Into::into),
             stack,
         );
-        self.set_local(
+        self.set_register(
             Self::PROMISE_CAPABILITY_RESOLVE_REGISTER_INDEX,
             promise_capability
                 .map(PromiseCapability::resolve)
@@ -277,7 +277,7 @@ impl CallFrame {
                 .map_or_else(JsValue::undefined, Into::into),
             stack,
         );
-        self.set_local(
+        self.set_register(
             Self::PROMISE_CAPABILITY_REJECT_REGISTER_INDEX,
             promise_capability
                 .map(PromiseCapability::reject)
@@ -287,24 +287,24 @@ impl CallFrame {
         );
     }
 
-    /// Returns the local at the given index.
+    /// Returns the register at the given index.
     ///
     /// # Panics
     ///
     /// If the index is out of bounds.
-    pub(crate) fn local<'stack>(&self, index: u32, stack: &'stack [JsValue]) -> &'stack JsValue {
-        debug_assert!(index < self.code_block().locals_count);
+    pub(crate) fn register<'stack>(&self, index: u32, stack: &'stack [JsValue]) -> &'stack JsValue {
+        debug_assert!(index < self.code_block().register_count);
         let at = self.rp + index;
         &stack[at as usize]
     }
 
-    /// Sets the local at the given index.
+    /// Sets the register at the given index.
     ///
     /// # Panics
     ///
     /// If the index is out of bounds.
-    pub(crate) fn set_local(&self, index: u32, value: JsValue, stack: &mut [JsValue]) {
-        debug_assert!(index < self.code_block().locals_count);
+    pub(crate) fn set_register(&self, index: u32, value: JsValue, stack: &mut [JsValue]) {
+        debug_assert!(index < self.code_block().register_count);
         let at = self.rp + index;
         stack[at as usize] = value;
     }
@@ -321,9 +321,10 @@ impl CallFrame {
     pub(crate) fn construct(&self) -> bool {
         self.flags.contains(CallFrameFlags::CONSTRUCT)
     }
-    /// Does this [`CallFrame`] need to push local variables on [`Vm::push_frame()`].
-    pub(crate) fn locals_already_pushed(&self) -> bool {
-        self.flags.contains(CallFrameFlags::LOCALS_ALREADY_PUSHED)
+    /// Does this [`CallFrame`] need to push registers on [`Vm::push_frame()`].
+    pub(crate) fn registers_already_pushed(&self) -> bool {
+        self.flags
+            .contains(CallFrameFlags::REGISTERS_ALREADY_PUSHED)
     }
 }
 

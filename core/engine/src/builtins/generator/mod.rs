@@ -75,8 +75,8 @@ impl GeneratorContext {
         frame.rp = CallFrame::FUNCTION_PROLOGUE + frame.argument_count;
 
         // NOTE: Since we get a pre-built call frame with stack, and we reuse them.
-        //       So we don't need to push the locals in subsequent calls.
-        frame.flags |= CallFrameFlags::LOCALS_ALREADY_PUSHED;
+        //       So we don't need to push the registers in subsequent calls.
+        frame.flags |= CallFrameFlags::REGISTERS_ALREADY_PUSHED;
 
         Self {
             call_frame: Some(frame),
