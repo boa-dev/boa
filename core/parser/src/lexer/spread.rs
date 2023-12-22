@@ -39,8 +39,8 @@ impl<R> Tokenizer<R> for SpreadLiteral {
         let _timer = Profiler::global().start_event("SpreadLiteral", "Lexing");
 
         // . or ...
-        if cursor.next_is(b'.')? {
-            if cursor.next_is(b'.')? {
+        if cursor.next_if(0x2E /* . */)? {
+            if cursor.next_if(0x2E /* . */)? {
                 Ok(Token::new(
                     Punctuator::Spread.into(),
                     Span::new(start_pos, cursor.pos()),

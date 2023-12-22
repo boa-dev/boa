@@ -4,10 +4,7 @@ use crate::lexer::{token::EscapeSequence, Cursor, Error, Token, TokenKind, Token
 use boa_ast::{Position, Span};
 use boa_interner::Interner;
 use boa_profiler::Profiler;
-use std::{
-    io::{self, ErrorKind, Read},
-    str,
-};
+use std::io::{self, ErrorKind, Read};
 
 /// String literal lexing.
 ///
@@ -192,8 +189,8 @@ impl StringLiteral {
             0x0027 /* ' */ => (Some(0x0027 /* ' */), EscapeSequence::OTHER),
             0x005C /* \ */ => (Some(0x005C /* \ */), EscapeSequence::OTHER),
             0x0030 /* 0 */ if cursor
-                .peek()?
-                .filter(u8::is_ascii_digit)
+                .peek_char()?
+                .filter(|c| (48..=57).contains(c))
                 .is_none() =>
                 (Some(0x0000 /* NULL */), EscapeSequence::OTHER),
             0x0078 /* x */ => {
@@ -259,20 +256,29 @@ impl StringLiteral {
         R: Read,
     {
         // Support \u{X..X} (Unicode CodePoint)
-        if cursor.next_is(b'{')? {
+        if cursor.next_if(0x7B /* { */)? {
             // TODO: use bytes for a bit better performance (using stack)
             let mut code_point_buf = Vec::with_capacity(6);
-            cursor.take_until(b'}', &mut code_point_buf)?;
+            cursor.take_until(0x7D /* } */, &mut code_point_buf)?;
 
-            let code_point = str::from_utf8(code_point_buf.as_slice())
-                .ok()
-                .and_then(|code_point_str| {
-                    // The `code_point_str` should represent a single unicode codepoint, convert to u32
-                    u32::from_str_radix(code_point_str, 16).ok()
-                })
-                .ok_or_else(|| {
-                    Error::syntax("malformed Unicode character escape sequence", start_pos)
-                })?;
+            let mut s = String::with_capacity(code_point_buf.len());
+            for c in code_point_buf {
+                if let Some(c) = char::from_u32(c) {
+                    s.push(c);
+                } else {
+                    return Err(Error::syntax(
+                        "malformed Unicode character escape sequence",
+                        start_pos,
+                    ));
+                }
+            }
+
+            let Ok(code_point) = u32::from_str_radix(&s, 16) else {
+                return Err(Error::syntax(
+                    "malformed Unicode character escape sequence",
+                    start_pos,
+                ));
+            };
 
             // UTF16Encoding of a numeric code point value
             if code_point > 0x10_FFFF {
@@ -286,14 +292,32 @@ impl StringLiteral {
         } else {
             // Grammar: Hex4Digits
             // Collect each character after \u e.g \uD83D will give "D83D"
-            let mut code_point_utf8_bytes = [0u8; 4];
-            cursor.fill_bytes(&mut code_point_utf8_bytes)?;
-
-            // Convert to u16
-            let code_point = str::from_utf8(&code_point_utf8_bytes)
-                .ok()
-                .and_then(|code_point_str| u16::from_str_radix(code_point_str, 16).ok())
+            let mut buffer = [0u32; 4];
+            buffer[0] = cursor
+                .next_char()?
                 .ok_or_else(|| Error::syntax("invalid Unicode escape sequence", start_pos))?;
+            buffer[1] = cursor
+                .next_char()?
+                .ok_or_else(|| Error::syntax("invalid Unicode escape sequence", start_pos))?;
+            buffer[2] = cursor
+                .next_char()?
+                .ok_or_else(|| Error::syntax("invalid Unicode escape sequence", start_pos))?;
+            buffer[3] = cursor
+                .next_char()?
+                .ok_or_else(|| Error::syntax("invalid Unicode escape sequence", start_pos))?;
+
+            let mut s = String::with_capacity(buffer.len());
+            for c in buffer {
+                if let Some(c) = char::from_u32(c) {
+                    s.push(c);
+                } else {
+                    return Err(Error::syntax("invalid Unicode escape sequence", start_pos));
+                }
+            }
+
+            let Ok(code_point) = u16::from_str_radix(&s, 16) else {
+                return Err(Error::syntax("invalid Unicode escape sequence", start_pos));
+            };
 
             Ok(u32::from(code_point))
         }
@@ -306,12 +330,32 @@ impl StringLiteral {
     where
         R: Read,
     {
-        let mut code_point_utf8_bytes = [0u8; 2];
-        cursor.fill_bytes(&mut code_point_utf8_bytes)?;
-        let code_point = str::from_utf8(&code_point_utf8_bytes)
-            .ok()
-            .and_then(|code_point_str| u16::from_str_radix(code_point_str, 16).ok())
+        let mut buffer = [0u32; 2];
+        buffer[0] = cursor
+            .next_char()?
             .ok_or_else(|| Error::syntax("invalid Hexadecimal escape sequence", start_pos))?;
+        buffer[1] = cursor
+            .next_char()?
+            .ok_or_else(|| Error::syntax("invalid Hexadecimal escape sequence", start_pos))?;
+
+        let mut s = String::with_capacity(buffer.len());
+        for c in buffer {
+            if let Some(c) = char::from_u32(c) {
+                s.push(c);
+            } else {
+                return Err(Error::syntax(
+                    "invalid Hexadecimal escape sequence",
+                    start_pos,
+                ));
+            }
+        }
+
+        let Ok(code_point) = u16::from_str_radix(&s, 16) else {
+            return Err(Error::syntax(
+                "invalid Hexadecimal escape sequence",
+                start_pos,
+            ));
+        };
 
         Ok(u32::from(code_point))
     }
@@ -328,17 +372,17 @@ impl StringLiteral {
 
         // Grammar: ZeroToThree OctalDigit
         // Grammar: FourToSeven OctalDigit
-        if let Some(byte) = cursor.peek()? {
-            if (b'0'..=b'7').contains(&byte) {
-                cursor.next_byte()?;
-                code_point = (code_point * 8) + u32::from(byte - b'0');
+        if let Some(c) = cursor.peek_char()? {
+            if (48..=55).contains(&c) {
+                cursor.next_char()?;
+                code_point = (code_point * 8) + c - 48;
 
-                if (b'0'..=b'3').contains(&init_byte) {
+                if (48..=51).contains(&init_byte) {
                     // Grammar: ZeroToThree OctalDigit OctalDigit
-                    if let Some(byte) = cursor.peek()? {
-                        if (b'0'..=b'7').contains(&byte) {
-                            cursor.next_byte()?;
-                            code_point = (code_point * 8) + u32::from(byte - b'0');
+                    if let Some(c) = cursor.peek_char()? {
+                        if (48..=55).contains(&c) {
+                            cursor.next_char()?;
+                            code_point = (code_point * 8) + c - 48;
                         }
                     }
                 }

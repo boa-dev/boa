@@ -129,14 +129,16 @@ impl<R> Lexer<R> {
     {
         let _timer = Profiler::global().start_event("lex_slash_token", "Lexing");
 
-        if let Some(c) = self.cursor.peek()? {
+        if let Some(c) = self.cursor.peek_char()? {
             match c {
-                b'/' => {
-                    self.cursor.next_byte()?.expect("/ token vanished"); // Consume the '/'
+                // /
+                0x002F => {
+                    self.cursor.next_char()?.expect("/ token vanished"); // Consume the '/'
                     SingleLineComment.lex(&mut self.cursor, start, interner)
                 }
-                b'*' => {
-                    self.cursor.next_byte()?.expect("* token vanished"); // Consume the '*'
+                // *
+                0x002A => {
+                    self.cursor.next_char()?.expect("* token vanished"); // Consume the '*'
                     MultiLineComment.lex(&mut self.cursor, start, interner)
                 }
                 ch => {
@@ -144,9 +146,10 @@ impl<R> Lexer<R> {
                         InputElement::Div | InputElement::TemplateTail => {
                             // Only div punctuator allowed, regex not.
 
-                            if ch == b'=' {
+                            // =
+                            if ch == 0x003D {
                                 // Indicates this is an AssignDiv.
-                                self.cursor.next_byte()?.expect("= token vanished"); // Consume the '='
+                                self.cursor.next_char()?.expect("= token vanished"); // Consume the '='
                                 Ok(Token::new(
                                     Punctuator::AssignDiv.into(),
                                     Span::new(start, self.cursor.pos()),
@@ -186,10 +189,11 @@ impl<R> Lexer<R> {
             let _next = self.cursor.next_char();
         }
 
-        if self.cursor.peek_n(3)? == [b'-', b'-', b'>'] {
-            let _next = self.cursor.next_byte();
-            let _next = self.cursor.next_byte();
-            let _next = self.cursor.next_byte();
+        // -->
+        if self.cursor.peek_n(3)?[..3] == [Some(0x2D), Some(0x2D), Some(0x3E)] {
+            let _next = self.cursor.next_char();
+            let _next = self.cursor.next_char();
+            let _next = self.cursor.next_char();
 
             let start = self.cursor.pos();
             SingleLineComment.lex(&mut self.cursor, start, interner)?;
@@ -224,13 +228,13 @@ impl<R> Lexer<R> {
 
         //handle hashbang here so the below match block still throws error on
         //# if position isn't (1, 1)
-        if start.column_number() == 1 && start.line_number() == 1 && next_ch == 0x23 {
-            if let Some(hashbang_peek) = self.cursor.peek()? {
-                if hashbang_peek == 0x21 {
-                    let _token = HashbangComment.lex(&mut self.cursor, start, interner);
-                    return self.next(interner);
-                }
-            }
+        if start.column_number() == 1
+            && start.line_number() == 1
+            && next_ch == 0x23
+            && self.cursor.peek_char()? == Some(0x21)
+        {
+            let _token = HashbangComment.lex(&mut self.cursor, start, interner);
+            return self.next(interner);
         };
 
         if let Ok(c) = char::try_from(next_ch) {
@@ -250,7 +254,12 @@ impl<R> Lexer<R> {
                     Span::new(start, self.cursor.pos()),
                 )),
                 '.' => {
-                    if self.cursor.peek()?.as_ref().map(u8::is_ascii_digit) == Some(true) {
+                    if self
+                        .cursor
+                        .peek_char()?
+                        .filter(|c| (48..=57).contains(c))
+                        .is_some()
+                    {
                         NumberLiteral::new(b'.').lex(&mut self.cursor, start, interner)
                     } else {
                         SpreadLiteral::new().lex(&mut self.cursor, start, interner)
@@ -287,10 +296,13 @@ impl<R> Lexer<R> {
                 '#' => PrivateIdentifier::new().lex(&mut self.cursor, start, interner),
                 '/' => self.lex_slash_token(start, interner),
                 #[cfg(feature = "annex-b")]
-                '<' if !self.module() && self.cursor.peek_n(3)? == [b'!', b'-', b'-'] => {
-                    let _next = self.cursor.next_byte();
-                    let _next = self.cursor.next_byte();
-                    let _next = self.cursor.next_byte();
+                // <!--
+                '<' if !self.module()
+                    && self.cursor.peek_n(3)?[..3] == [Some(0x21), Some(0x2D), Some(0x2D)] =>
+                {
+                    let _next = self.cursor.next_char();
+                    let _next = self.cursor.next_char();
+                    let _next = self.cursor.next_char();
                     let start = self.cursor.pos();
                     SingleLineComment.lex(&mut self.cursor, start, interner)
                 }
@@ -298,7 +310,7 @@ impl<R> Lexer<R> {
                 '=' | '*' | '+' | '-' | '%' | '|' | '&' | '^' | '<' | '>' | '!' | '~' | '?' => {
                     Operator::new(next_ch as u8).lex(&mut self.cursor, start, interner)
                 }
-                '\\' if self.cursor.peek()? == Some(b'u') => {
+                '\\' if self.cursor.peek_char()? == Some(0x0075 /* u */) => {
                     Identifier::new(c).lex(&mut self.cursor, start, interner)
                 }
                 _ if Identifier::is_identifier_start(c as u32) => {

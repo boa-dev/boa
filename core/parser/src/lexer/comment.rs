@@ -74,7 +74,7 @@ impl<R> Tokenizer<R> for MultiLineComment {
         while let Some(ch) = cursor.next_char()? {
             let tried_ch = char::try_from(ch);
             match tried_ch {
-                Ok(c) if c == '*' && cursor.next_is(b'/')? => {
+                Ok(c) if c == '*' && cursor.next_if(0x2F /* / */)? => {
                     return Ok(Token::new(
                         if new_line {
                             TokenKind::LineTerminator

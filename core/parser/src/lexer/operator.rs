@@ -11,27 +11,24 @@ use std::io::Read;
 /// If the next value is not an assignment operation it will pattern match  the provided values and return the corresponding token.
 macro_rules! vop {
     ($cursor:ident, $assign_op:expr, $op:expr) => ({
-        match $cursor.peek()? {
+        match $cursor.peek_char()? {
             None => Err(Error::syntax("abrupt end - could not preview next value as part of the operator", $cursor.pos())),
-            Some(b'=') => {
-                $cursor.next_byte()?.expect("= token vanished");
-                $cursor.next_column();
+            Some(0x3D /* = */) => {
+                $cursor.next_char()?.expect("= token vanished");
                 $assign_op
             }
             Some(_) => $op,
         }
     });
     ($cursor:ident, $assign_op:expr, $op:expr, {$($case:pat => $block:expr), +}) => ({
-        match $cursor.peek()? {
+        match $cursor.peek_char()? {
             None => Err(Error::syntax("abrupt end - could not preview next value as part of the operator", $cursor.pos())),
-            Some(b'=') => {
-                $cursor.next_byte()?.expect("= token vanished");
-                $cursor.next_column();
+            Some(0x3D /* = */) => {
+                $cursor.next_char()?.expect("= token vanished");
                 $assign_op
             },
             $($case => {
-                $cursor.next_byte()?.expect("Token vanished");
-                $cursor.next_column();
+                $cursor.next_char()?.expect("Token vanished");
                 $block
             })+,
             _ => $op,
@@ -92,13 +89,13 @@ impl<R> Tokenizer<R> for Operator {
 
         match self.init {
             b'*' => op!(cursor, start_pos, Ok(Punctuator::AssignMul), Ok(Punctuator::Mul), {
-                Some(b'*') => vop!(cursor, Ok(Punctuator::AssignPow), Ok(Punctuator::Exp))
+                Some(0x2A /* * */) => vop!(cursor, Ok(Punctuator::AssignPow), Ok(Punctuator::Exp))
             }),
             b'+' => op!(cursor, start_pos, Ok(Punctuator::AssignAdd), Ok(Punctuator::Add), {
-                Some(b'+') => Ok(Punctuator::Inc)
+                Some(0x2B /* + */) => Ok(Punctuator::Inc)
             }),
             b'-' => op!(cursor, start_pos, Ok(Punctuator::AssignSub), Ok(Punctuator::Sub), {
-                Some(b'-') => {
+                Some(0x2D /* - */) => {
                     Ok(Punctuator::Dec)
                 }
             }),
@@ -109,19 +106,16 @@ impl<R> Tokenizer<R> for Operator {
                 Ok(Punctuator::Mod)
             ),
             b'|' => op!(cursor, start_pos, Ok(Punctuator::AssignOr), Ok(Punctuator::Or), {
-                Some(b'|') => vop!(cursor, Ok(Punctuator::AssignBoolOr), Ok(Punctuator::BoolOr))
+                Some(0x7C /* | */) => vop!(cursor, Ok(Punctuator::AssignBoolOr), Ok(Punctuator::BoolOr))
             }),
             b'&' => op!(cursor, start_pos, Ok(Punctuator::AssignAnd), Ok(Punctuator::And), {
-                Some(b'&') => vop!(cursor, Ok(Punctuator::AssignBoolAnd), Ok(Punctuator::BoolAnd))
+                Some(0x26 /* & */) => vop!(cursor, Ok(Punctuator::AssignBoolAnd), Ok(Punctuator::BoolAnd))
             }),
             b'?' => {
-                let (first, second) = (
-                    cursor.peek_n(2)?.first().copied(),
-                    cursor.peek_n(2)?.get(1).copied(),
-                );
+                let (first, second) = (cursor.peek_char()?, cursor.peek_n(2)?[1]);
                 match first {
-                    Some(b'?') => {
-                        cursor.next_byte()?.expect("? vanished");
+                    Some(0x3F /* ? */) => {
+                        cursor.next_char()?.expect("? vanished");
                         op!(
                             cursor,
                             start_pos,
@@ -129,8 +123,9 @@ impl<R> Tokenizer<R> for Operator {
                             Ok(Punctuator::Coalesce)
                         )
                     }
-                    Some(b'.') if !matches!(second, Some(second) if second.is_ascii_digit()) => {
-                        cursor.next_byte()?.expect(". vanished");
+                    Some(0x2E /* . */) if !matches!(second, Some(second) if (0x30..=0x39).contains(&second)) =>
+                    {
+                        cursor.next_char()?.expect(". vanished");
                         Ok(Token::new(
                             TokenKind::Punctuator(Punctuator::Optional),
                             Span::new(start_pos, cursor.pos()),
@@ -148,24 +143,24 @@ impl<R> Tokenizer<R> for Operator {
                 Ok(Punctuator::AssignXor),
                 Ok(Punctuator::Xor)
             ),
-            b'=' => op!(cursor, start_pos, if cursor.next_is(b'=')? {
+            b'=' => op!(cursor, start_pos, if cursor.next_if(0x3D /* = */)? {
                 Ok(Punctuator::StrictEq)
             } else {
                 Ok(Punctuator::Eq)
             }, Ok(Punctuator::Assign), {
-                Some(b'>') => {
+                Some(0x3E /* > */) => {
                     Ok(Punctuator::Arrow)
                 }
             }),
             b'<' => {
                 op!(cursor, start_pos, Ok(Punctuator::LessThanOrEq), Ok(Punctuator::LessThan), {
-                    Some(b'<') => vop!(cursor, Ok(Punctuator::AssignLeftSh), Ok(Punctuator::LeftSh))
+                    Some(0x3C /* < */) => vop!(cursor, Ok(Punctuator::AssignLeftSh), Ok(Punctuator::LeftSh))
                 })
             }
             b'>' => {
                 op!(cursor, start_pos, Ok(Punctuator::GreaterThanOrEq), Ok(Punctuator::GreaterThan), {
-                    Some(b'>') => vop!(cursor, Ok(Punctuator::AssignRightSh), Ok(Punctuator::RightSh), {
-                        Some(b'>') => vop!(cursor, Ok(Punctuator::AssignURightSh), Ok(Punctuator::URightSh))
+                    Some(0x3E /* > */) => vop!(cursor, Ok(Punctuator::AssignRightSh), Ok(Punctuator::RightSh), {
+                        Some(0x3E /* > */) => vop!(cursor, Ok(Punctuator::AssignURightSh), Ok(Punctuator::URightSh))
                     })
                 })
             }

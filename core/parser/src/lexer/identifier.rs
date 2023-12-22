@@ -100,7 +100,7 @@ impl Identifier {
         let _timer = Profiler::global().start_event("Identifier::take_identifier_name", "Lexing");
 
         let mut contains_escaped_chars = false;
-        let mut identifier_name = if init == '\\' && cursor.next_is(b'u')? {
+        let mut identifier_name = if init == '\\' && cursor.next_if(0x75 /* u */)? {
             let ch = StringLiteral::take_unicode_escape_sequence(cursor, start_pos)?;
 
             if Self::is_identifier_start(ch) {
@@ -119,10 +119,10 @@ impl Identifier {
 
         loop {
             let ch = match cursor.peek_char()? {
-                Some(0x005C /* \ */) if cursor.peek_n(2)?.get(1) == Some(&0x75) /* u */ => {
+                Some(0x005C /* \ */) if cursor.peek_n(2)?[1] == Some(0x75) /* u */ => {
                     let pos = cursor.pos();
-                    let _next = cursor.next_byte();
-                    let _next = cursor.next_byte();
+                    let _next = cursor.next_char();
+                    let _next = cursor.next_char();
                     let ch = StringLiteral::take_unicode_escape_sequence(cursor, pos)?;
 
                     if Self::is_identifier_part(ch) {
