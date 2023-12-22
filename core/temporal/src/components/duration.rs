@@ -1153,6 +1153,7 @@ impl Duration {
     /// Abstract Operation 7.5.26 `RoundDuration ( years, months, weeks, days, hours, minutes,
     ///   seconds, milliseconds, microseconds, nanoseconds, increment, unit,
     ///   roundingMode [ , plainRelativeTo [, zonedRelativeTo [, precalculatedDateTime]]] )`
+    #[allow(clippy::type_complexity)]
     pub fn round_duration<C: CalendarProtocol>(
         &self,
         unbalance_date_duration: DateDuration,
