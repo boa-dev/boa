@@ -298,7 +298,7 @@ impl CallFrame {
         &stack[at as usize]
     }
 
-    /// Returns the local at the given index.
+    /// Sets the local at the given index.
     ///
     /// # Panics
     ///
