@@ -339,6 +339,7 @@
 <a href="#339" id="339">339</a>
 <a href="#340" id="340">340</a>
 <a href="#341" id="341">341</a>
+<a href="#342" id="342">342</a>
 </pre></div><pre class="rust"><code><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>yield_stm;
 
 <span class="kw">use </span>std::collections::VecDeque;
@@ -354,7 +355,7 @@
     vm::{
         call_frame::GeneratorResumeKind,
         opcode::{Operation, ReThrow},
-        CompletionType,
+        CallFrame, CompletionType,
     },
     Context, JsError, JsObject, JsResult, JsValue,
 };
@@ -420,11 +421,12 @@
         };
 
         <span class="kw">if </span>r#async {
-            <span class="kw">let </span>fp = frame
+            <span class="kw">let </span>rp = frame
                 .call_frame
                 .as_ref()
                 .map_or(<span class="number">0</span>, |frame| frame.rp <span class="kw">as </span>usize);
-            frame.stack[fp] = generator.clone().into();
+            frame.stack[rp + CallFrame::ASYNC_GENERATOR_OBJECT_REGISTER_INDEX <span class="kw">as </span>usize] =
+                generator.clone().into();
 
             <span class="kw">let </span><span class="kw-2">mut </span>gen = generator
                 .downcast_mut::&lt;AsyncGenerator&gt;()

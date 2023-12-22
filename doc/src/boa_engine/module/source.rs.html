@@ -2009,6 +2009,12 @@
 <a href="#2009" id="2009">2009</a>
 <a href="#2010" id="2010">2010</a>
 <a href="#2011" id="2011">2011</a>
+<a href="#2012" id="2012">2012</a>
+<a href="#2013" id="2013">2013</a>
+<a href="#2014" id="2014">2014</a>
+<a href="#2015" id="2015">2015</a>
+<a href="#2016" id="2016">2016</a>
+<a href="#2017" id="2017">2017</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{
     cell::Cell,
     collections::HashSet,
@@ -3338,7 +3344,7 @@
 
         <span class="comment">// 9. Perform ! module.ExecuteModule(capability).
         // 10. Return unused.
-        </span><span class="self">self</span>.execute(<span class="prelude-val">Some</span>(capability), context)
+        </span><span class="self">self</span>.execute(<span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>capability), context)
             .expect(<span class="string">&quot;async modules cannot directly throw&quot;</span>);
     }
 
@@ -3752,7 +3758,7 @@
     /// [spec]: https://tc39.es/ecma262/#sec-source-text-module-record-execute-module
     </span><span class="kw">fn </span>execute(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        capability: <span class="prelude-ty">Option</span>&lt;PromiseCapability&gt;,
+        capability: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>PromiseCapability&gt;,
         context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;()&gt; {
         <span class="comment">// 1. Let moduleContext be a new ECMAScript code execution context.
@@ -3774,7 +3780,7 @@
         // 6. Set the VariableEnvironment of moduleContext to module.[[Environment]].
         // 7. Set the LexicalEnvironment of moduleContext to module.[[Environment]].
         </span><span class="kw">let </span>env_fp = environments.len() <span class="kw">as </span>u32;
-        <span class="kw">let </span><span class="kw-2">mut </span>callframe = CallFrame::new(
+        <span class="kw">let </span>callframe = CallFrame::new(
             codeblock,
             <span class="prelude-val">Some</span>(ActiveRunnable::Module(<span class="self">self</span>.parent())),
             environments,
@@ -3782,12 +3788,18 @@
         )
         .with_env_fp(env_fp)
         .with_flags(CallFrameFlags::EXIT_EARLY);
-        callframe.promise_capability = capability;
 
         <span class="comment">// 8. Suspend the running execution context.
         </span>context
             .vm
             .push_frame_with_stack(callframe, JsValue::undefined(), JsValue::null());
+
+        context
+            .vm
+            .frames
+            .last()
+            .expect(<span class="string">&quot;there should be a frame&quot;</span>)
+            .set_promise_capability(<span class="kw-2">&amp;mut </span>context.vm.stack, capability);
 
         <span class="comment">// 9. If module.[[HasTLA]] is false, then
         //    a. Assert: capability is not present.

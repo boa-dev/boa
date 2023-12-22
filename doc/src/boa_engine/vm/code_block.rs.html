@@ -1202,7 +1202,7 @@
     <span class="doccomment">/// The number of arguments expected.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) length: u32,
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) locals_count: u32,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) register_count: u32,
 
     <span class="doccomment">/// \[\[ThisMode\]\]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) this_mode: ThisMode,
@@ -1243,7 +1243,7 @@
             name,
             flags: Cell::new(flags),
             length,
-            locals_count: <span class="number">0</span>,
+            register_count: <span class="number">0</span>,
             this_mode: ThisMode::Global,
             params: FormalParameterList::default(),
             handlers: ThinVec::default(),

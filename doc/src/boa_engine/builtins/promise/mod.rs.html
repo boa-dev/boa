@@ -2542,10 +2542,10 @@
 </span><span class="attr">#[derive(Debug, Clone, Finalize)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>PromiseCapability {
     <span class="doccomment">/// The `[[Promise]]` field.
-    </span>promise: JsObject,
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) promise: JsObject,
 
     <span class="doccomment">/// The resolving functions,
-    </span>functions: ResolvingFunctions,
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) functions: ResolvingFunctions,
 }
 
 <span class="comment">// SAFETY: manually implementing `Trace` to allow destructuring.

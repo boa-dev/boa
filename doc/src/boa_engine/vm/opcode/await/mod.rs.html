@@ -211,6 +211,17 @@
 <a href="#211" id="211">211</a>
 <a href="#212" id="212">212</a>
 <a href="#213" id="213">213</a>
+<a href="#214" id="214">214</a>
+<a href="#215" id="215">215</a>
+<a href="#216" id="216">216</a>
+<a href="#217" id="217">217</a>
+<a href="#218" id="218">218</a>
+<a href="#219" id="219">219</a>
+<a href="#220" id="220">220</a>
+<a href="#221" id="221">221</a>
+<a href="#222" id="222">222</a>
+<a href="#223" id="223">223</a>
+<a href="#224" id="224">224</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>boa_gc::{Gc, GcRefCell};
 
 <span class="kw">use crate</span>::{
@@ -245,6 +256,16 @@
             value,
             context,
         )<span class="question-mark">?</span>;
+
+        <span class="kw">let </span>return_value = context
+            .vm
+            .frame()
+            .promise_capability(<span class="kw-2">&amp;</span>context.vm.stack)
+            .as_ref()
+            .map(PromiseCapability::promise)
+            .cloned()
+            .map(JsValue::from)
+            .unwrap_or_default();
 
         <span class="kw">let </span>gen = GeneratorContext::from_current(context);
 
@@ -338,16 +359,6 @@
             context,
         );
 
-        <span class="kw">let </span>return_value = context
-            .vm
-            .frame()
-            .promise_capability
-            .as_ref()
-            .map(PromiseCapability::promise)
-            .cloned()
-            .map(JsValue::from)
-            .unwrap_or_default();
-
         context.vm.set_return_value(return_value);
         <span class="prelude-val">Ok</span>(CompletionType::Yield)
     }
@@ -366,7 +377,12 @@
     <span class="kw">const </span>COST: u8 = <span class="number">8</span>;
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
-        <span class="kw">if </span>context.vm.frame().promise_capability.is_some() {
+        <span class="kw">if </span>context
+            .vm
+            .frame()
+            .promise_capability(<span class="kw-2">&amp;</span>context.vm.stack)
+            .is_some()
+        {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(CompletionType::Normal);
         }
 
@@ -376,7 +392,12 @@
         )
         .expect(<span class="string">&quot;cannot fail per spec&quot;</span>);
 
-        context.vm.frame_mut().promise_capability = <span class="prelude-val">Some</span>(promise_capability);
+        context
+            .vm
+            .frames
+            .last()
+            .expect(<span class="string">&quot;there should be a frame&quot;</span>)
+            .set_promise_capability(<span class="kw-2">&amp;mut </span>context.vm.stack, <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>promise_capability));
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
 }
@@ -396,7 +417,8 @@
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
         <span class="comment">// If the current executing function is an async function we have to resolve/reject it&#39;s promise at the end.
         // The relevant spec section is 3. in [AsyncBlockStart](https://tc39.es/ecma262/#sec-asyncblockstart).
-        </span><span class="kw">let </span><span class="prelude-val">Some</span>(promise_capability) = context.vm.frame_mut().promise_capability.take() <span class="kw">else </span>{
+        </span><span class="kw">let </span><span class="prelude-val">Some</span>(promise_capability) = context.vm.frame().promise_capability(<span class="kw-2">&amp;</span>context.vm.stack)
+        <span class="kw">else </span>{
             <span class="kw">return if </span>context.vm.pending_exception.is_some() {
                 <span class="prelude-val">Ok</span>(CompletionType::Throw)
             } <span class="kw">else </span>{

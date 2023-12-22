@@ -772,13 +772,13 @@
         std::mem::swap(<span class="kw-2">&amp;mut </span><span class="self">self</span>.environments, <span class="kw-2">&amp;mut </span>frame.environments);
         std::mem::swap(<span class="kw-2">&amp;mut </span><span class="self">self</span>.realm, <span class="kw-2">&amp;mut </span>frame.realm);
 
-        <span class="comment">// NOTE: We need to check if we already pushed the locals,
+        <span class="comment">// NOTE: We need to check if we already pushed the registers,
         //       since generator-like functions push the same call
         //       frame with pre-built stack.
-        </span><span class="kw">if </span>!frame.locals_already_pushed() {
-            <span class="kw">let </span>locals_count = frame.code_block().locals_count;
+        </span><span class="kw">if </span>!frame.registers_already_pushed() {
+            <span class="kw">let </span>register_count = frame.code_block().register_count;
             <span class="self">self</span>.stack.resize_with(
-                current_stack_length + locals_count <span class="kw">as </span>usize,
+                current_stack_length + register_count <span class="kw">as </span>usize,
                 JsValue::undefined,
             );
         }

@@ -482,8 +482,8 @@
         frame.rp = CallFrame::FUNCTION_PROLOGUE + frame.argument_count;
 
         <span class="comment">// NOTE: Since we get a pre-built call frame with stack, and we reuse them.
-        //       So we don&#39;t need to push the locals in subsequent calls.
-        </span>frame.flags |= CallFrameFlags::LOCALS_ALREADY_PUSHED;
+        //       So we don&#39;t need to push the registers in subsequent calls.
+        </span>frame.flags |= CallFrameFlags::REGISTERS_ALREADY_PUSHED;
 
         <span class="self">Self </span>{
             call_frame: <span class="prelude-val">Some</span>(frame),
