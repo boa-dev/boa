@@ -114,7 +114,7 @@ fixed_decimal = { workspace = true, features = ["ryu", "experimental"], optional
 hashbrown.workspace = true
 
 [target.'cfg(all(target_family = "wasm", not(any(target_os = "emscripten", target_os = "wasi"))))'.dependencies]
-web-time = { version = "0.2.3", optional = true }
+web-time = { version = "0.2.4", optional = true }
 
 [dev-dependencies]
 criterion = "0.5.1"
