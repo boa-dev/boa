@@ -108,19 +108,25 @@ impl<R> Tokenizer<R> for RegexLiteral {
         // SAFETY: We have already checked that the bytes are valid UTF-8.
         let flags_str = unsafe { str::from_utf8_unchecked(flags.as_slice()) };
 
-        let mut body_str = String::with_capacity(body.len());
-        for c in body {
-            if let Some(ch) = char::from_u32(c) {
-                body_str.push(ch);
+        let mut body_utf16 = Vec::new();
+
+        // We convert the body to UTF-16 since it may contain code points that are not valid UTF-8.
+        // We already know that the body is valid UTF-16. Casting is fine.
+        #[allow(clippy::cast_possible_truncation)]
+        for cp in &body {
+            let cp = *cp;
+            if cp <= 0xFFFF {
+                body_utf16.push(cp as u16);
             } else {
-                return Err(Error::Syntax(
-                    "Invalid UTF-8 character in regular expressions".into(),
-                    start_pos,
-                ));
+                let cp = cp - 0x1_0000;
+                let high = 0xD800 | ((cp >> 10) as u16);
+                let low = 0xDC00 | ((cp as u16) & 0x3FF);
+                body_utf16.push(high);
+                body_utf16.push(low);
             }
         }
 
-        if let Err(error) = Regex::with_flags(&body_str, flags_str) {
+        if let Err(error) = Regex::from_unicode(body.into_iter(), flags_str) {
             return Err(Error::Syntax(
                 format!("Invalid regular expression literal: {error}").into(),
                 start_pos,
@@ -129,7 +135,7 @@ impl<R> Tokenizer<R> for RegexLiteral {
 
         Ok(Token::new(
             TokenKind::regular_expression_literal(
-                interner.get_or_intern(body_str.as_str()),
+                interner.get_or_intern(body_utf16.as_slice()),
                 parse_regex_flags(flags_str, flags_start, interner)?,
             ),
             Span::new(start_pos, cursor.pos()),
