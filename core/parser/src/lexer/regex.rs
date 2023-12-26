@@ -1,15 +1,13 @@
 //! Boa's lexing for ECMAScript regex literals.
 
 use crate::lexer::{Cursor, Error, Span, Token, TokenKind, Tokenizer};
+use crate::source::ReadChar;
 use bitflags::bitflags;
 use boa_ast::Position;
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
 use regress::{Flags, Regex};
-use std::{
-    io::Read,
-    str::{self, FromStr},
-};
+use std::str::{self, FromStr};
 
 /// Regex literal lexing.
 ///
@@ -34,7 +32,7 @@ impl<R> Tokenizer<R> for RegexLiteral {
         interner: &mut Interner,
     ) -> Result<Token, Error>
     where
-        R: Read,
+        R: ReadChar,
     {
         let _timer = Profiler::global().start_event("RegexLiteral", "Lexing");
 

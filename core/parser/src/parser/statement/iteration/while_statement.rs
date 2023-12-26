@@ -3,12 +3,12 @@ use crate::{
         expression::Expression, statement::Statement, AllowAwait, AllowReturn, AllowYield, Cursor,
         OrAbrupt, ParseResult, TokenParser,
     },
+    source::ReadChar,
     Error,
 };
 use boa_ast::{statement::WhileLoop, Keyword, Punctuator};
 use boa_interner::Interner;
 use boa_profiler::Profiler;
-use std::io::Read;
 
 /// While statement parsing
 ///
@@ -47,7 +47,7 @@ impl WhileStatement {
 
 impl<R> TokenParser<R> for WhileStatement
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = WhileLoop;
 

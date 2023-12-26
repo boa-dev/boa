@@ -1,12 +1,12 @@
 use crate::{
     lexer::{InputElement, Lexer, Token, TokenKind},
     parser::ParseResult,
+    source::{ReadChar, UTF8Input},
     Error,
 };
 use boa_ast::Position;
 use boa_interner::Interner;
 use boa_profiler::Profiler;
-use std::io::Read;
 
 #[cfg(test)]
 mod tests;
@@ -34,7 +34,7 @@ pub(super) struct BufferedLexer<R> {
 
 impl<R> From<Lexer<R>> for BufferedLexer<R>
 where
-    R: Read,
+    R: ReadChar,
 {
     fn from(lexer: Lexer<R>) -> Self {
         Self {
@@ -58,16 +58,22 @@ where
 
 impl<R> From<R> for BufferedLexer<R>
 where
-    R: Read,
+    R: ReadChar,
 {
     fn from(reader: R) -> Self {
         Lexer::new(reader).into()
     }
 }
 
+impl<'a> From<&'a [u8]> for BufferedLexer<UTF8Input<&'a [u8]>> {
+    fn from(reader: &'a [u8]) -> Self {
+        Lexer::from(reader).into()
+    }
+}
+
 impl<R> BufferedLexer<R>
 where
-    R: Read,
+    R: ReadChar,
 {
     /// Sets the goal symbol for the lexer.
     pub(super) fn set_goal(&mut self, elm: InputElement) {

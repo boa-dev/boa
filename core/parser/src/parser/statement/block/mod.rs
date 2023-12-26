@@ -16,6 +16,7 @@ use crate::{
         statement::StatementList, AllowAwait, AllowReturn, AllowYield, Cursor, OrAbrupt,
         ParseResult, TokenParser,
     },
+    source::ReadChar,
     Error,
 };
 use boa_ast::{
@@ -25,7 +26,6 @@ use boa_ast::{
 use boa_interner::Interner;
 use boa_profiler::Profiler;
 use rustc_hash::FxHashMap;
-use std::io::Read;
 
 /// The possible `TokenKind` which indicate the end of a block statement.
 const BLOCK_BREAK_TOKENS: [TokenKind; 1] = [TokenKind::Punctuator(Punctuator::CloseBlock)];
@@ -71,7 +71,7 @@ impl Block {
 
 impl<R> TokenParser<R> for Block
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = statement::Block;
 

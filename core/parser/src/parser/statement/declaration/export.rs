@@ -17,6 +17,7 @@ use crate::{
         statement::{declaration::ClassDeclaration, variable::VariableStatement},
         Error, OrAbrupt, ParseResult, TokenParser,
     },
+    source::ReadChar,
 };
 use boa_ast::{
     declaration::{ExportDeclaration as AstExportDeclaration, ReExportKind},
@@ -24,7 +25,6 @@ use boa_ast::{
 };
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
-use std::io::Read;
 
 use super::{
     hoistable::{AsyncFunctionDeclaration, AsyncGeneratorDeclaration, GeneratorDeclaration},
@@ -42,7 +42,7 @@ pub(in crate::parser) struct ExportDeclaration;
 
 impl<R> TokenParser<R> for ExportDeclaration
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = AstExportDeclaration;
 
@@ -233,7 +233,7 @@ struct NamedExports;
 
 impl<R> TokenParser<R> for NamedExports
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = Box<[boa_ast::declaration::ExportSpecifier]>;
 
@@ -298,7 +298,7 @@ pub(super) struct ModuleExportName;
 
 impl<R> TokenParser<R> for ModuleExportName
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = (Sym, bool);
 
@@ -338,7 +338,7 @@ struct ExportSpecifier;
 
 impl<R> TokenParser<R> for ExportSpecifier
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = boa_ast::declaration::ExportSpecifier;
 

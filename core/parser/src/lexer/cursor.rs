@@ -1,12 +1,14 @@
 //! Boa's lexer cursor that manages the input byte stream.
+
+use crate::source::{ReadChar, UTF8Input};
 use boa_ast::Position;
 use boa_profiler::Profiler;
-use std::io::{self, Bytes, Error, ErrorKind, Read};
+use std::io::{self, Error, ErrorKind};
 
 /// Cursor over the source code.
 #[derive(Debug)]
 pub(super) struct Cursor<R> {
-    iter: InnerIter<R>,
+    iter: R,
     pos: Position,
     module: bool,
     strict: bool,
@@ -54,14 +56,11 @@ impl<R> Cursor<R> {
     }
 }
 
-impl<R> Cursor<R>
-where
-    R: Read,
-{
+impl<R: ReadChar> Cursor<R> {
     /// Creates a new Lexer cursor.
     pub(super) fn new(inner: R) -> Self {
         Self {
-            iter: InnerIter::new(inner.bytes()),
+            iter: inner,
             pos: Position::new(1, 1),
             strict: false,
             module: false,
@@ -72,7 +71,7 @@ where
     /// Creates a new Lexer cursor with an initial position.
     pub(super) fn with_position(inner: R, pos: Position) -> Self {
         Self {
-            iter: InnerIter::new(inner.bytes()),
+            iter: inner,
             pos,
             strict: false,
             module: false,
@@ -216,76 +215,8 @@ where
     }
 }
 
-/// Inner iterator for a cursor.
-#[derive(Debug)]
-struct InnerIter<R> {
-    iter: Bytes<R>,
-}
-
-impl<R> InnerIter<R> {
-    /// Creates a new inner iterator.
-    const fn new(iter: Bytes<R>) -> Self {
-        Self { iter }
+impl<'a> From<&'a [u8]> for Cursor<UTF8Input<&'a [u8]>> {
+    fn from(input: &'a [u8]) -> Self {
+        Self::new(UTF8Input::new(input))
     }
-}
-
-impl<R> InnerIter<R>
-where
-    R: Read,
-{
-    /// Retrieves the next byte
-    fn next_byte(&mut self) -> io::Result<Option<u8>> {
-        self.iter.next().transpose()
-    }
-
-    /// Retrieves the next unchecked char in u32 code point.
-    fn next_char(&mut self) -> io::Result<Option<u32>> {
-        // Decode UTF-8
-        let x = match self.next_byte()? {
-            Some(b) if b < 128 => return Ok(Some(u32::from(b))),
-            Some(b) => b,
-            None => return Ok(None),
-        };
-
-        // Multibyte case follows
-        // Decode from a byte combination out of: [[[x y] z] w]
-        // NOTE: Performance is sensitive to the exact formulation here
-        let init = utf8_first_byte(x, 2);
-        let y = unwrap_or_0(self.next_byte()?);
-        let mut ch = utf8_acc_cont_byte(init, y);
-        if x >= 0xE0 {
-            // [[x y z] w] case
-            // 5th bit in 0xE0 .. 0xEF is always clear, so `init` is still valid
-            let z = unwrap_or_0(self.next_byte()?);
-            let y_z = utf8_acc_cont_byte(u32::from(y & CONT_MASK), z);
-            ch = init << 12 | y_z;
-            if x >= 0xF0 {
-                // [x y z w] case
-                // use only the lower 3 bits of `init`
-                let w = unwrap_or_0(self.next_byte()?);
-                ch = (init & 7) << 18 | utf8_acc_cont_byte(y_z, w);
-            }
-        };
-
-        Ok(Some(ch))
-    }
-}
-
-/// Mask of the value bits of a continuation byte.
-const CONT_MASK: u8 = 0b0011_1111;
-
-/// Returns the initial codepoint accumulator for the first byte.
-/// The first byte is special, only want bottom 5 bits for width 2, 4 bits
-/// for width 3, and 3 bits for width 4.
-fn utf8_first_byte(byte: u8, width: u32) -> u32 {
-    u32::from(byte & (0x7F >> width))
-}
-
-/// Returns the value of `ch` updated with continuation byte `byte`.
-fn utf8_acc_cont_byte(ch: u32, byte: u8) -> u32 {
-    (ch << 6) | u32::from(byte & CONT_MASK)
-}
-
-fn unwrap_or_0(opt: Option<u8>) -> u8 {
-    opt.unwrap_or(0)
 }

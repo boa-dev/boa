@@ -1,10 +1,11 @@
 //! Boa's lexing for ECMAScript string literals.
 
 use crate::lexer::{token::EscapeSequence, Cursor, Error, Token, TokenKind, Tokenizer};
+use crate::source::ReadChar;
 use boa_ast::{Position, Span};
 use boa_interner::Interner;
 use boa_profiler::Profiler;
-use std::io::{self, ErrorKind, Read};
+use std::io::{self, ErrorKind};
 
 /// String literal lexing.
 ///
@@ -81,7 +82,7 @@ impl<R> Tokenizer<R> for StringLiteral {
         interner: &mut Interner,
     ) -> Result<Token, Error>
     where
-        R: Read,
+        R: ReadChar,
     {
         let _timer = Profiler::global().start_event("StringLiteral", "Lexing");
 
@@ -116,7 +117,7 @@ impl StringLiteral {
         strict: bool,
     ) -> Result<(Vec<u16>, Span, EscapeSequence), Error>
     where
-        R: Read,
+        R: ReadChar,
     {
         let mut buf = Vec::new();
         let mut escape_sequence = EscapeSequence::empty();
@@ -169,7 +170,7 @@ impl StringLiteral {
         is_template_literal: bool,
     ) -> Result<(Option<u32>, EscapeSequence), Error>
     where
-        R: Read,
+        R: ReadChar,
     {
         let escape_ch = cursor.next_char()?.ok_or_else(|| {
             Error::from(io::Error::new(
@@ -253,7 +254,7 @@ impl StringLiteral {
         start_pos: Position,
     ) -> Result<u32, Error>
     where
-        R: Read,
+        R: ReadChar,
     {
         // Support \u{X..X} (Unicode CodePoint)
         if cursor.next_if(0x7B /* { */)? {
@@ -328,7 +329,7 @@ impl StringLiteral {
         start_pos: Position,
     ) -> Result<u32, Error>
     where
-        R: Read,
+        R: ReadChar,
     {
         let mut buffer = [0u32; 2];
         buffer[0] = cursor
@@ -365,7 +366,7 @@ impl StringLiteral {
         init_byte: u8,
     ) -> Result<u32, Error>
     where
-        R: Read,
+        R: ReadChar,
     {
         // Grammar: OctalDigit
         let mut code_point = u32::from(init_byte - b'0');

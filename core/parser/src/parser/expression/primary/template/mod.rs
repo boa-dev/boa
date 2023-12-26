@@ -10,6 +10,7 @@
 use crate::{
     lexer::TokenKind,
     parser::{expression::Expression, AllowAwait, AllowYield, Cursor, ParseResult, TokenParser},
+    source::ReadChar,
     Error,
 };
 use boa_ast::{
@@ -18,7 +19,6 @@ use boa_ast::{
 };
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
-use std::io::Read;
 
 /// Parses a template literal.
 ///
@@ -54,7 +54,7 @@ impl TemplateLiteral {
 
 impl<R> TokenParser<R> for TemplateLiteral
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = literal::TemplateLiteral;
 

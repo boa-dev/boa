@@ -17,6 +17,7 @@ use crate::{
         function::{FormalParameters, FunctionBody},
         name_in_lexically_declared_names, Cursor, OrAbrupt, ParseResult, TokenParser,
     },
+    source::ReadChar,
     Error,
 };
 use boa_ast::{
@@ -27,7 +28,6 @@ use boa_ast::{
 };
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
-use std::io::Read;
 
 /// Async Generator Expression Parsing
 ///
@@ -52,7 +52,7 @@ impl AsyncGeneratorExpression {
 
 impl<R> TokenParser<R> for AsyncGeneratorExpression
 where
-    R: Read,
+    R: ReadChar,
 {
     //The below needs to be implemented in ast::node
     type Output = AsyncGenerator;

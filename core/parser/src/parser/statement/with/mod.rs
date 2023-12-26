@@ -5,12 +5,12 @@ use crate::{
         cursor::Cursor, expression::Expression, statement::Statement, AllowAwait, AllowReturn,
         AllowYield, ParseResult, TokenParser,
     },
+    source::ReadChar,
     Error,
 };
 use boa_ast::{statement::With, Keyword, Punctuator};
 use boa_interner::Interner;
 use boa_profiler::Profiler;
-use std::io::Read;
 
 /// With statement parsing.
 ///
@@ -49,7 +49,7 @@ impl WithStatement {
 
 impl<R> TokenParser<R> for WithStatement
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = With;
 

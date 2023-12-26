@@ -15,6 +15,7 @@ use crate::{
         statement::{ArrayBindingPattern, BindingIdentifier, ObjectBindingPattern},
         AllowAwait, AllowIn, AllowYield, OrAbrupt, ParseResult, TokenParser,
     },
+    source::ReadChar,
     Error,
 };
 use ast::operations::bound_names;
@@ -22,7 +23,6 @@ use boa_ast::{self as ast, declaration::Variable, pattern::Pattern, Keyword, Pun
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
 use rustc_hash::FxHashSet;
-use std::io::Read;
 
 /// Parses a lexical declaration.
 ///
@@ -62,7 +62,7 @@ impl LexicalDeclaration {
 
 impl<R> TokenParser<R> for LexicalDeclaration
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = ast::declaration::LexicalDeclaration;
 
@@ -167,7 +167,7 @@ impl BindingList {
 
 impl<R> TokenParser<R> for BindingList
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = ast::declaration::LexicalDeclaration;
 
@@ -276,7 +276,7 @@ impl LexicalBinding {
 
 impl<R> TokenParser<R> for LexicalBinding
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = Variable;
 

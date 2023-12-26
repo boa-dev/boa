@@ -1,10 +1,10 @@
 //! Boa's lexing for ECMAScript operators (+, - etc.).
 
 use crate::lexer::{Cursor, Error, Token, TokenKind, Tokenizer};
+use crate::source::ReadChar;
 use boa_ast::{Position, Punctuator, Span};
 use boa_interner::Interner;
 use boa_profiler::Profiler;
-use std::io::Read;
 
 /// `vop` tests the next token to see if we're on an assign operation of just a plain binary operation.
 ///
@@ -83,7 +83,7 @@ impl<R> Tokenizer<R> for Operator {
         _interner: &mut Interner,
     ) -> Result<Token, Error>
     where
-        R: Read,
+        R: ReadChar,
     {
         let _timer = Profiler::global().start_event("Operator", "Lexing");
 

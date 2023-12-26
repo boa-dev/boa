@@ -8,6 +8,7 @@ use crate::{
         statement::{declaration::FunctionDeclaration, Statement},
         AllowAwait, AllowReturn, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
     },
+    source::ReadChar,
     Error,
 };
 use boa_ast::{
@@ -16,7 +17,6 @@ use boa_ast::{
 };
 use boa_interner::Interner;
 use boa_profiler::Profiler;
-use std::io::Read;
 
 /// If statement parsing.
 ///
@@ -53,7 +53,7 @@ impl IfStatement {
 
 impl<R> TokenParser<R> for IfStatement
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = If;
 

@@ -17,11 +17,11 @@ use crate::{
         expression::LabelIdentifier,
         AllowAwait, AllowYield, ParseResult, TokenParser,
     },
+    source::ReadChar,
 };
 use boa_ast::{statement::Continue, Keyword, Punctuator};
 use boa_interner::Interner;
 use boa_profiler::Profiler;
-use std::io::Read;
 
 /// For statement parsing
 ///
@@ -53,7 +53,7 @@ impl ContinueStatement {
 
 impl<R> TokenParser<R> for ContinueStatement
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = Continue;
 

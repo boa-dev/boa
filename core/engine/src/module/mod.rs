@@ -25,6 +25,7 @@ mod loader;
 mod namespace;
 mod source;
 mod synthetic;
+use boa_parser::source::ReadChar;
 pub use loader::*;
 pub use namespace::ModuleNamespace;
 use source::SourceTextModule;
@@ -33,7 +34,6 @@ pub use synthetic::{SyntheticModule, SyntheticModuleInitializer};
 use std::cell::{Cell, RefCell};
 use std::collections::HashSet;
 use std::hash::Hash;
-use std::io::Read;
 use std::rc::Rc;
 
 use rustc_hash::FxHashSet;
@@ -141,7 +141,7 @@ impl Module {
     /// Parses the provided `src` as an ECMAScript module, returning an error if parsing fails.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-parsemodule
-    pub fn parse<R: Read>(
+    pub fn parse<R: ReadChar>(
         src: Source<'_, R>,
         realm: Option<Realm>,
         context: &mut Context,

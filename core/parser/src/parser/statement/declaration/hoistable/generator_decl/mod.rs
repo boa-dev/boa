@@ -1,13 +1,15 @@
 #[cfg(test)]
 mod tests;
 
-use crate::parser::{
-    statement::declaration::hoistable::{parse_callable_declaration, CallableDeclaration},
-    AllowAwait, AllowDefault, AllowYield, Cursor, ParseResult, TokenParser,
+use crate::{
+    parser::{
+        statement::declaration::hoistable::{parse_callable_declaration, CallableDeclaration},
+        AllowAwait, AllowDefault, AllowYield, Cursor, ParseResult, TokenParser,
+    },
+    source::ReadChar,
 };
 use boa_ast::{function::Generator, Keyword, Punctuator};
 use boa_interner::Interner;
-use std::io::Read;
 
 /// Generator declaration parsing.
 ///
@@ -72,7 +74,7 @@ impl CallableDeclaration for GeneratorDeclaration {
 
 impl<R> TokenParser<R> for GeneratorDeclaration
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = Generator;
 

@@ -13,12 +13,12 @@ use crate::{
         expression::AssignmentExpression, AllowAwait, AllowYield, Cursor, OrAbrupt, ParseResult,
         TokenParser,
     },
+    source::ReadChar,
     Error,
 };
 use boa_ast::{expression::Spread, Expression, Punctuator};
 use boa_interner::Interner;
 use boa_profiler::Profiler;
-use std::io::Read;
 
 /// Parses a list of arguments.
 ///
@@ -50,7 +50,7 @@ impl Arguments {
 
 impl<R> TokenParser<R> for Arguments
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = Box<[Expression]>;
 

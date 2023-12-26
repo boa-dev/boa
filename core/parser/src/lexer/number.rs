@@ -1,12 +1,13 @@
 //! This module implements lexing for number literals (123, 787) used in ECMAScript.
 
 use crate::lexer::{token::Numeric, Cursor, Error, Token, TokenKind, Tokenizer};
+use crate::source::ReadChar;
 use boa_ast::{Position, Span};
 use boa_interner::Interner;
 use boa_profiler::Profiler;
 use num_bigint::BigInt;
 use num_traits::{ToPrimitive, Zero};
-use std::{io::Read, str};
+use std::str;
 
 /// Number literal lexing.
 ///
@@ -64,7 +65,7 @@ fn take_signed_integer<R>(
     kind: NumericKind,
 ) -> Result<(), Error>
 where
-    R: Read,
+    R: ReadChar,
 {
     // The next part must be SignedInteger.
     // This is optionally a '+' or '-' followed by 1 or more DecimalDigits.
@@ -122,7 +123,7 @@ fn take_integer<R>(
     separator_allowed: bool,
 ) -> Result<(), Error>
 where
-    R: Read,
+    R: ReadChar,
 {
     let mut prev_is_underscore = false;
     let mut pos = cursor.pos();
@@ -168,7 +169,7 @@ where
 /// [spec]: https://tc39.es/ecma262/#sec-literals-numeric-literals
 fn check_after_numeric_literal<R>(cursor: &mut Cursor<R>) -> Result<(), Error>
 where
-    R: Read,
+    R: ReadChar,
 {
     if cursor.next_is_ascii_pred(&|ch| ch.is_ascii_alphanumeric() || ch == '$' || ch == '_')? {
         Err(Error::syntax(
@@ -188,7 +189,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
         _interner: &mut Interner,
     ) -> Result<Token, Error>
     where
-        R: Read,
+        R: ReadChar,
     {
         let _timer = Profiler::global().start_event("NumberLiteral", "Lexing");
 

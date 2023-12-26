@@ -12,6 +12,7 @@ use crate::{
         statement::StatementList,
         AllowAwait, AllowDefault, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
     },
+    source::ReadChar,
     Error,
 };
 use ast::{
@@ -31,7 +32,6 @@ use boa_ast::{
 use boa_interner::{Interner, Sym};
 use boa_macros::utf16;
 use rustc_hash::{FxHashMap, FxHashSet};
-use std::io::Read;
 
 /// Class declaration parsing.
 ///
@@ -66,7 +66,7 @@ impl ClassDeclaration {
 
 impl<R> TokenParser<R> for ClassDeclaration
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = Class;
 
@@ -143,7 +143,7 @@ impl ClassTail {
 
 impl<R> TokenParser<R> for ClassTail
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = Class;
 
@@ -237,7 +237,7 @@ impl ClassHeritage {
 
 impl<R> TokenParser<R> for ClassHeritage
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = Expression;
 
@@ -289,7 +289,7 @@ impl ClassBody {
 
 impl<R> TokenParser<R> for ClassBody
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = (Option<Function>, Vec<function::ClassElement>);
 
@@ -570,7 +570,7 @@ impl ClassElement {
 
 impl<R> TokenParser<R> for ClassElement
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = (Option<Function>, Option<function::ClassElement>);
 

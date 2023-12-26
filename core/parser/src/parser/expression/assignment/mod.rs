@@ -25,6 +25,7 @@ use crate::{
         name_in_lexically_declared_names, AllowAwait, AllowIn, AllowYield, Cursor, OrAbrupt,
         ParseResult, TokenParser,
     },
+    source::ReadChar,
     Error,
 };
 use boa_ast::{
@@ -37,7 +38,6 @@ use boa_ast::{
 };
 use boa_interner::Interner;
 use boa_profiler::Profiler;
-use std::io::Read;
 
 pub(super) use exponentiation::ExponentiationExpression;
 
@@ -92,7 +92,7 @@ impl AssignmentExpression {
 
 impl<R> TokenParser<R> for AssignmentExpression
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = Expression;
 

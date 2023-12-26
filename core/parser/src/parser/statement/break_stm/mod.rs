@@ -17,11 +17,11 @@ use crate::{
         expression::LabelIdentifier,
         AllowAwait, AllowYield, ParseResult, TokenParser,
     },
+    source::ReadChar,
 };
 use boa_ast::{statement::Break, Keyword, Punctuator};
 use boa_interner::Interner;
 use boa_profiler::Profiler;
-use std::io::Read;
 
 /// Break statement parsing
 ///
@@ -53,7 +53,7 @@ impl BreakStatement {
 
 impl<R> TokenParser<R> for BreakStatement
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = Break;
 

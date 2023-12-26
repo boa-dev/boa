@@ -3,10 +3,10 @@
 use crate::lexer::{
     token::ContainsEscapeSequence, Cursor, Error, StringLiteral, Token, TokenKind, Tokenizer,
 };
+use crate::source::ReadChar;
 use boa_ast::{Keyword, Position, Span};
 use boa_interner::Interner;
 use boa_profiler::Profiler;
-use std::io::Read;
 
 /// Identifier lexing.
 ///
@@ -60,7 +60,7 @@ impl<R> Tokenizer<R> for Identifier {
         interner: &mut Interner,
     ) -> Result<Token, Error>
     where
-        R: Read,
+        R: ReadChar,
     {
         let _timer = Profiler::global().start_event("Identifier", "Lexing");
 
@@ -95,7 +95,7 @@ impl Identifier {
         init: char,
     ) -> Result<(String, bool), Error>
     where
-        R: Read,
+        R: ReadChar,
     {
         let _timer = Profiler::global().start_event("Identifier::take_identifier_name", "Lexing");
 

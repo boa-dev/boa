@@ -14,6 +14,7 @@ use crate::{
         expression::{left_hand_side::template::TaggedTemplateLiteral, Expression},
         AllowAwait, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
     },
+    source::ReadChar,
     Error,
 };
 use ast::function::PrivateName;
@@ -27,7 +28,6 @@ use boa_ast::{
 };
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
-use std::io::Read;
 
 /// Parses a call expression.
 ///
@@ -63,7 +63,7 @@ impl CallExpression {
 
 impl<R> TokenParser<R> for CallExpression
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = ast::Expression;
 
@@ -115,7 +115,7 @@ impl CallExpressionTail {
 
 impl<R> TokenParser<R> for CallExpressionTail
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = ast::Expression;
 

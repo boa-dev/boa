@@ -1,13 +1,15 @@
 #[cfg(test)]
 mod tests;
 
-use crate::parser::{
-    statement::declaration::hoistable::{parse_callable_declaration, CallableDeclaration},
-    AllowAwait, AllowDefault, AllowYield, Cursor, ParseResult, TokenParser,
+use crate::{
+    parser::{
+        statement::declaration::hoistable::{parse_callable_declaration, CallableDeclaration},
+        AllowAwait, AllowDefault, AllowYield, Cursor, ParseResult, TokenParser,
+    },
+    source::ReadChar,
 };
 use boa_ast::{function::Function, Keyword};
 use boa_interner::Interner;
-use std::io::Read;
 
 /// Function declaration parsing.
 ///
@@ -70,7 +72,7 @@ impl CallableDeclaration for FunctionDeclaration {
 
 impl<R> TokenParser<R> for FunctionDeclaration
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = Function;
 

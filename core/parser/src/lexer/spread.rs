@@ -1,10 +1,10 @@
 //! Boa's lexing for ECMAScript spread (...) literals.
 
 use crate::lexer::{Cursor, Error, Token, Tokenizer};
+use crate::source::ReadChar;
 use boa_ast::{Position, Punctuator, Span};
 use boa_interner::Interner;
 use boa_profiler::Profiler;
-use std::io::Read;
 
 /// Spread literal lexing.
 ///
@@ -34,7 +34,7 @@ impl<R> Tokenizer<R> for SpreadLiteral {
         _interner: &mut Interner,
     ) -> Result<Token, Error>
     where
-        R: Read,
+        R: ReadChar,
     {
         let _timer = Profiler::global().start_event("SpreadLiteral", "Lexing");
 

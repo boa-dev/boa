@@ -99,7 +99,7 @@ impl Eval {
 
         // 2. If Type(x) is not String, return x.
         // TODO: rework parser to take an iterator of `u32` unicode codepoints
-        let Some(x) = x.as_string().map(JsString::to_std_string_escaped) else {
+        let Some(x) = x.as_string() else {
             return Ok(x.clone());
         };
 
@@ -118,7 +118,7 @@ impl Eval {
         //     b. If script is a List of errors, throw a SyntaxError exception.
         //     c. If script Contains ScriptBody is false, return undefined.
         //     d. Let body be the ScriptBody of script.
-        let mut parser = Parser::new(Source::from_bytes(&x));
+        let mut parser = Parser::new(Source::from_utf16(x));
         parser.set_identifier(context.next_parser_identifier());
         if strict {
             parser.set_strict();

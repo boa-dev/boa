@@ -25,12 +25,12 @@ pub(in crate::parser) use self::{
 use crate::{
     lexer::TokenKind,
     parser::{AllowAwait, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser},
+    source::ReadChar,
     Error,
 };
 use boa_ast::{self as ast, Keyword};
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
-use std::io::Read;
 
 /// Parses a declaration.
 ///
@@ -61,7 +61,7 @@ impl Declaration {
 
 impl<R> TokenParser<R> for Declaration
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = ast::Declaration;
 
@@ -116,7 +116,7 @@ impl FromClause {
 
 impl<R> TokenParser<R> for FromClause
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = ast::declaration::ModuleSpecifier;
 

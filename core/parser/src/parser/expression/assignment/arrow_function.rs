@@ -17,6 +17,7 @@ use crate::{
         name_in_lexically_declared_names, AllowAwait, AllowIn, AllowYield, Cursor, OrAbrupt,
         TokenParser,
     },
+    source::ReadChar,
 };
 use ast::operations::{bound_names, lexically_declared_names};
 use boa_ast::{
@@ -30,7 +31,6 @@ use boa_ast::{
 };
 use boa_interner::Interner;
 use boa_profiler::Profiler;
-use std::io::Read;
 
 /// Arrow function parsing.
 ///
@@ -73,7 +73,7 @@ impl ArrowFunction {
 
 impl<R> TokenParser<R> for ArrowFunction
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = ast::function::ArrowFunction;
 
@@ -186,7 +186,7 @@ impl ConciseBody {
 
 impl<R> TokenParser<R> for ConciseBody
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = ast::function::FunctionBody;
 
@@ -236,7 +236,7 @@ impl ExpressionBody {
 
 impl<R> TokenParser<R> for ExpressionBody
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = Expression;
 

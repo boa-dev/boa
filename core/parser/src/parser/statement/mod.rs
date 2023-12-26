@@ -44,6 +44,7 @@ use crate::{
         expression::{BindingIdentifier, Initializer, PropertyName},
         AllowAwait, AllowReturn, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
     },
+    source::ReadChar,
     Error,
 };
 use ast::{
@@ -58,7 +59,6 @@ use boa_ast::{
 use boa_interner::Interner;
 use boa_macros::utf16;
 use boa_profiler::Profiler;
-use std::io::Read;
 
 pub(in crate::parser) use declaration::ClassTail;
 
@@ -113,7 +113,7 @@ impl Statement {
 
 impl<R> TokenParser<R> for Statement
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = ast::Statement;
 
@@ -273,7 +273,7 @@ impl StatementList {
 
 impl<R> TokenParser<R> for StatementList
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = ast::StatementList;
 
@@ -404,7 +404,7 @@ impl StatementListItem {
 
 impl<R> TokenParser<R> for StatementListItem
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = ast::StatementListItem;
 
@@ -474,7 +474,7 @@ impl ObjectBindingPattern {
 
 impl<R> TokenParser<R> for ObjectBindingPattern
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = Vec<ObjectPatternElement>;
 
@@ -719,7 +719,7 @@ impl ArrayBindingPattern {
 
 impl<R> TokenParser<R> for ArrayBindingPattern
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = Vec<ArrayPatternElement>;
 
@@ -905,7 +905,7 @@ pub(super) struct ModuleItemList;
 
 impl<R> TokenParser<R> for ModuleItemList
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = boa_ast::ModuleItemList;
 
@@ -955,7 +955,7 @@ struct ModuleItem;
 
 impl<R> TokenParser<R> for ModuleItem
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = boa_ast::ModuleItem;
 

@@ -11,10 +11,10 @@ use super::unary::UnaryExpression;
 use crate::{
     lexer::TokenKind,
     parser::{AllowYield, Cursor, ParseResult, TokenParser},
+    source::ReadChar,
 };
 use boa_ast::{expression::Await, Keyword};
 use boa_interner::Interner;
-use std::io::Read;
 
 /// Parses an await expression.
 ///
@@ -43,7 +43,7 @@ impl AwaitExpression {
 
 impl<R> TokenParser<R> for AwaitExpression
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = Await;
 

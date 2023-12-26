@@ -14,6 +14,7 @@ use crate::{
         },
         AllowAwait, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
     },
+    source::ReadChar,
     Error,
 };
 use ast::function::PrivateName;
@@ -29,7 +30,6 @@ use boa_ast::{
 };
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
-use std::io::Read;
 
 /// Parses a member expression.
 ///
@@ -62,7 +62,7 @@ impl MemberExpression {
 
 impl<R> TokenParser<R> for MemberExpression
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = ast::Expression;
 

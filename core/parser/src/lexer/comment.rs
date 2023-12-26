@@ -1,10 +1,10 @@
 //! Boa's lexing for ECMAScript comments.
 
 use crate::lexer::{Cursor, Error, Token, TokenKind, Tokenizer};
+use crate::source::ReadChar;
 use boa_ast::{Position, Span};
 use boa_interner::Interner;
 use boa_profiler::Profiler;
-use std::io::Read;
 
 /// Lexes a single line comment.
 ///
@@ -26,7 +26,7 @@ impl<R> Tokenizer<R> for SingleLineComment {
         _interner: &mut Interner,
     ) -> Result<Token, Error>
     where
-        R: Read,
+        R: ReadChar,
     {
         let _timer = Profiler::global().start_event("SingleLineComment", "Lexing");
 
@@ -66,7 +66,7 @@ impl<R> Tokenizer<R> for MultiLineComment {
         _interner: &mut Interner,
     ) -> Result<Token, Error>
     where
-        R: Read,
+        R: ReadChar,
     {
         let _timer = Profiler::global().start_event("MultiLineComment", "Lexing");
 
@@ -115,7 +115,7 @@ impl<R> Tokenizer<R> for HashbangComment {
         _interner: &mut Interner,
     ) -> Result<Token, Error>
     where
-        R: Read,
+        R: ReadChar,
     {
         let _timer = Profiler::global().start_event("Hashbang", "Lexing");
 

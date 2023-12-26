@@ -5,6 +5,7 @@ mod hooks;
 pub(crate) mod icu;
 pub mod intrinsics;
 
+use boa_parser::source::ReadChar;
 pub use hooks::{DefaultHooks, HostHooks};
 
 #[cfg(feature = "intl")]
@@ -14,7 +15,7 @@ use intrinsics::Intrinsics;
 
 #[cfg(not(feature = "intl"))]
 pub use std::marker::PhantomData;
-use std::{cell::Cell, io::Read, path::Path, rc::Rc};
+use std::{cell::Cell, path::Path, rc::Rc};
 
 use crate::{
     builtins,
@@ -185,7 +186,7 @@ impl Context {
     /// Note that this won't run any scheduled promise jobs; you need to call [`Context::run_jobs`]
     /// on the context or [`JobQueue::run_jobs`] on the provided queue to run them.
     #[allow(clippy::unit_arg, dropping_copy_types)]
-    pub fn eval<R: Read>(&mut self, src: Source<'_, R>) -> JsResult<JsValue> {
+    pub fn eval<R: ReadChar>(&mut self, src: Source<'_, R>) -> JsResult<JsValue> {
         let main_timer = Profiler::global().start_event("Script evaluation", "Main");
 
         let result = Script::parse(src, None, self)?.evaluate(self);

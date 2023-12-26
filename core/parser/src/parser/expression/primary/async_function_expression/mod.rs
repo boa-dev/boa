@@ -8,6 +8,7 @@ use crate::{
         function::{FormalParameters, FunctionBody},
         name_in_lexically_declared_names, Cursor, OrAbrupt, ParseResult, TokenParser,
     },
+    source::ReadChar,
     Error,
 };
 use boa_ast::{
@@ -18,7 +19,6 @@ use boa_ast::{
 };
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
-use std::io::Read;
 
 /// Async Function expression parsing.
 ///
@@ -45,7 +45,7 @@ impl AsyncFunctionExpression {
 
 impl<R> TokenParser<R> for AsyncFunctionExpression
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = AsyncFunction;
 

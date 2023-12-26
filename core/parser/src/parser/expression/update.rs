@@ -14,6 +14,7 @@ use crate::{
         },
         AllowAwait, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
     },
+    source::ReadChar,
     Error,
 };
 use boa_ast::{
@@ -28,7 +29,6 @@ use boa_ast::{
 };
 use boa_interner::Interner;
 use boa_profiler::Profiler;
-use std::io::Read;
 
 /// Parses an update expression.
 ///
@@ -87,7 +87,7 @@ fn as_simple(
 
 impl<R> TokenParser<R> for UpdateExpression
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = Expression;
 

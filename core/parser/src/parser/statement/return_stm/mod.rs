@@ -5,11 +5,11 @@ use crate::{
         expression::Expression,
         AllowAwait, AllowYield, ParseResult, TokenParser,
     },
+    source::ReadChar,
 };
 use boa_ast::{statement::Return, Keyword, Punctuator};
 use boa_interner::Interner;
 use boa_profiler::Profiler;
-use std::io::Read;
 
 /// Return statement parsing
 ///
@@ -41,7 +41,7 @@ impl ReturnStatement {
 
 impl<R> TokenParser<R> for ReturnStatement
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = Return;
 

@@ -1,13 +1,17 @@
 //! Boa's lexing for ECMAScript template literals.
 
-use crate::lexer::{
-    string::{StringLiteral, UTF16CodeUnitsBuffer},
-    Cursor, Error, Token, TokenKind, Tokenizer,
+use crate::source::ReadChar;
+use crate::{
+    lexer::{
+        string::{StringLiteral, UTF16CodeUnitsBuffer},
+        Cursor, Error, Token, TokenKind, Tokenizer,
+    },
+    source::UTF8Input,
 };
 use boa_ast::{Position, Span};
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
-use std::io::{self, ErrorKind, Read};
+use std::io::{self, ErrorKind};
 
 #[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -44,7 +48,7 @@ impl TemplateString {
     /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-templatestrings
     pub fn to_owned_cooked(self, interner: &mut Interner) -> Result<Sym, Error> {
         let string = interner.resolve_expect(self.raw).to_string();
-        let mut cursor = Cursor::with_position(string.as_bytes(), self.start_pos);
+        let mut cursor = Cursor::with_position(UTF8Input::new(string.as_bytes()), self.start_pos);
         let mut buf: Vec<u16> = Vec::new();
 
         loop {
@@ -99,7 +103,7 @@ impl<R> Tokenizer<R> for TemplateLiteral {
         interner: &mut Interner,
     ) -> Result<Token, Error>
     where
-        R: Read,
+        R: ReadChar,
     {
         let _timer = Profiler::global().start_event("TemplateLiteral", "Lexing");
 

@@ -41,10 +41,10 @@ use self::{
     string::StringLiteral,
     template::TemplateLiteral,
 };
+use crate::source::{ReadChar, UTF8Input};
 use boa_ast::{Position, Punctuator, Span};
 use boa_interner::Interner;
 use boa_profiler::Profiler;
-use std::io::Read;
 
 pub use self::{
     error::Error,
@@ -60,7 +60,7 @@ trait Tokenizer<R> {
         interner: &mut Interner,
     ) -> Result<Token, Error>
     where
-        R: Read;
+        R: ReadChar;
 }
 
 /// Lexer or tokenizer for the Boa JavaScript Engine.
@@ -104,7 +104,7 @@ impl<R> Lexer<R> {
     /// Creates a new lexer.
     pub fn new(reader: R) -> Self
     where
-        R: Read,
+        R: ReadChar,
     {
         Self {
             cursor: Cursor::new(reader),
@@ -125,7 +125,7 @@ impl<R> Lexer<R> {
         interner: &mut Interner,
     ) -> Result<Token, Error>
     where
-        R: Read,
+        R: ReadChar,
     {
         let _timer = Profiler::global().start_event("lex_slash_token", "Lexing");
 
@@ -179,7 +179,7 @@ impl<R> Lexer<R> {
     /// Skips an HTML close comment (`-->`) if the `annex-b` feature is enabled.
     pub(crate) fn skip_html_close(&mut self, interner: &mut Interner) -> Result<(), Error>
     where
-        R: Read,
+        R: ReadChar,
     {
         if cfg!(not(feature = "annex-b")) || self.module() {
             return Ok(());
@@ -210,7 +210,7 @@ impl<R> Lexer<R> {
     // We intentionally don't implement Iterator trait as Result<Option> is cleaner to handle.
     pub(crate) fn next_no_skip(&mut self, interner: &mut Interner) -> Result<Option<Token>, Error>
     where
-        R: Read,
+        R: ReadChar,
     {
         let _timer = Profiler::global().start_event("next()", "Lexing");
 
@@ -352,7 +352,7 @@ impl<R> Lexer<R> {
     #[allow(clippy::should_implement_trait)]
     pub fn next(&mut self, interner: &mut Interner) -> Result<Option<Token>, Error>
     where
-        R: Read,
+        R: ReadChar,
     {
         loop {
             let Some(next) = self.next_no_skip(interner)? else {
@@ -372,9 +372,15 @@ impl<R> Lexer<R> {
         interner: &mut Interner,
     ) -> Result<Token, Error>
     where
-        R: Read,
+        R: ReadChar,
     {
         TemplateLiteral.lex(&mut self.cursor, start, interner)
+    }
+}
+
+impl<'a> From<&'a [u8]> for Lexer<UTF8Input<&'a [u8]>> {
+    fn from(input: &'a [u8]) -> Self {
+        Self::new(UTF8Input::new(input))
     }
 }
 

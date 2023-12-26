@@ -24,6 +24,7 @@ use crate::{
         statement::LexError,
         AllowAwait, AllowDefault, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
     },
+    source::ReadChar,
     Error,
 };
 use boa_ast::{
@@ -35,7 +36,6 @@ use boa_ast::{
 };
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
-use std::io::Read;
 
 pub(in crate::parser) use self::{
     async_function_decl::AsyncFunctionDeclaration, async_generator_decl::AsyncGeneratorDeclaration,
@@ -74,7 +74,7 @@ impl HoistableDeclaration {
 
 impl<R> TokenParser<R> for HoistableDeclaration
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = Declaration;
 
@@ -145,7 +145,7 @@ trait CallableDeclaration {
 }
 
 // This is a helper function to not duplicate code in the individual callable declaration parsers.
-fn parse_callable_declaration<R: Read, C: CallableDeclaration>(
+fn parse_callable_declaration<R: ReadChar, C: CallableDeclaration>(
     c: &C,
     cursor: &mut Cursor<R>,
     interner: &mut Interner,

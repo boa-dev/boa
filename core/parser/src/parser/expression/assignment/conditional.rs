@@ -13,6 +13,7 @@ use crate::{
         expression::{AssignmentExpression, ShortCircuitExpression},
         AllowAwait, AllowIn, AllowYield, Cursor, ParseResult, TokenParser,
     },
+    source::ReadChar,
 };
 use boa_ast::{
     expression::{operator::Conditional, Identifier},
@@ -20,7 +21,6 @@ use boa_ast::{
 };
 use boa_interner::Interner;
 use boa_profiler::Profiler;
-use std::io::Read;
 
 /// Conditional expression parsing.
 ///
@@ -63,7 +63,7 @@ impl ConditionalExpression {
 
 impl<R> TokenParser<R> for ConditionalExpression
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = Expression;
 

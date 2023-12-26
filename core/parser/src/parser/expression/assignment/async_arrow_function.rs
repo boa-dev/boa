@@ -16,6 +16,7 @@ use crate::{
         function::{FormalParameters, FunctionBody},
         name_in_lexically_declared_names, AllowIn, AllowYield, Cursor, OrAbrupt, TokenParser,
     },
+    source::ReadChar,
 };
 use ast::{
     operations::{bound_names, contains, lexically_declared_names, ContainsSymbol},
@@ -31,7 +32,6 @@ use boa_ast::{
 };
 use boa_interner::Interner;
 use boa_profiler::Profiler;
-use std::io::Read;
 
 /// Async arrow function parsing.
 ///
@@ -66,7 +66,7 @@ impl AsyncArrowFunction {
 
 impl<R> TokenParser<R> for AsyncArrowFunction
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = ast::function::AsyncArrowFunction;
 
@@ -174,7 +174,7 @@ impl AsyncConciseBody {
 
 impl<R> TokenParser<R> for AsyncConciseBody
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = ast::function::FunctionBody;
 
