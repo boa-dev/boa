@@ -434,16 +434,16 @@ impl TemporalFields {
 
     /// Returns an iterator over the current keys.
     #[must_use]
-    pub fn keys(&self) -> KeyIter {
-        KeyIter {
+    pub fn keys(&self) -> Keys {
+        Keys {
             iter: self.bit_map.iter(),
         }
     }
 
     /// Returns an iterator over the current values.
     #[must_use]
-    pub fn values(&self) -> ValuesIter<'_> {
-        ValuesIter {
+    pub fn values(&self) -> Values<'_> {
+        Values {
             fields: self,
             iter: self.bit_map.iter(),
         }
@@ -509,17 +509,17 @@ impl TemporalFields {
 }
 
 /// Iterator over `TemporalFields` keys.
-pub struct KeyIter {
+pub struct Keys {
     iter: bitflags::iter::Iter<FieldMap>,
 }
 
-impl fmt::Debug for KeyIter {
+impl fmt::Debug for Keys {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "TemporalFields KeyIterator")
     }
 }
 
-impl Iterator for KeyIter {
+impl Iterator for Keys {
     type Item = String;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -548,18 +548,18 @@ impl Iterator for KeyIter {
 }
 
 /// An iterator over `TemporalFields`'s values.
-pub struct ValuesIter<'a> {
+pub struct Values<'a> {
     fields: &'a TemporalFields,
     iter: bitflags::iter::Iter<FieldMap>,
 }
 
-impl fmt::Debug for ValuesIter<'_> {
+impl fmt::Debug for Values<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "TemporalFields Values Iterator")
     }
 }
 
-impl Iterator for ValuesIter<'_> {
+impl Iterator for Values<'_> {
     type Item = FieldValue;
 
     fn next(&mut self) -> Option<Self::Item> {
