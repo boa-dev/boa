@@ -115,6 +115,8 @@
 <a href="#115" id="115">115</a>
 <a href="#116" id="116">116</a>
 <a href="#117" id="117">117</a>
+<a href="#118" id="118">118</a>
+<a href="#119" id="119">119</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module implements the Temporal `TimeZone` and components.
 
 </span><span class="kw">use </span>std::any::Any;
@@ -126,6 +128,8 @@
     components::{calendar::CalendarSlot, DateTime, Instant},
     TemporalError, TemporalResult,
 };
+
+<span class="kw">use </span><span class="kw">super</span>::calendar::CalendarProtocol;
 
 <span class="doccomment">/// Any object that implements the `TzProtocol` must implement the below methods/properties.
 </span><span class="kw">pub const </span>TIME_ZONE_PROPERTIES: [<span class="kw-2">&amp;</span>str; <span class="number">3</span>] =
@@ -191,12 +195,12 @@
 }
 
 <span class="kw">impl </span>TimeZoneSlot {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_datetime_for(
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_datetime_for&lt;C: CalendarProtocol&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         instant: <span class="kw-2">&amp;</span>Instant,
-        calendar: <span class="kw-2">&amp;</span>CalendarSlot,
+        calendar: <span class="kw-2">&amp;</span>CalendarSlot&lt;C&gt;,
         context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
-    ) -&gt; TemporalResult&lt;DateTime&gt; {
+    ) -&gt; TemporalResult&lt;DateTime&lt;C&gt;&gt; {
         <span class="kw">let </span>nanos = <span class="self">self</span>.get_offset_nanos_for(context)<span class="question-mark">?</span>;
         DateTime::from_instant(instant, nanos.to_f64().unwrap_or(<span class="number">0.0</span>), calendar.clone())
     }

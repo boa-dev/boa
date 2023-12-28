@@ -85,6 +85,8 @@
 <a href="#85" id="85">85</a>
 <a href="#86" id="86">86</a>
 <a href="#87" id="87">87</a>
+<a href="#88" id="88">88</a>
+<a href="#89" id="89">89</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module implements `YearMonth` and any directly related algorithms.
 
 </span><span class="kw">use </span>std::str::FromStr;
@@ -96,18 +98,20 @@
     TemporalError, TemporalResult,
 };
 
+<span class="kw">use </span><span class="kw">super</span>::calendar::CalendarProtocol;
+
 <span class="doccomment">/// The native Rust implementation of `Temporal.YearMonth`.
 </span><span class="attr">#[derive(Debug, Default, Clone)]
-</span><span class="kw">pub struct </span>YearMonth {
+</span><span class="kw">pub struct </span>YearMonth&lt;C: CalendarProtocol&gt; {
     iso: IsoDate,
-    calendar: CalendarSlot,
+    calendar: CalendarSlot&lt;C&gt;,
 }
 
-<span class="kw">impl </span>YearMonth {
+<span class="kw">impl</span>&lt;C: CalendarProtocol&gt; YearMonth&lt;C&gt; {
     <span class="doccomment">/// Creates an unvalidated `YearMonth`.
     </span><span class="attr">#[inline]
     #[must_use]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new_unchecked(iso: IsoDate, calendar: CalendarSlot) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new_unchecked(iso: IsoDate, calendar: CalendarSlot&lt;C&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{ iso, calendar }
     }
 
@@ -117,7 +121,7 @@
         year: i32,
         month: i32,
         reference_day: <span class="prelude-ty">Option</span>&lt;i32&gt;,
-        calendar: CalendarSlot,
+        calendar: CalendarSlot&lt;C&gt;,
         overflow: ArithmeticOverflow,
     ) -&gt; TemporalResult&lt;<span class="self">Self</span>&gt; {
         <span class="kw">let </span>day = reference_day.unwrap_or(<span class="number">1</span>);
@@ -142,12 +146,12 @@
     <span class="attr">#[inline]
     #[must_use]
     </span><span class="doccomment">/// Returns a reference to `YearMonth`&#39;s `CalendarSlot`
-    </span><span class="kw">pub fn </span>calendar(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>CalendarSlot {
+    </span><span class="kw">pub fn </span>calendar(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>CalendarSlot&lt;C&gt; {
         <span class="kw-2">&amp;</span><span class="self">self</span>.calendar
     }
 }
 
-<span class="kw">impl </span>IsoDateSlots <span class="kw">for </span>YearMonth {
+<span class="kw">impl</span>&lt;C: CalendarProtocol&gt; IsoDateSlots <span class="kw">for </span>YearMonth&lt;C&gt; {
     <span class="attr">#[inline]
     </span><span class="doccomment">/// Returns this `YearMonth`&#39;s `IsoDate`
     </span><span class="kw">fn </span>iso_date(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; IsoDate {
@@ -155,7 +159,7 @@
     }
 }
 
-<span class="kw">impl </span>FromStr <span class="kw">for </span>YearMonth {
+<span class="kw">impl</span>&lt;C: CalendarProtocol&gt; FromStr <span class="kw">for </span>YearMonth&lt;C&gt; {
     <span class="kw">type </span><span class="prelude-val">Err </span>= TemporalError;
 
     <span class="kw">fn </span>from_str(s: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Err&gt; {
@@ -167,7 +171,7 @@
             record.date.year,
             record.date.month,
             <span class="prelude-val">None</span>,
-            CalendarSlot::Identifier(calendar),
+            CalendarSlot::from_str(<span class="kw-2">&amp;</span>calendar)<span class="question-mark">?</span>,
             ArithmeticOverflow::Reject,
         )
     }

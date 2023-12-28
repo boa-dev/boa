@@ -1738,6 +1738,13 @@
 <a href="#1738" id="1738">1738</a>
 <a href="#1739" id="1739">1739</a>
 <a href="#1740" id="1740">1740</a>
+<a href="#1741" id="1741">1741</a>
+<a href="#1742" id="1742">1742</a>
+<a href="#1743" id="1743">1743</a>
+<a href="#1744" id="1744">1744</a>
+<a href="#1745" id="1745">1745</a>
+<a href="#1746" id="1746">1746</a>
+<a href="#1747" id="1747">1747</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module implements `Duration` along with it&#39;s methods and components.
 
 </span><span class="kw">use crate</span>::{
@@ -1747,6 +1754,8 @@
     utils, TemporalError, TemporalResult, NS_PER_DAY,
 };
 <span class="kw">use </span>std::{any::Any, str::FromStr};
+
+<span class="kw">use </span><span class="kw">super</span>::calendar::CalendarProtocol;
 
 <span class="comment">// ==== `DateDuration` ====
 
@@ -2437,10 +2446,10 @@
 
     <span class="doccomment">/// 7.5.21 `UnbalanceDateDurationRelative ( years, months, weeks, days, largestUnit, plainRelativeTo )`
     </span><span class="attr">#[allow(dead_code)]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>unbalance_duration_relative(
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>unbalance_duration_relative&lt;C: CalendarProtocol&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         largest_unit: TemporalUnit,
-        plain_relative_to: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Date&gt;,
+        plain_relative_to: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Date&lt;C&gt;&gt;,
         context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
     ) -&gt; TemporalResult&lt;DateDuration&gt; {
         <span class="comment">// 1. Let allZero be false.
@@ -2658,10 +2667,10 @@
     <span class="comment">// TODO: Move to DateDuration
     </span><span class="doccomment">/// `BalanceDateDurationRelative`
     </span><span class="attr">#[allow(unused)]
-    </span><span class="kw">pub fn </span>balance_date_duration_relative(
+    </span><span class="kw">pub fn </span>balance_date_duration_relative&lt;C: CalendarProtocol&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         largest_unit: TemporalUnit,
-        plain_relative_to: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Date&gt;,
+        plain_relative_to: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Date&lt;C&gt;&gt;,
         context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
     ) -&gt; TemporalResult&lt;DateDuration&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>result = <span class="self">self</span>.date;
@@ -2891,13 +2900,18 @@
     </span><span class="doccomment">/// Abstract Operation 7.5.26 `RoundDuration ( years, months, weeks, days, hours, minutes,
     ///   seconds, milliseconds, microseconds, nanoseconds, increment, unit,
     ///   roundingMode [ , plainRelativeTo [, zonedRelativeTo [, precalculatedDateTime]]] )`
-    </span><span class="kw">pub fn </span>round_duration(
+    </span><span class="attr">#[allow(clippy::type_complexity)]
+    </span><span class="kw">pub fn </span>round_duration&lt;C: CalendarProtocol&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         unbalance_date_duration: DateDuration,
         increment: f64,
         unit: TemporalUnit,
         rounding_mode: TemporalRoundingMode,
-        relative_targets: (<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Date&gt;, <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>ZonedDateTime&gt;, <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>DateTime&gt;),
+        relative_targets: (
+            <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Date&lt;C&gt;&gt;,
+            <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>ZonedDateTime&lt;C&gt;&gt;,
+            <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>DateTime&lt;C&gt;&gt;,
+        ),
         context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
     ) -&gt; TemporalResult&lt;(<span class="self">Self</span>, f64)&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>result = Duration::new_unchecked(unbalance_date_duration, <span class="self">self</span>.time);

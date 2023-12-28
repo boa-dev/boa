@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["prepare_temporal_fields"]};
+window.SIDEBAR_ITEMS = {"fn":["object_to_temporal_fields","prepare_temporal_fields"]};

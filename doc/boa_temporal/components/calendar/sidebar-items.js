@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["CALENDAR_PROTOCOL_METHODS"],"enum":["AvailableCalendars","CalendarDateLike","CalendarFieldsType","CalendarSlot"],"mod":["iso"],"trait":["CalendarProtocol","CalendarProtocolClone"]};
+window.SIDEBAR_ITEMS = {"constant":["CALENDAR_PROTOCOL_METHODS"],"enum":["CalendarDateLike","CalendarFieldsType","CalendarSlot"],"trait":["CalendarProtocol"]};

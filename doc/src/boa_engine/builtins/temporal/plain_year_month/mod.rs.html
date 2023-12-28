@@ -321,18 +321,18 @@
 <span class="kw">use </span>boa_gc::{Finalize, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
 
-<span class="kw">use </span><span class="kw">super</span>::calendar::to_temporal_calendar_slot_value;
+<span class="kw">use super</span>::{calendar::to_temporal_calendar_slot_value, JsCustomCalendar};
 <span class="kw">use </span>boa_temporal::{components::YearMonth <span class="kw">as </span>InnerYearMonth, options::ArithmeticOverflow};
 
 <span class="doccomment">/// The `Temporal.PlainYearMonth` object.
 </span><span class="attr">#[derive(Debug, Clone, Trace, Finalize, JsData)]
 #[boa_gc(unsafe_empty_trace)] </span><span class="comment">// TODO: Remove this!!! `InnerYearMonth` could contain `Trace` types.
 </span><span class="kw">pub struct </span>PlainYearMonth {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) inner: InnerYearMonth,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) inner: InnerYearMonth&lt;JsCustomCalendar&gt;,
 }
 
 <span class="kw">impl </span>PlainYearMonth {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(inner: InnerYearMonth) -&gt; <span class="self">Self </span>{
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(inner: InnerYearMonth&lt;JsCustomCalendar&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{ inner }
     }
 }
@@ -577,7 +577,7 @@
 
 // 9.5.5 `CreateTemporalYearMonth ( isoYear, isoMonth, calendar, referenceISODay [ , newTarget ] )`
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_temporal_year_month(
-    ym: InnerYearMonth,
+    ym: InnerYearMonth&lt;JsCustomCalendar&gt;,
     new_target: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsValue&gt;,
     context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;JsValue&gt; {

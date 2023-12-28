@@ -245,12 +245,11 @@
 <a href="#245" id="245">245</a>
 <a href="#246" id="246">246</a>
 <a href="#247" id="247">247</a>
-<a href="#248" id="248">248</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module implements `Date` and any directly related algorithms.
 
 </span><span class="kw">use crate</span>::{
     components::{
-        calendar::{AvailableCalendars, CalendarSlot},
+        calendar::{CalendarProtocol, CalendarSlot},
         duration::DateDuration,
         DateTime, Duration,
     },
@@ -263,18 +262,18 @@
 
 <span class="doccomment">/// The native Rust implementation of `Temporal.PlainDate`.
 </span><span class="attr">#[derive(Debug, Default, Clone)]
-</span><span class="kw">pub struct </span>Date {
+</span><span class="kw">pub struct </span>Date&lt;C: CalendarProtocol&gt; {
     iso: IsoDate,
-    calendar: CalendarSlot,
+    calendar: CalendarSlot&lt;C&gt;,
 }
 
 <span class="comment">// ==== Private API ====
 
-</span><span class="kw">impl </span>Date {
+</span><span class="kw">impl</span>&lt;C: CalendarProtocol&gt; Date&lt;C&gt; {
     <span class="doccomment">/// Create a new `Date` with the date values and calendar slot.
     </span><span class="attr">#[inline]
     #[must_use]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new_unchecked(iso: IsoDate, calendar: CalendarSlot) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new_unchecked(iso: IsoDate, calendar: CalendarSlot&lt;C&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{ iso, calendar }
     }
 
@@ -294,13 +293,13 @@
 
 <span class="comment">// ==== Public API ====
 
-</span><span class="kw">impl </span>Date {
+</span><span class="kw">impl</span>&lt;C: CalendarProtocol&gt; Date&lt;C&gt; {
     <span class="doccomment">/// Creates a new `Date` while checking for validity.
     </span><span class="kw">pub fn </span>new(
         year: i32,
         month: i32,
         day: i32,
-        calendar: CalendarSlot,
+        calendar: CalendarSlot&lt;C&gt;,
         overflow: ArithmeticOverflow,
     ) -&gt; TemporalResult&lt;<span class="self">Self</span>&gt; {
         <span class="kw">let </span>iso = IsoDate::new(year, month, day, overflow)<span class="question-mark">?</span>;
@@ -309,7 +308,7 @@
 
     <span class="attr">#[must_use]
     </span><span class="doccomment">/// Creates a `Date` from a `DateTime`.
-    </span><span class="kw">pub fn </span>from_datetime(dt: <span class="kw-2">&amp;</span>DateTime) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>from_datetime(dt: <span class="kw-2">&amp;</span>DateTime&lt;C&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             iso: dt.iso_date(),
             calendar: dt.calendar().clone(),
@@ -347,7 +346,7 @@
     <span class="attr">#[inline]
     #[must_use]
     </span><span class="doccomment">/// Returns a reference to this `Date`&#39;s calendar slot.
-    </span><span class="kw">pub fn </span>calendar(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>CalendarSlot {
+    </span><span class="kw">pub fn </span>calendar(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>CalendarSlot&lt;C&gt; {
         <span class="kw-2">&amp;</span><span class="self">self</span>.calendar
     }
 
@@ -369,7 +368,7 @@
     }
 }
 
-<span class="kw">impl </span>IsoDateSlots <span class="kw">for </span>Date {
+<span class="kw">impl</span>&lt;C: CalendarProtocol&gt; IsoDateSlots <span class="kw">for </span>Date&lt;C&gt; {
     <span class="doccomment">/// Returns the structs `IsoDate`
     </span><span class="kw">fn </span>iso_date(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; IsoDate {
         <span class="self">self</span>.iso
@@ -378,7 +377,7 @@
 
 <span class="comment">// ==== Context based API ====
 
-</span><span class="kw">impl </span>Date {
+</span><span class="kw">impl</span>&lt;C: CalendarProtocol&gt; Date&lt;C&gt; {
     <span class="doccomment">/// Returns the date after adding the given duration to date with a provided context.
     ///
     /// Temporal Equivalent: 3.5.13 `AddDate ( calendar, plainDate, duration [ , options [ , dateAdd ] ] )`
@@ -472,14 +471,13 @@
 
 <span class="comment">// ==== Trait impls ====
 
-</span><span class="kw">impl </span>FromStr <span class="kw">for </span>Date {
+</span><span class="kw">impl</span>&lt;C: CalendarProtocol&gt; FromStr <span class="kw">for </span>Date&lt;C&gt; {
     <span class="kw">type </span><span class="prelude-val">Err </span>= TemporalError;
 
     <span class="kw">fn </span>from_str(s: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Err&gt; {
         <span class="kw">let </span>parse_record = parse_date_time(s)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>calendar = parse_record.calendar.unwrap_or(<span class="string">&quot;iso8601&quot;</span>.to_owned());
-        <span class="kw">let _ </span>= AvailableCalendars::from_str(calendar.to_ascii_lowercase().as_str())<span class="question-mark">?</span>;
 
         <span class="kw">let </span>date = IsoDate::new(
             parse_record.date.year,
@@ -490,7 +488,7 @@
 
         <span class="prelude-val">Ok</span>(<span class="self">Self</span>::new_unchecked(
             date,
-            CalendarSlot::Identifier(calendar),
+            CalendarSlot::from_str(<span class="kw-2">&amp;</span>calendar)<span class="question-mark">?</span>,
         ))
     }
 }

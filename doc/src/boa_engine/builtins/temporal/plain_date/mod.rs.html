@@ -541,17 +541,17 @@
     options::ArithmeticOverflow,
 };
 
-<span class="kw">use super</span>::{calendar, PlainDateTime, ZonedDateTime};
+<span class="kw">use super</span>::{calendar, JsCustomCalendar, PlainDateTime, ZonedDateTime};
 
 <span class="doccomment">/// The `Temporal.PlainDate` object.
 </span><span class="attr">#[derive(Debug, Clone, Trace, Finalize, JsData)]
 #[boa_gc(unsafe_empty_trace)] </span><span class="comment">// TODO: Remove this!!! `InnerDate` could contain `Trace` types.
 </span><span class="kw">pub struct </span>PlainDate {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) inner: InnerDate,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) inner: InnerDate&lt;JsCustomCalendar&gt;,
 }
 
 <span class="kw">impl </span>PlainDate {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(inner: InnerDate) -&gt; <span class="self">Self </span>{
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(inner: InnerDate&lt;JsCustomCalendar&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{ inner }
     }
 }
@@ -920,7 +920,7 @@
 
 </span><span class="doccomment">/// 3.5.3 `CreateTemporalDate ( isoYear, isoMonth, isoDay, calendar [ , newTarget ] )`
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_temporal_date(
-    inner: InnerDate,
+    inner: InnerDate&lt;JsCustomCalendar&gt;,
     new_target: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsValue&gt;,
     context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;JsObject&gt; {
@@ -932,7 +932,7 @@
     };
 
     <span class="comment">// 2. If ISODateTimeWithinLimits(isoYear, isoMonth, isoDay, 12, 0, 0, 0, 0, 0) is false, throw a RangeError exception.
-    </span><span class="kw">if </span>!DateTime::validate(<span class="kw-2">&amp;</span>inner) {
+    </span><span class="kw">if </span>!DateTime::&lt;JsCustomCalendar&gt;::validate(<span class="kw-2">&amp;</span>inner) {
         <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
             .with_message(<span class="string">&quot;Date is not within ISO date time limits.&quot;</span>)
             .into());
@@ -1033,7 +1033,7 @@
     // 13. Return ? CreateTemporalDate(result.[[Year]], result.[[Month]], result.[[Day]], calendar).
     </span><span class="kw">let </span>result = date_like_string
         .to_std_string_escaped()
-        .parse::&lt;InnerDate&gt;()
+        .parse::&lt;InnerDate&lt;JsCustomCalendar&gt;&gt;()
         .map_err(|err| JsNativeError::range().with_message(err.to_string()))<span class="question-mark">?</span>;
 
     <span class="prelude-val">Ok</span>(PlainDate::new(result))

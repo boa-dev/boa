@@ -155,6 +155,8 @@
 <a href="#155" id="155">155</a>
 <a href="#156" id="156">156</a>
 <a href="#157" id="157">157</a>
+<a href="#158" id="158">158</a>
+<a href="#159" id="159">159</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of the ECMAScript `Temporal.PlainDateTime` builtin object.
 </span><span class="attr">#![allow(dead_code, unused_variables)]
 
@@ -171,19 +173,21 @@
 
 <span class="kw">use </span>boa_temporal::components::DateTime <span class="kw">as </span>InnerDateTime;
 
+<span class="kw">use </span><span class="kw">super</span>::JsCustomCalendar;
+
 <span class="doccomment">/// The `Temporal.PlainDateTime` object.
 </span><span class="attr">#[derive(Debug, Clone, Trace, Finalize, JsData)]
 #[boa_gc(unsafe_empty_trace)] </span><span class="comment">// TODO: Remove this!!! `InnerDateTime` could contain `Trace` types.
 </span><span class="kw">pub struct </span>PlainDateTime {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) inner: InnerDateTime,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) inner: InnerDateTime&lt;JsCustomCalendar&gt;,
 }
 
 <span class="kw">impl </span>PlainDateTime {
-    <span class="kw">fn </span>new(inner: InnerDateTime) -&gt; <span class="self">Self </span>{
+    <span class="kw">fn </span>new(inner: InnerDateTime&lt;JsCustomCalendar&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{ inner }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>inner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>InnerDateTime {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>inner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>InnerDateTime&lt;JsCustomCalendar&gt; {
         <span class="kw-2">&amp;</span><span class="self">self</span>.inner
     }
 }
