@@ -13,7 +13,7 @@ rust-version.workspace = true
 
 [dependencies]
 tinystr = "0.7.4"
-icu_calendar = { workspace = true, default-features = false }
+icu_calendar = { workspace = true, default-features = true }
 rustc-hash = { workspace = true, features = ["std"] }
 num-bigint = { workspace = true, features = ["serde"] }
 bitflags.workspace = true

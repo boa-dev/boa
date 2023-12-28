@@ -14,19 +14,21 @@ use boa_profiler::Profiler;
 
 use boa_temporal::components::DateTime as InnerDateTime;
 
+use super::JsCustomCalendar;
+
 /// The `Temporal.PlainDateTime` object.
 #[derive(Debug, Clone, Trace, Finalize, JsData)]
 #[boa_gc(unsafe_empty_trace)] // TODO: Remove this!!! `InnerDateTime` could contain `Trace` types.
 pub struct PlainDateTime {
-    pub(crate) inner: InnerDateTime,
+    pub(crate) inner: InnerDateTime<JsCustomCalendar>,
 }
 
 impl PlainDateTime {
-    fn new(inner: InnerDateTime) -> Self {
+    fn new(inner: InnerDateTime<JsCustomCalendar>) -> Self {
         Self { inner }
     }
 
-    pub(crate) fn inner(&self) -> &InnerDateTime {
+    pub(crate) fn inner(&self) -> &InnerDateTime<JsCustomCalendar> {
         &self.inner
     }
 }

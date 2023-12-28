@@ -2,6 +2,8 @@
 
 use core::fmt;
 
+use icu_calendar::CalendarError;
+
 /// `TemporalError`'s error type.
 #[derive(Debug, Default, Clone, Copy)]
 pub enum ErrorKind {
@@ -109,5 +111,11 @@ impl fmt::Display for TemporalError {
         }
 
         Ok(())
+    }
+}
+
+impl From<CalendarError> for TemporalError {
+    fn from(value: CalendarError) -> Self {
+        TemporalError::general(value.to_string())
     }
 }

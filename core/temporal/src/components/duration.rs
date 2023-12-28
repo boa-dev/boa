@@ -8,6 +8,8 @@ use crate::{
 };
 use std::{any::Any, str::FromStr};
 
+use super::calendar::CalendarProtocol;
+
 // ==== `DateDuration` ====
 
 /// `DateDuration` represents the [date duration record][spec] of the `Duration.`
@@ -697,10 +699,10 @@ impl Duration {
 
     /// 7.5.21 `UnbalanceDateDurationRelative ( years, months, weeks, days, largestUnit, plainRelativeTo )`
     #[allow(dead_code)]
-    pub(crate) fn unbalance_duration_relative(
+    pub(crate) fn unbalance_duration_relative<C: CalendarProtocol>(
         &self,
         largest_unit: TemporalUnit,
-        plain_relative_to: Option<&Date>,
+        plain_relative_to: Option<&Date<C>>,
         context: &mut dyn Any,
     ) -> TemporalResult<DateDuration> {
         // 1. Let allZero be false.
@@ -918,10 +920,10 @@ impl Duration {
     // TODO: Move to DateDuration
     /// `BalanceDateDurationRelative`
     #[allow(unused)]
-    pub fn balance_date_duration_relative(
+    pub fn balance_date_duration_relative<C: CalendarProtocol>(
         &self,
         largest_unit: TemporalUnit,
-        plain_relative_to: Option<&Date>,
+        plain_relative_to: Option<&Date<C>>,
         context: &mut dyn Any,
     ) -> TemporalResult<DateDuration> {
         let mut result = self.date;
@@ -1151,13 +1153,18 @@ impl Duration {
     /// Abstract Operation 7.5.26 `RoundDuration ( years, months, weeks, days, hours, minutes,
     ///   seconds, milliseconds, microseconds, nanoseconds, increment, unit,
     ///   roundingMode [ , plainRelativeTo [, zonedRelativeTo [, precalculatedDateTime]]] )`
-    pub fn round_duration(
+    #[allow(clippy::type_complexity)]
+    pub fn round_duration<C: CalendarProtocol>(
         &self,
         unbalance_date_duration: DateDuration,
         increment: f64,
         unit: TemporalUnit,
         rounding_mode: TemporalRoundingMode,
-        relative_targets: (Option<&Date>, Option<&ZonedDateTime>, Option<&DateTime>),
+        relative_targets: (
+            Option<&Date<C>>,
+            Option<&ZonedDateTime<C>>,
+            Option<&DateTime<C>>,
+        ),
         context: &mut dyn Any,
     ) -> TemporalResult<(Self, f64)> {
         let mut result = Duration::new_unchecked(unbalance_date_duration, self.time);

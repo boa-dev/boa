@@ -11,12 +11,14 @@ use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
 use boa_temporal::components::{Duration as TemporalDuration, ZonedDateTime as InnerZdt};
 
+use super::JsCustomCalendar;
+
 /// The `Temporal.ZonedDateTime` object.
 #[derive(Debug, Clone, Finalize, Trace, JsData)]
 // SAFETY: ZonedDateTime does not contain any traceable types.
 #[boa_gc(unsafe_empty_trace)]
 pub struct ZonedDateTime {
-    inner: InnerZdt,
+    pub(crate) inner: InnerZdt<JsCustomCalendar>,
 }
 
 impl BuiltInObject for ZonedDateTime {

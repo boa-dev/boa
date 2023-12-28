@@ -10,6 +10,8 @@ use crate::{
     TemporalError, TemporalResult,
 };
 
+use super::calendar::CalendarProtocol;
+
 /// Any object that implements the `TzProtocol` must implement the below methods/properties.
 pub const TIME_ZONE_PROPERTIES: [&str; 3] =
     ["getOffsetNanosecondsFor", "getPossibleInstantsFor", "id"];
@@ -74,12 +76,12 @@ impl Clone for TimeZoneSlot {
 }
 
 impl TimeZoneSlot {
-    pub(crate) fn get_datetime_for(
+    pub(crate) fn get_datetime_for<C: CalendarProtocol>(
         &self,
         instant: &Instant,
-        calendar: &CalendarSlot,
+        calendar: &CalendarSlot<C>,
         context: &mut dyn Any,
-    ) -> TemporalResult<DateTime> {
+    ) -> TemporalResult<DateTime<C>> {
         let nanos = self.get_offset_nanos_for(context)?;
         DateTime::from_instant(instant, nanos.to_f64().unwrap_or(0.0), calendar.clone())
     }

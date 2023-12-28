@@ -14,15 +14,17 @@ use boa_profiler::Profiler;
 
 use boa_temporal::components::{DateTime, MonthDay as InnerMonthDay};
 
+use super::JsCustomCalendar;
+
 /// The `Temporal.PlainMonthDay` object.
 #[derive(Debug, Clone, Trace, Finalize, JsData)]
 #[boa_gc(unsafe_empty_trace)] // TODO: Remove this!!! `InnerMonthDay` could contain `Trace` types.
 pub struct PlainMonthDay {
-    pub(crate) inner: InnerMonthDay,
+    pub(crate) inner: InnerMonthDay<JsCustomCalendar>,
 }
 
 impl PlainMonthDay {
-    fn new(inner: InnerMonthDay) -> Self {
+    fn new(inner: InnerMonthDay<JsCustomCalendar>) -> Self {
         Self { inner }
     }
 }
@@ -69,13 +71,13 @@ impl BuiltInConstructor for PlainMonthDay {
 // ==== `PlainMonthDay` Abstract Operations ====
 
 pub(crate) fn create_temporal_month_day(
-    inner: InnerMonthDay,
+    inner: InnerMonthDay<JsCustomCalendar>,
     new_target: Option<&JsValue>,
     context: &mut Context,
 ) -> JsResult<JsValue> {
     // 1. If IsValidISODate(referenceISOYear, isoMonth, isoDay) is false, throw a RangeError exception.
     // 2. If ISODateTimeWithinLimits(referenceISOYear, isoMonth, isoDay, 12, 0, 0, 0, 0, 0) is false, throw a RangeError exception.
-    if DateTime::validate(&inner) {
+    if DateTime::<JsCustomCalendar>::validate(&inner) {
         return Err(JsNativeError::range()
             .with_message("PlainMonthDay is not a valid ISO date time.")
             .into());

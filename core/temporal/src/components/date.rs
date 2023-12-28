@@ -2,7 +2,7 @@
 
 use crate::{
     components::{
-        calendar::{AvailableCalendars, CalendarSlot},
+        calendar::{CalendarProtocol, CalendarSlot},
         duration::DateDuration,
         DateTime, Duration,
     },
@@ -15,18 +15,18 @@ use std::{any::Any, str::FromStr};
 
 /// The native Rust implementation of `Temporal.PlainDate`.
 #[derive(Debug, Default, Clone)]
-pub struct Date {
+pub struct Date<C: CalendarProtocol> {
     iso: IsoDate,
-    calendar: CalendarSlot,
+    calendar: CalendarSlot<C>,
 }
 
 // ==== Private API ====
 
-impl Date {
+impl<C: CalendarProtocol> Date<C> {
     /// Create a new `Date` with the date values and calendar slot.
     #[inline]
     #[must_use]
-    pub(crate) fn new_unchecked(iso: IsoDate, calendar: CalendarSlot) -> Self {
+    pub(crate) fn new_unchecked(iso: IsoDate, calendar: CalendarSlot<C>) -> Self {
         Self { iso, calendar }
     }
 
@@ -46,13 +46,13 @@ impl Date {
 
 // ==== Public API ====
 
-impl Date {
+impl<C: CalendarProtocol> Date<C> {
     /// Creates a new `Date` while checking for validity.
     pub fn new(
         year: i32,
         month: i32,
         day: i32,
-        calendar: CalendarSlot,
+        calendar: CalendarSlot<C>,
         overflow: ArithmeticOverflow,
     ) -> TemporalResult<Self> {
         let iso = IsoDate::new(year, month, day, overflow)?;
@@ -61,7 +61,7 @@ impl Date {
 
     #[must_use]
     /// Creates a `Date` from a `DateTime`.
-    pub fn from_datetime(dt: &DateTime) -> Self {
+    pub fn from_datetime(dt: &DateTime<C>) -> Self {
         Self {
             iso: dt.iso_date(),
             calendar: dt.calendar().clone(),
@@ -99,7 +99,7 @@ impl Date {
     #[inline]
     #[must_use]
     /// Returns a reference to this `Date`'s calendar slot.
-    pub fn calendar(&self) -> &CalendarSlot {
+    pub fn calendar(&self) -> &CalendarSlot<C> {
         &self.calendar
     }
 
@@ -121,7 +121,7 @@ impl Date {
     }
 }
 
-impl IsoDateSlots for Date {
+impl<C: CalendarProtocol> IsoDateSlots for Date<C> {
     /// Returns the structs `IsoDate`
     fn iso_date(&self) -> IsoDate {
         self.iso
@@ -130,7 +130,7 @@ impl IsoDateSlots for Date {
 
 // ==== Context based API ====
 
-impl Date {
+impl<C: CalendarProtocol> Date<C> {
     /// Returns the date after adding the given duration to date with a provided context.
     ///
     /// Temporal Equivalent: 3.5.13 `AddDate ( calendar, plainDate, duration [ , options [ , dateAdd ] ] )`
@@ -224,14 +224,13 @@ impl Date {
 
 // ==== Trait impls ====
 
-impl FromStr for Date {
+impl<C: CalendarProtocol> FromStr for Date<C> {
     type Err = TemporalError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let parse_record = parse_date_time(s)?;
 
         let calendar = parse_record.calendar.unwrap_or("iso8601".to_owned());
-        let _ = AvailableCalendars::from_str(calendar.to_ascii_lowercase().as_str())?;
 
         let date = IsoDate::new(
             parse_record.date.year,
@@ -242,7 +241,7 @@ impl FromStr for Date {
 
         Ok(Self::new_unchecked(
             date,
-            CalendarSlot::Identifier(calendar),
+            CalendarSlot::from_str(&calendar)?,
         ))
     }
 }
