@@ -77,31 +77,29 @@ where
         cursor.peek_expect_no_lineterminator(0, "async arrow function", interner)?;
 
         let next_token = cursor.peek(0, interner).or_abrupt()?;
-        let (params, params_start_position) = if next_token.kind()
-            == &TokenKind::Punctuator(Punctuator::OpenParen)
-        {
-            let params_start_position = cursor
-                .expect(Punctuator::OpenParen, "async arrow function", interner)?
-                .span()
-                .end();
+        let (params, params_start_position) =
+            if next_token.kind() == &TokenKind::Punctuator(Punctuator::OpenParen) {
+                let params_start_position = cursor
+                    .expect(Punctuator::OpenParen, "async arrow function", interner)?
+                    .span()
+                    .end();
 
-            let params = FormalParameters::new(false, true).parse(cursor, interner)?;
-            cursor.expect(Punctuator::CloseParen, "async arrow function", interner)?;
-            (params, params_start_position)
-        } else {
-            let params_start_position = next_token.span().start();
-            let param = BindingIdentifier::new(self.allow_yield, true)
-                .parse(cursor, interner)
-                .set_context("async arrow function")?;
-            (
-                FormalParameterList::try_from(FormalParameter::new(
-                    Variable::from_identifier(param, None),
-                    false,
-                ))
-                .expect("a single binding identifier without init is always a valid param list"),
-                params_start_position,
-            )
-        };
+                let params = FormalParameters::new(false, true).parse(cursor, interner)?;
+                cursor.expect(Punctuator::CloseParen, "async arrow function", interner)?;
+                (params, params_start_position)
+            } else {
+                let params_start_position = next_token.span().start();
+                let param = BindingIdentifier::new(self.allow_yield, true)
+                    .parse(cursor, interner)
+                    .set_context("async arrow function")?;
+                (
+                    FormalParameterList::from(FormalParameter::new(
+                        Variable::from_identifier(param, None),
+                        false,
+                    )),
+                    params_start_position,
+                )
+            };
 
         cursor.peek_expect_no_lineterminator(0, "async arrow function", interner)?;
         cursor.expect(Punctuator::Arrow, "async arrow function", interner)?;

@@ -84,7 +84,7 @@ impl Reflect {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/apply
     pub(crate) fn apply(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let target = args
-            .get(0)
+            .first()
             .and_then(JsValue::as_object)
             .ok_or_else(|| JsNativeError::typ().with_message("target must be a function"))?;
         let this_arg = args.get_or_undefined(1);
@@ -153,7 +153,7 @@ impl Reflect {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         let target = args
-            .get(0)
+            .first()
             .and_then(JsValue::as_object)
             .ok_or_else(|| JsNativeError::typ().with_message("target must be an object"))?;
         let key = args.get_or_undefined(1).to_property_key(context)?;
@@ -188,7 +188,7 @@ impl Reflect {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         let target = args
-            .get(0)
+            .first()
             .and_then(JsValue::as_object)
             .ok_or_else(|| JsNativeError::typ().with_message("target must be an object"))?;
         let key = args.get_or_undefined(1).to_property_key(context)?;
@@ -209,7 +209,7 @@ impl Reflect {
     pub(crate) fn get(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. If Type(target) is not Object, throw a TypeError exception.
         let target = args
-            .get(0)
+            .first()
             .and_then(JsValue::as_object)
             .ok_or_else(|| JsNativeError::typ().with_message("target must be an object"))?;
         // 2. Let key be ? ToPropertyKey(propertyKey).
@@ -267,7 +267,7 @@ impl Reflect {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         let target = args
-            .get(0)
+            .first()
             .and_then(JsValue::as_object)
             .ok_or_else(|| JsNativeError::typ().with_message("target must be an object"))?;
         Ok(target
@@ -285,7 +285,7 @@ impl Reflect {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/has
     pub(crate) fn has(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let target = args
-            .get(0)
+            .first()
             .and_then(JsValue::as_object)
             .ok_or_else(|| JsNativeError::typ().with_message("target must be an object"))?;
         let key = args
@@ -312,7 +312,7 @@ impl Reflect {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         let target = args
-            .get(0)
+            .first()
             .and_then(JsValue::as_object)
             .ok_or_else(|| JsNativeError::typ().with_message("target must be an object"))?;
         Ok(target
@@ -334,7 +334,7 @@ impl Reflect {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         let target = args
-            .get(0)
+            .first()
             .and_then(JsValue::as_object)
             .ok_or_else(|| JsNativeError::typ().with_message("target must be an object"))?;
 
@@ -361,7 +361,7 @@ impl Reflect {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         let target = args
-            .get(0)
+            .first()
             .and_then(JsValue::as_object)
             .ok_or_else(|| JsNativeError::typ().with_message("target must be an object"))?;
 
@@ -380,7 +380,7 @@ impl Reflect {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/set
     pub(crate) fn set(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let target = args
-            .get(0)
+            .first()
             .and_then(JsValue::as_object)
             .ok_or_else(|| JsNativeError::typ().with_message("target must be an object"))?;
         let key = args.get_or_undefined(1).to_property_key(context)?;
@@ -414,7 +414,7 @@ impl Reflect {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         let target = args
-            .get(0)
+            .first()
             .and_then(JsValue::as_object)
             .ok_or_else(|| JsNativeError::typ().with_message("target must be an object"))?;
         let proto = match args.get_or_undefined(1) {

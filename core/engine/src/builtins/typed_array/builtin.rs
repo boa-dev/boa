@@ -2510,7 +2510,7 @@ impl BuiltinTypedArray {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. If comparefn is not undefined and IsCallable(comparefn) is false, throw a TypeError exception.
-        let compare_fn = match args.get(0) {
+        let compare_fn = match args.first() {
             None | Some(JsValue::Undefined) => None,
             Some(JsValue::Object(obj)) if obj.is_callable() => Some(obj),
             _ => {
@@ -2577,7 +2577,7 @@ impl BuiltinTypedArray {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. If comparefn is not undefined and IsCallable(comparefn) is false, throw a TypeError exception.
-        let compare_fn = match args.get(0) {
+        let compare_fn = match args.first() {
             None | Some(JsValue::Undefined) => None,
             Some(JsValue::Object(obj)) if obj.is_callable() => Some(obj),
             _ => {

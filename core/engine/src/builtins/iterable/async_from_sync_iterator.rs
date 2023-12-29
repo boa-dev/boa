@@ -121,7 +121,7 @@ impl AsyncFromSyncIterator {
         let result = next
             .call(
                 &iterator.into(),
-                args.get(0).map_or(&[], std::slice::from_ref),
+                args.first().map_or(&[], std::slice::from_ref),
                 context,
             )
             .and_then(IteratorResult::from_value);
@@ -164,7 +164,7 @@ impl AsyncFromSyncIterator {
         // 6. IfAbruptRejectPromise(return, promiseCapability).
         let r#return = if_abrupt_reject_promise!(r#return, promise_capability, context);
 
-        let result = match (r#return, args.get(0)) {
+        let result = match (r#return, args.first()) {
             // 7. If return is undefined, then
             (None, _) => {
                 // a. Let iterResult be CreateIterResultObject(value, true).
@@ -234,7 +234,7 @@ impl AsyncFromSyncIterator {
         // 6. IfAbruptRejectPromise(throw, promiseCapability).
         let throw = if_abrupt_reject_promise!(throw, promise_capability, context);
 
-        let result = match (throw, args.get(0)) {
+        let result = match (throw, args.first()) {
             // 7. If throw is undefined, then
             (None, _) => {
                 // a. Perform ! Call(promiseCapability.[[Reject]], undefined, « value »).

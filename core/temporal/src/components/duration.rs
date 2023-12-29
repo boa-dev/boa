@@ -361,6 +361,13 @@ impl Duration {
     pub fn is_time_within_range(&self) -> bool {
         self.time.is_within_range()
     }
+
+    /// Return an iterator over the `Duration`'s values.
+    #[inline]
+    #[must_use]
+    pub fn iter(&self) -> DurationIter<'_> {
+        <&Self as IntoIterator>::into_iter(self)
+    }
 }
 
 // ==== Public `Duration` Getters/Setters ====

@@ -42,7 +42,7 @@ impl OptionType for HourCycle {
 /// JavaScript `Intl.DateTimeFormat` object.
 #[derive(Debug, Clone, Trace, Finalize, JsData)]
 pub(crate) struct DateTimeFormat {
-    initialized_date_time_format: bool,
+    initialized: bool,
     locale: JsString,
     calendar: JsString,
     numbering_system: JsString,
@@ -125,7 +125,7 @@ impl BuiltInConstructor for DateTimeFormat {
             context.root_shape(),
             prototype,
             Self {
-                initialized_date_time_format: true,
+                initialized: true,
                 locale: js_string!("en-US"),
                 calendar: js_string!("gregory"),
                 numbering_system: js_string!("arab"),

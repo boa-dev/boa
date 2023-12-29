@@ -52,7 +52,7 @@ fn flowgraph_parse_direction_option(value: &JsValue) -> JsResult<Direction> {
 
 /// Get functions instruction flowgraph
 fn flowgraph(_this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-    let Some(value) = args.get(0) else {
+    let Some(value) = args.first() else {
         return Err(JsNativeError::typ()
             .with_message("expected function argument")
             .into());
@@ -100,7 +100,7 @@ fn flowgraph(_this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResu
 }
 
 fn bytecode(_: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-    let Some(value) = args.get(0) else {
+    let Some(value) = args.first() else {
         return Err(JsNativeError::typ()
             .with_message("expected function argument")
             .into());

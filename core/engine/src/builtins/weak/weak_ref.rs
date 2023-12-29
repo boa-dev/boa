@@ -73,7 +73,7 @@ impl BuiltInConstructor for WeakRef {
         }
 
         // 2. If target is not an Object, throw a TypeError exception.
-        let target = args.get(0).and_then(JsValue::as_object).ok_or_else(|| {
+        let target = args.first().and_then(JsValue::as_object).ok_or_else(|| {
             JsNativeError::typ().with_message(format!(
                 "WeakRef: expected target argument of type `object`, got target of type `{}`",
                 args.get_or_undefined(0).type_of()

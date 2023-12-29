@@ -448,7 +448,7 @@ impl Date {
         // This method is implementation-defined and discouraged, so we just require the same format as the string
         // constructor.
 
-        let date = some_or_nan!(args.get(0));
+        let date = some_or_nan!(args.first());
 
         let date = date.to_string(context)?;
 

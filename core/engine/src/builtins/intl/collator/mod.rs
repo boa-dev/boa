@@ -43,6 +43,7 @@ mod options;
 pub(crate) use options::*;
 
 #[derive(Debug, Finalize, JsData)]
+#[allow(clippy::struct_field_names)]
 pub(crate) struct Collator {
     locale: Locale,
     collation: Value,

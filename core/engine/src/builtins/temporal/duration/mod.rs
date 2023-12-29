@@ -186,7 +186,7 @@ impl BuiltInConstructor for Duration {
 
         // 2. If years is undefined, let y be 0; else let y be ? ToIntegerIfIntegral(years).
         let years = f64::from(
-            args.get(0)
+            args.first()
                 .map_or(Ok(0), |y| to_integer_if_integral(y, context))?,
         );
 

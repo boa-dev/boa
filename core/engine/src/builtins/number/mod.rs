@@ -117,7 +117,7 @@ impl BuiltInConstructor for Number {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        let data = match args.get(0) {
+        let data = match args.first() {
             Some(value) => value.to_numeric_number(context)?,
             None => 0.0,
         };
@@ -221,7 +221,7 @@ impl Number {
     ) -> JsResult<JsValue> {
         // 1. Let x be ? thisNumberValue(this value).
         let this_num = Self::this_number_value(this)?;
-        let precision = match args.get(0) {
+        let precision = match args.first() {
             None | Some(JsValue::Undefined) => None,
             // 2. Let f be ? ToIntegerOrInfinity(fractionDigits).
             Some(n) => Some(n.to_integer_or_infinity(context)?),
@@ -748,7 +748,7 @@ impl Number {
         // 1. If number is not a Number, return false.
         // 2. If number is not finite, return false.
         // 3. Otherwise, return true.
-        Ok(JsValue::new(args.get(0).map_or(false, |val| match val {
+        Ok(JsValue::new(args.first().map_or(false, |val| match val {
             JsValue::Integer(_) => true,
             JsValue::Rational(number) => number.is_finite(),
             _ => false,
@@ -771,7 +771,7 @@ impl Number {
         args: &[JsValue],
         _ctx: &mut Context,
     ) -> JsResult<JsValue> {
-        Ok(args.get(0).map_or(false, Self::is_integer).into())
+        Ok(args.first().map_or(false, Self::is_integer).into())
     }
 
     /// `Number.isNaN( number )`
@@ -795,7 +795,7 @@ impl Number {
         _ctx: &mut Context,
     ) -> JsResult<JsValue> {
         Ok(JsValue::new(
-            if let Some(&JsValue::Rational(number)) = args.get(0) {
+            if let Some(&JsValue::Rational(number)) = args.first() {
                 number.is_nan()
             } else {
                 false
@@ -823,7 +823,7 @@ impl Number {
         args: &[JsValue],
         _ctx: &mut Context,
     ) -> JsResult<JsValue> {
-        Ok(JsValue::new(match args.get(0) {
+        Ok(JsValue::new(match args.first() {
             Some(JsValue::Integer(_)) => true,
             Some(JsValue::Rational(number)) if Self::is_float_integer(*number) => {
                 number.abs() <= Self::MAX_SAFE_INTEGER

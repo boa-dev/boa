@@ -28,7 +28,7 @@ fn main() -> JsResult<()> {
     let callback = FunctionObjectBuilder::new(
         context.realm(),
         NativeFunction::from_fn_ptr(|_this, args, context| {
-            let accumulator = args.get(0).cloned().unwrap_or_default();
+            let accumulator = args.first().cloned().unwrap_or_default();
             let value = args.get(1).cloned().unwrap_or_default();
 
             accumulator.add(&value, context)

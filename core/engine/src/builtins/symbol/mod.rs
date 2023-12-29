@@ -213,7 +213,7 @@ impl BuiltInConstructor for Symbol {
 
         // 2. If description is undefined, let descString be undefined.
         // 3. Else, let descString be ? ToString(description).
-        let description = match args.get(0) {
+        let description = match args.first() {
             Some(value) if !value.is_undefined() => Some(value.to_string(context)?),
             _ => None,
         };
@@ -315,7 +315,7 @@ impl Symbol {
     pub(crate) fn for_(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let stringKey be ? ToString(key).
         let string_key = args
-            .get(0)
+            .first()
             .cloned()
             .unwrap_or_default()
             .to_string(context)?;
