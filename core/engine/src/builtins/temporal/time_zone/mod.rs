@@ -1,3 +1,4 @@
+//! Boa's implemetation of the `Temporal.TimeZone` builtin object.
 #![allow(dead_code)]
 
 use crate::{
@@ -13,16 +14,29 @@ use crate::{
     string::{common::StaticJsStrings, utf16},
     Context, JsArgs, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
-use boa_gc::{Finalize, Trace};
+use boa_gc::{custom_trace, Finalize, Trace};
 use boa_profiler::Profiler;
-use boa_temporal::components::tz::{TimeZoneSlot, TzProtocol};
+use boa_temporal::components::tz::TimeZoneSlot;
+
+mod custom;
+
+#[doc(inline)]
+pub(crate) use custom::JsCustomTimeZone;
 
 /// The `Temporal.TimeZone` object.
-#[derive(Debug, Clone, Trace, Finalize, JsData)]
-// SAFETY: `TimeZone` doesn't contain traceable data.
-#[boa_gc(unsafe_empty_trace)]
+#[derive(Debug, Clone, Finalize, JsData)]
 pub struct TimeZone {
-    slot: TimeZoneSlot,
+    slot: TimeZoneSlot<JsCustomTimeZone>,
+}
+
+unsafe impl Trace for TimeZone {
+    custom_trace!(this, mark, {
+        match &this.slot {
+            TimeZoneSlot::Protocol(custom) => mark(custom),
+            // SAFETY: No values that are exposed to gc are in TZ
+            TimeZoneSlot::Tz(_) => {}
+        }
+    });
 }
 
 impl BuiltInObject for TimeZone {
@@ -143,7 +157,7 @@ impl TimeZone {
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("this value must be a Temporal.TimeZone")
             })?;
-        Ok(JsString::from(tz.slot.id(context)).into())
+        Ok(JsString::from(tz.slot.id(context)?).into())
     }
 
     pub(crate) fn get_offset_nanoseconds_for(
@@ -257,7 +271,7 @@ impl TimeZone {
                 JsNativeError::typ().with_message("this value must be a Temporal.TimeZone")
             })?;
         // 3. Return timeZone.[[Identifier]].
-        Ok(JsString::from(tz.slot.id(context)).into())
+        Ok(JsString::from(tz.slot.id(context)?).into())
     }
 }
 

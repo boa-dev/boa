@@ -16,29 +16,14 @@ use super::calendar::CalendarProtocol;
 pub const TIME_ZONE_PROPERTIES: [&str; 3] =
     ["getOffsetNanosecondsFor", "getPossibleInstantsFor", "id"];
 
-/// A clonable `TzProtocol`
-pub trait TzProtocolClone {
-    /// Clones the current `TimeZoneProtocol`.
-    fn clone_box(&self) -> Box<dyn TzProtocol>;
-}
-
-impl<P> TzProtocolClone for P
-where
-    P: 'static + TzProtocol + Clone,
-{
-    fn clone_box(&self) -> Box<dyn TzProtocol> {
-        Box::new(self.clone())
-    }
-}
-
 /// The Time Zone Protocol that must be implemented for time zones.
-pub trait TzProtocol: TzProtocolClone {
+pub trait TzProtocol: Clone {
     /// Get the Offset nanoseconds for this `TimeZone`
     fn get_offset_nanos_for(&self, context: &mut dyn Any) -> TemporalResult<BigInt>;
     /// Get the possible Instant for this `TimeZone`
     fn get_possible_instant_for(&self, context: &mut dyn Any) -> TemporalResult<Vec<Instant>>; // TODO: Implement Instant
     /// Get the `TimeZone`'s identifier.
-    fn id(&self, context: &mut dyn Any) -> String;
+    fn id(&self, context: &mut dyn Any) -> TemporalResult<String>;
 }
 
 /// A Temporal `TimeZone`.
@@ -50,14 +35,15 @@ pub struct TimeZone {
 }
 
 /// The `TimeZoneSlot` represents a `[[TimeZone]]` internal slot value.
-pub enum TimeZoneSlot {
+#[derive(Clone)]
+pub enum TimeZoneSlot<Z: TzProtocol> {
     /// A native `TimeZone` representation.
     Tz(TimeZone),
     /// A Custom `TimeZone` that implements the `TzProtocol`.
-    Protocol(Box<dyn TzProtocol>),
+    Protocol(Z),
 }
 
-impl core::fmt::Debug for TimeZoneSlot {
+impl<Z: TzProtocol> core::fmt::Debug for TimeZoneSlot<Z> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Tz(tz) => write!(f, "{tz:?}"),
@@ -66,16 +52,7 @@ impl core::fmt::Debug for TimeZoneSlot {
     }
 }
 
-impl Clone for TimeZoneSlot {
-    fn clone(&self) -> Self {
-        match self {
-            Self::Tz(tz) => Self::Tz(tz.clone()),
-            Self::Protocol(p) => Self::Protocol(p.clone_box()),
-        }
-    }
-}
-
-impl TimeZoneSlot {
+impl<Z: TzProtocol> TimeZoneSlot<Z> {
     pub(crate) fn get_datetime_for<C: CalendarProtocol>(
         &self,
         instant: &Instant,
@@ -87,8 +64,9 @@ impl TimeZoneSlot {
     }
 }
 
-impl TzProtocol for TimeZoneSlot {
-    fn get_offset_nanos_for(&self, context: &mut dyn Any) -> TemporalResult<BigInt> {
+impl<Z: TzProtocol> TimeZoneSlot<Z> {
+    /// Get the offset for this current `TimeZoneSlot`.
+    pub fn get_offset_nanos_for(&self, context: &mut dyn Any) -> TemporalResult<BigInt> {
         // 1. Let timeZone be the this value.
         // 2. Perform ? RequireInternalSlot(timeZone, [[InitializedTemporalTimeZone]]).
         // 3. Set instant to ? ToTemporalInstant(instant).
@@ -106,14 +84,30 @@ impl TzProtocol for TimeZoneSlot {
         }
     }
 
-    fn get_possible_instant_for(&self, _context: &mut dyn Any) -> TemporalResult<Vec<Instant>> {
+    /// Get the possible `Instant`s for this `TimeZoneSlot`.
+    pub fn get_possible_instant_for(&self, _context: &mut dyn Any) -> TemporalResult<Vec<Instant>> {
         Err(TemporalError::general("Not yet implemented."))
     }
 
-    fn id(&self, context: &mut dyn Any) -> String {
+    /// Returns the current `TimeZoneSlot`'s identifier.
+    pub fn id(&self, context: &mut dyn Any) -> TemporalResult<String> {
         match self {
-            Self::Tz(_) => todo!("implement tz.to_string"),
+            Self::Tz(_) => Err(TemporalError::range().with_message("Not yet implemented.")), // TODO: Implement Display for Time Zone.
             Self::Protocol(tz) => tz.id(context),
         }
+    }
+}
+
+impl TzProtocol for () {
+    fn get_offset_nanos_for(&self, _: &mut dyn Any) -> TemporalResult<BigInt> {
+        unreachable!()
+    }
+
+    fn get_possible_instant_for(&self, _: &mut dyn Any) -> TemporalResult<Vec<Instant>> {
+        unreachable!()
+    }
+
+    fn id(&self, _: &mut dyn Any) -> TemporalResult<String> {
+        Ok("() TimeZone".to_owned())
     }
 }

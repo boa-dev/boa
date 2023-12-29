@@ -14,24 +14,26 @@ use crate::{
 
 use core::any::Any;
 
+use super::tz::TzProtocol;
+
 /// The native Rust implementation of `Temporal.ZonedDateTime`.
 #[derive(Debug, Clone)]
-pub struct ZonedDateTime<C: CalendarProtocol> {
+pub struct ZonedDateTime<C: CalendarProtocol, Z: TzProtocol> {
     instant: Instant,
     calendar: CalendarSlot<C>,
-    tz: TimeZoneSlot,
+    tz: TimeZoneSlot<Z>,
 }
 
 // ==== Private API ====
 
-impl<C: CalendarProtocol> ZonedDateTime<C> {
+impl<C: CalendarProtocol, Z: TzProtocol> ZonedDateTime<C, Z> {
     /// Creates a `ZonedDateTime` without validating the input.
     #[inline]
     #[must_use]
     pub(crate) fn new_unchecked(
         instant: Instant,
         calendar: CalendarSlot<C>,
-        tz: TimeZoneSlot,
+        tz: TimeZoneSlot<Z>,
     ) -> Self {
         Self {
             instant,
@@ -43,19 +45,30 @@ impl<C: CalendarProtocol> ZonedDateTime<C> {
 
 // ==== Public API ====
 
-impl<C: CalendarProtocol> ZonedDateTime<C> {
+impl<C: CalendarProtocol, Z: TzProtocol> ZonedDateTime<C, Z> {
     /// Creates a new valid `ZonedDateTime`.
     #[inline]
-    pub fn new(nanos: BigInt, calendar: CalendarSlot<C>, tz: TimeZoneSlot) -> TemporalResult<Self> {
+    pub fn new(
+        nanos: BigInt,
+        calendar: CalendarSlot<C>,
+        tz: TimeZoneSlot<Z>,
+    ) -> TemporalResult<Self> {
         let instant = Instant::new(nanos)?;
         Ok(Self::new_unchecked(instant, calendar, tz))
     }
 
-    /// Returns the `ZonedDateTime`'s Calendar identifier.
+    /// Returns `ZonedDateTime`'s Calendar.
     #[inline]
     #[must_use]
     pub fn calendar(&self) -> &CalendarSlot<C> {
         &self.calendar
+    }
+
+    /// Returns `ZonedDateTime`'s `TimeZone` slot.
+    #[inline]
+    #[must_use]
+    pub fn tz(&self) -> &TimeZoneSlot<Z> {
+        &self.tz
     }
 
     /// Returns the `epochSeconds` value of this `ZonedDateTime`.
@@ -85,7 +98,7 @@ impl<C: CalendarProtocol> ZonedDateTime<C> {
 
 // ==== Context based API ====
 
-impl<C: CalendarProtocol> ZonedDateTime<C> {
+impl<C: CalendarProtocol, Z: TzProtocol> ZonedDateTime<C, Z> {
     /// Returns the `year` value for this `ZonedDateTime`.
     #[inline]
     pub fn contextual_year(&self, context: &mut dyn Any) -> TemporalResult<i32> {
@@ -236,7 +249,7 @@ mod tests {
     fn basic_zdt_test() {
         let nov_30_2023_utc = BigInt::from(1_701_308_952_000_000_000i64);
 
-        let zdt = ZonedDateTime::<()>::new(
+        let zdt = ZonedDateTime::<(), ()>::new(
             nov_30_2023_utc.clone(),
             CalendarSlot::from_str("iso8601").unwrap(),
             TimeZoneSlot::Tz(TimeZone {
@@ -253,7 +266,7 @@ mod tests {
         assert_eq!(zdt.minute().unwrap(), 49);
         assert_eq!(zdt.second().unwrap(), 12);
 
-        let zdt_minus_five = ZonedDateTime::<()>::new(
+        let zdt_minus_five = ZonedDateTime::<(), ()>::new(
             nov_30_2023_utc,
             CalendarSlot::from_str("iso8601").unwrap(),
             TimeZoneSlot::Tz(TimeZone {
