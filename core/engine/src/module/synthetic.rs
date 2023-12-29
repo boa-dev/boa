@@ -97,7 +97,10 @@ impl SyntheticModuleInitializer {
     {
         // SAFETY: The caller must ensure the invariants of the closure hold.
         unsafe {
-            Self::from_closure_with_captures(move |module, _, context| closure(module, context), ())
+            Self::from_closure_with_captures(
+                move |module, (), context| closure(module, context),
+                (),
+            )
         }
     }
 

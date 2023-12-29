@@ -1,9 +1,5 @@
-use std::{
-    collections::hash_map::RandomState,
-    hash::{BuildHasher, Hash, Hasher},
-};
-
 use crate::vm::flowgraph::{Color, Edge, EdgeStyle, EdgeType, Node, NodeShape};
+use std::{collections::hash_map::RandomState, hash::BuildHasher};
 
 /// This represents the direction of flow in the flowgraph.
 #[derive(Debug, Clone, Copy)]
@@ -100,9 +96,7 @@ impl SubGraph {
 
     /// Format into the graphviz format.
     fn graphviz_format(&self, result: &mut String, prefix: &str) {
-        let mut hasher = RandomState::new().build_hasher();
-        self.label.hash(&mut hasher);
-        let label = format!("{}", hasher.finish());
+        let label = format!("{}", RandomState::new().hash_one(&self.label));
         result.push_str(&format!("\tsubgraph cluster_{prefix}_{label} {{\n"));
         result.push_str("\t\tstyle = filled;\n");
         result.push_str(&format!(
@@ -164,9 +158,7 @@ impl SubGraph {
 
     /// Format into the mermaid format.
     fn mermaid_format(&self, result: &mut String, prefix: &str) {
-        let mut hasher = RandomState::new().build_hasher();
-        self.label.hash(&mut hasher);
-        let label = format!("{}", hasher.finish());
+        let label = format!("{}", RandomState::new().hash_one(&self.label));
         let rankdir = match self.direction {
             Direction::TopToBottom => "TB",
             Direction::BottomToTop => "BT",

@@ -275,7 +275,7 @@ impl NativeFunction {
         // SAFETY: The caller must ensure the invariants of the closure hold.
         unsafe {
             Self::from_closure_with_captures(
-                move |this, args, _, context| closure(this, args, context),
+                move |this, args, (), context| closure(this, args, context),
                 (),
             )
         }

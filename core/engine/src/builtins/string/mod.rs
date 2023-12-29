@@ -209,7 +209,7 @@ impl BuiltInConstructor for String {
     ) -> JsResult<JsValue> {
         // This value is used by console.log and other routines to match Object type
         // to its Javascript Identifier (global constructor method name)
-        let string = match args.get(0) {
+        let string = match args.first() {
             // 2. Else,
             // a. If NewTarget is undefined and Type(value) is Symbol, return SymbolDescriptiveString(value).
             Some(JsValue::Symbol(ref sym)) if new_target.is_undefined() => {

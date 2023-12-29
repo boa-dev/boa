@@ -21,7 +21,8 @@
     clippy::too_many_lines,
     clippy::cognitive_complexity,
     clippy::let_unit_value,
-    clippy::redundant_pub_crate
+    clippy::redundant_pub_crate,
+    clippy::struct_field_names
 )]
 
 pub mod error;

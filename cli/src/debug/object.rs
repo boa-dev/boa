@@ -5,7 +5,7 @@ use boa_engine::{
 
 /// Returns objects pointer in memory.
 fn id(_: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-    let Some(value) = args.get(0) else {
+    let Some(value) = args.first() else {
         return Err(JsNativeError::typ()
             .with_message("expected object argument")
             .into());

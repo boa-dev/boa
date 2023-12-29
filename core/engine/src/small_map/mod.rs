@@ -173,6 +173,7 @@ impl<K, V, const ARRAY_SIZE: usize> SmallMap<K, V, ARRAY_SIZE> {
     ///
     /// The supplied key may be any borrowed form of the map's key type, but the ordering
     /// on the borrowed form *must* match the ordering on the key type.
+    #[allow(clippy::map_identity)]
     pub fn get_key_value<Q: ?Sized>(&self, key: &Q) -> Option<(&K, &V)>
     where
         K: Borrow<Q> + Ord + Eq,
@@ -371,6 +372,7 @@ impl<'a, K, V, const ARRAY_SIZE: usize> IntoIterator for &'a SmallMap<K, V, ARRA
 impl<'a, K, V> Iterator for Iter<'a, K, V> {
     type Item = (&'a K, &'a V);
 
+    #[allow(clippy::map_identity)]
     fn next(&mut self) -> Option<Self::Item> {
         match &mut self.inner {
             InnerIter::Inline(i) => i.next().map(|(k, v)| (k, v)),
@@ -385,6 +387,7 @@ impl<'a, K, V> Iterator for Iter<'a, K, V> {
         }
     }
 
+    #[allow(clippy::map_identity)]
     fn last(self) -> Option<(&'a K, &'a V)> {
         match self.inner {
             InnerIter::Inline(i) => i.last().map(|(k, v)| (k, v)),
@@ -396,6 +399,7 @@ impl<'a, K, V> Iterator for Iter<'a, K, V> {
 impl<K, V> FusedIterator for Iter<'_, K, V> {}
 
 impl<'a, K: 'a, V: 'a> DoubleEndedIterator for Iter<'a, K, V> {
+    #[allow(clippy::map_identity)]
     fn next_back(&mut self) -> Option<(&'a K, &'a V)> {
         match &mut self.inner {
             InnerIter::Inline(i) => i.next_back().map(|(k, v)| (k, v)),

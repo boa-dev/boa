@@ -1769,7 +1769,7 @@ impl Array {
         let mut depth_num = 1;
 
         // 4. If depth is not undefined, then set depthNum to IntegerOrInfinity(depth)
-        if let Some(depth) = args.get(0) {
+        if let Some(depth) = args.first() {
             // a. Set depthNum to ? ToIntegerOrInfinity(depth).
             // b. If depthNum < 0, set depthNum to 0.
             match depth.to_integer_or_infinity(context)? {
@@ -2270,7 +2270,7 @@ impl Array {
         // 2. Let len be ? LengthOfArrayLike(O).
         let len = o.length_of_array_like(context)?;
 
-        let start = args.get(0);
+        let start = args.first();
         let delete_count = args.get(1);
         let items = args.get(2..).unwrap_or_default();
 
@@ -2410,7 +2410,7 @@ impl Array {
         // 2. Let len be ? LengthOfArrayLike(O).
         let len = o.length_of_array_like(context)?;
 
-        let start = args.get(0);
+        let start = args.first();
         let skip_count = args.get(1);
         let items = args.get(2..).unwrap_or_default();
 

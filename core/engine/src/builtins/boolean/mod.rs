@@ -64,7 +64,7 @@ impl BuiltInConstructor for Boolean {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // Get the argument, if any
-        let data = args.get(0).map_or(false, JsValue::to_boolean);
+        let data = args.first().map_or(false, JsValue::to_boolean);
         if new_target.is_undefined() {
             return Ok(JsValue::new(data));
         }

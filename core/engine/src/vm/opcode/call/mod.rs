@@ -37,7 +37,7 @@ impl CallEval {
             let arguments = context.vm.pop_n_values(argument_count);
             let _func = context.vm.pop();
             let _this = context.vm.pop();
-            if let Some(x) = arguments.get(0) {
+            if let Some(x) = arguments.first() {
                 // i. Let argList be ? ArgumentListEvaluation of arguments.
                 // ii. If argList has no elements, return undefined.
                 // iii. Let evalArg be the first element of argList.
@@ -130,7 +130,7 @@ impl Operation for CallEvalSpread {
         if JsObject::equals(object, &eval) {
             let _func = context.vm.pop();
             let _this = context.vm.pop();
-            if let Some(x) = arguments.get(0) {
+            if let Some(x) = arguments.first() {
                 // i. Let argList be ? ArgumentListEvaluation of arguments.
                 // ii. If argList has no elements, return undefined.
                 // iii. Let evalArg be the first element of argList.

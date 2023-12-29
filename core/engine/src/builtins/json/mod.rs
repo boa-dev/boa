@@ -84,7 +84,7 @@ impl Json {
     pub(crate) fn parse(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let jsonString be ? ToString(text).
         let json_string = args
-            .get(0)
+            .first()
             .cloned()
             .unwrap_or_default()
             .to_string(context)?

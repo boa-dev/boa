@@ -676,7 +676,7 @@ impl OrdinaryObject {
 
         // 1. Set O to ? RequireObjectCoercible(O).
         let o = args
-            .get(0)
+            .first()
             .cloned()
             .unwrap_or_default()
             .require_object_coercible()?
@@ -945,7 +945,7 @@ impl OrdinaryObject {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        let Some(key) = args.get(0) else {
+        let Some(key) = args.first() else {
             return Ok(JsValue::new(false));
         };
 
@@ -1030,7 +1030,7 @@ impl OrdinaryObject {
     pub fn keys(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let obj be ? ToObject(target).
         let obj = args
-            .get(0)
+            .first()
             .cloned()
             .unwrap_or_default()
             .to_object(context)?;
@@ -1055,7 +1055,7 @@ impl OrdinaryObject {
     pub fn values(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let obj be ? ToObject(target).
         let obj = args
-            .get(0)
+            .first()
             .cloned()
             .unwrap_or_default()
             .to_object(context)?;
@@ -1084,7 +1084,7 @@ impl OrdinaryObject {
     pub fn entries(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let obj be ? ToObject(target).
         let obj = args
-            .get(0)
+            .first()
             .cloned()
             .unwrap_or_default()
             .to_object(context)?;

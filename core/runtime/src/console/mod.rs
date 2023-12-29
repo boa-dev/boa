@@ -270,7 +270,7 @@ impl Console {
         console: &Self,
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        let assertion = args.get(0).map_or(false, JsValue::to_boolean);
+        let assertion = args.first().map_or(false, JsValue::to_boolean);
 
         if !assertion {
             let mut args: Vec<JsValue> = args.iter().skip(1).cloned().collect();
@@ -456,7 +456,7 @@ impl Console {
         console: &mut Self,
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        let label = match args.get(0) {
+        let label = match args.first() {
             Some(value) => value.to_string(context)?,
             None => "default".into(),
         };
@@ -485,7 +485,7 @@ impl Console {
         console: &mut Self,
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        let label = match args.get(0) {
+        let label = match args.first() {
             Some(value) => value.to_string(context)?,
             None => "default".into(),
         };
@@ -524,7 +524,7 @@ impl Console {
         console: &mut Self,
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        let label = match args.get(0) {
+        let label = match args.first() {
             Some(value) => value.to_string(context)?,
             None => "default".into(),
         };
@@ -561,7 +561,7 @@ impl Console {
         console: &Self,
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        let label = match args.get(0) {
+        let label = match args.first() {
             Some(value) => value.to_string(context)?,
             None => "default".into(),
         };
@@ -605,7 +605,7 @@ impl Console {
         console: &mut Self,
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        let label = match args.get(0) {
+        let label = match args.first() {
             Some(value) => value.to_string(context)?,
             None => "default".into(),
         };

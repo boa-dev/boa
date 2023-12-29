@@ -136,7 +136,7 @@ fn detach_array_buffer(_: &JsValue, args: &[JsValue], _: &mut Context) -> JsResu
     }
 
     let array_buffer = args
-        .get(0)
+        .first()
         .and_then(JsValue::as_object)
         .ok_or_else(type_err)?;
     let mut array_buffer = array_buffer.borrow_mut();
@@ -162,7 +162,7 @@ fn detach_array_buffer(_: &JsValue, args: &[JsValue], _: &mut Context) -> JsResu
 ///
 /// Accepts a string value as its first argument and executes it as an ECMAScript script.
 fn eval_script(_this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-    args.get(0).and_then(JsValue::as_string).map_or_else(
+    args.first().and_then(JsValue::as_string).map_or_else(
         || Ok(JsValue::undefined()),
         |source_text| context.eval(Source::from_bytes(&source_text.to_std_string_escaped())),
     )

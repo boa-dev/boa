@@ -760,7 +760,7 @@ impl RegExp {
 
         // 3. Let string be ? ToString(S).
         let arg_str = args
-            .get(0)
+            .first()
             .cloned()
             .unwrap_or_default()
             .to_string(context)?;
