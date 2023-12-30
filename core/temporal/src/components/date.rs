@@ -13,6 +13,8 @@ use crate::{
 };
 use std::{any::Any, str::FromStr};
 
+use super::duration::TimeDuration;
+
 /// The native Rust implementation of `Temporal.PlainDate`.
 #[derive(Debug, Default, Clone)]
 pub struct Date<C: CalendarProtocol> {
@@ -156,12 +158,20 @@ impl<C: CalendarProtocol> Date<C> {
 
         // 3. Let overflow be ? ToTemporalOverflow(options).
         // 4. Let days be ? BalanceTimeDuration(duration.[[Days]], duration.[[Hours]], duration.[[Minutes]], duration.[[Seconds]], duration.[[Milliseconds]], duration.[[Microseconds]], duration.[[Nanoseconds]], "day").[[Days]].
-        let (days, _) = duration.balance_time_duration(TemporalUnit::Day)?;
+        let (days, _) = TimeDuration::new_unchecked(
+            duration.hours(),
+            duration.minutes(),
+            duration.seconds(),
+            duration.milliseconds(),
+            duration.microseconds(),
+            duration.nanoseconds(),
+        )
+        .balance(duration.days(), TemporalUnit::Day)?;
 
         // 5. Let result be ? AddISODate(plainDate.[[ISOYear]], plainDate.[[ISOMonth]], plainDate.[[ISODay]], 0, 0, 0, days, overflow).
         let result = self
             .iso
-            .add_iso_date(&DateDuration::new(0f64, 0f64, 0f64, days), overflow)?;
+            .add_iso_date(&DateDuration::new(0f64, 0f64, 0f64, days)?, overflow)?;
 
         Ok(Self::new_unchecked(result, self.calendar().clone()))
     }
@@ -202,7 +212,7 @@ impl<C: CalendarProtocol> Date<C> {
                 0f64,
                 0f64,
                 f64::from(days),
-            )));
+            )?));
         }
 
         self.calendar()
