@@ -80,7 +80,7 @@ once_cell = { workspace = true, features = ["std"] }
 tap = "1.0.1"
 sptr = "0.3.2"
 static_assertions.workspace = true
-thiserror = "1.0.55"
+thiserror = "1.0.56"
 dashmap = "5.5.3"
 num_enum = "0.7.1"
 pollster.workspace = true
