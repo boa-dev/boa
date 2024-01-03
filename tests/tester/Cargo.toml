@@ -29,7 +29,7 @@ toml = "0.8.8"
 color-eyre = "0.6.2"
 phf = { workspace = true, features = ["macros"] }
 comfy-table = "7.1.0"
-serde_repr = "0.1.17"
+serde_repr = "0.1.18"
 bus = "2.4.1"
 
 [features]
