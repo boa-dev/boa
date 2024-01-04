@@ -11,7 +11,7 @@ repository.workspace = true
 rust-version.workspace = true
 
 [dev-dependencies]
-trybuild = "1.0.86"
+trybuild = "1.0.87"
 boa_macros.workspace = true
 boa_engine.workspace = true
 
