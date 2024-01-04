@@ -13,7 +13,7 @@ proc-macro = true
 
 [dependencies]
 quote = "1.0.34"
-syn = { version = "2.0.45", features = ["full"] }
+syn = { version = "2.0.47", features = ["full"] }
 proc-macro2 = "1.0"
 synstructure = "0.13"
 
