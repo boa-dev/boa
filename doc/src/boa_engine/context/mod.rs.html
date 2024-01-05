@@ -1124,6 +1124,7 @@
 <a href="#1124" id="1124">1124</a>
 <a href="#1125" id="1125">1125</a>
 <a href="#1126" id="1126">1126</a>
+<a href="#1127" id="1127">1127</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! The ECMAScript context.
 
 </span><span class="kw">mod </span>hooks;
@@ -1131,6 +1132,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>icu;
 <span class="kw">pub mod </span>intrinsics;
 
+<span class="kw">use </span>boa_parser::source::ReadChar;
 <span class="kw">pub use </span>hooks::{DefaultHooks, HostHooks};
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
@@ -1140,7 +1142,7 @@
 
 <span class="attr">#[cfg(not(feature = <span class="string">&quot;intl&quot;</span>))]
 </span><span class="kw">pub use </span>std::marker::PhantomData;
-<span class="kw">use </span>std::{cell::Cell, io::Read, path::Path, rc::Rc};
+<span class="kw">use </span>std::{cell::Cell, path::Path, rc::Rc};
 
 <span class="kw">use crate</span>::{
     builtins,
@@ -1311,7 +1313,7 @@
     /// Note that this won&#39;t run any scheduled promise jobs; you need to call [`Context::run_jobs`]
     /// on the context or [`JobQueue::run_jobs`] on the provided queue to run them.
     </span><span class="attr">#[allow(clippy::unit_arg, dropping_copy_types)]
-    </span><span class="kw">pub fn </span>eval&lt;R: Read&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, src: Source&lt;<span class="lifetime">&#39;_</span>, R&gt;) -&gt; JsResult&lt;JsValue&gt; {
+    </span><span class="kw">pub fn </span>eval&lt;R: ReadChar&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, src: Source&lt;<span class="lifetime">&#39;_</span>, R&gt;) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>main_timer = Profiler::global().start_event(<span class="string">&quot;Script evaluation&quot;</span>, <span class="string">&quot;Main&quot;</span>);
 
         <span class="kw">let </span>result = Script::parse(src, <span class="prelude-val">None</span>, <span class="self">self</span>)<span class="question-mark">?</span>.evaluate(<span class="self">self</span>);

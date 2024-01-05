@@ -150,10 +150,10 @@
 </span><span class="kw">use </span><span class="kw">crate</span>::lexer::{
     token::ContainsEscapeSequence, Cursor, Error, StringLiteral, Token, TokenKind, Tokenizer,
 };
+<span class="kw">use </span><span class="kw">crate</span>::source::ReadChar;
 <span class="kw">use </span>boa_ast::{Keyword, Position, Span};
 <span class="kw">use </span>boa_interner::Interner;
 <span class="kw">use </span>boa_profiler::Profiler;
-<span class="kw">use </span>std::io::Read;
 
 <span class="doccomment">/// Identifier lexing.
 ///
@@ -207,7 +207,7 @@
         interner: <span class="kw-2">&amp;mut </span>Interner,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;Token, Error&gt;
     <span class="kw">where
-        </span>R: Read,
+        </span>R: ReadChar,
     {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Identifier&quot;</span>, <span class="string">&quot;Lexing&quot;</span>);
 
@@ -242,12 +242,12 @@
         init: char,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(String, bool), Error&gt;
     <span class="kw">where
-        </span>R: Read,
+        </span>R: ReadChar,
     {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Identifier::take_identifier_name&quot;</span>, <span class="string">&quot;Lexing&quot;</span>);
 
         <span class="kw">let </span><span class="kw-2">mut </span>contains_escaped_chars = <span class="bool-val">false</span>;
-        <span class="kw">let </span><span class="kw-2">mut </span>identifier_name = <span class="kw">if </span>init == <span class="string">&#39;\\&#39; </span>&amp;&amp; cursor.next_is(<span class="string">b&#39;u&#39;</span>)<span class="question-mark">? </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>identifier_name = <span class="kw">if </span>init == <span class="string">&#39;\\&#39; </span>&amp;&amp; cursor.next_if(<span class="number">0x75 </span><span class="comment">/* u */</span>)<span class="question-mark">? </span>{
             <span class="kw">let </span>ch = StringLiteral::take_unicode_escape_sequence(cursor, start_pos)<span class="question-mark">?</span>;
 
             <span class="kw">if </span><span class="self">Self</span>::is_identifier_start(ch) {
@@ -266,10 +266,10 @@
 
         <span class="kw">loop </span>{
             <span class="kw">let </span>ch = <span class="kw">match </span>cursor.peek_char()<span class="question-mark">? </span>{
-                <span class="prelude-val">Some</span>(<span class="number">0x005C </span><span class="comment">/* \ */</span>) <span class="kw">if </span>cursor.peek_n(<span class="number">2</span>)<span class="question-mark">?</span>.get(<span class="number">1</span>) == <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="number">0x75</span>) <span class="comment">/* u */ </span>=&gt; {
+                <span class="prelude-val">Some</span>(<span class="number">0x005C </span><span class="comment">/* \ */</span>) <span class="kw">if </span>cursor.peek_n(<span class="number">2</span>)<span class="question-mark">?</span>[<span class="number">1</span>] == <span class="prelude-val">Some</span>(<span class="number">0x75</span>) <span class="comment">/* u */ </span>=&gt; {
                     <span class="kw">let </span>pos = cursor.pos();
-                    <span class="kw">let </span>_next = cursor.next_byte();
-                    <span class="kw">let </span>_next = cursor.next_byte();
+                    <span class="kw">let </span>_next = cursor.next_char();
+                    <span class="kw">let </span>_next = cursor.next_char();
                     <span class="kw">let </span>ch = StringLiteral::take_unicode_escape_sequence(cursor, pos)<span class="question-mark">?</span>;
 
                     <span class="kw">if </span><span class="self">Self</span>::is_identifier_part(ch) {

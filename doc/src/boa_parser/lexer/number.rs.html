@@ -413,15 +413,35 @@
 <a href="#413" id="413">413</a>
 <a href="#414" id="414">414</a>
 <a href="#415" id="415">415</a>
+<a href="#416" id="416">416</a>
+<a href="#417" id="417">417</a>
+<a href="#418" id="418">418</a>
+<a href="#419" id="419">419</a>
+<a href="#420" id="420">420</a>
+<a href="#421" id="421">421</a>
+<a href="#422" id="422">422</a>
+<a href="#423" id="423">423</a>
+<a href="#424" id="424">424</a>
+<a href="#425" id="425">425</a>
+<a href="#426" id="426">426</a>
+<a href="#427" id="427">427</a>
+<a href="#428" id="428">428</a>
+<a href="#429" id="429">429</a>
+<a href="#430" id="430">430</a>
+<a href="#431" id="431">431</a>
+<a href="#432" id="432">432</a>
+<a href="#433" id="433">433</a>
+<a href="#434" id="434">434</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module implements lexing for number literals (123, 787) used in ECMAScript.
 
 </span><span class="kw">use </span><span class="kw">crate</span>::lexer::{token::Numeric, Cursor, Error, Token, TokenKind, Tokenizer};
+<span class="kw">use </span><span class="kw">crate</span>::source::ReadChar;
 <span class="kw">use </span>boa_ast::{Position, Span};
 <span class="kw">use </span>boa_interner::Interner;
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>num_bigint::BigInt;
 <span class="kw">use </span>num_traits::{ToPrimitive, Zero};
-<span class="kw">use </span>std::{io::Read, str};
+<span class="kw">use </span>std::str;
 
 <span class="doccomment">/// Number literal lexing.
 ///
@@ -479,29 +499,36 @@
     kind: NumericKind,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt;
 <span class="kw">where
-    </span>R: Read,
+    </span>R: ReadChar,
 {
     <span class="comment">// The next part must be SignedInteger.
     // This is optionally a &#39;+&#39; or &#39;-&#39; followed by 1 or more DecimalDigits.
-    </span><span class="kw">match </span>cursor.next_byte()<span class="question-mark">? </span>{
-        <span class="prelude-val">Some</span>(<span class="string">b&#39;+&#39;</span>) =&gt; {
+    </span><span class="kw">match </span>cursor.next_char()<span class="question-mark">? </span>{
+        <span class="prelude-val">Some</span>(<span class="number">0x2B </span><span class="comment">/* + */</span>) =&gt; {
             buf.push(<span class="string">b&#39;+&#39;</span>);
             <span class="kw">if </span>!cursor.next_is_ascii_pred(<span class="kw-2">&amp;</span>|ch| ch.is_digit(kind.base()))<span class="question-mark">? </span>{
                 <span class="comment">// A digit must follow the + or - symbol.
                 </span><span class="kw">return </span><span class="prelude-val">Err</span>(Error::syntax(<span class="string">&quot;No digit found after + symbol&quot;</span>, cursor.pos()));
             }
         }
-        <span class="prelude-val">Some</span>(<span class="string">b&#39;-&#39;</span>) =&gt; {
+        <span class="prelude-val">Some</span>(<span class="number">0x2D </span><span class="comment">/* - */</span>) =&gt; {
             buf.push(<span class="string">b&#39;-&#39;</span>);
             <span class="kw">if </span>!cursor.next_is_ascii_pred(<span class="kw-2">&amp;</span>|ch| ch.is_digit(kind.base()))<span class="question-mark">? </span>{
                 <span class="comment">// A digit must follow the + or - symbol.
                 </span><span class="kw">return </span><span class="prelude-val">Err</span>(Error::syntax(<span class="string">&quot;No digit found after - symbol&quot;</span>, cursor.pos()));
             }
         }
-        <span class="prelude-val">Some</span>(byte) =&gt; {
-            <span class="kw">let </span>ch = char::from(byte);
-            <span class="kw">if </span>ch.is_ascii() &amp;&amp; ch.is_digit(kind.base()) {
-                buf.push(byte);
+        <span class="prelude-val">Some</span>(c) =&gt; {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(ch) = char::from_u32(c) {
+                <span class="kw">if </span>ch.is_ascii() &amp;&amp; ch.is_digit(kind.base()) {
+                    <span class="attr">#[allow(clippy::cast_possible_truncation)]
+                    </span>buf.push(c <span class="kw">as </span>u8);
+                } <span class="kw">else </span>{
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(Error::syntax(
+                        <span class="string">&quot;When lexing exponential value found unexpected char&quot;</span>,
+                        cursor.pos(),
+                    ));
+                }
             } <span class="kw">else </span>{
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Error::syntax(
                     <span class="string">&quot;When lexing exponential value found unexpected char&quot;</span>,
@@ -530,18 +557,14 @@
     separator_allowed: bool,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt;
 <span class="kw">where
-    </span>R: Read,
+    </span>R: ReadChar,
 {
     <span class="kw">let </span><span class="kw-2">mut </span>prev_is_underscore = <span class="bool-val">false</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>pos = cursor.pos();
     <span class="kw">while </span>cursor.next_is_ascii_pred(<span class="kw-2">&amp;</span>|c| c.is_digit(kind.base()) || c == <span class="string">&#39;_&#39;</span>)<span class="question-mark">? </span>{
         pos = cursor.pos();
-        <span class="kw">match </span>cursor.next_byte()<span class="question-mark">? </span>{
-            <span class="prelude-val">Some</span>(c) <span class="kw">if </span>char::from(c).is_digit(kind.base()) =&gt; {
-                prev_is_underscore = <span class="bool-val">false</span>;
-                buf.push(c);
-            }
-            <span class="prelude-val">Some</span>(<span class="string">b&#39;_&#39;</span>) <span class="kw">if </span>separator_allowed =&gt; {
+        <span class="kw">match </span>cursor.next_char()<span class="question-mark">? </span>{
+            <span class="prelude-val">Some</span>(<span class="number">0x5F </span><span class="comment">/* _ */</span>) <span class="kw">if </span>separator_allowed =&gt; {
                 <span class="kw">if </span>prev_is_underscore {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(Error::syntax(
                         <span class="string">&quot;only one underscore is allowed as numeric separator&quot;</span>,
@@ -550,8 +573,15 @@
                 }
                 prev_is_underscore = <span class="bool-val">true</span>;
             }
-            <span class="prelude-val">Some</span>(<span class="string">b&#39;_&#39;</span>) <span class="kw">if </span>!separator_allowed =&gt; {
+            <span class="prelude-val">Some</span>(<span class="number">0x5F </span><span class="comment">/* _ */</span>) <span class="kw">if </span>!separator_allowed =&gt; {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Error::syntax(<span class="string">&quot;separator is not allowed&quot;</span>, pos));
+            }
+            <span class="prelude-val">Some</span>(c) =&gt; {
+                <span class="kw">if </span>char::from_u32(c).map(|ch| ch.is_digit(kind.base())) == <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) {
+                    prev_is_underscore = <span class="bool-val">false</span>;
+                    <span class="attr">#[allow(clippy::cast_possible_truncation)]
+                    </span>buf.push(c <span class="kw">as </span>u8);
+                }
             }
             <span class="kw">_ </span>=&gt; (),
         }
@@ -573,7 +603,7 @@
 /// [spec]: https://tc39.es/ecma262/#sec-literals-numeric-literals
 </span><span class="kw">fn </span>check_after_numeric_literal&lt;R&gt;(cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt;
 <span class="kw">where
-    </span>R: Read,
+    </span>R: ReadChar,
 {
     <span class="kw">if </span>cursor.next_is_ascii_pred(<span class="kw-2">&amp;</span>|ch| ch.is_ascii_alphanumeric() || ch == <span class="string">&#39;$&#39; </span>|| ch == <span class="string">&#39;_&#39;</span>)<span class="question-mark">? </span>{
         <span class="prelude-val">Err</span>(Error::syntax(
@@ -593,7 +623,7 @@
         _interner: <span class="kw-2">&amp;mut </span>Interner,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;Token, Error&gt;
     <span class="kw">where
-        </span>R: Read,
+        </span>R: ReadChar,
     {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;NumberLiteral&quot;</span>, <span class="string">&quot;Lexing&quot;</span>);
 
@@ -602,13 +632,14 @@
         <span class="comment">// Default assume the number is a base 10 integer.
         </span><span class="kw">let </span><span class="kw-2">mut </span>kind = NumericKind::Integer(<span class="number">10</span>);
 
-        <span class="kw">let </span>c = cursor.peek();
+        <span class="kw">let </span>c = cursor.peek_char();
         <span class="kw">let </span><span class="kw-2">mut </span>legacy_octal = <span class="bool-val">false</span>;
 
         <span class="kw">if </span><span class="self">self</span>.init == <span class="string">b&#39;0&#39; </span>{
             <span class="kw">if let </span><span class="prelude-val">Some</span>(ch) = c<span class="question-mark">? </span>{
                 <span class="kw">match </span>ch {
-                    <span class="string">b&#39;x&#39; </span>| <span class="string">b&#39;X&#39; </span>=&gt; {
+                    <span class="comment">// x | X
+                    </span><span class="number">0x0078 </span>| <span class="number">0x0058 </span>=&gt; {
                         <span class="comment">// Remove the initial &#39;0&#39; from buffer.
                         </span>cursor.next_char()<span class="question-mark">?</span>.expect(<span class="string">&quot;x or X character vanished&quot;</span>);
                         buf.pop();
@@ -624,7 +655,8 @@
                             ));
                         }
                     }
-                    <span class="string">b&#39;o&#39; </span>| <span class="string">b&#39;O&#39; </span>=&gt; {
+                    <span class="comment">// o | O
+                    </span><span class="number">0x006F </span>| <span class="number">0x004F </span>=&gt; {
                         <span class="comment">// Remove the initial &#39;0&#39; from buffer.
                         </span>cursor.next_char()<span class="question-mark">?</span>.expect(<span class="string">&quot;o or O character vanished&quot;</span>);
                         buf.pop();
@@ -640,7 +672,8 @@
                             ));
                         }
                     }
-                    <span class="string">b&#39;b&#39; </span>| <span class="string">b&#39;B&#39; </span>=&gt; {
+                    <span class="comment">// b | B
+                    </span><span class="number">0x0062 </span>| <span class="number">0x0042 </span>=&gt; {
                         <span class="comment">// Remove the initial &#39;0&#39; from buffer.
                         </span>cursor.next_char()<span class="question-mark">?</span>.expect(<span class="string">&quot;b or B character vanished&quot;</span>);
                         buf.pop();
@@ -656,7 +689,8 @@
                             ));
                         }
                     }
-                    <span class="string">b&#39;n&#39; </span>=&gt; {
+                    <span class="comment">// n
+                    </span><span class="number">0x006E </span>=&gt; {
                         cursor.next_char()<span class="question-mark">?</span>.expect(<span class="string">&quot;n character vanished&quot;</span>);
 
                         <span class="comment">// DecimalBigIntegerLiteral &#39;0n&#39;
@@ -667,37 +701,41 @@
                     }
                     byte =&gt; {
                         legacy_octal = <span class="bool-val">true</span>;
-                        <span class="kw">let </span>ch = char::from(byte);
-                        <span class="kw">if </span>ch.is_digit(<span class="number">8</span>) {
-                            <span class="comment">// LegacyOctalIntegerLiteral, or a number with leading 0s.
-                            </span><span class="kw">if </span>cursor.strict() {
-                                <span class="comment">// LegacyOctalIntegerLiteral is forbidden with strict mode true.
-                                </span><span class="kw">return </span><span class="prelude-val">Err</span>(Error::syntax(
-                                    <span class="string">&quot;implicit octal literals are not allowed in strict mode&quot;</span>,
-                                    start_pos,
-                                ));
-                            }
+                        <span class="kw">if let </span><span class="prelude-val">Some</span>(ch) = char::from_u32(byte) {
+                            <span class="kw">if </span>ch.is_digit(<span class="number">8</span>) {
+                                <span class="comment">// LegacyOctalIntegerLiteral, or a number with leading 0s.
+                                </span><span class="kw">if </span>cursor.strict() {
+                                    <span class="comment">// LegacyOctalIntegerLiteral is forbidden with strict mode true.
+                                    </span><span class="kw">return </span><span class="prelude-val">Err</span>(Error::syntax(
+                                        <span class="string">&quot;implicit octal literals are not allowed in strict mode&quot;</span>,
+                                        start_pos,
+                                    ));
+                                }
 
-                            <span class="comment">// Remove the initial &#39;0&#39; from buffer.
-                            </span>buf.pop();
+                                <span class="comment">// Remove the initial &#39;0&#39; from buffer.
+                                </span>buf.pop();
 
-                            buf.push(cursor.next_byte()<span class="question-mark">?</span>.expect(<span class="string">&quot;&#39;0&#39; character vanished&quot;</span>));
+                                <span class="attr">#[allow(clippy::cast_possible_truncation)]
+                                </span>buf.push(cursor.next_char()<span class="question-mark">?</span>.expect(<span class="string">&quot;&#39;0&#39; character vanished&quot;</span>) <span class="kw">as </span>u8);
 
-                            take_integer(<span class="kw-2">&amp;mut </span>buf, cursor, NumericKind::Integer(<span class="number">8</span>), <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+                                take_integer(<span class="kw-2">&amp;mut </span>buf, cursor, NumericKind::Integer(<span class="number">8</span>), <span class="bool-val">false</span>)<span class="question-mark">?</span>;
 
-                            <span class="kw">if </span>!cursor.next_is_ascii_pred(<span class="kw-2">&amp;</span>|c| c.is_ascii_digit() || c == <span class="string">&#39;_&#39;</span>)<span class="question-mark">? </span>{
-                                <span class="comment">// LegacyOctalIntegerLiteral
-                                </span>kind = NumericKind::Integer(<span class="number">8</span>);
-                            }
-                        } <span class="kw">else if </span>ch.is_ascii_digit() {
-                            <span class="comment">// Indicates a numerical digit comes after then 0 but it isn&#39;t an octal digit
-                            // so therefore this must be a number with an unneeded leading 0. This is
-                            // forbidden in strict mode.
-                            </span><span class="kw">if </span>cursor.strict() {
-                                <span class="kw">return </span><span class="prelude-val">Err</span>(Error::syntax(
-                                    <span class="string">&quot;leading 0&#39;s are not allowed in strict mode&quot;</span>,
-                                    start_pos,
-                                ));
+                                <span class="kw">if </span>!cursor
+                                    .next_is_ascii_pred(<span class="kw-2">&amp;</span>|c| c.is_ascii_digit() || c == <span class="string">&#39;_&#39;</span>)<span class="question-mark">?
+                                </span>{
+                                    <span class="comment">// LegacyOctalIntegerLiteral
+                                    </span>kind = NumericKind::Integer(<span class="number">8</span>);
+                                }
+                            } <span class="kw">else if </span>ch.is_ascii_digit() {
+                                <span class="comment">// Indicates a numerical digit comes after then 0 but it isn&#39;t an octal digit
+                                // so therefore this must be a number with an unneeded leading 0. This is
+                                // forbidden in strict mode.
+                                </span><span class="kw">if </span>cursor.strict() {
+                                    <span class="kw">return </span><span class="prelude-val">Err</span>(Error::syntax(
+                                        <span class="string">&quot;leading 0&#39;s are not allowed in strict mode&quot;</span>,
+                                        start_pos,
+                                    ));
+                                }
                             }
                         } <span class="comment">// Else indicates that the symbol is a non-number.
                     </span>}
@@ -713,12 +751,12 @@
         }
 
         <span class="kw">let </span>next = <span class="kw">if </span><span class="self">self</span>.init == <span class="string">b&#39;.&#39; </span>{
-            <span class="prelude-val">Some</span>(<span class="string">b&#39;.&#39;</span>)
+            <span class="prelude-val">Some</span>(<span class="number">0x002E </span><span class="comment">/* . */</span>)
         } <span class="kw">else </span>{
             <span class="comment">// Consume digits and separators until a non-digit non-separator
             // character is encountered or all the characters are consumed.
             </span>take_integer(<span class="kw-2">&amp;mut </span>buf, cursor, kind, !legacy_octal)<span class="question-mark">?</span>;
-            cursor.peek()<span class="question-mark">?
+            cursor.peek_char()<span class="question-mark">?
         </span>};
 
         <span class="comment">// The non-digit character could be:
@@ -726,7 +764,7 @@
         // &#39;.&#39; To indicate a decimal separator.
         // &#39;e&#39; | &#39;E&#39; To indicate an ExponentPart.
         </span><span class="kw">match </span>next {
-            <span class="prelude-val">Some</span>(<span class="string">b&#39;n&#39;</span>) =&gt; {
+            <span class="prelude-val">Some</span>(<span class="number">0x006E </span><span class="comment">/* n */</span>) =&gt; {
                 <span class="comment">// DecimalBigIntegerLiteral
                 // Lexing finished.
                 // Consume the n
@@ -736,21 +774,21 @@
                         cursor.pos(),
                     ));
                 }
-                cursor.next_byte()<span class="question-mark">?</span>.expect(<span class="string">&quot;n character vanished&quot;</span>);
+                cursor.next_char()<span class="question-mark">?</span>.expect(<span class="string">&quot;n character vanished&quot;</span>);
 
                 kind = kind.to_bigint();
             }
-            <span class="prelude-val">Some</span>(<span class="string">b&#39;.&#39;</span>) =&gt; {
+            <span class="prelude-val">Some</span>(<span class="number">0x002E </span><span class="comment">/* . */</span>) =&gt; {
                 <span class="kw">if </span>kind.base() == <span class="number">10 </span>{
                     <span class="comment">// Only base 10 numbers can have a decimal separator.
                     // Number literal lexing finished if a . is found for a number in a different base.
                     </span><span class="kw">if </span><span class="self">self</span>.init != <span class="string">b&#39;.&#39; </span>{
-                        cursor.next_byte()<span class="question-mark">?</span>.expect(<span class="string">&quot;&#39;.&#39; token vanished&quot;</span>);
+                        cursor.next_char()<span class="question-mark">?</span>.expect(<span class="string">&quot;&#39;.&#39; token vanished&quot;</span>);
                         buf.push(<span class="string">b&#39;.&#39;</span>); <span class="comment">// Consume the .
                     </span>}
                     kind = NumericKind::Rational;
 
-                    <span class="kw">if </span>cursor.peek()<span class="question-mark">? </span>== <span class="prelude-val">Some</span>(<span class="string">b&#39;_&#39;</span>) {
+                    <span class="kw">if </span>cursor.peek_char()<span class="question-mark">? </span>== <span class="prelude-val">Some</span>(<span class="number">0x005F </span><span class="comment">/* _ */</span>) {
                         <span class="kw">return </span><span class="prelude-val">Err</span>(Error::syntax(
                             <span class="string">&quot;numeric separator not allowed after &#39;.&#39;&quot;</span>,
                             cursor.pos(),
@@ -763,10 +801,10 @@
 
                     <span class="comment">// The non-digit character at this point must be an &#39;e&#39; or &#39;E&#39; to indicate an Exponent Part.
                     // Another &#39;.&#39; or &#39;n&#39; is not allowed.
-                    </span><span class="kw">match </span>cursor.peek()<span class="question-mark">? </span>{
-                        <span class="prelude-val">Some</span>(<span class="string">b&#39;e&#39; </span>| <span class="string">b&#39;E&#39;</span>) =&gt; {
+                    </span><span class="kw">match </span>cursor.peek_char()<span class="question-mark">? </span>{
+                        <span class="prelude-val">Some</span>(<span class="number">0x0065 </span><span class="comment">/*e */ </span>| <span class="number">0x0045 </span><span class="comment">/* E */</span>) =&gt; {
                             <span class="comment">// Consume the ExponentIndicator.
-                            </span>cursor.next_byte()<span class="question-mark">?</span>.expect(<span class="string">&quot;e or E token vanished&quot;</span>);
+                            </span>cursor.next_char()<span class="question-mark">?</span>.expect(<span class="string">&quot;e or E token vanished&quot;</span>);
 
                             buf.push(<span class="string">b&#39;E&#39;</span>);
 
@@ -778,9 +816,9 @@
                     }
                 }
             }
-            <span class="prelude-val">Some</span>(<span class="string">b&#39;e&#39; </span>| <span class="string">b&#39;E&#39;</span>) =&gt; {
+            <span class="prelude-val">Some</span>(<span class="number">0x0065 </span><span class="comment">/*e */ </span>| <span class="number">0x0045 </span><span class="comment">/* E */</span>) =&gt; {
                 kind = NumericKind::Rational;
-                cursor.next_byte()<span class="question-mark">?</span>.expect(<span class="string">&quot;e or E character vanished&quot;</span>); <span class="comment">// Consume the ExponentIndicator.
+                cursor.next_char()<span class="question-mark">?</span>.expect(<span class="string">&quot;e or E character vanished&quot;</span>); <span class="comment">// Consume the ExponentIndicator.
                 </span>buf.push(<span class="string">b&#39;E&#39;</span>);
                 take_signed_integer(<span class="kw-2">&amp;mut </span>buf, cursor, kind)<span class="question-mark">?</span>;
             }

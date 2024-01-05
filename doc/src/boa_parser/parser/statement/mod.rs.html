@@ -1029,6 +1029,7 @@
         expression::{BindingIdentifier, Initializer, PropertyName},
         AllowAwait, AllowReturn, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
     },
+    source::ReadChar,
     Error,
 };
 <span class="kw">use </span>ast::{
@@ -1043,7 +1044,6 @@
 <span class="kw">use </span>boa_interner::Interner;
 <span class="kw">use </span>boa_macros::utf16;
 <span class="kw">use </span>boa_profiler::Profiler;
-<span class="kw">use </span>std::io::Read;
 
 <span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::parser) <span class="kw">use </span>declaration::ClassTail;
 
@@ -1098,7 +1098,7 @@
 
 <span class="kw">impl</span>&lt;R&gt; TokenParser&lt;R&gt; <span class="kw">for </span>Statement
 <span class="kw">where
-    </span>R: Read,
+    </span>R: ReadChar,
 {
     <span class="kw">type </span>Output = ast::Statement;
 
@@ -1258,7 +1258,7 @@
 
 <span class="kw">impl</span>&lt;R&gt; TokenParser&lt;R&gt; <span class="kw">for </span>StatementList
 <span class="kw">where
-    </span>R: Read,
+    </span>R: ReadChar,
 {
     <span class="kw">type </span>Output = ast::StatementList;
 
@@ -1389,7 +1389,7 @@
 
 <span class="kw">impl</span>&lt;R&gt; TokenParser&lt;R&gt; <span class="kw">for </span>StatementListItem
 <span class="kw">where
-    </span>R: Read,
+    </span>R: ReadChar,
 {
     <span class="kw">type </span>Output = ast::StatementListItem;
 
@@ -1459,7 +1459,7 @@
 
 <span class="kw">impl</span>&lt;R&gt; TokenParser&lt;R&gt; <span class="kw">for </span>ObjectBindingPattern
 <span class="kw">where
-    </span>R: Read,
+    </span>R: ReadChar,
 {
     <span class="kw">type </span>Output = Vec&lt;ObjectPatternElement&gt;;
 
@@ -1704,7 +1704,7 @@
 
 <span class="kw">impl</span>&lt;R&gt; TokenParser&lt;R&gt; <span class="kw">for </span>ArrayBindingPattern
 <span class="kw">where
-    </span>R: Read,
+    </span>R: ReadChar,
 {
     <span class="kw">type </span>Output = Vec&lt;ArrayPatternElement&gt;;
 
@@ -1890,7 +1890,7 @@
 
 <span class="kw">impl</span>&lt;R&gt; TokenParser&lt;R&gt; <span class="kw">for </span>ModuleItemList
 <span class="kw">where
-    </span>R: Read,
+    </span>R: ReadChar,
 {
     <span class="kw">type </span>Output = boa_ast::ModuleItemList;
 
@@ -1940,7 +1940,7 @@
 
 <span class="kw">impl</span>&lt;R&gt; TokenParser&lt;R&gt; <span class="kw">for </span>ModuleItem
 <span class="kw">where
-    </span>R: Read,
+    </span>R: ReadChar,
 {
     <span class="kw">type </span>Output = boa_ast::ModuleItem;
 

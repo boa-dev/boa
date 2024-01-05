@@ -248,19 +248,16 @@
 <a href="#248" id="248">248</a>
 <a href="#249" id="249">249</a>
 <a href="#250" id="250">250</a>
-<a href="#251" id="251">251</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s lexing for ECMAScript regex literals.
 
 </span><span class="kw">use </span><span class="kw">crate</span>::lexer::{Cursor, Error, Span, Token, TokenKind, Tokenizer};
+<span class="kw">use </span><span class="kw">crate</span>::source::ReadChar;
 <span class="kw">use </span>bitflags::bitflags;
 <span class="kw">use </span>boa_ast::Position;
 <span class="kw">use </span>boa_interner::{Interner, Sym};
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>regress::{Flags, Regex};
-<span class="kw">use </span>std::{
-    io::{<span class="self">self</span>, ErrorKind, Read},
-    str::{<span class="self">self</span>, FromStr},
-};
+<span class="kw">use </span>std::str::{<span class="self">self</span>, FromStr};
 
 <span class="doccomment">/// Regex literal lexing.
 ///
@@ -285,7 +282,7 @@
         interner: <span class="kw-2">&amp;mut </span>Interner,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;Token, Error&gt;
     <span class="kw">where
-        </span>R: Read,
+        </span>R: ReadChar,
     {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;RegexLiteral&quot;</span>, <span class="string">&quot;Lexing&quot;</span>);
 
@@ -294,7 +291,7 @@
 
         <span class="comment">// Lex RegularExpressionBody.
         </span><span class="kw">loop </span>{
-            <span class="kw">match </span>cursor.next_byte()<span class="question-mark">? </span>{
+            <span class="kw">match </span>cursor.next_char()<span class="question-mark">? </span>{
                 <span class="prelude-val">None </span>=&gt; {
                     <span class="comment">// Abrupt end.
                     </span><span class="kw">return </span><span class="prelude-val">Err</span>(Error::syntax(
@@ -304,47 +301,35 @@
                 }
                 <span class="prelude-val">Some</span>(b) =&gt; {
                     <span class="kw">match </span>b {
-                        <span class="string">b&#39;/&#39; </span><span class="kw">if </span>!is_class_char =&gt; <span class="kw">break</span>, <span class="comment">// RegularExpressionBody finished.
-                        </span><span class="string">b&#39;[&#39; </span>=&gt; {
+                        <span class="comment">// /
+                        </span><span class="number">0x2F </span><span class="kw">if </span>!is_class_char =&gt; <span class="kw">break</span>, <span class="comment">// RegularExpressionBody finished.
+                        // [
+                        </span><span class="number">0x5B </span>=&gt; {
                             is_class_char = <span class="bool-val">true</span>;
                             body.push(b);
                         }
-                        <span class="string">b&#39;]&#39; </span><span class="kw">if </span>is_class_char =&gt; {
+                        <span class="comment">// ]
+                        </span><span class="number">0x5D </span><span class="kw">if </span>is_class_char =&gt; {
                             is_class_char = <span class="bool-val">false</span>;
                             body.push(b);
                         }
-                        <span class="string">b&#39;\n&#39; </span>| <span class="string">b&#39;\r&#39; </span>=&gt; {
+                        <span class="comment">// \n | \r | \u{2028} | \u{2029}
+                        </span><span class="number">0xA </span>| <span class="number">0xD </span>| <span class="number">0x2028 </span>| <span class="number">0x2029 </span>=&gt; {
                             <span class="comment">// Not allowed in Regex literal.
                             </span><span class="kw">return </span><span class="prelude-val">Err</span>(Error::syntax(
                                 <span class="string">&quot;new lines are not allowed in regular expressions&quot;</span>,
                                 cursor.pos(),
                             ));
                         }
-                        <span class="number">0xE2 </span><span class="kw">if </span>(cursor.peek_n(<span class="number">2</span>)<span class="question-mark">? </span>== [<span class="number">0x80</span>, <span class="number">0xA8</span>]
-                            || cursor.peek_n(<span class="number">2</span>)<span class="question-mark">? </span>== [<span class="number">0x80</span>, <span class="number">0xA9</span>]) =&gt;
-                        {
-                            <span class="comment">// &#39;\u{2028}&#39; (e2 80 a8) and &#39;\u{2029}&#39; (e2 80 a9) are not allowed
-                            </span><span class="kw">return </span><span class="prelude-val">Err</span>(Error::syntax(
-                                <span class="string">&quot;new lines are not allowed in regular expressions&quot;</span>,
-                                cursor.pos(),
-                            ));
-                        }
-                        <span class="string">b&#39;\\&#39; </span>=&gt; {
+                        <span class="comment">// \
+                        </span><span class="number">0x5C </span>=&gt; {
                             <span class="comment">// Escape sequence
-                            </span>body.push(<span class="string">b&#39;\\&#39;</span>);
-                            <span class="kw">if let </span><span class="prelude-val">Some</span>(sc) = cursor.next_byte()<span class="question-mark">? </span>{
+                            </span>body.push(b);
+                            <span class="kw">if let </span><span class="prelude-val">Some</span>(sc) = cursor.next_char()<span class="question-mark">? </span>{
                                 <span class="kw">match </span>sc {
-                                    <span class="string">b&#39;\n&#39; </span>| <span class="string">b&#39;\r&#39; </span>=&gt; {
+                                    <span class="comment">// \n | \r | \u{2028} | \u{2029}
+                                    </span><span class="number">0xA </span>| <span class="number">0xD </span>| <span class="number">0x2028 </span>| <span class="number">0x2029 </span>=&gt; {
                                         <span class="comment">// Not allowed in Regex literal.
-                                        </span><span class="kw">return </span><span class="prelude-val">Err</span>(Error::syntax(
-                                            <span class="string">&quot;new lines are not allowed in regular expressions&quot;</span>,
-                                            cursor.pos(),
-                                        ));
-                                    }
-                                    <span class="number">0xE2 </span><span class="kw">if </span>(cursor.peek_n(<span class="number">2</span>)<span class="question-mark">? </span>== [<span class="number">0x80</span>, <span class="number">0xA8</span>]
-                                        || cursor.peek_n(<span class="number">2</span>)<span class="question-mark">? </span>== [<span class="number">0x80</span>, <span class="number">0xA9</span>]) =&gt;
-                                    {
-                                        <span class="comment">// &#39;\u{2028}&#39; (e2 80 a8) and &#39;\u{2029}&#39; (e2 80 a9) are not allowed
                                         </span><span class="kw">return </span><span class="prelude-val">Err</span>(Error::syntax(
                                             <span class="string">&quot;new lines are not allowed in regular expressions&quot;</span>,
                                             cursor.pos(),
@@ -370,28 +355,41 @@
         <span class="kw">let </span>flags_start = cursor.pos();
         cursor.take_while_ascii_pred(<span class="kw-2">&amp;mut </span>flags, <span class="kw-2">&amp;</span>char::is_alphabetic)<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>flags_str = <span class="kw">unsafe </span>{ str::from_utf8_unchecked(flags.as_slice()) };
-        <span class="kw">if let </span><span class="prelude-val">Ok</span>(body_str) = str::from_utf8(body.as_slice()) {
-            <span class="kw">if let </span><span class="prelude-val">Err</span>(error) = Regex::with_flags(body_str, flags_str) {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(Error::Syntax(
-                    <span class="macro">format!</span>(<span class="string">&quot;Invalid regular expression literal: {error}&quot;</span>).into(),
-                    start_pos,
-                ));
-            }
+        <span class="comment">// SAFETY: We have already checked that the bytes are valid UTF-8.
+        </span><span class="kw">let </span>flags_str = <span class="kw">unsafe </span>{ str::from_utf8_unchecked(flags.as_slice()) };
 
-            <span class="prelude-val">Ok</span>(Token::new(
-                TokenKind::regular_expression_literal(
-                    interner.get_or_intern(body_str),
-                    parse_regex_flags(flags_str, flags_start, interner)<span class="question-mark">?</span>,
-                ),
-                Span::new(start_pos, cursor.pos()),
-            ))
-        } <span class="kw">else </span>{
-            <span class="prelude-val">Err</span>(Error::from(io::Error::new(
-                ErrorKind::InvalidData,
-                <span class="string">&quot;Invalid UTF-8 character in regular expressions&quot;</span>,
-            )))
+        <span class="kw">let </span><span class="kw-2">mut </span>body_utf16 = Vec::new();
+
+        <span class="comment">// We convert the body to UTF-16 since it may contain code points that are not valid UTF-8.
+        // We already know that the body is valid UTF-16. Casting is fine.
+        </span><span class="attr">#[allow(clippy::cast_possible_truncation)]
+        </span><span class="kw">for </span>cp <span class="kw">in </span><span class="kw-2">&amp;</span>body {
+            <span class="kw">let </span>cp = <span class="kw-2">*</span>cp;
+            <span class="kw">if </span>cp &lt;= <span class="number">0xFFFF </span>{
+                body_utf16.push(cp <span class="kw">as </span>u16);
+            } <span class="kw">else </span>{
+                <span class="kw">let </span>cp = cp - <span class="number">0x1_0000</span>;
+                <span class="kw">let </span>high = <span class="number">0xD800 </span>| ((cp &gt;&gt; <span class="number">10</span>) <span class="kw">as </span>u16);
+                <span class="kw">let </span>low = <span class="number">0xDC00 </span>| ((cp <span class="kw">as </span>u16) &amp; <span class="number">0x3FF</span>);
+                body_utf16.push(high);
+                body_utf16.push(low);
+            }
         }
+
+        <span class="kw">if let </span><span class="prelude-val">Err</span>(error) = Regex::from_unicode(body.into_iter(), flags_str) {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Error::Syntax(
+                <span class="macro">format!</span>(<span class="string">&quot;Invalid regular expression literal: {error}&quot;</span>).into(),
+                start_pos,
+            ));
+        }
+
+        <span class="prelude-val">Ok</span>(Token::new(
+            TokenKind::regular_expression_literal(
+                interner.get_or_intern(body_utf16.as_slice()),
+                parse_regex_flags(flags_str, flags_start, interner)<span class="question-mark">?</span>,
+            ),
+            Span::new(start_pos, cursor.pos()),
+        ))
     }
 }
 

@@ -136,10 +136,10 @@
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s lexing for ECMAScript comments.
 
 </span><span class="kw">use </span><span class="kw">crate</span>::lexer::{Cursor, Error, Token, TokenKind, Tokenizer};
+<span class="kw">use </span><span class="kw">crate</span>::source::ReadChar;
 <span class="kw">use </span>boa_ast::{Position, Span};
 <span class="kw">use </span>boa_interner::Interner;
 <span class="kw">use </span>boa_profiler::Profiler;
-<span class="kw">use </span>std::io::Read;
 
 <span class="doccomment">/// Lexes a single line comment.
 ///
@@ -161,7 +161,7 @@
         _interner: <span class="kw-2">&amp;mut </span>Interner,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;Token, Error&gt;
     <span class="kw">where
-        </span>R: Read,
+        </span>R: ReadChar,
     {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;SingleLineComment&quot;</span>, <span class="string">&quot;Lexing&quot;</span>);
 
@@ -201,7 +201,7 @@
         _interner: <span class="kw-2">&amp;mut </span>Interner,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;Token, Error&gt;
     <span class="kw">where
-        </span>R: Read,
+        </span>R: ReadChar,
     {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;MultiLineComment&quot;</span>, <span class="string">&quot;Lexing&quot;</span>);
 
@@ -209,7 +209,7 @@
         <span class="kw">while let </span><span class="prelude-val">Some</span>(ch) = cursor.next_char()<span class="question-mark">? </span>{
             <span class="kw">let </span>tried_ch = char::try_from(ch);
             <span class="kw">match </span>tried_ch {
-                <span class="prelude-val">Ok</span>(c) <span class="kw">if </span>c == <span class="string">&#39;*&#39; </span>&amp;&amp; cursor.next_is(<span class="string">b&#39;/&#39;</span>)<span class="question-mark">? </span>=&gt; {
+                <span class="prelude-val">Ok</span>(c) <span class="kw">if </span>c == <span class="string">&#39;*&#39; </span>&amp;&amp; cursor.next_if(<span class="number">0x2F </span><span class="comment">/* / */</span>)<span class="question-mark">? </span>=&gt; {
                     <span class="kw">return </span><span class="prelude-val">Ok</span>(Token::new(
                         <span class="kw">if </span>new_line {
                             TokenKind::LineTerminator
@@ -250,7 +250,7 @@
         _interner: <span class="kw-2">&amp;mut </span>Interner,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;Token, Error&gt;
     <span class="kw">where
-        </span>R: Read,
+        </span>R: ReadChar,
     {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Hashbang&quot;</span>, <span class="string">&quot;Lexing&quot;</span>);
 

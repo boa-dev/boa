@@ -200,6 +200,7 @@
         },
         AllowAwait, AllowYield, Cursor, ParseResult, TokenParser,
     },
+    source::ReadChar,
     Error,
 };
 <span class="kw">use </span>boa_ast::{
@@ -208,7 +209,6 @@
 };
 <span class="kw">use </span>boa_interner::Interner;
 <span class="kw">use </span>boa_profiler::Profiler;
-<span class="kw">use </span>std::io::Read;
 
 <span class="doccomment">/// Parses a left hand side expression.
 ///
@@ -243,7 +243,7 @@
 
 <span class="kw">impl</span>&lt;R&gt; TokenParser&lt;R&gt; <span class="kw">for </span>LeftHandSideExpression
 <span class="kw">where
-    </span>R: Read,
+    </span>R: ReadChar,
 {
     <span class="kw">type </span>Output = Expression;
 
@@ -257,7 +257,7 @@
         /// initialization of `lhs` would make it very hard to return an expression over all
         /// possible branches of the `if let`s. Instead, we extract the check into its own function,
         /// then use it inside the condition of a simple `if ... else` expression.
-        </span><span class="kw">fn </span>is_keyword_call&lt;R: Read&gt;(
+        </span><span class="kw">fn </span>is_keyword_call&lt;R: ReadChar&gt;(
             keyword: Keyword,
             cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;,
             interner: <span class="kw-2">&amp;mut </span>Interner,

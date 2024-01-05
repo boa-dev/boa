@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["CONT_MASK"],"fn":["unwrap_or_0","utf8_acc_cont_byte","utf8_first_byte","utf8_is_first_byte","utf8_len"],"struct":["Cursor","InnerIter"]};
+window.SIDEBAR_ITEMS = {"struct":["Cursor"]};

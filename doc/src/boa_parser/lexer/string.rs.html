@@ -348,16 +348,59 @@
 <a href="#348" id="348">348</a>
 <a href="#349" id="349">349</a>
 <a href="#350" id="350">350</a>
+<a href="#351" id="351">351</a>
+<a href="#352" id="352">352</a>
+<a href="#353" id="353">353</a>
+<a href="#354" id="354">354</a>
+<a href="#355" id="355">355</a>
+<a href="#356" id="356">356</a>
+<a href="#357" id="357">357</a>
+<a href="#358" id="358">358</a>
+<a href="#359" id="359">359</a>
+<a href="#360" id="360">360</a>
+<a href="#361" id="361">361</a>
+<a href="#362" id="362">362</a>
+<a href="#363" id="363">363</a>
+<a href="#364" id="364">364</a>
+<a href="#365" id="365">365</a>
+<a href="#366" id="366">366</a>
+<a href="#367" id="367">367</a>
+<a href="#368" id="368">368</a>
+<a href="#369" id="369">369</a>
+<a href="#370" id="370">370</a>
+<a href="#371" id="371">371</a>
+<a href="#372" id="372">372</a>
+<a href="#373" id="373">373</a>
+<a href="#374" id="374">374</a>
+<a href="#375" id="375">375</a>
+<a href="#376" id="376">376</a>
+<a href="#377" id="377">377</a>
+<a href="#378" id="378">378</a>
+<a href="#379" id="379">379</a>
+<a href="#380" id="380">380</a>
+<a href="#381" id="381">381</a>
+<a href="#382" id="382">382</a>
+<a href="#383" id="383">383</a>
+<a href="#384" id="384">384</a>
+<a href="#385" id="385">385</a>
+<a href="#386" id="386">386</a>
+<a href="#387" id="387">387</a>
+<a href="#388" id="388">388</a>
+<a href="#389" id="389">389</a>
+<a href="#390" id="390">390</a>
+<a href="#391" id="391">391</a>
+<a href="#392" id="392">392</a>
+<a href="#393" id="393">393</a>
+<a href="#394" id="394">394</a>
+<a href="#395" id="395">395</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s lexing for ECMAScript string literals.
 
 </span><span class="kw">use </span><span class="kw">crate</span>::lexer::{token::EscapeSequence, Cursor, Error, Token, TokenKind, Tokenizer};
+<span class="kw">use </span><span class="kw">crate</span>::source::ReadChar;
 <span class="kw">use </span>boa_ast::{Position, Span};
 <span class="kw">use </span>boa_interner::Interner;
 <span class="kw">use </span>boa_profiler::Profiler;
-<span class="kw">use </span>std::{
-    io::{<span class="self">self</span>, ErrorKind, Read},
-    str,
-};
+<span class="kw">use </span>std::io::{<span class="self">self</span>, ErrorKind};
 
 <span class="doccomment">/// String literal lexing.
 ///
@@ -434,7 +477,7 @@
         interner: <span class="kw-2">&amp;mut </span>Interner,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;Token, Error&gt;
     <span class="kw">where
-        </span>R: Read,
+        </span>R: ReadChar,
     {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;StringLiteral&quot;</span>, <span class="string">&quot;Lexing&quot;</span>);
 
@@ -469,7 +512,7 @@
         strict: bool,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(Vec&lt;u16&gt;, Span, EscapeSequence), Error&gt;
     <span class="kw">where
-        </span>R: Read,
+        </span>R: ReadChar,
     {
         <span class="kw">let </span><span class="kw-2">mut </span>buf = Vec::new();
         <span class="kw">let </span><span class="kw-2">mut </span>escape_sequence = EscapeSequence::empty();
@@ -522,7 +565,7 @@
         is_template_literal: bool,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(<span class="prelude-ty">Option</span>&lt;u32&gt;, EscapeSequence), Error&gt;
     <span class="kw">where
-        </span>R: Read,
+        </span>R: ReadChar,
     {
         <span class="kw">let </span>escape_ch = cursor.next_char()<span class="question-mark">?</span>.ok_or_else(|| {
             Error::from(io::Error::new(
@@ -542,8 +585,8 @@
             <span class="number">0x0027 </span><span class="comment">/* &#39; */ </span>=&gt; (<span class="prelude-val">Some</span>(<span class="number">0x0027 </span><span class="comment">/* &#39; */</span>), EscapeSequence::OTHER),
             <span class="number">0x005C </span><span class="comment">/* \ */ </span>=&gt; (<span class="prelude-val">Some</span>(<span class="number">0x005C </span><span class="comment">/* \ */</span>), EscapeSequence::OTHER),
             <span class="number">0x0030 </span><span class="comment">/* 0 */ </span><span class="kw">if </span>cursor
-                .peek()<span class="question-mark">?
-                </span>.filter(u8::is_ascii_digit)
+                .peek_char()<span class="question-mark">?
+                </span>.filter(|c| (<span class="number">0x30</span>..=<span class="number">0x39 </span><span class="comment">/* 0..=9 */</span>).contains(c))
                 .is_none() =&gt;
                 (<span class="prelude-val">Some</span>(<span class="number">0x0000 </span><span class="comment">/* NULL */</span>), EscapeSequence::OTHER),
             <span class="number">0x0078 </span><span class="comment">/* x */ </span>=&gt; {
@@ -606,23 +649,32 @@
         start_pos: Position,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;u32, Error&gt;
     <span class="kw">where
-        </span>R: Read,
+        </span>R: ReadChar,
     {
         <span class="comment">// Support \u{X..X} (Unicode CodePoint)
-        </span><span class="kw">if </span>cursor.next_is(<span class="string">b&#39;{&#39;</span>)<span class="question-mark">? </span>{
+        </span><span class="kw">if </span>cursor.next_if(<span class="number">0x7B </span><span class="comment">/* { */</span>)<span class="question-mark">? </span>{
             <span class="comment">// TODO: use bytes for a bit better performance (using stack)
             </span><span class="kw">let </span><span class="kw-2">mut </span>code_point_buf = Vec::with_capacity(<span class="number">6</span>);
-            cursor.take_until(<span class="string">b&#39;}&#39;</span>, <span class="kw-2">&amp;mut </span>code_point_buf)<span class="question-mark">?</span>;
+            cursor.take_until(<span class="number">0x7D </span><span class="comment">/* } */</span>, <span class="kw-2">&amp;mut </span>code_point_buf)<span class="question-mark">?</span>;
 
-            <span class="kw">let </span>code_point = str::from_utf8(code_point_buf.as_slice())
-                .ok()
-                .and_then(|code_point_str| {
-                    <span class="comment">// The `code_point_str` should represent a single unicode codepoint, convert to u32
-                    </span>u32::from_str_radix(code_point_str, <span class="number">16</span>).ok()
-                })
-                .ok_or_else(|| {
-                    Error::syntax(<span class="string">&quot;malformed Unicode character escape sequence&quot;</span>, start_pos)
-                })<span class="question-mark">?</span>;
+            <span class="kw">let </span><span class="kw-2">mut </span>s = String::with_capacity(code_point_buf.len());
+            <span class="kw">for </span>c <span class="kw">in </span>code_point_buf {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(c) = char::from_u32(c) {
+                    s.push(c);
+                } <span class="kw">else </span>{
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(Error::syntax(
+                        <span class="string">&quot;malformed Unicode character escape sequence&quot;</span>,
+                        start_pos,
+                    ));
+                }
+            }
+
+            <span class="kw">let </span><span class="prelude-val">Ok</span>(code_point) = u32::from_str_radix(<span class="kw-2">&amp;</span>s, <span class="number">16</span>) <span class="kw">else </span>{
+                <span class="kw">return </span><span class="prelude-val">Err</span>(Error::syntax(
+                    <span class="string">&quot;malformed Unicode character escape sequence&quot;</span>,
+                    start_pos,
+                ));
+            };
 
             <span class="comment">// UTF16Encoding of a numeric code point value
             </span><span class="kw">if </span>code_point &gt; <span class="number">0x10_FFFF </span>{
@@ -636,14 +688,32 @@
         } <span class="kw">else </span>{
             <span class="comment">// Grammar: Hex4Digits
             // Collect each character after \u e.g \uD83D will give &quot;D83D&quot;
-            </span><span class="kw">let </span><span class="kw-2">mut </span>code_point_utf8_bytes = [<span class="number">0u8</span>; <span class="number">4</span>];
-            cursor.fill_bytes(<span class="kw-2">&amp;mut </span>code_point_utf8_bytes)<span class="question-mark">?</span>;
+            </span><span class="kw">let </span><span class="kw-2">mut </span>buffer = [<span class="number">0u32</span>; <span class="number">4</span>];
+            buffer[<span class="number">0</span>] = cursor
+                .next_char()<span class="question-mark">?
+                </span>.ok_or_else(|| Error::syntax(<span class="string">&quot;invalid Unicode escape sequence&quot;</span>, start_pos))<span class="question-mark">?</span>;
+            buffer[<span class="number">1</span>] = cursor
+                .next_char()<span class="question-mark">?
+                </span>.ok_or_else(|| Error::syntax(<span class="string">&quot;invalid Unicode escape sequence&quot;</span>, start_pos))<span class="question-mark">?</span>;
+            buffer[<span class="number">2</span>] = cursor
+                .next_char()<span class="question-mark">?
+                </span>.ok_or_else(|| Error::syntax(<span class="string">&quot;invalid Unicode escape sequence&quot;</span>, start_pos))<span class="question-mark">?</span>;
+            buffer[<span class="number">3</span>] = cursor
+                .next_char()<span class="question-mark">?
+                </span>.ok_or_else(|| Error::syntax(<span class="string">&quot;invalid Unicode escape sequence&quot;</span>, start_pos))<span class="question-mark">?</span>;
 
-            <span class="comment">// Convert to u16
-            </span><span class="kw">let </span>code_point = str::from_utf8(<span class="kw-2">&amp;</span>code_point_utf8_bytes)
-                .ok()
-                .and_then(|code_point_str| u16::from_str_radix(code_point_str, <span class="number">16</span>).ok())
-                .ok_or_else(|| Error::syntax(<span class="string">&quot;invalid Unicode escape sequence&quot;</span>, start_pos))<span class="question-mark">?</span>;
+            <span class="kw">let </span><span class="kw-2">mut </span>s = String::with_capacity(buffer.len());
+            <span class="kw">for </span>c <span class="kw">in </span>buffer {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(c) = char::from_u32(c) {
+                    s.push(c);
+                } <span class="kw">else </span>{
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(Error::syntax(<span class="string">&quot;invalid Unicode escape sequence&quot;</span>, start_pos));
+                }
+            }
+
+            <span class="kw">let </span><span class="prelude-val">Ok</span>(code_point) = u16::from_str_radix(<span class="kw-2">&amp;</span>s, <span class="number">16</span>) <span class="kw">else </span>{
+                <span class="kw">return </span><span class="prelude-val">Err</span>(Error::syntax(<span class="string">&quot;invalid Unicode escape sequence&quot;</span>, start_pos));
+            };
 
             <span class="prelude-val">Ok</span>(u32::from(code_point))
         }
@@ -654,14 +724,34 @@
         start_pos: Position,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;u32, Error&gt;
     <span class="kw">where
-        </span>R: Read,
+        </span>R: ReadChar,
     {
-        <span class="kw">let </span><span class="kw-2">mut </span>code_point_utf8_bytes = [<span class="number">0u8</span>; <span class="number">2</span>];
-        cursor.fill_bytes(<span class="kw-2">&amp;mut </span>code_point_utf8_bytes)<span class="question-mark">?</span>;
-        <span class="kw">let </span>code_point = str::from_utf8(<span class="kw-2">&amp;</span>code_point_utf8_bytes)
-            .ok()
-            .and_then(|code_point_str| u16::from_str_radix(code_point_str, <span class="number">16</span>).ok())
-            .ok_or_else(|| Error::syntax(<span class="string">&quot;invalid Hexadecimal escape sequence&quot;</span>, start_pos))<span class="question-mark">?</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>buffer = [<span class="number">0u32</span>; <span class="number">2</span>];
+        buffer[<span class="number">0</span>] = cursor
+            .next_char()<span class="question-mark">?
+            </span>.ok_or_else(|| Error::syntax(<span class="string">&quot;invalid Hexadecimal escape sequence&quot;</span>, start_pos))<span class="question-mark">?</span>;
+        buffer[<span class="number">1</span>] = cursor
+            .next_char()<span class="question-mark">?
+            </span>.ok_or_else(|| Error::syntax(<span class="string">&quot;invalid Hexadecimal escape sequence&quot;</span>, start_pos))<span class="question-mark">?</span>;
+
+        <span class="kw">let </span><span class="kw-2">mut </span>s = String::with_capacity(buffer.len());
+        <span class="kw">for </span>c <span class="kw">in </span>buffer {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(c) = char::from_u32(c) {
+                s.push(c);
+            } <span class="kw">else </span>{
+                <span class="kw">return </span><span class="prelude-val">Err</span>(Error::syntax(
+                    <span class="string">&quot;invalid Hexadecimal escape sequence&quot;</span>,
+                    start_pos,
+                ));
+            }
+        }
+
+        <span class="kw">let </span><span class="prelude-val">Ok</span>(code_point) = u16::from_str_radix(<span class="kw-2">&amp;</span>s, <span class="number">16</span>) <span class="kw">else </span>{
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Error::syntax(
+                <span class="string">&quot;invalid Hexadecimal escape sequence&quot;</span>,
+                start_pos,
+            ));
+        };
 
         <span class="prelude-val">Ok</span>(u32::from(code_point))
     }
@@ -671,24 +761,24 @@
         init_byte: u8,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;u32, Error&gt;
     <span class="kw">where
-        </span>R: Read,
+        </span>R: ReadChar,
     {
         <span class="comment">// Grammar: OctalDigit
         </span><span class="kw">let </span><span class="kw-2">mut </span>code_point = u32::from(init_byte - <span class="string">b&#39;0&#39;</span>);
 
         <span class="comment">// Grammar: ZeroToThree OctalDigit
         // Grammar: FourToSeven OctalDigit
-        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(byte) = cursor.peek()<span class="question-mark">? </span>{
-            <span class="kw">if </span>(<span class="string">b&#39;0&#39;</span>..=<span class="string">b&#39;7&#39;</span>).contains(<span class="kw-2">&amp;</span>byte) {
-                cursor.next_byte()<span class="question-mark">?</span>;
-                code_point = (code_point * <span class="number">8</span>) + u32::from(byte - <span class="string">b&#39;0&#39;</span>);
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(c) = cursor.peek_char()<span class="question-mark">? </span>{
+            <span class="kw">if </span>(<span class="number">0x30</span>..=<span class="number">0x37</span><span class="comment">/* 0..=7 */</span>).contains(<span class="kw-2">&amp;</span>c) {
+                cursor.next_char()<span class="question-mark">?</span>;
+                code_point = (code_point * <span class="number">8</span>) + c - <span class="number">0x30 </span><span class="comment">/* 0 */</span>;
 
-                <span class="kw">if </span>(<span class="string">b&#39;0&#39;</span>..=<span class="string">b&#39;3&#39;</span>).contains(<span class="kw-2">&amp;</span>init_byte) {
+                <span class="kw">if </span>(<span class="number">0x30</span>..=<span class="number">0x33</span><span class="comment">/* 0..=3 */</span>).contains(<span class="kw-2">&amp;</span>init_byte) {
                     <span class="comment">// Grammar: ZeroToThree OctalDigit OctalDigit
-                    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(byte) = cursor.peek()<span class="question-mark">? </span>{
-                        <span class="kw">if </span>(<span class="string">b&#39;0&#39;</span>..=<span class="string">b&#39;7&#39;</span>).contains(<span class="kw-2">&amp;</span>byte) {
-                            cursor.next_byte()<span class="question-mark">?</span>;
-                            code_point = (code_point * <span class="number">8</span>) + u32::from(byte - <span class="string">b&#39;0&#39;</span>);
+                    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(c) = cursor.peek_char()<span class="question-mark">? </span>{
+                        <span class="kw">if </span>(<span class="number">0x30</span>..=<span class="number">0x37</span><span class="comment">/* 0..=7 */</span>).contains(<span class="kw-2">&amp;</span>c) {
+                            cursor.next_char()<span class="question-mark">?</span>;
+                            code_point = (code_point * <span class="number">8</span>) + c - <span class="number">0x30 </span><span class="comment">/* 0 */</span>;
                         }
                     }
                 }

@@ -77,10 +77,10 @@
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s lexing for ECMAScript private identifiers (#foo, #myvar, etc.).
 
 </span><span class="kw">use </span><span class="kw">crate</span>::lexer::{identifier::Identifier, Cursor, Error, Token, TokenKind, Tokenizer};
+<span class="kw">use </span><span class="kw">crate</span>::source::ReadChar;
 <span class="kw">use </span>boa_ast::{Position, Span};
 <span class="kw">use </span>boa_interner::Interner;
 <span class="kw">use </span>boa_profiler::Profiler;
-<span class="kw">use </span>std::io::Read;
 
 <span class="doccomment">/// Private Identifier lexing.
 ///
@@ -106,14 +106,14 @@
         interner: <span class="kw-2">&amp;mut </span>Interner,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;Token, Error&gt;
     <span class="kw">where
-        </span>R: Read,
+        </span>R: ReadChar,
     {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;PrivateIdentifier&quot;</span>, <span class="string">&quot;Lexing&quot;</span>);
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(next_ch) = cursor.next_char()<span class="question-mark">? </span>{
             <span class="kw">if let </span><span class="prelude-val">Ok</span>(c) = char::try_from(next_ch) {
                 <span class="kw">match </span>c {
-                    <span class="string">&#39;\\&#39; </span><span class="kw">if </span>cursor.peek()<span class="question-mark">? </span>== <span class="prelude-val">Some</span>(<span class="string">b&#39;u&#39;</span>) =&gt; {
+                    <span class="string">&#39;\\&#39; </span><span class="kw">if </span>cursor.peek_char()<span class="question-mark">? </span>== <span class="prelude-val">Some</span>(<span class="number">0x0075 </span><span class="comment">/* u */</span>) =&gt; {
                         <span class="kw">let </span>(name, <span class="kw">_</span>) = Identifier::take_identifier_name(cursor, start_pos, c)<span class="question-mark">?</span>;
                         <span class="prelude-val">Ok</span>(Token::new(
                             TokenKind::PrivateIdentifier(interner.get_or_intern(name.as_str())),

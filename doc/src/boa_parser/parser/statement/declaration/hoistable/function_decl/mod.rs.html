@@ -82,16 +82,20 @@
 <a href="#82" id="82">82</a>
 <a href="#83" id="83">83</a>
 <a href="#84" id="84">84</a>
+<a href="#85" id="85">85</a>
+<a href="#86" id="86">86</a>
 </pre></div><pre class="rust"><code><span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
 
-<span class="kw">use </span><span class="kw">crate</span>::parser::{
-    statement::declaration::hoistable::{parse_callable_declaration, CallableDeclaration},
-    AllowAwait, AllowDefault, AllowYield, Cursor, ParseResult, TokenParser,
+<span class="kw">use crate</span>::{
+    parser::{
+        statement::declaration::hoistable::{parse_callable_declaration, CallableDeclaration},
+        AllowAwait, AllowDefault, AllowYield, Cursor, ParseResult, TokenParser,
+    },
+    source::ReadChar,
 };
 <span class="kw">use </span>boa_ast::{function::Function, Keyword};
 <span class="kw">use </span>boa_interner::Interner;
-<span class="kw">use </span>std::io::Read;
 
 <span class="doccomment">/// Function declaration parsing.
 ///
@@ -154,7 +158,7 @@
 
 <span class="kw">impl</span>&lt;R&gt; TokenParser&lt;R&gt; <span class="kw">for </span>FunctionDeclaration
 <span class="kw">where
-    </span>R: Read,
+    </span>R: ReadChar,
 {
     <span class="kw">type </span>Output = Function;
 

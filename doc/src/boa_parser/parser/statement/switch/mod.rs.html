@@ -229,6 +229,7 @@
         expression::Expression, statement::StatementList, AllowAwait, AllowReturn, AllowYield,
         Cursor, OrAbrupt, ParseResult, TokenParser,
     },
+    source::ReadChar,
     Error,
 };
 <span class="kw">use </span>ast::operations::{lexically_declared_names_legacy, var_declared_names};
@@ -236,7 +237,6 @@
 <span class="kw">use </span>boa_interner::Interner;
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>rustc_hash::FxHashMap;
-<span class="kw">use </span>std::io::Read;
 
 <span class="doccomment">/// The possible `TokenKind` which indicate the end of a case statement.
 </span><span class="kw">const </span>CASE_BREAK_TOKENS: [TokenKind; <span class="number">3</span>] = [
@@ -278,7 +278,7 @@
 
 <span class="kw">impl</span>&lt;R&gt; TokenParser&lt;R&gt; <span class="kw">for </span>SwitchStatement
 <span class="kw">where
-    </span>R: Read,
+    </span>R: ReadChar,
 {
     <span class="kw">type </span>Output = Switch;
 
@@ -363,7 +363,7 @@
 
 <span class="kw">impl</span>&lt;R&gt; TokenParser&lt;R&gt; <span class="kw">for </span>CaseBlock
 <span class="kw">where
-    </span>R: Read,
+    </span>R: ReadChar,
 {
     <span class="kw">type </span>Output = Box&lt;[statement::Case]&gt;;
 

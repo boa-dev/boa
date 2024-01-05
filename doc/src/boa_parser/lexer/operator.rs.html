@@ -178,45 +178,37 @@
 <a href="#178" id="178">178</a>
 <a href="#179" id="179">179</a>
 <a href="#180" id="180">180</a>
-<a href="#181" id="181">181</a>
-<a href="#182" id="182">182</a>
-<a href="#183" id="183">183</a>
-<a href="#184" id="184">184</a>
-<a href="#185" id="185">185</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s lexing for ECMAScript operators (+, - etc.).
 
 </span><span class="kw">use </span><span class="kw">crate</span>::lexer::{Cursor, Error, Token, TokenKind, Tokenizer};
+<span class="kw">use </span><span class="kw">crate</span>::source::ReadChar;
 <span class="kw">use </span>boa_ast::{Position, Punctuator, Span};
 <span class="kw">use </span>boa_interner::Interner;
 <span class="kw">use </span>boa_profiler::Profiler;
-<span class="kw">use </span>std::io::Read;
 
 <span class="doccomment">/// `vop` tests the next token to see if we&#39;re on an assign operation of just a plain binary operation.
 ///
 /// If the next value is not an assignment operation it will pattern match  the provided values and return the corresponding token.
 </span><span class="macro">macro_rules! </span>vop {
     (<span class="macro-nonterminal">$cursor</span>:ident, <span class="macro-nonterminal">$assign_op</span>:expr, <span class="macro-nonterminal">$op</span>:expr) =&gt; ({
-        <span class="kw">match </span><span class="macro-nonterminal">$cursor</span>.peek()<span class="question-mark">? </span>{
+        <span class="kw">match </span><span class="macro-nonterminal">$cursor</span>.peek_char()<span class="question-mark">? </span>{
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(Error::syntax(<span class="string">&quot;abrupt end - could not preview next value as part of the operator&quot;</span>, <span class="macro-nonterminal">$cursor</span>.pos())),
-            <span class="prelude-val">Some</span>(<span class="string">b&#39;=&#39;</span>) =&gt; {
-                <span class="macro-nonterminal">$cursor</span>.next_byte()<span class="question-mark">?</span>.expect(<span class="string">&quot;= token vanished&quot;</span>);
-                <span class="macro-nonterminal">$cursor</span>.next_column();
+            <span class="prelude-val">Some</span>(<span class="number">0x3D </span><span class="comment">/* = */</span>) =&gt; {
+                <span class="macro-nonterminal">$cursor</span>.next_char()<span class="question-mark">?</span>.expect(<span class="string">&quot;= token vanished&quot;</span>);
                 <span class="macro-nonterminal">$assign_op
             </span>}
             <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="macro-nonterminal">$op</span>,
         }
     });
     (<span class="macro-nonterminal">$cursor</span>:ident, <span class="macro-nonterminal">$assign_op</span>:expr, <span class="macro-nonterminal">$op</span>:expr, {$(<span class="macro-nonterminal">$case</span>:pat =&gt; <span class="macro-nonterminal">$block</span>:expr), +}) =&gt; ({
-        <span class="kw">match </span><span class="macro-nonterminal">$cursor</span>.peek()<span class="question-mark">? </span>{
+        <span class="kw">match </span><span class="macro-nonterminal">$cursor</span>.peek_char()<span class="question-mark">? </span>{
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(Error::syntax(<span class="string">&quot;abrupt end - could not preview next value as part of the operator&quot;</span>, <span class="macro-nonterminal">$cursor</span>.pos())),
-            <span class="prelude-val">Some</span>(<span class="string">b&#39;=&#39;</span>) =&gt; {
-                <span class="macro-nonterminal">$cursor</span>.next_byte()<span class="question-mark">?</span>.expect(<span class="string">&quot;= token vanished&quot;</span>);
-                <span class="macro-nonterminal">$cursor</span>.next_column();
+            <span class="prelude-val">Some</span>(<span class="number">0x3D </span><span class="comment">/* = */</span>) =&gt; {
+                <span class="macro-nonterminal">$cursor</span>.next_char()<span class="question-mark">?</span>.expect(<span class="string">&quot;= token vanished&quot;</span>);
                 <span class="macro-nonterminal">$assign_op
             </span>},
             $(<span class="macro-nonterminal">$case </span>=&gt; {
-                <span class="macro-nonterminal">$cursor</span>.next_byte()<span class="question-mark">?</span>.expect(<span class="string">&quot;Token vanished&quot;</span>);
-                <span class="macro-nonterminal">$cursor</span>.next_column();
+                <span class="macro-nonterminal">$cursor</span>.next_char()<span class="question-mark">?</span>.expect(<span class="string">&quot;Token vanished&quot;</span>);
                 <span class="macro-nonterminal">$block
             </span>})+,
             <span class="kw">_ </span>=&gt; <span class="macro-nonterminal">$op</span>,
@@ -271,19 +263,19 @@
         _interner: <span class="kw-2">&amp;mut </span>Interner,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;Token, Error&gt;
     <span class="kw">where
-        </span>R: Read,
+        </span>R: ReadChar,
     {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Operator&quot;</span>, <span class="string">&quot;Lexing&quot;</span>);
 
         <span class="kw">match </span><span class="self">self</span>.init {
             <span class="string">b&#39;*&#39; </span>=&gt; <span class="macro">op!</span>(cursor, start_pos, <span class="prelude-val">Ok</span>(Punctuator::AssignMul), <span class="prelude-val">Ok</span>(Punctuator::Mul), {
-                <span class="prelude-val">Some</span>(<span class="string">b&#39;*&#39;</span>) =&gt; <span class="macro">vop!</span>(cursor, <span class="prelude-val">Ok</span>(Punctuator::AssignPow), <span class="prelude-val">Ok</span>(Punctuator::Exp))
+                <span class="prelude-val">Some</span>(<span class="number">0x2A </span><span class="comment">/* * */</span>) =&gt; <span class="macro">vop!</span>(cursor, <span class="prelude-val">Ok</span>(Punctuator::AssignPow), <span class="prelude-val">Ok</span>(Punctuator::Exp))
             }),
             <span class="string">b&#39;+&#39; </span>=&gt; <span class="macro">op!</span>(cursor, start_pos, <span class="prelude-val">Ok</span>(Punctuator::AssignAdd), <span class="prelude-val">Ok</span>(Punctuator::Add), {
-                <span class="prelude-val">Some</span>(<span class="string">b&#39;+&#39;</span>) =&gt; <span class="prelude-val">Ok</span>(Punctuator::Inc)
+                <span class="prelude-val">Some</span>(<span class="number">0x2B </span><span class="comment">/* + */</span>) =&gt; <span class="prelude-val">Ok</span>(Punctuator::Inc)
             }),
             <span class="string">b&#39;-&#39; </span>=&gt; <span class="macro">op!</span>(cursor, start_pos, <span class="prelude-val">Ok</span>(Punctuator::AssignSub), <span class="prelude-val">Ok</span>(Punctuator::Sub), {
-                <span class="prelude-val">Some</span>(<span class="string">b&#39;-&#39;</span>) =&gt; {
+                <span class="prelude-val">Some</span>(<span class="number">0x2D </span><span class="comment">/* - */</span>) =&gt; {
                     <span class="prelude-val">Ok</span>(Punctuator::Dec)
                 }
             }),
@@ -294,19 +286,16 @@
                 <span class="prelude-val">Ok</span>(Punctuator::Mod)
             ),
             <span class="string">b&#39;|&#39; </span>=&gt; <span class="macro">op!</span>(cursor, start_pos, <span class="prelude-val">Ok</span>(Punctuator::AssignOr), <span class="prelude-val">Ok</span>(Punctuator::Or), {
-                <span class="prelude-val">Some</span>(<span class="string">b&#39;|&#39;</span>) =&gt; <span class="macro">vop!</span>(cursor, <span class="prelude-val">Ok</span>(Punctuator::AssignBoolOr), <span class="prelude-val">Ok</span>(Punctuator::BoolOr))
+                <span class="prelude-val">Some</span>(<span class="number">0x7C </span><span class="comment">/* | */</span>) =&gt; <span class="macro">vop!</span>(cursor, <span class="prelude-val">Ok</span>(Punctuator::AssignBoolOr), <span class="prelude-val">Ok</span>(Punctuator::BoolOr))
             }),
             <span class="string">b&#39;&amp;&#39; </span>=&gt; <span class="macro">op!</span>(cursor, start_pos, <span class="prelude-val">Ok</span>(Punctuator::AssignAnd), <span class="prelude-val">Ok</span>(Punctuator::And), {
-                <span class="prelude-val">Some</span>(<span class="string">b&#39;&amp;&#39;</span>) =&gt; <span class="macro">vop!</span>(cursor, <span class="prelude-val">Ok</span>(Punctuator::AssignBoolAnd), <span class="prelude-val">Ok</span>(Punctuator::BoolAnd))
+                <span class="prelude-val">Some</span>(<span class="number">0x26 </span><span class="comment">/* &amp; */</span>) =&gt; <span class="macro">vop!</span>(cursor, <span class="prelude-val">Ok</span>(Punctuator::AssignBoolAnd), <span class="prelude-val">Ok</span>(Punctuator::BoolAnd))
             }),
             <span class="string">b&#39;?&#39; </span>=&gt; {
-                <span class="kw">let </span>(first, second) = (
-                    cursor.peek_n(<span class="number">2</span>)<span class="question-mark">?</span>.first().copied(),
-                    cursor.peek_n(<span class="number">2</span>)<span class="question-mark">?</span>.get(<span class="number">1</span>).copied(),
-                );
+                <span class="kw">let </span>(first, second) = (cursor.peek_char()<span class="question-mark">?</span>, cursor.peek_n(<span class="number">2</span>)<span class="question-mark">?</span>[<span class="number">1</span>]);
                 <span class="kw">match </span>first {
-                    <span class="prelude-val">Some</span>(<span class="string">b&#39;?&#39;</span>) =&gt; {
-                        cursor.next_byte()<span class="question-mark">?</span>.expect(<span class="string">&quot;? vanished&quot;</span>);
+                    <span class="prelude-val">Some</span>(<span class="number">0x3F </span><span class="comment">/* ? */</span>) =&gt; {
+                        cursor.next_char()<span class="question-mark">?</span>.expect(<span class="string">&quot;? vanished&quot;</span>);
                         <span class="macro">op!</span>(
                             cursor,
                             start_pos,
@@ -314,8 +303,9 @@
                             <span class="prelude-val">Ok</span>(Punctuator::Coalesce)
                         )
                     }
-                    <span class="prelude-val">Some</span>(<span class="string">b&#39;.&#39;</span>) <span class="kw">if </span>!<span class="macro">matches!</span>(second, <span class="prelude-val">Some</span>(second) <span class="kw">if </span>second.is_ascii_digit()) =&gt; {
-                        cursor.next_byte()<span class="question-mark">?</span>.expect(<span class="string">&quot;. vanished&quot;</span>);
+                    <span class="prelude-val">Some</span>(<span class="number">0x2E </span><span class="comment">/* . */</span>) <span class="kw">if </span>!<span class="macro">matches!</span>(second, <span class="prelude-val">Some</span>(second) <span class="kw">if </span>(<span class="number">0x30</span>..=<span class="number">0x39 </span><span class="comment">/* 0..=9 */</span>).contains(<span class="kw-2">&amp;</span>second)) =&gt;
+                    {
+                        cursor.next_char()<span class="question-mark">?</span>.expect(<span class="string">&quot;. vanished&quot;</span>);
                         <span class="prelude-val">Ok</span>(Token::new(
                             TokenKind::Punctuator(Punctuator::Optional),
                             Span::new(start_pos, cursor.pos()),
@@ -333,24 +323,24 @@
                 <span class="prelude-val">Ok</span>(Punctuator::AssignXor),
                 <span class="prelude-val">Ok</span>(Punctuator::Xor)
             ),
-            <span class="string">b&#39;=&#39; </span>=&gt; <span class="macro">op!</span>(cursor, start_pos, <span class="kw">if </span>cursor.next_is(<span class="string">b&#39;=&#39;</span>)<span class="question-mark">? </span>{
+            <span class="string">b&#39;=&#39; </span>=&gt; <span class="macro">op!</span>(cursor, start_pos, <span class="kw">if </span>cursor.next_if(<span class="number">0x3D </span><span class="comment">/* = */</span>)<span class="question-mark">? </span>{
                 <span class="prelude-val">Ok</span>(Punctuator::StrictEq)
             } <span class="kw">else </span>{
                 <span class="prelude-val">Ok</span>(Punctuator::Eq)
             }, <span class="prelude-val">Ok</span>(Punctuator::Assign), {
-                <span class="prelude-val">Some</span>(<span class="string">b&#39;&gt;&#39;</span>) =&gt; {
+                <span class="prelude-val">Some</span>(<span class="number">0x3E </span><span class="comment">/* &gt; */</span>) =&gt; {
                     <span class="prelude-val">Ok</span>(Punctuator::Arrow)
                 }
             }),
             <span class="string">b&#39;&lt;&#39; </span>=&gt; {
                 <span class="macro">op!</span>(cursor, start_pos, <span class="prelude-val">Ok</span>(Punctuator::LessThanOrEq), <span class="prelude-val">Ok</span>(Punctuator::LessThan), {
-                    <span class="prelude-val">Some</span>(<span class="string">b&#39;&lt;&#39;</span>) =&gt; <span class="macro">vop!</span>(cursor, <span class="prelude-val">Ok</span>(Punctuator::AssignLeftSh), <span class="prelude-val">Ok</span>(Punctuator::LeftSh))
+                    <span class="prelude-val">Some</span>(<span class="number">0x3C </span><span class="comment">/* &lt; */</span>) =&gt; <span class="macro">vop!</span>(cursor, <span class="prelude-val">Ok</span>(Punctuator::AssignLeftSh), <span class="prelude-val">Ok</span>(Punctuator::LeftSh))
                 })
             }
             <span class="string">b&#39;&gt;&#39; </span>=&gt; {
                 <span class="macro">op!</span>(cursor, start_pos, <span class="prelude-val">Ok</span>(Punctuator::GreaterThanOrEq), <span class="prelude-val">Ok</span>(Punctuator::GreaterThan), {
-                    <span class="prelude-val">Some</span>(<span class="string">b&#39;&gt;&#39;</span>) =&gt; <span class="macro">vop!</span>(cursor, <span class="prelude-val">Ok</span>(Punctuator::AssignRightSh), <span class="prelude-val">Ok</span>(Punctuator::RightSh), {
-                        <span class="prelude-val">Some</span>(<span class="string">b&#39;&gt;&#39;</span>) =&gt; <span class="macro">vop!</span>(cursor, <span class="prelude-val">Ok</span>(Punctuator::AssignURightSh), <span class="prelude-val">Ok</span>(Punctuator::URightSh))
+                    <span class="prelude-val">Some</span>(<span class="number">0x3E </span><span class="comment">/* &gt; */</span>) =&gt; <span class="macro">vop!</span>(cursor, <span class="prelude-val">Ok</span>(Punctuator::AssignRightSh), <span class="prelude-val">Ok</span>(Punctuator::RightSh), {
+                        <span class="prelude-val">Some</span>(<span class="number">0x3E </span><span class="comment">/* &gt; */</span>) =&gt; <span class="macro">vop!</span>(cursor, <span class="prelude-val">Ok</span>(Punctuator::AssignURightSh), <span class="prelude-val">Ok</span>(Punctuator::URightSh))
                     })
                 })
             }

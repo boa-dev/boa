@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["SURROGATE_HIGH_END","SURROGATE_HIGH_START","SURROGATE_LOW_END","SURROGATE_LOW_START"],"fn":["code_point_from_surrogates","is_high_surrogate","is_low_surrogate"],"struct":["UTF16Input"]};

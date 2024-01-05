@@ -398,6 +398,24 @@
 <a href="#398" id="398">398</a>
 <a href="#399" id="399">399</a>
 <a href="#400" id="400">400</a>
+<a href="#401" id="401">401</a>
+<a href="#402" id="402">402</a>
+<a href="#403" id="403">403</a>
+<a href="#404" id="404">404</a>
+<a href="#405" id="405">405</a>
+<a href="#406" id="406">406</a>
+<a href="#407" id="407">407</a>
+<a href="#408" id="408">408</a>
+<a href="#409" id="409">409</a>
+<a href="#410" id="410">410</a>
+<a href="#411" id="411">411</a>
+<a href="#412" id="412">412</a>
+<a href="#413" id="413">413</a>
+<a href="#414" id="414">414</a>
+<a href="#415" id="415">415</a>
+<a href="#416" id="416">416</a>
+<a href="#417" id="417">417</a>
+<a href="#418" id="418">418</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s lexical analyzer(Lexer) for ECMAScript source code.
 //!
 //! The Lexer splits its input source code into a sequence of input elements called tokens,
@@ -441,10 +459,10 @@
     string::StringLiteral,
     template::TemplateLiteral,
 };
+<span class="kw">use </span><span class="kw">crate</span>::source::{ReadChar, UTF8Input};
 <span class="kw">use </span>boa_ast::{Position, Punctuator, Span};
 <span class="kw">use </span>boa_interner::Interner;
 <span class="kw">use </span>boa_profiler::Profiler;
-<span class="kw">use </span>std::io::Read;
 
 <span class="kw">pub use </span><span class="self">self</span>::{
     error::Error,
@@ -460,7 +478,7 @@
         interner: <span class="kw-2">&amp;mut </span>Interner,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;Token, Error&gt;
     <span class="kw">where
-        </span>R: Read;
+        </span>R: ReadChar;
 }
 
 <span class="doccomment">/// Lexer or tokenizer for the Boa JavaScript Engine.
@@ -504,7 +522,7 @@
     <span class="doccomment">/// Creates a new lexer.
     </span><span class="kw">pub fn </span>new(reader: R) -&gt; <span class="self">Self
     </span><span class="kw">where
-        </span>R: Read,
+        </span>R: ReadChar,
     {
         <span class="self">Self </span>{
             cursor: Cursor::new(reader),
@@ -525,18 +543,20 @@
         interner: <span class="kw-2">&amp;mut </span>Interner,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;Token, Error&gt;
     <span class="kw">where
-        </span>R: Read,
+        </span>R: ReadChar,
     {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;lex_slash_token&quot;</span>, <span class="string">&quot;Lexing&quot;</span>);
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(c) = <span class="self">self</span>.cursor.peek()<span class="question-mark">? </span>{
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(c) = <span class="self">self</span>.cursor.peek_char()<span class="question-mark">? </span>{
             <span class="kw">match </span>c {
-                <span class="string">b&#39;/&#39; </span>=&gt; {
-                    <span class="self">self</span>.cursor.next_byte()<span class="question-mark">?</span>.expect(<span class="string">&quot;/ token vanished&quot;</span>); <span class="comment">// Consume the &#39;/&#39;
+                <span class="comment">// /
+                </span><span class="number">0x002F </span>=&gt; {
+                    <span class="self">self</span>.cursor.next_char()<span class="question-mark">?</span>.expect(<span class="string">&quot;/ token vanished&quot;</span>); <span class="comment">// Consume the &#39;/&#39;
                     </span>SingleLineComment.lex(<span class="kw-2">&amp;mut </span><span class="self">self</span>.cursor, start, interner)
                 }
-                <span class="string">b&#39;*&#39; </span>=&gt; {
-                    <span class="self">self</span>.cursor.next_byte()<span class="question-mark">?</span>.expect(<span class="string">&quot;* token vanished&quot;</span>); <span class="comment">// Consume the &#39;*&#39;
+                <span class="comment">// *
+                </span><span class="number">0x002A </span>=&gt; {
+                    <span class="self">self</span>.cursor.next_char()<span class="question-mark">?</span>.expect(<span class="string">&quot;* token vanished&quot;</span>); <span class="comment">// Consume the &#39;*&#39;
                     </span>MultiLineComment.lex(<span class="kw-2">&amp;mut </span><span class="self">self</span>.cursor, start, interner)
                 }
                 ch =&gt; {
@@ -544,9 +564,10 @@
                         InputElement::Div | InputElement::TemplateTail =&gt; {
                             <span class="comment">// Only div punctuator allowed, regex not.
 
-                            </span><span class="kw">if </span>ch == <span class="string">b&#39;=&#39; </span>{
+                            // =
+                            </span><span class="kw">if </span>ch == <span class="number">0x003D </span>{
                                 <span class="comment">// Indicates this is an AssignDiv.
-                                </span><span class="self">self</span>.cursor.next_byte()<span class="question-mark">?</span>.expect(<span class="string">&quot;= token vanished&quot;</span>); <span class="comment">// Consume the &#39;=&#39;
+                                </span><span class="self">self</span>.cursor.next_char()<span class="question-mark">?</span>.expect(<span class="string">&quot;= token vanished&quot;</span>); <span class="comment">// Consume the &#39;=&#39;
                                 </span><span class="prelude-val">Ok</span>(Token::new(
                                     Punctuator::AssignDiv.into(),
                                     Span::new(start, <span class="self">self</span>.cursor.pos()),
@@ -576,7 +597,7 @@
     <span class="doccomment">/// Skips an HTML close comment (`--&gt;`) if the `annex-b` feature is enabled.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>skip_html_close(<span class="kw-2">&amp;mut </span><span class="self">self</span>, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt;
     <span class="kw">where
-        </span>R: Read,
+        </span>R: ReadChar,
     {
         <span class="kw">if </span><span class="macro">cfg!</span>(not(feature = <span class="string">&quot;annex-b&quot;</span>)) || <span class="self">self</span>.module() {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(());
@@ -586,10 +607,11 @@
             <span class="kw">let </span>_next = <span class="self">self</span>.cursor.next_char();
         }
 
-        <span class="kw">if </span><span class="self">self</span>.cursor.peek_n(<span class="number">3</span>)<span class="question-mark">? </span>== [<span class="string">b&#39;-&#39;</span>, <span class="string">b&#39;-&#39;</span>, <span class="string">b&#39;&gt;&#39;</span>] {
-            <span class="kw">let </span>_next = <span class="self">self</span>.cursor.next_byte();
-            <span class="kw">let </span>_next = <span class="self">self</span>.cursor.next_byte();
-            <span class="kw">let </span>_next = <span class="self">self</span>.cursor.next_byte();
+        <span class="comment">// --&gt;
+        </span><span class="kw">if </span><span class="self">self</span>.cursor.peek_n(<span class="number">3</span>)<span class="question-mark">?</span>[..<span class="number">3</span>] == [<span class="prelude-val">Some</span>(<span class="number">0x2D</span>), <span class="prelude-val">Some</span>(<span class="number">0x2D</span>), <span class="prelude-val">Some</span>(<span class="number">0x3E</span>)] {
+            <span class="kw">let </span>_next = <span class="self">self</span>.cursor.next_char();
+            <span class="kw">let </span>_next = <span class="self">self</span>.cursor.next_char();
+            <span class="kw">let </span>_next = <span class="self">self</span>.cursor.next_char();
 
             <span class="kw">let </span>start = <span class="self">self</span>.cursor.pos();
             SingleLineComment.lex(<span class="kw-2">&amp;mut </span><span class="self">self</span>.cursor, start, interner)<span class="question-mark">?</span>;
@@ -606,7 +628,7 @@
     </span><span class="comment">// We intentionally don&#39;t implement Iterator trait as Result&lt;Option&gt; is cleaner to handle.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>next_no_skip(<span class="kw-2">&amp;mut </span><span class="self">self</span>, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Token&gt;, Error&gt;
     <span class="kw">where
-        </span>R: Read,
+        </span>R: ReadChar,
     {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;next()&quot;</span>, <span class="string">&quot;Lexing&quot;</span>);
 
@@ -624,13 +646,13 @@
 
         <span class="comment">//handle hashbang here so the below match block still throws error on
         //# if position isn&#39;t (1, 1)
-        </span><span class="kw">if </span>start.column_number() == <span class="number">1 </span>&amp;&amp; start.line_number() == <span class="number">1 </span>&amp;&amp; next_ch == <span class="number">0x23 </span>{
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(hashbang_peek) = <span class="self">self</span>.cursor.peek()<span class="question-mark">? </span>{
-                <span class="kw">if </span>hashbang_peek == <span class="number">0x21 </span>{
-                    <span class="kw">let </span>_token = HashbangComment.lex(<span class="kw-2">&amp;mut </span><span class="self">self</span>.cursor, start, interner);
-                    <span class="kw">return </span><span class="self">self</span>.next(interner);
-                }
-            }
+        </span><span class="kw">if </span>start.column_number() == <span class="number">1
+            </span>&amp;&amp; start.line_number() == <span class="number">1
+            </span>&amp;&amp; next_ch == <span class="number">0x23
+            </span>&amp;&amp; <span class="self">self</span>.cursor.peek_char()<span class="question-mark">? </span>== <span class="prelude-val">Some</span>(<span class="number">0x21</span>)
+        {
+            <span class="kw">let </span>_token = HashbangComment.lex(<span class="kw-2">&amp;mut </span><span class="self">self</span>.cursor, start, interner);
+            <span class="kw">return </span><span class="self">self</span>.next(interner);
         };
 
         <span class="kw">if let </span><span class="prelude-val">Ok</span>(c) = char::try_from(next_ch) {
@@ -650,7 +672,12 @@
                     Span::new(start, <span class="self">self</span>.cursor.pos()),
                 )),
                 <span class="string">&#39;.&#39; </span>=&gt; {
-                    <span class="kw">if </span><span class="self">self</span>.cursor.peek()<span class="question-mark">?</span>.as_ref().map(u8::is_ascii_digit) == <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) {
+                    <span class="kw">if </span><span class="self">self
+                        </span>.cursor
+                        .peek_char()<span class="question-mark">?
+                        </span>.filter(|c| (<span class="number">0x30</span>..=<span class="number">0x39</span><span class="comment">/* 0..=9 */</span>).contains(c))
+                        .is_some()
+                    {
                         NumberLiteral::new(<span class="string">b&#39;.&#39;</span>).lex(<span class="kw-2">&amp;mut </span><span class="self">self</span>.cursor, start, interner)
                     } <span class="kw">else </span>{
                         SpreadLiteral::new().lex(<span class="kw-2">&amp;mut </span><span class="self">self</span>.cursor, start, interner)
@@ -687,10 +714,13 @@
                 <span class="string">&#39;#&#39; </span>=&gt; PrivateIdentifier::new().lex(<span class="kw-2">&amp;mut </span><span class="self">self</span>.cursor, start, interner),
                 <span class="string">&#39;/&#39; </span>=&gt; <span class="self">self</span>.lex_slash_token(start, interner),
                 <span class="attr">#[cfg(feature = <span class="string">&quot;annex-b&quot;</span>)]
-                </span><span class="string">&#39;&lt;&#39; </span><span class="kw">if </span>!<span class="self">self</span>.module() &amp;&amp; <span class="self">self</span>.cursor.peek_n(<span class="number">3</span>)<span class="question-mark">? </span>== [<span class="string">b&#39;!&#39;</span>, <span class="string">b&#39;-&#39;</span>, <span class="string">b&#39;-&#39;</span>] =&gt; {
-                    <span class="kw">let </span>_next = <span class="self">self</span>.cursor.next_byte();
-                    <span class="kw">let </span>_next = <span class="self">self</span>.cursor.next_byte();
-                    <span class="kw">let </span>_next = <span class="self">self</span>.cursor.next_byte();
+                </span><span class="comment">// &lt;!--
+                </span><span class="string">&#39;&lt;&#39; </span><span class="kw">if </span>!<span class="self">self</span>.module()
+                    &amp;&amp; <span class="self">self</span>.cursor.peek_n(<span class="number">3</span>)<span class="question-mark">?</span>[..<span class="number">3</span>] == [<span class="prelude-val">Some</span>(<span class="number">0x21</span>), <span class="prelude-val">Some</span>(<span class="number">0x2D</span>), <span class="prelude-val">Some</span>(<span class="number">0x2D</span>)] =&gt;
+                {
+                    <span class="kw">let </span>_next = <span class="self">self</span>.cursor.next_char();
+                    <span class="kw">let </span>_next = <span class="self">self</span>.cursor.next_char();
+                    <span class="kw">let </span>_next = <span class="self">self</span>.cursor.next_char();
                     <span class="kw">let </span>start = <span class="self">self</span>.cursor.pos();
                     SingleLineComment.lex(<span class="kw-2">&amp;mut </span><span class="self">self</span>.cursor, start, interner)
                 }
@@ -698,7 +728,7 @@
                 </span><span class="string">&#39;=&#39; </span>| <span class="string">&#39;*&#39; </span>| <span class="string">&#39;+&#39; </span>| <span class="string">&#39;-&#39; </span>| <span class="string">&#39;%&#39; </span>| <span class="string">&#39;|&#39; </span>| <span class="string">&#39;&amp;&#39; </span>| <span class="string">&#39;^&#39; </span>| <span class="string">&#39;&lt;&#39; </span>| <span class="string">&#39;&gt;&#39; </span>| <span class="string">&#39;!&#39; </span>| <span class="string">&#39;~&#39; </span>| <span class="string">&#39;?&#39; </span>=&gt; {
                     Operator::new(next_ch <span class="kw">as </span>u8).lex(<span class="kw-2">&amp;mut </span><span class="self">self</span>.cursor, start, interner)
                 }
-                <span class="string">&#39;\\&#39; </span><span class="kw">if </span><span class="self">self</span>.cursor.peek()<span class="question-mark">? </span>== <span class="prelude-val">Some</span>(<span class="string">b&#39;u&#39;</span>) =&gt; {
+                <span class="string">&#39;\\&#39; </span><span class="kw">if </span><span class="self">self</span>.cursor.peek_char()<span class="question-mark">? </span>== <span class="prelude-val">Some</span>(<span class="number">0x0075 </span><span class="comment">/* u */</span>) =&gt; {
                     Identifier::new(c).lex(<span class="kw-2">&amp;mut </span><span class="self">self</span>.cursor, start, interner)
                 }
                 <span class="kw">_ if </span>Identifier::is_identifier_start(c <span class="kw">as </span>u32) =&gt; {
@@ -740,7 +770,7 @@
     </span><span class="attr">#[allow(clippy::should_implement_trait)]
     </span><span class="kw">pub fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Token&gt;, Error&gt;
     <span class="kw">where
-        </span>R: Read,
+        </span>R: ReadChar,
     {
         <span class="kw">loop </span>{
             <span class="kw">let </span><span class="prelude-val">Some</span>(next) = <span class="self">self</span>.next_no_skip(interner)<span class="question-mark">? </span><span class="kw">else </span>{
@@ -760,9 +790,15 @@
         interner: <span class="kw-2">&amp;mut </span>Interner,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;Token, Error&gt;
     <span class="kw">where
-        </span>R: Read,
+        </span>R: ReadChar,
     {
         TemplateLiteral.lex(<span class="kw-2">&amp;mut </span><span class="self">self</span>.cursor, start, interner)
+    }
+}
+
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]&gt; <span class="kw">for </span>Lexer&lt;UTF8Input&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]&gt;&gt; {
+    <span class="kw">fn </span>from(input: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new(UTF8Input::new(input))
     }
 }
 

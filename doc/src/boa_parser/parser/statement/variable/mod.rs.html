@@ -230,6 +230,7 @@
 <a href="#230" id="230">230</a>
 <a href="#231" id="231">231</a>
 <a href="#232" id="232">232</a>
+<a href="#233" id="233">233</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Variable statement parsing.
 
 </span><span class="kw">use crate</span>::{
@@ -240,6 +241,7 @@
         statement::{ArrayBindingPattern, BindingIdentifier, ObjectBindingPattern},
         AllowAwait, AllowIn, AllowYield, OrAbrupt, ParseResult, TokenParser,
     },
+    source::ReadChar,
 };
 <span class="kw">use </span>boa_ast::{
     declaration::{VarDeclaration, Variable},
@@ -247,7 +249,7 @@
 };
 <span class="kw">use </span>boa_interner::Interner;
 <span class="kw">use </span>boa_profiler::Profiler;
-<span class="kw">use </span>std::{convert::TryInto, io::Read};
+<span class="kw">use </span>std::convert::TryInto;
 
 <span class="doccomment">/// Variable statement parsing.
 ///
@@ -281,7 +283,7 @@
 
 <span class="kw">impl</span>&lt;R&gt; TokenParser&lt;R&gt; <span class="kw">for </span>VariableStatement
 <span class="kw">where
-    </span>R: Read,
+    </span>R: ReadChar,
 {
     <span class="kw">type </span>Output = VarDeclaration;
 
@@ -335,7 +337,7 @@
 
 <span class="kw">impl</span>&lt;R&gt; TokenParser&lt;R&gt; <span class="kw">for </span>VariableDeclarationList
 <span class="kw">where
-    </span>R: Read,
+    </span>R: ReadChar,
 {
     <span class="kw">type </span>Output = VarDeclaration;
 
@@ -390,7 +392,7 @@
 
 <span class="kw">impl</span>&lt;R&gt; TokenParser&lt;R&gt; <span class="kw">for </span>VariableDeclaration
 <span class="kw">where
-    </span>R: Read,
+    </span>R: ReadChar,
 {
     <span class="kw">type </span>Output = Variable;
 

@@ -99,16 +99,20 @@
 <a href="#99" id="99">99</a>
 <a href="#100" id="100">100</a>
 <a href="#101" id="101">101</a>
+<a href="#102" id="102">102</a>
+<a href="#103" id="103">103</a>
 </pre></div><pre class="rust"><code><span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
 
-<span class="kw">use </span><span class="kw">crate</span>::parser::{
-    statement::declaration::hoistable::{parse_callable_declaration, CallableDeclaration},
-    AllowAwait, AllowDefault, AllowYield, Cursor, ParseResult, TokenParser,
+<span class="kw">use crate</span>::{
+    parser::{
+        statement::declaration::hoistable::{parse_callable_declaration, CallableDeclaration},
+        AllowAwait, AllowDefault, AllowYield, Cursor, ParseResult, TokenParser,
+    },
+    source::ReadChar,
 };
 <span class="kw">use </span>boa_ast::{function::AsyncFunction, Keyword};
 <span class="kw">use </span>boa_interner::Interner;
-<span class="kw">use </span>std::io::Read;
 
 <span class="doccomment">/// Async Function declaration parsing.
 ///
@@ -173,7 +177,7 @@
 
 <span class="kw">impl</span>&lt;R&gt; TokenParser&lt;R&gt; <span class="kw">for </span>AsyncFunctionDeclaration
 <span class="kw">where
-    </span>R: Read,
+    </span>R: ReadChar,
 {
     <span class="kw">type </span>Output = AsyncFunction;
 

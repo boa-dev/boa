@@ -53,13 +53,19 @@
 <a href="#53" id="53">53</a>
 <a href="#54" id="54">54</a>
 <a href="#55" id="55">55</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::parser::{
-    statement::block::Block, AllowAwait, AllowReturn, AllowYield, Cursor, ParseResult, TokenParser,
+<a href="#56" id="56">56</a>
+<a href="#57" id="57">57</a>
+<a href="#58" id="58">58</a>
+</pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
+    parser::{
+        statement::block::Block, AllowAwait, AllowReturn, AllowYield, Cursor, ParseResult,
+        TokenParser,
+    },
+    source::ReadChar,
 };
 <span class="kw">use </span>boa_ast::{statement, Keyword};
 <span class="kw">use </span>boa_interner::Interner;
 <span class="kw">use </span>boa_profiler::Profiler;
-<span class="kw">use </span>std::io::Read;
 
 <span class="doccomment">/// Finally parsing
 ///
@@ -94,7 +100,7 @@
 
 <span class="kw">impl</span>&lt;R&gt; TokenParser&lt;R&gt; <span class="kw">for </span>Finally
 <span class="kw">where
-    </span>R: Read,
+    </span>R: ReadChar,
 {
     <span class="kw">type </span>Output = statement::Finally;
 

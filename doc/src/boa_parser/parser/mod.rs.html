@@ -524,6 +524,7 @@
 <a href="#524" id="524">524</a>
 <a href="#525" id="525">525</a>
 <a href="#526" id="526">526</a>
+<a href="#527" id="527">527</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa parser implementation.
 
 </span><span class="kw">mod </span>cursor;
@@ -542,6 +543,7 @@
         cursor::Cursor,
         function::{FormalParameters, FunctionStatementList},
     },
+    source::ReadChar,
     Error, Source,
 };
 <span class="kw">use </span>boa_ast::{
@@ -555,7 +557,7 @@
 };
 <span class="kw">use </span>boa_interner::Interner;
 <span class="kw">use </span>rustc_hash::FxHashSet;
-<span class="kw">use </span>std::{io::Read, path::Path};
+<span class="kw">use </span>std::path::Path;
 
 <span class="kw">use </span><span class="self">self</span>::statement::ModuleItemList;
 
@@ -564,7 +566,7 @@
 /// This makes it possible to abstract over the underlying implementation of a parser.
 </span><span class="kw">trait </span>TokenParser&lt;R&gt;: Sized
 <span class="kw">where
-    </span>R: Read,
+    </span>R: ReadChar,
 {
     <span class="doccomment">/// Output type for the parser.
     </span><span class="kw">type </span>Output; <span class="comment">// = Node; waiting for https://github.com/rust-lang/rust/issues/29661
@@ -647,7 +649,7 @@
     </span>cursor: Cursor&lt;R&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, R: Read&gt; Parser&lt;<span class="lifetime">&#39;a</span>, R&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, R: ReadChar&gt; Parser&lt;<span class="lifetime">&#39;a</span>, R&gt; {
     <span class="doccomment">/// Create a new `Parser` with a `Source` as the input to parse.
     </span><span class="kw">pub fn </span>new(source: Source&lt;<span class="lifetime">&#39;a</span>, R&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
@@ -678,7 +680,7 @@
     /// [spec]: https://tc39.es/ecma262/#prod-Module
     </span><span class="kw">pub fn </span>parse_module(<span class="kw-2">&amp;mut </span><span class="self">self</span>, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;boa_ast::Module&gt;
     <span class="kw">where
-        </span>R: Read,
+        </span>R: ReadChar,
     {
         ModuleParser.parse(<span class="kw-2">&amp;mut </span><span class="self">self</span>.cursor, interner)
     }
@@ -737,7 +739,7 @@
     <span class="doccomment">/// Set the parser strict mode to true.
     </span><span class="kw">pub fn </span>set_strict(<span class="kw-2">&amp;mut </span><span class="self">self</span>)
     <span class="kw">where
-        </span>R: Read,
+        </span>R: ReadChar,
     {
         <span class="self">self</span>.cursor.set_strict(<span class="bool-val">true</span>);
     }
@@ -745,7 +747,7 @@
     <span class="doccomment">/// Set the parser JSON mode to true.
     </span><span class="kw">pub fn </span>set_json_parse(<span class="kw-2">&amp;mut </span><span class="self">self</span>)
     <span class="kw">where
-        </span>R: Read,
+        </span>R: ReadChar,
     {
         <span class="self">self</span>.cursor.set_json_parse(<span class="bool-val">true</span>);
     }
@@ -753,7 +755,7 @@
     <span class="doccomment">/// Set the unique identifier for the parser.
     </span><span class="kw">pub fn </span>set_identifier(<span class="kw-2">&amp;mut </span><span class="self">self</span>, identifier: u32)
     <span class="kw">where
-        </span>R: Read,
+        </span>R: ReadChar,
     {
         <span class="self">self</span>.cursor.set_identifier(identifier);
     }
@@ -780,7 +782,7 @@
 
 <span class="kw">impl</span>&lt;R&gt; TokenParser&lt;R&gt; <span class="kw">for </span>ScriptParser
 <span class="kw">where
-    </span>R: Read,
+    </span>R: ReadChar,
 {
     <span class="kw">type </span>Output = boa_ast::Script;
 
@@ -841,7 +843,7 @@
 
 <span class="kw">impl</span>&lt;R&gt; TokenParser&lt;R&gt; <span class="kw">for </span>ScriptBody
 <span class="kw">where
-    </span>R: Read,
+    </span>R: ReadChar,
 {
     <span class="kw">type </span>Output = StatementList;
 
@@ -913,7 +915,7 @@
 
 <span class="kw">impl</span>&lt;R&gt; TokenParser&lt;R&gt; <span class="kw">for </span>ModuleParser
 <span class="kw">where
-    </span>R: Read,
+    </span>R: ReadChar,
 {
     <span class="kw">type </span>Output = boa_ast::Module;
 

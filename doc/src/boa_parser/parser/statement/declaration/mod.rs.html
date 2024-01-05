@@ -166,12 +166,12 @@
 <span class="kw">use crate</span>::{
     lexer::TokenKind,
     parser::{AllowAwait, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser},
+    source::ReadChar,
     Error,
 };
 <span class="kw">use </span>boa_ast::{<span class="self">self </span><span class="kw">as </span>ast, Keyword};
 <span class="kw">use </span>boa_interner::{Interner, Sym};
 <span class="kw">use </span>boa_profiler::Profiler;
-<span class="kw">use </span>std::io::Read;
 
 <span class="doccomment">/// Parses a declaration.
 ///
@@ -202,7 +202,7 @@
 
 <span class="kw">impl</span>&lt;R&gt; TokenParser&lt;R&gt; <span class="kw">for </span>Declaration
 <span class="kw">where
-    </span>R: Read,
+    </span>R: ReadChar,
 {
     <span class="kw">type </span>Output = ast::Declaration;
 
@@ -257,7 +257,7 @@
 
 <span class="kw">impl</span>&lt;R&gt; TokenParser&lt;R&gt; <span class="kw">for </span>FromClause
 <span class="kw">where
-    </span>R: Read,
+    </span>R: ReadChar,
 {
     <span class="kw">type </span>Output = ast::declaration::ModuleSpecifier;
 

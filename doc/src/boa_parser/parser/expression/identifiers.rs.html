@@ -218,12 +218,12 @@
 </span><span class="kw">use crate</span>::{
     lexer::TokenKind,
     parser::{cursor::Cursor, AllowAwait, AllowYield, OrAbrupt, ParseResult, TokenParser},
+    source::ReadChar,
     Error,
 };
 <span class="kw">use </span>boa_ast::expression::Identifier <span class="kw">as </span>AstIdentifier;
 <span class="kw">use </span>boa_interner::{Interner, Sym};
 <span class="kw">use </span>boa_profiler::Profiler;
-<span class="kw">use </span>std::io::Read;
 
 <span class="doccomment">/// Identifier reference parsing.
 ///
@@ -254,7 +254,7 @@
 
 <span class="kw">impl</span>&lt;R&gt; TokenParser&lt;R&gt; <span class="kw">for </span>IdentifierReference
 <span class="kw">where
-    </span>R: Read,
+    </span>R: ReadChar,
 {
     <span class="kw">type </span>Output = AstIdentifier;
 
@@ -308,7 +308,7 @@
 
 <span class="kw">impl</span>&lt;R&gt; TokenParser&lt;R&gt; <span class="kw">for </span>BindingIdentifier
 <span class="kw">where
-    </span>R: Read,
+    </span>R: ReadChar,
 {
     <span class="kw">type </span>Output = AstIdentifier;
 
@@ -363,7 +363,7 @@
 
 <span class="kw">impl</span>&lt;R&gt; TokenParser&lt;R&gt; <span class="kw">for </span>Identifier
 <span class="kw">where
-    </span>R: Read,
+    </span>R: ReadChar,
 {
     <span class="kw">type </span>Output = AstIdentifier;
 

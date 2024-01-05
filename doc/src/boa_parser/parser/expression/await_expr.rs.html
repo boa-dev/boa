@@ -70,10 +70,10 @@
 <span class="kw">use crate</span>::{
     lexer::TokenKind,
     parser::{AllowYield, Cursor, ParseResult, TokenParser},
+    source::ReadChar,
 };
 <span class="kw">use </span>boa_ast::{expression::Await, Keyword};
 <span class="kw">use </span>boa_interner::Interner;
-<span class="kw">use </span>std::io::Read;
 
 <span class="doccomment">/// Parses an await expression.
 ///
@@ -102,7 +102,7 @@
 
 <span class="kw">impl</span>&lt;R&gt; TokenParser&lt;R&gt; <span class="kw">for </span>AwaitExpression
 <span class="kw">where
-    </span>R: Read,
+    </span>R: ReadChar,
 {
     <span class="kw">type </span>Output = Await;
 

@@ -301,12 +301,12 @@
 <span class="kw">use crate</span>::{
     lexer::{InputElement, Lexer, Token, TokenKind},
     parser::{OrAbrupt, ParseResult},
+    source::ReadChar,
     Error,
 };
 <span class="kw">use </span>boa_ast::{Position, Punctuator};
 <span class="kw">use </span>boa_interner::Interner;
 <span class="kw">use </span>buffered_lexer::BufferedLexer;
-<span class="kw">use </span>std::io::Read;
 
 <span class="doccomment">/// The result of a peek for a semicolon.
 </span><span class="attr">#[derive(Debug)]
@@ -338,7 +338,7 @@
 
 <span class="kw">impl</span>&lt;R&gt; Cursor&lt;R&gt;
 <span class="kw">where
-    </span>R: Read,
+    </span>R: ReadChar,
 {
     <span class="doccomment">/// Creates a new cursor with the given reader.
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(reader: R) -&gt; <span class="self">Self </span>{

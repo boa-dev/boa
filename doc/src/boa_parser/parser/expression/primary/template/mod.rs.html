@@ -117,6 +117,7 @@
 </span><span class="kw">use crate</span>::{
     lexer::TokenKind,
     parser::{expression::Expression, AllowAwait, AllowYield, Cursor, ParseResult, TokenParser},
+    source::ReadChar,
     Error,
 };
 <span class="kw">use </span>boa_ast::{
@@ -125,7 +126,6 @@
 };
 <span class="kw">use </span>boa_interner::{Interner, Sym};
 <span class="kw">use </span>boa_profiler::Profiler;
-<span class="kw">use </span>std::io::Read;
 
 <span class="doccomment">/// Parses a template literal.
 ///
@@ -161,7 +161,7 @@
 
 <span class="kw">impl</span>&lt;R&gt; TokenParser&lt;R&gt; <span class="kw">for </span>TemplateLiteral
 <span class="kw">where
-    </span>R: Read,
+    </span>R: ReadChar,
 {
     <span class="kw">type </span>Output = literal::TemplateLiteral;
 

@@ -159,16 +159,29 @@
 <a href="#159" id="159">159</a>
 <a href="#160" id="160">160</a>
 <a href="#161" id="161">161</a>
+<a href="#162" id="162">162</a>
+<a href="#163" id="163">163</a>
+<a href="#164" id="164">164</a>
+<a href="#165" id="165">165</a>
+<a href="#166" id="166">166</a>
+<a href="#167" id="167">167</a>
+<a href="#168" id="168">168</a>
+<a href="#169" id="169">169</a>
+<a href="#170" id="170">170</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s lexing for ECMAScript template literals.
 
-</span><span class="kw">use </span><span class="kw">crate</span>::lexer::{
-    string::{StringLiteral, UTF16CodeUnitsBuffer},
-    Cursor, Error, Token, TokenKind, Tokenizer,
+</span><span class="kw">use </span><span class="kw">crate</span>::source::ReadChar;
+<span class="kw">use crate</span>::{
+    lexer::{
+        string::{StringLiteral, UTF16CodeUnitsBuffer},
+        Cursor, Error, Token, TokenKind, Tokenizer,
+    },
+    source::UTF8Input,
 };
 <span class="kw">use </span>boa_ast::{Position, Span};
 <span class="kw">use </span>boa_interner::{Interner, Sym};
 <span class="kw">use </span>boa_profiler::Profiler;
-<span class="kw">use </span>std::io::{<span class="self">self</span>, ErrorKind, Read};
+<span class="kw">use </span>std::io::{<span class="self">self</span>, ErrorKind};
 
 <span class="attr">#[cfg_attr(feature = <span class="string">&quot;deser&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -205,7 +218,7 @@
     /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-templatestrings
     </span><span class="kw">pub fn </span>to_owned_cooked(<span class="self">self</span>, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; <span class="prelude-ty">Result</span>&lt;Sym, Error&gt; {
         <span class="kw">let </span>string = interner.resolve_expect(<span class="self">self</span>.raw).to_string();
-        <span class="kw">let </span><span class="kw-2">mut </span>cursor = Cursor::with_position(string.as_bytes(), <span class="self">self</span>.start_pos);
+        <span class="kw">let </span><span class="kw-2">mut </span>cursor = Cursor::with_position(UTF8Input::new(string.as_bytes()), <span class="self">self</span>.start_pos);
         <span class="kw">let </span><span class="kw-2">mut </span>buf: Vec&lt;u16&gt; = Vec::new();
 
         <span class="kw">loop </span>{
@@ -260,7 +273,7 @@
         interner: <span class="kw-2">&amp;mut </span>Interner,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;Token, Error&gt;
     <span class="kw">where
-        </span>R: Read,
+        </span>R: ReadChar,
     {
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;TemplateLiteral&quot;</span>, <span class="string">&quot;Lexing&quot;</span>);
 
@@ -285,7 +298,7 @@
                     ));
                 }
                 <span class="comment">// $
-                </span><span class="number">0x0024 </span><span class="kw">if </span>cursor.next_is(<span class="string">b&#39;{&#39;</span>)<span class="question-mark">? </span>=&gt; {
+                </span><span class="number">0x0024 </span><span class="kw">if </span>cursor.next_if(<span class="number">0x7B </span><span class="comment">/* { */</span>)<span class="question-mark">? </span>=&gt; {
                     <span class="kw">let </span>raw_sym = interner.get_or_intern(<span class="kw-2">&amp;</span>buf[..]);
                     <span class="kw">let </span>template_string = TemplateString::new(raw_sym, start_pos);
 
@@ -296,7 +309,7 @@
                 }
                 <span class="comment">// \
                 </span><span class="number">0x005C </span>=&gt; {
-                    <span class="kw">let </span>escape_ch = cursor.peek()<span class="question-mark">?</span>.ok_or_else(|| {
+                    <span class="kw">let </span>escape_ch = cursor.peek_char()<span class="question-mark">?</span>.ok_or_else(|| {
                         Error::from(io::Error::new(
                             ErrorKind::UnexpectedEof,
                             <span class="string">&quot;unterminated escape sequence in literal&quot;</span>,
@@ -304,13 +317,18 @@
                     })<span class="question-mark">?</span>;
 
                     buf.push(u16::from(<span class="string">b&#39;\\&#39;</span>));
-                    <span class="kw">match </span>escape_ch {
-                        <span class="string">b&#39;`&#39; </span>| <span class="string">b&#39;$&#39; </span>| <span class="string">b&#39;\\&#39; </span>=&gt; {
-                            <span class="kw">let </span>next_byte =
-                                cursor.next_byte()<span class="question-mark">?</span>.expect(<span class="string">&quot;already checked next character&quot;</span>);
-                            buf.push(u16::from(next_byte));
-                        }
-                        <span class="kw">_ </span>=&gt; <span class="kw">continue</span>,
+                    <span class="kw">let </span>escape_ch = <span class="kw">match </span>escape_ch {
+                        <span class="comment">// `
+                        </span><span class="number">0x0060 </span>=&gt; <span class="prelude-val">Some</span>(<span class="number">0x0060</span>),
+                        <span class="comment">// $
+                        </span><span class="number">0x0024 </span>=&gt; <span class="prelude-val">Some</span>(<span class="number">0x0024</span>),
+                        <span class="comment">// \
+                        </span><span class="number">0x005C </span>=&gt; <span class="prelude-val">Some</span>(<span class="number">0x005C</span>),
+                        <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+                    };
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(ch) = escape_ch {
+                        <span class="kw">let _ </span>= cursor.next_char()<span class="question-mark">?</span>.expect(<span class="string">&quot;already checked next character&quot;</span>);
+                        buf.push(ch);
                     }
                 }
                 ch =&gt; {

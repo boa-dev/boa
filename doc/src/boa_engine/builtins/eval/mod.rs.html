@@ -375,7 +375,7 @@
 
         <span class="comment">// 2. If Type(x) is not String, return x.
         // TODO: rework parser to take an iterator of `u32` unicode codepoints
-        </span><span class="kw">let </span><span class="prelude-val">Some</span>(x) = x.as_string().map(JsString::to_std_string_escaped) <span class="kw">else </span>{
+        </span><span class="kw">let </span><span class="prelude-val">Some</span>(x) = x.as_string() <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Ok</span>(x.clone());
         };
 
@@ -394,7 +394,7 @@
         //     b. If script is a List of errors, throw a SyntaxError exception.
         //     c. If script Contains ScriptBody is false, return undefined.
         //     d. Let body be the ScriptBody of script.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>parser = Parser::new(Source::from_bytes(<span class="kw-2">&amp;</span>x));
+        </span><span class="kw">let </span><span class="kw-2">mut </span>parser = Parser::new(Source::from_utf16(x));
         parser.set_identifier(context.next_parser_identifier());
         <span class="kw">if </span>strict {
             parser.set_strict();

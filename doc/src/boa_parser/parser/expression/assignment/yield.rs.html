@@ -131,11 +131,11 @@
 <span class="kw">use crate</span>::{
     lexer::TokenKind,
     parser::{cursor::Cursor, AllowAwait, AllowIn, OrAbrupt, ParseResult, TokenParser},
+    source::ReadChar,
 };
 <span class="kw">use </span>boa_ast::{expression::Yield, Expression, Keyword, Punctuator};
 <span class="kw">use </span>boa_interner::Interner;
 <span class="kw">use </span>boa_profiler::Profiler;
-<span class="kw">use </span>std::io::Read;
 
 <span class="doccomment">/// `YieldExpression` parsing.
 ///
@@ -167,7 +167,7 @@
 
 <span class="kw">impl</span>&lt;R&gt; TokenParser&lt;R&gt; <span class="kw">for </span>YieldExpression
 <span class="kw">where
-    </span>R: Read,
+    </span>R: ReadChar,
 {
     <span class="kw">type </span>Output = Expression;
 

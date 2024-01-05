@@ -601,6 +601,7 @@
 <span class="kw">mod </span>namespace;
 <span class="kw">mod </span>source;
 <span class="kw">mod </span>synthetic;
+<span class="kw">use </span>boa_parser::source::ReadChar;
 <span class="kw">pub use </span>loader::<span class="kw-2">*</span>;
 <span class="kw">pub use </span>namespace::ModuleNamespace;
 <span class="kw">use </span>source::SourceTextModule;
@@ -609,7 +610,6 @@
 <span class="kw">use </span>std::cell::{Cell, RefCell};
 <span class="kw">use </span>std::collections::HashSet;
 <span class="kw">use </span>std::hash::Hash;
-<span class="kw">use </span>std::io::Read;
 <span class="kw">use </span>std::rc::Rc;
 
 <span class="kw">use </span>rustc_hash::FxHashSet;
@@ -717,7 +717,7 @@
     /// Parses the provided `src` as an ECMAScript module, returning an error if parsing fails.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-parsemodule
-    </span><span class="kw">pub fn </span>parse&lt;R: Read&gt;(
+    </span><span class="kw">pub fn </span>parse&lt;R: ReadChar&gt;(
         src: Source&lt;<span class="lifetime">&#39;_</span>, R&gt;,
         realm: <span class="prelude-ty">Option</span>&lt;Realm&gt;,
         context: <span class="kw-2">&amp;mut </span>Context,

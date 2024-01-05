@@ -104,12 +104,12 @@
         cursor::Cursor, expression::Expression, AllowAwait, AllowYield, OrAbrupt, ParseResult,
         TokenParser,
     },
+    source::ReadChar,
     Error,
 };
 <span class="kw">use </span>boa_ast::{<span class="self">self </span><span class="kw">as </span>ast, expression::TaggedTemplate, Position, Punctuator};
 <span class="kw">use </span>boa_interner::Interner;
 <span class="kw">use </span>boa_profiler::Profiler;
-<span class="kw">use </span>std::io::Read;
 
 <span class="doccomment">/// Parses a tagged template.
 ///
@@ -148,7 +148,7 @@
 
 <span class="kw">impl</span>&lt;R&gt; TokenParser&lt;R&gt; <span class="kw">for </span>TaggedTemplateLiteral
 <span class="kw">where
-    </span>R: Read,
+    </span>R: ReadChar,
 {
     <span class="kw">type </span>Output = TaggedTemplate;
 

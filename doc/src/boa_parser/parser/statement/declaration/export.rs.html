@@ -383,6 +383,7 @@
         statement::{declaration::ClassDeclaration, variable::VariableStatement},
         Error, OrAbrupt, ParseResult, TokenParser,
     },
+    source::ReadChar,
 };
 <span class="kw">use </span>boa_ast::{
     declaration::{ExportDeclaration <span class="kw">as </span>AstExportDeclaration, ReExportKind},
@@ -390,7 +391,6 @@
 };
 <span class="kw">use </span>boa_interner::{Interner, Sym};
 <span class="kw">use </span>boa_profiler::Profiler;
-<span class="kw">use </span>std::io::Read;
 
 <span class="kw">use super</span>::{
     hoistable::{AsyncFunctionDeclaration, AsyncGeneratorDeclaration, GeneratorDeclaration},
@@ -408,7 +408,7 @@
 
 <span class="kw">impl</span>&lt;R&gt; TokenParser&lt;R&gt; <span class="kw">for </span>ExportDeclaration
 <span class="kw">where
-    </span>R: Read,
+    </span>R: ReadChar,
 {
     <span class="kw">type </span>Output = AstExportDeclaration;
 
@@ -599,7 +599,7 @@
 
 <span class="kw">impl</span>&lt;R&gt; TokenParser&lt;R&gt; <span class="kw">for </span>NamedExports
 <span class="kw">where
-    </span>R: Read,
+    </span>R: ReadChar,
 {
     <span class="kw">type </span>Output = Box&lt;[boa_ast::declaration::ExportSpecifier]&gt;;
 
@@ -664,7 +664,7 @@
 
 <span class="kw">impl</span>&lt;R&gt; TokenParser&lt;R&gt; <span class="kw">for </span>ModuleExportName
 <span class="kw">where
-    </span>R: Read,
+    </span>R: ReadChar,
 {
     <span class="kw">type </span>Output = (Sym, bool);
 
@@ -704,7 +704,7 @@
 
 <span class="kw">impl</span>&lt;R&gt; TokenParser&lt;R&gt; <span class="kw">for </span>ExportSpecifier
 <span class="kw">where
-    </span>R: Read,
+    </span>R: ReadChar,
 {
     <span class="kw">type </span>Output = boa_ast::declaration::ExportSpecifier;
 

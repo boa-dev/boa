@@ -406,6 +406,7 @@
         statement::{declaration::FromClause, BindingIdentifier},
         Error, OrAbrupt, ParseResult, TokenParser,
     },
+    source::ReadChar,
 };
 <span class="kw">use </span>boa_ast::{
     declaration::{
@@ -417,7 +418,6 @@
 };
 <span class="kw">use </span>boa_interner::{Interner, Sym};
 <span class="kw">use </span>boa_profiler::Profiler;
-<span class="kw">use </span>std::io::Read;
 
 <span class="doccomment">/// Parses an import declaration.
 ///
@@ -430,7 +430,7 @@
 
 <span class="kw">impl </span>ImportDeclaration {
     <span class="doccomment">/// Tests if the next node is an `ImportDeclaration`.
-    </span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::parser) <span class="kw">fn </span>test&lt;R: Read&gt;(
+    </span><span class="kw">pub</span>(<span class="kw">in </span><span class="kw">crate</span>::parser) <span class="kw">fn </span>test&lt;R: ReadChar&gt;(
         cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;,
         interner: <span class="kw-2">&amp;mut </span>Interner,
     ) -&gt; ParseResult&lt;bool&gt; {
@@ -461,7 +461,7 @@
 
 <span class="kw">impl</span>&lt;R&gt; TokenParser&lt;R&gt; <span class="kw">for </span>ImportDeclaration
 <span class="kw">where
-    </span>R: Read,
+    </span>R: ReadChar,
 {
     <span class="kw">type </span>Output = AstImportDeclaration;
 
@@ -561,7 +561,7 @@
 
 <span class="kw">impl</span>&lt;R&gt; TokenParser&lt;R&gt; <span class="kw">for </span>ImportedBinding
 <span class="kw">where
-    </span>R: Read,
+    </span>R: ReadChar,
 {
     <span class="kw">type </span>Output = Identifier;
 
@@ -582,7 +582,7 @@
 
 <span class="kw">impl</span>&lt;R&gt; TokenParser&lt;R&gt; <span class="kw">for </span>NamedImports
 <span class="kw">where
-    </span>R: Read,
+    </span>R: ReadChar,
 {
     <span class="kw">type </span>Output = Box&lt;[AstImportSpecifier]&gt;;
 
@@ -678,7 +678,7 @@
 
 <span class="kw">impl</span>&lt;R&gt; TokenParser&lt;R&gt; <span class="kw">for </span>ImportSpecifier
 <span class="kw">where
-    </span>R: Read,
+    </span>R: ReadChar,
 {
     <span class="kw">type </span>Output = AstImportSpecifier;
 
@@ -763,7 +763,7 @@
 
 <span class="kw">impl</span>&lt;R&gt; TokenParser&lt;R&gt; <span class="kw">for </span>NameSpaceImport
 <span class="kw">where
-    </span>R: Read,
+    </span>R: ReadChar,
 {
     <span class="kw">type </span>Output = Identifier;
 

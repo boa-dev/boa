@@ -113,6 +113,8 @@
 <a href="#113" id="113">113</a>
 <a href="#114" id="114">114</a>
 <a href="#115" id="115">115</a>
+<a href="#116" id="116">116</a>
+<a href="#117" id="117">117</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Async Generator Declaration parsing
 //!
 //! Implements `TokenParser` for `AsyncGeneratorDeclaration`on and outputs an `AsyncGeneratorDecl`
@@ -121,13 +123,15 @@
 </span><span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
 
-<span class="kw">use </span><span class="kw">crate</span>::parser::{
-    statement::declaration::hoistable::{parse_callable_declaration, CallableDeclaration},
-    AllowAwait, AllowDefault, AllowYield, Cursor, ParseResult, TokenParser,
+<span class="kw">use crate</span>::{
+    parser::{
+        statement::declaration::hoistable::{parse_callable_declaration, CallableDeclaration},
+        AllowAwait, AllowDefault, AllowYield, Cursor, ParseResult, TokenParser,
+    },
+    source::ReadChar,
 };
 <span class="kw">use </span>boa_ast::{function::AsyncGenerator, Keyword, Punctuator};
 <span class="kw">use </span>boa_interner::Interner;
-<span class="kw">use </span>std::io::Read;
 
 <span class="doccomment">/// Async Generator Declaration Parser
 ///
@@ -200,7 +204,7 @@
 
 <span class="kw">impl</span>&lt;R&gt; TokenParser&lt;R&gt; <span class="kw">for </span>AsyncGeneratorDeclaration
 <span class="kw">where
-    </span>R: Read,
+    </span>R: ReadChar,
 {
     <span class="kw">type </span>Output = AsyncGenerator;
 

@@ -72,11 +72,11 @@
         expression::Expression,
         AllowAwait, AllowYield, ParseResult, TokenParser,
     },
+    source::ReadChar,
 };
 <span class="kw">use </span>boa_ast::{statement::Return, Keyword, Punctuator};
 <span class="kw">use </span>boa_interner::Interner;
 <span class="kw">use </span>boa_profiler::Profiler;
-<span class="kw">use </span>std::io::Read;
 
 <span class="doccomment">/// Return statement parsing
 ///
@@ -108,7 +108,7 @@
 
 <span class="kw">impl</span>&lt;R&gt; TokenParser&lt;R&gt; <span class="kw">for </span>ReturnStatement
 <span class="kw">where
-    </span>R: Read,
+    </span>R: ReadChar,
 {
     <span class="kw">type </span>Output = Return;
 

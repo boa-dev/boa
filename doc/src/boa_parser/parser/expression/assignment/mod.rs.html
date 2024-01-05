@@ -311,6 +311,7 @@
         name_in_lexically_declared_names, AllowAwait, AllowIn, AllowYield, Cursor, OrAbrupt,
         ParseResult, TokenParser,
     },
+    source::ReadChar,
     Error,
 };
 <span class="kw">use </span>boa_ast::{
@@ -323,7 +324,6 @@
 };
 <span class="kw">use </span>boa_interner::Interner;
 <span class="kw">use </span>boa_profiler::Profiler;
-<span class="kw">use </span>std::io::Read;
 
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">use </span>exponentiation::ExponentiationExpression;
 
@@ -378,7 +378,7 @@
 
 <span class="kw">impl</span>&lt;R&gt; TokenParser&lt;R&gt; <span class="kw">for </span>AssignmentExpression
 <span class="kw">where
-    </span>R: Read,
+    </span>R: ReadChar,
 {
     <span class="kw">type </span>Output = Expression;
 
