@@ -250,7 +250,11 @@ impl Operation for IteratorReturn {
             return Ok(CompletionType::Normal);
         };
 
+        let return_value = context.vm.get_return_value();
+
         let value = ret.call(&record.iterator().clone().into(), &[], context)?;
+
+        context.vm.set_return_value(return_value);
 
         context.vm.push(value);
         context.vm.push(true);
