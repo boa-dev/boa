@@ -373,6 +373,10 @@
 <a href="#373" id="373">373</a>
 <a href="#374" id="374">374</a>
 <a href="#375" id="375">375</a>
+<a href="#376" id="376">376</a>
+<a href="#377" id="377">377</a>
+<a href="#378" id="378">378</a>
+<a href="#379" id="379">379</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::matches;
 
 <span class="kw">use crate</span>::{
@@ -625,7 +629,11 @@
             <span class="kw">return </span><span class="prelude-val">Ok</span>(CompletionType::Normal);
         };
 
+        <span class="kw">let </span>return_value = context.vm.get_return_value();
+
         <span class="kw">let </span>value = ret.call(<span class="kw-2">&amp;</span>record.iterator().clone().into(), <span class="kw-2">&amp;</span>[], context)<span class="question-mark">?</span>;
+
+        context.vm.set_return_value(return_value);
 
         context.vm.push(value);
         context.vm.push(<span class="bool-val">true</span>);
