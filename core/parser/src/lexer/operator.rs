@@ -123,7 +123,7 @@ impl<R> Tokenizer<R> for Operator {
                             Ok(Punctuator::Coalesce)
                         )
                     }
-                    Some(0x2E /* . */) if !matches!(second, Some(second) if (0x30..=0x39).contains(&second)) =>
+                    Some(0x2E /* . */) if !matches!(second, Some(second) if (0x30..=0x39 /* 0..=9 */).contains(&second)) =>
                     {
                         cursor.next_char()?.expect(". vanished");
                         Ok(Token::new(

@@ -257,7 +257,7 @@ impl<R> Lexer<R> {
                     if self
                         .cursor
                         .peek_char()?
-                        .filter(|c| (48..=57).contains(c))
+                        .filter(|c| (0x30..=0x39/* 0..=9 */).contains(c))
                         .is_some()
                     {
                         NumberLiteral::new(b'.').lex(&mut self.cursor, start, interner)

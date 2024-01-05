@@ -191,7 +191,7 @@ impl StringLiteral {
             0x005C /* \ */ => (Some(0x005C /* \ */), EscapeSequence::OTHER),
             0x0030 /* 0 */ if cursor
                 .peek_char()?
-                .filter(|c| (48..=57).contains(c))
+                .filter(|c| (0x30..=0x39 /* 0..=9 */).contains(c))
                 .is_none() =>
                 (Some(0x0000 /* NULL */), EscapeSequence::OTHER),
             0x0078 /* x */ => {
@@ -374,16 +374,16 @@ impl StringLiteral {
         // Grammar: ZeroToThree OctalDigit
         // Grammar: FourToSeven OctalDigit
         if let Some(c) = cursor.peek_char()? {
-            if (48..=55).contains(&c) {
+            if (0x30..=0x37/* 0..=7 */).contains(&c) {
                 cursor.next_char()?;
-                code_point = (code_point * 8) + c - 48;
+                code_point = (code_point * 8) + c - 0x30 /* 0 */;
 
-                if (48..=51).contains(&init_byte) {
+                if (0x30..=0x33/* 0..=3 */).contains(&init_byte) {
                     // Grammar: ZeroToThree OctalDigit OctalDigit
                     if let Some(c) = cursor.peek_char()? {
-                        if (48..=55).contains(&c) {
+                        if (0x30..=0x37/* 0..=7 */).contains(&c) {
                             cursor.next_char()?;
-                            code_point = (code_point * 8) + c - 48;
+                            code_point = (code_point * 8) + c - 0x30 /* 0 */;
                         }
                     }
                 }
