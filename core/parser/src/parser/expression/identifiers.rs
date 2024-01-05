@@ -8,12 +8,12 @@
 use crate::{
     lexer::TokenKind,
     parser::{cursor::Cursor, AllowAwait, AllowYield, OrAbrupt, ParseResult, TokenParser},
+    source::ReadChar,
     Error,
 };
 use boa_ast::expression::Identifier as AstIdentifier;
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
-use std::io::Read;
 
 /// Identifier reference parsing.
 ///
@@ -44,7 +44,7 @@ impl IdentifierReference {
 
 impl<R> TokenParser<R> for IdentifierReference
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = AstIdentifier;
 
@@ -98,7 +98,7 @@ impl BindingIdentifier {
 
 impl<R> TokenParser<R> for BindingIdentifier
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = AstIdentifier;
 
@@ -153,7 +153,7 @@ pub(in crate::parser) struct Identifier;
 
 impl<R> TokenParser<R> for Identifier
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = AstIdentifier;
 

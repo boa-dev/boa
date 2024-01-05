@@ -4,11 +4,11 @@ use crate::{
         expression::BindingIdentifier, statement::ClassTail, AllowAwait, AllowYield, Cursor,
         OrAbrupt, ParseResult, TokenParser,
     },
+    source::ReadChar,
 };
 use boa_ast::{expression::Identifier, function::Class, Keyword};
 use boa_interner::Interner;
 use boa_profiler::Profiler;
-use std::io::Read;
 
 /// Class expression parsing.
 ///
@@ -41,7 +41,7 @@ impl ClassExpression {
 
 impl<R> TokenParser<R> for ClassExpression
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = Class;
 

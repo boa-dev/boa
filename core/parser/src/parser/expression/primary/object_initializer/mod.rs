@@ -21,6 +21,7 @@ use crate::{
         name_in_lexically_declared_names, AllowAwait, AllowIn, AllowYield, Cursor, OrAbrupt,
         ParseResult, TokenParser,
     },
+    source::ReadChar,
     Error,
 };
 use boa_ast::{
@@ -40,7 +41,6 @@ use boa_ast::{
 use boa_interner::{Interner, Sym};
 use boa_macros::utf16;
 use boa_profiler::Profiler;
-use std::io::Read;
 
 /// Parses an object literal.
 ///
@@ -72,7 +72,7 @@ impl ObjectLiteral {
 
 impl<R> TokenParser<R> for ObjectLiteral
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = literal::ObjectLiteral;
 
@@ -169,7 +169,7 @@ impl PropertyDefinition {
 
 impl<R> TokenParser<R> for PropertyDefinition
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = property::PropertyDefinition;
 
@@ -574,7 +574,7 @@ impl PropertyName {
 
 impl<R> TokenParser<R> for PropertyName
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = property::PropertyName;
 
@@ -650,7 +650,7 @@ impl ClassElementName {
 
 impl<R> TokenParser<R> for ClassElementName
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = property::ClassElementName;
 
@@ -712,7 +712,7 @@ impl Initializer {
 
 impl<R> TokenParser<R> for Initializer
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = Expression;
 
@@ -753,7 +753,7 @@ impl GeneratorMethod {
 
 impl<R> TokenParser<R> for GeneratorMethod
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = (property::ClassElementName, MethodDefinition);
 
@@ -855,7 +855,7 @@ impl AsyncGeneratorMethod {
 
 impl<R> TokenParser<R> for AsyncGeneratorMethod
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = (property::ClassElementName, MethodDefinition);
 
@@ -971,7 +971,7 @@ impl AsyncMethod {
 
 impl<R> TokenParser<R> for AsyncMethod
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = (property::ClassElementName, MethodDefinition);
 
@@ -1064,7 +1064,7 @@ impl CoverInitializedName {
 
 impl<R> TokenParser<R> for CoverInitializedName
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = property::PropertyDefinition;
 

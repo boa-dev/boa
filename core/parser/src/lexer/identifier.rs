@@ -3,10 +3,10 @@
 use crate::lexer::{
     token::ContainsEscapeSequence, Cursor, Error, StringLiteral, Token, TokenKind, Tokenizer,
 };
+use crate::source::ReadChar;
 use boa_ast::{Keyword, Position, Span};
 use boa_interner::Interner;
 use boa_profiler::Profiler;
-use std::io::Read;
 
 /// Identifier lexing.
 ///
@@ -60,7 +60,7 @@ impl<R> Tokenizer<R> for Identifier {
         interner: &mut Interner,
     ) -> Result<Token, Error>
     where
-        R: Read,
+        R: ReadChar,
     {
         let _timer = Profiler::global().start_event("Identifier", "Lexing");
 
@@ -95,12 +95,12 @@ impl Identifier {
         init: char,
     ) -> Result<(String, bool), Error>
     where
-        R: Read,
+        R: ReadChar,
     {
         let _timer = Profiler::global().start_event("Identifier::take_identifier_name", "Lexing");
 
         let mut contains_escaped_chars = false;
-        let mut identifier_name = if init == '\\' && cursor.next_is(b'u')? {
+        let mut identifier_name = if init == '\\' && cursor.next_if(0x75 /* u */)? {
             let ch = StringLiteral::take_unicode_escape_sequence(cursor, start_pos)?;
 
             if Self::is_identifier_start(ch) {
@@ -119,10 +119,10 @@ impl Identifier {
 
         loop {
             let ch = match cursor.peek_char()? {
-                Some(0x005C /* \ */) if cursor.peek_n(2)?.get(1) == Some(&0x75) /* u */ => {
+                Some(0x005C /* \ */) if cursor.peek_n(2)?[1] == Some(0x75) /* u */ => {
                     let pos = cursor.pos();
-                    let _next = cursor.next_byte();
-                    let _next = cursor.next_byte();
+                    let _next = cursor.next_char();
+                    let _next = cursor.next_char();
                     let ch = StringLiteral::take_unicode_escape_sequence(cursor, pos)?;
 
                     if Self::is_identifier_part(ch) {

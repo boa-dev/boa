@@ -30,6 +30,7 @@ use crate::{
         },
         AllowAwait, AllowYield, Cursor, ParseResult, TokenParser,
     },
+    source::ReadChar,
     Error,
 };
 use boa_ast::{
@@ -38,7 +39,6 @@ use boa_ast::{
 };
 use boa_interner::Interner;
 use boa_profiler::Profiler;
-use std::io::Read;
 
 /// Parses a left hand side expression.
 ///
@@ -73,7 +73,7 @@ impl LeftHandSideExpression {
 
 impl<R> TokenParser<R> for LeftHandSideExpression
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = Expression;
 
@@ -87,7 +87,7 @@ where
         /// initialization of `lhs` would make it very hard to return an expression over all
         /// possible branches of the `if let`s. Instead, we extract the check into its own function,
         /// then use it inside the condition of a simple `if ... else` expression.
-        fn is_keyword_call<R: Read>(
+        fn is_keyword_call<R: ReadChar>(
             keyword: Keyword,
             cursor: &mut Cursor<R>,
             interner: &mut Interner,

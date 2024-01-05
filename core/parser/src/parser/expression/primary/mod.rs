@@ -39,6 +39,7 @@ use crate::{
         statement::{ArrayBindingPattern, ObjectBindingPattern},
         AllowAwait, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
     },
+    source::ReadChar,
     Error,
 };
 use ast::expression::RegExpLiteral as AstRegExp;
@@ -57,7 +58,6 @@ use boa_ast::{
 };
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
-use std::io::Read;
 
 pub(in crate::parser) use object_initializer::Initializer;
 
@@ -94,7 +94,7 @@ impl PrimaryExpression {
 
 impl<R> TokenParser<R> for PrimaryExpression
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = ast::Expression;
 
@@ -312,7 +312,7 @@ impl CoverParenthesizedExpressionAndArrowParameterList {
 
 impl<R> TokenParser<R> for CoverParenthesizedExpressionAndArrowParameterList
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = ast::Expression;
 

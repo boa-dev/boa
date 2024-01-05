@@ -4,11 +4,11 @@ mod tests;
 use crate::{
     lexer::TokenKind,
     parser::{expression::Expression, AllowAwait, AllowYield, Cursor, ParseResult, TokenParser},
+    source::ReadChar,
 };
 use boa_ast::{statement::Throw, Keyword, Punctuator};
 use boa_interner::Interner;
 use boa_profiler::Profiler;
-use std::io::Read;
 
 /// For statement parsing
 ///
@@ -40,7 +40,7 @@ impl ThrowStatement {
 
 impl<R> TokenParser<R> for ThrowStatement
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = Throw;
 

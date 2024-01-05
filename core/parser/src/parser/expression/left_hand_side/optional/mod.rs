@@ -7,6 +7,7 @@ use crate::{
         cursor::Cursor, expression::left_hand_side::arguments::Arguments, expression::Expression,
         AllowAwait, AllowYield, OrAbrupt, ParseResult, TokenParser,
     },
+    source::ReadChar,
     Error,
 };
 use ast::function::PrivateName;
@@ -17,7 +18,6 @@ use boa_ast::{
 };
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
-use std::io::Read;
 
 /// Parses an optional expression.
 ///
@@ -55,7 +55,7 @@ impl OptionalExpression {
 
 impl<R> TokenParser<R> for OptionalExpression
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = Optional;
 

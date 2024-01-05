@@ -1,13 +1,11 @@
 //! Boa's lexing for ECMAScript string literals.
 
 use crate::lexer::{token::EscapeSequence, Cursor, Error, Token, TokenKind, Tokenizer};
+use crate::source::ReadChar;
 use boa_ast::{Position, Span};
 use boa_interner::Interner;
 use boa_profiler::Profiler;
-use std::{
-    io::{self, ErrorKind, Read},
-    str,
-};
+use std::io::{self, ErrorKind};
 
 /// String literal lexing.
 ///
@@ -84,7 +82,7 @@ impl<R> Tokenizer<R> for StringLiteral {
         interner: &mut Interner,
     ) -> Result<Token, Error>
     where
-        R: Read,
+        R: ReadChar,
     {
         let _timer = Profiler::global().start_event("StringLiteral", "Lexing");
 
@@ -119,7 +117,7 @@ impl StringLiteral {
         strict: bool,
     ) -> Result<(Vec<u16>, Span, EscapeSequence), Error>
     where
-        R: Read,
+        R: ReadChar,
     {
         let mut buf = Vec::new();
         let mut escape_sequence = EscapeSequence::empty();
@@ -172,7 +170,7 @@ impl StringLiteral {
         is_template_literal: bool,
     ) -> Result<(Option<u32>, EscapeSequence), Error>
     where
-        R: Read,
+        R: ReadChar,
     {
         let escape_ch = cursor.next_char()?.ok_or_else(|| {
             Error::from(io::Error::new(
@@ -192,8 +190,8 @@ impl StringLiteral {
             0x0027 /* ' */ => (Some(0x0027 /* ' */), EscapeSequence::OTHER),
             0x005C /* \ */ => (Some(0x005C /* \ */), EscapeSequence::OTHER),
             0x0030 /* 0 */ if cursor
-                .peek()?
-                .filter(u8::is_ascii_digit)
+                .peek_char()?
+                .filter(|c| (0x30..=0x39 /* 0..=9 */).contains(c))
                 .is_none() =>
                 (Some(0x0000 /* NULL */), EscapeSequence::OTHER),
             0x0078 /* x */ => {
@@ -256,23 +254,32 @@ impl StringLiteral {
         start_pos: Position,
     ) -> Result<u32, Error>
     where
-        R: Read,
+        R: ReadChar,
     {
         // Support \u{X..X} (Unicode CodePoint)
-        if cursor.next_is(b'{')? {
+        if cursor.next_if(0x7B /* { */)? {
             // TODO: use bytes for a bit better performance (using stack)
             let mut code_point_buf = Vec::with_capacity(6);
-            cursor.take_until(b'}', &mut code_point_buf)?;
+            cursor.take_until(0x7D /* } */, &mut code_point_buf)?;
 
-            let code_point = str::from_utf8(code_point_buf.as_slice())
-                .ok()
-                .and_then(|code_point_str| {
-                    // The `code_point_str` should represent a single unicode codepoint, convert to u32
-                    u32::from_str_radix(code_point_str, 16).ok()
-                })
-                .ok_or_else(|| {
-                    Error::syntax("malformed Unicode character escape sequence", start_pos)
-                })?;
+            let mut s = String::with_capacity(code_point_buf.len());
+            for c in code_point_buf {
+                if let Some(c) = char::from_u32(c) {
+                    s.push(c);
+                } else {
+                    return Err(Error::syntax(
+                        "malformed Unicode character escape sequence",
+                        start_pos,
+                    ));
+                }
+            }
+
+            let Ok(code_point) = u32::from_str_radix(&s, 16) else {
+                return Err(Error::syntax(
+                    "malformed Unicode character escape sequence",
+                    start_pos,
+                ));
+            };
 
             // UTF16Encoding of a numeric code point value
             if code_point > 0x10_FFFF {
@@ -286,14 +293,32 @@ impl StringLiteral {
         } else {
             // Grammar: Hex4Digits
             // Collect each character after \u e.g \uD83D will give "D83D"
-            let mut code_point_utf8_bytes = [0u8; 4];
-            cursor.fill_bytes(&mut code_point_utf8_bytes)?;
-
-            // Convert to u16
-            let code_point = str::from_utf8(&code_point_utf8_bytes)
-                .ok()
-                .and_then(|code_point_str| u16::from_str_radix(code_point_str, 16).ok())
+            let mut buffer = [0u32; 4];
+            buffer[0] = cursor
+                .next_char()?
                 .ok_or_else(|| Error::syntax("invalid Unicode escape sequence", start_pos))?;
+            buffer[1] = cursor
+                .next_char()?
+                .ok_or_else(|| Error::syntax("invalid Unicode escape sequence", start_pos))?;
+            buffer[2] = cursor
+                .next_char()?
+                .ok_or_else(|| Error::syntax("invalid Unicode escape sequence", start_pos))?;
+            buffer[3] = cursor
+                .next_char()?
+                .ok_or_else(|| Error::syntax("invalid Unicode escape sequence", start_pos))?;
+
+            let mut s = String::with_capacity(buffer.len());
+            for c in buffer {
+                if let Some(c) = char::from_u32(c) {
+                    s.push(c);
+                } else {
+                    return Err(Error::syntax("invalid Unicode escape sequence", start_pos));
+                }
+            }
+
+            let Ok(code_point) = u16::from_str_radix(&s, 16) else {
+                return Err(Error::syntax("invalid Unicode escape sequence", start_pos));
+            };
 
             Ok(u32::from(code_point))
         }
@@ -304,14 +329,34 @@ impl StringLiteral {
         start_pos: Position,
     ) -> Result<u32, Error>
     where
-        R: Read,
+        R: ReadChar,
     {
-        let mut code_point_utf8_bytes = [0u8; 2];
-        cursor.fill_bytes(&mut code_point_utf8_bytes)?;
-        let code_point = str::from_utf8(&code_point_utf8_bytes)
-            .ok()
-            .and_then(|code_point_str| u16::from_str_radix(code_point_str, 16).ok())
+        let mut buffer = [0u32; 2];
+        buffer[0] = cursor
+            .next_char()?
             .ok_or_else(|| Error::syntax("invalid Hexadecimal escape sequence", start_pos))?;
+        buffer[1] = cursor
+            .next_char()?
+            .ok_or_else(|| Error::syntax("invalid Hexadecimal escape sequence", start_pos))?;
+
+        let mut s = String::with_capacity(buffer.len());
+        for c in buffer {
+            if let Some(c) = char::from_u32(c) {
+                s.push(c);
+            } else {
+                return Err(Error::syntax(
+                    "invalid Hexadecimal escape sequence",
+                    start_pos,
+                ));
+            }
+        }
+
+        let Ok(code_point) = u16::from_str_radix(&s, 16) else {
+            return Err(Error::syntax(
+                "invalid Hexadecimal escape sequence",
+                start_pos,
+            ));
+        };
 
         Ok(u32::from(code_point))
     }
@@ -321,24 +366,24 @@ impl StringLiteral {
         init_byte: u8,
     ) -> Result<u32, Error>
     where
-        R: Read,
+        R: ReadChar,
     {
         // Grammar: OctalDigit
         let mut code_point = u32::from(init_byte - b'0');
 
         // Grammar: ZeroToThree OctalDigit
         // Grammar: FourToSeven OctalDigit
-        if let Some(byte) = cursor.peek()? {
-            if (b'0'..=b'7').contains(&byte) {
-                cursor.next_byte()?;
-                code_point = (code_point * 8) + u32::from(byte - b'0');
+        if let Some(c) = cursor.peek_char()? {
+            if (0x30..=0x37/* 0..=7 */).contains(&c) {
+                cursor.next_char()?;
+                code_point = (code_point * 8) + c - 0x30 /* 0 */;
 
-                if (b'0'..=b'3').contains(&init_byte) {
+                if (0x30..=0x33/* 0..=3 */).contains(&init_byte) {
                     // Grammar: ZeroToThree OctalDigit OctalDigit
-                    if let Some(byte) = cursor.peek()? {
-                        if (b'0'..=b'7').contains(&byte) {
-                            cursor.next_byte()?;
-                            code_point = (code_point * 8) + u32::from(byte - b'0');
+                    if let Some(c) = cursor.peek_char()? {
+                        if (0x30..=0x37/* 0..=7 */).contains(&c) {
+                            cursor.next_char()?;
+                            code_point = (code_point * 8) + c - 0x30 /* 0 */;
                         }
                     }
                 }

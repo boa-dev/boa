@@ -15,6 +15,7 @@ use crate::{
         statement::{variable::VariableDeclarationList, Statement},
         AllowAwait, AllowReturn, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
     },
+    source::ReadChar,
     Error,
 };
 use ast::{
@@ -32,7 +33,6 @@ use boa_ast::{
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
 use rustc_hash::FxHashSet;
-use std::io::Read;
 
 /// For statement parsing
 ///
@@ -71,7 +71,7 @@ impl ForStatement {
 
 impl<R> TokenParser<R> for ForStatement
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = ast::Statement;
 

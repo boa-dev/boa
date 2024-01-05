@@ -4,6 +4,7 @@ use crate::{
         statement::{block::Block, ArrayBindingPattern, BindingIdentifier, ObjectBindingPattern},
         AllowAwait, AllowReturn, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
     },
+    source::ReadChar,
     Error,
 };
 use boa_ast::{
@@ -14,7 +15,6 @@ use boa_ast::{
 use boa_interner::Interner;
 use boa_profiler::Profiler;
 use rustc_hash::FxHashSet;
-use std::io::Read;
 
 /// Catch parsing
 ///
@@ -49,7 +49,7 @@ impl Catch {
 
 impl<R> TokenParser<R> for Catch
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = statement::Catch;
 
@@ -149,7 +149,7 @@ impl CatchParameter {
 
 impl<R> TokenParser<R> for CatchParameter
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = Binding;
 

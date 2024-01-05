@@ -17,6 +17,7 @@ use crate::{
         statement::{ArrayBindingPattern, ObjectBindingPattern, StatementList},
         AllowAwait, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
     },
+    source::ReadChar,
     Error,
 };
 use ast::{
@@ -31,7 +32,6 @@ use boa_ast::{
 };
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
-use std::io::Read;
 
 /// Formal parameters parsing.
 ///
@@ -63,7 +63,7 @@ impl FormalParameters {
 
 impl<R> TokenParser<R> for FormalParameters
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = FormalParameterList;
 
@@ -173,7 +173,7 @@ impl UniqueFormalParameters {
 
 impl<R> TokenParser<R> for UniqueFormalParameters
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = FormalParameterList;
 
@@ -245,7 +245,7 @@ impl BindingRestElement {
 
 impl<R> TokenParser<R> for BindingRestElement
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = ast::function::FormalParameter;
 
@@ -340,7 +340,7 @@ impl FormalParameter {
 
 impl<R> TokenParser<R> for FormalParameter
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = ast::function::FormalParameter;
 
@@ -448,7 +448,7 @@ impl FunctionStatementList {
 
 impl<R> TokenParser<R> for FunctionStatementList
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = ast::function::FunctionBody;
 

@@ -11,11 +11,11 @@ use super::AssignmentExpression;
 use crate::{
     lexer::TokenKind,
     parser::{cursor::Cursor, AllowAwait, AllowIn, OrAbrupt, ParseResult, TokenParser},
+    source::ReadChar,
 };
 use boa_ast::{expression::Yield, Expression, Keyword, Punctuator};
 use boa_interner::Interner;
 use boa_profiler::Profiler;
-use std::io::Read;
 
 /// `YieldExpression` parsing.
 ///
@@ -47,7 +47,7 @@ impl YieldExpression {
 
 impl<R> TokenParser<R> for YieldExpression
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = Expression;
 

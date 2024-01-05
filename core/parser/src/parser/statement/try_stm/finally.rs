@@ -1,10 +1,13 @@
-use crate::parser::{
-    statement::block::Block, AllowAwait, AllowReturn, AllowYield, Cursor, ParseResult, TokenParser,
+use crate::{
+    parser::{
+        statement::block::Block, AllowAwait, AllowReturn, AllowYield, Cursor, ParseResult,
+        TokenParser,
+    },
+    source::ReadChar,
 };
 use boa_ast::{statement, Keyword};
 use boa_interner::Interner;
 use boa_profiler::Profiler;
-use std::io::Read;
 
 /// Finally parsing
 ///
@@ -39,7 +42,7 @@ impl Finally {
 
 impl<R> TokenParser<R> for Finally
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = statement::Finally;
 

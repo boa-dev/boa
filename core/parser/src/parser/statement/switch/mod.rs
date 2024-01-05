@@ -7,6 +7,7 @@ use crate::{
         expression::Expression, statement::StatementList, AllowAwait, AllowReturn, AllowYield,
         Cursor, OrAbrupt, ParseResult, TokenParser,
     },
+    source::ReadChar,
     Error,
 };
 use ast::operations::{lexically_declared_names_legacy, var_declared_names};
@@ -14,7 +15,6 @@ use boa_ast::{self as ast, statement, statement::Switch, Keyword, Punctuator};
 use boa_interner::Interner;
 use boa_profiler::Profiler;
 use rustc_hash::FxHashMap;
-use std::io::Read;
 
 /// The possible `TokenKind` which indicate the end of a case statement.
 const CASE_BREAK_TOKENS: [TokenKind; 3] = [
@@ -56,7 +56,7 @@ impl SwitchStatement {
 
 impl<R> TokenParser<R> for SwitchStatement
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = Switch;
 
@@ -141,7 +141,7 @@ impl CaseBlock {
 
 impl<R> TokenParser<R> for CaseBlock
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = Box<[statement::Case]>;
 

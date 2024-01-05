@@ -13,12 +13,12 @@ use crate::{
         expression::Expression, statement::Statement, AllowAwait, AllowReturn, AllowYield, Cursor,
         OrAbrupt, ParseResult, TokenParser,
     },
+    source::ReadChar,
     Error,
 };
 use boa_ast::{statement::DoWhileLoop, Keyword, Punctuator};
 use boa_interner::Interner;
 use boa_profiler::Profiler;
-use std::io::Read;
 
 /// Do...while statement parsing
 ///
@@ -57,7 +57,7 @@ impl DoWhileStatement {
 
 impl<R> TokenParser<R> for DoWhileStatement
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = DoWhileLoop;
 

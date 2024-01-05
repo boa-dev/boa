@@ -1,15 +1,13 @@
 //! Boa's lexing for ECMAScript regex literals.
 
 use crate::lexer::{Cursor, Error, Span, Token, TokenKind, Tokenizer};
+use crate::source::ReadChar;
 use bitflags::bitflags;
 use boa_ast::Position;
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
 use regress::{Flags, Regex};
-use std::{
-    io::{self, ErrorKind, Read},
-    str::{self, FromStr},
-};
+use std::str::{self, FromStr};
 
 /// Regex literal lexing.
 ///
@@ -34,7 +32,7 @@ impl<R> Tokenizer<R> for RegexLiteral {
         interner: &mut Interner,
     ) -> Result<Token, Error>
     where
-        R: Read,
+        R: ReadChar,
     {
         let _timer = Profiler::global().start_event("RegexLiteral", "Lexing");
 
@@ -43,7 +41,7 @@ impl<R> Tokenizer<R> for RegexLiteral {
 
         // Lex RegularExpressionBody.
         loop {
-            match cursor.next_byte()? {
+            match cursor.next_char()? {
                 None => {
                     // Abrupt end.
                     return Err(Error::syntax(
@@ -53,47 +51,35 @@ impl<R> Tokenizer<R> for RegexLiteral {
                 }
                 Some(b) => {
                     match b {
-                        b'/' if !is_class_char => break, // RegularExpressionBody finished.
-                        b'[' => {
+                        // /
+                        0x2F if !is_class_char => break, // RegularExpressionBody finished.
+                        // [
+                        0x5B => {
                             is_class_char = true;
                             body.push(b);
                         }
-                        b']' if is_class_char => {
+                        // ]
+                        0x5D if is_class_char => {
                             is_class_char = false;
                             body.push(b);
                         }
-                        b'\n' | b'\r' => {
+                        // \n | \r | \u{2028} | \u{2029}
+                        0xA | 0xD | 0x2028 | 0x2029 => {
                             // Not allowed in Regex literal.
                             return Err(Error::syntax(
                                 "new lines are not allowed in regular expressions",
                                 cursor.pos(),
                             ));
                         }
-                        0xE2 if (cursor.peek_n(2)? == [0x80, 0xA8]
-                            || cursor.peek_n(2)? == [0x80, 0xA9]) =>
-                        {
-                            // '\u{2028}' (e2 80 a8) and '\u{2029}' (e2 80 a9) are not allowed
-                            return Err(Error::syntax(
-                                "new lines are not allowed in regular expressions",
-                                cursor.pos(),
-                            ));
-                        }
-                        b'\\' => {
+                        // \
+                        0x5C => {
                             // Escape sequence
-                            body.push(b'\\');
-                            if let Some(sc) = cursor.next_byte()? {
+                            body.push(b);
+                            if let Some(sc) = cursor.next_char()? {
                                 match sc {
-                                    b'\n' | b'\r' => {
+                                    // \n | \r | \u{2028} | \u{2029}
+                                    0xA | 0xD | 0x2028 | 0x2029 => {
                                         // Not allowed in Regex literal.
-                                        return Err(Error::syntax(
-                                            "new lines are not allowed in regular expressions",
-                                            cursor.pos(),
-                                        ));
-                                    }
-                                    0xE2 if (cursor.peek_n(2)? == [0x80, 0xA8]
-                                        || cursor.peek_n(2)? == [0x80, 0xA9]) =>
-                                    {
-                                        // '\u{2028}' (e2 80 a8) and '\u{2029}' (e2 80 a9) are not allowed
                                         return Err(Error::syntax(
                                             "new lines are not allowed in regular expressions",
                                             cursor.pos(),
@@ -119,28 +105,41 @@ impl<R> Tokenizer<R> for RegexLiteral {
         let flags_start = cursor.pos();
         cursor.take_while_ascii_pred(&mut flags, &char::is_alphabetic)?;
 
+        // SAFETY: We have already checked that the bytes are valid UTF-8.
         let flags_str = unsafe { str::from_utf8_unchecked(flags.as_slice()) };
-        if let Ok(body_str) = str::from_utf8(body.as_slice()) {
-            if let Err(error) = Regex::with_flags(body_str, flags_str) {
-                return Err(Error::Syntax(
-                    format!("Invalid regular expression literal: {error}").into(),
-                    start_pos,
-                ));
-            }
 
-            Ok(Token::new(
-                TokenKind::regular_expression_literal(
-                    interner.get_or_intern(body_str),
-                    parse_regex_flags(flags_str, flags_start, interner)?,
-                ),
-                Span::new(start_pos, cursor.pos()),
-            ))
-        } else {
-            Err(Error::from(io::Error::new(
-                ErrorKind::InvalidData,
-                "Invalid UTF-8 character in regular expressions",
-            )))
+        let mut body_utf16 = Vec::new();
+
+        // We convert the body to UTF-16 since it may contain code points that are not valid UTF-8.
+        // We already know that the body is valid UTF-16. Casting is fine.
+        #[allow(clippy::cast_possible_truncation)]
+        for cp in &body {
+            let cp = *cp;
+            if cp <= 0xFFFF {
+                body_utf16.push(cp as u16);
+            } else {
+                let cp = cp - 0x1_0000;
+                let high = 0xD800 | ((cp >> 10) as u16);
+                let low = 0xDC00 | ((cp as u16) & 0x3FF);
+                body_utf16.push(high);
+                body_utf16.push(low);
+            }
         }
+
+        if let Err(error) = Regex::from_unicode(body.into_iter(), flags_str) {
+            return Err(Error::Syntax(
+                format!("Invalid regular expression literal: {error}").into(),
+                start_pos,
+            ));
+        }
+
+        Ok(Token::new(
+            TokenKind::regular_expression_literal(
+                interner.get_or_intern(body_utf16.as_slice()),
+                parse_regex_flags(flags_str, flags_start, interner)?,
+            ),
+            Span::new(start_pos, cursor.pos()),
+        ))
     }
 }
 

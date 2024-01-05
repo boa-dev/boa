@@ -334,7 +334,7 @@ fn assignment_to_non_assignable_ctd() {
             TestAction::assert_native_error(
                 src,
                 JsNativeErrorKind::Syntax,
-                "Invalid left-hand side in assignment at line 1, col 13",
+                "Invalid left-hand side in assignment at line 1, col 12",
             )
         }),
     );
@@ -362,7 +362,7 @@ fn multicharacter_assignment_to_non_assignable_ctd() {
                 TestAction::assert_native_error(
                     src,
                     JsNativeErrorKind::Syntax,
-                    "Invalid left-hand side in assignment at line 1, col 13",
+                    "Invalid left-hand side in assignment at line 1, col 12",
                 )
             }),
     );
@@ -397,7 +397,7 @@ fn multicharacter_bitwise_assignment_to_non_assignable_ctd() {
             TestAction::assert_native_error(
                 src,
                 JsNativeErrorKind::Syntax,
-                "Invalid left-hand side in assignment at line 1, col 13",
+                "Invalid left-hand side in assignment at line 1, col 12",
             )
         }),
     );

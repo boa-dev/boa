@@ -8,6 +8,7 @@ use crate::{
         statement::{ArrayBindingPattern, BindingIdentifier, ObjectBindingPattern},
         AllowAwait, AllowIn, AllowYield, OrAbrupt, ParseResult, TokenParser,
     },
+    source::ReadChar,
 };
 use boa_ast::{
     declaration::{VarDeclaration, Variable},
@@ -15,7 +16,7 @@ use boa_ast::{
 };
 use boa_interner::Interner;
 use boa_profiler::Profiler;
-use std::{convert::TryInto, io::Read};
+use std::convert::TryInto;
 
 /// Variable statement parsing.
 ///
@@ -49,7 +50,7 @@ impl VariableStatement {
 
 impl<R> TokenParser<R> for VariableStatement
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = VarDeclaration;
 
@@ -103,7 +104,7 @@ impl VariableDeclarationList {
 
 impl<R> TokenParser<R> for VariableDeclarationList
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = VarDeclaration;
 
@@ -158,7 +159,7 @@ impl VariableDeclaration {
 
 impl<R> TokenParser<R> for VariableDeclaration
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = Variable;
 

@@ -8,10 +8,8 @@
 //! [spec]: https://tc39.es/ecma262/#sec-scripts
 //! [script]: https://tc39.es/ecma262/#sec-script-records
 
-use std::io::Read;
-
 use boa_gc::{Finalize, Gc, GcRefCell, Trace};
-use boa_parser::{Parser, Source};
+use boa_parser::{source::ReadChar, Parser, Source};
 use boa_profiler::Profiler;
 use rustc_hash::FxHashMap;
 
@@ -76,7 +74,7 @@ impl Script {
     /// Parses the provided `src` as an ECMAScript script, returning an error if parsing fails.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-parse-script
-    pub fn parse<R: Read>(
+    pub fn parse<R: ReadChar>(
         src: Source<'_, R>,
         realm: Option<Realm>,
         context: &mut Context,

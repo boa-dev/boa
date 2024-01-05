@@ -16,6 +16,7 @@ use crate::{
         statement::{declaration::FromClause, BindingIdentifier},
         Error, OrAbrupt, ParseResult, TokenParser,
     },
+    source::ReadChar,
 };
 use boa_ast::{
     declaration::{
@@ -27,7 +28,6 @@ use boa_ast::{
 };
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
-use std::io::Read;
 
 /// Parses an import declaration.
 ///
@@ -40,7 +40,7 @@ pub(in crate::parser) struct ImportDeclaration;
 
 impl ImportDeclaration {
     /// Tests if the next node is an `ImportDeclaration`.
-    pub(in crate::parser) fn test<R: Read>(
+    pub(in crate::parser) fn test<R: ReadChar>(
         cursor: &mut Cursor<R>,
         interner: &mut Interner,
     ) -> ParseResult<bool> {
@@ -71,7 +71,7 @@ impl ImportDeclaration {
 
 impl<R> TokenParser<R> for ImportDeclaration
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = AstImportDeclaration;
 
@@ -171,7 +171,7 @@ struct ImportedBinding;
 
 impl<R> TokenParser<R> for ImportedBinding
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = Identifier;
 
@@ -192,7 +192,7 @@ struct NamedImports;
 
 impl<R> TokenParser<R> for NamedImports
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = Box<[AstImportSpecifier]>;
 
@@ -288,7 +288,7 @@ struct ImportSpecifier;
 
 impl<R> TokenParser<R> for ImportSpecifier
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = AstImportSpecifier;
 
@@ -373,7 +373,7 @@ struct NameSpaceImport;
 
 impl<R> TokenParser<R> for NameSpaceImport
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = Identifier;
 

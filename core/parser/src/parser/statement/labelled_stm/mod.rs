@@ -6,12 +6,12 @@ use crate::{
         statement::{declaration::FunctionDeclaration, AllowAwait, AllowReturn, Statement},
         AllowYield, OrAbrupt, ParseResult, TokenParser,
     },
+    source::ReadChar,
     Error,
 };
 use boa_ast::{self as ast, Keyword, Punctuator};
 use boa_interner::Interner;
 use boa_profiler::Profiler;
-use std::io::Read;
 
 /// Labelled Statement Parsing
 ///
@@ -45,7 +45,7 @@ impl LabelledStatement {
 
 impl<R> TokenParser<R> for LabelledStatement
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = ast::statement::Labelled;
 

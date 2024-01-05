@@ -4,12 +4,12 @@ use crate::{
         cursor::Cursor, expression::Expression, AllowAwait, AllowYield, OrAbrupt, ParseResult,
         TokenParser,
     },
+    source::ReadChar,
     Error,
 };
 use boa_ast::{self as ast, expression::TaggedTemplate, Position, Punctuator};
 use boa_interner::Interner;
 use boa_profiler::Profiler;
-use std::io::Read;
 
 /// Parses a tagged template.
 ///
@@ -48,7 +48,7 @@ impl TaggedTemplateLiteral {
 
 impl<R> TokenParser<R> for TaggedTemplateLiteral
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = TaggedTemplate;
 

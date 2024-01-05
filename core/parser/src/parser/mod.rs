@@ -16,6 +16,7 @@ use crate::{
         cursor::Cursor,
         function::{FormalParameters, FunctionStatementList},
     },
+    source::ReadChar,
     Error, Source,
 };
 use boa_ast::{
@@ -29,7 +30,7 @@ use boa_ast::{
 };
 use boa_interner::Interner;
 use rustc_hash::FxHashSet;
-use std::{io::Read, path::Path};
+use std::path::Path;
 
 use self::statement::ModuleItemList;
 
@@ -38,7 +39,7 @@ use self::statement::ModuleItemList;
 /// This makes it possible to abstract over the underlying implementation of a parser.
 trait TokenParser<R>: Sized
 where
-    R: Read,
+    R: ReadChar,
 {
     /// Output type for the parser.
     type Output; // = Node; waiting for https://github.com/rust-lang/rust/issues/29661
@@ -121,7 +122,7 @@ pub struct Parser<'a, R> {
     cursor: Cursor<R>,
 }
 
-impl<'a, R: Read> Parser<'a, R> {
+impl<'a, R: ReadChar> Parser<'a, R> {
     /// Create a new `Parser` with a `Source` as the input to parse.
     pub fn new(source: Source<'a, R>) -> Self {
         Self {
@@ -152,7 +153,7 @@ impl<'a, R: Read> Parser<'a, R> {
     /// [spec]: https://tc39.es/ecma262/#prod-Module
     pub fn parse_module(&mut self, interner: &mut Interner) -> ParseResult<boa_ast::Module>
     where
-        R: Read,
+        R: ReadChar,
     {
         ModuleParser.parse(&mut self.cursor, interner)
     }
@@ -211,7 +212,7 @@ impl<R> Parser<'_, R> {
     /// Set the parser strict mode to true.
     pub fn set_strict(&mut self)
     where
-        R: Read,
+        R: ReadChar,
     {
         self.cursor.set_strict(true);
     }
@@ -219,7 +220,7 @@ impl<R> Parser<'_, R> {
     /// Set the parser JSON mode to true.
     pub fn set_json_parse(&mut self)
     where
-        R: Read,
+        R: ReadChar,
     {
         self.cursor.set_json_parse(true);
     }
@@ -227,7 +228,7 @@ impl<R> Parser<'_, R> {
     /// Set the unique identifier for the parser.
     pub fn set_identifier(&mut self, identifier: u32)
     where
-        R: Read,
+        R: ReadChar,
     {
         self.cursor.set_identifier(identifier);
     }
@@ -254,7 +255,7 @@ impl ScriptParser {
 
 impl<R> TokenParser<R> for ScriptParser
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = boa_ast::Script;
 
@@ -315,7 +316,7 @@ impl ScriptBody {
 
 impl<R> TokenParser<R> for ScriptBody
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = StatementList;
 
@@ -387,7 +388,7 @@ struct ModuleParser;
 
 impl<R> TokenParser<R> for ModuleParser
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = boa_ast::Module;
 

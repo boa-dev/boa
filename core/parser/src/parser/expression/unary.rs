@@ -13,6 +13,7 @@ use crate::{
         expression::{await_expr::AwaitExpression, update::UpdateExpression},
         AllowAwait, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
     },
+    source::ReadChar,
     Error,
 };
 use boa_ast::{
@@ -25,7 +26,6 @@ use boa_ast::{
 };
 use boa_interner::Interner;
 use boa_profiler::Profiler;
-use std::io::Read;
 
 /// Parses a unary expression.
 ///
@@ -60,7 +60,7 @@ impl UnaryExpression {
 
 impl<R> TokenParser<R> for UnaryExpression
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = Expression;
 

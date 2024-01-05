@@ -9,6 +9,7 @@ use super::block::Block;
 use crate::{
     lexer::TokenKind,
     parser::{AllowAwait, AllowReturn, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser},
+    source::ReadChar,
     Error,
 };
 use boa_ast::{
@@ -17,7 +18,6 @@ use boa_ast::{
 };
 use boa_interner::Interner;
 use boa_profiler::Profiler;
-use std::io::Read;
 
 /// Try...catch statement parsing
 ///
@@ -52,7 +52,7 @@ impl TryStatement {
 
 impl<R> TokenParser<R> for TryStatement
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = Try;
 

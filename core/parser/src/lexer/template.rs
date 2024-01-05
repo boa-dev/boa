@@ -1,13 +1,17 @@
 //! Boa's lexing for ECMAScript template literals.
 
-use crate::lexer::{
-    string::{StringLiteral, UTF16CodeUnitsBuffer},
-    Cursor, Error, Token, TokenKind, Tokenizer,
+use crate::source::ReadChar;
+use crate::{
+    lexer::{
+        string::{StringLiteral, UTF16CodeUnitsBuffer},
+        Cursor, Error, Token, TokenKind, Tokenizer,
+    },
+    source::UTF8Input,
 };
 use boa_ast::{Position, Span};
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
-use std::io::{self, ErrorKind, Read};
+use std::io::{self, ErrorKind};
 
 #[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -44,7 +48,7 @@ impl TemplateString {
     /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-templatestrings
     pub fn to_owned_cooked(self, interner: &mut Interner) -> Result<Sym, Error> {
         let string = interner.resolve_expect(self.raw).to_string();
-        let mut cursor = Cursor::with_position(string.as_bytes(), self.start_pos);
+        let mut cursor = Cursor::with_position(UTF8Input::new(string.as_bytes()), self.start_pos);
         let mut buf: Vec<u16> = Vec::new();
 
         loop {
@@ -99,7 +103,7 @@ impl<R> Tokenizer<R> for TemplateLiteral {
         interner: &mut Interner,
     ) -> Result<Token, Error>
     where
-        R: Read,
+        R: ReadChar,
     {
         let _timer = Profiler::global().start_event("TemplateLiteral", "Lexing");
 
@@ -124,7 +128,7 @@ impl<R> Tokenizer<R> for TemplateLiteral {
                     ));
                 }
                 // $
-                0x0024 if cursor.next_is(b'{')? => {
+                0x0024 if cursor.next_if(0x7B /* { */)? => {
                     let raw_sym = interner.get_or_intern(&buf[..]);
                     let template_string = TemplateString::new(raw_sym, start_pos);
 
@@ -135,7 +139,7 @@ impl<R> Tokenizer<R> for TemplateLiteral {
                 }
                 // \
                 0x005C => {
-                    let escape_ch = cursor.peek()?.ok_or_else(|| {
+                    let escape_ch = cursor.peek_char()?.ok_or_else(|| {
                         Error::from(io::Error::new(
                             ErrorKind::UnexpectedEof,
                             "unterminated escape sequence in literal",
@@ -143,13 +147,18 @@ impl<R> Tokenizer<R> for TemplateLiteral {
                     })?;
 
                     buf.push(u16::from(b'\\'));
-                    match escape_ch {
-                        b'`' | b'$' | b'\\' => {
-                            let next_byte =
-                                cursor.next_byte()?.expect("already checked next character");
-                            buf.push(u16::from(next_byte));
-                        }
-                        _ => continue,
+                    let escape_ch = match escape_ch {
+                        // `
+                        0x0060 => Some(0x0060),
+                        // $
+                        0x0024 => Some(0x0024),
+                        // \
+                        0x005C => Some(0x005C),
+                        _ => None,
+                    };
+                    if let Some(ch) = escape_ch {
+                        let _ = cursor.next_char()?.expect("already checked next character");
+                        buf.push(ch);
                     }
                 }
                 ch => {

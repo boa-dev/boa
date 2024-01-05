@@ -4,12 +4,12 @@ mod buffered_lexer;
 use crate::{
     lexer::{InputElement, Lexer, Token, TokenKind},
     parser::{OrAbrupt, ParseResult},
+    source::ReadChar,
     Error,
 };
 use boa_ast::{Position, Punctuator};
 use boa_interner::Interner;
 use buffered_lexer::BufferedLexer;
-use std::io::Read;
 
 /// The result of a peek for a semicolon.
 #[derive(Debug)]
@@ -41,7 +41,7 @@ pub(super) struct Cursor<R> {
 
 impl<R> Cursor<R>
 where
-    R: Read,
+    R: ReadChar,
 {
     /// Creates a new cursor with the given reader.
     pub(super) fn new(reader: R) -> Self {

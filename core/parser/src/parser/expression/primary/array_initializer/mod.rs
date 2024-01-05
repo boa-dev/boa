@@ -16,6 +16,7 @@ use crate::{
         expression::AssignmentExpression, AllowAwait, AllowYield, Cursor, OrAbrupt, ParseResult,
         TokenParser,
     },
+    source::ReadChar,
     Error,
 };
 use boa_ast::{
@@ -24,7 +25,6 @@ use boa_ast::{
 };
 use boa_interner::Interner;
 use boa_profiler::Profiler;
-use std::io::Read;
 
 /// Parses an array literal.
 ///
@@ -56,7 +56,7 @@ impl ArrayLiteral {
 
 impl<R> TokenParser<R> for ArrayLiteral
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = literal::ArrayLiteral;
 

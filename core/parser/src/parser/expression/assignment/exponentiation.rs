@@ -13,6 +13,7 @@ use crate::{
         expression::{unary::UnaryExpression, update::UpdateExpression},
         AllowAwait, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
     },
+    source::ReadChar,
 };
 use boa_ast::{
     expression::{
@@ -23,7 +24,6 @@ use boa_ast::{
 };
 use boa_interner::Interner;
 use boa_profiler::Profiler;
-use std::io::Read;
 
 /// Parses an exponentiation expression.
 ///
@@ -62,7 +62,7 @@ impl ExponentiationExpression {
 
 impl<R> TokenParser<R> for ExponentiationExpression
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = Expression;
 

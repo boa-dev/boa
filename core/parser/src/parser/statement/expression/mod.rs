@@ -3,12 +3,12 @@ use crate::{
     parser::{
         expression::Expression, AllowAwait, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
     },
+    source::ReadChar,
     Error,
 };
 use boa_ast::{Keyword, Punctuator, Statement};
 use boa_interner::Interner;
 use boa_profiler::Profiler;
-use std::io::Read;
 
 /// Expression statement parsing.
 ///
@@ -38,7 +38,7 @@ impl ExpressionStatement {
 
 impl<R> TokenParser<R> for ExpressionStatement
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = Statement;
 

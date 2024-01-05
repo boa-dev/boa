@@ -1,10 +1,10 @@
 //! Boa's lexing for ECMAScript private identifiers (#foo, #myvar, etc.).
 
 use crate::lexer::{identifier::Identifier, Cursor, Error, Token, TokenKind, Tokenizer};
+use crate::source::ReadChar;
 use boa_ast::{Position, Span};
 use boa_interner::Interner;
 use boa_profiler::Profiler;
-use std::io::Read;
 
 /// Private Identifier lexing.
 ///
@@ -30,14 +30,14 @@ impl<R> Tokenizer<R> for PrivateIdentifier {
         interner: &mut Interner,
     ) -> Result<Token, Error>
     where
-        R: Read,
+        R: ReadChar,
     {
         let _timer = Profiler::global().start_event("PrivateIdentifier", "Lexing");
 
         if let Some(next_ch) = cursor.next_char()? {
             if let Ok(c) = char::try_from(next_ch) {
                 match c {
-                    '\\' if cursor.peek()? == Some(b'u') => {
+                    '\\' if cursor.peek_char()? == Some(0x0075 /* u */) => {
                         let (name, _) = Identifier::take_identifier_name(cursor, start_pos, c)?;
                         Ok(Token::new(
                             TokenKind::PrivateIdentifier(interner.get_or_intern(name.as_str())),

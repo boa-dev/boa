@@ -25,6 +25,7 @@ use crate::{
         expression::assignment::ExponentiationExpression, AllowAwait, AllowIn, AllowYield, Cursor,
         OrAbrupt, ParseResult, TokenParser,
     },
+    source::ReadChar,
     Error,
 };
 use boa_ast::{
@@ -41,7 +42,6 @@ use boa_ast::{
 };
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
-use std::io::Read;
 
 pub(super) use self::{assignment::AssignmentExpression, primary::Initializer};
 pub(in crate::parser) use {
@@ -73,7 +73,7 @@ macro_rules! expression {
     ($name:ident, $lower:ident, [$( $op:path ),*], [$( $low_param:ident ),*], $goal:expr ) => {
         impl<R> TokenParser<R> for $name
         where
-            R: Read
+            R: ReadChar
         {
             type Output = ast::Expression;
 
@@ -142,7 +142,7 @@ impl Expression {
 
 impl<R> TokenParser<R> for Expression
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = ast::Expression;
 
@@ -264,7 +264,7 @@ impl ShortCircuitExpression {
 
 impl<R> TokenParser<R> for ShortCircuitExpression
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = ast::Expression;
 
@@ -558,7 +558,7 @@ impl RelationalExpression {
 
 impl<R> TokenParser<R> for RelationalExpression
 where
-    R: Read,
+    R: ReadChar,
 {
     type Output = ast::Expression;
 
