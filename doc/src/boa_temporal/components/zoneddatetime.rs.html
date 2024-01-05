@@ -271,6 +271,19 @@
 <a href="#271" id="271">271</a>
 <a href="#272" id="272">272</a>
 <a href="#273" id="273">273</a>
+<a href="#274" id="274">274</a>
+<a href="#275" id="275">275</a>
+<a href="#276" id="276">276</a>
+<a href="#277" id="277">277</a>
+<a href="#278" id="278">278</a>
+<a href="#279" id="279">279</a>
+<a href="#280" id="280">280</a>
+<a href="#281" id="281">281</a>
+<a href="#282" id="282">282</a>
+<a href="#283" id="283">283</a>
+<a href="#284" id="284">284</a>
+<a href="#285" id="285">285</a>
+<a href="#286" id="286">286</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module implements `ZonedDateTime` and any directly related algorithms.
 
 </span><span class="kw">use </span>num_bigint::BigInt;
@@ -287,24 +300,26 @@
 
 <span class="kw">use </span>core::any::Any;
 
+<span class="kw">use </span><span class="kw">super</span>::tz::TzProtocol;
+
 <span class="doccomment">/// The native Rust implementation of `Temporal.ZonedDateTime`.
 </span><span class="attr">#[derive(Debug, Clone)]
-</span><span class="kw">pub struct </span>ZonedDateTime&lt;C: CalendarProtocol&gt; {
+</span><span class="kw">pub struct </span>ZonedDateTime&lt;C: CalendarProtocol, Z: TzProtocol&gt; {
     instant: Instant,
     calendar: CalendarSlot&lt;C&gt;,
-    tz: TimeZoneSlot,
+    tz: TimeZoneSlot&lt;Z&gt;,
 }
 
 <span class="comment">// ==== Private API ====
 
-</span><span class="kw">impl</span>&lt;C: CalendarProtocol&gt; ZonedDateTime&lt;C&gt; {
+</span><span class="kw">impl</span>&lt;C: CalendarProtocol, Z: TzProtocol&gt; ZonedDateTime&lt;C, Z&gt; {
     <span class="doccomment">/// Creates a `ZonedDateTime` without validating the input.
     </span><span class="attr">#[inline]
     #[must_use]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new_unchecked(
         instant: Instant,
         calendar: CalendarSlot&lt;C&gt;,
-        tz: TimeZoneSlot,
+        tz: TimeZoneSlot&lt;Z&gt;,
     ) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             instant,
@@ -316,19 +331,30 @@
 
 <span class="comment">// ==== Public API ====
 
-</span><span class="kw">impl</span>&lt;C: CalendarProtocol&gt; ZonedDateTime&lt;C&gt; {
+</span><span class="kw">impl</span>&lt;C: CalendarProtocol, Z: TzProtocol&gt; ZonedDateTime&lt;C, Z&gt; {
     <span class="doccomment">/// Creates a new valid `ZonedDateTime`.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>new(nanos: BigInt, calendar: CalendarSlot&lt;C&gt;, tz: TimeZoneSlot) -&gt; TemporalResult&lt;<span class="self">Self</span>&gt; {
+    </span><span class="kw">pub fn </span>new(
+        nanos: BigInt,
+        calendar: CalendarSlot&lt;C&gt;,
+        tz: TimeZoneSlot&lt;Z&gt;,
+    ) -&gt; TemporalResult&lt;<span class="self">Self</span>&gt; {
         <span class="kw">let </span>instant = Instant::new(nanos)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<span class="self">Self</span>::new_unchecked(instant, calendar, tz))
     }
 
-    <span class="doccomment">/// Returns the `ZonedDateTime`&#39;s Calendar identifier.
+    <span class="doccomment">/// Returns `ZonedDateTime`&#39;s Calendar.
     </span><span class="attr">#[inline]
     #[must_use]
     </span><span class="kw">pub fn </span>calendar(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>CalendarSlot&lt;C&gt; {
         <span class="kw-2">&amp;</span><span class="self">self</span>.calendar
+    }
+
+    <span class="doccomment">/// Returns `ZonedDateTime`&#39;s `TimeZone` slot.
+    </span><span class="attr">#[inline]
+    #[must_use]
+    </span><span class="kw">pub fn </span>tz(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>TimeZoneSlot&lt;Z&gt; {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.tz
     }
 
     <span class="doccomment">/// Returns the `epochSeconds` value of this `ZonedDateTime`.
@@ -358,7 +384,7 @@
 
 <span class="comment">// ==== Context based API ====
 
-</span><span class="kw">impl</span>&lt;C: CalendarProtocol&gt; ZonedDateTime&lt;C&gt; {
+</span><span class="kw">impl</span>&lt;C: CalendarProtocol, Z: TzProtocol&gt; ZonedDateTime&lt;C, Z&gt; {
     <span class="doccomment">/// Returns the `year` value for this `ZonedDateTime`.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>contextual_year(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any) -&gt; TemporalResult&lt;i32&gt; {
@@ -509,7 +535,7 @@
     </span><span class="kw">fn </span>basic_zdt_test() {
         <span class="kw">let </span>nov_30_2023_utc = BigInt::from(<span class="number">1_701_308_952_000_000_000i64</span>);
 
-        <span class="kw">let </span>zdt = ZonedDateTime::&lt;()&gt;::new(
+        <span class="kw">let </span>zdt = ZonedDateTime::&lt;(), ()&gt;::new(
             nov_30_2023_utc.clone(),
             CalendarSlot::from_str(<span class="string">&quot;iso8601&quot;</span>).unwrap(),
             TimeZoneSlot::Tz(TimeZone {
@@ -526,7 +552,7 @@
         <span class="macro">assert_eq!</span>(zdt.minute().unwrap(), <span class="number">49</span>);
         <span class="macro">assert_eq!</span>(zdt.second().unwrap(), <span class="number">12</span>);
 
-        <span class="kw">let </span>zdt_minus_five = ZonedDateTime::&lt;()&gt;::new(
+        <span class="kw">let </span>zdt_minus_five = ZonedDateTime::&lt;(), ()&gt;::new(
             nov_30_2023_utc,
             CalendarSlot::from_str(<span class="string">&quot;iso8601&quot;</span>).unwrap(),
             TimeZoneSlot::Tz(TimeZone {

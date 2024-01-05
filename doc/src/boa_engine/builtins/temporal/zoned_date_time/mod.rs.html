@@ -135,6 +135,20 @@
 <a href="#135" id="135">135</a>
 <a href="#136" id="136">136</a>
 <a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
 </pre></div><pre class="rust"><code><span class="attr">#![allow(dead_code, unused_variables)]
 </span><span class="kw">use crate</span>::{
     builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
@@ -144,18 +158,32 @@
     string::common::StaticJsStrings,
     Context, JsBigInt, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
-<span class="kw">use </span>boa_gc::{Finalize, Trace};
+<span class="kw">use </span>boa_gc::{custom_trace, Finalize, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
-<span class="kw">use </span>boa_temporal::components::{Duration <span class="kw">as </span>TemporalDuration, ZonedDateTime <span class="kw">as </span>InnerZdt};
+<span class="kw">use </span>boa_temporal::components::{
+    calendar::CalendarSlot, tz::TimeZoneSlot, Duration <span class="kw">as </span>TemporalDuration,
+    ZonedDateTime <span class="kw">as </span>InnerZdt,
+};
 
-<span class="kw">use </span><span class="kw">super</span>::JsCustomCalendar;
+<span class="kw">use super</span>::{JsCustomCalendar, JsCustomTimeZone};
 
 <span class="doccomment">/// The `Temporal.ZonedDateTime` object.
-</span><span class="attr">#[derive(Debug, Clone, Finalize, Trace, JsData)]
-</span><span class="comment">// SAFETY: ZonedDateTime does not contain any traceable types.
-</span><span class="attr">#[boa_gc(unsafe_empty_trace)]
+</span><span class="attr">#[derive(Debug, Clone, Finalize, JsData)]
 </span><span class="kw">pub struct </span>ZonedDateTime {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) inner: InnerZdt&lt;JsCustomCalendar&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) inner: InnerZdt&lt;JsCustomCalendar, JsCustomTimeZone&gt;,
+}
+
+<span class="kw">unsafe impl </span>Trace <span class="kw">for </span>ZonedDateTime {
+    <span class="macro">custom_trace!</span>(this, mark, {
+        <span class="kw">match </span>this.inner.calendar() {
+            CalendarSlot::Protocol(custom) =&gt; mark(custom),
+            CalendarSlot::Builtin(<span class="kw">_</span>) =&gt; {}
+        }
+        <span class="kw">match </span>this.inner.tz() {
+            TimeZoneSlot::Protocol(custom) =&gt; mark(custom),
+            TimeZoneSlot::Tz(<span class="kw">_</span>) =&gt; {}
+        }
+    });
 }
 
 <span class="kw">impl </span>BuiltInObject <span class="kw">for </span>ZonedDateTime {

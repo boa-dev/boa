@@ -111,12 +111,6 @@
 <a href="#111" id="111">111</a>
 <a href="#112" id="112">112</a>
 <a href="#113" id="113">113</a>
-<a href="#114" id="114">114</a>
-<a href="#115" id="115">115</a>
-<a href="#116" id="116">116</a>
-<a href="#117" id="117">117</a>
-<a href="#118" id="118">118</a>
-<a href="#119" id="119">119</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module implements the Temporal `TimeZone` and components.
 
 </span><span class="kw">use </span>std::any::Any;
@@ -135,29 +129,14 @@
 </span><span class="kw">pub const </span>TIME_ZONE_PROPERTIES: [<span class="kw-2">&amp;</span>str; <span class="number">3</span>] =
     [<span class="string">&quot;getOffsetNanosecondsFor&quot;</span>, <span class="string">&quot;getPossibleInstantsFor&quot;</span>, <span class="string">&quot;id&quot;</span>];
 
-<span class="doccomment">/// A clonable `TzProtocol`
-</span><span class="kw">pub trait </span>TzProtocolClone {
-    <span class="doccomment">/// Clones the current `TimeZoneProtocol`.
-    </span><span class="kw">fn </span>clone_box(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Box&lt;<span class="kw">dyn </span>TzProtocol&gt;;
-}
-
-<span class="kw">impl</span>&lt;P&gt; TzProtocolClone <span class="kw">for </span>P
-<span class="kw">where
-    </span>P: <span class="lifetime">&#39;static </span>+ TzProtocol + Clone,
-{
-    <span class="kw">fn </span>clone_box(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Box&lt;<span class="kw">dyn </span>TzProtocol&gt; {
-        Box::new(<span class="self">self</span>.clone())
-    }
-}
-
 <span class="doccomment">/// The Time Zone Protocol that must be implemented for time zones.
-</span><span class="kw">pub trait </span>TzProtocol: TzProtocolClone {
+</span><span class="kw">pub trait </span>TzProtocol: Clone {
     <span class="doccomment">/// Get the Offset nanoseconds for this `TimeZone`
     </span><span class="kw">fn </span>get_offset_nanos_for(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any) -&gt; TemporalResult&lt;BigInt&gt;;
     <span class="doccomment">/// Get the possible Instant for this `TimeZone`
     </span><span class="kw">fn </span>get_possible_instant_for(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any) -&gt; TemporalResult&lt;Vec&lt;Instant&gt;&gt;; <span class="comment">// TODO: Implement Instant
     </span><span class="doccomment">/// Get the `TimeZone`&#39;s identifier.
-    </span><span class="kw">fn </span>id(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any) -&gt; String;
+    </span><span class="kw">fn </span>id(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any) -&gt; TemporalResult&lt;String&gt;;
 }
 
 <span class="doccomment">/// A Temporal `TimeZone`.
@@ -169,14 +148,15 @@
 }
 
 <span class="doccomment">/// The `TimeZoneSlot` represents a `[[TimeZone]]` internal slot value.
-</span><span class="kw">pub enum </span>TimeZoneSlot {
+</span><span class="attr">#[derive(Clone)]
+</span><span class="kw">pub enum </span>TimeZoneSlot&lt;Z: TzProtocol&gt; {
     <span class="doccomment">/// A native `TimeZone` representation.
     </span>Tz(TimeZone),
     <span class="doccomment">/// A Custom `TimeZone` that implements the `TzProtocol`.
-    </span>Protocol(Box&lt;<span class="kw">dyn </span>TzProtocol&gt;),
+    </span>Protocol(Z),
 }
 
-<span class="kw">impl </span>core::fmt::Debug <span class="kw">for </span>TimeZoneSlot {
+<span class="kw">impl</span>&lt;Z: TzProtocol&gt; core::fmt::Debug <span class="kw">for </span>TimeZoneSlot&lt;Z&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>core::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Tz(tz) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;{tz:?}&quot;</span>),
@@ -185,16 +165,7 @@
     }
 }
 
-<span class="kw">impl </span>Clone <span class="kw">for </span>TimeZoneSlot {
-    <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <span class="kw">match </span><span class="self">self </span>{
-            <span class="self">Self</span>::Tz(tz) =&gt; <span class="self">Self</span>::Tz(tz.clone()),
-            <span class="self">Self</span>::Protocol(p) =&gt; <span class="self">Self</span>::Protocol(p.clone_box()),
-        }
-    }
-}
-
-<span class="kw">impl </span>TimeZoneSlot {
+<span class="kw">impl</span>&lt;Z: TzProtocol&gt; TimeZoneSlot&lt;Z&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_datetime_for&lt;C: CalendarProtocol&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         instant: <span class="kw-2">&amp;</span>Instant,
@@ -206,8 +177,9 @@
     }
 }
 
-<span class="kw">impl </span>TzProtocol <span class="kw">for </span>TimeZoneSlot {
-    <span class="kw">fn </span>get_offset_nanos_for(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any) -&gt; TemporalResult&lt;BigInt&gt; {
+<span class="kw">impl</span>&lt;Z: TzProtocol&gt; TimeZoneSlot&lt;Z&gt; {
+    <span class="doccomment">/// Get the offset for this current `TimeZoneSlot`.
+    </span><span class="kw">pub fn </span>get_offset_nanos_for(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any) -&gt; TemporalResult&lt;BigInt&gt; {
         <span class="comment">// 1. Let timeZone be the this value.
         // 2. Perform ? RequireInternalSlot(timeZone, [[InitializedTemporalTimeZone]]).
         // 3. Set instant to ? ToTemporalInstant(instant).
@@ -225,15 +197,31 @@
         }
     }
 
-    <span class="kw">fn </span>get_possible_instant_for(<span class="kw-2">&amp;</span><span class="self">self</span>, _context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any) -&gt; TemporalResult&lt;Vec&lt;Instant&gt;&gt; {
+    <span class="doccomment">/// Get the possible `Instant`s for this `TimeZoneSlot`.
+    </span><span class="kw">pub fn </span>get_possible_instant_for(<span class="kw-2">&amp;</span><span class="self">self</span>, _context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any) -&gt; TemporalResult&lt;Vec&lt;Instant&gt;&gt; {
         <span class="prelude-val">Err</span>(TemporalError::general(<span class="string">&quot;Not yet implemented.&quot;</span>))
     }
 
-    <span class="kw">fn </span>id(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any) -&gt; String {
+    <span class="doccomment">/// Returns the current `TimeZoneSlot`&#39;s identifier.
+    </span><span class="kw">pub fn </span>id(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any) -&gt; TemporalResult&lt;String&gt; {
         <span class="kw">match </span><span class="self">self </span>{
-            <span class="self">Self</span>::Tz(<span class="kw">_</span>) =&gt; <span class="macro">todo!</span>(<span class="string">&quot;implement tz.to_string&quot;</span>),
-            <span class="self">Self</span>::Protocol(tz) =&gt; tz.id(context),
+            <span class="self">Self</span>::Tz(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">&quot;Not yet implemented.&quot;</span>)), <span class="comment">// TODO: Implement Display for Time Zone.
+            </span><span class="self">Self</span>::Protocol(tz) =&gt; tz.id(context),
         }
+    }
+}
+
+<span class="kw">impl </span>TzProtocol <span class="kw">for </span>() {
+    <span class="kw">fn </span>get_offset_nanos_for(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any) -&gt; TemporalResult&lt;BigInt&gt; {
+        <span class="macro">unreachable!</span>()
+    }
+
+    <span class="kw">fn </span>get_possible_instant_for(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any) -&gt; TemporalResult&lt;Vec&lt;Instant&gt;&gt; {
+        <span class="macro">unreachable!</span>()
+    }
+
+    <span class="kw">fn </span>id(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any) -&gt; TemporalResult&lt;String&gt; {
+        <span class="prelude-val">Ok</span>(<span class="string">&quot;() TimeZone&quot;</span>.to_owned())
     }
 }
 </code></pre></div></section></main></body></html>

@@ -1762,7 +1762,7 @@
 };
 <span class="kw">use </span>std::{any::Any, str::FromStr};
 
-<span class="kw">use </span><span class="kw">super</span>::calendar::CalendarProtocol;
+<span class="kw">use super</span>::{calendar::CalendarProtocol, tz::TzProtocol};
 
 <span class="comment">// ==== `DateDuration` ====
 
@@ -2915,7 +2915,7 @@
     ///   seconds, milliseconds, microseconds, nanoseconds, increment, unit,
     ///   roundingMode [ , plainRelativeTo [, zonedRelativeTo [, precalculatedDateTime]]] )`
     </span><span class="attr">#[allow(clippy::type_complexity)]
-    </span><span class="kw">pub fn </span>round_duration&lt;C: CalendarProtocol&gt;(
+    </span><span class="kw">pub fn </span>round_duration&lt;C: CalendarProtocol, Z: TzProtocol&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         unbalance_date_duration: DateDuration,
         increment: f64,
@@ -2923,7 +2923,7 @@
         rounding_mode: TemporalRoundingMode,
         relative_targets: (
             <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Date&lt;C&gt;&gt;,
-            <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>ZonedDateTime&lt;C&gt;&gt;,
+            <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>ZonedDateTime&lt;C, Z&gt;&gt;,
             <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>DateTime&lt;C&gt;&gt;,
         ),
         context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
