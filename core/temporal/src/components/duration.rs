@@ -8,7 +8,7 @@ use crate::{
 };
 use std::{any::Any, str::FromStr};
 
-use super::calendar::CalendarProtocol;
+use super::{calendar::CalendarProtocol, tz::TzProtocol};
 
 // ==== `DateDuration` ====
 
@@ -1161,7 +1161,7 @@ impl Duration {
     ///   seconds, milliseconds, microseconds, nanoseconds, increment, unit,
     ///   roundingMode [ , plainRelativeTo [, zonedRelativeTo [, precalculatedDateTime]]] )`
     #[allow(clippy::type_complexity)]
-    pub fn round_duration<C: CalendarProtocol>(
+    pub fn round_duration<C: CalendarProtocol, Z: TzProtocol>(
         &self,
         unbalance_date_duration: DateDuration,
         increment: f64,
@@ -1169,7 +1169,7 @@ impl Duration {
         rounding_mode: TemporalRoundingMode,
         relative_targets: (
             Option<&Date<C>>,
-            Option<&ZonedDateTime<C>>,
+            Option<&ZonedDateTime<C, Z>>,
             Option<&DateTime<C>>,
         ),
         context: &mut dyn Any,
