@@ -2,7 +2,8 @@
 
 use crate::{
     components::{
-        calendar::CalendarProtocol, duration::TimeDuration, Date, DateTime, Duration, ZonedDateTime,
+        calendar::CalendarProtocol, duration::TimeDuration, tz::TzProtocol, Date, DateTime,
+        Duration, ZonedDateTime,
     },
     options::{ArithmeticOverflow, TemporalRoundingMode, TemporalUnit},
     utils, TemporalError, TemporalResult, NS_PER_DAY,
@@ -108,7 +109,7 @@ impl DateDuration {
     /// Rounds the current `DateDuration` returning a tuple of the rounded `DateDuration` and
     /// the `total` value of the smallest unit prior to rounding.
     #[allow(clippy::type_complexity, clippy::let_and_return)]
-    pub fn round<C: CalendarProtocol>(
+    pub fn round<C: CalendarProtocol, Z: TzProtocol>(
         &self,
         additional_time: Option<TimeDuration>,
         increment: f64,
@@ -116,7 +117,7 @@ impl DateDuration {
         rounding_mode: TemporalRoundingMode,
         relative_targets: (
             Option<&Date<C>>,
-            Option<&ZonedDateTime<C>>,
+            Option<&ZonedDateTime<C, Z>>,
             Option<&DateTime<C>>,
         ),
         context: &mut dyn Any,
