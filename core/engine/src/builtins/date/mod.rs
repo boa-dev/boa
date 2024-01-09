@@ -7,15 +7,8 @@
 //! [spec]: https://tc39.es/ecma262/#sec-date-objects
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date
 
-pub(crate) mod utils;
-use boa_gc::{Finalize, Trace};
-use utils::{make_date, make_day, make_time, replace_params, time_clip, DateParameters};
-
-#[cfg(test)]
-mod tests;
-
 use crate::{
-    builtins::BuiltInObject,
+    builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
     context::{
         intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
         HostHooks,
@@ -30,10 +23,17 @@ use crate::{
     value::{IntegerOrNan, JsValue, PreferredType},
     Context, JsArgs, JsData, JsError, JsResult, JsString,
 };
+use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
-use chrono::prelude::*;
+use chrono::{Datelike, NaiveDateTime, TimeZone, Timelike, Utc};
+use utils::{
+    make_date, make_day, make_time, parse_date, replace_params, time_clip, DateParameters,
+};
 
-use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
+pub(crate) mod utils;
+
+#[cfg(test)]
+mod tests;
 
 /// Extracts `Some` from an `Option<T>` or returns `NaN` if the object contains `None`.
 macro_rules! some_or_nan {
@@ -272,13 +272,7 @@ impl BuiltInConstructor for Date {
                             // 1. Assert: The next step never returns an abrupt completion because v is a String.
                             // 2. Let tv be the result of parsing v as a date, in exactly the same manner as for the
                             // parse method (21.4.3.2).
-
-                            let dt = str
-                                .to_std_string()
-                                .ok()
-                                .and_then(|s| chrono::DateTime::parse_from_rfc3339(s.as_str()).ok())
-                                .map(|dt| dt.naive_utc());
-                            Self::new(dt.map(|dt| dt.timestamp_millis()))
+                            Self::new(parse_date(str, context.host_hooks()))
                         }
                         // iii. Else,
                         v => {
@@ -445,19 +439,8 @@ impl Date {
     /// [spec]: https://tc39.es/ecma262/#sec-date.parse
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/parse
     pub(crate) fn parse(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        // This method is implementation-defined and discouraged, so we just require the same format as the string
-        // constructor.
-
-        let date = some_or_nan!(args.first());
-
-        let date = date.to_string(context)?;
-
-        Ok(date
-            .to_std_string()
-            .ok()
-            .and_then(|s| DateTime::parse_from_rfc3339(s.as_str()).ok())
-            .and_then(|date| time_clip(date.naive_utc().timestamp_millis()))
-            .map_or_else(|| JsValue::from(f64::NAN), JsValue::from))
+        let date = args.get_or_undefined(0).to_string(context)?;
+        Ok(parse_date(&date, context.host_hooks()).map_or(JsValue::from(f64::NAN), JsValue::from))
     }
 
     /// `Date.UTC()`
