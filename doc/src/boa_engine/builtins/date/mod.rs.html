@@ -1536,23 +1536,6 @@
 <a href="#1536" id="1536">1536</a>
 <a href="#1537" id="1537">1537</a>
 <a href="#1538" id="1538">1538</a>
-<a href="#1539" id="1539">1539</a>
-<a href="#1540" id="1540">1540</a>
-<a href="#1541" id="1541">1541</a>
-<a href="#1542" id="1542">1542</a>
-<a href="#1543" id="1543">1543</a>
-<a href="#1544" id="1544">1544</a>
-<a href="#1545" id="1545">1545</a>
-<a href="#1546" id="1546">1546</a>
-<a href="#1547" id="1547">1547</a>
-<a href="#1548" id="1548">1548</a>
-<a href="#1549" id="1549">1549</a>
-<a href="#1550" id="1550">1550</a>
-<a href="#1551" id="1551">1551</a>
-<a href="#1552" id="1552">1552</a>
-<a href="#1553" id="1553">1553</a>
-<a href="#1554" id="1554">1554</a>
-<a href="#1555" id="1555">1555</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s `Date` object.
 //!
 //! More information:
@@ -1562,15 +1545,8 @@
 //! [spec]: https://tc39.es/ecma262/#sec-date-objects
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date
 
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>utils;
-<span class="kw">use </span>boa_gc::{Finalize, Trace};
-<span class="kw">use </span>utils::{make_date, make_day, make_time, replace_params, time_clip, DateParameters};
-
-<span class="attr">#[cfg(test)]
-</span><span class="kw">mod </span>tests;
-
-<span class="kw">use crate</span>::{
-    builtins::BuiltInObject,
+</span><span class="kw">use crate</span>::{
+    builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
     context::{
         intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
         HostHooks,
@@ -1585,10 +1561,17 @@
     value::{IntegerOrNan, JsValue, PreferredType},
     Context, JsArgs, JsData, JsError, JsResult, JsString,
 };
+<span class="kw">use </span>boa_gc::{Finalize, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
-<span class="kw">use </span>chrono::prelude::<span class="kw-2">*</span>;
+<span class="kw">use </span>chrono::{Datelike, NaiveDateTime, TimeZone, Timelike, Utc};
+<span class="kw">use </span>utils::{
+    make_date, make_day, make_time, parse_date, replace_params, time_clip, DateParameters,
+};
 
-<span class="kw">use super</span>::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>utils;
+
+<span class="attr">#[cfg(test)]
+</span><span class="kw">mod </span>tests;
 
 <span class="doccomment">/// Extracts `Some` from an `Option&lt;T&gt;` or returns `NaN` if the object contains `None`.
 </span><span class="macro">macro_rules! </span>some_or_nan {
@@ -1827,13 +1810,7 @@
                             <span class="comment">// 1. Assert: The next step never returns an abrupt completion because v is a String.
                             // 2. Let tv be the result of parsing v as a date, in exactly the same manner as for the
                             // parse method (21.4.3.2).
-
-                            </span><span class="kw">let </span>dt = str
-                                .to_std_string()
-                                .ok()
-                                .and_then(|s| chrono::DateTime::parse_from_rfc3339(s.as_str()).ok())
-                                .map(|dt| dt.naive_utc());
-                            <span class="self">Self</span>::new(dt.map(|dt| dt.timestamp_millis()))
+                            </span><span class="self">Self</span>::new(parse_date(str, context.host_hooks()))
                         }
                         <span class="comment">// iii. Else,
                         </span>v =&gt; {
@@ -2000,19 +1977,8 @@
     /// [spec]: https://tc39.es/ecma262/#sec-date.parse
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/parse
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>parse(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
-        <span class="comment">// This method is implementation-defined and discouraged, so we just require the same format as the string
-        // constructor.
-
-        </span><span class="kw">let </span>date = <span class="macro">some_or_nan!</span>(args.first());
-
-        <span class="kw">let </span>date = date.to_string(context)<span class="question-mark">?</span>;
-
-        <span class="prelude-val">Ok</span>(date
-            .to_std_string()
-            .ok()
-            .and_then(|s| DateTime::parse_from_rfc3339(s.as_str()).ok())
-            .and_then(|date| time_clip(date.naive_utc().timestamp_millis()))
-            .map_or_else(|| JsValue::from(f64::NAN), JsValue::from))
+        <span class="kw">let </span>date = args.get_or_undefined(<span class="number">0</span>).to_string(context)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(parse_date(<span class="kw-2">&amp;</span>date, context.host_hooks()).map_or(JsValue::from(f64::NAN), JsValue::from))
     }
 
     <span class="doccomment">/// `Date.UTC()`
