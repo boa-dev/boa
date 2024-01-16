@@ -7,6 +7,19 @@ use core::{fmt, str::FromStr};
 
 use crate::TemporalError;
 
+// NOTE: Currently the `DifferenceSetting` is the record returned from 13.47 `GetDifferenceSetting`.
+// This should be reassessed once Instant is added to the builtin `Temporal.Instant`.
+/// The settings for a difference Op
+#[derive(Debug, Clone, Copy)]
+pub struct DifferenceSettings {
+    pub(crate) rounding_mode: TemporalRoundingMode,
+    pub(crate) rounding_increment: f64,
+    pub(crate) largest_unit: TemporalUnit,
+    pub(crate) smallest_unit: TemporalUnit,
+}
+
+// ==== Options enums and methods ====
+
 /// The relevant unit that should be used for the operation that
 /// this option is provided as a value.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]

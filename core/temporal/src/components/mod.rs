@@ -17,11 +17,11 @@
 // TODO: Expand upon above introduction.
 
 pub mod calendar;
+pub mod duration;
 pub mod tz;
 
 mod date;
 mod datetime;
-pub(crate) mod duration;
 mod instant;
 mod month_day;
 mod time;
