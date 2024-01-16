@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["DateDuration","DateIter","Duration","DurationIter","TimeDuration","TimeIter"]};
+window.SIDEBAR_ITEMS = {"fn":["duration_sign","is_valid_duration"],"mod":["date","time"],"struct":["DateDuration","Duration","DurationIter","TimeDuration"]};

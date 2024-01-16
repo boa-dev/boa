@@ -245,6 +245,16 @@
 <a href="#245" id="245">245</a>
 <a href="#246" id="246">246</a>
 <a href="#247" id="247">247</a>
+<a href="#248" id="248">248</a>
+<a href="#249" id="249">249</a>
+<a href="#250" id="250">250</a>
+<a href="#251" id="251">251</a>
+<a href="#252" id="252">252</a>
+<a href="#253" id="253">253</a>
+<a href="#254" id="254">254</a>
+<a href="#255" id="255">255</a>
+<a href="#256" id="256">256</a>
+<a href="#257" id="257">257</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module implements `Date` and any directly related algorithms.
 
 </span><span class="kw">use crate</span>::{
@@ -259,6 +269,8 @@
     TemporalError, TemporalResult,
 };
 <span class="kw">use </span>std::{any::Any, str::FromStr};
+
+<span class="kw">use </span><span class="kw">super</span>::duration::TimeDuration;
 
 <span class="doccomment">/// The native Rust implementation of `Temporal.PlainDate`.
 </span><span class="attr">#[derive(Debug, Default, Clone)]
@@ -403,12 +415,20 @@
 
         <span class="comment">// 3. Let overflow be ? ToTemporalOverflow(options).
         // 4. Let days be ? BalanceTimeDuration(duration.[[Days]], duration.[[Hours]], duration.[[Minutes]], duration.[[Seconds]], duration.[[Milliseconds]], duration.[[Microseconds]], duration.[[Nanoseconds]], &quot;day&quot;).[[Days]].
-        </span><span class="kw">let </span>(days, <span class="kw">_</span>) = duration.balance_time_duration(TemporalUnit::Day)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>(days, <span class="kw">_</span>) = TimeDuration::new_unchecked(
+            duration.hours(),
+            duration.minutes(),
+            duration.seconds(),
+            duration.milliseconds(),
+            duration.microseconds(),
+            duration.nanoseconds(),
+        )
+        .balance(duration.days(), TemporalUnit::Day)<span class="question-mark">?</span>;
 
         <span class="comment">// 5. Let result be ? AddISODate(plainDate.[[ISOYear]], plainDate.[[ISOMonth]], plainDate.[[ISODay]], 0, 0, 0, days, overflow).
         </span><span class="kw">let </span>result = <span class="self">self
             </span>.iso
-            .add_iso_date(<span class="kw-2">&amp;</span>DateDuration::new(<span class="number">0f64</span>, <span class="number">0f64</span>, <span class="number">0f64</span>, days), overflow)<span class="question-mark">?</span>;
+            .add_iso_date(<span class="kw-2">&amp;</span>DateDuration::new(<span class="number">0f64</span>, <span class="number">0f64</span>, <span class="number">0f64</span>, days)<span class="question-mark">?</span>, overflow)<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(<span class="self">Self</span>::new_unchecked(result, <span class="self">self</span>.calendar().clone()))
     }
@@ -449,7 +469,7 @@
                 <span class="number">0f64</span>,
                 <span class="number">0f64</span>,
                 f64::from(days),
-            )));
+            )<span class="question-mark">?</span>));
         }
 
         <span class="self">self</span>.calendar()

@@ -414,6 +414,19 @@
 <a href="#414" id="414">414</a>
 <a href="#415" id="415">415</a>
 <a href="#416" id="416">416</a>
+<a href="#417" id="417">417</a>
+<a href="#418" id="418">418</a>
+<a href="#419" id="419">419</a>
+<a href="#420" id="420">420</a>
+<a href="#421" id="421">421</a>
+<a href="#422" id="422">422</a>
+<a href="#423" id="423">423</a>
+<a href="#424" id="424">424</a>
+<a href="#425" id="425">425</a>
+<a href="#426" id="426">426</a>
+<a href="#427" id="427">427</a>
+<a href="#428" id="428">428</a>
+<a href="#429" id="429">429</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Native implementation of the `Temporal` options.
 //!
 //! Temporal has various instances where user&#39;s can define options for how an
@@ -423,7 +436,20 @@
 
 <span class="kw">use </span><span class="kw">crate</span>::TemporalError;
 
-<span class="doccomment">/// The relevant unit that should be used for the operation that
+<span class="comment">// NOTE: Currently the `DifferenceSetting` is the record returned from 13.47 `GetDifferenceSetting`.
+// This should be reassessed once Instant is added to the builtin `Temporal.Instant`.
+</span><span class="doccomment">/// The settings for a difference Op
+</span><span class="attr">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub struct </span>DifferenceSettings {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) rounding_mode: TemporalRoundingMode,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) rounding_increment: f64,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) largest_unit: TemporalUnit,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) smallest_unit: TemporalUnit,
+}
+
+<span class="comment">// ==== Options enums and methods ====
+
+</span><span class="doccomment">/// The relevant unit that should be used for the operation that
 /// this option is provided as a value.
 </span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 </span><span class="kw">pub enum </span>TemporalUnit {
