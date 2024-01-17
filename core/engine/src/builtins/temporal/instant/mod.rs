@@ -20,7 +20,7 @@ use crate::{
 };
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
-use boa_temporal::{components::Duration, options::TemporalUnit};
+use boa_temporal::{components::{Duration, Instant as InnerInstant}, options::TemporalUnit};
 
 use super::{ns_max_instant, ns_min_instant, MIS_PER_DAY, MS_PER_DAY, NS_PER_DAY};
 
@@ -30,8 +30,10 @@ const NANOSECONDS_PER_HOUR: i64 = 36_000_000_000_000;
 
 /// The `Temporal.Instant` object.
 #[derive(Debug, Clone, Trace, Finalize, JsData)]
+// SAFETY: Instant does not contain any traceable values.
+#[boa_gc(unsafe_empty_trace)]
 pub struct Instant {
-    pub(crate) nanoseconds: JsBigInt,
+    pub(crate) inner: InnerInstant,
 }
 
 impl BuiltInObject for Instant {
@@ -131,13 +133,10 @@ impl BuiltInConstructor for Instant {
         let epoch_nanos = args.get_or_undefined(0).to_bigint(context)?;
 
         // 3. If ! IsValidEpochNanoseconds(epochNanoseconds) is false, throw a RangeError exception.
-        if !is_valid_epoch_nanos(&epoch_nanos) {
-            return Err(JsNativeError::range()
-                .with_message("Temporal.Instant must have a valid epochNanoseconds.")
-                .into());
-        };
+        // NOTE: boa_temporal::Instant asserts that the epochNanoseconds are valid.
+        let instant = InnerInstant::new(epoch_nanos.as_inner().clone())?;
         // 4. Return ? CreateTemporalInstant(epochNanoseconds, NewTarget).
-        create_temporal_instant(epoch_nanos, Some(new_target.clone()), context)
+        create_temporal_instant(instant, Some(new_target.clone()), context)
     }
 }
 
@@ -159,11 +158,7 @@ impl Instant {
                 JsNativeError::typ().with_message("the this object must be an instant object.")
             })?;
         // 3. Let ns be instant.[[Nanoseconds]].
-        let ns = &instant.nanoseconds;
-        // 4. Let s be floor(ℝ(ns) / 10e9).
-        let s = (ns.to_f64() / 10e9).floor();
-        // 5. Return 𝔽(s).
-        Ok(s.into())
+        Ok(instant.inner.epoch_seconds().into())
     }
 
     /// 8.3.4 get Temporal.Instant.prototype.epochMilliseconds
@@ -181,11 +176,9 @@ impl Instant {
                 JsNativeError::typ().with_message("the this object must be an instant object.")
             })?;
         // 3. Let ns be instant.[[Nanoseconds]].
-        let ns = &instant.nanoseconds;
         // 4. Let ms be floor(ℝ(ns) / 106).
-        let ms = (ns.to_f64() / 10e6).floor();
         // 5. Return 𝔽(ms).
-        Ok(ms.into())
+        Ok(instant.inner.epoch_milliseconds().into())
     }
 
     /// 8.3.5 get Temporal.Instant.prototype.epochMicroseconds
@@ -203,13 +196,9 @@ impl Instant {
                 JsNativeError::typ().with_message("the this object must be an instant object.")
             })?;
         // 3. Let ns be instant.[[Nanoseconds]].
-        let ns = &instant.nanoseconds;
         // 4. Let µs be floor(ℝ(ns) / 103).
-        let micro_s = (ns.to_f64() / 10e3).floor();
         // 5. Return ℤ(µs).
-        let big_int = JsBigInt::try_from(micro_s).map_err(|_| {
-            JsNativeError::typ().with_message("Could not convert microseconds to JsBigInt value")
-        })?;
+        let big_int = JsBigInt::try_from(instant.inner.epoch_microseconds()).expect("valid microseconds is in range of BigInt");
         Ok(big_int.into())
     }
 
@@ -228,9 +217,9 @@ impl Instant {
                 JsNativeError::typ().with_message("the this object must be an instant object.")
             })?;
         // 3. Let ns be instant.[[Nanoseconds]].
-        let ns = &instant.nanoseconds;
         // 4. Return ns.
-        Ok(ns.clone().into())
+        let big_int = JsBigInt::try_from(instant.inner.epoch_nanoseconds()).expect("valid nanoseconds is in range of BigInt");
+        Ok(big_int.into())
     }
 
     /// 8.3.7 `Temporal.Instant.prototype.add ( temporalDurationLike )`
@@ -434,7 +423,7 @@ impl Instant {
         let other = args.get_or_undefined(0);
         let other_instant = to_temporal_instant(other)?;
 
-        if instant.nanoseconds != other_instant.nanoseconds {
+        if instant.inner != other_instant.inner {
             return Ok(false.into());
         }
         Ok(true.into())
@@ -485,12 +474,11 @@ fn is_valid_epoch_nanos(epoch_nanos: &JsBigInt) -> bool {
 /// 8.5.2 `CreateTemporalInstant ( epochNanoseconds [ , newTarget ] )`
 #[inline]
 fn create_temporal_instant(
-    epoch_nanos: JsBigInt,
+    instant: InnerInstant,
     new_target: Option<JsValue>,
     context: &mut Context,
 ) -> JsResult<JsValue> {
     // 1. Assert: ! IsValidEpochNanoseconds(epochNanoseconds) is true.
-    assert!(is_valid_epoch_nanos(&epoch_nanos));
     // 2. If newTarget is not present, set newTarget to %Temporal.Instant%.
     let new_target = new_target.unwrap_or_else(|| {
         context
@@ -509,7 +497,7 @@ fn create_temporal_instant(
     let obj = JsObject::from_proto_and_data(
         proto,
         Instant {
-            nanoseconds: epoch_nanos,
+            inner: instant,
         },
     );
 

@@ -61,6 +61,11 @@ impl Duration {
     pub(crate) fn one_week(week_value: f64) -> Self {
         Self::from_date_duration(DateDuration::new_unchecked(0f64, 0f64, week_value, 0f64))
     }
+
+    /// Utility that checks whether `Duration`'s `DateDuration` is empty.
+    pub(crate) fn is_time_duration(&self) -> bool {
+        self.date().iter().any(|x| x != 0f64)
+    }
 }
 
 // ==== Public Duration API ====

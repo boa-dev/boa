@@ -1,13 +1,17 @@
 //! An implementation of the Temporal Instant.
 
 use crate::{
-    components::duration::TimeDuration,
-    options::{DifferenceSettings, TemporalUnit},
+    components::{Duration, duration::TimeDuration},
+    options::{DifferenceSettings, TemporalUnit, TemporalRoundingMode},
     TemporalError, TemporalResult,
 };
 
 use num_bigint::BigInt;
-use num_traits::ToPrimitive;
+use num_traits::{ToPrimitive, FromPrimitive};
+
+const NANOSECONDS_PER_SECOND: f64 = 1e9;
+const NANOSECONDS_PER_MINUTE: f64 = 60f64 * NANOSECONDS_PER_SECOND;
+const NANOSECONDS_PER_HOUR: f64 = 60f64 * NANOSECONDS_PER_MINUTE;
 
 /// The native Rust implementation of `Temporal.Instant`
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
@@ -29,19 +33,14 @@ impl Instant {
         other: &Self,
         settings: DifferenceSettings, // TODO: Determine DifferenceSettings fate -> is there a better way to approach this.
     ) -> TemporalResult<TimeDuration> {
-        let diff = self
-            .nanos
-            .to_f64()
-            .expect("valid instant is representable by f64.")
-            - other
-                .nanos
-                .to_f64()
-                .expect("Valid instant nanos is representable by f64.");
+        // Diff the Instant and determine its component values.
+        let diff = self.to_f64() - other.to_f64();
         let nanos = diff.rem_euclid(1000f64);
         let micros = (diff / 1000f64).trunc().rem_euclid(1000f64);
         let millis = (diff / 1_000_000f64).trunc().rem_euclid(1000f64);
-        let secs = (diff / 1_000_000_000f64).trunc();
+        let secs = (diff / NANOSECONDS_PER_SECOND).trunc();
 
+        // Handle the settings provided to `diff_instant`
         if settings.smallest_unit == TemporalUnit::Nanosecond {
             let (_, result) = TimeDuration::new_unchecked(0f64, 0f64, secs, millis, micros, nanos)
                 .balance(0f64, settings.largest_unit)?;
@@ -56,6 +55,22 @@ impl Instant {
         let (_, result) = round_result.balance(0f64, settings.largest_unit)?;
         Ok(result)
     }
+
+    /// Adds a `TimeDuration` to the current `Instant`.
+    pub(crate) fn add_to_instant(&self, duration: &TimeDuration) -> TemporalResult<Self> {
+        let result = self.epoch_nanoseconds() + duration.nanoseconds + (duration.microseconds * 1000f64) + (duration.milliseconds * 1_000_000f64) + (duration.seconds * NANOSECONDS_PER_SECOND)+ (duration.minutes * NANOSECONDS_PER_MINUTE) + (duration.hours * NANOSECONDS_PER_HOUR);
+        let nanos = BigInt::from_f64(result).ok_or_else(|| TemporalError::range().with_message("Duration added to instant exceeded valid range."))?;
+        Self::new(nanos)
+    }
+
+    /// Utility for converting `Instant` to f64.
+    ///
+    /// # Panics
+    ///
+    /// This function will panic if called on an invalid `Instant`.
+    pub(crate) fn to_f64(&self) -> f64 {
+        self.nanos.to_f64().expect("A valid instant is representable by f64.")
+    }
 }
 
 // ==== Public API ====
@@ -69,6 +84,55 @@ impl Instant {
                 .with_message("Instant nanoseconds are not within a valid epoch range."));
         }
         Ok(Self { nanos })
+    }
+
+    /// Adds a `Duration` to the current `Instant`, returning an error if the `Duration`
+    /// contains a `DateDuration`.
+    #[inline]
+    pub fn add(&self, duration: Duration) -> TemporalResult<Self> {
+        if !duration.is_time_duration() {
+            return Err(TemporalError::range().with_message("DateDuration values cannot be added to instant."))
+        }
+        self.add_time_duration(duration.time())
+    }
+
+    /// Adds a `TimeDuration` to `Instant`.
+    #[inline]
+    pub fn add_time_duration(&self, duration: &TimeDuration) -> TemporalResult<Self> {
+        self.add_to_instant(duration)
+    }
+
+    /// Subtract a `Duration` to the current `Instant`, returning an error if the `Duration`
+    /// contains a `DateDuration`.
+    #[inline]
+    pub fn subtract(&self, duration: Duration) -> TemporalResult<Self> {
+        if !duration.is_time_duration() {
+            return Err(TemporalError::range().with_message("DateDuration values cannot be added to instant."))
+        }
+        self.subtract_time_duration(duration.time())
+    }
+
+    /// Subtracts a `TimeDuration` to `Instant`.
+    #[inline]
+    pub fn subtract_time_duration(&self, duration: &TimeDuration) -> TemporalResult<Self> {
+        self.add_to_instant(&duration.neg())
+    }
+
+    // TODO: Address DifferenceSettings.
+    /// Returns a `TimeDuration` representing the duration since provided `Instant`
+    pub fn since(&self, other: &Self, settings: DifferenceSettings) -> TemporalResult<TimeDuration> {
+        self.diff_instant(true, other, settings)
+    }
+
+    // TODO: Address DifferenceSettings.
+    /// Returns a `TimeDuration` representing the duration until provided `Instant`
+    pub fn until(&self, other: &Self, settings: DifferenceSettings) -> TemporalResult<TimeDuration> {
+        self.diff_instant(false, other, settings)
+    }
+
+    /// Returns an `Instant` by rounding the current `Instant` according to the provided settings.
+    pub fn round(&self, _rounding_increment: u64, _smallest_unit: TemporalUnit, _rounding_mode: TemporalRoundingMode) -> TemporalResult<Self> {
+        Err(TemporalError::range().with_message("Instant.round is not yet implemented."))
     }
 
     /// Returns the `epochSeconds` value for this `Instant`.
@@ -101,9 +165,7 @@ impl Instant {
     /// Returns the `epochNanoseconds` value for this `Instant`.
     #[must_use]
     pub fn epoch_nanoseconds(&self) -> f64 {
-        self.nanos
-            .to_f64()
-            .expect("A validated Instant should be within a valid f64")
+        self.to_f64()
     }
 }
 
