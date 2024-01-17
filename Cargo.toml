@@ -67,6 +67,7 @@ serde = "1.0.195"
 static_assertions = "1.1.0"
 textwrap = "0.16.0"
 thin-vec = "0.2.13"
+time = {version = "0.3.31", no-default-features = true, features = ["local-offset", "large-dates", "wasm-bindgen"]}
 
 # ICU4X
 

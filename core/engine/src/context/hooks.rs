@@ -5,7 +5,6 @@ use crate::{
     realm::Realm,
     Context, JsResult, JsValue,
 };
-use chrono::{DateTime, FixedOffset, Local, LocalResult, NaiveDateTime, TimeZone, Utc};
 
 use super::intrinsics::Intrinsics;
 
@@ -170,46 +169,28 @@ pub trait HostHooks {
 
     /// Gets the current UTC time of the host.
     ///
-    /// Defaults to using [`Utc::now`] on all targets, which can cause panics if the target
-    /// doesn't support [`SystemTime::now`][time].
+    /// Defaults to using [`time::OffsetDateTime::now_utc`] on all targets,
+    /// which can cause panics if the target doesn't support [`SystemTime::now`][time].
     ///
     /// [time]: std::time::SystemTime::now
-    fn utc_now(&self) -> NaiveDateTime {
-        Utc::now().naive_utc()
+    fn utc_now(&self) -> i64 {
+        let now = time::OffsetDateTime::now_utc();
+        now.unix_timestamp() + i64::from(now.millisecond())
     }
 
-    /// Converts the naive datetime `utc` to the corresponding local datetime.
-    ///
-    /// Defaults to using [`Local`] on all targets, which can cause panics if the taget
-    /// doesn't support [`SystemTime::now`][time].
-    ///
-    /// [time]: std::time::SystemTime::now
-    fn local_from_utc(&self, utc: NaiveDateTime) -> DateTime<FixedOffset> {
-        let offset = Local.offset_from_utc_datetime(&utc);
-        offset.from_utc_datetime(&utc)
-    }
-
-    /// Converts the naive local datetime `local` to a local timezone datetime.
-    ///
-    /// Defaults to using [`Local`] on all targets, which can cause panics if the target
-    /// doesn't support [`SystemTime::now`][time].
-    ///
-    /// [time]: std::time::SystemTime::now
-    fn local_from_naive_local(&self, local: NaiveDateTime) -> LocalResult<DateTime<FixedOffset>> {
-        match Local.offset_from_local_datetime(&local) {
-            LocalResult::None => LocalResult::None,
-            LocalResult::Single(offset) => offset.from_local_datetime(&local),
-            LocalResult::Ambiguous(earliest, latest) => {
-                match (
-                    earliest.from_local_datetime(&local).earliest(),
-                    latest.from_local_datetime(&local).latest(),
-                ) {
-                    (Some(earliest), Some(latest)) => LocalResult::Ambiguous(earliest, latest),
-                    (Some(dt), None) | (None, Some(dt)) => LocalResult::Single(dt),
-                    (None, None) => LocalResult::None,
-                }
-            }
+    /// Returns the offset of the local timezone to the `utc` timezone in seconds.
+    fn local_timezone_offset_seconds(&self, unix_time_seconds: i64) -> i32 {
+        // Safety: This is needed during tests because cargo is running tests in multiple threads.
+        // It is safe because tests do not modify the environment.
+        #[cfg(test)]
+        unsafe {
+            time::util::local_offset::set_soundness(time::util::local_offset::Soundness::Unsound);
         }
+
+        time::OffsetDateTime::from_unix_timestamp(unix_time_seconds)
+            .ok()
+            .and_then(|t| time::UtcOffset::local_offset_at(t).ok())
+            .map_or(0, time::UtcOffset::whole_seconds)
     }
 
     /// Gets the maximum size in bits that can be allocated for an `ArrayBuffer` or a

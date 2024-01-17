@@ -99,26 +99,3 @@ impl PartialOrd<IntegerOrInfinity> for i64 {
         }
     }
 }
-
-/// Represents the result of the `to_integer_or_nan` method.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-pub(crate) enum IntegerOrNan {
-    Integer(i64),
-    Nan,
-}
-
-impl IntegerOrNan {
-    /// Gets the wrapped `i64` if the variant is an `Integer`.
-    pub(crate) const fn as_integer(self) -> Option<i64> {
-        match self {
-            Self::Integer(i) => Some(i),
-            Self::Nan => None,
-        }
-    }
-}
-
-impl From<IntegerOrInfinity> for IntegerOrNan {
-    fn from(ior: IntegerOrInfinity) -> Self {
-        ior.as_integer().map_or(Self::Nan, IntegerOrNan::Integer)
-    }
-}

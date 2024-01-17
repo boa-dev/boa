@@ -1,22 +1,15 @@
 use boa_engine::{
     context::HostHooks, js_string, object::builtins::JsDate, Context, JsResult, JsValue,
 };
-use chrono::{DateTime, FixedOffset, LocalResult, NaiveDateTime, TimeZone};
 
 struct CustomTimezone;
 
 // This pins the local timezone to a system-agnostic value; in this case, UTC+3
 impl HostHooks for CustomTimezone {
-    fn local_from_utc(&self, utc: NaiveDateTime) -> DateTime<FixedOffset> {
-        FixedOffset::east_opt(3 * 3600)
-            .unwrap()
-            .from_utc_datetime(&utc)
-    }
-
-    fn local_from_naive_local(&self, local: NaiveDateTime) -> LocalResult<DateTime<FixedOffset>> {
-        FixedOffset::east_opt(3 * 3600)
-            .unwrap()
-            .from_local_datetime(&local)
+    fn local_timezone_offset_seconds(&self, _: i64) -> i32 {
+        time::UtcOffset::from_hms(3, 0, 0)
+            .expect("must be valid offset")
+            .whole_seconds()
     }
 }
 

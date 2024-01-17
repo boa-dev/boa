@@ -31,6 +31,7 @@ phf = { workspace = true, features = ["macros"] }
 comfy-table = "7.1.0"
 serde_repr = "0.1.18"
 bus = "2.4.1"
+time.workspace = true
 
 [features]
 default = ["boa_engine/intl", "boa_engine/experimental", "boa_engine/annex-b"]
