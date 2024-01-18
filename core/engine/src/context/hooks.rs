@@ -1,12 +1,15 @@
 use crate::{
     builtins::promise::OperationType,
+    context::intrinsics::Intrinsics,
     job::JobCallback,
     object::{JsFunction, JsObject},
     realm::Realm,
     Context, JsResult, JsValue,
 };
+use time::{OffsetDateTime, UtcOffset};
 
-use super::intrinsics::Intrinsics;
+#[cfg(test)]
+use time::util::local_offset;
 
 /// [`Host Hooks`] customizable by the host code or engine.
 ///
@@ -169,13 +172,13 @@ pub trait HostHooks {
 
     /// Gets the current UTC time of the host.
     ///
-    /// Defaults to using [`time::OffsetDateTime::now_utc`] on all targets,
+    /// Defaults to using [`OffsetDateTime::now_utc`] on all targets,
     /// which can cause panics if the target doesn't support [`SystemTime::now`][time].
     ///
     /// [time]: std::time::SystemTime::now
     fn utc_now(&self) -> i64 {
-        let now = time::OffsetDateTime::now_utc();
-        now.unix_timestamp() + i64::from(now.millisecond())
+        let now = OffsetDateTime::now_utc();
+        now.unix_timestamp() * 1000 + i64::from(now.millisecond())
     }
 
     /// Returns the offset of the local timezone to the `utc` timezone in seconds.
@@ -184,13 +187,13 @@ pub trait HostHooks {
         // It is safe because tests do not modify the environment.
         #[cfg(test)]
         unsafe {
-            time::util::local_offset::set_soundness(time::util::local_offset::Soundness::Unsound);
+            local_offset::set_soundness(local_offset::Soundness::Unsound);
         }
 
-        time::OffsetDateTime::from_unix_timestamp(unix_time_seconds)
+        OffsetDateTime::from_unix_timestamp(unix_time_seconds)
             .ok()
-            .and_then(|t| time::UtcOffset::local_offset_at(t).ok())
-            .map_or(0, time::UtcOffset::whole_seconds)
+            .and_then(|t| UtcOffset::local_offset_at(t).ok())
+            .map_or(0, UtcOffset::whole_seconds)
     }
 
     /// Gets the maximum size in bits that can be allocated for an `ArrayBuffer` or a

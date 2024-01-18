@@ -1,46 +1,81 @@
 use crate::{js_string, run_test_actions, JsNativeErrorKind, TestAction};
-use chrono::{Local, NaiveDate, NaiveDateTime, NaiveTime, TimeZone};
 use indoc::indoc;
+use time::{macros::format_description, util::local_offset, OffsetDateTime};
 
-// NOTE: Javascript Uses 0-based months, where chrono uses 1-based months. Many of the assertions look wrong because of
-// this.
+// NOTE: Javascript Uses 0-based months, where time uses 1-based months.
+// Many of the assertions look wrong because of this.
+
+fn month_from_u8(month: u8) -> time::Month {
+    match month {
+        1 => time::Month::January,
+        2 => time::Month::February,
+        3 => time::Month::March,
+        4 => time::Month::April,
+        5 => time::Month::May,
+        6 => time::Month::June,
+        7 => time::Month::July,
+        8 => time::Month::August,
+        9 => time::Month::September,
+        10 => time::Month::October,
+        11 => time::Month::November,
+        12 => time::Month::December,
+        _ => unreachable!(),
+    }
+}
+
+fn from_local(
+    year: i32,
+    month: u8,
+    date: u8,
+    hour: u8,
+    minute: u8,
+    second: u8,
+    millisecond: u16,
+) -> OffsetDateTime {
+    // Safety: This is needed during tests because cargo is running tests in multiple threads.
+    // It is safe because tests do not modify the environment.
+    #[cfg(test)]
+    unsafe {
+        local_offset::set_soundness(local_offset::Soundness::Unsound);
+    }
+
+    let t = time::Date::from_calendar_date(year, month_from_u8(month), date)
+        .unwrap()
+        .with_hms_milli(hour, minute, second, millisecond)
+        .unwrap()
+        .assume_utc();
+    let offset = time::UtcOffset::local_offset_at(t).unwrap();
+    t.replace_offset(offset)
+}
 
 fn timestamp_from_local(
     year: i32,
-    month: u32,
-    date: u32,
-    hour: u32,
-    minute: u32,
-    second: u32,
-    millisecond: u32,
+    month: u8,
+    date: u8,
+    hour: u8,
+    minute: u8,
+    second: u8,
+    millisecond: u16,
 ) -> i64 {
-    Local
-        .from_local_datetime(
-            &NaiveDate::from_ymd_opt(year, month, date)
-                .unwrap()
-                .and_hms_milli_opt(hour, minute, second, millisecond)
-                .unwrap(),
-        )
-        .earliest()
-        .unwrap()
-        .naive_utc()
-        .timestamp_millis()
+    let t = from_local(year, month, date, hour, minute, second, millisecond);
+    t.unix_timestamp() * 1000 + i64::from(t.millisecond())
 }
 
 fn timestamp_from_utc(
     year: i32,
-    month: u32,
-    date: u32,
-    hour: u32,
-    minute: u32,
-    second: u32,
-    millisecond: u32,
+    month: u8,
+    date: u8,
+    hour: u8,
+    minute: u8,
+    second: u8,
+    millisecond: u16,
 ) -> i64 {
-    NaiveDate::from_ymd_opt(year, month, date)
+    let t = time::Date::from_calendar_date(year, month_from_u8(month), date)
         .unwrap()
-        .and_hms_milli_opt(hour, minute, second, millisecond)
+        .with_hms_milli(hour, minute, second, millisecond)
         .unwrap()
-        .timestamp_millis()
+        .assume_utc();
+    t.unix_timestamp() * 1000 + i64::from(t.millisecond())
 }
 
 #[test]
@@ -257,18 +292,8 @@ fn date_proto_get_timezone_offset() {
         TestAction::assert_eq(
             "new Date('1975-08-19T23:15:30+07:00').getTimezoneOffset()",
             {
-                // The value of now().offset() depends on the host machine, so we have to replicate the method code here.
-                let dt = Local
-                    .from_local_datetime(
-                        &NaiveDate::from_ymd_opt(1975, 8, 19)
-                            .unwrap()
-                            .and_hms_opt(23, 15, 30)
-                            .unwrap(),
-                    )
-                    .earliest()
-                    .unwrap();
-                let offset_seconds = dt.offset().local_minus_utc();
-                -offset_seconds / 60
+                let t = from_local(1975, 8, 19, 23, 15, 30, 0);
+                -t.offset().whole_seconds() / 60
             },
         ),
     ]);
@@ -792,33 +817,31 @@ fn date_proto_to_json() {
 
 #[test]
 fn date_proto_to_string() {
+    let to_string_format = format_description!(
+        "[weekday repr:short] [month repr:short] [day] [year] [hour]:[minute]:[second] GMT[offset_hour sign:mandatory][offset_minute][end]"
+    );
+    let t = from_local(2020, 7, 8, 9, 16, 15, 779)
+        .format(to_string_format)
+        .unwrap();
+
     run_test_actions([TestAction::assert_eq(
         "new Date(2020, 6, 8, 9, 16, 15, 779).toString()",
-        js_string!(Local
-            .from_local_datetime(&NaiveDateTime::new(
-                NaiveDate::from_ymd_opt(2020, 7, 8).unwrap(),
-                NaiveTime::from_hms_milli_opt(9, 16, 15, 779).unwrap(),
-            ))
-            .earliest()
-            .unwrap()
-            .format("Wed Jul 08 2020 09:16:15 GMT%z")
-            .to_string()),
+        js_string!(t),
     )]);
 }
 
 #[test]
 fn date_proto_to_time_string() {
+    let to_time_string_format = format_description!(
+        "[hour]:[minute]:[second] GMT[offset_hour sign:mandatory][offset_minute][end]"
+    );
+    let t = from_local(2020, 7, 8, 9, 16, 15, 779)
+        .format(to_time_string_format)
+        .unwrap();
+
     run_test_actions([TestAction::assert_eq(
         "new Date(2020, 6, 8, 9, 16, 15, 779).toTimeString()",
-        js_string!(Local
-            .from_local_datetime(&NaiveDateTime::new(
-                NaiveDate::from_ymd_opt(2020, 7, 8).unwrap(),
-                NaiveTime::from_hms_milli_opt(9, 16, 15, 779).unwrap(),
-            ))
-            .earliest()
-            .unwrap()
-            .format("09:16:15 GMT%z")
-            .to_string()),
+        js_string!(t),
     )]);
 }
 

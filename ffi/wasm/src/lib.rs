@@ -7,7 +7,6 @@
 #![cfg_attr(not(test), forbid(clippy::unwrap_used))]
 
 use boa_engine::{Context, Source};
-use chrono as _;
 use getrandom as _;
 use wasm_bindgen::prelude::*;
 

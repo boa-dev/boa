@@ -1,7 +1,7 @@
 use crate::{context::HostHooks, js_string, value::IntegerOrInfinity, JsString};
 use boa_macros::utf16;
-use chrono::{DateTime, NaiveDateTime};
 use std::{iter::Peekable, str::Chars};
+use time::{macros::format_description, OffsetDateTime, PrimitiveDateTime};
 
 // Time-related Constants
 //
@@ -748,13 +748,14 @@ pub(super) fn parse_date(date: &JsString, hooks: &dyn HostHooks) -> Option<i64> 
     }
 
     // `toString` format: `Thu Jan 01 1970 00:00:00 GMT+0000`
-    if let Ok(dt) = DateTime::parse_from_str(&date, "%a %b %d %Y %H:%M:%S GMT%z") {
-        return Some(dt.naive_utc().timestamp_millis());
+    if let Ok(t) = OffsetDateTime::parse(&date, &format_description!("[weekday repr:short] [month repr:short] [day] [year] [hour]:[minute]:[second] GMT[offset_hour sign:mandatory][offset_minute][end]")) {
+        return Some(t.unix_timestamp() * 1000 + i64::from(t.millisecond()));
     }
 
     // `toUTCString` format: `Thu, 01 Jan 1970 00:00:00 GMT`
-    if let Ok(dt) = NaiveDateTime::parse_from_str(&date, "%a, %d %b %Y %H:%M:%S GMT") {
-        return Some(dt.timestamp_millis());
+    if let Ok(t) = PrimitiveDateTime::parse(&date, &format_description!("[weekday repr:short], [day] [month repr:short] [year] [hour]:[minute]:[second] GMT[end]")) {
+        let t = t.assume_utc();
+        return Some(t.unix_timestamp() * 1000 + i64::from(t.millisecond()));
     }
 
     None
