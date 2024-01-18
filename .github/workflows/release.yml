@@ -62,7 +62,7 @@ jobs:
           node-version: "20"
       - run: npm ci
       - name: Cache npm build
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             node_modules

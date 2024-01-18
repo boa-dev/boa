@@ -37,7 +37,7 @@ jobs:
           profile: minimal
       - uses: Swatinem/rust-cache@v2
       - name: Cache npm build
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             node_modules
