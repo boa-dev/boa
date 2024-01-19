@@ -457,16 +457,9 @@ impl Context {
     }
 
     #[cfg(feature = "trace")]
-    #[inline]
-    /// Initializes a partial `Vm` trace from the context.
-    pub fn init_partial_trace(&mut self) {
-        self.vm.trace.activate_partial_trace();
-    }
-
-    #[cfg(feature = "trace")]
     /// Sets custom handling of trace messages.
     pub fn set_tracer_implementation(&mut self, tracer: Box<dyn trace::Tracer>) {
-        self.init_trace();
+        // self.init_trace();
         self.vm.trace.set_tracer(tracer);
     }
 

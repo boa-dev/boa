@@ -32,7 +32,7 @@ pub mod flowgraph;
 pub(crate) use inline_cache::InlineCache;
 
 #[cfg(feature = "trace")]
-use trace::{TraceAction, VmTrace};
+use trace::VmTrace;
 
 // TODO: see if this can be exposed on all features.
 #[allow(unused_imports)]
@@ -397,10 +397,10 @@ impl Context {
         }
 
         #[cfg(feature = "trace")]
-        let result = if self.vm.trace.should_trace(&self.vm) == TraceAction::None {
-            self.execute_instruction(f)
-        } else {
+        let result = if self.vm.trace.should_trace(&self.vm.frame()) {
             self.trace_execute_instruction(f)
+        } else {
+            self.execute_instruction(f)
         };
 
         #[cfg(not(feature = "trace"))]

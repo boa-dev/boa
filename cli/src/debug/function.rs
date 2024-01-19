@@ -2,7 +2,7 @@ use boa_engine::{
     builtins::function::OrdinaryFunction,
     js_string,
     object::ObjectInitializer,
-    vm::flowgraph::{Direction, Graph},
+    vm::{flowgraph::{Direction, Graph}, trace::{Tracer, TraceAction}},
     Context, JsArgs, JsNativeError, JsObject, JsResult, JsValue, NativeFunction,
 };
 
@@ -121,6 +121,39 @@ fn bytecode(_: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue>
     Ok(js_string!(code.to_string()).into())
 }
 
+// ==== Trace functionality ====
+
+#[derive(Debug)]
+struct FunctionTracer;
+
+impl Tracer for FunctionTracer {
+    fn should_trace(&self, frame: &boa_engine::vm::CallFrame) -> TraceAction {
+        if frame.code_block().traceable() {
+            if frame.code_block().was_traced() {
+                return TraceAction::Block
+            }
+            return TraceAction::BlockWithBytecode
+        }
+        TraceAction::None
+    }
+
+    fn emit_bytecode_trace(&self, msg: &str) {
+        println!("{msg}");
+    }
+
+    fn emit_call_frame_entrance_trace(&self, msg: &str) {
+        println!("{msg}");
+    }
+
+    fn emit_call_frame_exit_trace(&self, msg: &str) {
+        println!("{msg}");
+    }
+
+    fn emit_instruction_trace(&self, msg: &str) {
+        println!("{msg}");
+    }
+}
+
 fn set_trace_flag_in_function_object(object: &JsObject, value: bool) -> JsResult<()> {
     let Some(function) = object.downcast_ref::<OrdinaryFunction>() else {
         return Err(JsNativeError::typ()
@@ -145,7 +178,7 @@ fn trace(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsVal
 
     let arguments = args.get(2..).unwrap_or(&[]);
 
-    context.init_partial_trace();
+    context.set_tracer_implementation(Box::new(FunctionTracer));
     set_trace_flag_in_function_object(callable, true)?;
     let result = callable.call(this, arguments, context);
     set_trace_flag_in_function_object(callable, false)?;
@@ -163,7 +196,7 @@ fn traceable(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<J
             .into());
     };
 
-    context.init_partial_trace();
+    context.set_tracer_implementation(Box::new(FunctionTracer));
     set_trace_flag_in_function_object(callable, traceable)?;
 
     Ok(value.clone())
