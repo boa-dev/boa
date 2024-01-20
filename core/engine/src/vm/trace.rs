@@ -3,7 +3,7 @@
 use std::collections::VecDeque;
 use std::fmt;
 
-use super::{Constant, Vm, CallFrame};
+use super::{CallFrame, Constant, Vm};
 
 // TODO: Build out further, maybe provide more element visiblity and events/outputs
 /// The `Tracer` trait is a customizable trait that can be provided to `Boa`
@@ -12,7 +12,7 @@ pub trait Tracer: fmt::Debug {
     /// Whether the current call frame should trace.
     fn should_trace(&self, frame: &CallFrame) -> TraceAction {
         if frame.code_block.name().to_std_string_escaped().as_str() == "<main>" {
-            return TraceAction::BlockWithFullBytecode
+            return TraceAction::BlockWithFullBytecode;
         }
         TraceAction::Block
     }
@@ -60,14 +60,6 @@ impl Tracer for ActiveTracer {
     }
 }
 
-impl Default for VmTrace {
-    fn default() -> Self {
-        Self {
-            tracers: Vec::default(),
-        }
-    }
-}
-
 /// `VmTrace` is a boa spcific structure for running Boa's Virtual Machine trace.
 ///
 /// It holds registered `Tracer` implementations and actions messages depending on
@@ -77,6 +69,7 @@ impl Default for VmTrace {
 ///
 /// After the Global callframe is initially provided. It searches
 /// for all possible compiled output
+#[derive(Default)]
 pub struct VmTrace {
     tracers: Vec<Box<dyn Tracer>>,
 }
@@ -90,12 +83,16 @@ impl VmTrace {
     }
 
     /// Returns whether there is an active trace request.
-    pub fn should_trace(&self, frame: &CallFrame) -> bool {
+    #[must_use]
+    pub(crate) fn should_trace(&self, frame: &CallFrame) -> bool {
         self.trace_action(frame) != TraceAction::None
     }
 
+    /// Returns the folded `TraceAction` of the current `Tracer`s
     pub(crate) fn trace_action(&self, frame: &CallFrame) -> TraceAction {
-        (&self.tracers).into_iter().fold(TraceAction::None, |a, b| a.max(b.should_trace(frame)))
+        self.tracers
+            .iter()
+            .fold(TraceAction::None, |a, b| a.max(b.should_trace(frame)))
     }
 
     /// Sets the current `Tracer` of `VmTrace`.

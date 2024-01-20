@@ -2,7 +2,10 @@ use boa_engine::{
     builtins::function::OrdinaryFunction,
     js_string,
     object::ObjectInitializer,
-    vm::{flowgraph::{Direction, Graph}, trace::{Tracer, TraceAction}},
+    vm::{
+        flowgraph::{Direction, Graph},
+        trace::{TraceAction, Tracer},
+    },
     Context, JsArgs, JsNativeError, JsObject, JsResult, JsValue, NativeFunction,
 };
 
@@ -130,9 +133,9 @@ impl Tracer for FunctionTracer {
     fn should_trace(&self, frame: &boa_engine::vm::CallFrame) -> TraceAction {
         if frame.code_block().traceable() {
             if frame.code_block().was_traced() {
-                return TraceAction::Block
+                return TraceAction::Block;
             }
-            return TraceAction::BlockWithBytecode
+            return TraceAction::BlockWithBytecode;
         }
         TraceAction::None
     }

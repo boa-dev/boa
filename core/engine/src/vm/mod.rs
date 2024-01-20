@@ -397,7 +397,7 @@ impl Context {
         }
 
         #[cfg(feature = "trace")]
-        let result = if self.vm.trace.should_trace(&self.vm.frame()) {
+        let result = if self.vm.trace.should_trace(self.vm.frame()) {
             self.trace_execute_instruction(f)
         } else {
             self.execute_instruction(f)

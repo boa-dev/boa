@@ -4,8 +4,8 @@
 
 use boa_engine::{Context, Source, vm::trace::Tracer};
 use getrandom as _;
-use wasm_bindgen::prelude::*;
 use std::fmt;
+use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen(start)]
 fn main_js() {
