@@ -91,9 +91,9 @@ pub(crate) fn round_number_to_increment(
     // 4. Let unsignedRoundingMode be GetUnsignedRoundingMode(roundingMode, isNegative).
     let unsigned_rounding_mode = rounding_mode.get_unsigned_round_mode(is_negative);
     // 5. Let r1 be the largest integer such that r1 ≤ quotient.
-    let r1 = quotient.ceil();
+    let r1 = quotient.floor();
     // 6. Let r2 be the smallest integer such that r2 > quotient.
-    let r2 = quotient.floor();
+    let r2 = quotient.ceil();
     // 7. Let rounded be ApplyUnsignedRoundingMode(quotient, r1, r2, unsignedRoundingMode).
     let mut rounded = apply_unsigned_rounding_mode(quotient, r1, r2, unsigned_rounding_mode);
     // 8. If isNegative is true, set rounded to -rounded.
@@ -102,6 +102,19 @@ pub(crate) fn round_number_to_increment(
     };
     // 9. Return rounded × increment.
     rounded * increment
+}
+
+pub(crate) fn round_number_to_increment_as_if_positive(
+    nanos: f64,
+    increment_nanos: f64,
+    rounding_mode: TemporalRoundingMode,
+) -> f64 {
+    let quotient = nanos / increment_nanos;
+    let unsigned_rounding_mode = rounding_mode.get_unsigned_round_mode(false);
+    let r1 = quotient.floor();
+    let r2 = quotient.ceil();
+    let rounded = apply_unsigned_rounding_mode(nanos, r1, r2, unsigned_rounding_mode);
+    rounded * increment_nanos
 }
 
 // ==== Begin Date Equations ====

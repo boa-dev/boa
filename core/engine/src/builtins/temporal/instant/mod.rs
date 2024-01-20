@@ -20,7 +20,10 @@ use crate::{
 };
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
-use boa_temporal::{components::{Duration, Instant as InnerInstant}, options::TemporalUnit};
+use boa_temporal::{
+    components::{Duration, Instant as InnerInstant},
+    options::TemporalUnit,
+};
 
 use super::{ns_max_instant, ns_min_instant, MIS_PER_DAY, MS_PER_DAY, NS_PER_DAY};
 
@@ -198,7 +201,8 @@ impl Instant {
         // 3. Let ns be instant.[[Nanoseconds]].
         // 4. Let µs be floor(ℝ(ns) / 103).
         // 5. Return ℤ(µs).
-        let big_int = JsBigInt::try_from(instant.inner.epoch_microseconds()).expect("valid microseconds is in range of BigInt");
+        let big_int = JsBigInt::try_from(instant.inner.epoch_microseconds())
+            .expect("valid microseconds is in range of BigInt");
         Ok(big_int.into())
     }
 
@@ -218,7 +222,8 @@ impl Instant {
             })?;
         // 3. Let ns be instant.[[Nanoseconds]].
         // 4. Return ns.
-        let big_int = JsBigInt::try_from(instant.inner.epoch_nanoseconds()).expect("valid nanoseconds is in range of BigInt");
+        let big_int = JsBigInt::try_from(instant.inner.epoch_nanoseconds())
+            .expect("valid nanoseconds is in range of BigInt");
         Ok(big_int.into())
     }
 
@@ -494,12 +499,7 @@ fn create_temporal_instant(
         get_prototype_from_constructor(&new_target, StandardConstructors::instant, context)?;
 
     // 4. Set object.[[Nanoseconds]] to epochNanoseconds.
-    let obj = JsObject::from_proto_and_data(
-        proto,
-        Instant {
-            inner: instant,
-        },
-    );
+    let obj = JsObject::from_proto_and_data(proto, Instant { inner: instant });
 
     // 5. Return object.
     Ok(obj.into())
