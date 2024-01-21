@@ -138,7 +138,7 @@ pub(crate) fn round_number_to_increment_as_if_positive(
     // 4. Let r2 be the smallest integer such that r2 > quotient.
     let r2 = quotient.ceil();
     // 5. Let rounded be ApplyUnsignedRoundingMode(quotient, r1, r2, unsignedRoundingMode).
-    let rounded = apply_unsigned_rounding_mode(nanos, r1, r2, unsigned_rounding_mode);
+    let rounded = apply_unsigned_rounding_mode(quotient, r1, r2, unsigned_rounding_mode);
     // 6. Return rounded × increment.
     rounded * increment_nanos
 }
