@@ -9,6 +9,7 @@ use std::ops::Mul;
 
 // NOTE: Review the below for optimizations and add ALOT of tests.
 
+/// Converts and validates an `Option<f64>` rounding increment value into a valid increment result.
 pub(crate) fn to_rounding_increment(increment: Option<f64>) -> TemporalResult<f64> {
     let inc = increment.unwrap_or(1.0);
 
@@ -122,16 +123,23 @@ pub(crate) fn round_number_to_increment(
     rounded * increment
 }
 
+/// Rounds provided number assuming that the increment is greater than 0.
 pub(crate) fn round_number_to_increment_as_if_positive(
     nanos: f64,
     increment_nanos: f64,
     rounding_mode: TemporalRoundingMode,
 ) -> f64 {
+    // 1. Let quotient be x / increment.
     let quotient = nanos / increment_nanos;
+    // 2. Let unsignedRoundingMode be GetUnsignedRoundingMode(roundingMode, false).
     let unsigned_rounding_mode = rounding_mode.get_unsigned_round_mode(false);
+    // 3. Let r1 be the largest integer such that r1 ≤ quotient.
     let r1 = quotient.floor();
+    // 4. Let r2 be the smallest integer such that r2 > quotient.
     let r2 = quotient.ceil();
+    // 5. Let rounded be ApplyUnsignedRoundingMode(quotient, r1, r2, unsignedRoundingMode).
     let rounded = apply_unsigned_rounding_mode(nanos, r1, r2, unsigned_rounding_mode);
+    // 6. Return rounded × increment.
     rounded * increment_nanos
 }
 

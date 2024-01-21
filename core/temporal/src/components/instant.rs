@@ -89,6 +89,7 @@ impl Instant {
         Ok(result)
     }
 
+    /// Rounds a current `Instant` given the resolved options, returning a `BigInt` result.
     pub(crate) fn round_instant(
         &self,
         increment: f64,
