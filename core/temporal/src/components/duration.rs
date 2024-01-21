@@ -939,6 +939,15 @@ fn duration_sign(set: &Vec<f64>) -> i32 {
     0
 }
 
+impl From<TimeDuration> for Duration {
+    fn from(value: TimeDuration) -> Self {
+        Self {
+            time: value,
+            date: DateDuration::default(),
+        }
+    }
+}
+
 // ==== FromStr trait impl ====
 
 impl FromStr for Duration {

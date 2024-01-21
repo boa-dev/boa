@@ -2,12 +2,30 @@
 
 use crate::{
     options::{TemporalRoundingMode, TemporalUnsignedRoundingMode},
-    MS_PER_DAY,
+    TemporalError, TemporalResult, MS_PER_DAY,
 };
 
 use std::ops::Mul;
 
 // NOTE: Review the below for optimizations and add ALOT of tests.
+
+pub(crate) fn to_rounding_increment(increment: Option<f64>) -> TemporalResult<f64> {
+    let inc = increment.unwrap_or(1.0);
+
+    if !inc.is_finite() {
+        return Err(TemporalError::range().with_message("roundingIncrement must be finite."));
+    }
+
+    let integer = inc.trunc();
+
+    if !(1.0..=1_000_000_000f64).contains(&integer) {
+        return Err(
+            TemporalError::range().with_message("roundingIncrement is not within a valid range.")
+        );
+    }
+
+    Ok(integer)
+}
 
 fn apply_unsigned_rounding_mode(
     x: f64,
@@ -115,6 +133,26 @@ pub(crate) fn round_number_to_increment_as_if_positive(
     let r2 = quotient.ceil();
     let rounded = apply_unsigned_rounding_mode(nanos, r1, r2, unsigned_rounding_mode);
     rounded * increment_nanos
+}
+
+pub(crate) fn validate_temporal_rounding_increment(
+    increment: u32,
+    dividend: u64,
+    inclusive: bool,
+) -> TemporalResult<()> {
+    let max = if inclusive { dividend } else { dividend - 1 };
+
+    if u64::from(increment) > max {
+        return Err(TemporalError::range().with_message("roundingIncrement exceeds maximum."));
+    }
+
+    if dividend.rem_euclid(u64::from(increment)) != 0 {
+        return Err(
+            TemporalError::range().with_message("dividend is not divisble by roundingIncrement.")
+        );
+    }
+
+    Ok(())
 }
 
 // ==== Begin Date Equations ====

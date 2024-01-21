@@ -13,11 +13,13 @@ use crate::{
     js_string, Context, JsNativeError, JsObject, JsResult,
 };
 use boa_temporal::options::{
-    ArithmeticOverflow, DurationOverflow, InstantDisambiguation, OffsetDisambiguation, TemporalUnit,
+    ArithmeticOverflow, DurationOverflow, InstantDisambiguation, OffsetDisambiguation,
+    TemporalRoundingMode, TemporalUnit,
 };
 
 // TODO: Expand docs on the below options.
 
+// TODO: Remove and refactor: migrate to `boa_temporal`
 #[inline]
 pub(crate) fn get_temporal_rounding_increment(
     options: &JsObject,
@@ -131,3 +133,4 @@ impl ParsableOptionType for ArithmeticOverflow {}
 impl ParsableOptionType for DurationOverflow {}
 impl ParsableOptionType for InstantDisambiguation {}
 impl ParsableOptionType for OffsetDisambiguation {}
+impl ParsableOptionType for TemporalRoundingMode {}

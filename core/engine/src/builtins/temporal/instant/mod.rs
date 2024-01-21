@@ -1,11 +1,11 @@
 //! Boa's implementation of ECMAScript's `Temporal.Instant` builtin object.
-#![allow(dead_code)]
 
 use crate::{
     builtins::{
-        options::{get_option, get_options_object, RoundingMode},
-        temporal::options::{
-            get_temporal_rounding_increment, get_temporal_unit, TemporalUnitGroup,
+        options::{get_option, get_options_object},
+        temporal::{
+            duration::{create_temporal_duration, to_temporal_duration_record},
+            options::{get_temporal_unit, TemporalUnitGroup},
         },
         BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
     },
@@ -21,15 +21,9 @@ use crate::{
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
 use boa_temporal::{
-    components::{Duration, Instant as InnerInstant},
-    options::TemporalUnit,
+    components::Instant as InnerInstant,
+    options::{TemporalRoundingMode, TemporalUnit},
 };
-
-use super::{ns_max_instant, ns_min_instant, MIS_PER_DAY, MS_PER_DAY, NS_PER_DAY};
-
-const NANOSECONDS_PER_SECOND: i64 = 10_000_000_000;
-const NANOSECONDS_PER_MINUTE: i64 = 600_000_000_000;
-const NANOSECONDS_PER_HOUR: i64 = 36_000_000_000_000;
 
 /// The `Temporal.Instant` object.
 #[derive(Debug, Clone, Trace, Finalize, JsData)]
@@ -243,8 +237,9 @@ impl Instant {
             })?;
 
         // 3. Return ? AddDurationToOrSubtractDurationFromInstant(add, instant, temporalDurationLike).
-        let temporal_duration_like = args.get_or_undefined(0);
-        add_or_subtract_duration_from_instant(true, &instant, temporal_duration_like, context)
+        let temporal_duration_like = to_temporal_duration_record(args.get_or_undefined(0))?;
+        let result = instant.inner.add(temporal_duration_like)?;
+        create_temporal_instant(result, None, context)
     }
 
     /// 8.3.8 `Temporal.Instant.prototype.subtract ( temporalDurationLike )`
@@ -263,8 +258,9 @@ impl Instant {
             })?;
 
         // 3. Return ? AddDurationToOrSubtractDurationFromInstant(subtract, instant, temporalDurationLike).
-        let temporal_duration_like = args.get_or_undefined(0);
-        add_or_subtract_duration_from_instant(false, &instant, temporal_duration_like, context)
+        let temporal_duration_like = to_temporal_duration_record(args.get_or_undefined(0))?;
+        let result = instant.inner.subtract(temporal_duration_like)?;
+        create_temporal_instant(result, None, context)
     }
 
     /// 8.3.9 `Temporal.Instant.prototype.until ( other [ , options ] )`
@@ -283,9 +279,17 @@ impl Instant {
             })?;
 
         // 3. Return ? DifferenceTemporalInstant(until, instant, other, options).
-        let other = args.get_or_undefined(0);
-        let option = args.get_or_undefined(1);
-        diff_temporal_instant(true, &instant, other, option, context)
+        let other = to_temporal_instant(args.get_or_undefined(0))?;
+        // TODO: Fetch the necessary options.
+        let options = get_options_object(args.get_or_undefined(1))?;
+        let mode = get_option::<TemporalRoundingMode>(&options, utf16!("roundingMode"), context)?;
+        let increment = get_option::<f64>(&options, utf16!("roundingIncrement"), context)?;
+        let smallest_unit = get_option::<TemporalUnit>(&options, utf16!("smallestUnit"), context)?;
+        let largest_unit = get_option::<TemporalUnit>(&options, utf16!("largestUnit"), context)?;
+        let result = instant
+            .inner
+            .until(&other, mode, increment, smallest_unit, largest_unit)?;
+        create_temporal_duration(result.into(), None, context).map(Into::into)
     }
 
     /// 8.3.10 `Temporal.Instant.prototype.since ( other [ , options ] )`
@@ -304,9 +308,16 @@ impl Instant {
             })?;
 
         // 3. Return ? DifferenceTemporalInstant(since, instant, other, options).
-        let other = args.get_or_undefined(0);
-        let option = args.get_or_undefined(1);
-        diff_temporal_instant(false, &instant, other, option, context)
+        let other = to_temporal_instant(args.get_or_undefined(0))?;
+        let options = get_options_object(args.get_or_undefined(1))?;
+        let mode = get_option::<TemporalRoundingMode>(&options, utf16!("roundingMode"), context)?;
+        let increment = get_option::<f64>(&options, utf16!("roundingIncrement"), context)?;
+        let smallest_unit = get_option::<TemporalUnit>(&options, utf16!("smallestUnit"), context)?;
+        let largest_unit = get_option::<TemporalUnit>(&options, utf16!("largestUnit"), context)?;
+        let result = instant
+            .inner
+            .since(&other, mode, increment, smallest_unit, largest_unit)?;
+        create_temporal_duration(result.into(), None, context).map(Into::into)
     }
 
     /// 8.3.11 `Temporal.Instant.prototype.round ( roundTo )`
@@ -356,11 +367,12 @@ impl Instant {
         // 6. NOTE: The following steps read options and perform independent validation in
         // alphabetical order (ToTemporalRoundingIncrement reads "roundingIncrement" and ToTemporalRoundingMode reads "roundingMode").
         // 7. Let roundingIncrement be ? ToTemporalRoundingIncrement(roundTo).
-        let rounding_increment = get_temporal_rounding_increment(&round_to, context)?;
+        let rounding_increment =
+            get_option::<f64>(&round_to, utf16!("roundingIncrement"), context)?;
 
         // 8. Let roundingMode be ? ToTemporalRoundingMode(roundTo, "halfExpand").
         let rounding_mode =
-            get_option(&round_to, utf16!("roundingMode"), context)?.unwrap_or_default();
+            get_option::<TemporalRoundingMode>(&round_to, utf16!("roundingMode"), context)?;
 
         // 9. Let smallestUnit be ? GetTemporalUnit(roundTo, "smallestUnit"), time, required).
         let smallest_unit = get_temporal_unit(
@@ -372,43 +384,28 @@ impl Instant {
         )?
         .ok_or_else(|| JsNativeError::range().with_message("smallestUnit cannot be undefined."))?;
 
-        let maximum = match smallest_unit {
-            // 10. If smallestUnit is "hour"), then
-            // a. Let maximum be HoursPerDay.
-            TemporalUnit::Hour => 24u64,
-            // 11. Else if smallestUnit is "minute"), then
-            // a. Let maximum be MinutesPerHour × HoursPerDay.
-            TemporalUnit::Minute => 14400u64,
-            // 12. Else if smallestUnit is "second"), then
-            // a. Let maximum be SecondsPerMinute × MinutesPerHour × HoursPerDay.
-            TemporalUnit::Second => 86400u64,
-            // 13. Else if smallestUnit is "millisecond"), then
-            // a. Let maximum be ℝ(msPerDay).
-            TemporalUnit::Millisecond => MS_PER_DAY as u64,
-            // 14. Else if smallestUnit is "microsecond"), then
-            // a. Let maximum be 10^3 × ℝ(msPerDay).
-            TemporalUnit::Microsecond => MIS_PER_DAY as u64,
-            // 15. Else,
-            // a. Assert: smallestUnit is "nanosecond".
-            // b. Let maximum be nsPerDay.
-            TemporalUnit::Nanosecond => NS_PER_DAY as u64,
-            // unreachable here functions as 15.a.
-            _ => unreachable!(),
-        };
-
+        // 10. If smallestUnit is "hour"), then
+        // a. Let maximum be HoursPerDay.
+        // 11. Else if smallestUnit is "minute"), then
+        // a. Let maximum be MinutesPerHour × HoursPerDay.
+        // 12. Else if smallestUnit is "second"), then
+        // a. Let maximum be SecondsPerMinute × MinutesPerHour × HoursPerDay.
+        // 13. Else if smallestUnit is "millisecond"), then
+        // a. Let maximum be ℝ(msPerDay).
+        // 14. Else if smallestUnit is "microsecond"), then
+        // a. Let maximum be 10^3 × ℝ(msPerDay).
+        // 15. Else,
+        // a. Assert: smallestUnit is "nanosecond".
+        // b. Let maximum be nsPerDay.
+        // unreachable here functions as 15.a.
         // 16. Perform ? ValidateTemporalRoundingIncrement(roundingIncrement, maximum, true).
-        super::validate_temporal_rounding_increment(rounding_increment.into(), maximum, true)?;
-
         // 17. Let roundedNs be RoundTemporalInstant(instant.[[Nanoseconds]], roundingIncrement, smallestUnit, roundingMode).
-        let rounded_ns = round_temporal_instant(
-            &instant.nanoseconds,
-            rounding_increment.into(),
-            smallest_unit,
-            rounding_mode,
-        )?;
+        let result = instant
+            .inner
+            .round(rounding_increment, smallest_unit, rounding_mode)?;
 
         // 18. Return ! CreateTemporalInstant(roundedNs).
-        create_temporal_instant(rounded_ns, None, context)
+        create_temporal_instant(result, None, context)
     }
 
     /// 8.3.12 `Temporal.Instant.prototype.equals ( other )`
@@ -428,7 +425,7 @@ impl Instant {
         let other = args.get_or_undefined(0);
         let other_instant = to_temporal_instant(other)?;
 
-        if instant.inner != other_instant.inner {
+        if instant.inner != other_instant {
             return Ok(false.into());
         }
         Ok(true.into())
@@ -461,20 +458,8 @@ impl Instant {
 
 // -- Instant Abstract Operations --
 
-/// 8.5.1 `IsValidEpochNanoseconds ( epochNanoseconds )`
-#[inline]
-fn is_valid_epoch_nanos(epoch_nanos: &JsBigInt) -> bool {
-    // 1. Assert: Type(epochNanoseconds) is BigInt.
-    // 2. If ℝ(epochNanoseconds) < nsMinInstant or ℝ(epochNanoseconds) > nsMaxInstant, then
-    if epoch_nanos.to_f64() < ns_min_instant().to_f64()
-        || epoch_nanos.to_f64() > ns_max_instant().to_f64()
-    {
-        // a. Return false.
-        return false;
-    }
-    // 3. Return true.
-    true
-}
+// 8.5.1 `IsValidEpochNanoseconds ( epochNanoseconds )`
+// Implemented in `boa_temporal`
 
 /// 8.5.2 `CreateTemporalInstant ( epochNanoseconds [ , newTarget ] )`
 #[inline]
@@ -507,231 +492,9 @@ fn create_temporal_instant(
 
 /// 8.5.3 `ToTemporalInstant ( item )`
 #[inline]
-fn to_temporal_instant(_: &JsValue) -> JsResult<Instant> {
+fn to_temporal_instant(_: &JsValue) -> JsResult<InnerInstant> {
     // TODO: Need to implement parsing.
     Err(JsNativeError::error()
         .with_message("Instant parsing is not yet implemented.")
         .into())
-}
-
-/// 8.5.6 `AddInstant ( epochNanoseconds, hours, minutes, seconds, milliseconds, microseconds, nanoseconds )`
-#[inline]
-fn add_instant(
-    epoch_nanos: &JsBigInt,
-    hours: i32,
-    minutes: i32,
-    seconds: i32,
-    millis: i32,
-    micros: i32,
-    nanos: i32,
-) -> JsResult<JsBigInt> {
-    let result = JsBigInt::add_n(&[
-        JsBigInt::mul(
-            &JsBigInt::from(hours),
-            &JsBigInt::from(NANOSECONDS_PER_HOUR),
-        ),
-        JsBigInt::mul(
-            &JsBigInt::from(minutes),
-            &JsBigInt::from(NANOSECONDS_PER_MINUTE),
-        ),
-        JsBigInt::mul(
-            &JsBigInt::from(seconds),
-            &JsBigInt::from(NANOSECONDS_PER_SECOND),
-        ),
-        JsBigInt::mul(&JsBigInt::from(millis), &JsBigInt::from(10_000_000_i32)),
-        JsBigInt::mul(&JsBigInt::from(micros), &JsBigInt::from(1000_i32)),
-        JsBigInt::add(&JsBigInt::from(nanos), epoch_nanos),
-    ]);
-    if !is_valid_epoch_nanos(&result) {
-        return Err(JsNativeError::range()
-            .with_message("result is not a valid epoch nanosecond value.")
-            .into());
-    }
-    Ok(result)
-}
-
-/// 8.5.7 `DifferenceInstant ( ns1, ns2, roundingIncrement, smallestUnit, largestUnit, roundingMode )`
-#[inline]
-fn diff_instant(
-    ns1: &JsBigInt,
-    ns2: &JsBigInt,
-    _rounding_increment: f64,
-    _smallest_unit: TemporalUnit,
-    _largest_unit: TemporalUnit,
-    _rounding_mode: RoundingMode,
-    _context: &mut Context,
-) -> JsResult<Duration> {
-    // 1. Let difference be ℝ(ns2) - ℝ(ns1).
-    let difference = JsBigInt::sub(ns1, ns2);
-    // 2. Let nanoseconds be remainder(difference, 1000).
-    let _nanoseconds = JsBigInt::rem(&difference, &JsBigInt::from(1000));
-    // 3. Let microseconds be remainder(truncate(difference / 1000), 1000).
-    let truncated_micro = JsBigInt::try_from((&difference.to_f64() / 1000_f64).trunc())
-        .map_err(|e| JsNativeError::typ().with_message(e.to_string()))?;
-    let _microseconds = JsBigInt::rem(&truncated_micro, &JsBigInt::from(1000));
-
-    // 4. Let milliseconds be remainder(truncate(difference / 106), 1000).
-    let truncated_milli = JsBigInt::try_from((&difference.to_f64() / 1_000_000_f64).trunc())
-        .map_err(|e| JsNativeError::typ().with_message(e.to_string()))?;
-    let _milliseconds = JsBigInt::rem(&truncated_milli, &JsBigInt::from(1000));
-
-    // 5. Let seconds be truncate(difference / 10^9).
-    let _seconds = (&difference.to_f64() / 1_000_000_000_f64).trunc();
-
-    // TODO: Update to new Temporal library
-    // 6. If smallestUnit is "nanosecond" and roundingIncrement is 1, then
-    // a. Return ! BalanceTimeDuration(0, 0, 0, seconds, milliseconds, microseconds, nanoseconds, largestUnit).
-    // 7. Let roundResult be ! RoundDuration(0, 0, 0, 0, 0, 0, seconds, milliseconds, microseconds, nanoseconds, roundingIncrement, smallestUnit, largestUnit, roundingMode).
-    // 8. Assert: roundResult.[[Days]] is 0.
-    // 9. Return ! BalanceTimeDuration(0, roundResult.[[Hours]], roundResult.[[Minutes]],
-    //    roundResult.[[Seconds]], roundResult.[[Milliseconds]], roundResult.[[Microseconds]],
-    //    roundResult.[[Nanoseconds]], largestUnit).
-
-    Err(JsNativeError::error()
-        .with_message("not yet implemented.")
-        .into())
-}
-
-/// 8.5.8 `RoundTemporalInstant ( ns, increment, unit, roundingMode )`
-#[inline]
-fn round_temporal_instant(
-    ns: &JsBigInt,
-    increment: f64,
-    unit: TemporalUnit,
-    rounding_mode: RoundingMode,
-) -> JsResult<JsBigInt> {
-    let increment_ns = match unit {
-        // 1. If unit is "hour"), then
-        TemporalUnit::Hour => {
-            // a. Let incrementNs be increment × 3.6 × 10^12.
-            increment as i64 * NANOSECONDS_PER_HOUR
-        }
-        // 2. Else if unit is "minute"), then
-        TemporalUnit::Minute => {
-            // a. Let incrementNs be increment × 6 × 10^10.
-            increment as i64 * NANOSECONDS_PER_MINUTE
-        }
-        // 3. Else if unit is "second"), then
-        TemporalUnit::Second => {
-            // a. Let incrementNs be increment × 10^9.
-            increment as i64 * NANOSECONDS_PER_SECOND
-        }
-        // 4. Else if unit is "millisecond"), then
-        TemporalUnit::Millisecond => {
-            // a. Let incrementNs be increment × 10^6.
-            increment as i64 * 1_000_000
-        }
-        // 5. Else if unit is "microsecond"), then
-        TemporalUnit::Microsecond => {
-            // a. Let incrementNs be increment × 10^3.
-            increment as i64 * 1000
-        }
-        // 6. Else,
-        TemporalUnit::Nanosecond => {
-            // NOTE: We shouldn't have to assert here as `unreachable` asserts instead.
-            // a. Assert: unit is "nanosecond".
-            // b. Let incrementNs be increment.
-            increment as i64
-        }
-        _ => unreachable!(),
-    };
-
-    // 7. Return ℤ(RoundNumberToIncrementAsIfPositive(ℝ(ns), incrementNs, roundingMode)).
-    super::round_to_increment_as_if_positive(ns, increment_ns, rounding_mode)
-}
-
-/// 8.5.10 `DifferenceTemporalInstant ( operation, instant, other, options )`
-#[inline]
-fn diff_temporal_instant(
-    op: bool,
-    instant: &Instant,
-    other: &JsValue,
-    options: &JsValue,
-    context: &mut Context,
-) -> JsResult<JsValue> {
-    // 1. If operation is since, let sign be -1. Otherwise, let sign be 1.
-    let _sign = if op { 1_f64 } else { -1_f64 };
-    // 2. Set other to ? ToTemporalInstant(other).
-    let other = to_temporal_instant(other)?;
-    // 3. Let resolvedOptions be ? CopyOptions(options).
-    let resolved_options =
-        super::snapshot_own_properties(&get_options_object(options)?, None, None, context)?;
-
-    // 4. Let settings be ? GetDifferenceSettings(operation, resolvedOptions, time, « », "nanosecond"), "second").
-    let settings = super::get_diff_settings(
-        op,
-        &resolved_options,
-        TemporalUnitGroup::Time,
-        &[],
-        TemporalUnit::Nanosecond,
-        TemporalUnit::Second,
-        context,
-    )?;
-
-    // 5. Let result be DifferenceInstant(instant.[[Nanoseconds]], other.[[Nanoseconds]], settings.[[RoundingIncrement]], settings.[[SmallestUnit]], settings.[[LargestUnit]], settings.[[RoundingMode]]).
-    let _result = diff_instant(
-        &instant.nanoseconds,
-        &other.nanoseconds,
-        settings.3,
-        settings.0,
-        settings.1,
-        settings.2,
-        context,
-    )?;
-
-    // TODO: diff_instant will error so this shouldn't run.
-    unimplemented!();
-    // 6. Return ! CreateTemporalDuration(0, 0, 0, 0, sign × result.[[Hours]], sign × result.[[Minutes]], sign × result.[[Seconds]], sign × result.[[Milliseconds]], sign × result.[[Microseconds]], sign × result.[[Nanoseconds]]).
-}
-
-/// 8.5.11 `AddDurationToOrSubtractDurationFromInstant ( operation, instant, temporalDurationLike )`
-#[inline]
-fn add_or_subtract_duration_from_instant(
-    op: bool,
-    instant: &Instant,
-    temporal_duration_like: &JsValue,
-    context: &mut Context,
-) -> JsResult<JsValue> {
-    // 1. If operation is subtract, let sign be -1. Otherwise, let sign be 1.
-    let sign = if op { 1 } else { -1 };
-    // 2. Let duration be ? ToTemporalDurationRecord(temporalDurationLike).
-    let duration = super::to_temporal_duration_record(temporal_duration_like)?;
-    // 3. If duration.[[Days]] is not 0, throw a RangeError exception.
-    if duration.date().days() != 0_f64 {
-        return Err(JsNativeError::range()
-            .with_message("DurationDays cannot be 0")
-            .into());
-    }
-    // 4. If duration.[[Months]] is not 0, throw a RangeError exception.
-    if duration.date().months() != 0_f64 {
-        return Err(JsNativeError::range()
-            .with_message("DurationMonths cannot be 0")
-            .into());
-    }
-    // 5. If duration.[[Weeks]] is not 0, throw a RangeError exception.
-    if duration.date().weeks() != 0_f64 {
-        return Err(JsNativeError::range()
-            .with_message("DurationWeeks cannot be 0")
-            .into());
-    }
-    // 6. If duration.[[Years]] is not 0, throw a RangeError exception.
-    if duration.date().years() != 0_f64 {
-        return Err(JsNativeError::range()
-            .with_message("DurationYears cannot be 0")
-            .into());
-    }
-    // 7. Let ns be ? AddInstant(instant.[[Nanoseconds]], sign × duration.[[Hours]],
-    // sign × duration.[[Minutes]], sign × duration.[[Seconds]], sign × duration.[[Milliseconds]],
-    // sign × duration.[[Microseconds]], sign × duration.[[Nanoseconds]]).
-    let new = add_instant(
-        &instant.nanoseconds,
-        sign * duration.time().hours() as i32,
-        sign * duration.time().minutes() as i32,
-        sign * duration.time().seconds() as i32,
-        sign * duration.time().milliseconds() as i32,
-        sign * duration.time().microseconds() as i32,
-        sign * duration.time().nanoseconds() as i32,
-    )?;
-    // 8. Return ! CreateTemporalInstant(ns).
-    create_temporal_instant(new, None, context)
 }

@@ -22,41 +22,30 @@ mod zoned_date_time;
 #[cfg(test)]
 mod tests;
 
-use self::options::{get_temporal_rounding_increment, get_temporal_unit, TemporalUnitGroup};
 pub use self::{
     calendar::*, duration::*, instant::*, now::*, plain_date::*, plain_date_time::*,
     plain_month_day::*, plain_time::*, plain_year_month::*, time_zone::*, zoned_date_time::*,
 };
 
 use crate::{
-    builtins::{
-        iterable::IteratorRecord,
-        options::{get_option, RoundingMode, UnsignedRoundingMode},
-        BuiltInBuilder, BuiltInObject, IntrinsicObject,
-    },
+    builtins::{iterable::IteratorRecord, BuiltInBuilder, BuiltInObject, IntrinsicObject},
     context::intrinsics::Intrinsics,
     js_string,
     property::Attribute,
     realm::Realm,
-    string::{common::StaticJsStrings, utf16},
+    string::common::StaticJsStrings,
     value::Type,
     Context, JsBigInt, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 use boa_profiler::Profiler;
-use boa_temporal::options::TemporalUnit;
+use boa_temporal::NS_PER_DAY;
 
-// Relavant numeric constants
-/// Nanoseconds per day constant: 8.64e+13
-pub(crate) const NS_PER_DAY: i64 = 86_400_000_000_000;
-/// Microseconds per day constant: 8.64e+10
-pub(crate) const MIS_PER_DAY: i64 = 8_640_000_000;
-/// Milliseconds per day constant: 8.64e+7
-pub(crate) const MS_PER_DAY: i32 = 24 * 60 * 60 * 1000;
-
+// TODO: Remove in favor of `boa_temporal`
 pub(crate) fn ns_max_instant() -> JsBigInt {
     JsBigInt::from(i128::from(NS_PER_DAY) * 100_000_000_i128)
 }
 
+// TODO: Remove in favor of `boa_temporal`
 pub(crate) fn ns_min_instant() -> JsBigInt {
     JsBigInt::from(i128::from(NS_PER_DAY) * -100_000_000_i128)
 }
@@ -226,9 +215,7 @@ pub(crate) fn _iterator_to_list_of_types(
 // Note: implemented on IsoDateRecord.
 
 // Abstract Operation 13.3 `EpochDaysToEpochMs`
-pub(crate) fn _epoch_days_to_epoch_ms(day: i32, time: i32) -> f64 {
-    f64::from(day).mul_add(f64::from(MS_PER_DAY), f64::from(time))
-}
+// Migrated to `boa_temporal`
 
 // 13.4 Date Equations
 // implemented in temporal/date_equations.rs
@@ -306,127 +293,14 @@ pub(crate) fn to_relative_temporal_object(
 // 13.26 `GetUnsignedRoundingMode ( roundingMode, isNegative )`
 // Implemented on RoundingMode in builtins/options.rs
 
-/// 13.27 `ApplyUnsignedRoundingMode ( x, r1, r2, unsignedRoundingMode )`
-#[inline]
-fn apply_unsigned_rounding_mode(
-    x: f64,
-    r1: f64,
-    r2: f64,
-    unsigned_rounding_mode: UnsignedRoundingMode,
-) -> f64 {
-    // 1. If x is equal to r1, return r1.
-    if (x - r1).abs() == 0.0 {
-        return r1;
-    };
-    // 2. Assert: r1 < x < r2.
-    assert!(r1 < x && x < r2);
-    // 3. Assert: unsignedRoundingMode is not undefined.
+// 13.27 `ApplyUnsignedRoundingMode ( x, r1, r2, unsignedRoundingMode )`
+// Migrated to `boa_temporal`
 
-    // 4. If unsignedRoundingMode is zero, return r1.
-    if unsigned_rounding_mode == UnsignedRoundingMode::Zero {
-        return r1;
-    };
-    // 5. If unsignedRoundingMode is infinity, return r2.
-    if unsigned_rounding_mode == UnsignedRoundingMode::Infinity {
-        return r2;
-    };
+// 13.28 `RoundNumberToIncrement ( x, increment, roundingMode )`
+// Migrated to `boa_temporal`
 
-    // 6. Let d1 be x – r1.
-    let d1 = x - r1;
-    // 7. Let d2 be r2 – x.
-    let d2 = r2 - x;
-    // 8. If d1 < d2, return r1.
-    if d1 < d2 {
-        return r1;
-    }
-    // 9. If d2 < d1, return r2.
-    if d2 < d1 {
-        return r2;
-    }
-    // 10. Assert: d1 is equal to d2.
-    assert!((d1 - d2).abs() == 0.0);
-
-    // 11. If unsignedRoundingMode is half-zero, return r1.
-    if unsigned_rounding_mode == UnsignedRoundingMode::HalfZero {
-        return r1;
-    };
-    // 12. If unsignedRoundingMode is half-infinity, return r2.
-    if unsigned_rounding_mode == UnsignedRoundingMode::HalfInfinity {
-        return r2;
-    };
-    // 13. Assert: unsignedRoundingMode is half-even.
-    assert!(unsigned_rounding_mode == UnsignedRoundingMode::HalfEven);
-    // 14. Let cardinality be (r1 / (r2 – r1)) modulo 2.
-    let cardinality = (r1 / (r2 - r1)) % 2.0;
-    // 15. If cardinality is 0, return r1.
-    if cardinality == 0.0 {
-        return r1;
-    }
-    // 16. Return r2.
-    r2
-}
-
-/// 13.28 `RoundNumberToIncrement ( x, increment, roundingMode )`
-pub(crate) fn _round_number_to_increment(
-    x: f64,
-    increment: f64,
-    rounding_mode: RoundingMode,
-) -> f64 {
-    // 1. Let quotient be x / increment.
-    let mut quotient = x / increment;
-
-    // 2. If quotient < 0, then
-    let is_negative = if quotient < 0_f64 {
-        // a. Let isNegative be true.
-        // b. Set quotient to -quotient.
-        quotient = -quotient;
-        true
-    // 3. Else,
-    } else {
-        // a. Let isNegative be false.
-        false
-    };
-
-    // 4. Let unsignedRoundingMode be GetUnsignedRoundingMode(roundingMode, isNegative).
-    let unsigned_rounding_mode = rounding_mode.get_unsigned_round_mode(is_negative);
-    // 5. Let r1 be the largest integer such that r1 ≤ quotient.
-    let r1 = quotient.ceil();
-    // 6. Let r2 be the smallest integer such that r2 > quotient.
-    let r2 = quotient.floor();
-    // 7. Let rounded be ApplyUnsignedRoundingMode(quotient, r1, r2, unsignedRoundingMode).
-    let mut rounded = apply_unsigned_rounding_mode(quotient, r1, r2, unsigned_rounding_mode);
-    // 8. If isNegative is true, set rounded to -rounded.
-    if is_negative {
-        rounded = -rounded;
-    };
-    // 9. Return rounded × increment.
-    rounded * increment
-}
-
-/// 13.29 `RoundNumberToIncrementAsIfPositive ( x, increment, roundingMode )`
-#[inline]
-pub(crate) fn round_to_increment_as_if_positive(
-    ns: &JsBigInt,
-    increment: i64,
-    rounding_mode: RoundingMode,
-) -> JsResult<JsBigInt> {
-    // 1. Let quotient be x / increment.
-    let q = ns.to_f64() / increment as f64;
-    // 2. Let unsignedRoundingMode be GetUnsignedRoundingMode(roundingMode, false).
-    let unsigned_rounding_mode = rounding_mode.get_unsigned_round_mode(false);
-    // 3. Let r1 be the largest integer such that r1 ≤ quotient.
-    let r1 = q.trunc();
-    // 4. Let r2 be the smallest integer such that r2 > quotient.
-    let r2 = q.trunc() + 1.0;
-    // 5. Let rounded be ApplyUnsignedRoundingMode(quotient, r1, r2, unsignedRoundingMode).
-    let rounded = apply_unsigned_rounding_mode(q, r1, r2, unsigned_rounding_mode);
-
-    // 6. Return rounded × increment.
-    let rounded = JsBigInt::try_from(rounded)
-        .map_err(|err| JsNativeError::typ().with_message(err.to_string()))?;
-
-    Ok(JsBigInt::mul(&rounded, &JsBigInt::from(increment)))
-}
+// 13.29 `RoundNumberToIncrementAsIfPositive ( x, increment, roundingMode )`
+// Migrated to `boa_temporal`
 
 /// 13.43 `ToPositiveIntegerWithTruncation ( argument )`
 #[inline]
@@ -480,174 +354,13 @@ pub(crate) fn to_integer_if_integral(arg: &JsValue, context: &mut Context) -> Js
 // See fields.rs
 
 // NOTE: op -> true == until | false == since
-/// 13.47 `GetDifferenceSettings ( operation, options, unitGroup, disallowedUnits, fallbackSmallestUnit, smallestLargestDefaultUnit )`
-#[inline]
-pub(crate) fn get_diff_settings(
-    op: bool,
-    options: &JsObject,
-    unit_group: TemporalUnitGroup,
-    disallowed_units: &[TemporalUnit],
-    fallback_smallest_unit: TemporalUnit,
-    smallest_largest_default_unit: TemporalUnit,
-    context: &mut Context,
-) -> JsResult<(TemporalUnit, TemporalUnit, RoundingMode, f64)> {
-    // 1. NOTE: The following steps read options and perform independent validation in alphabetical order (ToTemporalRoundingIncrement reads "roundingIncrement" and ToTemporalRoundingMode reads "roundingMode").
-    // 2. Let largestUnit be ? GetTemporalUnit(options, "largestUnit", unitGroup, "auto").
-    let mut largest_unit =
-        get_temporal_unit(options, utf16!("largestUnit"), unit_group, None, context)?
-            .unwrap_or(TemporalUnit::Auto);
-
-    // 3. If disallowedUnits contains largestUnit, throw a RangeError exception.
-    if disallowed_units.contains(&largest_unit) {
-        return Err(JsNativeError::range()
-            .with_message("largestUnit is not an allowed unit.")
-            .into());
-    }
-
-    // 4. Let roundingIncrement be ? ToTemporalRoundingIncrement(options).
-    let rounding_increment = get_temporal_rounding_increment(options, context)?;
-
-    // 5. Let roundingMode be ? ToTemporalRoundingMode(options, "trunc").
-    let mut rounding_mode =
-        get_option(options, utf16!("roundingMode"), context)?.unwrap_or(RoundingMode::Trunc);
-
-    // 6. If operation is since, then
-    if !op {
-        // a. Set roundingMode to ! NegateTemporalRoundingMode(roundingMode).
-        rounding_mode = rounding_mode.negate();
-    }
-
-    // 7. Let smallestUnit be ? GetTemporalUnit(options, "smallestUnit", unitGroup, fallbackSmallestUnit).
-    let smallest_unit =
-        get_temporal_unit(options, utf16!("smallestUnit"), unit_group, None, context)?
-            .unwrap_or(fallback_smallest_unit);
-
-    // 8. If disallowedUnits contains smallestUnit, throw a RangeError exception.
-    if disallowed_units.contains(&smallest_unit) {
-        return Err(JsNativeError::range()
-            .with_message("smallestUnit is not an allowed unit.")
-            .into());
-    }
-
-    // 9. Let defaultLargestUnit be ! LargerOfTwoTemporalUnits(smallestLargestDefaultUnit, smallestUnit).
-    let default_largest_unit = core::cmp::max(smallest_largest_default_unit, smallest_unit);
-
-    // 10. If largestUnit is "auto", set largestUnit to defaultLargestUnit.
-    if largest_unit == TemporalUnit::Auto {
-        largest_unit = default_largest_unit;
-    }
-
-    // 11. If LargerOfTwoTemporalUnits(largestUnit, smallestUnit) is not largestUnit, throw a RangeError exception.
-    if largest_unit != core::cmp::max(largest_unit, smallest_unit) {
-        return Err(JsNativeError::range()
-            .with_message("largestUnit must be larger than smallestUnit")
-            .into());
-    }
-
-    // 12. Let maximum be ! MaximumTemporalDurationRoundingIncrement(smallestUnit).
-    let maximum = smallest_unit.to_maximum_rounding_increment();
-
-    // 13. If maximum is not undefined, perform ? ValidateTemporalRoundingIncrement(roundingIncrement, maximum, false).
-    if let Some(max) = maximum {
-        validate_temporal_rounding_increment(rounding_increment.into(), max.into(), false)?;
-    }
-
-    // 14. Return the Record { [[SmallestUnit]]: smallestUnit, [[LargestUnit]]: largestUnit, [[RoundingMode]]: roundingMode, [[RoundingIncrement]]: roundingIncrement, }.
-    Ok((
-        smallest_unit,
-        largest_unit,
-        rounding_mode,
-        rounding_increment.into(),
-    ))
-}
+// 13.47 `GetDifferenceSettings ( operation, options, unitGroup, disallowedUnits, fallbackSmallestUnit, smallestLargestDefaultUnit )`
+// Migrated to `boa_temporal`
 
 // NOTE: used for MergeFields methods. Potentially can be omitted in favor of `TemporalFields`.
-/// 14.6 `CopyDataProperties ( target, source, excludedKeys [ , excludedValues ] )`
-pub(crate) fn copy_data_properties(
-    target: &JsObject,
-    source: &JsValue,
-    excluded_keys: &Vec<JsString>,
-    excluded_values: Option<&Vec<JsValue>>,
-    context: &mut Context,
-) -> JsResult<()> {
-    // 1. If source is undefined or null, return unused.
-    if source.is_null_or_undefined() {
-        return Ok(());
-    }
-
-    // 2. Let from be ! ToObject(source).
-    let from = source.to_object(context)?;
-
-    // 3. Let keys be ? from.[[OwnPropertyKeys]]().
-    let keys = from.__own_property_keys__(context)?;
-
-    // 4. For each element nextKey of keys, do
-    for next_key in keys {
-        // a. Let excluded be false.
-        let mut excluded = false;
-        // b. For each element e of excludedItemsexcludedKeys, do
-        for e in excluded_keys {
-            // i. If SameValue(e, nextKey) is true, then
-            if next_key.to_string() == e.to_std_string_escaped() {
-                // 1. Set excluded to true.
-                excluded = true;
-            }
-        }
-
-        // c. If excluded is false, then
-        if !excluded {
-            // i. Let desc be ? from.[[GetOwnProperty]](nextKey).
-            let desc = from.__get_own_property__(&next_key, &mut context.into())?;
-            // ii. If desc is not undefined and desc.[[Enumerable]] is true, then
-            match desc {
-                Some(d)
-                    if d.enumerable()
-                        .expect("enumerable field must be set per spec.") =>
-                {
-                    // 1. Let propValue be ? Get(from, nextKey).
-                    let prop_value = from.get(next_key.clone(), context)?;
-                    // 2. If excludedValues is present, then
-                    if let Some(values) = excluded_values {
-                        // a. For each element e of excludedValues, do
-                        for e in values {
-                            // i. If SameValue(e, propValue) is true, then
-                            if JsValue::same_value(e, &prop_value) {
-                                // i. Set excluded to true.
-                                excluded = true;
-                            }
-                        }
-                    }
-
-                    // 3. PerformIf excluded is false, perform ! CreateDataPropertyOrThrow(target, nextKey, propValue).
-                    if !excluded {
-                        target.create_data_property_or_throw(next_key, prop_value, context)?;
-                    }
-                }
-                _ => {}
-            }
-        }
-    }
-
-    // 5. Return unused.
-    Ok(())
-}
+// 14.6 `CopyDataProperties ( target, source, excludedKeys [ , excludedValues ] )`
+// Migrated or repurposed to `boa_temporal`/`fields.rs`
 
 // Note: Deviates from Proposal spec -> proto appears to be always null across the specification.
-/// 14.7 `SnapshotOwnProperties ( source, proto [ , excludedKeys [ , excludedValues ] ] )`
-fn snapshot_own_properties(
-    source: &JsObject,
-    excluded_keys: Option<Vec<JsString>>,
-    excluded_values: Option<Vec<JsValue>>,
-    context: &mut Context,
-) -> JsResult<JsObject> {
-    // 1. Let copy be OrdinaryObjectCreate(proto).
-    let copy = JsObject::with_null_proto();
-    // 2. If excludedKeys is not present, set excludedKeys to « ».
-    let keys = excluded_keys.unwrap_or_default();
-    // 3. If excludedValues is not present, set excludedValues to « ».
-    let values = excluded_values.unwrap_or_default();
-    // 4. Perform ? CopyDataProperties(copy, source, excludedKeys, excludedValues).
-    copy_data_properties(&copy, &source.clone().into(), &keys, Some(&values), context)?;
-    // 5. Return copy.
-    Ok(copy)
-}
+// 14.7 `SnapshotOwnProperties ( source, proto [ , excludedKeys [ , excludedValues ] ] )`
+// Migrated or repurposed to `boa_temporal`/`fields.rs`
