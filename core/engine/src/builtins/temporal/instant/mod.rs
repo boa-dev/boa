@@ -280,7 +280,8 @@ impl Instant {
 
         // 3. Return ? DifferenceTemporalInstant(until, instant, other, options).
         let other = to_temporal_instant(args.get_or_undefined(0))?;
-        // TODO: Fetch the necessary options.
+
+        // Fetch the necessary options.
         let options = get_options_object(args.get_or_undefined(1))?;
         let mode = get_option::<TemporalRoundingMode>(&options, utf16!("roundingMode"), context)?;
         let increment = get_option::<f64>(&options, utf16!("roundingIncrement"), context)?;

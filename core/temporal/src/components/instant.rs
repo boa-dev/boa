@@ -60,7 +60,7 @@ impl Instant {
         let millis = (diff / 1_000_000f64).trunc().rem_euclid(1000f64);
         let secs = (diff / NANOSECONDS_PER_SECOND).trunc();
 
-        // handle the settings provided to `diff_instant`
+        // Handle the settings provided to `diff_instant`
         let rounding_increment = rounding_increment.unwrap_or(1.0);
         let rounding_mode = if op {
             rounding_mode
@@ -70,9 +70,11 @@ impl Instant {
             rounding_mode.unwrap_or(TemporalRoundingMode::Trunc)
         };
         let smallest_unit = smallest_unit.unwrap_or(TemporalUnit::Nanosecond);
-        // use the defaultlargestunit which is max smallestlargestdefault and smallestunit
+        // Use the defaultlargestunit which is max smallestlargestdefault and smallestunit
         let largest_unit = largest_unit.unwrap_or(smallest_unit.max(TemporalUnit::Second));
-        // todo: validate roundingincrement
+
+        // TODO: validate roundingincrement
+        // Steps 11-13 of 13.47 GetDifferenceSettings
 
         if smallest_unit == TemporalUnit::Nanosecond {
             let (_, result) = TimeDuration::new_unchecked(0f64, 0f64, secs, millis, micros, nanos)
