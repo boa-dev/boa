@@ -46,7 +46,7 @@ boa_temporal = { version = "~0.17.0", path = "core/temporal" }
 # Shared deps
 arbitrary = "1"
 bitflags = "2.4.2"
-chrono = { version = "0.4.31", default-features = false }
+chrono = { version = "0.4.32", default-features = false }
 clap = "4.4.18"
 colored = "2.1.0"
 fast-float = "0.2.0"
