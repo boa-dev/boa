@@ -50,7 +50,7 @@ pub(super) fn day(t: f64) -> f64 {
 /// [spec]: https://tc39.es/ecma262/#sec-timewithinday
 pub(super) fn time_within_day(t: f64) -> f64 {
     // 1. Return 𝔽(ℝ(t) modulo ℝ(msPerDay)).
-    modulo(t, MS_PER_DAY)
+    t.rem_euclid(MS_PER_DAY)
 }
 
 /// Abstract operation `DaysInYear ( y )`
@@ -64,17 +64,17 @@ fn days_in_year(y: f64) -> u16 {
     let ry = y;
 
     // 2. If (ry modulo 400) = 0, return 366𝔽.
-    if modulo(ry, 400.0) == 0.0 {
+    if ry.rem_euclid(400.0) == 0.0 {
         return 366;
     }
 
     // 3. If (ry modulo 100) = 0, return 365𝔽.
-    if modulo(ry, 100.0) == 0.0 {
+    if ry.rem_euclid(100.0) == 0.0 {
         return 365;
     }
 
     // 4. If (ry modulo 4) = 0, return 366𝔽.
-    if modulo(ry, 4.0) == 0.0 {
+    if ry.rem_euclid(4.0) == 0.0 {
         return 366;
     }
 
@@ -256,7 +256,7 @@ pub(super) fn date_from_time(t: f64) -> u8 {
 /// [spec]: https://tc39.es/ecma262/#sec-weekday
 pub(super) fn week_day(t: f64) -> u8 {
     // 1. Return 𝔽(ℝ(Day(t) + 4𝔽) modulo 7).
-    modulo(day(t) + 4.0, 7.0) as u8
+    (day(t) + 4.0).rem_euclid(7.0) as u8
 }
 
 /// Abstract operation `HourFromTime ( t )`
@@ -267,7 +267,7 @@ pub(super) fn week_day(t: f64) -> u8 {
 /// [spec]: https://tc39.es/ecma262/#sec-hourfromtime
 pub(super) fn hour_from_time(t: f64) -> u8 {
     // 1. Return 𝔽(floor(ℝ(t / msPerHour)) modulo HoursPerDay).
-    modulo((t / MS_PER_HOUR).floor(), HOURS_PER_DAY) as u8
+    ((t / MS_PER_HOUR).floor()).rem_euclid(HOURS_PER_DAY) as u8
 }
 
 /// Abstract operation `MinFromTime ( t )`
@@ -278,7 +278,7 @@ pub(super) fn hour_from_time(t: f64) -> u8 {
 /// [spec]: https://tc39.es/ecma262/#sec-minfromtime
 pub(super) fn min_from_time(t: f64) -> u8 {
     // 1. Return 𝔽(floor(ℝ(t / msPerMinute)) modulo MinutesPerHour).
-    modulo((t / MS_PER_MINUTE).floor(), MINUTES_PER_HOUR) as u8
+    ((t / MS_PER_MINUTE).floor()).rem_euclid(MINUTES_PER_HOUR) as u8
 }
 
 /// Abstract operation `SecFromTime ( t )`
@@ -289,7 +289,7 @@ pub(super) fn min_from_time(t: f64) -> u8 {
 /// [spec]: https://tc39.es/ecma262/#sec-secfromtime
 pub(super) fn sec_from_time(t: f64) -> u8 {
     // 1. Return 𝔽(floor(ℝ(t / msPerSecond)) modulo SecondsPerMinute).
-    modulo((t / MS_PER_SECOND).floor(), SECONDS_PER_MINUTE) as u8
+    ((t / MS_PER_SECOND).floor()).rem_euclid(SECONDS_PER_MINUTE) as u8
 }
 
 /// Abstract operation `msFromTime ( t )`
@@ -300,7 +300,7 @@ pub(super) fn sec_from_time(t: f64) -> u8 {
 /// [spec]: https://tc39.es/ecma262/#sec-msfromtime
 pub(super) fn ms_from_time(t: f64) -> u16 {
     // 1. Return 𝔽(ℝ(t) modulo ℝ(msPerSecond)).
-    modulo(t, MS_PER_SECOND) as u16
+    t.rem_euclid(MS_PER_SECOND) as u16
 }
 
 /// Abstract operation `LocalTime ( t )`
@@ -386,7 +386,7 @@ pub(super) fn make_day(year: f64, month: f64, date: f64) -> f64 {
     }
 
     // 7. Let mn be 𝔽(ℝ(m) modulo 12).
-    let mn = modulo(m, 12.0) as u8;
+    let mn = m.rem_euclid(12.0) as u8;
 
     // 8. Find a finite time value t such that YearFromTime(t) is ym, MonthFromTime(t) is mn,
     //    and DateFromTime(t) is 1𝔽;
@@ -670,17 +670,8 @@ pub(super) fn to_date_string_t(tv: f64, hooks: &dyn HostHooks) -> JsString {
     )
 }
 
-fn modulo(n: f64, m: f64) -> f64 {
-    let r = n % m;
-    if r >= 0.0 {
-        r.floor()
-    } else {
-        (r + m).floor()
-    }
-}
-
 fn local_timezone_offset_seconds(t: f64, hooks: &dyn HostHooks) -> i32 {
-    let millis = modulo(t, MS_PER_SECOND);
+    let millis = t.rem_euclid(MS_PER_SECOND);
     let seconds = ((t - millis) / MS_PER_SECOND) as i64;
     hooks.local_timezone_offset_seconds(seconds)
 }
