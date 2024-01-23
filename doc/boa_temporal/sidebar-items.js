@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"macro":["assert_syntax"],"mod":["components","error","fields","iso","options","parser"],"struct":["TemporalError","TemporalFields","TinyAsciiStr"],"type":["TemporalResult"]};
+window.SIDEBAR_ITEMS = {"constant":["MS_PER_DAY","NS_PER_DAY"],"macro":["assert_syntax"],"mod":["components","error","fields","iso","options","parser"],"struct":["TemporalError","TemporalFields","TinyAsciiStr"],"type":["TemporalResult"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["is_valid_epoch_nanos"],"struct":["Instant"]};
+window.SIDEBAR_ITEMS = {"constant":["NANOSECONDS_PER_HOUR","NANOSECONDS_PER_MINUTE","NANOSECONDS_PER_SECOND"],"fn":["is_valid_epoch_nanos"],"struct":["Instant"]};

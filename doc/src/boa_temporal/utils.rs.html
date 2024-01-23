@@ -282,18 +282,96 @@
 <a href="#282" id="282">282</a>
 <a href="#283" id="283">283</a>
 <a href="#284" id="284">284</a>
+<a href="#285" id="285">285</a>
+<a href="#286" id="286">286</a>
+<a href="#287" id="287">287</a>
+<a href="#288" id="288">288</a>
+<a href="#289" id="289">289</a>
+<a href="#290" id="290">290</a>
+<a href="#291" id="291">291</a>
+<a href="#292" id="292">292</a>
+<a href="#293" id="293">293</a>
+<a href="#294" id="294">294</a>
+<a href="#295" id="295">295</a>
+<a href="#296" id="296">296</a>
+<a href="#297" id="297">297</a>
+<a href="#298" id="298">298</a>
+<a href="#299" id="299">299</a>
+<a href="#300" id="300">300</a>
+<a href="#301" id="301">301</a>
+<a href="#302" id="302">302</a>
+<a href="#303" id="303">303</a>
+<a href="#304" id="304">304</a>
+<a href="#305" id="305">305</a>
+<a href="#306" id="306">306</a>
+<a href="#307" id="307">307</a>
+<a href="#308" id="308">308</a>
+<a href="#309" id="309">309</a>
+<a href="#310" id="310">310</a>
+<a href="#311" id="311">311</a>
+<a href="#312" id="312">312</a>
+<a href="#313" id="313">313</a>
+<a href="#314" id="314">314</a>
+<a href="#315" id="315">315</a>
+<a href="#316" id="316">316</a>
+<a href="#317" id="317">317</a>
+<a href="#318" id="318">318</a>
+<a href="#319" id="319">319</a>
+<a href="#320" id="320">320</a>
+<a href="#321" id="321">321</a>
+<a href="#322" id="322">322</a>
+<a href="#323" id="323">323</a>
+<a href="#324" id="324">324</a>
+<a href="#325" id="325">325</a>
+<a href="#326" id="326">326</a>
+<a href="#327" id="327">327</a>
+<a href="#328" id="328">328</a>
+<a href="#329" id="329">329</a>
+<a href="#330" id="330">330</a>
+<a href="#331" id="331">331</a>
+<a href="#332" id="332">332</a>
+<a href="#333" id="333">333</a>
+<a href="#334" id="334">334</a>
+<a href="#335" id="335">335</a>
+<a href="#336" id="336">336</a>
+<a href="#337" id="337">337</a>
+<a href="#338" id="338">338</a>
+<a href="#339" id="339">339</a>
+<a href="#340" id="340">340</a>
+<a href="#341" id="341">341</a>
+<a href="#342" id="342">342</a>
+<a href="#343" id="343">343</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Utility date and time equations for Temporal
 
 </span><span class="kw">use crate</span>::{
     options::{TemporalRoundingMode, TemporalUnsignedRoundingMode},
-    MS_PER_DAY,
+    TemporalError, TemporalResult, MS_PER_DAY,
 };
 
 <span class="kw">use </span>std::ops::Mul;
 
 <span class="comment">// NOTE: Review the below for optimizations and add ALOT of tests.
 
-</span><span class="kw">fn </span>apply_unsigned_rounding_mode(
+</span><span class="doccomment">/// Converts and validates an `Option&lt;f64&gt;` rounding increment value into a valid increment result.
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_rounding_increment(increment: <span class="prelude-ty">Option</span>&lt;f64&gt;) -&gt; TemporalResult&lt;f64&gt; {
+    <span class="kw">let </span>inc = increment.unwrap_or(<span class="number">1.0</span>);
+
+    <span class="kw">if </span>!inc.is_finite() {
+        <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">&quot;roundingIncrement must be finite.&quot;</span>));
+    }
+
+    <span class="kw">let </span>integer = inc.trunc();
+
+    <span class="kw">if </span>!(<span class="number">1.0</span>..=<span class="number">1_000_000_000f64</span>).contains(<span class="kw-2">&amp;</span>integer) {
+        <span class="kw">return </span><span class="prelude-val">Err</span>(
+            TemporalError::range().with_message(<span class="string">&quot;roundingIncrement is not within a valid range.&quot;</span>)
+        );
+    }
+
+    <span class="prelude-val">Ok</span>(integer)
+}
+
+<span class="kw">fn </span>apply_unsigned_rounding_mode(
     x: f64,
     r1: f64,
     r2: f64,
@@ -375,9 +453,9 @@
     <span class="comment">// 4. Let unsignedRoundingMode be GetUnsignedRoundingMode(roundingMode, isNegative).
     </span><span class="kw">let </span>unsigned_rounding_mode = rounding_mode.get_unsigned_round_mode(is_negative);
     <span class="comment">// 5. Let r1 be the largest integer such that r1 ≤ quotient.
-    </span><span class="kw">let </span>r1 = quotient.ceil();
+    </span><span class="kw">let </span>r1 = quotient.floor();
     <span class="comment">// 6. Let r2 be the smallest integer such that r2 &gt; quotient.
-    </span><span class="kw">let </span>r2 = quotient.floor();
+    </span><span class="kw">let </span>r2 = quotient.ceil();
     <span class="comment">// 7. Let rounded be ApplyUnsignedRoundingMode(quotient, r1, r2, unsignedRoundingMode).
     </span><span class="kw">let </span><span class="kw-2">mut </span>rounded = apply_unsigned_rounding_mode(quotient, r1, r2, unsigned_rounding_mode);
     <span class="comment">// 8. If isNegative is true, set rounded to -rounded.
@@ -386,6 +464,46 @@
     };
     <span class="comment">// 9. Return rounded × increment.
     </span>rounded * increment
+}
+
+<span class="doccomment">/// Rounds provided number assuming that the increment is greater than 0.
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>round_number_to_increment_as_if_positive(
+    nanos: f64,
+    increment_nanos: f64,
+    rounding_mode: TemporalRoundingMode,
+) -&gt; f64 {
+    <span class="comment">// 1. Let quotient be x / increment.
+    </span><span class="kw">let </span>quotient = nanos / increment_nanos;
+    <span class="comment">// 2. Let unsignedRoundingMode be GetUnsignedRoundingMode(roundingMode, false).
+    </span><span class="kw">let </span>unsigned_rounding_mode = rounding_mode.get_unsigned_round_mode(<span class="bool-val">false</span>);
+    <span class="comment">// 3. Let r1 be the largest integer such that r1 ≤ quotient.
+    </span><span class="kw">let </span>r1 = quotient.floor();
+    <span class="comment">// 4. Let r2 be the smallest integer such that r2 &gt; quotient.
+    </span><span class="kw">let </span>r2 = quotient.ceil();
+    <span class="comment">// 5. Let rounded be ApplyUnsignedRoundingMode(quotient, r1, r2, unsignedRoundingMode).
+    </span><span class="kw">let </span>rounded = apply_unsigned_rounding_mode(quotient, r1, r2, unsigned_rounding_mode);
+    <span class="comment">// 6. Return rounded × increment.
+    </span>rounded * increment_nanos
+}
+
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>validate_temporal_rounding_increment(
+    increment: u32,
+    dividend: u64,
+    inclusive: bool,
+) -&gt; TemporalResult&lt;()&gt; {
+    <span class="kw">let </span>max = <span class="kw">if </span>inclusive { dividend } <span class="kw">else </span>{ dividend - <span class="number">1 </span>};
+
+    <span class="kw">if </span>u64::from(increment) &gt; max {
+        <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">&quot;roundingIncrement exceeds maximum.&quot;</span>));
+    }
+
+    <span class="kw">if </span>dividend.rem_euclid(u64::from(increment)) != <span class="number">0 </span>{
+        <span class="kw">return </span><span class="prelude-val">Err</span>(
+            TemporalError::range().with_message(<span class="string">&quot;dividend is not divisble by roundingIncrement.&quot;</span>)
+        );
+    }
+
+    <span class="prelude-val">Ok</span>(())
 }
 
 <span class="comment">// ==== Begin Date Equations ====

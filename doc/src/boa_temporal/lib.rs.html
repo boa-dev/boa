@@ -70,8 +70,6 @@
 <a href="#70" id="70">70</a>
 <a href="#71" id="71">71</a>
 <a href="#72" id="72">72</a>
-<a href="#73" id="73">73</a>
-<a href="#74" id="74">74</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s `boa_temporal` crate is an engine agnostic implementation of ECMAScript&#39;s Temporal.
 //!
 //! IMPORTANT NOTE: Please note that this library is actively being developed and is very
@@ -135,11 +133,9 @@
 
 <span class="comment">// Relevant numeric constants
 </span><span class="doccomment">/// Nanoseconds per day constant: 8.64e+13
-</span><span class="attr">#[doc(hidden)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>NS_PER_DAY: i64 = <span class="number">86_400_000_000_000</span>;
+</span><span class="kw">pub const </span>NS_PER_DAY: i64 = <span class="number">86_400_000_000_000</span>;
 <span class="doccomment">/// Milliseconds per day constant: 8.64e+7
-</span><span class="attr">#[doc(hidden)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>MS_PER_DAY: i32 = <span class="number">24 </span>* <span class="number">60 </span>* <span class="number">60 </span>* <span class="number">1000</span>;
+</span><span class="kw">pub const </span>MS_PER_DAY: i32 = <span class="number">24 </span>* <span class="number">60 </span>* <span class="number">60 </span>* <span class="number">1000</span>;
 <span class="doccomment">/// Max Instant nanosecond constant
 </span><span class="attr">#[doc(hidden)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>NS_MAX_INSTANT: i128 = NS_PER_DAY <span class="kw">as </span>i128 * <span class="number">100_000_000i128</span>;
