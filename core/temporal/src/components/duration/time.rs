@@ -292,6 +292,20 @@ impl TimeDuration {
         }
     }
 
+    /// Returns a negated `TimeDuration`.
+    #[inline]
+    #[must_use]
+    pub fn neg(&self) -> Self {
+        Self {
+            hours: self.hours * -1f64,
+            minutes: self.minutes * -1f64,
+            seconds: self.seconds * -1f64,
+            milliseconds: self.milliseconds * -1f64,
+            microseconds: self.microseconds * -1f64,
+            nanoseconds: self.nanoseconds * -1f64,
+        }
+    }
+
     /// Balances a `TimeDuration` given a day value and the largest unit. `balance` will return
     /// the balanced `day` and `TimeDuration`.
     ///

@@ -110,6 +110,20 @@ impl OptionType for JsString {
     }
 }
 
+impl OptionType for f64 {
+    fn from_value(value: JsValue, context: &mut Context) -> JsResult<Self> {
+        let value = value.to_number(context)?;
+
+        if !value.is_finite() {
+            return Err(JsNativeError::range()
+                .with_message("roundingIncrement must be finite.")
+                .into());
+        }
+
+        Ok(value)
+    }
+}
+
 #[derive(Debug, Copy, Clone, Default)]
 pub(crate) enum RoundingMode {
     Ceil,
@@ -171,6 +185,7 @@ impl fmt::Display for RoundingMode {
     }
 }
 
+// TODO: remove once confirmed.
 #[cfg(feature = "temporal")]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum UnsignedRoundingMode {
@@ -182,7 +197,9 @@ pub(crate) enum UnsignedRoundingMode {
 }
 
 impl RoundingMode {
+    // TODO: remove once confirmed.
     #[cfg(feature = "temporal")]
+    #[allow(dead_code)]
     pub(crate) const fn negate(self) -> Self {
         use RoundingMode::{
             Ceil, Expand, Floor, HalfCeil, HalfEven, HalfExpand, HalfFloor, HalfTrunc, Trunc,
@@ -201,7 +218,9 @@ impl RoundingMode {
         }
     }
 
+    // TODO: remove once confirmed.
     #[cfg(feature = "temporal")]
+    #[allow(dead_code)]
     pub(crate) const fn get_unsigned_round_mode(self, is_negative: bool) -> UnsignedRoundingMode {
         use RoundingMode::{
             Ceil, Expand, Floor, HalfCeil, HalfEven, HalfExpand, HalfFloor, HalfTrunc, Trunc,

@@ -2,12 +2,31 @@
 
 use crate::{
     options::{TemporalRoundingMode, TemporalUnsignedRoundingMode},
-    MS_PER_DAY,
+    TemporalError, TemporalResult, MS_PER_DAY,
 };
 
 use std::ops::Mul;
 
 // NOTE: Review the below for optimizations and add ALOT of tests.
+
+/// Converts and validates an `Option<f64>` rounding increment value into a valid increment result.
+pub(crate) fn to_rounding_increment(increment: Option<f64>) -> TemporalResult<f64> {
+    let inc = increment.unwrap_or(1.0);
+
+    if !inc.is_finite() {
+        return Err(TemporalError::range().with_message("roundingIncrement must be finite."));
+    }
+
+    let integer = inc.trunc();
+
+    if !(1.0..=1_000_000_000f64).contains(&integer) {
+        return Err(
+            TemporalError::range().with_message("roundingIncrement is not within a valid range.")
+        );
+    }
+
+    Ok(integer)
+}
 
 fn apply_unsigned_rounding_mode(
     x: f64,
@@ -91,9 +110,9 @@ pub(crate) fn round_number_to_increment(
     // 4. Let unsignedRoundingMode be GetUnsignedRoundingMode(roundingMode, isNegative).
     let unsigned_rounding_mode = rounding_mode.get_unsigned_round_mode(is_negative);
     // 5. Let r1 be the largest integer such that r1 ≤ quotient.
-    let r1 = quotient.ceil();
+    let r1 = quotient.floor();
     // 6. Let r2 be the smallest integer such that r2 > quotient.
-    let r2 = quotient.floor();
+    let r2 = quotient.ceil();
     // 7. Let rounded be ApplyUnsignedRoundingMode(quotient, r1, r2, unsignedRoundingMode).
     let mut rounded = apply_unsigned_rounding_mode(quotient, r1, r2, unsigned_rounding_mode);
     // 8. If isNegative is true, set rounded to -rounded.
@@ -102,6 +121,46 @@ pub(crate) fn round_number_to_increment(
     };
     // 9. Return rounded × increment.
     rounded * increment
+}
+
+/// Rounds provided number assuming that the increment is greater than 0.
+pub(crate) fn round_number_to_increment_as_if_positive(
+    nanos: f64,
+    increment_nanos: f64,
+    rounding_mode: TemporalRoundingMode,
+) -> f64 {
+    // 1. Let quotient be x / increment.
+    let quotient = nanos / increment_nanos;
+    // 2. Let unsignedRoundingMode be GetUnsignedRoundingMode(roundingMode, false).
+    let unsigned_rounding_mode = rounding_mode.get_unsigned_round_mode(false);
+    // 3. Let r1 be the largest integer such that r1 ≤ quotient.
+    let r1 = quotient.floor();
+    // 4. Let r2 be the smallest integer such that r2 > quotient.
+    let r2 = quotient.ceil();
+    // 5. Let rounded be ApplyUnsignedRoundingMode(quotient, r1, r2, unsignedRoundingMode).
+    let rounded = apply_unsigned_rounding_mode(quotient, r1, r2, unsigned_rounding_mode);
+    // 6. Return rounded × increment.
+    rounded * increment_nanos
+}
+
+pub(crate) fn validate_temporal_rounding_increment(
+    increment: u32,
+    dividend: u64,
+    inclusive: bool,
+) -> TemporalResult<()> {
+    let max = if inclusive { dividend } else { dividend - 1 };
+
+    if u64::from(increment) > max {
+        return Err(TemporalError::range().with_message("roundingIncrement exceeds maximum."));
+    }
+
+    if dividend.rem_euclid(u64::from(increment)) != 0 {
+        return Err(
+            TemporalError::range().with_message("dividend is not divisble by roundingIncrement.")
+        );
+    }
+
+    Ok(())
 }
 
 // ==== Begin Date Equations ====

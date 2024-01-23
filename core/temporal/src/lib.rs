@@ -61,11 +61,9 @@ pub type TemporalResult<T> = Result<T, TemporalError>;
 
 // Relevant numeric constants
 /// Nanoseconds per day constant: 8.64e+13
-#[doc(hidden)]
-pub(crate) const NS_PER_DAY: i64 = 86_400_000_000_000;
+pub const NS_PER_DAY: i64 = 86_400_000_000_000;
 /// Milliseconds per day constant: 8.64e+7
-#[doc(hidden)]
-pub(crate) const MS_PER_DAY: i32 = 24 * 60 * 60 * 1000;
+pub const MS_PER_DAY: i32 = 24 * 60 * 60 * 1000;
 /// Max Instant nanosecond constant
 #[doc(hidden)]
 pub(crate) const NS_MAX_INSTANT: i128 = NS_PER_DAY as i128 * 100_000_000i128;
