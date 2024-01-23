@@ -1,8 +1,4 @@
 //! A Rust API wrapper for Boa's `Date` ECMAScript Builtin Object.
-use std::ops::Deref;
-
-use boa_gc::{Finalize, Trace};
-use chrono::DateTime;
 
 use crate::{
     builtins::Date,
@@ -10,6 +6,9 @@ use crate::{
     value::TryFromJs,
     Context, JsNativeError, JsResult, JsValue,
 };
+use boa_gc::{Finalize, Trace};
+use std::ops::Deref;
+use time::{format_description::well_known::Rfc3339, OffsetDateTime};
 
 /// `JsDate` is a wrapper for JavaScript `JsDate` builtin object
 ///
@@ -551,9 +550,9 @@ impl JsDate {
             .to_string(context)?
             .to_std_string()
             .map_err(|_| JsNativeError::typ().with_message("unpaired surrogate on date string"))?;
-        let date_time = DateTime::parse_from_rfc3339(&string)
+        let t = OffsetDateTime::parse(&string, &Rfc3339)
             .map_err(|err| JsNativeError::typ().with_message(err.to_string()))?;
-        let date_time = Date::new(Some(date_time.naive_local().timestamp_millis()));
+        let date_time = Date::new((t.unix_timestamp() * 1000 + i64::from(t.millisecond())) as f64);
 
         Ok(Self {
             inner: JsObject::from_proto_and_data_with_shared_shape(

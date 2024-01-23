@@ -74,7 +74,6 @@ num-integer = "0.1.45"
 bitflags.workspace = true
 indexmap = { workspace = true, features = ["std"] }
 ryu-js = "1.0.0"
-chrono = { workspace = true, default-features = false, features = ["clock", "std"] }
 fast-float.workspace = true
 once_cell = { workspace = true, features = ["std"] }
 tap = "1.0.1"
@@ -93,6 +92,7 @@ bytemuck = { version = "1.14.0", features = ["derive"] }
 arrayvec = "0.7.4"
 intrusive-collections = "0.9.6"
 cfg-if = "1.0.0"
+time.workspace = true
 
 # intl deps
 boa_icu_provider = {workspace = true, features = ["std"], optional = true }

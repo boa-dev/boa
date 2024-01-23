@@ -192,6 +192,12 @@ const DEFAULT_TEST262_DIRECTORY: &str = "test262";
 
 /// Program entry point.
 fn main() -> Result<()> {
+    // Safety: This is needed because we run tests in multiple threads.
+    // It is safe because tests do not modify the environment.
+    unsafe {
+        time::util::local_offset::set_soundness(time::util::local_offset::Soundness::Unsound);
+    }
+
     // initializes the monotonic clock.
     Lazy::force(&START);
     color_eyre::install()?;

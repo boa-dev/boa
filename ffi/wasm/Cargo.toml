@@ -15,7 +15,6 @@ rust-version.workspace = true
 boa_engine = { workspace = true, features = ["js"] }
 wasm-bindgen = { version = "0.2.90", default-features = false }
 getrandom = { version = "0.2.12", features = ["js"] }
-chrono = { workspace = true, default-features = false, features = ["clock", "std", "wasmbind"] }
 console_error_panic_hook = "0.1.7"
 
 [features]

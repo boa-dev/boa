@@ -46,7 +46,6 @@ boa_temporal = { version = "~0.17.0", path = "core/temporal" }
 # Shared deps
 arbitrary = "1"
 bitflags = "2.4.2"
-chrono = { version = "0.4.31", default-features = false }
 clap = "4.4.18"
 colored = "2.1.0"
 fast-float = "0.2.0"
@@ -67,6 +66,7 @@ serde = "1.0.195"
 static_assertions = "1.1.0"
 textwrap = "0.16.0"
 thin-vec = "0.2.13"
+time = {version = "0.3.31", no-default-features = true, features = ["local-offset", "large-dates", "wasm-bindgen", "parsing", "formatting", "macros"]}
 
 # ICU4X
 

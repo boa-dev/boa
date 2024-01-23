@@ -45,7 +45,7 @@ pub use self::{
 #[doc(inline)]
 pub use boa_macros::TryFromJs;
 
-pub(crate) use self::{conversions::IntoOrUndefined, integer::IntegerOrNan};
+pub(crate) use self::conversions::IntoOrUndefined;
 
 static TWO_E_64: Lazy<BigInt> = Lazy::new(|| {
     const TWO_E_64: u128 = 2u128.pow(64);
@@ -853,22 +853,6 @@ impl JsValue {
 
         // Continues on `IntegerOrInfinity::from::<f64>`
         Ok(IntegerOrInfinity::from(number))
-    }
-
-    /// Modified abstract operation `ToIntegerOrInfinity ( argument )`.
-    ///
-    /// This function is almost the same as [`Self::to_integer_or_infinity`], but with the exception
-    /// that this will return `Nan` if [`Self::to_number`] returns a non-finite number.
-    pub(crate) fn to_integer_or_nan(&self, context: &mut Context) -> JsResult<IntegerOrNan> {
-        // 1. Let number be ? ToNumber(argument).
-        let number = self.to_number(context)?;
-
-        if number.is_nan() {
-            return Ok(IntegerOrNan::Nan);
-        }
-
-        // Continues on `IntegerOrInfinity::from::<f64>`
-        Ok(IntegerOrInfinity::from(number).into())
     }
 
     /// Converts a value to a double precision floating point.
