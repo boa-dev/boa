@@ -1268,18 +1268,27 @@ impl RegExp {
     /// [spec]: https://tc39.es/ecma262/#sec-regexp.prototype.tostring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/toString
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_string(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        let (body, flags) = this
-            .as_object()
-            .and_then(JsObject::downcast_ref::<RegExp>)
-            .map(|rx| (rx.original_source.clone(), rx.original_flags.clone()))
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message(format!(
-                    "Method RegExp.prototype.toString called on incompatible receiver {}",
-                    this.display()
-                ))
-            })?;
-        Ok(js_string!(utf16!("/"), &body, utf16!("/"), &flags).into())
+    pub(crate) fn to_string(
+        this: &JsValue,
+        _: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let R be the this value.
+        // 2. If R is not an Object, throw a TypeError exception.
+        let regexp = this.as_object().ok_or_else(|| {
+            JsNativeError::typ()
+                .with_message("RegExp.prototype.toString method called on incompatible value")
+        })?;
+
+        // 3. Let pattern be ? ToString(? Get(R, "source")).
+        let pattern = regexp.get(utf16!("source"), context)?.to_string(context)?;
+
+        // 4. Let flags be ? ToString(? Get(R, "flags")).
+        let flags = regexp.get(utf16!("flags"), context)?.to_string(context)?;
+
+        // 5. Let result be the string-concatenation of "/", pattern, "/", and flags.
+        // 6. Return result.
+        Ok(js_string!(utf16!("/"), &pattern, utf16!("/"), &flags).into())
     }
 
     /// `RegExp.prototype[ @@matchAll ]( string )`
