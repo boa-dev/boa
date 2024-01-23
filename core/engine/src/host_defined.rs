@@ -87,11 +87,7 @@ impl HostDefined {
         T: NativeTuple<SIZE>,
     {
         let ids = T::as_type_ids();
-        let refs: [&TypeId; SIZE] = ids
-            .iter()
-            .collect::<Vec<_>>()
-            .try_into()
-            .expect("tuple should be of size `SIZE`");
+        let refs: [&TypeId; SIZE] = std::array::from_fn(|i| &ids[i]);
 
         self.types.get_many_mut(refs).and_then(T::mut_ref_from_anys)
     }
@@ -110,7 +106,7 @@ impl HostDefined {
 pub trait NativeTuple<const SIZE: usize> {
     type NativeTupleMutRef<'a>;
 
-    fn as_type_ids() -> Vec<TypeId>;
+    fn as_type_ids() -> [TypeId; SIZE];
 
     fn mut_ref_from_anys(
         anys: [&'_ mut Box<dyn NativeObject>; SIZE],
@@ -122,8 +118,8 @@ macro_rules! impl_native_tuple {
         impl<$($name: NativeObject,)*> NativeTuple<$size> for ($($name,)*) {
             type NativeTupleMutRef<'a> = ($(&'a mut $name,)*);
 
-            fn as_type_ids() -> Vec<TypeId> {
-                vec![$(TypeId::of::<$name>(),)*]
+            fn as_type_ids() -> [TypeId; $size] {
+                [$(TypeId::of::<$name>(),)*]
             }
 
             fn mut_ref_from_anys(
