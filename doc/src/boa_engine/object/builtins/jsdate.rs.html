@@ -599,19 +599,17 @@
 <a href="#599" id="599">599</a>
 <a href="#600" id="600">600</a>
 <a href="#601" id="601">601</a>
-<a href="#602" id="602">602</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! A Rust API wrapper for Boa&#39;s `Date` ECMAScript Builtin Object.
-</span><span class="kw">use </span>std::ops::Deref;
 
-<span class="kw">use </span>boa_gc::{Finalize, Trace};
-<span class="kw">use </span>chrono::DateTime;
-
-<span class="kw">use crate</span>::{
+</span><span class="kw">use crate</span>::{
     builtins::Date,
     object::{JsObject, JsObjectType},
     value::TryFromJs,
     Context, JsNativeError, JsResult, JsValue,
 };
+<span class="kw">use </span>boa_gc::{Finalize, Trace};
+<span class="kw">use </span>std::ops::Deref;
+<span class="kw">use </span>time::{format_description::well_known::Rfc3339, OffsetDateTime};
 
 <span class="doccomment">/// `JsDate` is a wrapper for JavaScript `JsDate` builtin object
 ///
@@ -1153,9 +1151,9 @@
             .to_string(context)<span class="question-mark">?
             </span>.to_std_string()
             .map_err(|<span class="kw">_</span>| JsNativeError::typ().with_message(<span class="string">&quot;unpaired surrogate on date string&quot;</span>))<span class="question-mark">?</span>;
-        <span class="kw">let </span>date_time = DateTime::parse_from_rfc3339(<span class="kw-2">&amp;</span>string)
+        <span class="kw">let </span>t = OffsetDateTime::parse(<span class="kw-2">&amp;</span>string, <span class="kw-2">&amp;</span>Rfc3339)
             .map_err(|err| JsNativeError::typ().with_message(err.to_string()))<span class="question-mark">?</span>;
-        <span class="kw">let </span>date_time = Date::new(<span class="prelude-val">Some</span>(date_time.naive_local().timestamp_millis()));
+        <span class="kw">let </span>date_time = Date::new((t.unix_timestamp() * <span class="number">1000 </span>+ i64::from(t.millisecond())) <span class="kw">as </span>f64);
 
         <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
             inner: JsObject::from_proto_and_data_with_shared_shape(

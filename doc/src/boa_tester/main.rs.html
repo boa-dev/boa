@@ -988,6 +988,12 @@
 <a href="#988" id="988">988</a>
 <a href="#989" id="989">989</a>
 <a href="#990" id="990">990</a>
+<a href="#991" id="991">991</a>
+<a href="#992" id="992">992</a>
+<a href="#993" id="993">993</a>
+<a href="#994" id="994">994</a>
+<a href="#995" id="995">995</a>
+<a href="#996" id="996">996</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Test262 test runner
 //!
 //! This crate will run the full ECMAScript test suite (Test262) and report compliance of the
@@ -1182,6 +1188,12 @@
 
 <span class="doccomment">/// Program entry point.
 </span><span class="kw">fn </span>main() -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <span class="comment">// Safety: This is needed because we run tests in multiple threads.
+    // It is safe because tests do not modify the environment.
+    </span><span class="kw">unsafe </span>{
+        time::util::local_offset::set_soundness(time::util::local_offset::Soundness::Unsound);
+    }
+
     <span class="comment">// initializes the monotonic clock.
     </span>Lazy::force(<span class="kw-2">&amp;</span>START);
     color_eyre::install()<span class="question-mark">?</span>;

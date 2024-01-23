@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["IntegerOrInfinity","IntegerOrNan"]};
+window.SIDEBAR_ITEMS = {"enum":["IntegerOrInfinity"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["this_time_value"],"macro":["get_mut_date","some_or_nan"],"mod":["utils"],"struct":["Date"]};
+window.SIDEBAR_ITEMS = {"mod":["utils"],"struct":["Date"]};

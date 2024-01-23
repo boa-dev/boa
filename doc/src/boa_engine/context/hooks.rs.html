@@ -221,32 +221,18 @@
 <a href="#221" id="221">221</a>
 <a href="#222" id="222">222</a>
 <a href="#223" id="223">223</a>
-<a href="#224" id="224">224</a>
-<a href="#225" id="225">225</a>
-<a href="#226" id="226">226</a>
-<a href="#227" id="227">227</a>
-<a href="#228" id="228">228</a>
-<a href="#229" id="229">229</a>
-<a href="#230" id="230">230</a>
-<a href="#231" id="231">231</a>
-<a href="#232" id="232">232</a>
-<a href="#233" id="233">233</a>
-<a href="#234" id="234">234</a>
-<a href="#235" id="235">235</a>
-<a href="#236" id="236">236</a>
-<a href="#237" id="237">237</a>
-<a href="#238" id="238">238</a>
-<a href="#239" id="239">239</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::promise::OperationType,
+    context::intrinsics::Intrinsics,
     job::JobCallback,
     object::{JsFunction, JsObject},
     realm::Realm,
     Context, JsResult, JsValue,
 };
-<span class="kw">use </span>chrono::{DateTime, FixedOffset, Local, LocalResult, NaiveDateTime, TimeZone, Utc};
+<span class="kw">use </span>time::{OffsetDateTime, UtcOffset};
 
-<span class="kw">use </span><span class="kw">super</span>::intrinsics::Intrinsics;
+<span class="attr">#[cfg(test)]
+</span><span class="kw">use </span>time::util::local_offset;
 
 <span class="doccomment">/// [`Host Hooks`] customizable by the host code or engine.
 ///
@@ -409,46 +395,28 @@
 
     <span class="doccomment">/// Gets the current UTC time of the host.
     ///
-    /// Defaults to using [`Utc::now`] on all targets, which can cause panics if the target
-    /// doesn&#39;t support [`SystemTime::now`][time].
+    /// Defaults to using [`OffsetDateTime::now_utc`] on all targets,
+    /// which can cause panics if the target doesn&#39;t support [`SystemTime::now`][time].
     ///
     /// [time]: std::time::SystemTime::now
-    </span><span class="kw">fn </span>utc_now(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; NaiveDateTime {
-        Utc::now().naive_utc()
+    </span><span class="kw">fn </span>utc_now(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; i64 {
+        <span class="kw">let </span>now = OffsetDateTime::now_utc();
+        now.unix_timestamp() * <span class="number">1000 </span>+ i64::from(now.millisecond())
     }
 
-    <span class="doccomment">/// Converts the naive datetime `utc` to the corresponding local datetime.
-    ///
-    /// Defaults to using [`Local`] on all targets, which can cause panics if the taget
-    /// doesn&#39;t support [`SystemTime::now`][time].
-    ///
-    /// [time]: std::time::SystemTime::now
-    </span><span class="kw">fn </span>local_from_utc(<span class="kw-2">&amp;</span><span class="self">self</span>, utc: NaiveDateTime) -&gt; DateTime&lt;FixedOffset&gt; {
-        <span class="kw">let </span>offset = Local.offset_from_utc_datetime(<span class="kw-2">&amp;</span>utc);
-        offset.from_utc_datetime(<span class="kw-2">&amp;</span>utc)
-    }
-
-    <span class="doccomment">/// Converts the naive local datetime `local` to a local timezone datetime.
-    ///
-    /// Defaults to using [`Local`] on all targets, which can cause panics if the target
-    /// doesn&#39;t support [`SystemTime::now`][time].
-    ///
-    /// [time]: std::time::SystemTime::now
-    </span><span class="kw">fn </span>local_from_naive_local(<span class="kw-2">&amp;</span><span class="self">self</span>, local: NaiveDateTime) -&gt; LocalResult&lt;DateTime&lt;FixedOffset&gt;&gt; {
-        <span class="kw">match </span>Local.offset_from_local_datetime(<span class="kw-2">&amp;</span>local) {
-            LocalResult::None =&gt; LocalResult::None,
-            LocalResult::Single(offset) =&gt; offset.from_local_datetime(<span class="kw-2">&amp;</span>local),
-            LocalResult::Ambiguous(earliest, latest) =&gt; {
-                <span class="kw">match </span>(
-                    earliest.from_local_datetime(<span class="kw-2">&amp;</span>local).earliest(),
-                    latest.from_local_datetime(<span class="kw-2">&amp;</span>local).latest(),
-                ) {
-                    (<span class="prelude-val">Some</span>(earliest), <span class="prelude-val">Some</span>(latest)) =&gt; LocalResult::Ambiguous(earliest, latest),
-                    (<span class="prelude-val">Some</span>(dt), <span class="prelude-val">None</span>) | (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(dt)) =&gt; LocalResult::Single(dt),
-                    (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>) =&gt; LocalResult::None,
-                }
-            }
+    <span class="doccomment">/// Returns the offset of the local timezone to the `utc` timezone in seconds.
+    </span><span class="kw">fn </span>local_timezone_offset_seconds(<span class="kw-2">&amp;</span><span class="self">self</span>, unix_time_seconds: i64) -&gt; i32 {
+        <span class="comment">// Safety: This is needed during tests because cargo is running tests in multiple threads.
+        // It is safe because tests do not modify the environment.
+        </span><span class="attr">#[cfg(test)]
+        </span><span class="kw">unsafe </span>{
+            local_offset::set_soundness(local_offset::Soundness::Unsound);
         }
+
+        OffsetDateTime::from_unix_timestamp(unix_time_seconds)
+            .ok()
+            .and_then(|t| UtcOffset::local_offset_at(t).ok())
+            .map_or(<span class="number">0</span>, UtcOffset::whole_seconds)
     }
 
     <span class="doccomment">/// Gets the maximum size in bits that can be allocated for an `ArrayBuffer` or a

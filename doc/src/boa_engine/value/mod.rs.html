@@ -1113,22 +1113,6 @@
 <a href="#1113" id="1113">1113</a>
 <a href="#1114" id="1114">1114</a>
 <a href="#1115" id="1115">1115</a>
-<a href="#1116" id="1116">1116</a>
-<a href="#1117" id="1117">1117</a>
-<a href="#1118" id="1118">1118</a>
-<a href="#1119" id="1119">1119</a>
-<a href="#1120" id="1120">1120</a>
-<a href="#1121" id="1121">1121</a>
-<a href="#1122" id="1122">1122</a>
-<a href="#1123" id="1123">1123</a>
-<a href="#1124" id="1124">1124</a>
-<a href="#1125" id="1125">1125</a>
-<a href="#1126" id="1126">1126</a>
-<a href="#1127" id="1127">1127</a>
-<a href="#1128" id="1128">1128</a>
-<a href="#1129" id="1129">1129</a>
-<a href="#1130" id="1130">1130</a>
-<a href="#1131" id="1131">1131</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s ECMAScript Value implementation.
 //!
 //! Javascript values, utility methods and conversion between Javascript values and Rust values.
@@ -1176,7 +1160,7 @@
 <span class="attr">#[doc(inline)]
 </span><span class="kw">pub use </span>boa_macros::TryFromJs;
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><span class="self">self</span>::{conversions::IntoOrUndefined, integer::IntegerOrNan};
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><span class="self">self</span>::conversions::IntoOrUndefined;
 
 <span class="kw">static </span>TWO_E_64: Lazy&lt;BigInt&gt; = Lazy::new(|| {
     <span class="kw">const </span>TWO_E_64: u128 = <span class="number">2u128</span>.pow(<span class="number">64</span>);
@@ -1984,22 +1968,6 @@
 
         <span class="comment">// Continues on `IntegerOrInfinity::from::&lt;f64&gt;`
         </span><span class="prelude-val">Ok</span>(IntegerOrInfinity::from(number))
-    }
-
-    <span class="doccomment">/// Modified abstract operation `ToIntegerOrInfinity ( argument )`.
-    ///
-    /// This function is almost the same as [`Self::to_integer_or_infinity`], but with the exception
-    /// that this will return `Nan` if [`Self::to_number`] returns a non-finite number.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_integer_or_nan(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;IntegerOrNan&gt; {
-        <span class="comment">// 1. Let number be ? ToNumber(argument).
-        </span><span class="kw">let </span>number = <span class="self">self</span>.to_number(context)<span class="question-mark">?</span>;
-
-        <span class="kw">if </span>number.is_nan() {
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(IntegerOrNan::Nan);
-        }
-
-        <span class="comment">// Continues on `IntegerOrInfinity::from::&lt;f64&gt;`
-        </span><span class="prelude-val">Ok</span>(IntegerOrInfinity::from(number).into())
     }
 
     <span class="doccomment">/// Converts a value to a double precision floating point.
