@@ -3,11 +3,13 @@ use crate::{
     builtins::array_buffer::ArrayBuffer,
     context::intrinsics::StandardConstructors,
     error::JsNativeError,
-    object::{internal_methods::get_prototype_from_constructor, JsObject, JsObjectType},
+    object::{
+        internal_methods::get_prototype_from_constructor, ErasedObject, JsObject, JsObjectType,
+    },
     value::TryFromJs,
     Context, JsResult, JsValue,
 };
-use boa_gc::{Finalize, Trace};
+use boa_gc::{Finalize, GcRef, GcRefMut, Trace};
 use std::ops::Deref;
 
 /// `JsArrayBuffer` provides a wrapper for Boa's implementation of the ECMAScript `ArrayBuffer` object
@@ -194,6 +196,78 @@ impl JsArrayBuffer {
                     .with_message("ArrayBuffer was already detached")
                     .into()
             })
+    }
+
+    /// Get an immutable reference to the [`JsArrayBuffer`]'s data.
+    ///
+    /// Returns `None` if detached.
+    ///
+    /// ```
+    /// # use boa_engine::{
+    /// # object::builtins::JsArrayBuffer,
+    /// # Context, JsResult, JsValue
+    /// # };
+    /// # fn main() -> JsResult<()> {
+    /// # // Initialize context
+    /// # let context = &mut Context::default();
+    /// // Create a buffer from a chunk of data
+    /// let data_block: Vec<u8> = (0..5).collect();
+    /// let array_buffer = JsArrayBuffer::from_byte_block(data_block, context)?;
+    ///
+    /// // Get a reference to the data.
+    /// let internal_buffer = array_buffer.data();
+    ///
+    /// assert_eq!(internal_buffer.as_deref(), Some((0..5).collect::<Vec<u8>>().as_slice()));
+    /// # Ok(())
+    /// # }
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn data(&self) -> Option<GcRef<'_, [u8]>> {
+        GcRef::try_map(
+            self.inner
+                .downcast_ref::<ArrayBuffer>()
+                .expect("inner must be an ArrayBuffer"),
+            ArrayBuffer::data,
+        )
+    }
+
+    /// Get a mutable reference to the [`JsArrayBuffer`]'s data.
+    ///
+    /// Returns `None` if detached.
+    ///
+    /// ```
+    /// # use boa_engine::{
+    /// # object::builtins::JsArrayBuffer,
+    /// # Context, JsResult, JsValue
+    /// # };
+    /// # fn main() -> JsResult<()> {
+    /// # // Initialize context
+    /// # let context = &mut Context::default();
+    /// // Create a buffer from a chunk of data
+    /// let data_block: Vec<u8> = (0..5).collect();
+    /// let array_buffer = JsArrayBuffer::from_byte_block(data_block, context)?;
+    ///
+    /// // Get a reference to the data.
+    /// let mut internal_buffer = array_buffer
+    ///     .data_mut()
+    ///     .expect("the buffer should not be detached");
+    ///
+    /// internal_buffer.fill(10);
+    ///
+    /// assert_eq!(&*internal_buffer, vec![10u8; 5].as_slice());
+    /// # Ok(())
+    /// # }
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn data_mut(&self) -> Option<GcRefMut<'_, ErasedObject, [u8]>> {
+        GcRefMut::try_map(
+            self.inner
+                .downcast_mut::<ArrayBuffer>()
+                .expect("inner must be an ArrayBuffer"),
+            ArrayBuffer::data_mut,
+        )
     }
 }
 
