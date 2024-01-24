@@ -1904,6 +1904,15 @@
 <a href="#1904" id="1904">1904</a>
 <a href="#1905" id="1905">1905</a>
 <a href="#1906" id="1906">1906</a>
+<a href="#1907" id="1907">1907</a>
+<a href="#1908" id="1908">1908</a>
+<a href="#1909" id="1909">1909</a>
+<a href="#1910" id="1910">1910</a>
+<a href="#1911" id="1911">1911</a>
+<a href="#1912" id="1912">1912</a>
+<a href="#1913" id="1913">1913</a>
+<a href="#1914" id="1914">1914</a>
+<a href="#1915" id="1915">1915</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `RegExp` object.
 //!
 //! The `RegExp` object is used for matching text with a pattern.
@@ -3174,18 +3183,27 @@
     /// [spec]: https://tc39.es/ecma262/#sec-regexp.prototype.tostring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/toString
     </span><span class="attr">#[allow(clippy::wrong_self_convention)]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_string(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
-        <span class="kw">let </span>(body, flags) = this
-            .as_object()
-            .and_then(JsObject::downcast_ref::&lt;RegExp&gt;)
-            .map(|rx| (rx.original_source.clone(), rx.original_flags.clone()))
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message(<span class="macro">format!</span>(
-                    <span class="string">&quot;Method RegExp.prototype.toString called on incompatible receiver {}&quot;</span>,
-                    this.display()
-                ))
-            })<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="macro">utf16!</span>(<span class="string">&quot;/&quot;</span>), <span class="kw-2">&amp;</span>body, <span class="macro">utf16!</span>(<span class="string">&quot;/&quot;</span>), <span class="kw-2">&amp;</span>flags).into())
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_string(
+        this: <span class="kw-2">&amp;</span>JsValue,
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="comment">// 1. Let R be the this value.
+        // 2. If R is not an Object, throw a TypeError exception.
+        </span><span class="kw">let </span>regexp = this.as_object().ok_or_else(|| {
+            JsNativeError::typ()
+                .with_message(<span class="string">&quot;RegExp.prototype.toString method called on incompatible value&quot;</span>)
+        })<span class="question-mark">?</span>;
+
+        <span class="comment">// 3. Let pattern be ? ToString(? Get(R, &quot;source&quot;)).
+        </span><span class="kw">let </span>pattern = regexp.get(<span class="macro">utf16!</span>(<span class="string">&quot;source&quot;</span>), context)<span class="question-mark">?</span>.to_string(context)<span class="question-mark">?</span>;
+
+        <span class="comment">// 4. Let flags be ? ToString(? Get(R, &quot;flags&quot;)).
+        </span><span class="kw">let </span>flags = regexp.get(<span class="macro">utf16!</span>(<span class="string">&quot;flags&quot;</span>), context)<span class="question-mark">?</span>.to_string(context)<span class="question-mark">?</span>;
+
+        <span class="comment">// 5. Let result be the string-concatenation of &quot;/&quot;, pattern, &quot;/&quot;, and flags.
+        // 6. Return result.
+        </span><span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="macro">utf16!</span>(<span class="string">&quot;/&quot;</span>), <span class="kw-2">&amp;</span>pattern, <span class="macro">utf16!</span>(<span class="string">&quot;/&quot;</span>), <span class="kw-2">&amp;</span>flags).into())
     }
 
     <span class="doccomment">/// `RegExp.prototype[ @@matchAll ]( string )`
