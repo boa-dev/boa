@@ -62,9 +62,18 @@ impl Duration {
         Self::from_date_duration(DateDuration::new_unchecked(0f64, 0f64, week_value, 0f64))
     }
 
-    /// Utility that checks whether `Duration`'s `DateDuration` is empty.
-    pub(crate) fn is_time_duration(&self) -> bool {
-        self.date().iter().any(|x| x != 0f64)
+    /// Returns whether `Duration`'s `DateDuration` isn't empty and is therefore a `DateDuration` or `Duration`.
+    #[inline]
+    #[must_use]
+    pub fn is_date_duration(&self) -> bool {
+        self.date().iter().any(|x| x != 0.0) && self.time().iter().all(|x| x == 0.0)
+    }
+
+    /// Returns whether `Duration`'s `DateDuration` is empty and is therefore a `TimeDuration`.
+    #[inline]
+    #[must_use]
+    pub fn is_time_duration(&self) -> bool {
+        self.time().iter().any(|x| x != 0.0) && self.date().iter().all(|x| x == 0.0)
     }
 }
 
