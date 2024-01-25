@@ -224,12 +224,12 @@ impl JsArrayBuffer {
     #[inline]
     #[must_use]
     pub fn data(&self) -> Option<GcRef<'_, [u8]>> {
-        GcRef::try_map(
-            self.inner
-                .downcast_ref::<ArrayBuffer>()
-                .expect("inner must be an ArrayBuffer"),
-            ArrayBuffer::data,
-        )
+        debug_assert!(
+            self.inner.is::<ArrayBuffer>(),
+            "inner must be an ArrayBuffer"
+        );
+
+        GcRef::try_map(self.inner.downcast_ref::<ArrayBuffer>()?, ArrayBuffer::data)
     }
 
     /// Get a mutable reference to the [`JsArrayBuffer`]'s data.
@@ -262,10 +262,13 @@ impl JsArrayBuffer {
     #[inline]
     #[must_use]
     pub fn data_mut(&self) -> Option<GcRefMut<'_, ErasedObject, [u8]>> {
+        debug_assert!(
+            self.inner.is::<ArrayBuffer>(),
+            "inner must be an ArrayBuffer"
+        );
+
         GcRefMut::try_map(
-            self.inner
-                .downcast_mut::<ArrayBuffer>()
-                .expect("inner must be an ArrayBuffer"),
+            self.inner.downcast_mut::<ArrayBuffer>()?,
             ArrayBuffer::data_mut,
         )
     }
