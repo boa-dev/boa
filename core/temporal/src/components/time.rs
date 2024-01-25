@@ -9,7 +9,6 @@ use crate::{
 
 /// The native Rust implementation of `Temporal.PlainTime`.
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-#[allow(dead_code)]
 pub struct Time {
     iso: IsoTime,
 }
