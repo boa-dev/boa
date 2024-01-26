@@ -232,16 +232,95 @@
 <a href="#232" id="232">232</a>
 <a href="#233" id="233">233</a>
 <a href="#234" id="234">234</a>
+<a href="#235" id="235">235</a>
+<a href="#236" id="236">236</a>
+<a href="#237" id="237">237</a>
+<a href="#238" id="238">238</a>
+<a href="#239" id="239">239</a>
+<a href="#240" id="240">240</a>
+<a href="#241" id="241">241</a>
+<a href="#242" id="242">242</a>
+<a href="#243" id="243">243</a>
+<a href="#244" id="244">244</a>
+<a href="#245" id="245">245</a>
+<a href="#246" id="246">246</a>
+<a href="#247" id="247">247</a>
+<a href="#248" id="248">248</a>
+<a href="#249" id="249">249</a>
+<a href="#250" id="250">250</a>
+<a href="#251" id="251">251</a>
+<a href="#252" id="252">252</a>
+<a href="#253" id="253">253</a>
+<a href="#254" id="254">254</a>
+<a href="#255" id="255">255</a>
+<a href="#256" id="256">256</a>
+<a href="#257" id="257">257</a>
+<a href="#258" id="258">258</a>
+<a href="#259" id="259">259</a>
+<a href="#260" id="260">260</a>
+<a href="#261" id="261">261</a>
+<a href="#262" id="262">262</a>
+<a href="#263" id="263">263</a>
+<a href="#264" id="264">264</a>
+<a href="#265" id="265">265</a>
+<a href="#266" id="266">266</a>
+<a href="#267" id="267">267</a>
+<a href="#268" id="268">268</a>
+<a href="#269" id="269">269</a>
+<a href="#270" id="270">270</a>
+<a href="#271" id="271">271</a>
+<a href="#272" id="272">272</a>
+<a href="#273" id="273">273</a>
+<a href="#274" id="274">274</a>
+<a href="#275" id="275">275</a>
+<a href="#276" id="276">276</a>
+<a href="#277" id="277">277</a>
+<a href="#278" id="278">278</a>
+<a href="#279" id="279">279</a>
+<a href="#280" id="280">280</a>
+<a href="#281" id="281">281</a>
+<a href="#282" id="282">282</a>
+<a href="#283" id="283">283</a>
+<a href="#284" id="284">284</a>
+<a href="#285" id="285">285</a>
+<a href="#286" id="286">286</a>
+<a href="#287" id="287">287</a>
+<a href="#288" id="288">288</a>
+<a href="#289" id="289">289</a>
+<a href="#290" id="290">290</a>
+<a href="#291" id="291">291</a>
+<a href="#292" id="292">292</a>
+<a href="#293" id="293">293</a>
+<a href="#294" id="294">294</a>
+<a href="#295" id="295">295</a>
+<a href="#296" id="296">296</a>
+<a href="#297" id="297">297</a>
+<a href="#298" id="298">298</a>
+<a href="#299" id="299">299</a>
+<a href="#300" id="300">300</a>
+<a href="#301" id="301">301</a>
+<a href="#302" id="302">302</a>
+<a href="#303" id="303">303</a>
+<a href="#304" id="304">304</a>
+<a href="#305" id="305">305</a>
+<a href="#306" id="306">306</a>
+<a href="#307" id="307">307</a>
+<a href="#308" id="308">308</a>
+<a href="#309" id="309">309</a>
+<a href="#310" id="310">310</a>
+<a href="#311" id="311">311</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! A Rust API wrapper for Boa&#39;s `ArrayBuffer` Builtin ECMAScript Object
 </span><span class="kw">use crate</span>::{
     builtins::array_buffer::ArrayBuffer,
     context::intrinsics::StandardConstructors,
     error::JsNativeError,
-    object::{internal_methods::get_prototype_from_constructor, JsObject, JsObjectType},
+    object::{
+        internal_methods::get_prototype_from_constructor, ErasedObject, JsObject, JsObjectType,
+    },
     value::TryFromJs,
     Context, JsResult, JsValue,
 };
-<span class="kw">use </span>boa_gc::{Finalize, Trace};
+<span class="kw">use </span>boa_gc::{Finalize, GcRef, GcRefMut, Trace};
 <span class="kw">use </span>std::ops::Deref;
 
 <span class="doccomment">/// `JsArrayBuffer` provides a wrapper for Boa&#39;s implementation of the ECMAScript `ArrayBuffer` object
@@ -428,6 +507,81 @@
                     .with_message(<span class="string">&quot;ArrayBuffer was already detached&quot;</span>)
                     .into()
             })
+    }
+
+    <span class="doccomment">/// Get an immutable reference to the [`JsArrayBuffer`]&#39;s data.
+    ///
+    /// Returns `None` if detached.
+    ///
+    /// ```
+    /// # use boa_engine::{
+    /// # object::builtins::JsArrayBuffer,
+    /// # Context, JsResult, JsValue
+    /// # };
+    /// # fn main() -&gt; JsResult&lt;()&gt; {
+    /// # // Initialize context
+    /// # let context = &amp;mut Context::default();
+    /// // Create a buffer from a chunk of data
+    /// let data_block: Vec&lt;u8&gt; = (0..5).collect();
+    /// let array_buffer = JsArrayBuffer::from_byte_block(data_block, context)?;
+    ///
+    /// // Get a reference to the data.
+    /// let internal_buffer = array_buffer.data();
+    ///
+    /// assert_eq!(internal_buffer.as_deref(), Some((0..5).collect::&lt;Vec&lt;u8&gt;&gt;().as_slice()));
+    /// # Ok(())
+    /// # }
+    /// ```
+    </span><span class="attr">#[inline]
+    #[must_use]
+    </span><span class="kw">pub fn </span>data(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;GcRef&lt;<span class="lifetime">&#39;_</span>, [u8]&gt;&gt; {
+        <span class="macro">debug_assert!</span>(
+            <span class="self">self</span>.inner.is::&lt;ArrayBuffer&gt;(),
+            <span class="string">&quot;inner must be an ArrayBuffer&quot;
+        </span>);
+
+        GcRef::try_map(<span class="self">self</span>.inner.downcast_ref::&lt;ArrayBuffer&gt;()<span class="question-mark">?</span>, ArrayBuffer::data)
+    }
+
+    <span class="doccomment">/// Get a mutable reference to the [`JsArrayBuffer`]&#39;s data.
+    ///
+    /// Returns `None` if detached.
+    ///
+    /// ```
+    /// # use boa_engine::{
+    /// # object::builtins::JsArrayBuffer,
+    /// # Context, JsResult, JsValue
+    /// # };
+    /// # fn main() -&gt; JsResult&lt;()&gt; {
+    /// # // Initialize context
+    /// # let context = &amp;mut Context::default();
+    /// // Create a buffer from a chunk of data
+    /// let data_block: Vec&lt;u8&gt; = (0..5).collect();
+    /// let array_buffer = JsArrayBuffer::from_byte_block(data_block, context)?;
+    ///
+    /// // Get a reference to the data.
+    /// let mut internal_buffer = array_buffer
+    ///     .data_mut()
+    ///     .expect(&quot;the buffer should not be detached&quot;);
+    ///
+    /// internal_buffer.fill(10);
+    ///
+    /// assert_eq!(&amp;*internal_buffer, vec![10u8; 5].as_slice());
+    /// # Ok(())
+    /// # }
+    /// ```
+    </span><span class="attr">#[inline]
+    #[must_use]
+    </span><span class="kw">pub fn </span>data_mut(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;GcRefMut&lt;<span class="lifetime">&#39;_</span>, ErasedObject, [u8]&gt;&gt; {
+        <span class="macro">debug_assert!</span>(
+            <span class="self">self</span>.inner.is::&lt;ArrayBuffer&gt;(),
+            <span class="string">&quot;inner must be an ArrayBuffer&quot;
+        </span>);
+
+        GcRefMut::try_map(
+            <span class="self">self</span>.inner.downcast_mut::&lt;ArrayBuffer&gt;()<span class="question-mark">?</span>,
+            ArrayBuffer::data_mut,
+        )
     }
 }
 
