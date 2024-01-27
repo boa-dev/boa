@@ -67,7 +67,7 @@ impl Now {
     #[allow(clippy::unnecessary_wraps)]
     fn time_zone_id(_: &JsValue, _args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Return ! SystemTimeZone().
-        Ok(system_time_zone(context).expect("retrieving the system timezone must not fail"))
+        system_time_zone(context)
     }
 
     /// `Temporal.Now.instant()`

@@ -305,7 +305,7 @@ pub(crate) fn iso_days_in_month(year: i32, month: i32) -> i32 {
         1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
         4 | 6 | 9 | 11 => 30,
         2 => 28 + mathematical_in_leap_year(epoch_time_for_year(year)),
-        _ => unreachable!("an invalid month value is an implementation error."),
+        _ => unreachable!("ISODaysInMonth panicking is an implementation error."),
     }
 }
 

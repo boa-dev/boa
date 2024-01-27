@@ -171,11 +171,11 @@ impl IsoDate {
     ) -> TemporalResult<Self> {
         match overflow {
             ArithmeticOverflow::Constrain => {
-                let m = month.clamp(1, 12);
+                let month = month.clamp(1, 12);
                 let days_in_month = utils::iso_days_in_month(year, month);
                 let d = day.clamp(1, days_in_month);
                 // NOTE: Values are clamped in a u8 range.
-                Ok(Self::new_unchecked(year, m as u8, d as u8))
+                Ok(Self::new_unchecked(year, month as u8, d as u8))
             }
             ArithmeticOverflow::Reject => {
                 if !is_valid_date(year, month, day) {

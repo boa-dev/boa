@@ -1,5 +1,7 @@
 //! This module implements `Date` and any directly related algorithms.
 
+use tinystr::TinyAsciiStr;
+
 use crate::{
     components::{
         calendar::{CalendarProtocol, CalendarSlot},
@@ -72,29 +74,29 @@ impl<C: CalendarProtocol> Date<C> {
 
     #[inline]
     #[must_use]
-    /// Returns this `Date`'s year value.
-    pub const fn year(&self) -> i32 {
+    /// Returns this `Date`'s ISO year value.
+    pub const fn iso_year(&self) -> i32 {
         self.iso.year()
     }
 
     #[inline]
     #[must_use]
-    /// Returns this `Date`'s month value.
-    pub const fn month(&self) -> u8 {
+    /// Returns this `Date`'s ISO month value.
+    pub const fn iso_month(&self) -> u8 {
         self.iso.month()
     }
 
     #[inline]
     #[must_use]
-    /// Returns this `Date`'s day value.
-    pub const fn day(&self) -> u8 {
+    /// Returns this `Date`'s ISO day value.
+    pub const fn iso_day(&self) -> u8 {
         self.iso.day()
     }
 
     #[inline]
     #[must_use]
     /// Returns the `Date`'s inner `IsoDate` record.
-    pub const fn iso_date(&self) -> IsoDate {
+    pub const fn iso(&self) -> IsoDate {
         self.iso
     }
 
@@ -120,6 +122,179 @@ impl<C: CalendarProtocol> Date<C> {
     #[must_use]
     pub fn days_until(&self, other: &Self) -> i32 {
         other.iso.to_epoch_days() - self.iso.to_epoch_days()
+    }
+}
+
+// ==== Calendar-derived Public API ====
+
+impl<C: CalendarProtocol> Date<C> {
+    /// Returns the calendar year value with provided context.
+    pub fn contextual_year(&self, context: &mut dyn Any) -> TemporalResult<i32> {
+        self.calendar.year(
+            &super::calendar::CalendarDateLike::Date(self.clone()),
+            context,
+        )
+    }
+
+    /// Returns the calendar year value.
+    pub fn year(&self) -> TemporalResult<i32> {
+        self.contextual_year(&mut ())
+    }
+
+    /// Returns the calendar month value with provided context.
+    pub fn contextual_month(&self, context: &mut dyn Any) -> TemporalResult<u8> {
+        self.calendar.month(
+            &super::calendar::CalendarDateLike::Date(self.clone()),
+            context,
+        )
+    }
+
+    /// Returns the calendar month value.
+    pub fn month(&self) -> TemporalResult<u8> {
+        self.contextual_month(&mut ())
+    }
+
+    /// Returns the calendar month code value with provided context.
+    pub fn contextual_month_code(&self, context: &mut dyn Any) -> TemporalResult<TinyAsciiStr<4>> {
+        self.calendar.month_code(
+            &super::calendar::CalendarDateLike::Date(self.clone()),
+            context,
+        )
+    }
+
+    /// Returns the calendar month code value.
+    pub fn month_code(&self) -> TemporalResult<TinyAsciiStr<4>> {
+        self.contextual_month_code(&mut ())
+    }
+
+    /// Returns the calendar day value with provided context.
+    pub fn contextual_day(&self, context: &mut dyn Any) -> TemporalResult<u8> {
+        self.calendar.day(
+            &super::calendar::CalendarDateLike::Date(self.clone()),
+            context,
+        )
+    }
+
+    /// Returns the calendar day value.
+    pub fn day(&self) -> TemporalResult<u8> {
+        self.contextual_day(&mut ())
+    }
+
+    /// Returns the calendar day of week value with provided context.
+    pub fn contextual_day_of_week(&self, context: &mut dyn Any) -> TemporalResult<u16> {
+        self.calendar.day_of_week(
+            &super::calendar::CalendarDateLike::Date(self.clone()),
+            context,
+        )
+    }
+
+    /// Returns the calendar day of week value.
+    pub fn day_of_week(&self) -> TemporalResult<u16> {
+        self.contextual_day_of_week(&mut ())
+    }
+
+    /// Returns the calendar day of year value with provided context.
+    pub fn contextual_day_of_year(&self, context: &mut dyn Any) -> TemporalResult<u16> {
+        self.calendar.day_of_week(
+            &super::calendar::CalendarDateLike::Date(self.clone()),
+            context,
+        )
+    }
+
+    /// Returns the calendar day of year value.
+    pub fn day_of_year(&self) -> TemporalResult<u16> {
+        self.contextual_day_of_week(&mut ())
+    }
+
+    /// Returns the calendar week of year value with provided context.
+    pub fn contextual_week_of_year(&self, context: &mut dyn Any) -> TemporalResult<u16> {
+        self.calendar.week_of_year(
+            &super::calendar::CalendarDateLike::Date(self.clone()),
+            context,
+        )
+    }
+
+    /// Returns the calendar week of year value.
+    pub fn week_of_year(&self) -> TemporalResult<u16> {
+        self.contextual_week_of_year(&mut ())
+    }
+
+    /// Returns the calendar year of week value with provided context.
+    pub fn contextual_year_of_week(&self, context: &mut dyn Any) -> TemporalResult<i32> {
+        self.calendar.year_of_week(
+            &super::calendar::CalendarDateLike::Date(self.clone()),
+            context,
+        )
+    }
+
+    /// Returns the calendar year of week value.
+    pub fn year_of_week(&self) -> TemporalResult<i32> {
+        self.contextual_year_of_week(&mut ())
+    }
+
+    /// Returns the calendar days in week value with provided context.
+    pub fn contextual_days_in_week(&self, context: &mut dyn Any) -> TemporalResult<u16> {
+        self.calendar.days_in_week(
+            &super::calendar::CalendarDateLike::Date(self.clone()),
+            context,
+        )
+    }
+
+    /// Returns the calendar days in week value.
+    pub fn days_in_week(&self) -> TemporalResult<u16> {
+        self.contextual_days_in_week(&mut ())
+    }
+
+    /// Returns the calendar days in month value with provided context.
+    pub fn contextual_days_in_month(&self, context: &mut dyn Any) -> TemporalResult<u16> {
+        self.calendar.days_in_month(
+            &super::calendar::CalendarDateLike::Date(self.clone()),
+            context,
+        )
+    }
+
+    /// Returns the calendar days in month value.
+    pub fn days_in_month(&self) -> TemporalResult<u16> {
+        self.contextual_days_in_month(&mut ())
+    }
+
+    /// Returns the calendar days in year value with provided context.
+    pub fn contextual_days_in_year(&self, context: &mut dyn Any) -> TemporalResult<u16> {
+        self.calendar.days_in_year(
+            &super::calendar::CalendarDateLike::Date(self.clone()),
+            context,
+        )
+    }
+
+    /// Returns the calendar days in year value.
+    pub fn days_in_year(&self) -> TemporalResult<u16> {
+        self.contextual_days_in_year(&mut ())
+    }
+
+    /// Returns the calendar months in year value with provided context.
+    pub fn contextual_months_in_year(&self, context: &mut dyn Any) -> TemporalResult<u16> {
+        self.calendar.months_in_year(
+            &super::calendar::CalendarDateLike::Date(self.clone()),
+            context,
+        )
+    }
+
+    /// Returns the calendar months in year value.
+    pub fn months_in_year(&self) -> TemporalResult<u16> {
+        self.contextual_months_in_year(&mut ())
+    }
+
+    /// Returns whether the date is in a leap year for the given calendar with provided context.
+    pub fn contextual_in_leap_year(&self, context: &mut dyn Any) -> TemporalResult<bool> {
+        self.calendar.in_leap_year(
+            &super::calendar::CalendarDateLike::Date(self.clone()),
+            context,
+        )
+    }
+
+    /// Returns returns whether the date in a leap year for the given calendar.
+    pub fn in_leap_year(&self) -> TemporalResult<bool> {
+        self.contextual_in_leap_year(&mut ())
     }
 }
 

@@ -1,6 +1,8 @@
 //! Boa's implementation of the ECMAScript `Temporal.PlainDate` builtin object.
 #![allow(dead_code, unused_variables)]
 
+// TODO (nekevss): DOCS DOCS AND MORE DOCS
+
 use crate::{
     builtins::{
         options::{get_option, get_options_object},
@@ -21,7 +23,7 @@ use boa_temporal::{
     options::ArithmeticOverflow,
 };
 
-use super::{calendar, JsCustomCalendar, PlainDateTime, ZonedDateTime};
+use super::{calendar, create_temporal_calendar, JsCustomCalendar, PlainDateTime, ZonedDateTime};
 
 /// The `Temporal.PlainDate` object.
 #[derive(Debug, Clone, Trace, Finalize, JsData)]
@@ -229,90 +231,183 @@ impl BuiltInConstructor for PlainDate {
     }
 }
 
-// -- `PlainDate` getter methods --
+// ==== `PlainDate` getter methods ====
+
 impl PlainDate {
-    fn get_calendar_id(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        Err(JsNativeError::error()
-            .with_message("calendars not yet implemented.")
-            .into())
+    /// 3.3.3 get `Temporal.PlainDate.prototype.calendarId`
+    fn get_calendar_id(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let date = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be an instant object.")
+            })?;
+
+        Ok(JsString::from(date.inner.calendar().identifier(context)?).into())
     }
 
-    fn get_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        Err(JsNativeError::error()
-            .with_message("not yet implemented.")
-            .into())
+    /// 3.3.4 get `Temporal.PlainDate.prototype.year`
+    fn get_year(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let date = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be an instant object.")
+            })?;
+
+        Ok(date.inner.contextual_year(context)?.into())
     }
 
-    fn get_month(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        Err(JsNativeError::error()
-            .with_message("not yet implemented.")
-            .into())
+    /// 3.3.5 get `Temporal.PlainDate.prototype.month`
+    fn get_month(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let date = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be an instant object.")
+            })?;
+
+        Ok(date.inner.contextual_month(context)?.into())
     }
 
-    fn get_month_code(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        Err(JsNativeError::error()
-            .with_message("not yet implemented.")
-            .into())
+    /// 3.3.6 get Temporal.PlainDate.prototype.monthCode
+    fn get_month_code(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let date = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be an instant object.")
+            })?;
+
+        Ok(JsString::from(date.inner.contextual_month_code(context)?.as_str()).into())
     }
 
-    fn get_day(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        Err(JsNativeError::error()
-            .with_message("not yet implemented.")
-            .into())
+    /// 3.3.7 get `Temporal.PlainDate.prototype.day`
+    fn get_day(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let date = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be an instant object.")
+            })?;
+
+        Ok(date.inner.contextual_day(context)?.into())
     }
 
-    fn get_day_of_week(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        Err(JsNativeError::error()
-            .with_message("not yet implemented.")
-            .into())
+    /// 3.3.8 get `Temporal.PlainDate.prototype.dayOfWeek`
+    fn get_day_of_week(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let date = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be an instant object.")
+            })?;
+
+        Ok(date.inner.contextual_day_of_week(context)?.into())
     }
 
-    fn get_day_of_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        Err(JsNativeError::error()
-            .with_message("not yet implemented.")
-            .into())
+    /// 3.3.9 get `Temporal.PlainDate.prototype.dayOfYear`
+    fn get_day_of_year(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let date = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be an instant object.")
+            })?;
+
+        Ok(date.inner.contextual_day_of_year(context)?.into())
     }
 
-    fn get_week_of_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        Err(JsNativeError::error()
-            .with_message("not yet implemented.")
-            .into())
+    /// 3.3.10 get `Temporal.PlainDate.prototype.weekOfYear`
+    fn get_week_of_year(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let date = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be an instant object.")
+            })?;
+
+        Ok(date.inner.contextual_week_of_year(context)?.into())
     }
 
-    fn get_year_of_week(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        Err(JsNativeError::error()
-            .with_message("not yet implemented.")
-            .into())
+    /// 3.3.11 get `Temporal.PlainDate.prototype.yearOfWeek`
+    fn get_year_of_week(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let date = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be an instant object.")
+            })?;
+
+        Ok(date.inner.contextual_year_of_week(context)?.into())
     }
 
-    fn get_days_in_week(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        Err(JsNativeError::error()
-            .with_message("not yet implemented.")
-            .into())
+    /// 3.3.12 get `Temporal.PlainDate.prototype.daysInWeek`
+    fn get_days_in_week(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let date = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be an instant object.")
+            })?;
+
+        Ok(date.inner.contextual_days_in_week(context)?.into())
     }
 
-    fn get_days_in_month(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        Err(JsNativeError::error()
-            .with_message("not yet implemented.")
-            .into())
+    /// 3.3.13 get `Temporal.PlainDate.prototype.daysInMonth`
+    fn get_days_in_month(
+        this: &JsValue,
+        _: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        let date = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be an instant object.")
+            })?;
+
+        Ok(date.inner.contextual_days_in_month(context)?.into())
     }
 
-    fn get_days_in_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        Err(JsNativeError::error()
-            .with_message("not yet implemented.")
-            .into())
+    /// 3.3.14 get `Temporal.PlainDate.prototype.daysInYear`
+    fn get_days_in_year(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let date = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be an instant object.")
+            })?;
+
+        Ok(date.inner.contextual_days_in_year(context)?.into())
     }
 
-    fn get_months_in_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        Err(JsNativeError::error()
-            .with_message("not yet implemented.")
-            .into())
+    /// 3.3.15 get `Temporal.PlainDate.prototype.monthsInYear`
+    fn get_months_in_year(
+        this: &JsValue,
+        _: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        let date = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be an instant object.")
+            })?;
+
+        Ok(date.inner.contextual_months_in_year(context)?.into())
     }
 
-    fn get_in_leap_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        Err(JsNativeError::error()
-            .with_message("not yet implemented.")
-            .into())
+    /// 3.3.16 get `Temporal.PlainDate.prototype.inLeapYear`
+    fn get_in_leap_year(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let date = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be an instant object.")
+            })?;
+
+        Ok(date.inner.contextual_in_leap_year(context)?.into())
     }
 }
 
@@ -337,10 +432,16 @@ impl PlainDate {
             .into())
     }
 
-    fn get_calendar(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        Err(JsNativeError::error()
-            .with_message("not yet implemented.")
-            .into())
+    /// 3.3.20 `Temporal.PlainDate.prototype.getCalendar ( )`
+    fn get_calendar(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let date = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be an instant object.")
+            })?;
+
+        create_temporal_calendar(date.inner.calendar().clone(), None, context)
     }
 
     fn add(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
