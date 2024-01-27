@@ -1913,6 +1913,8 @@
 <a href="#1913" id="1913">1913</a>
 <a href="#1914" id="1914">1914</a>
 <a href="#1915" id="1915">1915</a>
+<a href="#1916" id="1916">1916</a>
+<a href="#1917" id="1917">1917</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `RegExp` object.
 //!
 //! The `RegExp` object is used for matching text with a pattern.
@@ -2638,8 +2640,10 @@
             <span class="kw">for </span>c <span class="kw">in </span>src.code_points() {
                 <span class="kw">match </span>c {
                     CodePoint::Unicode(<span class="string">&#39;/&#39;</span>) =&gt; s.extend_from_slice(<span class="macro">utf16!</span>(<span class="string">r&quot;\/&quot;</span>)),
-                    CodePoint::Unicode(<span class="string">&#39;\n&#39;</span>) =&gt; s.extend_from_slice(<span class="macro">utf16!</span>(<span class="string">r&quot;\\n&quot;</span>)),
-                    CodePoint::Unicode(<span class="string">&#39;\r&#39;</span>) =&gt; s.extend_from_slice(<span class="macro">utf16!</span>(<span class="string">r&quot;\\r&quot;</span>)),
+                    CodePoint::Unicode(<span class="string">&#39;\n&#39;</span>) =&gt; s.extend_from_slice(<span class="macro">utf16!</span>(<span class="string">r&quot;\n&quot;</span>)),
+                    CodePoint::Unicode(<span class="string">&#39;\r&#39;</span>) =&gt; s.extend_from_slice(<span class="macro">utf16!</span>(<span class="string">r&quot;\r&quot;</span>)),
+                    CodePoint::Unicode(<span class="string">&#39;\u{2028}&#39;</span>) =&gt; s.extend_from_slice(<span class="macro">utf16!</span>(<span class="string">r&quot;\u2028&quot;</span>)),
+                    CodePoint::Unicode(<span class="string">&#39;\u{2029}&#39;</span>) =&gt; s.extend_from_slice(<span class="macro">utf16!</span>(<span class="string">r&quot;\u2029&quot;</span>)),
                     CodePoint::Unicode(c) =&gt; s.extend_from_slice(c.encode_utf16(<span class="kw-2">&amp;mut </span>buf)),
                     CodePoint::UnpairedSurrogate(surr) =&gt; s.push(surr),
                 }

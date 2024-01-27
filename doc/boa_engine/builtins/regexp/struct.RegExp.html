@@ -5,7 +5,7 @@
     original_flags: <a class="struct" href="../../string/struct.JsString.html" title="struct boa_engine::string::JsString">JsString</a>,
 }</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>The internal representation of a <code>RegExp</code> object.</p>
 </div></details><h2 id="fields" class="fields small-section-header">Fields<a href="#fields" class="anchor">§</a></h2><span id="structfield.matcher" class="structfield small-section-header"><a href="#structfield.matcher" class="anchor field">§</a><code>matcher: Regex</code></span><div class="docblock"><p>Regex matcher.</p>
-</div><span id="structfield.flags" class="structfield small-section-header"><a href="#structfield.flags" class="anchor field">§</a><code>flags: <a class="struct" href="../../../boa_parser/lexer/regex/struct.RegExpFlags.html" title="struct boa_parser::lexer::regex::RegExpFlags">RegExpFlags</a></code></span><span id="structfield.original_source" class="structfield small-section-header"><a href="#structfield.original_source" class="anchor field">§</a><code>original_source: <a class="struct" href="../../string/struct.JsString.html" title="struct boa_engine::string::JsString">JsString</a></code></span><span id="structfield.original_flags" class="structfield small-section-header"><a href="#structfield.original_flags" class="anchor field">§</a><code>original_flags: <a class="struct" href="../../string/struct.JsString.html" title="struct boa_engine::string::JsString">JsString</a></code></span><h2 id="implementations" class="small-section-header">Implementations<a href="#implementations" class="anchor">§</a></h2><div id="implementations-list"><details class="toggle implementors-toggle" open><summary><section id="impl-RegExp" class="impl"><a class="src rightside" href="../../../src/boa_engine/builtins/regexp/mod.rs.html#261-1885">source</a><a href="#impl-RegExp" class="anchor">§</a><h3 class="code-header">impl <a class="struct" href="struct.RegExp.html" title="struct boa_engine::builtins::regexp::RegExp">RegExp</a></h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.is_reg_exp" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/regexp/mod.rs.html#270-294">source</a><h4 class="code-header">pub(crate) fn <a href="#method.is_reg_exp" class="fn">is_reg_exp</a>&lt;'a&gt;(
+</div><span id="structfield.flags" class="structfield small-section-header"><a href="#structfield.flags" class="anchor field">§</a><code>flags: <a class="struct" href="../../../boa_parser/lexer/regex/struct.RegExpFlags.html" title="struct boa_parser::lexer::regex::RegExpFlags">RegExpFlags</a></code></span><span id="structfield.original_source" class="structfield small-section-header"><a href="#structfield.original_source" class="anchor field">§</a><code>original_source: <a class="struct" href="../../string/struct.JsString.html" title="struct boa_engine::string::JsString">JsString</a></code></span><span id="structfield.original_flags" class="structfield small-section-header"><a href="#structfield.original_flags" class="anchor field">§</a><code>original_flags: <a class="struct" href="../../string/struct.JsString.html" title="struct boa_engine::string::JsString">JsString</a></code></span><h2 id="implementations" class="small-section-header">Implementations<a href="#implementations" class="anchor">§</a></h2><div id="implementations-list"><details class="toggle implementors-toggle" open><summary><section id="impl-RegExp" class="impl"><a class="src rightside" href="../../../src/boa_engine/builtins/regexp/mod.rs.html#261-1887">source</a><a href="#impl-RegExp" class="anchor">§</a><h3 class="code-header">impl <a class="struct" href="struct.RegExp.html" title="struct boa_engine::builtins::regexp::RegExp">RegExp</a></h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.is_reg_exp" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/regexp/mod.rs.html#270-294">source</a><h4 class="code-header">pub(crate) fn <a href="#method.is_reg_exp" class="fn">is_reg_exp</a>&lt;'a&gt;(
     argument: &amp;'a <a class="enum" href="../../value/enum.JsValue.html" title="enum boa_engine::value::JsValue">JsValue</a>,
     context: &amp;mut <a class="struct" href="../../context/struct.Context.html" title="struct boa_engine::context::Context">Context</a>
 ) -&gt; <a class="type" href="../../type.JsResult.html" title="type boa_engine::JsResult">JsResult</a>&lt;<a class="enum" href="https://doc.rust-lang.org/1.75.0/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;&amp;'a <a class="struct" href="../../object/jsobject/struct.JsObject.html" title="struct boa_engine::object::jsobject::JsObject">JsObject</a>&gt;&gt;</h4></section></summary><div class="docblock"><p><code>7.2.8 IsRegExp ( argument )</code></p>
@@ -156,12 +156,12 @@ and it doesn’t contain the two forward slashes on both sides and any flags.</p
 <li><a href="https://tc39.es/ecma262/#sec-get-regexp.prototype.source">ECMAScript reference</a></li>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/source">MDN documentation</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.escape_pattern" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/regexp/mod.rs.html#717-735">source</a><h4 class="code-header">fn <a href="#method.escape_pattern" class="fn">escape_pattern</a>(src: &amp;<a class="struct" href="../../string/struct.JsString.html" title="struct boa_engine::string::JsString">JsString</a>, _flags: &amp;<a class="struct" href="../../string/struct.JsString.html" title="struct boa_engine::string::JsString">JsString</a>) -&gt; <a class="enum" href="../../value/enum.JsValue.html" title="enum boa_engine::value::JsValue">JsValue</a></h4></section></summary><div class="docblock"><p><code>22.2.3.2.5 EscapeRegExpPattern ( P, F )</code></p>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.escape_pattern" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/regexp/mod.rs.html#717-737">source</a><h4 class="code-header">fn <a href="#method.escape_pattern" class="fn">escape_pattern</a>(src: &amp;<a class="struct" href="../../string/struct.JsString.html" title="struct boa_engine::string::JsString">JsString</a>, _flags: &amp;<a class="struct" href="../../string/struct.JsString.html" title="struct boa_engine::string::JsString">JsString</a>) -&gt; <a class="enum" href="../../value/enum.JsValue.html" title="enum boa_engine::value::JsValue">JsValue</a></h4></section></summary><div class="docblock"><p><code>22.2.3.2.5 EscapeRegExpPattern ( P, F )</code></p>
 <p>More information:</p>
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-escaperegexppattern">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.test" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/regexp/mod.rs.html#749-777">source</a><h4 class="code-header">pub(crate) fn <a href="#method.test" class="fn">test</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.test" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/regexp/mod.rs.html#751-779">source</a><h4 class="code-header">pub(crate) fn <a href="#method.test" class="fn">test</a>(
     this: &amp;<a class="enum" href="../../value/enum.JsValue.html" title="enum boa_engine::value::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../value/enum.JsValue.html" title="enum boa_engine::value::JsValue">JsValue</a>],
     context: &amp;mut <a class="struct" href="../../context/struct.Context.html" title="struct boa_engine::context::Context">Context</a>
@@ -173,7 +173,7 @@ and it doesn’t contain the two forward slashes on both sides and any flags.</p
 <li><a href="https://tc39.es/ecma262/#sec-regexp.prototype.test">ECMAScript reference</a></li>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/test">MDN documentation</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.exec" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/regexp/mod.rs.html#791-811">source</a><h4 class="code-header">pub(crate) fn <a href="#method.exec" class="fn">exec</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.exec" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/regexp/mod.rs.html#793-813">source</a><h4 class="code-header">pub(crate) fn <a href="#method.exec" class="fn">exec</a>(
     this: &amp;<a class="enum" href="../../value/enum.JsValue.html" title="enum boa_engine::value::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../value/enum.JsValue.html" title="enum boa_engine::value::JsValue">JsValue</a>],
     context: &amp;mut <a class="struct" href="../../context/struct.Context.html" title="struct boa_engine::context::Context">Context</a>
@@ -185,7 +185,7 @@ and it doesn’t contain the two forward slashes on both sides and any flags.</p
 <li><a href="https://tc39.es/ecma262/#sec-regexp.prototype.exec">ECMAScript reference</a></li>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/exec">MDN documentation</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.abstract_exec" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/regexp/mod.rs.html#819-855">source</a><h4 class="code-header">pub(crate) fn <a href="#method.abstract_exec" class="fn">abstract_exec</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.abstract_exec" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/regexp/mod.rs.html#821-857">source</a><h4 class="code-header">pub(crate) fn <a href="#method.abstract_exec" class="fn">abstract_exec</a>(
     this: &amp;<a class="struct" href="../../object/jsobject/struct.JsObject.html" title="struct boa_engine::object::jsobject::JsObject">JsObject</a>,
     input: <a class="struct" href="../../string/struct.JsString.html" title="struct boa_engine::string::JsString">JsString</a>,
     context: &amp;mut <a class="struct" href="../../context/struct.Context.html" title="struct boa_engine::context::Context">Context</a>
@@ -194,7 +194,7 @@ and it doesn’t contain the two forward slashes on both sides and any flags.</p
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-regexpexec">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.abstract_builtin_exec" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/regexp/mod.rs.html#863-1168">source</a><h4 class="code-header">pub(crate) fn <a href="#method.abstract_builtin_exec" class="fn">abstract_builtin_exec</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.abstract_builtin_exec" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/regexp/mod.rs.html#865-1170">source</a><h4 class="code-header">pub(crate) fn <a href="#method.abstract_builtin_exec" class="fn">abstract_builtin_exec</a>(
     this: &amp;<a class="struct" href="../../object/jsobject/struct.JsObject.html" title="struct boa_engine::object::jsobject::JsObject">JsObject</a>,
     input: &amp;<a class="struct" href="../../string/struct.JsString.html" title="struct boa_engine::string::JsString">JsString</a>,
     context: &amp;mut <a class="struct" href="../../context/struct.Context.html" title="struct boa_engine::context::Context">Context</a>
@@ -203,7 +203,7 @@ and it doesn’t contain the two forward slashes on both sides and any flags.</p
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-regexpbuiltinexec">ECMAScript reference</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.match" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/regexp/mod.rs.html#1180-1258">source</a><h4 class="code-header">pub(crate) fn <a href="#method.match" class="fn">match</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.match" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/regexp/mod.rs.html#1182-1260">source</a><h4 class="code-header">pub(crate) fn <a href="#method.match" class="fn">match</a>(
     this: &amp;<a class="enum" href="../../value/enum.JsValue.html" title="enum boa_engine::value::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../value/enum.JsValue.html" title="enum boa_engine::value::JsValue">JsValue</a>],
     context: &amp;mut <a class="struct" href="../../context/struct.Context.html" title="struct boa_engine::context::Context">Context</a>
@@ -214,7 +214,7 @@ and it doesn’t contain the two forward slashes on both sides and any flags.</p
 <li><a href="https://tc39.es/ecma262/#sec-regexp.prototype-@@match">ECMAScript reference</a></li>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/@@match">MDN documentation</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.to_string" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/regexp/mod.rs.html#1271-1292">source</a><h4 class="code-header">pub(crate) fn <a href="#method.to_string" class="fn">to_string</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.to_string" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/regexp/mod.rs.html#1273-1294">source</a><h4 class="code-header">pub(crate) fn <a href="#method.to_string" class="fn">to_string</a>(
     this: &amp;<a class="enum" href="../../value/enum.JsValue.html" title="enum boa_engine::value::JsValue">JsValue</a>,
     _: &amp;[<a class="enum" href="../../value/enum.JsValue.html" title="enum boa_engine::value::JsValue">JsValue</a>],
     context: &amp;mut <a class="struct" href="../../context/struct.Context.html" title="struct boa_engine::context::Context">Context</a>
@@ -225,7 +225,7 @@ and it doesn’t contain the two forward slashes on both sides and any flags.</p
 <li><a href="https://tc39.es/ecma262/#sec-regexp.prototype.tostring">ECMAScript reference</a></li>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/toString">MDN documentation</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.match_all" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/regexp/mod.rs.html#1304-1352">source</a><h4 class="code-header">pub(crate) fn <a href="#method.match_all" class="fn">match_all</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.match_all" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/regexp/mod.rs.html#1306-1354">source</a><h4 class="code-header">pub(crate) fn <a href="#method.match_all" class="fn">match_all</a>(
     this: &amp;<a class="enum" href="../../value/enum.JsValue.html" title="enum boa_engine::value::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../value/enum.JsValue.html" title="enum boa_engine::value::JsValue">JsValue</a>],
     context: &amp;mut <a class="struct" href="../../context/struct.Context.html" title="struct boa_engine::context::Context">Context</a>
@@ -236,7 +236,7 @@ and it doesn’t contain the two forward slashes on both sides and any flags.</p
 <li><a href="https://tc39.es/ecma262/#sec-regexp-prototype-matchall">ECMAScript reference</a></li>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/@@matchAll">MDN documentation</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.replace" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/regexp/mod.rs.html#1366-1593">source</a><h4 class="code-header">pub(crate) fn <a href="#method.replace" class="fn">replace</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.replace" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/regexp/mod.rs.html#1368-1595">source</a><h4 class="code-header">pub(crate) fn <a href="#method.replace" class="fn">replace</a>(
     this: &amp;<a class="enum" href="../../value/enum.JsValue.html" title="enum boa_engine::value::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../value/enum.JsValue.html" title="enum boa_engine::value::JsValue">JsValue</a>],
     context: &amp;mut <a class="struct" href="../../context/struct.Context.html" title="struct boa_engine::context::Context">Context</a>
@@ -249,7 +249,7 @@ The replacement can be a string or a function to be called for each match.</p>
 <li><a href="https://tc39.es/ecma262/#sec-regexp.prototype-@@replace">ECMAScript reference</a></li>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/@@replace">MDN documentation</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.search" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/regexp/mod.rs.html#1605-1647">source</a><h4 class="code-header">pub(crate) fn <a href="#method.search" class="fn">search</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.search" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/regexp/mod.rs.html#1607-1649">source</a><h4 class="code-header">pub(crate) fn <a href="#method.search" class="fn">search</a>(
     this: &amp;<a class="enum" href="../../value/enum.JsValue.html" title="enum boa_engine::value::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../value/enum.JsValue.html" title="enum boa_engine::value::JsValue">JsValue</a>],
     context: &amp;mut <a class="struct" href="../../context/struct.Context.html" title="struct boa_engine::context::Context">Context</a>
@@ -260,7 +260,7 @@ The replacement can be a string or a function to be called for each match.</p>
 <li><a href="https://tc39.es/ecma262/#sec-regexp.prototype-@@search">ECMAScript reference</a></li>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/@@search">MDN documentation</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.split" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/regexp/mod.rs.html#1659-1828">source</a><h4 class="code-header">pub(crate) fn <a href="#method.split" class="fn">split</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.split" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/regexp/mod.rs.html#1661-1830">source</a><h4 class="code-header">pub(crate) fn <a href="#method.split" class="fn">split</a>(
     this: &amp;<a class="enum" href="../../value/enum.JsValue.html" title="enum boa_engine::value::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../value/enum.JsValue.html" title="enum boa_engine::value::JsValue">JsValue</a>],
     context: &amp;mut <a class="struct" href="../../context/struct.Context.html" title="struct boa_engine::context::Context">Context</a>
@@ -271,7 +271,7 @@ The replacement can be a string or a function to be called for each match.</p>
 <li><a href="https://tc39.es/ecma262/#sec-regexp.prototype-@@split">ECMAScript reference</a></li>
 <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/@@split">MDN documentation</a></li>
 </ul>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.compile" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/regexp/mod.rs.html#1834-1884">source</a><h4 class="code-header">fn <a href="#method.compile" class="fn">compile</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.compile" class="method"><a class="src rightside" href="../../../src/boa_engine/builtins/regexp/mod.rs.html#1836-1886">source</a><h4 class="code-header">fn <a href="#method.compile" class="fn">compile</a>(
     this: &amp;<a class="enum" href="../../value/enum.JsValue.html" title="enum boa_engine::value::JsValue">JsValue</a>,
     args: &amp;[<a class="enum" href="../../value/enum.JsValue.html" title="enum boa_engine::value::JsValue">JsValue</a>],
     context: &amp;mut <a class="struct" href="../../context/struct.Context.html" title="struct boa_engine::context::Context">Context</a>
