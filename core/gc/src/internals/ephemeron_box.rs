@@ -1,8 +1,5 @@
 use crate::{trace::Trace, Gc, GcBox, Tracer};
-use std::{
-    cell::UnsafeCell,
-    ptr::{self, NonNull},
-};
+use std::{cell::UnsafeCell, ptr::NonNull};
 
 use super::GcHeader;
 
@@ -35,13 +32,6 @@ impl<K: Trace + ?Sized, V: Trace> EphemeronBox<K, V> {
             header: GcHeader::new(),
             data: UnsafeCell::new(None),
         }
-    }
-
-    /// Returns `true` if the two references refer to the same `EphemeronBox`.
-    pub(crate) fn ptr_eq(this: &Self, other: &Self) -> bool {
-        // Use .header to ignore fat pointer vtables, to work around
-        // https://github.com/rust-lang/rust/issues/46139
-        ptr::eq(&this.header, &other.header)
     }
 
     /// Returns a reference to the ephemeron's value or None.

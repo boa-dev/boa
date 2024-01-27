@@ -3,16 +3,12 @@
 //! The `JsObject` is a garbage collected Object.
 
 use super::{
-    internal_methods::{
-        non_existant_call, non_existant_construct, InternalMethodContext, InternalObjectMethods,
-    },
+    internal_methods::{InternalMethodContext, InternalObjectMethods, ORDINARY_INTERNAL_METHODS},
     shape::RootShape,
     JsPrototype, NativeObject, Object, PrivateName, PropertyMap,
 };
 use crate::{
-    builtins::{
-        array::ARRAY_EXOTIC_INTERNAL_METHODS, function::OrdinaryFunction, object::OrdinaryObject,
-    },
+    builtins::{array::ARRAY_EXOTIC_INTERNAL_METHODS, object::OrdinaryObject},
     context::intrinsics::Intrinsics,
     error::JsNativeError,
     js_string,
@@ -45,9 +41,18 @@ pub type ErasedObject = Object<dyn NativeObject>;
 pub(crate) type ErasedVTableObject = VTableObject<dyn NativeObject>;
 
 /// Garbage collected `Object`.
-#[derive(Trace, Finalize, Clone)]
-pub struct JsObject {
-    inner: Gc<VTableObject<dyn NativeObject>>,
+#[derive(Trace, Finalize)]
+#[boa_gc(unsafe_no_drop)]
+pub struct JsObject<T: NativeObject + ?Sized = dyn NativeObject> {
+    inner: Gc<VTableObject<T>>,
+}
+
+impl<T: NativeObject + ?Sized> Clone for JsObject<T> {
+    fn clone(&self) -> Self {
+        Self {
+            inner: self.inner.clone(),
+        }
+    }
 }
 
 /// An `Object` that has an additional `vtable` with its internal methods.
@@ -79,7 +84,9 @@ impl JsObject {
             vtable,
         });
 
-        Self { inner: upcast(gc) }
+        Self {
+            inner: coerce_gc(gc),
+        }
     }
 
     /// Creates a new ordinary object with its prototype set to the `Object` prototype.
@@ -131,7 +138,9 @@ impl JsObject {
             vtable: internal_methods,
         });
 
-        Self { inner: upcast(gc) }
+        Self {
+            inner: coerce_gc(gc),
+        }
     }
 
     /// Creates a new object with the provided prototype and object data.
@@ -160,13 +169,74 @@ impl JsObject {
             vtable: internal_methods,
         });
 
-        Self { inner: upcast(gc) }
+        Self {
+            inner: coerce_gc(gc),
+        }
     }
 
-    /// Immutably borrows the `Object`.
+    /// Downcasts the object's inner data if the object is of type `T`.
     ///
-    /// The borrow lasts until the returned `Ref` exits scope.
-    /// Multiple immutable borrows can be taken out at the same time.
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    pub fn downcast<T: NativeObject>(self) -> Result<JsObject<T>, Self> {
+        if self.borrow().is::<T>() {
+            let ptr: NonNull<GcBox<VTableObject<dyn NativeObject>>> = Gc::into_raw(self.inner);
+
+            // SAFETY: the rooted `Gc` ensures we can read the inner `GcBox` in a sound way.
+            #[cfg(debug_assertions)]
+            unsafe {
+                let erased = ptr.as_ref();
+
+                // Some sanity checks to ensure we're doing the correct cast.
+                assert_eq!(
+                    std::mem::size_of_val(erased),
+                    std::mem::size_of::<GcBox<VTableObject<T>>>()
+                );
+                assert_eq!(
+                    std::mem::align_of_val(erased),
+                    std::mem::align_of::<GcBox<VTableObject<T>>>()
+                );
+            }
+
+            let ptr: NonNull<GcBox<VTableObject<T>>> = ptr.cast();
+
+            // SAFETY: The conversion between an `Any` and its downcasted type must be valid.
+            // The pointer returned by `Gc::into_raw` is the same one that is passed to `Gc::from_raw`,
+            // just downcasted to the type `T`.
+            let inner = unsafe { Gc::from_raw(ptr) };
+
+            Ok(JsObject { inner })
+        } else {
+            Err(self)
+        }
+    }
+
+    /// Downcasts a reference to the object,
+    /// if the object is of type `T`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    #[must_use]
+    #[track_caller]
+    pub fn downcast_ref<T: NativeObject>(&self) -> Option<Ref<'_, T>> {
+        Ref::try_map(self.borrow(), ErasedObject::downcast_ref)
+    }
+
+    /// Downcasts a mutable reference to the object,
+    /// if the object is type native object type `T`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently borrowed.
+    #[must_use]
+    #[track_caller]
+    pub fn downcast_mut<T: NativeObject>(&self) -> Option<RefMut<'_, ErasedObject, T>> {
+        RefMut::try_map(self.borrow_mut(), ErasedObject::downcast_mut)
+    }
+
+    /// Checks if this object is an instance of a certain `NativeObject`.
     ///
     /// # Panics
     ///
@@ -174,56 +244,40 @@ impl JsObject {
     #[inline]
     #[must_use]
     #[track_caller]
-    pub fn borrow(&self) -> Ref<'_, ErasedObject> {
-        self.try_borrow().expect("Object already mutably borrowed")
+    pub fn is<T: NativeObject>(&self) -> bool {
+        self.borrow().is::<T>()
     }
 
-    /// Mutably borrows the Object.
-    ///
-    /// The borrow lasts until the returned `RefMut` exits scope.
-    /// The object cannot be borrowed while this borrow is active.
+    /// Checks if it's an ordinary object.
     ///
     /// # Panics
-    /// Panics if the object is currently borrowed.
+    ///
+    /// Panics if the object is currently mutably borrowed.
     #[inline]
     #[must_use]
     #[track_caller]
-    pub fn borrow_mut(&self) -> RefMut<'_, ErasedObject, ErasedObject> {
-        self.try_borrow_mut().expect("Object already borrowed")
+    pub fn is_ordinary(&self) -> bool {
+        self.is::<OrdinaryObject>()
     }
 
-    /// Immutably borrows the `Object`, returning an error if the value is currently mutably borrowed.
-    ///
-    /// The borrow lasts until the returned `GcCellRef` exits scope.
-    /// Multiple immutable borrows can be taken out at the same time.
-    ///
-    /// This is the non-panicking variant of [`borrow`](#method.borrow).
+    /// Checks if it's an `Array` object.
     #[inline]
-    pub fn try_borrow(&self) -> StdResult<Ref<'_, ErasedObject>, BorrowError> {
-        self.inner.object.try_borrow().map_err(|_| BorrowError)
-    }
-
-    /// Mutably borrows the object, returning an error if the value is currently borrowed.
-    ///
-    /// The borrow lasts until the returned `GcCellRefMut` exits scope.
-    /// The object be borrowed while this borrow is active.
-    ///
-    /// This is the non-panicking variant of [`borrow_mut`](#method.borrow_mut).
-    #[inline]
-    pub fn try_borrow_mut(
-        &self,
-    ) -> StdResult<RefMut<'_, ErasedObject, ErasedObject>, BorrowMutError> {
-        self.inner
-            .object
-            .try_borrow_mut()
-            .map_err(|_| BorrowMutError)
-    }
-
-    /// Checks if the garbage collected memory is the same.
     #[must_use]
+    #[track_caller]
+    pub fn is_array(&self) -> bool {
+        std::ptr::eq(self.vtable(), &ARRAY_EXOTIC_INTERNAL_METHODS)
+    }
+
+    /// Checks if it's an `ArrayBuffer` or `SharedArrayBuffer` object.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
     #[inline]
-    pub fn equals(lhs: &Self, rhs: &Self) -> bool {
-        std::ptr::eq(lhs.as_ref(), rhs.as_ref())
+    #[must_use]
+    #[track_caller]
+    pub fn is_buffer(&self) -> bool {
+        self.borrow().as_buffer().is_some()
     }
 
     /// Converts an object to a primitive.
@@ -299,107 +353,6 @@ impl JsObject {
         Err(JsNativeError::typ()
             .with_message("cannot convert object to primitive value")
             .into())
-    }
-
-    /// Downcast a reference to the object,
-    /// if the object is of type `T`.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the object is currently mutably borrowed.
-    #[must_use]
-    #[track_caller]
-    pub fn downcast_ref<T: NativeObject>(&self) -> Option<Ref<'_, T>> {
-        Ref::try_map(self.borrow(), ErasedObject::downcast_ref)
-    }
-
-    /// Downcast a mutable reference to the object,
-    /// if the object is type native object type `T`.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the object is currently borrowed.
-    #[must_use]
-    #[track_caller]
-    pub fn downcast_mut<T: NativeObject>(&self) -> Option<RefMut<'_, ErasedObject, T>> {
-        RefMut::try_map(self.borrow_mut(), ErasedObject::downcast_mut)
-    }
-
-    /// Get the prototype of the object.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the object is currently mutably borrowed.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn prototype(&self) -> JsPrototype {
-        self.borrow().prototype()
-    }
-
-    /// Get the extensibility of the object.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the object is currently mutably borrowed.
-    pub(crate) fn extensible(&self) -> bool {
-        self.borrow().extensible
-    }
-
-    /// Set the prototype of the object.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the object is currently mutably borrowed
-    #[inline]
-    #[track_caller]
-    #[allow(clippy::must_use_candidate)]
-    pub fn set_prototype(&self, prototype: JsPrototype) -> bool {
-        self.borrow_mut().set_prototype(prototype)
-    }
-
-    /// Checks if this object is an instance of a certain `NativeObject`.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the object is currently mutably borrowed.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn is<T: NativeObject>(&self) -> bool {
-        self.borrow().is::<T>()
-    }
-
-    /// Checks if it's an ordinary object.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the object is currently mutably borrowed.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn is_ordinary(&self) -> bool {
-        self.is::<OrdinaryObject>()
-    }
-
-    /// Checks if it's an `Array` object.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn is_array(&self) -> bool {
-        std::ptr::eq(self.vtable(), &ARRAY_EXOTIC_INTERNAL_METHODS)
-    }
-
-    /// Checks if it's an `ArrayBuffer` or `SharedArrayBuffer` object.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the object is currently mutably borrowed.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn is_buffer(&self) -> bool {
-        self.borrow().as_buffer().is_some()
     }
 
     /// The abstract operation `ToPropertyDescriptor`.
@@ -582,6 +535,139 @@ Cannot both specify accessors and a value or writable attribute",
         }
         None
     }
+}
+
+impl<T: NativeObject + ?Sized> JsObject<T> {
+    /// Creates a new `JsObject` from its root shape, prototype, and data.
+    ///
+    /// Note that the returned object will not be erased to be convertible to a
+    /// `JsValue`. To erase the pointer, call [`JsObject::upcast`].
+    pub fn new<O: Into<Option<JsObject>>>(root_shape: &RootShape, prototype: O, data: T) -> Self
+    where
+        T: Sized,
+    {
+        let internal_methods = data.internal_methods();
+        let inner = Gc::new(VTableObject {
+            object: GcRefCell::new(Object {
+                data,
+                properties: PropertyMap::from_prototype_with_shared_shape(
+                    root_shape,
+                    prototype.into(),
+                ),
+                extensible: true,
+                private_elements: ThinVec::new(),
+            }),
+            vtable: internal_methods,
+        });
+
+        Self { inner }
+    }
+
+    /// Upcasts this object's inner data from a specific type `T` to an erased type
+    /// `dyn NativeObject`.
+    #[must_use]
+    pub fn upcast(self) -> JsObject
+    where
+        T: Sized,
+    {
+        JsObject {
+            inner: coerce_gc(self.inner),
+        }
+    }
+
+    /// Immutably borrows the `Object`.
+    ///
+    /// The borrow lasts until the returned `Ref` exits scope.
+    /// Multiple immutable borrows can be taken out at the same time.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn borrow(&self) -> Ref<'_, Object<T>> {
+        self.try_borrow().expect("Object already mutably borrowed")
+    }
+
+    /// Mutably borrows the Object.
+    ///
+    /// The borrow lasts until the returned `RefMut` exits scope.
+    /// The object cannot be borrowed while this borrow is active.
+    ///
+    /// # Panics
+    /// Panics if the object is currently borrowed.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn borrow_mut(&self) -> RefMut<'_, Object<T>, Object<T>> {
+        self.try_borrow_mut().expect("Object already borrowed")
+    }
+
+    /// Immutably borrows the `Object`, returning an error if the value is currently mutably borrowed.
+    ///
+    /// The borrow lasts until the returned `GcCellRef` exits scope.
+    /// Multiple immutable borrows can be taken out at the same time.
+    ///
+    /// This is the non-panicking variant of [`borrow`](#method.borrow).
+    #[inline]
+    pub fn try_borrow(&self) -> StdResult<Ref<'_, Object<T>>, BorrowError> {
+        self.inner.object.try_borrow().map_err(|_| BorrowError)
+    }
+
+    /// Mutably borrows the object, returning an error if the value is currently borrowed.
+    ///
+    /// The borrow lasts until the returned `GcCellRefMut` exits scope.
+    /// The object be borrowed while this borrow is active.
+    ///
+    /// This is the non-panicking variant of [`borrow_mut`](#method.borrow_mut).
+    #[inline]
+    pub fn try_borrow_mut(&self) -> StdResult<RefMut<'_, Object<T>, Object<T>>, BorrowMutError> {
+        self.inner
+            .object
+            .try_borrow_mut()
+            .map_err(|_| BorrowMutError)
+    }
+
+    /// Checks if the garbage collected memory is the same.
+    #[must_use]
+    #[inline]
+    pub fn equals(lhs: &Self, rhs: &Self) -> bool {
+        Gc::ptr_eq(lhs.inner(), rhs.inner())
+    }
+
+    /// Get the prototype of the object.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn prototype(&self) -> JsPrototype {
+        self.borrow().prototype()
+    }
+
+    /// Get the extensibility of the object.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    pub(crate) fn extensible(&self) -> bool {
+        self.borrow().extensible
+    }
+
+    /// Set the prototype of the object.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed
+    #[inline]
+    #[track_caller]
+    #[allow(clippy::must_use_candidate)]
+    pub fn set_prototype(&self, prototype: JsPrototype) -> bool {
+        self.borrow_mut().set_prototype(prototype)
+    }
 
     /// Helper function for property insertion.
     #[track_caller]
@@ -613,9 +699,8 @@ Cannot both specify accessors and a value or writable attribute",
     /// [spec]: https://tc39.es/ecma262/#sec-iscallable
     #[inline]
     #[must_use]
-    #[allow(clippy::fn_address_comparisons)]
     pub fn is_callable(&self) -> bool {
-        self.inner.vtable.__call__ != non_existant_call
+        self.inner.vtable.__call__ != ORDINARY_INTERNAL_METHODS.__call__
     }
 
     /// It determines if Object is a function object with a `[[Construct]]` internal method.
@@ -626,16 +711,15 @@ Cannot both specify accessors and a value or writable attribute",
     /// [spec]: https://tc39.es/ecma262/#sec-isconstructor
     #[inline]
     #[must_use]
-    #[allow(clippy::fn_address_comparisons)]
     pub fn is_constructor(&self) -> bool {
-        self.inner.vtable.__construct__ != non_existant_construct
+        self.inner.vtable.__construct__ != ORDINARY_INTERNAL_METHODS.__construct__
     }
 
     pub(crate) fn vtable(&self) -> &'static InternalObjectMethods {
         self.inner.vtable
     }
 
-    pub(crate) const fn inner(&self) -> &Gc<VTableObject<dyn NativeObject>> {
+    pub(crate) const fn inner(&self) -> &Gc<VTableObject<T>> {
         &self.inner
     }
 
@@ -646,29 +730,29 @@ Cannot both specify accessors and a value or writable attribute",
     }
 }
 
-impl AsRef<GcRefCell<ErasedObject>> for JsObject {
+impl<T: NativeObject + ?Sized> AsRef<GcRefCell<Object<T>>> for JsObject<T> {
     #[inline]
-    fn as_ref(&self) -> &GcRefCell<ErasedObject> {
+    fn as_ref(&self) -> &GcRefCell<Object<T>> {
         &self.inner.object
     }
 }
 
-impl From<Gc<VTableObject<dyn NativeObject>>> for JsObject {
+impl<T: NativeObject + ?Sized> From<Gc<VTableObject<T>>> for JsObject<T> {
     #[inline]
-    fn from(inner: Gc<VTableObject<dyn NativeObject>>) -> Self {
+    fn from(inner: Gc<VTableObject<T>>) -> Self {
         Self { inner }
     }
 }
 
-impl PartialEq for JsObject {
+impl<T: NativeObject + ?Sized> PartialEq for JsObject<T> {
     fn eq(&self, other: &Self) -> bool {
         Self::equals(self, other)
     }
 }
 
-impl Eq for JsObject {}
+impl<T: NativeObject + ?Sized> Eq for JsObject<T> {}
 
-impl Hash for JsObject {
+impl<T: NativeObject + ?Sized> Hash for JsObject<T> {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         std::ptr::hash(self.as_ref(), state);
     }
@@ -782,7 +866,7 @@ impl RecursionLimiter {
     }
 }
 
-impl Debug for JsObject {
+impl<T: NativeObject + ?Sized> Debug for JsObject<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> std::fmt::Result {
         let limiter = RecursionLimiter::new(self.as_ref());
 
@@ -797,7 +881,7 @@ impl Debug for JsObject {
             let ptr = ptr.cast::<()>();
             let obj = self.borrow();
             let kind = obj.data.type_name_of_value();
-            if obj.is::<OrdinaryFunction>() {
+            if self.is_callable() {
                 let name_prop = obj
                     .properties()
                     .get(&PropertyKey::String(JsString::from("name")));
@@ -821,7 +905,7 @@ impl Debug for JsObject {
 }
 
 /// Upcasts the reference to an object from a specific type `T` to an erased type `dyn NativeObject`.
-fn upcast<T: NativeObject>(ptr: Gc<VTableObject<T>>) -> Gc<VTableObject<dyn NativeObject>> {
+fn coerce_gc<T: NativeObject>(ptr: Gc<VTableObject<T>>) -> Gc<VTableObject<dyn NativeObject>> {
     // SAFETY: This just makes the casting from sized to unsized. Should eventually be replaced by
     // https://github.com/rust-lang/rust/issues/18598
     unsafe {

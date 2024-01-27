@@ -1,6 +1,6 @@
 //! A Rust API wrapper for Boa's `DataView` Builtin ECMAScript Object
 use crate::{
-    builtins::{array_buffer::ArrayBuffer, DataView},
+    builtins::DataView,
     context::intrinsics::StandardConstructors,
     object::{
         internal_methods::get_prototype_from_constructor, JsArrayBuffer, JsObject, JsObjectType,
@@ -27,7 +27,7 @@ use std::ops::Deref;
 ///
 /// // Create a new Dataview from pre-existing ArrayBuffer
 /// let data_view =
-///     JsDataView::from_js_array_buffer(&array_buffer, None, None, context)?;
+///     JsDataView::from_js_array_buffer(array_buffer, None, None, context)?;
 ///
 /// # Ok(())
 /// # }
@@ -40,26 +40,23 @@ pub struct JsDataView {
 impl JsDataView {
     /// Create a new `JsDataView` object from an existing `JsArrayBuffer`.
     pub fn from_js_array_buffer(
-        array_buffer: &JsArrayBuffer,
+        array_buffer: JsArrayBuffer,
         offset: Option<u64>,
         byte_length: Option<u64>,
         context: &mut Context,
     ) -> JsResult<Self> {
         let (byte_offset, byte_length) = {
-            let buffer = array_buffer.downcast_ref::<ArrayBuffer>().ok_or_else(|| {
-                JsNativeError::typ().with_message("buffer must be an ArrayBuffer")
-            })?;
-
+            let buffer = array_buffer.borrow();
             let provided_offset = offset.unwrap_or(0_u64);
 
             // Check if buffer is detached.
-            if buffer.is_detached() {
+            if buffer.data.is_detached() {
                 return Err(JsNativeError::typ()
                     .with_message("ArrayBuffer is detached")
                     .into());
             };
 
-            let array_buffer_length = buffer.len() as u64;
+            let array_buffer_length = buffer.data.len() as u64;
 
             if provided_offset > array_buffer_length {
                 return Err(JsNativeError::range()
@@ -97,7 +94,8 @@ impl JsDataView {
             context.root_shape(),
             prototype,
             DataView {
-                viewed_array_buffer: (**array_buffer).clone(),
+                // TODO: Remove upcast.
+                viewed_array_buffer: array_buffer.into(),
                 byte_length,
                 byte_offset,
             },

@@ -14,6 +14,8 @@ use std::{
     rc::Rc,
 };
 
+use super::addr_eq;
+
 /// Zero sized struct that is used to ensure that we do not call trace methods,
 /// call its finalization method or drop it.
 ///
@@ -53,10 +55,13 @@ pub struct Gc<T: Trace + ?Sized + 'static> {
     pub(crate) marker: PhantomData<Rc<T>>,
 }
 
-impl<T: Trace> Gc<T> {
+impl<T: Trace + ?Sized> Gc<T> {
     /// Constructs a new `Gc<T>` with the given value.
     #[must_use]
-    pub fn new(value: T) -> Self {
+    pub fn new(value: T) -> Self
+    where
+        T: Sized,
+    {
         // Create GcBox and allocate it to heap.
         //
         // Note: Allocator can cause Collector to run
@@ -78,6 +83,7 @@ impl<T: Trace> Gc<T> {
     pub fn new_cyclic<F>(data_fn: F) -> Self
     where
         F: FnOnce(&WeakGc<T>) -> T,
+        T: Sized,
     {
         // SAFETY: The newly allocated ephemeron is only live here, meaning `Ephemeron` is the
         // sole owner of the allocation after passing it to `from_raw`, making this operation safe.
@@ -106,13 +112,11 @@ impl<T: Trace> Gc<T> {
         std::mem::forget(this);
         ptr
     }
-}
 
-impl<T: Trace + ?Sized> Gc<T> {
     /// Returns `true` if the two `Gc`s point to the same allocation.
     #[must_use]
     pub fn ptr_eq(this: &Self, other: &Self) -> bool {
-        GcBox::ptr_eq(this.inner(), other.inner())
+        addr_eq(this.inner(), other.inner())
     }
 
     /// Constructs a `Gc<T>` from a raw pointer.

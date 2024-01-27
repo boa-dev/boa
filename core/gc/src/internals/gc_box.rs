@@ -1,5 +1,4 @@
 use crate::Trace;
-use std::ptr::{self};
 
 use super::{vtable_of, DropFn, GcHeader, RunFinalizerFn, TraceFn, TraceNonRootsFn, VTable};
 
@@ -25,13 +24,6 @@ impl<T: Trace> GcBox<T> {
 }
 
 impl<T: Trace + ?Sized> GcBox<T> {
-    /// Returns `true` if the two references refer to the same `GcBox`.
-    pub(crate) fn ptr_eq(this: &Self, other: &Self) -> bool {
-        // Use .header to ignore fat pointer vtables, to work around
-        // https://github.com/rust-lang/rust/issues/46139
-        ptr::eq(&this.header, &other.header)
-    }
-
     /// Returns a reference to the `GcBox`'s value.
     pub(crate) const fn value(&self) -> &T {
         &self.value

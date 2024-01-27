@@ -31,7 +31,6 @@ use boa_gc::{Finalize, Trace};
 use std::{
     any::{Any, TypeId},
     fmt::Debug,
-    ops::Deref,
 };
 
 #[cfg(test)]
@@ -51,10 +50,7 @@ pub(crate) use builtins::*;
 pub use datatypes::JsData;
 pub use jsobject::*;
 
-pub(crate) trait JsObjectType:
-    Into<JsValue> + Into<JsObject> + Deref<Target = JsObject>
-{
-}
+pub(crate) trait JsObjectType: Into<JsValue> + Into<JsObject> {}
 
 /// Const `constructor`, usually set on prototypes as a key to point to their respective constructor object.
 pub const CONSTRUCTOR: &[u16] = utf16!("constructor");
@@ -189,7 +185,7 @@ pub struct Object<T: ?Sized> {
     /// The `[[PrivateElements]]` internal slot.
     private_elements: ThinVec<(PrivateName, PrivateElement)>,
     /// The inner object data
-    data: T,
+    pub(crate) data: T,
 }
 
 impl<T: Default> Default for Object<T> {

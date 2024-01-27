@@ -29,7 +29,7 @@ fn main() -> JsResult<()> {
     let array_buffer = JsArrayBuffer::from_byte_block(blob_of_data, context)?;
 
     // This the byte length of the new array buffer will be the length of block of data.
-    let byte_length = array_buffer.byte_length(context);
+    let byte_length = array_buffer.byte_length();
     assert_eq!(byte_length, 256);
 
     // We can now create an typed array to access the data.
@@ -40,7 +40,8 @@ fn main() -> JsResult<()> {
     }
 
     // We can create a Dataview from a JsArrayBuffer
-    let dataview = JsDataView::from_js_array_buffer(&array_buffer, None, Some(100_u64), context)?;
+    let dataview =
+        JsDataView::from_js_array_buffer(array_buffer.clone(), None, Some(100_u64), context)?;
 
     let dataview_length = dataview.byte_length(context)?;
 
