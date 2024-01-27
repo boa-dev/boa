@@ -723,8 +723,10 @@ impl RegExp {
             for c in src.code_points() {
                 match c {
                     CodePoint::Unicode('/') => s.extend_from_slice(utf16!(r"\/")),
-                    CodePoint::Unicode('\n') => s.extend_from_slice(utf16!(r"\\n")),
-                    CodePoint::Unicode('\r') => s.extend_from_slice(utf16!(r"\\r")),
+                    CodePoint::Unicode('\n') => s.extend_from_slice(utf16!(r"\n")),
+                    CodePoint::Unicode('\r') => s.extend_from_slice(utf16!(r"\r")),
+                    CodePoint::Unicode('\u{2028}') => s.extend_from_slice(utf16!(r"\u2028")),
+                    CodePoint::Unicode('\u{2029}') => s.extend_from_slice(utf16!(r"\u2029")),
                     CodePoint::Unicode(c) => s.extend_from_slice(c.encode_utf16(&mut buf)),
                     CodePoint::UnpairedSurrogate(surr) => s.push(surr),
                 }
