@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["is_valid_date","is_valid_time","iso_date_to_epoch_days"],"struct":["IsoDate","IsoDateTime","IsoTime"],"trait":["IsoDateSlots"]};
+window.SIDEBAR_ITEMS = {"fn":["div_mod","is_valid_date","is_valid_time","iso_date_to_epoch_days"],"struct":["IsoDate","IsoDateTime","IsoTime"],"trait":["IsoDateSlots"]};

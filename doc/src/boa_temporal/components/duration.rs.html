@@ -999,6 +999,15 @@
 <a href="#999" id="999">999</a>
 <a href="#1000" id="1000">1000</a>
 <a href="#1001" id="1001">1001</a>
+<a href="#1002" id="1002">1002</a>
+<a href="#1003" id="1003">1003</a>
+<a href="#1004" id="1004">1004</a>
+<a href="#1005" id="1005">1005</a>
+<a href="#1006" id="1006">1006</a>
+<a href="#1007" id="1007">1007</a>
+<a href="#1008" id="1008">1008</a>
+<a href="#1009" id="1009">1009</a>
+<a href="#1010" id="1010">1010</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module implements `Duration` along with it&#39;s methods and components.
 
 </span><span class="kw">use crate</span>::{
@@ -1061,11 +1070,6 @@
     <span class="doccomment">/// Utility function to create a week duration.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>one_week(week_value: f64) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::from_date_duration(DateDuration::new_unchecked(<span class="number">0f64</span>, <span class="number">0f64</span>, week_value, <span class="number">0f64</span>))
-    }
-
-    <span class="doccomment">/// Utility that checks whether `Duration`&#39;s `DateDuration` is empty.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_time_duration(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="self">self</span>.date().iter().any(|x| x != <span class="number">0f64</span>)
     }
 }
 
@@ -1137,6 +1141,20 @@
     #[must_use]
     </span><span class="kw">pub fn </span>is_time_within_range(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.time.is_within_range()
+    }
+
+    <span class="doccomment">/// Returns whether `Duration`&#39;s `DateDuration` isn&#39;t empty and is therefore a `DateDuration` or `Duration`.
+    </span><span class="attr">#[inline]
+    #[must_use]
+    </span><span class="kw">pub fn </span>is_date_duration(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.date().iter().any(|x| x != <span class="number">0.0</span>) &amp;&amp; <span class="self">self</span>.time().iter().all(|x| x == <span class="number">0.0</span>)
+    }
+
+    <span class="doccomment">/// Returns whether `Duration`&#39;s `DateDuration` is empty and is therefore a `TimeDuration`.
+    </span><span class="attr">#[inline]
+    #[must_use]
+    </span><span class="kw">pub fn </span>is_time_duration(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.time().iter().any(|x| x != <span class="number">0.0</span>) &amp;&amp; <span class="self">self</span>.date().iter().all(|x| x == <span class="number">0.0</span>)
     }
 }
 
