@@ -13,8 +13,10 @@
 //! An `IsoDateTime` has the internal slots of both an `IsoDate` and `IsoTime`.
 
 use crate::{
-    components::duration::DateDuration, error::TemporalError, options::ArithmeticOverflow, utils,
-    TemporalResult,
+    components::duration::DateDuration,
+    error::TemporalError,
+    options::{ArithmeticOverflow, TemporalRoundingMode, TemporalUnit},
+    utils, TemporalResult, NS_PER_DAY,
 };
 use icu_calendar::{Date as IcuDate, Iso};
 use num_bigint::BigInt;
@@ -106,8 +108,8 @@ impl IsoDateTime {
             return false;
         };
 
-        let max = BigInt::from(crate::NS_MAX_INSTANT + i128::from(crate::NS_PER_DAY));
-        let min = BigInt::from(crate::NS_MIN_INSTANT - i128::from(crate::NS_PER_DAY));
+        let max = BigInt::from(crate::NS_MAX_INSTANT + i128::from(NS_PER_DAY));
+        let min = BigInt::from(crate::NS_MIN_INSTANT - i128::from(NS_PER_DAY));
 
         min < ns && max > ns
     }
@@ -276,7 +278,7 @@ impl IsoDate {
 
 /// An `IsoTime` record that contains `Temporal`'s
 /// time slots.
-#[derive(Debug, Default, Clone, Copy)]
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub struct IsoTime {
     pub(crate) hour: u8,         // 0..=23
     pub(crate) minute: u8,       // 0..=59
@@ -387,40 +389,180 @@ impl IsoTime {
         nanosecond: f64,
     ) -> (i32, Self) {
         // 1. Set microsecond to microsecond + floor(nanosecond / 1000).
-        let mut mis = microsecond + (nanosecond / 1000f64).floor();
         // 2. Set nanosecond to nanosecond modulo 1000.
-        let ns = nanosecond % 1000f64;
+        let (quotient, nanosecond) = div_mod(nanosecond, 1000f64);
+        let microsecond = microsecond + quotient;
+
         // 3. Set millisecond to millisecond + floor(microsecond / 1000).
-        let mut ms = millisecond + (mis / 1000f64).floor();
         // 4. Set microsecond to microsecond modulo 1000.
-        mis = mis.rem_euclid(1000f64);
+        let (quotient, microsecond) = div_mod(microsecond, 1000f64);
+        let millisecond = millisecond + quotient;
+
         // 5. Set second to second + floor(millisecond / 1000).
-        let mut secs = second + (ms / 1000f64).floor();
         // 6. Set millisecond to millisecond modulo 1000.
-        ms = ms.rem_euclid(1000f64);
+        let (quotient, millisecond) = div_mod(millisecond, 1000f64);
+        let second = second + quotient;
+
         // 7. Set minute to minute + floor(second / 60).
-        let mut minutes = minute + (secs / 60f64).floor();
         // 8. Set second to second modulo 60.
-        secs = secs.rem_euclid(60f64);
+        let (quotient, second) = div_mod(second, 60f64);
+        let minute = minute + quotient;
+
         // 9. Set hour to hour + floor(minute / 60).
-        let mut hours = hour + (minutes / 60f64).floor();
         // 10. Set minute to minute modulo 60.
-        minutes = minutes.rem_euclid(60f64);
+        let (quotient, minute) = div_mod(minute, 60f64);
+        let hour = hour + quotient;
+
         // 11. Let days be floor(hour / 24).
-        let days = (hours / 24f64).floor();
         // 12. Set hour to hour modulo 24.
-        hours = hours.rem_euclid(24f64);
+        let (days, hour) = div_mod(hour, 24f64);
 
         let time = Self::new_unchecked(
-            hours as u8,
-            minutes as u8,
-            secs as u8,
-            ms as u16,
-            mis as u16,
-            ns as u16,
+            hour as u8,
+            minute as u8,
+            second as u8,
+            millisecond as u16,
+            microsecond as u16,
+            nanosecond as u16,
         );
 
         (days as i32, time)
+    }
+
+    // NOTE (nekevss): Specification seemed to be off / not entirely working, so the below was adapted from the
+    // temporal-polyfill
+    // TODO: DayLengthNS can probably be a u64, but keep as is for now and optimize.
+    /// Rounds the current `IsoTime` according to the provided settings.
+    pub(crate) fn round(
+        &self,
+        increment: f64,
+        unit: TemporalUnit,
+        mode: TemporalRoundingMode,
+        day_length_ns: Option<i64>,
+    ) -> TemporalResult<(i32, Self)> {
+        // 1. Let fractionalSecond be nanosecond × 10-9 + microsecond × 10-6 + millisecond × 10-3 + second.
+
+        let quantity = match unit {
+            // 2. If unit is "day", then
+            // a. If dayLengthNs is not present, set dayLengthNs to nsPerDay.
+            // b. Let quantity be (((((hour × 60 + minute) × 60 + second) × 1000 + millisecond) × 1000 + microsecond) × 1000 + nanosecond) / dayLengthNs.
+            // 3. Else if unit is "hour", then
+            // a. Let quantity be (fractionalSecond / 60 + minute) / 60 + hour.
+            TemporalUnit::Hour | TemporalUnit::Day => {
+                u64::from(self.nanosecond)
+                    + u64::from(self.microsecond) * 1_000
+                    + u64::from(self.millisecond) * 1_000_000
+                    + u64::from(self.second) * 1_000_000_000
+                    + u64::from(self.minute) * 60 * 1_000_000_000
+                    + u64::from(self.hour) * 60 * 60 * 1_000_000_000
+            }
+            // 4. Else if unit is "minute", then
+            // a. Let quantity be fractionalSecond / 60 + minute.
+            TemporalUnit::Minute => {
+                u64::from(self.nanosecond)
+                    + u64::from(self.microsecond) * 1_000
+                    + u64::from(self.millisecond) * 1_000_000
+                    + u64::from(self.second) * 1_000_000_000
+                    + u64::from(self.minute) * 60
+            }
+            // 5. Else if unit is "second", then
+            // a. Let quantity be fractionalSecond.
+            TemporalUnit::Second => {
+                u64::from(self.nanosecond)
+                    + u64::from(self.microsecond) * 1_000
+                    + u64::from(self.millisecond) * 1_000_000
+                    + u64::from(self.second) * 1_000_000_000
+            }
+            // 6. Else if unit is "millisecond", then
+            // a. Let quantity be nanosecond × 10-6 + microsecond × 10-3 + millisecond.
+            TemporalUnit::Millisecond => {
+                u64::from(self.nanosecond)
+                    + u64::from(self.microsecond) * 1_000
+                    + u64::from(self.millisecond) * 1_000_000
+            }
+            // 7. Else if unit is "microsecond", then
+            // a. Let quantity be nanosecond × 10-3 + microsecond.
+            TemporalUnit::Microsecond => {
+                u64::from(self.nanosecond) + 1_000 * u64::from(self.microsecond)
+            }
+            // 8. Else,
+            // a. Assert: unit is "nanosecond".
+            // b. Let quantity be nanosecond.
+            TemporalUnit::Nanosecond => u64::from(self.nanosecond),
+            _ => {
+                return Err(TemporalError::range()
+                    .with_message("Invalid temporal unit provided to Time.round."))
+            }
+        };
+
+        let ns_per_unit = if unit == TemporalUnit::Day {
+            day_length_ns.unwrap_or(NS_PER_DAY) as f64
+        } else {
+            unit.as_nanoseconds().expect("Only valid time values are ")
+        };
+
+        // TODO: Verify validity of cast or handle better.
+        // 9. Let result be RoundNumberToIncrement(quantity, increment, roundingMode).
+        let result =
+            utils::round_number_to_increment(quantity as f64, ns_per_unit * increment, mode)
+                / ns_per_unit;
+
+        let result = match unit {
+            // 10. If unit is "day", then
+            // a. Return the Record { [[Days]]: result, [[Hour]]: 0, [[Minute]]: 0, [[Second]]: 0, [[Millisecond]]: 0, [[Microsecond]]: 0, [[Nanosecond]]: 0 }.
+            TemporalUnit::Day => (result as i32, IsoTime::default()),
+            // 11. If unit is "hour", then
+            // a. Return BalanceTime(result, 0, 0, 0, 0, 0).
+            TemporalUnit::Hour => IsoTime::balance(result, 0.0, 0.0, 0.0, 0.0, 0.0),
+            // 12. If unit is "minute", then
+            // a. Return BalanceTime(hour, result, 0, 0, 0, 0).
+            TemporalUnit::Minute => {
+                IsoTime::balance(f64::from(self.hour), result, 0.0, 0.0, 0.0, 0.0)
+            }
+            // 13. If unit is "second", then
+            // a. Return BalanceTime(hour, minute, result, 0, 0, 0).
+            TemporalUnit::Second => IsoTime::balance(
+                f64::from(self.hour),
+                f64::from(self.minute),
+                result,
+                0.0,
+                0.0,
+                0.0,
+            ),
+            // 14. If unit is "millisecond", then
+            // a. Return BalanceTime(hour, minute, second, result, 0, 0).
+            TemporalUnit::Millisecond => IsoTime::balance(
+                f64::from(self.hour),
+                f64::from(self.minute),
+                f64::from(self.second),
+                result,
+                0.0,
+                0.0,
+            ),
+            // 15. If unit is "microsecond", then
+            // a. Return BalanceTime(hour, minute, second, millisecond, result, 0).
+            TemporalUnit::Microsecond => IsoTime::balance(
+                f64::from(self.hour),
+                f64::from(self.minute),
+                f64::from(self.second),
+                f64::from(self.millisecond),
+                result,
+                0.0,
+            ),
+            // 16. Assert: unit is "nanosecond".
+            // 17. Return BalanceTime(hour, minute, second, millisecond, microsecond, result).
+            TemporalUnit::Nanosecond => IsoTime::balance(
+                f64::from(self.hour),
+                f64::from(self.minute),
+                f64::from(self.second),
+                f64::from(self.millisecond),
+                f64::from(self.microsecond),
+                result,
+            ),
+            _ => unreachable!("Error is thrown in previous match."),
+        };
+
+        Ok(result)
     }
 
     /// Checks if the time is a valid `IsoTime`
@@ -482,6 +624,8 @@ fn is_valid_date(year: i32, month: i32, day: i32) -> bool {
     (1..=days_in_month).contains(&day)
 }
 
+// ==== `IsoTime` specific utilities ====
+
 #[inline]
 fn is_valid_time(hour: i32, minute: i32, second: i32, ms: i32, mis: i32, ns: i32) -> bool {
     if !(0..=23).contains(&hour) {
@@ -495,4 +639,10 @@ fn is_valid_time(hour: i32, minute: i32, second: i32, ms: i32, mis: i32, ns: i32
 
     let sub_second = 0..=999;
     sub_second.contains(&ms) && sub_second.contains(&mis) && sub_second.contains(&ns)
+}
+
+// NOTE(nekevss): Considering the below: Balance can probably be altered from f64.
+#[inline]
+fn div_mod(dividend: f64, divisor: f64) -> (f64, f64) {
+    (dividend.div_euclid(divisor), dividend.rem_euclid(divisor))
 }
