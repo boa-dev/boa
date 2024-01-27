@@ -251,7 +251,7 @@
     </span><span class="attr">#[allow(clippy::unnecessary_wraps)]
     </span><span class="kw">fn </span>time_zone_id(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, _args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Return ! SystemTimeZone().
-        </span><span class="prelude-val">Ok</span>(system_time_zone(context).expect(<span class="string">&quot;retrieving the system timezone must not fail&quot;</span>))
+        </span>system_time_zone(context)
     }
 
     <span class="doccomment">/// `Temporal.Now.instant()`

@@ -669,11 +669,11 @@
     ) -&gt; TemporalResult&lt;<span class="self">Self</span>&gt; {
         <span class="kw">match </span>overflow {
             ArithmeticOverflow::Constrain =&gt; {
-                <span class="kw">let </span>m = month.clamp(<span class="number">1</span>, <span class="number">12</span>);
+                <span class="kw">let </span>month = month.clamp(<span class="number">1</span>, <span class="number">12</span>);
                 <span class="kw">let </span>days_in_month = utils::iso_days_in_month(year, month);
                 <span class="kw">let </span>d = day.clamp(<span class="number">1</span>, days_in_month);
                 <span class="comment">// NOTE: Values are clamped in a u8 range.
-                </span><span class="prelude-val">Ok</span>(<span class="self">Self</span>::new_unchecked(year, m <span class="kw">as </span>u8, d <span class="kw">as </span>u8))
+                </span><span class="prelude-val">Ok</span>(<span class="self">Self</span>::new_unchecked(year, month <span class="kw">as </span>u8, d <span class="kw">as </span>u8))
             }
             ArithmeticOverflow::Reject =&gt; {
                 <span class="kw">if </span>!is_valid_date(year, month, day) {
