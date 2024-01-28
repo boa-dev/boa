@@ -505,12 +505,8 @@ pub(crate) fn create_temporal_date(
     new_target: Option<&JsValue>,
     context: &mut Context,
 ) -> JsResult<JsObject> {
+    // NOTE (nekevss): The below should never trigger as `IsValidISODate` is enforced by Date.
     // 1. If IsValidISODate(isoYear, isoMonth, isoDay) is false, throw a RangeError exception.
-    if !inner.is_valid() {
-        return Err(JsNativeError::range()
-            .with_message("Date is not a valid ISO date.")
-            .into());
-    };
 
     // 2. If ISODateTimeWithinLimits(isoYear, isoMonth, isoDay, 12, 0, 0, 0, 0, 0) is false, throw a RangeError exception.
     if !DateTime::<JsCustomCalendar>::validate(&inner) {

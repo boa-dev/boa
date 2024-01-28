@@ -237,7 +237,8 @@ impl Instant {
             })?;
 
         // 3. Return ? AddDurationToOrSubtractDurationFromInstant(add, instant, temporalDurationLike).
-        let temporal_duration_like = to_temporal_duration_record(args.get_or_undefined(0))?;
+        let temporal_duration_like =
+            to_temporal_duration_record(args.get_or_undefined(0), context)?;
         let result = instant.inner.add(temporal_duration_like)?;
         create_temporal_instant(result, None, context)
     }
@@ -258,7 +259,8 @@ impl Instant {
             })?;
 
         // 3. Return ? AddDurationToOrSubtractDurationFromInstant(subtract, instant, temporalDurationLike).
-        let temporal_duration_like = to_temporal_duration_record(args.get_or_undefined(0))?;
+        let temporal_duration_like =
+            to_temporal_duration_record(args.get_or_undefined(0), context)?;
         let result = instant.inner.subtract(temporal_duration_like)?;
         create_temporal_instant(result, None, context)
     }
@@ -336,33 +338,32 @@ impl Instant {
                 JsNativeError::typ().with_message("the this object must be an instant object.")
             })?;
 
-        let round_to = args.get_or_undefined(0);
-        // 3. If roundTo is undefined, then
-        if round_to.is_undefined() {
-            // a. Throw a TypeError exception.
-            return Err(JsNativeError::typ()
-                .with_message("roundTo cannot be undefined.")
-                .into());
-        };
-        // 4. If Type(roundTo) is String, then
-        let round_to = if round_to.is_string() {
-            // a. Let paramString be roundTo.
-            let param_string = round_to
-                .as_string()
-                .expect("roundTo is confirmed to be a string here.");
-            // b. Set roundTo to OrdinaryObjectCreate(null).
-            let new_round_to = JsObject::with_null_proto();
-            // c. Perform ! CreateDataPropertyOrThrow(roundTo, "smallestUnit"), paramString).
-            new_round_to.create_data_property_or_throw(
-                utf16!("smallestUnit"),
-                param_string.clone(),
-                context,
-            )?;
-            new_round_to
-        // 5. Else,
-        } else {
-            // a. Set roundTo to ? GetOptionsObject(roundTo).
-            get_options_object(round_to)?
+        let round_to = match args.first() {
+            // 3. If roundTo is undefined, then
+            None | Some(JsValue::Undefined) => {
+                return Err(JsNativeError::typ()
+                    .with_message("roundTo cannot be undefined.")
+                    .into())
+            }
+            // 4. If Type(roundTo) is String, then
+            Some(JsValue::String(rt)) => {
+                // a. Let paramString be roundTo.
+                let param_string = rt.clone();
+                // b. Set roundTo to OrdinaryObjectCreate(null).
+                let new_round_to = JsObject::with_null_proto();
+                // c. Perform ! CreateDataPropertyOrThrow(roundTo, "smallestUnit", paramString).
+                new_round_to.create_data_property_or_throw(
+                    utf16!("smallestUnit"),
+                    param_string,
+                    context,
+                )?;
+                new_round_to
+            }
+            // 5. Else,
+            Some(round_to) => {
+                // a. Set roundTo to ? GetOptionsObject(roundTo).
+                get_options_object(round_to)?
+            }
         };
 
         // 6. NOTE: The following steps read options and perform independent validation in

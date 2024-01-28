@@ -60,6 +60,33 @@ impl DateDuration {
         }
     }
 
+    /// Creates a `DateDuration` from a provided partial `DateDuration`.
+    #[must_use]
+    pub fn from_partial(partial: &DateDuration) -> Self {
+        Self {
+            years: if partial.years.is_nan() {
+                0.0
+            } else {
+                partial.years
+            },
+            months: if partial.months.is_nan() {
+                0.0
+            } else {
+                partial.months
+            },
+            weeks: if partial.weeks.is_nan() {
+                0.0
+            } else {
+                partial.weeks
+            },
+            days: if partial.days.is_nan() {
+                0.0
+            } else {
+                partial.days
+            },
+        }
+    }
+
     /// Returns a new `DateDuration` representing the absolute value of the current.
     #[inline]
     #[must_use]

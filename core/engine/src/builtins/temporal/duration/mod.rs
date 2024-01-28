@@ -584,16 +584,15 @@ impl Duration {
                 JsNativeError::typ().with_message("this value must be a Duration object.")
             })?;
 
-        let round_to = args.get_or_undefined(0);
-        let round_to = match round_to {
+        let round_to = match args.first() {
             // 3. If roundTo is undefined, then
-            JsValue::Undefined => {
+            None | Some(JsValue::Undefined) => {
                 return Err(JsNativeError::typ()
                     .with_message("roundTo cannot be undefined.")
                     .into())
             }
             // 4. If Type(roundTo) is String, then
-            JsValue::String(rt) => {
+            Some(JsValue::String(rt)) => {
                 // a. Let paramString be roundTo.
                 let param_string = rt.clone();
                 // b. Set roundTo to OrdinaryObjectCreate(null).
@@ -607,7 +606,7 @@ impl Duration {
                 new_round_to
             }
             // 5. Else,
-            _ => {
+            Some(round_to) => {
                 // a. Set roundTo to ? GetOptionsObject(roundTo).
                 get_options_object(round_to)?
             }
@@ -876,7 +875,10 @@ impl Duration {
 // -- Duration Abstract Operations --
 
 /// 7.5.8 `ToTemporalDuration ( item )`
-pub(crate) fn to_temporal_duration(item: &JsValue) -> JsResult<InnerDuration> {
+pub(crate) fn to_temporal_duration(
+    item: &JsValue,
+    context: &mut Context,
+) -> JsResult<InnerDuration> {
     // 1a. If Type(item) is Object
     // 1b. and item has an [[InitializedTemporalDuration]] internal slot, then
     if let Some(duration) = item
@@ -887,18 +889,56 @@ pub(crate) fn to_temporal_duration(item: &JsValue) -> JsResult<InnerDuration> {
     }
 
     // 2. Let result be ? ToTemporalDurationRecord(item).
-    let result = to_temporal_duration_record(item)?;
+    let result = to_temporal_duration_record(item, context)?;
     // 3. Return ! CreateTemporalDuration(result.[[Years]], result.[[Months]], result.[[Weeks]], result.[[Days]], result.[[Hours]], result.[[Minutes]], result.[[Seconds]], result.[[Milliseconds]], result.[[Microseconds]], result.[[Nanoseconds]]).
     Ok(result)
 }
 
 /// 7.5.9 `ToTemporalDurationRecord ( temporalDurationLike )`
 pub(crate) fn to_temporal_duration_record(
-    _temporal_duration_like: &JsValue,
+    temporal_duration_like: &JsValue,
+    context: &mut Context,
 ) -> JsResult<InnerDuration> {
-    Err(JsNativeError::range()
-        .with_message("Duration Parsing is not yet complete.")
-        .into())
+    // 1. If Type(temporalDurationLike) is not Object, then
+    let JsValue::Object(duration_obj) = temporal_duration_like else {
+        // a. If temporalDurationLike is not a String, throw a TypeError exception.
+        let JsValue::String(duration_string) = temporal_duration_like else {
+            return Err(JsNativeError::typ()
+                .with_message("Invalid TemporalDurationLike value.")
+                .into());
+        };
+
+        // b. Return ? ParseTemporalDurationString(temporalDurationLike).
+        return duration_string
+            .to_std_string_escaped()
+            .parse::<InnerDuration>()
+            .map_err(Into::into);
+    };
+
+    // 2. If temporalDurationLike has an [[InitializedTemporalDuration]] internal slot, then
+    if let Some(duration) = duration_obj.downcast_ref::<Duration>() {
+        // a. Return ! CreateDurationRecord(temporalDurationLike.[[Years]], temporalDurationLike.[[Months]], temporalDurationLike.[[Weeks]], temporalDurationLike.[[Days]], temporalDurationLike.[[Hours]], temporalDurationLike.[[Minutes]], temporalDurationLike.[[Seconds]], temporalDurationLike.[[Milliseconds]], temporalDurationLike.[[Microseconds]], temporalDurationLike.[[Nanoseconds]]).
+        return Ok(duration.inner);
+    }
+
+    // 3. Let result be a new Duration Record with each field set to 0.
+    // 4. Let partial be ? ToTemporalPartialDurationRecord(temporalDurationLike).
+    let partial = to_temporal_partial_duration(temporal_duration_like, context)?;
+
+    // 5. If partial.[[Years]] is not undefined, set result.[[Years]] to partial.[[Years]].
+    // 6. If partial.[[Months]] is not undefined, set result.[[Months]] to partial.[[Months]].
+    // 7. If partial.[[Weeks]] is not undefined, set result.[[Weeks]] to partial.[[Weeks]].
+    // 8. If partial.[[Days]] is not undefined, set result.[[Days]] to partial.[[Days]].
+    // 9. If partial.[[Hours]] is not undefined, set result.[[Hours]] to partial.[[Hours]].
+    // 10. If partial.[[Minutes]] is not undefined, set result.[[Minutes]] to partial.[[Minutes]].
+    // 11. If partial.[[Seconds]] is not undefined, set result.[[Seconds]] to partial.[[Seconds]].
+    // 12. If partial.[[Milliseconds]] is not undefined, set result.[[Milliseconds]] to partial.[[Milliseconds]].
+    // 13. If partial.[[Microseconds]] is not undefined, set result.[[Microseconds]] to partial.[[Microseconds]].
+    // 14. If partial.[[Nanoseconds]] is not undefined, set result.[[Nanoseconds]] to partial.[[Nanoseconds]].
+    // 15. If ! IsValidDuration(result.[[Years]], result.[[Months]], result.[[Weeks]], result.[[Days]], result.[[Hours]], result.[[Minutes]], result.[[Seconds]], result.[[Milliseconds]], result.[[Microseconds]], result.[[Nanoseconds]]) is false, then
+    // a. Throw a RangeError exception.
+    // 16. Return result.
+    InnerDuration::from_partial(&partial).map_err(Into::into)
 }
 
 /// 7.5.14 `CreateTemporalDuration ( years, months, weeks, days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds [ , newTarget ] )`

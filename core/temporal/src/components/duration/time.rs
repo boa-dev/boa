@@ -278,6 +278,43 @@ impl TimeDuration {
         }
     }
 
+    /// Creates a `TimeDuration` from a provided partial `TimeDuration`.
+    #[must_use]
+    pub fn from_partial(partial: &TimeDuration) -> Self {
+        Self {
+            hours: if partial.hours.is_nan() {
+                0.0
+            } else {
+                partial.hours
+            },
+            minutes: if partial.minutes.is_nan() {
+                0.0
+            } else {
+                partial.minutes
+            },
+            seconds: if partial.seconds.is_nan() {
+                0.0
+            } else {
+                partial.seconds
+            },
+            milliseconds: if partial.milliseconds.is_nan() {
+                0.0
+            } else {
+                partial.milliseconds
+            },
+            microseconds: if partial.microseconds.is_nan() {
+                0.0
+            } else {
+                partial.microseconds
+            },
+            nanoseconds: if partial.nanoseconds.is_nan() {
+                0.0
+            } else {
+                partial.nanoseconds
+            },
+        }
+    }
+
     /// Returns a new `TimeDuration` representing the absolute value of the current.
     #[inline]
     #[must_use]
