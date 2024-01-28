@@ -240,7 +240,7 @@ impl PlainDate {
             .as_object()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be an instant object.")
+                JsNativeError::typ().with_message("the this object must be a PlainDate object.")
             })?;
 
         Ok(JsString::from(date.inner.calendar().identifier(context)?).into())
@@ -252,7 +252,7 @@ impl PlainDate {
             .as_object()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be an instant object.")
+                JsNativeError::typ().with_message("the this object must be a PlainDate object.")
             })?;
 
         Ok(date.inner.contextual_year(context)?.into())
@@ -264,7 +264,7 @@ impl PlainDate {
             .as_object()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be an instant object.")
+                JsNativeError::typ().with_message("the this object must be a PlainDate object.")
             })?;
 
         Ok(date.inner.contextual_month(context)?.into())
@@ -276,7 +276,7 @@ impl PlainDate {
             .as_object()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be an instant object.")
+                JsNativeError::typ().with_message("the this object must be a PlainDate object.")
             })?;
 
         Ok(JsString::from(date.inner.contextual_month_code(context)?.as_str()).into())
@@ -288,7 +288,7 @@ impl PlainDate {
             .as_object()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be an instant object.")
+                JsNativeError::typ().with_message("the this object must be a PlainDate object.")
             })?;
 
         Ok(date.inner.contextual_day(context)?.into())
@@ -300,7 +300,7 @@ impl PlainDate {
             .as_object()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be an instant object.")
+                JsNativeError::typ().with_message("the this object must be a PlainDate object.")
             })?;
 
         Ok(date.inner.contextual_day_of_week(context)?.into())
@@ -312,7 +312,7 @@ impl PlainDate {
             .as_object()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be an instant object.")
+                JsNativeError::typ().with_message("the this object must be a PlainDate object.")
             })?;
 
         Ok(date.inner.contextual_day_of_year(context)?.into())
@@ -324,7 +324,7 @@ impl PlainDate {
             .as_object()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be an instant object.")
+                JsNativeError::typ().with_message("the this object must be a PlainDate object.")
             })?;
 
         Ok(date.inner.contextual_week_of_year(context)?.into())
@@ -336,7 +336,7 @@ impl PlainDate {
             .as_object()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be an instant object.")
+                JsNativeError::typ().with_message("the this object must be a PlainDate object.")
             })?;
 
         Ok(date.inner.contextual_year_of_week(context)?.into())
@@ -348,7 +348,7 @@ impl PlainDate {
             .as_object()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be an instant object.")
+                JsNativeError::typ().with_message("the this object must be a PlainDate object.")
             })?;
 
         Ok(date.inner.contextual_days_in_week(context)?.into())
@@ -364,7 +364,7 @@ impl PlainDate {
             .as_object()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be an instant object.")
+                JsNativeError::typ().with_message("the this object must be a PlainDate object.")
             })?;
 
         Ok(date.inner.contextual_days_in_month(context)?.into())
@@ -376,7 +376,7 @@ impl PlainDate {
             .as_object()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be an instant object.")
+                JsNativeError::typ().with_message("the this object must be a PlainDate object.")
             })?;
 
         Ok(date.inner.contextual_days_in_year(context)?.into())
@@ -392,7 +392,7 @@ impl PlainDate {
             .as_object()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be an instant object.")
+                JsNativeError::typ().with_message("the this object must be a PlainDate object.")
             })?;
 
         Ok(date.inner.contextual_months_in_year(context)?.into())
@@ -404,7 +404,7 @@ impl PlainDate {
             .as_object()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be an instant object.")
+                JsNativeError::typ().with_message("the this object must be a PlainDate object.")
             })?;
 
         Ok(date.inner.contextual_in_leap_year(context)?.into())
@@ -438,7 +438,7 @@ impl PlainDate {
             .as_object()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be an instant object.")
+                JsNativeError::typ().with_message("the this object must be a PlainDate object.")
             })?;
 
         create_temporal_calendar(date.inner.calendar().clone(), None, context)

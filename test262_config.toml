@@ -38,9 +38,6 @@ features = [
     # https://github.com/tc39/proposal-arraybuffer-transfer
     "arraybuffer-transfer",
 
-    # https://github.com/tc39/proposal-temporal
-    "Temporal",
-
     # https://github.com/tc39/proposal-realms
     "ShadowRealm",
 
