@@ -26,7 +26,10 @@ use boa_gc::{Finalize, Trace};
 use bytemuck::{bytes_of, bytes_of_mut};
 
 use super::{
-    array_buffer::utils::{memcpy, SliceRef, SliceRefMut},
+    array_buffer::{
+        utils::{memcpy, SliceRef, SliceRefMut},
+        BufferObject,
+    },
     typed_array::{self, TypedArrayElement},
     BuiltInBuilder, BuiltInConstructor, IntrinsicObject,
 };
@@ -34,7 +37,7 @@ use super::{
 /// The internal representation of a `DataView` object.
 #[derive(Debug, Clone, Trace, Finalize, JsData)]
 pub struct DataView {
-    pub(crate) viewed_array_buffer: JsObject,
+    pub(crate) viewed_array_buffer: BufferObject,
     pub(crate) byte_length: u64,
     pub(crate) byte_offset: u64,
 }
@@ -135,11 +138,6 @@ impl BuiltInConstructor for DataView {
     ) -> JsResult<JsValue> {
         let byte_length = args.get_or_undefined(2);
 
-        let buffer_obj = args
-            .get_or_undefined(0)
-            .as_object()
-            .ok_or_else(|| JsNativeError::typ().with_message("buffer must be an ArrayBuffer"))?;
-
         // 1. If NewTarget is undefined, throw a TypeError exception.
         if new_target.is_undefined() {
             return Err(JsNativeError::typ()
@@ -147,15 +145,19 @@ impl BuiltInConstructor for DataView {
                 .into());
         }
 
+        // 2. Perform ? RequireInternalSlot(buffer, [[ArrayBufferData]]).
+        let buffer_obj = args
+            .get_or_undefined(0)
+            .as_object()
+            .and_then(|o| o.clone().into_buffer_object().ok())
+            .ok_or_else(|| JsNativeError::typ().with_message("buffer must be an ArrayBuffer"))?;
+
         let (offset, view_byte_length) = {
-            // 2. Perform ? RequireInternalSlot(buffer, [[ArrayBufferData]]).
-            let buffer_borrow = buffer_obj.borrow();
-            let buffer = buffer_borrow.as_buffer().ok_or_else(|| {
-                JsNativeError::typ().with_message("buffer must be an ArrayBuffer")
-            })?;
+            let buffer = buffer_obj.as_buffer();
 
             // 3. Let offset be ? ToIndex(byteOffset).
             let offset = args.get_or_undefined(1).to_index(context)?;
+
             // 4. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.
             let Some(buffer) = buffer.data() else {
                 return Err(JsNativeError::typ()
@@ -195,12 +197,7 @@ impl BuiltInConstructor for DataView {
             get_prototype_from_constructor(new_target, StandardConstructors::data_view, context)?;
 
         // 10. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.
-        if buffer_obj
-            .borrow()
-            .as_buffer()
-            .expect("already checked that `buffer_obj` was a buffer")
-            .is_detached()
-        {
+        if buffer_obj.as_buffer().is_detached() {
             return Err(JsNativeError::typ()
                 .with_message("ArrayBuffer can't be detached")
                 .into());
@@ -211,7 +208,7 @@ impl BuiltInConstructor for DataView {
             prototype,
             Self {
                 // 11. Set O.[[ViewedArrayBuffer]] to buffer.
-                viewed_array_buffer: buffer_obj.clone(),
+                viewed_array_buffer: buffer_obj,
                 // 12. Set O.[[ByteLength]] to viewByteLength.
                 byte_length: view_byte_length,
                 // 13. Set O.[[ByteOffset]] to offset.
@@ -277,12 +274,9 @@ impl DataView {
             .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a DataView"))?;
         // 3. Assert: O has a [[ViewedArrayBuffer]] internal slot.
         // 4. Let buffer be O.[[ViewedArrayBuffer]].
-        let buffer_borrow = view.viewed_array_buffer.borrow();
-        let borrow = buffer_borrow
-            .as_buffer()
-            .expect("DataView must be constructed with a Buffer");
+        let buffer = view.viewed_array_buffer.as_buffer();
         // 5. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.
-        if borrow.is_detached() {
+        if buffer.is_detached() {
             return Err(JsNativeError::typ()
                 .with_message("ArrayBuffer is detached")
                 .into());
@@ -317,12 +311,9 @@ impl DataView {
             .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a DataView"))?;
         // 3. Assert: O has a [[ViewedArrayBuffer]] internal slot.
         // 4. Let buffer be O.[[ViewedArrayBuffer]].
-        let buffer_borrow = view.viewed_array_buffer.borrow();
-        let borrow = buffer_borrow
-            .as_buffer()
-            .expect("DataView must be constructed with a Buffer");
+        let buffer = view.viewed_array_buffer.as_buffer();
         // 5. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.
-        if borrow.is_detached() {
+        if buffer.is_detached() {
             return Err(JsNativeError::typ()
                 .with_message("Buffer is detached")
                 .into());
@@ -362,9 +353,7 @@ impl DataView {
         let is_little_endian = is_little_endian.to_boolean();
 
         // 5. Let buffer be view.[[ViewedArrayBuffer]].
-        let buffer = &view.viewed_array_buffer;
-        let buffer_borrow = buffer.borrow();
-        let buffer = buffer_borrow.as_buffer().expect("Should be unreachable");
+        let buffer = view.viewed_array_buffer.as_buffer();
 
         // 6. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.
         let Some(data) = buffer.data() else {
@@ -676,11 +665,7 @@ impl DataView {
         // 6. Set isLittleEndian to ! ToBoolean(isLittleEndian).
         let is_little_endian = is_little_endian.to_boolean();
         // 7. Let buffer be view.[[ViewedArrayBuffer]].
-        let buffer = &view.viewed_array_buffer;
-        let mut buffer_borrow = buffer.borrow_mut();
-        let mut buffer = buffer_borrow
-            .as_buffer_mut()
-            .expect("Should be unreachable");
+        let mut buffer = view.viewed_array_buffer.as_buffer_mut();
 
         // 8. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.
         let Some(mut data) = buffer.data_mut() else {

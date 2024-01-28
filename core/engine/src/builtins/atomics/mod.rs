@@ -24,7 +24,7 @@ use boa_gc::GcRef;
 use boa_profiler::Profiler;
 
 use super::{
-    array_buffer::{BufferRef, SharedArrayBuffer},
+    array_buffer::BufferRef,
     typed_array::{Atomic, ContentType, Element, TypedArray, TypedArrayElement, TypedArrayKind},
     BuiltInBuilder, IntrinsicObject,
 };
@@ -80,10 +80,7 @@ macro_rules! atomic_op {
             let value = ii.kind().get_element(value, context)?;
 
             // revalidate
-            let mut buffer = ii.viewed_array_buffer().borrow_mut();
-            let mut buffer = buffer
-                .as_buffer_mut()
-                .expect("integer indexed object must contain a valid buffer");
+            let mut buffer = ii.viewed_array_buffer().as_buffer_mut();
             let Some(mut data) = buffer.data_mut() else {
                 return Err(JsNativeError::typ()
                     .with_message("cannot execute atomic operation in detached buffer")
@@ -168,10 +165,7 @@ impl Atomics {
         let pos = validate_atomic_access(&ii, index, context)?;
 
         // 2. Perform ? RevalidateAtomicAccess(typedArray, indexedPosition).
-        let buffer = ii.viewed_array_buffer().borrow();
-        let buffer = buffer
-            .as_buffer()
-            .expect("integer indexed object must contain a valid buffer");
+        let buffer = ii.viewed_array_buffer().as_buffer();
         let Some(data) = buffer.data() else {
             return Err(JsNativeError::typ()
                 .with_message("cannot execute atomic operation in detached buffer")
@@ -217,10 +211,7 @@ impl Atomics {
         let value = ii.kind().get_element(&converted, context)?;
 
         // 4. Perform ? RevalidateAtomicAccess(typedArray, indexedPosition).
-        let mut buffer = ii.viewed_array_buffer().borrow_mut();
-        let mut buffer = buffer
-            .as_buffer_mut()
-            .expect("integer indexed object must contain a valid buffer");
+        let mut buffer = ii.viewed_array_buffer().as_buffer_mut();
         let Some(mut buffer) = buffer.data_mut() else {
             return Err(JsNativeError::typ()
                 .with_message("cannot execute atomic operation in detached buffer")
@@ -269,10 +260,7 @@ impl Atomics {
             .to_bytes();
 
         // 6. Perform ? RevalidateAtomicAccess(typedArray, indexedPosition).
-        let mut buffer = ii.viewed_array_buffer().borrow_mut();
-        let mut buffer = buffer
-            .as_buffer_mut()
-            .expect("integer indexed object must contain a valid buffer");
+        let mut buffer = ii.viewed_array_buffer().as_buffer_mut();
         let Some(mut data) = buffer.data_mut() else {
             return Err(JsNativeError::typ()
                 .with_message("cannot execute atomic operation in detached buffer")
@@ -403,10 +391,7 @@ impl Atomics {
 
         // 1. Let buffer be ? ValidateIntegerTypedArray(typedArray, true).
         let ii = validate_integer_typed_array(array, true)?;
-        let buffer = ii.viewed_array_buffer().borrow();
-        let buffer = buffer
-            .as_buffer()
-            .expect("integer indexed object must contain a valid buffer");
+        let buffer = ii.viewed_array_buffer().as_buffer();
 
         // 2. If IsSharedArrayBuffer(buffer) is false, throw a TypeError exception.
         let BufferRef::SharedBuffer(buffer) = buffer else {
@@ -451,10 +436,10 @@ impl Atomics {
         // SAFETY: the validity of `addr` is verified by our call to `validate_atomic_access`.
         let result = unsafe {
             if ii.kind() == TypedArrayKind::BigInt64 {
-                futex::wait(buffer, offset, value, timeout)?
+                futex::wait(&buffer, offset, value, timeout)?
             } else {
                 // value must fit into `i32` since it came from an `i32` above.
-                futex::wait(buffer, offset, value as i32, timeout)?
+                futex::wait(&buffer, offset, value as i32, timeout)?
             }
         };
 
@@ -496,13 +481,11 @@ impl Atomics {
         // 4. Let buffer be typedArray.[[ViewedArrayBuffer]].
         // 5. Let block be buffer.[[ArrayBufferData]].
         // 6. If IsSharedArrayBuffer(buffer) is false, return +0𝔽.
-        let buffer = ii.viewed_array_buffer();
-        let buffer = buffer.borrow();
-        let Some(shared) = buffer.downcast_ref::<SharedArrayBuffer>() else {
+        let BufferRef::SharedBuffer(shared) = ii.viewed_array_buffer().as_buffer() else {
             return Ok(0.into());
         };
 
-        let count = futex::notify(shared, offset, count)?;
+        let count = futex::notify(&shared, offset, count)?;
 
         // 12. Let n be the number of elements in S.
         // 13. Return 𝔽(n).

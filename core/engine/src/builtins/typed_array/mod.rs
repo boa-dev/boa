@@ -28,15 +28,16 @@ use crate::{
     value::{JsValue, Numeric},
     Context, JsArgs, JsResult, JsString,
 };
+use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
 
 mod builtin;
 mod element;
-mod integer_indexed_object;
+mod object;
 
 pub(crate) use builtin::{is_valid_integer_index, BuiltinTypedArray};
 pub(crate) use element::{Atomic, ClampedU8, Element};
-pub use integer_indexed_object::{IntegerIndexed, TypedArray};
+pub use object::TypedArray;
 
 pub(crate) trait TypedArrayMarker {
     type Element: Element;
@@ -137,18 +138,39 @@ impl<T: TypedArrayMarker> BuiltInConstructor for T {
         let first_argument = &args[0];
 
         // b. If Type(firstArgument) is Object, then
-        if let Some(first_argument) = first_argument.as_object() {
-            // i. Let O be ? AllocateTypedArray(constructorName, NewTarget, proto).
-            let proto =
-                get_prototype_from_constructor(new_target, T::STANDARD_CONSTRUCTOR, context)?;
+        let Some(first_argument) = first_argument.as_object() else {
+            // c. Else,
+            // i. Assert: firstArgument is not an Object.
+            // Ensured by the let-else
 
-            // ii. If firstArgument has a [[TypedArrayName]] internal slot, then
-            let o = if first_argument.is::<TypedArray>() {
+            // ii. Let elementLength be ? ToIndex(firstArgument).
+            let element_length = first_argument.to_index(context)?;
+
+            // iii. Return ? AllocateTypedArray(constructorName, NewTarget, proto, elementLength).
+            return BuiltinTypedArray::allocate::<T>(new_target, element_length, context)
+                .map(JsValue::from);
+        };
+
+        let first_argument = first_argument.clone();
+
+        // i. Let O be ? AllocateTypedArray(constructorName, NewTarget, proto).
+        let proto = get_prototype_from_constructor(new_target, T::STANDARD_CONSTRUCTOR, context)?;
+
+        // ii. If firstArgument has a [[TypedArrayName]] internal slot, then
+        let first_argument = match first_argument.downcast::<TypedArray>() {
+            Ok(arr) => {
                 // 1. Perform ? InitializeTypedArrayFromTypedArray(O, firstArgument).
-                BuiltinTypedArray::initialize_from_typed_array::<T>(proto, first_argument, context)?
-            } else if first_argument.is_buffer() {
-                // iii. Else if firstArgument has an [[ArrayBufferData]] internal slot, then
 
+                // v. Return O.
+                return BuiltinTypedArray::initialize_from_typed_array::<T>(proto, &arr, context)
+                    .map(JsValue::from);
+            }
+            Err(obj) => obj,
+        };
+
+        // iii. Else if firstArgument has an [[ArrayBufferData]] internal slot, then
+        let first_argument = match first_argument.into_buffer_object() {
+            Ok(buf) => {
                 // 1. If numberOfArgs > 1, let byteOffset be args[1]; else let byteOffset be undefined.
                 let byte_offset = args.get_or_undefined(1);
 
@@ -156,59 +178,46 @@ impl<T: TypedArrayMarker> BuiltInConstructor for T {
                 let length = args.get_or_undefined(2);
 
                 // 3. Perform ? InitializeTypedArrayFromArrayBuffer(O, firstArgument, byteOffset, length).
-                BuiltinTypedArray::initialize_from_array_buffer::<T>(
+
+                // v. Return O.
+                return BuiltinTypedArray::initialize_from_array_buffer::<T>(
                     proto,
-                    first_argument.clone(),
+                    buf,
                     byte_offset,
                     length,
                     context,
-                )?
-            } else {
-                // iv. Else,
+                )
+                .map(JsValue::from);
+            }
+            Err(obj) => obj,
+        };
 
-                // 1. Assert: Type(firstArgument) is Object and firstArgument does not have
-                // either a [[TypedArrayName]] or an [[ArrayBufferData]] internal slot.
+        // iv. Else,
 
-                // 2. Let usingIterator be ? GetMethod(firstArgument, @@iterator).
+        // 1. Assert: Type(firstArgument) is Object and firstArgument does not have
+        // either a [[TypedArrayName]] or an [[ArrayBufferData]] internal slot.
 
-                let first_argument_v = JsValue::from(first_argument.clone());
-                let using_iterator = first_argument_v.get_method(JsSymbol::iterator(), context)?;
+        // 2. Let usingIterator be ? GetMethod(firstArgument, @@iterator).
 
-                // 3. If usingIterator is not undefined, then
-                if let Some(using_iterator) = using_iterator {
-                    // a. Let values be ? IterableToList(firstArgument, usingIterator).
-                    let values =
-                        iterable_to_list(context, &first_argument_v, Some(using_iterator))?;
+        let using_iterator = first_argument.get_method(JsSymbol::iterator(), context)?;
 
-                    // b. Perform ? InitializeTypedArrayFromList(O, values).
-                    BuiltinTypedArray::initialize_from_list::<T>(proto, values, context)?
-                } else {
-                    // 4. Else,
+        // 3. If usingIterator is not undefined, then
+        if let Some(using_iterator) = using_iterator {
+            // a. Let values be ? IterableToList(firstArgument, usingIterator).
+            let values = iterable_to_list(context, &first_argument.into(), Some(using_iterator))?;
 
-                    // a. NOTE: firstArgument is not an Iterable so assume it is already an array-like object.
-                    // b. Perform ? InitializeTypedArrayFromArrayLike(O, firstArgument).
-                    BuiltinTypedArray::initialize_from_array_like::<T>(
-                        proto,
-                        first_argument,
-                        context,
-                    )?
-                }
-            };
-
-            // v. Return O.
-            Ok(o.into())
+            // b. Perform ? InitializeTypedArrayFromList(O, values).
+            BuiltinTypedArray::initialize_from_list::<T>(proto, values, context)
         } else {
-            // c. Else,
+            // 4. Else,
 
-            // i. Assert: firstArgument is not an Object.
-            assert!(!first_argument.is_object(), "firstArgument was an object");
-
-            // ii. Let elementLength be ? ToIndex(firstArgument).
-            let element_length = first_argument.to_index(context)?;
-
-            // iii. Return ? AllocateTypedArray(constructorName, NewTarget, proto, elementLength).
-            Ok(BuiltinTypedArray::allocate::<T>(new_target, element_length, context)?.into())
+            // a. NOTE: firstArgument is not an Iterable so assume it is already an array-like object.
+            // b. Perform ? InitializeTypedArrayFromArrayLike(O, firstArgument).
+            BuiltinTypedArray::initialize_from_array_like::<T>(proto, &first_argument, context)
         }
+        .map(JsValue::from)
+
+        // v. Return O.
     }
 }
 
@@ -330,7 +339,8 @@ pub(crate) enum ContentType {
 }
 
 /// List of all typed array kinds.
-#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Trace, Finalize)]
+#[boa_gc(empty_trace)]
 pub(crate) enum TypedArrayKind {
     Int8,
     Uint8,

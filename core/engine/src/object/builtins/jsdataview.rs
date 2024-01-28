@@ -1,6 +1,6 @@
 //! A Rust API wrapper for Boa's `DataView` Builtin ECMAScript Object
 use crate::{
-    builtins::DataView,
+    builtins::{array_buffer::BufferObject, DataView},
     context::intrinsics::StandardConstructors,
     object::{
         internal_methods::get_prototype_from_constructor, JsArrayBuffer, JsObject, JsObjectType,
@@ -33,8 +33,23 @@ use std::ops::Deref;
 /// # }
 /// ```
 #[derive(Debug, Clone, Trace, Finalize)]
+#[boa_gc(unsafe_no_drop)]
 pub struct JsDataView {
-    inner: JsObject,
+    inner: JsObject<DataView>,
+}
+
+impl From<JsDataView> for JsObject<DataView> {
+    #[inline]
+    fn from(value: JsDataView) -> Self {
+        value.inner
+    }
+}
+
+impl From<JsObject<DataView>> for JsDataView {
+    #[inline]
+    fn from(value: JsObject<DataView>) -> Self {
+        Self { inner: value }
+    }
 }
 
 impl JsDataView {
@@ -90,12 +105,11 @@ impl JsDataView {
         let prototype =
             get_prototype_from_constructor(&constructor, StandardConstructors::data_view, context)?;
 
-        let obj = JsObject::from_proto_and_data_with_shared_shape(
+        let obj = JsObject::new(
             context.root_shape(),
             prototype,
             DataView {
-                // TODO: Remove upcast.
-                viewed_array_buffer: array_buffer.into(),
+                viewed_array_buffer: BufferObject::Buffer(array_buffer.into()),
                 byte_length,
                 byte_offset,
             },
@@ -107,32 +121,33 @@ impl JsDataView {
     /// Create a new `JsDataView` object from an existing object.
     #[inline]
     pub fn from_object(object: JsObject) -> JsResult<Self> {
-        if object.is::<DataView>() {
-            Ok(Self { inner: object })
-        } else {
-            Err(JsNativeError::typ()
-                .with_message("object is not a DataView")
-                .into())
-        }
+        object
+            .downcast::<DataView>()
+            .map(|inner| Self { inner })
+            .map_err(|_| {
+                JsNativeError::typ()
+                    .with_message("object is not a DataView")
+                    .into()
+            })
     }
 
     /// Returns the `viewed_array_buffer` field for [`JsDataView`]
     #[inline]
     pub fn buffer(&self, context: &mut Context) -> JsResult<JsValue> {
-        DataView::get_buffer(&self.inner.clone().into(), &[], context)
+        DataView::get_buffer(&self.inner.clone().upcast().into(), &[], context)
     }
 
     /// Returns the `byte_length` property of [`JsDataView`] as a u64 integer
     #[inline]
     pub fn byte_length(&self, context: &mut Context) -> JsResult<u64> {
-        DataView::get_byte_length(&self.inner.clone().into(), &[], context)
+        DataView::get_byte_length(&self.inner.clone().upcast().into(), &[], context)
             .map(|v| v.as_number().expect("value should be a number") as u64)
     }
 
     /// Returns the `byte_offset` field property of [`JsDataView`] as a u64 integer
     #[inline]
     pub fn byte_offset(&self, context: &mut Context) -> JsResult<u64> {
-        DataView::get_byte_offset(&self.inner.clone().into(), &[], context)
+        DataView::get_byte_offset(&self.inner.clone().upcast().into(), &[], context)
             .map(|v| v.as_number().expect("byte_offset value must be a number") as u64)
     }
 
@@ -145,7 +160,7 @@ impl JsDataView {
         context: &mut Context,
     ) -> JsResult<i64> {
         DataView::get_big_int64(
-            &self.inner.clone().into(),
+            &self.inner.clone().upcast().into(),
             &[byte_offset.into(), is_little_endian.into()],
             context,
         )
@@ -161,7 +176,7 @@ impl JsDataView {
         context: &mut Context,
     ) -> JsResult<u64> {
         DataView::get_big_uint64(
-            &self.inner.clone().into(),
+            &self.inner.clone().upcast().into(),
             &[byte_offset.into(), is_little_endian.into()],
             context,
         )
@@ -177,7 +192,7 @@ impl JsDataView {
         context: &mut Context,
     ) -> JsResult<f32> {
         DataView::get_float32(
-            &self.inner.clone().into(),
+            &self.inner.clone().upcast().into(),
             &[byte_offset.into(), is_little_endian.into()],
             context,
         )
@@ -193,7 +208,7 @@ impl JsDataView {
         context: &mut Context,
     ) -> JsResult<f64> {
         DataView::get_float64(
-            &self.inner.clone().into(),
+            &self.inner.clone().upcast().into(),
             &[byte_offset.into(), is_little_endian.into()],
             context,
         )
@@ -209,7 +224,7 @@ impl JsDataView {
         context: &mut Context,
     ) -> JsResult<i8> {
         DataView::get_int8(
-            &self.inner.clone().into(),
+            &self.inner.clone().upcast().into(),
             &[byte_offset.into(), is_little_endian.into()],
             context,
         )
@@ -225,7 +240,7 @@ impl JsDataView {
         context: &mut Context,
     ) -> JsResult<i16> {
         DataView::get_int16(
-            &self.inner.clone().into(),
+            &self.inner.clone().upcast().into(),
             &[byte_offset.into(), is_little_endian.into()],
             context,
         )
@@ -241,7 +256,7 @@ impl JsDataView {
         context: &mut Context,
     ) -> JsResult<i32> {
         DataView::get_int32(
-            &self.inner.clone().into(),
+            &self.inner.clone().upcast().into(),
             &[byte_offset.into(), is_little_endian.into()],
             context,
         )
@@ -257,7 +272,7 @@ impl JsDataView {
         context: &mut Context,
     ) -> JsResult<u8> {
         DataView::get_uint8(
-            &self.inner.clone().into(),
+            &self.inner.clone().upcast().into(),
             &[byte_offset.into(), is_little_endian.into()],
             context,
         )
@@ -273,7 +288,7 @@ impl JsDataView {
         context: &mut Context,
     ) -> JsResult<u16> {
         DataView::get_uint16(
-            &self.inner.clone().into(),
+            &self.inner.clone().upcast().into(),
             &[byte_offset.into(), is_little_endian.into()],
             context,
         )
@@ -289,7 +304,7 @@ impl JsDataView {
         context: &mut Context,
     ) -> JsResult<u32> {
         DataView::get_uint32(
-            &self.inner.clone().into(),
+            &self.inner.clone().upcast().into(),
             &[byte_offset.into(), is_little_endian.into()],
             context,
         )
@@ -306,7 +321,7 @@ impl JsDataView {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         DataView::set_big_int64(
-            &self.inner.clone().into(),
+            &self.inner.clone().upcast().into(),
             &[byte_offset.into(), value.into(), is_little_endian.into()],
             context,
         )
@@ -322,7 +337,7 @@ impl JsDataView {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         DataView::set_big_uint64(
-            &self.inner.clone().into(),
+            &self.inner.clone().upcast().into(),
             &[byte_offset.into(), value.into(), is_little_endian.into()],
             context,
         )
@@ -338,7 +353,7 @@ impl JsDataView {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         DataView::set_float32(
-            &self.inner.clone().into(),
+            &self.inner.clone().upcast().into(),
             &[byte_offset.into(), value.into(), is_little_endian.into()],
             context,
         )
@@ -354,7 +369,7 @@ impl JsDataView {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         DataView::set_float64(
-            &self.inner.clone().into(),
+            &self.inner.clone().upcast().into(),
             &[byte_offset.into(), value.into(), is_little_endian.into()],
             context,
         )
@@ -370,7 +385,7 @@ impl JsDataView {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         DataView::set_int8(
-            &self.inner.clone().into(),
+            &self.inner.clone().upcast().into(),
             &[byte_offset.into(), value.into(), is_little_endian.into()],
             context,
         )
@@ -386,7 +401,7 @@ impl JsDataView {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         DataView::set_int16(
-            &self.inner.clone().into(),
+            &self.inner.clone().upcast().into(),
             &[byte_offset.into(), value.into(), is_little_endian.into()],
             context,
         )
@@ -402,7 +417,7 @@ impl JsDataView {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         DataView::set_int32(
-            &self.inner.clone().into(),
+            &self.inner.clone().upcast().into(),
             &[byte_offset.into(), value.into(), is_little_endian.into()],
             context,
         )
@@ -418,7 +433,7 @@ impl JsDataView {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         DataView::set_uint8(
-            &self.inner.clone().into(),
+            &self.inner.clone().upcast().into(),
             &[byte_offset.into(), value.into(), is_little_endian.into()],
             context,
         )
@@ -434,7 +449,7 @@ impl JsDataView {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         DataView::set_uint16(
-            &self.inner.clone().into(),
+            &self.inner.clone().upcast().into(),
             &[byte_offset.into(), value.into(), is_little_endian.into()],
             context,
         )
@@ -450,7 +465,7 @@ impl JsDataView {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         DataView::set_uint32(
-            &self.inner.clone().into(),
+            &self.inner.clone().upcast().into(),
             &[byte_offset.into(), value.into(), is_little_endian.into()],
             context,
         )
@@ -460,19 +475,19 @@ impl JsDataView {
 impl From<JsDataView> for JsObject {
     #[inline]
     fn from(o: JsDataView) -> Self {
-        o.inner.clone()
+        o.inner.upcast()
     }
 }
 
 impl From<JsDataView> for JsValue {
     #[inline]
     fn from(o: JsDataView) -> Self {
-        o.inner.clone().into()
+        o.inner.upcast().into()
     }
 }
 
 impl Deref for JsDataView {
-    type Target = JsObject;
+    type Target = JsObject<DataView>;
 
     #[inline]
     fn deref(&self) -> &Self::Target {

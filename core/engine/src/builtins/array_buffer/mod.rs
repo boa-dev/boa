@@ -16,6 +16,8 @@ pub(crate) mod utils;
 #[cfg(test)]
 mod tests;
 
+use std::ops::{Deref, DerefMut};
+
 pub use shared::SharedArrayBuffer;
 
 use crate::{
@@ -23,7 +25,7 @@ use crate::{
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, JsObject},
+    object::{internal_methods::get_prototype_from_constructor, JsObject, Object},
     property::Attribute,
     realm::Realm,
     string::common::StaticJsStrings,
@@ -31,7 +33,7 @@ use crate::{
     value::IntegerOrInfinity,
     Context, JsArgs, JsData, JsResult, JsString, JsValue,
 };
-use boa_gc::{Finalize, Trace};
+use boa_gc::{Finalize, GcRef, GcRefMut, Trace};
 use boa_profiler::Profiler;
 
 use self::utils::{SliceRef, SliceRefMut};
@@ -41,16 +43,20 @@ use super::{
 };
 
 #[derive(Debug, Clone, Copy)]
-pub(crate) enum BufferRef<'a> {
-    Buffer(&'a ArrayBuffer),
-    SharedBuffer(&'a SharedArrayBuffer),
+pub(crate) enum BufferRef<B, S> {
+    Buffer(B),
+    SharedBuffer(S),
 }
 
-impl BufferRef<'_> {
+impl<B, S> BufferRef<B, S>
+where
+    B: Deref<Target = ArrayBuffer>,
+    S: Deref<Target = SharedArrayBuffer>,
+{
     pub(crate) fn data(&self) -> Option<SliceRef<'_>> {
         match self {
-            Self::Buffer(buf) => buf.data().map(SliceRef::Slice),
-            Self::SharedBuffer(buf) => Some(SliceRef::AtomicSlice(buf.data())),
+            Self::Buffer(buf) => buf.deref().data().map(SliceRef::Slice),
+            Self::SharedBuffer(buf) => Some(SliceRef::AtomicSlice(buf.deref().data())),
         }
     }
 
@@ -60,16 +66,96 @@ impl BufferRef<'_> {
 }
 
 #[derive(Debug)]
-pub(crate) enum BufferRefMut<'a> {
-    Buffer(&'a mut ArrayBuffer),
-    SharedBuffer(&'a mut SharedArrayBuffer),
+pub(crate) enum BufferRefMut<B, S> {
+    Buffer(B),
+    SharedBuffer(S),
 }
 
-impl BufferRefMut<'_> {
+impl<B, S> BufferRefMut<B, S>
+where
+    B: DerefMut<Target = ArrayBuffer>,
+    S: DerefMut<Target = SharedArrayBuffer>,
+{
     pub(crate) fn data_mut(&mut self) -> Option<SliceRefMut<'_>> {
         match self {
-            Self::Buffer(buf) => buf.data_mut().map(SliceRefMut::Slice),
-            Self::SharedBuffer(buf) => Some(SliceRefMut::AtomicSlice(buf.data())),
+            Self::Buffer(buf) => buf.deref_mut().data_mut().map(SliceRefMut::Slice),
+            Self::SharedBuffer(buf) => Some(SliceRefMut::AtomicSlice(buf.deref_mut().data())),
+        }
+    }
+}
+
+/// A `JsObject` containing a bytes buffer as its inner data.
+#[derive(Debug, Clone, Trace, Finalize)]
+#[boa_gc(unsafe_no_drop)]
+pub(crate) enum BufferObject {
+    Buffer(JsObject<ArrayBuffer>),
+    SharedBuffer(JsObject<SharedArrayBuffer>),
+}
+
+impl From<BufferObject> for JsObject {
+    fn from(value: BufferObject) -> Self {
+        match value {
+            BufferObject::Buffer(buf) => buf.upcast(),
+            BufferObject::SharedBuffer(buf) => buf.upcast(),
+        }
+    }
+}
+
+impl From<BufferObject> for JsValue {
+    fn from(value: BufferObject) -> Self {
+        JsValue::from(JsObject::from(value))
+    }
+}
+
+impl BufferObject {
+    /// Gets the buffer data of the object.
+    #[inline]
+    #[must_use]
+    pub(crate) fn as_buffer(
+        &self,
+    ) -> BufferRef<GcRef<'_, ArrayBuffer>, GcRef<'_, SharedArrayBuffer>> {
+        match self {
+            Self::Buffer(buf) => BufferRef::Buffer(GcRef::map(buf.borrow(), |o| &o.data)),
+            Self::SharedBuffer(buf) => {
+                BufferRef::SharedBuffer(GcRef::map(buf.borrow(), |o| &o.data))
+            }
+        }
+    }
+
+    /// Gets the mutable buffer data of the object
+    #[inline]
+    pub(crate) fn as_buffer_mut(
+        &self,
+    ) -> BufferRefMut<
+        GcRefMut<'_, Object<ArrayBuffer>, ArrayBuffer>,
+        GcRefMut<'_, Object<SharedArrayBuffer>, SharedArrayBuffer>,
+    > {
+        match self {
+            Self::Buffer(buf) => {
+                BufferRefMut::Buffer(GcRefMut::map(buf.borrow_mut(), |o| &mut o.data))
+            }
+            Self::SharedBuffer(buf) => {
+                BufferRefMut::SharedBuffer(GcRefMut::map(buf.borrow_mut(), |o| &mut o.data))
+            }
+        }
+    }
+
+    /// Returns `true` if the buffer objects point to the same buffer.
+    #[inline]
+    pub(crate) fn equals(lhs: &Self, rhs: &Self) -> bool {
+        match (lhs, rhs) {
+            (BufferObject::Buffer(lhs), BufferObject::Buffer(rhs)) => JsObject::equals(lhs, rhs),
+            (BufferObject::SharedBuffer(lhs), BufferObject::SharedBuffer(rhs)) => {
+                if JsObject::equals(lhs, rhs) {
+                    return true;
+                }
+
+                let lhs = lhs.borrow();
+                let rhs = rhs.borrow();
+
+                std::ptr::eq(lhs.data.data().as_ptr(), rhs.data.data().as_ptr())
+            }
+            _ => false,
         }
     }
 }

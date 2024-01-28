@@ -11,8 +11,23 @@ use std::ops::Deref;
 
 /// `JsSharedArrayBuffer` provides a wrapper for Boa's implementation of the ECMAScript `ArrayBuffer` object
 #[derive(Debug, Clone, Trace, Finalize)]
+#[boa_gc(unsafe_no_drop)]
 pub struct JsSharedArrayBuffer {
-    inner: JsObject,
+    inner: JsObject<SharedArrayBuffer>,
+}
+
+impl From<JsSharedArrayBuffer> for JsObject<SharedArrayBuffer> {
+    #[inline]
+    fn from(value: JsSharedArrayBuffer) -> Self {
+        value.inner
+    }
+}
+
+impl From<JsObject<SharedArrayBuffer>> for JsSharedArrayBuffer {
+    #[inline]
+    fn from(value: JsObject<SharedArrayBuffer>) -> Self {
+        JsSharedArrayBuffer { inner: value }
+    }
 }
 
 impl JsSharedArrayBuffer {
@@ -42,8 +57,7 @@ impl JsSharedArrayBuffer {
             .shared_array_buffer()
             .prototype();
 
-        let inner =
-            JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), proto, buffer);
+        let inner = JsObject::new(context.root_shape(), proto, buffer);
 
         Self { inner }
     }
@@ -55,50 +69,47 @@ impl JsSharedArrayBuffer {
     /// the object.
     #[inline]
     pub fn from_object(object: JsObject) -> JsResult<Self> {
-        if object.is::<SharedArrayBuffer>() {
-            Ok(Self { inner: object })
-        } else {
-            Err(JsNativeError::typ()
-                .with_message("object is not an ArrayBuffer")
-                .into())
-        }
+        object
+            .downcast::<SharedArrayBuffer>()
+            .map(|inner| Self { inner })
+            .map_err(|_| {
+                JsNativeError::typ()
+                    .with_message("object is not a SharedArrayBuffer")
+                    .into()
+            })
     }
 
     /// Returns the byte length of the array buffer.
     #[inline]
     #[must_use]
     pub fn byte_length(&self) -> usize {
-        self.downcast_ref::<SharedArrayBuffer>()
-            .expect("should be an array buffer")
-            .len()
+        self.borrow().data.len()
     }
 
     /// Gets the raw buffer of this `JsSharedArrayBuffer`.
     #[inline]
     #[must_use]
     pub fn inner(&self) -> SharedArrayBuffer {
-        self.downcast_ref::<SharedArrayBuffer>()
-            .expect("should be an array buffer")
-            .clone()
+        self.borrow().data.clone()
     }
 }
 
 impl From<JsSharedArrayBuffer> for JsObject {
     #[inline]
     fn from(o: JsSharedArrayBuffer) -> Self {
-        o.inner.clone()
+        o.inner.upcast()
     }
 }
 
 impl From<JsSharedArrayBuffer> for JsValue {
     #[inline]
     fn from(o: JsSharedArrayBuffer) -> Self {
-        o.inner.clone().into()
+        o.inner.upcast().into()
     }
 }
 
 impl Deref for JsSharedArrayBuffer {
-    type Target = JsObject;
+    type Target = JsObject<SharedArrayBuffer>;
 
     #[inline]
     fn deref(&self) -> &Self::Target {

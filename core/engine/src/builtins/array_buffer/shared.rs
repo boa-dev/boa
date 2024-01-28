@@ -125,7 +125,9 @@ impl BuiltInConstructor for SharedArrayBuffer {
         let byte_length = args.get_or_undefined(0).to_index(context)?;
 
         // 3. Return ? AllocateSharedArrayBuffer(NewTarget, byteLength, requestedMaxByteLength).
-        Ok(Self::allocate(new_target, byte_length, context)?.into())
+        Ok(Self::allocate(new_target, byte_length, context)?
+            .upcast()
+            .into())
     }
 }
 
@@ -256,7 +258,7 @@ impl SharedArrayBuffer {
         constructor: &JsValue,
         byte_length: u64,
         context: &mut Context,
-    ) -> JsResult<JsObject> {
+    ) -> JsResult<JsObject<SharedArrayBuffer>> {
         // TODO:
         // 1. Let slots be « [[ArrayBufferData]] ».
         // 2. If maxByteLength is present and maxByteLength is not empty, let allocatingGrowableBuffer
@@ -291,11 +293,7 @@ impl SharedArrayBuffer {
 
         // 10. Else,
         //     a. Set obj.[[ArrayBufferByteLength]] to byteLength.
-        let obj = JsObject::from_proto_and_data_with_shared_shape(
-            context.root_shape(),
-            prototype,
-            Self { data },
-        );
+        let obj = JsObject::new(context.root_shape(), prototype, Self { data });
 
         // 11. Return obj.
         Ok(obj)
