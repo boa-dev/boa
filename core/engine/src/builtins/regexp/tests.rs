@@ -125,7 +125,7 @@ fn no_panic_on_parse_fail() {
         TestAction::assert_native_error(
             r"var re = /]/u;",
             JsNativeErrorKind::Syntax,
-            "Invalid regular expression literal: Unbalanced bracket at line 1, col 10",
+            "Invalid regular expression literal: Invalid atom character at line 1, col 10",
         ),
         TestAction::assert_native_error(
             r"var re = /a{/u;",
