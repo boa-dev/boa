@@ -62,7 +62,7 @@ regex = "1.10.3"
 regress = "0.7.1"
 rustc-hash = { version = "1.1.0", default-features = false }
 serde_json = "1.0.111"
-serde = "1.0.195"
+serde = "1.0.196"
 static_assertions = "1.1.0"
 textwrap = "0.16.0"
 thin-vec = "0.2.13"
