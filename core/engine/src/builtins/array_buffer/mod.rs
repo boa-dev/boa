@@ -207,7 +207,9 @@ impl BuiltInConstructor for ArrayBuffer {
         let byte_length = args.get_or_undefined(0).to_index(context)?;
 
         // 3. Return ? AllocateArrayBuffer(NewTarget, byteLength).
-        Ok(Self::allocate(new_target, byte_length, context)?.into())
+        Ok(Self::allocate(new_target, byte_length, context)?
+            .upcast()
+            .into())
     }
 }
 
@@ -384,7 +386,7 @@ impl ArrayBuffer {
         constructor: &JsValue,
         byte_length: u64,
         context: &mut Context,
-    ) -> JsResult<JsObject> {
+    ) -> JsResult<JsObject<ArrayBuffer>> {
         // 1. Let obj be ? OrdinaryCreateFromConstructor(constructor, "%ArrayBuffer.prototype%", « [[ArrayBufferData]], [[ArrayBufferByteLength]], [[ArrayBufferDetachKey]] »).
         let prototype = get_prototype_from_constructor(
             constructor,
@@ -397,7 +399,7 @@ impl ArrayBuffer {
 
         // 3. Set obj.[[ArrayBufferData]] to block.
         // 4. Set obj.[[ArrayBufferByteLength]] to byteLength.
-        let obj = JsObject::from_proto_and_data_with_shared_shape(
+        let obj = JsObject::new(
             context.root_shape(),
             prototype,
             Self {

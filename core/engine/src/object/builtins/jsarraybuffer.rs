@@ -3,9 +3,7 @@ use crate::{
     builtins::array_buffer::ArrayBuffer,
     context::intrinsics::StandardConstructors,
     error::JsNativeError,
-    object::{
-        internal_methods::get_prototype_from_constructor, ErasedObject, JsObject, JsObjectType,
-    },
+    object::{internal_methods::get_prototype_from_constructor, JsObject, JsObjectType, Object},
     value::TryFromJs,
     Context, JsResult, JsValue,
 };
@@ -14,8 +12,9 @@ use std::ops::Deref;
 
 /// `JsArrayBuffer` provides a wrapper for Boa's implementation of the ECMAScript `ArrayBuffer` object
 #[derive(Debug, Clone, Trace, Finalize)]
+#[boa_gc(unsafe_no_drop)]
 pub struct JsArrayBuffer {
-    inner: JsObject,
+    inner: JsObject<ArrayBuffer>,
 }
 
 // TODO: Add constructors that also take the `detach_key` as argument.
@@ -103,7 +102,7 @@ impl JsArrayBuffer {
 
         // 3. Set obj.[[ArrayBufferData]] to block.
         // 4. Set obj.[[ArrayBufferByteLength]] to byteLength.
-        let obj = JsObject::from_proto_and_data_with_shared_shape(
+        let obj = JsObject::new(
             context.root_shape(),
             prototype,
             ArrayBuffer::from_data(block, JsValue::Undefined),
@@ -117,13 +116,14 @@ impl JsArrayBuffer {
     /// This does not clone the fields of the array buffer, it only does a shallow clone of the object.
     #[inline]
     pub fn from_object(object: JsObject) -> JsResult<Self> {
-        if object.is::<ArrayBuffer>() {
-            Ok(Self { inner: object })
-        } else {
-            Err(JsNativeError::typ()
-                .with_message("object is not an ArrayBuffer")
-                .into())
-        }
+        object
+            .downcast::<ArrayBuffer>()
+            .map(|inner| Self { inner })
+            .map_err(|_| {
+                JsNativeError::typ()
+                    .with_message("object is not an ArrayBuffer")
+                    .into()
+            })
     }
 
     /// Returns the byte length of the array buffer.
@@ -141,18 +141,16 @@ impl JsArrayBuffer {
     /// let array_buffer = JsArrayBuffer::from_byte_block(data_block, context)?;
     ///
     /// // Take the inner buffer
-    /// let buffer_length = array_buffer.byte_length(context);
+    /// let buffer_length = array_buffer.byte_length();
     ///
     /// assert_eq!(buffer_length, 5);
     /// # Ok(())
     /// # }
     ///  ```
     #[inline]
-    pub fn byte_length(&self, context: &mut Context) -> usize {
-        ArrayBuffer::get_byte_length(&self.inner.clone().into(), &[], context)
-            .expect("it should not throw")
-            .as_number()
-            .expect("expected a number") as usize
+    #[must_use]
+    pub fn byte_length(&self) -> usize {
+        self.inner.borrow().data.len()
     }
 
     /// Take the inner `ArrayBuffer`'s `array_buffer_data` field and replace it with `None`
@@ -188,8 +186,8 @@ impl JsArrayBuffer {
     #[inline]
     pub fn detach(&self, detach_key: &JsValue) -> JsResult<Vec<u8>> {
         self.inner
-            .downcast_mut::<ArrayBuffer>()
-            .expect("inner must be an ArrayBuffer")
+            .borrow_mut()
+            .data
             .detach(detach_key)?
             .ok_or_else(|| {
                 JsNativeError::typ()
@@ -224,12 +222,7 @@ impl JsArrayBuffer {
     #[inline]
     #[must_use]
     pub fn data(&self) -> Option<GcRef<'_, [u8]>> {
-        debug_assert!(
-            self.inner.is::<ArrayBuffer>(),
-            "inner must be an ArrayBuffer"
-        );
-
-        GcRef::try_map(self.inner.downcast_ref::<ArrayBuffer>()?, ArrayBuffer::data)
+        GcRef::try_map(self.inner.borrow(), |o| o.data.data())
     }
 
     /// Get a mutable reference to the [`JsArrayBuffer`]'s data.
@@ -261,35 +254,27 @@ impl JsArrayBuffer {
     /// ```
     #[inline]
     #[must_use]
-    pub fn data_mut(&self) -> Option<GcRefMut<'_, ErasedObject, [u8]>> {
-        debug_assert!(
-            self.inner.is::<ArrayBuffer>(),
-            "inner must be an ArrayBuffer"
-        );
-
-        GcRefMut::try_map(
-            self.inner.downcast_mut::<ArrayBuffer>()?,
-            ArrayBuffer::data_mut,
-        )
+    pub fn data_mut(&self) -> Option<GcRefMut<'_, Object<ArrayBuffer>, [u8]>> {
+        GcRefMut::try_map(self.inner.borrow_mut(), |o| o.data.data_mut())
     }
 }
 
 impl From<JsArrayBuffer> for JsObject {
     #[inline]
     fn from(o: JsArrayBuffer) -> Self {
-        o.inner.clone()
+        o.inner.upcast()
     }
 }
 
 impl From<JsArrayBuffer> for JsValue {
     #[inline]
     fn from(o: JsArrayBuffer) -> Self {
-        o.inner.clone().into()
+        o.inner.upcast().into()
     }
 }
 
 impl Deref for JsArrayBuffer {
-    type Target = JsObject;
+    type Target = JsObject<ArrayBuffer>;
 
     #[inline]
     fn deref(&self) -> &Self::Target {

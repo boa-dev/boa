@@ -2096,7 +2096,8 @@ impl BuiltinTypedArray {
                     .subslice(src_byte_offset..src_byte_offset + src_byte_length)
                     .clone(context)?
             };
-            src_buffer_obj = s;
+            // TODO: skip this upcast
+            src_buffer_obj = s.upcast();
 
             // d. Let srcByteIndex be 0.
             0
@@ -3068,7 +3069,14 @@ impl BuiltinTypedArray {
         // 9. Set O.[[ArrayLength]] to length.
 
         // 10. Return O.
-        Ok(TypedArray::new(data, T::ERASED, 0, byte_length, length))
+        // TODO: skip this upcast.
+        Ok(TypedArray::new(
+            data.upcast(),
+            T::ERASED,
+            0,
+            byte_length,
+            length,
+        ))
     }
 
     /// <https://tc39.es/ecma262/#sec-initializetypedarrayfromlist>
@@ -3209,11 +3217,12 @@ impl BuiltinTypedArray {
                 context,
             )?;
             {
-                let mut data = data_obj
-                    .downcast_mut::<ArrayBuffer>()
-                    .expect("Must be ArrayBuffer");
-                let mut data =
-                    SliceRefMut::Slice(data.data_mut().expect("a new buffer cannot be detached"));
+                let mut data = data_obj.borrow_mut();
+                let mut data = SliceRefMut::Slice(
+                    data.data
+                        .data_mut()
+                        .expect("a new buffer cannot be detached"),
+                );
 
                 // b. If srcArray.[[ContentType]] is not O.[[ContentType]], throw a TypeError exception.
                 if src_type.content_type() != element_type.content_type() {
@@ -3279,10 +3288,17 @@ impl BuiltinTypedArray {
         // 13. Set O.[[ByteLength]] to byteLength.
         // 14. Set O.[[ByteOffset]] to 0.
         // 15. Set O.[[ArrayLength]] to elementLength.
+        // TODO: Skip this upcast.
         let obj = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             proto,
-            TypedArray::new(new_buffer, element_type, 0, byte_length, element_length),
+            TypedArray::new(
+                new_buffer.upcast(),
+                element_type,
+                0,
+                byte_length,
+                element_length,
+            ),
         );
 
         // 16. Return unused.

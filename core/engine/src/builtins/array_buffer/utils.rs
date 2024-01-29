@@ -120,7 +120,7 @@ impl SliceRef<'_> {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-clonearraybuffer
-    pub(crate) fn clone(&self, context: &mut Context) -> JsResult<JsObject> {
+    pub(crate) fn clone(&self, context: &mut Context) -> JsResult<JsObject<ArrayBuffer>> {
         // 1. Assert: IsDetachedBuffer(srcBuffer) is false.
 
         // 2. Let targetBuffer be ? AllocateArrayBuffer(%ArrayBuffer%, srcLength).
@@ -140,12 +140,10 @@ impl SliceRef<'_> {
 
         // 4. Let targetBlock be targetBuffer.[[ArrayBufferData]].
         {
-            let mut target_buffer = target_buffer
-                .downcast_mut::<ArrayBuffer>()
-                .expect("This must be an ArrayBuffer");
+            let mut target_buffer = target_buffer.borrow_mut();
             let target_block = target_buffer
                 .data
-                .as_deref_mut()
+                .data_mut()
                 .expect("ArrayBuffer cannot be detached here");
 
             // 5. Perform CopyDataBlockBytes(targetBlock, 0, srcBlock, srcByteOffset, srcLength).
