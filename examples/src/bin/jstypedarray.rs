@@ -49,7 +49,7 @@ fn main() -> JsResult<()> {
         context.realm(),
         NativeFunction::from_fn_ptr(|_this, args, _context| {
             let element = args
-                .get(0)
+                .first()
                 .cloned()
                 .unwrap_or_default()
                 .as_number()
@@ -68,7 +68,7 @@ fn main() -> JsResult<()> {
         context.realm(),
         NativeFunction::from_fn_ptr(|_this, args, _context| {
             let element = args
-                .get(0)
+                .first()
                 .cloned()
                 .unwrap_or_default()
                 .as_number()
@@ -100,7 +100,7 @@ fn main() -> JsResult<()> {
         NativeFunction::from_copy_closure_with_captures(
             |_, args, captures, inner_context| {
                 let element = args
-                    .get(0)
+                    .first()
                     .cloned()
                     .unwrap_or_default()
                     .to_uint8(inner_context)
