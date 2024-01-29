@@ -96,7 +96,7 @@ impl<C: CalendarProtocol> CalendarDateLike<C> {
     pub fn as_iso_date(&self) -> IsoDate {
         match self {
             CalendarDateLike::Date(d) => d.iso_date(),
-            CalendarDateLike::DateTime(dt) => dt.iso_date(),
+            CalendarDateLike::DateTime(dt) => *dt.iso_date(),
             CalendarDateLike::MonthDay(md) => md.iso_date(),
             CalendarDateLike::YearMonth(ym) => ym.iso_date(),
         }
@@ -516,7 +516,7 @@ impl<C: CalendarProtocol> CalendarSlot<C> {
         context: &mut dyn Any,
     ) -> TemporalResult<i32> {
         match self {
-            CalendarSlot::Builtin(AnyCalendar::Iso(_)) => Ok(date_like.as_iso_date().year()),
+            CalendarSlot::Builtin(AnyCalendar::Iso(_)) => Ok(date_like.as_iso_date().year),
             CalendarSlot::Builtin(builtin) => {
                 let calendar_date = builtin.date_from_iso(date_like.as_iso_date().as_icu4x()?);
                 Ok(builtin.year(&calendar_date).number)
@@ -532,7 +532,7 @@ impl<C: CalendarProtocol> CalendarSlot<C> {
         context: &mut dyn Any,
     ) -> TemporalResult<u8> {
         match self {
-            CalendarSlot::Builtin(AnyCalendar::Iso(_)) => Ok(date_like.as_iso_date().month()),
+            CalendarSlot::Builtin(AnyCalendar::Iso(_)) => Ok(date_like.as_iso_date().month),
             CalendarSlot::Builtin(_) => {
                 Err(TemporalError::range().with_message("Not yet implemented."))
             }
@@ -564,7 +564,7 @@ impl<C: CalendarProtocol> CalendarSlot<C> {
         context: &mut dyn Any,
     ) -> TemporalResult<u8> {
         match self {
-            CalendarSlot::Builtin(AnyCalendar::Iso(_)) => Ok(date_like.as_iso_date().day()),
+            CalendarSlot::Builtin(AnyCalendar::Iso(_)) => Ok(date_like.as_iso_date().day),
             CalendarSlot::Builtin(_) => {
                 Err(TemporalError::range().with_message("Not yet implemented."))
             }

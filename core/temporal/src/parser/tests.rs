@@ -14,15 +14,12 @@ fn temporal_parser_basic() {
 
     let sep_result = basic_separated.parse::<DateTime<()>>().unwrap();
 
-    assert_eq!(basic_result.iso_date().year(), 2020);
-    assert_eq!(basic_result.iso_date().month(), 11);
-    assert_eq!(basic_result.iso_date().day(), 8);
-    assert_eq!(basic_result.iso_date().year(), sep_result.iso_date().year());
-    assert_eq!(
-        basic_result.iso_date().month(),
-        sep_result.iso_date().month()
-    );
-    assert_eq!(basic_result.iso_date().day(), sep_result.iso_date().day());
+    assert_eq!(basic_result.iso_year(), 2020);
+    assert_eq!(basic_result.iso_month(), 11);
+    assert_eq!(basic_result.iso_day(), 8);
+    assert_eq!(basic_result.iso_year(), sep_result.iso_year());
+    assert_eq!(basic_result.iso_month(), sep_result.iso_month());
+    assert_eq!(basic_result.iso_day(), sep_result.iso_day());
 }
 
 #[test]
@@ -34,14 +31,12 @@ fn temporal_date_time_max() {
 
     let result = date_time.parse::<DateTime<()>>().unwrap();
 
-    let time_results = result.iso_time();
-
-    assert_eq!(time_results.hour, 12);
-    assert_eq!(time_results.minute, 28);
-    assert_eq!(time_results.second, 32);
-    assert_eq!(time_results.millisecond, 329);
-    assert_eq!(time_results.microsecond, 402);
-    assert_eq!(time_results.nanosecond, 834);
+    assert_eq!(result.hour(), 12);
+    assert_eq!(result.minute(), 28);
+    assert_eq!(result.second(), 32);
+    assert_eq!(result.millisecond(), 329);
+    assert_eq!(result.microsecond(), 402);
+    assert_eq!(result.nanosecond(), 834);
 }
 
 #[test]
@@ -50,7 +45,7 @@ fn temporal_year_parsing() {
     let bad_year = "-000000-11-08";
 
     let result_good = long.parse::<DateTime<()>>().unwrap();
-    assert_eq!(result_good.iso_date().year(), 2020);
+    assert_eq!(result_good.iso_year(), 2020);
 
     let err_result = bad_year.parse::<DateTime<()>>();
     assert!(

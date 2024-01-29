@@ -42,14 +42,14 @@ impl<C: CalendarProtocol> MonthDay<C> {
     #[inline]
     #[must_use]
     pub fn month(&self) -> u8 {
-        self.iso.month()
+        self.iso.month
     }
 
     /// Returns the `day` value of `MonthDay`.
     #[inline]
     #[must_use]
     pub fn day(&self) -> u8 {
-        self.iso.day()
+        self.iso.day
     }
 
     /// Returns a reference to `MonthDay`'s `CalendarSlot`

@@ -162,7 +162,7 @@ impl<C: CalendarProtocol, Z: TzProtocol> ZonedDateTime<C, Z> {
         let dt = self
             .tz
             .get_datetime_for(&self.instant, &self.calendar, context)?;
-        Ok(dt.hours())
+        Ok(dt.hour())
     }
 
     /// Returns the `hour` value for this `ZonedDateTime`.
@@ -175,7 +175,7 @@ impl<C: CalendarProtocol, Z: TzProtocol> ZonedDateTime<C, Z> {
         let dt = self
             .tz
             .get_datetime_for(&self.instant, &self.calendar, context)?;
-        Ok(dt.minutes())
+        Ok(dt.minute())
     }
 
     /// Returns the `minute` value for this `ZonedDateTime`.
@@ -188,7 +188,7 @@ impl<C: CalendarProtocol, Z: TzProtocol> ZonedDateTime<C, Z> {
         let dt = self
             .tz
             .get_datetime_for(&self.instant, &self.calendar, context)?;
-        Ok(dt.seconds())
+        Ok(dt.second())
     }
 
     /// Returns the `second` value for this `ZonedDateTime`.
@@ -201,7 +201,7 @@ impl<C: CalendarProtocol, Z: TzProtocol> ZonedDateTime<C, Z> {
         let dt = self
             .tz
             .get_datetime_for(&self.instant, &self.calendar, context)?;
-        Ok(dt.milliseconds())
+        Ok(dt.millisecond())
     }
 
     /// Returns the `millisecond` value for this `ZonedDateTime`.
@@ -214,7 +214,7 @@ impl<C: CalendarProtocol, Z: TzProtocol> ZonedDateTime<C, Z> {
         let dt = self
             .tz
             .get_datetime_for(&self.instant, &self.calendar, context)?;
-        Ok(dt.milliseconds())
+        Ok(dt.millisecond())
     }
 
     /// Returns the `microsecond` value for this `ZonedDateTime`.
@@ -227,7 +227,7 @@ impl<C: CalendarProtocol, Z: TzProtocol> ZonedDateTime<C, Z> {
         let dt = self
             .tz
             .get_datetime_for(&self.instant, &self.calendar, context)?;
-        Ok(dt.nanoseconds())
+        Ok(dt.nanosecond())
     }
 
     /// Returns the `nanosecond` value for this `ZonedDateTime`.

@@ -4,7 +4,8 @@ use crate::{
     builtins::{
         iterable::IteratorHint,
         temporal::{
-            fields::object_to_temporal_fields, plain_date, plain_month_day, plain_year_month,
+            fields::object_to_temporal_fields, plain_date, plain_date_time, plain_month_day,
+            plain_year_month,
         },
         Array,
     },
@@ -951,8 +952,10 @@ pub(crate) fn date_like_to_object(
         CalendarDateLike::Date(d) => plain_date::create_temporal_date(d.clone(), None, context)
             .map_err(|e| TemporalError::general(e.to_string()))
             .map(Into::into),
-        CalendarDateLike::DateTime(_dt) => {
-            todo!()
+        CalendarDateLike::DateTime(dt) => {
+            plain_date_time::create_temporal_datetime(dt.clone(), None, context)
+                .map_err(|e| TemporalError::general(e.to_string()))
+                .map(Into::into)
         }
         CalendarDateLike::MonthDay(md) => {
             plain_month_day::create_temporal_month_day(md.clone(), None, context)
