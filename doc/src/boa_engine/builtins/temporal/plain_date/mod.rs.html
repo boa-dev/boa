@@ -861,7 +861,7 @@
             .as_object()
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message(<span class="string">&quot;the this object must be an instant object.&quot;</span>)
+                JsNativeError::typ().with_message(<span class="string">&quot;the this object must be a PlainDate object.&quot;</span>)
             })<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(JsString::from(date.inner.calendar().identifier(context)<span class="question-mark">?</span>).into())
@@ -873,7 +873,7 @@
             .as_object()
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message(<span class="string">&quot;the this object must be an instant object.&quot;</span>)
+                JsNativeError::typ().with_message(<span class="string">&quot;the this object must be a PlainDate object.&quot;</span>)
             })<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(date.inner.contextual_year(context)<span class="question-mark">?</span>.into())
@@ -885,7 +885,7 @@
             .as_object()
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message(<span class="string">&quot;the this object must be an instant object.&quot;</span>)
+                JsNativeError::typ().with_message(<span class="string">&quot;the this object must be a PlainDate object.&quot;</span>)
             })<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(date.inner.contextual_month(context)<span class="question-mark">?</span>.into())
@@ -897,7 +897,7 @@
             .as_object()
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message(<span class="string">&quot;the this object must be an instant object.&quot;</span>)
+                JsNativeError::typ().with_message(<span class="string">&quot;the this object must be a PlainDate object.&quot;</span>)
             })<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(JsString::from(date.inner.contextual_month_code(context)<span class="question-mark">?</span>.as_str()).into())
@@ -909,7 +909,7 @@
             .as_object()
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message(<span class="string">&quot;the this object must be an instant object.&quot;</span>)
+                JsNativeError::typ().with_message(<span class="string">&quot;the this object must be a PlainDate object.&quot;</span>)
             })<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(date.inner.contextual_day(context)<span class="question-mark">?</span>.into())
@@ -921,7 +921,7 @@
             .as_object()
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message(<span class="string">&quot;the this object must be an instant object.&quot;</span>)
+                JsNativeError::typ().with_message(<span class="string">&quot;the this object must be a PlainDate object.&quot;</span>)
             })<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(date.inner.contextual_day_of_week(context)<span class="question-mark">?</span>.into())
@@ -933,7 +933,7 @@
             .as_object()
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message(<span class="string">&quot;the this object must be an instant object.&quot;</span>)
+                JsNativeError::typ().with_message(<span class="string">&quot;the this object must be a PlainDate object.&quot;</span>)
             })<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(date.inner.contextual_day_of_year(context)<span class="question-mark">?</span>.into())
@@ -945,7 +945,7 @@
             .as_object()
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message(<span class="string">&quot;the this object must be an instant object.&quot;</span>)
+                JsNativeError::typ().with_message(<span class="string">&quot;the this object must be a PlainDate object.&quot;</span>)
             })<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(date.inner.contextual_week_of_year(context)<span class="question-mark">?</span>.into())
@@ -957,7 +957,7 @@
             .as_object()
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message(<span class="string">&quot;the this object must be an instant object.&quot;</span>)
+                JsNativeError::typ().with_message(<span class="string">&quot;the this object must be a PlainDate object.&quot;</span>)
             })<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(date.inner.contextual_year_of_week(context)<span class="question-mark">?</span>.into())
@@ -969,7 +969,7 @@
             .as_object()
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message(<span class="string">&quot;the this object must be an instant object.&quot;</span>)
+                JsNativeError::typ().with_message(<span class="string">&quot;the this object must be a PlainDate object.&quot;</span>)
             })<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(date.inner.contextual_days_in_week(context)<span class="question-mark">?</span>.into())
@@ -985,7 +985,7 @@
             .as_object()
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message(<span class="string">&quot;the this object must be an instant object.&quot;</span>)
+                JsNativeError::typ().with_message(<span class="string">&quot;the this object must be a PlainDate object.&quot;</span>)
             })<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(date.inner.contextual_days_in_month(context)<span class="question-mark">?</span>.into())
@@ -997,7 +997,7 @@
             .as_object()
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message(<span class="string">&quot;the this object must be an instant object.&quot;</span>)
+                JsNativeError::typ().with_message(<span class="string">&quot;the this object must be a PlainDate object.&quot;</span>)
             })<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(date.inner.contextual_days_in_year(context)<span class="question-mark">?</span>.into())
@@ -1013,7 +1013,7 @@
             .as_object()
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message(<span class="string">&quot;the this object must be an instant object.&quot;</span>)
+                JsNativeError::typ().with_message(<span class="string">&quot;the this object must be a PlainDate object.&quot;</span>)
             })<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(date.inner.contextual_months_in_year(context)<span class="question-mark">?</span>.into())
@@ -1025,7 +1025,7 @@
             .as_object()
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message(<span class="string">&quot;the this object must be an instant object.&quot;</span>)
+                JsNativeError::typ().with_message(<span class="string">&quot;the this object must be a PlainDate object.&quot;</span>)
             })<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(date.inner.contextual_in_leap_year(context)<span class="question-mark">?</span>.into())
@@ -1059,7 +1059,7 @@
             .as_object()
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message(<span class="string">&quot;the this object must be an instant object.&quot;</span>)
+                JsNativeError::typ().with_message(<span class="string">&quot;the this object must be a PlainDate object.&quot;</span>)
             })<span class="question-mark">?</span>;
 
         create_temporal_calendar(date.inner.calendar().clone(), <span class="prelude-val">None</span>, context)
