@@ -117,15 +117,17 @@ impl ArrayIterator {
         }
 
         let len = if let Some(f) = array_iterator.array.downcast_ref::<TypedArray>() {
-            if f.is_detached() {
+            let buf = f.viewed_array_buffer().as_buffer();
+            let Some(buf) = buf
+                .bytes(std::sync::atomic::Ordering::SeqCst)
+                .filter(|buf| !f.is_out_of_bounds(buf.len()))
+            else {
                 return Err(JsNativeError::typ()
-                    .with_message(
-                        "Cannot get value from typed array that has a detached array buffer",
-                    )
+                    .with_message("Cannot get value from out of bounds typed array")
                     .into());
-            }
+            };
 
-            f.array_length()
+            f.array_length(buf.len())
         } else {
             array_iterator.array.length_of_array_like(context)?
         };

@@ -273,6 +273,7 @@ pub(super) enum AtomicsWaitResult {
 // our implementation guarantees that `SharedArrayBuffer` is always aligned to `u64` at minimum.
 pub(super) unsafe fn wait<E: Element + PartialEq>(
     buffer: &SharedArrayBuffer,
+    buf_len: usize,
     offset: usize,
     check: E,
     timeout: Option<Duration>,
@@ -287,7 +288,7 @@ pub(super) unsafe fn wait<E: Element + PartialEq>(
 
     let time_info = timeout.map(|timeout| (Instant::now(), timeout));
 
-    let buffer = &buffer.data()[offset..];
+    let buffer = &buffer.bytes_with_len(buf_len)[offset..];
 
     // 13. Let elementType be TypedArrayElementType(typedArray).
     // 14. Let w be GetValueFromBuffer(buffer, indexedPosition, elementType, true, SeqCst).
@@ -380,7 +381,7 @@ pub(super) unsafe fn wait<E: Element + PartialEq>(
 
 /// Notifies at most `count` agents waiting on the memory address pointed to by `buffer[offset..]`.
 pub(super) fn notify(buffer: &SharedArrayBuffer, offset: usize, count: u64) -> JsResult<u64> {
-    let addr = buffer.data()[offset..].as_ptr().addr();
+    let addr = buffer.as_ptr().addr() + offset;
 
     // 7. Let WL be GetWaiterList(block, indexedPosition).
     // 8. Perform EnterCriticalSection(WL).

@@ -1,6 +1,6 @@
 #![allow(unstable_name_collisions)]
 
-use std::{ptr, slice::SliceIndex, sync::atomic};
+use std::{ptr, slice::SliceIndex, sync::atomic::Ordering};
 
 use portable_atomic::AtomicU8;
 
@@ -10,6 +10,18 @@ use crate::{
 };
 
 use super::ArrayBuffer;
+
+#[derive(Clone, Copy)]
+pub(crate) enum BytesConstPtr {
+    Bytes(*const u8),
+    AtomicBytes(*const AtomicU8),
+}
+
+#[derive(Clone, Copy)]
+pub(crate) enum BytesMutPtr {
+    Bytes(*mut u8),
+    AtomicBytes(*const AtomicU8),
+}
 
 #[derive(Debug, Clone, Copy)]
 pub(crate) enum SliceRef<'a> {
@@ -49,6 +61,14 @@ impl SliceRef<'_> {
         }
     }
 
+    /// Gets a pointer to the underlying slice.
+    pub(crate) fn as_ptr(&self) -> BytesConstPtr {
+        match self {
+            SliceRef::Slice(s) => BytesConstPtr::Bytes(s.as_ptr()),
+            SliceRef::AtomicSlice(s) => BytesConstPtr::AtomicBytes(s.as_ptr()),
+        }
+    }
+
     /// [`GetValueFromBuffer ( arrayBuffer, byteIndex, type, isTypedArray, order [ , isLittleEndian ] )`][spec]
     ///
     /// The start offset is determined by the input buffer instead of a `byteIndex` parameter.
@@ -62,9 +82,9 @@ impl SliceRef<'_> {
     pub(crate) unsafe fn get_value(
         &self,
         kind: TypedArrayKind,
-        order: atomic::Ordering,
+        order: Ordering,
     ) -> TypedArrayElement {
-        unsafe fn read_elem<T: Element>(buffer: SliceRef<'_>, order: atomic::Ordering) -> T {
+        unsafe fn read_elem<T: Element>(buffer: SliceRef<'_>, order: Ordering) -> T {
             // <https://tc39.es/ecma262/#sec-getvaluefrombuffer>
 
             // 1. Assert: IsDetachedBuffer(arrayBuffer) is false.
@@ -116,10 +136,7 @@ impl SliceRef<'_> {
         }
     }
 
-    /// `25.1.2.4 CloneArrayBuffer ( srcBuffer, srcByteOffset, srcLength )`
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
+    /// [`CloneArrayBuffer ( srcBuffer, srcByteOffset, srcLength )`][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-clonearraybuffer
     pub(crate) fn clone(&self, context: &mut Context) -> JsResult<JsObject<ArrayBuffer>> {
@@ -135,6 +152,7 @@ impl SliceRef<'_> {
                 .constructor()
                 .into(),
             self.len() as u64,
+            None,
             context,
         )?;
 
@@ -145,14 +163,20 @@ impl SliceRef<'_> {
             let mut target_buffer = target_buffer.borrow_mut();
             let target_block = target_buffer
                 .data
-                .data_mut()
+                .bytes_mut()
                 .expect("ArrayBuffer cannot be detached here");
 
             // 5. Perform CopyDataBlockBytes(targetBlock, 0, srcBlock, srcByteOffset, srcLength).
 
             // SAFETY: Both buffers are of the same length, `buffer.len()`, which makes this operation
             // safe.
-            unsafe { memcpy(*self, SliceRefMut::Slice(target_block), self.len()) }
+            unsafe {
+                memcpy(
+                    self.as_ptr(),
+                    BytesMutPtr::Bytes(target_block.as_mut_ptr()),
+                    self.len(),
+                );
+            }
         }
 
         // 6. Return targetBuffer.
@@ -180,7 +204,6 @@ pub(crate) enum SliceRefMut<'a> {
 
 impl SliceRefMut<'_> {
     /// Gets the byte length of this `SliceRefMut`.
-    #[cfg(debug_assertions)]
     pub(crate) fn len(&self) -> usize {
         match self {
             Self::Slice(buf) => buf.len(),
@@ -213,6 +236,14 @@ impl SliceRefMut<'_> {
         }
     }
 
+    /// Gets a pointer to the underlying slice.
+    pub(crate) fn as_ptr(&mut self) -> BytesMutPtr {
+        match self {
+            Self::Slice(s) => BytesMutPtr::Bytes(s.as_mut_ptr()),
+            Self::AtomicSlice(s) => BytesMutPtr::AtomicBytes(s.as_ptr()),
+        }
+    }
+
     /// `25.1.2.12 SetValueInBuffer ( arrayBuffer, byteIndex, type, value, isTypedArray, order [ , isLittleEndian ] )`
     ///
     /// The start offset is determined by the input buffer instead of a `byteIndex` parameter.
@@ -230,12 +261,8 @@ impl SliceRefMut<'_> {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-setvalueinbuffer
-    pub(crate) unsafe fn set_value(&mut self, value: TypedArrayElement, order: atomic::Ordering) {
-        unsafe fn write_elem<T: Element>(
-            buffer: SliceRefMut<'_>,
-            value: T,
-            order: atomic::Ordering,
-        ) {
+    pub(crate) unsafe fn set_value(&mut self, value: TypedArrayElement, order: Ordering) {
+        unsafe fn write_elem<T: Element>(buffer: SliceRefMut<'_>, value: T, order: Ordering) {
             // <https://tc39.es/ecma262/#sec-setvalueinbuffer>
 
             // 1. Assert: IsDetachedBuffer(arrayBuffer) is false.
@@ -309,15 +336,16 @@ impl<'a> From<&'a [AtomicU8]> for SliceRefMut<'a> {
 ///
 /// - Both `src` and `dest` must have at least `count` bytes to read and write,
 /// respectively.
-pub(super) unsafe fn copy_shared_to_shared(src: &[AtomicU8], dest: &[AtomicU8], count: usize) {
+pub(super) unsafe fn copy_shared_to_shared(
+    src: *const AtomicU8,
+    dest: *const AtomicU8,
+    count: usize,
+) {
     // TODO: this could be optimized with batches of writes using `u32/u64` stores instead.
     for i in 0..count {
         // SAFETY: The invariants of this operation are ensured by the caller of the function.
         unsafe {
-            dest.get_unchecked(i).store(
-                src.get_unchecked(i).load(atomic::Ordering::Relaxed),
-                atomic::Ordering::Relaxed,
-            );
+            (*dest.add(i)).store((*src.add(i)).load(Ordering::Relaxed), Ordering::Relaxed);
         }
     }
 }
@@ -328,60 +356,48 @@ pub(super) unsafe fn copy_shared_to_shared(src: &[AtomicU8], dest: &[AtomicU8], 
 ///
 /// - Both `src` and `dest` must have at least `count` bytes to read and write,
 /// respectively.
-unsafe fn copy_shared_to_shared_backwards(src: &[AtomicU8], dest: &[AtomicU8], count: usize) {
+unsafe fn copy_shared_to_shared_backwards(
+    src: *const AtomicU8,
+    dest: *const AtomicU8,
+    count: usize,
+) {
     for i in (0..count).rev() {
         // SAFETY: The invariants of this operation are ensured by the caller of the function.
         unsafe {
-            dest.get_unchecked(i).store(
-                src.get_unchecked(i).load(atomic::Ordering::Relaxed),
-                atomic::Ordering::Relaxed,
-            );
+            (*dest.add(i)).store((*src.add(i)).load(Ordering::Relaxed), Ordering::Relaxed);
         }
     }
 }
 
-/// Copies `count` bytes from the buffer `src` into the buffer `dest`, using the atomic ordering `order`
-/// if any of the buffers are atomic.
+/// Copies `count` bytes from the buffer `src` into the buffer `dest`, using the atomic ordering
+/// `Ordering::Relaxed` if any of the buffers are atomic.
 ///
 /// # Safety
 ///
 /// - Both `src` and `dest` must have at least `count` bytes to read and write, respectively.
 /// - The region of memory referenced by `src` must not overlap with the region of memory
-///   referenced by `dest`. This is guaranteed if either of them are slices
-///   (you cannot borrow and mutably borrow a slice at the same time), but cannot be guaranteed
-///   for atomic slices.
-pub(crate) unsafe fn memcpy(src: SliceRef<'_>, dest: SliceRefMut<'_>, count: usize) {
-    #[cfg(debug_assertions)]
-    {
-        assert!(src.len() >= count);
-        assert!(dest.len() >= count);
-        let src_range = src.addr()..src.addr() + src.len();
-        let dest_range = dest.addr()..dest.addr() + dest.len();
-        assert!(!src_range.contains(&dest_range.start));
-        assert!(!src_range.contains(&dest_range.end));
-    }
-
+///   referenced by `dest`.
+pub(crate) unsafe fn memcpy(src: BytesConstPtr, dest: BytesMutPtr, count: usize) {
     // TODO: this could be optimized with batches of writes using `u32/u64` stores instead.
     match (src, dest) {
         // SAFETY: The invariants of this operation are ensured by the caller of the function.
-        (SliceRef::Slice(src), SliceRefMut::Slice(dest)) => unsafe {
-            ptr::copy_nonoverlapping(src.as_ptr(), dest.as_mut_ptr(), count);
+        (BytesConstPtr::Bytes(src), BytesMutPtr::Bytes(dest)) => unsafe {
+            ptr::copy_nonoverlapping(src, dest, count);
         },
         // SAFETY: The invariants of this operation are ensured by the caller of the function.
-        (SliceRef::Slice(src), SliceRefMut::AtomicSlice(dest)) => unsafe {
+        (BytesConstPtr::Bytes(src), BytesMutPtr::AtomicBytes(dest)) => unsafe {
             for i in 0..count {
-                dest.get_unchecked(i)
-                    .store(*src.get_unchecked(i), atomic::Ordering::Relaxed);
+                (*dest.add(i)).store(*src.add(i), Ordering::Relaxed);
             }
         },
         // SAFETY: The invariants of this operation are ensured by the caller of the function.
-        (SliceRef::AtomicSlice(src), SliceRefMut::Slice(dest)) => unsafe {
+        (BytesConstPtr::AtomicBytes(src), BytesMutPtr::Bytes(dest)) => unsafe {
             for i in 0..count {
-                *dest.get_unchecked_mut(i) = src.get_unchecked(i).load(atomic::Ordering::Relaxed);
+                *dest.add(i) = (*src.add(i)).load(Ordering::Relaxed);
             }
         },
         // SAFETY: The invariants of this operation are ensured by the caller of the function.
-        (SliceRef::AtomicSlice(src), SliceRefMut::AtomicSlice(dest)) => unsafe {
+        (BytesConstPtr::AtomicBytes(src), BytesMutPtr::AtomicBytes(dest)) => unsafe {
             copy_shared_to_shared(src, dest, count);
         },
     }
@@ -391,28 +407,20 @@ pub(crate) unsafe fn memcpy(src: SliceRef<'_>, dest: SliceRefMut<'_>, count: usi
 ///
 /// # Safety
 ///
-/// - `buffer` must contain at least `from + count` bytes to be read.
-/// - `buffer` must contain at least `to + count` bytes to be written.
-pub(crate) unsafe fn memmove(buffer: SliceRefMut<'_>, from: usize, to: usize, count: usize) {
-    #[cfg(debug_assertions)]
-    {
-        assert!(from + count <= buffer.len());
-        assert!(to + count <= buffer.len());
-    }
-
-    match buffer {
+/// - `ptr` must be valid from the offset `ptr + from` for `count` reads of bytes.
+/// - `ptr` must be valid from the offset `ptr + to` for `count` writes of bytes.
+pub(crate) unsafe fn memmove(ptr: BytesMutPtr, from: usize, to: usize, count: usize) {
+    match ptr {
         // SAFETY: The invariants of this operation are ensured by the caller of the function.
-        SliceRefMut::Slice(buf) => unsafe {
-            let ptr = buf.as_mut_ptr();
-            let src_ptr = ptr.add(from);
-            let dest_ptr = ptr.add(to);
-            ptr::copy(src_ptr, dest_ptr, count);
+        BytesMutPtr::Bytes(ptr) => unsafe {
+            let src = ptr.add(from);
+            let dest = ptr.add(to);
+            ptr::copy(src, dest, count);
         },
         // SAFETY: The invariants of this operation are ensured by the caller of the function.
-        SliceRefMut::AtomicSlice(buf) => unsafe {
-            let src = buf.get_unchecked(from..);
-            let dest = buf.get_unchecked(to..);
-
+        BytesMutPtr::AtomicBytes(ptr) => unsafe {
+            let src = ptr.add(from);
+            let dest = ptr.add(to);
             // Let's draw a simple array.
             //
             // | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
@@ -453,7 +461,7 @@ pub(crate) unsafe fn memmove(buffer: SliceRefMut<'_>, from: usize, to: usize, co
             // | 0 | 1 | 0 | 1 | 2 | 3 | 6 | 7 | 8 |
             //   ^       ^
             // from     to
-            if from < to && to < from + count {
+            if src < dest {
                 copy_shared_to_shared_backwards(src, dest, count);
             } else {
                 copy_shared_to_shared(src, dest, count);

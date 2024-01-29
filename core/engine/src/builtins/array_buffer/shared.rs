@@ -1,15 +1,18 @@
 #![allow(unstable_name_collisions)]
 
-use std::{alloc, sync::Arc};
+use std::{
+    alloc,
+    sync::{atomic::Ordering, Arc},
+};
 
 use boa_profiler::Profiler;
-use portable_atomic::AtomicU8;
+use portable_atomic::{AtomicU8, AtomicUsize};
 
 use boa_gc::{Finalize, Trace};
 use sptr::Strict;
 
 use crate::{
-    builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
+    builtins::{Array, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
     object::internal_methods::get_prototype_from_constructor,
@@ -19,7 +22,7 @@ use crate::{
     Context, JsArgs, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 
-use super::{get_slice_range, utils::copy_shared_to_shared, SliceRange};
+use super::{get_max_byte_len, utils::copy_shared_to_shared};
 
 /// The internal representation of a `SharedArrayBuffer` object.
 ///
@@ -27,10 +30,23 @@ use super::{get_slice_range, utils::copy_shared_to_shared, SliceRange};
 /// running different JS code at the same time.
 #[derive(Debug, Clone, Trace, Finalize, JsData)]
 pub struct SharedArrayBuffer {
-    /// The `[[ArrayBufferData]]` internal slot.
     // Shared buffers cannot be detached.
     #[unsafe_ignore_trace]
-    data: Arc<Box<[AtomicU8]>>,
+    data: Arc<Inner>,
+}
+
+#[derive(Debug, Default)]
+struct Inner {
+    // Technically we should have an `[[ArrayBufferData]]` internal slot,
+    // `[[ArrayBufferByteLengthData]]` and `[[ArrayBufferMaxByteLength]]` slots for growable arrays
+    // or `[[ArrayBufferByteLength]]` for fixed arrays, but we can save some work
+    // by just using this representation instead.
+    //
+    // The maximum buffer length is represented by `buffer.len()`, and `current_len` has the current
+    // buffer length, or `None` if this is a fixed buffer; in this case, `buffer.len()` will be
+    // the true length of the buffer.
+    buffer: Box<[AtomicU8]>,
+    current_len: Option<AtomicUsize>,
 }
 
 impl SharedArrayBuffer {
@@ -41,14 +57,33 @@ impl SharedArrayBuffer {
             data: Arc::default(),
         }
     }
+
     /// Gets the length of this `SharedArrayBuffer`.
-    pub(crate) fn len(&self) -> usize {
-        self.data.len()
+    pub(crate) fn len(&self, ordering: Ordering) -> usize {
+        self.data
+            .current_len
+            .as_ref()
+            .map_or_else(|| self.data.buffer.len(), |len| len.load(ordering))
     }
 
     /// Gets the inner bytes of this `SharedArrayBuffer`.
-    pub(crate) fn data(&self) -> &[AtomicU8] {
-        &self.data
+    pub(crate) fn bytes(&self, ordering: Ordering) -> &[AtomicU8] {
+        &self.data.buffer[..self.len(ordering)]
+    }
+
+    /// Gets the inner data of the buffer without accessing the current atomic length.
+    #[track_caller]
+    pub(crate) fn bytes_with_len(&self, len: usize) -> &[AtomicU8] {
+        &self.data.buffer[..len]
+    }
+
+    /// Gets a pointer to the internal shared buffer.
+    pub(crate) fn as_ptr(&self) -> *const AtomicU8 {
+        (*self.data.buffer).as_ptr()
+    }
+
+    pub(crate) fn is_fixed_len(&self) -> bool {
+        self.data.current_len.is_none()
     }
 }
 
@@ -66,20 +101,41 @@ impl IntrinsicObject for SharedArrayBuffer {
             .name(js_string!("get byteLength"))
             .build();
 
+        let get_growable = BuiltInBuilder::callable(realm, Self::get_growable)
+            .name(js_string!("get growable"))
+            .build();
+
+        let get_max_byte_length = BuiltInBuilder::callable(realm, Self::get_max_byte_length)
+            .name(js_string!("get maxByteLength"))
+            .build();
+
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
-            .accessor(
-                js_string!("byteLength"),
-                Some(get_byte_length),
-                None,
-                flag_attributes,
-            )
             .static_accessor(
                 JsSymbol::species(),
                 Some(get_species),
                 None,
                 Attribute::CONFIGURABLE,
             )
+            .accessor(
+                js_string!("byteLength"),
+                Some(get_byte_length),
+                None,
+                flag_attributes,
+            )
+            .accessor(
+                js_string!("growable"),
+                Some(get_growable),
+                None,
+                flag_attributes,
+            )
+            .accessor(
+                js_string!("maxByteLength"),
+                Some(get_max_byte_length),
+                None,
+                flag_attributes,
+            )
             .method(Self::slice, js_string!("slice"), 2)
+            .method(Self::grow, js_string!("grow"), 1)
             .property(
                 JsSymbol::to_string_tag(),
                 Self::NAME,
@@ -122,10 +178,13 @@ impl BuiltInConstructor for SharedArrayBuffer {
         }
 
         // 2. Let byteLength be ? ToIndex(length).
-        let byte_length = args.get_or_undefined(0).to_index(context)?;
+        let byte_len = args.get_or_undefined(0).to_index(context)?;
 
-        // 3. Return ? AllocateSharedArrayBuffer(NewTarget, byteLength, requestedMaxByteLength).
-        Ok(Self::allocate(new_target, byte_length, context)?
+        // 3. Let requestedMaxByteLength be ? GetArrayBufferMaxByteLengthOption(options).
+        let max_byte_len = get_max_byte_len(args.get_or_undefined(1), context)?;
+
+        // 4. Return ? AllocateSharedArrayBuffer(NewTarget, byteLength, requestedMaxByteLength).
+        Ok(Self::allocate(new_target, byte_len, max_byte_len, context)?
             .upcast()
             .into())
     }
@@ -166,10 +225,156 @@ impl SharedArrayBuffer {
                     .with_message("SharedArrayBuffer.byteLength called with invalid value")
             })?;
 
-        // TODO: 4. Let length be ArrayBufferByteLength(O, seq-cst).
+        // 4. Let length be ArrayBufferByteLength(O, seq-cst).
+        let len = buf.bytes(Ordering::SeqCst).len() as u64;
+
         // 5. Return 𝔽(length).
-        let len = buf.data().len() as u64;
         Ok(len.into())
+    }
+
+    /// [`get SharedArrayBuffer.prototype.growable`][spec].
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-get-sharedarraybuffer.prototype.growable
+    pub(crate) fn get_growable(
+        this: &JsValue,
+        _args: &[JsValue],
+        _context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let O be the this value.
+        // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).
+        // 3. If IsSharedArrayBuffer(O) is false, throw a TypeError exception.
+        let buf = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message("get SharedArrayBuffer.growable called with invalid `this`")
+            })?;
+
+        // 4. If IsFixedLengthArrayBuffer(O) is false, return true; otherwise return false.
+        Ok(JsValue::from(!buf.is_fixed_len()))
+    }
+
+    /// [`get SharedArrayBuffer.prototype.maxByteLength`][spec].
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-get-sharedarraybuffer.prototype.maxbytelength
+    pub(crate) fn get_max_byte_length(
+        this: &JsValue,
+        _args: &[JsValue],
+        _context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let O be the this value.
+        // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).
+        // 3. If IsSharedArrayBuffer(O) is false, throw a TypeError exception.
+        let buf = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message("get SharedArrayBuffer.maxByteLength called with invalid value")
+            })?;
+
+        // 4. If IsFixedLengthArrayBuffer(O) is true, then
+        //     a. Let length be O.[[ArrayBufferByteLength]].
+        // 5. Else,
+        //     a. Let length be O.[[ArrayBufferMaxByteLength]].
+        // 6. Return 𝔽(length).
+        Ok(buf.data.buffer.len().into())
+    }
+
+    /// [`SharedArrayBuffer.prototype.grow ( newLength )`][spec].
+    ///
+    /// [spec]: https://tc39.es/ecma262/sec-sharedarraybuffer.prototype.grow
+    pub(crate) fn grow(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let O be the this value.
+        // 3. If IsSharedArrayBuffer(O) is false, throw a TypeError exception.
+        let Some(buf) = this
+            .as_object()
+            .and_then(|o| o.clone().downcast::<Self>().ok())
+        else {
+            return Err(JsNativeError::typ()
+                .with_message("SharedArrayBuffer.grow called with non-object value")
+                .into());
+        };
+
+        // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferMaxByteLength]]).
+        if buf.borrow().data.is_fixed_len() {
+            return Err(JsNativeError::typ()
+                .with_message("SharedArrayBuffer.grow: cannot grow a fixed-length buffer")
+                .into());
+        }
+
+        // 4. Let newByteLength be ? ToIndex(newLength).
+        let new_byte_len = args.get_or_undefined(0).to_index(context)?;
+
+        // TODO: 5. Let hostHandled be ? HostGrowSharedArrayBuffer(O, newByteLength).
+        // 6. If hostHandled is handled, return undefined.
+        // Used in engines to handle WASM buffers in a special way, but we don't
+        // have a WASM interpreter in place yet.
+
+        // 7. Let isLittleEndian be the value of the [[LittleEndian]] field of the surrounding agent's Agent Record.
+        // 8. Let byteLengthBlock be O.[[ArrayBufferByteLengthData]].
+        // 9. Let currentByteLengthRawBytes be GetRawBytesFromSharedBlock(byteLengthBlock, 0, biguint64, true, seq-cst).
+        // 10. Let newByteLengthRawBytes be NumericToRawBytes(biguint64, ℤ(newByteLength), isLittleEndian).
+
+        let buf = buf.borrow();
+        let buf = &buf.data;
+
+        // d. If newByteLength < currentByteLength or newByteLength > O.[[ArrayBufferMaxByteLength]], throw a RangeError exception.
+        // Extracting this condition outside the CAS since throwing early doesn't affect the correct
+        // behaviour of the loop.
+        if new_byte_len > buf.data.buffer.len() as u64 {
+            return Err(JsNativeError::range()
+                .with_message(
+                    "SharedArrayBuffer.grow: new length cannot be bigger than `maxByteLength`",
+                )
+                .into());
+        }
+        let new_byte_len = new_byte_len as usize;
+
+        // If we used let-else above to avoid the expect, we would carry a borrow through the `to_index`
+        // call, which could mutably borrow. Another alternative would be to clone the whole
+        // `SharedArrayBuffer`, but it's better to avoid contention with the counter in the `Arc` pointer.
+        let atomic_len = buf
+            .data
+            .current_len
+            .as_ref()
+            .expect("already checked that the buffer is not fixed-length");
+
+        // 11. Repeat,
+        //     a. NOTE: This is a compare-and-exchange loop to ensure that parallel, racing grows of the same buffer are
+        //        totally ordered, are not lost, and do not silently do nothing. The loop exits if it was able to attempt
+        //        to grow uncontended.
+        //     b. Let currentByteLength be ℝ(RawBytesToNumeric(biguint64, currentByteLengthRawBytes, isLittleEndian)).
+        //     c. If newByteLength = currentByteLength, return undefined.
+        //     d. If newByteLength < currentByteLength or newByteLength > O.[[ArrayBufferMaxByteLength]], throw a
+        //        RangeError exception.
+        //     e. Let byteLengthDelta be newByteLength - currentByteLength.
+        //     f. If it is impossible to create a new Shared Data Block value consisting of byteLengthDelta bytes, throw
+        //        a RangeError exception.
+        //     g. NOTE: No new Shared Data Block is constructed and used here. The observable behaviour of growable
+        //        SharedArrayBuffers is specified by allocating a max-sized Shared Data Block at construction time, and
+        //        this step captures the requirement that implementations that run out of memory must throw a RangeError.
+        //     h. Let readByteLengthRawBytes be AtomicCompareExchangeInSharedBlock(byteLengthBlock, 0, 8,
+        //        currentByteLengthRawBytes, newByteLengthRawBytes).
+        //     i. If ByteListEqual(readByteLengthRawBytes, currentByteLengthRawBytes) is true, return undefined.
+        //     j. Set currentByteLengthRawBytes to readByteLengthRawBytes.
+
+        // We require SEQ-CST operations because readers of the buffer also use SEQ-CST operations.
+        atomic_len
+            .fetch_update(Ordering::SeqCst, Ordering::SeqCst, |prev_byte_len| {
+                (prev_byte_len <= new_byte_len).then_some(new_byte_len)
+            })
+            .map_err(|_| {
+                JsNativeError::range()
+                    .with_message("SharedArrayBuffer.grow: failed to grow buffer to new length")
+            })?;
+
+        Ok(JsValue::undefined())
     }
 
     /// `SharedArrayBuffer.prototype.slice ( start, end )`
@@ -181,32 +386,45 @@ impl SharedArrayBuffer {
     fn slice(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).
-        let obj = this.as_object().ok_or_else(|| {
-            JsNativeError::typ().with_message("ArrayBuffer.slice called with non-object value")
-        })?;
-
         // 3. If IsSharedArrayBuffer(O) is false, throw a TypeError exception.
-        let buf = obj.downcast_ref::<Self>().ok_or_else(|| {
-            JsNativeError::typ().with_message("ArrayBuffer.slice called with invalid object")
-        })?;
+        let buf = this
+            .as_object()
+            .and_then(|o| o.clone().downcast::<Self>().ok())
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message("SharedArrayBuffer.slice called with invalid `this` value")
+            })?;
 
-        let SliceRange {
-            start: first,
-            length: new_len,
-        } = get_slice_range(
-            buf.len() as u64,
-            args.get_or_undefined(0),
-            args.get_or_undefined(1),
-            context,
-        )?;
+        // 4. Let len be ArrayBufferByteLength(O, seq-cst).
+        let len = buf.borrow().data.len(Ordering::SeqCst);
+
+        // 5. Let relativeStart be ? ToIntegerOrInfinity(start).
+        // 6. If relativeStart = -∞, let first be 0.
+        // 7. Else if relativeStart < 0, let first be max(len + relativeStart, 0).
+        // 8. Else, let first be min(relativeStart, len).
+        let first = Array::get_relative_start(context, args.get_or_undefined(0), len as u64)?;
+
+        // 9. If end is undefined, let relativeEnd be len; else let relativeEnd be ? ToIntegerOrInfinity(end).
+        // 10. If relativeEnd = -∞, let final be 0.
+        // 11. Else if relativeEnd < 0, let final be max(len + relativeEnd, 0).
+        // 12. Else, let final be min(relativeEnd, len).
+        let final_ = Array::get_relative_end(context, args.get_or_undefined(1), len as u64)?;
+
+        // 13. Let newLen be max(final - first, 0).
+        let new_len = final_.saturating_sub(first);
 
         // 14. Let ctor be ? SpeciesConstructor(O, %SharedArrayBuffer%).
-        let ctor = obj.species_constructor(StandardConstructors::shared_array_buffer, context)?;
+        let ctor = buf
+            .clone()
+            .upcast()
+            .species_constructor(StandardConstructors::shared_array_buffer, context)?;
 
         // 15. Let new be ? Construct(ctor, « 𝔽(newLen) »).
         let new = ctor.construct(&[new_len.into()], Some(&ctor), context)?;
 
         {
+            let buf = buf.borrow();
+            let buf = &buf.data;
             // 16. Perform ? RequireInternalSlot(new, [[ArrayBufferData]]).
             // 17. If IsSharedArrayBuffer(new) is false, throw a TypeError exception.
             let new = new.downcast_ref::<Self>().ok_or_else(|| {
@@ -215,33 +433,37 @@ impl SharedArrayBuffer {
             })?;
 
             // 18. If new.[[ArrayBufferData]] is O.[[ArrayBufferData]], throw a TypeError exception.
-            if std::ptr::eq(buf.data().as_ptr(), new.data().as_ptr()) {
+            if std::ptr::eq(buf.as_ptr(), new.as_ptr()) {
                 return Err(JsNativeError::typ()
-                    .with_message("cannot reuse the same `SharedArrayBuffer` for a slice operation")
+                    .with_message("cannot reuse the same SharedArrayBuffer for a slice operation")
                     .into());
             }
 
-            // TODO: 19. If ArrayBufferByteLength(new, seq-cst) < newLen, throw a TypeError exception.
-            if (new.len() as u64) < new_len {
+            // 19. If ArrayBufferByteLength(new, seq-cst) < newLen, throw a TypeError exception.
+            if (new.len(Ordering::SeqCst) as u64) < new_len {
                 return Err(JsNativeError::typ()
-                    .with_message("invalid size of constructed shared array")
+                    .with_message("invalid size of constructed SharedArrayBuffer")
                     .into());
             }
 
-            // 20. Let fromBuf be O.[[ArrayBufferData]].
-            let from_buf = buf.data();
-
-            // 21. Let toBuf be new.[[ArrayBufferData]].
-            let to_buf = new.data();
-
-            // 22. Perform CopyDataBlockBytes(toBuf, 0, fromBuf, first, newLen).
             let first = first as usize;
             let new_len = new_len as usize;
 
+            // 20. Let fromBuf be O.[[ArrayBufferData]].
+            let from_buf = &buf.bytes_with_len(len)[first..];
+
+            // 21. Let toBuf be new.[[ArrayBufferData]].
+            let to_buf = new;
+
+            // Sanity check to ensure there is enough space inside `from_buf` for
+            // `new_len` elements.
+            debug_assert!(from_buf.len() >= new_len);
+
+            // 22. Perform CopyDataBlockBytes(toBuf, 0, fromBuf, first, newLen).
             // SAFETY: `get_slice_range` will always return indices that are in-bounds.
             // This also means that the newly created buffer will have at least `new_len` elements
             // to write to.
-            unsafe { copy_shared_to_shared(&from_buf[first..], to_buf, new_len) }
+            unsafe { copy_shared_to_shared(from_buf.as_ptr(), to_buf.as_ptr(), new_len) }
         }
 
         // 23. Return new.
@@ -256,10 +478,10 @@ impl SharedArrayBuffer {
     /// [spec]: https://tc39.es/ecma262/#sec-allocatesharedarraybuffer
     pub(crate) fn allocate(
         constructor: &JsValue,
-        byte_length: u64,
+        byte_len: u64,
+        max_byte_len: Option<u64>,
         context: &mut Context,
     ) -> JsResult<JsObject<SharedArrayBuffer>> {
-        // TODO:
         // 1. Let slots be « [[ArrayBufferData]] ».
         // 2. If maxByteLength is present and maxByteLength is not empty, let allocatingGrowableBuffer
         //    be true; otherwise let allocatingGrowableBuffer be false.
@@ -268,6 +490,13 @@ impl SharedArrayBuffer {
         //     b. Append [[ArrayBufferByteLengthData]] and [[ArrayBufferMaxByteLength]] to slots.
         // 4. Else,
         //     a. Append [[ArrayBufferByteLength]] to slots.
+        if let Some(max_byte_len) = max_byte_len {
+            if byte_len > max_byte_len {
+                return Err(JsNativeError::range()
+                    .with_message("`length` cannot be bigger than `maxByteLength`")
+                    .into());
+            }
+        }
 
         // 5. Let obj be ? OrdinaryCreateFromConstructor(constructor, "%SharedArrayBuffer.prototype%", slots).
         let prototype = get_prototype_from_constructor(
@@ -276,24 +505,36 @@ impl SharedArrayBuffer {
             context,
         )?;
 
-        // TODO: 6. If allocatingGrowableBuffer is true, let allocLength be maxByteLength;
-        // otherwise let allocLength be byteLength.
+        // 6. If allocatingGrowableBuffer is true, let allocLength be maxByteLength;
+        //    otherwise let allocLength be byteLength.
+        let alloc_len = max_byte_len.unwrap_or(byte_len);
 
         // 7. Let block be ? CreateSharedByteDataBlock(allocLength).
         // 8. Set obj.[[ArrayBufferData]] to block.
-        let data = create_shared_byte_data_block(byte_length, context)?;
+        let block = create_shared_byte_data_block(alloc_len, context)?;
 
-        // TODO:
         // 9. If allocatingGrowableBuffer is true, then
-        //     a. Assert: byteLength ≤ maxByteLength.
-        //     b. Let byteLengthBlock be ? CreateSharedByteDataBlock(8).
-        //     c. Perform SetValueInBuffer(byteLengthBlock, 0, biguint64, ℤ(byteLength), true, seq-cst).
-        //     d. Set obj.[[ArrayBufferByteLengthData]] to byteLengthBlock.
-        //     e. Set obj.[[ArrayBufferMaxByteLength]] to maxByteLength.
+        // `byte_len` must fit inside an `usize` thanks to the checks inside
+        // `create_shared_byte_data_block`.
+        // a. Assert: byteLength ≤ maxByteLength.
+        // b. Let byteLengthBlock be ? CreateSharedByteDataBlock(8).
+        // c. Perform SetValueInBuffer(byteLengthBlock, 0, biguint64, ℤ(byteLength), true, seq-cst).
+        // d. Set obj.[[ArrayBufferByteLengthData]] to byteLengthBlock.
+        // e. Set obj.[[ArrayBufferMaxByteLength]] to maxByteLength.
+        let current_len = max_byte_len.map(|_| AtomicUsize::new(byte_len as usize));
 
         // 10. Else,
         //     a. Set obj.[[ArrayBufferByteLength]] to byteLength.
-        let obj = JsObject::new(context.root_shape(), prototype, Self { data });
+        let obj = JsObject::new(
+            context.root_shape(),
+            prototype,
+            Self {
+                data: Arc::new(Inner {
+                    buffer: block,
+                    current_len,
+                }),
+            },
+        );
 
         // 11. Return obj.
         Ok(obj)
@@ -310,7 +551,7 @@ impl SharedArrayBuffer {
 pub(crate) fn create_shared_byte_data_block(
     size: u64,
     context: &mut Context,
-) -> JsResult<Arc<Box<[AtomicU8]>>> {
+) -> JsResult<Box<[AtomicU8]>> {
     if size > context.host_hooks().max_buffer_size(context) {
         return Err(JsNativeError::range()
             .with_message(
@@ -327,7 +568,7 @@ pub(crate) fn create_shared_byte_data_block(
 
     if size == 0 {
         // Must ensure we don't allocate a zero-sized buffer.
-        return Ok(Arc::new(Box::new([])));
+        return Ok(Box::default());
     }
 
     // 2. Let execution be the [[CandidateExecution]] field of the surrounding agent's Agent Record.
@@ -371,5 +612,5 @@ pub(crate) fn create_shared_byte_data_block(
     assert_eq!(buffer.as_ptr().addr() % std::mem::align_of::<u64>(), 0);
 
     // 3. Return db.
-    Ok(Arc::new(buffer))
+    Ok(buffer)
 }

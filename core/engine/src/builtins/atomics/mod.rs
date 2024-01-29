@@ -20,11 +20,11 @@ use crate::{
     sys::time::Duration, value::IntegerOrInfinity, Context, JsArgs, JsNativeError, JsResult,
     JsString, JsValue,
 };
-use boa_gc::GcRef;
+
 use boa_profiler::Profiler;
 
 use super::{
-    array_buffer::BufferRef,
+    array_buffer::{BufferObject, BufferRef},
     typed_array::{Atomic, ContentType, Element, TypedArray, TypedArrayElement, TypedArrayKind},
     BuiltInBuilder, IntrinsicObject,
 };
@@ -75,19 +75,35 @@ macro_rules! atomic_op {
             let index = args.get_or_undefined(1);
             let value = args.get_or_undefined(2);
 
-            let ii = validate_integer_typed_array(array, false)?;
-            let pos = validate_atomic_access(&ii, index, context)?;
-            let value = ii.kind().get_element(value, context)?;
+            // AtomicReadModifyWrite ( typedArray, index, value, op )
+            // <https://tc39.es/ecma262/#sec-atomicreadmodifywrite>
 
-            // revalidate
-            let mut buffer = ii.viewed_array_buffer().as_buffer_mut();
-            let Some(mut data) = buffer.data_mut() else {
+            // 1. Let buffer be ? ValidateIntegerTypedArray(typedArray).
+            let (ta, buf_len) = validate_integer_typed_array(array, false)?;
+
+            // 2. Let indexedPosition be ? ValidateAtomicAccess(typedArray, index).
+            let access = validate_atomic_access(&ta, buf_len, index, context)?;
+
+            // 3. If typedArray.[[ContentType]] is BigInt, let v be ? ToBigInt(value).
+            // 4. Otherwise, let v be 𝔽(? ToIntegerOrInfinity(value)).
+            // 7. Let elementType be TypedArrayElementType(typedArray).
+            let value = access.kind.get_element(value, context)?;
+
+            // 5. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.
+            // 6. NOTE: The above check is not redundant with the check in ValidateIntegerTypedArray because the call
+            //    to ToBigInt or ToIntegerOrInfinity on the preceding lines can have arbitrary side effects, which could
+            //    cause the buffer to become detached.
+            let ta = ta.borrow();
+            let ta = &ta.data;
+            let mut buffer = ta.viewed_array_buffer().as_buffer_mut();
+            let Some(mut data) = buffer.bytes_with_len(buf_len) else {
                 return Err(JsNativeError::typ()
-                    .with_message("cannot execute atomic operation in detached buffer")
-                    .into());
+                .with_message("cannot execute atomic operation in detached buffer")
+                .into());
             };
-            let data = data.subslice_mut(pos..);
+            let data = data.subslice_mut(access.byte_offset..);
 
+            // 8. Return GetModifySetValueInBuffer(buffer, indexedPosition, elementType, v, op).
             // SAFETY: The integer indexed object guarantees that the buffer is aligned.
             // The call to `validate_atomic_access` guarantees that the index is in-bounds.
             let value: TypedArrayElement = unsafe {
@@ -161,24 +177,26 @@ impl Atomics {
         let index = args.get_or_undefined(1);
 
         // 1. Let indexedPosition be ? ValidateAtomicAccessOnIntegerTypedArray(typedArray, index).
-        let ii = validate_integer_typed_array(array, false)?;
-        let pos = validate_atomic_access(&ii, index, context)?;
+        let (ta, buf_len) = validate_integer_typed_array(array, false)?;
+        let access = validate_atomic_access(&ta, buf_len, index, context)?;
 
         // 2. Perform ? RevalidateAtomicAccess(typedArray, indexedPosition).
-        let buffer = ii.viewed_array_buffer().as_buffer();
-        let Some(data) = buffer.data() else {
+        let ta = ta.borrow();
+        let ta = &ta.data;
+        let buffer = ta.viewed_array_buffer().as_buffer();
+        let Some(data) = buffer.bytes_with_len(buf_len) else {
             return Err(JsNativeError::typ()
                 .with_message("cannot execute atomic operation in detached buffer")
                 .into());
         };
-        let data = data.subslice(pos..);
+        let data = data.subslice(access.byte_offset..);
 
         // 3. Let buffer be typedArray.[[ViewedArrayBuffer]].
         // 4. Let elementType be TypedArrayElementType(typedArray).
         // 5. Return GetValueFromBuffer(buffer, indexedPosition, elementType, true, seq-cst).
         // SAFETY: The integer indexed object guarantees that the buffer is aligned.
         // The call to `validate_atomic_access` guarantees that the index is in-bounds.
-        let value = unsafe { data.get_value(ii.kind(), Ordering::SeqCst) };
+        let value = unsafe { data.get_value(access.kind, Ordering::SeqCst) };
 
         Ok(value.into())
     }
@@ -192,12 +210,12 @@ impl Atomics {
         let value = args.get_or_undefined(2);
 
         // 1. Let indexedPosition be ? ValidateAtomicAccessOnIntegerTypedArray(typedArray, index).
-        let ii = validate_integer_typed_array(array, false)?;
-        let pos = validate_atomic_access(&ii, index, context)?;
+        let (ta, buf_len) = validate_integer_typed_array(array, false)?;
+        let access = validate_atomic_access(&ta, buf_len, index, context)?;
 
         // bit of a hack to preserve the converted value
         // 2. If typedArray.[[ContentType]] is bigint, let v be ? ToBigInt(value).
-        let converted: JsValue = if ii.kind().content_type() == ContentType::BigInt {
+        let converted: JsValue = if access.kind.content_type() == ContentType::BigInt {
             value.to_bigint(context)?.into()
         } else {
             // 3. Otherwise, let v be 𝔽(? ToIntegerOrInfinity(value)).
@@ -208,16 +226,18 @@ impl Atomics {
             }
             .into()
         };
-        let value = ii.kind().get_element(&converted, context)?;
+        let value = access.kind.get_element(&converted, context)?;
 
         // 4. Perform ? RevalidateAtomicAccess(typedArray, indexedPosition).
-        let mut buffer = ii.viewed_array_buffer().as_buffer_mut();
-        let Some(mut buffer) = buffer.data_mut() else {
+        let ta = ta.borrow();
+        let ta = &ta.data;
+        let mut buffer = ta.viewed_array_buffer().as_buffer_mut();
+        let Some(mut buffer) = buffer.bytes_with_len(buf_len) else {
             return Err(JsNativeError::typ()
                 .with_message("cannot execute atomic operation in detached buffer")
                 .into());
         };
-        let mut data = buffer.subslice_mut(pos..);
+        let mut data = buffer.subslice_mut(access.byte_offset..);
 
         // 5. Let buffer be typedArray.[[ViewedArrayBuffer]].
         // 6. Let elementType be TypedArrayElementType(typedArray).
@@ -244,9 +264,8 @@ impl Atomics {
         // 1. Let indexedPosition be ? ValidateAtomicAccessOnIntegerTypedArray(typedArray, index).
         // 2. Let buffer be typedArray.[[ViewedArrayBuffer]].
         // 3. Let block be buffer.[[ArrayBufferData]].
-        let ii = validate_integer_typed_array(array, false)?;
-        let pos = validate_atomic_access(&ii, index, context)?;
-        let typed_array_kind = ii.kind();
+        let (ta, buf_len) = validate_integer_typed_array(array, false)?;
+        let access = validate_atomic_access(&ta, buf_len, index, context)?;
 
         // 4. If typedArray.[[ContentType]] is bigint, then
         //     a. Let expected be ? ToBigInt(expectedValue).
@@ -254,19 +273,19 @@ impl Atomics {
         // 5. Else,
         //     a. Let expected be 𝔽(? ToIntegerOrInfinity(expectedValue)).
         //     b. Let replacement be 𝔽(? ToIntegerOrInfinity(replacementValue)).
-        let exp = typed_array_kind.get_element(expected, context)?.to_bytes();
-        let rep = typed_array_kind
-            .get_element(replacement, context)?
-            .to_bytes();
+        let exp = access.kind.get_element(expected, context)?.to_bits();
+        let rep = access.kind.get_element(replacement, context)?.to_bits();
 
         // 6. Perform ? RevalidateAtomicAccess(typedArray, indexedPosition).
-        let mut buffer = ii.viewed_array_buffer().as_buffer_mut();
-        let Some(mut data) = buffer.data_mut() else {
+        let ta = ta.borrow();
+        let ta = &ta.data;
+        let mut buffer = ta.viewed_array_buffer().as_buffer_mut();
+        let Some(mut buffer) = buffer.bytes_with_len(buf_len) else {
             return Err(JsNativeError::typ()
                 .with_message("cannot execute atomic operation in detached buffer")
                 .into());
         };
-        let data = data.subslice_mut(pos..);
+        let data = buffer.subslice_mut(access.byte_offset..);
 
         // 7. Let elementType be TypedArrayElementType(typedArray).
         // 8. Let elementSize be TypedArrayElementSize(typedArray).
@@ -280,10 +299,11 @@ impl Atomics {
         //     b. If ByteListEqual(rawBytesRead, expectedBytes) is true, then
         //         i. Store the individual bytes of replacementBytes into block, starting at block[indexedPosition].
         // 14. Return RawBytesToNumeric(elementType, rawBytesRead, isLittleEndian).
+
         // SAFETY: The integer indexed object guarantees that the buffer is aligned.
         // The call to `validate_atomic_access` guarantees that the index is in-bounds.
         let value: TypedArrayElement = unsafe {
-            match typed_array_kind {
+            match access.kind {
                 TypedArrayKind::Int8 => i8::read_mut(data)
                     .compare_exchange(exp as i8, rep as i8, Ordering::SeqCst)
                     .into(),
@@ -320,23 +340,6 @@ impl Atomics {
     }
 
     // =========== Atomics.ops start ===========
-
-    // Most of the operations here follow the same list of steps:
-    //
-    // AtomicReadModifyWrite ( typedArray, index, value, op )
-    // <https://tc39.es/ecma262/#sec-atomicreadmodifywrite>
-    //
-    // 1. Let buffer be ? ValidateIntegerTypedArray(typedArray).
-    // 2. Let indexedPosition be ? ValidateAtomicAccess(typedArray, index).
-    // 3. If typedArray.[[ContentType]] is BigInt, let v be ? ToBigInt(value).
-    // 4. Otherwise, let v be 𝔽(? ToIntegerOrInfinity(value)).
-    // 5. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.
-    // 6. NOTE: The above check is not redundant with the check in ValidateIntegerTypedArray because the call to ToBigInt or ToIntegerOrInfinity on the preceding lines can have arbitrary side effects, which could cause the buffer to become detached.
-    // 7. Let elementType be TypedArrayElementType(typedArray).
-    // 8. Return GetModifySetValueInBuffer(buffer, indexedPosition, elementType, v, op).
-    //
-    // However, our impementation differs significantly from this, which is why these steps are
-    // just here for documentation purposes.
 
     atomic_op! {
         /// [`Atomics.add ( typedArray, index, value )`][spec]
@@ -383,28 +386,32 @@ impl Atomics {
     /// [`Atomics.wait ( typedArray, index, value, timeout )`][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-atomics.wait
+    // TODO: rewrite this to support Atomics.waitAsync
     fn wait(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let array = args.get_or_undefined(0);
         let index = args.get_or_undefined(1);
         let value = args.get_or_undefined(2);
         let timeout = args.get_or_undefined(3);
 
-        // 1. Let buffer be ? ValidateIntegerTypedArray(typedArray, true).
-        let ii = validate_integer_typed_array(array, true)?;
-        let buffer = ii.viewed_array_buffer().as_buffer();
+        // 1. Let taRecord be ? ValidateIntegerTypedArray(typedArray, true).
+        let (ta, buf_len) = validate_integer_typed_array(array, true)?;
 
+        // 2. Let buffer be taRecord.[[Object]].[[ViewedArrayBuffer]].
         // 2. If IsSharedArrayBuffer(buffer) is false, throw a TypeError exception.
-        let BufferRef::SharedBuffer(buffer) = buffer else {
-            return Err(JsNativeError::typ()
-                .with_message("cannot use `ArrayBuffer` for an atomic wait")
-                .into());
+        let buffer = match ta.borrow().data.viewed_array_buffer() {
+            BufferObject::SharedBuffer(buf) => buf.clone(),
+            BufferObject::Buffer(_) => {
+                return Err(JsNativeError::typ()
+                    .with_message("cannot use `ArrayBuffer` for an atomic wait")
+                    .into())
+            }
         };
 
         // 3. Let indexedPosition be ? ValidateAtomicAccess(typedArray, index).
-        let offset = validate_atomic_access(&ii, index, context)?;
+        let access = validate_atomic_access(&ta, buf_len, index, context)?;
 
         // spec expects the evaluation of this first, then the timeout.
-        let value = if ii.kind() == TypedArrayKind::BigInt64 {
+        let value = if access.kind == TypedArrayKind::BigInt64 {
             // 4. If typedArray.[[TypedArrayName]] is "BigInt64Array", let v be ? ToBigInt64(value).
             value.to_big_int64(context)?
         } else {
@@ -435,11 +442,23 @@ impl Atomics {
 
         // SAFETY: the validity of `addr` is verified by our call to `validate_atomic_access`.
         let result = unsafe {
-            if ii.kind() == TypedArrayKind::BigInt64 {
-                futex::wait(&buffer, offset, value, timeout)?
+            if access.kind == TypedArrayKind::BigInt64 {
+                futex::wait(
+                    &buffer.borrow().data,
+                    buf_len,
+                    access.byte_offset,
+                    value,
+                    timeout,
+                )?
             } else {
                 // value must fit into `i32` since it came from an `i32` above.
-                futex::wait(&buffer, offset, value as i32, timeout)?
+                futex::wait(
+                    &buffer.borrow().data,
+                    buf_len,
+                    access.byte_offset,
+                    value as i32,
+                    timeout,
+                )?
             }
         };
 
@@ -460,8 +479,8 @@ impl Atomics {
         let count = args.get_or_undefined(2);
 
         // 1. Let indexedPosition be ? ValidateAtomicAccessOnIntegerTypedArray(typedArray, index, true).
-        let ii = validate_integer_typed_array(array, true)?;
-        let offset = validate_atomic_access(&ii, index, context)?;
+        let (ta, buf_len) = validate_integer_typed_array(array, true)?;
+        let access = validate_atomic_access(&ta, buf_len, index, context)?;
 
         // 2. If count is undefined, then
         let count = if count.is_undefined() {
@@ -481,11 +500,12 @@ impl Atomics {
         // 4. Let buffer be typedArray.[[ViewedArrayBuffer]].
         // 5. Let block be buffer.[[ArrayBufferData]].
         // 6. If IsSharedArrayBuffer(buffer) is false, return +0𝔽.
-        let BufferRef::SharedBuffer(shared) = ii.viewed_array_buffer().as_buffer() else {
+        let ta = ta.borrow();
+        let BufferRef::SharedBuffer(shared) = ta.data.viewed_array_buffer().as_buffer() else {
             return Ok(0.into());
         };
 
-        let count = futex::notify(&shared, offset, count)?;
+        let count = futex::notify(&shared, access.byte_offset, count)?;
 
         // 12. Let n be the number of elements in S.
         // 13. Return 𝔽(n).
@@ -493,63 +513,74 @@ impl Atomics {
     }
 }
 
-/// [`ValidateIntegerTypedArray ( typedArray [ , waitable ] )`][spec]
+/// [`ValidateIntegerTypedArray ( typedArray, waitable )`][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-validateintegertypedarray
 fn validate_integer_typed_array(
     array: &JsValue,
     waitable: bool,
-) -> JsResult<GcRef<'_, TypedArray>> {
-    // 1. If waitable is not present, set waitable to false.
-    // 2. Perform ? ValidateTypedArray(typedArray).
-    let ii = array
-        .as_object()
-        .and_then(JsObject::downcast_ref::<TypedArray>)
-        .ok_or_else(|| JsNativeError::typ().with_message("value is not a typed array object"))?;
-    if ii.is_detached() {
-        return Err(JsNativeError::typ()
-            .with_message("Buffer of the typed array is detached")
-            .into());
-    }
+) -> JsResult<(JsObject<TypedArray>, usize)> {
+    // 1. Let taRecord be ? ValidateTypedArray(typedArray, unordered).
+    // 2. NOTE: Bounds checking is not a synchronizing operation when typedArray's backing buffer is a growable SharedArrayBuffer.
+    let ta_record = TypedArray::validate(array, Ordering::Relaxed)?;
 
-    // 3. Let buffer be typedArray.[[ViewedArrayBuffer]].
+    {
+        let array = ta_record.0.borrow();
 
-    if waitable {
-        // 4. If waitable is true, then
-        // a. If typedArray.[[TypedArrayName]] is neither "Int32Array" nor "BigInt64Array", throw a TypeError exception.
-        if ![TypedArrayKind::Int32, TypedArrayKind::BigInt64].contains(&ii.kind()) {
-            return Err(JsNativeError::typ()
-                .with_message("can only atomically wait using Int32 or BigInt64 arrays")
-                .into());
-        }
-    } else {
-        // 5. Else,
-        //     a. Let type be TypedArrayElementType(typedArray).
-        //     b. If IsUnclampedIntegerElementType(type) is false and IsBigIntElementType(type) is
-        //        false, throw a TypeError exception.
-        if !ii.kind().supports_atomic_ops() {
-            return Err(JsNativeError::typ()
-                .with_message(
-                    "platform doesn't support atomic operations on the provided `TypedArray`",
-                )
-                .into());
+        // 3. If waitable is true, then
+        if waitable {
+            //     a. If typedArray.[[TypedArrayName]] is neither "Int32Array" nor "BigInt64Array", throw a TypeError exception.
+            if ![TypedArrayKind::Int32, TypedArrayKind::BigInt64].contains(&array.data.kind()) {
+                return Err(JsNativeError::typ()
+                    .with_message("can only atomically wait using Int32 or BigInt64 arrays")
+                    .into());
+            }
+        } else {
+            // 4. Else,
+            //     a. Let type be TypedArrayElementType(typedArray).
+            //     b. If IsUnclampedIntegerElementType(type) is false and IsBigIntElementType(type) is false, throw a TypeError exception.
+            if !array.data.kind().supports_atomic_ops() {
+                return Err(JsNativeError::typ()
+                    .with_message(
+                        "platform doesn't support atomic operations on the provided `TypedArray`",
+                    )
+                    .into());
+            }
         }
     }
 
-    // 6. Return buffer.
-    Ok(ii)
+    // 5. Return taRecord.
+    Ok(ta_record)
 }
 
-/// [`ValidateAtomicAccess ( iieoRecord, requestIndex )`][spec]
+struct AtomicAccess {
+    byte_offset: usize,
+    kind: TypedArrayKind,
+}
+
+/// [`ValidateAtomicAccess ( taRecord, requestIndex )`][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-validateatomicaccess
 fn validate_atomic_access(
-    array: &TypedArray,
+    array: &JsObject<TypedArray>,
+    buf_len: usize,
     request_index: &JsValue,
     context: &mut Context,
-) -> JsResult<usize> {
-    // 1. Let length be typedArray.[[ArrayLength]].
-    let length = array.array_length();
+) -> JsResult<AtomicAccess> {
+    // 5. Let typedArray be taRecord.[[Object]].
+    let (length, kind, offset) = {
+        let array = array.borrow();
+        let array = &array.data;
+
+        // 1. Let length be typedArray.[[ArrayLength]].
+        // 6. Let elementSize be TypedArrayElementSize(typedArray).
+        // 7. Let offset be typedArray.[[ByteOffset]].
+        (
+            array.array_length(buf_len),
+            array.kind(),
+            array.byte_offset(),
+        )
+    };
 
     // 2. Let accessIndex be ? ToIndex(requestIndex).
     let access_index = request_index.to_index(context)?;
@@ -564,12 +595,10 @@ fn validate_atomic_access(
             .into());
     }
 
-    // 5. Let elementSize be TypedArrayElementSize(typedArray).
-    let element_size = array.kind().element_size();
-
-    // 6. Let offset be typedArray.[[ByteOffset]].
-    let offset = array.byte_offset();
-
-    // 7. Return (accessIndex × elementSize) + offset.
-    Ok(((access_index * element_size) + offset) as usize)
+    // 8. Return (accessIndex × elementSize) + offset.
+    let offset = ((access_index * kind.element_size()) + offset) as usize;
+    Ok(AtomicAccess {
+        byte_offset: offset,
+        kind,
+    })
 }
