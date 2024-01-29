@@ -904,14 +904,12 @@ impl RegExp {
         // 9. If flags contains "u" or flags contains "v", let fullUnicode be true; else let fullUnicode be false.
         let full_unicode = flags.contains(&('u' as u16)) || flags.contains(&('v' as u16));
 
-        // TODO:
         // 11. If fullUnicode is true, let input be StringToCodePoints(S). Otherwise, let input be a List whose elements are the code units that are the elements of S.
         // 12. NOTE: Each element of input is considered to be a character.
 
         // 10. Let matchSucceeded be false.
         // 13. Repeat, while matchSucceeded is false,
-        let lossy_input = input.to_std_string_escaped();
-        let (match_value, last_byte_index) = loop {
+        let match_value = loop {
             // a. If lastIndex > length, then
             if last_index > length {
                 // i. If global is true or sticky is true, then
@@ -925,18 +923,12 @@ impl RegExp {
             }
 
             // b. Let inputIndex be the index into input of the character that was obtained from element lastIndex of S.
-            // Check if last_index is a valid utf8 index into input.
-            // TODO: avoid converting to String
-            let last_byte_index = match String::from_utf16(&input[..last_index as usize]) {
-                Ok(s) => s.len(),
-                Err(_) => {
-                    return Err(JsNativeError::typ()
-                        .with_message("Failed to get byte index from utf16 encoded string")
-                        .into())
-                }
-            };
             // c. Let r be matcher(input, inputIndex).
-            let r = matcher.find_from(&lossy_input, last_byte_index).next();
+            let r: Option<regress::Match> = if full_unicode {
+                matcher.find_from_utf16(input, last_index as usize).next()
+            } else {
+                matcher.find_from_ucs2(input, last_index as usize).next()
+            };
 
             match r {
                 // d. If r is failure, then
@@ -957,7 +949,7 @@ impl RegExp {
                 Some(m) => {
                     // d. If r is failure, then
                     #[allow(clippy::if_not_else)]
-                    if m.start() != last_byte_index {
+                    if m.start() as u64 != last_index {
                         // i. If sticky is true, then
                         if sticky {
                             // 1. Perform ? Set(R, "lastIndex", +0𝔽, true).
@@ -969,38 +961,30 @@ impl RegExp {
 
                         // ii. Set lastIndex to AdvanceStringIndex(S, lastIndex, fullUnicode).
                         last_index = advance_string_index(input, last_index, full_unicode);
-                    // e. Else,
+                        // e. Else,
                     } else {
                         // i. Assert: r is a State.
                         // ii. Set matchSucceeded to true.
-                        break (m, last_byte_index);
+                        break m;
                     }
                 }
             }
         };
 
         // 14. Let e be r's endIndex value.
-        let mut e = match_value.end();
+        let e = match_value.end();
 
+        // Note: This is already taken care of be regress.
         // 15. If fullUnicode is true, set e to GetStringIndex(S, e).
-        // TODO: disabled for now until we have UTF-16 support
-        if false {
-            // e is an index into the Input character list, derived from S, matched by matcher.
-            // Let eUTF be the smallest index into S that corresponds to the character at element e of Input.
-            // If e is greater than or equal to the number of elements in Input, then eUTF is the number of code units in S.
-            // b. Set e to eUTF.
-            e = input.get(..e).map_or_else(|| input.len(), <[u16]>::len);
-        }
+        // e is an index into the Input character list, derived from S, matched by matcher.
+        // Let eUTF be the smallest index into S that corresponds to the character at element e of Input.
+        // If e is greater than or equal to the number of elements in Input, then eUTF is the number of code units in S.
+        // b. Set e to eUTF.
 
         // 16. If global is true or sticky is true, then
         if global || sticky {
             // a. Perform ? Set(R, "lastIndex", 𝔽(e), true).
-            this.set(
-                utf16!("lastIndex"),
-                lossy_input[..e].encode_utf16().count(),
-                true,
-                context,
-            )?;
+            this.set(utf16!("lastIndex"), e, true, context)?;
         }
 
         // 17. Let n be the number of elements in r's captures List.
@@ -1039,7 +1023,7 @@ impl RegExp {
             .expect("this CreateDataPropertyOrThrow call must not fail");
 
         // 28. Let matchedSubstr be GetMatchString(S, match).
-        let matched_substr = js_string!(&lossy_input[last_byte_index..e]);
+        let matched_substr = js_string!(&input[(last_index as usize)..(e)]);
 
         // 29. Perform ! CreateDataPropertyOrThrow(A, "0", matchedSubstr).
         a.create_data_property_or_throw(0, matched_substr, context)
@@ -1069,8 +1053,7 @@ impl RegExp {
             for (name, range) in named_groups {
                 let name = js_string!(name);
                 if let Some(range) = range {
-                    // TODO: Full UTF-16 regex support
-                    let value = js_string!(&lossy_input[range.clone()]);
+                    let value = js_string!(&input[range.clone()]);
 
                     groups
                         .create_data_property_or_throw(name.clone(), value, context)
@@ -1130,10 +1113,9 @@ impl RegExp {
             // b. If captureI is undefined, let capturedValue be undefined.
             // c. Else if fullUnicode is true, then
             // d. Else,
-            // TODO: Full UTF-16 regex support
-            let captured_value = capture.clone().map_or_else(JsValue::undefined, |range| {
-                js_string!(&lossy_input[range]).into()
-            });
+            let captured_value = capture
+                .clone()
+                .map_or_else(JsValue::undefined, |range| js_string!(&input[range]).into());
 
             // e. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(i)), capturedValue).
             a.create_data_property_or_throw(i, captured_value.clone(), context)

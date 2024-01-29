@@ -16,6 +16,7 @@ features = [
     "Intl.RelativeTimeFormat",
     "Intl-enumeration",
     "Intl.NumberFormat-v3",
+    "regexp-v-flag",
 
     ### Pending proposals
 
@@ -65,12 +66,6 @@ features = [
 
     ### Non-standard
     "caller",
-
-    ### RegExp tests that check individual codepoints.
-    ### They are not useful considering the cpu time they waste.
-    "regexp-unicode-property-escapes",
 ]
 
-# RegExp tests that check individual codepoints.
-# They are not useful considering the cpu time they waste.
-tests = ["CharacterClassEscapes", "NumberFormat"]
+tests = ["NumberFormat"]
