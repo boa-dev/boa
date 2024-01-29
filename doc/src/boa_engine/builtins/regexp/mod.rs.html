@@ -1897,24 +1897,6 @@
 <a href="#1897" id="1897">1897</a>
 <a href="#1898" id="1898">1898</a>
 <a href="#1899" id="1899">1899</a>
-<a href="#1900" id="1900">1900</a>
-<a href="#1901" id="1901">1901</a>
-<a href="#1902" id="1902">1902</a>
-<a href="#1903" id="1903">1903</a>
-<a href="#1904" id="1904">1904</a>
-<a href="#1905" id="1905">1905</a>
-<a href="#1906" id="1906">1906</a>
-<a href="#1907" id="1907">1907</a>
-<a href="#1908" id="1908">1908</a>
-<a href="#1909" id="1909">1909</a>
-<a href="#1910" id="1910">1910</a>
-<a href="#1911" id="1911">1911</a>
-<a href="#1912" id="1912">1912</a>
-<a href="#1913" id="1913">1913</a>
-<a href="#1914" id="1914">1914</a>
-<a href="#1915" id="1915">1915</a>
-<a href="#1916" id="1916">1916</a>
-<a href="#1917" id="1917">1917</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `RegExp` object.
 //!
 //! The `RegExp` object is used for matching text with a pattern.
@@ -2821,14 +2803,12 @@
         <span class="comment">// 9. If flags contains &quot;u&quot; or flags contains &quot;v&quot;, let fullUnicode be true; else let fullUnicode be false.
         </span><span class="kw">let </span>full_unicode = flags.contains(<span class="kw-2">&amp;</span>(<span class="string">&#39;u&#39; </span><span class="kw">as </span>u16)) || flags.contains(<span class="kw-2">&amp;</span>(<span class="string">&#39;v&#39; </span><span class="kw">as </span>u16));
 
-        <span class="comment">// TODO:
-        // 11. If fullUnicode is true, let input be StringToCodePoints(S). Otherwise, let input be a List whose elements are the code units that are the elements of S.
+        <span class="comment">// 11. If fullUnicode is true, let input be StringToCodePoints(S). Otherwise, let input be a List whose elements are the code units that are the elements of S.
         // 12. NOTE: Each element of input is considered to be a character.
 
         // 10. Let matchSucceeded be false.
         // 13. Repeat, while matchSucceeded is false,
-        </span><span class="kw">let </span>lossy_input = input.to_std_string_escaped();
-        <span class="kw">let </span>(match_value, last_byte_index) = <span class="kw">loop </span>{
+        </span><span class="kw">let </span>match_value = <span class="kw">loop </span>{
             <span class="comment">// a. If lastIndex &gt; length, then
             </span><span class="kw">if </span>last_index &gt; length {
                 <span class="comment">// i. If global is true or sticky is true, then
@@ -2842,18 +2822,12 @@
             }
 
             <span class="comment">// b. Let inputIndex be the index into input of the character that was obtained from element lastIndex of S.
-            // Check if last_index is a valid utf8 index into input.
-            // TODO: avoid converting to String
-            </span><span class="kw">let </span>last_byte_index = <span class="kw">match </span>String::from_utf16(<span class="kw-2">&amp;</span>input[..last_index <span class="kw">as </span>usize]) {
-                <span class="prelude-val">Ok</span>(s) =&gt; s.len(),
-                <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                        .with_message(<span class="string">&quot;Failed to get byte index from utf16 encoded string&quot;</span>)
-                        .into())
-                }
+            // c. Let r be matcher(input, inputIndex).
+            </span><span class="kw">let </span>r: <span class="prelude-ty">Option</span>&lt;regress::Match&gt; = <span class="kw">if </span>full_unicode {
+                matcher.find_from_utf16(input, last_index <span class="kw">as </span>usize).next()
+            } <span class="kw">else </span>{
+                matcher.find_from_ucs2(input, last_index <span class="kw">as </span>usize).next()
             };
-            <span class="comment">// c. Let r be matcher(input, inputIndex).
-            </span><span class="kw">let </span>r = matcher.find_from(<span class="kw-2">&amp;</span>lossy_input, last_byte_index).next();
 
             <span class="kw">match </span>r {
                 <span class="comment">// d. If r is failure, then
@@ -2874,7 +2848,7 @@
                 <span class="prelude-val">Some</span>(m) =&gt; {
                     <span class="comment">// d. If r is failure, then
                     </span><span class="attr">#[allow(clippy::if_not_else)]
-                    </span><span class="kw">if </span>m.start() != last_byte_index {
+                    </span><span class="kw">if </span>m.start() <span class="kw">as </span>u64 != last_index {
                         <span class="comment">// i. If sticky is true, then
                         </span><span class="kw">if </span>sticky {
                             <span class="comment">// 1. Perform ? Set(R, &quot;lastIndex&quot;, +0𝔽, true).
@@ -2886,38 +2860,30 @@
 
                         <span class="comment">// ii. Set lastIndex to AdvanceStringIndex(S, lastIndex, fullUnicode).
                         </span>last_index = advance_string_index(input, last_index, full_unicode);
-                    <span class="comment">// e. Else,
+                        <span class="comment">// e. Else,
                     </span>} <span class="kw">else </span>{
                         <span class="comment">// i. Assert: r is a State.
                         // ii. Set matchSucceeded to true.
-                        </span><span class="kw">break </span>(m, last_byte_index);
+                        </span><span class="kw">break </span>m;
                     }
                 }
             }
         };
 
         <span class="comment">// 14. Let e be r&#39;s endIndex value.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>e = match_value.end();
+        </span><span class="kw">let </span>e = match_value.end();
 
-        <span class="comment">// 15. If fullUnicode is true, set e to GetStringIndex(S, e).
-        // TODO: disabled for now until we have UTF-16 support
-        </span><span class="kw">if </span><span class="bool-val">false </span>{
-            <span class="comment">// e is an index into the Input character list, derived from S, matched by matcher.
-            // Let eUTF be the smallest index into S that corresponds to the character at element e of Input.
-            // If e is greater than or equal to the number of elements in Input, then eUTF is the number of code units in S.
-            // b. Set e to eUTF.
-            </span>e = input.get(..e).map_or_else(|| input.len(), &lt;[u16]&gt;::len);
-        }
+        <span class="comment">// Note: This is already taken care of be regress.
+        // 15. If fullUnicode is true, set e to GetStringIndex(S, e).
+        // e is an index into the Input character list, derived from S, matched by matcher.
+        // Let eUTF be the smallest index into S that corresponds to the character at element e of Input.
+        // If e is greater than or equal to the number of elements in Input, then eUTF is the number of code units in S.
+        // b. Set e to eUTF.
 
-        <span class="comment">// 16. If global is true or sticky is true, then
+        // 16. If global is true or sticky is true, then
         </span><span class="kw">if </span>global || sticky {
             <span class="comment">// a. Perform ? Set(R, &quot;lastIndex&quot;, 𝔽(e), true).
-            </span>this.set(
-                <span class="macro">utf16!</span>(<span class="string">&quot;lastIndex&quot;</span>),
-                lossy_input[..e].encode_utf16().count(),
-                <span class="bool-val">true</span>,
-                context,
-            )<span class="question-mark">?</span>;
+            </span>this.set(<span class="macro">utf16!</span>(<span class="string">&quot;lastIndex&quot;</span>), e, <span class="bool-val">true</span>, context)<span class="question-mark">?</span>;
         }
 
         <span class="comment">// 17. Let n be the number of elements in r&#39;s captures List.
@@ -2956,7 +2922,7 @@
             .expect(<span class="string">&quot;this CreateDataPropertyOrThrow call must not fail&quot;</span>);
 
         <span class="comment">// 28. Let matchedSubstr be GetMatchString(S, match).
-        </span><span class="kw">let </span>matched_substr = <span class="macro">js_string!</span>(<span class="kw-2">&amp;</span>lossy_input[last_byte_index..e]);
+        </span><span class="kw">let </span>matched_substr = <span class="macro">js_string!</span>(<span class="kw-2">&amp;</span>input[(last_index <span class="kw">as </span>usize)..(e)]);
 
         <span class="comment">// 29. Perform ! CreateDataPropertyOrThrow(A, &quot;0&quot;, matchedSubstr).
         </span>a.create_data_property_or_throw(<span class="number">0</span>, matched_substr, context)
@@ -2986,8 +2952,7 @@
             </span><span class="kw">for </span>(name, range) <span class="kw">in </span>named_groups {
                 <span class="kw">let </span>name = <span class="macro">js_string!</span>(name);
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(range) = range {
-                    <span class="comment">// TODO: Full UTF-16 regex support
-                    </span><span class="kw">let </span>value = <span class="macro">js_string!</span>(<span class="kw-2">&amp;</span>lossy_input[range.clone()]);
+                    <span class="kw">let </span>value = <span class="macro">js_string!</span>(<span class="kw-2">&amp;</span>input[range.clone()]);
 
                     groups
                         .create_data_property_or_throw(name.clone(), value, context)
@@ -3047,10 +3012,9 @@
             <span class="comment">// b. If captureI is undefined, let capturedValue be undefined.
             // c. Else if fullUnicode is true, then
             // d. Else,
-            // TODO: Full UTF-16 regex support
-            </span><span class="kw">let </span>captured_value = capture.clone().map_or_else(JsValue::undefined, |range| {
-                <span class="macro">js_string!</span>(<span class="kw-2">&amp;</span>lossy_input[range]).into()
-            });
+            </span><span class="kw">let </span>captured_value = capture
+                .clone()
+                .map_or_else(JsValue::undefined, |range| <span class="macro">js_string!</span>(<span class="kw-2">&amp;</span>input[range]).into());
 
             <span class="comment">// e. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(i)), capturedValue).
             </span>a.create_data_property_or_throw(i, captured_value.clone(), context)
