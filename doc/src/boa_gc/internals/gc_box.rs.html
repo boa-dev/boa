@@ -83,16 +83,7 @@
 <a href="#83" id="83">83</a>
 <a href="#84" id="84">84</a>
 <a href="#85" id="85">85</a>
-<a href="#86" id="86">86</a>
-<a href="#87" id="87">87</a>
-<a href="#88" id="88">88</a>
-<a href="#89" id="89">89</a>
-<a href="#90" id="90">90</a>
-<a href="#91" id="91">91</a>
-<a href="#92" id="92">92</a>
-<a href="#93" id="93">93</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::Trace;
-<span class="kw">use </span>std::ptr::{<span class="self">self</span>};
 
 <span class="kw">use super</span>::{vtable_of, DropFn, GcHeader, RunFinalizerFn, TraceFn, TraceNonRootsFn, VTable};
 
@@ -118,13 +109,6 @@
 }
 
 <span class="kw">impl</span>&lt;T: Trace + <span class="question-mark">?</span>Sized&gt; GcBox&lt;T&gt; {
-    <span class="doccomment">/// Returns `true` if the two references refer to the same `GcBox`.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>ptr_eq(this: <span class="kw-2">&amp;</span><span class="self">Self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
-        <span class="comment">// Use .header to ignore fat pointer vtables, to work around
-        // https://github.com/rust-lang/rust/issues/46139
-        </span>ptr::eq(<span class="kw-2">&amp;</span>this.header, <span class="kw-2">&amp;</span>other.header)
-    }
-
     <span class="doccomment">/// Returns a reference to the `GcBox`&#39;s value.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>value(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
         <span class="kw-2">&amp;</span><span class="self">self</span>.value

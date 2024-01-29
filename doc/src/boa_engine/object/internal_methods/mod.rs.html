@@ -2109,7 +2109,7 @@
     </span><span class="prelude-val">Ok</span>(default(realm.intrinsics().constructors()).prototype())
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>non_existant_call(
+<span class="kw">fn </span>non_existant_call(
     _obj: <span class="kw-2">&amp;</span>JsObject,
     _argument_count: usize,
     context: <span class="kw-2">&amp;mut </span>Context,
@@ -2120,7 +2120,7 @@
         .into())
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>non_existant_construct(
+<span class="kw">fn </span>non_existant_construct(
     _obj: <span class="kw-2">&amp;</span>JsObject,
     _argument_count: usize,
     context: <span class="kw-2">&amp;mut </span>Context,

@@ -141,6 +141,8 @@
 <a href="#141" id="141">141</a>
 <a href="#142" id="142">142</a>
 <a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     finalizer_safe,
     internals::EphemeronBox,
@@ -148,6 +150,8 @@
     Allocator, Gc, Tracer,
 };
 <span class="kw">use </span>std::ptr::NonNull;
+
+<span class="kw">use </span><span class="kw">super</span>::addr_eq;
 
 <span class="doccomment">/// A key-value pair where the value becomes unaccesible when the key is garbage collected.
 ///
@@ -213,7 +217,7 @@
     <span class="doccomment">/// Returns `true` if the two `Ephemeron`s point to the same allocation.
     </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>ptr_eq(this: <span class="kw-2">&amp;</span><span class="self">Self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
-        EphemeronBox::ptr_eq(this.inner(), other.inner())
+        addr_eq(this.inner(), other.inner())
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>inner_ptr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; NonNull&lt;EphemeronBox&lt;K, V&gt;&gt; {

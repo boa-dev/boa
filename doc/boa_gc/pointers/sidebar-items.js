@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["ephemeron","gc","weak","weak_map"]};
+window.SIDEBAR_ITEMS = {"fn":["addr_eq"],"mod":["ephemeron","gc","weak","weak_map"]};

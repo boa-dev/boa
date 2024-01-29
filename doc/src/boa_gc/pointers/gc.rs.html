@@ -287,6 +287,10 @@
 <a href="#287" id="287">287</a>
 <a href="#288" id="288">288</a>
 <a href="#289" id="289">289</a>
+<a href="#290" id="290">290</a>
+<a href="#291" id="291">291</a>
+<a href="#292" id="292">292</a>
+<a href="#293" id="293">293</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     finalizer_safe,
     internals::{EphemeronBox, GcBox},
@@ -302,6 +306,8 @@
     ptr::NonNull,
     rc::Rc,
 };
+
+<span class="kw">use </span><span class="kw">super</span>::addr_eq;
 
 <span class="doccomment">/// Zero sized struct that is used to ensure that we do not call trace methods,
 /// call its finalization method or drop it.
@@ -342,10 +348,13 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) marker: PhantomData&lt;Rc&lt;T&gt;&gt;,
 }
 
-<span class="kw">impl</span>&lt;T: Trace&gt; Gc&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: Trace + <span class="question-mark">?</span>Sized&gt; Gc&lt;T&gt; {
     <span class="doccomment">/// Constructs a new `Gc&lt;T&gt;` with the given value.
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>new(value: T) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>new(value: T) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>T: Sized,
+    {
         <span class="comment">// Create GcBox and allocate it to heap.
         //
         // Note: Allocator can cause Collector to run
@@ -367,6 +376,7 @@
     </span><span class="kw">pub fn </span>new_cyclic&lt;F&gt;(data_fn: F) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>F: FnOnce(<span class="kw-2">&amp;</span>WeakGc&lt;T&gt;) -&gt; T,
+        T: Sized,
     {
         <span class="comment">// SAFETY: The newly allocated ephemeron is only live here, meaning `Ephemeron` is the
         // sole owner of the allocation after passing it to `from_raw`, making this operation safe.
@@ -395,13 +405,11 @@
         std::mem::forget(this);
         ptr
     }
-}
 
-<span class="kw">impl</span>&lt;T: Trace + <span class="question-mark">?</span>Sized&gt; Gc&lt;T&gt; {
     <span class="doccomment">/// Returns `true` if the two `Gc`s point to the same allocation.
     </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>ptr_eq(this: <span class="kw-2">&amp;</span><span class="self">Self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
-        GcBox::ptr_eq(this.inner(), other.inner())
+        addr_eq(this.inner(), other.inner())
     }
 
     <span class="doccomment">/// Constructs a `Gc&lt;T&gt;` from a raw pointer.

@@ -179,21 +179,8 @@
 <a href="#179" id="179">179</a>
 <a href="#180" id="180">180</a>
 <a href="#181" id="181">181</a>
-<a href="#182" id="182">182</a>
-<a href="#183" id="183">183</a>
-<a href="#184" id="184">184</a>
-<a href="#185" id="185">185</a>
-<a href="#186" id="186">186</a>
-<a href="#187" id="187">187</a>
-<a href="#188" id="188">188</a>
-<a href="#189" id="189">189</a>
-<a href="#190" id="190">190</a>
-<a href="#191" id="191">191</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{trace::Trace, Gc, GcBox, Tracer};
-<span class="kw">use </span>std::{
-    cell::UnsafeCell,
-    ptr::{<span class="self">self</span>, NonNull},
-};
+<span class="kw">use </span>std::{cell::UnsafeCell, ptr::NonNull};
 
 <span class="kw">use </span><span class="kw">super</span>::GcHeader;
 
@@ -226,13 +213,6 @@
             header: GcHeader::new(),
             data: UnsafeCell::new(<span class="prelude-val">None</span>),
         }
-    }
-
-    <span class="doccomment">/// Returns `true` if the two references refer to the same `EphemeronBox`.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>ptr_eq(this: <span class="kw-2">&amp;</span><span class="self">Self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
-        <span class="comment">// Use .header to ignore fat pointer vtables, to work around
-        // https://github.com/rust-lang/rust/issues/46139
-        </span>ptr::eq(<span class="kw-2">&amp;</span>this.header, <span class="kw-2">&amp;</span>other.header)
     }
 
     <span class="doccomment">/// Returns a reference to the ephemeron&#39;s value or None.

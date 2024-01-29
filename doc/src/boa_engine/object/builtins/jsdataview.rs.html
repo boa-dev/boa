@@ -492,11 +492,9 @@
 <a href="#492" id="492">492</a>
 <a href="#493" id="493">493</a>
 <a href="#494" id="494">494</a>
-<a href="#495" id="495">495</a>
-<a href="#496" id="496">496</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! A Rust API wrapper for Boa&#39;s `DataView` Builtin ECMAScript Object
 </span><span class="kw">use crate</span>::{
-    builtins::{array_buffer::ArrayBuffer, DataView},
+    builtins::DataView,
     context::intrinsics::StandardConstructors,
     object::{
         internal_methods::get_prototype_from_constructor, JsArrayBuffer, JsObject, JsObjectType,
@@ -523,7 +521,7 @@
 ///
 /// // Create a new Dataview from pre-existing ArrayBuffer
 /// let data_view =
-///     JsDataView::from_js_array_buffer(&amp;array_buffer, None, None, context)?;
+///     JsDataView::from_js_array_buffer(array_buffer, None, None, context)?;
 ///
 /// # Ok(())
 /// # }
@@ -536,26 +534,23 @@
 <span class="kw">impl </span>JsDataView {
     <span class="doccomment">/// Create a new `JsDataView` object from an existing `JsArrayBuffer`.
     </span><span class="kw">pub fn </span>from_js_array_buffer(
-        array_buffer: <span class="kw-2">&amp;</span>JsArrayBuffer,
+        array_buffer: JsArrayBuffer,
         offset: <span class="prelude-ty">Option</span>&lt;u64&gt;,
         byte_length: <span class="prelude-ty">Option</span>&lt;u64&gt;,
         context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="kw">let </span>(byte_offset, byte_length) = {
-            <span class="kw">let </span>buffer = array_buffer.downcast_ref::&lt;ArrayBuffer&gt;().ok_or_else(|| {
-                JsNativeError::typ().with_message(<span class="string">&quot;buffer must be an ArrayBuffer&quot;</span>)
-            })<span class="question-mark">?</span>;
-
+            <span class="kw">let </span>buffer = array_buffer.borrow();
             <span class="kw">let </span>provided_offset = offset.unwrap_or(<span class="number">0_u64</span>);
 
             <span class="comment">// Check if buffer is detached.
-            </span><span class="kw">if </span>buffer.is_detached() {
+            </span><span class="kw">if </span>buffer.data.is_detached() {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
                     .with_message(<span class="string">&quot;ArrayBuffer is detached&quot;</span>)
                     .into());
             };
 
-            <span class="kw">let </span>array_buffer_length = buffer.len() <span class="kw">as </span>u64;
+            <span class="kw">let </span>array_buffer_length = buffer.data.len() <span class="kw">as </span>u64;
 
             <span class="kw">if </span>provided_offset &gt; array_buffer_length {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
@@ -593,7 +588,8 @@
             context.root_shape(),
             prototype,
             DataView {
-                viewed_array_buffer: (<span class="kw-2">**</span>array_buffer).clone(),
+                <span class="comment">// TODO: Remove upcast.
+                </span>viewed_array_buffer: array_buffer.into(),
                 byte_length,
                 byte_offset,
             },

@@ -1089,10 +1089,6 @@
 <a href="#1089" id="1089">1089</a>
 <a href="#1090" id="1090">1090</a>
 <a href="#1091" id="1091">1091</a>
-<a href="#1092" id="1092">1092</a>
-<a href="#1093" id="1093">1093</a>
-<a href="#1094" id="1094">1094</a>
-<a href="#1095" id="1095">1095</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s representation of a JavaScript object and builtin object wrappers
 //!
 //! For the builtin object wrappers, please see [`object::builtins`][builtins] for implementors.
@@ -1126,7 +1122,6 @@
 <span class="kw">use </span>std::{
     any::{Any, TypeId},
     fmt::Debug,
-    ops::Deref,
 };
 
 <span class="attr">#[cfg(test)]
@@ -1146,10 +1141,7 @@
 <span class="kw">pub use </span>datatypes::JsData;
 <span class="kw">pub use </span>jsobject::<span class="kw-2">*</span>;
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait </span>JsObjectType:
-    Into&lt;JsValue&gt; + Into&lt;JsObject&gt; + Deref&lt;Target = JsObject&gt;
-{
-}
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait </span>JsObjectType: Into&lt;JsValue&gt; + Into&lt;JsObject&gt; {}
 
 <span class="doccomment">/// Const `constructor`, usually set on prototypes as a key to point to their respective constructor object.
 </span><span class="kw">pub const </span>CONSTRUCTOR: <span class="kw-2">&amp;</span>[u16] = <span class="macro">utf16!</span>(<span class="string">&quot;constructor&quot;</span>);
@@ -1284,7 +1276,7 @@
     <span class="doccomment">/// The `[[PrivateElements]]` internal slot.
     </span>private_elements: ThinVec&lt;(PrivateName, PrivateElement)&gt;,
     <span class="doccomment">/// The inner object data
-    </span>data: T,
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) data: T,
 }
 
 <span class="kw">impl</span>&lt;T: Default&gt; Default <span class="kw">for </span>Object&lt;T&gt; {

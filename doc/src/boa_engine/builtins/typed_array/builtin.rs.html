@@ -3557,6 +3557,22 @@
 <a href="#3557" id="3557">3557</a>
 <a href="#3558" id="3558">3558</a>
 <a href="#3559" id="3559">3559</a>
+<a href="#3560" id="3560">3560</a>
+<a href="#3561" id="3561">3561</a>
+<a href="#3562" id="3562">3562</a>
+<a href="#3563" id="3563">3563</a>
+<a href="#3564" id="3564">3564</a>
+<a href="#3565" id="3565">3565</a>
+<a href="#3566" id="3566">3566</a>
+<a href="#3567" id="3567">3567</a>
+<a href="#3568" id="3568">3568</a>
+<a href="#3569" id="3569">3569</a>
+<a href="#3570" id="3570">3570</a>
+<a href="#3571" id="3571">3571</a>
+<a href="#3572" id="3572">3572</a>
+<a href="#3573" id="3573">3573</a>
+<a href="#3574" id="3574">3574</a>
+<a href="#3575" id="3575">3575</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{cmp, ptr, sync::atomic};
 
 <span class="kw">use </span>boa_macros::utf16;
@@ -5655,7 +5671,8 @@
                     .subslice(src_byte_offset..src_byte_offset + src_byte_length)
                     .clone(context)<span class="question-mark">?
             </span>};
-            src_buffer_obj = s;
+            <span class="comment">// TODO: skip this upcast
+            </span>src_buffer_obj = s.upcast();
 
             <span class="comment">// d. Let srcByteIndex be 0.
             </span><span class="number">0
@@ -6627,7 +6644,14 @@
         // 9. Set O.[[ArrayLength]] to length.
 
         // 10. Return O.
-        </span><span class="prelude-val">Ok</span>(TypedArray::new(data, T::ERASED, <span class="number">0</span>, byte_length, length))
+        // TODO: skip this upcast.
+        </span><span class="prelude-val">Ok</span>(TypedArray::new(
+            data.upcast(),
+            T::ERASED,
+            <span class="number">0</span>,
+            byte_length,
+            length,
+        ))
     }
 
     <span class="doccomment">/// &lt;https://tc39.es/ecma262/#sec-initializetypedarrayfromlist&gt;
@@ -6768,11 +6792,12 @@
                 context,
             )<span class="question-mark">?</span>;
             {
-                <span class="kw">let </span><span class="kw-2">mut </span>data = data_obj
-                    .downcast_mut::&lt;ArrayBuffer&gt;()
-                    .expect(<span class="string">&quot;Must be ArrayBuffer&quot;</span>);
-                <span class="kw">let </span><span class="kw-2">mut </span>data =
-                    SliceRefMut::Slice(data.data_mut().expect(<span class="string">&quot;a new buffer cannot be detached&quot;</span>));
+                <span class="kw">let </span><span class="kw-2">mut </span>data = data_obj.borrow_mut();
+                <span class="kw">let </span><span class="kw-2">mut </span>data = SliceRefMut::Slice(
+                    data.data
+                        .data_mut()
+                        .expect(<span class="string">&quot;a new buffer cannot be detached&quot;</span>),
+                );
 
                 <span class="comment">// b. If srcArray.[[ContentType]] is not O.[[ContentType]], throw a TypeError exception.
                 </span><span class="kw">if </span>src_type.content_type() != element_type.content_type() {
@@ -6838,10 +6863,17 @@
         // 13. Set O.[[ByteLength]] to byteLength.
         // 14. Set O.[[ByteOffset]] to 0.
         // 15. Set O.[[ArrayLength]] to elementLength.
+        // TODO: Skip this upcast.
         </span><span class="kw">let </span>obj = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             proto,
-            TypedArray::new(new_buffer, element_type, <span class="number">0</span>, byte_length, element_length),
+            TypedArray::new(
+                new_buffer.upcast(),
+                element_type,
+                <span class="number">0</span>,
+                byte_length,
+                element_length,
+            ),
         );
 
         <span class="comment">// 16. Return unused.

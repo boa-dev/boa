@@ -453,8 +453,6 @@
 <a href="#453" id="453">453</a>
 <a href="#454" id="454">454</a>
 <a href="#455" id="455">455</a>
-<a href="#456" id="456">456</a>
-<a href="#457" id="457">457</a>
 </pre></div><pre class="rust"><code><span class="attr">#![allow(unstable_name_collisions)]
 
 </span><span class="kw">use </span>std::{ptr, slice::SliceIndex, sync::atomic};
@@ -577,7 +575,7 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-clonearraybuffer
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsObject&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsObject&lt;ArrayBuffer&gt;&gt; {
         <span class="comment">// 1. Assert: IsDetachedBuffer(srcBuffer) is false.
 
         // 2. Let targetBuffer be ? AllocateArrayBuffer(%ArrayBuffer%, srcLength).
@@ -597,12 +595,10 @@
 
         // 4. Let targetBlock be targetBuffer.[[ArrayBufferData]].
         </span>{
-            <span class="kw">let </span><span class="kw-2">mut </span>target_buffer = target_buffer
-                .downcast_mut::&lt;ArrayBuffer&gt;()
-                .expect(<span class="string">&quot;This must be an ArrayBuffer&quot;</span>);
+            <span class="kw">let </span><span class="kw-2">mut </span>target_buffer = target_buffer.borrow_mut();
             <span class="kw">let </span>target_block = target_buffer
                 .data
-                .as_deref_mut()
+                .data_mut()
                 .expect(<span class="string">&quot;ArrayBuffer cannot be detached here&quot;</span>);
 
             <span class="comment">// 5. Perform CopyDataBlockBytes(targetBlock, 0, srcBlock, srcByteOffset, srcLength).

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["SEEN"],"enum":["RecursionValueState"],"fn":["upcast"],"struct":["BorrowError","BorrowMutError","JsObject","RecursionLimiter","VTableObject"],"type":["ErasedObject","ErasedVTableObject","Ref","RefMut"]};
+window.SIDEBAR_ITEMS = {"constant":["SEEN"],"enum":["RecursionValueState"],"fn":["coerce_gc"],"struct":["BorrowError","BorrowMutError","JsObject","RecursionLimiter","VTableObject"],"type":["ErasedObject","ErasedVTableObject","Ref","RefMut"]};

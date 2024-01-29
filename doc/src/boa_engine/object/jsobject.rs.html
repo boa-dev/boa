@@ -830,21 +830,101 @@
 <a href="#830" id="830">830</a>
 <a href="#831" id="831">831</a>
 <a href="#832" id="832">832</a>
+<a href="#833" id="833">833</a>
+<a href="#834" id="834">834</a>
+<a href="#835" id="835">835</a>
+<a href="#836" id="836">836</a>
+<a href="#837" id="837">837</a>
+<a href="#838" id="838">838</a>
+<a href="#839" id="839">839</a>
+<a href="#840" id="840">840</a>
+<a href="#841" id="841">841</a>
+<a href="#842" id="842">842</a>
+<a href="#843" id="843">843</a>
+<a href="#844" id="844">844</a>
+<a href="#845" id="845">845</a>
+<a href="#846" id="846">846</a>
+<a href="#847" id="847">847</a>
+<a href="#848" id="848">848</a>
+<a href="#849" id="849">849</a>
+<a href="#850" id="850">850</a>
+<a href="#851" id="851">851</a>
+<a href="#852" id="852">852</a>
+<a href="#853" id="853">853</a>
+<a href="#854" id="854">854</a>
+<a href="#855" id="855">855</a>
+<a href="#856" id="856">856</a>
+<a href="#857" id="857">857</a>
+<a href="#858" id="858">858</a>
+<a href="#859" id="859">859</a>
+<a href="#860" id="860">860</a>
+<a href="#861" id="861">861</a>
+<a href="#862" id="862">862</a>
+<a href="#863" id="863">863</a>
+<a href="#864" id="864">864</a>
+<a href="#865" id="865">865</a>
+<a href="#866" id="866">866</a>
+<a href="#867" id="867">867</a>
+<a href="#868" id="868">868</a>
+<a href="#869" id="869">869</a>
+<a href="#870" id="870">870</a>
+<a href="#871" id="871">871</a>
+<a href="#872" id="872">872</a>
+<a href="#873" id="873">873</a>
+<a href="#874" id="874">874</a>
+<a href="#875" id="875">875</a>
+<a href="#876" id="876">876</a>
+<a href="#877" id="877">877</a>
+<a href="#878" id="878">878</a>
+<a href="#879" id="879">879</a>
+<a href="#880" id="880">880</a>
+<a href="#881" id="881">881</a>
+<a href="#882" id="882">882</a>
+<a href="#883" id="883">883</a>
+<a href="#884" id="884">884</a>
+<a href="#885" id="885">885</a>
+<a href="#886" id="886">886</a>
+<a href="#887" id="887">887</a>
+<a href="#888" id="888">888</a>
+<a href="#889" id="889">889</a>
+<a href="#890" id="890">890</a>
+<a href="#891" id="891">891</a>
+<a href="#892" id="892">892</a>
+<a href="#893" id="893">893</a>
+<a href="#894" id="894">894</a>
+<a href="#895" id="895">895</a>
+<a href="#896" id="896">896</a>
+<a href="#897" id="897">897</a>
+<a href="#898" id="898">898</a>
+<a href="#899" id="899">899</a>
+<a href="#900" id="900">900</a>
+<a href="#901" id="901">901</a>
+<a href="#902" id="902">902</a>
+<a href="#903" id="903">903</a>
+<a href="#904" id="904">904</a>
+<a href="#905" id="905">905</a>
+<a href="#906" id="906">906</a>
+<a href="#907" id="907">907</a>
+<a href="#908" id="908">908</a>
+<a href="#909" id="909">909</a>
+<a href="#910" id="910">910</a>
+<a href="#911" id="911">911</a>
+<a href="#912" id="912">912</a>
+<a href="#913" id="913">913</a>
+<a href="#914" id="914">914</a>
+<a href="#915" id="915">915</a>
+<a href="#916" id="916">916</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module implements the `JsObject` structure.
 //!
 //! The `JsObject` is a garbage collected Object.
 
 </span><span class="kw">use super</span>::{
-    internal_methods::{
-        non_existant_call, non_existant_construct, InternalMethodContext, InternalObjectMethods,
-    },
+    internal_methods::{InternalMethodContext, InternalObjectMethods, ORDINARY_INTERNAL_METHODS},
     shape::RootShape,
     JsPrototype, NativeObject, Object, PrivateName, PropertyMap,
 };
 <span class="kw">use crate</span>::{
-    builtins::{
-        array::ARRAY_EXOTIC_INTERNAL_METHODS, function::OrdinaryFunction, object::OrdinaryObject,
-    },
+    builtins::{array::ARRAY_EXOTIC_INTERNAL_METHODS, object::OrdinaryObject},
     context::intrinsics::Intrinsics,
     error::JsNativeError,
     js_string,
@@ -877,9 +957,18 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>ErasedVTableObject = VTableObject&lt;<span class="kw">dyn </span>NativeObject&gt;;
 
 <span class="doccomment">/// Garbage collected `Object`.
-</span><span class="attr">#[derive(Trace, Finalize, Clone)]
-</span><span class="kw">pub struct </span>JsObject {
-    inner: Gc&lt;VTableObject&lt;<span class="kw">dyn </span>NativeObject&gt;&gt;,
+</span><span class="attr">#[derive(Trace, Finalize)]
+#[boa_gc(unsafe_no_drop)]
+</span><span class="kw">pub struct </span>JsObject&lt;T: NativeObject + <span class="question-mark">?</span>Sized = <span class="kw">dyn </span>NativeObject&gt; {
+    inner: Gc&lt;VTableObject&lt;T&gt;&gt;,
+}
+
+<span class="kw">impl</span>&lt;T: NativeObject + <span class="question-mark">?</span>Sized&gt; Clone <span class="kw">for </span>JsObject&lt;T&gt; {
+    <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            inner: <span class="self">self</span>.inner.clone(),
+        }
+    }
 }
 
 <span class="doccomment">/// An `Object` that has an additional `vtable` with its internal methods.
@@ -911,7 +1000,9 @@
             vtable,
         });
 
-        <span class="self">Self </span>{ inner: upcast(gc) }
+        <span class="self">Self </span>{
+            inner: coerce_gc(gc),
+        }
     }
 
     <span class="doccomment">/// Creates a new ordinary object with its prototype set to the `Object` prototype.
@@ -963,7 +1054,9 @@
             vtable: internal_methods,
         });
 
-        <span class="self">Self </span>{ inner: upcast(gc) }
+        <span class="self">Self </span>{
+            inner: coerce_gc(gc),
+        }
     }
 
     <span class="doccomment">/// Creates a new object with the provided prototype and object data.
@@ -992,13 +1085,74 @@
             vtable: internal_methods,
         });
 
-        <span class="self">Self </span>{ inner: upcast(gc) }
+        <span class="self">Self </span>{
+            inner: coerce_gc(gc),
+        }
     }
 
-    <span class="doccomment">/// Immutably borrows the `Object`.
+    <span class="doccomment">/// Downcasts the object&#39;s inner data if the object is of type `T`.
     ///
-    /// The borrow lasts until the returned `Ref` exits scope.
-    /// Multiple immutable borrows can be taken out at the same time.
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    </span><span class="kw">pub fn </span>downcast&lt;T: NativeObject&gt;(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;JsObject&lt;T&gt;, <span class="self">Self</span>&gt; {
+        <span class="kw">if </span><span class="self">self</span>.borrow().is::&lt;T&gt;() {
+            <span class="kw">let </span>ptr: NonNull&lt;GcBox&lt;VTableObject&lt;<span class="kw">dyn </span>NativeObject&gt;&gt;&gt; = Gc::into_raw(<span class="self">self</span>.inner);
+
+            <span class="comment">// SAFETY: the rooted `Gc` ensures we can read the inner `GcBox` in a sound way.
+            </span><span class="attr">#[cfg(debug_assertions)]
+            </span><span class="kw">unsafe </span>{
+                <span class="kw">let </span>erased = ptr.as_ref();
+
+                <span class="comment">// Some sanity checks to ensure we&#39;re doing the correct cast.
+                </span><span class="macro">assert_eq!</span>(
+                    std::mem::size_of_val(erased),
+                    std::mem::size_of::&lt;GcBox&lt;VTableObject&lt;T&gt;&gt;&gt;()
+                );
+                <span class="macro">assert_eq!</span>(
+                    std::mem::align_of_val(erased),
+                    std::mem::align_of::&lt;GcBox&lt;VTableObject&lt;T&gt;&gt;&gt;()
+                );
+            }
+
+            <span class="kw">let </span>ptr: NonNull&lt;GcBox&lt;VTableObject&lt;T&gt;&gt;&gt; = ptr.cast();
+
+            <span class="comment">// SAFETY: The conversion between an `Any` and its downcasted type must be valid.
+            // The pointer returned by `Gc::into_raw` is the same one that is passed to `Gc::from_raw`,
+            // just downcasted to the type `T`.
+            </span><span class="kw">let </span>inner = <span class="kw">unsafe </span>{ Gc::from_raw(ptr) };
+
+            <span class="prelude-val">Ok</span>(JsObject { inner })
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Err</span>(<span class="self">self</span>)
+        }
+    }
+
+    <span class="doccomment">/// Downcasts a reference to the object,
+    /// if the object is of type `T`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    </span><span class="attr">#[must_use]
+    #[track_caller]
+    </span><span class="kw">pub fn </span>downcast_ref&lt;T: NativeObject&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Ref&lt;<span class="lifetime">&#39;_</span>, T&gt;&gt; {
+        Ref::try_map(<span class="self">self</span>.borrow(), ErasedObject::downcast_ref)
+    }
+
+    <span class="doccomment">/// Downcasts a mutable reference to the object,
+    /// if the object is type native object type `T`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently borrowed.
+    </span><span class="attr">#[must_use]
+    #[track_caller]
+    </span><span class="kw">pub fn </span>downcast_mut&lt;T: NativeObject&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;RefMut&lt;<span class="lifetime">&#39;_</span>, ErasedObject, T&gt;&gt; {
+        RefMut::try_map(<span class="self">self</span>.borrow_mut(), ErasedObject::downcast_mut)
+    }
+
+    <span class="doccomment">/// Checks if this object is an instance of a certain `NativeObject`.
     ///
     /// # Panics
     ///
@@ -1006,56 +1160,40 @@
     </span><span class="attr">#[inline]
     #[must_use]
     #[track_caller]
-    </span><span class="kw">pub fn </span>borrow(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Ref&lt;<span class="lifetime">&#39;_</span>, ErasedObject&gt; {
-        <span class="self">self</span>.try_borrow().expect(<span class="string">&quot;Object already mutably borrowed&quot;</span>)
+    </span><span class="kw">pub fn </span>is&lt;T: NativeObject&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.borrow().is::&lt;T&gt;()
     }
 
-    <span class="doccomment">/// Mutably borrows the Object.
-    ///
-    /// The borrow lasts until the returned `RefMut` exits scope.
-    /// The object cannot be borrowed while this borrow is active.
+    <span class="doccomment">/// Checks if it&#39;s an ordinary object.
     ///
     /// # Panics
-    /// Panics if the object is currently borrowed.
+    ///
+    /// Panics if the object is currently mutably borrowed.
     </span><span class="attr">#[inline]
     #[must_use]
     #[track_caller]
-    </span><span class="kw">pub fn </span>borrow_mut(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RefMut&lt;<span class="lifetime">&#39;_</span>, ErasedObject, ErasedObject&gt; {
-        <span class="self">self</span>.try_borrow_mut().expect(<span class="string">&quot;Object already borrowed&quot;</span>)
+    </span><span class="kw">pub fn </span>is_ordinary(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.is::&lt;OrdinaryObject&gt;()
     }
 
-    <span class="doccomment">/// Immutably borrows the `Object`, returning an error if the value is currently mutably borrowed.
-    ///
-    /// The borrow lasts until the returned `GcCellRef` exits scope.
-    /// Multiple immutable borrows can be taken out at the same time.
-    ///
-    /// This is the non-panicking variant of [`borrow`](#method.borrow).
+    <span class="doccomment">/// Checks if it&#39;s an `Array` object.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>try_borrow(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; StdResult&lt;Ref&lt;<span class="lifetime">&#39;_</span>, ErasedObject&gt;, BorrowError&gt; {
-        <span class="self">self</span>.inner.object.try_borrow().map_err(|<span class="kw">_</span>| BorrowError)
+    #[must_use]
+    #[track_caller]
+    </span><span class="kw">pub fn </span>is_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        std::ptr::eq(<span class="self">self</span>.vtable(), <span class="kw-2">&amp;</span>ARRAY_EXOTIC_INTERNAL_METHODS)
     }
 
-    <span class="doccomment">/// Mutably borrows the object, returning an error if the value is currently borrowed.
+    <span class="doccomment">/// Checks if it&#39;s an `ArrayBuffer` or `SharedArrayBuffer` object.
     ///
-    /// The borrow lasts until the returned `GcCellRefMut` exits scope.
-    /// The object be borrowed while this borrow is active.
+    /// # Panics
     ///
-    /// This is the non-panicking variant of [`borrow_mut`](#method.borrow_mut).
+    /// Panics if the object is currently mutably borrowed.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>try_borrow_mut(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-    ) -&gt; StdResult&lt;RefMut&lt;<span class="lifetime">&#39;_</span>, ErasedObject, ErasedObject&gt;, BorrowMutError&gt; {
-        <span class="self">self</span>.inner
-            .object
-            .try_borrow_mut()
-            .map_err(|<span class="kw">_</span>| BorrowMutError)
-    }
-
-    <span class="doccomment">/// Checks if the garbage collected memory is the same.
-    </span><span class="attr">#[must_use]
-    #[inline]
-    </span><span class="kw">pub fn </span>equals(lhs: <span class="kw-2">&amp;</span><span class="self">Self</span>, rhs: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
-        std::ptr::eq(lhs.as_ref(), rhs.as_ref())
+    #[must_use]
+    #[track_caller]
+    </span><span class="kw">pub fn </span>is_buffer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.borrow().as_buffer().is_some()
     }
 
     <span class="doccomment">/// Converts an object to a primitive.
@@ -1131,107 +1269,6 @@
         </span><span class="prelude-val">Err</span>(JsNativeError::typ()
             .with_message(<span class="string">&quot;cannot convert object to primitive value&quot;</span>)
             .into())
-    }
-
-    <span class="doccomment">/// Downcast a reference to the object,
-    /// if the object is of type `T`.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the object is currently mutably borrowed.
-    </span><span class="attr">#[must_use]
-    #[track_caller]
-    </span><span class="kw">pub fn </span>downcast_ref&lt;T: NativeObject&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Ref&lt;<span class="lifetime">&#39;_</span>, T&gt;&gt; {
-        Ref::try_map(<span class="self">self</span>.borrow(), ErasedObject::downcast_ref)
-    }
-
-    <span class="doccomment">/// Downcast a mutable reference to the object,
-    /// if the object is type native object type `T`.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the object is currently borrowed.
-    </span><span class="attr">#[must_use]
-    #[track_caller]
-    </span><span class="kw">pub fn </span>downcast_mut&lt;T: NativeObject&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;RefMut&lt;<span class="lifetime">&#39;_</span>, ErasedObject, T&gt;&gt; {
-        RefMut::try_map(<span class="self">self</span>.borrow_mut(), ErasedObject::downcast_mut)
-    }
-
-    <span class="doccomment">/// Get the prototype of the object.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the object is currently mutably borrowed.
-    </span><span class="attr">#[inline]
-    #[must_use]
-    #[track_caller]
-    </span><span class="kw">pub fn </span>prototype(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsPrototype {
-        <span class="self">self</span>.borrow().prototype()
-    }
-
-    <span class="doccomment">/// Get the extensibility of the object.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the object is currently mutably borrowed.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>extensible(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="self">self</span>.borrow().extensible
-    }
-
-    <span class="doccomment">/// Set the prototype of the object.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the object is currently mutably borrowed
-    </span><span class="attr">#[inline]
-    #[track_caller]
-    #[allow(clippy::must_use_candidate)]
-    </span><span class="kw">pub fn </span>set_prototype(<span class="kw-2">&amp;</span><span class="self">self</span>, prototype: JsPrototype) -&gt; bool {
-        <span class="self">self</span>.borrow_mut().set_prototype(prototype)
-    }
-
-    <span class="doccomment">/// Checks if this object is an instance of a certain `NativeObject`.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the object is currently mutably borrowed.
-    </span><span class="attr">#[inline]
-    #[must_use]
-    #[track_caller]
-    </span><span class="kw">pub fn </span>is&lt;T: NativeObject&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="self">self</span>.borrow().is::&lt;T&gt;()
-    }
-
-    <span class="doccomment">/// Checks if it&#39;s an ordinary object.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the object is currently mutably borrowed.
-    </span><span class="attr">#[inline]
-    #[must_use]
-    #[track_caller]
-    </span><span class="kw">pub fn </span>is_ordinary(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="self">self</span>.is::&lt;OrdinaryObject&gt;()
-    }
-
-    <span class="doccomment">/// Checks if it&#39;s an `Array` object.
-    </span><span class="attr">#[inline]
-    #[must_use]
-    #[track_caller]
-    </span><span class="kw">pub fn </span>is_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        std::ptr::eq(<span class="self">self</span>.vtable(), <span class="kw-2">&amp;</span>ARRAY_EXOTIC_INTERNAL_METHODS)
-    }
-
-    <span class="doccomment">/// Checks if it&#39;s an `ArrayBuffer` or `SharedArrayBuffer` object.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the object is currently mutably borrowed.
-    </span><span class="attr">#[inline]
-    #[must_use]
-    #[track_caller]
-    </span><span class="kw">pub fn </span>is_buffer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="self">self</span>.borrow().as_buffer().is_some()
     }
 
     <span class="doccomment">/// The abstract operation `ToPropertyDescriptor`.
@@ -1414,6 +1451,139 @@ Cannot both specify accessors and a value or writable attribute&quot;</span>,
         }
         <span class="prelude-val">None
     </span>}
+}
+
+<span class="kw">impl</span>&lt;T: NativeObject + <span class="question-mark">?</span>Sized&gt; JsObject&lt;T&gt; {
+    <span class="doccomment">/// Creates a new `JsObject` from its root shape, prototype, and data.
+    ///
+    /// Note that the returned object will not be erased to be convertible to a
+    /// `JsValue`. To erase the pointer, call [`JsObject::upcast`].
+    </span><span class="kw">pub fn </span>new&lt;O: Into&lt;<span class="prelude-ty">Option</span>&lt;JsObject&gt;&gt;&gt;(root_shape: <span class="kw-2">&amp;</span>RootShape, prototype: O, data: T) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>T: Sized,
+    {
+        <span class="kw">let </span>internal_methods = data.internal_methods();
+        <span class="kw">let </span>inner = Gc::new(VTableObject {
+            object: GcRefCell::new(Object {
+                data,
+                properties: PropertyMap::from_prototype_with_shared_shape(
+                    root_shape,
+                    prototype.into(),
+                ),
+                extensible: <span class="bool-val">true</span>,
+                private_elements: ThinVec::new(),
+            }),
+            vtable: internal_methods,
+        });
+
+        <span class="self">Self </span>{ inner }
+    }
+
+    <span class="doccomment">/// Upcasts this object&#39;s inner data from a specific type `T` to an erased type
+    /// `dyn NativeObject`.
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub fn </span>upcast(<span class="self">self</span>) -&gt; JsObject
+    <span class="kw">where
+        </span>T: Sized,
+    {
+        JsObject {
+            inner: coerce_gc(<span class="self">self</span>.inner),
+        }
+    }
+
+    <span class="doccomment">/// Immutably borrows the `Object`.
+    ///
+    /// The borrow lasts until the returned `Ref` exits scope.
+    /// Multiple immutable borrows can be taken out at the same time.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    </span><span class="attr">#[inline]
+    #[must_use]
+    #[track_caller]
+    </span><span class="kw">pub fn </span>borrow(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Ref&lt;<span class="lifetime">&#39;_</span>, Object&lt;T&gt;&gt; {
+        <span class="self">self</span>.try_borrow().expect(<span class="string">&quot;Object already mutably borrowed&quot;</span>)
+    }
+
+    <span class="doccomment">/// Mutably borrows the Object.
+    ///
+    /// The borrow lasts until the returned `RefMut` exits scope.
+    /// The object cannot be borrowed while this borrow is active.
+    ///
+    /// # Panics
+    /// Panics if the object is currently borrowed.
+    </span><span class="attr">#[inline]
+    #[must_use]
+    #[track_caller]
+    </span><span class="kw">pub fn </span>borrow_mut(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RefMut&lt;<span class="lifetime">&#39;_</span>, Object&lt;T&gt;, Object&lt;T&gt;&gt; {
+        <span class="self">self</span>.try_borrow_mut().expect(<span class="string">&quot;Object already borrowed&quot;</span>)
+    }
+
+    <span class="doccomment">/// Immutably borrows the `Object`, returning an error if the value is currently mutably borrowed.
+    ///
+    /// The borrow lasts until the returned `GcCellRef` exits scope.
+    /// Multiple immutable borrows can be taken out at the same time.
+    ///
+    /// This is the non-panicking variant of [`borrow`](#method.borrow).
+    </span><span class="attr">#[inline]
+    </span><span class="kw">pub fn </span>try_borrow(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; StdResult&lt;Ref&lt;<span class="lifetime">&#39;_</span>, Object&lt;T&gt;&gt;, BorrowError&gt; {
+        <span class="self">self</span>.inner.object.try_borrow().map_err(|<span class="kw">_</span>| BorrowError)
+    }
+
+    <span class="doccomment">/// Mutably borrows the object, returning an error if the value is currently borrowed.
+    ///
+    /// The borrow lasts until the returned `GcCellRefMut` exits scope.
+    /// The object be borrowed while this borrow is active.
+    ///
+    /// This is the non-panicking variant of [`borrow_mut`](#method.borrow_mut).
+    </span><span class="attr">#[inline]
+    </span><span class="kw">pub fn </span>try_borrow_mut(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; StdResult&lt;RefMut&lt;<span class="lifetime">&#39;_</span>, Object&lt;T&gt;, Object&lt;T&gt;&gt;, BorrowMutError&gt; {
+        <span class="self">self</span>.inner
+            .object
+            .try_borrow_mut()
+            .map_err(|<span class="kw">_</span>| BorrowMutError)
+    }
+
+    <span class="doccomment">/// Checks if the garbage collected memory is the same.
+    </span><span class="attr">#[must_use]
+    #[inline]
+    </span><span class="kw">pub fn </span>equals(lhs: <span class="kw-2">&amp;</span><span class="self">Self</span>, rhs: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
+        Gc::ptr_eq(lhs.inner(), rhs.inner())
+    }
+
+    <span class="doccomment">/// Get the prototype of the object.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    </span><span class="attr">#[inline]
+    #[must_use]
+    #[track_caller]
+    </span><span class="kw">pub fn </span>prototype(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsPrototype {
+        <span class="self">self</span>.borrow().prototype()
+    }
+
+    <span class="doccomment">/// Get the extensibility of the object.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>extensible(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.borrow().extensible
+    }
+
+    <span class="doccomment">/// Set the prototype of the object.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed
+    </span><span class="attr">#[inline]
+    #[track_caller]
+    #[allow(clippy::must_use_candidate)]
+    </span><span class="kw">pub fn </span>set_prototype(<span class="kw-2">&amp;</span><span class="self">self</span>, prototype: JsPrototype) -&gt; bool {
+        <span class="self">self</span>.borrow_mut().set_prototype(prototype)
+    }
 
     <span class="doccomment">/// Helper function for property insertion.
     </span><span class="attr">#[track_caller]
@@ -1445,9 +1615,8 @@ Cannot both specify accessors and a value or writable attribute&quot;</span>,
     /// [spec]: https://tc39.es/ecma262/#sec-iscallable
     </span><span class="attr">#[inline]
     #[must_use]
-    #[allow(clippy::fn_address_comparisons)]
     </span><span class="kw">pub fn </span>is_callable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="self">self</span>.inner.vtable.__call__ != non_existant_call
+        <span class="self">self</span>.inner.vtable.__call__ != ORDINARY_INTERNAL_METHODS.__call__
     }
 
     <span class="doccomment">/// It determines if Object is a function object with a `[[Construct]]` internal method.
@@ -1458,16 +1627,15 @@ Cannot both specify accessors and a value or writable attribute&quot;</span>,
     /// [spec]: https://tc39.es/ecma262/#sec-isconstructor
     </span><span class="attr">#[inline]
     #[must_use]
-    #[allow(clippy::fn_address_comparisons)]
     </span><span class="kw">pub fn </span>is_constructor(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="self">self</span>.inner.vtable.__construct__ != non_existant_construct
+        <span class="self">self</span>.inner.vtable.__construct__ != ORDINARY_INTERNAL_METHODS.__construct__
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>vtable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>InternalObjectMethods {
         <span class="self">self</span>.inner.vtable
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>inner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Gc&lt;VTableObject&lt;<span class="kw">dyn </span>NativeObject&gt;&gt; {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>inner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Gc&lt;VTableObject&lt;T&gt;&gt; {
         <span class="kw-2">&amp;</span><span class="self">self</span>.inner
     }
 
@@ -1478,29 +1646,29 @@ Cannot both specify accessors and a value or writable attribute&quot;</span>,
     }
 }
 
-<span class="kw">impl </span>AsRef&lt;GcRefCell&lt;ErasedObject&gt;&gt; <span class="kw">for </span>JsObject {
+<span class="kw">impl</span>&lt;T: NativeObject + <span class="question-mark">?</span>Sized&gt; AsRef&lt;GcRefCell&lt;Object&lt;T&gt;&gt;&gt; <span class="kw">for </span>JsObject&lt;T&gt; {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>GcRefCell&lt;ErasedObject&gt; {
+    </span><span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>GcRefCell&lt;Object&lt;T&gt;&gt; {
         <span class="kw-2">&amp;</span><span class="self">self</span>.inner.object
     }
 }
 
-<span class="kw">impl </span>From&lt;Gc&lt;VTableObject&lt;<span class="kw">dyn </span>NativeObject&gt;&gt;&gt; <span class="kw">for </span>JsObject {
+<span class="kw">impl</span>&lt;T: NativeObject + <span class="question-mark">?</span>Sized&gt; From&lt;Gc&lt;VTableObject&lt;T&gt;&gt;&gt; <span class="kw">for </span>JsObject&lt;T&gt; {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>from(inner: Gc&lt;VTableObject&lt;<span class="kw">dyn </span>NativeObject&gt;&gt;) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">fn </span>from(inner: Gc&lt;VTableObject&lt;T&gt;&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{ inner }
     }
 }
 
-<span class="kw">impl </span>PartialEq <span class="kw">for </span>JsObject {
+<span class="kw">impl</span>&lt;T: NativeObject + <span class="question-mark">?</span>Sized&gt; PartialEq <span class="kw">for </span>JsObject&lt;T&gt; {
     <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
         <span class="self">Self</span>::equals(<span class="self">self</span>, other)
     }
 }
 
-<span class="kw">impl </span>Eq <span class="kw">for </span>JsObject {}
+<span class="kw">impl</span>&lt;T: NativeObject + <span class="question-mark">?</span>Sized&gt; Eq <span class="kw">for </span>JsObject&lt;T&gt; {}
 
-<span class="kw">impl </span>Hash <span class="kw">for </span>JsObject {
+<span class="kw">impl</span>&lt;T: NativeObject + <span class="question-mark">?</span>Sized&gt; Hash <span class="kw">for </span>JsObject&lt;T&gt; {
     <span class="kw">fn </span>hash&lt;H: std::hash::Hasher&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, state: <span class="kw-2">&amp;mut </span>H) {
         std::ptr::hash(<span class="self">self</span>.as_ref(), state);
     }
@@ -1614,7 +1782,7 @@ Cannot both specify accessors and a value or writable attribute&quot;</span>,
     }
 }
 
-<span class="kw">impl </span>Debug <span class="kw">for </span>JsObject {
+<span class="kw">impl</span>&lt;T: NativeObject + <span class="question-mark">?</span>Sized&gt; Debug <span class="kw">for </span>JsObject&lt;T&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
         <span class="kw">let </span>limiter = RecursionLimiter::new(<span class="self">self</span>.as_ref());
 
@@ -1629,7 +1797,7 @@ Cannot both specify accessors and a value or writable attribute&quot;</span>,
             <span class="kw">let </span>ptr = ptr.cast::&lt;()&gt;();
             <span class="kw">let </span>obj = <span class="self">self</span>.borrow();
             <span class="kw">let </span>kind = obj.data.type_name_of_value();
-            <span class="kw">if </span>obj.is::&lt;OrdinaryFunction&gt;() {
+            <span class="kw">if </span><span class="self">self</span>.is_callable() {
                 <span class="kw">let </span>name_prop = obj
                     .properties()
                     .get(<span class="kw-2">&amp;</span>PropertyKey::String(JsString::from(<span class="string">&quot;name&quot;</span>)));
@@ -1653,7 +1821,7 @@ Cannot both specify accessors and a value or writable attribute&quot;</span>,
 }
 
 <span class="doccomment">/// Upcasts the reference to an object from a specific type `T` to an erased type `dyn NativeObject`.
-</span><span class="kw">fn </span>upcast&lt;T: NativeObject&gt;(ptr: Gc&lt;VTableObject&lt;T&gt;&gt;) -&gt; Gc&lt;VTableObject&lt;<span class="kw">dyn </span>NativeObject&gt;&gt; {
+</span><span class="kw">fn </span>coerce_gc&lt;T: NativeObject&gt;(ptr: Gc&lt;VTableObject&lt;T&gt;&gt;) -&gt; Gc&lt;VTableObject&lt;<span class="kw">dyn </span>NativeObject&gt;&gt; {
     <span class="comment">// SAFETY: This just makes the casting from sized to unsized. Should eventually be replaced by
     // https://github.com/rust-lang/rust/issues/18598
     </span><span class="kw">unsafe </span>{

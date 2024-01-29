@@ -495,6 +495,8 @@
 <a href="#495" id="495">495</a>
 <a href="#496" id="496">496</a>
 <a href="#497" id="497">497</a>
+<a href="#498" id="498">498</a>
+<a href="#499" id="499">499</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `ArrayBuffer` and `SharedArrayBuffer` objects
 //!
 //! More information:
@@ -704,7 +706,9 @@
         </span><span class="kw">let </span>byte_length = args.get_or_undefined(<span class="number">0</span>).to_index(context)<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Return ? AllocateArrayBuffer(NewTarget, byteLength).
-        </span><span class="prelude-val">Ok</span>(<span class="self">Self</span>::allocate(new_target, byte_length, context)<span class="question-mark">?</span>.into())
+        </span><span class="prelude-val">Ok</span>(<span class="self">Self</span>::allocate(new_target, byte_length, context)<span class="question-mark">?
+            </span>.upcast()
+            .into())
     }
 }
 
@@ -881,7 +885,7 @@
         constructor: <span class="kw-2">&amp;</span>JsValue,
         byte_length: u64,
         context: <span class="kw-2">&amp;mut </span>Context,
-    ) -&gt; JsResult&lt;JsObject&gt; {
+    ) -&gt; JsResult&lt;JsObject&lt;ArrayBuffer&gt;&gt; {
         <span class="comment">// 1. Let obj be ? OrdinaryCreateFromConstructor(constructor, &quot;%ArrayBuffer.prototype%&quot;, « [[ArrayBufferData]], [[ArrayBufferByteLength]], [[ArrayBufferDetachKey]] »).
         </span><span class="kw">let </span>prototype = get_prototype_from_constructor(
             constructor,
@@ -894,7 +898,7 @@
 
         <span class="comment">// 3. Set obj.[[ArrayBufferData]] to block.
         // 4. Set obj.[[ArrayBufferByteLength]] to byteLength.
-        </span><span class="kw">let </span>obj = JsObject::from_proto_and_data_with_shared_shape(
+        </span><span class="kw">let </span>obj = JsObject::new(
             context.root_shape(),
             prototype,
             <span class="self">Self </span>{
