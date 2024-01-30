@@ -390,7 +390,7 @@ mod tests {
         // This test is primarily to assert that the `expect` in the epoch methods is
         // valid, i.e., a valid instant is within the range of an f64.
         let negative_limit = DateTime::<()>::new(
-            -271821,
+            -271_821,
             4,
             19,
             0,
@@ -402,7 +402,7 @@ mod tests {
             CalendarSlot::from_str("iso8601").unwrap(),
         );
         let positive_limit = DateTime::<()>::new(
-            275760,
+            275_760,
             9,
             14,
             0,
