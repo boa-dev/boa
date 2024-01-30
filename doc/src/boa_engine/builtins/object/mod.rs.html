@@ -1543,10 +1543,6 @@
 <a href="#1543" id="1543">1543</a>
 <a href="#1544" id="1544">1544</a>
 <a href="#1545" id="1545">1545</a>
-<a href="#1546" id="1546">1546</a>
-<a href="#1547" id="1547">1547</a>
-<a href="#1548" id="1548">1548</a>
-<a href="#1549" id="1549">1549</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Object` object.
 //!
 //! The `Object` class represents one of ECMAScript&#39;s data types.
@@ -1609,7 +1605,7 @@
             .name(<span class="macro">js_string!</span>(<span class="string">&quot;set __proto__&quot;</span>))
             .build();
 
-        <span class="kw">let </span>obj = BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
+        BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
             .inherits(<span class="prelude-val">None</span>)
             .accessor(
                 <span class="macro">utf16!</span>(<span class="string">&quot;__proto__&quot;</span>),
@@ -1684,12 +1680,9 @@
                 <span class="number">1</span>,
             )
             .static_method(<span class="self">Self</span>::has_own, <span class="macro">js_string!</span>(<span class="string">&quot;hasOwn&quot;</span>), <span class="number">2</span>)
-            .static_method(<span class="self">Self</span>::from_entries, <span class="macro">js_string!</span>(<span class="string">&quot;fromEntries&quot;</span>), <span class="number">1</span>);
-
-        <span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
-        </span><span class="kw">let </span>obj = { obj.static_method(<span class="self">Self</span>::group_by, <span class="macro">js_string!</span>(<span class="string">&quot;groupBy&quot;</span>), <span class="number">2</span>) };
-
-        obj.build();
+            .static_method(<span class="self">Self</span>::from_entries, <span class="macro">js_string!</span>(<span class="string">&quot;fromEntries&quot;</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::group_by, <span class="macro">js_string!</span>(<span class="string">&quot;groupBy&quot;</span>), <span class="number">2</span>)
+            .build();
     }
 
     <span class="kw">fn </span>get(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) -&gt; JsObject {
@@ -2897,8 +2890,7 @@
 
     <span class="doccomment">/// [`Object.groupBy ( items, callbackfn )`][spec]
     ///
-    /// [spec]: https://tc39.es/proposal-array-grouping/#sec-object.groupby
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    /// [spec]: https://tc39.es/ecma262/#sec-object.groupby
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>group_by(
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],

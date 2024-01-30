@@ -1739,10 +1739,6 @@
 <a href="#1739" id="1739">1739</a>
 <a href="#1740" id="1740">1740</a>
 <a href="#1741" id="1741">1741</a>
-<a href="#1742" id="1742">1742</a>
-<a href="#1743" id="1743">1743</a>
-<a href="#1744" id="1744">1744</a>
-<a href="#1745" id="1745">1745</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Data structures that contain intrinsic objects and constructors.
 
 </span><span class="kw">use </span>boa_gc::{Finalize, Trace};
@@ -3095,8 +3091,7 @@
 
     namespace: ObjectTemplate,
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
-    </span>with_resolvers: ObjectTemplate,
+    with_resolvers: ObjectTemplate,
 }
 
 <span class="kw">impl </span>ObjectTemplates {
@@ -3126,10 +3121,10 @@
         );
         string.set_prototype(constructors.string().prototype());
 
-        <span class="kw">let </span><span class="kw-2">mut </span>regexp_without_prototype = ObjectTemplate::new(root_shape);
-        regexp_without_prototype.property(<span class="macro">js_string!</span>(<span class="string">&quot;lastIndex&quot;</span>).into(), Attribute::WRITABLE);
+        <span class="kw">let </span><span class="kw-2">mut </span>regexp_without_proto = ObjectTemplate::new(root_shape);
+        regexp_without_proto.property(<span class="macro">js_string!</span>(<span class="string">&quot;lastIndex&quot;</span>).into(), Attribute::WRITABLE);
 
-        <span class="kw">let </span><span class="kw-2">mut </span>regexp = regexp_without_prototype.clone();
+        <span class="kw">let </span><span class="kw-2">mut </span>regexp = regexp_without_proto.clone();
         regexp.set_prototype(constructors.regexp().prototype());
 
         <span class="kw">let </span>name_property_key: PropertyKey = <span class="macro">js_string!</span>(<span class="string">&quot;name&quot;</span>).into();
@@ -3217,8 +3212,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>namespace = ObjectTemplate::new(root_shape);
         namespace.property(JsSymbol::to_string_tag().into(), Attribute::empty());
 
-        <span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
-        </span><span class="kw">let </span>with_resolvers = {
+        <span class="kw">let </span>with_resolvers = {
             <span class="kw">let </span><span class="kw-2">mut </span>with_resolvers = ordinary_object.clone();
 
             with_resolvers
@@ -3242,7 +3236,7 @@
             bigint,
             boolean,
             regexp,
-            regexp_without_proto: regexp_without_prototype,
+            regexp_without_proto,
             unmapped_arguments,
             mapped_arguments,
             function_with_prototype,
@@ -3254,8 +3248,7 @@
             function_without_proto,
             function_with_prototype_without_proto,
             namespace,
-            <span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
-            </span>with_resolvers,
+            with_resolvers,
         }
     }
 
@@ -3483,7 +3476,6 @@
     /// 1. `&quot;promise&quot;`: (`WRITABLE`, `ENUMERABLE`, `CONFIGURABLE`)
     /// 2. `&quot;resolve&quot;`: (`WRITABLE`, `ENUMERABLE`, `CONFIGURABLE`)
     /// 3. `&quot;reject&quot;`: (`WRITABLE`, `ENUMERABLE`, `CONFIGURABLE`)
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>with_resolvers(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>ObjectTemplate {
         <span class="kw-2">&amp;</span><span class="self">self</span>.with_resolvers
     }

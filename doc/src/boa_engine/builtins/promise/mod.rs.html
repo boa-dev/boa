@@ -2367,11 +2367,6 @@
 <a href="#2367" id="2367">2367</a>
 <a href="#2368" id="2368">2368</a>
 <a href="#2369" id="2369">2369</a>
-<a href="#2370" id="2370">2370</a>
-<a href="#2371" id="2371">2371</a>
-<a href="#2372" id="2372">2372</a>
-<a href="#2373" id="2373">2373</a>
-<a href="#2374" id="2374">2374</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Promise` object.
 
 </span><span class="attr">#[cfg(test)]
@@ -2714,13 +2709,14 @@
             .name(<span class="macro">js_string!</span>(<span class="string">&quot;get [Symbol.species]&quot;</span>))
             .build();
 
-        <span class="kw">let </span>builder = BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
+        BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
             .static_method(<span class="self">Self</span>::all, <span class="macro">js_string!</span>(<span class="string">&quot;all&quot;</span>), <span class="number">1</span>)
             .static_method(<span class="self">Self</span>::all_settled, <span class="macro">js_string!</span>(<span class="string">&quot;allSettled&quot;</span>), <span class="number">1</span>)
             .static_method(<span class="self">Self</span>::any, <span class="macro">js_string!</span>(<span class="string">&quot;any&quot;</span>), <span class="number">1</span>)
             .static_method(<span class="self">Self</span>::race, <span class="macro">js_string!</span>(<span class="string">&quot;race&quot;</span>), <span class="number">1</span>)
             .static_method(<span class="self">Self</span>::reject, <span class="macro">js_string!</span>(<span class="string">&quot;reject&quot;</span>), <span class="number">1</span>)
             .static_method(<span class="self">Self</span>::resolve, <span class="macro">js_string!</span>(<span class="string">&quot;resolve&quot;</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::with_resolvers, <span class="macro">js_string!</span>(<span class="string">&quot;withResolvers&quot;</span>), <span class="number">0</span>)
             .static_accessor(
                 JsSymbol::species(),
                 <span class="prelude-val">Some</span>(get_species),
@@ -2735,13 +2731,8 @@
                 JsSymbol::to_string_tag(),
                 <span class="self">Self</span>::NAME,
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-            );
-
-        <span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
-        </span><span class="kw">let </span>builder =
-            builder.static_method(<span class="self">Self</span>::with_resolvers, <span class="macro">crate::js_string!</span>(<span class="string">&quot;withResolvers&quot;</span>), <span class="number">0</span>);
-
-        builder.build();
+            )
+            .build();
     }
 
     <span class="kw">fn </span>get(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) -&gt; JsObject {
@@ -2845,8 +2836,7 @@
     /// Creates a new promise that is pending, and returns that promise plus the resolve and reject
     /// functions associated with it.
     ///
-    /// [spec]: https://tc39.es/proposal-promise-with-resolvers/#sec-promise.withResolvers
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    /// [spec]: https://tc39.es/ecma262/#sec-promise.withResolvers
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>with_resolvers(
         this: <span class="kw-2">&amp;</span>JsValue,
         _args: <span class="kw-2">&amp;</span>[JsValue],
