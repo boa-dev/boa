@@ -61,7 +61,7 @@ pub type TemporalResult<T> = Result<T, TemporalError>;
 
 // Relevant numeric constants
 /// Nanoseconds per day constant: 8.64e+13
-pub const NS_PER_DAY: i64 = 86_400_000_000_000;
+pub const NS_PER_DAY: i64 = MS_PER_DAY as i64 * 1_000_000;
 /// Milliseconds per day constant: 8.64e+7
 pub const MS_PER_DAY: i32 = 24 * 60 * 60 * 1000;
 /// Max Instant nanosecond constant

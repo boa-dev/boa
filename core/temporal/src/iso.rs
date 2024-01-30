@@ -35,6 +35,16 @@ impl IsoDateTime {
         Self { date, time }
     }
 
+    /// Creates a new validated `IsoDateTime` that is within valid limits.
+    pub(crate) fn new(date: IsoDate, time: IsoTime) -> TemporalResult<Self> {
+        if !iso_dt_within_valid_limits(date, &time) {
+            return Err(
+                TemporalError::range().with_message("IsoDateTime not within a valid range.")
+            );
+        }
+        Ok(Self::new_unchecked(date, time))
+    }
+
     // NOTE: The below assumes that nanos is from an `Instant` and thus in a valid range. -> Needs validation.
     /// Creates an `IsoDateTime` from a `BigInt` of epochNanoseconds.
     pub(crate) fn from_epoch_nanos(nanos: &BigInt, offset: f64) -> TemporalResult<Self> {
@@ -104,36 +114,15 @@ impl IsoDateTime {
 
     /// Returns whether the `IsoDateTime` is within valid limits.
     pub(crate) fn is_within_limits(&self) -> bool {
-        let Some(ns) = self.to_utc_epoch_nanoseconds(0f64) else {
-            return false;
-        };
-
-        let max = BigInt::from(crate::NS_MAX_INSTANT + i128::from(NS_PER_DAY));
-        let min = BigInt::from(crate::NS_MIN_INSTANT - i128::from(NS_PER_DAY));
-
-        min < ns && max > ns
+        iso_dt_within_valid_limits(self.date, &self.time)
     }
 
-    /// Returns the UTC epoch nanoseconds for this `IsoDateTime`.
-    pub(crate) fn to_utc_epoch_nanoseconds(self, offset: f64) -> Option<BigInt> {
-        let day = self.date.to_epoch_days();
-        let time = self.time.to_epoch_ms();
-        let epoch_ms = utils::epoch_days_to_epoch_ms(day, time);
-
-        let epoch_nanos = epoch_ms.mul_add(
-            1_000_000f64,
-            f64::from(self.time.microsecond).mul_add(1_000f64, f64::from(self.time.nanosecond)),
-        );
-
-        BigInt::from_f64(epoch_nanos - offset)
+    pub(crate) const fn date(&self) -> &IsoDate {
+        &self.date
     }
 
-    pub(crate) fn date(&self) -> IsoDate {
-        self.date
-    }
-
-    pub(crate) fn time(&self) -> IsoTime {
-        self.time
+    pub(crate) const fn time(&self) -> &IsoTime {
+        &self.time
     }
 }
 
@@ -154,9 +143,9 @@ pub trait IsoDateSlots {
 /// `Temporal.YearMonth` object, and the `Temporal.MonthDay` object.
 #[derive(Debug, Clone, Copy, Default)]
 pub struct IsoDate {
-    year: i32,
-    month: u8,
-    day: u8,
+    pub(crate) year: i32,
+    pub(crate) month: u8,
+    pub(crate) day: u8,
 }
 
 impl IsoDate {
@@ -200,21 +189,6 @@ impl IsoDate {
             utils::epoch_time_to_month_in_year(ms) + 1,
             utils::epoch_time_to_date(ms),
         )
-    }
-
-    /// Returns the year field
-    pub(crate) const fn year(self) -> i32 {
-        self.year
-    }
-
-    /// Returns the month field
-    pub(crate) const fn month(self) -> u8 {
-        self.month
-    }
-
-    /// Returns the day field
-    pub(crate) const fn day(self) -> u8 {
-        self.day
     }
 
     /// Functionally the same as Date's abstract operation `MakeDay`
@@ -588,11 +562,43 @@ impl IsoTime {
     ///
     /// Functionally the same as Date's `MakeTime`
     pub(crate) fn to_epoch_ms(self) -> f64 {
-        f64::from(self.hour).mul_add(
-            utils::MS_PER_HOUR,
-            f64::from(self.minute) * utils::MS_PER_MINUTE,
-        ) + f64::from(self.second).mul_add(1000f64, f64::from(self.millisecond))
+        ((f64::from(self.hour) * utils::MS_PER_HOUR
+            + f64::from(self.minute) * utils::MS_PER_MINUTE)
+            + f64::from(self.second) * 1000f64)
+            + f64::from(self.millisecond)
     }
+}
+
+// ==== `IsoDateTime` specific utility functions ====
+
+#[inline]
+/// Utility function to determine if a `DateTime`'s components create a `DateTime` within valid limits
+fn iso_dt_within_valid_limits(date: IsoDate, time: &IsoTime) -> bool {
+    if iso_date_to_epoch_days(date.year, (date.month).into(), date.day.into()).abs() > 100_000_001 {
+        return false;
+    }
+    let Some(ns) = utc_epoch_nanos(date, time, 0.0) else {
+        return false;
+    };
+
+    let max = BigInt::from(crate::NS_MAX_INSTANT + i128::from(NS_PER_DAY));
+    let min = BigInt::from(crate::NS_MIN_INSTANT - i128::from(NS_PER_DAY));
+
+    min < ns && max > ns
+}
+
+#[inline]
+/// Utility function to convert a `IsoDate` and `IsoTime` values into epoch nanoseconds
+fn utc_epoch_nanos(date: IsoDate, time: &IsoTime, offset: f64) -> Option<BigInt> {
+    let ms = time.to_epoch_ms();
+    let epoch_ms = utils::epoch_days_to_epoch_ms(date.to_epoch_days(), ms);
+
+    let epoch_nanos = epoch_ms.mul_add(
+        1_000_000f64,
+        f64::from(time.microsecond).mul_add(1_000f64, f64::from(time.nanosecond)),
+    );
+
+    BigInt::from_f64(epoch_nanos - offset)
 }
 
 // ==== `IsoDate` specific utiltiy functions ====
@@ -610,7 +616,7 @@ fn iso_date_to_epoch_days(year: i32, month: i32, day: i32) -> i32 {
     let month_t = utils::epoch_time_for_month_given_year(resolved_month, resolved_year);
 
     // 4. Return EpochTimeToDayNumber(t) + date - 1.
-    utils::epoch_time_to_day_number(year_t + month_t) + day - 1
+    utils::epoch_time_to_day_number((year_t.abs() + month_t).copysign(year_t)) + day - 1
 }
 
 #[inline]

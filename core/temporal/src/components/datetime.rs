@@ -1,7 +1,5 @@
 //! This module implements `DateTime` any directly related algorithms.
 
-use std::str::FromStr;
-
 use crate::{
     components::{
         calendar::{CalendarProtocol, CalendarSlot},
@@ -12,6 +10,9 @@ use crate::{
     parser::parse_date_time,
     TemporalError, TemporalResult,
 };
+
+use std::{any::Any, str::FromStr};
+use tinystr::TinyAsciiStr;
 
 /// The native Rust implementation of `Temporal.PlainDateTime`
 #[derive(Debug, Default, Clone)]
@@ -26,11 +27,8 @@ impl<C: CalendarProtocol> DateTime<C> {
     /// Creates a new unchecked `DateTime`.
     #[inline]
     #[must_use]
-    pub(crate) fn new_unchecked(date: IsoDate, time: IsoTime, calendar: CalendarSlot<C>) -> Self {
-        Self {
-            iso: IsoDateTime::new_unchecked(date, time),
-            calendar,
-        }
+    pub(crate) fn new_unchecked(iso: IsoDateTime, calendar: CalendarSlot<C>) -> Self {
+        Self { iso, calendar }
     }
 
     #[inline]
@@ -49,6 +47,13 @@ impl<C: CalendarProtocol> DateTime<C> {
     ) -> TemporalResult<Self> {
         let iso = IsoDateTime::from_epoch_nanos(&instant.nanos, offset)?;
         Ok(Self { iso, calendar })
+    }
+
+    /// Returns the inner `IsoDate` value.
+    #[inline]
+    #[must_use]
+    pub(crate) fn iso_date(&self) -> &IsoDate {
+        self.iso.date()
     }
 }
 
@@ -80,7 +85,10 @@ impl<C: CalendarProtocol> DateTime<C> {
             nanosecond,
             ArithmeticOverflow::Reject,
         )?;
-        Ok(Self::new_unchecked(iso_date, iso_time, calendar))
+        Ok(Self::new_unchecked(
+            IsoDateTime::new(iso_date, iso_time)?,
+            calendar,
+        ))
     }
 
     /// Validates whether ISO date slots are within iso limits at noon.
@@ -89,59 +97,66 @@ impl<C: CalendarProtocol> DateTime<C> {
         Self::validate_iso(target.iso_date())
     }
 
-    /// Returns the inner `IsoDate` value.
+    /// Returns this `Date`'s ISO year value.
     #[inline]
     #[must_use]
-    pub fn iso_date(&self) -> IsoDate {
-        self.iso.date()
+    pub const fn iso_year(&self) -> i32 {
+        self.iso.date().year
     }
 
-    /// Returns the inner `IsoTime` value.
+    /// Returns this `Date`'s ISO month value.
     #[inline]
     #[must_use]
-    pub fn iso_time(&self) -> IsoTime {
-        self.iso.time()
+    pub const fn iso_month(&self) -> u8 {
+        self.iso.date().month
+    }
+
+    /// Returns this `Date`'s ISO day value.
+    #[inline]
+    #[must_use]
+    pub const fn iso_day(&self) -> u8 {
+        self.iso.date().day
     }
 
     /// Returns the hour value
     #[inline]
     #[must_use]
-    pub fn hours(&self) -> u8 {
+    pub fn hour(&self) -> u8 {
         self.iso.time().hour
     }
 
     /// Returns the minute value
     #[inline]
     #[must_use]
-    pub fn minutes(&self) -> u8 {
+    pub fn minute(&self) -> u8 {
         self.iso.time().minute
     }
 
     /// Returns the second value
     #[inline]
     #[must_use]
-    pub fn seconds(&self) -> u8 {
+    pub fn second(&self) -> u8 {
         self.iso.time().second
     }
 
     /// Returns the `millisecond` value
     #[inline]
     #[must_use]
-    pub fn milliseconds(&self) -> u16 {
+    pub fn millisecond(&self) -> u16 {
         self.iso.time().millisecond
     }
 
     /// Returns the `microsecond` value
     #[inline]
     #[must_use]
-    pub fn microseconds(&self) -> u16 {
+    pub fn microsecond(&self) -> u16 {
         self.iso.time().microsecond
     }
 
     /// Returns the `nanosecond` value
     #[inline]
     #[must_use]
-    pub fn nanoseconds(&self) -> u16 {
+    pub fn nanosecond(&self) -> u16 {
         self.iso.time().nanosecond
     }
 
@@ -150,6 +165,179 @@ impl<C: CalendarProtocol> DateTime<C> {
     #[must_use]
     pub fn calendar(&self) -> &CalendarSlot<C> {
         &self.calendar
+    }
+}
+
+// ==== Calendar-derived public API ====
+
+impl<C: CalendarProtocol> DateTime<C> {
+    /// Returns the calendar year value with provided context.
+    pub fn contextual_year(&self, context: &mut dyn Any) -> TemporalResult<i32> {
+        self.calendar.year(
+            &super::calendar::CalendarDateLike::DateTime(self.clone()),
+            context,
+        )
+    }
+
+    /// Returns the calendar year value.
+    pub fn year(&self) -> TemporalResult<i32> {
+        self.contextual_year(&mut ())
+    }
+
+    /// Returns the calendar month value with provided context.
+    pub fn contextual_month(&self, context: &mut dyn Any) -> TemporalResult<u8> {
+        self.calendar.month(
+            &super::calendar::CalendarDateLike::DateTime(self.clone()),
+            context,
+        )
+    }
+
+    /// Returns the calendar month value.
+    pub fn month(&self) -> TemporalResult<u8> {
+        self.contextual_month(&mut ())
+    }
+
+    /// Returns the calendar month code value with provided context.
+    pub fn contextual_month_code(&self, context: &mut dyn Any) -> TemporalResult<TinyAsciiStr<4>> {
+        self.calendar.month_code(
+            &super::calendar::CalendarDateLike::DateTime(self.clone()),
+            context,
+        )
+    }
+
+    /// Returns the calendar month code value.
+    pub fn month_code(&self) -> TemporalResult<TinyAsciiStr<4>> {
+        self.contextual_month_code(&mut ())
+    }
+
+    /// Returns the calendar day value with provided context.
+    pub fn contextual_day(&self, context: &mut dyn Any) -> TemporalResult<u8> {
+        self.calendar.day(
+            &super::calendar::CalendarDateLike::DateTime(self.clone()),
+            context,
+        )
+    }
+
+    /// Returns the calendar day value.
+    pub fn day(&self) -> TemporalResult<u8> {
+        self.contextual_day(&mut ())
+    }
+
+    /// Returns the calendar day of week value with provided context.
+    pub fn contextual_day_of_week(&self, context: &mut dyn Any) -> TemporalResult<u16> {
+        self.calendar.day_of_week(
+            &super::calendar::CalendarDateLike::DateTime(self.clone()),
+            context,
+        )
+    }
+
+    /// Returns the calendar day of week value.
+    pub fn day_of_week(&self) -> TemporalResult<u16> {
+        self.contextual_day_of_week(&mut ())
+    }
+
+    /// Returns the calendar day of year value with provided context.
+    pub fn contextual_day_of_year(&self, context: &mut dyn Any) -> TemporalResult<u16> {
+        self.calendar.day_of_week(
+            &super::calendar::CalendarDateLike::DateTime(self.clone()),
+            context,
+        )
+    }
+
+    /// Returns the calendar day of year value.
+    pub fn day_of_year(&self) -> TemporalResult<u16> {
+        self.contextual_day_of_week(&mut ())
+    }
+
+    /// Returns the calendar week of year value with provided context.
+    pub fn contextual_week_of_year(&self, context: &mut dyn Any) -> TemporalResult<u16> {
+        self.calendar.week_of_year(
+            &super::calendar::CalendarDateLike::DateTime(self.clone()),
+            context,
+        )
+    }
+
+    /// Returns the calendar week of year value.
+    pub fn week_of_year(&self) -> TemporalResult<u16> {
+        self.contextual_week_of_year(&mut ())
+    }
+
+    /// Returns the calendar year of week value with provided context.
+    pub fn contextual_year_of_week(&self, context: &mut dyn Any) -> TemporalResult<i32> {
+        self.calendar.year_of_week(
+            &super::calendar::CalendarDateLike::DateTime(self.clone()),
+            context,
+        )
+    }
+
+    /// Returns the calendar year of week value.
+    pub fn year_of_week(&self) -> TemporalResult<i32> {
+        self.contextual_year_of_week(&mut ())
+    }
+
+    /// Returns the calendar days in week value with provided context.
+    pub fn contextual_days_in_week(&self, context: &mut dyn Any) -> TemporalResult<u16> {
+        self.calendar.days_in_week(
+            &super::calendar::CalendarDateLike::DateTime(self.clone()),
+            context,
+        )
+    }
+
+    /// Returns the calendar days in week value.
+    pub fn days_in_week(&self) -> TemporalResult<u16> {
+        self.contextual_days_in_week(&mut ())
+    }
+
+    /// Returns the calendar days in month value with provided context.
+    pub fn contextual_days_in_month(&self, context: &mut dyn Any) -> TemporalResult<u16> {
+        self.calendar.days_in_month(
+            &super::calendar::CalendarDateLike::DateTime(self.clone()),
+            context,
+        )
+    }
+
+    /// Returns the calendar days in month value.
+    pub fn days_in_month(&self) -> TemporalResult<u16> {
+        self.contextual_days_in_month(&mut ())
+    }
+
+    /// Returns the calendar days in year value with provided context.
+    pub fn contextual_days_in_year(&self, context: &mut dyn Any) -> TemporalResult<u16> {
+        self.calendar.days_in_year(
+            &super::calendar::CalendarDateLike::DateTime(self.clone()),
+            context,
+        )
+    }
+
+    /// Returns the calendar days in year value.
+    pub fn days_in_year(&self) -> TemporalResult<u16> {
+        self.contextual_days_in_year(&mut ())
+    }
+
+    /// Returns the calendar months in year value with provided context.
+    pub fn contextual_months_in_year(&self, context: &mut dyn Any) -> TemporalResult<u16> {
+        self.calendar.months_in_year(
+            &super::calendar::CalendarDateLike::DateTime(self.clone()),
+            context,
+        )
+    }
+
+    /// Returns the calendar months in year value.
+    pub fn months_in_year(&self) -> TemporalResult<u16> {
+        self.contextual_months_in_year(&mut ())
+    }
+
+    /// Returns whether the date is in a leap year for the given calendar with provided context.
+    pub fn contextual_in_leap_year(&self, context: &mut dyn Any) -> TemporalResult<bool> {
+        self.calendar.in_leap_year(
+            &super::calendar::CalendarDateLike::DateTime(self.clone()),
+            context,
+        )
+    }
+
+    /// Returns returns whether the date in a leap year for the given calendar.
+    pub fn in_leap_year(&self) -> TemporalResult<bool> {
+        self.contextual_in_leap_year(&mut ())
     }
 }
 
@@ -182,9 +370,51 @@ impl<C: CalendarProtocol> FromStr for DateTime<C> {
         )?;
 
         Ok(Self::new_unchecked(
-            date,
-            time,
+            IsoDateTime::new(date, time)?,
             CalendarSlot::from_str(&calendar)?,
         ))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::str::FromStr;
+
+    use crate::components::calendar::CalendarSlot;
+
+    use super::DateTime;
+
+    #[test]
+    #[allow(clippy::float_cmp)]
+    fn plain_date_time_limits() {
+        // This test is primarily to assert that the `expect` in the epoch methods is
+        // valid, i.e., a valid instant is within the range of an f64.
+        let negative_limit = DateTime::<()>::new(
+            -271_821,
+            4,
+            19,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            CalendarSlot::from_str("iso8601").unwrap(),
+        );
+        let positive_limit = DateTime::<()>::new(
+            275_760,
+            9,
+            14,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            CalendarSlot::from_str("iso8601").unwrap(),
+        );
+
+        assert!(negative_limit.is_err());
+        assert!(positive_limit.is_err());
     }
 }

@@ -67,7 +67,7 @@ impl<C: CalendarProtocol> Date<C> {
     /// Creates a `Date` from a `DateTime`.
     pub fn from_datetime(dt: &DateTime<C>) -> Self {
         Self {
-            iso: dt.iso_date(),
+            iso: *dt.iso_date(),
             calendar: dt.calendar().clone(),
         }
     }
@@ -76,21 +76,21 @@ impl<C: CalendarProtocol> Date<C> {
     #[must_use]
     /// Returns this `Date`'s ISO year value.
     pub const fn iso_year(&self) -> i32 {
-        self.iso.year()
+        self.iso.year
     }
 
     #[inline]
     #[must_use]
     /// Returns this `Date`'s ISO month value.
     pub const fn iso_month(&self) -> u8 {
-        self.iso.month()
+        self.iso.month
     }
 
     #[inline]
     #[must_use]
     /// Returns this `Date`'s ISO day value.
     pub const fn iso_day(&self) -> u8 {
-        self.iso.day()
+        self.iso.day
     }
 
     #[inline]
@@ -373,9 +373,9 @@ impl<C: CalendarProtocol> Date<C> {
         largest_unit: TemporalUnit,
         context: &mut dyn Any,
     ) -> TemporalResult<Duration> {
-        if self.iso.year() == other.iso.year()
-            && self.iso.month() == other.iso.month()
-            && self.iso.day() == other.iso.day()
+        if self.iso.year == other.iso.year
+            && self.iso.month == other.iso.month
+            && self.iso.day == other.iso.day
         {
             return Ok(Duration::default());
         }
