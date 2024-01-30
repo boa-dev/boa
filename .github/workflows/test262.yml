@@ -37,13 +37,7 @@ jobs:
             ~/.cargo/registry
           key: ${{ runner.os }}-cargo-test262-${{ hashFiles('**/Cargo.lock') }}
 
-      # Run the test suite and upload the results
-      - name: Checkout GitHub pages
-        uses: actions/checkout@v4
-        with:
-          ref: gh-pages
-          path: gh-pages
-
+      # Run the test suite.
       - name: Run the test262 test suite
         run: |
           cd boa
@@ -52,6 +46,12 @@ jobs:
           cd ..
 
       # Run the results comparison
+      - name: Checkout GitHub pages
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: gh-pages
+
       - name: Compare results
         if: github.event_name == 'pull_request'
         id: compare
