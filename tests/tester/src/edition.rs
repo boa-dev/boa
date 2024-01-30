@@ -41,10 +41,6 @@ static FEATURE_EDITION: phf::Map<&'static str, SpecEdition> = phf::phf_map! {
     // https://github.com/tc39/proposal-json-modules
     "json-modules"  => SpecEdition::ESNext,
 
-    // Resizable Arraybuffer
-    // https://github.com/tc39/proposal-resizablearraybuffer
-    "resizable-arraybuffer" => SpecEdition::ESNext,
-
     // ArrayBuffer transfer
     // https://github.com/tc39/proposal-arraybuffer-transfer
     "arraybuffer-transfer" => SpecEdition::ESNext,
@@ -56,10 +52,6 @@ static FEATURE_EDITION: phf::Map<&'static str, SpecEdition> = phf::phf_map! {
     // ShadowRealm, née Callable Boundary Realms
     // https://github.com/tc39/proposal-realms
     "ShadowRealm" => SpecEdition::ESNext,
-
-    // Array.prototype.group & Array.prototype.groupToMap
-    // https://github.com/tc39/proposal-array-grouping
-    "array-grouping" => SpecEdition::ESNext,
 
     // Intl.DurationFormat
     // https://github.com/tc39/proposal-intl-duration-format
@@ -73,7 +65,8 @@ static FEATURE_EDITION: phf::Map<&'static str, SpecEdition> = phf::phf_map! {
     // https://github.com/tc39/proposal-duplicate-named-capturing-groups
     "regexp-duplicate-named-groups" => SpecEdition::ESNext,
 
-    // https://tc39.es/proposal-array-from-async/
+    // Array.fromAsync
+    // https://github.com/tc39/proposal-array-from-async
     "Array.fromAsync" => SpecEdition::ESNext,
 
     // JSON.parse with source
@@ -84,10 +77,6 @@ static FEATURE_EDITION: phf::Map<&'static str, SpecEdition> = phf::phf_map! {
     // https://github.com/tc39/proposal-iterator-helpers
     "iterator-helpers" => SpecEdition::ESNext,
 
-    // Promise.withResolvers
-    // https://github.com/tc39/proposal-promise-with-resolvers
-    "promise-with-resolvers" => SpecEdition::ESNext,
-
     // Set methods
     // https://github.com/tc39/proposal-set-methods
     "set-methods" => SpecEdition::ESNext,
@@ -97,6 +86,9 @@ static FEATURE_EDITION: phf::Map<&'static str, SpecEdition> = phf::phf_map! {
     "regexp-v-flag" => SpecEdition::ESNext,
     "String.prototype.isWellFormed" => SpecEdition::ESNext,
     "String.prototype.toWellFormed" => SpecEdition::ESNext,
+    "resizable-arraybuffer" => SpecEdition::ESNext,
+    "promise-with-resolvers" => SpecEdition::ESNext,
+    "array-grouping" => SpecEdition::ESNext,
 
     // Standard language features
     "AggregateError" => SpecEdition::ES12,

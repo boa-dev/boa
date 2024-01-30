@@ -60,7 +60,7 @@ impl IntrinsicObject for OrdinaryObject {
             .name(js_string!("set __proto__"))
             .build();
 
-        let obj = BuiltInBuilder::from_standard_constructor::<Self>(realm)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .inherits(None)
             .accessor(
                 utf16!("__proto__"),
@@ -135,12 +135,9 @@ impl IntrinsicObject for OrdinaryObject {
                 1,
             )
             .static_method(Self::has_own, js_string!("hasOwn"), 2)
-            .static_method(Self::from_entries, js_string!("fromEntries"), 1);
-
-        #[cfg(feature = "experimental")]
-        let obj = { obj.static_method(Self::group_by, js_string!("groupBy"), 2) };
-
-        obj.build();
+            .static_method(Self::from_entries, js_string!("fromEntries"), 1)
+            .static_method(Self::group_by, js_string!("groupBy"), 2)
+            .build();
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {
@@ -1348,8 +1345,7 @@ impl OrdinaryObject {
 
     /// [`Object.groupBy ( items, callbackfn )`][spec]
     ///
-    /// [spec]: https://tc39.es/proposal-array-grouping/#sec-object.groupby
-    #[cfg(feature = "experimental")]
+    /// [spec]: https://tc39.es/ecma262/#sec-object.groupby
     pub(crate) fn group_by(
         _: &JsValue,
         args: &[JsValue],

@@ -54,7 +54,8 @@ impl IntrinsicObject for Map {
             .name(js_string!("entries"))
             .build();
 
-        let obj = BuiltInBuilder::from_standard_constructor::<Self>(realm)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm)
+            .static_method(Self::group_by, js_string!("groupBy"), 2)
             .static_accessor(
                 JsSymbol::species(),
                 Some(get_species),
@@ -89,12 +90,8 @@ impl IntrinsicObject for Map {
                 Some(get_size),
                 None,
                 Attribute::CONFIGURABLE,
-            );
-
-        #[cfg(feature = "experimental")]
-        let obj = { obj.static_method(Self::group_by, js_string!("groupBy"), 2) };
-
-        obj.build();
+            )
+            .build();
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {
@@ -516,8 +513,7 @@ impl Map {
 
     /// [`Map.groupBy ( items, callbackfn )`][spec]
     ///
-    /// [spec]: https://tc39.es/proposal-array-grouping/#sec-map.groupby
-    #[cfg(feature = "experimental")]
+    /// [spec]: https://tc39.es/ecma262/#sec-map.groupby
     pub(crate) fn group_by(
         _: &JsValue,
         args: &[JsValue],
@@ -535,7 +531,7 @@ impl Map {
         // 1. Let groups be ? GroupBy(items, callbackfn, zero).
 
         // `GroupBy`
-        // https://tc39.es/proposal-array-grouping/#sec-group-by
+        // https://tc39.es/ecma262/#sec-groupby
         // inlined to change the key type.
 
         // 1. Perform ? RequireObjectCoercible(items).
