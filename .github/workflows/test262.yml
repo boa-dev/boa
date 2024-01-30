@@ -101,6 +101,7 @@ jobs:
 
       # Commit changes to GitHub pages.
       - name: Checkout GitHub pages
+        if: github.event_name == 'push'
         uses: actions/checkout@v4
         with:
           ref: gh-pages
