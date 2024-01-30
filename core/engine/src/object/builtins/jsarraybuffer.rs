@@ -17,6 +17,20 @@ pub struct JsArrayBuffer {
     inner: JsObject<ArrayBuffer>,
 }
 
+impl From<JsArrayBuffer> for JsObject<ArrayBuffer> {
+    #[inline]
+    fn from(value: JsArrayBuffer) -> Self {
+        value.inner
+    }
+}
+
+impl From<JsObject<ArrayBuffer>> for JsArrayBuffer {
+    #[inline]
+    fn from(value: JsObject<ArrayBuffer>) -> Self {
+        Self { inner: value }
+    }
+}
+
 // TODO: Add constructors that also take the `detach_key` as argument.
 impl JsArrayBuffer {
     /// Create a new array buffer with byte length.
@@ -157,7 +171,7 @@ impl JsArrayBuffer {
     ///
     /// # Note
     ///
-    /// This tries to detach the pre-existing `JsArrayBuffer`, meaning the original detached
+    /// This tries to detach the pre-existing `JsArrayBuffer`, meaning the original detach
     /// key is required. By default, the key is set to `undefined`.
     ///
     /// ```

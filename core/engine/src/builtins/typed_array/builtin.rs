@@ -1,14 +1,17 @@
-use std::{cmp, ptr, sync::atomic};
+use std::{cmp, sync::atomic};
 
 use boa_macros::utf16;
 use num_traits::Zero;
 
+use super::{
+    object::typed_array_set_element, ContentType, TypedArray, TypedArrayKind, TypedArrayMarker,
+};
 use crate::{
     builtins::{
         array::{find_via_predicate, ArrayIterator, Direction},
         array_buffer::{
             utils::{memcpy, memmove, SliceRefMut},
-            ArrayBuffer, BufferRef,
+            ArrayBuffer, BufferObject,
         },
         iterable::iterable_to_list,
         Array, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
@@ -21,11 +24,6 @@ use crate::{
     string::common::StaticJsStrings,
     value::IntegerOrInfinity,
     Context, JsArgs, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
-};
-
-use super::{
-    integer_indexed_object::integer_indexed_element_set, ContentType, TypedArray, TypedArrayKind,
-    TypedArrayMarker,
 };
 
 /// The JavaScript `%TypedArray%` object.
@@ -427,7 +425,7 @@ impl BuiltinTypedArray {
 
         // 4. Let buffer be O.[[ViewedArrayBuffer]].
         // 5. Return buffer.
-        Ok(typed_array.viewed_array_buffer().clone().into())
+        Ok(JsObject::from(typed_array.viewed_array_buffer().clone()).into())
     }
 
     /// `23.2.3.3 get %TypedArray%.prototype.byteLength`
@@ -574,10 +572,7 @@ impl BuiltinTypedArray {
             // b. Let buffer be O.[[ViewedArrayBuffer]].
             // c. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.
             let buffer_obj = o.viewed_array_buffer();
-            let mut buffer_obj_borrow = buffer_obj.borrow_mut();
-            let mut buffer = buffer_obj_borrow
-                .as_buffer_mut()
-                .expect("Already checked for detached buffer");
+            let mut buffer = buffer_obj.as_buffer_mut();
             let Some(buffer) = buffer.data_mut() else {
                 return Err(JsNativeError::typ()
                     .with_message("Buffer of the typed array is detached")
@@ -2060,34 +2055,14 @@ impl BuiltinTypedArray {
         // 18. If IsSharedArrayBuffer(srcBuffer) is true, IsSharedArrayBuffer(targetBuffer) is true,
         //     and srcBuffer.[[ArrayBufferData]] is targetBuffer.[[ArrayBufferData]], let
         //     sameSharedArrayBuffer be true; otherwise, let sameSharedArrayBuffer be false.
-        let same = if JsObject::equals(&src_buffer_obj, &target_buffer_obj) {
-            true
-        } else {
-            let src_buffer_obj = src_buffer_obj.borrow();
-            let src_buffer = src_buffer_obj.as_buffer().expect("Must be an array buffer");
-
-            let target_buffer_obj = target_buffer_obj.borrow();
-            let target_buffer = target_buffer_obj
-                .as_buffer()
-                .expect("Must be an array buffer");
-
-            match (src_buffer, target_buffer) {
-                (BufferRef::SharedBuffer(src), BufferRef::SharedBuffer(dest)) => {
-                    ptr::eq(src.data(), dest.data())
-                }
-                (_, _) => false,
-            }
-        };
-
         // 19. If SameValue(srcBuffer, targetBuffer) is true or sameSharedArrayBuffer is true, then
-        let src_byte_index = if same {
+        let src_byte_index = if BufferObject::equals(&src_buffer_obj, &target_buffer_obj) {
             // a. Let srcByteLength be source.[[ByteLength]].
             let src_byte_offset = src_byte_offset as usize;
             let src_byte_length = source_array.byte_length() as usize;
 
             let s = {
-                let slice = src_buffer_obj.borrow();
-                let slice = slice.as_buffer().expect("Must be an array buffer");
+                let slice = src_buffer_obj.as_buffer();
                 let slice = slice.data().expect("Already checked for detached buffer");
 
                 // b. Set srcBuffer to ? CloneArrayBuffer(srcBuffer, srcByteOffset, srcByteLength, %ArrayBuffer%).
@@ -2096,8 +2071,7 @@ impl BuiltinTypedArray {
                     .subslice(src_byte_offset..src_byte_offset + src_byte_length)
                     .clone(context)?
             };
-            // TODO: skip this upcast
-            src_buffer_obj = s.upcast();
+            src_buffer_obj = BufferObject::Buffer(s);
 
             // d. Let srcByteIndex be 0.
             0
@@ -2112,16 +2086,12 @@ impl BuiltinTypedArray {
         // 22. Let targetByteIndex be targetOffset × targetElementSize + targetByteOffset.
         let target_byte_index = target_offset * target_element_size + target_byte_offset;
 
-        let src_buffer = src_buffer_obj.borrow();
-        let src_buffer = src_buffer.as_buffer().expect("Must be an array buffer");
+        let src_buffer = src_buffer_obj.as_buffer();
         let src_buffer = src_buffer
             .data()
             .expect("Already checked for detached buffer");
 
-        let mut target_buffer = target_buffer_obj.borrow_mut();
-        let mut target_buffer = target_buffer
-            .as_buffer_mut()
-            .expect("Must be an array buffer");
+        let mut target_buffer = target_buffer_obj.as_buffer_mut();
         let mut target_buffer = target_buffer
             .data_mut()
             .expect("Already checked for detached buffer");
@@ -2255,7 +2225,7 @@ impl BuiltinTypedArray {
             let target_index = target_offset + k;
 
             // d. Perform ? IntegerIndexedElementSet(target, targetIndex, value).
-            integer_indexed_element_set(target, target_index as f64, &value, &mut context.into())?;
+            typed_array_set_element(target, target_index as f64, &value, &mut context.into())?;
 
             // e. Set k to k + 1.
         }
@@ -2377,18 +2347,12 @@ impl BuiltinTypedArray {
             } else {
                 // i. Let srcBuffer be O.[[ViewedArrayBuffer]].
                 let src_buffer_obj = o.viewed_array_buffer();
-                let src_buffer_obj_borrow = src_buffer_obj.borrow();
-                let src_buffer = src_buffer_obj_borrow
-                    .as_buffer()
-                    .expect("view must be a buffer");
+                let src_buffer = src_buffer_obj.as_buffer();
                 let src_buffer = src_buffer.data().expect("cannot be detached here");
 
                 // ii. Let targetBuffer be A.[[ViewedArrayBuffer]].
                 let target_buffer_obj = a_array.viewed_array_buffer();
-                let mut target_buffer_obj_borrow = target_buffer_obj.borrow_mut();
-                let mut target_buffer = target_buffer_obj_borrow
-                    .as_buffer_mut()
-                    .expect("view must be a buffer");
+                let mut target_buffer = target_buffer_obj.as_buffer_mut();
                 let mut target_buffer = target_buffer.data_mut().expect("cannot be detached here");
 
                 // iii. Let elementSize be the Element Size value specified in Table 73 for Element Type srcType.
@@ -2713,7 +2677,7 @@ impl BuiltinTypedArray {
             obj,
             o.kind(),
             &[
-                buffer.clone().into(),
+                JsObject::from(buffer.clone()).into(),
                 begin_byte_offset.into(),
                 new_length.into(),
             ],
@@ -3069,9 +3033,8 @@ impl BuiltinTypedArray {
         // 9. Set O.[[ArrayLength]] to length.
 
         // 10. Return O.
-        // TODO: skip this upcast.
         Ok(TypedArray::new(
-            data.upcast(),
+            BufferObject::Buffer(data),
             T::ERASED,
             0,
             byte_length,
@@ -3153,18 +3116,14 @@ impl BuiltinTypedArray {
     /// [spec]: https://tc39.es/ecma262/#sec-initializetypedarrayfromtypedarray
     pub(super) fn initialize_from_typed_array<T: TypedArrayMarker>(
         proto: JsObject,
-        src_array: &JsObject,
+        src_array: &JsObject<TypedArray>,
         context: &mut Context,
     ) -> JsResult<JsObject> {
         let src_array = src_array.borrow();
-        let src_array = src_array
-            .downcast_ref::<TypedArray>()
-            .expect("this must be a typed array");
+        let src_array = &src_array.data;
+
         let src_data = src_array.viewed_array_buffer();
-        let src_data = src_data.borrow();
-        let src_data = src_data
-            .as_buffer()
-            .expect("integer indexed must have a buffer");
+        let src_data = src_data.as_buffer();
 
         // 1. Let srcData be srcArray.[[ViewedArrayBuffer]].
         // 2. If IsDetachedBuffer(srcData) is true, throw a TypeError exception.
@@ -3288,12 +3247,11 @@ impl BuiltinTypedArray {
         // 13. Set O.[[ByteLength]] to byteLength.
         // 14. Set O.[[ByteOffset]] to 0.
         // 15. Set O.[[ArrayLength]] to elementLength.
-        // TODO: Skip this upcast.
         let obj = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             proto,
             TypedArray::new(
-                new_buffer.upcast(),
+                BufferObject::Buffer(new_buffer),
                 element_type,
                 0,
                 byte_length,
@@ -3313,7 +3271,7 @@ impl BuiltinTypedArray {
     /// [spec]: https://tc39.es/ecma262/#sec-initializetypedarrayfromarraybuffer
     pub(super) fn initialize_from_array_buffer<T: TypedArrayMarker>(
         proto: JsObject,
-        buffer: JsObject,
+        buffer: BufferObject,
         byte_offset: &JsValue,
         length: &JsValue,
         context: &mut Context,
@@ -3342,10 +3300,9 @@ impl BuiltinTypedArray {
         // 5. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.
         // 6. Let bufferByteLength be buffer.[[ArrayBufferByteLength]].
         let buffer_byte_length = {
-            let buffer_borrow = buffer.borrow();
-            let buffer_array = buffer_borrow.as_buffer().expect("Must be a buffer");
+            let buffer = buffer.as_buffer();
 
-            let Some(data) = buffer_array.data() else {
+            let Some(data) = buffer.data() else {
                 return Err(JsNativeError::typ()
                     .with_message("Cannot construct typed array from detached buffer")
                     .into());

@@ -8,7 +8,11 @@ use super::{
     JsPrototype, NativeObject, Object, PrivateName, PropertyMap,
 };
 use crate::{
-    builtins::{array::ARRAY_EXOTIC_INTERNAL_METHODS, object::OrdinaryObject},
+    builtins::{
+        array::ARRAY_EXOTIC_INTERNAL_METHODS,
+        array_buffer::{ArrayBuffer, BufferObject, SharedArrayBuffer},
+        object::OrdinaryObject,
+    },
     context::intrinsics::Intrinsics,
     error::JsNativeError,
     js_string,
@@ -212,6 +216,24 @@ impl JsObject {
         }
     }
 
+    /// Downcasts the object's inner data to `T` without verifying the inner type of `T`.
+    ///
+    /// # Safety
+    ///
+    /// For this cast to be sound, `self` must contain an instance of `T` inside its inner data.
+    #[must_use]
+    pub unsafe fn downcast_unchecked<T: NativeObject>(self) -> JsObject<T> {
+        let ptr: NonNull<GcBox<VTableObject<T>>> = Gc::into_raw(self.inner).cast();
+
+        // SAFETY: The caller guarantees `T` is the original inner data type of the underlying
+        // object.
+        unsafe {
+            JsObject {
+                inner: Gc::from_raw(ptr),
+            }
+        }
+    }
+
     /// Downcasts a reference to the object,
     /// if the object is of type `T`.
     ///
@@ -266,18 +288,6 @@ impl JsObject {
     #[track_caller]
     pub fn is_array(&self) -> bool {
         std::ptr::eq(self.vtable(), &ARRAY_EXOTIC_INTERNAL_METHODS)
-    }
-
-    /// Checks if it's an `ArrayBuffer` or `SharedArrayBuffer` object.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the object is currently mutably borrowed.
-    #[inline]
-    #[must_use]
-    #[track_caller]
-    pub fn is_buffer(&self) -> bool {
-        self.borrow().as_buffer().is_some()
     }
 
     /// Converts an object to a primitive.
@@ -534,6 +544,30 @@ Cannot both specify accessors and a value or writable attribute",
             obj = o.borrow().prototype().clone();
         }
         None
+    }
+
+    /// Casts to a `BufferObject` if the object is an `ArrayBuffer` or a `SharedArrayBuffer`.
+    #[inline]
+    pub(crate) fn into_buffer_object(self) -> Result<BufferObject, JsObject> {
+        let obj = self.borrow();
+
+        if obj.is::<ArrayBuffer>() {
+            drop(obj);
+            // SAFETY: We have verified that the inner data of `self` is of type `ArrayBuffer`.
+            return Ok(BufferObject::Buffer(unsafe {
+                self.downcast_unchecked::<ArrayBuffer>()
+            }));
+        }
+        if obj.is::<SharedArrayBuffer>() {
+            drop(obj);
+            // SAFETY: We have verified that the inner data of `self` is of type `SharedArrayBuffer`.
+            return Ok(BufferObject::SharedBuffer(unsafe {
+                self.downcast_unchecked::<SharedArrayBuffer>()
+            }));
+        }
+        drop(obj);
+
+        Err(self)
     }
 }
 

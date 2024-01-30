@@ -10,7 +10,6 @@ use thin_vec::ThinVec;
 use self::{internal_methods::ORDINARY_INTERNAL_METHODS, shape::Shape};
 use crate::{
     builtins::{
-        array_buffer::{ArrayBuffer, BufferRef, BufferRefMut, SharedArrayBuffer},
         function::{
             arguments::{MappedArguments, UnmappedArguments},
             ConstructorKind,
@@ -350,33 +349,6 @@ impl Object<dyn NativeObject> {
     /// if the object is type native object type `T`.
     pub fn downcast_mut<T: NativeObject>(&mut self) -> Option<&mut T> {
         self.data.downcast_mut::<T>()
-    }
-
-    /// Gets the buffer data if the object is an `ArrayBuffer` or a `SharedArrayBuffer`.
-    #[inline]
-    #[must_use]
-    pub(crate) fn as_buffer(&self) -> Option<BufferRef<'_>> {
-        if let Some(buffer) = self.downcast_ref::<ArrayBuffer>() {
-            return Some(BufferRef::Buffer(buffer));
-        }
-        self.downcast_ref::<SharedArrayBuffer>()
-            .map(BufferRef::SharedBuffer)
-    }
-
-    /// Gets the mutable buffer data if the object is an `ArrayBuffer` or a `SharedArrayBuffer`.
-    #[inline]
-    pub(crate) fn as_buffer_mut(&mut self) -> Option<BufferRefMut<'_>> {
-        // Workaround for Problem case 3 of the current borrow checker.
-        // https://rust-lang.github.io/rfcs/2094-nll.html#problem-case-3-conditional-control-flow-across-functions
-        if self.is::<ArrayBuffer>() {
-            match self.downcast_mut::<ArrayBuffer>() {
-                Some(buffer) => return Some(BufferRefMut::Buffer(buffer)),
-                None => unreachable!(),
-            }
-        }
-
-        self.downcast_mut::<SharedArrayBuffer>()
-            .map(BufferRefMut::SharedBuffer)
     }
 
     /// Checks if this object is an `Arguments` object.

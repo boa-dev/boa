@@ -1,9 +1,9 @@
-//! This module implements the `Integer-Indexed` exotic object.
+//! This module implements the `TypedArray` exotic object.
 
 use std::sync::atomic;
 
 use crate::{
-    builtins::Number,
+    builtins::{array_buffer::BufferObject, Number},
     object::{
         internal_methods::{
             ordinary_define_own_property, ordinary_delete, ordinary_get, ordinary_get_own_property,
@@ -20,22 +20,16 @@ use boa_macros::utf16;
 
 use super::{is_valid_integer_index, TypedArrayKind};
 
-/// An `IntegerIndexed` object is just an alias for a `TypedArray` object.
-pub type IntegerIndexed = TypedArray;
-
-/// A `TypedArrayObject` is an exotic object that performs special handling of integer
+/// A `TypedArray` object is an exotic object that performs special handling of integer
 /// index property keys.
-///
-/// This is also called an `IntegerIndexed` object in the specification.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
 ///
-/// [spec]: https://tc39.es/ecma262/#sec-integer-indexed-exotic-objects
+/// [spec]: https://tc39.es/ecma262/#sec-typedarray-exotic-objects
 #[derive(Debug, Clone, Trace, Finalize)]
 pub struct TypedArray {
-    viewed_array_buffer: JsObject,
-    #[unsafe_ignore_trace]
+    viewed_array_buffer: BufferObject,
     kind: TypedArrayKind,
     byte_offset: u64,
     byte_length: u64,
@@ -45,13 +39,13 @@ pub struct TypedArray {
 impl JsData for TypedArray {
     fn internal_methods(&self) -> &'static InternalObjectMethods {
         static METHODS: InternalObjectMethods = InternalObjectMethods {
-            __get_own_property__: integer_indexed_exotic_get_own_property,
-            __has_property__: integer_indexed_exotic_has_property,
-            __define_own_property__: integer_indexed_exotic_define_own_property,
-            __get__: integer_indexed_exotic_get,
-            __set__: integer_indexed_exotic_set,
-            __delete__: integer_indexed_exotic_delete,
-            __own_property_keys__: integer_indexed_exotic_own_property_keys,
+            __get_own_property__: typed_array_exotic_get_own_property,
+            __has_property__: typed_array_exotic_has_property,
+            __define_own_property__: typed_array_exotic_define_own_property,
+            __get__: typed_array_exotic_get,
+            __set__: typed_array_exotic_set,
+            __delete__: typed_array_exotic_delete,
+            __own_property_keys__: typed_array_exotic_own_property_keys,
             ..ORDINARY_INTERNAL_METHODS
         };
 
@@ -61,7 +55,7 @@ impl JsData for TypedArray {
 
 impl TypedArray {
     pub(crate) const fn new(
-        viewed_array_buffer: JsObject,
+        viewed_array_buffer: BufferObject,
         kind: TypedArrayKind,
         byte_offset: u64,
         byte_length: u64,
@@ -85,37 +79,33 @@ impl TypedArray {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-isdetachedbuffer
     pub(crate) fn is_detached(&self) -> bool {
-        self.viewed_array_buffer
-            .borrow()
-            .as_buffer()
-            .expect("Typed array must have internal array buffer object")
-            .is_detached()
+        self.viewed_array_buffer.as_buffer().is_detached()
     }
 
-    /// Get the integer indexed object's byte offset.
+    /// Get the `TypedArray` object's byte offset.
     #[must_use]
     pub const fn byte_offset(&self) -> u64 {
         self.byte_offset
     }
 
-    /// Get the integer indexed object's typed array kind.
+    /// Get the `TypedArray` object's typed array kind.
     pub(crate) const fn kind(&self) -> TypedArrayKind {
         self.kind
     }
 
-    /// Get a reference to the integer indexed object's viewed array buffer.
+    /// Get a reference to the `TypedArray` object's viewed array buffer.
     #[must_use]
-    pub const fn viewed_array_buffer(&self) -> &JsObject {
+    pub(crate) const fn viewed_array_buffer(&self) -> &BufferObject {
         &self.viewed_array_buffer
     }
 
-    /// Get the integer indexed object's byte length.
+    /// Get the `TypedArray` object's byte length.
     #[must_use]
     pub const fn byte_length(&self) -> u64 {
         self.byte_length
     }
 
-    /// Get the integer indexed object's array length.
+    /// Get the `TypedArray` object's array length.
     #[must_use]
     pub const fn array_length(&self) -> u64 {
         self.array_length
@@ -146,13 +136,13 @@ fn canonical_numeric_index_string(argument: &JsString) -> Option<f64> {
     None
 }
 
-/// `[[GetOwnProperty]]` internal method for Integer-Indexed exotic objects.
+/// `[[GetOwnProperty]]` internal method for `TypedArray` exotic objects.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
 ///
-/// [spec]: https://tc39.es/ecma262/#sec-integer-indexed-exotic-objects-getownproperty-p
-pub(crate) fn integer_indexed_exotic_get_own_property(
+/// [spec]: https://tc39.es/ecma262/#sec-typedarray-getownproperty
+pub(crate) fn typed_array_exotic_get_own_property(
     obj: &JsObject,
     key: &PropertyKey,
     context: &mut InternalMethodContext<'_>,
@@ -170,7 +160,7 @@ pub(crate) fn integer_indexed_exotic_get_own_property(
     // 1.b. If numericIndex is not undefined, then
     if let Some(numeric_index) = p {
         // i. Let value be IntegerIndexedElementGet(O, numericIndex).
-        let value = integer_indexed_element_get(obj, numeric_index);
+        let value = typed_array_get_element(obj, numeric_index);
 
         // ii. If value is undefined, return undefined.
         // iii. Return the PropertyDescriptor { [[Value]]: value, [[Writable]]: true, [[Enumerable]]: true, [[Configurable]]: true }.
@@ -188,13 +178,13 @@ pub(crate) fn integer_indexed_exotic_get_own_property(
     ordinary_get_own_property(obj, key, context)
 }
 
-/// `[[HasProperty]]` internal method for Integer-Indexed exotic objects.
+/// `[[HasProperty]]` internal method for `TypedArray` exotic objects.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
 ///
-/// [spec]: https://tc39.es/ecma262/#sec-integer-indexed-exotic-objects-hasproperty-p
-pub(crate) fn integer_indexed_exotic_has_property(
+/// [spec]: https://tc39.es/ecma262/#sec-typedarray-hasproperty
+pub(crate) fn typed_array_exotic_has_property(
     obj: &JsObject,
     key: &PropertyKey,
     context: &mut InternalMethodContext<'_>,
@@ -218,13 +208,13 @@ pub(crate) fn integer_indexed_exotic_has_property(
     ordinary_has_property(obj, key, context)
 }
 
-/// `[[DefineOwnProperty]]` internal method for Integer-Indexed exotic objects.
+/// `[[DefineOwnProperty]]` internal method for `TypedArray` exotic objects.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
 ///
-/// [spec]: https://tc39.es/ecma262/#sec-integer-indexed-exotic-objects-defineownproperty-p-desc
-pub(crate) fn integer_indexed_exotic_define_own_property(
+/// [spec]: https://tc39.es/ecma262/#sec-typedarray-defineownproperty
+pub(crate) fn typed_array_exotic_define_own_property(
     obj: &JsObject,
     key: &PropertyKey,
     desc: PropertyDescriptor,
@@ -269,7 +259,7 @@ pub(crate) fn integer_indexed_exotic_define_own_property(
 
         // vi. If Desc has a [[Value]] field, perform ? IntegerIndexedElementSet(O, numericIndex, Desc.[[Value]]).
         if let Some(value) = desc.value() {
-            integer_indexed_element_set(obj, numeric_index, value, context)?;
+            typed_array_set_element(obj, numeric_index, value, context)?;
         }
 
         // vii. Return true.
@@ -280,13 +270,13 @@ pub(crate) fn integer_indexed_exotic_define_own_property(
     ordinary_define_own_property(obj, key, desc, context)
 }
 
-/// Internal method `[[Get]]` for Integer-Indexed exotic objects.
+/// Internal method `[[Get]]` for `TypedArray` exotic objects.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
 ///
-/// [spec]: https://tc39.es/ecma262/#sec-integer-indexed-exotic-objects-get-p-receiver
-pub(crate) fn integer_indexed_exotic_get(
+/// [spec]: https://tc39.es/ecma262/#sec-typedarray-get
+pub(crate) fn typed_array_exotic_get(
     obj: &JsObject,
     key: &PropertyKey,
     receiver: JsValue,
@@ -305,20 +295,20 @@ pub(crate) fn integer_indexed_exotic_get(
     // 1.b. If numericIndex is not undefined, then
     if let Some(numeric_index) = p {
         // i. Return IntegerIndexedElementGet(O, numericIndex).
-        return Ok(integer_indexed_element_get(obj, numeric_index).unwrap_or_default());
+        return Ok(typed_array_get_element(obj, numeric_index).unwrap_or_default());
     }
 
     // 2. Return ? OrdinaryGet(O, P, Receiver).
     ordinary_get(obj, key, receiver, context)
 }
 
-/// Internal method `[[Set]]` for Integer-Indexed exotic objects.
+/// Internal method `[[Set]]` for `TypedArray` exotic objects.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
 ///
-/// [spec]: https://tc39.es/ecma262/#sec-integer-indexed-exotic-objects-set-p-v-receiver
-pub(crate) fn integer_indexed_exotic_set(
+/// [spec]: https://tc39.es/ecma262/#sec-typedarray-set
+pub(crate) fn typed_array_exotic_set(
     obj: &JsObject,
     key: PropertyKey,
     value: JsValue,
@@ -340,7 +330,7 @@ pub(crate) fn integer_indexed_exotic_set(
         // i. If SameValue(O, Receiver) is true, then
         if JsValue::same_value(&obj.clone().into(), &receiver) {
             // 1. Perform ? IntegerIndexedElementSet(O, numericIndex, V).
-            integer_indexed_element_set(obj, numeric_index, &value, context)?;
+            typed_array_set_element(obj, numeric_index, &value, context)?;
 
             // 2. Return true.
             return Ok(true);
@@ -356,13 +346,13 @@ pub(crate) fn integer_indexed_exotic_set(
     ordinary_set(obj, key, value, receiver, context)
 }
 
-/// Internal method `[[Delete]]` for Integer-Indexed exotic objects.
+/// Internal method `[[Delete]]` for `TypedArray` exotic objects.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
 ///
-/// [spec]: https://tc39.es/ecma262/#sec-integer-indexed-exotic-objects-delete-p
-pub(crate) fn integer_indexed_exotic_delete(
+/// [spec]: https://tc39.es/ecma262/#sec-typedarray-delete
+pub(crate) fn typed_array_exotic_delete(
     obj: &JsObject,
     key: &PropertyKey,
     context: &mut InternalMethodContext<'_>,
@@ -387,21 +377,21 @@ pub(crate) fn integer_indexed_exotic_delete(
     ordinary_delete(obj, key, context)
 }
 
-/// Internal method `[[OwnPropertyKeys]]` for Integer-Indexed exotic objects.
+/// Internal method `[[OwnPropertyKeys]]` for `TypedArray` exotic objects.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
 ///
-/// [spec]: https://tc39.es/ecma262/#sec-integer-indexed-exotic-objects-ownpropertykeys
+/// [spec]: https://tc39.es/ecma262/#sec-typedarray-ownpropertykeys
 #[allow(clippy::unnecessary_wraps)]
-pub(crate) fn integer_indexed_exotic_own_property_keys(
+pub(crate) fn typed_array_exotic_own_property_keys(
     obj: &JsObject,
     _context: &mut Context,
 ) -> JsResult<Vec<PropertyKey>> {
     let obj = obj.borrow();
-    let inner = obj.downcast_ref::<TypedArray>().expect(
-        "integer indexed exotic method should only be callable from integer indexed objects",
-    );
+    let inner = obj
+        .downcast_ref::<TypedArray>()
+        .expect("TypedArray exotic method should only be callable from TypedArray objects");
 
     // 1. Let keys be a new empty List.
     let mut keys = if inner.is_detached() {
@@ -424,13 +414,13 @@ pub(crate) fn integer_indexed_exotic_own_property_keys(
     Ok(keys)
 }
 
-/// Abstract operation `IntegerIndexedElementGet ( O, index )`.
+/// Abstract operation `TypedArrayGetElement ( O, index )`.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
 ///
-/// [spec]: https://tc39.es/ecma262/#sec-integerindexedelementget
-fn integer_indexed_element_get(obj: &JsObject, index: f64) -> Option<JsValue> {
+/// [spec]: https://tc39.es/ecma262/sec-typedarraygetelement
+fn typed_array_get_element(obj: &JsObject, index: f64) -> Option<JsValue> {
     // 1. If ! IsValidIntegerIndex(O, index) is false, return undefined.
     if !is_valid_integer_index(obj, index) {
         return None;
@@ -438,10 +428,9 @@ fn integer_indexed_element_get(obj: &JsObject, index: f64) -> Option<JsValue> {
 
     let inner = obj
         .downcast_ref::<TypedArray>()
-        .expect("Must be an integer indexed object");
+        .expect("Must be an TypedArray object");
     let buffer = inner.viewed_array_buffer();
-    let buffer = buffer.borrow();
-    let buffer = buffer.as_buffer().expect("Must be a buffer");
+    let buffer = buffer.as_buffer();
     let buffer = buffer
         .data()
         .expect("already checked that it's not detached");
@@ -461,7 +450,7 @@ fn integer_indexed_element_get(obj: &JsObject, index: f64) -> Option<JsValue> {
 
     // 7. Return GetValueFromBuffer(O.[[ViewedArrayBuffer]], indexedPosition, elementType, true, Unordered).
 
-    // SAFETY: The integer indexed object guarantees that the buffer is aligned.
+    // SAFETY: The TypedArray object guarantees that the buffer is aligned.
     // The call to `is_valid_integer_index` guarantees that the index is in-bounds.
     let value = unsafe {
         buffer
@@ -472,22 +461,22 @@ fn integer_indexed_element_get(obj: &JsObject, index: f64) -> Option<JsValue> {
     Some(value.into())
 }
 
-/// Abstract operation `IntegerIndexedElementSet ( O, index, value )`.
+/// Abstract operation `TypedArraySetElement ( O, index, value )`.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
 ///
-/// [spec]: https://tc39.es/ecma262/#sec-integerindexedelementset
-pub(crate) fn integer_indexed_element_set(
+/// [spec]: https://tc39.es/ecma262/#sec-typedarraysetelement
+pub(crate) fn typed_array_set_element(
     obj: &JsObject,
     index: f64,
     value: &JsValue,
     context: &mut InternalMethodContext<'_>,
 ) -> JsResult<()> {
     let obj_borrow = obj.borrow();
-    let inner = obj_borrow.downcast_ref::<TypedArray>().expect(
-        "integer indexed exotic method should only be callable from integer indexed objects",
-    );
+    let inner = obj_borrow
+        .downcast_ref::<TypedArray>()
+        .expect("TypedArray exotic method should only be callable from TypedArray objects");
 
     // 1. If O.[[ContentType]] is BigInt, let numValue be ? ToBigInt(value).
     // 2. Otherwise, let numValue be ? ToNumber(value).
@@ -512,15 +501,14 @@ pub(crate) fn integer_indexed_element_set(
     let indexed_position = ((index as u64 * size) + offset) as usize;
 
     let buffer = inner.viewed_array_buffer();
-    let mut buffer = buffer.borrow_mut();
-    let mut buffer = buffer.as_buffer_mut().expect("Must be a buffer");
+    let mut buffer = buffer.as_buffer_mut();
     let mut buffer = buffer
         .data_mut()
         .expect("already checked that it's not detached");
 
     // f. Perform SetValueInBuffer(O.[[ViewedArrayBuffer]], indexedPosition, elementType, numValue, true, Unordered).
 
-    // SAFETY: The integer indexed object guarantees that the buffer is aligned.
+    // SAFETY: The TypedArray object guarantees that the buffer is aligned.
     // The call to `is_valid_integer_index` guarantees that the index is in-bounds.
     unsafe {
         buffer

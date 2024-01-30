@@ -277,7 +277,8 @@ macro_rules! element {
             }
 
             unsafe fn read(buffer: SliceRef<'_>) -> ElementRef<'_, Self> {
-                if cfg!(debug_assertions) {
+                #[cfg(debug_assertions)]
+                {
                     assert!(buffer.len() >= std::mem::size_of::<Self>());
                     assert!(buffer.addr() % std::mem::align_of::<Self>() == 0);
                 }
@@ -293,7 +294,8 @@ macro_rules! element {
             }
 
             unsafe fn read_mut(buffer: SliceRefMut<'_>) -> ElementRefMut<'_, Self> {
-                if cfg!(debug_assertions) {
+                #[cfg(debug_assertions)]
+                {
                     assert!(buffer.len() >= std::mem::size_of::<Self>());
                     assert!(buffer.addr() % std::mem::align_of::<Self>() == 0);
                 }

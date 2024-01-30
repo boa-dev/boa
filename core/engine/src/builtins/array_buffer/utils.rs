@@ -3,7 +3,6 @@
 use std::{ptr, slice::SliceIndex, sync::atomic};
 
 use portable_atomic::AtomicU8;
-use sptr::Strict;
 
 use crate::{
     builtins::typed_array::{ClampedU8, Element, TypedArrayElement, TypedArrayKind},
@@ -41,7 +40,9 @@ impl SliceRef<'_> {
     }
 
     /// Gets the starting address of this `SliceRef`.
+    #[cfg(debug_assertions)]
     pub(crate) fn addr(&self) -> usize {
+        use sptr::Strict;
         match self {
             Self::Slice(buf) => buf.as_ptr().addr(),
             Self::AtomicSlice(buf) => buf.as_ptr().addr(),
@@ -68,7 +69,8 @@ impl SliceRef<'_> {
 
             // 1. Assert: IsDetachedBuffer(arrayBuffer) is false.
             // 2. Assert: There are sufficient bytes in arrayBuffer starting at byteIndex to represent a value of type.
-            if cfg!(debug_assertions) {
+            #[cfg(debug_assertions)]
+            {
                 assert!(buffer.len() >= std::mem::size_of::<T>());
                 assert_eq!(buffer.addr() % std::mem::align_of::<T>(), 0);
             }
@@ -178,6 +180,7 @@ pub(crate) enum SliceRefMut<'a> {
 
 impl SliceRefMut<'_> {
     /// Gets the byte length of this `SliceRefMut`.
+    #[cfg(debug_assertions)]
     pub(crate) fn len(&self) -> usize {
         match self {
             Self::Slice(buf) => buf.len(),
@@ -201,7 +204,9 @@ impl SliceRefMut<'_> {
     }
 
     /// Gets the starting address of this `SliceRefMut`.
+    #[cfg(debug_assertions)]
     pub(crate) fn addr(&self) -> usize {
+        use sptr::Strict;
         match self {
             Self::Slice(buf) => buf.as_ptr().addr(),
             Self::AtomicSlice(buf) => buf.as_ptr().addr(),
@@ -236,7 +241,8 @@ impl SliceRefMut<'_> {
             // 1. Assert: IsDetachedBuffer(arrayBuffer) is false.
             // 2. Assert: There are sufficient bytes in arrayBuffer starting at byteIndex to represent a value of type.
             // 3. Assert: value is a BigInt if IsBigIntElementType(type) is true; otherwise, value is a Number.
-            if cfg!(debug_assertions) {
+            #[cfg(debug_assertions)]
+            {
                 assert!(buffer.len() >= std::mem::size_of::<T>());
                 assert_eq!(buffer.addr() % std::mem::align_of::<T>(), 0);
             }
@@ -345,7 +351,8 @@ unsafe fn copy_shared_to_shared_backwards(src: &[AtomicU8], dest: &[AtomicU8], c
 ///   (you cannot borrow and mutably borrow a slice at the same time), but cannot be guaranteed
 ///   for atomic slices.
 pub(crate) unsafe fn memcpy(src: SliceRef<'_>, dest: SliceRefMut<'_>, count: usize) {
-    if cfg!(debug_assertions) {
+    #[cfg(debug_assertions)]
+    {
         assert!(src.len() >= count);
         assert!(dest.len() >= count);
         let src_range = src.addr()..src.addr() + src.len();
@@ -387,7 +394,8 @@ pub(crate) unsafe fn memcpy(src: SliceRef<'_>, dest: SliceRefMut<'_>, count: usi
 /// - `buffer` must contain at least `from + count` bytes to be read.
 /// - `buffer` must contain at least `to + count` bytes to be written.
 pub(crate) unsafe fn memmove(buffer: SliceRefMut<'_>, from: usize, to: usize, count: usize) {
-    if cfg!(debug_assertions) {
+    #[cfg(debug_assertions)]
+    {
         assert!(from + count <= buffer.len());
         assert!(to + count <= buffer.len());
     }
