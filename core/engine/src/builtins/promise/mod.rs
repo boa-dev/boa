@@ -340,13 +340,14 @@ impl IntrinsicObject for Promise {
             .name(js_string!("get [Symbol.species]"))
             .build();
 
-        let builder = BuiltInBuilder::from_standard_constructor::<Self>(realm)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .static_method(Self::all, js_string!("all"), 1)
             .static_method(Self::all_settled, js_string!("allSettled"), 1)
             .static_method(Self::any, js_string!("any"), 1)
             .static_method(Self::race, js_string!("race"), 1)
             .static_method(Self::reject, js_string!("reject"), 1)
             .static_method(Self::resolve, js_string!("resolve"), 1)
+            .static_method(Self::with_resolvers, crate::js_string!("withResolvers"), 0)
             .static_accessor(
                 JsSymbol::species(),
                 Some(get_species),
@@ -361,13 +362,8 @@ impl IntrinsicObject for Promise {
                 JsSymbol::to_string_tag(),
                 Self::NAME,
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-            );
-
-        #[cfg(feature = "experimental")]
-        let builder =
-            builder.static_method(Self::with_resolvers, crate::js_string!("withResolvers"), 0);
-
-        builder.build();
+            )
+            .build();
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {
@@ -471,8 +467,7 @@ impl Promise {
     /// Creates a new promise that is pending, and returns that promise plus the resolve and reject
     /// functions associated with it.
     ///
-    /// [spec]: https://tc39.es/proposal-promise-with-resolvers/#sec-promise.withResolvers
-    #[cfg(feature = "experimental")]
+    /// [spec]: https://tc39.es/ecma262/#sec-promise.withResolvers
     pub(crate) fn with_resolvers(
         this: &JsValue,
         _args: &[JsValue],

@@ -1350,7 +1350,6 @@ pub(crate) struct ObjectTemplates {
 
     namespace: ObjectTemplate,
 
-    #[cfg(feature = "experimental")]
     with_resolvers: ObjectTemplate,
 }
 
@@ -1381,10 +1380,10 @@ impl ObjectTemplates {
         );
         string.set_prototype(constructors.string().prototype());
 
-        let mut regexp_without_prototype = ObjectTemplate::new(root_shape);
-        regexp_without_prototype.property(js_string!("lastIndex").into(), Attribute::WRITABLE);
+        let mut regexp_without_proto = ObjectTemplate::new(root_shape);
+        regexp_without_proto.property(js_string!("lastIndex").into(), Attribute::WRITABLE);
 
-        let mut regexp = regexp_without_prototype.clone();
+        let mut regexp = regexp_without_proto.clone();
         regexp.set_prototype(constructors.regexp().prototype());
 
         let name_property_key: PropertyKey = js_string!("name").into();
@@ -1472,7 +1471,6 @@ impl ObjectTemplates {
         let mut namespace = ObjectTemplate::new(root_shape);
         namespace.property(JsSymbol::to_string_tag().into(), Attribute::empty());
 
-        #[cfg(feature = "experimental")]
         let with_resolvers = {
             let mut with_resolvers = ordinary_object.clone();
 
@@ -1497,7 +1495,7 @@ impl ObjectTemplates {
             bigint,
             boolean,
             regexp,
-            regexp_without_proto: regexp_without_prototype,
+            regexp_without_proto,
             unmapped_arguments,
             mapped_arguments,
             function_with_prototype,
@@ -1509,7 +1507,6 @@ impl ObjectTemplates {
             function_without_proto,
             function_with_prototype_without_proto,
             namespace,
-            #[cfg(feature = "experimental")]
             with_resolvers,
         }
     }
@@ -1738,7 +1735,6 @@ impl ObjectTemplates {
     /// 1. `"promise"`: (`WRITABLE`, `ENUMERABLE`, `CONFIGURABLE`)
     /// 2. `"resolve"`: (`WRITABLE`, `ENUMERABLE`, `CONFIGURABLE`)
     /// 3. `"reject"`: (`WRITABLE`, `ENUMERABLE`, `CONFIGURABLE`)
-    #[cfg(feature = "experimental")]
     pub(crate) const fn with_resolvers(&self) -> &ObjectTemplate {
         &self.with_resolvers
     }
