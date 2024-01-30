@@ -448,7 +448,7 @@
         <span class="kw">let </span>dt = <span class="self">self
             </span>.tz
             .get_datetime_for(<span class="kw-2">&amp;</span><span class="self">self</span>.instant, <span class="kw-2">&amp;</span><span class="self">self</span>.calendar, context)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(dt.hours())
+        <span class="prelude-val">Ok</span>(dt.hour())
     }
 
     <span class="doccomment">/// Returns the `hour` value for this `ZonedDateTime`.
@@ -461,7 +461,7 @@
         <span class="kw">let </span>dt = <span class="self">self
             </span>.tz
             .get_datetime_for(<span class="kw-2">&amp;</span><span class="self">self</span>.instant, <span class="kw-2">&amp;</span><span class="self">self</span>.calendar, context)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(dt.minutes())
+        <span class="prelude-val">Ok</span>(dt.minute())
     }
 
     <span class="doccomment">/// Returns the `minute` value for this `ZonedDateTime`.
@@ -474,7 +474,7 @@
         <span class="kw">let </span>dt = <span class="self">self
             </span>.tz
             .get_datetime_for(<span class="kw-2">&amp;</span><span class="self">self</span>.instant, <span class="kw-2">&amp;</span><span class="self">self</span>.calendar, context)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(dt.seconds())
+        <span class="prelude-val">Ok</span>(dt.second())
     }
 
     <span class="doccomment">/// Returns the `second` value for this `ZonedDateTime`.
@@ -487,7 +487,7 @@
         <span class="kw">let </span>dt = <span class="self">self
             </span>.tz
             .get_datetime_for(<span class="kw-2">&amp;</span><span class="self">self</span>.instant, <span class="kw-2">&amp;</span><span class="self">self</span>.calendar, context)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(dt.milliseconds())
+        <span class="prelude-val">Ok</span>(dt.millisecond())
     }
 
     <span class="doccomment">/// Returns the `millisecond` value for this `ZonedDateTime`.
@@ -500,7 +500,7 @@
         <span class="kw">let </span>dt = <span class="self">self
             </span>.tz
             .get_datetime_for(<span class="kw-2">&amp;</span><span class="self">self</span>.instant, <span class="kw-2">&amp;</span><span class="self">self</span>.calendar, context)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(dt.milliseconds())
+        <span class="prelude-val">Ok</span>(dt.millisecond())
     }
 
     <span class="doccomment">/// Returns the `microsecond` value for this `ZonedDateTime`.
@@ -513,7 +513,7 @@
         <span class="kw">let </span>dt = <span class="self">self
             </span>.tz
             .get_datetime_for(<span class="kw-2">&amp;</span><span class="self">self</span>.instant, <span class="kw-2">&amp;</span><span class="self">self</span>.calendar, context)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(dt.nanoseconds())
+        <span class="prelude-val">Ok</span>(dt.nanosecond())
     }
 
     <span class="doccomment">/// Returns the `nanosecond` value for this `ZonedDateTime`.

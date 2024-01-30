@@ -339,16 +339,12 @@
 <a href="#339" id="339">339</a>
 <a href="#340" id="340">340</a>
 <a href="#341" id="341">341</a>
-<a href="#342" id="342">342</a>
-<a href="#343" id="343">343</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Utility date and time equations for Temporal
 
 </span><span class="kw">use crate</span>::{
     options::{TemporalRoundingMode, TemporalUnsignedRoundingMode},
     TemporalError, TemporalResult, MS_PER_DAY,
 };
-
-<span class="kw">use </span>std::ops::Mul;
 
 <span class="comment">// NOTE: Review the below for optimizations and add ALOT of tests.
 
@@ -607,7 +603,7 @@
         <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
     };
 
-    f64::from(MS_PER_DAY).mul(f64::from(days))
+    f64::from(MS_PER_DAY) * f64::from(days)
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>epoch_time_to_date(t: f64) -&gt; u8 {

@@ -499,7 +499,7 @@
     </span><span class="doccomment">/// Creates a `Date` from a `DateTime`.
     </span><span class="kw">pub fn </span>from_datetime(dt: <span class="kw-2">&amp;</span>DateTime&lt;C&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            iso: dt.iso_date(),
+            iso: <span class="kw-2">*</span>dt.iso_date(),
             calendar: dt.calendar().clone(),
         }
     }
@@ -508,21 +508,21 @@
     #[must_use]
     </span><span class="doccomment">/// Returns this `Date`&#39;s ISO year value.
     </span><span class="kw">pub const fn </span>iso_year(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; i32 {
-        <span class="self">self</span>.iso.year()
+        <span class="self">self</span>.iso.year
     }
 
     <span class="attr">#[inline]
     #[must_use]
     </span><span class="doccomment">/// Returns this `Date`&#39;s ISO month value.
     </span><span class="kw">pub const fn </span>iso_month(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u8 {
-        <span class="self">self</span>.iso.month()
+        <span class="self">self</span>.iso.month
     }
 
     <span class="attr">#[inline]
     #[must_use]
     </span><span class="doccomment">/// Returns this `Date`&#39;s ISO day value.
     </span><span class="kw">pub const fn </span>iso_day(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u8 {
-        <span class="self">self</span>.iso.day()
+        <span class="self">self</span>.iso.day
     }
 
     <span class="attr">#[inline]
@@ -805,9 +805,9 @@
         largest_unit: TemporalUnit,
         context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
     ) -&gt; TemporalResult&lt;Duration&gt; {
-        <span class="kw">if </span><span class="self">self</span>.iso.year() == other.iso.year()
-            &amp;&amp; <span class="self">self</span>.iso.month() == other.iso.month()
-            &amp;&amp; <span class="self">self</span>.iso.day() == other.iso.day()
+        <span class="kw">if </span><span class="self">self</span>.iso.year == other.iso.year
+            &amp;&amp; <span class="self">self</span>.iso.month == other.iso.month
+            &amp;&amp; <span class="self">self</span>.iso.day == other.iso.day
         {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(Duration::default());
         }

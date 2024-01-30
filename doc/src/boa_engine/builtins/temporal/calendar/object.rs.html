@@ -964,13 +964,17 @@
 <a href="#964" id="964">964</a>
 <a href="#965" id="965">965</a>
 <a href="#966" id="966">966</a>
+<a href="#967" id="967">967</a>
+<a href="#968" id="968">968</a>
+<a href="#969" id="969">969</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of a user-defined Anonymous Calendar.
 
 </span><span class="kw">use crate</span>::{
     builtins::{
         iterable::IteratorHint,
         temporal::{
-            fields::object_to_temporal_fields, plain_date, plain_month_day, plain_year_month,
+            fields::object_to_temporal_fields, plain_date, plain_date_time, plain_month_day,
+            plain_year_month,
         },
         Array,
     },
@@ -1917,8 +1921,10 @@
         CalendarDateLike::Date(d) =&gt; plain_date::create_temporal_date(d.clone(), <span class="prelude-val">None</span>, context)
             .map_err(|e| TemporalError::general(e.to_string()))
             .map(Into::into),
-        CalendarDateLike::DateTime(_dt) =&gt; {
-            <span class="macro">todo!</span>()
+        CalendarDateLike::DateTime(dt) =&gt; {
+            plain_date_time::create_temporal_datetime(dt.clone(), <span class="prelude-val">None</span>, context)
+                .map_err(|e| TemporalError::general(e.to_string()))
+                .map(Into::into)
         }
         CalendarDateLike::MonthDay(md) =&gt; {
             plain_month_day::create_temporal_month_day(md.clone(), <span class="prelude-val">None</span>, context)

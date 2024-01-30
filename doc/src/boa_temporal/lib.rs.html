@@ -133,7 +133,7 @@
 
 <span class="comment">// Relevant numeric constants
 </span><span class="doccomment">/// Nanoseconds per day constant: 8.64e+13
-</span><span class="kw">pub const </span>NS_PER_DAY: i64 = <span class="number">86_400_000_000_000</span>;
+</span><span class="kw">pub const </span>NS_PER_DAY: i64 = MS_PER_DAY <span class="kw">as </span>i64 * <span class="number">1_000_000</span>;
 <span class="doccomment">/// Milliseconds per day constant: 8.64e+7
 </span><span class="kw">pub const </span>MS_PER_DAY: i32 = <span class="number">24 </span>* <span class="number">60 </span>* <span class="number">60 </span>* <span class="number">1000</span>;
 <span class="doccomment">/// Max Instant nanosecond constant

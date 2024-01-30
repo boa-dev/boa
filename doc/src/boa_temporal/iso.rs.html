@@ -646,6 +646,12 @@
 <a href="#646" id="646">646</a>
 <a href="#647" id="647">647</a>
 <a href="#648" id="648">648</a>
+<a href="#649" id="649">649</a>
+<a href="#650" id="650">650</a>
+<a href="#651" id="651">651</a>
+<a href="#652" id="652">652</a>
+<a href="#653" id="653">653</a>
+<a href="#654" id="654">654</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module implements the internal ISO field slots.
 //!
 //! The three main types of slots are:
@@ -681,6 +687,16 @@
     <span class="doccomment">/// Creates a new `IsoDateTime` without any validaiton.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new_unchecked(date: IsoDate, time: IsoTime) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{ date, time }
+    }
+
+    <span class="doccomment">/// Creates a new validated `IsoDateTime` that is within valid limits.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(date: IsoDate, time: IsoTime) -&gt; TemporalResult&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">if </span>!iso_dt_within_valid_limits(date, <span class="kw-2">&amp;</span>time) {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(
+                TemporalError::range().with_message(<span class="string">&quot;IsoDateTime not within a valid range.&quot;</span>)
+            );
+        }
+        <span class="prelude-val">Ok</span>(<span class="self">Self</span>::new_unchecked(date, time))
     }
 
     <span class="comment">// NOTE: The below assumes that nanos is from an `Instant` and thus in a valid range. -&gt; Needs validation.
@@ -752,36 +768,15 @@
 
     <span class="doccomment">/// Returns whether the `IsoDateTime` is within valid limits.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_within_limits(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="kw">let </span><span class="prelude-val">Some</span>(ns) = <span class="self">self</span>.to_utc_epoch_nanoseconds(<span class="number">0f64</span>) <span class="kw">else </span>{
-            <span class="kw">return </span><span class="bool-val">false</span>;
-        };
-
-        <span class="kw">let </span>max = BigInt::from(<span class="kw">crate</span>::NS_MAX_INSTANT + i128::from(NS_PER_DAY));
-        <span class="kw">let </span>min = BigInt::from(<span class="kw">crate</span>::NS_MIN_INSTANT - i128::from(NS_PER_DAY));
-
-        min &lt; ns &amp;&amp; max &gt; ns
+        iso_dt_within_valid_limits(<span class="self">self</span>.date, <span class="kw-2">&amp;</span><span class="self">self</span>.time)
     }
 
-    <span class="doccomment">/// Returns the UTC epoch nanoseconds for this `IsoDateTime`.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_utc_epoch_nanoseconds(<span class="self">self</span>, offset: f64) -&gt; <span class="prelude-ty">Option</span>&lt;BigInt&gt; {
-        <span class="kw">let </span>day = <span class="self">self</span>.date.to_epoch_days();
-        <span class="kw">let </span>time = <span class="self">self</span>.time.to_epoch_ms();
-        <span class="kw">let </span>epoch_ms = utils::epoch_days_to_epoch_ms(day, time);
-
-        <span class="kw">let </span>epoch_nanos = epoch_ms.mul_add(
-            <span class="number">1_000_000f64</span>,
-            f64::from(<span class="self">self</span>.time.microsecond).mul_add(<span class="number">1_000f64</span>, f64::from(<span class="self">self</span>.time.nanosecond)),
-        );
-
-        BigInt::from_f64(epoch_nanos - offset)
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>date(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>IsoDate {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.date
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>date(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; IsoDate {
-        <span class="self">self</span>.date
-    }
-
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>time(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; IsoTime {
-        <span class="self">self</span>.time
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>time(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>IsoTime {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.time
     }
 }
 
@@ -802,9 +797,9 @@
 /// `Temporal.YearMonth` object, and the `Temporal.MonthDay` object.
 </span><span class="attr">#[derive(Debug, Clone, Copy, Default)]
 </span><span class="kw">pub struct </span>IsoDate {
-    year: i32,
-    month: u8,
-    day: u8,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) year: i32,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) month: u8,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) day: u8,
 }
 
 <span class="kw">impl </span>IsoDate {
@@ -848,21 +843,6 @@
             utils::epoch_time_to_month_in_year(ms) + <span class="number">1</span>,
             utils::epoch_time_to_date(ms),
         )
-    }
-
-    <span class="doccomment">/// Returns the year field
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>year(<span class="self">self</span>) -&gt; i32 {
-        <span class="self">self</span>.year
-    }
-
-    <span class="doccomment">/// Returns the month field
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>month(<span class="self">self</span>) -&gt; u8 {
-        <span class="self">self</span>.month
-    }
-
-    <span class="doccomment">/// Returns the day field
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>day(<span class="self">self</span>) -&gt; u8 {
-        <span class="self">self</span>.day
     }
 
     <span class="doccomment">/// Functionally the same as Date&#39;s abstract operation `MakeDay`
@@ -1236,11 +1216,43 @@
     ///
     /// Functionally the same as Date&#39;s `MakeTime`
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_epoch_ms(<span class="self">self</span>) -&gt; f64 {
-        f64::from(<span class="self">self</span>.hour).mul_add(
-            utils::MS_PER_HOUR,
-            f64::from(<span class="self">self</span>.minute) * utils::MS_PER_MINUTE,
-        ) + f64::from(<span class="self">self</span>.second).mul_add(<span class="number">1000f64</span>, f64::from(<span class="self">self</span>.millisecond))
+        ((f64::from(<span class="self">self</span>.hour) * utils::MS_PER_HOUR
+            + f64::from(<span class="self">self</span>.minute) * utils::MS_PER_MINUTE)
+            + f64::from(<span class="self">self</span>.second) * <span class="number">1000f64</span>)
+            + f64::from(<span class="self">self</span>.millisecond)
     }
+}
+
+<span class="comment">// ==== `IsoDateTime` specific utility functions ====
+
+</span><span class="attr">#[inline]
+</span><span class="doccomment">/// Utility function to determine if a `DateTime`&#39;s components create a `DateTime` within valid limits
+</span><span class="kw">fn </span>iso_dt_within_valid_limits(date: IsoDate, time: <span class="kw-2">&amp;</span>IsoTime) -&gt; bool {
+    <span class="kw">if </span>iso_date_to_epoch_days(date.year, (date.month).into(), date.day.into()).abs() &gt; <span class="number">100_000_001 </span>{
+        <span class="kw">return </span><span class="bool-val">false</span>;
+    }
+    <span class="kw">let </span><span class="prelude-val">Some</span>(ns) = utc_epoch_nanos(date, time, <span class="number">0.0</span>) <span class="kw">else </span>{
+        <span class="kw">return </span><span class="bool-val">false</span>;
+    };
+
+    <span class="kw">let </span>max = BigInt::from(<span class="kw">crate</span>::NS_MAX_INSTANT + i128::from(NS_PER_DAY));
+    <span class="kw">let </span>min = BigInt::from(<span class="kw">crate</span>::NS_MIN_INSTANT - i128::from(NS_PER_DAY));
+
+    min &lt; ns &amp;&amp; max &gt; ns
+}
+
+<span class="attr">#[inline]
+</span><span class="doccomment">/// Utility function to convert a `IsoDate` and `IsoTime` values into epoch nanoseconds
+</span><span class="kw">fn </span>utc_epoch_nanos(date: IsoDate, time: <span class="kw-2">&amp;</span>IsoTime, offset: f64) -&gt; <span class="prelude-ty">Option</span>&lt;BigInt&gt; {
+    <span class="kw">let </span>ms = time.to_epoch_ms();
+    <span class="kw">let </span>epoch_ms = utils::epoch_days_to_epoch_ms(date.to_epoch_days(), ms);
+
+    <span class="kw">let </span>epoch_nanos = epoch_ms.mul_add(
+        <span class="number">1_000_000f64</span>,
+        f64::from(time.microsecond).mul_add(<span class="number">1_000f64</span>, f64::from(time.nanosecond)),
+    );
+
+    BigInt::from_f64(epoch_nanos - offset)
 }
 
 <span class="comment">// ==== `IsoDate` specific utiltiy functions ====
@@ -1258,7 +1270,7 @@
     <span class="kw">let </span>month_t = utils::epoch_time_for_month_given_year(resolved_month, resolved_year);
 
     <span class="comment">// 4. Return EpochTimeToDayNumber(t) + date - 1.
-    </span>utils::epoch_time_to_day_number(year_t + month_t) + day - <span class="number">1
+    </span>utils::epoch_time_to_day_number((year_t.abs() + month_t).copysign(year_t)) + day - <span class="number">1
 </span>}
 
 <span class="attr">#[inline]

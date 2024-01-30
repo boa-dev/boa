@@ -1052,7 +1052,7 @@
     </span><span class="kw">pub fn </span>as_iso_date(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; IsoDate {
         <span class="kw">match </span><span class="self">self </span>{
             CalendarDateLike::Date(d) =&gt; d.iso_date(),
-            CalendarDateLike::DateTime(dt) =&gt; dt.iso_date(),
+            CalendarDateLike::DateTime(dt) =&gt; <span class="kw-2">*</span>dt.iso_date(),
             CalendarDateLike::MonthDay(md) =&gt; md.iso_date(),
             CalendarDateLike::YearMonth(ym) =&gt; ym.iso_date(),
         }
@@ -1472,7 +1472,7 @@
         context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
     ) -&gt; TemporalResult&lt;i32&gt; {
         <span class="kw">match </span><span class="self">self </span>{
-            CalendarSlot::Builtin(AnyCalendar::Iso(<span class="kw">_</span>)) =&gt; <span class="prelude-val">Ok</span>(date_like.as_iso_date().year()),
+            CalendarSlot::Builtin(AnyCalendar::Iso(<span class="kw">_</span>)) =&gt; <span class="prelude-val">Ok</span>(date_like.as_iso_date().year),
             CalendarSlot::Builtin(builtin) =&gt; {
                 <span class="kw">let </span>calendar_date = builtin.date_from_iso(date_like.as_iso_date().as_icu4x()<span class="question-mark">?</span>);
                 <span class="prelude-val">Ok</span>(builtin.year(<span class="kw-2">&amp;</span>calendar_date).number)
@@ -1488,7 +1488,7 @@
         context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
     ) -&gt; TemporalResult&lt;u8&gt; {
         <span class="kw">match </span><span class="self">self </span>{
-            CalendarSlot::Builtin(AnyCalendar::Iso(<span class="kw">_</span>)) =&gt; <span class="prelude-val">Ok</span>(date_like.as_iso_date().month()),
+            CalendarSlot::Builtin(AnyCalendar::Iso(<span class="kw">_</span>)) =&gt; <span class="prelude-val">Ok</span>(date_like.as_iso_date().month),
             CalendarSlot::Builtin(<span class="kw">_</span>) =&gt; {
                 <span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">&quot;Not yet implemented.&quot;</span>))
             }
@@ -1520,7 +1520,7 @@
         context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
     ) -&gt; TemporalResult&lt;u8&gt; {
         <span class="kw">match </span><span class="self">self </span>{
-            CalendarSlot::Builtin(AnyCalendar::Iso(<span class="kw">_</span>)) =&gt; <span class="prelude-val">Ok</span>(date_like.as_iso_date().day()),
+            CalendarSlot::Builtin(AnyCalendar::Iso(<span class="kw">_</span>)) =&gt; <span class="prelude-val">Ok</span>(date_like.as_iso_date().day),
             CalendarSlot::Builtin(<span class="kw">_</span>) =&gt; {
                 <span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">&quot;Not yet implemented.&quot;</span>))
             }
