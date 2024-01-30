@@ -37,6 +37,12 @@ jobs:
             ~/.cargo/registry
           key: ${{ runner.os }}-cargo-test262-${{ hashFiles('**/Cargo.lock') }}
 
+      - name: Checkout GitHub pages
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: gh-pages
+
       # Run the test suite.
       - name: Run the test262 test suite
         run: |
@@ -46,12 +52,6 @@ jobs:
           cd ..
 
       # Run the results comparison
-      - name: Checkout GitHub pages
-        uses: actions/checkout@v4
-        with:
-          ref: gh-pages
-          path: gh-pages
-
       - name: Compare results
         if: github.event_name == 'pull_request'
         id: compare
@@ -100,6 +100,11 @@ jobs:
             ${{ steps.compare.outputs.comment }}
 
       # Commit changes to GitHub pages.
+      - name: Checkout GitHub pages
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: gh-pages
       - name: Commit files
         if: github.event_name == 'push'
         run: |
