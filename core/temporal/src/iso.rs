@@ -562,10 +562,10 @@ impl IsoTime {
     ///
     /// Functionally the same as Date's `MakeTime`
     pub(crate) fn to_epoch_ms(self) -> f64 {
-        f64::from(self.hour).mul_add(
-            utils::MS_PER_HOUR,
-            f64::from(self.minute) * utils::MS_PER_MINUTE,
-        ) + f64::from(self.second).mul_add(1000f64, f64::from(self.millisecond))
+        ((f64::from(self.hour) * utils::MS_PER_HOUR
+            + f64::from(self.minute) * utils::MS_PER_MINUTE)
+            + f64::from(self.second) * 1000f64)
+            + f64::from(self.millisecond)
     }
 }
 
@@ -574,6 +574,9 @@ impl IsoTime {
 #[inline]
 /// Utility function to determine if a `DateTime`'s components create a `DateTime` within valid limits
 fn iso_dt_within_valid_limits(date: IsoDate, time: &IsoTime) -> bool {
+    if iso_date_to_epoch_days(date.year, (date.month).into(), date.day.into()).abs() > 100_000_001 {
+        return false;
+    }
     let Some(ns) = utc_epoch_nanos(date, time, 0.0) else {
         return false;
     };
@@ -587,9 +590,8 @@ fn iso_dt_within_valid_limits(date: IsoDate, time: &IsoTime) -> bool {
 #[inline]
 /// Utility function to convert a `IsoDate` and `IsoTime` values into epoch nanoseconds
 fn utc_epoch_nanos(date: IsoDate, time: &IsoTime, offset: f64) -> Option<BigInt> {
-    let day = date.to_epoch_days();
-    let time_in_ms = time.to_epoch_ms();
-    let epoch_ms = utils::epoch_days_to_epoch_ms(day, time_in_ms);
+    let ms = time.to_epoch_ms();
+    let epoch_ms = utils::epoch_days_to_epoch_ms(date.to_epoch_days(), ms);
 
     let epoch_nanos = epoch_ms.mul_add(
         1_000_000f64,
@@ -614,7 +616,7 @@ fn iso_date_to_epoch_days(year: i32, month: i32, day: i32) -> i32 {
     let month_t = utils::epoch_time_for_month_given_year(resolved_month, resolved_year);
 
     // 4. Return EpochTimeToDayNumber(t) + date - 1.
-    utils::epoch_time_to_day_number(year_t + month_t) + day - 1
+    utils::epoch_time_to_day_number((year_t.abs() + month_t).copysign(year_t)) + day - 1
 }
 
 #[inline]

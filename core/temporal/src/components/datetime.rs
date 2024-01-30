@@ -375,3 +375,46 @@ impl<C: CalendarProtocol> FromStr for DateTime<C> {
         ))
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use std::str::FromStr;
+
+    use crate::components::calendar::CalendarSlot;
+
+    use super::DateTime;
+
+    #[test]
+    #[allow(clippy::float_cmp)]
+    fn plain_date_time_limits() {
+        // This test is primarily to assert that the `expect` in the epoch methods is
+        // valid, i.e., a valid instant is within the range of an f64.
+        let negative_limit = DateTime::<()>::new(
+            -271821,
+            4,
+            19,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            CalendarSlot::from_str("iso8601").unwrap(),
+        );
+        let positive_limit = DateTime::<()>::new(
+            275760,
+            9,
+            14,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            CalendarSlot::from_str("iso8601").unwrap(),
+        );
+
+        assert!(negative_limit.is_err());
+        assert!(positive_limit.is_err());
+    }
+}

@@ -5,8 +5,6 @@ use crate::{
     TemporalError, TemporalResult, MS_PER_DAY,
 };
 
-use std::ops::Mul;
-
 // NOTE: Review the below for optimizations and add ALOT of tests.
 
 /// Converts and validates an `Option<f64>` rounding increment value into a valid increment result.
@@ -264,7 +262,7 @@ pub(crate) fn epoch_time_for_month_given_year(m: i32, y: i32) -> f64 {
         _ => unreachable!(),
     };
 
-    f64::from(MS_PER_DAY).mul(f64::from(days))
+    f64::from(MS_PER_DAY) * f64::from(days)
 }
 
 pub(crate) fn epoch_time_to_date(t: f64) -> u8 {
