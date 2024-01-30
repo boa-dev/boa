@@ -294,6 +294,20 @@
 <a href="#294" id="294">294</a>
 <a href="#295" id="295">295</a>
 <a href="#296" id="296">296</a>
+<a href="#297" id="297">297</a>
+<a href="#298" id="298">298</a>
+<a href="#299" id="299">299</a>
+<a href="#300" id="300">300</a>
+<a href="#301" id="301">301</a>
+<a href="#302" id="302">302</a>
+<a href="#303" id="303">303</a>
+<a href="#304" id="304">304</a>
+<a href="#305" id="305">305</a>
+<a href="#306" id="306">306</a>
+<a href="#307" id="307">307</a>
+<a href="#308" id="308">308</a>
+<a href="#309" id="309">309</a>
+<a href="#310" id="310">310</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! A Rust API wrapper for Boa&#39;s `ArrayBuffer` Builtin ECMAScript Object
 </span><span class="kw">use crate</span>::{
     builtins::array_buffer::ArrayBuffer,
@@ -311,6 +325,20 @@
 #[boa_gc(unsafe_no_drop)]
 </span><span class="kw">pub struct </span>JsArrayBuffer {
     inner: JsObject&lt;ArrayBuffer&gt;,
+}
+
+<span class="kw">impl </span>From&lt;JsArrayBuffer&gt; <span class="kw">for </span>JsObject&lt;ArrayBuffer&gt; {
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>from(value: JsArrayBuffer) -&gt; <span class="self">Self </span>{
+        value.inner
+    }
+}
+
+<span class="kw">impl </span>From&lt;JsObject&lt;ArrayBuffer&gt;&gt; <span class="kw">for </span>JsArrayBuffer {
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>from(value: JsObject&lt;ArrayBuffer&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{ inner: value }
+    }
 }
 
 <span class="comment">// TODO: Add constructors that also take the `detach_key` as argument.
@@ -453,7 +481,7 @@
     ///
     /// # Note
     ///
-    /// This tries to detach the pre-existing `JsArrayBuffer`, meaning the original detached
+    /// This tries to detach the pre-existing `JsArrayBuffer`, meaning the original detach
     /// key is required. By default, the key is set to `undefined`.
     ///
     /// ```

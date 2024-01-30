@@ -607,6 +607,16 @@
 <a href="#607" id="607">607</a>
 <a href="#608" id="608">608</a>
 <a href="#609" id="609">609</a>
+<a href="#610" id="610">610</a>
+<a href="#611" id="611">611</a>
+<a href="#612" id="612">612</a>
+<a href="#613" id="613">613</a>
+<a href="#614" id="614">614</a>
+<a href="#615" id="615">615</a>
+<a href="#616" id="616">616</a>
+<a href="#617" id="617">617</a>
+<a href="#618" id="618">618</a>
+<a href="#619" id="619">619</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `TypedArray` objects.
 //!
 //! A `TypedArray` object describes an array-like view of an underlying binary data buffer.
@@ -637,15 +647,16 @@
     value::{JsValue, Numeric},
     Context, JsArgs, JsResult, JsString,
 };
+<span class="kw">use </span>boa_gc::{Finalize, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
 
 <span class="kw">mod </span>builtin;
 <span class="kw">mod </span>element;
-<span class="kw">mod </span>integer_indexed_object;
+<span class="kw">mod </span>object;
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>builtin::{is_valid_integer_index, BuiltinTypedArray};
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>element::{Atomic, ClampedU8, Element};
-<span class="kw">pub use </span>integer_indexed_object::{IntegerIndexed, TypedArray};
+<span class="kw">pub use </span>object::TypedArray;
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait </span>TypedArrayMarker {
     <span class="kw">type </span>Element: Element;
@@ -746,79 +757,87 @@
         </span><span class="kw">let </span>first_argument = <span class="kw-2">&amp;</span>args[<span class="number">0</span>];
 
         <span class="comment">// b. If Type(firstArgument) is Object, then
-        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(first_argument) = first_argument.as_object() {
-            <span class="comment">// i. Let O be ? AllocateTypedArray(constructorName, NewTarget, proto).
-            </span><span class="kw">let </span>proto =
-                get_prototype_from_constructor(new_target, T::STANDARD_CONSTRUCTOR, context)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span><span class="prelude-val">Some</span>(first_argument) = first_argument.as_object() <span class="kw">else </span>{
+            <span class="comment">// c. Else,
+            // i. Assert: firstArgument is not an Object.
+            // Ensured by the let-else
 
-            <span class="comment">// ii. If firstArgument has a [[TypedArrayName]] internal slot, then
-            </span><span class="kw">let </span>o = <span class="kw">if </span>first_argument.is::&lt;TypedArray&gt;() {
+            // ii. Let elementLength be ? ToIndex(firstArgument).
+            </span><span class="kw">let </span>element_length = first_argument.to_index(context)<span class="question-mark">?</span>;
+
+            <span class="comment">// iii. Return ? AllocateTypedArray(constructorName, NewTarget, proto, elementLength).
+            </span><span class="kw">return </span>BuiltinTypedArray::allocate::&lt;T&gt;(new_target, element_length, context)
+                .map(JsValue::from);
+        };
+
+        <span class="kw">let </span>first_argument = first_argument.clone();
+
+        <span class="comment">// i. Let O be ? AllocateTypedArray(constructorName, NewTarget, proto).
+        </span><span class="kw">let </span>proto = get_prototype_from_constructor(new_target, T::STANDARD_CONSTRUCTOR, context)<span class="question-mark">?</span>;
+
+        <span class="comment">// ii. If firstArgument has a [[TypedArrayName]] internal slot, then
+        </span><span class="kw">let </span>first_argument = <span class="kw">match </span>first_argument.downcast::&lt;TypedArray&gt;() {
+            <span class="prelude-val">Ok</span>(arr) =&gt; {
                 <span class="comment">// 1. Perform ? InitializeTypedArrayFromTypedArray(O, firstArgument).
-                </span>BuiltinTypedArray::initialize_from_typed_array::&lt;T&gt;(proto, first_argument, context)<span class="question-mark">?
-            </span>} <span class="kw">else if </span>first_argument.is_buffer() {
-                <span class="comment">// iii. Else if firstArgument has an [[ArrayBufferData]] internal slot, then
 
-                // 1. If numberOfArgs &gt; 1, let byteOffset be args[1]; else let byteOffset be undefined.
+                // v. Return O.
+                </span><span class="kw">return </span>BuiltinTypedArray::initialize_from_typed_array::&lt;T&gt;(proto, <span class="kw-2">&amp;</span>arr, context)
+                    .map(JsValue::from);
+            }
+            <span class="prelude-val">Err</span>(obj) =&gt; obj,
+        };
+
+        <span class="comment">// iii. Else if firstArgument has an [[ArrayBufferData]] internal slot, then
+        </span><span class="kw">let </span>first_argument = <span class="kw">match </span>first_argument.into_buffer_object() {
+            <span class="prelude-val">Ok</span>(buf) =&gt; {
+                <span class="comment">// 1. If numberOfArgs &gt; 1, let byteOffset be args[1]; else let byteOffset be undefined.
                 </span><span class="kw">let </span>byte_offset = args.get_or_undefined(<span class="number">1</span>);
 
                 <span class="comment">// 2. If numberOfArgs &gt; 2, let length be args[2]; else let length be undefined.
                 </span><span class="kw">let </span>length = args.get_or_undefined(<span class="number">2</span>);
 
                 <span class="comment">// 3. Perform ? InitializeTypedArrayFromArrayBuffer(O, firstArgument, byteOffset, length).
-                </span>BuiltinTypedArray::initialize_from_array_buffer::&lt;T&gt;(
+
+                // v. Return O.
+                </span><span class="kw">return </span>BuiltinTypedArray::initialize_from_array_buffer::&lt;T&gt;(
                     proto,
-                    first_argument.clone(),
+                    buf,
                     byte_offset,
                     length,
                     context,
-                )<span class="question-mark">?
-            </span>} <span class="kw">else </span>{
-                <span class="comment">// iv. Else,
+                )
+                .map(JsValue::from);
+            }
+            <span class="prelude-val">Err</span>(obj) =&gt; obj,
+        };
 
-                // 1. Assert: Type(firstArgument) is Object and firstArgument does not have
-                // either a [[TypedArrayName]] or an [[ArrayBufferData]] internal slot.
+        <span class="comment">// iv. Else,
 
-                // 2. Let usingIterator be ? GetMethod(firstArgument, @@iterator).
+        // 1. Assert: Type(firstArgument) is Object and firstArgument does not have
+        // either a [[TypedArrayName]] or an [[ArrayBufferData]] internal slot.
 
-                </span><span class="kw">let </span>first_argument_v = JsValue::from(first_argument.clone());
-                <span class="kw">let </span>using_iterator = first_argument_v.get_method(JsSymbol::iterator(), context)<span class="question-mark">?</span>;
+        // 2. Let usingIterator be ? GetMethod(firstArgument, @@iterator).
 
-                <span class="comment">// 3. If usingIterator is not undefined, then
-                </span><span class="kw">if let </span><span class="prelude-val">Some</span>(using_iterator) = using_iterator {
-                    <span class="comment">// a. Let values be ? IterableToList(firstArgument, usingIterator).
-                    </span><span class="kw">let </span>values =
-                        iterable_to_list(context, <span class="kw-2">&amp;</span>first_argument_v, <span class="prelude-val">Some</span>(using_iterator))<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>using_iterator = first_argument.get_method(JsSymbol::iterator(), context)<span class="question-mark">?</span>;
 
-                    <span class="comment">// b. Perform ? InitializeTypedArrayFromList(O, values).
-                    </span>BuiltinTypedArray::initialize_from_list::&lt;T&gt;(proto, values, context)<span class="question-mark">?
-                </span>} <span class="kw">else </span>{
-                    <span class="comment">// 4. Else,
+        <span class="comment">// 3. If usingIterator is not undefined, then
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(using_iterator) = using_iterator {
+            <span class="comment">// a. Let values be ? IterableToList(firstArgument, usingIterator).
+            </span><span class="kw">let </span>values = iterable_to_list(context, <span class="kw-2">&amp;</span>first_argument.into(), <span class="prelude-val">Some</span>(using_iterator))<span class="question-mark">?</span>;
 
-                    // a. NOTE: firstArgument is not an Iterable so assume it is already an array-like object.
-                    // b. Perform ? InitializeTypedArrayFromArrayLike(O, firstArgument).
-                    </span>BuiltinTypedArray::initialize_from_array_like::&lt;T&gt;(
-                        proto,
-                        first_argument,
-                        context,
-                    )<span class="question-mark">?
-                </span>}
-            };
-
-            <span class="comment">// v. Return O.
-            </span><span class="prelude-val">Ok</span>(o.into())
+            <span class="comment">// b. Perform ? InitializeTypedArrayFromList(O, values).
+            </span>BuiltinTypedArray::initialize_from_list::&lt;T&gt;(proto, values, context)
         } <span class="kw">else </span>{
-            <span class="comment">// c. Else,
+            <span class="comment">// 4. Else,
 
-            // i. Assert: firstArgument is not an Object.
-            </span><span class="macro">assert!</span>(!first_argument.is_object(), <span class="string">&quot;firstArgument was an object&quot;</span>);
-
-            <span class="comment">// ii. Let elementLength be ? ToIndex(firstArgument).
-            </span><span class="kw">let </span>element_length = first_argument.to_index(context)<span class="question-mark">?</span>;
-
-            <span class="comment">// iii. Return ? AllocateTypedArray(constructorName, NewTarget, proto, elementLength).
-            </span><span class="prelude-val">Ok</span>(BuiltinTypedArray::allocate::&lt;T&gt;(new_target, element_length, context)<span class="question-mark">?</span>.into())
+            // a. NOTE: firstArgument is not an Iterable so assume it is already an array-like object.
+            // b. Perform ? InitializeTypedArrayFromArrayLike(O, firstArgument).
+            </span>BuiltinTypedArray::initialize_from_array_like::&lt;T&gt;(proto, <span class="kw-2">&amp;</span>first_argument, context)
         }
-    }
+        .map(JsValue::from)
+
+        <span class="comment">// v. Return O.
+    </span>}
 }
 
 <span class="doccomment">/// JavaScript `Int8Array` built-in implementation.
@@ -939,7 +958,8 @@
 }
 
 <span class="doccomment">/// List of all typed array kinds.
-</span><span class="attr">#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+</span><span class="attr">#[derive(Debug, Copy, Clone, Eq, PartialEq, Trace, Finalize)]
+#[boa_gc(empty_trace)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>TypedArrayKind {
     Int8,
     Uint8,

@@ -951,21 +951,6 @@
 <a href="#951" id="951">951</a>
 <a href="#952" id="952">952</a>
 <a href="#953" id="953">953</a>
-<a href="#954" id="954">954</a>
-<a href="#955" id="955">955</a>
-<a href="#956" id="956">956</a>
-<a href="#957" id="957">957</a>
-<a href="#958" id="958">958</a>
-<a href="#959" id="959">959</a>
-<a href="#960" id="960">960</a>
-<a href="#961" id="961">961</a>
-<a href="#962" id="962">962</a>
-<a href="#963" id="963">963</a>
-<a href="#964" id="964">964</a>
-<a href="#965" id="965">965</a>
-<a href="#966" id="966">966</a>
-<a href="#967" id="967">967</a>
-<a href="#968" id="968">968</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `DataView` object.
 //!
 //! More information:
@@ -994,7 +979,10 @@
 <span class="kw">use </span>bytemuck::{bytes_of, bytes_of_mut};
 
 <span class="kw">use super</span>::{
-    array_buffer::utils::{memcpy, SliceRef, SliceRefMut},
+    array_buffer::{
+        utils::{memcpy, SliceRef, SliceRefMut},
+        BufferObject,
+    },
     typed_array::{<span class="self">self</span>, TypedArrayElement},
     BuiltInBuilder, BuiltInConstructor, IntrinsicObject,
 };
@@ -1002,7 +990,7 @@
 <span class="doccomment">/// The internal representation of a `DataView` object.
 </span><span class="attr">#[derive(Debug, Clone, Trace, Finalize, JsData)]
 </span><span class="kw">pub struct </span>DataView {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) viewed_array_buffer: JsObject,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) viewed_array_buffer: BufferObject,
     <span class="kw">pub</span>(<span class="kw">crate</span>) byte_length: u64,
     <span class="kw">pub</span>(<span class="kw">crate</span>) byte_offset: u64,
 }
@@ -1103,11 +1091,6 @@
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>byte_length = args.get_or_undefined(<span class="number">2</span>);
 
-        <span class="kw">let </span>buffer_obj = args
-            .get_or_undefined(<span class="number">0</span>)
-            .as_object()
-            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;buffer must be an ArrayBuffer&quot;</span>))<span class="question-mark">?</span>;
-
         <span class="comment">// 1. If NewTarget is undefined, throw a TypeError exception.
         </span><span class="kw">if </span>new_target.is_undefined() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
@@ -1115,15 +1098,19 @@
                 .into());
         }
 
+        <span class="comment">// 2. Perform ? RequireInternalSlot(buffer, [[ArrayBufferData]]).
+        </span><span class="kw">let </span>buffer_obj = args
+            .get_or_undefined(<span class="number">0</span>)
+            .as_object()
+            .and_then(|o| o.clone().into_buffer_object().ok())
+            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;buffer must be an ArrayBuffer&quot;</span>))<span class="question-mark">?</span>;
+
         <span class="kw">let </span>(offset, view_byte_length) = {
-            <span class="comment">// 2. Perform ? RequireInternalSlot(buffer, [[ArrayBufferData]]).
-            </span><span class="kw">let </span>buffer_borrow = buffer_obj.borrow();
-            <span class="kw">let </span>buffer = buffer_borrow.as_buffer().ok_or_else(|| {
-                JsNativeError::typ().with_message(<span class="string">&quot;buffer must be an ArrayBuffer&quot;</span>)
-            })<span class="question-mark">?</span>;
+            <span class="kw">let </span>buffer = buffer_obj.as_buffer();
 
             <span class="comment">// 3. Let offset be ? ToIndex(byteOffset).
             </span><span class="kw">let </span>offset = args.get_or_undefined(<span class="number">1</span>).to_index(context)<span class="question-mark">?</span>;
+
             <span class="comment">// 4. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.
             </span><span class="kw">let </span><span class="prelude-val">Some</span>(buffer) = buffer.data() <span class="kw">else </span>{
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
@@ -1163,12 +1150,7 @@
             get_prototype_from_constructor(new_target, StandardConstructors::data_view, context)<span class="question-mark">?</span>;
 
         <span class="comment">// 10. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.
-        </span><span class="kw">if </span>buffer_obj
-            .borrow()
-            .as_buffer()
-            .expect(<span class="string">&quot;already checked that `buffer_obj` was a buffer&quot;</span>)
-            .is_detached()
-        {
+        </span><span class="kw">if </span>buffer_obj.as_buffer().is_detached() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
                 .with_message(<span class="string">&quot;ArrayBuffer can&#39;t be detached&quot;</span>)
                 .into());
@@ -1179,7 +1161,7 @@
             prototype,
             <span class="self">Self </span>{
                 <span class="comment">// 11. Set O.[[ViewedArrayBuffer]] to buffer.
-                </span>viewed_array_buffer: buffer_obj.clone(),
+                </span>viewed_array_buffer: buffer_obj,
                 <span class="comment">// 12. Set O.[[ByteLength]] to viewByteLength.
                 </span>byte_length: view_byte_length,
                 <span class="comment">// 13. Set O.[[ByteOffset]] to offset.
@@ -1245,12 +1227,9 @@
             .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;`this` is not a DataView&quot;</span>))<span class="question-mark">?</span>;
         <span class="comment">// 3. Assert: O has a [[ViewedArrayBuffer]] internal slot.
         // 4. Let buffer be O.[[ViewedArrayBuffer]].
-        </span><span class="kw">let </span>buffer_borrow = view.viewed_array_buffer.borrow();
-        <span class="kw">let </span>borrow = buffer_borrow
-            .as_buffer()
-            .expect(<span class="string">&quot;DataView must be constructed with a Buffer&quot;</span>);
+        </span><span class="kw">let </span>buffer = view.viewed_array_buffer.as_buffer();
         <span class="comment">// 5. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.
-        </span><span class="kw">if </span>borrow.is_detached() {
+        </span><span class="kw">if </span>buffer.is_detached() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
                 .with_message(<span class="string">&quot;ArrayBuffer is detached&quot;</span>)
                 .into());
@@ -1285,12 +1264,9 @@
             .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;`this` is not a DataView&quot;</span>))<span class="question-mark">?</span>;
         <span class="comment">// 3. Assert: O has a [[ViewedArrayBuffer]] internal slot.
         // 4. Let buffer be O.[[ViewedArrayBuffer]].
-        </span><span class="kw">let </span>buffer_borrow = view.viewed_array_buffer.borrow();
-        <span class="kw">let </span>borrow = buffer_borrow
-            .as_buffer()
-            .expect(<span class="string">&quot;DataView must be constructed with a Buffer&quot;</span>);
+        </span><span class="kw">let </span>buffer = view.viewed_array_buffer.as_buffer();
         <span class="comment">// 5. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.
-        </span><span class="kw">if </span>borrow.is_detached() {
+        </span><span class="kw">if </span>buffer.is_detached() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
                 .with_message(<span class="string">&quot;Buffer is detached&quot;</span>)
                 .into());
@@ -1330,9 +1306,7 @@
         </span><span class="kw">let </span>is_little_endian = is_little_endian.to_boolean();
 
         <span class="comment">// 5. Let buffer be view.[[ViewedArrayBuffer]].
-        </span><span class="kw">let </span>buffer = <span class="kw-2">&amp;</span>view.viewed_array_buffer;
-        <span class="kw">let </span>buffer_borrow = buffer.borrow();
-        <span class="kw">let </span>buffer = buffer_borrow.as_buffer().expect(<span class="string">&quot;Should be unreachable&quot;</span>);
+        </span><span class="kw">let </span>buffer = view.viewed_array_buffer.as_buffer();
 
         <span class="comment">// 6. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.
         </span><span class="kw">let </span><span class="prelude-val">Some</span>(data) = buffer.data() <span class="kw">else </span>{
@@ -1644,11 +1618,7 @@
         <span class="comment">// 6. Set isLittleEndian to ! ToBoolean(isLittleEndian).
         </span><span class="kw">let </span>is_little_endian = is_little_endian.to_boolean();
         <span class="comment">// 7. Let buffer be view.[[ViewedArrayBuffer]].
-        </span><span class="kw">let </span>buffer = <span class="kw-2">&amp;</span>view.viewed_array_buffer;
-        <span class="kw">let </span><span class="kw-2">mut </span>buffer_borrow = buffer.borrow_mut();
-        <span class="kw">let </span><span class="kw-2">mut </span>buffer = buffer_borrow
-            .as_buffer_mut()
-            .expect(<span class="string">&quot;Should be unreachable&quot;</span>);
+        </span><span class="kw">let </span><span class="kw-2">mut </span>buffer = view.viewed_array_buffer.as_buffer_mut();
 
         <span class="comment">// 8. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.
         </span><span class="kw">let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>data) = buffer.data_mut() <span class="kw">else </span>{

@@ -349,6 +349,8 @@
 <a href="#349" id="349">349</a>
 <a href="#350" id="350">350</a>
 <a href="#351" id="351">351</a>
+<a href="#352" id="352">352</a>
+<a href="#353" id="353">353</a>
 </pre></div><pre class="rust"><code><span class="attr">#![deny(unsafe_op_in_unsafe_fn)]
 #![allow(clippy::cast_ptr_alignment)] </span><span class="comment">// Invariants are checked by the caller.
 </span><span class="attr">#![allow(unused_tuple_struct_fields)] </span><span class="comment">// Weird false-positive with `boa_macros_tests`
@@ -628,7 +630,8 @@
             }
 
             <span class="kw">unsafe fn </span>read(buffer: SliceRef&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; ElementRef&lt;<span class="lifetime">&#39;_</span>, <span class="self">Self</span>&gt; {
-                <span class="kw">if </span><span class="macro">cfg!</span>(debug_assertions) {
+                <span class="attr">#[cfg(debug_assertions)]
+                </span>{
                     <span class="macro">assert!</span>(buffer.len() &gt;= std::mem::size_of::&lt;<span class="self">Self</span>&gt;());
                     <span class="macro">assert!</span>(buffer.addr() % std::mem::align_of::&lt;<span class="self">Self</span>&gt;() == <span class="number">0</span>);
                 }
@@ -644,7 +647,8 @@
             }
 
             <span class="kw">unsafe fn </span>read_mut(buffer: SliceRefMut&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; ElementRefMut&lt;<span class="lifetime">&#39;_</span>, <span class="self">Self</span>&gt; {
-                <span class="kw">if </span><span class="macro">cfg!</span>(debug_assertions) {
+                <span class="attr">#[cfg(debug_assertions)]
+                </span>{
                     <span class="macro">assert!</span>(buffer.len() &gt;= std::mem::size_of::&lt;<span class="self">Self</span>&gt;());
                     <span class="macro">assert!</span>(buffer.addr() % std::mem::align_of::&lt;<span class="self">Self</span>&gt;() == <span class="number">0</span>);
                 }

@@ -453,12 +453,19 @@
 <a href="#453" id="453">453</a>
 <a href="#454" id="454">454</a>
 <a href="#455" id="455">455</a>
+<a href="#456" id="456">456</a>
+<a href="#457" id="457">457</a>
+<a href="#458" id="458">458</a>
+<a href="#459" id="459">459</a>
+<a href="#460" id="460">460</a>
+<a href="#461" id="461">461</a>
+<a href="#462" id="462">462</a>
+<a href="#463" id="463">463</a>
 </pre></div><pre class="rust"><code><span class="attr">#![allow(unstable_name_collisions)]
 
 </span><span class="kw">use </span>std::{ptr, slice::SliceIndex, sync::atomic};
 
 <span class="kw">use </span>portable_atomic::AtomicU8;
-<span class="kw">use </span>sptr::Strict;
 
 <span class="kw">use crate</span>::{
     builtins::typed_array::{ClampedU8, Element, TypedArrayElement, TypedArrayKind},
@@ -496,7 +503,9 @@
     }
 
     <span class="doccomment">/// Gets the starting address of this `SliceRef`.
+    </span><span class="attr">#[cfg(debug_assertions)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>addr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="kw">use </span>sptr::Strict;
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Slice(buf) =&gt; buf.as_ptr().addr(),
             <span class="self">Self</span>::AtomicSlice(buf) =&gt; buf.as_ptr().addr(),
@@ -523,7 +532,8 @@
 
             // 1. Assert: IsDetachedBuffer(arrayBuffer) is false.
             // 2. Assert: There are sufficient bytes in arrayBuffer starting at byteIndex to represent a value of type.
-            </span><span class="kw">if </span><span class="macro">cfg!</span>(debug_assertions) {
+            </span><span class="attr">#[cfg(debug_assertions)]
+            </span>{
                 <span class="macro">assert!</span>(buffer.len() &gt;= std::mem::size_of::&lt;T&gt;());
                 <span class="macro">assert_eq!</span>(buffer.addr() % std::mem::align_of::&lt;T&gt;(), <span class="number">0</span>);
             }
@@ -633,6 +643,7 @@
 
 <span class="kw">impl </span>SliceRefMut&lt;<span class="lifetime">&#39;_</span>&gt; {
     <span class="doccomment">/// Gets the byte length of this `SliceRefMut`.
+    </span><span class="attr">#[cfg(debug_assertions)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Slice(buf) =&gt; buf.len(),
@@ -656,7 +667,9 @@
     }
 
     <span class="doccomment">/// Gets the starting address of this `SliceRefMut`.
+    </span><span class="attr">#[cfg(debug_assertions)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>addr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="kw">use </span>sptr::Strict;
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Slice(buf) =&gt; buf.as_ptr().addr(),
             <span class="self">Self</span>::AtomicSlice(buf) =&gt; buf.as_ptr().addr(),
@@ -691,7 +704,8 @@
             // 1. Assert: IsDetachedBuffer(arrayBuffer) is false.
             // 2. Assert: There are sufficient bytes in arrayBuffer starting at byteIndex to represent a value of type.
             // 3. Assert: value is a BigInt if IsBigIntElementType(type) is true; otherwise, value is a Number.
-            </span><span class="kw">if </span><span class="macro">cfg!</span>(debug_assertions) {
+            </span><span class="attr">#[cfg(debug_assertions)]
+            </span>{
                 <span class="macro">assert!</span>(buffer.len() &gt;= std::mem::size_of::&lt;T&gt;());
                 <span class="macro">assert_eq!</span>(buffer.addr() % std::mem::align_of::&lt;T&gt;(), <span class="number">0</span>);
             }
@@ -800,7 +814,8 @@
 ///   (you cannot borrow and mutably borrow a slice at the same time), but cannot be guaranteed
 ///   for atomic slices.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe fn </span>memcpy(src: SliceRef&lt;<span class="lifetime">&#39;_</span>&gt;, dest: SliceRefMut&lt;<span class="lifetime">&#39;_</span>&gt;, count: usize) {
-    <span class="kw">if </span><span class="macro">cfg!</span>(debug_assertions) {
+    <span class="attr">#[cfg(debug_assertions)]
+    </span>{
         <span class="macro">assert!</span>(src.len() &gt;= count);
         <span class="macro">assert!</span>(dest.len() &gt;= count);
         <span class="kw">let </span>src_range = src.addr()..src.addr() + src.len();
@@ -842,7 +857,8 @@
 /// - `buffer` must contain at least `from + count` bytes to be read.
 /// - `buffer` must contain at least `to + count` bytes to be written.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe fn </span>memmove(buffer: SliceRefMut&lt;<span class="lifetime">&#39;_</span>&gt;, from: usize, to: usize, count: usize) {
-    <span class="kw">if </span><span class="macro">cfg!</span>(debug_assertions) {
+    <span class="attr">#[cfg(debug_assertions)]
+    </span>{
         <span class="macro">assert!</span>(from + count &lt;= buffer.len());
         <span class="macro">assert!</span>(to + count &lt;= buffer.len());
     }

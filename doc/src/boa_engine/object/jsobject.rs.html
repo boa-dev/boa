@@ -914,6 +914,40 @@
 <a href="#914" id="914">914</a>
 <a href="#915" id="915">915</a>
 <a href="#916" id="916">916</a>
+<a href="#917" id="917">917</a>
+<a href="#918" id="918">918</a>
+<a href="#919" id="919">919</a>
+<a href="#920" id="920">920</a>
+<a href="#921" id="921">921</a>
+<a href="#922" id="922">922</a>
+<a href="#923" id="923">923</a>
+<a href="#924" id="924">924</a>
+<a href="#925" id="925">925</a>
+<a href="#926" id="926">926</a>
+<a href="#927" id="927">927</a>
+<a href="#928" id="928">928</a>
+<a href="#929" id="929">929</a>
+<a href="#930" id="930">930</a>
+<a href="#931" id="931">931</a>
+<a href="#932" id="932">932</a>
+<a href="#933" id="933">933</a>
+<a href="#934" id="934">934</a>
+<a href="#935" id="935">935</a>
+<a href="#936" id="936">936</a>
+<a href="#937" id="937">937</a>
+<a href="#938" id="938">938</a>
+<a href="#939" id="939">939</a>
+<a href="#940" id="940">940</a>
+<a href="#941" id="941">941</a>
+<a href="#942" id="942">942</a>
+<a href="#943" id="943">943</a>
+<a href="#944" id="944">944</a>
+<a href="#945" id="945">945</a>
+<a href="#946" id="946">946</a>
+<a href="#947" id="947">947</a>
+<a href="#948" id="948">948</a>
+<a href="#949" id="949">949</a>
+<a href="#950" id="950">950</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module implements the `JsObject` structure.
 //!
 //! The `JsObject` is a garbage collected Object.
@@ -924,7 +958,11 @@
     JsPrototype, NativeObject, Object, PrivateName, PropertyMap,
 };
 <span class="kw">use crate</span>::{
-    builtins::{array::ARRAY_EXOTIC_INTERNAL_METHODS, object::OrdinaryObject},
+    builtins::{
+        array::ARRAY_EXOTIC_INTERNAL_METHODS,
+        array_buffer::{ArrayBuffer, BufferObject, SharedArrayBuffer},
+        object::OrdinaryObject,
+    },
     context::intrinsics::Intrinsics,
     error::JsNativeError,
     js_string,
@@ -1128,6 +1166,24 @@
         }
     }
 
+    <span class="doccomment">/// Downcasts the object&#39;s inner data to `T` without verifying the inner type of `T`.
+    ///
+    /// # Safety
+    ///
+    /// For this cast to be sound, `self` must contain an instance of `T` inside its inner data.
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub unsafe fn </span>downcast_unchecked&lt;T: NativeObject&gt;(<span class="self">self</span>) -&gt; JsObject&lt;T&gt; {
+        <span class="kw">let </span>ptr: NonNull&lt;GcBox&lt;VTableObject&lt;T&gt;&gt;&gt; = Gc::into_raw(<span class="self">self</span>.inner).cast();
+
+        <span class="comment">// SAFETY: The caller guarantees `T` is the original inner data type of the underlying
+        // object.
+        </span><span class="kw">unsafe </span>{
+            JsObject {
+                inner: Gc::from_raw(ptr),
+            }
+        }
+    }
+
     <span class="doccomment">/// Downcasts a reference to the object,
     /// if the object is of type `T`.
     ///
@@ -1182,18 +1238,6 @@
     #[track_caller]
     </span><span class="kw">pub fn </span>is_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         std::ptr::eq(<span class="self">self</span>.vtable(), <span class="kw-2">&amp;</span>ARRAY_EXOTIC_INTERNAL_METHODS)
-    }
-
-    <span class="doccomment">/// Checks if it&#39;s an `ArrayBuffer` or `SharedArrayBuffer` object.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the object is currently mutably borrowed.
-    </span><span class="attr">#[inline]
-    #[must_use]
-    #[track_caller]
-    </span><span class="kw">pub fn </span>is_buffer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="self">self</span>.borrow().as_buffer().is_some()
     }
 
     <span class="doccomment">/// Converts an object to a primitive.
@@ -1451,6 +1495,30 @@ Cannot both specify accessors and a value or writable attribute&quot;</span>,
         }
         <span class="prelude-val">None
     </span>}
+
+    <span class="doccomment">/// Casts to a `BufferObject` if the object is an `ArrayBuffer` or a `SharedArrayBuffer`.
+    </span><span class="attr">#[inline]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>into_buffer_object(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;BufferObject, JsObject&gt; {
+        <span class="kw">let </span>obj = <span class="self">self</span>.borrow();
+
+        <span class="kw">if </span>obj.is::&lt;ArrayBuffer&gt;() {
+            drop(obj);
+            <span class="comment">// SAFETY: We have verified that the inner data of `self` is of type `ArrayBuffer`.
+            </span><span class="kw">return </span><span class="prelude-val">Ok</span>(BufferObject::Buffer(<span class="kw">unsafe </span>{
+                <span class="self">self</span>.downcast_unchecked::&lt;ArrayBuffer&gt;()
+            }));
+        }
+        <span class="kw">if </span>obj.is::&lt;SharedArrayBuffer&gt;() {
+            drop(obj);
+            <span class="comment">// SAFETY: We have verified that the inner data of `self` is of type `SharedArrayBuffer`.
+            </span><span class="kw">return </span><span class="prelude-val">Ok</span>(BufferObject::SharedBuffer(<span class="kw">unsafe </span>{
+                <span class="self">self</span>.downcast_unchecked::&lt;SharedArrayBuffer&gt;()
+            }));
+        }
+        drop(obj);
+
+        <span class="prelude-val">Err</span>(<span class="self">self</span>)
+    }
 }
 
 <span class="kw">impl</span>&lt;T: NativeObject + <span class="question-mark">?</span>Sized&gt; JsObject&lt;T&gt; {

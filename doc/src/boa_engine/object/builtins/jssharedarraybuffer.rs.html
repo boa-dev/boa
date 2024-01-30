@@ -118,6 +118,17 @@
 <a href="#118" id="118">118</a>
 <a href="#119" id="119">119</a>
 <a href="#120" id="120">120</a>
+<a href="#121" id="121">121</a>
+<a href="#122" id="122">122</a>
+<a href="#123" id="123">123</a>
+<a href="#124" id="124">124</a>
+<a href="#125" id="125">125</a>
+<a href="#126" id="126">126</a>
+<a href="#127" id="127">127</a>
+<a href="#128" id="128">128</a>
+<a href="#129" id="129">129</a>
+<a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! A Rust API wrapper for Boa&#39;s `SharedArrayBuffer` Builtin ECMAScript Object
 </span><span class="kw">use crate</span>::{
     builtins::array_buffer::SharedArrayBuffer,
@@ -131,8 +142,23 @@
 
 <span class="doccomment">/// `JsSharedArrayBuffer` provides a wrapper for Boa&#39;s implementation of the ECMAScript `ArrayBuffer` object
 </span><span class="attr">#[derive(Debug, Clone, Trace, Finalize)]
+#[boa_gc(unsafe_no_drop)]
 </span><span class="kw">pub struct </span>JsSharedArrayBuffer {
-    inner: JsObject,
+    inner: JsObject&lt;SharedArrayBuffer&gt;,
+}
+
+<span class="kw">impl </span>From&lt;JsSharedArrayBuffer&gt; <span class="kw">for </span>JsObject&lt;SharedArrayBuffer&gt; {
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>from(value: JsSharedArrayBuffer) -&gt; <span class="self">Self </span>{
+        value.inner
+    }
+}
+
+<span class="kw">impl </span>From&lt;JsObject&lt;SharedArrayBuffer&gt;&gt; <span class="kw">for </span>JsSharedArrayBuffer {
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>from(value: JsObject&lt;SharedArrayBuffer&gt;) -&gt; <span class="self">Self </span>{
+        JsSharedArrayBuffer { inner: value }
+    }
 }
 
 <span class="kw">impl </span>JsSharedArrayBuffer {
@@ -162,8 +188,7 @@
             .shared_array_buffer()
             .prototype();
 
-        <span class="kw">let </span>inner =
-            JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), proto, buffer);
+        <span class="kw">let </span>inner = JsObject::new(context.root_shape(), proto, buffer);
 
         <span class="self">Self </span>{ inner }
     }
@@ -175,50 +200,47 @@
     /// the object.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>from_object(object: JsObject) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
-        <span class="kw">if </span>object.is::&lt;SharedArrayBuffer&gt;() {
-            <span class="prelude-val">Ok</span>(<span class="self">Self </span>{ inner: object })
-        } <span class="kw">else </span>{
-            <span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;object is not an ArrayBuffer&quot;</span>)
-                .into())
-        }
+        object
+            .downcast::&lt;SharedArrayBuffer&gt;()
+            .map(|inner| <span class="self">Self </span>{ inner })
+            .map_err(|<span class="kw">_</span>| {
+                JsNativeError::typ()
+                    .with_message(<span class="string">&quot;object is not a SharedArrayBuffer&quot;</span>)
+                    .into()
+            })
     }
 
     <span class="doccomment">/// Returns the byte length of the array buffer.
     </span><span class="attr">#[inline]
     #[must_use]
     </span><span class="kw">pub fn </span>byte_length(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
-        <span class="self">self</span>.downcast_ref::&lt;SharedArrayBuffer&gt;()
-            .expect(<span class="string">&quot;should be an array buffer&quot;</span>)
-            .len()
+        <span class="self">self</span>.borrow().data.len()
     }
 
     <span class="doccomment">/// Gets the raw buffer of this `JsSharedArrayBuffer`.
     </span><span class="attr">#[inline]
     #[must_use]
     </span><span class="kw">pub fn </span>inner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SharedArrayBuffer {
-        <span class="self">self</span>.downcast_ref::&lt;SharedArrayBuffer&gt;()
-            .expect(<span class="string">&quot;should be an array buffer&quot;</span>)
-            .clone()
+        <span class="self">self</span>.borrow().data.clone()
     }
 }
 
 <span class="kw">impl </span>From&lt;JsSharedArrayBuffer&gt; <span class="kw">for </span>JsObject {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>from(o: JsSharedArrayBuffer) -&gt; <span class="self">Self </span>{
-        o.inner.clone()
+        o.inner.upcast()
     }
 }
 
 <span class="kw">impl </span>From&lt;JsSharedArrayBuffer&gt; <span class="kw">for </span>JsValue {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>from(o: JsSharedArrayBuffer) -&gt; <span class="self">Self </span>{
-        o.inner.clone().into()
+        o.inner.upcast().into()
     }
 }
 
 <span class="kw">impl </span>Deref <span class="kw">for </span>JsSharedArrayBuffer {
-    <span class="kw">type </span>Target = JsObject;
+    <span class="kw">type </span>Target = JsObject&lt;SharedArrayBuffer&gt;;
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Target {
