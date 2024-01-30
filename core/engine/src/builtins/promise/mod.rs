@@ -347,7 +347,7 @@ impl IntrinsicObject for Promise {
             .static_method(Self::race, js_string!("race"), 1)
             .static_method(Self::reject, js_string!("reject"), 1)
             .static_method(Self::resolve, js_string!("resolve"), 1)
-            .static_method(Self::with_resolvers, crate::js_string!("withResolvers"), 0)
+            .static_method(Self::with_resolvers, js_string!("withResolvers"), 0)
             .static_accessor(
                 JsSymbol::species(),
                 Some(get_species),
