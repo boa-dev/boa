@@ -126,6 +126,18 @@ impl Duration {
         }
     }
 
+    /// Creates a new valid `Duration` from a partial `Duration`.
+    pub fn from_partial(partial: &Duration) -> TemporalResult<Self> {
+        let duration = Self {
+            date: DateDuration::from_partial(partial.date()),
+            time: TimeDuration::from_partial(partial.time()),
+        };
+        if !is_valid_duration(&duration.into_iter().collect()) {
+            return Err(TemporalError::range().with_message("Duration was not valid."));
+        }
+        Ok(duration)
+    }
+
     /// Return if the Durations values are within their valid ranges.
     #[inline]
     #[must_use]

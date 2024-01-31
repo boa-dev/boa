@@ -431,7 +431,7 @@ impl Calendar {
 
         // 5. Set duration to ? ToTemporalDuration(duration).
         let duration_like = args.get_or_undefined(1);
-        let duration = temporal::duration::to_temporal_duration(duration_like)?;
+        let duration = temporal::duration::to_temporal_duration(duration_like, context)?;
 
         // 6. Set options to ? GetOptionsObject(options).
         let options = args.get_or_undefined(2);
