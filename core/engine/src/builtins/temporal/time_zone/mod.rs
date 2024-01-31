@@ -85,7 +85,7 @@ impl IntrinsicObject for TimeZone {
             )
             .method(Self::to_string, js_string!("toString"), 0)
             .method(Self::to_string, js_string!("toJSON"), 0)
-            .static_property(
+            .property(
                 JsSymbol::to_string_tag(),
                 Self::NAME,
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,

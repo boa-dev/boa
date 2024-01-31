@@ -58,7 +58,7 @@ impl IntrinsicObject for Instant {
             .build();
 
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
-            .static_property(
+            .property(
                 JsSymbol::to_string_tag(),
                 Self::NAME,
                 Attribute::CONFIGURABLE,
@@ -67,25 +67,25 @@ impl IntrinsicObject for Instant {
                 utf16!("epochSeconds"),
                 Some(get_seconds),
                 None,
-                Attribute::default(),
+                Attribute::CONFIGURABLE,
             )
             .accessor(
                 utf16!("epochMilliseconds"),
                 Some(get_millis),
                 None,
-                Attribute::default(),
+                Attribute::CONFIGURABLE,
             )
             .accessor(
                 utf16!("epochMicroseconds"),
                 Some(get_micros),
                 None,
-                Attribute::default(),
+                Attribute::CONFIGURABLE,
             )
             .accessor(
                 utf16!("epochNanoseconds"),
                 Some(get_nanos),
                 None,
-                Attribute::default(),
+                Attribute::CONFIGURABLE,
             )
             .method(Self::add, js_string!("add"), 1)
             .method(Self::subtract, js_string!("subtract"), 1)
