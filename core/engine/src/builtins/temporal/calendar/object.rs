@@ -909,7 +909,11 @@ impl CalendarProtocol for JsCustomCalendar {
         let value = method
             .as_callable()
             .expect("is method")
-            .call(&self.calendar.clone().into(), &[fields.into(), add_fields.into()], context)
+            .call(
+                &self.calendar.clone().into(),
+                &[fields.into(), add_fields.into()],
+                context,
+            )
             .map_err(|e| TemporalError::general(e.to_string()))?;
 
         let JsValue::Object(o) = value else {

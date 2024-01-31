@@ -81,8 +81,18 @@ impl IntrinsicObject for PlainYearMonth {
                 None,
                 Attribute::CONFIGURABLE,
             )
-            .accessor(utf16!("year"), Some(get_year), None, Attribute::CONFIGURABLE)
-            .accessor(utf16!("month"), Some(get_month), None, Attribute::CONFIGURABLE)
+            .accessor(
+                utf16!("year"),
+                Some(get_year),
+                None,
+                Attribute::CONFIGURABLE,
+            )
+            .accessor(
+                utf16!("month"),
+                Some(get_month),
+                None,
+                Attribute::CONFIGURABLE,
+            )
             .accessor(
                 utf16!("monthCode"),
                 Some(get_month_code),

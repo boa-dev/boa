@@ -9,7 +9,9 @@ use super::{
 };
 use crate::{
     builtins::{
-        iterable::IteratorHint, options::{get_option, get_options_object}, temporal, Array, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject
+        iterable::IteratorHint,
+        options::{get_option, get_options_object},
+        temporal, Array, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
@@ -172,8 +174,9 @@ impl Calendar {
             .as_object()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
-                JsNativeError::typ()
-                    .with_message("the this value of Calendar.prototype.id must be a Calendar object.")
+                JsNativeError::typ().with_message(
+                    "the this value of Calendar.prototype.id must be a Calendar object.",
+                )
             })?;
 
         Ok(JsString::from(calendar.slot.identifier(context)?.as_str()).into())
@@ -191,8 +194,9 @@ impl Calendar {
             .as_object()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
-                JsNativeError::typ()
-                    .with_message("this value of Calendar dateFromFields must be a Calendar object.")
+                JsNativeError::typ().with_message(
+                    "this value of Calendar dateFromFields must be a Calendar object.",
+                )
             })?;
 
         // 3. If Type(fields) is not Object, throw a TypeError exception.
@@ -271,8 +275,9 @@ impl Calendar {
             .as_object()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
-                JsNativeError::typ()
-                    .with_message("this value of Calendar yearMonthFromFields must be a Calendar object.")
+                JsNativeError::typ().with_message(
+                    "this value of Calendar yearMonthFromFields must be a Calendar object.",
+                )
             })?;
 
         let fields = args.get_or_undefined(0);
@@ -347,8 +352,9 @@ impl Calendar {
             .as_object()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
-                JsNativeError::typ()
-                    .with_message("this value of Calendar monthDayFromFields must be a Calendar object.")
+                JsNativeError::typ().with_message(
+                    "this value of Calendar monthDayFromFields must be a Calendar object.",
+                )
             })?;
 
         // 3. If Type(fields) is not Object, throw a TypeError exception.
