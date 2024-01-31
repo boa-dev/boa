@@ -681,7 +681,9 @@ impl SourceTextModule {
         // 5. Assert: module.[[Status]] is one of linked, evaluating-async, or evaluated.
         debug_assert!(matches!(
             &*self.status.borrow(),
-            ModuleStatus::Linked { .. } | ModuleStatus::EvaluatingAsync { .. } | ModuleStatus::Evaluated { .. }
+            ModuleStatus::Linked { .. }
+                | ModuleStatus::EvaluatingAsync { .. }
+                | ModuleStatus::Evaluated { .. }
         ));
         // 6. Assert: stack is empty.
         assert!(stack.is_empty());
@@ -1017,7 +1019,9 @@ impl SourceTextModule {
         // 2. If module.[[Status]] is either evaluating-async or evaluated, then
         match &*self.status.borrow() {
             // 3. If module.[[Status]] is evaluating, return index.
-            ModuleStatus::Evaluating { .. } | ModuleStatus::EvaluatingAsync { .. } => return Ok(index),
+            ModuleStatus::Evaluating { .. } | ModuleStatus::EvaluatingAsync { .. } => {
+                return Ok(index)
+            }
             //     a. If module.[[EvaluationError]] is empty, return index.
             //     b. Otherwise, return ? module.[[EvaluationError]].
             ModuleStatus::Evaluated { error, .. } => return error.clone().map_or(Ok(index), Err),
@@ -1739,9 +1743,8 @@ impl SourceTextModule {
             environments,
             realm,
         } = match &*self.status.borrow() {
-            ModuleStatus::Evaluating { context, .. } | ModuleStatus::EvaluatingAsync { context, .. } => {
-                context.clone()
-            }
+            ModuleStatus::Evaluating { context, .. }
+            | ModuleStatus::EvaluatingAsync { context, .. } => context.clone(),
             _ => unreachable!("`execute` should only be called for evaluating modules."),
         };
 
