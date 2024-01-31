@@ -106,48 +106,48 @@ impl IntrinsicObject for Duration {
                 Self::NAME,
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
-            .accessor(utf16!("years"), Some(get_years), None, Attribute::default())
+            .accessor(utf16!("years"), Some(get_years), None, Attribute::CONFIGURABLE)
             .accessor(
                 utf16!("months"),
                 Some(get_months),
                 None,
-                Attribute::default(),
+                Attribute::CONFIGURABLE,
             )
-            .accessor(utf16!("weeks"), Some(get_weeks), None, Attribute::default())
-            .accessor(utf16!("days"), Some(get_days), None, Attribute::default())
-            .accessor(utf16!("hours"), Some(get_hours), None, Attribute::default())
+            .accessor(utf16!("weeks"), Some(get_weeks), None, Attribute::CONFIGURABLE)
+            .accessor(utf16!("days"), Some(get_days), None, Attribute::CONFIGURABLE)
+            .accessor(utf16!("hours"), Some(get_hours), None, Attribute::CONFIGURABLE)
             .accessor(
                 utf16!("minutes"),
                 Some(get_minutes),
                 None,
-                Attribute::default(),
+                Attribute::CONFIGURABLE,
             )
             .accessor(
                 utf16!("seconds"),
                 Some(get_seconds),
                 None,
-                Attribute::default(),
+                Attribute::CONFIGURABLE,
             )
             .accessor(
                 utf16!("milliseconds"),
                 Some(get_milliseconds),
                 None,
-                Attribute::default(),
+                Attribute::CONFIGURABLE,
             )
             .accessor(
                 utf16!("microseconds"),
                 Some(get_microseconds),
                 None,
-                Attribute::default(),
+                Attribute::CONFIGURABLE,
             )
             .accessor(
                 utf16!("nanoseconds"),
                 Some(get_nanoseconds),
                 None,
-                Attribute::default(),
+                Attribute::CONFIGURABLE,
             )
-            .accessor(utf16!("sign"), Some(get_sign), None, Attribute::default())
-            .accessor(utf16!("blank"), Some(is_blank), None, Attribute::default())
+            .accessor(utf16!("sign"), Some(get_sign), None, Attribute::CONFIGURABLE)
+            .accessor(utf16!("blank"), Some(is_blank), None, Attribute::CONFIGURABLE)
             .method(Self::with, js_string!("with"), 1)
             .method(Self::negated, js_string!("negated"), 0)
             .method(Self::abs, js_string!("abs"), 0)

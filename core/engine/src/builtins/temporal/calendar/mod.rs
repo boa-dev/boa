@@ -76,7 +76,7 @@ impl IntrinsicObject for Calendar {
                 Self::NAME,
                 Attribute::CONFIGURABLE,
             )
-            .accessor(utf16!("id"), Some(get_id), None, Attribute::default())
+            .accessor(utf16!("id"), Some(get_id), None, Attribute::CONFIGURABLE)
             .static_method(Self::from, js_string!("from"), 1)
             .method(Self::date_from_fields, js_string!("dateFromFields"), 2)
             .method(
