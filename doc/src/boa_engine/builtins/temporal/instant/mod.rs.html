@@ -499,6 +499,7 @@
 <a href="#499" id="499">499</a>
 <a href="#500" id="500">500</a>
 <a href="#501" id="501">501</a>
+<a href="#502" id="502">502</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s `Temporal.Instant` builtin object.
 
 </span><span class="kw">use crate</span>::{
@@ -738,7 +739,8 @@
             })<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Return ? AddDurationToOrSubtractDurationFromInstant(add, instant, temporalDurationLike).
-        </span><span class="kw">let </span>temporal_duration_like = to_temporal_duration_record(args.get_or_undefined(<span class="number">0</span>))<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>temporal_duration_like =
+            to_temporal_duration_record(args.get_or_undefined(<span class="number">0</span>), context)<span class="question-mark">?</span>;
         <span class="kw">let </span>result = instant.inner.add(temporal_duration_like)<span class="question-mark">?</span>;
         create_temporal_instant(result, <span class="prelude-val">None</span>, context)
     }
@@ -759,7 +761,8 @@
             })<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Return ? AddDurationToOrSubtractDurationFromInstant(subtract, instant, temporalDurationLike).
-        </span><span class="kw">let </span>temporal_duration_like = to_temporal_duration_record(args.get_or_undefined(<span class="number">0</span>))<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>temporal_duration_like =
+            to_temporal_duration_record(args.get_or_undefined(<span class="number">0</span>), context)<span class="question-mark">?</span>;
         <span class="kw">let </span>result = instant.inner.subtract(temporal_duration_like)<span class="question-mark">?</span>;
         create_temporal_instant(result, <span class="prelude-val">None</span>, context)
     }
@@ -837,34 +840,33 @@
                 JsNativeError::typ().with_message(<span class="string">&quot;the this object must be an instant object.&quot;</span>)
             })<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>round_to = args.get_or_undefined(<span class="number">0</span>);
-        <span class="comment">// 3. If roundTo is undefined, then
-        </span><span class="kw">if </span>round_to.is_undefined() {
-            <span class="comment">// a. Throw a TypeError exception.
-            </span><span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;roundTo cannot be undefined.&quot;</span>)
-                .into());
+        <span class="kw">let </span>round_to = <span class="kw">match </span>args.first() {
+            <span class="comment">// 3. If roundTo is undefined, then
+            </span><span class="prelude-val">None </span>| <span class="prelude-val">Some</span>(JsValue::Undefined) =&gt; {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                    .with_message(<span class="string">&quot;roundTo cannot be undefined.&quot;</span>)
+                    .into())
+            }
+            <span class="comment">// 4. If Type(roundTo) is String, then
+            </span><span class="prelude-val">Some</span>(JsValue::String(rt)) =&gt; {
+                <span class="comment">// a. Let paramString be roundTo.
+                </span><span class="kw">let </span>param_string = rt.clone();
+                <span class="comment">// b. Set roundTo to OrdinaryObjectCreate(null).
+                </span><span class="kw">let </span>new_round_to = JsObject::with_null_proto();
+                <span class="comment">// c. Perform ! CreateDataPropertyOrThrow(roundTo, &quot;smallestUnit&quot;, paramString).
+                </span>new_round_to.create_data_property_or_throw(
+                    <span class="macro">utf16!</span>(<span class="string">&quot;smallestUnit&quot;</span>),
+                    param_string,
+                    context,
+                )<span class="question-mark">?</span>;
+                new_round_to
+            }
+            <span class="comment">// 5. Else,
+            </span><span class="prelude-val">Some</span>(round_to) =&gt; {
+                <span class="comment">// a. Set roundTo to ? GetOptionsObject(roundTo).
+                </span>get_options_object(round_to)<span class="question-mark">?
+            </span>}
         };
-        <span class="comment">// 4. If Type(roundTo) is String, then
-        </span><span class="kw">let </span>round_to = <span class="kw">if </span>round_to.is_string() {
-            <span class="comment">// a. Let paramString be roundTo.
-            </span><span class="kw">let </span>param_string = round_to
-                .as_string()
-                .expect(<span class="string">&quot;roundTo is confirmed to be a string here.&quot;</span>);
-            <span class="comment">// b. Set roundTo to OrdinaryObjectCreate(null).
-            </span><span class="kw">let </span>new_round_to = JsObject::with_null_proto();
-            <span class="comment">// c. Perform ! CreateDataPropertyOrThrow(roundTo, &quot;smallestUnit&quot;), paramString).
-            </span>new_round_to.create_data_property_or_throw(
-                <span class="macro">utf16!</span>(<span class="string">&quot;smallestUnit&quot;</span>),
-                param_string.clone(),
-                context,
-            )<span class="question-mark">?</span>;
-            new_round_to
-        <span class="comment">// 5. Else,
-        </span>} <span class="kw">else </span>{
-            <span class="comment">// a. Set roundTo to ? GetOptionsObject(roundTo).
-            </span>get_options_object(round_to)<span class="question-mark">?
-        </span>};
 
         <span class="comment">// 6. NOTE: The following steps read options and perform independent validation in
         // alphabetical order (ToTemporalRoundingIncrement reads &quot;roundingIncrement&quot; and ToTemporalRoundingMode reads &quot;roundingMode&quot;).

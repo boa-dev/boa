@@ -615,10 +615,6 @@
 <a href="#615" id="615">615</a>
 <a href="#616" id="616">616</a>
 <a href="#617" id="617">617</a>
-<a href="#618" id="618">618</a>
-<a href="#619" id="619">619</a>
-<a href="#620" id="620">620</a>
-<a href="#621" id="621">621</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of the ECMAScript `Temporal.PlainDate` builtin object.
 </span><span class="attr">#![allow(dead_code, unused_variables)]
 
@@ -1126,14 +1122,10 @@
     new_target: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsValue&gt;,
     context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;JsObject&gt; {
-    <span class="comment">// 1. If IsValidISODate(isoYear, isoMonth, isoDay) is false, throw a RangeError exception.
-    </span><span class="kw">if </span>!inner.is_valid() {
-        <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
-            .with_message(<span class="string">&quot;Date is not a valid ISO date.&quot;</span>)
-            .into());
-    };
+    <span class="comment">// NOTE (nekevss): The below should never trigger as `IsValidISODate` is enforced by Date.
+    // 1. If IsValidISODate(isoYear, isoMonth, isoDay) is false, throw a RangeError exception.
 
-    <span class="comment">// 2. If ISODateTimeWithinLimits(isoYear, isoMonth, isoDay, 12, 0, 0, 0, 0, 0) is false, throw a RangeError exception.
+    // 2. If ISODateTimeWithinLimits(isoYear, isoMonth, isoDay, 12, 0, 0, 0, 0, 0) is false, throw a RangeError exception.
     </span><span class="kw">if </span>!DateTime::&lt;JsCustomCalendar&gt;::validate(<span class="kw-2">&amp;</span>inner) {
         <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
             .with_message(<span class="string">&quot;Date is not within ISO date time limits.&quot;</span>)

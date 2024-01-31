@@ -1039,6 +1039,46 @@
 <a href="#1039" id="1039">1039</a>
 <a href="#1040" id="1040">1040</a>
 <a href="#1041" id="1041">1041</a>
+<a href="#1042" id="1042">1042</a>
+<a href="#1043" id="1043">1043</a>
+<a href="#1044" id="1044">1044</a>
+<a href="#1045" id="1045">1045</a>
+<a href="#1046" id="1046">1046</a>
+<a href="#1047" id="1047">1047</a>
+<a href="#1048" id="1048">1048</a>
+<a href="#1049" id="1049">1049</a>
+<a href="#1050" id="1050">1050</a>
+<a href="#1051" id="1051">1051</a>
+<a href="#1052" id="1052">1052</a>
+<a href="#1053" id="1053">1053</a>
+<a href="#1054" id="1054">1054</a>
+<a href="#1055" id="1055">1055</a>
+<a href="#1056" id="1056">1056</a>
+<a href="#1057" id="1057">1057</a>
+<a href="#1058" id="1058">1058</a>
+<a href="#1059" id="1059">1059</a>
+<a href="#1060" id="1060">1060</a>
+<a href="#1061" id="1061">1061</a>
+<a href="#1062" id="1062">1062</a>
+<a href="#1063" id="1063">1063</a>
+<a href="#1064" id="1064">1064</a>
+<a href="#1065" id="1065">1065</a>
+<a href="#1066" id="1066">1066</a>
+<a href="#1067" id="1067">1067</a>
+<a href="#1068" id="1068">1068</a>
+<a href="#1069" id="1069">1069</a>
+<a href="#1070" id="1070">1070</a>
+<a href="#1071" id="1071">1071</a>
+<a href="#1072" id="1072">1072</a>
+<a href="#1073" id="1073">1073</a>
+<a href="#1074" id="1074">1074</a>
+<a href="#1075" id="1075">1075</a>
+<a href="#1076" id="1076">1076</a>
+<a href="#1077" id="1077">1077</a>
+<a href="#1078" id="1078">1078</a>
+<a href="#1079" id="1079">1079</a>
+<a href="#1080" id="1080">1080</a>
+<a href="#1081" id="1081">1081</a>
 </pre></div><pre class="rust"><code><span class="comment">// Boa&#39;s implementation of the `Temporal.Duration` Builtin Object.
 
 </span><span class="kw">use crate</span>::{
@@ -1625,16 +1665,15 @@
                 JsNativeError::typ().with_message(<span class="string">&quot;this value must be a Duration object.&quot;</span>)
             })<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>round_to = args.get_or_undefined(<span class="number">0</span>);
-        <span class="kw">let </span>round_to = <span class="kw">match </span>round_to {
+        <span class="kw">let </span>round_to = <span class="kw">match </span>args.first() {
             <span class="comment">// 3. If roundTo is undefined, then
-            </span>JsValue::Undefined =&gt; {
+            </span><span class="prelude-val">None </span>| <span class="prelude-val">Some</span>(JsValue::Undefined) =&gt; {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
                     .with_message(<span class="string">&quot;roundTo cannot be undefined.&quot;</span>)
                     .into())
             }
             <span class="comment">// 4. If Type(roundTo) is String, then
-            </span>JsValue::String(rt) =&gt; {
+            </span><span class="prelude-val">Some</span>(JsValue::String(rt)) =&gt; {
                 <span class="comment">// a. Let paramString be roundTo.
                 </span><span class="kw">let </span>param_string = rt.clone();
                 <span class="comment">// b. Set roundTo to OrdinaryObjectCreate(null).
@@ -1648,7 +1687,7 @@
                 new_round_to
             }
             <span class="comment">// 5. Else,
-            </span><span class="kw">_ </span>=&gt; {
+            </span><span class="prelude-val">Some</span>(round_to) =&gt; {
                 <span class="comment">// a. Set roundTo to ? GetOptionsObject(roundTo).
                 </span>get_options_object(round_to)<span class="question-mark">?
             </span>}
@@ -1917,7 +1956,10 @@
 <span class="comment">// -- Duration Abstract Operations --
 
 </span><span class="doccomment">/// 7.5.8 `ToTemporalDuration ( item )`
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_temporal_duration(item: <span class="kw-2">&amp;</span>JsValue) -&gt; JsResult&lt;InnerDuration&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_temporal_duration(
+    item: <span class="kw-2">&amp;</span>JsValue,
+    context: <span class="kw-2">&amp;mut </span>Context,
+) -&gt; JsResult&lt;InnerDuration&gt; {
     <span class="comment">// 1a. If Type(item) is Object
     // 1b. and item has an [[InitializedTemporalDuration]] internal slot, then
     </span><span class="kw">if let </span><span class="prelude-val">Some</span>(duration) = item
@@ -1928,18 +1970,56 @@
     }
 
     <span class="comment">// 2. Let result be ? ToTemporalDurationRecord(item).
-    </span><span class="kw">let </span>result = to_temporal_duration_record(item)<span class="question-mark">?</span>;
+    </span><span class="kw">let </span>result = to_temporal_duration_record(item, context)<span class="question-mark">?</span>;
     <span class="comment">// 3. Return ! CreateTemporalDuration(result.[[Years]], result.[[Months]], result.[[Weeks]], result.[[Days]], result.[[Hours]], result.[[Minutes]], result.[[Seconds]], result.[[Milliseconds]], result.[[Microseconds]], result.[[Nanoseconds]]).
     </span><span class="prelude-val">Ok</span>(result)
 }
 
 <span class="doccomment">/// 7.5.9 `ToTemporalDurationRecord ( temporalDurationLike )`
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_temporal_duration_record(
-    _temporal_duration_like: <span class="kw-2">&amp;</span>JsValue,
+    temporal_duration_like: <span class="kw-2">&amp;</span>JsValue,
+    context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;InnerDuration&gt; {
-    <span class="prelude-val">Err</span>(JsNativeError::range()
-        .with_message(<span class="string">&quot;Duration Parsing is not yet complete.&quot;</span>)
-        .into())
+    <span class="comment">// 1. If Type(temporalDurationLike) is not Object, then
+    </span><span class="kw">let </span>JsValue::Object(duration_obj) = temporal_duration_like <span class="kw">else </span>{
+        <span class="comment">// a. If temporalDurationLike is not a String, throw a TypeError exception.
+        </span><span class="kw">let </span>JsValue::String(duration_string) = temporal_duration_like <span class="kw">else </span>{
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;Invalid TemporalDurationLike value.&quot;</span>)
+                .into());
+        };
+
+        <span class="comment">// b. Return ? ParseTemporalDurationString(temporalDurationLike).
+        </span><span class="kw">return </span>duration_string
+            .to_std_string_escaped()
+            .parse::&lt;InnerDuration&gt;()
+            .map_err(Into::into);
+    };
+
+    <span class="comment">// 2. If temporalDurationLike has an [[InitializedTemporalDuration]] internal slot, then
+    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(duration) = duration_obj.downcast_ref::&lt;Duration&gt;() {
+        <span class="comment">// a. Return ! CreateDurationRecord(temporalDurationLike.[[Years]], temporalDurationLike.[[Months]], temporalDurationLike.[[Weeks]], temporalDurationLike.[[Days]], temporalDurationLike.[[Hours]], temporalDurationLike.[[Minutes]], temporalDurationLike.[[Seconds]], temporalDurationLike.[[Milliseconds]], temporalDurationLike.[[Microseconds]], temporalDurationLike.[[Nanoseconds]]).
+        </span><span class="kw">return </span><span class="prelude-val">Ok</span>(duration.inner);
+    }
+
+    <span class="comment">// 3. Let result be a new Duration Record with each field set to 0.
+    // 4. Let partial be ? ToTemporalPartialDurationRecord(temporalDurationLike).
+    </span><span class="kw">let </span>partial = to_temporal_partial_duration(temporal_duration_like, context)<span class="question-mark">?</span>;
+
+    <span class="comment">// 5. If partial.[[Years]] is not undefined, set result.[[Years]] to partial.[[Years]].
+    // 6. If partial.[[Months]] is not undefined, set result.[[Months]] to partial.[[Months]].
+    // 7. If partial.[[Weeks]] is not undefined, set result.[[Weeks]] to partial.[[Weeks]].
+    // 8. If partial.[[Days]] is not undefined, set result.[[Days]] to partial.[[Days]].
+    // 9. If partial.[[Hours]] is not undefined, set result.[[Hours]] to partial.[[Hours]].
+    // 10. If partial.[[Minutes]] is not undefined, set result.[[Minutes]] to partial.[[Minutes]].
+    // 11. If partial.[[Seconds]] is not undefined, set result.[[Seconds]] to partial.[[Seconds]].
+    // 12. If partial.[[Milliseconds]] is not undefined, set result.[[Milliseconds]] to partial.[[Milliseconds]].
+    // 13. If partial.[[Microseconds]] is not undefined, set result.[[Microseconds]] to partial.[[Microseconds]].
+    // 14. If partial.[[Nanoseconds]] is not undefined, set result.[[Nanoseconds]] to partial.[[Nanoseconds]].
+    // 15. If ! IsValidDuration(result.[[Years]], result.[[Months]], result.[[Weeks]], result.[[Days]], result.[[Hours]], result.[[Minutes]], result.[[Seconds]], result.[[Milliseconds]], result.[[Microseconds]], result.[[Nanoseconds]]) is false, then
+    // a. Throw a RangeError exception.
+    // 16. Return result.
+    </span>InnerDuration::from_partial(<span class="kw-2">&amp;</span>partial).map_err(Into::into)
 }
 
 <span class="doccomment">/// 7.5.14 `CreateTemporalDuration ( years, months, weeks, days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds [ , newTarget ] )`

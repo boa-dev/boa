@@ -1008,6 +1008,18 @@
 <a href="#1008" id="1008">1008</a>
 <a href="#1009" id="1009">1009</a>
 <a href="#1010" id="1010">1010</a>
+<a href="#1011" id="1011">1011</a>
+<a href="#1012" id="1012">1012</a>
+<a href="#1013" id="1013">1013</a>
+<a href="#1014" id="1014">1014</a>
+<a href="#1015" id="1015">1015</a>
+<a href="#1016" id="1016">1016</a>
+<a href="#1017" id="1017">1017</a>
+<a href="#1018" id="1018">1018</a>
+<a href="#1019" id="1019">1019</a>
+<a href="#1020" id="1020">1020</a>
+<a href="#1021" id="1021">1021</a>
+<a href="#1022" id="1022">1022</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module implements `Duration` along with it&#39;s methods and components.
 
 </span><span class="kw">use crate</span>::{
@@ -1134,6 +1146,18 @@
             date: DateDuration::new_unchecked(<span class="number">0.0</span>, <span class="number">0.0</span>, <span class="number">0.0</span>, day),
             time,
         }
+    }
+
+    <span class="doccomment">/// Creates a new valid `Duration` from a partial `Duration`.
+    </span><span class="kw">pub fn </span>from_partial(partial: <span class="kw-2">&amp;</span>Duration) -&gt; TemporalResult&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">let </span>duration = <span class="self">Self </span>{
+            date: DateDuration::from_partial(partial.date()),
+            time: TimeDuration::from_partial(partial.time()),
+        };
+        <span class="kw">if </span>!is_valid_duration(<span class="kw-2">&amp;</span>duration.into_iter().collect()) {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">&quot;Duration was not valid.&quot;</span>));
+        }
+        <span class="prelude-val">Ok</span>(duration)
     }
 
     <span class="doccomment">/// Return if the Durations values are within their valid ranges.

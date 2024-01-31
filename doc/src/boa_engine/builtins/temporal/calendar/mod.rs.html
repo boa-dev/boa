@@ -1563,7 +1563,7 @@
 
         <span class="comment">// 5. Set duration to ? ToTemporalDuration(duration).
         </span><span class="kw">let </span>duration_like = args.get_or_undefined(<span class="number">1</span>);
-        <span class="kw">let </span>duration = temporal::duration::to_temporal_duration(duration_like)<span class="question-mark">?</span>;
+        <span class="kw">let </span>duration = temporal::duration::to_temporal_duration(duration_like, context)<span class="question-mark">?</span>;
 
         <span class="comment">// 6. Set options to ? GetOptionsObject(options).
         </span><span class="kw">let </span>options = args.get_or_undefined(<span class="number">2</span>);

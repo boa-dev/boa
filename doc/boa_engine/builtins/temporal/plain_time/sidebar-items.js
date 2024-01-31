@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["PlainTime"]};
+window.SIDEBAR_ITEMS = {"fn":["create_temporal_time"],"struct":["PlainTime"]};
