@@ -70,7 +70,7 @@ impl IntrinsicObject for PlainYearMonth {
             .build();
 
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
-            .static_property(
+            .property(
                 JsSymbol::to_string_tag(),
                 Self::NAME,
                 Attribute::CONFIGURABLE,
@@ -79,39 +79,49 @@ impl IntrinsicObject for PlainYearMonth {
                 utf16!("calendarId"),
                 Some(get_calendar_id),
                 None,
-                Attribute::default(),
+                Attribute::CONFIGURABLE,
             )
-            .accessor(utf16!("year"), Some(get_year), None, Attribute::default())
-            .accessor(utf16!("month"), Some(get_month), None, Attribute::default())
+            .accessor(
+                utf16!("year"),
+                Some(get_year),
+                None,
+                Attribute::CONFIGURABLE,
+            )
+            .accessor(
+                utf16!("month"),
+                Some(get_month),
+                None,
+                Attribute::CONFIGURABLE,
+            )
             .accessor(
                 utf16!("monthCode"),
                 Some(get_month_code),
                 None,
-                Attribute::default(),
+                Attribute::CONFIGURABLE,
             )
             .accessor(
                 utf16!("daysInMonth"),
                 Some(get_days_in_month),
                 None,
-                Attribute::default(),
+                Attribute::CONFIGURABLE,
             )
             .accessor(
                 utf16!("daysInYear"),
                 Some(get_days_in_year),
                 None,
-                Attribute::default(),
+                Attribute::CONFIGURABLE,
             )
             .accessor(
                 utf16!("monthsInYear"),
                 Some(get_months_in_year),
                 None,
-                Attribute::default(),
+                Attribute::CONFIGURABLE,
             )
             .accessor(
                 utf16!("inLeapYear"),
                 Some(get_in_leap_year),
                 None,
-                Attribute::default(),
+                Attribute::CONFIGURABLE,
             )
             .method(Self::with, js_string!("with"), 2)
             .method(Self::add, js_string!("add"), 2)

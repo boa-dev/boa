@@ -238,7 +238,7 @@ impl<C: CalendarProtocol> DateTime<C> {
 
     /// Returns the calendar day of year value with provided context.
     pub fn contextual_day_of_year(&self, context: &mut dyn Any) -> TemporalResult<u16> {
-        self.calendar.day_of_week(
+        self.calendar.day_of_year(
             &super::calendar::CalendarDateLike::DateTime(self.clone()),
             context,
         )
@@ -246,7 +246,7 @@ impl<C: CalendarProtocol> DateTime<C> {
 
     /// Returns the calendar day of year value.
     pub fn day_of_year(&self) -> TemporalResult<u16> {
-        self.contextual_day_of_week(&mut ())
+        self.contextual_day_of_year(&mut ())
     }
 
     /// Returns the calendar week of year value with provided context.

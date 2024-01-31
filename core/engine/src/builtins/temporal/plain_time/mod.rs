@@ -66,7 +66,7 @@ impl IntrinsicObject for PlainTime {
             .build();
 
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
-            .static_property(
+            .property(
                 JsSymbol::to_string_tag(),
                 Self::NAME,
                 Attribute::CONFIGURABLE,
@@ -76,31 +76,31 @@ impl IntrinsicObject for PlainTime {
                 utf16!("minute"),
                 Some(get_minute),
                 None,
-                Attribute::default(),
+                Attribute::CONFIGURABLE,
             )
             .accessor(
                 utf16!("second"),
                 Some(get_second),
                 None,
-                Attribute::default(),
+                Attribute::CONFIGURABLE,
             )
             .accessor(
                 utf16!("millisecond"),
                 Some(get_millisecond),
                 None,
-                Attribute::default(),
+                Attribute::CONFIGURABLE,
             )
             .accessor(
                 utf16!("microsecond"),
                 Some(get_microsecond),
                 None,
-                Attribute::default(),
+                Attribute::CONFIGURABLE,
             )
             .accessor(
                 utf16!("nanosecond"),
                 Some(get_nanosecond),
                 None,
-                Attribute::default(),
+                Attribute::CONFIGURABLE,
             )
             .method(Self::add, js_string!("add"), 1)
             .method(Self::subtract, js_string!("subtract"), 1)

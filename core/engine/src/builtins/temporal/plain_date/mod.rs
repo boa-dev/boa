@@ -103,7 +103,7 @@ impl IntrinsicObject for PlainDate {
             .build();
 
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
-            .static_property(
+            .property(
                 JsSymbol::to_string_tag(),
                 Self::NAME,
                 Attribute::CONFIGURABLE,
@@ -112,70 +112,80 @@ impl IntrinsicObject for PlainDate {
                 utf16!("calendarId"),
                 Some(get_calendar_id),
                 None,
-                Attribute::default(),
+                Attribute::CONFIGURABLE,
             )
-            .accessor(utf16!("year"), Some(get_year), None, Attribute::default())
-            .accessor(utf16!("month"), Some(get_month), None, Attribute::default())
+            .accessor(
+                utf16!("year"),
+                Some(get_year),
+                None,
+                Attribute::CONFIGURABLE,
+            )
+            .accessor(
+                utf16!("month"),
+                Some(get_month),
+                None,
+                Attribute::CONFIGURABLE,
+            )
             .accessor(
                 utf16!("monthCode"),
                 Some(get_month_code),
                 None,
-                Attribute::default(),
+                Attribute::CONFIGURABLE,
             )
-            .accessor(utf16!("day"), Some(get_day), None, Attribute::default())
+            .accessor(utf16!("day"), Some(get_day), None, Attribute::CONFIGURABLE)
             .accessor(
                 utf16!("dayOfWeek"),
                 Some(get_day_of_week),
                 None,
-                Attribute::default(),
+                Attribute::CONFIGURABLE,
             )
             .accessor(
                 utf16!("dayOfYear"),
                 Some(get_day_of_year),
                 None,
-                Attribute::default(),
+                Attribute::CONFIGURABLE,
             )
             .accessor(
                 utf16!("weekOfYear"),
                 Some(get_week_of_year),
                 None,
-                Attribute::default(),
+                Attribute::CONFIGURABLE,
             )
             .accessor(
                 utf16!("yearOfWeek"),
                 Some(get_year_of_week),
                 None,
-                Attribute::default(),
+                Attribute::CONFIGURABLE,
             )
             .accessor(
                 utf16!("daysInWeek"),
                 Some(get_days_in_week),
                 None,
-                Attribute::default(),
+                Attribute::CONFIGURABLE,
             )
             .accessor(
                 utf16!("daysInMonth"),
                 Some(get_days_in_month),
                 None,
-                Attribute::default(),
+                Attribute::CONFIGURABLE,
             )
             .accessor(
                 utf16!("daysInYear"),
                 Some(get_days_in_year),
                 None,
-                Attribute::default(),
+                Attribute::CONFIGURABLE,
             )
             .accessor(
                 utf16!("monthsInYear"),
                 Some(get_months_in_year),
                 None,
-                Attribute::default(),
+                Attribute::CONFIGURABLE,
             )
             .accessor(
                 utf16!("inLeapYear"),
                 Some(get_in_leap_year),
                 None,
-                Attribute::default(),
+                Attribute::CONFIGURABLE,
             )
             .method(Self::to_plain_year_month, js_string!("toPlainYearMonth"), 0)
             .method(Self::to_plain_month_day, js_string!("toPlainMonthDay"), 0)
