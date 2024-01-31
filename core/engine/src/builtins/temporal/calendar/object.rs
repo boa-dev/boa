@@ -267,7 +267,7 @@ impl CalendarProtocol for JsCustomCalendar {
         let val = method
             .as_callable()
             .expect("is method")
-            .call(&method, &[date_like], context)
+            .call(&self.calendar.clone().into(), &[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))?;
 
         // Validate the return value.
@@ -314,7 +314,7 @@ impl CalendarProtocol for JsCustomCalendar {
         let val = method
             .as_callable()
             .expect("is method")
-            .call(&method, &[date_like], context)
+            .call(&self.calendar.clone().into(), &[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))?;
 
         // Validate the return value.
@@ -361,7 +361,7 @@ impl CalendarProtocol for JsCustomCalendar {
         let val = method
             .as_callable()
             .expect("is method")
-            .call(&method, &[date_like], context)
+            .call(&self.calendar.clone().into(), &[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))?;
 
         let JsValue::String(result) = val else {
@@ -393,7 +393,7 @@ impl CalendarProtocol for JsCustomCalendar {
         let val = method
             .as_callable()
             .expect("is method")
-            .call(&method, &[date_like], context)
+            .call(&self.calendar.clone().into(), &[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))?;
 
         // Validate the return value.
@@ -440,7 +440,7 @@ impl CalendarProtocol for JsCustomCalendar {
         let val = method
             .as_callable()
             .expect("is method")
-            .call(&method, &[date_like], context)
+            .call(&self.calendar.clone().into(), &[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))?;
 
         // Validate the return value.
@@ -489,7 +489,7 @@ impl CalendarProtocol for JsCustomCalendar {
         let val = method
             .as_callable()
             .expect("is method")
-            .call(&method, &[date_like], context)
+            .call(&self.calendar.clone().into(), &[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))?;
 
         // Validate the return value.
@@ -538,7 +538,7 @@ impl CalendarProtocol for JsCustomCalendar {
         let val = method
             .as_callable()
             .expect("is method")
-            .call(&method, &[date_like], context)
+            .call(&self.calendar.clone().into(), &[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))?;
 
         // Validate the return value.
@@ -587,7 +587,7 @@ impl CalendarProtocol for JsCustomCalendar {
         let val = method
             .as_callable()
             .expect("is method")
-            .call(&method, &[date_like], context)
+            .call(&self.calendar.clone().into(), &[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))?;
 
         // Validate the return value.
@@ -629,7 +629,7 @@ impl CalendarProtocol for JsCustomCalendar {
         let val = method
             .as_callable()
             .expect("is method")
-            .call(&method, &[date_like], context)
+            .call(&self.calendar.clone().into(), &[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))?;
 
         // Validate the return value.
@@ -677,7 +677,7 @@ impl CalendarProtocol for JsCustomCalendar {
         let val = method
             .as_callable()
             .expect("is method")
-            .call(&method, &[date_like], context)
+            .call(&self.calendar.clone().into(), &[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))?;
 
         // Validate the return value.
@@ -728,7 +728,7 @@ impl CalendarProtocol for JsCustomCalendar {
         let val = method
             .as_callable()
             .expect("is method")
-            .call(&method, &[date_like], context)
+            .call(&self.calendar.clone().into(), &[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))?;
 
         // Validate the return value.
@@ -777,7 +777,7 @@ impl CalendarProtocol for JsCustomCalendar {
         let val = method
             .as_callable()
             .expect("is method")
-            .call(&method, &[date_like], context)
+            .call(&self.calendar.clone().into(), &[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))?;
 
         // Validate the return value.
@@ -828,7 +828,7 @@ impl CalendarProtocol for JsCustomCalendar {
         let val = method
             .as_callable()
             .expect("is method")
-            .call(&method, &[date_like], context)
+            .call(&self.calendar.clone().into(), &[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))?;
 
         let JsValue::Boolean(result) = val else {
@@ -858,7 +858,7 @@ impl CalendarProtocol for JsCustomCalendar {
         let result = method
             .as_callable()
             .expect("is method")
-            .call(&method, &[fields_js.into()], context)
+            .call(&self.calendar.clone().into(), &[fields_js.into()], context)
             .map_err(|e| TemporalError::general(e.to_string()))?;
 
         // validate result and map to a `Vec<String>`
@@ -909,7 +909,7 @@ impl CalendarProtocol for JsCustomCalendar {
         let value = method
             .as_callable()
             .expect("is method")
-            .call(&method, &[fields.into(), add_fields.into()], context)
+            .call(&self.calendar.clone().into(), &[fields.into(), add_fields.into()], context)
             .map_err(|e| TemporalError::general(e.to_string()))?;
 
         let JsValue::Object(o) = value else {
@@ -930,7 +930,7 @@ impl CalendarProtocol for JsCustomCalendar {
             .calendar
             .__get__(
                 &PropertyKey::from(utf16!("id")),
-                JsValue::undefined(),
+                self.calendar.clone().into(),
                 &mut context.into(),
             )
             .expect("method must exist on a object that implements the CalendarProtocol.");

@@ -9,9 +9,7 @@ use super::{
 };
 use crate::{
     builtins::{
-        iterable::IteratorHint,
-        options::{get_option, get_options_object},
-        temporal, Array, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
+        iterable::IteratorHint, options::{get_option, get_options_object}, temporal, Array, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
@@ -175,7 +173,7 @@ impl Calendar {
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message("the this value of Calendar must be a Calendar object.")
+                    .with_message("the this value of Calendar.prototype.id must be a Calendar object.")
             })?;
 
         Ok(JsString::from(calendar.slot.identifier(context)?.as_str()).into())
@@ -194,7 +192,7 @@ impl Calendar {
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message("this value of Calendar must be a Calendar object.")
+                    .with_message("this value of Calendar dateFromFields must be a Calendar object.")
             })?;
 
         // 3. If Type(fields) is not Object, throw a TypeError exception.
@@ -274,7 +272,7 @@ impl Calendar {
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message("this value of Calendar must be a Calendar object.")
+                    .with_message("this value of Calendar yearMonthFromFields must be a Calendar object.")
             })?;
 
         let fields = args.get_or_undefined(0);
@@ -350,7 +348,7 @@ impl Calendar {
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message("this value of Calendar must be a Calendar object.")
+                    .with_message("this value of Calendar monthDayFromFields must be a Calendar object.")
             })?;
 
         // 3. If Type(fields) is not Object, throw a TypeError exception.
@@ -422,7 +420,7 @@ impl Calendar {
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message("this value of Calendar must be a Calendar object.")
+                    .with_message("this value of Calendar dateAdd must be a Calendar object.")
             })?;
 
         // 4. Set date to ? ToTemporalDate(date).
@@ -461,7 +459,7 @@ impl Calendar {
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message("this value of Calendar must be a Calendar object.")
+                    .with_message("this value of Calendar dateUntil must be a Calendar object.")
             })?;
 
         // 4. Set one to ? ToTemporalDate(one).
@@ -497,7 +495,7 @@ impl Calendar {
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message("this value of Calendar must be a Calendar object.")
+                    .with_message("this value of Calendar era must be a Calendar object.")
             })?;
 
         let date_like = to_calendar_date_like(args.get_or_undefined(0), context)?;
@@ -517,7 +515,7 @@ impl Calendar {
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message("this value of Calendar must be a Calendar object.")
+                    .with_message("this value of Calendar eraYear must be a Calendar object.")
             })?;
 
         let date_like = to_calendar_date_like(args.get_or_undefined(0), context)?;
@@ -537,7 +535,7 @@ impl Calendar {
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message("this value of Calendar must be a Calendar object.")
+                    .with_message("this value of Calendar year must be a Calendar object.")
             })?;
 
         let date_like = to_calendar_date_like(args.get_or_undefined(0), context)?;
@@ -554,7 +552,7 @@ impl Calendar {
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message("this value of Calendar must be a Calendar object.")
+                    .with_message("this value of Calendar month must be a Calendar object.")
             })?;
 
         let date_like = to_calendar_date_like(args.get_or_undefined(0), context)?;
@@ -576,7 +574,7 @@ impl Calendar {
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message("this value of Calendar must be a Calendar object.")
+                    .with_message("this value of Calendar monthCode must be a Calendar object.")
             })?;
 
         let date_like = to_calendar_date_like(args.get_or_undefined(0), context)?;
@@ -593,7 +591,7 @@ impl Calendar {
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message("this value of Calendar must be a Calendar object.")
+                    .with_message("this value of Calendar day must be a Calendar object.")
             })?;
 
         let date_like = to_calendar_date_like(args.get_or_undefined(0), context)?;
@@ -612,7 +610,7 @@ impl Calendar {
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message("this value of Calendar must be a Calendar object.")
+                    .with_message("this value of Calendar dayOfWeek must be a Calendar object.")
             })?;
 
         // 3. Let temporalDate be ? ToTemporalDate(temporalDateLike).
@@ -632,7 +630,7 @@ impl Calendar {
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message("this value of Calendar must be a Calendar object.")
+                    .with_message("this value of Calendar dayOfYear must be a Calendar object.")
             })?;
 
         // 3. Let temporalDate be ? ToTemporalDate(temporalDateLike).
@@ -652,7 +650,7 @@ impl Calendar {
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message("this value of Calendar must be a Calendar object.")
+                    .with_message("this value of Calendar weekOfYear must be a Calendar object.")
             })?;
 
         // 3. Let temporalDate be ? ToTemporalDate(temporalDateLike).
@@ -672,7 +670,7 @@ impl Calendar {
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message("this value of Calendar must be a Calendar object.")
+                    .with_message("this value of Calendar yearOfWeek must be a Calendar object.")
             })?;
 
         // 3. Let temporalDate be ? ToTemporalDate(temporalDateLike).
@@ -692,7 +690,7 @@ impl Calendar {
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message("this value of Calendar must be a Calendar object.")
+                    .with_message("this value of Calendar daysInWeek must be a Calendar object.")
             })?;
 
         // 3. Let temporalDate be ? ToTemporalDate(temporalDateLike).
@@ -712,7 +710,7 @@ impl Calendar {
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message("this value of Calendar must be a Calendar object.")
+                    .with_message("this value of Calendar daysInMonth must be a Calendar object.")
             })?;
 
         let date_like = to_calendar_date_like(args.get_or_undefined(0), context)?;
@@ -729,7 +727,7 @@ impl Calendar {
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message("this value of Calendar must be a Calendar object.")
+                    .with_message("this value of Calendar daysInYear must be a Calendar object.")
             })?;
 
         let date_like = to_calendar_date_like(args.get_or_undefined(0), context)?;
@@ -749,7 +747,7 @@ impl Calendar {
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message("this value of Calendar must be a Calendar object.")
+                    .with_message("this value of Calendar monthsInYear must be a Calendar object.")
             })?;
 
         let date_like = to_calendar_date_like(args.get_or_undefined(0), context)?;
@@ -766,7 +764,7 @@ impl Calendar {
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message("this value of Calendar must be a Calendar object.")
+                    .with_message("this value of Calendar inLeapYear must be a Calendar object.")
             })?;
 
         let date_like = to_calendar_date_like(args.get_or_undefined(0), context)?;
@@ -785,7 +783,7 @@ impl Calendar {
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message("this value of Calendar must be a Calendar object.")
+                    .with_message("this value of Calendar Fields must be a Calendar object.")
             })?;
 
         // Custom Calendars override the `fields` method.
@@ -902,7 +900,7 @@ impl Calendar {
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message("this value of Calendar must be a Calendar object.")
+                    .with_message("this value of Calendar mergeFields must be a Calendar object.")
             })?;
 
         let fields = args.get_or_undefined(0).to_object(context)?;
