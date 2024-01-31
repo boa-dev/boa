@@ -1,9 +1,4 @@
-use std::{
-    cell::{Cell, OnceCell},
-    collections::HashSet,
-    hash::BuildHasherDefault,
-    rc::Rc,
-};
+use std::{cell::Cell, collections::HashSet, hash::BuildHasherDefault, rc::Rc};
 
 use boa_ast::{
     declaration::{
@@ -59,21 +54,24 @@ pub(super) struct DfsInfo {
 /// [cyclic]: https://tc39.es/ecma262/#table-cyclic-module-fields
 #[derive(Debug, Trace, Finalize, Default)]
 #[boa_gc(unsafe_no_drop)]
-enum Status {
+enum ModuleStatus {
     #[default]
     Unlinked,
     Linking {
         info: DfsInfo,
     },
     PreLinked {
+        environment: Gc<DeclarativeEnvironment>,
         context: SourceTextContext,
         info: DfsInfo,
     },
     Linked {
+        environment: Gc<DeclarativeEnvironment>,
         context: SourceTextContext,
         info: DfsInfo,
     },
     Evaluating {
+        environment: Gc<DeclarativeEnvironment>,
         context: SourceTextContext,
         top_level_capability: Option<PromiseCapability>,
         cycle_root: Module,
@@ -81,6 +79,7 @@ enum Status {
         async_eval_index: Option<usize>,
     },
     EvaluatingAsync {
+        environment: Gc<DeclarativeEnvironment>,
         context: SourceTextContext,
         top_level_capability: Option<PromiseCapability>,
         cycle_root: Module,
@@ -88,13 +87,23 @@ enum Status {
         pending_async_dependencies: usize,
     },
     Evaluated {
+        environment: Gc<DeclarativeEnvironment>,
         top_level_capability: Option<PromiseCapability>,
         cycle_root: Module,
         error: Option<JsError>,
     },
 }
 
-impl Status {
+impl ModuleStatus {
+    /// Transition from one state to another, taking the current state by value to move data
+    /// between states.
+    fn transition<F>(&mut self, f: F)
+    where
+        F: FnOnce(Self) -> Self,
+    {
+        *self = f(std::mem::take(self));
+    }
+
     /// Gets the current index info of the module within the dependency graph, or `None` if the
     /// module is not in a state executing the dfs algorithm.
     const fn dfs_info(&self) -> Option<&DfsInfo> {
@@ -160,13 +169,16 @@ impl Status {
         }
     }
 
-    /// Transition from one state to another, taking the current state by value to move data
-    /// between states.
-    fn transition<F>(&mut self, f: F)
-    where
-        F: FnOnce(Self) -> Self,
-    {
-        *self = f(std::mem::take(self));
+    /// Gets the declarative environment from the module status.
+    fn environment(&self) -> Option<Gc<DeclarativeEnvironment>> {
+        match self {
+            ModuleStatus::Unlinked | ModuleStatus::Linking { .. } => None,
+            ModuleStatus::PreLinked { environment, .. }
+            | ModuleStatus::Linked { environment, .. }
+            | ModuleStatus::Evaluating { environment, .. }
+            | ModuleStatus::EvaluatingAsync { environment, .. }
+            | ModuleStatus::Evaluated { environment, .. } => Some(environment.clone()),
+        }
     }
 }
 
@@ -197,8 +209,7 @@ impl std::fmt::Debug for SourceTextContext {
 /// [spec]: https://tc39.es/ecma262/#sec-source-text-module-records
 #[derive(Trace, Finalize)]
 pub(crate) struct SourceTextModule {
-    environment: OnceCell<Gc<DeclarativeEnvironment>>,
-    status: GcRefCell<Status>,
+    status: GcRefCell<ModuleStatus>,
     loaded_modules: GcRefCell<FxHashMap<JsString, Module>>,
     async_parent_modules: GcRefCell<Vec<Module>>,
     import_meta: GcRefCell<Option<JsObject>>,
@@ -319,7 +330,6 @@ impl SourceTextModule {
         // }.
         // Most of this can be ignored, since `Status` takes care of the remaining state.
         Self {
-            environment: OnceCell::default(),
             status: GcRefCell::default(),
             loaded_modules: GcRefCell::default(),
             async_parent_modules: GcRefCell::default(),
@@ -348,7 +358,7 @@ impl SourceTextModule {
         // 2. If module is a Cyclic Module Record, module.[[Status]] is new, and state.[[Visited]] does not contain
         //    module, then
         // a. Append module to state.[[Visited]].
-        if matches!(&*self.status.borrow(), Status::Unlinked)
+        if matches!(&*self.status.borrow(), ModuleStatus::Unlinked)
             && state.visited.borrow_mut().insert(module_self.clone())
         {
             // b. Let requestedModulesCount be the number of elements in module.[[RequestedModules]].
@@ -643,10 +653,10 @@ impl SourceTextModule {
         // 1. Assert: module.[[Status]] is one of unlinked, linked, evaluating-async, or evaluated.
         debug_assert!(matches!(
             &*self.status.borrow(),
-            Status::Unlinked
-                | Status::Linked { .. }
-                | Status::EvaluatingAsync { .. }
-                | Status::Evaluated { .. }
+            ModuleStatus::Unlinked
+                | ModuleStatus::Linked { .. }
+                | ModuleStatus::EvaluatingAsync { .. }
+                | ModuleStatus::Evaluated { .. }
         ));
 
         // 2. Let stack be a new empty List.
@@ -658,12 +668,12 @@ impl SourceTextModule {
             // a. For each Cyclic Module Record m of stack, do
             for m in stack.iter().filter_map(|cmr| cmr.kind().as_source_text()) {
                 // i. Assert: m.[[Status]] is linking.
-                debug_assert!(matches!(&*m.status.borrow(), Status::Linking { .. }));
+                debug_assert!(matches!(&*m.status.borrow(), ModuleStatus::Linking { .. }));
                 // ii. Set m.[[Status]] to unlinked.
-                *m.status.borrow_mut() = Status::Unlinked;
+                *m.status.borrow_mut() = ModuleStatus::Unlinked;
             }
             // b. Assert: module.[[Status]] is unlinked.
-            debug_assert!(matches!(&*self.status.borrow(), Status::Unlinked));
+            debug_assert!(matches!(&*self.status.borrow(), ModuleStatus::Unlinked));
             // c. Return ? result.
             return Err(err);
         }
@@ -671,7 +681,7 @@ impl SourceTextModule {
         // 5. Assert: module.[[Status]] is one of linked, evaluating-async, or evaluated.
         debug_assert!(matches!(
             &*self.status.borrow(),
-            Status::Linked { .. } | Status::EvaluatingAsync { .. } | Status::Evaluated { .. }
+            ModuleStatus::Linked { .. } | ModuleStatus::EvaluatingAsync { .. } | ModuleStatus::Evaluated { .. }
         ));
         // 6. Assert: stack is empty.
         assert!(stack.is_empty());
@@ -693,23 +703,23 @@ impl SourceTextModule {
         // 2. If module.[[Status]] is one of linking, linked, evaluating-async, or evaluated, then
         if matches!(
             &*self.status.borrow(),
-            Status::Linking { .. }
-                | Status::PreLinked { .. }
-                | Status::Linked { .. }
-                | Status::EvaluatingAsync { .. }
-                | Status::Evaluated { .. }
+            ModuleStatus::Linking { .. }
+                | ModuleStatus::PreLinked { .. }
+                | ModuleStatus::Linked { .. }
+                | ModuleStatus::EvaluatingAsync { .. }
+                | ModuleStatus::Evaluated { .. }
         ) {
             // a. Return index.
             return Ok(index);
         }
 
         // 3. Assert: module.[[Status]] is unlinked.
-        debug_assert!(matches!(&*self.status.borrow(), Status::Unlinked));
+        debug_assert!(matches!(&*self.status.borrow(), ModuleStatus::Unlinked));
 
         // 4. Set module.[[Status]] to linking.
         // 5. Set module.[[DFSIndex]] to index.
         // 6. Set module.[[DFSAncestorIndex]] to index.
-        *self.status.borrow_mut() = Status::Linking {
+        *self.status.borrow_mut() = ModuleStatus::Linking {
             info: DfsInfo {
                 dfs_index: index,
                 dfs_ancestor_index: index,
@@ -735,16 +745,16 @@ impl SourceTextModule {
                 // i. Assert: requiredModule.[[Status]] is one of linking, linked, evaluating-async, or evaluated.
                 // ii. Assert: requiredModule.[[Status]] is linking if and only if stack contains requiredModule.
                 debug_assert!(match &*required_module_src.status.borrow() {
-                    Status::PreLinked { .. }
-                    | Status::Linked { .. }
-                    | Status::EvaluatingAsync { .. }
-                    | Status::Evaluated { .. } => true,
-                    Status::Linking { .. } if stack.contains(&required_module) => true,
+                    ModuleStatus::PreLinked { .. }
+                    | ModuleStatus::Linked { .. }
+                    | ModuleStatus::EvaluatingAsync { .. }
+                    | ModuleStatus::Evaluated { .. } => true,
+                    ModuleStatus::Linking { .. } if stack.contains(&required_module) => true,
                     _ => false,
                 });
 
                 // iii. If requiredModule.[[Status]] is linking, then
-                let required_index = if let Status::Linking {
+                let required_index = if let ModuleStatus::Linking {
                     info:
                         DfsInfo {
                             dfs_ancestor_index, ..
@@ -813,7 +823,15 @@ impl SourceTextModule {
                     .status
                     .borrow_mut()
                     .transition(|current| match current {
-                        Status::PreLinked { info, context } => Status::Linked { info, context },
+                        ModuleStatus::PreLinked {
+                            info,
+                            context,
+                            environment,
+                        } => ModuleStatus::Linked {
+                            info,
+                            context,
+                            environment,
+                        },
                         _ => {
                             unreachable!(
                                 "can only transition to `Linked` from the `PreLinked` state"
@@ -840,20 +858,20 @@ impl SourceTextModule {
         // 1. Assert: This call to Evaluate is not happening at the same time as another call to Evaluate within the surrounding agent.
         let (module, promise) = {
             match &*self.status.borrow() {
-                Status::Unlinked
-                | Status::Linking { .. }
-                | Status::PreLinked { .. }
-                | Status::Evaluating { .. } => {
+                ModuleStatus::Unlinked
+                | ModuleStatus::Linking { .. }
+                | ModuleStatus::PreLinked { .. }
+                | ModuleStatus::Evaluating { .. } => {
                     unreachable!("2. Assert: module.[[Status]] is one of linked, evaluating-async, or evaluated.")
                 }
-                Status::Linked { .. } => (module_self.clone(), None),
+                ModuleStatus::Linked { .. } => (module_self.clone(), None),
                 // 3. If module.[[Status]] is either evaluating-async or evaluated, set module to module.[[CycleRoot]].
-                Status::EvaluatingAsync {
+                ModuleStatus::EvaluatingAsync {
                     cycle_root,
                     top_level_capability,
                     ..
                 }
-                | Status::Evaluated {
+                | ModuleStatus::Evaluated {
                     cycle_root,
                     top_level_capability,
                     ..
@@ -896,14 +914,14 @@ impl SourceTextModule {
                 // 10. Else,
                 //     a. Assert: module.[[Status]] is either evaluating-async or evaluated.
                 assert!(match &*module_src.status.borrow() {
-                    Status::EvaluatingAsync { .. } => true,
+                    ModuleStatus::EvaluatingAsync { .. } => true,
                     // b. Assert: module.[[EvaluationError]] is empty.
-                    Status::Evaluated { error, .. } if error.is_none() => true,
+                    ModuleStatus::Evaluated { error, .. } if error.is_none() => true,
                     _ => false,
                 });
 
                 //     c. If module.[[AsyncEvaluation]] is false, then
-                if matches!(&*module_src.status.borrow(), Status::Evaluated { .. }) {
+                if matches!(&*module_src.status.borrow(), ModuleStatus::Evaluated { .. }) {
                     //    i. Assert: module.[[Status]] is evaluated.
                     //    ii. Perform ! Call(capability.[[Resolve]], undefined, « undefined »).
                     capability
@@ -921,18 +939,21 @@ impl SourceTextModule {
                 for m in stack.iter().filter_map(|cmr| cmr.kind().as_source_text()) {
                     m.status.borrow_mut().transition(|current| match current {
                         // i. Assert: m.[[Status]] is evaluating.
-                        Status::Evaluating {
+                        ModuleStatus::Evaluating {
+                            environment,
                             top_level_capability,
                             cycle_root,
                             ..
-                        } | Status::EvaluatingAsync {
+                        } | ModuleStatus::EvaluatingAsync {
+                            environment,
                             top_level_capability,
                             cycle_root,
                             ..
                         } => {
                             // ii. Set m.[[Status]] to evaluated.
                             // iii. Set m.[[EvaluationError]] to result.
-                            Status::Evaluated {
+                            ModuleStatus::Evaluated {
+                                environment,
                                 top_level_capability,
                                 cycle_root,
                                 error: Some(err.clone()),
@@ -946,7 +967,7 @@ impl SourceTextModule {
                 // b. Assert: module.[[Status]] is evaluated.
                 // c. Assert: module.[[EvaluationError]] is result.
                 assert!(
-                    matches!(&*module_src.status.borrow(), Status::Evaluated { error, .. } if error.is_some())
+                    matches!(&*module_src.status.borrow(), ModuleStatus::Evaluated { error, .. } if error.is_some())
                 );
 
                 // d. Perform ! Call(capability.[[Reject]], undefined, « result.[[Value]] »).
@@ -996,11 +1017,11 @@ impl SourceTextModule {
         // 2. If module.[[Status]] is either evaluating-async or evaluated, then
         match &*self.status.borrow() {
             // 3. If module.[[Status]] is evaluating, return index.
-            Status::Evaluating { .. } | Status::EvaluatingAsync { .. } => return Ok(index),
+            ModuleStatus::Evaluating { .. } | ModuleStatus::EvaluatingAsync { .. } => return Ok(index),
             //     a. If module.[[EvaluationError]] is empty, return index.
             //     b. Otherwise, return ? module.[[EvaluationError]].
-            Status::Evaluated { error, .. } => return error.clone().map_or(Ok(index), Err),
-            Status::Linked { .. } => {
+            ModuleStatus::Evaluated { error, .. } => return error.clone().map_or(Ok(index), Err),
+            ModuleStatus::Linked { .. } => {
                 // 4. Assert: module.[[Status]] is linked.
                 // evaluate a linked module
             }
@@ -1014,7 +1035,12 @@ impl SourceTextModule {
         // 7. Set module.[[DFSAncestorIndex]] to index.
         // 8. Set module.[[PendingAsyncDependencies]] to 0.
         self.status.borrow_mut().transition(|status| match status {
-            Status::Linked { context, .. } => Status::Evaluating {
+            ModuleStatus::Linked {
+                environment,
+                context,
+                ..
+            } => ModuleStatus::Evaluating {
+                environment,
                 context,
                 top_level_capability: capability,
                 cycle_root: module_self.clone(),
@@ -1046,14 +1072,14 @@ impl SourceTextModule {
                 // i. Assert: requiredModule.[[Status]] is one of evaluating, evaluating-async, or evaluated.
                 // ii. Assert: requiredModule.[[Status]] is evaluating if and only if stack contains requiredModule.
                 debug_assert!(match &*required_module_src.status.borrow() {
-                    Status::EvaluatingAsync { .. } | Status::Evaluated { .. } => true,
-                    Status::Evaluating { .. } if stack.contains(&required_module) => true,
+                    ModuleStatus::EvaluatingAsync { .. } | ModuleStatus::Evaluated { .. } => true,
+                    ModuleStatus::Evaluating { .. } if stack.contains(&required_module) => true,
                     _ => false,
                 });
 
                 let (required_module, async_eval, req_info) = match &*required_module_src.status.borrow() {
                     // iii. If requiredModule.[[Status]] is evaluating, then
-                    Status::Evaluating {
+                    ModuleStatus::Evaluating {
                         info,
                         async_eval_index,
                         ..
@@ -1062,8 +1088,8 @@ impl SourceTextModule {
                         (required_module.clone(), async_eval_index.is_some(), Some(*info))
                     }
                     // iv. Else,
-                    Status::EvaluatingAsync { cycle_root, .. }
-                    | Status::Evaluated { cycle_root, .. } => {
+                    ModuleStatus::EvaluatingAsync { cycle_root, .. }
+                    | ModuleStatus::Evaluated { cycle_root, .. } => {
                         // 1. Set requiredModule to requiredModule.[[CycleRoot]].
                         let ModuleKind::SourceText(cycle_root_src) = cycle_root.kind() else {
                             unreachable!("cycle_root must be a source text module");
@@ -1071,10 +1097,10 @@ impl SourceTextModule {
 
                         // 2. Assert: requiredModule.[[Status]] is either evaluating-async or evaluated.
                         match &*cycle_root_src.status.borrow() {
-                            Status::EvaluatingAsync { .. } => (cycle_root.clone(), true, None),
+                            ModuleStatus::EvaluatingAsync { .. } => (cycle_root.clone(), true, None),
                             // 3. If requiredModule.[[EvaluationError]] is not empty, return ? requiredModule.[[EvaluationError]].
-                            Status::Evaluated { error: Some(error), .. } => return Err(error.clone()),
-                            Status::Evaluated { .. } => (cycle_root.clone(), false, None),
+                            ModuleStatus::Evaluated { error: Some(error), .. } => return Err(error.clone()),
+                            ModuleStatus::Evaluated { .. } => (cycle_root.clone(), false, None),
                             _ => unreachable!("2. Assert: requiredModule.[[Status]] is either evaluating-async or evaluated."),
                         }
                     }
@@ -1111,7 +1137,7 @@ impl SourceTextModule {
         if pending_async_dependencies > 0 || self.code.has_tla {
             // a. Assert: module.[[AsyncEvaluation]] is false and was never previously set to true.
             {
-                let Status::Evaluating {
+                let ModuleStatus::Evaluating {
                     async_eval_index, ..
                 } = &mut *self.status.borrow_mut()
                 else {
@@ -1158,7 +1184,8 @@ impl SourceTextModule {
                     unreachable!("iii. Assert: requiredModule is a Cyclic Module Record.");
                 };
                 required_module_src.status.borrow_mut().transition(|current| match current {
-                Status::Evaluating {
+                ModuleStatus::Evaluating {
+                            environment,
                             top_level_capability,
                             cycle_root,
                             async_eval_index,
@@ -1166,7 +1193,8 @@ impl SourceTextModule {
                             ..
                         } => if let Some(async_eval_index) = async_eval_index {
                             // v. Otherwise, set requiredModule.[[Status]] to evaluating-async.
-                            Status::EvaluatingAsync {
+                            ModuleStatus::EvaluatingAsync {
+                                environment,
                                 top_level_capability,
                                 // vii. Set requiredModule.[[CycleRoot]] to module.
                                 cycle_root: if is_self {
@@ -1180,7 +1208,8 @@ impl SourceTextModule {
                             }
                         } else {
                             // iv. If requiredModule.[[AsyncEvaluation]] is false, set requiredModule.[[Status]] to evaluated.
-                            Status::Evaluated {
+                            ModuleStatus::Evaluated {
+                                environment,
                                 top_level_capability,
                                 cycle_root: if is_self {
                                     cycle_root
@@ -1214,7 +1243,7 @@ impl SourceTextModule {
         // 1. Assert: module.[[Status]] is either evaluating or evaluating-async.
         debug_assert!(matches!(
             &*self.status.borrow(),
-            Status::Evaluating { .. } | Status::EvaluatingAsync { .. }
+            ModuleStatus::Evaluating { .. } | ModuleStatus::EvaluatingAsync { .. }
         ));
         // 2. Assert: module.[[HasTLA]] is true.
         debug_assert!(self.code.has_tla);
@@ -1309,7 +1338,7 @@ impl SourceTextModule {
                 // i. Assert: m.[[Status]] is evaluating-async.
                 // ii. Assert: m.[[EvaluationError]] is empty.
                 // iii. Assert: m.[[AsyncEvaluation]] is true.
-                let Status::EvaluatingAsync {
+                let ModuleStatus::EvaluatingAsync {
                     pending_async_dependencies,
                     ..
                 } = &mut *m_src.status.borrow_mut()
@@ -1675,11 +1704,10 @@ impl SourceTextModule {
             .cloned()
             .expect("frame must have a declarative environment");
 
-        assert!(self.environment.set(env).is_ok());
-
         // 16. Set module.[[Context]] to moduleContext.
         self.status.borrow_mut().transition(|state| match state {
-            Status::Linking { info } => Status::PreLinked {
+            ModuleStatus::Linking { info } => ModuleStatus::PreLinked {
+                environment: env,
                 info,
                 context: SourceTextContext {
                     codeblock,
@@ -1711,7 +1739,7 @@ impl SourceTextModule {
             environments,
             realm,
         } = match &*self.status.borrow() {
-            Status::Evaluating { context, .. } | Status::EvaluatingAsync { context, .. } => {
+            ModuleStatus::Evaluating { context, .. } | ModuleStatus::EvaluatingAsync { context, .. } => {
                 context.clone()
             }
             _ => unreachable!("`execute` should only be called for evaluating modules."),
@@ -1781,7 +1809,7 @@ impl SourceTextModule {
 
     /// Gets the declarative environment of this module.
     pub(crate) fn environment(&self) -> Option<Gc<DeclarativeEnvironment>> {
-        self.environment.get().cloned()
+        self.status.borrow().environment()
     }
 }
 
@@ -1795,7 +1823,7 @@ fn async_module_execution_fulfilled(module: &Module, context: &mut Context) {
     };
 
     // 1. If module.[[Status]] is evaluated, then
-    if let Status::Evaluated { error, .. } = &*module_src.status.borrow() {
+    if let ModuleStatus::Evaluated { error, .. } = &*module_src.status.borrow() {
         //     a. Assert: module.[[EvaluationError]] is not empty.
         assert!(error.is_some());
         //     b. Return unused.
@@ -1811,11 +1839,13 @@ fn async_module_execution_fulfilled(module: &Module, context: &mut Context) {
         .status
         .borrow_mut()
         .transition(|status| match status {
-            Status::EvaluatingAsync {
+            ModuleStatus::EvaluatingAsync {
+                environment,
                 top_level_capability,
                 cycle_root,
                 ..
-            } => Status::Evaluated {
+            } => ModuleStatus::Evaluated {
+                environment,
                 top_level_capability,
                 cycle_root,
                 error: None,
@@ -1849,7 +1879,7 @@ fn async_module_execution_fulfilled(module: &Module, context: &mut Context) {
             unreachable!("ancestors must only be source text modules");
         };
 
-        let Status::EvaluatingAsync {
+        let ModuleStatus::EvaluatingAsync {
             async_eval_index, ..
         } = &*m_src.status.borrow()
         else {
@@ -1866,7 +1896,7 @@ fn async_module_execution_fulfilled(module: &Module, context: &mut Context) {
         };
 
         // a. If m.[[Status]] is evaluated, then
-        if let Status::Evaluated { error, .. } = &*m_src.status.borrow() {
+        if let ModuleStatus::Evaluated { error, .. } = &*m_src.status.borrow() {
             // i. Assert: m.[[EvaluationError]] is not empty.
             assert!(error.is_some());
             continue;
@@ -1890,11 +1920,13 @@ fn async_module_execution_fulfilled(module: &Module, context: &mut Context) {
                 // iii. Else,
                 //    1. Set m.[[Status]] to evaluated.
                 m_src.status.borrow_mut().transition(|status| match status {
-                    Status::EvaluatingAsync {
+                    ModuleStatus::EvaluatingAsync {
+                        environment,
                         top_level_capability,
                         cycle_root,
                         ..
-                    } => Status::Evaluated {
+                    } => ModuleStatus::Evaluated {
+                        environment,
                         top_level_capability,
                         cycle_root,
                         error: None,
@@ -1927,7 +1959,7 @@ fn async_module_execution_rejected(module: &Module, error: &JsError, context: &m
         unreachable!("async executed module must be a source text module");
     };
     // 1. If module.[[Status]] is evaluated, then
-    if let Status::Evaluated { error, .. } = &*module_src.status.borrow() {
+    if let ModuleStatus::Evaluated { error, .. } = &*module_src.status.borrow() {
         //     a. Assert: module.[[EvaluationError]] is not empty.
         assert!(error.is_some());
         //     b. Return unused.
@@ -1943,11 +1975,13 @@ fn async_module_execution_rejected(module: &Module, error: &JsError, context: &m
         .status
         .borrow_mut()
         .transition(|status| match status {
-            Status::EvaluatingAsync {
+            ModuleStatus::EvaluatingAsync {
+                environment,
                 top_level_capability,
                 cycle_root,
                 ..
-            } => Status::Evaluated {
+            } => ModuleStatus::Evaluated {
+                environment,
                 top_level_capability,
                 cycle_root,
                 error: Some(error.clone()),

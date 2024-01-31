@@ -1,6 +1,6 @@
-use std::{cell::OnceCell, rc::Rc};
+use std::rc::Rc;
 
-use boa_gc::{Finalize, Gc, Trace};
+use boa_gc::{Finalize, Gc, GcRefCell, Trace};
 use rustc_hash::FxHashSet;
 
 use crate::{
@@ -140,16 +140,42 @@ impl SyntheticModuleInitializer {
     }
 }
 
+/// Current status of a [`SyntheticModule`].
+#[derive(Debug, Trace, Finalize, Default)]
+#[boa_gc(unsafe_no_drop)]
+enum ModuleStatus {
+    #[default]
+    Unlinked,
+    Linked {
+        environment: Gc<DeclarativeEnvironment>,
+        eval_context: (EnvironmentStack, Gc<CodeBlock>),
+    },
+    Evaluated {
+        environment: Gc<DeclarativeEnvironment>,
+        promise: JsPromise,
+    },
+}
+
+impl ModuleStatus {
+    /// Transition from one state to another, taking the current state by value to move data
+    /// between states.
+    fn transition<F>(&mut self, f: F)
+    where
+        F: FnOnce(Self) -> Self,
+    {
+        *self = f(std::mem::take(self));
+    }
+}
+
 /// ECMAScript's [**Synthetic Module Records**][spec].
 ///
 /// [spec]: https://tc39.es/proposal-json-modules/#sec-synthetic-module-records
-#[derive(Clone, Trace, Finalize)]
+#[derive(Trace, Finalize)]
 pub struct SyntheticModule {
-    environment: OnceCell<Gc<DeclarativeEnvironment>>,
     #[unsafe_ignore_trace]
     export_names: FxHashSet<JsString>,
-    eval_context: OnceCell<(EnvironmentStack, Gc<CodeBlock>)>,
     eval_steps: SyntheticModuleInitializer,
+    state: GcRefCell<ModuleStatus>,
 }
 
 impl std::fmt::Debug for SyntheticModule {
@@ -162,13 +188,40 @@ impl std::fmt::Debug for SyntheticModule {
 }
 
 impl SyntheticModule {
+    /// Abstract operation [`SetSyntheticModuleExport ( module, exportName, exportValue )`][spec].
+    ///
+    /// Sets or changes the exported value for `exportName` in the synthetic module.
+    ///
+    /// # Note
+    ///
+    /// The default export corresponds to the name `"default"`, but note that it needs to
+    /// be passed to the list of exported names in [`Module::synthetic`] beforehand.
+    ///
+    /// [spec]: https://tc39.es/proposal-json-modules/#sec-createsyntheticmodule
+    pub fn set_export(&self, export_name: &JsString, export_value: JsValue) -> JsResult<()> {
+        let env = self.environment().ok_or_else(|| {
+            JsNativeError::typ().with_message(format!(
+                "cannot set name `{}` in an unlinked synthetic module",
+                export_name.to_std_string_escaped()
+            ))
+        })?;
+        let locator = env.compile_env().get_binding(export_name).ok_or_else(|| {
+            JsNativeError::reference().with_message(format!(
+                "cannot set name `{}` which was not included in the list of exports",
+                export_name.to_std_string_escaped()
+            ))
+        })?;
+        env.set(locator.binding_index(), export_value);
+
+        Ok(())
+    }
+
     /// Creates a new synthetic module.
     pub(super) fn new(names: FxHashSet<JsString>, eval_steps: SyntheticModuleInitializer) -> Self {
         Self {
-            environment: OnceCell::default(),
             export_names: names,
             eval_steps,
-            eval_context: OnceCell::default(),
+            state: GcRefCell::default(),
         }
     }
 
@@ -213,6 +266,11 @@ impl SyntheticModule {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-moduledeclarationlinking
     pub(super) fn link(&self, module_self: &Module, context: &mut Context) {
+        if !matches!(&*self.state.borrow(), ModuleStatus::Unlinked) {
+            // Already linked and/or evaluated.
+            return;
+        }
+
         // 1. Let realm be module.[[Realm]].
         // 2. Let env be NewModuleEnvironment(realm.[[GlobalEnv]]).
         // 3. Set module.[[Environment]] to env.
@@ -261,9 +319,12 @@ impl SyntheticModule {
             .cloned()
             .expect("should have the module environment");
 
-        assert!(self.environment.set(env).is_ok());
-
-        assert!(self.eval_context.set((envs, cb)).is_ok());
+        self.state
+            .borrow_mut()
+            .transition(|_| ModuleStatus::Linked {
+                environment: env,
+                eval_context: (envs, cb),
+            });
 
         // 5. Return unused.
     }
@@ -272,14 +333,27 @@ impl SyntheticModule {
     ///
     /// [spec]: https://tc39.es/proposal-json-modules/#sec-smr-Evaluate
     pub(super) fn evaluate(&self, module_self: &Module, context: &mut Context) -> JsPromise {
+        let (environments, codeblock) = match &*self.state.borrow() {
+            ModuleStatus::Unlinked => {
+                let (promise, ResolvingFunctions { reject, .. }) = JsPromise::new_pending(context);
+                reject
+                    .call(
+                        &JsValue::undefined(),
+                        &[JsNativeError::typ()
+                            .with_message("cannot evaluate unlinked synthetic module")
+                            .to_opaque(context)
+                            .into()],
+                        context,
+                    )
+                    .expect("native resolving functions cannot throw");
+                return promise;
+            }
+            ModuleStatus::Linked { eval_context, .. } => eval_context.clone(),
+            ModuleStatus::Evaluated { promise, .. } => return promise.clone(),
+        };
         // 1. Let moduleContext be a new ECMAScript code execution context.
 
         let realm = module_self.realm().clone();
-        let (environments, codeblock) = self
-            .eval_context
-            .get()
-            .cloned()
-            .expect("should have been initialized on `link`");
 
         let env_fp = environments.len() as u32;
         let callframe = CallFrame::new(
@@ -321,37 +395,23 @@ impl SyntheticModule {
         }
         .expect("default resolving functions cannot throw");
 
+        self.state.borrow_mut().transition(|state| match state {
+            ModuleStatus::Linked { environment, .. } => ModuleStatus::Evaluated {
+                environment,
+                promise: promise.clone(),
+            },
+            _ => unreachable!("checks above ensure the module is linked"),
+        });
+
         // 16. Return pc.[[Promise]].
         promise
     }
 
-    /// Abstract operation [`SetSyntheticModuleExport ( module, exportName, exportValue )`][spec].
-    ///
-    /// Sets or changes the exported value for `exportName` in the synthetic module.
-    ///
-    /// # Note
-    ///
-    /// The default export corresponds to the name `"default"`, but note that it needs to
-    /// be passed to the list of exported names in [`Module::synthetic`] beforehand.
-    ///
-    /// [spec]: https://tc39.es/proposal-json-modules/#sec-createsyntheticmodule
-    pub fn set_export(&self, export_name: &JsString, export_value: JsValue) -> JsResult<()> {
-        let env = self
-            .environment
-            .get()
-            .expect("this must be initialized before evaluating");
-        let locator = env.compile_env().get_binding(export_name).ok_or_else(|| {
-            JsNativeError::reference().with_message(format!(
-                "cannot set name `{}` which was not included in the list of exports",
-                export_name.to_std_string_escaped()
-            ))
-        })?;
-        env.set(locator.binding_index(), export_value);
-
-        Ok(())
-    }
-
     pub(crate) fn environment(&self) -> Option<Gc<DeclarativeEnvironment>> {
-        self.environment.get().cloned()
+        match &*self.state.borrow() {
+            ModuleStatus::Unlinked => None,
+            ModuleStatus::Linked { environment, .. }
+            | ModuleStatus::Evaluated { environment, .. } => Some(environment.clone()),
+        }
     }
 }
