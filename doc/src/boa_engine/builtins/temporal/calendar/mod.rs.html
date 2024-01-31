@@ -1130,6 +1130,10 @@
 <a href="#1130" id="1130">1130</a>
 <a href="#1131" id="1131">1131</a>
 <a href="#1132" id="1132">1132</a>
+<a href="#1133" id="1133">1133</a>
+<a href="#1134" id="1134">1134</a>
+<a href="#1135" id="1135">1135</a>
+<a href="#1136" id="1136">1136</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! An implementation of the `Temporal` proposal&#39;s Calendar builtin.
 
 </span><span class="kw">use </span>std::str::FromStr;
@@ -1205,12 +1209,12 @@
             .build();
 
         BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
-            .static_property(
+            .property(
                 JsSymbol::to_string_tag(),
                 <span class="self">Self</span>::NAME,
                 Attribute::CONFIGURABLE,
             )
-            .accessor(<span class="macro">utf16!</span>(<span class="string">&quot;id&quot;</span>), <span class="prelude-val">Some</span>(get_id), <span class="prelude-val">None</span>, Attribute::default())
+            .accessor(<span class="macro">utf16!</span>(<span class="string">&quot;id&quot;</span>), <span class="prelude-val">Some</span>(get_id), <span class="prelude-val">None</span>, Attribute::CONFIGURABLE)
             .static_method(<span class="self">Self</span>::from, <span class="macro">js_string!</span>(<span class="string">&quot;from&quot;</span>), <span class="number">1</span>)
             .method(<span class="self">Self</span>::date_from_fields, <span class="macro">js_string!</span>(<span class="string">&quot;dateFromFields&quot;</span>), <span class="number">2</span>)
             .method(
@@ -1306,8 +1310,9 @@
             .as_object()
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
-                JsNativeError::typ()
-                    .with_message(<span class="string">&quot;the this value of Calendar must be a Calendar object.&quot;</span>)
+                JsNativeError::typ().with_message(
+                    <span class="string">&quot;the this value of Calendar.prototype.id must be a Calendar object.&quot;</span>,
+                )
             })<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(JsString::from(calendar.slot.identifier(context)<span class="question-mark">?</span>.as_str()).into())
@@ -1325,8 +1330,9 @@
             .as_object()
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
-                JsNativeError::typ()
-                    .with_message(<span class="string">&quot;this value of Calendar must be a Calendar object.&quot;</span>)
+                JsNativeError::typ().with_message(
+                    <span class="string">&quot;this value of Calendar dateFromFields must be a Calendar object.&quot;</span>,
+                )
             })<span class="question-mark">?</span>;
 
         <span class="comment">// 3. If Type(fields) is not Object, throw a TypeError exception.
@@ -1405,8 +1411,9 @@
             .as_object()
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
-                JsNativeError::typ()
-                    .with_message(<span class="string">&quot;this value of Calendar must be a Calendar object.&quot;</span>)
+                JsNativeError::typ().with_message(
+                    <span class="string">&quot;this value of Calendar yearMonthFromFields must be a Calendar object.&quot;</span>,
+                )
             })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>fields = args.get_or_undefined(<span class="number">0</span>);
@@ -1481,8 +1488,9 @@
             .as_object()
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
-                JsNativeError::typ()
-                    .with_message(<span class="string">&quot;this value of Calendar must be a Calendar object.&quot;</span>)
+                JsNativeError::typ().with_message(
+                    <span class="string">&quot;this value of Calendar monthDayFromFields must be a Calendar object.&quot;</span>,
+                )
             })<span class="question-mark">?</span>;
 
         <span class="comment">// 3. If Type(fields) is not Object, throw a TypeError exception.
@@ -1554,7 +1562,7 @@
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message(<span class="string">&quot;this value of Calendar must be a Calendar object.&quot;</span>)
+                    .with_message(<span class="string">&quot;this value of Calendar dateAdd must be a Calendar object.&quot;</span>)
             })<span class="question-mark">?</span>;
 
         <span class="comment">// 4. Set date to ? ToTemporalDate(date).
@@ -1593,7 +1601,7 @@
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message(<span class="string">&quot;this value of Calendar must be a Calendar object.&quot;</span>)
+                    .with_message(<span class="string">&quot;this value of Calendar dateUntil must be a Calendar object.&quot;</span>)
             })<span class="question-mark">?</span>;
 
         <span class="comment">// 4. Set one to ? ToTemporalDate(one).
@@ -1629,7 +1637,7 @@
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message(<span class="string">&quot;this value of Calendar must be a Calendar object.&quot;</span>)
+                    .with_message(<span class="string">&quot;this value of Calendar era must be a Calendar object.&quot;</span>)
             })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>date_like = to_calendar_date_like(args.get_or_undefined(<span class="number">0</span>), context)<span class="question-mark">?</span>;
@@ -1649,7 +1657,7 @@
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message(<span class="string">&quot;this value of Calendar must be a Calendar object.&quot;</span>)
+                    .with_message(<span class="string">&quot;this value of Calendar eraYear must be a Calendar object.&quot;</span>)
             })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>date_like = to_calendar_date_like(args.get_or_undefined(<span class="number">0</span>), context)<span class="question-mark">?</span>;
@@ -1669,7 +1677,7 @@
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message(<span class="string">&quot;this value of Calendar must be a Calendar object.&quot;</span>)
+                    .with_message(<span class="string">&quot;this value of Calendar year must be a Calendar object.&quot;</span>)
             })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>date_like = to_calendar_date_like(args.get_or_undefined(<span class="number">0</span>), context)<span class="question-mark">?</span>;
@@ -1686,7 +1694,7 @@
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message(<span class="string">&quot;this value of Calendar must be a Calendar object.&quot;</span>)
+                    .with_message(<span class="string">&quot;this value of Calendar month must be a Calendar object.&quot;</span>)
             })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>date_like = to_calendar_date_like(args.get_or_undefined(<span class="number">0</span>), context)<span class="question-mark">?</span>;
@@ -1708,7 +1716,7 @@
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message(<span class="string">&quot;this value of Calendar must be a Calendar object.&quot;</span>)
+                    .with_message(<span class="string">&quot;this value of Calendar monthCode must be a Calendar object.&quot;</span>)
             })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>date_like = to_calendar_date_like(args.get_or_undefined(<span class="number">0</span>), context)<span class="question-mark">?</span>;
@@ -1725,7 +1733,7 @@
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message(<span class="string">&quot;this value of Calendar must be a Calendar object.&quot;</span>)
+                    .with_message(<span class="string">&quot;this value of Calendar day must be a Calendar object.&quot;</span>)
             })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>date_like = to_calendar_date_like(args.get_or_undefined(<span class="number">0</span>), context)<span class="question-mark">?</span>;
@@ -1744,7 +1752,7 @@
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message(<span class="string">&quot;this value of Calendar must be a Calendar object.&quot;</span>)
+                    .with_message(<span class="string">&quot;this value of Calendar dayOfWeek must be a Calendar object.&quot;</span>)
             })<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Let temporalDate be ? ToTemporalDate(temporalDateLike).
@@ -1764,7 +1772,7 @@
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message(<span class="string">&quot;this value of Calendar must be a Calendar object.&quot;</span>)
+                    .with_message(<span class="string">&quot;this value of Calendar dayOfYear must be a Calendar object.&quot;</span>)
             })<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Let temporalDate be ? ToTemporalDate(temporalDateLike).
@@ -1784,7 +1792,7 @@
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message(<span class="string">&quot;this value of Calendar must be a Calendar object.&quot;</span>)
+                    .with_message(<span class="string">&quot;this value of Calendar weekOfYear must be a Calendar object.&quot;</span>)
             })<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Let temporalDate be ? ToTemporalDate(temporalDateLike).
@@ -1804,7 +1812,7 @@
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message(<span class="string">&quot;this value of Calendar must be a Calendar object.&quot;</span>)
+                    .with_message(<span class="string">&quot;this value of Calendar yearOfWeek must be a Calendar object.&quot;</span>)
             })<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Let temporalDate be ? ToTemporalDate(temporalDateLike).
@@ -1824,7 +1832,7 @@
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message(<span class="string">&quot;this value of Calendar must be a Calendar object.&quot;</span>)
+                    .with_message(<span class="string">&quot;this value of Calendar daysInWeek must be a Calendar object.&quot;</span>)
             })<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Let temporalDate be ? ToTemporalDate(temporalDateLike).
@@ -1844,7 +1852,7 @@
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message(<span class="string">&quot;this value of Calendar must be a Calendar object.&quot;</span>)
+                    .with_message(<span class="string">&quot;this value of Calendar daysInMonth must be a Calendar object.&quot;</span>)
             })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>date_like = to_calendar_date_like(args.get_or_undefined(<span class="number">0</span>), context)<span class="question-mark">?</span>;
@@ -1861,7 +1869,7 @@
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message(<span class="string">&quot;this value of Calendar must be a Calendar object.&quot;</span>)
+                    .with_message(<span class="string">&quot;this value of Calendar daysInYear must be a Calendar object.&quot;</span>)
             })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>date_like = to_calendar_date_like(args.get_or_undefined(<span class="number">0</span>), context)<span class="question-mark">?</span>;
@@ -1881,7 +1889,7 @@
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message(<span class="string">&quot;this value of Calendar must be a Calendar object.&quot;</span>)
+                    .with_message(<span class="string">&quot;this value of Calendar monthsInYear must be a Calendar object.&quot;</span>)
             })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>date_like = to_calendar_date_like(args.get_or_undefined(<span class="number">0</span>), context)<span class="question-mark">?</span>;
@@ -1898,7 +1906,7 @@
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message(<span class="string">&quot;this value of Calendar must be a Calendar object.&quot;</span>)
+                    .with_message(<span class="string">&quot;this value of Calendar inLeapYear must be a Calendar object.&quot;</span>)
             })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>date_like = to_calendar_date_like(args.get_or_undefined(<span class="number">0</span>), context)<span class="question-mark">?</span>;
@@ -1917,7 +1925,7 @@
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message(<span class="string">&quot;this value of Calendar must be a Calendar object.&quot;</span>)
+                    .with_message(<span class="string">&quot;this value of Calendar Fields must be a Calendar object.&quot;</span>)
             })<span class="question-mark">?</span>;
 
         <span class="comment">// Custom Calendars override the `fields` method.
@@ -2034,7 +2042,7 @@
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message(<span class="string">&quot;this value of Calendar must be a Calendar object.&quot;</span>)
+                    .with_message(<span class="string">&quot;this value of Calendar mergeFields must be a Calendar object.&quot;</span>)
             })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>fields = args.get_or_undefined(<span class="number">0</span>).to_object(context)<span class="question-mark">?</span>;

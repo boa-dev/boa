@@ -306,6 +306,16 @@
 <a href="#306" id="306">306</a>
 <a href="#307" id="307">307</a>
 <a href="#308" id="308">308</a>
+<a href="#309" id="309">309</a>
+<a href="#310" id="310">310</a>
+<a href="#311" id="311">311</a>
+<a href="#312" id="312">312</a>
+<a href="#313" id="313">313</a>
+<a href="#314" id="314">314</a>
+<a href="#315" id="315">315</a>
+<a href="#316" id="316">316</a>
+<a href="#317" id="317">317</a>
+<a href="#318" id="318">318</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of the `Temporal.PlainYearMonth` builtin object.
 
 </span><span class="kw">use crate</span>::{
@@ -378,7 +388,7 @@
             .build();
 
         BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
-            .static_property(
+            .property(
                 JsSymbol::to_string_tag(),
                 <span class="self">Self</span>::NAME,
                 Attribute::CONFIGURABLE,
@@ -387,39 +397,49 @@
                 <span class="macro">utf16!</span>(<span class="string">&quot;calendarId&quot;</span>),
                 <span class="prelude-val">Some</span>(get_calendar_id),
                 <span class="prelude-val">None</span>,
-                Attribute::default(),
+                Attribute::CONFIGURABLE,
             )
-            .accessor(<span class="macro">utf16!</span>(<span class="string">&quot;year&quot;</span>), <span class="prelude-val">Some</span>(get_year), <span class="prelude-val">None</span>, Attribute::default())
-            .accessor(<span class="macro">utf16!</span>(<span class="string">&quot;month&quot;</span>), <span class="prelude-val">Some</span>(get_month), <span class="prelude-val">None</span>, Attribute::default())
+            .accessor(
+                <span class="macro">utf16!</span>(<span class="string">&quot;year&quot;</span>),
+                <span class="prelude-val">Some</span>(get_year),
+                <span class="prelude-val">None</span>,
+                Attribute::CONFIGURABLE,
+            )
+            .accessor(
+                <span class="macro">utf16!</span>(<span class="string">&quot;month&quot;</span>),
+                <span class="prelude-val">Some</span>(get_month),
+                <span class="prelude-val">None</span>,
+                Attribute::CONFIGURABLE,
+            )
             .accessor(
                 <span class="macro">utf16!</span>(<span class="string">&quot;monthCode&quot;</span>),
                 <span class="prelude-val">Some</span>(get_month_code),
                 <span class="prelude-val">None</span>,
-                Attribute::default(),
+                Attribute::CONFIGURABLE,
             )
             .accessor(
                 <span class="macro">utf16!</span>(<span class="string">&quot;daysInMonth&quot;</span>),
                 <span class="prelude-val">Some</span>(get_days_in_month),
                 <span class="prelude-val">None</span>,
-                Attribute::default(),
+                Attribute::CONFIGURABLE,
             )
             .accessor(
                 <span class="macro">utf16!</span>(<span class="string">&quot;daysInYear&quot;</span>),
                 <span class="prelude-val">Some</span>(get_days_in_year),
                 <span class="prelude-val">None</span>,
-                Attribute::default(),
+                Attribute::CONFIGURABLE,
             )
             .accessor(
                 <span class="macro">utf16!</span>(<span class="string">&quot;monthsInYear&quot;</span>),
                 <span class="prelude-val">Some</span>(get_months_in_year),
                 <span class="prelude-val">None</span>,
-                Attribute::default(),
+                Attribute::CONFIGURABLE,
             )
             .accessor(
                 <span class="macro">utf16!</span>(<span class="string">&quot;inLeapYear&quot;</span>),
                 <span class="prelude-val">Some</span>(get_in_leap_year),
                 <span class="prelude-val">None</span>,
-                Attribute::default(),
+                Attribute::CONFIGURABLE,
             )
             .method(<span class="self">Self</span>::with, <span class="macro">js_string!</span>(<span class="string">&quot;with&quot;</span>), <span class="number">2</span>)
             .method(<span class="self">Self</span>::add, <span class="macro">js_string!</span>(<span class="string">&quot;add&quot;</span>), <span class="number">2</span>)

@@ -560,7 +560,7 @@
             .build();
 
         BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
-            .static_property(
+            .property(
                 JsSymbol::to_string_tag(),
                 <span class="self">Self</span>::NAME,
                 Attribute::CONFIGURABLE,
@@ -569,25 +569,25 @@
                 <span class="macro">utf16!</span>(<span class="string">&quot;epochSeconds&quot;</span>),
                 <span class="prelude-val">Some</span>(get_seconds),
                 <span class="prelude-val">None</span>,
-                Attribute::default(),
+                Attribute::CONFIGURABLE,
             )
             .accessor(
                 <span class="macro">utf16!</span>(<span class="string">&quot;epochMilliseconds&quot;</span>),
                 <span class="prelude-val">Some</span>(get_millis),
                 <span class="prelude-val">None</span>,
-                Attribute::default(),
+                Attribute::CONFIGURABLE,
             )
             .accessor(
                 <span class="macro">utf16!</span>(<span class="string">&quot;epochMicroseconds&quot;</span>),
                 <span class="prelude-val">Some</span>(get_micros),
                 <span class="prelude-val">None</span>,
-                Attribute::default(),
+                Attribute::CONFIGURABLE,
             )
             .accessor(
                 <span class="macro">utf16!</span>(<span class="string">&quot;epochNanoseconds&quot;</span>),
                 <span class="prelude-val">Some</span>(get_nanos),
                 <span class="prelude-val">None</span>,
-                Attribute::default(),
+                Attribute::CONFIGURABLE,
             )
             .method(<span class="self">Self</span>::add, <span class="macro">js_string!</span>(<span class="string">&quot;add&quot;</span>), <span class="number">1</span>)
             .method(<span class="self">Self</span>::subtract, <span class="macro">js_string!</span>(<span class="string">&quot;subtract&quot;</span>), <span class="number">1</span>)

@@ -547,7 +547,7 @@
             .build();
 
         BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
-            .static_property(
+            .property(
                 JsSymbol::to_string_tag(),
                 <span class="self">Self</span>::NAME,
                 Attribute::CONFIGURABLE,
@@ -557,31 +557,31 @@
                 <span class="macro">utf16!</span>(<span class="string">&quot;minute&quot;</span>),
                 <span class="prelude-val">Some</span>(get_minute),
                 <span class="prelude-val">None</span>,
-                Attribute::default(),
+                Attribute::CONFIGURABLE,
             )
             .accessor(
                 <span class="macro">utf16!</span>(<span class="string">&quot;second&quot;</span>),
                 <span class="prelude-val">Some</span>(get_second),
                 <span class="prelude-val">None</span>,
-                Attribute::default(),
+                Attribute::CONFIGURABLE,
             )
             .accessor(
                 <span class="macro">utf16!</span>(<span class="string">&quot;millisecond&quot;</span>),
                 <span class="prelude-val">Some</span>(get_millisecond),
                 <span class="prelude-val">None</span>,
-                Attribute::default(),
+                Attribute::CONFIGURABLE,
             )
             .accessor(
                 <span class="macro">utf16!</span>(<span class="string">&quot;microsecond&quot;</span>),
                 <span class="prelude-val">Some</span>(get_microsecond),
                 <span class="prelude-val">None</span>,
-                Attribute::default(),
+                Attribute::CONFIGURABLE,
             )
             .accessor(
                 <span class="macro">utf16!</span>(<span class="string">&quot;nanosecond&quot;</span>),
                 <span class="prelude-val">Some</span>(get_nanosecond),
                 <span class="prelude-val">None</span>,
-                Attribute::default(),
+                Attribute::CONFIGURABLE,
             )
             .method(<span class="self">Self</span>::add, <span class="macro">js_string!</span>(<span class="string">&quot;add&quot;</span>), <span class="number">1</span>)
             .method(<span class="self">Self</span>::subtract, <span class="macro">js_string!</span>(<span class="string">&quot;subtract&quot;</span>), <span class="number">1</span>)

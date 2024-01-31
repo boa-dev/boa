@@ -615,6 +615,16 @@
 <a href="#615" id="615">615</a>
 <a href="#616" id="616">616</a>
 <a href="#617" id="617">617</a>
+<a href="#618" id="618">618</a>
+<a href="#619" id="619">619</a>
+<a href="#620" id="620">620</a>
+<a href="#621" id="621">621</a>
+<a href="#622" id="622">622</a>
+<a href="#623" id="623">623</a>
+<a href="#624" id="624">624</a>
+<a href="#625" id="625">625</a>
+<a href="#626" id="626">626</a>
+<a href="#627" id="627">627</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of the ECMAScript `Temporal.PlainDate` builtin object.
 </span><span class="attr">#![allow(dead_code, unused_variables)]
 
@@ -720,7 +730,7 @@
             .build();
 
         BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
-            .static_property(
+            .property(
                 JsSymbol::to_string_tag(),
                 <span class="self">Self</span>::NAME,
                 Attribute::CONFIGURABLE,
@@ -729,70 +739,80 @@
                 <span class="macro">utf16!</span>(<span class="string">&quot;calendarId&quot;</span>),
                 <span class="prelude-val">Some</span>(get_calendar_id),
                 <span class="prelude-val">None</span>,
-                Attribute::default(),
+                Attribute::CONFIGURABLE,
             )
-            .accessor(<span class="macro">utf16!</span>(<span class="string">&quot;year&quot;</span>), <span class="prelude-val">Some</span>(get_year), <span class="prelude-val">None</span>, Attribute::default())
-            .accessor(<span class="macro">utf16!</span>(<span class="string">&quot;month&quot;</span>), <span class="prelude-val">Some</span>(get_month), <span class="prelude-val">None</span>, Attribute::default())
+            .accessor(
+                <span class="macro">utf16!</span>(<span class="string">&quot;year&quot;</span>),
+                <span class="prelude-val">Some</span>(get_year),
+                <span class="prelude-val">None</span>,
+                Attribute::CONFIGURABLE,
+            )
+            .accessor(
+                <span class="macro">utf16!</span>(<span class="string">&quot;month&quot;</span>),
+                <span class="prelude-val">Some</span>(get_month),
+                <span class="prelude-val">None</span>,
+                Attribute::CONFIGURABLE,
+            )
             .accessor(
                 <span class="macro">utf16!</span>(<span class="string">&quot;monthCode&quot;</span>),
                 <span class="prelude-val">Some</span>(get_month_code),
                 <span class="prelude-val">None</span>,
-                Attribute::default(),
+                Attribute::CONFIGURABLE,
             )
-            .accessor(<span class="macro">utf16!</span>(<span class="string">&quot;day&quot;</span>), <span class="prelude-val">Some</span>(get_day), <span class="prelude-val">None</span>, Attribute::default())
+            .accessor(<span class="macro">utf16!</span>(<span class="string">&quot;day&quot;</span>), <span class="prelude-val">Some</span>(get_day), <span class="prelude-val">None</span>, Attribute::CONFIGURABLE)
             .accessor(
                 <span class="macro">utf16!</span>(<span class="string">&quot;dayOfWeek&quot;</span>),
                 <span class="prelude-val">Some</span>(get_day_of_week),
                 <span class="prelude-val">None</span>,
-                Attribute::default(),
+                Attribute::CONFIGURABLE,
             )
             .accessor(
                 <span class="macro">utf16!</span>(<span class="string">&quot;dayOfYear&quot;</span>),
                 <span class="prelude-val">Some</span>(get_day_of_year),
                 <span class="prelude-val">None</span>,
-                Attribute::default(),
+                Attribute::CONFIGURABLE,
             )
             .accessor(
                 <span class="macro">utf16!</span>(<span class="string">&quot;weekOfYear&quot;</span>),
                 <span class="prelude-val">Some</span>(get_week_of_year),
                 <span class="prelude-val">None</span>,
-                Attribute::default(),
+                Attribute::CONFIGURABLE,
             )
             .accessor(
                 <span class="macro">utf16!</span>(<span class="string">&quot;yearOfWeek&quot;</span>),
                 <span class="prelude-val">Some</span>(get_year_of_week),
                 <span class="prelude-val">None</span>,
-                Attribute::default(),
+                Attribute::CONFIGURABLE,
             )
             .accessor(
                 <span class="macro">utf16!</span>(<span class="string">&quot;daysInWeek&quot;</span>),
                 <span class="prelude-val">Some</span>(get_days_in_week),
                 <span class="prelude-val">None</span>,
-                Attribute::default(),
+                Attribute::CONFIGURABLE,
             )
             .accessor(
                 <span class="macro">utf16!</span>(<span class="string">&quot;daysInMonth&quot;</span>),
                 <span class="prelude-val">Some</span>(get_days_in_month),
                 <span class="prelude-val">None</span>,
-                Attribute::default(),
+                Attribute::CONFIGURABLE,
             )
             .accessor(
                 <span class="macro">utf16!</span>(<span class="string">&quot;daysInYear&quot;</span>),
                 <span class="prelude-val">Some</span>(get_days_in_year),
                 <span class="prelude-val">None</span>,
-                Attribute::default(),
+                Attribute::CONFIGURABLE,
             )
             .accessor(
                 <span class="macro">utf16!</span>(<span class="string">&quot;monthsInYear&quot;</span>),
                 <span class="prelude-val">Some</span>(get_months_in_year),
                 <span class="prelude-val">None</span>,
-                Attribute::default(),
+                Attribute::CONFIGURABLE,
             )
             .accessor(
                 <span class="macro">utf16!</span>(<span class="string">&quot;inLeapYear&quot;</span>),
                 <span class="prelude-val">Some</span>(get_in_leap_year),
                 <span class="prelude-val">None</span>,
-                Attribute::default(),
+                Attribute::CONFIGURABLE,
             )
             .method(<span class="self">Self</span>::to_plain_year_month, <span class="macro">js_string!</span>(<span class="string">&quot;toPlainYearMonth&quot;</span>), <span class="number">0</span>)
             .method(<span class="self">Self</span>::to_plain_month_day, <span class="macro">js_string!</span>(<span class="string">&quot;toPlainMonthDay&quot;</span>), <span class="number">0</span>)

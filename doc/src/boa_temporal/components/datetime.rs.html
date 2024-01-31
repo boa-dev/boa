@@ -658,7 +658,7 @@
 
     <span class="doccomment">/// Returns the calendar day of year value with provided context.
     </span><span class="kw">pub fn </span>contextual_day_of_year(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any) -&gt; TemporalResult&lt;u16&gt; {
-        <span class="self">self</span>.calendar.day_of_week(
+        <span class="self">self</span>.calendar.day_of_year(
             <span class="kw-2">&amp;</span><span class="kw">super</span>::calendar::CalendarDateLike::DateTime(<span class="self">self</span>.clone()),
             context,
         )
@@ -666,7 +666,7 @@
 
     <span class="doccomment">/// Returns the calendar day of year value.
     </span><span class="kw">pub fn </span>day_of_year(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TemporalResult&lt;u16&gt; {
-        <span class="self">self</span>.contextual_day_of_week(<span class="kw-2">&amp;mut </span>())
+        <span class="self">self</span>.contextual_day_of_year(<span class="kw-2">&amp;mut </span>())
     }
 
     <span class="doccomment">/// Returns the calendar week of year value with provided context.

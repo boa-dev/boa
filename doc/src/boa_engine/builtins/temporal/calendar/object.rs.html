@@ -967,6 +967,10 @@
 <a href="#967" id="967">967</a>
 <a href="#968" id="968">968</a>
 <a href="#969" id="969">969</a>
+<a href="#970" id="970">970</a>
+<a href="#971" id="971">971</a>
+<a href="#972" id="972">972</a>
+<a href="#973" id="973">973</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of a user-defined Anonymous Calendar.
 
 </span><span class="kw">use crate</span>::{
@@ -1236,7 +1240,7 @@
         <span class="kw">let </span>val = method
             .as_callable()
             .expect(<span class="string">&quot;is method&quot;</span>)
-            .call(<span class="kw-2">&amp;</span>method, <span class="kw-2">&amp;</span>[date_like], context)
+            .call(<span class="kw-2">&amp;</span><span class="self">self</span>.calendar.clone().into(), <span class="kw-2">&amp;</span>[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))<span class="question-mark">?</span>;
 
         <span class="comment">// Validate the return value.
@@ -1283,7 +1287,7 @@
         <span class="kw">let </span>val = method
             .as_callable()
             .expect(<span class="string">&quot;is method&quot;</span>)
-            .call(<span class="kw-2">&amp;</span>method, <span class="kw-2">&amp;</span>[date_like], context)
+            .call(<span class="kw-2">&amp;</span><span class="self">self</span>.calendar.clone().into(), <span class="kw-2">&amp;</span>[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))<span class="question-mark">?</span>;
 
         <span class="comment">// Validate the return value.
@@ -1330,7 +1334,7 @@
         <span class="kw">let </span>val = method
             .as_callable()
             .expect(<span class="string">&quot;is method&quot;</span>)
-            .call(<span class="kw-2">&amp;</span>method, <span class="kw-2">&amp;</span>[date_like], context)
+            .call(<span class="kw-2">&amp;</span><span class="self">self</span>.calendar.clone().into(), <span class="kw-2">&amp;</span>[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))<span class="question-mark">?</span>;
 
         <span class="kw">let </span>JsValue::String(result) = val <span class="kw">else </span>{
@@ -1362,7 +1366,7 @@
         <span class="kw">let </span>val = method
             .as_callable()
             .expect(<span class="string">&quot;is method&quot;</span>)
-            .call(<span class="kw-2">&amp;</span>method, <span class="kw-2">&amp;</span>[date_like], context)
+            .call(<span class="kw-2">&amp;</span><span class="self">self</span>.calendar.clone().into(), <span class="kw-2">&amp;</span>[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))<span class="question-mark">?</span>;
 
         <span class="comment">// Validate the return value.
@@ -1409,7 +1413,7 @@
         <span class="kw">let </span>val = method
             .as_callable()
             .expect(<span class="string">&quot;is method&quot;</span>)
-            .call(<span class="kw-2">&amp;</span>method, <span class="kw-2">&amp;</span>[date_like], context)
+            .call(<span class="kw-2">&amp;</span><span class="self">self</span>.calendar.clone().into(), <span class="kw-2">&amp;</span>[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))<span class="question-mark">?</span>;
 
         <span class="comment">// Validate the return value.
@@ -1458,7 +1462,7 @@
         <span class="kw">let </span>val = method
             .as_callable()
             .expect(<span class="string">&quot;is method&quot;</span>)
-            .call(<span class="kw-2">&amp;</span>method, <span class="kw-2">&amp;</span>[date_like], context)
+            .call(<span class="kw-2">&amp;</span><span class="self">self</span>.calendar.clone().into(), <span class="kw-2">&amp;</span>[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))<span class="question-mark">?</span>;
 
         <span class="comment">// Validate the return value.
@@ -1507,7 +1511,7 @@
         <span class="kw">let </span>val = method
             .as_callable()
             .expect(<span class="string">&quot;is method&quot;</span>)
-            .call(<span class="kw-2">&amp;</span>method, <span class="kw-2">&amp;</span>[date_like], context)
+            .call(<span class="kw-2">&amp;</span><span class="self">self</span>.calendar.clone().into(), <span class="kw-2">&amp;</span>[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))<span class="question-mark">?</span>;
 
         <span class="comment">// Validate the return value.
@@ -1556,7 +1560,7 @@
         <span class="kw">let </span>val = method
             .as_callable()
             .expect(<span class="string">&quot;is method&quot;</span>)
-            .call(<span class="kw-2">&amp;</span>method, <span class="kw-2">&amp;</span>[date_like], context)
+            .call(<span class="kw-2">&amp;</span><span class="self">self</span>.calendar.clone().into(), <span class="kw-2">&amp;</span>[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))<span class="question-mark">?</span>;
 
         <span class="comment">// Validate the return value.
@@ -1598,7 +1602,7 @@
         <span class="kw">let </span>val = method
             .as_callable()
             .expect(<span class="string">&quot;is method&quot;</span>)
-            .call(<span class="kw-2">&amp;</span>method, <span class="kw-2">&amp;</span>[date_like], context)
+            .call(<span class="kw-2">&amp;</span><span class="self">self</span>.calendar.clone().into(), <span class="kw-2">&amp;</span>[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))<span class="question-mark">?</span>;
 
         <span class="comment">// Validate the return value.
@@ -1646,7 +1650,7 @@
         <span class="kw">let </span>val = method
             .as_callable()
             .expect(<span class="string">&quot;is method&quot;</span>)
-            .call(<span class="kw-2">&amp;</span>method, <span class="kw-2">&amp;</span>[date_like], context)
+            .call(<span class="kw-2">&amp;</span><span class="self">self</span>.calendar.clone().into(), <span class="kw-2">&amp;</span>[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))<span class="question-mark">?</span>;
 
         <span class="comment">// Validate the return value.
@@ -1697,7 +1701,7 @@
         <span class="kw">let </span>val = method
             .as_callable()
             .expect(<span class="string">&quot;is method&quot;</span>)
-            .call(<span class="kw-2">&amp;</span>method, <span class="kw-2">&amp;</span>[date_like], context)
+            .call(<span class="kw-2">&amp;</span><span class="self">self</span>.calendar.clone().into(), <span class="kw-2">&amp;</span>[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))<span class="question-mark">?</span>;
 
         <span class="comment">// Validate the return value.
@@ -1746,7 +1750,7 @@
         <span class="kw">let </span>val = method
             .as_callable()
             .expect(<span class="string">&quot;is method&quot;</span>)
-            .call(<span class="kw-2">&amp;</span>method, <span class="kw-2">&amp;</span>[date_like], context)
+            .call(<span class="kw-2">&amp;</span><span class="self">self</span>.calendar.clone().into(), <span class="kw-2">&amp;</span>[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))<span class="question-mark">?</span>;
 
         <span class="comment">// Validate the return value.
@@ -1797,7 +1801,7 @@
         <span class="kw">let </span>val = method
             .as_callable()
             .expect(<span class="string">&quot;is method&quot;</span>)
-            .call(<span class="kw-2">&amp;</span>method, <span class="kw-2">&amp;</span>[date_like], context)
+            .call(<span class="kw-2">&amp;</span><span class="self">self</span>.calendar.clone().into(), <span class="kw-2">&amp;</span>[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))<span class="question-mark">?</span>;
 
         <span class="kw">let </span>JsValue::Boolean(result) = val <span class="kw">else </span>{
@@ -1827,7 +1831,7 @@
         <span class="kw">let </span>result = method
             .as_callable()
             .expect(<span class="string">&quot;is method&quot;</span>)
-            .call(<span class="kw-2">&amp;</span>method, <span class="kw-2">&amp;</span>[fields_js.into()], context)
+            .call(<span class="kw-2">&amp;</span><span class="self">self</span>.calendar.clone().into(), <span class="kw-2">&amp;</span>[fields_js.into()], context)
             .map_err(|e| TemporalError::general(e.to_string()))<span class="question-mark">?</span>;
 
         <span class="comment">// validate result and map to a `Vec&lt;String&gt;`
@@ -1878,7 +1882,11 @@
         <span class="kw">let </span>value = method
             .as_callable()
             .expect(<span class="string">&quot;is method&quot;</span>)
-            .call(<span class="kw-2">&amp;</span>method, <span class="kw-2">&amp;</span>[fields.into(), add_fields.into()], context)
+            .call(
+                <span class="kw-2">&amp;</span><span class="self">self</span>.calendar.clone().into(),
+                <span class="kw-2">&amp;</span>[fields.into(), add_fields.into()],
+                context,
+            )
             .map_err(|e| TemporalError::general(e.to_string()))<span class="question-mark">?</span>;
 
         <span class="kw">let </span>JsValue::Object(o) = value <span class="kw">else </span>{
@@ -1899,7 +1907,7 @@
             </span>.calendar
             .__get__(
                 <span class="kw-2">&amp;</span>PropertyKey::from(<span class="macro">utf16!</span>(<span class="string">&quot;id&quot;</span>)),
-                JsValue::undefined(),
+                <span class="self">self</span>.calendar.clone().into(),
                 <span class="kw-2">&amp;mut </span>context.into(),
             )
             .expect(<span class="string">&quot;method must exist on a object that implements the CalendarProtocol.&quot;</span>);

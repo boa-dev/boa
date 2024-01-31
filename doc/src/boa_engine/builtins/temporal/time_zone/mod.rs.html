@@ -556,7 +556,7 @@
             )
             .method(<span class="self">Self</span>::to_string, <span class="macro">js_string!</span>(<span class="string">&quot;toString&quot;</span>), <span class="number">0</span>)
             .method(<span class="self">Self</span>::to_string, <span class="macro">js_string!</span>(<span class="string">&quot;toJSON&quot;</span>), <span class="number">0</span>)
-            .static_property(
+            .property(
                 JsSymbol::to_string_tag(),
                 <span class="self">Self</span>::NAME,
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,

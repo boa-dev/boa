@@ -152,7 +152,7 @@
         <span class="kw">let </span>_timer = Profiler::global().start_event(std::any::type_name::&lt;<span class="self">Self</span>&gt;(), <span class="string">&quot;init&quot;</span>);
 
         BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
-            .static_property(
+            .property(
                 JsSymbol::to_string_tag(),
                 <span class="self">Self</span>::NAME,
                 Attribute::CONFIGURABLE,
