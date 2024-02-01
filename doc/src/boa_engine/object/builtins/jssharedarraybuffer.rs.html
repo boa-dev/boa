@@ -129,6 +129,7 @@
 <a href="#129" id="129">129</a>
 <a href="#130" id="130">130</a>
 <a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! A Rust API wrapper for Boa&#39;s `SharedArrayBuffer` Builtin ECMAScript Object
 </span><span class="kw">use crate</span>::{
     builtins::array_buffer::SharedArrayBuffer,
@@ -138,7 +139,7 @@
     Context, JsResult, JsValue,
 };
 <span class="kw">use </span>boa_gc::{Finalize, Trace};
-<span class="kw">use </span>std::ops::Deref;
+<span class="kw">use </span>std::{ops::Deref, sync::atomic::Ordering};
 
 <span class="doccomment">/// `JsSharedArrayBuffer` provides a wrapper for Boa&#39;s implementation of the ECMAScript `ArrayBuffer` object
 </span><span class="attr">#[derive(Debug, Clone, Trace, Finalize)]
@@ -173,6 +174,7 @@
                 .constructor()
                 .into(),
             byte_length <span class="kw">as </span>u64,
+            <span class="prelude-val">None</span>,
             context,
         )<span class="question-mark">?</span>;
 
@@ -214,7 +216,7 @@
     </span><span class="attr">#[inline]
     #[must_use]
     </span><span class="kw">pub fn </span>byte_length(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
-        <span class="self">self</span>.borrow().data.len()
+        <span class="self">self</span>.borrow().data.len(Ordering::SeqCst)
     }
 
     <span class="doccomment">/// Gets the raw buffer of this `JsSharedArrayBuffer`.

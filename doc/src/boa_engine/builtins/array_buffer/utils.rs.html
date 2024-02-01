@@ -461,9 +461,17 @@
 <a href="#461" id="461">461</a>
 <a href="#462" id="462">462</a>
 <a href="#463" id="463">463</a>
+<a href="#464" id="464">464</a>
+<a href="#465" id="465">465</a>
+<a href="#466" id="466">466</a>
+<a href="#467" id="467">467</a>
+<a href="#468" id="468">468</a>
+<a href="#469" id="469">469</a>
+<a href="#470" id="470">470</a>
+<a href="#471" id="471">471</a>
 </pre></div><pre class="rust"><code><span class="attr">#![allow(unstable_name_collisions)]
 
-</span><span class="kw">use </span>std::{ptr, slice::SliceIndex, sync::atomic};
+</span><span class="kw">use </span>std::{ptr, slice::SliceIndex, sync::atomic::Ordering};
 
 <span class="kw">use </span>portable_atomic::AtomicU8;
 
@@ -473,6 +481,18 @@
 };
 
 <span class="kw">use </span><span class="kw">super</span>::ArrayBuffer;
+
+<span class="attr">#[derive(Clone, Copy)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>BytesConstPtr {
+    Bytes(<span class="kw-2">*const </span>u8),
+    AtomicBytes(<span class="kw-2">*const </span>AtomicU8),
+}
+
+<span class="attr">#[derive(Clone, Copy)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>BytesMutPtr {
+    Bytes(<span class="kw-2">*mut </span>u8),
+    AtomicBytes(<span class="kw-2">*const </span>AtomicU8),
+}
 
 <span class="attr">#[derive(Debug, Clone, Copy)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>SliceRef&lt;<span class="lifetime">&#39;a</span>&gt; {
@@ -512,6 +532,14 @@
         }
     }
 
+    <span class="doccomment">/// Gets a pointer to the underlying slice.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>as_ptr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; BytesConstPtr {
+        <span class="kw">match </span><span class="self">self </span>{
+            SliceRef::Slice(s) =&gt; BytesConstPtr::Bytes(s.as_ptr()),
+            SliceRef::AtomicSlice(s) =&gt; BytesConstPtr::AtomicBytes(s.as_ptr()),
+        }
+    }
+
     <span class="doccomment">/// [`GetValueFromBuffer ( arrayBuffer, byteIndex, type, isTypedArray, order [ , isLittleEndian ] )`][spec]
     ///
     /// The start offset is determined by the input buffer instead of a `byteIndex` parameter.
@@ -525,9 +553,9 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe fn </span>get_value(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         kind: TypedArrayKind,
-        order: atomic::Ordering,
+        order: Ordering,
     ) -&gt; TypedArrayElement {
-        <span class="kw">unsafe fn </span>read_elem&lt;T: Element&gt;(buffer: SliceRef&lt;<span class="lifetime">&#39;_</span>&gt;, order: atomic::Ordering) -&gt; T {
+        <span class="kw">unsafe fn </span>read_elem&lt;T: Element&gt;(buffer: SliceRef&lt;<span class="lifetime">&#39;_</span>&gt;, order: Ordering) -&gt; T {
             <span class="comment">// &lt;https://tc39.es/ecma262/#sec-getvaluefrombuffer&gt;
 
             // 1. Assert: IsDetachedBuffer(arrayBuffer) is false.
@@ -579,10 +607,7 @@
         }
     }
 
-    <span class="doccomment">/// `25.1.2.4 CloneArrayBuffer ( srcBuffer, srcByteOffset, srcLength )`
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
+    <span class="doccomment">/// [`CloneArrayBuffer ( srcBuffer, srcByteOffset, srcLength )`][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-clonearraybuffer
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsObject&lt;ArrayBuffer&gt;&gt; {
@@ -598,6 +623,7 @@
                 .constructor()
                 .into(),
             <span class="self">self</span>.len() <span class="kw">as </span>u64,
+            <span class="prelude-val">None</span>,
             context,
         )<span class="question-mark">?</span>;
 
@@ -608,14 +634,20 @@
             <span class="kw">let </span><span class="kw-2">mut </span>target_buffer = target_buffer.borrow_mut();
             <span class="kw">let </span>target_block = target_buffer
                 .data
-                .data_mut()
+                .bytes_mut()
                 .expect(<span class="string">&quot;ArrayBuffer cannot be detached here&quot;</span>);
 
             <span class="comment">// 5. Perform CopyDataBlockBytes(targetBlock, 0, srcBlock, srcByteOffset, srcLength).
 
             // SAFETY: Both buffers are of the same length, `buffer.len()`, which makes this operation
             // safe.
-            </span><span class="kw">unsafe </span>{ memcpy(<span class="kw-2">*</span><span class="self">self</span>, SliceRefMut::Slice(target_block), <span class="self">self</span>.len()) }
+            </span><span class="kw">unsafe </span>{
+                memcpy(
+                    <span class="self">self</span>.as_ptr(),
+                    BytesMutPtr::Bytes(target_block.as_mut_ptr()),
+                    <span class="self">self</span>.len(),
+                );
+            }
         }
 
         <span class="comment">// 6. Return targetBuffer.
@@ -643,7 +675,6 @@
 
 <span class="kw">impl </span>SliceRefMut&lt;<span class="lifetime">&#39;_</span>&gt; {
     <span class="doccomment">/// Gets the byte length of this `SliceRefMut`.
-    </span><span class="attr">#[cfg(debug_assertions)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Slice(buf) =&gt; buf.len(),
@@ -676,6 +707,14 @@
         }
     }
 
+    <span class="doccomment">/// Gets a pointer to the underlying slice.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>as_ptr(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; BytesMutPtr {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::Slice(s) =&gt; BytesMutPtr::Bytes(s.as_mut_ptr()),
+            <span class="self">Self</span>::AtomicSlice(s) =&gt; BytesMutPtr::AtomicBytes(s.as_ptr()),
+        }
+    }
+
     <span class="doccomment">/// `25.1.2.12 SetValueInBuffer ( arrayBuffer, byteIndex, type, value, isTypedArray, order [ , isLittleEndian ] )`
     ///
     /// The start offset is determined by the input buffer instead of a `byteIndex` parameter.
@@ -693,12 +732,8 @@
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-setvalueinbuffer
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe fn </span>set_value(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: TypedArrayElement, order: atomic::Ordering) {
-        <span class="kw">unsafe fn </span>write_elem&lt;T: Element&gt;(
-            buffer: SliceRefMut&lt;<span class="lifetime">&#39;_</span>&gt;,
-            value: T,
-            order: atomic::Ordering,
-        ) {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe fn </span>set_value(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: TypedArrayElement, order: Ordering) {
+        <span class="kw">unsafe fn </span>write_elem&lt;T: Element&gt;(buffer: SliceRefMut&lt;<span class="lifetime">&#39;_</span>&gt;, value: T, order: Ordering) {
             <span class="comment">// &lt;https://tc39.es/ecma262/#sec-setvalueinbuffer&gt;
 
             // 1. Assert: IsDetachedBuffer(arrayBuffer) is false.
@@ -772,15 +807,16 @@
 ///
 /// - Both `src` and `dest` must have at least `count` bytes to read and write,
 /// respectively.
-</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe fn </span>copy_shared_to_shared(src: <span class="kw-2">&amp;</span>[AtomicU8], dest: <span class="kw-2">&amp;</span>[AtomicU8], count: usize) {
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe fn </span>copy_shared_to_shared(
+    src: <span class="kw-2">*const </span>AtomicU8,
+    dest: <span class="kw-2">*const </span>AtomicU8,
+    count: usize,
+) {
     <span class="comment">// TODO: this could be optimized with batches of writes using `u32/u64` stores instead.
     </span><span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..count {
         <span class="comment">// SAFETY: The invariants of this operation are ensured by the caller of the function.
         </span><span class="kw">unsafe </span>{
-            dest.get_unchecked(i).store(
-                src.get_unchecked(i).load(atomic::Ordering::Relaxed),
-                atomic::Ordering::Relaxed,
-            );
+            (<span class="kw-2">*</span>dest.add(i)).store((<span class="kw-2">*</span>src.add(i)).load(Ordering::Relaxed), Ordering::Relaxed);
         }
     }
 }
@@ -791,60 +827,48 @@
 ///
 /// - Both `src` and `dest` must have at least `count` bytes to read and write,
 /// respectively.
-</span><span class="kw">unsafe fn </span>copy_shared_to_shared_backwards(src: <span class="kw-2">&amp;</span>[AtomicU8], dest: <span class="kw-2">&amp;</span>[AtomicU8], count: usize) {
+</span><span class="kw">unsafe fn </span>copy_shared_to_shared_backwards(
+    src: <span class="kw-2">*const </span>AtomicU8,
+    dest: <span class="kw-2">*const </span>AtomicU8,
+    count: usize,
+) {
     <span class="kw">for </span>i <span class="kw">in </span>(<span class="number">0</span>..count).rev() {
         <span class="comment">// SAFETY: The invariants of this operation are ensured by the caller of the function.
         </span><span class="kw">unsafe </span>{
-            dest.get_unchecked(i).store(
-                src.get_unchecked(i).load(atomic::Ordering::Relaxed),
-                atomic::Ordering::Relaxed,
-            );
+            (<span class="kw-2">*</span>dest.add(i)).store((<span class="kw-2">*</span>src.add(i)).load(Ordering::Relaxed), Ordering::Relaxed);
         }
     }
 }
 
-<span class="doccomment">/// Copies `count` bytes from the buffer `src` into the buffer `dest`, using the atomic ordering `order`
-/// if any of the buffers are atomic.
+<span class="doccomment">/// Copies `count` bytes from the buffer `src` into the buffer `dest`, using the atomic ordering
+/// `Ordering::Relaxed` if any of the buffers are atomic.
 ///
 /// # Safety
 ///
 /// - Both `src` and `dest` must have at least `count` bytes to read and write, respectively.
 /// - The region of memory referenced by `src` must not overlap with the region of memory
-///   referenced by `dest`. This is guaranteed if either of them are slices
-///   (you cannot borrow and mutably borrow a slice at the same time), but cannot be guaranteed
-///   for atomic slices.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe fn </span>memcpy(src: SliceRef&lt;<span class="lifetime">&#39;_</span>&gt;, dest: SliceRefMut&lt;<span class="lifetime">&#39;_</span>&gt;, count: usize) {
-    <span class="attr">#[cfg(debug_assertions)]
-    </span>{
-        <span class="macro">assert!</span>(src.len() &gt;= count);
-        <span class="macro">assert!</span>(dest.len() &gt;= count);
-        <span class="kw">let </span>src_range = src.addr()..src.addr() + src.len();
-        <span class="kw">let </span>dest_range = dest.addr()..dest.addr() + dest.len();
-        <span class="macro">assert!</span>(!src_range.contains(<span class="kw-2">&amp;</span>dest_range.start));
-        <span class="macro">assert!</span>(!src_range.contains(<span class="kw-2">&amp;</span>dest_range.end));
-    }
-
+///   referenced by `dest`.
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe fn </span>memcpy(src: BytesConstPtr, dest: BytesMutPtr, count: usize) {
     <span class="comment">// TODO: this could be optimized with batches of writes using `u32/u64` stores instead.
     </span><span class="kw">match </span>(src, dest) {
         <span class="comment">// SAFETY: The invariants of this operation are ensured by the caller of the function.
-        </span>(SliceRef::Slice(src), SliceRefMut::Slice(dest)) =&gt; <span class="kw">unsafe </span>{
-            ptr::copy_nonoverlapping(src.as_ptr(), dest.as_mut_ptr(), count);
+        </span>(BytesConstPtr::Bytes(src), BytesMutPtr::Bytes(dest)) =&gt; <span class="kw">unsafe </span>{
+            ptr::copy_nonoverlapping(src, dest, count);
         },
         <span class="comment">// SAFETY: The invariants of this operation are ensured by the caller of the function.
-        </span>(SliceRef::Slice(src), SliceRefMut::AtomicSlice(dest)) =&gt; <span class="kw">unsafe </span>{
+        </span>(BytesConstPtr::Bytes(src), BytesMutPtr::AtomicBytes(dest)) =&gt; <span class="kw">unsafe </span>{
             <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..count {
-                dest.get_unchecked(i)
-                    .store(<span class="kw-2">*</span>src.get_unchecked(i), atomic::Ordering::Relaxed);
+                (<span class="kw-2">*</span>dest.add(i)).store(<span class="kw-2">*</span>src.add(i), Ordering::Relaxed);
             }
         },
         <span class="comment">// SAFETY: The invariants of this operation are ensured by the caller of the function.
-        </span>(SliceRef::AtomicSlice(src), SliceRefMut::Slice(dest)) =&gt; <span class="kw">unsafe </span>{
+        </span>(BytesConstPtr::AtomicBytes(src), BytesMutPtr::Bytes(dest)) =&gt; <span class="kw">unsafe </span>{
             <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..count {
-                <span class="kw-2">*</span>dest.get_unchecked_mut(i) = src.get_unchecked(i).load(atomic::Ordering::Relaxed);
+                <span class="kw-2">*</span>dest.add(i) = (<span class="kw-2">*</span>src.add(i)).load(Ordering::Relaxed);
             }
         },
         <span class="comment">// SAFETY: The invariants of this operation are ensured by the caller of the function.
-        </span>(SliceRef::AtomicSlice(src), SliceRefMut::AtomicSlice(dest)) =&gt; <span class="kw">unsafe </span>{
+        </span>(BytesConstPtr::AtomicBytes(src), BytesMutPtr::AtomicBytes(dest)) =&gt; <span class="kw">unsafe </span>{
             copy_shared_to_shared(src, dest, count);
         },
     }
@@ -854,28 +878,20 @@
 ///
 /// # Safety
 ///
-/// - `buffer` must contain at least `from + count` bytes to be read.
-/// - `buffer` must contain at least `to + count` bytes to be written.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe fn </span>memmove(buffer: SliceRefMut&lt;<span class="lifetime">&#39;_</span>&gt;, from: usize, to: usize, count: usize) {
-    <span class="attr">#[cfg(debug_assertions)]
-    </span>{
-        <span class="macro">assert!</span>(from + count &lt;= buffer.len());
-        <span class="macro">assert!</span>(to + count &lt;= buffer.len());
-    }
-
-    <span class="kw">match </span>buffer {
+/// - `ptr` must be valid from the offset `ptr + from` for `count` reads of bytes.
+/// - `ptr` must be valid from the offset `ptr + to` for `count` writes of bytes.
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe fn </span>memmove(ptr: BytesMutPtr, from: usize, to: usize, count: usize) {
+    <span class="kw">match </span>ptr {
         <span class="comment">// SAFETY: The invariants of this operation are ensured by the caller of the function.
-        </span>SliceRefMut::Slice(buf) =&gt; <span class="kw">unsafe </span>{
-            <span class="kw">let </span>ptr = buf.as_mut_ptr();
-            <span class="kw">let </span>src_ptr = ptr.add(from);
-            <span class="kw">let </span>dest_ptr = ptr.add(to);
-            ptr::copy(src_ptr, dest_ptr, count);
+        </span>BytesMutPtr::Bytes(ptr) =&gt; <span class="kw">unsafe </span>{
+            <span class="kw">let </span>src = ptr.add(from);
+            <span class="kw">let </span>dest = ptr.add(to);
+            ptr::copy(src, dest, count);
         },
         <span class="comment">// SAFETY: The invariants of this operation are ensured by the caller of the function.
-        </span>SliceRefMut::AtomicSlice(buf) =&gt; <span class="kw">unsafe </span>{
-            <span class="kw">let </span>src = buf.get_unchecked(from..);
-            <span class="kw">let </span>dest = buf.get_unchecked(to..);
-
+        </span>BytesMutPtr::AtomicBytes(ptr) =&gt; <span class="kw">unsafe </span>{
+            <span class="kw">let </span>src = ptr.add(from);
+            <span class="kw">let </span>dest = ptr.add(to);
             <span class="comment">// Let&#39;s draw a simple array.
             //
             // | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
@@ -916,7 +932,7 @@
             // | 0 | 1 | 0 | 1 | 2 | 3 | 6 | 7 | 8 |
             //   ^       ^
             // from     to
-            </span><span class="kw">if </span>from &lt; to &amp;&amp; to &lt; from + count {
+            </span><span class="kw">if </span>src &lt; dest {
                 copy_shared_to_shared_backwards(src, dest, count);
             } <span class="kw">else </span>{
                 copy_shared_to_shared(src, dest, count);

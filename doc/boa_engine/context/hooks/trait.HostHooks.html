@@ -148,7 +148,7 @@ which can cause panics if the target doesn’t support <a href="../../sys/fallba
 <code>SharedArrayBuffer</code>.</p>
 <p>This hook will be called before any buffer allocation, which allows to dinamically change
 the maximum size at runtime. By default, this is set to 1.5GiB per the recommendations of the
-<a href="https://tc39.es/ecma262/multipage/structured-data.html#sec-resizable-arraybuffer-guidelines">specification</a>:</p>
+<a href="https://tc39.es/ecma262/#sec-resizable-arraybuffer-guidelines">specification</a>:</p>
 <blockquote>
 <p>If a host is multi-tenanted (i.e. it runs many ECMAScript applications simultaneously),
 such as a web browser, and its implementations choose to implement in-place growth by reserving

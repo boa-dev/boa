@@ -1130,11 +1130,11 @@
 }
 
 <span class="kw">impl </span>TypedArrayElement {
-    <span class="doccomment">/// Converts the element into its extended bytes representation as a `u64`.
+    <span class="doccomment">/// Converts the element into its extended bytes representation as an `u64`.
     ///
     /// This is guaranteed to never fail, since all numeric types supported by JS are less than
     /// 8 bytes long.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_bytes(<span class="self">self</span>) -&gt; u64 {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_bits(<span class="self">self</span>) -&gt; u64 {
         <span class="attr">#[allow(clippy::cast_lossless)]
         </span><span class="kw">match </span><span class="self">self </span>{
             TypedArrayElement::Int8(num) =&gt; num <span class="kw">as </span>u64,

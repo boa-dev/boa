@@ -573,6 +573,35 @@
 <a href="#573" id="573">573</a>
 <a href="#574" id="574">574</a>
 <a href="#575" id="575">575</a>
+<a href="#576" id="576">576</a>
+<a href="#577" id="577">577</a>
+<a href="#578" id="578">578</a>
+<a href="#579" id="579">579</a>
+<a href="#580" id="580">580</a>
+<a href="#581" id="581">581</a>
+<a href="#582" id="582">582</a>
+<a href="#583" id="583">583</a>
+<a href="#584" id="584">584</a>
+<a href="#585" id="585">585</a>
+<a href="#586" id="586">586</a>
+<a href="#587" id="587">587</a>
+<a href="#588" id="588">588</a>
+<a href="#589" id="589">589</a>
+<a href="#590" id="590">590</a>
+<a href="#591" id="591">591</a>
+<a href="#592" id="592">592</a>
+<a href="#593" id="593">593</a>
+<a href="#594" id="594">594</a>
+<a href="#595" id="595">595</a>
+<a href="#596" id="596">596</a>
+<a href="#597" id="597">597</a>
+<a href="#598" id="598">598</a>
+<a href="#599" id="599">599</a>
+<a href="#600" id="600">600</a>
+<a href="#601" id="601">601</a>
+<a href="#602" id="602">602</a>
+<a href="#603" id="603">603</a>
+<a href="#604" id="604">604</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Atomics` object.
 //!
 //! The `Atomics` object contains synchronization methods to orchestrate multithreading
@@ -595,11 +624,11 @@
     sys::time::Duration, value::IntegerOrInfinity, Context, JsArgs, JsNativeError, JsResult,
     JsString, JsValue,
 };
-<span class="kw">use </span>boa_gc::GcRef;
+
 <span class="kw">use </span>boa_profiler::Profiler;
 
 <span class="kw">use super</span>::{
-    array_buffer::BufferRef,
+    array_buffer::{BufferObject, BufferRef},
     typed_array::{Atomic, ContentType, Element, TypedArray, TypedArrayElement, TypedArrayKind},
     BuiltInBuilder, IntrinsicObject,
 };
@@ -650,20 +679,36 @@
             <span class="kw">let </span>index = args.get_or_undefined(<span class="number">1</span>);
             <span class="kw">let </span>value = args.get_or_undefined(<span class="number">2</span>);
 
-            <span class="kw">let </span>ii = validate_integer_typed_array(array, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
-            <span class="kw">let </span>pos = validate_atomic_access(<span class="kw-2">&amp;</span>ii, index, context)<span class="question-mark">?</span>;
-            <span class="kw">let </span>value = ii.kind().get_element(value, context)<span class="question-mark">?</span>;
+            <span class="comment">// AtomicReadModifyWrite ( typedArray, index, value, op )
+            // &lt;https://tc39.es/ecma262/#sec-atomicreadmodifywrite&gt;
 
-            <span class="comment">// revalidate
-            </span><span class="kw">let </span><span class="kw-2">mut </span>buffer = ii.viewed_array_buffer().as_buffer_mut();
-            <span class="kw">let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>data) = buffer.data_mut() <span class="kw">else </span>{
+            // 1. Let buffer be ? ValidateIntegerTypedArray(typedArray).
+            </span><span class="kw">let </span>(ta, buf_len) = validate_integer_typed_array(array, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+
+            <span class="comment">// 2. Let indexedPosition be ? ValidateAtomicAccess(typedArray, index).
+            </span><span class="kw">let </span>access = validate_atomic_access(<span class="kw-2">&amp;</span>ta, buf_len, index, context)<span class="question-mark">?</span>;
+
+            <span class="comment">// 3. If typedArray.[[ContentType]] is BigInt, let v be ? ToBigInt(value).
+            // 4. Otherwise, let v be 𝔽(? ToIntegerOrInfinity(value)).
+            // 7. Let elementType be TypedArrayElementType(typedArray).
+            </span><span class="kw">let </span>value = access.kind.get_element(value, context)<span class="question-mark">?</span>;
+
+            <span class="comment">// 5. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.
+            // 6. NOTE: The above check is not redundant with the check in ValidateIntegerTypedArray because the call
+            //    to ToBigInt or ToIntegerOrInfinity on the preceding lines can have arbitrary side effects, which could
+            //    cause the buffer to become detached.
+            </span><span class="kw">let </span>ta = ta.borrow();
+            <span class="kw">let </span>ta = <span class="kw-2">&amp;</span>ta.data;
+            <span class="kw">let </span><span class="kw-2">mut </span>buffer = ta.viewed_array_buffer().as_buffer_mut();
+            <span class="kw">let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>data) = buffer.bytes_with_len(buf_len) <span class="kw">else </span>{
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                    .with_message(<span class="string">&quot;cannot execute atomic operation in detached buffer&quot;</span>)
-                    .into());
+                .with_message(<span class="string">&quot;cannot execute atomic operation in detached buffer&quot;</span>)
+                .into());
             };
-            <span class="kw">let </span>data = data.subslice_mut(pos..);
+            <span class="kw">let </span>data = data.subslice_mut(access.byte_offset..);
 
-            <span class="comment">// SAFETY: The integer indexed object guarantees that the buffer is aligned.
+            <span class="comment">// 8. Return GetModifySetValueInBuffer(buffer, indexedPosition, elementType, v, op).
+            // SAFETY: The integer indexed object guarantees that the buffer is aligned.
             // The call to `validate_atomic_access` guarantees that the index is in-bounds.
             </span><span class="kw">let </span>value: TypedArrayElement = <span class="kw">unsafe </span>{
                 <span class="kw">match </span>value {
@@ -736,24 +781,26 @@
         <span class="kw">let </span>index = args.get_or_undefined(<span class="number">1</span>);
 
         <span class="comment">// 1. Let indexedPosition be ? ValidateAtomicAccessOnIntegerTypedArray(typedArray, index).
-        </span><span class="kw">let </span>ii = validate_integer_typed_array(array, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
-        <span class="kw">let </span>pos = validate_atomic_access(<span class="kw-2">&amp;</span>ii, index, context)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>(ta, buf_len) = validate_integer_typed_array(array, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span>access = validate_atomic_access(<span class="kw-2">&amp;</span>ta, buf_len, index, context)<span class="question-mark">?</span>;
 
         <span class="comment">// 2. Perform ? RevalidateAtomicAccess(typedArray, indexedPosition).
-        </span><span class="kw">let </span>buffer = ii.viewed_array_buffer().as_buffer();
-        <span class="kw">let </span><span class="prelude-val">Some</span>(data) = buffer.data() <span class="kw">else </span>{
+        </span><span class="kw">let </span>ta = ta.borrow();
+        <span class="kw">let </span>ta = <span class="kw-2">&amp;</span>ta.data;
+        <span class="kw">let </span>buffer = ta.viewed_array_buffer().as_buffer();
+        <span class="kw">let </span><span class="prelude-val">Some</span>(data) = buffer.bytes_with_len(buf_len) <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
                 .with_message(<span class="string">&quot;cannot execute atomic operation in detached buffer&quot;</span>)
                 .into());
         };
-        <span class="kw">let </span>data = data.subslice(pos..);
+        <span class="kw">let </span>data = data.subslice(access.byte_offset..);
 
         <span class="comment">// 3. Let buffer be typedArray.[[ViewedArrayBuffer]].
         // 4. Let elementType be TypedArrayElementType(typedArray).
         // 5. Return GetValueFromBuffer(buffer, indexedPosition, elementType, true, seq-cst).
         // SAFETY: The integer indexed object guarantees that the buffer is aligned.
         // The call to `validate_atomic_access` guarantees that the index is in-bounds.
-        </span><span class="kw">let </span>value = <span class="kw">unsafe </span>{ data.get_value(ii.kind(), Ordering::SeqCst) };
+        </span><span class="kw">let </span>value = <span class="kw">unsafe </span>{ data.get_value(access.kind, Ordering::SeqCst) };
 
         <span class="prelude-val">Ok</span>(value.into())
     }
@@ -767,12 +814,12 @@
         <span class="kw">let </span>value = args.get_or_undefined(<span class="number">2</span>);
 
         <span class="comment">// 1. Let indexedPosition be ? ValidateAtomicAccessOnIntegerTypedArray(typedArray, index).
-        </span><span class="kw">let </span>ii = validate_integer_typed_array(array, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
-        <span class="kw">let </span>pos = validate_atomic_access(<span class="kw-2">&amp;</span>ii, index, context)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>(ta, buf_len) = validate_integer_typed_array(array, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span>access = validate_atomic_access(<span class="kw-2">&amp;</span>ta, buf_len, index, context)<span class="question-mark">?</span>;
 
         <span class="comment">// bit of a hack to preserve the converted value
         // 2. If typedArray.[[ContentType]] is bigint, let v be ? ToBigInt(value).
-        </span><span class="kw">let </span>converted: JsValue = <span class="kw">if </span>ii.kind().content_type() == ContentType::BigInt {
+        </span><span class="kw">let </span>converted: JsValue = <span class="kw">if </span>access.kind.content_type() == ContentType::BigInt {
             value.to_bigint(context)<span class="question-mark">?</span>.into()
         } <span class="kw">else </span>{
             <span class="comment">// 3. Otherwise, let v be 𝔽(? ToIntegerOrInfinity(value)).
@@ -783,16 +830,18 @@
             }
             .into()
         };
-        <span class="kw">let </span>value = ii.kind().get_element(<span class="kw-2">&amp;</span>converted, context)<span class="question-mark">?</span>;
+        <span class="kw">let </span>value = access.kind.get_element(<span class="kw-2">&amp;</span>converted, context)<span class="question-mark">?</span>;
 
         <span class="comment">// 4. Perform ? RevalidateAtomicAccess(typedArray, indexedPosition).
-        </span><span class="kw">let </span><span class="kw-2">mut </span>buffer = ii.viewed_array_buffer().as_buffer_mut();
-        <span class="kw">let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>buffer) = buffer.data_mut() <span class="kw">else </span>{
+        </span><span class="kw">let </span>ta = ta.borrow();
+        <span class="kw">let </span>ta = <span class="kw-2">&amp;</span>ta.data;
+        <span class="kw">let </span><span class="kw-2">mut </span>buffer = ta.viewed_array_buffer().as_buffer_mut();
+        <span class="kw">let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>buffer) = buffer.bytes_with_len(buf_len) <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
                 .with_message(<span class="string">&quot;cannot execute atomic operation in detached buffer&quot;</span>)
                 .into());
         };
-        <span class="kw">let </span><span class="kw-2">mut </span>data = buffer.subslice_mut(pos..);
+        <span class="kw">let </span><span class="kw-2">mut </span>data = buffer.subslice_mut(access.byte_offset..);
 
         <span class="comment">// 5. Let buffer be typedArray.[[ViewedArrayBuffer]].
         // 6. Let elementType be TypedArrayElementType(typedArray).
@@ -819,9 +868,8 @@
         <span class="comment">// 1. Let indexedPosition be ? ValidateAtomicAccessOnIntegerTypedArray(typedArray, index).
         // 2. Let buffer be typedArray.[[ViewedArrayBuffer]].
         // 3. Let block be buffer.[[ArrayBufferData]].
-        </span><span class="kw">let </span>ii = validate_integer_typed_array(array, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
-        <span class="kw">let </span>pos = validate_atomic_access(<span class="kw-2">&amp;</span>ii, index, context)<span class="question-mark">?</span>;
-        <span class="kw">let </span>typed_array_kind = ii.kind();
+        </span><span class="kw">let </span>(ta, buf_len) = validate_integer_typed_array(array, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span>access = validate_atomic_access(<span class="kw-2">&amp;</span>ta, buf_len, index, context)<span class="question-mark">?</span>;
 
         <span class="comment">// 4. If typedArray.[[ContentType]] is bigint, then
         //     a. Let expected be ? ToBigInt(expectedValue).
@@ -829,19 +877,19 @@
         // 5. Else,
         //     a. Let expected be 𝔽(? ToIntegerOrInfinity(expectedValue)).
         //     b. Let replacement be 𝔽(? ToIntegerOrInfinity(replacementValue)).
-        </span><span class="kw">let </span>exp = typed_array_kind.get_element(expected, context)<span class="question-mark">?</span>.to_bytes();
-        <span class="kw">let </span>rep = typed_array_kind
-            .get_element(replacement, context)<span class="question-mark">?
-            </span>.to_bytes();
+        </span><span class="kw">let </span>exp = access.kind.get_element(expected, context)<span class="question-mark">?</span>.to_bits();
+        <span class="kw">let </span>rep = access.kind.get_element(replacement, context)<span class="question-mark">?</span>.to_bits();
 
         <span class="comment">// 6. Perform ? RevalidateAtomicAccess(typedArray, indexedPosition).
-        </span><span class="kw">let </span><span class="kw-2">mut </span>buffer = ii.viewed_array_buffer().as_buffer_mut();
-        <span class="kw">let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>data) = buffer.data_mut() <span class="kw">else </span>{
+        </span><span class="kw">let </span>ta = ta.borrow();
+        <span class="kw">let </span>ta = <span class="kw-2">&amp;</span>ta.data;
+        <span class="kw">let </span><span class="kw-2">mut </span>buffer = ta.viewed_array_buffer().as_buffer_mut();
+        <span class="kw">let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>buffer) = buffer.bytes_with_len(buf_len) <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
                 .with_message(<span class="string">&quot;cannot execute atomic operation in detached buffer&quot;</span>)
                 .into());
         };
-        <span class="kw">let </span>data = data.subslice_mut(pos..);
+        <span class="kw">let </span>data = buffer.subslice_mut(access.byte_offset..);
 
         <span class="comment">// 7. Let elementType be TypedArrayElementType(typedArray).
         // 8. Let elementSize be TypedArrayElementSize(typedArray).
@@ -855,10 +903,11 @@
         //     b. If ByteListEqual(rawBytesRead, expectedBytes) is true, then
         //         i. Store the individual bytes of replacementBytes into block, starting at block[indexedPosition].
         // 14. Return RawBytesToNumeric(elementType, rawBytesRead, isLittleEndian).
+
         // SAFETY: The integer indexed object guarantees that the buffer is aligned.
         // The call to `validate_atomic_access` guarantees that the index is in-bounds.
         </span><span class="kw">let </span>value: TypedArrayElement = <span class="kw">unsafe </span>{
-            <span class="kw">match </span>typed_array_kind {
+            <span class="kw">match </span>access.kind {
                 TypedArrayKind::Int8 =&gt; i8::read_mut(data)
                     .compare_exchange(exp <span class="kw">as </span>i8, rep <span class="kw">as </span>i8, Ordering::SeqCst)
                     .into(),
@@ -895,23 +944,6 @@
     }
 
     <span class="comment">// =========== Atomics.ops start ===========
-
-    // Most of the operations here follow the same list of steps:
-    //
-    // AtomicReadModifyWrite ( typedArray, index, value, op )
-    // &lt;https://tc39.es/ecma262/#sec-atomicreadmodifywrite&gt;
-    //
-    // 1. Let buffer be ? ValidateIntegerTypedArray(typedArray).
-    // 2. Let indexedPosition be ? ValidateAtomicAccess(typedArray, index).
-    // 3. If typedArray.[[ContentType]] is BigInt, let v be ? ToBigInt(value).
-    // 4. Otherwise, let v be 𝔽(? ToIntegerOrInfinity(value)).
-    // 5. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.
-    // 6. NOTE: The above check is not redundant with the check in ValidateIntegerTypedArray because the call to ToBigInt or ToIntegerOrInfinity on the preceding lines can have arbitrary side effects, which could cause the buffer to become detached.
-    // 7. Let elementType be TypedArrayElementType(typedArray).
-    // 8. Return GetModifySetValueInBuffer(buffer, indexedPosition, elementType, v, op).
-    //
-    // However, our impementation differs significantly from this, which is why these steps are
-    // just here for documentation purposes.
 
     </span><span class="macro">atomic_op! </span>{
         <span class="doccomment">/// [`Atomics.add ( typedArray, index, value )`][spec]
@@ -958,28 +990,32 @@
     <span class="doccomment">/// [`Atomics.wait ( typedArray, index, value, timeout )`][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-atomics.wait
+    </span><span class="comment">// TODO: rewrite this to support Atomics.waitAsync
     </span><span class="kw">fn </span>wait(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>array = args.get_or_undefined(<span class="number">0</span>);
         <span class="kw">let </span>index = args.get_or_undefined(<span class="number">1</span>);
         <span class="kw">let </span>value = args.get_or_undefined(<span class="number">2</span>);
         <span class="kw">let </span>timeout = args.get_or_undefined(<span class="number">3</span>);
 
-        <span class="comment">// 1. Let buffer be ? ValidateIntegerTypedArray(typedArray, true).
-        </span><span class="kw">let </span>ii = validate_integer_typed_array(array, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-        <span class="kw">let </span>buffer = ii.viewed_array_buffer().as_buffer();
+        <span class="comment">// 1. Let taRecord be ? ValidateIntegerTypedArray(typedArray, true).
+        </span><span class="kw">let </span>(ta, buf_len) = validate_integer_typed_array(array, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
 
-        <span class="comment">// 2. If IsSharedArrayBuffer(buffer) is false, throw a TypeError exception.
-        </span><span class="kw">let </span>BufferRef::SharedBuffer(buffer) = buffer <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;cannot use `ArrayBuffer` for an atomic wait&quot;</span>)
-                .into());
+        <span class="comment">// 2. Let buffer be taRecord.[[Object]].[[ViewedArrayBuffer]].
+        // 2. If IsSharedArrayBuffer(buffer) is false, throw a TypeError exception.
+        </span><span class="kw">let </span>buffer = <span class="kw">match </span>ta.borrow().data.viewed_array_buffer() {
+            BufferObject::SharedBuffer(buf) =&gt; buf.clone(),
+            BufferObject::Buffer(<span class="kw">_</span>) =&gt; {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                    .with_message(<span class="string">&quot;cannot use `ArrayBuffer` for an atomic wait&quot;</span>)
+                    .into())
+            }
         };
 
         <span class="comment">// 3. Let indexedPosition be ? ValidateAtomicAccess(typedArray, index).
-        </span><span class="kw">let </span>offset = validate_atomic_access(<span class="kw-2">&amp;</span>ii, index, context)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>access = validate_atomic_access(<span class="kw-2">&amp;</span>ta, buf_len, index, context)<span class="question-mark">?</span>;
 
         <span class="comment">// spec expects the evaluation of this first, then the timeout.
-        </span><span class="kw">let </span>value = <span class="kw">if </span>ii.kind() == TypedArrayKind::BigInt64 {
+        </span><span class="kw">let </span>value = <span class="kw">if </span>access.kind == TypedArrayKind::BigInt64 {
             <span class="comment">// 4. If typedArray.[[TypedArrayName]] is &quot;BigInt64Array&quot;, let v be ? ToBigInt64(value).
             </span>value.to_big_int64(context)<span class="question-mark">?
         </span>} <span class="kw">else </span>{
@@ -1010,11 +1046,23 @@
 
         <span class="comment">// SAFETY: the validity of `addr` is verified by our call to `validate_atomic_access`.
         </span><span class="kw">let </span>result = <span class="kw">unsafe </span>{
-            <span class="kw">if </span>ii.kind() == TypedArrayKind::BigInt64 {
-                futex::wait(<span class="kw-2">&amp;</span>buffer, offset, value, timeout)<span class="question-mark">?
+            <span class="kw">if </span>access.kind == TypedArrayKind::BigInt64 {
+                futex::wait(
+                    <span class="kw-2">&amp;</span>buffer.borrow().data,
+                    buf_len,
+                    access.byte_offset,
+                    value,
+                    timeout,
+                )<span class="question-mark">?
             </span>} <span class="kw">else </span>{
                 <span class="comment">// value must fit into `i32` since it came from an `i32` above.
-                </span>futex::wait(<span class="kw-2">&amp;</span>buffer, offset, value <span class="kw">as </span>i32, timeout)<span class="question-mark">?
+                </span>futex::wait(
+                    <span class="kw-2">&amp;</span>buffer.borrow().data,
+                    buf_len,
+                    access.byte_offset,
+                    value <span class="kw">as </span>i32,
+                    timeout,
+                )<span class="question-mark">?
             </span>}
         };
 
@@ -1035,8 +1083,8 @@
         <span class="kw">let </span>count = args.get_or_undefined(<span class="number">2</span>);
 
         <span class="comment">// 1. Let indexedPosition be ? ValidateAtomicAccessOnIntegerTypedArray(typedArray, index, true).
-        </span><span class="kw">let </span>ii = validate_integer_typed_array(array, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-        <span class="kw">let </span>offset = validate_atomic_access(<span class="kw-2">&amp;</span>ii, index, context)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>(ta, buf_len) = validate_integer_typed_array(array, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span>access = validate_atomic_access(<span class="kw-2">&amp;</span>ta, buf_len, index, context)<span class="question-mark">?</span>;
 
         <span class="comment">// 2. If count is undefined, then
         </span><span class="kw">let </span>count = <span class="kw">if </span>count.is_undefined() {
@@ -1056,11 +1104,12 @@
         <span class="comment">// 4. Let buffer be typedArray.[[ViewedArrayBuffer]].
         // 5. Let block be buffer.[[ArrayBufferData]].
         // 6. If IsSharedArrayBuffer(buffer) is false, return +0𝔽.
-        </span><span class="kw">let </span>BufferRef::SharedBuffer(shared) = ii.viewed_array_buffer().as_buffer() <span class="kw">else </span>{
+        </span><span class="kw">let </span>ta = ta.borrow();
+        <span class="kw">let </span>BufferRef::SharedBuffer(shared) = ta.data.viewed_array_buffer().as_buffer() <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="number">0</span>.into());
         };
 
-        <span class="kw">let </span>count = futex::notify(<span class="kw-2">&amp;</span>shared, offset, count)<span class="question-mark">?</span>;
+        <span class="kw">let </span>count = futex::notify(<span class="kw-2">&amp;</span>shared, access.byte_offset, count)<span class="question-mark">?</span>;
 
         <span class="comment">// 12. Let n be the number of elements in S.
         // 13. Return 𝔽(n).
@@ -1068,63 +1117,74 @@
     }
 }
 
-<span class="doccomment">/// [`ValidateIntegerTypedArray ( typedArray [ , waitable ] )`][spec]
+<span class="doccomment">/// [`ValidateIntegerTypedArray ( typedArray, waitable )`][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-validateintegertypedarray
 </span><span class="kw">fn </span>validate_integer_typed_array(
     array: <span class="kw-2">&amp;</span>JsValue,
     waitable: bool,
-) -&gt; JsResult&lt;GcRef&lt;<span class="lifetime">&#39;_</span>, TypedArray&gt;&gt; {
-    <span class="comment">// 1. If waitable is not present, set waitable to false.
-    // 2. Perform ? ValidateTypedArray(typedArray).
-    </span><span class="kw">let </span>ii = array
-        .as_object()
-        .and_then(JsObject::downcast_ref::&lt;TypedArray&gt;)
-        .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
-    <span class="kw">if </span>ii.is_detached() {
-        <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-            .with_message(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>)
-            .into());
-    }
+) -&gt; JsResult&lt;(JsObject&lt;TypedArray&gt;, usize)&gt; {
+    <span class="comment">// 1. Let taRecord be ? ValidateTypedArray(typedArray, unordered).
+    // 2. NOTE: Bounds checking is not a synchronizing operation when typedArray&#39;s backing buffer is a growable SharedArrayBuffer.
+    </span><span class="kw">let </span>ta_record = TypedArray::validate(array, Ordering::Relaxed)<span class="question-mark">?</span>;
 
-    <span class="comment">// 3. Let buffer be typedArray.[[ViewedArrayBuffer]].
+    {
+        <span class="kw">let </span>array = ta_record.<span class="number">0</span>.borrow();
 
-    </span><span class="kw">if </span>waitable {
-        <span class="comment">// 4. If waitable is true, then
-        // a. If typedArray.[[TypedArrayName]] is neither &quot;Int32Array&quot; nor &quot;BigInt64Array&quot;, throw a TypeError exception.
-        </span><span class="kw">if </span>![TypedArrayKind::Int32, TypedArrayKind::BigInt64].contains(<span class="kw-2">&amp;</span>ii.kind()) {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;can only atomically wait using Int32 or BigInt64 arrays&quot;</span>)
-                .into());
-        }
-    } <span class="kw">else </span>{
-        <span class="comment">// 5. Else,
-        //     a. Let type be TypedArrayElementType(typedArray).
-        //     b. If IsUnclampedIntegerElementType(type) is false and IsBigIntElementType(type) is
-        //        false, throw a TypeError exception.
-        </span><span class="kw">if </span>!ii.kind().supports_atomic_ops() {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(
-                    <span class="string">&quot;platform doesn&#39;t support atomic operations on the provided `TypedArray`&quot;</span>,
-                )
-                .into());
+        <span class="comment">// 3. If waitable is true, then
+        </span><span class="kw">if </span>waitable {
+            <span class="comment">//     a. If typedArray.[[TypedArrayName]] is neither &quot;Int32Array&quot; nor &quot;BigInt64Array&quot;, throw a TypeError exception.
+            </span><span class="kw">if </span>![TypedArrayKind::Int32, TypedArrayKind::BigInt64].contains(<span class="kw-2">&amp;</span>array.data.kind()) {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                    .with_message(<span class="string">&quot;can only atomically wait using Int32 or BigInt64 arrays&quot;</span>)
+                    .into());
+            }
+        } <span class="kw">else </span>{
+            <span class="comment">// 4. Else,
+            //     a. Let type be TypedArrayElementType(typedArray).
+            //     b. If IsUnclampedIntegerElementType(type) is false and IsBigIntElementType(type) is false, throw a TypeError exception.
+            </span><span class="kw">if </span>!array.data.kind().supports_atomic_ops() {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                    .with_message(
+                        <span class="string">&quot;platform doesn&#39;t support atomic operations on the provided `TypedArray`&quot;</span>,
+                    )
+                    .into());
+            }
         }
     }
 
-    <span class="comment">// 6. Return buffer.
-    </span><span class="prelude-val">Ok</span>(ii)
+    <span class="comment">// 5. Return taRecord.
+    </span><span class="prelude-val">Ok</span>(ta_record)
 }
 
-<span class="doccomment">/// [`ValidateAtomicAccess ( iieoRecord, requestIndex )`][spec]
+<span class="kw">struct </span>AtomicAccess {
+    byte_offset: usize,
+    kind: TypedArrayKind,
+}
+
+<span class="doccomment">/// [`ValidateAtomicAccess ( taRecord, requestIndex )`][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-validateatomicaccess
 </span><span class="kw">fn </span>validate_atomic_access(
-    array: <span class="kw-2">&amp;</span>TypedArray,
+    array: <span class="kw-2">&amp;</span>JsObject&lt;TypedArray&gt;,
+    buf_len: usize,
     request_index: <span class="kw-2">&amp;</span>JsValue,
     context: <span class="kw-2">&amp;mut </span>Context,
-) -&gt; JsResult&lt;usize&gt; {
-    <span class="comment">// 1. Let length be typedArray.[[ArrayLength]].
-    </span><span class="kw">let </span>length = array.array_length();
+) -&gt; JsResult&lt;AtomicAccess&gt; {
+    <span class="comment">// 5. Let typedArray be taRecord.[[Object]].
+    </span><span class="kw">let </span>(length, kind, offset) = {
+        <span class="kw">let </span>array = array.borrow();
+        <span class="kw">let </span>array = <span class="kw-2">&amp;</span>array.data;
+
+        <span class="comment">// 1. Let length be typedArray.[[ArrayLength]].
+        // 6. Let elementSize be TypedArrayElementSize(typedArray).
+        // 7. Let offset be typedArray.[[ByteOffset]].
+        </span>(
+            array.array_length(buf_len),
+            array.kind(),
+            array.byte_offset(),
+        )
+    };
 
     <span class="comment">// 2. Let accessIndex be ? ToIndex(requestIndex).
     </span><span class="kw">let </span>access_index = request_index.to_index(context)<span class="question-mark">?</span>;
@@ -1139,13 +1199,11 @@
             .into());
     }
 
-    <span class="comment">// 5. Let elementSize be TypedArrayElementSize(typedArray).
-    </span><span class="kw">let </span>element_size = array.kind().element_size();
-
-    <span class="comment">// 6. Let offset be typedArray.[[ByteOffset]].
-    </span><span class="kw">let </span>offset = array.byte_offset();
-
-    <span class="comment">// 7. Return (accessIndex × elementSize) + offset.
-    </span><span class="prelude-val">Ok</span>(((access_index * element_size) + offset) <span class="kw">as </span>usize)
+    <span class="comment">// 8. Return (accessIndex × elementSize) + offset.
+    </span><span class="kw">let </span>offset = ((access_index * kind.element_size()) + offset) <span class="kw">as </span>usize;
+    <span class="prelude-val">Ok</span>(AtomicAccess {
+        byte_offset: offset,
+        kind,
+    })
 }
 </code></pre></div></section></main></body></html>

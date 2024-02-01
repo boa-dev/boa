@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["SliceRef","SliceRefMut"],"fn":["copy_shared_to_shared","copy_shared_to_shared_backwards","memcpy","memmove"]};
+window.SIDEBAR_ITEMS = {"enum":["BytesConstPtr","BytesMutPtr","SliceRef","SliceRefMut"],"fn":["copy_shared_to_shared","copy_shared_to_shared_backwards","memcpy","memmove"]};

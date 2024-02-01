@@ -308,6 +308,7 @@
 <a href="#308" id="308">308</a>
 <a href="#309" id="309">309</a>
 <a href="#310" id="310">310</a>
+<a href="#311" id="311">311</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! A Rust API wrapper for Boa&#39;s `ArrayBuffer` Builtin ECMAScript Object
 </span><span class="kw">use crate</span>::{
     builtins::array_buffer::ArrayBuffer,
@@ -371,6 +372,7 @@
                 .constructor()
                 .into(),
             byte_length <span class="kw">as </span>u64,
+            <span class="prelude-val">None</span>,
             context,
         )<span class="question-mark">?</span>;
 
@@ -546,7 +548,7 @@
     </span><span class="attr">#[inline]
     #[must_use]
     </span><span class="kw">pub fn </span>data(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;GcRef&lt;<span class="lifetime">&#39;_</span>, [u8]&gt;&gt; {
-        GcRef::try_map(<span class="self">self</span>.inner.borrow(), |o| o.data.data())
+        GcRef::try_map(<span class="self">self</span>.inner.borrow(), |o| o.data.bytes())
     }
 
     <span class="doccomment">/// Get a mutable reference to the [`JsArrayBuffer`]&#39;s data.
@@ -579,7 +581,7 @@
     </span><span class="attr">#[inline]
     #[must_use]
     </span><span class="kw">pub fn </span>data_mut(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;GcRefMut&lt;<span class="lifetime">&#39;_</span>, Object&lt;ArrayBuffer&gt;, [u8]&gt;&gt; {
-        GcRefMut::try_map(<span class="self">self</span>.inner.borrow_mut(), |o| o.data.data_mut())
+        GcRefMut::try_map(<span class="self">self</span>.inner.borrow_mut(), |o| o.data.bytes_mut())
     }
 }
 

@@ -399,6 +399,7 @@
 <a href="#399" id="399">399</a>
 <a href="#400" id="400">400</a>
 <a href="#401" id="401">401</a>
+<a href="#402" id="402">402</a>
 </pre></div><pre class="rust"><code><span class="comment">// Implementation mostly based from https://github.com/v8/v8/blob/main/src/execution/futex-emulation.cc
 // TODO: track https://github.com/rust-lang/rfcs/pull/3467 to see if we can use `UnsafeAliased` instead
 // of raw pointers.
@@ -674,6 +675,7 @@
 </span><span class="comment">// our implementation guarantees that `SharedArrayBuffer` is always aligned to `u64` at minimum.
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe fn </span>wait&lt;E: Element + PartialEq&gt;(
     buffer: <span class="kw-2">&amp;</span>SharedArrayBuffer,
+    buf_len: usize,
     offset: usize,
     check: E,
     timeout: <span class="prelude-ty">Option</span>&lt;Duration&gt;,
@@ -688,7 +690,7 @@
 
     <span class="kw">let </span>time_info = timeout.map(|timeout| (Instant::now(), timeout));
 
-    <span class="kw">let </span>buffer = <span class="kw-2">&amp;</span>buffer.data()[offset..];
+    <span class="kw">let </span>buffer = <span class="kw-2">&amp;</span>buffer.bytes_with_len(buf_len)[offset..];
 
     <span class="comment">// 13. Let elementType be TypedArrayElementType(typedArray).
     // 14. Let w be GetValueFromBuffer(buffer, indexedPosition, elementType, true, SeqCst).
@@ -781,7 +783,7 @@
 
 <span class="doccomment">/// Notifies at most `count` agents waiting on the memory address pointed to by `buffer[offset..]`.
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>notify(buffer: <span class="kw-2">&amp;</span>SharedArrayBuffer, offset: usize, count: u64) -&gt; JsResult&lt;u64&gt; {
-    <span class="kw">let </span>addr = buffer.data()[offset..].as_ptr().addr();
+    <span class="kw">let </span>addr = buffer.as_ptr().addr() + offset;
 
     <span class="comment">// 7. Let WL be GetWaiterList(block, indexedPosition).
     // 8. Perform EnterCriticalSection(WL).

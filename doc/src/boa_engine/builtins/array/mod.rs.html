@@ -3654,6 +3654,9 @@
 <a href="#3654" id="3654">3654</a>
 <a href="#3655" id="3655">3655</a>
 <a href="#3656" id="3656">3656</a>
+<a href="#3657" id="3657">3657</a>
+<a href="#3658" id="3658">3658</a>
+<a href="#3659" id="3659">3659</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Array` object.
 //!
 //! The ECMAScript `Array` class is a global object that is used in the construction of arrays; which are high-level, list-like objects.
@@ -3692,7 +3695,7 @@
     value::{IntegerOrInfinity, JsValue},
     Context, JsArgs, JsResult, JsString,
 };
-<span class="kw">use </span>std::cmp::{max, min, Ordering};
+<span class="kw">use </span>std::cmp::{min, Ordering};
 
 <span class="kw">use super</span>::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
 
@@ -6872,18 +6875,19 @@
     ) -&gt; JsResult&lt;u64&gt; {
         <span class="comment">// 1. Let relativeStart be ? ToIntegerOrInfinity(start).
         </span><span class="kw">let </span>relative_start = arg.to_integer_or_infinity(context)<span class="question-mark">?</span>;
-        <span class="kw">match </span>relative_start {
+        <span class="kw">let </span>start = <span class="kw">match </span>relative_start {
             <span class="comment">// 2. If relativeStart is -∞, let k be 0.
-            </span>IntegerOrInfinity::NegativeInfinity =&gt; <span class="prelude-val">Ok</span>(<span class="number">0</span>),
+            </span>IntegerOrInfinity::NegativeInfinity =&gt; <span class="number">0</span>,
             <span class="comment">// 3. Else if relativeStart &lt; 0, let k be max(len + relativeStart, 0).
-            </span>IntegerOrInfinity::Integer(i) <span class="kw">if </span>i &lt; <span class="number">0 </span>=&gt; <span class="prelude-val">Ok</span>(max(len <span class="kw">as </span>i64 + i, <span class="number">0</span>) <span class="kw">as </span>u64),
-            <span class="comment">// Both `as` casts are safe as both variables are non-negative
-            // 4. Else, let k be min(relativeStart, len).
-            </span>IntegerOrInfinity::Integer(i) =&gt; <span class="prelude-val">Ok</span>(min(i, len <span class="kw">as </span>i64) <span class="kw">as </span>u64),
+            </span>IntegerOrInfinity::Integer(i) <span class="kw">if </span>i &lt; <span class="number">0 </span>=&gt; len.checked_add_signed(i).unwrap_or(<span class="number">0</span>),
+            <span class="comment">// 4. Else, let k be min(relativeStart, len).
+            </span>IntegerOrInfinity::Integer(i) =&gt; min(i <span class="kw">as </span>u64, len),
 
             <span class="comment">// Special case - positive infinity. `len` is always smaller than +inf, thus from (4)
-            </span>IntegerOrInfinity::PositiveInfinity =&gt; <span class="prelude-val">Ok</span>(len),
-        }
+            </span>IntegerOrInfinity::PositiveInfinity =&gt; len,
+        };
+
+        <span class="prelude-val">Ok</span>(start)
     }
 
     <span class="doccomment">/// Represents the algorithm to calculate `relativeEnd` (or `final`) in array functions.
@@ -6898,18 +6902,20 @@
         } <span class="kw">else </span>{
             <span class="comment">// 1. cont, else let relativeEnd be ? ToIntegerOrInfinity(end).
             </span><span class="kw">let </span>relative_end = value.to_integer_or_infinity(context)<span class="question-mark">?</span>;
-            <span class="kw">match </span>relative_end {
+            <span class="kw">let </span>end = <span class="kw">match </span>relative_end {
                 <span class="comment">// 2. If relativeEnd is -∞, let final be 0.
-                </span>IntegerOrInfinity::NegativeInfinity =&gt; <span class="prelude-val">Ok</span>(<span class="number">0</span>),
+                </span>IntegerOrInfinity::NegativeInfinity =&gt; <span class="number">0</span>,
                 <span class="comment">// 3. Else if relativeEnd &lt; 0, let final be max(len + relativeEnd, 0).
-                </span>IntegerOrInfinity::Integer(i) <span class="kw">if </span>i &lt; <span class="number">0 </span>=&gt; <span class="prelude-val">Ok</span>(max(len <span class="kw">as </span>i64 + i, <span class="number">0</span>) <span class="kw">as </span>u64),
+                </span>IntegerOrInfinity::Integer(i) <span class="kw">if </span>i &lt; <span class="number">0 </span>=&gt; len.checked_add_signed(i).unwrap_or(<span class="number">0</span>),
                 <span class="comment">// 4. Else, let final be min(relativeEnd, len).
                 // Both `as` casts are safe as both variables are non-negative
-                </span>IntegerOrInfinity::Integer(i) =&gt; <span class="prelude-val">Ok</span>(min(i, len <span class="kw">as </span>i64) <span class="kw">as </span>u64),
+                </span>IntegerOrInfinity::Integer(i) =&gt; min(i <span class="kw">as </span>u64, len),
 
                 <span class="comment">// Special case - positive infinity. `len` is always smaller than +inf, thus from (4)
-                </span>IntegerOrInfinity::PositiveInfinity =&gt; <span class="prelude-val">Ok</span>(len),
-            }
+                </span>IntegerOrInfinity::PositiveInfinity =&gt; len,
+            };
+
+            <span class="prelude-val">Ok</span>(end)
         }
     }
 

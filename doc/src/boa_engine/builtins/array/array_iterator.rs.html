@@ -153,6 +153,8 @@
 <a href="#153" id="153">153</a>
 <a href="#154" id="154">154</a>
 <a href="#155" id="155">155</a>
+<a href="#156" id="156">156</a>
+<a href="#157" id="157">157</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module implements the `ArrayIterator` object.
 //!
 //! More information:
@@ -272,15 +274,17 @@
         }
 
         <span class="kw">let </span>len = <span class="kw">if let </span><span class="prelude-val">Some</span>(f) = array_iterator.array.downcast_ref::&lt;TypedArray&gt;() {
-            <span class="kw">if </span>f.is_detached() {
+            <span class="kw">let </span>buf = f.viewed_array_buffer().as_buffer();
+            <span class="kw">let </span><span class="prelude-val">Some</span>(buf) = buf
+                .bytes(std::sync::atomic::Ordering::SeqCst)
+                .filter(|buf| !f.is_out_of_bounds(buf.len()))
+            <span class="kw">else </span>{
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                    .with_message(
-                        <span class="string">&quot;Cannot get value from typed array that has a detached array buffer&quot;</span>,
-                    )
+                    .with_message(<span class="string">&quot;Cannot get value from out of bounds typed array&quot;</span>)
                     .into());
-            }
+            };
 
-            f.array_length()
+            f.array_length(buf.len())
         } <span class="kw">else </span>{
             array_iterator.array.length_of_array_like(context)<span class="question-mark">?
         </span>};
