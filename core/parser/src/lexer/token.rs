@@ -273,7 +273,7 @@ impl TokenKind {
             Self::Punctuator(punc) => punc.to_string(),
             Self::StringLiteral((lit, _)) => interner.resolve_expect(lit).to_string(),
             Self::TemplateNoSubstitution(ts) | Self::TemplateMiddle(ts) => {
-                interner.resolve_expect(ts.as_raw()).to_string()
+                interner.resolve_expect(ts.raw()).to_string()
             }
             Self::RegularExpressionLiteral(body, flags) => {
                 format!(

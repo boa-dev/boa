@@ -1,12 +1,8 @@
 //! Boa's lexing for ECMAScript template literals.
 
-use crate::source::ReadChar;
 use crate::{
-    lexer::{
-        string::{StringLiteral, UTF16CodeUnitsBuffer},
-        Cursor, Error, Token, TokenKind, Tokenizer,
-    },
-    source::UTF8Input,
+    lexer::{string::UTF16CodeUnitsBuffer, Cursor, Error, Token, TokenKind, Tokenizer},
+    source::ReadChar,
 };
 use boa_ast::{Position, Span};
 use boa_interner::{Interner, Sym};
@@ -16,17 +12,30 @@ use std::io::{self, ErrorKind};
 #[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct TemplateString {
-    /// The template string of template literal with argument `raw` true.
+    /// The raw template string.
     raw: Sym,
-    /// The start position of the template string. Used to make lexer error if `to_owned_cooked`
-    /// failed.
-    start_pos: Position,
+
+    /// The cooked template string.
+    cooked: Option<Sym>,
 }
 
 impl TemplateString {
     /// Creates a new `TemplateString` with the given raw template ans start position.
-    pub const fn new(raw: Sym, start_pos: Position) -> Self {
-        Self { raw, start_pos }
+    pub fn new(raw: Sym, interner: &mut Interner) -> Self {
+        Self {
+            raw: Self::as_raw(raw, interner),
+            cooked: Self::as_cooked(raw, interner),
+        }
+    }
+
+    /// Returns the raw template string.
+    pub fn raw(self) -> Sym {
+        self.raw
+    }
+
+    /// Returns the cooked template string if it exists.
+    pub fn cooked(self) -> Option<Sym> {
+        self.cooked
     }
 
     /// Converts the raw template string into a mutable string slice.
@@ -35,8 +44,34 @@ impl TemplateString {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-templatestrings
-    pub const fn as_raw(self) -> Sym {
-        self.raw
+    fn as_raw(raw: Sym, interner: &mut Interner) -> Sym {
+        let string = interner.resolve_expect(raw).utf16();
+        let mut iter = string.iter().peekable();
+        let mut buf: Vec<u16> = Vec::new();
+        loop {
+            match iter.next() {
+                Some(0x5C /* \ */) => {
+                    buf.push_code_point(0x5C);
+                    match iter.next() {
+                        Some(0x0D /* <CR> */) => {
+                            buf.push_code_point(0x0A);
+                        }
+                        Some(ch) => {
+                            buf.push_code_point(u32::from(*ch));
+                        }
+                        None => break,
+                    }
+                }
+                Some(0x0D /* <CR> */) => {
+                    buf.push_code_point(0x0A);
+                }
+                Some(ch) => {
+                    buf.push_code_point(u32::from(*ch));
+                }
+                None => break,
+            }
+        }
+        interner.get_or_intern(buf.as_slice())
     }
 
     /// Creates a new cooked template string. Returns a lexer error if it fails to cook the
@@ -46,39 +81,91 @@ impl TemplateString {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-templatestrings
-    pub fn to_owned_cooked(self, interner: &mut Interner) -> Result<Sym, Error> {
-        let string = interner.resolve_expect(self.raw).to_string();
-        let mut cursor = Cursor::with_position(UTF8Input::new(string.as_bytes()), self.start_pos);
+    fn as_cooked(raw: Sym, interner: &mut Interner) -> Option<Sym> {
+        let string = interner.resolve_expect(raw).utf16();
+        let mut iter = string.iter().peekable();
         let mut buf: Vec<u16> = Vec::new();
 
         loop {
-            let ch_start_pos = cursor.pos();
-            let ch = cursor.next_char()?;
-
-            match ch {
-                Some(0x005C /* \ */) => {
-                    let escape_value = StringLiteral::take_escape_sequence_or_line_continuation(
-                        &mut cursor,
-                        ch_start_pos,
-                        true,
-                        true,
-                    )?;
-
-                    if let (Some(escape_value), _) = escape_value {
-                        buf.push_code_point(escape_value);
-                    }
+            match iter.next() {
+                Some(0x5C /* \ */) => {
+                    let escape_value = match iter.next() {
+                        Some(0x62 /* b */) => 0x08 /* <BS> */,
+                        Some(0x74 /* t */) => 0x09 /* <HT> */,
+                        Some(0x6E /* n */) => 0x0A /* <LF> */,
+                        Some(0x76 /* v */) => 0x0B /* <VT> */,
+                        Some(0x66 /* f */) => 0x0C /* <FF> */,
+                        Some(0x72 /* r */) => 0x0D /* <CR> */,
+                        Some(0x22 /* " */) => 0x22 /* " */,
+                        Some(0x27 /* ' */) => 0x27 /* ' */,
+                        Some(0x5C /* \ */) => 0x5C /* \ */,
+                        Some(0x30 /* 0 */) if iter
+                            .peek()
+                            .filter(|ch| (0x30..=0x39 /* 0..=9 */).contains(**ch))
+                            .is_none() => 0x00 /* NULL */,
+                        // Hex Escape
+                        Some(0x078 /* x */) => {
+                            let mut s = String::with_capacity(2);
+                            s.push(char::from_u32(u32::from(*iter.next()?))?);
+                            s.push(char::from_u32(u32::from(*iter.next()?))?);
+                            u16::from_str_radix(&s, 16).ok()?.into()
+                        }
+                        // Unicode Escape
+                        Some(0x75 /* u */) => {
+                            let next = *iter.next()?;
+                            if next ==  0x7B /* { */ {
+                                let mut buffer = String::with_capacity(6);
+                                loop {
+                                    let next = *iter.next()?;
+                                    if next == 0x7D /* } */ {
+                                        break;
+                                    }
+                                    buffer.push(char::from_u32(u32::from(next))?);
+                                }
+                                let cp = u32::from_str_radix(&buffer, 16).ok()?;
+                                if cp > 0x10_FFFF {
+                                    return None;
+                                }
+                                cp
+                            } else {
+                                let mut s = String::with_capacity(4);
+                                s.push(char::from_u32(u32::from(next))?);
+                                s.push(char::from_u32(u32::from(*iter.next()?))?);
+                                s.push(char::from_u32(u32::from(*iter.next()?))?);
+                                s.push(char::from_u32(u32::from(*iter.next()?))?);
+                                u16::from_str_radix(&s, 16).ok()?.into()
+                            }
+                        }
+                        // NonOctalDecimalEscapeSequence
+                        Some(0x38 /* 8 */ | 0x39 /* 9 */) => {
+                            return None;
+                        }
+                        // LegacyOctalEscapeSequence
+                        Some(ch) if (0x30..=0x37 /* '0'..='7' */).contains(ch) => {
+                            return None;
+                        }
+                        // Line Terminator
+                        Some(0x0A /* <LF> */ | 0x0D /* <CR> */ | 0x2028 /* <LS> */ | 0x2029 /* <PS> */) => {
+                            continue;
+                        }
+                        Some(ch) => {
+                            u32::from(*ch)
+                        }
+                        None => return None,
+                    };
+                    buf.push_code_point(escape_value);
+                }
+                Some(0x0D /* <CR> */) => {
+                    buf.push_code_point(0x0A);
                 }
                 Some(ch) => {
-                    // The caller guarantees that sequences '`' and '${' never appear
-                    // LineTerminatorSequence <CR> <LF> is consumed by `cursor.next_char()` and
-                    // returns <LF>, which matches the TV of <CR> <LF>
-                    buf.push_code_point(ch);
+                    buf.push_code_point(u32::from(*ch));
                 }
                 None => break,
             }
         }
 
-        Ok(interner.get_or_intern(&buf[..]))
+        Some(interner.get_or_intern(buf.as_slice()))
     }
 }
 
@@ -120,7 +207,7 @@ impl<R> Tokenizer<R> for TemplateLiteral {
                 // `
                 0x0060 => {
                     let raw_sym = interner.get_or_intern(&buf[..]);
-                    let template_string = TemplateString::new(raw_sym, start_pos);
+                    let template_string = TemplateString::new(raw_sym, interner);
 
                     return Ok(Token::new(
                         TokenKind::template_no_substitution(template_string),
@@ -130,7 +217,7 @@ impl<R> Tokenizer<R> for TemplateLiteral {
                 // $
                 0x0024 if cursor.next_if(0x7B /* { */)? => {
                     let raw_sym = interner.get_or_intern(&buf[..]);
-                    let template_string = TemplateString::new(raw_sym, start_pos);
+                    let template_string = TemplateString::new(raw_sym, interner);
 
                     return Ok(Token::new(
                         TokenKind::template_middle(template_string),
