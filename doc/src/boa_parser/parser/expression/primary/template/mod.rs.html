@@ -105,6 +105,10 @@
 <a href="#105" id="105">105</a>
 <a href="#106" id="106">106</a>
 <a href="#107" id="107">107</a>
+<a href="#108" id="108">108</a>
+<a href="#109" id="109">109</a>
+<a href="#110" id="110">110</a>
+<a href="#111" id="111">111</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Template literal parsing.
 //!
 //! More information:
@@ -184,10 +188,12 @@
         <span class="kw">loop </span>{
             <span class="kw">match </span>cursor.lex_template(<span class="self">self</span>.start, interner)<span class="question-mark">?</span>.kind() {
                 TokenKind::TemplateMiddle(template_string) =&gt; {
-                    <span class="kw">let </span>cooked = template_string
-                        .to_owned_cooked(interner)
-                        .map_err(Error::lex)<span class="question-mark">?</span>;
-
+                    <span class="kw">let </span><span class="prelude-val">Some</span>(cooked) = template_string.cooked() <span class="kw">else </span>{
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
+                            <span class="string">&quot;invalid escape in template literal&quot;</span>,
+                            <span class="self">self</span>.start,
+                        ));
+                    };
                     elements.push(TemplateElement::String(cooked));
                     elements.push(TemplateElement::Expr(
                         Expression::new(<span class="prelude-val">None</span>, <span class="bool-val">true</span>, <span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
@@ -200,10 +206,12 @@
                     )<span class="question-mark">?</span>;
                 }
                 TokenKind::TemplateNoSubstitution(template_string) =&gt; {
-                    <span class="kw">let </span>cooked = template_string
-                        .to_owned_cooked(interner)
-                        .map_err(Error::lex)<span class="question-mark">?</span>;
-
+                    <span class="kw">let </span><span class="prelude-val">Some</span>(cooked) = template_string.cooked() <span class="kw">else </span>{
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
+                            <span class="string">&quot;invalid escape in template literal&quot;</span>,
+                            <span class="self">self</span>.start,
+                        ));
+                    };
                     elements.push(TemplateElement::String(cooked));
                     <span class="kw">return </span><span class="prelude-val">Ok</span>(literal::TemplateLiteral::new(elements.into()));
                 }

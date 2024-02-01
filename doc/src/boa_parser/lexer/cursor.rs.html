@@ -209,17 +209,6 @@
 <a href="#209" id="209">209</a>
 <a href="#210" id="210">210</a>
 <a href="#211" id="211">211</a>
-<a href="#212" id="212">212</a>
-<a href="#213" id="213">213</a>
-<a href="#214" id="214">214</a>
-<a href="#215" id="215">215</a>
-<a href="#216" id="216">216</a>
-<a href="#217" id="217">217</a>
-<a href="#218" id="218">218</a>
-<a href="#219" id="219">219</a>
-<a href="#220" id="220">220</a>
-<a href="#221" id="221">221</a>
-<a href="#222" id="222">222</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s lexer cursor that manages the input byte stream.
 
 </span><span class="kw">use </span><span class="kw">crate</span>::source::{ReadChar, UTF8Input};
@@ -284,17 +273,6 @@
         <span class="self">Self </span>{
             iter: inner,
             pos: Position::new(<span class="number">1</span>, <span class="number">1</span>),
-            strict: <span class="bool-val">false</span>,
-            module: <span class="bool-val">false</span>,
-            peeked: [<span class="prelude-val">None</span>; <span class="number">4</span>],
-        }
-    }
-
-    <span class="doccomment">/// Creates a new Lexer cursor with an initial position.
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>with_position(inner: R, pos: Position) -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{
-            iter: inner,
-            pos,
             strict: <span class="bool-val">false</span>,
             module: <span class="bool-val">false</span>,
             peeked: [<span class="prelude-val">None</span>; <span class="number">4</span>],

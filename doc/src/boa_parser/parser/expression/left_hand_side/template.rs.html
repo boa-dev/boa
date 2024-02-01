@@ -164,8 +164,8 @@
         <span class="kw">loop </span>{
             <span class="kw">match </span>token.kind() {
                 TokenKind::TemplateMiddle(template_string) =&gt; {
-                    raws.push(template_string.as_raw());
-                    cookeds.push(template_string.to_owned_cooked(interner).ok());
+                    raws.push(template_string.raw());
+                    cookeds.push(template_string.cooked());
                     exprs.push(
                         Expression::new(<span class="prelude-val">None</span>, <span class="bool-val">true</span>, <span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
                             .parse(cursor, interner)<span class="question-mark">?</span>,
@@ -177,8 +177,8 @@
                     )<span class="question-mark">?</span>;
                 }
                 TokenKind::TemplateNoSubstitution(template_string) =&gt; {
-                    raws.push(template_string.as_raw());
-                    cookeds.push(template_string.to_owned_cooked(interner).ok());
+                    raws.push(template_string.raw());
+                    cookeds.push(template_string.cooked());
                     <span class="kw">return </span><span class="prelude-val">Ok</span>(TaggedTemplate::new(
                         <span class="self">self</span>.tag,
                         raws.into_boxed_slice(),

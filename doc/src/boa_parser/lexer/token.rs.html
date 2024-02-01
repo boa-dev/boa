@@ -600,7 +600,7 @@
             <span class="self">Self</span>::Punctuator(punc) =&gt; punc.to_string(),
             <span class="self">Self</span>::StringLiteral((lit, <span class="kw">_</span>)) =&gt; interner.resolve_expect(lit).to_string(),
             <span class="self">Self</span>::TemplateNoSubstitution(ts) | <span class="self">Self</span>::TemplateMiddle(ts) =&gt; {
-                interner.resolve_expect(ts.as_raw()).to_string()
+                interner.resolve_expect(ts.raw()).to_string()
             }
             <span class="self">Self</span>::RegularExpressionLiteral(body, flags) =&gt; {
                 <span class="macro">format!</span>(
