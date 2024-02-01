@@ -169,7 +169,7 @@ fn check_template_literal_simple() {
 
     assert_eq!(
         lexer.next(interner).unwrap().unwrap().kind(),
-        &TokenKind::template_no_substitution(TemplateString::new(sym, Position::new(1, 1)))
+        &TokenKind::template_no_substitution(TemplateString::new(sym, interner))
     );
 }
 

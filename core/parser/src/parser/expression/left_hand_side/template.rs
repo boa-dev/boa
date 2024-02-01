@@ -64,8 +64,8 @@ where
         loop {
             match token.kind() {
                 TokenKind::TemplateMiddle(template_string) => {
-                    raws.push(template_string.as_raw());
-                    cookeds.push(template_string.to_owned_cooked(interner).ok());
+                    raws.push(template_string.raw());
+                    cookeds.push(template_string.cooked());
                     exprs.push(
                         Expression::new(None, true, self.allow_yield, self.allow_await)
                             .parse(cursor, interner)?,
@@ -77,8 +77,8 @@ where
                     )?;
                 }
                 TokenKind::TemplateNoSubstitution(template_string) => {
-                    raws.push(template_string.as_raw());
-                    cookeds.push(template_string.to_owned_cooked(interner).ok());
+                    raws.push(template_string.raw());
+                    cookeds.push(template_string.cooked());
                     return Ok(TaggedTemplate::new(
                         self.tag,
                         raws.into_boxed_slice(),

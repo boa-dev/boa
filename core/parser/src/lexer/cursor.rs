@@ -68,17 +68,6 @@ impl<R: ReadChar> Cursor<R> {
         }
     }
 
-    /// Creates a new Lexer cursor with an initial position.
-    pub(super) fn with_position(inner: R, pos: Position) -> Self {
-        Self {
-            iter: inner,
-            pos,
-            strict: false,
-            module: false,
-            peeked: [None; 4],
-        }
-    }
-
     /// Peeks the next n bytes, the maximum number of peeked bytes is 4 (n <= 4).
     pub(super) fn peek_n(&mut self, n: u8) -> Result<&[Option<u32>; 4], Error> {
         let _timer = Profiler::global().start_event("cursor::peek_n()", "Lexing");

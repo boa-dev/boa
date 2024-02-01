@@ -77,10 +77,12 @@ where
         loop {
             match cursor.lex_template(self.start, interner)?.kind() {
                 TokenKind::TemplateMiddle(template_string) => {
-                    let cooked = template_string
-                        .to_owned_cooked(interner)
-                        .map_err(Error::lex)?;
-
+                    let Some(cooked) = template_string.cooked() else {
+                        return Err(Error::general(
+                            "invalid escape in template literal",
+                            self.start,
+                        ));
+                    };
                     elements.push(TemplateElement::String(cooked));
                     elements.push(TemplateElement::Expr(
                         Expression::new(None, true, self.allow_yield, self.allow_await)
@@ -93,10 +95,12 @@ where
                     )?;
                 }
                 TokenKind::TemplateNoSubstitution(template_string) => {
-                    let cooked = template_string
-                        .to_owned_cooked(interner)
-                        .map_err(Error::lex)?;
-
+                    let Some(cooked) = template_string.cooked() else {
+                        return Err(Error::general(
+                            "invalid escape in template literal",
+                            self.start,
+                        ));
+                    };
                     elements.push(TemplateElement::String(cooked));
                     return Ok(literal::TemplateLiteral::new(elements.into()));
                 }

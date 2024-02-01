@@ -215,12 +215,13 @@ where
                 Ok(node)
             }
             TokenKind::TemplateNoSubstitution(template_string) => {
-                let node = Literal::from(
-                    template_string
-                        .to_owned_cooked(interner)
-                        .map_err(Error::lex)?,
-                )
-                .into();
+                let Some(cooked) = template_string.cooked() else {
+                    return Err(Error::general(
+                        "invalid escape in template literal",
+                        tok.span().start(),
+                    ));
+                };
+                let node = Literal::from(cooked).into();
                 cursor.advance(interner);
                 Ok(node)
             }
@@ -261,13 +262,17 @@ where
                 }
             }
             TokenKind::TemplateMiddle(template_string) => {
+                let Some(cooked) = template_string.cooked() else {
+                    return Err(Error::general(
+                        "invalid escape in template literal",
+                        tok.span().start(),
+                    ));
+                };
                 let parser = TemplateLiteral::new(
                     self.allow_yield,
                     self.allow_await,
                     tok.span().start(),
-                    template_string
-                        .to_owned_cooked(interner)
-                        .map_err(Error::lex)?,
+                    cooked,
                 );
                 cursor.advance(interner);
                 parser.parse(cursor, interner).map(Into::into)
