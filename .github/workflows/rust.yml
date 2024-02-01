@@ -38,7 +38,7 @@ jobs:
           command: tarpaulin
           args: --workspace --features annex-b,intl,experimental --ignore-tests --engine llvm --out xml
       - name: Upload to codecov.io
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
 
   tests:
     name: Test
