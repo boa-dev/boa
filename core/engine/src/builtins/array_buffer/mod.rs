@@ -19,6 +19,7 @@ mod tests;
 use std::ops::{Deref, DerefMut};
 
 pub use shared::SharedArrayBuffer;
+use std::sync::atomic::Ordering;
 
 use crate::{
     builtins::BuiltInObject,
@@ -30,7 +31,6 @@ use crate::{
     realm::Realm,
     string::common::StaticJsStrings,
     symbol::JsSymbol,
-    value::IntegerOrInfinity,
     Context, JsArgs, JsData, JsResult, JsString, JsValue,
 };
 use boa_gc::{Finalize, GcRef, GcRefMut, Trace};
@@ -39,7 +39,7 @@ use boa_profiler::Profiler;
 use self::utils::{SliceRef, SliceRefMut};
 
 use super::{
-    typed_array::TypedArray, BuiltInBuilder, BuiltInConstructor, DataView, IntrinsicObject,
+    typed_array::TypedArray, Array, BuiltInBuilder, BuiltInConstructor, DataView, IntrinsicObject,
 };
 
 #[derive(Debug, Clone, Copy)]
@@ -53,15 +53,31 @@ where
     B: Deref<Target = ArrayBuffer>,
     S: Deref<Target = SharedArrayBuffer>,
 {
-    pub(crate) fn data(&self) -> Option<SliceRef<'_>> {
+    /// Gets the inner data of the buffer.
+    pub(crate) fn bytes(&self, ordering: Ordering) -> Option<SliceRef<'_>> {
         match self {
-            Self::Buffer(buf) => buf.deref().data().map(SliceRef::Slice),
-            Self::SharedBuffer(buf) => Some(SliceRef::AtomicSlice(buf.deref().data())),
+            Self::Buffer(buf) => buf.deref().bytes().map(SliceRef::Slice),
+            Self::SharedBuffer(buf) => Some(SliceRef::AtomicSlice(buf.deref().bytes(ordering))),
         }
     }
 
-    pub(crate) fn is_detached(&self) -> bool {
-        self.data().is_none()
+    /// Gets the inner data of the buffer without accessing the current atomic length.
+    ///
+    /// Returns `None` if the buffer is detached or if the provided `len` is bigger than
+    /// the allocated buffer.
+    #[track_caller]
+    pub(crate) fn bytes_with_len(&self, len: usize) -> Option<SliceRef<'_>> {
+        match self {
+            Self::Buffer(buf) => buf.deref().bytes_with_len(len).map(SliceRef::Slice),
+            Self::SharedBuffer(buf) => Some(SliceRef::AtomicSlice(buf.deref().bytes_with_len(len))),
+        }
+    }
+
+    pub(crate) fn is_fixed_len(&self) -> bool {
+        match self {
+            Self::Buffer(buf) => buf.is_fixed_len(),
+            Self::SharedBuffer(buf) => buf.is_fixed_len(),
+        }
     }
 }
 
@@ -76,10 +92,28 @@ where
     B: DerefMut<Target = ArrayBuffer>,
     S: DerefMut<Target = SharedArrayBuffer>,
 {
-    pub(crate) fn data_mut(&mut self) -> Option<SliceRefMut<'_>> {
+    pub(crate) fn bytes(&mut self, ordering: Ordering) -> Option<SliceRefMut<'_>> {
         match self {
-            Self::Buffer(buf) => buf.deref_mut().data_mut().map(SliceRefMut::Slice),
-            Self::SharedBuffer(buf) => Some(SliceRefMut::AtomicSlice(buf.deref_mut().data())),
+            Self::Buffer(buf) => buf.deref_mut().bytes_mut().map(SliceRefMut::Slice),
+            Self::SharedBuffer(buf) => {
+                Some(SliceRefMut::AtomicSlice(buf.deref_mut().bytes(ordering)))
+            }
+        }
+    }
+
+    /// Gets the mutable inner data of the buffer without accessing the current atomic length.
+    ///
+    /// Returns `None` if the buffer is detached or if the provided `len` is bigger than
+    /// the allocated buffer.
+    pub(crate) fn bytes_with_len(&mut self, len: usize) -> Option<SliceRefMut<'_>> {
+        match self {
+            Self::Buffer(buf) => buf
+                .deref_mut()
+                .bytes_with_len_mut(len)
+                .map(SliceRefMut::Slice),
+            Self::SharedBuffer(buf) => Some(SliceRefMut::AtomicSlice(
+                buf.deref_mut().bytes_with_len(len),
+            )),
         }
     }
 }
@@ -153,7 +187,7 @@ impl BufferObject {
                 let lhs = lhs.borrow();
                 let rhs = rhs.borrow();
 
-                std::ptr::eq(lhs.data.data().as_ptr(), rhs.data.data().as_ptr())
+                std::ptr::eq(lhs.data.as_ptr(), rhs.data.as_ptr())
             }
             _ => false,
         }
@@ -166,6 +200,9 @@ pub struct ArrayBuffer {
     /// The `[[ArrayBufferData]]` internal slot.
     data: Option<Vec<u8>>,
 
+    /// The `[[ArrayBufferMaxByteLength]]` internal slot.
+    max_byte_len: Option<u64>,
+
     /// The `[[ArrayBufferDetachKey]]` internal slot.
     detach_key: JsValue,
 }
@@ -174,6 +211,7 @@ impl ArrayBuffer {
     pub(crate) fn from_data(data: Vec<u8>, detach_key: JsValue) -> Self {
         Self {
             data: Some(data),
+            max_byte_len: None,
             detach_key,
         }
     }
@@ -182,12 +220,36 @@ impl ArrayBuffer {
         self.data.as_ref().map_or(0, Vec::len)
     }
 
-    pub(crate) fn data(&self) -> Option<&[u8]> {
+    pub(crate) fn bytes(&self) -> Option<&[u8]> {
         self.data.as_deref()
     }
 
-    pub(crate) fn data_mut(&mut self) -> Option<&mut [u8]> {
+    pub(crate) fn bytes_mut(&mut self) -> Option<&mut [u8]> {
         self.data.as_deref_mut()
+    }
+
+    pub(crate) fn vec_mut(&mut self) -> Option<&mut Vec<u8>> {
+        self.data.as_mut()
+    }
+
+    /// Gets the inner bytes of the buffer without accessing the current atomic length.
+    #[track_caller]
+    pub(crate) fn bytes_with_len(&self, len: usize) -> Option<&[u8]> {
+        if let Some(s) = self.data.as_deref() {
+            Some(&s[..len])
+        } else {
+            None
+        }
+    }
+
+    /// Gets the mutable inner bytes of the buffer without accessing the current atomic length.
+    #[track_caller]
+    pub(crate) fn bytes_with_len_mut(&mut self, len: usize) -> Option<&mut [u8]> {
+        if let Some(s) = self.data.as_deref_mut() {
+            Some(&mut s[..len])
+        } else {
+            None
+        }
     }
 
     /// Detaches the inner data of this `ArrayBuffer`, returning the original buffer if still
@@ -206,7 +268,7 @@ impl ArrayBuffer {
         Ok(self.data.take())
     }
 
-    /// `25.1.2.2 IsDetachedBuffer ( arrayBuffer )`
+    /// `IsDetachedBuffer ( arrayBuffer )`
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -216,6 +278,10 @@ impl ArrayBuffer {
         // 1. If arrayBuffer.[[ArrayBufferData]] is null, return true.
         // 2. Return false.
         self.data.is_none()
+    }
+
+    pub(crate) fn is_fixed_len(&self) -> bool {
+        self.max_byte_len.is_none()
     }
 }
 
@@ -233,13 +299,15 @@ impl IntrinsicObject for ArrayBuffer {
             .name(js_string!("get byteLength"))
             .build();
 
+        let get_resizable = BuiltInBuilder::callable(realm, Self::get_resizable)
+            .name(js_string!("get resizable"))
+            .build();
+
+        let get_max_byte_length = BuiltInBuilder::callable(realm, Self::get_max_byte_length)
+            .name(js_string!("get maxByteLength"))
+            .build();
+
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
-            .accessor(
-                js_string!("byteLength"),
-                Some(get_byte_length),
-                None,
-                flag_attributes,
-            )
             .static_accessor(
                 JsSymbol::species(),
                 Some(get_species),
@@ -247,6 +315,25 @@ impl IntrinsicObject for ArrayBuffer {
                 Attribute::CONFIGURABLE,
             )
             .static_method(Self::is_view, js_string!("isView"), 1)
+            .accessor(
+                js_string!("byteLength"),
+                Some(get_byte_length),
+                None,
+                flag_attributes,
+            )
+            .accessor(
+                js_string!("resizable"),
+                Some(get_resizable),
+                None,
+                flag_attributes,
+            )
+            .accessor(
+                js_string!("maxByteLength"),
+                Some(get_max_byte_length),
+                None,
+                flag_attributes,
+            )
+            .method(Self::resize, js_string!("resize"), 1)
             .method(Self::slice, js_string!("slice"), 2)
             .property(
                 JsSymbol::to_string_tag(),
@@ -271,7 +358,7 @@ impl BuiltInConstructor for ArrayBuffer {
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::array_buffer;
 
-    /// `25.1.3.1 ArrayBuffer ( length )`
+    /// `ArrayBuffer ( length )`
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -290,29 +377,20 @@ impl BuiltInConstructor for ArrayBuffer {
         }
 
         // 2. Let byteLength be ? ToIndex(length).
-        let byte_length = args.get_or_undefined(0).to_index(context)?;
+        let byte_len = args.get_or_undefined(0).to_index(context)?;
 
-        // 3. Return ? AllocateArrayBuffer(NewTarget, byteLength).
-        Ok(Self::allocate(new_target, byte_length, context)?
+        // 3. Let requestedMaxByteLength be ? GetArrayBufferMaxByteLengthOption(options).
+        let max_byte_len = get_max_byte_len(args.get_or_undefined(1), context)?;
+
+        // 4. Return ? AllocateArrayBuffer(NewTarget, byteLength, requestedMaxByteLength).
+        Ok(Self::allocate(new_target, byte_len, max_byte_len, context)?
             .upcast()
             .into())
     }
 }
 
 impl ArrayBuffer {
-    /// `25.1.4.3 get ArrayBuffer [ @@species ]`
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-get-arraybuffer-@@species
-    #[allow(clippy::unnecessary_wraps)]
-    fn get_species(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        // 1. Return the this value.
-        Ok(this.clone())
-    }
-
-    /// `25.1.4.1 ArrayBuffer.isView ( arg )`
+    /// `ArrayBuffer.isView ( arg )`
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -331,7 +409,19 @@ impl ArrayBuffer {
             .into())
     }
 
-    /// `25.1.5.1 get ArrayBuffer.prototype.byteLength`
+    /// `get ArrayBuffer [ @@species ]`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-get-arraybuffer-@@species
+    #[allow(clippy::unnecessary_wraps)]
+    fn get_species(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+        // 1. Return the this value.
+        Ok(this.clone())
+    }
+
+    /// `get ArrayBuffer.prototype.byteLength`
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -350,7 +440,7 @@ impl ArrayBuffer {
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message("ArrayBuffer.byteLength called with non `ArrayBuffer` object")
+                    .with_message("get ArrayBuffer.prototype.byteLength called with invalid `this`")
             })?;
 
         // 4. If IsDetachedBuffer(O) is true, return +0𝔽.
@@ -359,7 +449,127 @@ impl ArrayBuffer {
         Ok(buf.len().into())
     }
 
-    /// `25.1.5.3 ArrayBuffer.prototype.slice ( start, end )`
+    /// [`get ArrayBuffer.prototype.maxByteLength`][spec].
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-get-arraybuffer.prototype.maxbytelength
+    pub(crate) fn get_max_byte_length(
+        this: &JsValue,
+        _args: &[JsValue],
+        _context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let O be the this value.
+        // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).
+        // 3. If IsSharedArrayBuffer(O) is true, throw a TypeError exception.
+        let buf = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message(
+                    "get ArrayBuffer.prototype.maxByteLength called with invalid `this`",
+                )
+            })?;
+
+        // 4. If IsDetachedBuffer(O) is true, return +0𝔽.
+        let Some(data) = buf.bytes() else {
+            return Ok(JsValue::from(0));
+        };
+
+        // 5. If IsFixedLengthArrayBuffer(O) is true, then
+        //     a. Let length be O.[[ArrayBufferByteLength]].
+        // 6. Else,
+        //     a. Let length be O.[[ArrayBufferMaxByteLength]].
+        // 7. Return 𝔽(length).
+        Ok(buf.max_byte_len.unwrap_or(data.len() as u64).into())
+    }
+
+    /// [`get ArrayBuffer.prototype.resizable`][spec].
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-get-arraybuffer.prototype.resizable
+    pub(crate) fn get_resizable(
+        this: &JsValue,
+        _args: &[JsValue],
+        _context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let O be the this value.
+        // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).
+        // 3. If IsSharedArrayBuffer(O) is true, throw a TypeError exception.
+        let buf = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message("get ArrayBuffer.prototype.resizable called with invalid `this`")
+            })?;
+
+        // 4. If IsFixedLengthArrayBuffer(O) is false, return true; otherwise return false.
+        Ok(JsValue::from(!buf.is_fixed_len()))
+    }
+
+    /// [`ArrayBuffer.prototype.resize ( newLength )`][spec].
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-arraybuffer.prototype.resize
+    pub(crate) fn resize(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let O be the this value.
+        // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferMaxByteLength]]).
+        // 3. If IsSharedArrayBuffer(O) is true, throw a TypeError exception.
+        let buf = this
+            .as_object()
+            .and_then(|o| o.clone().downcast::<Self>().ok())
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message("ArrayBuffer.prototype.resize called with invalid `this`")
+            })?;
+
+        let Some(max_byte_len) = buf.borrow().data.max_byte_len else {
+            return Err(JsNativeError::typ()
+                .with_message("ArrayBuffer.resize: cannot resize a fixed-length buffer")
+                .into());
+        };
+
+        // 4. Let newByteLength be ? ToIndex(newLength).
+        let new_byte_length = args.get_or_undefined(0).to_index(context)?;
+
+        let mut buf = buf.borrow_mut();
+        // 5. If IsDetachedBuffer(O) is true, throw a TypeError exception.
+        let Some(buf) = buf.data.vec_mut() else {
+            return Err(JsNativeError::typ()
+                .with_message("ArrayBuffer.resize: cannot resize a detached buffer")
+                .into());
+        };
+
+        // 6. If newByteLength > O.[[ArrayBufferMaxByteLength]], throw a RangeError exception.
+        if new_byte_length > max_byte_len {
+            return Err(JsNativeError::range()
+                .with_message(
+                    "ArrayBuffer.resize: new byte length exceeds buffer's maximum byte length",
+                )
+                .into());
+        }
+
+        // TODO: 7. Let hostHandled be ? HostResizeArrayBuffer(O, newByteLength).
+        // 8. If hostHandled is handled, return undefined.
+        // Used in engines to handle WASM buffers in a special way, but we don't
+        // have a WASM interpreter in place yet.
+
+        // 9. Let oldBlock be O.[[ArrayBufferData]].
+        // 10. Let newBlock be ? CreateByteDataBlock(newByteLength).
+        // 11. Let copyLength be min(newByteLength, O.[[ArrayBufferByteLength]]).
+        // 12. Perform CopyDataBlockBytes(newBlock, 0, oldBlock, 0, copyLength).
+        // 13. NOTE: Neither creation of the new Data Block nor copying from the old Data Block are observable.
+        //     Implementations may implement this method as in-place growth or shrinkage.
+        // 14. Set O.[[ArrayBufferData]] to newBlock.
+        // 15. Set O.[[ArrayBufferByteLength]] to newByteLength.
+        buf.resize(new_byte_length as usize, 0);
+
+        // 16. Return undefined.
+        Ok(JsValue::undefined())
+    }
+
+    /// `ArrayBuffer.prototype.slice ( start, end )`
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -369,88 +579,91 @@ impl ArrayBuffer {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).
         // 3. If IsSharedArrayBuffer(O) is true, throw a TypeError exception.
-        let obj = this.as_object().ok_or_else(|| {
-            JsNativeError::typ().with_message("ArrayBuffer.slice called with non-object value")
-        })?;
+        let buf = this
+            .as_object()
+            .and_then(|o| o.clone().downcast::<Self>().ok())
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message("ArrayBuffer.slice called with invalid `this` value")
+            })?;
 
-        let buf = obj.downcast_ref::<Self>().ok_or_else(|| {
-            JsNativeError::typ().with_message("ArrayBuffer.slice called with invalid object")
-        })?;
+        let len = {
+            let buf = buf.borrow();
+            // 4. If IsDetachedBuffer(O) is true, throw a TypeError exception.
+            if buf.data.is_detached() {
+                return Err(JsNativeError::typ()
+                    .with_message("ArrayBuffer.slice called with detached buffer")
+                    .into());
+            }
+            // 5. Let len be O.[[ArrayBufferByteLength]].
+            buf.data.len() as u64
+        };
 
-        // 4. If IsDetachedBuffer(O) is true, throw a TypeError exception.
-        if buf.is_detached() {
-            return Err(JsNativeError::typ()
-                .with_message("ArrayBuffer.slice called with detached buffer")
-                .into());
-        }
+        // 6. Let relativeStart be ? ToIntegerOrInfinity(start).
+        // 7. If relativeStart = -∞, let first be 0.
+        // 8. Else if relativeStart < 0, let first be max(len + relativeStart, 0).
+        // 9. Else, let first be min(relativeStart, len).
+        let first = Array::get_relative_start(context, args.get_or_undefined(0), len)?;
 
-        let SliceRange {
-            start: first,
-            length: new_len,
-        } = get_slice_range(
-            buf.len() as u64,
-            args.get_or_undefined(0),
-            args.get_or_undefined(1),
-            context,
-        )?;
+        // 10. If end is undefined, let relativeEnd be len; else let relativeEnd be ? ToIntegerOrInfinity(end).
+        // 11. If relativeEnd = -∞, let final be 0.
+        // 12. Else if relativeEnd < 0, let final be max(len + relativeEnd, 0).
+        // 13. Else, let final be min(relativeEnd, len).
+        let final_ = Array::get_relative_end(context, args.get_or_undefined(1), len)?;
+
+        // 14. Let newLen be max(final - first, 0).
+        let new_len = final_.saturating_sub(first);
 
         // 15. Let ctor be ? SpeciesConstructor(O, %ArrayBuffer%).
-        let ctor = obj.species_constructor(StandardConstructors::array_buffer, context)?;
+        let ctor = buf
+            .clone()
+            .upcast()
+            .species_constructor(StandardConstructors::array_buffer, context)?;
 
         // 16. Let new be ? Construct(ctor, « 𝔽(newLen) »).
         let new = ctor.construct(&[new_len.into()], Some(&ctor), context)?;
 
-        {
-            // 17. Perform ? RequireInternalSlot(new, [[ArrayBufferData]]).
-            // 18. If IsSharedArrayBuffer(new) is true, throw a TypeError exception.
-            let new = new.downcast_ref::<Self>().ok_or_else(|| {
-                JsNativeError::typ().with_message("ArrayBuffer constructor returned invalid object")
-            })?;
+        // 17. Perform ? RequireInternalSlot(new, [[ArrayBufferData]]).
+        // 18. If IsSharedArrayBuffer(new) is true, throw a TypeError exception.
+        let Ok(new) = new.downcast::<Self>() else {
+            return Err(JsNativeError::typ()
+                .with_message("ArrayBuffer constructor returned invalid object")
+                .into());
+        };
 
-            // 19. If IsDetachedBuffer(new) is true, throw a TypeError exception.
-            if new.is_detached() {
-                return Err(JsNativeError::typ()
-                    .with_message("ArrayBuffer constructor returned detached ArrayBuffer")
-                    .into());
-            }
-        }
         // 20. If SameValue(new, O) is true, throw a TypeError exception.
-        if this
-            .as_object()
-            .map(|obj| JsObject::equals(obj, &new))
-            .unwrap_or_default()
-        {
+        if JsObject::equals(&buf, &new) {
             return Err(JsNativeError::typ()
                 .with_message("new ArrayBuffer is the same as this ArrayBuffer")
                 .into());
         }
 
         {
-            let mut new = new
-                .downcast_mut::<Self>()
-                .expect("Already checked that `new_obj` was an `ArrayBuffer`");
+            // 19. If IsDetachedBuffer(new) is true, throw a TypeError exception.
+            // 25. Let toBuf be new.[[ArrayBufferData]].
+            let mut new = new.borrow_mut();
+            let Some(to_buf) = new.data.bytes_mut() else {
+                return Err(JsNativeError::typ()
+                    .with_message("ArrayBuffer constructor returned detached ArrayBuffer")
+                    .into());
+            };
 
             // 21. If new.[[ArrayBufferByteLength]] < newLen, throw a TypeError exception.
-            if (new.len() as u64) < new_len {
+            if (to_buf.len() as u64) < new_len {
                 return Err(JsNativeError::typ()
                     .with_message("new ArrayBuffer length too small")
                     .into());
             }
 
             // 22. NOTE: Side-effects of the above steps may have detached O.
+            // 23. If IsDetachedBuffer(O) is true, throw a TypeError exception.
             // 24. Let fromBuf be O.[[ArrayBufferData]].
-            let Some(from_buf) = buf.data() else {
-                // 23. If IsDetachedBuffer(O) is true, throw a TypeError exception.
+            let buf = buf.borrow();
+            let Some(from_buf) = buf.data.bytes() else {
                 return Err(JsNativeError::typ()
                     .with_message("ArrayBuffer detached while ArrayBuffer.slice was running")
                     .into());
             };
-
-            // 25. Let toBuf be new.[[ArrayBufferData]].
-            let to_buf = new
-                .data
-                .as_mut()
-                .expect("ArrayBuffer cannot be detached here");
 
             // 26. Perform CopyDataBlockBytes(toBuf, 0, fromBuf, first, newLen).
             let first = first as usize;
@@ -459,10 +672,10 @@ impl ArrayBuffer {
         }
 
         // 27. Return new.
-        Ok(new.into())
+        Ok(new.upcast().into())
     }
 
-    /// `25.1.2.1 AllocateArrayBuffer ( constructor, byteLength )`
+    /// `AllocateArrayBuffer ( constructor, byteLength )`
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -470,86 +683,75 @@ impl ArrayBuffer {
     /// [spec]: https://tc39.es/ecma262/#sec-allocatearraybuffer
     pub(crate) fn allocate(
         constructor: &JsValue,
-        byte_length: u64,
+        byte_len: u64,
+        max_byte_len: Option<u64>,
         context: &mut Context,
     ) -> JsResult<JsObject<ArrayBuffer>> {
-        // 1. Let obj be ? OrdinaryCreateFromConstructor(constructor, "%ArrayBuffer.prototype%", « [[ArrayBufferData]], [[ArrayBufferByteLength]], [[ArrayBufferDetachKey]] »).
+        // 1. Let slots be « [[ArrayBufferData]], [[ArrayBufferByteLength]], [[ArrayBufferDetachKey]] ».
+        // 2. If maxByteLength is present and maxByteLength is not empty, let allocatingResizableBuffer be true; otherwise let allocatingResizableBuffer be false.
+        // 3. If allocatingResizableBuffer is true, then
+        //     a. If byteLength > maxByteLength, throw a RangeError exception.
+        //     b. Append [[ArrayBufferMaxByteLength]] to slots.
+        if let Some(max_byte_len) = max_byte_len {
+            if byte_len > max_byte_len {
+                return Err(JsNativeError::range()
+                    .with_message("`length` cannot be bigger than `maxByteLength`")
+                    .into());
+            }
+        }
+
+        // 4. Let obj be ? OrdinaryCreateFromConstructor(constructor, "%ArrayBuffer.prototype%", slots).
         let prototype = get_prototype_from_constructor(
             constructor,
             StandardConstructors::array_buffer,
             context,
         )?;
 
-        // 2. Let block be ? CreateByteDataBlock(byteLength).
-        let block = create_byte_data_block(byte_length, context)?;
+        // 5. Let block be ? CreateByteDataBlock(byteLength).
+        // Preemptively allocate for `max_byte_len` if possible.
+        //     a. If it is not possible to create a Data Block block consisting of maxByteLength bytes, throw a RangeError exception.
+        //     b. NOTE: Resizable ArrayBuffers are designed to be implementable with in-place growth. Implementations may
+        //        throw if, for example, virtual memory cannot be reserved up front.
+        let block = create_byte_data_block(byte_len, max_byte_len, context)?;
 
-        // 3. Set obj.[[ArrayBufferData]] to block.
-        // 4. Set obj.[[ArrayBufferByteLength]] to byteLength.
         let obj = JsObject::new(
             context.root_shape(),
             prototype,
             Self {
+                // 6. Set obj.[[ArrayBufferData]] to block.
+                // 7. Set obj.[[ArrayBufferByteLength]] to byteLength.
                 data: Some(block),
+                // 8. If allocatingResizableBuffer is true, then
+                //    c. Set obj.[[ArrayBufferMaxByteLength]] to maxByteLength.
+                max_byte_len,
                 detach_key: JsValue::Undefined,
             },
         );
 
-        // 5. Return obj.
+        // 9. Return obj.
         Ok(obj)
     }
 }
 
-/// Utility struct to return the result of the [`get_slice_range`] function.
-#[derive(Debug, Clone, Copy)]
-struct SliceRange {
-    start: u64,
-    length: u64,
-}
-
-/// Gets the slice copy range from the original length, the relative start and the end.
-fn get_slice_range(
-    len: u64,
-    relative_start: &JsValue,
-    end: &JsValue,
-    context: &mut Context,
-) -> JsResult<SliceRange> {
-    // 5. Let len be O.[[ArrayBufferByteLength]].
-
-    // 6. Let relativeStart be ? ToIntegerOrInfinity(start).
-    let relative_start = relative_start.to_integer_or_infinity(context)?;
-
-    let first = match relative_start {
-        // 7. If relativeStart is -∞, let first be 0.
-        IntegerOrInfinity::NegativeInfinity => 0,
-        // 8. Else if relativeStart < 0, let first be max(len + relativeStart, 0).
-        IntegerOrInfinity::Integer(i) if i < 0 => len.checked_add_signed(i).unwrap_or(0),
-        // 9. Else, let first be min(relativeStart, len).
-        IntegerOrInfinity::Integer(i) => std::cmp::min(i as u64, len),
-        IntegerOrInfinity::PositiveInfinity => len,
+/// Abstract operation [`GetArrayBufferMaxByteLengthOption ( options )`][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-getarraybuffermaxbytelengthoption
+fn get_max_byte_len(options: &JsValue, context: &mut Context) -> JsResult<Option<u64>> {
+    // 1. If options is not an Object, return empty.
+    let Some(options) = options.as_object() else {
+        return Ok(None);
     };
 
-    // 10. If end is undefined, let relativeEnd be len; else let relativeEnd be ? ToIntegerOrInfinity(end).
-    let r#final = if end.is_undefined() {
-        len
-    } else {
-        match end.to_integer_or_infinity(context)? {
-            // 11. If relativeEnd is -∞, let final be 0.
-            IntegerOrInfinity::NegativeInfinity => 0,
-            // 12. Else if relativeEnd < 0, let final be max(len + relativeEnd, 0).
-            IntegerOrInfinity::Integer(i) if i < 0 => len.checked_add_signed(i).unwrap_or(0),
-            // 13. Else, let final be min(relativeEnd, len).
-            IntegerOrInfinity::Integer(i) => std::cmp::min(i as u64, len),
-            IntegerOrInfinity::PositiveInfinity => len,
-        }
-    };
+    // 2. Let maxByteLength be ? Get(options, "maxByteLength").
+    let max_byte_len = options.get(js_string!("maxByteLength"), context)?;
 
-    // 14. Let newLen be max(final - first, 0).
-    let new_len = r#final.saturating_sub(first);
+    // 3. If maxByteLength is undefined, return empty.
+    if max_byte_len.is_undefined() {
+        return Ok(None);
+    }
 
-    Ok(SliceRange {
-        start: first,
-        length: new_len,
-    })
+    // 4. Return ? ToIndex(maxByteLength).
+    max_byte_len.to_index(context).map(Some)
 }
 
 /// `CreateByteDataBlock ( size )` abstract operation.
@@ -558,24 +760,36 @@ fn get_slice_range(
 /// integer). For more information, check the [spec][spec].
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-createbytedatablock
-pub(crate) fn create_byte_data_block(size: u64, context: &mut Context) -> JsResult<Vec<u8>> {
-    if size > context.host_hooks().max_buffer_size(context) {
+pub(crate) fn create_byte_data_block(
+    size: u64,
+    max_buffer_size: Option<u64>,
+    context: &mut Context,
+) -> JsResult<Vec<u8>> {
+    let alloc_size = max_buffer_size.unwrap_or(size);
+
+    assert!(size <= alloc_size);
+
+    if alloc_size > context.host_hooks().max_buffer_size(context) {
         return Err(JsNativeError::range()
             .with_message(
                 "cannot allocate a buffer that exceeds the maximum buffer size".to_string(),
             )
             .into());
     }
+
     // 1. Let db be a new Data Block value consisting of size bytes. If it is impossible to
     //    create such a Data Block, throw a RangeError exception.
-    let size = size.try_into().map_err(|e| {
+    let alloc_size = alloc_size.try_into().map_err(|e| {
         JsNativeError::range().with_message(format!("couldn't allocate the data block: {e}"))
     })?;
 
     let mut data_block = Vec::new();
-    data_block.try_reserve(size).map_err(|e| {
+    data_block.try_reserve_exact(alloc_size).map_err(|e| {
         JsNativeError::range().with_message(format!("couldn't allocate the data block: {e}"))
     })?;
+
+    // since size <= alloc_size, then `size` must also fit inside a `usize`.
+    let size = size as usize;
 
     // 2. Set all of the bytes of db to 0.
     data_block.resize(size, 0);

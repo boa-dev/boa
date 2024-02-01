@@ -1,10 +1,7 @@
 //! A Rust API wrapper for Boa's `DataView` Builtin ECMAScript Object
 use crate::{
     builtins::{array_buffer::BufferObject, DataView},
-    context::intrinsics::StandardConstructors,
-    object::{
-        internal_methods::get_prototype_from_constructor, JsArrayBuffer, JsObject, JsObjectType,
-    },
+    object::{JsArrayBuffer, JsObject, JsObjectType},
     value::TryFromJs,
     Context, JsNativeError, JsResult, JsValue,
 };
@@ -55,66 +52,101 @@ impl From<JsObject<DataView>> for JsDataView {
 impl JsDataView {
     /// Create a new `JsDataView` object from an existing `JsArrayBuffer`.
     pub fn from_js_array_buffer(
-        array_buffer: JsArrayBuffer,
+        buffer: JsArrayBuffer,
         offset: Option<u64>,
-        byte_length: Option<u64>,
+        byte_len: Option<u64>,
         context: &mut Context,
     ) -> JsResult<Self> {
-        let (byte_offset, byte_length) = {
-            let buffer = array_buffer.borrow();
-            let provided_offset = offset.unwrap_or(0_u64);
+        let offset = offset.unwrap_or_default();
 
-            // Check if buffer is detached.
-            if buffer.data.is_detached() {
+        let (buf_byte_len, is_fixed_len) = {
+            let buffer = buffer.borrow();
+            let buffer = &buffer.data;
+
+            // 4. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.
+            let Some(slice) = buffer.bytes() else {
                 return Err(JsNativeError::typ()
                     .with_message("ArrayBuffer is detached")
                     .into());
             };
 
-            let array_buffer_length = buffer.data.len() as u64;
+            // 5. Let bufferByteLength be ArrayBufferByteLength(buffer, seq-cst).
+            let buf_len = slice.len() as u64;
 
-            if provided_offset > array_buffer_length {
+            // 6. If offset > bufferByteLength, throw a RangeError exception.
+            if offset > buf_len {
                 return Err(JsNativeError::range()
-                    .with_message("Provided offset is outside the bounds of the buffer")
+                    .with_message("Start offset is outside the bounds of the buffer")
                     .into());
             }
 
-            let view_byte_length = if let Some(provided_length) = byte_length {
-                // Check that the provided length and offset does not exceed the bounds of the ArrayBuffer
-                if provided_offset + provided_length > array_buffer_length {
-                    return Err(JsNativeError::range()
-                        .with_message("Invalid data view length")
-                        .into());
-                }
-
-                provided_length
-            } else {
-                array_buffer_length - provided_offset
-            };
-
-            (provided_offset, view_byte_length)
+            // 7. Let bufferIsFixedLength be IsFixedLengthArrayBuffer(buffer).
+            (buf_len, buffer.is_fixed_len())
         };
 
-        let constructor = context
-            .intrinsics()
-            .constructors()
-            .data_view()
-            .constructor()
-            .into();
+        // 8. If byteLength is undefined, then
+        let view_byte_len = if let Some(byte_len) = byte_len {
+            // 9. Else,
+            //     a. Let viewByteLength be ? ToIndex(byteLength).
+            //     b. If offset + viewByteLength > bufferByteLength, throw a RangeError exception.
+            if offset + byte_len > buf_byte_len {
+                return Err(JsNativeError::range()
+                    .with_message("Invalid data view length")
+                    .into());
+            }
 
-        let prototype =
-            get_prototype_from_constructor(&constructor, StandardConstructors::data_view, context)?;
+            Some(byte_len)
+        } else {
+            // a. If bufferIsFixedLength is true, then
+            //     i. Let viewByteLength be bufferByteLength - offset.
+            // b. Else,
+            //     i. Let viewByteLength be auto.
+            is_fixed_len.then_some(buf_byte_len - offset)
+        };
+
+        // 10. Let O be ? OrdinaryCreateFromConstructor(NewTarget, "%DataView.prototype%",
+        //     « [[DataView]], [[ViewedArrayBuffer]], [[ByteLength]], [[ByteOffset]] »).
+        let prototype = context.intrinsics().constructors().data_view().prototype();
+
+        // 11. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.
+        // 12. Set bufferByteLength to ArrayBufferByteLength(buffer, seq-cst).
+        let Some(buf_byte_len) = buffer.borrow().data.bytes().map(|s| s.len() as u64) else {
+            return Err(JsNativeError::typ()
+                .with_message("ArrayBuffer is detached")
+                .into());
+        };
+
+        // 13. If offset > bufferByteLength, throw a RangeError exception.
+        if offset > buf_byte_len {
+            return Err(JsNativeError::range()
+                .with_message("DataView offset outside of buffer array bounds")
+                .into());
+        }
+
+        // 14. If byteLength is not undefined, then
+        if let Some(view_byte_len) = view_byte_len.filter(|_| byte_len.is_some()) {
+            // a. If offset + viewByteLength > bufferByteLength, throw a RangeError exception.
+            if offset + view_byte_len > buf_byte_len {
+                return Err(JsNativeError::range()
+                    .with_message("DataView offset outside of buffer array bounds")
+                    .into());
+            }
+        }
 
         let obj = JsObject::new(
             context.root_shape(),
             prototype,
             DataView {
-                viewed_array_buffer: BufferObject::Buffer(array_buffer.into()),
-                byte_length,
-                byte_offset,
+                // 15. Set O.[[ViewedArrayBuffer]] to buffer.
+                viewed_array_buffer: BufferObject::Buffer(buffer.into()),
+                // 16. Set O.[[ByteLength]] to viewByteLength.
+                byte_length: view_byte_len,
+                // 17. Set O.[[ByteOffset]] to offset.
+                byte_offset: offset,
             },
         );
 
+        // 18. Return O.
         Ok(Self { inner: obj })
     }
 

@@ -1,6 +1,6 @@
 //! This module implements the `TypedArray` exotic object.
 
-use std::sync::atomic;
+use std::sync::atomic::{self, Ordering};
 
 use crate::{
     builtins::{array_buffer::BufferObject, Number},
@@ -13,7 +13,7 @@ use crate::{
         JsData, JsObject,
     },
     property::{PropertyDescriptor, PropertyKey},
-    Context, JsResult, JsString, JsValue,
+    Context, JsNativeError, JsResult, JsString, JsValue,
 };
 use boa_gc::{Finalize, Trace};
 use boa_macros::utf16;
@@ -32,8 +32,8 @@ pub struct TypedArray {
     viewed_array_buffer: BufferObject,
     kind: TypedArrayKind,
     byte_offset: u64,
-    byte_length: u64,
-    array_length: u64,
+    byte_length: Option<u64>,
+    array_length: Option<u64>,
 }
 
 impl JsData for TypedArray {
@@ -58,8 +58,8 @@ impl TypedArray {
         viewed_array_buffer: BufferObject,
         kind: TypedArrayKind,
         byte_offset: u64,
-        byte_length: u64,
-        array_length: u64,
+        byte_length: Option<u64>,
+        array_length: Option<u64>,
     ) -> Self {
         Self {
             viewed_array_buffer,
@@ -70,16 +70,42 @@ impl TypedArray {
         }
     }
 
-    /// Abstract operation `IsDetachedBuffer ( arrayBuffer )`.
+    /// Returns `true` if the typed array has an automatic array length.
+    pub(crate) fn is_auto_length(&self) -> bool {
+        self.array_length.is_none()
+    }
+
+    /// Abstract operation [`IsTypedArrayOutOfBounds ( taRecord )`][spec].
     ///
-    /// Check if `[[ArrayBufferData]]` is null.
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-isdetachedbuffer
-    pub(crate) fn is_detached(&self) -> bool {
-        self.viewed_array_buffer.as_buffer().is_detached()
+    /// [spec]: https://tc39.es/ecma262/sec-istypedarrayoutofbounds
+    pub(crate) fn is_out_of_bounds(&self, buf_byte_len: usize) -> bool {
+        // Checks when allocating the buffer ensure the length fits inside an `u64`.
+        let buf_byte_len = buf_byte_len as u64;
+
+        // 1. Let O be taRecord.[[Object]].
+        // 2. Let bufferByteLength be taRecord.[[CachedBufferByteLength]].
+        // 3. Assert: IsDetachedBuffer(O.[[ViewedArrayBuffer]]) is true if and only if bufferByteLength is detached.
+        // 4. If bufferByteLength is detached, return true.
+        // Handled by the caller
+
+        // 5. Let byteOffsetStart be O.[[ByteOffset]].
+        let byte_start = self.byte_offset;
+
+        // 6. If O.[[ArrayLength]] is auto, then
+        //     a. Let byteOffsetEnd be bufferByteLength.
+        let byte_end = self.array_length.map_or(buf_byte_len, |arr_len| {
+            // 7. Else,
+            //     a. Let elementSize be TypedArrayElementSize(O).
+            let element_size = self.kind.element_size();
+
+            //     b. Let byteOffsetEnd be byteOffsetStart + O.[[ArrayLength]] × elementSize.
+            byte_start + arr_len * element_size
+        });
+
+        // 8. If byteOffsetStart > bufferByteLength or byteOffsetEnd > bufferByteLength, return true.
+        // 9. NOTE: 0-length TypedArrays are not considered out-of-bounds.
+        // 10. Return false.
+        byte_start > buf_byte_len || byte_end > buf_byte_len
     }
 
     /// Get the `TypedArray` object's byte offset.
@@ -99,16 +125,133 @@ impl TypedArray {
         &self.viewed_array_buffer
     }
 
+    /// [`TypedArrayByteLength ( taRecord )`][spec].
+    ///
     /// Get the `TypedArray` object's byte length.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-typedarraybytelength
     #[must_use]
-    pub const fn byte_length(&self) -> u64 {
-        self.byte_length
+    pub fn byte_length(&self, buf_byte_len: usize) -> u64 {
+        // 1. If IsTypedArrayOutOfBounds(taRecord) is true, return 0.
+        if self.is_out_of_bounds(buf_byte_len) {
+            return 0;
+        }
+
+        // 2. Let length be TypedArrayLength(taRecord).
+        let length = self.array_length(buf_byte_len);
+        // 3. If length = 0, return 0.
+        if length == 0 {
+            return 0;
+        }
+
+        // 4. Let O be taRecord.[[Object]].
+
+        // 5. If O.[[ByteLength]] is not auto, return O.[[ByteLength]].
+        if let Some(byte_length) = self.byte_length {
+            return byte_length;
+        }
+
+        // 6. Let elementSize be TypedArrayElementSize(O).
+        let elem_size = self.kind.element_size();
+
+        // 7. Return length × elementSize.
+        // Should not overflow thanks to the checks at creation time.
+        length * elem_size
     }
 
+    /// [`TypedArrayLength ( taRecord )`][spec].
+    ///
     /// Get the `TypedArray` object's array length.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-typedarraylength
     #[must_use]
-    pub const fn array_length(&self) -> u64 {
-        self.array_length
+    pub fn array_length(&self, buf_byte_len: usize) -> u64 {
+        // 1. Assert: IsTypedArrayOutOfBounds(taRecord) is false.
+        debug_assert!(!self.is_out_of_bounds(buf_byte_len));
+        let buf_byte_len = buf_byte_len as u64;
+
+        // 2. Let O be taRecord.[[Object]].
+
+        // 3. If O.[[ArrayLength]] is not auto, return O.[[ArrayLength]].
+        if let Some(array_length) = self.array_length {
+            return array_length;
+        }
+        // 4. Assert: IsFixedLengthArrayBuffer(O.[[ViewedArrayBuffer]]) is false.
+
+        // 5. Let byteOffset be O.[[ByteOffset]].
+        let byte_offset = self.byte_offset;
+        // 6. Let elementSize be TypedArrayElementSize(O).
+        let elem_size = self.kind.element_size();
+
+        // 7. Let byteLength be taRecord.[[CachedBufferByteLength]].
+        // 8. Assert: byteLength is not detached.
+        // 9. Return floor((byteLength - byteOffset) / elementSize).
+        (buf_byte_len - byte_offset) / elem_size
+    }
+
+    /// Abstract operation [`ValidateTypedArray ( O, order )`][spec].
+    ///
+    /// [spec]: https://tc39.es/ecma262/sec-validatetypedarray
+    pub(crate) fn validate(this: &JsValue, order: Ordering) -> JsResult<(JsObject<Self>, usize)> {
+        // 1. Perform ? RequireInternalSlot(O, [[TypedArrayName]]).
+        let obj = this
+            .as_object()
+            .and_then(|o| o.clone().downcast::<Self>().ok())
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("`this` is not a typed array object")
+            })?;
+
+        let len = {
+            let array = obj.borrow();
+            let buffer = array.data.viewed_array_buffer().as_buffer();
+            // 2. Assert: O has a [[ViewedArrayBuffer]] internal slot.
+            // 3. Let taRecord be MakeTypedArrayWithBufferWitnessRecord(O, order).
+            // 4. If IsTypedArrayOutOfBounds(taRecord) is true, throw a TypeError exception.
+            let Some(buf) = buffer
+                .bytes(order)
+                .filter(|buf| !array.data.is_out_of_bounds(buf.len()))
+            else {
+                return Err(JsNativeError::typ()
+                    .with_message("typed array is outside the bounds of its inner buffer")
+                    .into());
+            };
+            buf.len()
+        };
+
+        // 5. Return taRecord.
+        Ok((obj, len))
+    }
+
+    /// Validates `index` to be in bounds for the inner buffer of this `TypedArray`.
+    ///
+    /// Note: if this is only used for bounds checking, it is recommended to use
+    /// the `Ordering::Relaxed` ordering to get the buffer slice.
+    pub(crate) fn validate_index(&self, index: f64, buf_len: usize) -> Option<u64> {
+        // 2. If IsIntegralNumber(index) is false, return false.
+        if index.is_nan() || index.is_infinite() || index.fract() != 0.0 {
+            return None;
+        }
+
+        // 3. If index is -0𝔽, return false.
+        if index == 0.0 && index.is_sign_negative() {
+            return None;
+        }
+
+        // 6. If IsTypedArrayOutOfBounds(taRecord) is true, return false.
+        if self.is_out_of_bounds(buf_len) {
+            return None;
+        }
+
+        // 7. Let length be TypedArrayLength(taRecord).
+        let length = self.array_length(buf_len);
+
+        // 8. If ℝ(index) < 0 or ℝ(index) ≥ length, return false.
+        if index < 0.0 || index >= length as f64 {
+            return None;
+        }
+
+        // 9. Return true.
+        Some(index as u64)
     }
 }
 
@@ -393,24 +536,32 @@ pub(crate) fn typed_array_exotic_own_property_keys(
         .downcast_ref::<TypedArray>()
         .expect("TypedArray exotic method should only be callable from TypedArray objects");
 
-    // 1. Let keys be a new empty List.
-    let mut keys = if inner.is_detached() {
-        vec![]
-    } else {
-        // 2. If IsDetachedBuffer(O.[[ViewedArrayBuffer]]) is false, then
-        //     a. For each integer i starting with 0 such that i < O.[[ArrayLength]], in ascending order, do
-        //         i. Add ! ToString(𝔽(i)) as the last element of keys.
-        (0..inner.array_length()).map(PropertyKey::from).collect()
+    // 1. Let taRecord be MakeTypedArrayWithBufferWitnessRecord(O, seq-cst).
+    // 2. Let keys be a new empty List.
+    // 3. If IsTypedArrayOutOfBounds(taRecord) is false, then
+    let mut keys = match inner
+        .viewed_array_buffer
+        .as_buffer()
+        .bytes(Ordering::SeqCst)
+    {
+        Some(buf) if !inner.is_out_of_bounds(buf.len()) => {
+            // a. Let length be TypedArrayLength(taRecord).
+            let length = inner.array_length(buf.len());
+
+            // b. For each integer i such that 0 ≤ i < length, in ascending order, do
+            //    i. Append ! ToString(𝔽(i)) to keys.
+            (0..length).map(PropertyKey::from).collect()
+        }
+        _ => Vec::new(),
     };
 
-    // 3. For each own property key P of O such that Type(P) is String and P is not an array index, in ascending chronological order of property creation, do
-    //     a. Add P as the last element of keys.
-    //
-    // 4. For each own property key P of O such that Type(P) is Symbol, in ascending chronological order of property creation, do
-    //     a. Add P as the last element of keys.
+    // 4. For each own property key P of O such that P is a String and P is not an integer index, in ascending chronological order of property creation, do
+    //     a. Append P to keys.
+    // 5. For each own property key P of O such that P is a Symbol, in ascending chronological order of property creation, do
+    //     a. Append P to keys.
     keys.extend(obj.properties.shape.keys());
 
-    // 5. Return keys.
+    // 6. Return keys.
     Ok(keys)
 }
 
@@ -421,40 +572,38 @@ pub(crate) fn typed_array_exotic_own_property_keys(
 ///
 /// [spec]: https://tc39.es/ecma262/sec-typedarraygetelement
 fn typed_array_get_element(obj: &JsObject, index: f64) -> Option<JsValue> {
-    // 1. If ! IsValidIntegerIndex(O, index) is false, return undefined.
-    if !is_valid_integer_index(obj, index) {
-        return None;
-    }
-
     let inner = obj
         .downcast_ref::<TypedArray>()
         .expect("Must be an TypedArray object");
     let buffer = inner.viewed_array_buffer();
     let buffer = buffer.as_buffer();
-    let buffer = buffer
-        .data()
-        .expect("already checked that it's not detached");
+
+    // 1. If IsValidIntegerIndex(O, index) is false, return undefined.
+    let Some(buffer) = buffer.bytes(Ordering::Relaxed) else {
+        return None;
+    };
+    let Some(index) = inner.validate_index(index, buffer.len()) else {
+        return None;
+    };
 
     // 2. Let offset be O.[[ByteOffset]].
     let offset = inner.byte_offset();
 
-    // 3. Let arrayTypeName be the String value of O.[[TypedArrayName]].
-    // 6. Let elementType be the Element Type value in Table 73 for arrayTypeName.
+    // 3. Let elementSize be TypedArrayElementSize(O).
+    let size = inner.kind.element_size();
+
+    // 4. Let byteIndexInBuffer be (ℝ(index) × elementSize) + offset.
+    let byte_index = ((index * size) + offset) as usize;
+
+    // 5. Let elementType be TypedArrayElementType(O).
     let elem_type = inner.kind();
 
-    // 4. Let elementSize be the Element Size value specified in Table 73 for arrayTypeName.
-    let size = elem_type.element_size();
-
-    // 5. Let indexedPosition be (ℝ(index) × elementSize) + offset.
-    let indexed_position = ((index as u64 * size) + offset) as usize;
-
-    // 7. Return GetValueFromBuffer(O.[[ViewedArrayBuffer]], indexedPosition, elementType, true, Unordered).
-
+    // 6. Return GetValueFromBuffer(O.[[ViewedArrayBuffer]], byteIndexInBuffer, elementType, true, unordered).
     // SAFETY: The TypedArray object guarantees that the buffer is aligned.
     // The call to `is_valid_integer_index` guarantees that the index is in-bounds.
     let value = unsafe {
         buffer
-            .subslice(indexed_position..)
+            .subslice(byte_index..)
             .get_value(elem_type, atomic::Ordering::Relaxed)
     };
 
@@ -473,49 +622,47 @@ pub(crate) fn typed_array_set_element(
     value: &JsValue,
     context: &mut InternalMethodContext<'_>,
 ) -> JsResult<()> {
-    let obj_borrow = obj.borrow();
-    let inner = obj_borrow
-        .downcast_ref::<TypedArray>()
-        .expect("TypedArray exotic method should only be callable from TypedArray objects");
-
-    // 1. If O.[[ContentType]] is BigInt, let numValue be ? ToBigInt(value).
-    // 2. Otherwise, let numValue be ? ToNumber(value).
-    let value = inner.kind().get_element(value, context)?;
-
-    if !is_valid_integer_index(obj, index) {
-        return Ok(());
-    }
-
-    // 3. If ! IsValidIntegerIndex(O, index) is true, then
-    // a. Let offset be O.[[ByteOffset]].
-    let offset = inner.byte_offset();
+    let obj = obj
+        .clone()
+        .downcast::<TypedArray>()
+        .expect("function can only be called for typed array objects");
 
     // b. Let arrayTypeName be the String value of O.[[TypedArrayName]].
     // e. Let elementType be the Element Type value in Table 73 for arrayTypeName.
-    let elem_type = inner.kind();
+    let elem_type = obj.borrow().data.kind();
 
-    // c. Let elementSize be the Element Size value specified in Table 73 for arrayTypeName.
+    // 1. If O.[[ContentType]] is BigInt, let numValue be ? ToBigInt(value).
+    // 2. Otherwise, let numValue be ? ToNumber(value).
+    let value = elem_type.get_element(value, context)?;
+
+    // 3. If IsValidIntegerIndex(O, index) is true, then
+    let array = obj.borrow();
+    let mut buffer = array.data.viewed_array_buffer().as_buffer_mut();
+    let Some(mut buffer) = buffer.bytes(Ordering::Relaxed) else {
+        return Ok(());
+    };
+    let Some(index) = array.data.validate_index(index, buffer.len()) else {
+        return Ok(());
+    };
+
+    //     a. Let offset be O.[[ByteOffset]].
+    let offset = array.data.byte_offset();
+
+    //     b. Let elementSize be TypedArrayElementSize(O).
     let size = elem_type.element_size();
 
-    // d. Let indexedPosition be (ℝ(index) × elementSize) + offset.
-    let indexed_position = ((index as u64 * size) + offset) as usize;
+    //     c. Let byteIndexInBuffer be (ℝ(index) × elementSize) + offset.
+    let byte_index = ((index * size) + offset) as usize;
 
-    let buffer = inner.viewed_array_buffer();
-    let mut buffer = buffer.as_buffer_mut();
-    let mut buffer = buffer
-        .data_mut()
-        .expect("already checked that it's not detached");
-
-    // f. Perform SetValueInBuffer(O.[[ViewedArrayBuffer]], indexedPosition, elementType, numValue, true, Unordered).
-
+    //     e. Perform SetValueInBuffer(O.[[ViewedArrayBuffer]], byteIndexInBuffer, elementType, numValue, true, unordered).
     // SAFETY: The TypedArray object guarantees that the buffer is aligned.
-    // The call to `is_valid_integer_index` guarantees that the index is in-bounds.
+    // The call to `validate_index` guarantees that the index is in-bounds.
     unsafe {
         buffer
-            .subslice_mut(indexed_position..)
+            .subslice_mut(byte_index..)
             .set_value(value, atomic::Ordering::Relaxed);
     }
 
-    // 4. Return NormalCompletion(undefined).
+    // 4. Return unused.
     Ok(())
 }

@@ -61,6 +61,7 @@ impl JsArrayBuffer {
                 .constructor()
                 .into(),
             byte_length as u64,
+            None,
             context,
         )?;
 
@@ -236,7 +237,7 @@ impl JsArrayBuffer {
     #[inline]
     #[must_use]
     pub fn data(&self) -> Option<GcRef<'_, [u8]>> {
-        GcRef::try_map(self.inner.borrow(), |o| o.data.data())
+        GcRef::try_map(self.inner.borrow(), |o| o.data.bytes())
     }
 
     /// Get a mutable reference to the [`JsArrayBuffer`]'s data.
@@ -269,7 +270,7 @@ impl JsArrayBuffer {
     #[inline]
     #[must_use]
     pub fn data_mut(&self) -> Option<GcRefMut<'_, Object<ArrayBuffer>, [u8]>> {
-        GcRefMut::try_map(self.inner.borrow_mut(), |o| o.data.data_mut())
+        GcRefMut::try_map(self.inner.borrow_mut(), |o| o.data.bytes_mut())
     }
 }
 

@@ -7,7 +7,7 @@ use crate::{
     Context, JsResult, JsValue,
 };
 use boa_gc::{Finalize, Trace};
-use std::ops::Deref;
+use std::{ops::Deref, sync::atomic::Ordering};
 
 /// `JsSharedArrayBuffer` provides a wrapper for Boa's implementation of the ECMAScript `ArrayBuffer` object
 #[derive(Debug, Clone, Trace, Finalize)]
@@ -42,6 +42,7 @@ impl JsSharedArrayBuffer {
                 .constructor()
                 .into(),
             byte_length as u64,
+            None,
             context,
         )?;
 
@@ -83,7 +84,7 @@ impl JsSharedArrayBuffer {
     #[inline]
     #[must_use]
     pub fn byte_length(&self) -> usize {
-        self.borrow().data.len()
+        self.borrow().data.len(Ordering::SeqCst)
     }
 
     /// Gets the raw buffer of this `JsSharedArrayBuffer`.

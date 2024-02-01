@@ -511,11 +511,11 @@ pub(crate) enum TypedArrayElement {
 }
 
 impl TypedArrayElement {
-    /// Converts the element into its extended bytes representation as a `u64`.
+    /// Converts the element into its extended bytes representation as an `u64`.
     ///
     /// This is guaranteed to never fail, since all numeric types supported by JS are less than
     /// 8 bytes long.
-    pub(crate) fn to_bytes(self) -> u64 {
+    pub(crate) fn to_bits(self) -> u64 {
         #[allow(clippy::cast_lossless)]
         match self {
             TypedArrayElement::Int8(num) => num as u64,

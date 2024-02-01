@@ -210,7 +210,7 @@ pub trait HostHooks {
     /// exhaust the virtual memory address space and to reduce interoperability risk.
     ///
     ///
-    /// [specification]: https://tc39.es/ecma262/multipage/structured-data.html#sec-resizable-arraybuffer-guidelines
+    /// [specification]: https://tc39.es/ecma262/#sec-resizable-arraybuffer-guidelines
     fn max_buffer_size(&self, _context: &mut Context) -> u64 {
         1_610_612_736 // 1.5 GiB
     }

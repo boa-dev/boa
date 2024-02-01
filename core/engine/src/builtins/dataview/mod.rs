@@ -7,7 +7,7 @@
 //! [spec]: https://tc39.es/ecma262/#sec-dataview-objects
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView
 
-use std::mem;
+use std::{mem, sync::atomic::Ordering};
 
 use crate::{
     builtins::BuiltInObject,
@@ -27,7 +27,7 @@ use bytemuck::{bytes_of, bytes_of_mut};
 
 use super::{
     array_buffer::{
-        utils::{memcpy, SliceRef, SliceRefMut},
+        utils::{memcpy, BytesConstPtr, BytesMutPtr},
         BufferObject,
     },
     typed_array::{self, TypedArrayElement},
@@ -38,8 +38,59 @@ use super::{
 #[derive(Debug, Clone, Trace, Finalize, JsData)]
 pub struct DataView {
     pub(crate) viewed_array_buffer: BufferObject,
-    pub(crate) byte_length: u64,
+    pub(crate) byte_length: Option<u64>,
     pub(crate) byte_offset: u64,
+}
+
+impl DataView {
+    /// Abstract operation [`GetViewByteLength ( viewRecord )`][spec].
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-getviewbytelength
+    fn byte_length(&self, buf_byte_len: usize) -> u64 {
+        // 1. Assert: IsViewOutOfBounds(viewRecord) is false.
+        debug_assert!(!self.is_out_of_bounds(buf_byte_len));
+
+        // 2. Let view be viewRecord.[[Object]].
+        // 3. If view.[[ByteLength]] is not auto, return view.[[ByteLength]].
+        if let Some(byte_length) = self.byte_length {
+            return byte_length;
+        }
+
+        // 4. Assert: IsFixedLengthArrayBuffer(view.[[ViewedArrayBuffer]]) is false.
+
+        // 5. Let byteOffset be view.[[ByteOffset]].
+        // 6. Let byteLength be viewRecord.[[CachedBufferByteLength]].
+        // 7. Assert: byteLength is not detached.
+        // 8. Return byteLength - byteOffset.
+        buf_byte_len as u64 - self.byte_offset
+    }
+
+    /// Abstract operation [`IsViewOutOfBounds ( viewRecord )`][spec].
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-isviewoutofbounds
+    fn is_out_of_bounds(&self, buf_byte_len: usize) -> bool {
+        let buf_byte_len = buf_byte_len as u64;
+        // 1. Let view be viewRecord.[[Object]].
+        // 2. Let bufferByteLength be viewRecord.[[CachedBufferByteLength]].
+        // 3. Assert: IsDetachedBuffer(view.[[ViewedArrayBuffer]]) is true if and only if bufferByteLength is detached.
+        // 4. If bufferByteLength is detached, return true.
+        // handled by the caller
+
+        // 5. Let byteOffsetStart be view.[[ByteOffset]].
+
+        // 6. If view.[[ByteLength]] is auto, then
+        //     a. Let byteOffsetEnd be bufferByteLength.
+        // 7. Else,
+        //     a. Let byteOffsetEnd be byteOffsetStart + view.[[ByteLength]].
+        let byte_offset_end = self
+            .byte_length
+            .map_or(buf_byte_len, |byte_length| byte_length + self.byte_offset);
+
+        // 8. If byteOffsetStart > bufferByteLength or byteOffsetEnd > bufferByteLength, return true.
+        // 9. NOTE: 0-length DataViews are not considered out-of-bounds.
+        // 10. Return false.
+        self.byte_offset > buf_byte_len || byte_offset_end > buf_byte_len
+    }
 }
 
 impl IntrinsicObject for DataView {
@@ -120,7 +171,7 @@ impl BuiltInConstructor for DataView {
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::data_view;
 
-    /// `25.3.2.1 DataView ( buffer [ , byteOffset [ , byteLength ] ] )`
+    /// `DataView ( buffer [ , byteOffset [ , byteLength ] ] )`
     ///
     /// The `DataView` view provides a low-level interface for reading and writing multiple number
     /// types in a binary `ArrayBuffer`, without having to care about the platform's endianness.
@@ -136,93 +187,124 @@ impl BuiltInConstructor for DataView {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        let byte_length = args.get_or_undefined(2);
-
         // 1. If NewTarget is undefined, throw a TypeError exception.
         if new_target.is_undefined() {
             return Err(JsNativeError::typ()
-                .with_message("new target is undefined")
+                .with_message("cannot call `DataView` constructor without `new`")
                 .into());
         }
+        let byte_len = args.get_or_undefined(2);
 
         // 2. Perform ? RequireInternalSlot(buffer, [[ArrayBufferData]]).
-        let buffer_obj = args
+        let buffer = args
             .get_or_undefined(0)
             .as_object()
             .and_then(|o| o.clone().into_buffer_object().ok())
             .ok_or_else(|| JsNativeError::typ().with_message("buffer must be an ArrayBuffer"))?;
 
-        let (offset, view_byte_length) = {
-            let buffer = buffer_obj.as_buffer();
+        // 3. Let offset be ? ToIndex(byteOffset).
+        let offset = args.get_or_undefined(1).to_index(context)?;
 
-            // 3. Let offset be ? ToIndex(byteOffset).
-            let offset = args.get_or_undefined(1).to_index(context)?;
+        let (buf_byte_len, is_fixed_len) = {
+            let buffer = buffer.as_buffer();
 
             // 4. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.
-            let Some(buffer) = buffer.data() else {
+            let Some(slice) = buffer.bytes(Ordering::SeqCst) else {
                 return Err(JsNativeError::typ()
                     .with_message("ArrayBuffer is detached")
                     .into());
             };
 
-            // 5. Let bufferByteLength be buffer.[[ArrayBufferByteLength]].
-            let buffer_byte_length = buffer.len() as u64;
+            // 5. Let bufferByteLength be ArrayBufferByteLength(buffer, seq-cst).
+            let buf_len = slice.len() as u64;
+
             // 6. If offset > bufferByteLength, throw a RangeError exception.
-            if offset > buffer_byte_length {
+            if offset > buf_len {
                 return Err(JsNativeError::range()
                     .with_message("Start offset is outside the bounds of the buffer")
                     .into());
             }
-            // 7. If byteLength is undefined, then
-            let view_byte_length = if byte_length.is_undefined() {
-                // a. Let viewByteLength be bufferByteLength - offset.
-                buffer_byte_length - offset
-            } else {
-                // 8.a. Let viewByteLength be ? ToIndex(byteLength).
-                let view_byte_length = byte_length.to_index(context)?;
-                // 8.b. If offset + viewByteLength > bufferByteLength, throw a RangeError exception.
-                if offset + view_byte_length > buffer_byte_length {
-                    return Err(JsNativeError::range()
-                        .with_message("Invalid data view length")
-                        .into());
-                }
 
-                view_byte_length
-            };
-            (offset, view_byte_length)
+            // 7. Let bufferIsFixedLength be IsFixedLengthArrayBuffer(buffer).
+
+            (buf_len, buffer.is_fixed_len())
         };
 
-        // 9. Let O be ? OrdinaryCreateFromConstructor(NewTarget, "%DataView.prototype%", « [[DataView]], [[ViewedArrayBuffer]], [[ByteLength]], [[ByteOffset]] »).
+        // 8. If byteLength is undefined, then
+        let view_byte_len = if byte_len.is_undefined() {
+            // a. If bufferIsFixedLength is true, then
+            //     i. Let viewByteLength be bufferByteLength - offset.
+            // b. Else,
+            //     i. Let viewByteLength be auto.
+            is_fixed_len.then_some(buf_byte_len - offset)
+        } else {
+            // 9. Else,
+            //     a. Let viewByteLength be ? ToIndex(byteLength).
+            let byte_len = byte_len.to_index(context)?;
+
+            //     b. If offset + viewByteLength > bufferByteLength, throw a RangeError exception.
+            if offset + byte_len > buf_byte_len {
+                return Err(JsNativeError::range()
+                    .with_message("Invalid data view length")
+                    .into());
+            }
+            Some(byte_len)
+        };
+
+        // 10. Let O be ? OrdinaryCreateFromConstructor(NewTarget, "%DataView.prototype%",
+        //     « [[DataView]], [[ViewedArrayBuffer]], [[ByteLength]], [[ByteOffset]] »).
         let prototype =
             get_prototype_from_constructor(new_target, StandardConstructors::data_view, context)?;
 
-        // 10. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.
-        if buffer_obj.as_buffer().is_detached() {
+        // 11. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.
+        // 12. Set bufferByteLength to ArrayBufferByteLength(buffer, seq-cst).
+        let Some(buf_byte_len) = buffer
+            .as_buffer()
+            .bytes(Ordering::SeqCst)
+            .map(|s| s.len() as u64)
+        else {
             return Err(JsNativeError::typ()
                 .with_message("ArrayBuffer can't be detached")
                 .into());
+        };
+
+        // 13. If offset > bufferByteLength, throw a RangeError exception.
+        if offset > buf_byte_len {
+            return Err(JsNativeError::range()
+                .with_message("DataView offset outside of buffer array bounds")
+                .into());
+        }
+
+        // 14. If byteLength is not undefined, then
+        if let Some(view_byte_len) = view_byte_len.filter(|_| !byte_len.is_undefined()) {
+            // a. If offset + viewByteLength > bufferByteLength, throw a RangeError exception.
+            if offset + view_byte_len > buf_byte_len {
+                return Err(JsNativeError::range()
+                    .with_message("DataView offset outside of buffer array bounds")
+                    .into());
+            }
         }
 
         let obj = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
             Self {
-                // 11. Set O.[[ViewedArrayBuffer]] to buffer.
-                viewed_array_buffer: buffer_obj,
-                // 12. Set O.[[ByteLength]] to viewByteLength.
-                byte_length: view_byte_length,
-                // 13. Set O.[[ByteOffset]] to offset.
+                // 15. Set O.[[ViewedArrayBuffer]] to buffer.
+                viewed_array_buffer: buffer,
+                // 16. Set O.[[ByteLength]] to viewByteLength.
+                byte_length: view_byte_len,
+                // 17. Set O.[[ByteOffset]] to offset.
                 byte_offset: offset,
             },
         );
 
-        // 14. Return O.
+        // 18. Return O.
         Ok(obj.into())
     }
 }
 
 impl DataView {
-    /// `25.3.4.1 get DataView.prototype.buffer`
+    /// `get DataView.prototype.buffer`
     ///
     /// The buffer accessor property represents the `ArrayBuffer` or `SharedArrayBuffer` referenced
     /// by the `DataView` at construction time.
@@ -251,7 +333,7 @@ impl DataView {
         Ok(buffer.into())
     }
 
-    /// `25.3.4.1 get DataView.prototype.byteLength`
+    /// `get DataView.prototype.byteLength`
     ///
     /// The `byteLength` accessor property represents the length (in bytes) of the dataview.
     ///
@@ -268,26 +350,32 @@ impl DataView {
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[DataView]]).
+        // 3. Assert: O has a [[ViewedArrayBuffer]] internal slot.
         let view = this
             .as_object()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a DataView"))?;
-        // 3. Assert: O has a [[ViewedArrayBuffer]] internal slot.
-        // 4. Let buffer be O.[[ViewedArrayBuffer]].
+
+        // 4. Let viewRecord be MakeDataViewWithBufferWitnessRecord(O, seq-cst).
+        // 5. If IsViewOutOfBounds(viewRecord) is true, throw a TypeError exception.
         let buffer = view.viewed_array_buffer.as_buffer();
-        // 5. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.
-        if buffer.is_detached() {
+        let Some(slice) = buffer
+            .bytes(Ordering::SeqCst)
+            .filter(|s| !view.is_out_of_bounds(s.len()))
+        else {
             return Err(JsNativeError::typ()
-                .with_message("ArrayBuffer is detached")
+                .with_message("view out of bounds for its inner buffer")
                 .into());
-        }
-        // 6. Let size be O.[[ByteLength]].
-        let size = view.byte_length;
+        };
+
+        // 6. Let size be GetViewByteLength(viewRecord).
+        let size = view.byte_length(slice.len());
+
         // 7. Return 𝔽(size).
         Ok(size.into())
     }
 
-    /// `25.3.4.1 get DataView.prototype.byteOffset`
+    /// `get DataView.prototype.byteOffset`
     ///
     /// The `byteOffset` accessor property represents the offset (in bytes) of this view from the
     /// start of its `ArrayBuffer` or `SharedArrayBuffer`.
@@ -309,22 +397,28 @@ impl DataView {
             .as_object()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a DataView"))?;
+
         // 3. Assert: O has a [[ViewedArrayBuffer]] internal slot.
-        // 4. Let buffer be O.[[ViewedArrayBuffer]].
         let buffer = view.viewed_array_buffer.as_buffer();
-        // 5. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.
-        if buffer.is_detached() {
+        // 4. Let viewRecord be MakeDataViewWithBufferWitnessRecord(O, seq-cst).
+        // 5. If IsViewOutOfBounds(viewRecord) is true, throw a TypeError exception.
+        if buffer
+            .bytes(Ordering::SeqCst)
+            .filter(|b| !view.is_out_of_bounds(b.len()))
+            .is_none()
+        {
             return Err(JsNativeError::typ()
-                .with_message("Buffer is detached")
+                .with_message("data view is outside the bounds of its inner buffer")
                 .into());
         }
+
         // 6. Let offset be O.[[ByteOffset]].
         let offset = view.byte_offset;
         // 7. Return 𝔽(offset).
         Ok(offset.into())
     }
 
-    /// `25.3.1.1 GetViewValue ( view, requestIndex, isLittleEndian, type )`
+    /// `GetViewValue ( view, requestIndex, isLittleEndian, type )`
     ///
     /// The abstract operation `GetViewValue` takes arguments view, requestIndex, `isLittleEndian`,
     /// and type. It is used by functions on `DataView` instances to retrieve values from the
@@ -346,48 +440,56 @@ impl DataView {
             .as_object()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a DataView"))?;
+
         // 3. Let getIndex be ? ToIndex(requestIndex).
         let get_index = request_index.to_index(context)?;
 
-        // 4. Set isLittleEndian to ! ToBoolean(isLittleEndian).
+        // 4. Set isLittleEndian to ToBoolean(isLittleEndian).
         let is_little_endian = is_little_endian.to_boolean();
 
-        // 5. Let buffer be view.[[ViewedArrayBuffer]].
+        // 6. Let viewRecord be MakeDataViewWithBufferWitnessRecord(view, unordered).
+        // 7. NOTE: Bounds checking is not a synchronizing operation when view's backing buffer is a growable SharedArrayBuffer.
+        // 8. If IsViewOutOfBounds(viewRecord) is true, throw a TypeError exception.
         let buffer = view.viewed_array_buffer.as_buffer();
-
-        // 6. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.
-        let Some(data) = buffer.data() else {
+        let Some(data) = buffer
+            .bytes(Ordering::Relaxed)
+            .filter(|buf| !view.is_out_of_bounds(buf.len()))
+        else {
             return Err(JsNativeError::typ()
-                .with_message("ArrayBuffer is detached")
+                .with_message("view out of bounds for its inner buffer")
                 .into());
         };
 
-        // 7. Let viewOffset be view.[[ByteOffset]].
+        // 5. Let viewOffset be view.[[ByteOffset]].
         let view_offset = view.byte_offset;
 
-        // 8. Let viewSize be view.[[ByteLength]].
-        let view_size = view.byte_length;
+        // 9. Let viewSize be GetViewByteLength(viewRecord).
+        let view_size = view.byte_length(data.len());
 
-        // 9. Let elementSize be the Element Size value specified in Table 72 for Element Type type.
+        // 10. Let elementSize be the Element Size value specified in Table 71 for Element Type type.
         let element_size = mem::size_of::<T>() as u64;
 
-        // 10. If getIndex + elementSize > viewSize, throw a RangeError exception.
+        // 11. If getIndex + elementSize > viewSize, throw a RangeError exception.
         if get_index + element_size > view_size {
             return Err(JsNativeError::range()
                 .with_message("Offset is outside the bounds of the DataView")
                 .into());
         }
 
-        // 11. Let bufferIndex be getIndex + viewOffset.
+        // 12. Let bufferIndex be getIndex + viewOffset.
         let buffer_index = (get_index + view_offset) as usize;
 
-        // 12. Return GetValueFromBuffer(buffer, bufferIndex, type, false, Unordered, isLittleEndian).
+        let src = data.subslice(buffer_index..);
+
+        debug_assert!(src.len() >= mem::size_of::<T>());
+
+        // 13. Return GetValueFromBuffer(view.[[ViewedArrayBuffer]], bufferIndex, type, false, unordered, isLittleEndian).
         // SAFETY: All previous checks ensure the element fits in the buffer.
         let value: TypedArrayElement = unsafe {
             let mut value = T::zeroed();
             memcpy(
-                data.subslice(buffer_index..),
-                SliceRefMut::Slice(bytes_of_mut(&mut value)),
+                src.as_ptr(),
+                BytesMutPtr::Bytes(bytes_of_mut(&mut value).as_mut_ptr()),
                 mem::size_of::<T>(),
             );
 
@@ -402,7 +504,7 @@ impl DataView {
         Ok(value.into())
     }
 
-    /// `25.3.4.5 DataView.prototype.getBigInt64 ( byteOffset [ , littleEndian ] )`
+    /// `DataView.prototype.getBigInt64 ( byteOffset [ , littleEndian ] )`
     ///
     /// The `getBigInt64()` method gets a signed 64-bit integer (long long) at the specified byte
     /// offset from the start of the `DataView`.
@@ -425,7 +527,7 @@ impl DataView {
         Self::get_view_value::<i64>(this, byte_offset, is_little_endian, context)
     }
 
-    /// `25.3.4.6 DataView.prototype.getBigUint64 ( byteOffset [ , littleEndian ] )`
+    /// `DataView.prototype.getBigUint64 ( byteOffset [ , littleEndian ] )`
     ///
     /// The `getBigUint64()` method gets an unsigned 64-bit integer (unsigned long long) at the
     /// specified byte offset from the start of the `DataView`.
@@ -448,7 +550,7 @@ impl DataView {
         Self::get_view_value::<u64>(this, byte_offset, is_little_endian, context)
     }
 
-    /// `25.3.4.7 DataView.prototype.getBigUint64 ( byteOffset [ , littleEndian ] )`
+    /// `DataView.prototype.getBigUint64 ( byteOffset [ , littleEndian ] )`
     ///
     /// The `getFloat32()` method gets a signed 32-bit float (float) at the specified byte offset
     /// from the start of the `DataView`.
@@ -471,7 +573,7 @@ impl DataView {
         Self::get_view_value::<f32>(this, byte_offset, is_little_endian, context)
     }
 
-    /// `25.3.4.8 DataView.prototype.getFloat64 ( byteOffset [ , littleEndian ] )`
+    /// `DataView.prototype.getFloat64 ( byteOffset [ , littleEndian ] )`
     ///
     /// The `getFloat64()` method gets a signed 64-bit float (double) at the specified byte offset
     /// from the start of the `DataView`.
@@ -494,7 +596,7 @@ impl DataView {
         Self::get_view_value::<f64>(this, byte_offset, is_little_endian, context)
     }
 
-    /// `25.3.4.9 DataView.prototype.getInt8 ( byteOffset [ , littleEndian ] )`
+    /// `DataView.prototype.getInt8 ( byteOffset [ , littleEndian ] )`
     ///
     /// The `getInt8()` method gets a signed 8-bit integer (byte) at the specified byte offset
     /// from the start of the `DataView`.
@@ -517,7 +619,7 @@ impl DataView {
         Self::get_view_value::<i8>(this, byte_offset, is_little_endian, context)
     }
 
-    /// `25.3.4.10 DataView.prototype.getInt16 ( byteOffset [ , littleEndian ] )`
+    /// `DataView.prototype.getInt16 ( byteOffset [ , littleEndian ] )`
     ///
     /// The `getInt16()` method gets a signed 16-bit integer (short) at the specified byte offset
     /// from the start of the `DataView`.
@@ -540,7 +642,7 @@ impl DataView {
         Self::get_view_value::<i16>(this, byte_offset, is_little_endian, context)
     }
 
-    /// `25.3.4.11 DataView.prototype.getInt32 ( byteOffset [ , littleEndian ] )`
+    /// `DataView.prototype.getInt32 ( byteOffset [ , littleEndian ] )`
     ///
     /// The `getInt32()` method gets a signed 32-bit integer (long) at the specified byte offset
     /// from the start of the `DataView`.
@@ -563,7 +665,7 @@ impl DataView {
         Self::get_view_value::<i32>(this, byte_offset, is_little_endian, context)
     }
 
-    /// `25.3.4.12 DataView.prototype.getUint8 ( byteOffset [ , littleEndian ] )`
+    /// `DataView.prototype.getUint8 ( byteOffset [ , littleEndian ] )`
     ///
     /// The `getUint8()` method gets an unsigned 8-bit integer (unsigned byte) at the specified
     /// byte offset from the start of the `DataView`.
@@ -586,7 +688,7 @@ impl DataView {
         Self::get_view_value::<u8>(this, byte_offset, is_little_endian, context)
     }
 
-    /// `25.3.4.13 DataView.prototype.getUint16 ( byteOffset [ , littleEndian ] )`
+    /// `DataView.prototype.getUint16 ( byteOffset [ , littleEndian ] )`
     ///
     /// The `getUint16()` method gets an unsigned 16-bit integer (unsigned short) at the specified
     /// byte offset from the start of the `DataView`.
@@ -609,7 +711,7 @@ impl DataView {
         Self::get_view_value::<u16>(this, byte_offset, is_little_endian, context)
     }
 
-    /// `25.3.4.14 DataView.prototype.getUint32 ( byteOffset [ , littleEndian ] )`
+    /// `DataView.prototype.getUint32 ( byteOffset [ , littleEndian ] )`
     ///
     /// The `getUint32()` method gets an unsigned 32-bit integer (unsigned long) at the specified
     /// byte offset from the start of the `DataView`.
@@ -632,7 +734,7 @@ impl DataView {
         Self::get_view_value::<u32>(this, byte_offset, is_little_endian, context)
     }
 
-    /// `25.3.1.1 SetViewValue ( view, requestIndex, isLittleEndian, type )`
+    /// `SetViewValue ( view, requestIndex, isLittleEndian, type )`
     ///
     /// The abstract operation `SetViewValue` takes arguments view, requestIndex, `isLittleEndian`,
     /// type, and value. It is used by functions on `DataView` instances to store values into the
@@ -655,44 +757,55 @@ impl DataView {
             .as_object()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a DataView"))?;
+
         // 3. Let getIndex be ? ToIndex(requestIndex).
         let get_index = request_index.to_index(context)?;
 
-        // 4. If ! IsBigIntElementType(type) is true, let numberValue be ? ToBigInt(value).
+        // 4. If IsBigIntElementType(type) is true, let numberValue be ? ToBigInt(value).
         // 5. Otherwise, let numberValue be ? ToNumber(value).
         let value = T::from_js_value(value, context)?;
 
-        // 6. Set isLittleEndian to ! ToBoolean(isLittleEndian).
+        // 6. Set isLittleEndian to ToBoolean(isLittleEndian).
         let is_little_endian = is_little_endian.to_boolean();
-        // 7. Let buffer be view.[[ViewedArrayBuffer]].
+
+        // 8. Let viewRecord be MakeDataViewWithBufferWitnessRecord(view, unordered).
+        // 9. NOTE: Bounds checking is not a synchronizing operation when view's backing buffer is a growable SharedArrayBuffer.
+        // 10. If IsViewOutOfBounds(viewRecord) is true, throw a TypeError exception.
         let mut buffer = view.viewed_array_buffer.as_buffer_mut();
 
-        // 8. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.
-        let Some(mut data) = buffer.data_mut() else {
+        let Some(mut data) = buffer
+            .bytes(Ordering::Relaxed)
+            .filter(|buf| !view.is_out_of_bounds(buf.len()))
+        else {
             return Err(JsNativeError::typ()
-                .with_message("ArrayBuffer is detached")
+                .with_message("view out of bounds for its inner buffer")
                 .into());
         };
 
-        // 9. Let viewOffset be view.[[ByteOffset]].
+        // 11. Let viewSize be GetViewByteLength(viewRecord).
+        let view_size = view.byte_length(data.len());
+
+        // 7. Let viewOffset be view.[[ByteOffset]].
         let view_offset = view.byte_offset;
 
-        // 10. Let viewSize be view.[[ByteLength]].
-        let view_size = view.byte_length;
+        // 12. Let elementSize be the Element Size value specified in Table 71 for Element Type type.
+        let elem_size = mem::size_of::<T>();
 
-        // 11. Let elementSize be the Element Size value specified in Table 72 for Element Type type.
-        // 12. If getIndex + elementSize > viewSize, throw a RangeError exception.
-        if get_index + mem::size_of::<T>() as u64 > view_size {
+        // 13. If getIndex + elementSize > viewSize, throw a RangeError exception.
+        if get_index + elem_size as u64 > view_size {
             return Err(JsNativeError::range()
                 .with_message("Offset is outside the bounds of DataView")
                 .into());
         }
 
-        // 13. Let bufferIndex be getIndex + viewOffset.
+        // 14. Let bufferIndex be getIndex + viewOffset.
         let buffer_index = (get_index + view_offset) as usize;
 
-        // 14. Return SetValueInBuffer(buffer, bufferIndex, type, numberValue, false, Unordered, isLittleEndian).
+        let mut target = data.subslice_mut(buffer_index..);
 
+        debug_assert!(target.len() >= mem::size_of::<T>());
+
+        // 15. Perform SetValueInBuffer(view.[[ViewedArrayBuffer]], bufferIndex, type, numberValue, false, unordered, isLittleEndian).
         // SAFETY: All previous checks ensure the element fits in the buffer.
         unsafe {
             let value = if is_little_endian {
@@ -702,16 +815,17 @@ impl DataView {
             };
 
             memcpy(
-                SliceRef::Slice(bytes_of(&value)),
-                data.subslice_mut(buffer_index..),
+                BytesConstPtr::Bytes(bytes_of(&value).as_ptr()),
+                target.as_ptr(),
                 mem::size_of::<T>(),
             );
         }
 
+        // 16. Return undefined.
         Ok(JsValue::undefined())
     }
 
-    /// `25.3.4.15 DataView.prototype.setBigInt64 ( byteOffset, value [ , littleEndian ] )`
+    /// `DataView.prototype.setBigInt64 ( byteOffset, value [ , littleEndian ] )`
     ///
     /// The `setBigInt64()` method stores a signed 64-bit integer (long long) value at the
     /// specified byte offset from the start of the `DataView`.
@@ -735,7 +849,7 @@ impl DataView {
         Self::set_view_value::<i64>(this, byte_offset, is_little_endian, value, context)
     }
 
-    /// `25.3.4.16 DataView.prototype.setBigUint64 ( byteOffset, value [ , littleEndian ] )`
+    /// `DataView.prototype.setBigUint64 ( byteOffset, value [ , littleEndian ] )`
     ///
     /// The `setBigUint64()` method stores an unsigned 64-bit integer (unsigned long long) value at
     /// the specified byte offset from the start of the `DataView`.
@@ -759,7 +873,7 @@ impl DataView {
         Self::set_view_value::<u64>(this, byte_offset, is_little_endian, value, context)
     }
 
-    /// `25.3.4.17 DataView.prototype.setFloat32 ( byteOffset, value [ , littleEndian ] )`
+    /// `DataView.prototype.setFloat32 ( byteOffset, value [ , littleEndian ] )`
     ///
     /// The `setFloat32()` method stores a signed 32-bit float (float) value at the specified byte
     /// offset from the start of the `DataView`.
@@ -783,7 +897,7 @@ impl DataView {
         Self::set_view_value::<f32>(this, byte_offset, is_little_endian, value, context)
     }
 
-    /// `25.3.4.18 DataView.prototype.setFloat64 ( byteOffset, value [ , littleEndian ] )`
+    /// `DataView.prototype.setFloat64 ( byteOffset, value [ , littleEndian ] )`
     ///
     /// The `setFloat64()` method stores a signed 64-bit float (double) value at the specified byte
     /// offset from the start of the `DataView`.
@@ -807,7 +921,7 @@ impl DataView {
         Self::set_view_value::<f64>(this, byte_offset, is_little_endian, value, context)
     }
 
-    /// `25.3.4.19 DataView.prototype.setInt8 ( byteOffset, value [ , littleEndian ] )`
+    /// `DataView.prototype.setInt8 ( byteOffset, value [ , littleEndian ] )`
     ///
     /// The `setInt8()` method stores a signed 8-bit integer (byte) value at the specified byte
     /// offset from the start of the `DataView`.
@@ -831,7 +945,7 @@ impl DataView {
         Self::set_view_value::<i8>(this, byte_offset, is_little_endian, value, context)
     }
 
-    /// `25.3.4.20 DataView.prototype.setInt16 ( byteOffset, value [ , littleEndian ] )`
+    /// `DataView.prototype.setInt16 ( byteOffset, value [ , littleEndian ] )`
     ///
     /// The `setInt16()` method stores a signed 16-bit integer (short) value at the specified byte
     /// offset from the start of the `DataView`.
@@ -855,7 +969,7 @@ impl DataView {
         Self::set_view_value::<i16>(this, byte_offset, is_little_endian, value, context)
     }
 
-    /// `25.3.4.21 DataView.prototype.setInt32 ( byteOffset, value [ , littleEndian ] )`
+    /// `DataView.prototype.setInt32 ( byteOffset, value [ , littleEndian ] )`
     ///
     /// The `setInt32()` method stores a signed 32-bit integer (long) value at the specified byte
     /// offset from the start of the `DataView`.
@@ -879,7 +993,7 @@ impl DataView {
         Self::set_view_value::<i32>(this, byte_offset, is_little_endian, value, context)
     }
 
-    /// `25.3.4.22 DataView.prototype.setUint8 ( byteOffset, value [ , littleEndian ] )`
+    /// `DataView.prototype.setUint8 ( byteOffset, value [ , littleEndian ] )`
     ///
     /// The `setUint8()` method stores an unsigned 8-bit integer (byte) value at the specified byte
     /// offset from the start of the `DataView`.
@@ -903,7 +1017,7 @@ impl DataView {
         Self::set_view_value::<u8>(this, byte_offset, is_little_endian, value, context)
     }
 
-    /// `25.3.4.23 DataView.prototype.setUint16 ( byteOffset, value [ , littleEndian ] )`
+    /// `DataView.prototype.setUint16 ( byteOffset, value [ , littleEndian ] )`
     ///
     /// The `setUint16()` method stores an unsigned 16-bit integer (unsigned short) value at the
     /// specified byte offset from the start of the `DataView`.
@@ -927,7 +1041,7 @@ impl DataView {
         Self::set_view_value::<u16>(this, byte_offset, is_little_endian, value, context)
     }
 
-    /// `25.3.4.24 DataView.prototype.setUint32 ( byteOffset, value [ , littleEndian ] )`
+    /// `DataView.prototype.setUint32 ( byteOffset, value [ , littleEndian ] )`
     ///
     /// The `setUint32()` method stores an unsigned 32-bit integer (unsigned long) value at the
     /// specified byte offset from the start of the `DataView`.

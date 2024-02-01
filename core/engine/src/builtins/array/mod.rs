@@ -36,7 +36,7 @@ use crate::{
     value::{IntegerOrInfinity, JsValue},
     Context, JsArgs, JsResult, JsString,
 };
-use std::cmp::{max, min, Ordering};
+use std::cmp::{min, Ordering};
 
 use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
 
@@ -3216,18 +3216,19 @@ impl Array {
     ) -> JsResult<u64> {
         // 1. Let relativeStart be ? ToIntegerOrInfinity(start).
         let relative_start = arg.to_integer_or_infinity(context)?;
-        match relative_start {
+        let start = match relative_start {
             // 2. If relativeStart is -∞, let k be 0.
-            IntegerOrInfinity::NegativeInfinity => Ok(0),
+            IntegerOrInfinity::NegativeInfinity => 0,
             // 3. Else if relativeStart < 0, let k be max(len + relativeStart, 0).
-            IntegerOrInfinity::Integer(i) if i < 0 => Ok(max(len as i64 + i, 0) as u64),
-            // Both `as` casts are safe as both variables are non-negative
+            IntegerOrInfinity::Integer(i) if i < 0 => len.checked_add_signed(i).unwrap_or(0),
             // 4. Else, let k be min(relativeStart, len).
-            IntegerOrInfinity::Integer(i) => Ok(min(i, len as i64) as u64),
+            IntegerOrInfinity::Integer(i) => min(i as u64, len),
 
             // Special case - positive infinity. `len` is always smaller than +inf, thus from (4)
-            IntegerOrInfinity::PositiveInfinity => Ok(len),
-        }
+            IntegerOrInfinity::PositiveInfinity => len,
+        };
+
+        Ok(start)
     }
 
     /// Represents the algorithm to calculate `relativeEnd` (or `final`) in array functions.
@@ -3242,18 +3243,20 @@ impl Array {
         } else {
             // 1. cont, else let relativeEnd be ? ToIntegerOrInfinity(end).
             let relative_end = value.to_integer_or_infinity(context)?;
-            match relative_end {
+            let end = match relative_end {
                 // 2. If relativeEnd is -∞, let final be 0.
-                IntegerOrInfinity::NegativeInfinity => Ok(0),
+                IntegerOrInfinity::NegativeInfinity => 0,
                 // 3. Else if relativeEnd < 0, let final be max(len + relativeEnd, 0).
-                IntegerOrInfinity::Integer(i) if i < 0 => Ok(max(len as i64 + i, 0) as u64),
+                IntegerOrInfinity::Integer(i) if i < 0 => len.checked_add_signed(i).unwrap_or(0),
                 // 4. Else, let final be min(relativeEnd, len).
                 // Both `as` casts are safe as both variables are non-negative
-                IntegerOrInfinity::Integer(i) => Ok(min(i, len as i64) as u64),
+                IntegerOrInfinity::Integer(i) => min(i as u64, len),
 
                 // Special case - positive infinity. `len` is always smaller than +inf, thus from (4)
-                IntegerOrInfinity::PositiveInfinity => Ok(len),
-            }
+                IntegerOrInfinity::PositiveInfinity => len,
+            };
+
+            Ok(end)
         }
     }
 
