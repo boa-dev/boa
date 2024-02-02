@@ -63,7 +63,6 @@ impl std::fmt::Debug for Module {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("Module")
             .field("realm", &self.inner.realm.addr())
-            .field("environment", &self.inner.environment)
             .field("namespace", &self.inner.namespace)
             .field("kind", &self.inner.kind)
             .finish()
@@ -73,7 +72,6 @@ impl std::fmt::Debug for Module {
 #[derive(Trace, Finalize)]
 struct ModuleRepr {
     realm: Realm,
-    environment: GcRefCell<Option<Gc<DeclarativeEnvironment>>>,
     namespace: GcRefCell<Option<JsObject>>,
     kind: ModuleKind,
     host_defined: HostDefined,
@@ -86,6 +84,16 @@ pub(crate) enum ModuleKind {
     SourceText(SourceTextModule),
     /// A [**Synthetic Module Record**](https://tc39.es/proposal-json-modules/#sec-synthetic-module-records)
     Synthetic(SyntheticModule),
+}
+
+impl ModuleKind {
+    /// Returns the inner `SourceTextModule`.
+    pub(crate) fn as_source_text(&self) -> Option<&SourceTextModule> {
+        match self {
+            ModuleKind::SourceText(src) => Some(src),
+            ModuleKind::Synthetic(_) => None,
+        }
+    }
 }
 
 /// Return value of the [`Module::resolve_export`] operation.
@@ -126,7 +134,7 @@ struct GraphLoadingState {
     capability: PromiseCapability,
     loading: Cell<bool>,
     pending_modules: Cell<usize>,
-    visited: RefCell<HashSet<SourceTextModule>>,
+    visited: RefCell<HashSet<Module>>,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -151,19 +159,16 @@ impl Module {
         parser.set_identifier(context.next_parser_identifier());
         let module = parser.parse_module(context.interner_mut())?;
 
-        let inner = Gc::new_cyclic(|weak| {
-            let src = SourceTextModule::new(module, weak.clone(), context.interner());
+        let src = SourceTextModule::new(module, context.interner());
 
-            ModuleRepr {
+        Ok(Self {
+            inner: Gc::new(ModuleRepr {
                 realm: realm.unwrap_or_else(|| context.realm().clone()),
-                environment: GcRefCell::default(),
                 namespace: GcRefCell::default(),
                 kind: ModuleKind::SourceText(src),
                 host_defined: HostDefined::default(),
-            }
-        });
-
-        Ok(Self { inner })
+            }),
+        })
     }
 
     /// Abstract operation [`CreateSyntheticModule ( exportNames, evaluationSteps, realm )`][spec].
@@ -181,19 +186,16 @@ impl Module {
     ) -> Self {
         let names = export_names.iter().cloned().collect();
         let realm = realm.unwrap_or_else(|| context.realm().clone());
-        let inner = Gc::new_cyclic(|weak| {
-            let synth = SyntheticModule::new(names, evaluation_steps, weak.clone());
+        let synth = SyntheticModule::new(names, evaluation_steps);
 
-            ModuleRepr {
+        Self {
+            inner: Gc::new(ModuleRepr {
                 realm,
-                environment: GcRefCell::default(),
                 namespace: GcRefCell::default(),
                 kind: ModuleKind::Synthetic(synth),
                 host_defined: HostDefined::default(),
-            }
-        });
-
-        Self { inner }
+            }),
+        }
     }
 
     /// Gets the realm of this `Module`.
@@ -217,9 +219,12 @@ impl Module {
         &self.inner.kind
     }
 
-    /// Gets the environment of this `Module`.
+    /// Gets the declarative environment of this `Module`.
     pub(crate) fn environment(&self) -> Option<Gc<DeclarativeEnvironment>> {
-        self.inner.environment.borrow().clone()
+        match self.kind() {
+            ModuleKind::SourceText(src) => src.environment(),
+            ModuleKind::Synthetic(syn) => syn.environment(),
+        }
     }
 
     /// Abstract method [`LoadRequestedModules ( [ hostDefined ] )`][spec].
@@ -279,7 +284,7 @@ impl Module {
 
         if let ModuleKind::SourceText(src) = self.kind() {
             // continues on `inner_load
-            src.inner_load(state, context);
+            src.inner_load(self, state, context);
             if !state.loading.get() {
                 return;
             }
@@ -320,11 +325,11 @@ impl Module {
     /// [spec]: https://tc39.es/ecma262/#table-abstract-methods-of-module-records
     fn get_exported_names(
         &self,
-        export_star_set: &mut Vec<SourceTextModule>,
+        export_star_set: &mut Vec<Module>,
         interner: &Interner,
     ) -> FxHashSet<JsString> {
         match self.kind() {
-            ModuleKind::SourceText(src) => src.get_exported_names(export_star_set, interner),
+            ModuleKind::SourceText(src) => src.get_exported_names(self, export_star_set, interner),
             ModuleKind::Synthetic(synth) => synth.get_exported_names(),
         }
     }
@@ -348,8 +353,10 @@ impl Module {
         interner: &Interner,
     ) -> Result<ResolvedBinding, ResolveExportError> {
         match self.kind() {
-            ModuleKind::SourceText(src) => src.resolve_export(&export_name, resolve_set, interner),
-            ModuleKind::Synthetic(synth) => synth.resolve_export(export_name),
+            ModuleKind::SourceText(src) => {
+                src.resolve_export(self, &export_name, resolve_set, interner)
+            }
+            ModuleKind::Synthetic(synth) => synth.resolve_export(self, export_name),
         }
     }
 
@@ -367,9 +374,9 @@ impl Module {
     #[inline]
     pub fn link(&self, context: &mut Context) -> JsResult<()> {
         match self.kind() {
-            ModuleKind::SourceText(src) => src.link(context),
+            ModuleKind::SourceText(src) => src.link(self, context),
             ModuleKind::Synthetic(synth) => {
-                synth.link(context);
+                synth.link(self, context);
                 Ok(())
             }
         }
@@ -380,16 +387,16 @@ impl Module {
     /// [spec]: https://tc39.es/ecma262/#sec-InnerModuleLinking
     fn inner_link(
         &self,
-        stack: &mut Vec<SourceTextModule>,
+        stack: &mut Vec<Module>,
         index: usize,
         context: &mut Context,
     ) -> JsResult<usize> {
         match self.kind() {
-            ModuleKind::SourceText(src) => src.inner_link(stack, index, context),
+            ModuleKind::SourceText(src) => src.inner_link(self, stack, index, context),
             // If module is not a Cyclic Module Record, then
             ModuleKind::Synthetic(synth) => {
                 // a. Perform ? module.Link().
-                synth.link(context);
+                synth.link(self, context);
                 // b. Return index.
                 Ok(index)
             }
@@ -411,8 +418,8 @@ impl Module {
     #[inline]
     pub fn evaluate(&self, context: &mut Context) -> JsPromise {
         match self.kind() {
-            ModuleKind::SourceText(src) => src.evaluate(context),
-            ModuleKind::Synthetic(synth) => synth.evaluate(context),
+            ModuleKind::SourceText(src) => src.evaluate(self, context),
+            ModuleKind::Synthetic(synth) => synth.evaluate(self, context),
         }
     }
 
@@ -421,16 +428,16 @@ impl Module {
     /// [spec]: https://tc39.es/ecma262/#sec-InnerModuleLinking
     fn inner_evaluate(
         &self,
-        stack: &mut Vec<SourceTextModule>,
+        stack: &mut Vec<Module>,
         index: usize,
         context: &mut Context,
     ) -> JsResult<usize> {
         match self.kind() {
-            ModuleKind::SourceText(src) => src.inner_evaluate(stack, index, None, context),
+            ModuleKind::SourceText(src) => src.inner_evaluate(self, stack, index, None, context),
             // 1. If module is not a Cyclic Module Record, then
             ModuleKind::Synthetic(synth) => {
                 // a. Let promise be ! module.Evaluate().
-                let promise: JsPromise = synth.evaluate(context);
+                let promise: JsPromise = synth.evaluate(self, context);
                 let state = promise.state();
                 match state {
                     PromiseState::Pending => {
@@ -562,7 +569,7 @@ impl Module {
 impl PartialEq for Module {
     #[inline]
     fn eq(&self, other: &Self) -> bool {
-        std::ptr::eq(self.inner.as_ref(), other.inner.as_ref())
+        Gc::ptr_eq(&self.inner, &other.inner)
     }
 }
 

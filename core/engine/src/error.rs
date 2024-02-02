@@ -46,14 +46,10 @@ use thiserror::Error;
 /// let kind = &native_error.as_native().unwrap().kind;
 /// assert!(matches!(kind, JsNativeErrorKind::Type));
 /// ```
-#[derive(Debug, Clone, Finalize, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Trace, Finalize)]
+#[boa_gc(unsafe_no_drop)]
 pub struct JsError {
     inner: Repr,
-}
-
-// SAFETY: just mirroring the default derive to allow destructuring.
-unsafe impl Trace for JsError {
-    custom_trace!(this, mark, mark(&this.inner));
 }
 
 /// Internal representation of a [`JsError`].
@@ -66,22 +62,11 @@ unsafe impl Trace for JsError {
 /// This should never be used outside of this module. If that's not the case,
 /// you should add methods to either `JsError` or `JsNativeError` to
 /// represent that special use case.
-#[derive(Debug, Clone, Finalize, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Trace, Finalize)]
+#[boa_gc(unsafe_no_drop)]
 enum Repr {
     Native(JsNativeError),
     Opaque(JsValue),
-}
-
-// SAFETY: just mirroring the default derive to allow destructuring.
-unsafe impl Trace for Repr {
-    custom_trace!(
-        this,
-        mark,
-        match &this {
-            Self::Native(err) => mark(err),
-            Self::Opaque(val) => mark(val),
-        }
-    );
 }
 
 /// The error type returned by the [`JsError::try_native`] method.

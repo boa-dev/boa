@@ -1,7 +1,7 @@
 use std::{
     any::TypeId,
     borrow::{Cow, ToOwned},
-    cell::Cell,
+    cell::{Cell, OnceCell},
     collections::{BTreeMap, BTreeSet, BinaryHeap, HashMap, HashSet, LinkedList, VecDeque},
     hash::{BuildHasher, Hash},
     marker::PhantomData,
@@ -487,6 +487,16 @@ unsafe impl<T: Trace> Trace for Cell<Option<T>> {
         if let Some(v) = this.take() {
             mark(&v);
             this.set(Some(v));
+        }
+    });
+}
+
+impl<T: Trace> Finalize for OnceCell<T> {}
+// SAFETY: We only trace the inner cell if the cell has a value.
+unsafe impl<T: Trace> Trace for OnceCell<T> {
+    custom_trace!(this, mark, {
+        if let Some(v) = this.get() {
+            mark(v);
         }
     });
 }
