@@ -29,7 +29,7 @@ jobs:
         with:
           key: tarpaulin
       - name: Install cargo-tarpaulin
-        uses: baptiste0928/cargo-install@v2.2.0
+        uses: baptiste0928/cargo-install@v3.0.0
         with:
           crate: cargo-tarpaulin
       - name: Run tarpaulin
