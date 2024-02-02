@@ -43,7 +43,7 @@ jobs:
             node_modules
           key: ${{ runner.os }}-npm-build-target-${{ hashFiles('**/package-lock.json') }}
       - name: Install wasm-pack
-        uses: baptiste0928/cargo-install@v2.2.0
+        uses: baptiste0928/cargo-install@v3.0.0
         with:
           crate: wasm-pack
       - uses: actions/setup-node@v4
