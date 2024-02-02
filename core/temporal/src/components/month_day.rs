@@ -9,7 +9,7 @@ use crate::{
     TemporalError, TemporalResult,
 };
 
-use super::calendar::CalendarProtocol;
+use super::calendar::{CalendarProtocol, GetCalendarSlot};
 
 /// The native Rust implementation of `Temporal.PlainMonthDay`
 #[derive(Debug, Default, Clone)]
@@ -57,6 +57,12 @@ impl<C: CalendarProtocol> MonthDay<C> {
     #[must_use]
     pub fn calendar(&self) -> &CalendarSlot<C> {
         &self.calendar
+    }
+}
+
+impl<C: CalendarProtocol> GetCalendarSlot<C> for MonthDay<C> {
+    fn get_calendar(&self) -> CalendarSlot<C> {
+        self.calendar.clone()
     }
 }
 

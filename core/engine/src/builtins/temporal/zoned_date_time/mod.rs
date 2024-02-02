@@ -14,12 +14,12 @@ use boa_temporal::components::{
     ZonedDateTime as InnerZdt,
 };
 
-use super::{JsCustomCalendar, JsCustomTimeZone};
+use super::JsCustomTimeZone;
 
 /// The `Temporal.ZonedDateTime` object.
 #[derive(Debug, Clone, Finalize, JsData)]
 pub struct ZonedDateTime {
-    pub(crate) inner: InnerZdt<JsCustomCalendar, JsCustomTimeZone>,
+    pub(crate) inner: InnerZdt<JsObject, JsCustomTimeZone>,
 }
 
 unsafe impl Trace for ZonedDateTime {

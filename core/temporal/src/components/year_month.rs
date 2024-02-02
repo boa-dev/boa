@@ -9,7 +9,7 @@ use crate::{
     TemporalError, TemporalResult,
 };
 
-use super::calendar::CalendarProtocol;
+use super::calendar::{CalendarProtocol, GetCalendarSlot};
 
 /// The native Rust implementation of `Temporal.YearMonth`.
 #[derive(Debug, Default, Clone)]
@@ -54,11 +54,18 @@ impl<C: CalendarProtocol> YearMonth<C> {
         self.iso.month
     }
 
+    /// Returns the Calendar value.
     #[inline]
     #[must_use]
-    /// Returns a reference to `YearMonth`'s `CalendarSlot`
     pub fn calendar(&self) -> &CalendarSlot<C> {
         &self.calendar
+    }
+}
+
+impl<C: CalendarProtocol> GetCalendarSlot<C> for YearMonth<C> {
+    /// Returns a reference to `YearMonth`'s `CalendarSlot`
+    fn get_calendar(&self) -> CalendarSlot<C> {
+        self.calendar.clone()
     }
 }
 

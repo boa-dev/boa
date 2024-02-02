@@ -13,19 +13,41 @@ use crate::{
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
 
-use super::{calendar::to_temporal_calendar_slot_value, JsCustomCalendar};
-use boa_temporal::{components::YearMonth as InnerYearMonth, options::ArithmeticOverflow};
+use super::calendar::to_temporal_calendar_slot_value;
+
+use boa_temporal::{
+    iso::IsoDateSlots,
+    {
+        components::{
+            calendar::{CalendarSlot, GetCalendarSlot},
+            YearMonth as InnerYearMonth,
+        },
+        options::ArithmeticOverflow,
+    },
+};
 
 /// The `Temporal.PlainYearMonth` object.
 #[derive(Debug, Clone, Trace, Finalize, JsData)]
 #[boa_gc(unsafe_empty_trace)] // TODO: Remove this!!! `InnerYearMonth` could contain `Trace` types.
 pub struct PlainYearMonth {
-    pub(crate) inner: InnerYearMonth<JsCustomCalendar>,
+    pub(crate) inner: InnerYearMonth<JsObject>,
 }
 
 impl PlainYearMonth {
-    pub(crate) fn new(inner: InnerYearMonth<JsCustomCalendar>) -> Self {
+    pub(crate) fn new(inner: InnerYearMonth<JsObject>) -> Self {
         Self { inner }
+    }
+}
+
+impl IsoDateSlots for JsObject<PlainYearMonth> {
+    fn iso_date(&self) -> boa_temporal::iso::IsoDate {
+        self.borrow().data().inner.iso_date()
+    }
+}
+
+impl GetCalendarSlot<JsObject> for JsObject<PlainYearMonth> {
+    fn get_calendar(&self) -> CalendarSlot<JsObject> {
+        self.borrow().data().inner.get_calendar()
     }
 }
 
@@ -279,7 +301,7 @@ impl PlainYearMonth {
 
 // 9.5.5 `CreateTemporalYearMonth ( isoYear, isoMonth, calendar, referenceISODay [ , newTarget ] )`
 pub(crate) fn create_temporal_year_month(
-    ym: InnerYearMonth<JsCustomCalendar>,
+    ym: InnerYearMonth<JsObject>,
     new_target: Option<&JsValue>,
     context: &mut Context,
 ) -> JsResult<JsValue> {
