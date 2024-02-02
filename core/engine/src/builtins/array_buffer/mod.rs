@@ -307,7 +307,12 @@ impl IntrinsicObject for ArrayBuffer {
             .name(js_string!("get maxByteLength"))
             .build();
 
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
+        #[cfg(feature = "experimental")]
+        let get_detached = BuiltInBuilder::callable(realm, Self::get_detached)
+            .name(js_string!("get detached"))
+            .build();
+
+        let builder = BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .static_accessor(
                 JsSymbol::species(),
                 Some(get_species),
@@ -339,8 +344,24 @@ impl IntrinsicObject for ArrayBuffer {
                 JsSymbol::to_string_tag(),
                 Self::NAME,
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            );
+
+        #[cfg(feature = "experimental")]
+        let builder = builder
+            .accessor(
+                js_string!("detached"),
+                Some(get_detached),
+                None,
+                flag_attributes,
             )
-            .build();
+            .method(Self::transfer::<false>, js_string!("transfer"), 0)
+            .method(
+                Self::transfer::<true>,
+                js_string!("transferToFixedLength"),
+                0,
+            );
+
+        builder.build();
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {
@@ -503,6 +524,30 @@ impl ArrayBuffer {
 
         // 4. If IsFixedLengthArrayBuffer(O) is false, return true; otherwise return false.
         Ok(JsValue::from(!buf.is_fixed_len()))
+    }
+
+    /// [`get ArrayBuffer.prototype.detached`][spec].
+    ///
+    /// [spec]: https://tc39.es/proposal-arraybuffer-transfer/#sec-get-arraybuffer.prototype.detached
+    #[cfg(feature = "experimental")]
+    fn get_detached(
+        this: &JsValue,
+        _args: &[JsValue],
+        _context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let O be the this value.
+        // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).
+        // 3. If IsSharedArrayBuffer(O) is true, throw a TypeError exception.
+        let buf = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message("get ArrayBuffer.prototype.detached called with invalid `this`")
+            })?;
+
+        // 4. Return IsDetachedBuffer(O).
+        Ok(buf.is_detached().into())
     }
 
     /// [`ArrayBuffer.prototype.resize ( newLength )`][spec].
@@ -675,6 +720,116 @@ impl ArrayBuffer {
         Ok(new.upcast().into())
     }
 
+    /// [`ArrayBuffer.prototype.transfer ( [ newLength ] )`][transfer] and
+    /// [`ArrayBuffer.prototype.transferToFixedLength ( [ newLength ] )`][transferFL]
+    ///
+    /// [transfer]: https://tc39.es/proposal-arraybuffer-transfer/#sec-arraybuffer.prototype.transfer
+    /// [transferFL]: https://tc39.es/proposal-arraybuffer-transfer/#sec-arraybuffer.prototype.transfertofixedlength
+    #[cfg(feature = "experimental")]
+    fn transfer<const TO_FIXED_LENGTH: bool>(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let O be the this value.
+        // 2. Return ? ArrayBufferCopyAndDetach(O, newLength, preserve-resizability).
+
+        // Abstract operation `ArrayBufferCopyAndDetach ( arrayBuffer, newLength, preserveResizability )`
+        // https://tc39.es/proposal-arraybuffer-transfer/#sec-arraybuffercopyanddetach
+
+        let new_length = args.get_or_undefined(0);
+
+        // 1. Perform ? RequireInternalSlot(arrayBuffer, [[ArrayBufferData]]).
+        // 2. If IsSharedArrayBuffer(arrayBuffer) is true, throw a TypeError exception.
+        let buf = this
+            .as_object()
+            .and_then(|o| o.clone().downcast::<Self>().ok())
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message(if TO_FIXED_LENGTH {
+                    "ArrayBuffer.prototype.transferToFixedLength called with invalid `this`"
+                } else {
+                    "ArrayBuffer.prototype.transfer called with invalid `this`"
+                })
+            })?;
+
+        // 3. If newLength is undefined, then
+        let new_len = if new_length.is_undefined() {
+            // a. Let newByteLength be arrayBuffer.[[ArrayBufferByteLength]].
+            buf.borrow().data.len() as u64
+        } else {
+            // 4. Else,
+            //     a. Let newByteLength be ? ToIndex(newLength).
+            new_length.to_index(context)?
+        };
+
+        // 5. If IsDetachedBuffer(arrayBuffer) is true, throw a TypeError exception.
+        let Some(mut bytes) = buf.borrow_mut().data.data.take() else {
+            return Err(JsNativeError::typ()
+                .with_message("cannot transfer a detached buffer")
+                .into());
+        };
+
+        // 6. If preserveResizability is preserve-resizability and IsResizableArrayBuffer(arrayBuffer)
+        //    is true, then
+        //     a. Let newMaxByteLength be arrayBuffer.[[ArrayBufferMaxByteLength]].
+        // 7. Else,
+        //     a. Let newMaxByteLength be empty.
+        let new_max_len = buf.borrow().data.max_byte_len.filter(|_| !TO_FIXED_LENGTH);
+
+        // 8. If arrayBuffer.[[ArrayBufferDetachKey]] is not undefined, throw a TypeError exception.
+        if !buf.borrow().data.detach_key.is_undefined() {
+            buf.borrow_mut().data.data = Some(bytes);
+            return Err(JsNativeError::typ()
+                .with_message("cannot transfer a buffer with a detach key")
+                .into());
+        }
+
+        // Effectively, the next steps only create a new object for the same vec, so we can skip all
+        // those steps and just make a single check + trigger the realloc.
+
+        // 9. Let newBuffer be ? AllocateArrayBuffer(%ArrayBuffer%, newByteLength, newMaxByteLength).
+        // 10. Let copyLength be min(newByteLength, arrayBuffer.[[ArrayBufferByteLength]]).
+        // 11. Let fromBlock be arrayBuffer.[[ArrayBufferData]].
+        // 12. Let toBlock be newBuffer.[[ArrayBufferData]].
+        // 13. Perform CopyDataBlockBytes(toBlock, 0, fromBlock, 0, copyLength).
+        // 14. NOTE: Neither creation of the new Data Block nor copying from the old Data Block are
+        //     observable. Implementations may implement this method as a zero-copy move or a realloc.
+        // 15. Perform ! DetachArrayBuffer(arrayBuffer).
+        // 16. Return newBuffer.
+        if let Some(new_max_len) = new_max_len {
+            if new_len > new_max_len {
+                buf.borrow_mut().data.data = Some(bytes);
+                return Err(JsNativeError::range()
+                    .with_message("`length` cannot be bigger than `maxByteLength`")
+                    .into());
+            }
+            // Should only truncate without reallocating.
+            bytes.resize(new_len as usize, 0);
+        } else {
+            bytes.resize(new_len as usize, 0);
+
+            // Realloc the vec to fit onto the new exact length.
+            bytes.shrink_to_fit();
+        }
+
+        let prototype = context
+            .intrinsics()
+            .constructors()
+            .array_buffer()
+            .prototype();
+
+        Ok(JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
+            prototype,
+            ArrayBuffer {
+                data: Some(bytes),
+                max_byte_len: new_max_len,
+                detach_key: JsValue::undefined(),
+            },
+        )
+        .into())
+    }
+
     /// `AllocateArrayBuffer ( constructor, byteLength )`
     ///
     /// More information:
@@ -771,9 +926,7 @@ pub(crate) fn create_byte_data_block(
 
     if alloc_size > context.host_hooks().max_buffer_size(context) {
         return Err(JsNativeError::range()
-            .with_message(
-                "cannot allocate a buffer that exceeds the maximum buffer size".to_string(),
-            )
+            .with_message("cannot allocate a buffer that exceeds the maximum buffer size")
             .into());
     }
 
