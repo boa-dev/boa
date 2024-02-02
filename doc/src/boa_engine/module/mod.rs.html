@@ -574,6 +574,13 @@
 <a href="#574" id="574">574</a>
 <a href="#575" id="575">575</a>
 <a href="#576" id="576">576</a>
+<a href="#577" id="577">577</a>
+<a href="#578" id="578">578</a>
+<a href="#579" id="579">579</a>
+<a href="#580" id="580">580</a>
+<a href="#581" id="581">581</a>
+<a href="#582" id="582">582</a>
+<a href="#583" id="583">583</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of the ECMAScript&#39;s module system.
 //!
 //! This module contains the [`Module`] type, which represents an [**Abstract Module Record**][module],
@@ -639,7 +646,6 @@
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
         f.debug_struct(<span class="string">&quot;Module&quot;</span>)
             .field(<span class="string">&quot;realm&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.inner.realm.addr())
-            .field(<span class="string">&quot;environment&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.inner.environment)
             .field(<span class="string">&quot;namespace&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.inner.namespace)
             .field(<span class="string">&quot;kind&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.inner.kind)
             .finish()
@@ -649,7 +655,6 @@
 <span class="attr">#[derive(Trace, Finalize)]
 </span><span class="kw">struct </span>ModuleRepr {
     realm: Realm,
-    environment: GcRefCell&lt;<span class="prelude-ty">Option</span>&lt;Gc&lt;DeclarativeEnvironment&gt;&gt;&gt;,
     namespace: GcRefCell&lt;<span class="prelude-ty">Option</span>&lt;JsObject&gt;&gt;,
     kind: ModuleKind,
     host_defined: HostDefined,
@@ -662,6 +667,16 @@
     </span>SourceText(SourceTextModule),
     <span class="doccomment">/// A [**Synthetic Module Record**](https://tc39.es/proposal-json-modules/#sec-synthetic-module-records)
     </span>Synthetic(SyntheticModule),
+}
+
+<span class="kw">impl </span>ModuleKind {
+    <span class="doccomment">/// Returns the inner `SourceTextModule`.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>as_source_text(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>SourceTextModule&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            ModuleKind::SourceText(src) =&gt; <span class="prelude-val">Some</span>(src),
+            ModuleKind::Synthetic(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+        }
+    }
 }
 
 <span class="doccomment">/// Return value of the [`Module::resolve_export`] operation.
@@ -702,7 +717,7 @@
     capability: PromiseCapability,
     loading: Cell&lt;bool&gt;,
     pending_modules: Cell&lt;usize&gt;,
-    visited: RefCell&lt;HashSet&lt;SourceTextModule&gt;&gt;,
+    visited: RefCell&lt;HashSet&lt;Module&gt;&gt;,
 }
 
 <span class="attr">#[derive(Debug, Clone, Copy)]
@@ -727,19 +742,16 @@
         parser.set_identifier(context.next_parser_identifier());
         <span class="kw">let </span>module = parser.parse_module(context.interner_mut())<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>inner = Gc::new_cyclic(|weak| {
-            <span class="kw">let </span>src = SourceTextModule::new(module, weak.clone(), context.interner());
+        <span class="kw">let </span>src = SourceTextModule::new(module, context.interner());
 
-            ModuleRepr {
+        <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
+            inner: Gc::new(ModuleRepr {
                 realm: realm.unwrap_or_else(|| context.realm().clone()),
-                environment: GcRefCell::default(),
                 namespace: GcRefCell::default(),
                 kind: ModuleKind::SourceText(src),
                 host_defined: HostDefined::default(),
-            }
-        });
-
-        <span class="prelude-val">Ok</span>(<span class="self">Self </span>{ inner })
+            }),
+        })
     }
 
     <span class="doccomment">/// Abstract operation [`CreateSyntheticModule ( exportNames, evaluationSteps, realm )`][spec].
@@ -757,19 +769,16 @@
     ) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>names = export_names.iter().cloned().collect();
         <span class="kw">let </span>realm = realm.unwrap_or_else(|| context.realm().clone());
-        <span class="kw">let </span>inner = Gc::new_cyclic(|weak| {
-            <span class="kw">let </span>synth = SyntheticModule::new(names, evaluation_steps, weak.clone());
+        <span class="kw">let </span>synth = SyntheticModule::new(names, evaluation_steps);
 
-            ModuleRepr {
+        <span class="self">Self </span>{
+            inner: Gc::new(ModuleRepr {
                 realm,
-                environment: GcRefCell::default(),
                 namespace: GcRefCell::default(),
                 kind: ModuleKind::Synthetic(synth),
                 host_defined: HostDefined::default(),
-            }
-        });
-
-        <span class="self">Self </span>{ inner }
+            }),
+        }
     }
 
     <span class="doccomment">/// Gets the realm of this `Module`.
@@ -793,9 +802,12 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>.inner.kind
     }
 
-    <span class="doccomment">/// Gets the environment of this `Module`.
+    <span class="doccomment">/// Gets the declarative environment of this `Module`.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>environment(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Gc&lt;DeclarativeEnvironment&gt;&gt; {
-        <span class="self">self</span>.inner.environment.borrow().clone()
+        <span class="kw">match </span><span class="self">self</span>.kind() {
+            ModuleKind::SourceText(src) =&gt; src.environment(),
+            ModuleKind::Synthetic(syn) =&gt; syn.environment(),
+        }
     }
 
     <span class="doccomment">/// Abstract method [`LoadRequestedModules ( [ hostDefined ] )`][spec].
@@ -855,7 +867,7 @@
 
         <span class="kw">if let </span>ModuleKind::SourceText(src) = <span class="self">self</span>.kind() {
             <span class="comment">// continues on `inner_load
-            </span>src.inner_load(state, context);
+            </span>src.inner_load(<span class="self">self</span>, state, context);
             <span class="kw">if </span>!state.loading.get() {
                 <span class="kw">return</span>;
             }
@@ -896,11 +908,11 @@
     /// [spec]: https://tc39.es/ecma262/#table-abstract-methods-of-module-records
     </span><span class="kw">fn </span>get_exported_names(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        export_star_set: <span class="kw-2">&amp;mut </span>Vec&lt;SourceTextModule&gt;,
+        export_star_set: <span class="kw-2">&amp;mut </span>Vec&lt;Module&gt;,
         interner: <span class="kw-2">&amp;</span>Interner,
     ) -&gt; FxHashSet&lt;JsString&gt; {
         <span class="kw">match </span><span class="self">self</span>.kind() {
-            ModuleKind::SourceText(src) =&gt; src.get_exported_names(export_star_set, interner),
+            ModuleKind::SourceText(src) =&gt; src.get_exported_names(<span class="self">self</span>, export_star_set, interner),
             ModuleKind::Synthetic(synth) =&gt; synth.get_exported_names(),
         }
     }
@@ -924,8 +936,10 @@
         interner: <span class="kw-2">&amp;</span>Interner,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;ResolvedBinding, ResolveExportError&gt; {
         <span class="kw">match </span><span class="self">self</span>.kind() {
-            ModuleKind::SourceText(src) =&gt; src.resolve_export(<span class="kw-2">&amp;</span>export_name, resolve_set, interner),
-            ModuleKind::Synthetic(synth) =&gt; synth.resolve_export(export_name),
+            ModuleKind::SourceText(src) =&gt; {
+                src.resolve_export(<span class="self">self</span>, <span class="kw-2">&amp;</span>export_name, resolve_set, interner)
+            }
+            ModuleKind::Synthetic(synth) =&gt; synth.resolve_export(<span class="self">self</span>, export_name),
         }
     }
 
@@ -943,9 +957,9 @@
     #[inline]
     </span><span class="kw">pub fn </span>link(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;()&gt; {
         <span class="kw">match </span><span class="self">self</span>.kind() {
-            ModuleKind::SourceText(src) =&gt; src.link(context),
+            ModuleKind::SourceText(src) =&gt; src.link(<span class="self">self</span>, context),
             ModuleKind::Synthetic(synth) =&gt; {
-                synth.link(context);
+                synth.link(<span class="self">self</span>, context);
                 <span class="prelude-val">Ok</span>(())
             }
         }
@@ -956,16 +970,16 @@
     /// [spec]: https://tc39.es/ecma262/#sec-InnerModuleLinking
     </span><span class="kw">fn </span>inner_link(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        stack: <span class="kw-2">&amp;mut </span>Vec&lt;SourceTextModule&gt;,
+        stack: <span class="kw-2">&amp;mut </span>Vec&lt;Module&gt;,
         index: usize,
         context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;usize&gt; {
         <span class="kw">match </span><span class="self">self</span>.kind() {
-            ModuleKind::SourceText(src) =&gt; src.inner_link(stack, index, context),
+            ModuleKind::SourceText(src) =&gt; src.inner_link(<span class="self">self</span>, stack, index, context),
             <span class="comment">// If module is not a Cyclic Module Record, then
             </span>ModuleKind::Synthetic(synth) =&gt; {
                 <span class="comment">// a. Perform ? module.Link().
-                </span>synth.link(context);
+                </span>synth.link(<span class="self">self</span>, context);
                 <span class="comment">// b. Return index.
                 </span><span class="prelude-val">Ok</span>(index)
             }
@@ -987,8 +1001,8 @@
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>evaluate(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsPromise {
         <span class="kw">match </span><span class="self">self</span>.kind() {
-            ModuleKind::SourceText(src) =&gt; src.evaluate(context),
-            ModuleKind::Synthetic(synth) =&gt; synth.evaluate(context),
+            ModuleKind::SourceText(src) =&gt; src.evaluate(<span class="self">self</span>, context),
+            ModuleKind::Synthetic(synth) =&gt; synth.evaluate(<span class="self">self</span>, context),
         }
     }
 
@@ -997,16 +1011,16 @@
     /// [spec]: https://tc39.es/ecma262/#sec-InnerModuleLinking
     </span><span class="kw">fn </span>inner_evaluate(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        stack: <span class="kw-2">&amp;mut </span>Vec&lt;SourceTextModule&gt;,
+        stack: <span class="kw-2">&amp;mut </span>Vec&lt;Module&gt;,
         index: usize,
         context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;usize&gt; {
         <span class="kw">match </span><span class="self">self</span>.kind() {
-            ModuleKind::SourceText(src) =&gt; src.inner_evaluate(stack, index, <span class="prelude-val">None</span>, context),
+            ModuleKind::SourceText(src) =&gt; src.inner_evaluate(<span class="self">self</span>, stack, index, <span class="prelude-val">None</span>, context),
             <span class="comment">// 1. If module is not a Cyclic Module Record, then
             </span>ModuleKind::Synthetic(synth) =&gt; {
                 <span class="comment">// a. Let promise be ! module.Evaluate().
-                </span><span class="kw">let </span>promise: JsPromise = synth.evaluate(context);
+                </span><span class="kw">let </span>promise: JsPromise = synth.evaluate(<span class="self">self</span>, context);
                 <span class="kw">let </span>state = promise.state();
                 <span class="kw">match </span>state {
                     PromiseState::Pending =&gt; {
@@ -1138,7 +1152,7 @@
 <span class="kw">impl </span>PartialEq <span class="kw">for </span>Module {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
-        std::ptr::eq(<span class="self">self</span>.inner.as_ref(), other.inner.as_ref())
+        Gc::ptr_eq(<span class="kw-2">&amp;</span><span class="self">self</span>.inner, <span class="kw-2">&amp;</span>other.inner)
     }
 }
 

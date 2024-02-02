@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["Callback","Inner","SyntheticModule","SyntheticModuleInitializer"],"trait":["TraceableCallback"]};
+window.SIDEBAR_ITEMS = {"enum":["ModuleStatus"],"struct":["Callback","SyntheticModule","SyntheticModuleInitializer"],"trait":["TraceableCallback"]};

@@ -373,22 +373,64 @@
 <a href="#373" id="373">373</a>
 <a href="#374" id="374">374</a>
 <a href="#375" id="375">375</a>
+<a href="#376" id="376">376</a>
+<a href="#377" id="377">377</a>
+<a href="#378" id="378">378</a>
+<a href="#379" id="379">379</a>
+<a href="#380" id="380">380</a>
+<a href="#381" id="381">381</a>
+<a href="#382" id="382">382</a>
+<a href="#383" id="383">383</a>
+<a href="#384" id="384">384</a>
+<a href="#385" id="385">385</a>
+<a href="#386" id="386">386</a>
+<a href="#387" id="387">387</a>
+<a href="#388" id="388">388</a>
+<a href="#389" id="389">389</a>
+<a href="#390" id="390">390</a>
+<a href="#391" id="391">391</a>
+<a href="#392" id="392">392</a>
+<a href="#393" id="393">393</a>
+<a href="#394" id="394">394</a>
+<a href="#395" id="395">395</a>
+<a href="#396" id="396">396</a>
+<a href="#397" id="397">397</a>
+<a href="#398" id="398">398</a>
+<a href="#399" id="399">399</a>
+<a href="#400" id="400">400</a>
+<a href="#401" id="401">401</a>
+<a href="#402" id="402">402</a>
+<a href="#403" id="403">403</a>
+<a href="#404" id="404">404</a>
+<a href="#405" id="405">405</a>
+<a href="#406" id="406">406</a>
+<a href="#407" id="407">407</a>
+<a href="#408" id="408">408</a>
+<a href="#409" id="409">409</a>
+<a href="#410" id="410">410</a>
+<a href="#411" id="411">411</a>
+<a href="#412" id="412">412</a>
+<a href="#413" id="413">413</a>
+<a href="#414" id="414">414</a>
+<a href="#415" id="415">415</a>
+<a href="#416" id="416">416</a>
+<a href="#417" id="417">417</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::rc::Rc;
 
-<span class="kw">use </span>boa_gc::{Finalize, Gc, GcRefCell, Trace, WeakGc};
+<span class="kw">use </span>boa_gc::{Finalize, Gc, GcRefCell, Trace};
 <span class="kw">use </span>rustc_hash::FxHashSet;
 
 <span class="kw">use crate</span>::{
     builtins::promise::ResolvingFunctions,
     bytecompiler::ByteCompiler,
-    environments::{CompileTimeEnvironment, EnvironmentStack},
+    environments::{CompileTimeEnvironment, DeclarativeEnvironment, EnvironmentStack},
     js_string,
     object::JsPromise,
     vm::{ActiveRunnable, CallFrame, CodeBlock},
     Context, JsNativeError, JsResult, JsString, JsValue, Module,
 };
 
-<span class="kw">use super</span>::{BindingName, ModuleRepr, ResolveExportError, ResolvedBinding};
+<span class="kw">use super</span>::{BindingName, ResolveExportError, ResolvedBinding};
 
 <span class="kw">trait </span>TraceableCallback: Trace {
     <span class="kw">fn </span>call(<span class="kw-2">&amp;</span><span class="self">self</span>, module: <span class="kw-2">&amp;</span>SyntheticModule, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;()&gt;;
@@ -510,62 +552,93 @@
 
     <span class="doccomment">/// Calls this `SyntheticModuleInitializer`, forwarding the arguments to the corresponding function.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>call(<span class="kw-2">&amp;</span><span class="self">self</span>, module: <span class="kw-2">&amp;</span>SyntheticModule, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;()&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>call(<span class="kw-2">&amp;</span><span class="self">self</span>, module: <span class="kw-2">&amp;</span>SyntheticModule, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;()&gt; {
         <span class="self">self</span>.inner.call(module, context)
+    }
+}
+
+<span class="doccomment">/// Current status of a [`SyntheticModule`].
+</span><span class="attr">#[derive(Debug, Trace, Finalize, Default)]
+#[boa_gc(unsafe_no_drop)]
+</span><span class="kw">enum </span>ModuleStatus {
+    <span class="attr">#[default]
+    </span>Unlinked,
+    Linked {
+        environment: Gc&lt;DeclarativeEnvironment&gt;,
+        eval_context: (EnvironmentStack, Gc&lt;CodeBlock&gt;),
+    },
+    Evaluated {
+        environment: Gc&lt;DeclarativeEnvironment&gt;,
+        promise: JsPromise,
+    },
+}
+
+<span class="kw">impl </span>ModuleStatus {
+    <span class="doccomment">/// Transition from one state to another, taking the current state by value to move data
+    /// between states.
+    </span><span class="kw">fn </span>transition&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: F)
+    <span class="kw">where
+        </span>F: FnOnce(<span class="self">Self</span>) -&gt; <span class="self">Self</span>,
+    {
+        <span class="kw-2">*</span><span class="self">self </span>= f(std::mem::take(<span class="self">self</span>));
     }
 }
 
 <span class="doccomment">/// ECMAScript&#39;s [**Synthetic Module Records**][spec].
 ///
 /// [spec]: https://tc39.es/proposal-json-modules/#sec-synthetic-module-records
-</span><span class="attr">#[derive(Clone, Trace, Finalize)]
+</span><span class="attr">#[derive(Trace, Finalize)]
 </span><span class="kw">pub struct </span>SyntheticModule {
-    inner: Gc&lt;Inner&gt;,
+    <span class="attr">#[unsafe_ignore_trace]
+    </span>export_names: FxHashSet&lt;JsString&gt;,
+    eval_steps: SyntheticModuleInitializer,
+    state: GcRefCell&lt;ModuleStatus&gt;,
 }
 
 <span class="kw">impl </span>std::fmt::Debug <span class="kw">for </span>SyntheticModule {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
         f.debug_struct(<span class="string">&quot;SyntheticModule&quot;</span>)
-            .field(<span class="string">&quot;export_names&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.inner.export_names)
-            .field(<span class="string">&quot;eval_steps&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.inner.eval_steps)
+            .field(<span class="string">&quot;export_names&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.export_names)
+            .field(<span class="string">&quot;eval_steps&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.eval_steps)
             .finish_non_exhaustive()
     }
 }
 
-<span class="attr">#[derive(Trace, Finalize)]
-</span><span class="kw">struct </span>Inner {
-    parent: WeakGc&lt;ModuleRepr&gt;,
-    <span class="attr">#[unsafe_ignore_trace]
-    </span>export_names: FxHashSet&lt;JsString&gt;,
-    eval_context: GcRefCell&lt;<span class="prelude-ty">Option</span>&lt;(EnvironmentStack, Gc&lt;CodeBlock&gt;)&gt;&gt;,
-    eval_steps: SyntheticModuleInitializer,
-}
-
 <span class="kw">impl </span>SyntheticModule {
-    <span class="doccomment">/// Gets the parent module of this source module.
-    </span><span class="kw">fn </span>parent(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Module {
-        Module {
-            inner: <span class="self">self
-                </span>.inner
-                .parent
-                .upgrade()
-                .expect(<span class="string">&quot;parent module must be live&quot;</span>),
-        }
+    <span class="doccomment">/// Abstract operation [`SetSyntheticModuleExport ( module, exportName, exportValue )`][spec].
+    ///
+    /// Sets or changes the exported value for `exportName` in the synthetic module.
+    ///
+    /// # Note
+    ///
+    /// The default export corresponds to the name `&quot;default&quot;`, but note that it needs to
+    /// be passed to the list of exported names in [`Module::synthetic`] beforehand.
+    ///
+    /// [spec]: https://tc39.es/proposal-json-modules/#sec-createsyntheticmodule
+    </span><span class="kw">pub fn </span>set_export(<span class="kw-2">&amp;</span><span class="self">self</span>, export_name: <span class="kw-2">&amp;</span>JsString, export_value: JsValue) -&gt; JsResult&lt;()&gt; {
+        <span class="kw">let </span>env = <span class="self">self</span>.environment().ok_or_else(|| {
+            JsNativeError::typ().with_message(<span class="macro">format!</span>(
+                <span class="string">&quot;cannot set name `{}` in an unlinked synthetic module&quot;</span>,
+                export_name.to_std_string_escaped()
+            ))
+        })<span class="question-mark">?</span>;
+        <span class="kw">let </span>locator = env.compile_env().get_binding(export_name).ok_or_else(|| {
+            JsNativeError::reference().with_message(<span class="macro">format!</span>(
+                <span class="string">&quot;cannot set name `{}` which was not included in the list of exports&quot;</span>,
+                export_name.to_std_string_escaped()
+            ))
+        })<span class="question-mark">?</span>;
+        env.set(locator.binding_index(), export_value);
+
+        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// Creates a new synthetic module.
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(
-        names: FxHashSet&lt;JsString&gt;,
-        eval_steps: SyntheticModuleInitializer,
-        parent: WeakGc&lt;ModuleRepr&gt;,
-    ) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(names: FxHashSet&lt;JsString&gt;, eval_steps: SyntheticModuleInitializer) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            inner: Gc::new(Inner {
-                parent,
-                export_names: names,
-                eval_steps,
-                eval_context: GcRefCell::default(),
-            }),
+            export_names: names,
+            eval_steps,
+            state: GcRefCell::default(),
         }
     }
 
@@ -582,7 +655,7 @@
     /// [spec]: https://tc39.es/proposal-json-modules/#sec-smr-getexportednames
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>get_exported_names(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FxHashSet&lt;JsString&gt; {
         <span class="comment">// 1. Return module.[[ExportNames]].
-        </span><span class="self">self</span>.inner.export_names.clone()
+        </span><span class="self">self</span>.export_names.clone()
     }
 
     <span class="doccomment">/// Concrete method [`ResolveExport ( exportName )`][spec]
@@ -591,12 +664,13 @@
     </span><span class="attr">#[allow(clippy::mutable_key_type)]
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>resolve_export(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
+        module_self: <span class="kw-2">&amp;</span>Module,
         export_name: JsString,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;ResolvedBinding, ResolveExportError&gt; {
-        <span class="kw">if </span><span class="self">self</span>.inner.export_names.contains(<span class="kw-2">&amp;</span>export_name) {
+        <span class="kw">if </span><span class="self">self</span>.export_names.contains(<span class="kw-2">&amp;</span>export_name) {
             <span class="comment">// 2. Return ResolvedBinding Record { [[Module]]: module, [[BindingName]]: exportName }.
             </span><span class="prelude-val">Ok</span>(ResolvedBinding {
-                module: <span class="self">self</span>.parent(),
+                module: module_self.clone(),
                 binding_name: BindingName::Name(export_name),
             })
         } <span class="kw">else </span>{
@@ -608,12 +682,16 @@
     <span class="doccomment">/// Concrete method [`Link ( )`][spec].
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-moduledeclarationlinking
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>link(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) {
-        <span class="kw">let </span>parent = <span class="self">self</span>.parent();
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>link(<span class="kw-2">&amp;</span><span class="self">self</span>, module_self: <span class="kw-2">&amp;</span>Module, context: <span class="kw-2">&amp;mut </span>Context) {
+        <span class="kw">if </span>!<span class="macro">matches!</span>(<span class="kw-2">&amp;*</span><span class="self">self</span>.state.borrow(), ModuleStatus::Unlinked) {
+            <span class="comment">// Already linked and/or evaluated.
+            </span><span class="kw">return</span>;
+        }
+
         <span class="comment">// 1. Let realm be module.[[Realm]].
         // 2. Let env be NewModuleEnvironment(realm.[[GlobalEnv]]).
         // 3. Set module.[[Environment]] to env.
-        </span><span class="kw">let </span>global_env = parent.realm().environment().clone();
+        </span><span class="kw">let </span>global_env = module_self.realm().environment().clone();
         <span class="kw">let </span>global_compile_env = global_env.compile_env();
         <span class="kw">let </span>module_compile_env = Rc::new(CompileTimeEnvironment::new(global_compile_env, <span class="bool-val">true</span>));
 
@@ -630,8 +708,7 @@
 
         <span class="comment">// 4. For each String exportName in module.[[ExportNames]], do
         </span><span class="kw">let </span>exports = <span class="self">self
-            </span>.inner
-            .export_names
+            </span>.export_names
             .iter()
             .map(|name| {
                 <span class="comment">//     a. Perform ! env.CreateMutableBinding(exportName, false).
@@ -653,9 +730,18 @@
             );
         }
 
-        <span class="kw-2">*</span>parent.inner.environment.borrow_mut() = envs.current().as_declarative().cloned();
+        <span class="kw">let </span>env = envs
+            .current()
+            .as_declarative()
+            .cloned()
+            .expect(<span class="string">&quot;should have the module environment&quot;</span>);
 
-        <span class="kw-2">*</span><span class="self">self</span>.inner.eval_context.borrow_mut() = <span class="prelude-val">Some</span>((envs, cb));
+        <span class="self">self</span>.state
+            .borrow_mut()
+            .transition(|<span class="kw">_</span>| ModuleStatus::Linked {
+                environment: env,
+                eval_context: (envs, cb),
+            });
 
         <span class="comment">// 5. Return unused.
     </span>}
@@ -663,23 +749,34 @@
     <span class="doccomment">/// Concrete method [`Evaluate ( )`][spec].
     ///
     /// [spec]: https://tc39.es/proposal-json-modules/#sec-smr-Evaluate
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>evaluate(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsPromise {
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>evaluate(<span class="kw-2">&amp;</span><span class="self">self</span>, module_self: <span class="kw-2">&amp;</span>Module, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsPromise {
+        <span class="kw">let </span>(environments, codeblock) = <span class="kw">match </span><span class="kw-2">&amp;*</span><span class="self">self</span>.state.borrow() {
+            ModuleStatus::Unlinked =&gt; {
+                <span class="kw">let </span>(promise, ResolvingFunctions { reject, .. }) = JsPromise::new_pending(context);
+                reject
+                    .call(
+                        <span class="kw-2">&amp;</span>JsValue::undefined(),
+                        <span class="kw-2">&amp;</span>[JsNativeError::typ()
+                            .with_message(<span class="string">&quot;cannot evaluate unlinked synthetic module&quot;</span>)
+                            .to_opaque(context)
+                            .into()],
+                        context,
+                    )
+                    .expect(<span class="string">&quot;native resolving functions cannot throw&quot;</span>);
+                <span class="kw">return </span>promise;
+            }
+            ModuleStatus::Linked { eval_context, .. } =&gt; eval_context.clone(),
+            ModuleStatus::Evaluated { promise, .. } =&gt; <span class="kw">return </span>promise.clone(),
+        };
         <span class="comment">// 1. Let moduleContext be a new ECMAScript code execution context.
 
-        </span><span class="kw">let </span>parent = <span class="self">self</span>.parent();
-        <span class="kw">let </span>realm = parent.realm().clone();
-        <span class="kw">let </span>(environments, codeblock) = <span class="self">self
-            </span>.inner
-            .eval_context
-            .borrow()
-            .clone()
-            .expect(<span class="string">&quot;should have been initialized on `link`&quot;</span>);
+        </span><span class="kw">let </span>realm = module_self.realm().clone();
 
         <span class="kw">let </span>env_fp = environments.len() <span class="kw">as </span>u32;
         <span class="kw">let </span>callframe = CallFrame::new(
             codeblock,
             <span class="comment">// 4. Set the ScriptOrModule of moduleContext to module.
-            </span><span class="prelude-val">Some</span>(ActiveRunnable::Module(parent)),
+            </span><span class="prelude-val">Some</span>(ActiveRunnable::Module(module_self.clone())),
             <span class="comment">// 5. Set the VariableEnvironment of moduleContext to module.[[Environment]].
             // 6. Set the LexicalEnvironment of moduleContext to module.[[Environment]].
             </span>environments,
@@ -697,7 +794,7 @@
 
         <span class="comment">// 9. Let steps be module.[[EvaluationSteps]].
         // 10. Let result be Completion(steps(module)).
-        </span><span class="kw">let </span>result = <span class="self">self</span>.inner.eval_steps.call(<span class="self">self</span>, context);
+        </span><span class="kw">let </span>result = <span class="self">self</span>.eval_steps.call(<span class="self">self</span>, context);
 
         <span class="comment">// 11. Suspend moduleContext and remove it from the execution context stack.
         // 12. Resume the context that is now on the top of the execution context stack as the running execution context.
@@ -715,37 +812,24 @@
         }
         .expect(<span class="string">&quot;default resolving functions cannot throw&quot;</span>);
 
+        <span class="self">self</span>.state.borrow_mut().transition(|state| <span class="kw">match </span>state {
+            ModuleStatus::Linked { environment, .. } =&gt; ModuleStatus::Evaluated {
+                environment,
+                promise: promise.clone(),
+            },
+            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;checks above ensure the module is linked&quot;</span>),
+        });
+
         <span class="comment">// 16. Return pc.[[Promise]].
         </span>promise
     }
 
-    <span class="doccomment">/// Abstract operation [`SetSyntheticModuleExport ( module, exportName, exportValue )`][spec].
-    ///
-    /// Sets or changes the exported value for `exportName` in the synthetic module.
-    ///
-    /// # Note
-    ///
-    /// The default export corresponds to the name `&quot;default&quot;`, but note that it needs to
-    /// be passed to the list of exported names in [`Module::synthetic`] beforehand.
-    ///
-    /// [spec]: https://tc39.es/proposal-json-modules/#sec-createsyntheticmodule
-    </span><span class="kw">pub fn </span>set_export(<span class="kw-2">&amp;</span><span class="self">self</span>, export_name: <span class="kw-2">&amp;</span>JsString, export_value: JsValue) -&gt; JsResult&lt;()&gt; {
-        <span class="kw">let </span>environment = <span class="self">self
-            </span>.parent()
-            .environment()
-            .expect(<span class="string">&quot;this must be initialized before evaluating&quot;</span>);
-        <span class="kw">let </span>locator = environment
-            .compile_env()
-            .get_binding(export_name)
-            .ok_or_else(|| {
-                JsNativeError::reference().with_message(<span class="macro">format!</span>(
-                    <span class="string">&quot;cannot set name `{}` which was not included in the list of exports&quot;</span>,
-                    export_name.to_std_string_escaped()
-                ))
-            })<span class="question-mark">?</span>;
-        environment.set(locator.binding_index(), export_value);
-
-        <span class="prelude-val">Ok</span>(())
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>environment(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Gc&lt;DeclarativeEnvironment&gt;&gt; {
+        <span class="kw">match </span><span class="kw-2">&amp;*</span><span class="self">self</span>.state.borrow() {
+            ModuleStatus::Unlinked =&gt; <span class="prelude-val">None</span>,
+            ModuleStatus::Linked { environment, .. }
+            | ModuleStatus::Evaluated { environment, .. } =&gt; <span class="prelude-val">Some</span>(environment.clone()),
+        }
     }
 }
 </code></pre></div></section></main></body></html>

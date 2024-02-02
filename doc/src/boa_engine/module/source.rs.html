@@ -2011,16 +2011,7 @@
 <a href="#2011" id="2011">2011</a>
 <a href="#2012" id="2012">2012</a>
 <a href="#2013" id="2013">2013</a>
-<a href="#2014" id="2014">2014</a>
-<a href="#2015" id="2015">2015</a>
-<a href="#2016" id="2016">2016</a>
-<a href="#2017" id="2017">2017</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span>std::{
-    cell::Cell,
-    collections::HashSet,
-    hash::{BuildHasherDefault, Hash},
-    rc::Rc,
-};
+</pre></div><pre class="rust"><code><span class="kw">use </span>std::{cell::Cell, collections::HashSet, hash::BuildHasherDefault, rc::Rc};
 
 <span class="kw">use </span>boa_ast::{
     declaration::{
@@ -2032,7 +2023,7 @@
         ContainsSymbol, LexicallyScopedDeclaration,
     },
 };
-<span class="kw">use </span>boa_gc::{custom_trace, empty_trace, Finalize, Gc, GcRefCell, Trace, WeakGc};
+<span class="kw">use </span>boa_gc::{Finalize, Gc, GcRefCell, Trace};
 <span class="kw">use </span>boa_interner::Interner;
 <span class="kw">use </span>boa_macros::utf16;
 <span class="kw">use </span>indexmap::IndexSet;
@@ -2041,10 +2032,12 @@
 <span class="kw">use crate</span>::{
     builtins::{promise::PromiseCapability, Promise},
     bytecompiler::{ByteCompiler, FunctionSpec, ToJsString},
-    environments::{BindingLocator, CompileTimeEnvironment, EnvironmentStack},
+    environments::{
+        BindingLocator, CompileTimeEnvironment, DeclarativeEnvironment, EnvironmentStack,
+    },
     js_string,
     module::ModuleKind,
-    object::{FunctionObjectBuilder, JsPromise, RecursionLimiter},
+    object::{FunctionObjectBuilder, JsPromise},
     realm::Realm,
     vm::{
         create_function_object_fast, ActiveRunnable, CallFrame, CallFrameFlags, CodeBlock,
@@ -2054,21 +2047,16 @@
 };
 
 <span class="kw">use super</span>::{
-    BindingName, GraphLoadingState, Module, ModuleRepr, Referrer, ResolveExportError,
-    ResolvedBinding,
+    BindingName, GraphLoadingState, Module, Referrer, ResolveExportError, ResolvedBinding,
 };
 
 <span class="doccomment">/// Information for the [**Depth-first search**] algorithm used in the
 /// [`Module::link`] and [`Module::evaluate`] methods.
-</span><span class="attr">#[derive(Clone, Copy, Debug, Finalize)]
+</span><span class="attr">#[derive(Clone, Copy, Debug, Trace, Finalize)]
+#[boa_gc(empty_trace)]
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>DfsInfo {
     dfs_index: usize,
     dfs_ancestor_index: usize,
-}
-
-<span class="comment">// SAFETY: `DfsInfo` only contains primitive types, making this safe.
-</span><span class="kw">unsafe impl </span>Trace <span class="kw">for </span>DfsInfo {
-    <span class="macro">empty_trace!</span>();
 }
 
 <span class="doccomment">/// Current status of a [`SourceTextModule`].
@@ -2077,88 +2065,58 @@
 /// but with a state machine-like design for better correctness.
 ///
 /// [cyclic]: https://tc39.es/ecma262/#table-cyclic-module-fields
-</span><span class="attr">#[derive(Debug, Finalize, Default)]
-</span><span class="kw">enum </span>Status {
+</span><span class="attr">#[derive(Debug, Trace, Finalize, Default)]
+#[boa_gc(unsafe_no_drop)]
+</span><span class="kw">enum </span>ModuleStatus {
     <span class="attr">#[default]
     </span>Unlinked,
     Linking {
         info: DfsInfo,
     },
     PreLinked {
+        environment: Gc&lt;DeclarativeEnvironment&gt;,
         context: SourceTextContext,
         info: DfsInfo,
     },
     Linked {
+        environment: Gc&lt;DeclarativeEnvironment&gt;,
         context: SourceTextContext,
         info: DfsInfo,
     },
     Evaluating {
+        environment: Gc&lt;DeclarativeEnvironment&gt;,
         context: SourceTextContext,
         top_level_capability: <span class="prelude-ty">Option</span>&lt;PromiseCapability&gt;,
-        cycle_root: SourceTextModule,
+        cycle_root: Module,
         info: DfsInfo,
         async_eval_index: <span class="prelude-ty">Option</span>&lt;usize&gt;,
     },
     EvaluatingAsync {
+        environment: Gc&lt;DeclarativeEnvironment&gt;,
         context: SourceTextContext,
         top_level_capability: <span class="prelude-ty">Option</span>&lt;PromiseCapability&gt;,
-        cycle_root: SourceTextModule,
+        cycle_root: Module,
         async_eval_index: usize,
         pending_async_dependencies: usize,
     },
     Evaluated {
+        environment: Gc&lt;DeclarativeEnvironment&gt;,
         top_level_capability: <span class="prelude-ty">Option</span>&lt;PromiseCapability&gt;,
-        cycle_root: SourceTextModule,
+        cycle_root: Module,
         error: <span class="prelude-ty">Option</span>&lt;JsError&gt;,
     },
 }
 
-<span class="comment">// SAFETY: This must be synced with `Status` to mark any new data added that needs to be traced.
-// `Status` doesn&#39;t implement `Drop`, making this manual implementation safe.
-//
-// The `Trace` macro adds an empty `Drop` implementation to encourage using `Finalize` instead.
-// However, this has the downside of disallowing destructuring, which is pretty
-// useful to have for state machines like `Status`. This is solved by manually implementing
-// `Trace`.
-</span><span class="kw">unsafe impl </span>Trace <span class="kw">for </span>Status {
-    <span class="macro">custom_trace!</span>(this, mark, {
-        <span class="kw">match </span>this {
-            <span class="self">Self</span>::Unlinked | <span class="self">Self</span>::Linking { info: <span class="kw">_ </span>} =&gt; {}
-            <span class="self">Self</span>::PreLinked { context, info: <span class="kw">_ </span>} | <span class="self">Self</span>::Linked { context, info: <span class="kw">_ </span>} =&gt; {
-                mark(context);
-            }
-            <span class="self">Self</span>::Evaluating {
-                top_level_capability,
-                cycle_root,
-                context,
-                info: <span class="kw">_</span>,
-                async_eval_index: <span class="kw">_</span>,
-            }
-            | <span class="self">Self</span>::EvaluatingAsync {
-                top_level_capability,
-                cycle_root,
-                context,
-                pending_async_dependencies: <span class="kw">_</span>,
-                async_eval_index: <span class="kw">_</span>,
-            } =&gt; {
-                mark(top_level_capability);
-                mark(cycle_root);
-                mark(context);
-            }
-            <span class="self">Self</span>::Evaluated {
-                top_level_capability,
-                cycle_root,
-                error,
-            } =&gt; {
-                mark(top_level_capability);
-                mark(cycle_root);
-                mark(error);
-            }
-        }
-    });
-}
+<span class="kw">impl </span>ModuleStatus {
+    <span class="doccomment">/// Transition from one state to another, taking the current state by value to move data
+    /// between states.
+    </span><span class="kw">fn </span>transition&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: F)
+    <span class="kw">where
+        </span>F: FnOnce(<span class="self">Self</span>) -&gt; <span class="self">Self</span>,
+    {
+        <span class="kw-2">*</span><span class="self">self </span>= f(std::mem::take(<span class="self">self</span>));
+    }
 
-<span class="kw">impl </span>Status {
     <span class="doccomment">/// Gets the current index info of the module within the dependency graph, or `None` if the
     /// module is not in a state executing the dfs algorithm.
     </span><span class="kw">const fn </span>dfs_info(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>DfsInfo&gt; {
@@ -2215,7 +2173,7 @@
     }
 
     <span class="doccomment">/// If this module is in the evaluating state, gets its cycle root.
-    </span><span class="kw">const fn </span>cycle_root(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>SourceTextModule&gt; {
+    </span><span class="kw">const fn </span>cycle_root(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Module&gt; {
         <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self </span>{
             <span class="self">Self</span>::Evaluating { cycle_root, .. }
             | <span class="self">Self</span>::EvaluatingAsync { cycle_root, .. }
@@ -2224,13 +2182,16 @@
         }
     }
 
-    <span class="doccomment">/// Transition from one state to another, taking the current state by value to move data
-    /// between states.
-    </span><span class="kw">fn </span>transition&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: F)
-    <span class="kw">where
-        </span>F: FnOnce(<span class="self">Self</span>) -&gt; <span class="self">Self</span>,
-    {
-        <span class="kw-2">*</span><span class="self">self </span>= f(std::mem::take(<span class="self">self</span>));
+    <span class="doccomment">/// Gets the declarative environment from the module status.
+    </span><span class="kw">fn </span>environment(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Gc&lt;DeclarativeEnvironment&gt;&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            ModuleStatus::Unlinked | ModuleStatus::Linking { .. } =&gt; <span class="prelude-val">None</span>,
+            ModuleStatus::PreLinked { environment, .. }
+            | ModuleStatus::Linked { environment, .. }
+            | ModuleStatus::Evaluating { environment, .. }
+            | ModuleStatus::EvaluatingAsync { environment, .. }
+            | ModuleStatus::Evaluated { environment, .. } =&gt; <span class="prelude-val">Some</span>(environment.clone()),
+        }
     }
 }
 
@@ -2238,7 +2199,8 @@
 ///
 /// Stores the required context data that needs to be in place before executing the
 /// inner code of the module.
-</span><span class="attr">#[derive(Clone, Finalize)]
+</span><span class="attr">#[derive(Clone, Trace, Finalize)]
+#[boa_gc(unsafe_no_drop)]
 </span><span class="kw">struct </span>SourceTextContext {
     codeblock: Gc&lt;CodeBlock&gt;,
     environments: EnvironmentStack,
@@ -2255,48 +2217,28 @@
     }
 }
 
-<span class="kw">unsafe impl </span>Trace <span class="kw">for </span>SourceTextContext {
-    <span class="macro">custom_trace!</span>(this, mark, {
-        mark(<span class="kw-2">&amp;</span>this.codeblock);
-        mark(<span class="kw-2">&amp;</span>this.environments);
-        mark(<span class="kw-2">&amp;</span>this.realm);
-    });
-}
-
 <span class="doccomment">/// ECMAScript&#39;s [**Source Text Module Records**][spec].
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-source-text-module-records
-</span><span class="attr">#[derive(Clone, Trace, Finalize)]
+</span><span class="attr">#[derive(Trace, Finalize)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>SourceTextModule {
-    inner: Gc&lt;Inner&gt;,
+    status: GcRefCell&lt;ModuleStatus&gt;,
+    loaded_modules: GcRefCell&lt;FxHashMap&lt;JsString, Module&gt;&gt;,
+    async_parent_modules: GcRefCell&lt;Vec&lt;Module&gt;&gt;,
+    import_meta: GcRefCell&lt;<span class="prelude-ty">Option</span>&lt;JsObject&gt;&gt;,
+    <span class="attr">#[unsafe_ignore_trace]
+    </span>code: ModuleCode,
 }
 
 <span class="kw">impl </span>std::fmt::Debug <span class="kw">for </span>SourceTextModule {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
-        <span class="kw">let </span>limiter = RecursionLimiter::new(<span class="kw-2">&amp;*</span><span class="self">self</span>.inner);
-
-        <span class="kw">if </span>!limiter.visited &amp;&amp; !limiter.live {
-            f.debug_struct(<span class="string">&quot;SourceTextModule&quot;</span>)
-                .field(<span class="string">&quot;status&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.inner.status)
-                .field(<span class="string">&quot;loaded_modules&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.inner.loaded_modules)
-                .field(<span class="string">&quot;async_parent_modules&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.inner.async_parent_modules)
-                .field(<span class="string">&quot;import_meta&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.inner.import_meta)
-                .finish_non_exhaustive()
-        } <span class="kw">else </span>{
-            f.write_str(<span class="string">&quot;{ ... }&quot;</span>)
-        }
+        f.debug_struct(<span class="string">&quot;SourceTextModule&quot;</span>)
+            .field(<span class="string">&quot;status&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.status)
+            .field(<span class="string">&quot;loaded_modules&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.loaded_modules)
+            .field(<span class="string">&quot;async_parent_modules&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.async_parent_modules)
+            .field(<span class="string">&quot;import_meta&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.import_meta)
+            .finish_non_exhaustive()
     }
-}
-
-<span class="attr">#[derive(Trace, Finalize)]
-</span><span class="kw">struct </span>Inner {
-    parent: WeakGc&lt;ModuleRepr&gt;,
-    status: GcRefCell&lt;Status&gt;,
-    loaded_modules: GcRefCell&lt;FxHashMap&lt;JsString, Module&gt;&gt;,
-    async_parent_modules: GcRefCell&lt;Vec&lt;SourceTextModule&gt;&gt;,
-    import_meta: GcRefCell&lt;<span class="prelude-ty">Option</span>&lt;JsObject&gt;&gt;,
-    <span class="attr">#[unsafe_ignore_trace]
-    </span>code: ModuleCode,
 }
 
 <span class="attr">#[derive(Debug)]
@@ -2311,27 +2253,12 @@
 }
 
 <span class="kw">impl </span>SourceTextModule {
-    <span class="doccomment">/// Gets the parent module of this source module.
-    </span><span class="kw">fn </span>parent(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Module {
-        Module {
-            inner: <span class="self">self
-                </span>.inner
-                .parent
-                .upgrade()
-                .expect(<span class="string">&quot;parent module must be live&quot;</span>),
-        }
-    }
-
     <span class="doccomment">/// Creates a new `SourceTextModule` from a parsed `ModuleSource`.
     ///
     /// Contains part of the abstract operation [`ParseModule`][parse].
     ///
     /// [parse]: https://tc39.es/ecma262/#sec-parsemodule
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(
-        code: boa_ast::Module,
-        parent: WeakGc&lt;ModuleRepr&gt;,
-        interner: <span class="kw-2">&amp;</span>Interner,
-    ) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(code: boa_ast::Module, interner: <span class="kw-2">&amp;</span>Interner) -&gt; <span class="self">Self </span>{
         <span class="comment">// 3. Let requestedModules be the ModuleRequests of body.
         </span><span class="kw">let </span>requested_modules = code
             .items()
@@ -2416,37 +2343,39 @@
         // }.
         // Most of this can be ignored, since `Status` takes care of the remaining state.
         </span><span class="self">Self </span>{
-            inner: Gc::new(Inner {
-                parent,
-                status: GcRefCell::default(),
-                loaded_modules: GcRefCell::default(),
-                async_parent_modules: GcRefCell::default(),
-                import_meta: GcRefCell::default(),
-                code: ModuleCode {
-                    source: code,
-                    requested_modules,
-                    has_tla,
-                    import_entries,
-                    local_export_entries,
-                    indirect_export_entries,
-                    star_export_entries,
-                },
-            }),
+            status: GcRefCell::default(),
+            loaded_modules: GcRefCell::default(),
+            async_parent_modules: GcRefCell::default(),
+            import_meta: GcRefCell::default(),
+            code: ModuleCode {
+                source: code,
+                requested_modules,
+                has_tla,
+                import_entries,
+                local_export_entries,
+                indirect_export_entries,
+                star_export_entries,
+            },
         }
     }
 
     <span class="doccomment">/// Abstract operation [`InnerModuleLoading`][spec].
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-InnerModuleLoading
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>inner_load(<span class="kw-2">&amp;</span><span class="self">self</span>, state: <span class="kw-2">&amp;</span>Rc&lt;GraphLoadingState&gt;, context: <span class="kw-2">&amp;mut </span>Context) {
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>inner_load(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        module_self: <span class="kw-2">&amp;</span>Module,
+        state: <span class="kw-2">&amp;</span>Rc&lt;GraphLoadingState&gt;,
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) {
         <span class="comment">// 2. If module is a Cyclic Module Record, module.[[Status]] is new, and state.[[Visited]] does not contain
         //    module, then
         // a. Append module to state.[[Visited]].
-        </span><span class="kw">if </span><span class="macro">matches!</span>(<span class="kw-2">&amp;*</span><span class="self">self</span>.inner.status.borrow(), Status::Unlinked)
-            &amp;&amp; state.visited.borrow_mut().insert(<span class="self">self</span>.clone())
+        </span><span class="kw">if </span><span class="macro">matches!</span>(<span class="kw-2">&amp;*</span><span class="self">self</span>.status.borrow(), ModuleStatus::Unlinked)
+            &amp;&amp; state.visited.borrow_mut().insert(module_self.clone())
         {
             <span class="comment">// b. Let requestedModulesCount be the number of elements in module.[[RequestedModules]].
-            </span><span class="kw">let </span>requested = <span class="kw-2">&amp;</span><span class="self">self</span>.inner.code.requested_modules;
+            </span><span class="kw">let </span>requested = <span class="kw-2">&amp;</span><span class="self">self</span>.code.requested_modules;
             <span class="comment">// c. Set state.[[PendingModulesCount]] to state.[[PendingModulesCount]] + requestedModulesCount.
             </span>state
                 .pending_modules
@@ -2454,7 +2383,7 @@
             <span class="comment">// d. For each String required of module.[[RequestedModules]], do
             </span><span class="kw">for </span>required <span class="kw">in </span>requested.iter().cloned() {
                 <span class="comment">// i. If module.[[LoadedModules]] contains a Record whose [[Specifier]] is required, then
-                </span><span class="kw">let </span>loaded = <span class="self">self</span>.inner.loaded_modules.borrow().get(<span class="kw-2">&amp;</span>required).cloned();
+                </span><span class="kw">let </span>loaded = <span class="self">self</span>.loaded_modules.borrow().get(<span class="kw-2">&amp;</span>required).cloned();
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(loaded) = loaded {
                     <span class="comment">// 1. Let record be that Record.
                     // 2. Perform InnerModuleLoading(state, record.[[Module]]).
@@ -2465,10 +2394,10 @@
                     //       2. NOTE: HostLoadImportedModule will call FinishLoadingImportedModule, which re-enters
                     //          the graph loading process through ContinueModuleLoading.
                     </span><span class="kw">let </span>name_specifier = required.clone();
-                    <span class="kw">let </span>src = <span class="self">self</span>.clone();
+                    <span class="kw">let </span>src = module_self.clone();
                     <span class="kw">let </span>state = state.clone();
                     context.module_loader().load_imported_module(
-                        Referrer::Module(<span class="self">self</span>.parent()),
+                        Referrer::Module(module_self.clone()),
                         name_specifier,
                         Box::new(<span class="kw">move </span>|completion, context| {
                             <span class="comment">// FinishLoadingImportedModule ( referrer, specifier, payload, result )
@@ -2476,16 +2405,19 @@
 
                             // 1. If result is a normal completion, then
                             </span><span class="kw">if let </span><span class="prelude-val">Ok</span>(loaded) = <span class="kw-2">&amp;</span>completion {
+                                <span class="kw">let </span>ModuleKind::SourceText(src) = src.kind() <span class="kw">else </span>{
+                                    <span class="macro">unreachable!</span>(<span class="string">&quot;captured src must be a source text module&quot;</span>);
+                                };
                                 <span class="comment">// a. If referrer.[[LoadedModules]] contains a Record whose [[Specifier]] is specifier, then
                                 // b. Else,
                                 //    i. Append the Record { [[Specifier]]: specifier, [[Module]]: result.[[Value]] } to referrer.[[LoadedModules]].
-                                </span><span class="kw">let </span><span class="kw-2">mut </span>loaded_modules = src.inner.loaded_modules.borrow_mut();
+                                </span><span class="kw">let </span><span class="kw-2">mut </span>loaded_modules = src.loaded_modules.borrow_mut();
                                 <span class="kw">let </span>entry = loaded_modules
                                     .entry(required)
                                     .or_insert_with(|| loaded.clone());
 
                                 <span class="comment">//    i. Assert: That Record&#39;s [[Module]] is result.[[Value]].
-                                </span><span class="macro">debug_assert_eq!</span>(entry, loaded);
+                                </span><span class="macro">assert_eq!</span>(entry, loaded);
                             }
 
                             <span class="comment">// 2. If payload is a GraphLoadingState Record, then
@@ -2542,27 +2474,28 @@
     /// [spec]: https://tc39.es/ecma262/#sec-getexportednames
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>get_exported_names(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        export_star_set: <span class="kw-2">&amp;mut </span>Vec&lt;<span class="self">Self</span>&gt;,
+        module_self: <span class="kw-2">&amp;</span>Module,
+        export_star_set: <span class="kw-2">&amp;mut </span>Vec&lt;Module&gt;,
         interner: <span class="kw-2">&amp;</span>Interner,
     ) -&gt; FxHashSet&lt;JsString&gt; {
         <span class="comment">// 1. Assert: module.[[Status]] is not new.
         // 2. If exportStarSet is not present, set exportStarSet to a new empty List.
 
         // 3. If exportStarSet contains module, then
-        </span><span class="kw">if </span>export_star_set.contains(<span class="self">self</span>) {
+        </span><span class="kw">if </span>export_star_set.contains(module_self) {
             <span class="comment">// a. Assert: We&#39;ve reached the starting point of an export * circularity.
             // b. Return a new empty List.
             </span><span class="kw">return </span>FxHashSet::default();
         }
 
         <span class="comment">// 4. Append module to exportStarSet.
-        </span>export_star_set.push(<span class="self">self</span>.clone());
+        </span>export_star_set.push(module_self.clone());
 
         <span class="comment">// 5. Let exportedNames be a new empty List.
         </span><span class="kw">let </span><span class="kw-2">mut </span>exported_names = FxHashSet::default();
 
         <span class="comment">// 6. For each ExportEntry Record e of module.[[LocalExportEntries]], do
-        </span><span class="kw">for </span>e <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.inner.code.local_export_entries {
+        </span><span class="kw">for </span>e <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.code.local_export_entries {
             <span class="comment">// a. Assert: module provides the direct binding for this export.
             // b. Append e.[[ExportName]] to exportedNames.
             </span><span class="kw">let </span>name = e.export_name().to_js_string(interner);
@@ -2570,7 +2503,7 @@
         }
 
         <span class="comment">// 7. For each ExportEntry Record e of module.[[IndirectExportEntries]], do
-        </span><span class="kw">for </span>e <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.inner.code.indirect_export_entries {
+        </span><span class="kw">for </span>e <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.code.indirect_export_entries {
             <span class="comment">// a. Assert: module imports a specific binding for this export.
             // b. Append e.[[ExportName]] to exportedNames.
             </span><span class="kw">let </span>name = e.export_name().to_js_string(interner);
@@ -2578,9 +2511,9 @@
         }
 
         <span class="comment">// 8. For each ExportEntry Record e of module.[[StarExportEntries]], do
-        </span><span class="kw">for </span>e <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.inner.code.star_export_entries {
+        </span><span class="kw">for </span>e <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.code.star_export_entries {
             <span class="comment">// a. Let requestedModule be GetImportedModule(module, e.[[ModuleRequest]]).
-            </span><span class="kw">let </span>requested_module = <span class="self">self</span>.inner.loaded_modules.borrow()[e].clone();
+            </span><span class="kw">let </span>requested_module = <span class="self">self</span>.loaded_modules.borrow()[e].clone();
 
             <span class="comment">// b. Let starNames be requestedModule.GetExportedNames(exportStarSet).
             // c. For each element n of starNames, do
@@ -2604,16 +2537,16 @@
     </span><span class="attr">#[allow(clippy::mutable_key_type)]
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>resolve_export(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
+        module_self: <span class="kw-2">&amp;</span>Module,
         export_name: <span class="kw-2">&amp;</span>JsString,
         resolve_set: <span class="kw-2">&amp;mut </span>FxHashSet&lt;(Module, JsString)&gt;,
         interner: <span class="kw-2">&amp;</span>Interner,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;ResolvedBinding, ResolveExportError&gt; {
-        <span class="kw">let </span>parent = <span class="self">self</span>.parent();
         <span class="comment">// 1. Assert: module.[[Status]] is not new.
         // 2. If resolveSet is not present, set resolveSet to a new empty List.
         // 3. For each Record { [[Module]], [[ExportName]] } r of resolveSet, do
         //    a. If module and r.[[Module]] are the same Module Record and SameValue(exportName, r.[[ExportName]]) is true, then
-        </span><span class="kw">let </span>value = (parent.clone(), export_name.clone());
+        </span><span class="kw">let </span>value = (module_self.clone(), export_name.clone());
         <span class="kw">if </span>resolve_set.contains(<span class="kw-2">&amp;</span>value) {
             <span class="comment">//   i. Assert: This is a circular import request.
             //   ii. Return null.
@@ -2624,25 +2557,25 @@
         </span>resolve_set.insert(value);
 
         <span class="comment">// 5. For each ExportEntry Record e of module.[[LocalExportEntries]], do
-        </span><span class="kw">for </span>e <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.inner.code.local_export_entries {
+        </span><span class="kw">for </span>e <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.code.local_export_entries {
             <span class="comment">// a. If SameValue(exportName, e.[[ExportName]]) is true, then
             </span><span class="kw">if </span>export_name == <span class="kw-2">&amp;</span>e.export_name().to_js_string(interner) {
                 <span class="comment">// i. Assert: module provides the direct binding for this export.
                 // ii. Return ResolvedBinding Record { [[Module]]: module, [[BindingName]]: e.[[LocalName]] }.
                 </span><span class="kw">return </span><span class="prelude-val">Ok</span>(ResolvedBinding {
-                    module: parent,
+                    module: module_self.clone(),
                     binding_name: BindingName::Name(e.local_name().to_js_string(interner)),
                 });
             }
         }
 
         <span class="comment">// 6. For each ExportEntry Record e of module.[[IndirectExportEntries]], do
-        </span><span class="kw">for </span>e <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.inner.code.indirect_export_entries {
+        </span><span class="kw">for </span>e <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.code.indirect_export_entries {
             <span class="comment">// a. If SameValue(exportName, e.[[ExportName]]) is true, then
             </span><span class="kw">if </span>export_name == <span class="kw-2">&amp;</span>e.export_name().to_js_string(interner) {
                 <span class="comment">// i. Let importedModule be GetImportedModule(module, e.[[ModuleRequest]]).
                 </span><span class="kw">let </span>module_request = e.module_request().to_js_string(interner);
-                <span class="kw">let </span>imported_module = <span class="self">self</span>.inner.loaded_modules.borrow()[<span class="kw-2">&amp;</span>module_request].clone();
+                <span class="kw">let </span>imported_module = <span class="self">self</span>.loaded_modules.borrow()[<span class="kw-2">&amp;</span>module_request].clone();
                 <span class="kw">return match </span>e.import_name() {
                     <span class="comment">// ii. If e.[[ImportName]] is all, then
                     //    1. Assert: module does not provide the direct binding for this export.
@@ -2674,9 +2607,9 @@
         </span><span class="kw">let </span><span class="kw-2">mut </span>star_resolution: <span class="prelude-ty">Option</span>&lt;ResolvedBinding&gt; = <span class="prelude-val">None</span>;
 
         <span class="comment">// 9. For each ExportEntry Record e of module.[[StarExportEntries]], do
-        </span><span class="kw">for </span>e <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.inner.code.star_export_entries {
+        </span><span class="kw">for </span>e <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.code.star_export_entries {
             <span class="comment">// a. Let importedModule be GetImportedModule(module, e.[[ModuleRequest]]).
-            </span><span class="kw">let </span>imported_module = <span class="self">self</span>.inner.loaded_modules.borrow()[e].clone();
+            </span><span class="kw">let </span>imported_module = <span class="self">self</span>.loaded_modules.borrow()[e].clone();
             <span class="comment">// b. Let resolution be importedModule.ResolveExport(exportName, resolveSet).
             </span><span class="kw">let </span>resolution =
                 <span class="kw">match </span>imported_module.resolve_export(export_name.clone(), resolve_set, interner) {
@@ -2729,14 +2662,14 @@
     <span class="doccomment">/// Concrete method [`Link ( )`][spec].
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-moduledeclarationlinking
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>link(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;()&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>link(<span class="kw-2">&amp;</span><span class="self">self</span>, module_self: <span class="kw-2">&amp;</span>Module, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;()&gt; {
         <span class="comment">// 1. Assert: module.[[Status]] is one of unlinked, linked, evaluating-async, or evaluated.
         </span><span class="macro">debug_assert!</span>(<span class="macro">matches!</span>(
-            <span class="kw-2">&amp;*</span><span class="self">self</span>.inner.status.borrow(),
-            Status::Unlinked
-                | Status::Linked { .. }
-                | Status::EvaluatingAsync { .. }
-                | Status::Evaluated { .. }
+            <span class="kw-2">&amp;*</span><span class="self">self</span>.status.borrow(),
+            ModuleStatus::Unlinked
+                | ModuleStatus::Linked { .. }
+                | ModuleStatus::EvaluatingAsync { .. }
+                | ModuleStatus::Evaluated { .. }
         ));
 
         <span class="comment">// 2. Let stack be a new empty List.
@@ -2744,24 +2677,26 @@
 
         <span class="comment">// 3. Let result be Completion(InnerModuleLinking(module, stack, 0)).
         // 4. If result is an abrupt completion, then
-        </span><span class="kw">if let </span><span class="prelude-val">Err</span>(err) = <span class="self">self</span>.inner_link(<span class="kw-2">&amp;mut </span>stack, <span class="number">0</span>, context) {
+        </span><span class="kw">if let </span><span class="prelude-val">Err</span>(err) = <span class="self">self</span>.inner_link(module_self, <span class="kw-2">&amp;mut </span>stack, <span class="number">0</span>, context) {
             <span class="comment">// a. For each Cyclic Module Record m of stack, do
-            </span><span class="kw">for </span>m <span class="kw">in </span>stack {
+            </span><span class="kw">for </span>m <span class="kw">in </span>stack.iter().filter_map(|cmr| cmr.kind().as_source_text()) {
                 <span class="comment">// i. Assert: m.[[Status]] is linking.
-                </span><span class="macro">debug_assert!</span>(<span class="macro">matches!</span>(<span class="kw-2">&amp;*</span>m.inner.status.borrow(), Status::Linking { .. }));
+                </span><span class="macro">debug_assert!</span>(<span class="macro">matches!</span>(<span class="kw-2">&amp;*</span>m.status.borrow(), ModuleStatus::Linking { .. }));
                 <span class="comment">// ii. Set m.[[Status]] to unlinked.
-                </span><span class="kw-2">*</span>m.inner.status.borrow_mut() = Status::Unlinked;
+                </span><span class="kw-2">*</span>m.status.borrow_mut() = ModuleStatus::Unlinked;
             }
             <span class="comment">// b. Assert: module.[[Status]] is unlinked.
-            </span><span class="macro">assert!</span>(<span class="macro">matches!</span>(<span class="kw-2">&amp;*</span><span class="self">self</span>.inner.status.borrow(), Status::Unlinked));
+            </span><span class="macro">debug_assert!</span>(<span class="macro">matches!</span>(<span class="kw-2">&amp;*</span><span class="self">self</span>.status.borrow(), ModuleStatus::Unlinked));
             <span class="comment">// c. Return ? result.
             </span><span class="kw">return </span><span class="prelude-val">Err</span>(err);
         }
 
         <span class="comment">// 5. Assert: module.[[Status]] is one of linked, evaluating-async, or evaluated.
         </span><span class="macro">debug_assert!</span>(<span class="macro">matches!</span>(
-            <span class="kw-2">&amp;*</span><span class="self">self</span>.inner.status.borrow(),
-            Status::Linked { .. } | Status::EvaluatingAsync { .. } | Status::Evaluated { .. }
+            <span class="kw-2">&amp;*</span><span class="self">self</span>.status.borrow(),
+            ModuleStatus::Linked { .. }
+                | ModuleStatus::EvaluatingAsync { .. }
+                | ModuleStatus::Evaluated { .. }
         ));
         <span class="comment">// 6. Assert: stack is empty.
         </span><span class="macro">assert!</span>(stack.is_empty());
@@ -2775,30 +2710,31 @@
     /// [spec]: https://tc39.es/ecma262/#sec-InnerModuleLinking
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>inner_link(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        stack: <span class="kw-2">&amp;mut </span>Vec&lt;<span class="self">Self</span>&gt;,
+        module_self: <span class="kw-2">&amp;</span>Module,
+        stack: <span class="kw-2">&amp;mut </span>Vec&lt;Module&gt;,
         <span class="kw-2">mut </span>index: usize,
         context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;usize&gt; {
         <span class="comment">// 2. If module.[[Status]] is one of linking, linked, evaluating-async, or evaluated, then
         </span><span class="kw">if </span><span class="macro">matches!</span>(
-            <span class="kw-2">&amp;*</span><span class="self">self</span>.inner.status.borrow(),
-            Status::Linking { .. }
-                | Status::PreLinked { .. }
-                | Status::Linked { .. }
-                | Status::EvaluatingAsync { .. }
-                | Status::Evaluated { .. }
+            <span class="kw-2">&amp;*</span><span class="self">self</span>.status.borrow(),
+            ModuleStatus::Linking { .. }
+                | ModuleStatus::PreLinked { .. }
+                | ModuleStatus::Linked { .. }
+                | ModuleStatus::EvaluatingAsync { .. }
+                | ModuleStatus::Evaluated { .. }
         ) {
             <span class="comment">// a. Return index.
             </span><span class="kw">return </span><span class="prelude-val">Ok</span>(index);
         }
 
         <span class="comment">// 3. Assert: module.[[Status]] is unlinked.
-        </span><span class="macro">debug_assert!</span>(<span class="macro">matches!</span>(<span class="kw-2">&amp;*</span><span class="self">self</span>.inner.status.borrow(), Status::Unlinked));
+        </span><span class="macro">debug_assert!</span>(<span class="macro">matches!</span>(<span class="kw-2">&amp;*</span><span class="self">self</span>.status.borrow(), ModuleStatus::Unlinked));
 
         <span class="comment">// 4. Set module.[[Status]] to linking.
         // 5. Set module.[[DFSIndex]] to index.
         // 6. Set module.[[DFSAncestorIndex]] to index.
-        </span><span class="kw-2">*</span><span class="self">self</span>.inner.status.borrow_mut() = Status::Linking {
+        </span><span class="kw-2">*</span><span class="self">self</span>.status.borrow_mut() = ModuleStatus::Linking {
             info: DfsInfo {
                 dfs_index: index,
                 dfs_ancestor_index: index,
@@ -2809,36 +2745,36 @@
         </span>index += <span class="number">1</span>;
 
         <span class="comment">// 8. Append module to stack.
-        </span>stack.push(<span class="self">self</span>.clone());
+        </span>stack.push(module_self.clone());
 
         <span class="comment">// 9. For each String required of module.[[RequestedModules]], do
 
-        </span><span class="kw">for </span>required <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.inner.code.requested_modules {
+        </span><span class="kw">for </span>required <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.code.requested_modules {
             <span class="comment">// a. Let requiredModule be GetImportedModule(module, required).
-            </span><span class="kw">let </span>required_module = <span class="self">self</span>.inner.loaded_modules.borrow()[required].clone();
+            </span><span class="kw">let </span>required_module = <span class="self">self</span>.loaded_modules.borrow()[required].clone();
 
             <span class="comment">// b. Set index to ? InnerModuleLinking(requiredModule, stack, index).
             </span>index = required_module.inner_link(stack, index, context)<span class="question-mark">?</span>;
             <span class="comment">// c. If requiredModule is a Cyclic Module Record, then
-            </span><span class="kw">if let </span>ModuleKind::SourceText(required_module) = required_module.kind() {
+            </span><span class="kw">if let </span>ModuleKind::SourceText(required_module_src) = required_module.kind() {
                 <span class="comment">// i. Assert: requiredModule.[[Status]] is one of linking, linked, evaluating-async, or evaluated.
                 // ii. Assert: requiredModule.[[Status]] is linking if and only if stack contains requiredModule.
-                </span><span class="macro">debug_assert!</span>(<span class="kw">match </span><span class="kw-2">&amp;*</span>required_module.inner.status.borrow() {
-                    Status::PreLinked { .. }
-                    | Status::Linked { .. }
-                    | Status::EvaluatingAsync { .. }
-                    | Status::Evaluated { .. } =&gt; <span class="bool-val">true</span>,
-                    Status::Linking { .. } <span class="kw">if </span>stack.contains(required_module) =&gt; <span class="bool-val">true</span>,
+                </span><span class="macro">debug_assert!</span>(<span class="kw">match </span><span class="kw-2">&amp;*</span>required_module_src.status.borrow() {
+                    ModuleStatus::PreLinked { .. }
+                    | ModuleStatus::Linked { .. }
+                    | ModuleStatus::EvaluatingAsync { .. }
+                    | ModuleStatus::Evaluated { .. } =&gt; <span class="bool-val">true</span>,
+                    ModuleStatus::Linking { .. } <span class="kw">if </span>stack.contains(<span class="kw-2">&amp;</span>required_module) =&gt; <span class="bool-val">true</span>,
                     <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
                 });
 
                 <span class="comment">// iii. If requiredModule.[[Status]] is linking, then
-                </span><span class="kw">let </span>required_index = <span class="kw">if let </span>Status::Linking {
+                </span><span class="kw">let </span>required_index = <span class="kw">if let </span>ModuleStatus::Linking {
                     info:
                         DfsInfo {
                             dfs_ancestor_index, ..
                         },
-                } = <span class="kw-2">&amp;*</span>required_module.inner.status.borrow()
+                } = <span class="kw-2">&amp;*</span>required_module_src.status.borrow()
                 {
                     <span class="comment">// 1. Set module.[[DFSAncestorIndex]] to min(module.[[DFSAncestorIndex]],
                     //    requiredModule.[[DFSAncestorIndex]]).
@@ -2849,7 +2785,7 @@
                 </span>};
 
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(required_index) = required_index {
-                    <span class="kw">let </span><span class="kw-2">mut </span>status = <span class="self">self</span>.inner.status.borrow_mut();
+                    <span class="kw">let </span><span class="kw-2">mut </span>status = <span class="self">self</span>.status.borrow_mut();
 
                     <span class="kw">let </span>DfsInfo {
                         dfs_ancestor_index, ..
@@ -2862,18 +2798,20 @@
         }
 
         <span class="comment">// 10. Perform ? module.InitializeEnvironment().
-        </span><span class="self">self</span>.initialize_environment(context)<span class="question-mark">?</span>;
+        </span><span class="self">self</span>.initialize_environment(module_self, context)<span class="question-mark">?</span>;
 
         <span class="comment">// 11. Assert: module occurs exactly once in stack.
-        </span><span class="macro">debug_assert_eq!</span>(stack.iter().filter(|module| <span class="kw-2">*</span>module == <span class="self">self</span>).count(), <span class="number">1</span>);
+        </span><span class="macro">debug_assert_eq!</span>(
+            stack.iter().filter(|module| <span class="kw-2">*</span>module == module_self).count(),
+            <span class="number">1
+        </span>);
         <span class="comment">// 12. Assert: module.[[DFSAncestorIndex]] ≤ module.[[DFSIndex]].
         </span><span class="macro">debug_assert!</span>({
             <span class="kw">let </span>DfsInfo {
                 dfs_ancestor_index,
                 dfs_index,
             } = <span class="self">self
-                </span>.inner
-                .status
+                </span>.status
                 .borrow()
                 .dfs_info()
                 .copied()
@@ -2881,7 +2819,7 @@
             dfs_ancestor_index &lt;= dfs_index
         });
 
-        <span class="kw">let </span>info = <span class="self">self</span>.inner.status.borrow().dfs_info().copied();
+        <span class="kw">let </span>info = <span class="self">self</span>.status.borrow().dfs_info().copied();
         <span class="kw">match </span>info {
             <span class="comment">// 13. If module.[[DFSAncestorIndex]] = module.[[DFSIndex]], then
 
@@ -2890,14 +2828,25 @@
             </span><span class="prelude-val">Some</span>(info) <span class="kw">if </span>info.dfs_ancestor_index == info.dfs_index =&gt; <span class="kw">loop </span>{
                 <span class="comment">//    i. Let requiredModule be the last element of stack.
                 //    ii. Remove the last element of stack.
-                //    iii. Assert: requiredModule is a Cyclic Module Record.
                 </span><span class="kw">let </span>last = stack.pop().expect(<span class="string">&quot;should have at least one element&quot;</span>);
+                <span class="kw">let </span>ModuleKind::SourceText(last_src) = last.kind() <span class="kw">else </span>{
+                    <span class="macro">unreachable!</span>(<span class="string">&quot;iii. Assert: requiredModule is a Cyclic Module Record.&quot;</span>)
+                };
+
                 <span class="comment">//    iv. Set requiredModule.[[Status]] to linked.
-                </span>last.inner
+                </span>last_src
                     .status
                     .borrow_mut()
                     .transition(|current| <span class="kw">match </span>current {
-                        Status::PreLinked { info, context } =&gt; Status::Linked { info, context },
+                        ModuleStatus::PreLinked {
+                            info,
+                            context,
+                            environment,
+                        } =&gt; ModuleStatus::Linked {
+                            info,
+                            context,
+                            environment,
+                        },
                         <span class="kw">_ </span>=&gt; {
                             <span class="macro">unreachable!</span>(
                                 <span class="string">&quot;can only transition to `Linked` from the `PreLinked` state&quot;
@@ -2906,7 +2855,7 @@
                     });
 
                 <span class="comment">//    v. If requiredModule and module are the same Module Record, set done to true.
-                </span><span class="kw">if </span><span class="kw-2">&amp;</span>last == <span class="self">self </span>{
+                </span><span class="kw">if </span><span class="kw-2">&amp;</span>last == module_self {
                     <span class="kw">break</span>;
                 }
             },
@@ -2920,24 +2869,24 @@
     <span class="doccomment">/// Concrete method [`Evaluate ( )`][spec].
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-moduleevaluation
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>evaluate(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsPromise {
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>evaluate(<span class="kw-2">&amp;</span><span class="self">self</span>, module_self: <span class="kw-2">&amp;</span>Module, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsPromise {
         <span class="comment">// 1. Assert: This call to Evaluate is not happening at the same time as another call to Evaluate within the surrounding agent.
         </span><span class="kw">let </span>(module, promise) = {
-            <span class="kw">match </span><span class="kw-2">&amp;*</span><span class="self">self</span>.inner.status.borrow() {
-                Status::Unlinked
-                | Status::Linking { .. }
-                | Status::PreLinked { .. }
-                | Status::Evaluating { .. } =&gt; {
+            <span class="kw">match </span><span class="kw-2">&amp;*</span><span class="self">self</span>.status.borrow() {
+                ModuleStatus::Unlinked
+                | ModuleStatus::Linking { .. }
+                | ModuleStatus::PreLinked { .. }
+                | ModuleStatus::Evaluating { .. } =&gt; {
                     <span class="macro">unreachable!</span>(<span class="string">&quot;2. Assert: module.[[Status]] is one of linked, evaluating-async, or evaluated.&quot;</span>)
                 }
-                Status::Linked { .. } =&gt; (<span class="self">self</span>.clone(), <span class="prelude-val">None</span>),
+                ModuleStatus::Linked { .. } =&gt; (module_self.clone(), <span class="prelude-val">None</span>),
                 <span class="comment">// 3. If module.[[Status]] is either evaluating-async or evaluated, set module to module.[[CycleRoot]].
-                </span>Status::EvaluatingAsync {
+                </span>ModuleStatus::EvaluatingAsync {
                     cycle_root,
                     top_level_capability,
                     ..
                 }
-                | Status::Evaluated {
+                | ModuleStatus::Evaluated {
                     cycle_root,
                     top_level_capability,
                     ..
@@ -2969,21 +2918,25 @@
         .expect(<span class="string">&quot;capability creation must always succeed when using the `%Promise%` intrinsic&quot;</span>);
 
         <span class="comment">// 8. Let result be Completion(InnerModuleEvaluation(module, stack, 0)).
-        </span><span class="kw">let </span>result = module.inner_evaluate(<span class="kw-2">&amp;mut </span>stack, <span class="number">0</span>, <span class="prelude-val">Some</span>(capability.clone()), context);
+        </span><span class="kw">let </span>ModuleKind::SourceText(module_src) = module.kind() <span class="kw">else </span>{
+            <span class="macro">unreachable!</span>(<span class="string">&quot;module must be a source text module&quot;</span>);
+        };
+        <span class="kw">let </span>result =
+            module_src.inner_evaluate(<span class="kw-2">&amp;</span>module, <span class="kw-2">&amp;mut </span>stack, <span class="number">0</span>, <span class="prelude-val">Some</span>(capability.clone()), context);
 
         <span class="kw">match </span>result {
             <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
                 <span class="comment">// 10. Else,
                 //     a. Assert: module.[[Status]] is either evaluating-async or evaluated.
-                </span><span class="macro">assert!</span>(<span class="kw">match </span><span class="kw-2">&amp;*</span>module.inner.status.borrow() {
-                    Status::EvaluatingAsync { .. } =&gt; <span class="bool-val">true</span>,
+                </span><span class="macro">assert!</span>(<span class="kw">match </span><span class="kw-2">&amp;*</span>module_src.status.borrow() {
+                    ModuleStatus::EvaluatingAsync { .. } =&gt; <span class="bool-val">true</span>,
                     <span class="comment">// b. Assert: module.[[EvaluationError]] is empty.
-                    </span>Status::Evaluated { error, .. } <span class="kw">if </span>error.is_none() =&gt; <span class="bool-val">true</span>,
+                    </span>ModuleStatus::Evaluated { error, .. } <span class="kw">if </span>error.is_none() =&gt; <span class="bool-val">true</span>,
                     <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
                 });
 
                 <span class="comment">//     c. If module.[[AsyncEvaluation]] is false, then
-                </span><span class="kw">if </span><span class="macro">matches!</span>(<span class="kw-2">&amp;*</span>module.inner.status.borrow(), Status::Evaluated { .. }) {
+                </span><span class="kw">if </span><span class="macro">matches!</span>(<span class="kw-2">&amp;*</span>module_src.status.borrow(), ModuleStatus::Evaluated { .. }) {
                     <span class="comment">//    i. Assert: module.[[Status]] is evaluated.
                     //    ii. Perform ! Call(capability.[[Resolve]], undefined, « undefined »).
                     </span>capability
@@ -2998,21 +2951,24 @@
             <span class="comment">// 9. If result is an abrupt completion, then
             </span><span class="prelude-val">Err</span>(err) =&gt; {
                 <span class="comment">// a. For each Cyclic Module Record m of stack, do
-                </span><span class="kw">for </span>m <span class="kw">in </span>stack {
-                    m.inner.status.borrow_mut().transition(|current| <span class="kw">match </span>current {
+                </span><span class="kw">for </span>m <span class="kw">in </span>stack.iter().filter_map(|cmr| cmr.kind().as_source_text()) {
+                    m.status.borrow_mut().transition(|current| <span class="kw">match </span>current {
                         <span class="comment">// i. Assert: m.[[Status]] is evaluating.
-                        </span>Status::Evaluating {
+                        </span>ModuleStatus::Evaluating {
+                            environment,
                             top_level_capability,
                             cycle_root,
                             ..
-                        } | Status::EvaluatingAsync {
+                        } | ModuleStatus::EvaluatingAsync {
+                            environment,
                             top_level_capability,
                             cycle_root,
                             ..
                         } =&gt; {
                             <span class="comment">// ii. Set m.[[Status]] to evaluated.
                             // iii. Set m.[[EvaluationError]] to result.
-                            </span>Status::Evaluated {
+                            </span>ModuleStatus::Evaluated {
+                                environment,
                                 top_level_capability,
                                 cycle_root,
                                 error: <span class="prelude-val">Some</span>(err.clone()),
@@ -3026,7 +2982,7 @@
                 <span class="comment">// b. Assert: module.[[Status]] is evaluated.
                 // c. Assert: module.[[EvaluationError]] is result.
                 </span><span class="macro">assert!</span>(
-                    <span class="macro">matches!</span>(<span class="kw-2">&amp;*</span>module.inner.status.borrow(), Status::Evaluated { error, .. } <span class="kw">if </span>error.is_some())
+                    <span class="macro">matches!</span>(<span class="kw-2">&amp;*</span>module_src.status.borrow(), ModuleStatus::Evaluated { error, .. } <span class="kw">if </span>error.is_some())
                 );
 
                 <span class="comment">// d. Perform ! Call(capability.[[Reject]], undefined, « result.[[Value]] »).
@@ -3047,7 +3003,8 @@
     /// [spec]: https://tc39.es/ecma262/#sec-innermoduleevaluation
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>inner_evaluate(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        stack: <span class="kw-2">&amp;mut </span>Vec&lt;<span class="self">Self</span>&gt;,
+        module_self: <span class="kw-2">&amp;</span>Module,
+        stack: <span class="kw-2">&amp;mut </span>Vec&lt;Module&gt;,
         <span class="kw-2">mut </span>index: usize,
         capability: <span class="prelude-ty">Option</span>&lt;PromiseCapability&gt;,
         context: <span class="kw-2">&amp;mut </span>Context,
@@ -3073,13 +3030,15 @@
         }
 
         <span class="comment">// 2. If module.[[Status]] is either evaluating-async or evaluated, then
-        </span><span class="kw">match </span><span class="kw-2">&amp;*</span><span class="self">self</span>.inner.status.borrow() {
+        </span><span class="kw">match </span><span class="kw-2">&amp;*</span><span class="self">self</span>.status.borrow() {
             <span class="comment">// 3. If module.[[Status]] is evaluating, return index.
-            </span>Status::Evaluating { .. } | Status::EvaluatingAsync { .. } =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(index),
+            </span>ModuleStatus::Evaluating { .. } | ModuleStatus::EvaluatingAsync { .. } =&gt; {
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(index)
+            }
             <span class="comment">//     a. If module.[[EvaluationError]] is empty, return index.
             //     b. Otherwise, return ? module.[[EvaluationError]].
-            </span>Status::Evaluated { error, .. } =&gt; <span class="kw">return </span>error.clone().map_or(<span class="prelude-val">Ok</span>(index), <span class="prelude-val">Err</span>),
-            Status::Linked { .. } =&gt; {
+            </span>ModuleStatus::Evaluated { error, .. } =&gt; <span class="kw">return </span>error.clone().map_or(<span class="prelude-val">Ok</span>(index), <span class="prelude-val">Err</span>),
+            ModuleStatus::Linked { .. } =&gt; {
                 <span class="comment">// 4. Assert: module.[[Status]] is linked.
                 // evaluate a linked module
             </span>}
@@ -3088,55 +3047,56 @@
             </span>),
         }
 
-        <span class="kw">let </span>this = <span class="self">self</span>.clone();
         <span class="comment">// 5. Set module.[[Status]] to evaluating.
         // 6. Set module.[[DFSIndex]] to index.
         // 7. Set module.[[DFSAncestorIndex]] to index.
         // 8. Set module.[[PendingAsyncDependencies]] to 0.
-        </span><span class="self">self</span>.inner
-            .status
-            .borrow_mut()
-            .transition(|status| <span class="kw">match </span>status {
-                Status::Linked { context, .. } =&gt; Status::Evaluating {
-                    context,
-                    top_level_capability: capability,
-                    cycle_root: this,
-                    info: DfsInfo {
-                        dfs_index: index,
-                        dfs_ancestor_index: index,
-                    },
-                    async_eval_index: <span class="prelude-val">None</span>,
+        </span><span class="self">self</span>.status.borrow_mut().transition(|status| <span class="kw">match </span>status {
+            ModuleStatus::Linked {
+                environment,
+                context,
+                ..
+            } =&gt; ModuleStatus::Evaluating {
+                environment,
+                context,
+                top_level_capability: capability,
+                cycle_root: module_self.clone(),
+                info: DfsInfo {
+                    dfs_index: index,
+                    dfs_ancestor_index: index,
                 },
-                <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;already asserted that this state is `Linked`. &quot;</span>),
-            });
+                async_eval_index: <span class="prelude-val">None</span>,
+            },
+            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;already asserted that this state is `Linked`. &quot;</span>),
+        });
 
         <span class="comment">// 9. Set index to index + 1.
         </span>index += <span class="number">1</span>;
 
         <span class="kw">let </span><span class="kw-2">mut </span>pending_async_dependencies = <span class="number">0</span>;
         <span class="comment">// 10. Append module to stack.
-        </span>stack.push(<span class="self">self</span>.clone());
+        </span>stack.push(module_self.clone());
 
         <span class="comment">// 11. For each String required of module.[[RequestedModules]], do
-        </span><span class="kw">for </span>required <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.inner.code.requested_modules {
+        </span><span class="kw">for </span>required <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.code.requested_modules {
             <span class="comment">// a. Let requiredModule be GetImportedModule(module, required).
-            </span><span class="kw">let </span>required_module = <span class="self">self</span>.inner.loaded_modules.borrow()[required].clone();
+            </span><span class="kw">let </span>required_module = <span class="self">self</span>.loaded_modules.borrow()[required].clone();
             <span class="comment">// b. Set index to ? InnerModuleEvaluation(requiredModule, stack, index).
             </span>index = required_module.inner_evaluate(stack, index, context)<span class="question-mark">?</span>;
 
             <span class="comment">// c. If requiredModule is a Cyclic Module Record, then
-            </span><span class="kw">if let </span>ModuleKind::SourceText(required_module) = required_module.kind() {
+            </span><span class="kw">if let </span>ModuleKind::SourceText(required_module_src) = required_module.kind() {
                 <span class="comment">// i. Assert: requiredModule.[[Status]] is one of evaluating, evaluating-async, or evaluated.
                 // ii. Assert: requiredModule.[[Status]] is evaluating if and only if stack contains requiredModule.
-                </span><span class="macro">debug_assert!</span>(<span class="kw">match </span><span class="kw-2">&amp;*</span>required_module.inner.status.borrow() {
-                    Status::EvaluatingAsync { .. } | Status::Evaluated { .. } =&gt; <span class="bool-val">true</span>,
-                    Status::Evaluating { .. } <span class="kw">if </span>stack.contains(required_module) =&gt; <span class="bool-val">true</span>,
+                </span><span class="macro">debug_assert!</span>(<span class="kw">match </span><span class="kw-2">&amp;*</span>required_module_src.status.borrow() {
+                    ModuleStatus::EvaluatingAsync { .. } | ModuleStatus::Evaluated { .. } =&gt; <span class="bool-val">true</span>,
+                    ModuleStatus::Evaluating { .. } <span class="kw">if </span>stack.contains(<span class="kw-2">&amp;</span>required_module) =&gt; <span class="bool-val">true</span>,
                     <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
                 });
 
-                <span class="kw">let </span>(required_module, async_eval, req_info) = <span class="kw">match </span><span class="kw-2">&amp;*</span>required_module.inner.status.borrow() {
+                <span class="kw">let </span>(required_module, async_eval, req_info) = <span class="kw">match </span><span class="kw-2">&amp;*</span>required_module_src.status.borrow() {
                     <span class="comment">// iii. If requiredModule.[[Status]] is evaluating, then
-                    </span>Status::Evaluating {
+                    </span>ModuleStatus::Evaluating {
                         info,
                         async_eval_index,
                         ..
@@ -3145,23 +3105,31 @@
                         </span>(required_module.clone(), async_eval_index.is_some(), <span class="prelude-val">Some</span>(<span class="kw-2">*</span>info))
                     }
                     <span class="comment">// iv. Else,
-                    </span>Status::EvaluatingAsync { cycle_root, .. }
-                    | Status::Evaluated { cycle_root, .. } =&gt; {
+                    </span>ModuleStatus::EvaluatingAsync { cycle_root, .. }
+                    | ModuleStatus::Evaluated { cycle_root, .. } =&gt; {
                         <span class="comment">// 1. Set requiredModule to requiredModule.[[CycleRoot]].
-                        // 2. Assert: requiredModule.[[Status]] is either evaluating-async or evaluated.
-                        </span><span class="kw">match </span><span class="kw-2">&amp;*</span>cycle_root.inner.status.borrow() {
-                            Status::EvaluatingAsync { .. } =&gt; (cycle_root.clone(), <span class="bool-val">true</span>, <span class="prelude-val">None</span>),
+                        </span><span class="kw">let </span>ModuleKind::SourceText(cycle_root_src) = cycle_root.kind() <span class="kw">else </span>{
+                            <span class="macro">unreachable!</span>(<span class="string">&quot;cycle_root must be a source text module&quot;</span>);
+                        };
+
+                        <span class="comment">// 2. Assert: requiredModule.[[Status]] is either evaluating-async or evaluated.
+                        </span><span class="kw">match </span><span class="kw-2">&amp;*</span>cycle_root_src.status.borrow() {
+                            ModuleStatus::EvaluatingAsync { .. } =&gt; (cycle_root.clone(), <span class="bool-val">true</span>, <span class="prelude-val">None</span>),
                             <span class="comment">// 3. If requiredModule.[[EvaluationError]] is not empty, return ? requiredModule.[[EvaluationError]].
-                            </span>Status::Evaluated { error: <span class="prelude-val">Some</span>(error), .. } =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(error.clone()),
-                            Status::Evaluated { .. } =&gt; (cycle_root.clone(), <span class="bool-val">false</span>, <span class="prelude-val">None</span>),
+                            </span>ModuleStatus::Evaluated { error: <span class="prelude-val">Some</span>(error), .. } =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(error.clone()),
+                            ModuleStatus::Evaluated { .. } =&gt; (cycle_root.clone(), <span class="bool-val">false</span>, <span class="prelude-val">None</span>),
                             <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;2. Assert: requiredModule.[[Status]] is either evaluating-async or evaluated.&quot;</span>),
                         }
                     }
                     <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;i. Assert: requiredModule.[[Status]] is one of evaluating, evaluating-async, or evaluated.&quot;</span>),
                 };
 
+                <span class="kw">let </span>ModuleKind::SourceText(required_module) = required_module.kind() <span class="kw">else </span>{
+                    <span class="macro">unreachable!</span>(<span class="string">&quot;required_module must be a source text module&quot;</span>);
+                };
+
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(req_info) = req_info {
-                    <span class="kw">let </span><span class="kw-2">mut </span>status = <span class="self">self</span>.inner.status.borrow_mut();
+                    <span class="kw">let </span><span class="kw-2">mut </span>status = <span class="self">self</span>.status.borrow_mut();
                     <span class="kw">let </span>info = status
                         .dfs_info_mut()
                         .expect(<span class="string">&quot;self should still be in the evaluating state&quot;</span>);
@@ -3175,21 +3143,20 @@
                     </span>pending_async_dependencies += <span class="number">1</span>;
                     <span class="comment">// 2. Append module to requiredModule.[[AsyncParentModules]].
                     </span>required_module
-                        .inner
                         .async_parent_modules
                         .borrow_mut()
-                        .push(<span class="self">self</span>.clone());
+                        .push(module_self.clone());
                 }
             }
         }
 
         <span class="comment">// 12. If module.[[PendingAsyncDependencies]] &gt; 0 or module.[[HasTLA]] is true, then
-        </span><span class="kw">if </span>pending_async_dependencies &gt; <span class="number">0 </span>|| <span class="self">self</span>.inner.code.has_tla {
+        </span><span class="kw">if </span>pending_async_dependencies &gt; <span class="number">0 </span>|| <span class="self">self</span>.code.has_tla {
             <span class="comment">// a. Assert: module.[[AsyncEvaluation]] is false and was never previously set to true.
             </span>{
-                <span class="kw">let </span>Status::Evaluating {
+                <span class="kw">let </span>ModuleStatus::Evaluating {
                     async_eval_index, ..
-                } = <span class="kw-2">&amp;mut *</span><span class="self">self</span>.inner.status.borrow_mut()
+                } = <span class="kw-2">&amp;mut *</span><span class="self">self</span>.status.borrow_mut()
                 <span class="kw">else </span>{
                     <span class="macro">unreachable!</span>(<span class="string">&quot;self should still be in the evaluating state&quot;</span>)
                 };
@@ -3201,20 +3168,20 @@
 
             <span class="comment">//     d. If module.[[PendingAsyncDependencies]] = 0, perform ExecuteAsyncModule(module).
             </span><span class="kw">if </span>pending_async_dependencies == <span class="number">0 </span>{
-                <span class="self">self</span>.execute_async(context);
+                <span class="self">self</span>.execute_async(module_self, context);
             }
         } <span class="kw">else </span>{
             <span class="comment">// 13. Else,
             //    a. Perform ? module.ExecuteModule().
-            </span><span class="self">self</span>.execute(<span class="prelude-val">None</span>, context)<span class="question-mark">?</span>;
+            </span><span class="self">self</span>.execute(module_self, <span class="prelude-val">None</span>, context)<span class="question-mark">?</span>;
         }
 
-        <span class="kw">let </span>dfs_info = <span class="self">self</span>.inner.status.borrow().dfs_info().copied().expect(
+        <span class="kw">let </span>dfs_info = <span class="self">self</span>.status.borrow().dfs_info().copied().expect(
             <span class="string">&quot;haven&#39;t transitioned from the `Evaluating` state, so it should have its dfs info&quot;</span>,
         );
 
         <span class="comment">// 14. Assert: module occurs exactly once in stack.
-        </span><span class="macro">debug_assert_eq!</span>(stack.iter().filter(|m| <span class="kw-2">*</span>m == <span class="self">self</span>).count(), <span class="number">1</span>);
+        </span><span class="macro">debug_assert_eq!</span>(stack.iter().filter(|m| <span class="kw-2">*</span>m == module_self).count(), <span class="number">1</span>);
         <span class="comment">// 15. Assert: module.[[DFSAncestorIndex]] ≤ module.[[DFSIndex]].
         </span><span class="macro">assert!</span>(dfs_info.dfs_ancestor_index &lt;= dfs_info.dfs_index);
 
@@ -3228,11 +3195,14 @@
                 </span><span class="kw">let </span>required_module = stack
                     .pop()
                     .expect(<span class="string">&quot;should at least have `self` in the stack&quot;</span>);
-                <span class="kw">let </span>is_self = <span class="self">self </span>== <span class="kw-2">&amp;</span>required_module;
+                <span class="kw">let </span>is_self = module_self == <span class="kw-2">&amp;</span>required_module;
 
-                <span class="comment">// iii. Assert: requiredModule is a Cyclic Module Record.
-                </span>required_module.inner.status.borrow_mut().transition(|current| <span class="kw">match </span>current {
-                Status::Evaluating {
+                <span class="kw">let </span>ModuleKind::SourceText(required_module_src) = required_module.kind() <span class="kw">else </span>{
+                    <span class="macro">unreachable!</span>(<span class="string">&quot;iii. Assert: requiredModule is a Cyclic Module Record.&quot;</span>);
+                };
+                required_module_src.status.borrow_mut().transition(|current| <span class="kw">match </span>current {
+                ModuleStatus::Evaluating {
+                            environment,
                             top_level_capability,
                             cycle_root,
                             async_eval_index,
@@ -3240,13 +3210,14 @@
                             ..
                         } =&gt; <span class="kw">if let </span><span class="prelude-val">Some</span>(async_eval_index) = async_eval_index {
                             <span class="comment">// v. Otherwise, set requiredModule.[[Status]] to evaluating-async.
-                            </span>Status::EvaluatingAsync {
+                            </span>ModuleStatus::EvaluatingAsync {
+                                environment,
                                 top_level_capability,
                                 <span class="comment">// vii. Set requiredModule.[[CycleRoot]] to module.
                                 </span>cycle_root: <span class="kw">if </span>is_self {
                                     cycle_root
                                 } <span class="kw">else </span>{
-                                    <span class="self">self</span>.clone()
+                                    module_self.clone()
                                 },
                                 async_eval_index,
                                 pending_async_dependencies,
@@ -3254,12 +3225,13 @@
                             }
                         } <span class="kw">else </span>{
                             <span class="comment">// iv. If requiredModule.[[AsyncEvaluation]] is false, set requiredModule.[[Status]] to evaluated.
-                            </span>Status::Evaluated {
+                            </span>ModuleStatus::Evaluated {
+                                environment,
                                 top_level_capability,
                                 cycle_root: <span class="kw">if </span>is_self {
                                     cycle_root
                                 } <span class="kw">else </span>{
-                                    <span class="self">self</span>.clone()
+                                    module_self.clone()
                                 },
                                 error: <span class="prelude-val">None</span>,
                             }
@@ -3284,14 +3256,14 @@
     <span class="doccomment">/// Abstract operation [`ExecuteAsyncModule ( module )`][spec].
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-execute-async-module
-    </span><span class="kw">fn </span>execute_async(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) {
+    </span><span class="kw">fn </span>execute_async(<span class="kw-2">&amp;</span><span class="self">self</span>, module_self: <span class="kw-2">&amp;</span>Module, context: <span class="kw-2">&amp;mut </span>Context) {
         <span class="comment">// 1. Assert: module.[[Status]] is either evaluating or evaluating-async.
         </span><span class="macro">debug_assert!</span>(<span class="macro">matches!</span>(
-            <span class="kw-2">&amp;*</span><span class="self">self</span>.inner.status.borrow(),
-            Status::Evaluating { .. } | Status::EvaluatingAsync { .. }
+            <span class="kw-2">&amp;*</span><span class="self">self</span>.status.borrow(),
+            ModuleStatus::Evaluating { .. } | ModuleStatus::EvaluatingAsync { .. }
         ));
         <span class="comment">// 2. Assert: module.[[HasTLA]] is true.
-        </span><span class="macro">debug_assert!</span>(<span class="self">self</span>.inner.code.has_tla);
+        </span><span class="macro">debug_assert!</span>(<span class="self">self</span>.code.has_tla);
 
         <span class="comment">// 3. Let capability be ! NewPromiseCapability(%Promise%).
         </span><span class="kw">let </span>capability = PromiseCapability::new(
@@ -3311,7 +3283,7 @@
                     <span class="comment">//     b. Return undefined.
                     </span><span class="prelude-val">Ok</span>(JsValue::undefined())
                 },
-                <span class="self">self</span>.clone(),
+                module_self.clone(),
             ),
         )
         .build();
@@ -3328,7 +3300,7 @@
                     <span class="comment">// b. Return undefined.
                     </span><span class="prelude-val">Ok</span>(JsValue::undefined())
                 },
-                <span class="self">self</span>.clone(),
+                module_self.clone(),
             ),
         )
         .build();
@@ -3344,7 +3316,7 @@
 
         <span class="comment">// 9. Perform ! module.ExecuteModule(capability).
         // 10. Return unused.
-        </span><span class="self">self</span>.execute(<span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>capability), context)
+        </span><span class="self">self</span>.execute(module_self, <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>capability), context)
             .expect(<span class="string">&quot;async modules cannot directly throw&quot;</span>);
     }
 
@@ -3352,42 +3324,59 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-gather-available-ancestors
     </span><span class="attr">#[allow(clippy::mutable_key_type)]
-    </span><span class="kw">fn </span>gather_available_ancestors(<span class="kw-2">&amp;</span><span class="self">self</span>, exec_list: <span class="kw-2">&amp;mut </span>FxHashSet&lt;<span class="self">Self</span>&gt;) {
+    </span><span class="kw">fn </span>gather_available_ancestors(<span class="kw-2">&amp;</span><span class="self">self</span>, exec_list: <span class="kw-2">&amp;mut </span>FxHashSet&lt;Module&gt;) {
         <span class="comment">// 1. For each Cyclic Module Record m of module.[[AsyncParentModules]], do
-        </span><span class="kw">for </span>m <span class="kw">in </span><span class="kw-2">&amp;*</span><span class="self">self</span>.inner.async_parent_modules.borrow() {
-            <span class="comment">// a. If execList does not contain m and m.[[CycleRoot]].[[EvaluationError]] is empty, then
-            </span><span class="kw">if </span>!exec_list.contains(m)
-                &amp;&amp; m.inner.status.borrow().cycle_root().map_or(<span class="bool-val">false</span>, |cr| {
-                    cr.inner.status.borrow().evaluation_error().is_none()
-                })
-            {
-                <span class="kw">let </span>(deps, has_tla) = {
-                    <span class="comment">// i. Assert: m.[[Status]] is evaluating-async.
-                    // ii. Assert: m.[[EvaluationError]] is empty.
-                    // iii. Assert: m.[[AsyncEvaluation]] is true.
-                    </span><span class="kw">let </span>Status::EvaluatingAsync {
-                        pending_async_dependencies,
-                        ..
-                    } = <span class="kw-2">&amp;mut *</span>m.inner.status.borrow_mut()
-                    <span class="kw">else </span>{
-                        <span class="macro">unreachable!</span>(<span class="string">&quot;i. Assert: m.[[Status]] is evaluating-async.&quot;</span>);
-                    };
-                    <span class="comment">// iv. Assert: m.[[PendingAsyncDependencies]] &gt; 0.
-                    </span><span class="macro">assert!</span>(<span class="kw-2">*</span>pending_async_dependencies &gt; <span class="number">0</span>);
+        </span><span class="kw">for </span>m <span class="kw">in </span><span class="kw-2">&amp;*</span><span class="self">self</span>.async_parent_modules.borrow() {
+            <span class="kw">let </span>ModuleKind::SourceText(m_src) = m.kind() <span class="kw">else </span>{
+                <span class="kw">continue</span>;
+            };
 
-                    <span class="comment">// v. Set m.[[PendingAsyncDependencies]] to m.[[PendingAsyncDependencies]] - 1.
-                    </span><span class="kw-2">*</span>pending_async_dependencies -= <span class="number">1</span>;
-                    (<span class="kw-2">*</span>pending_async_dependencies, m.inner.code.has_tla)
+            <span class="kw">if </span>exec_list.contains(m) {
+                <span class="kw">continue</span>;
+            }
+
+            {
+                <span class="kw">let </span>m_status = m_src.status.borrow();
+                <span class="kw">let </span><span class="prelude-val">Some</span>(cycle_root) = m_status
+                    .cycle_root()
+                    .and_then(|root| root.kind().as_source_text())
+                <span class="kw">else </span>{
+                    <span class="kw">continue</span>;
                 };
 
-                <span class="comment">// vi. If m.[[PendingAsyncDependencies]] = 0, then
-                </span><span class="kw">if </span>deps == <span class="number">0 </span>{
-                    <span class="comment">// 1. Append m to execList.
-                    </span>exec_list.insert(m.clone());
-                    <span class="comment">// 2. If m.[[HasTLA]] is false, perform GatherAvailableAncestors(m, execList).
-                    </span><span class="kw">if </span>!has_tla {
-                        m.gather_available_ancestors(exec_list);
-                    }
+                <span class="kw">if </span>cycle_root.status.borrow().evaluation_error().is_some() {
+                    <span class="kw">continue</span>;
+                }
+            }
+
+            <span class="comment">// a. If execList does not contain m and m.[[CycleRoot]].[[EvaluationError]] is empty, then
+
+            </span><span class="kw">let </span>(deps, has_tla) = {
+                <span class="comment">// i. Assert: m.[[Status]] is evaluating-async.
+                // ii. Assert: m.[[EvaluationError]] is empty.
+                // iii. Assert: m.[[AsyncEvaluation]] is true.
+                </span><span class="kw">let </span>ModuleStatus::EvaluatingAsync {
+                    pending_async_dependencies,
+                    ..
+                } = <span class="kw-2">&amp;mut *</span>m_src.status.borrow_mut()
+                <span class="kw">else </span>{
+                    <span class="macro">unreachable!</span>(<span class="string">&quot;i. Assert: m.[[Status]] is evaluating-async.&quot;</span>);
+                };
+                <span class="comment">// iv. Assert: m.[[PendingAsyncDependencies]] &gt; 0.
+                </span><span class="macro">assert!</span>(<span class="kw-2">*</span>pending_async_dependencies &gt; <span class="number">0</span>);
+
+                <span class="comment">// v. Set m.[[PendingAsyncDependencies]] to m.[[PendingAsyncDependencies]] - 1.
+                </span><span class="kw-2">*</span>pending_async_dependencies -= <span class="number">1</span>;
+                (<span class="kw-2">*</span>pending_async_dependencies, m_src.code.has_tla)
+            };
+
+            <span class="comment">// vi. If m.[[PendingAsyncDependencies]] = 0, then
+            </span><span class="kw">if </span>deps == <span class="number">0 </span>{
+                <span class="comment">// 1. Append m to execList.
+                </span>exec_list.insert(m.clone());
+                <span class="comment">// 2. If m.[[HasTLA]] is false, perform GatherAvailableAncestors(m, execList).
+                </span><span class="kw">if </span>!has_tla {
+                    m_src.gather_available_ancestors(exec_list);
                 }
             }
         }
@@ -3397,7 +3386,7 @@
     <span class="doccomment">/// Abstract operation [`InitializeEnvironment ( )`][spec].
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-source-text-module-record-initialize-environment
-    </span><span class="kw">fn </span>initialize_environment(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;()&gt; {
+    </span><span class="kw">fn </span>initialize_environment(<span class="kw-2">&amp;</span><span class="self">self</span>, module_self: <span class="kw-2">&amp;</span>Module, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;()&gt; {
         <span class="attr">#[derive(Debug)]
         </span><span class="kw">enum </span>ImportBinding {
             Namespace {
@@ -3410,13 +3399,11 @@
             },
         }
 
-        <span class="kw">let </span>parent = <span class="self">self</span>.parent();
-
         {
             <span class="comment">// 1. For each ExportEntry Record e of module.[[IndirectExportEntries]], do
-            </span><span class="kw">for </span>e <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.inner.code.indirect_export_entries {
+            </span><span class="kw">for </span>e <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.code.indirect_export_entries {
                 <span class="comment">// a. Let resolution be module.ResolveExport(e.[[ExportName]]).
-                </span>parent
+                </span>module_self
                     .resolve_export(
                         e.export_name().to_js_string(context.interner()),
                         <span class="kw-2">&amp;mut </span>HashSet::default(),
@@ -3444,7 +3431,7 @@
         <span class="comment">// 2. Assert: All named exports from module are resolvable.
         // 3. Let realm be module.[[Realm]].
         // 4. Assert: realm is not undefined.
-        </span><span class="kw">let </span>realm = parent.realm().clone();
+        </span><span class="kw">let </span>realm = module_self.realm().clone();
 
         <span class="comment">// 5. Let env be NewModuleEnvironment(realm.[[GlobalEnv]]).
         // 6. Set module.[[Environment]] to env.
@@ -3468,10 +3455,10 @@
 
         <span class="kw">let </span>(codeblock, functions) = {
             <span class="comment">// 7. For each ImportEntry Record in of module.[[ImportEntries]], do
-            </span><span class="kw">for </span>entry <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.inner.code.import_entries {
+            </span><span class="kw">for </span>entry <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.code.import_entries {
                 <span class="comment">// a. Let importedModule be GetImportedModule(module, in.[[ModuleRequest]]).
                 </span><span class="kw">let </span>module_request = entry.module_request().to_js_string(compiler.interner());
-                <span class="kw">let </span>imported_module = <span class="self">self</span>.inner.loaded_modules.borrow()[<span class="kw-2">&amp;</span>module_request].clone();
+                <span class="kw">let </span>imported_module = <span class="self">self</span>.loaded_modules.borrow()[<span class="kw-2">&amp;</span>module_request].clone();
 
                 <span class="kw">if let </span>ImportName::Name(name) = entry.import_name() {
                     <span class="kw">let </span>name = name.to_js_string(compiler.interner());
@@ -3533,7 +3520,7 @@
 
             <span class="comment">// 18. Let code be module.[[ECMAScriptCode]].
             // 19. Let varDeclarations be the VarScopedDeclarations of code.
-            </span><span class="kw">let </span>var_declarations = var_scoped_declarations(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.code.source);
+            </span><span class="kw">let </span>var_declarations = var_scoped_declarations(<span class="kw-2">&amp;</span><span class="self">self</span>.code.source);
             <span class="comment">// 20. Let declaredVarNames be a new empty List.
             </span><span class="kw">let </span><span class="kw-2">mut </span>declared_var_names = Vec::new();
             <span class="comment">// 21. For each element d of varDeclarations, do
@@ -3559,7 +3546,7 @@
 
             <span class="comment">// 22. Let lexDeclarations be the LexicallyScopedDeclarations of code.
             // 23. Let privateEnv be null.
-            </span><span class="kw">let </span>lex_declarations = lexically_scoped_declarations(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.code.source);
+            </span><span class="kw">let </span>lex_declarations = lexically_scoped_declarations(<span class="kw-2">&amp;</span><span class="self">self</span>.code.source);
             <span class="kw">let </span><span class="kw-2">mut </span>functions = Vec::new();
             <span class="comment">// 24. For each element d of lexDeclarations, do
             </span><span class="kw">for </span>declaration <span class="kw">in </span>lex_declarations {
@@ -3643,7 +3630,7 @@
                 .map(|(spec, locator)| (compiler.function(spec), locator))
                 .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
 
-            compiler.compile_module_item_list(<span class="self">self</span>.inner.code.source.items());
+            compiler.compile_module_item_list(<span class="self">self</span>.code.source.items());
 
             (Gc::new(compiler.finish()), functions)
         };
@@ -3661,7 +3648,7 @@
         // 15. Set the PrivateEnvironment of moduleContext to null.
         </span><span class="kw">let </span>call_frame = CallFrame::new(
             codeblock.clone(),
-            <span class="prelude-val">Some</span>(ActiveRunnable::Module(parent.clone())),
+            <span class="prelude-val">Some</span>(ActiveRunnable::Module(module_self.clone())),
             envs,
             realm.clone(),
         );
@@ -3727,27 +3714,28 @@
             .pop_frame()
             .expect(<span class="string">&quot;There should be a call frame&quot;</span>);
 
-        <span class="macro">debug_assert!</span>(frame.environments.current().as_declarative().is_some());
-        <span class="kw-2">*</span>parent.inner.environment.borrow_mut() =
-            frame.environments.current().as_declarative().cloned();
+        <span class="kw">let </span>env = frame
+            .environments
+            .current()
+            .as_declarative()
+            .cloned()
+            .expect(<span class="string">&quot;frame must have a declarative environment&quot;</span>);
 
         <span class="comment">// 16. Set module.[[Context]] to moduleContext.
-        </span><span class="self">self</span>.inner
-            .status
-            .borrow_mut()
-            .transition(|state| <span class="kw">match </span>state {
-                Status::Linking { info } =&gt; Status::PreLinked {
-                    info,
-                    context: SourceTextContext {
-                        codeblock,
-                        environments: frame.environments.clone(),
-                        realm,
-                    },
+        </span><span class="self">self</span>.status.borrow_mut().transition(|state| <span class="kw">match </span>state {
+            ModuleStatus::Linking { info } =&gt; ModuleStatus::PreLinked {
+                environment: env,
+                info,
+                context: SourceTextContext {
+                    codeblock,
+                    environments: frame.environments.clone(),
+                    realm,
                 },
-                <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(
-                    <span class="string">&quot;should only transition to the `PreLinked` state from the `Linking` state&quot;
-                </span>),
-            });
+            },
+            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(
+                <span class="string">&quot;should only transition to the `PreLinked` state from the `Linking` state&quot;
+            </span>),
+        });
 
         <span class="comment">// 26. Return unused.
         </span><span class="prelude-val">Ok</span>(())
@@ -3758,6 +3746,7 @@
     /// [spec]: https://tc39.es/ecma262/#sec-source-text-module-record-execute-module
     </span><span class="kw">fn </span>execute(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
+        module_self: <span class="kw-2">&amp;</span>Module,
         capability: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>PromiseCapability&gt;,
         context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;()&gt; {
@@ -3766,10 +3755,9 @@
             codeblock,
             environments,
             realm,
-        } = <span class="kw">match </span><span class="kw-2">&amp;*</span><span class="self">self</span>.inner.status.borrow() {
-            Status::Evaluating { context, .. } | Status::EvaluatingAsync { context, .. } =&gt; {
-                context.clone()
-            }
+        } = <span class="kw">match </span><span class="kw-2">&amp;*</span><span class="self">self</span>.status.borrow() {
+            ModuleStatus::Evaluating { context, .. }
+            | ModuleStatus::EvaluatingAsync { context, .. } =&gt; context.clone(),
             <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;`execute` should only be called for evaluating modules.&quot;</span>),
         };
 
@@ -3782,7 +3770,7 @@
         </span><span class="kw">let </span>env_fp = environments.len() <span class="kw">as </span>u32;
         <span class="kw">let </span>callframe = CallFrame::new(
             codeblock,
-            <span class="prelude-val">Some</span>(ActiveRunnable::Module(<span class="self">self</span>.parent())),
+            <span class="prelude-val">Some</span>(ActiveRunnable::Module(module_self.clone())),
             environments,
             realm,
         )
@@ -3826,12 +3814,18 @@
 
     <span class="doccomment">/// Gets the loaded modules of this module.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>loaded_modules(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>GcRefCell&lt;FxHashMap&lt;JsString, Module&gt;&gt; {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.inner.loaded_modules
+        <span class="kw-2">&amp;</span><span class="self">self</span>.loaded_modules
     }
 
-    <span class="doccomment">/// Gets the import meta object of this module.
+    <span class="doccomment">/// Gets the import meta object of this module, or initializes
+    /// it using the provided callback.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>import_meta(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>GcRefCell&lt;<span class="prelude-ty">Option</span>&lt;JsObject&gt;&gt; {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.inner.import_meta
+        <span class="kw-2">&amp;</span><span class="self">self</span>.import_meta
+    }
+
+    <span class="doccomment">/// Gets the declarative environment of this module.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>environment(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Gc&lt;DeclarativeEnvironment&gt;&gt; {
+        <span class="self">self</span>.status.borrow().environment()
     }
 }
 
@@ -3839,9 +3833,13 @@
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-async-module-execution-fulfilled
 </span><span class="attr">#[allow(clippy::mutable_key_type)]
-</span><span class="kw">fn </span>async_module_execution_fulfilled(module: <span class="kw-2">&amp;</span>SourceTextModule, context: <span class="kw-2">&amp;mut </span>Context) {
+</span><span class="kw">fn </span>async_module_execution_fulfilled(module: <span class="kw-2">&amp;</span>Module, context: <span class="kw-2">&amp;mut </span>Context) {
+    <span class="kw">let </span>ModuleKind::SourceText(module_src) = module.kind() <span class="kw">else </span>{
+        <span class="macro">unreachable!</span>(<span class="string">&quot;async executed module must be a source text module&quot;</span>);
+    };
+
     <span class="comment">// 1. If module.[[Status]] is evaluated, then
-    </span><span class="kw">if let </span>Status::Evaluated { error, .. } = <span class="kw-2">&amp;*</span>module.inner.status.borrow() {
+    </span><span class="kw">if let </span>ModuleStatus::Evaluated { error, .. } = <span class="kw-2">&amp;*</span>module_src.status.borrow() {
         <span class="comment">//     a. Assert: module.[[EvaluationError]] is not empty.
         </span><span class="macro">assert!</span>(error.is_some());
         <span class="comment">//     b. Return unused.
@@ -3853,16 +3851,17 @@
     // 4. Assert: module.[[EvaluationError]] is empty.
     // 5. Set module.[[AsyncEvaluation]] to false.
     // 6. Set module.[[Status]] to evaluated.
-    </span>module
-        .inner
+    </span>module_src
         .status
         .borrow_mut()
         .transition(|status| <span class="kw">match </span>status {
-            Status::EvaluatingAsync {
+            ModuleStatus::EvaluatingAsync {
+                environment,
                 top_level_capability,
                 cycle_root,
                 ..
-            } =&gt; Status::Evaluated {
+            } =&gt; ModuleStatus::Evaluated {
+                environment,
                 top_level_capability,
                 cycle_root,
                 error: <span class="prelude-val">None</span>,
@@ -3871,9 +3870,9 @@
         });
 
     <span class="comment">// 7. If module.[[TopLevelCapability]] is not empty, then
-    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(cap) = module.inner.status.borrow().top_level_capability() {
+    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(cap) = module_src.status.borrow().top_level_capability() {
         <span class="comment">// a. Assert: module.[[CycleRoot]] is module.
-        </span><span class="macro">debug_assert_eq!</span>(module.inner.status.borrow().cycle_root(), <span class="prelude-val">Some</span>(module));
+        </span><span class="macro">debug_assert_eq!</span>(module_src.status.borrow().cycle_root(), <span class="prelude-val">Some</span>(module));
 
         <span class="comment">// b. Perform ! Call(module.[[TopLevelCapability]].[[Resolve]], undefined, « undefined »).
         </span>cap.resolve()
@@ -3885,16 +3884,20 @@
     </span><span class="kw">let </span><span class="kw-2">mut </span>ancestors = FxHashSet::default();
 
     <span class="comment">// 9. Perform GatherAvailableAncestors(module, execList).
-    </span>module.gather_available_ancestors(<span class="kw-2">&amp;mut </span>ancestors);
+    </span>module_src.gather_available_ancestors(<span class="kw-2">&amp;mut </span>ancestors);
 
     <span class="comment">// 11. Assert: All elements of sortedExecList have their [[AsyncEvaluation]] field set to true, [[PendingAsyncDependencies]] field set to 0, and [[EvaluationError]] field set to empty.
     </span><span class="kw">let </span><span class="kw-2">mut </span>ancestors = ancestors.into_iter().collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
 
     <span class="comment">// 10. Let sortedExecList be a List whose elements are the elements of execList, in the order in which they had their [[AsyncEvaluation]] fields set to true in InnerModuleEvaluation.
     </span>ancestors.sort_by_cached_key(|m| {
-        <span class="kw">let </span>Status::EvaluatingAsync {
+        <span class="kw">let </span>ModuleKind::SourceText(m_src) = m.kind() <span class="kw">else </span>{
+            <span class="macro">unreachable!</span>(<span class="string">&quot;ancestors must only be source text modules&quot;</span>);
+        };
+
+        <span class="kw">let </span>ModuleStatus::EvaluatingAsync {
             async_eval_index, ..
-        } = <span class="kw-2">&amp;*</span>m.inner.status.borrow()
+        } = <span class="kw-2">&amp;*</span>m_src.status.borrow()
         <span class="kw">else </span>{
             <span class="macro">unreachable!</span>(<span class="string">&quot;GatherAvailableAncestors: i. Assert: m.[[Status]] is evaluating-async.&quot;</span>);
         };
@@ -3904,22 +3907,26 @@
 
     <span class="comment">// 12. For each Cyclic Module Record m of sortedExecList, do
     </span><span class="kw">for </span>m <span class="kw">in </span>ancestors {
+        <span class="kw">let </span>ModuleKind::SourceText(m_src) = m.kind() <span class="kw">else </span>{
+            <span class="kw">continue</span>;
+        };
+
         <span class="comment">// a. If m.[[Status]] is evaluated, then
-        </span><span class="kw">if let </span>Status::Evaluated { error, .. } = <span class="kw-2">&amp;*</span>m.inner.status.borrow() {
+        </span><span class="kw">if let </span>ModuleStatus::Evaluated { error, .. } = <span class="kw-2">&amp;*</span>m_src.status.borrow() {
             <span class="comment">// i. Assert: m.[[EvaluationError]] is not empty.
             </span><span class="macro">assert!</span>(error.is_some());
             <span class="kw">continue</span>;
         }
 
         <span class="comment">// b. Else if m.[[HasTLA]] is true, then
-        </span><span class="kw">let </span>has_tla = m.inner.code.has_tla;
+        </span><span class="kw">let </span>has_tla = m_src.code.has_tla;
         <span class="kw">if </span>has_tla {
             <span class="comment">// i. Perform ExecuteAsyncModule(m).
-            </span>m.execute_async(context);
+            </span>m_src.execute_async(<span class="kw-2">&amp;</span>m, context);
         } <span class="kw">else </span>{
             <span class="comment">// c. Else,
             //    i. Let result be m.ExecuteModule().
-            </span><span class="kw">let </span>result = m.execute(<span class="prelude-val">None</span>, context);
+            </span><span class="kw">let </span>result = m_src.execute(<span class="kw-2">&amp;</span>m, <span class="prelude-val">None</span>, context);
 
             <span class="comment">//    ii. If result is an abrupt completion, then
             </span><span class="kw">if let </span><span class="prelude-val">Err</span>(e) = result {
@@ -3928,27 +3935,26 @@
             } <span class="kw">else </span>{
                 <span class="comment">// iii. Else,
                 //    1. Set m.[[Status]] to evaluated.
-                </span>m.inner
-                    .status
-                    .borrow_mut()
-                    .transition(|status| <span class="kw">match </span>status {
-                        Status::EvaluatingAsync {
-                            top_level_capability,
-                            cycle_root,
-                            ..
-                        } =&gt; Status::Evaluated {
-                            top_level_capability,
-                            cycle_root,
-                            error: <span class="prelude-val">None</span>,
-                        },
-                        <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
-                    });
+                </span>m_src.status.borrow_mut().transition(|status| <span class="kw">match </span>status {
+                    ModuleStatus::EvaluatingAsync {
+                        environment,
+                        top_level_capability,
+                        cycle_root,
+                        ..
+                    } =&gt; ModuleStatus::Evaluated {
+                        environment,
+                        top_level_capability,
+                        cycle_root,
+                        error: <span class="prelude-val">None</span>,
+                    },
+                    <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
+                });
 
-                <span class="kw">let </span>status = m.inner.status.borrow();
+                <span class="kw">let </span>status = m_src.status.borrow();
                 <span class="comment">// 2. If m.[[TopLevelCapability]] is not empty, then
                 </span><span class="kw">if let </span><span class="prelude-val">Some</span>(cap) = status.top_level_capability() {
                     <span class="comment">// a. Assert: m.[[CycleRoot]] is m.
-                    </span><span class="macro">debug_assert_eq!</span>(status.cycle_root(), <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>m));
+                    </span><span class="macro">assert_eq!</span>(status.cycle_root(), <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>m));
 
                     <span class="comment">// b. Perform ! Call(m.[[TopLevelCapability]].[[Resolve]], undefined, « undefined »).
                     </span>cap.resolve()
@@ -3964,13 +3970,12 @@
 <span class="doccomment">/// Abstract operation [`AsyncModuleExecutionRejected ( module, error )`][spec].
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-async-module-execution-rejected
-</span><span class="kw">fn </span>async_module_execution_rejected(
-    module: <span class="kw-2">&amp;</span>SourceTextModule,
-    error: <span class="kw-2">&amp;</span>JsError,
-    context: <span class="kw-2">&amp;mut </span>Context,
-) {
+</span><span class="kw">fn </span>async_module_execution_rejected(module: <span class="kw-2">&amp;</span>Module, error: <span class="kw-2">&amp;</span>JsError, context: <span class="kw-2">&amp;mut </span>Context) {
+    <span class="kw">let </span>ModuleKind::SourceText(module_src) = module.kind() <span class="kw">else </span>{
+        <span class="macro">unreachable!</span>(<span class="string">&quot;async executed module must be a source text module&quot;</span>);
+    };
     <span class="comment">// 1. If module.[[Status]] is evaluated, then
-    </span><span class="kw">if let </span>Status::Evaluated { error, .. } = <span class="kw-2">&amp;*</span>module.inner.status.borrow() {
+    </span><span class="kw">if let </span>ModuleStatus::Evaluated { error, .. } = <span class="kw-2">&amp;*</span>module_src.status.borrow() {
         <span class="comment">//     a. Assert: module.[[EvaluationError]] is not empty.
         </span><span class="macro">assert!</span>(error.is_some());
         <span class="comment">//     b. Return unused.
@@ -3982,16 +3987,17 @@
     // 4. Assert: module.[[EvaluationError]] is empty.
     // 5. Set module.[[EvaluationError]] to ThrowCompletion(error).
     // 6. Set module.[[Status]] to evaluated.
-    </span>module
-        .inner
+    </span>module_src
         .status
         .borrow_mut()
         .transition(|status| <span class="kw">match </span>status {
-            Status::EvaluatingAsync {
+            ModuleStatus::EvaluatingAsync {
+                environment,
                 top_level_capability,
                 cycle_root,
                 ..
-            } =&gt; Status::Evaluated {
+            } =&gt; ModuleStatus::Evaluated {
+                environment,
                 top_level_capability,
                 cycle_root,
                 error: <span class="prelude-val">Some</span>(error.clone()),
@@ -4000,16 +4006,16 @@
         });
 
     <span class="comment">// 7. For each Cyclic Module Record m of module.[[AsyncParentModules]], do
-    </span><span class="kw">for </span>m <span class="kw">in </span><span class="kw-2">&amp;*</span>module.inner.async_parent_modules.borrow() {
+    </span><span class="kw">for </span>m <span class="kw">in </span><span class="kw-2">&amp;*</span>module_src.async_parent_modules.borrow() {
         <span class="comment">// a. Perform AsyncModuleExecutionRejected(m, error).
         </span>async_module_execution_rejected(m, error, context);
     }
 
-    <span class="kw">let </span>status = module.inner.status.borrow();
+    <span class="kw">let </span>status = module_src.status.borrow();
     <span class="comment">// 8. If module.[[TopLevelCapability]] is not empty, then
     </span><span class="kw">if let </span><span class="prelude-val">Some</span>(cap) = status.top_level_capability() {
         <span class="comment">// a. Assert: module.[[CycleRoot]] is module.
-        </span><span class="macro">debug_assert_eq!</span>(status.cycle_root(), <span class="prelude-val">Some</span>(module));
+        </span><span class="macro">assert_eq!</span>(status.cycle_root(), <span class="prelude-val">Some</span>(module));
 
         <span class="comment">// b. Perform ! Call(module.[[TopLevelCapability]].[[Reject]], undefined, « error »).
         </span>cap.reject()
@@ -4018,18 +4024,4 @@
     }
     <span class="comment">// 9. Return unused.
 </span>}
-
-<span class="kw">impl </span>PartialEq <span class="kw">for </span>SourceTextModule {
-    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
-        std::ptr::eq(<span class="self">self</span>.inner.as_ref(), other.inner.as_ref())
-    }
-}
-
-<span class="kw">impl </span>Eq <span class="kw">for </span>SourceTextModule {}
-
-<span class="kw">impl </span>Hash <span class="kw">for </span>SourceTextModule {
-    <span class="kw">fn </span>hash&lt;H: std::hash::Hasher&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, state: <span class="kw-2">&amp;mut </span>H) {
-        std::ptr::hash(<span class="self">self</span>.inner.as_ref(), state);
-    }
-}
 </code></pre></div></section></main></body></html>
