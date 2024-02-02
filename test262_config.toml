@@ -1,4 +1,4 @@
-commit = "e4f91b6381d7694265031caad0c71d733ac132f3"
+commit = "584048ed081d85f5eed6e884a7b40b6f4bcd67d7"
 
 [ignored]
 # Not implemented yet:
@@ -34,9 +34,6 @@ features = [
 
     # https://github.com/tc39/proposal-json-modules
     "json-modules",
-
-    # https://github.com/tc39/proposal-arraybuffer-transfer
-    "arraybuffer-transfer",
 
     # https://github.com/tc39/proposal-realms
     "ShadowRealm",
