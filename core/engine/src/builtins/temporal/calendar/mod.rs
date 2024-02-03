@@ -1074,12 +1074,7 @@ pub(crate) fn to_temporal_calendar_slot_value(
         }
 
         // c. Return temporalCalendarLike.
-        match calendar_like.clone().downcast::<Calendar>() {
-            Ok(cal) => return Ok(cal.borrow().data().slot.clone()),
-            Err(custom) => {
-                return Ok(CalendarSlot::Protocol(custom.clone()));
-            }
-        }
+        return Ok(CalendarSlot::Protocol(calendar_like.clone()));
     }
 
     // 3. If temporalCalendarLike is not a String, throw a TypeError exception.
