@@ -24,9 +24,77 @@ Currently, it has support for some of the language.
 
 ## Live Demo (WASM)
 
-<https://boajs.dev/boa/playground/>
+Try out the engine now at the live WASM playground [here](https://boajs.dev/boa/playground/)!
 
-You can get more verbose errors when running from the command line.
+Prefer a CLI? Feel free to try out `boa_cli`!
+
+## Boa Crates
+
+Boa currently publishes and actively maintains the following crates:
+
+- **`boa_ast`** - Boa's ECMAScript Abstract Syntax Tree.
+- **`boa_engine`** - Boa's implementation of ECMAScript builtin objects and
+  execution.
+- **`boa_gc`** - Boa's garbage collector.
+- **`boa_interner`** - Boa's string interner.
+- **`boa_parser`** - Boa's lexer and parser.
+- **`boa_profiler`** - Boa's code profiler.
+- **`boa_icu_provider`** - Boa's ICU4X data provider.
+- **`boa_runtime`** - Boa's WebAPI features.
+
+Please note: the `Boa` and `boa_unicode` crate are deprecated.
+
+## Boa Engine Example
+
+To use `Boa` simply follow the below.
+
+Add the below dependency to your `Cargo.toml`:
+
+```toml
+[dependencies]
+boa_engine = "0.17.3"
+```
+
+Then in `main.rs`, copy the below:
+
+```rust
+use boa_engine::{Context, Source};
+
+let js_code = r#"
+    let two = 1 + 1;
+    let definitely_not_four = two + "2";
+
+    definitely_not_four
+"#;
+
+// Instantiate the execution context
+let mut context = Context::default();
+
+// Parse the source code
+match context.eval(Source::from_bytes(js_code)) {
+    Ok(res) => {
+        println!(
+            "{}",
+            res.to_string(&mut context).unwrap().to_std_string_escaped()
+        );
+    }
+    Err(e) => {
+        // Pretty print the error
+        eprintln!("Uncaught {e}");
+    }
+};
+```
+
+Now, all that's left to do is `cargo run`.
+
+Congrats! You've executed your first `JavaScript` using `Boa`!
+
+## Documentation
+
+For more information on `Boa`'s API. Feel free to check out our documentation.
+
+[**Release Documentation**](https://docs.rs/boa_engine/latest/boa_engine/)
+[**Dev `main` Documentation**](https://boajs.dev/boa/doc/boa_engine/index.html)
 
 ## Conformance
 
@@ -73,7 +141,7 @@ then go to `http://localhost:8080`.
 
 ## Command-line Options
 
-```
+```txt
 Usage: boa [OPTIONS] [FILE]...
 
 Arguments:
