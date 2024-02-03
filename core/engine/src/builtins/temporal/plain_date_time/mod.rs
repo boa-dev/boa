@@ -17,6 +17,9 @@ use crate::{
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
 
+#[cfg(test)]
+mod tests;
+
 use boa_temporal::{
     components::{
         calendar::{CalendarSlot, GetCalendarSlot},
