@@ -76,17 +76,29 @@ impl From<&[String]> for CalendarFieldsType {
     }
 }
 
+// NOTE (nekevss): May be worth switching the below to "Custom" `DateLikes`, and
+// allow the non-custom to be engine specific types.
+//
+// enum CalendarDateLike<C: CalendarProtocol, D: DateTypes<C>> {
+//   Date(Date<C>),
+//   CustomDate(D::Date),
+//   ...
+// }
 /// The `DateLike` objects that can be provided to the `CalendarProtocol`.
 #[derive(Debug)]
 pub enum CalendarDateLike<C: CalendarProtocol> {
-    /// Represents a `Date` datelike
-    Date(Date<C>),
-    /// Represents a `DateTime` datelike
+    /// Represents a user-defined `Date` datelike
+    CustomDate(<<C as CalendarProtocol>::DateLikes as DateTypes<C>>::Date),
+    /// Represents a user-defined `DateTime` datelike
+    CustomDateTime(<<C as CalendarProtocol>::DateLikes as DateTypes<C>>::DateTime),
+    /// Represents a user-defined `YearMonth` datelike
+    CustomYearMonth(<<C as CalendarProtocol>::DateLikes as DateTypes<C>>::YearMonth),
+    /// Represents a user-defined `MonthDay` datelike
+    CustomMonthDay(<<C as CalendarProtocol>::DateLikes as DateTypes<C>>::MonthDay),
+    /// Represents a `DateTime<C>`.
     DateTime(DateTime<C>),
-    /// Represents a `YearMonth` datelike
-    YearMonth(YearMonth<C>),
-    /// Represents a `MonthDay` datelike
-    MonthDay(MonthDay<C>),
+    /// Represents a `Date<C>`.
+    Date(Date<C>),
 }
 
 impl<C: CalendarProtocol> CalendarDateLike<C> {
@@ -95,18 +107,35 @@ impl<C: CalendarProtocol> CalendarDateLike<C> {
     #[must_use]
     pub fn as_iso_date(&self) -> IsoDate {
         match self {
+            CalendarDateLike::CustomDate(d) => d.iso_date(),
+            CalendarDateLike::CustomMonthDay(md) => md.iso_date(),
+            CalendarDateLike::CustomYearMonth(ym) => ym.iso_date(),
+            CalendarDateLike::CustomDateTime(dt) => dt.iso_date(),
+            CalendarDateLike::DateTime(dt) => dt.iso_date(),
             CalendarDateLike::Date(d) => d.iso_date(),
-            CalendarDateLike::DateTime(dt) => *dt.iso_date(),
-            CalendarDateLike::MonthDay(md) => md.iso_date(),
-            CalendarDateLike::YearMonth(ym) => ym.iso_date(),
         }
     }
+}
+
+// TODO: DateTypes should implement a trait -> `ToTemporalDate`: `GetCalendarSlot`
+/// A trait for implementing `DateLike` types
+pub trait DateTypes<C: CalendarProtocol> {
+    /// A Custom `Date` Type for an associated `CalendarProtocol`. Default `Date<C>`
+    type Date: IsoDateSlots + GetCalendarSlot<C> + Clone + core::fmt::Debug;
+    /// A Custom `DateTime` Type for an associated `CalendarProtocol`. Default `DateTime<C>`
+    type DateTime: IsoDateSlots + GetCalendarSlot<C> + Clone + core::fmt::Debug;
+    /// A Custom `YearMonth` Type for an associated `CalendarProtocol`. Default `YearMonth<C>`
+    type YearMonth: IsoDateSlots + GetCalendarSlot<C> + Clone + core::fmt::Debug;
+    /// A Custom `MonthDay` Type for an associated `CalendarProtocol`. Default `MonthDay<C>`
+    type MonthDay: IsoDateSlots + GetCalendarSlot<C> + Clone + core::fmt::Debug;
 }
 
 // ==== CalendarProtocol trait ====
 
 /// A trait for implementing a Builtin Calendar's Calendar Protocol in Rust.
 pub trait CalendarProtocol: Clone {
+    /// Registers a valid set of custom `CalendarDateLike` values.
+    type DateLikes: DateTypes<Self>;
     /// Creates a `Temporal.PlainDate` object from provided fields.
     fn date_from_fields(
         &self,
@@ -242,6 +271,12 @@ pub trait CalendarProtocol: Clone {
     ) -> TemporalResult<TemporalFields>;
     /// Debug name
     fn identifier(&self, context: &mut dyn Any) -> TemporalResult<String>;
+}
+
+/// A trait for retrieving an internal calendar slice.
+pub trait GetCalendarSlot<C: CalendarProtocol> {
+    /// Returns the `CalendarSlot<C>` value of the implementor.
+    fn get_calendar(&self) -> CalendarSlot<C>;
 }
 
 // NOTE(nekevss): Builtin could be `Rc<AnyCalendar>`, but doing so may
@@ -816,12 +851,26 @@ impl<C: CalendarProtocol> CalendarSlot<C> {
     }
 }
 
+impl IsoDateSlots for () {
+    fn iso_date(&self) -> IsoDate {
+        unreachable!()
+    }
+}
+
+impl DateTypes<()> for () {
+    type Date = Date<()>;
+    type DateTime = DateTime<()>;
+    type YearMonth = YearMonth<()>;
+    type MonthDay = MonthDay<()>;
+}
+
 /// An empty `CalendarProtocol` implementation on `()`.
 ///
 /// # Panics
 ///
 /// Attempting to use this empty calendar implementation as a valid calendar is an error and will cause a panic.
 impl CalendarProtocol for () {
+    type DateLikes = ();
     fn date_from_fields(
         &self,
         _: &mut TemporalFields,
@@ -871,69 +920,69 @@ impl CalendarProtocol for () {
 
     fn era(
         &self,
-        _: &CalendarDateLike<()>,
+        _: &CalendarDateLike<Self>,
         _: &mut dyn Any,
     ) -> TemporalResult<Option<TinyAsciiStr<16>>> {
         unreachable!();
     }
 
-    fn era_year(&self, _: &CalendarDateLike<()>, _: &mut dyn Any) -> TemporalResult<Option<i32>> {
+    fn era_year(&self, _: &CalendarDateLike<Self>, _: &mut dyn Any) -> TemporalResult<Option<i32>> {
         unreachable!();
     }
 
-    fn year(&self, _: &CalendarDateLike<()>, _: &mut dyn Any) -> TemporalResult<i32> {
+    fn year(&self, _: &CalendarDateLike<Self>, _: &mut dyn Any) -> TemporalResult<i32> {
         unreachable!();
     }
 
-    fn month(&self, _: &CalendarDateLike<()>, _: &mut dyn Any) -> TemporalResult<u8> {
+    fn month(&self, _: &CalendarDateLike<Self>, _: &mut dyn Any) -> TemporalResult<u8> {
         unreachable!();
     }
 
     fn month_code(
         &self,
-        _: &CalendarDateLike<()>,
+        _: &CalendarDateLike<Self>,
         _: &mut dyn Any,
     ) -> TemporalResult<TinyAsciiStr<4>> {
         unreachable!();
     }
 
-    fn day(&self, _: &CalendarDateLike<()>, _: &mut dyn Any) -> TemporalResult<u8> {
+    fn day(&self, _: &CalendarDateLike<Self>, _: &mut dyn Any) -> TemporalResult<u8> {
         unreachable!();
     }
 
-    fn day_of_week(&self, _: &CalendarDateLike<()>, _: &mut dyn Any) -> TemporalResult<u16> {
+    fn day_of_week(&self, _: &CalendarDateLike<Self>, _: &mut dyn Any) -> TemporalResult<u16> {
         unreachable!();
     }
 
-    fn day_of_year(&self, _: &CalendarDateLike<()>, _: &mut dyn Any) -> TemporalResult<u16> {
+    fn day_of_year(&self, _: &CalendarDateLike<Self>, _: &mut dyn Any) -> TemporalResult<u16> {
         unreachable!();
     }
 
-    fn week_of_year(&self, _: &CalendarDateLike<()>, _: &mut dyn Any) -> TemporalResult<u16> {
+    fn week_of_year(&self, _: &CalendarDateLike<Self>, _: &mut dyn Any) -> TemporalResult<u16> {
         unreachable!();
     }
 
-    fn year_of_week(&self, _: &CalendarDateLike<()>, _: &mut dyn Any) -> TemporalResult<i32> {
+    fn year_of_week(&self, _: &CalendarDateLike<Self>, _: &mut dyn Any) -> TemporalResult<i32> {
         unreachable!();
     }
 
-    fn days_in_week(&self, _: &CalendarDateLike<()>, _: &mut dyn Any) -> TemporalResult<u16> {
+    fn days_in_week(&self, _: &CalendarDateLike<Self>, _: &mut dyn Any) -> TemporalResult<u16> {
         unreachable!();
     }
 
-    fn days_in_month(&self, _: &CalendarDateLike<()>, _: &mut dyn Any) -> TemporalResult<u16> {
+    fn days_in_month(&self, _: &CalendarDateLike<Self>, _: &mut dyn Any) -> TemporalResult<u16> {
         unreachable!();
     }
 
-    fn days_in_year(&self, _: &CalendarDateLike<()>, _: &mut dyn Any) -> TemporalResult<u16> {
+    fn days_in_year(&self, _: &CalendarDateLike<Self>, _: &mut dyn Any) -> TemporalResult<u16> {
         unreachable!();
     }
 
-    fn months_in_year(&self, _: &CalendarDateLike<()>, _: &mut dyn Any) -> TemporalResult<u16> {
+    fn months_in_year(&self, _: &CalendarDateLike<Self>, _: &mut dyn Any) -> TemporalResult<u16> {
         unreachable!();
     }
 
-    fn in_leap_year(&self, _: &CalendarDateLike<()>, _: &mut dyn Any) -> TemporalResult<bool> {
+    fn in_leap_year(&self, _: &CalendarDateLike<Self>, _: &mut dyn Any) -> TemporalResult<bool> {
         unreachable!();
     }
 

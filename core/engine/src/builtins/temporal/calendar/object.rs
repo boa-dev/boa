@@ -14,11 +14,10 @@ use crate::{
 };
 use std::any::Any;
 
-use boa_gc::{Finalize, Trace};
 use boa_macros::utf16;
 use boa_temporal::{
     components::{
-        calendar::{CalendarDateLike, CalendarProtocol},
+        calendar::{CalendarDateLike, CalendarProtocol, DateTypes},
         Date, Duration, MonthDay, YearMonth,
     },
     options::ArithmeticOverflow,
@@ -26,28 +25,23 @@ use boa_temporal::{
 };
 use num_traits::ToPrimitive;
 use plain_date::PlainDate;
+use plain_date_time::PlainDateTime;
 use plain_month_day::PlainMonthDay;
 use plain_year_month::PlainYearMonth;
 
-/// A user-defined, custom calendar that is only known at runtime
-/// and executed at runtime.
-///
-/// A user-defined calendar implements all of the `CalendarProtocolMethods`
-/// and therefore satisfies the requirements to be used as a calendar.
-#[derive(Debug, Clone, Trace, Finalize)]
-pub(crate) struct JsCustomCalendar {
-    calendar: JsObject,
+/// The custom data types for a Custom `JsObject` Calendar.
+#[derive(Debug, Clone, Copy)]
+pub struct CustomDateLikes;
+
+impl DateTypes<JsObject> for CustomDateLikes {
+    type Date = JsObject<PlainDate>;
+    type DateTime = JsObject<PlainDateTime>;
+    type YearMonth = JsObject<PlainYearMonth>;
+    type MonthDay = JsObject<PlainMonthDay>;
 }
 
-impl JsCustomCalendar {
-    pub(crate) fn new(calendar: &JsObject) -> Self {
-        Self {
-            calendar: calendar.clone(),
-        }
-    }
-}
-
-impl CalendarProtocol for JsCustomCalendar {
+impl CalendarProtocol for JsObject {
+    type DateLikes = CustomDateLikes;
     fn date_from_fields(
         &self,
         fields: &mut TemporalFields,
@@ -59,7 +53,6 @@ impl CalendarProtocol for JsCustomCalendar {
             .expect("Context was not provided for a CustomCalendar.");
 
         let method = self
-            .calendar
             .get(utf16!("dateFromFields"), context)
             .expect("method must exist on a object that implements the CalendarProtocol.");
 
@@ -82,7 +75,7 @@ impl CalendarProtocol for JsCustomCalendar {
                 TemporalError::general("dateFromFields must be implemented as a callable method.")
             })?
             .call(
-                &self.calendar.clone().into(),
+                &self.clone().into(),
                 &[fields.into(), overflow_obj.into()],
                 context,
             )
@@ -105,13 +98,12 @@ impl CalendarProtocol for JsCustomCalendar {
         fields: &mut TemporalFields,
         overflow: ArithmeticOverflow,
         context: &mut dyn Any,
-    ) -> TemporalResult<YearMonth<JsCustomCalendar>> {
+    ) -> TemporalResult<YearMonth<JsObject>> {
         let context = context
             .downcast_mut::<Context>()
             .expect("Context was not provided for a CustomCalendar.");
 
         let method = self
-            .calendar
             .get(utf16!("yearMonthFromFields"), context)
             .expect("method must exist on a object that implements the CalendarProtocol.");
 
@@ -136,7 +128,7 @@ impl CalendarProtocol for JsCustomCalendar {
                 )
             })?
             .call(
-                &self.calendar.clone().into(),
+                &self.clone().into(),
                 &[fields.into(), overflow_obj.into()],
                 context,
             )
@@ -159,13 +151,12 @@ impl CalendarProtocol for JsCustomCalendar {
         fields: &mut TemporalFields,
         overflow: ArithmeticOverflow,
         context: &mut dyn Any,
-    ) -> TemporalResult<MonthDay<JsCustomCalendar>> {
+    ) -> TemporalResult<MonthDay<JsObject>> {
         let context = context
             .downcast_mut::<Context>()
             .expect("Context was not provided for a CustomCalendar.");
 
         let method = self
-            .calendar
             .get(utf16!("yearMonthFromFields"), context)
             .expect("method must exist on a object that implements the CalendarProtocol.");
 
@@ -190,7 +181,7 @@ impl CalendarProtocol for JsCustomCalendar {
                 )
             })?
             .call(
-                &self.calendar.clone().into(),
+                &self.clone().into(),
                 &[fields.into(), overflow_obj.into()],
                 context,
             )
@@ -210,19 +201,19 @@ impl CalendarProtocol for JsCustomCalendar {
 
     fn date_add(
         &self,
-        _date: &Date<JsCustomCalendar>,
+        _date: &Date<JsObject>,
         _duration: &Duration,
         _overflow: ArithmeticOverflow,
         _context: &mut dyn Any,
-    ) -> TemporalResult<Date<JsCustomCalendar>> {
+    ) -> TemporalResult<Date<JsObject>> {
         // TODO
         Err(TemporalError::general("Not yet implemented."))
     }
 
     fn date_until(
         &self,
-        _one: &Date<JsCustomCalendar>,
-        _two: &Date<JsCustomCalendar>,
+        _one: &Date<JsObject>,
+        _two: &Date<JsObject>,
         _largest_unit: boa_temporal::options::TemporalUnit,
         _context: &mut dyn Any,
     ) -> TemporalResult<Duration> {
@@ -232,7 +223,7 @@ impl CalendarProtocol for JsCustomCalendar {
 
     fn era(
         &self,
-        _: &CalendarDateLike<JsCustomCalendar>,
+        _: &CalendarDateLike<JsObject>,
         _: &mut dyn Any,
     ) -> TemporalResult<Option<TinyAsciiStr<16>>> {
         // Return undefined as custom calendars do not implement -> Currently.
@@ -241,7 +232,7 @@ impl CalendarProtocol for JsCustomCalendar {
 
     fn era_year(
         &self,
-        _: &CalendarDateLike<JsCustomCalendar>,
+        _: &CalendarDateLike<JsObject>,
         _: &mut dyn Any,
     ) -> TemporalResult<Option<i32>> {
         // Return undefined as custom calendars do not implement -> Currently.
@@ -250,7 +241,7 @@ impl CalendarProtocol for JsCustomCalendar {
 
     fn year(
         &self,
-        date_like: &CalendarDateLike<JsCustomCalendar>,
+        date_like: &CalendarDateLike<JsObject>,
         context: &mut dyn Any,
     ) -> TemporalResult<i32> {
         let context = context
@@ -260,14 +251,13 @@ impl CalendarProtocol for JsCustomCalendar {
         let date_like = date_like_to_object(date_like, context)?;
 
         let method = self
-            .calendar
             .get(PropertyKey::from(utf16!("year")), context)
             .expect("method must exist on a object that implements the CalendarProtocol.");
 
         let val = method
             .as_callable()
             .expect("is method")
-            .call(&self.calendar.clone().into(), &[date_like], context)
+            .call(&self.clone().into(), &[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))?;
 
         // Validate the return value.
@@ -297,7 +287,7 @@ impl CalendarProtocol for JsCustomCalendar {
 
     fn month(
         &self,
-        date_like: &CalendarDateLike<JsCustomCalendar>,
+        date_like: &CalendarDateLike<JsObject>,
         context: &mut dyn Any,
     ) -> TemporalResult<u8> {
         let context = context
@@ -307,14 +297,13 @@ impl CalendarProtocol for JsCustomCalendar {
         let date_like = date_like_to_object(date_like, context)?;
 
         let method = self
-            .calendar
             .get(PropertyKey::from(utf16!("month")), context)
             .expect("method must exist on a object that implements the CalendarProtocol.");
 
         let val = method
             .as_callable()
             .expect("is method")
-            .call(&self.calendar.clone().into(), &[date_like], context)
+            .call(&self.clone().into(), &[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))?;
 
         // Validate the return value.
@@ -344,7 +333,7 @@ impl CalendarProtocol for JsCustomCalendar {
 
     fn month_code(
         &self,
-        date_like: &CalendarDateLike<JsCustomCalendar>,
+        date_like: &CalendarDateLike<JsObject>,
         context: &mut dyn Any,
     ) -> TemporalResult<TinyAsciiStr<4>> {
         let context = context
@@ -354,14 +343,13 @@ impl CalendarProtocol for JsCustomCalendar {
         let date_like = date_like_to_object(date_like, context)?;
 
         let method = self
-            .calendar
             .get(PropertyKey::from(utf16!("monthCode")), context)
             .expect("method must exist on a object that implements the CalendarProtocol.");
 
         let val = method
             .as_callable()
             .expect("is method")
-            .call(&self.calendar.clone().into(), &[date_like], context)
+            .call(&self.clone().into(), &[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))?;
 
         let JsValue::String(result) = val else {
@@ -376,7 +364,7 @@ impl CalendarProtocol for JsCustomCalendar {
 
     fn day(
         &self,
-        date_like: &CalendarDateLike<JsCustomCalendar>,
+        date_like: &CalendarDateLike<JsObject>,
         context: &mut dyn Any,
     ) -> TemporalResult<u8> {
         let context = context
@@ -386,14 +374,13 @@ impl CalendarProtocol for JsCustomCalendar {
         let date_like = date_like_to_object(date_like, context)?;
 
         let method = self
-            .calendar
             .get(PropertyKey::from(utf16!("day")), context)
             .expect("method must exist on a object that implements the CalendarProtocol.");
 
         let val = method
             .as_callable()
             .expect("is method")
-            .call(&self.calendar.clone().into(), &[date_like], context)
+            .call(&self.clone().into(), &[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))?;
 
         // Validate the return value.
@@ -423,7 +410,7 @@ impl CalendarProtocol for JsCustomCalendar {
 
     fn day_of_week(
         &self,
-        date_like: &CalendarDateLike<JsCustomCalendar>,
+        date_like: &CalendarDateLike<JsObject>,
         context: &mut dyn Any,
     ) -> TemporalResult<u16> {
         let context = context
@@ -433,14 +420,13 @@ impl CalendarProtocol for JsCustomCalendar {
         let date_like = date_like_to_object(date_like, context)?;
 
         let method = self
-            .calendar
             .get(PropertyKey::from(utf16!("dayOfWeek")), context)
             .expect("method must exist on a object that implements the CalendarProtocol.");
 
         let val = method
             .as_callable()
             .expect("is method")
-            .call(&self.calendar.clone().into(), &[date_like], context)
+            .call(&self.clone().into(), &[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))?;
 
         // Validate the return value.
@@ -472,7 +458,7 @@ impl CalendarProtocol for JsCustomCalendar {
 
     fn day_of_year(
         &self,
-        date_like: &CalendarDateLike<JsCustomCalendar>,
+        date_like: &CalendarDateLike<JsObject>,
         context: &mut dyn Any,
     ) -> TemporalResult<u16> {
         let context = context
@@ -482,14 +468,13 @@ impl CalendarProtocol for JsCustomCalendar {
         let date_like = date_like_to_object(date_like, context)?;
 
         let method = self
-            .calendar
             .get(PropertyKey::from(utf16!("dayOfYear")), context)
             .expect("method must exist on a object that implements the CalendarProtocol.");
 
         let val = method
             .as_callable()
             .expect("is method")
-            .call(&self.calendar.clone().into(), &[date_like], context)
+            .call(&self.clone().into(), &[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))?;
 
         // Validate the return value.
@@ -521,7 +506,7 @@ impl CalendarProtocol for JsCustomCalendar {
 
     fn week_of_year(
         &self,
-        date_like: &CalendarDateLike<JsCustomCalendar>,
+        date_like: &CalendarDateLike<JsObject>,
         context: &mut dyn Any,
     ) -> TemporalResult<u16> {
         let context = context
@@ -531,14 +516,13 @@ impl CalendarProtocol for JsCustomCalendar {
         let date_like = date_like_to_object(date_like, context)?;
 
         let method = self
-            .calendar
             .get(PropertyKey::from(utf16!("weekOfYear")), context)
             .expect("method must exist on a object that implements the CalendarProtocol.");
 
         let val = method
             .as_callable()
             .expect("is method")
-            .call(&self.calendar.clone().into(), &[date_like], context)
+            .call(&self.clone().into(), &[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))?;
 
         // Validate the return value.
@@ -570,7 +554,7 @@ impl CalendarProtocol for JsCustomCalendar {
 
     fn year_of_week(
         &self,
-        date_like: &CalendarDateLike<JsCustomCalendar>,
+        date_like: &CalendarDateLike<JsObject>,
         context: &mut dyn Any,
     ) -> TemporalResult<i32> {
         let context = context
@@ -580,14 +564,13 @@ impl CalendarProtocol for JsCustomCalendar {
         let date_like = date_like_to_object(date_like, context)?;
 
         let method = self
-            .calendar
             .get(PropertyKey::from(utf16!("yearOfWeek")), context)
             .expect("method must exist on a object that implements the CalendarProtocol.");
 
         let val = method
             .as_callable()
             .expect("is method")
-            .call(&self.calendar.clone().into(), &[date_like], context)
+            .call(&self.clone().into(), &[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))?;
 
         // Validate the return value.
@@ -612,7 +595,7 @@ impl CalendarProtocol for JsCustomCalendar {
 
     fn days_in_week(
         &self,
-        date_like: &CalendarDateLike<JsCustomCalendar>,
+        date_like: &CalendarDateLike<JsObject>,
         context: &mut dyn Any,
     ) -> TemporalResult<u16> {
         let context = context
@@ -622,14 +605,13 @@ impl CalendarProtocol for JsCustomCalendar {
         let date_like = date_like_to_object(date_like, context)?;
 
         let method = self
-            .calendar
             .get(PropertyKey::from(utf16!("daysInWeek")), context)
             .expect("method must exist on a object that implements the CalendarProtocol.");
 
         let val = method
             .as_callable()
             .expect("is method")
-            .call(&self.calendar.clone().into(), &[date_like], context)
+            .call(&self.clone().into(), &[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))?;
 
         // Validate the return value.
@@ -661,7 +643,7 @@ impl CalendarProtocol for JsCustomCalendar {
 
     fn days_in_month(
         &self,
-        date_like: &CalendarDateLike<JsCustomCalendar>,
+        date_like: &CalendarDateLike<JsObject>,
         context: &mut dyn Any,
     ) -> TemporalResult<u16> {
         let context = context
@@ -671,13 +653,12 @@ impl CalendarProtocol for JsCustomCalendar {
         let date_like = date_like_to_object(date_like, context)?;
 
         let method = self
-            .calendar
             .get(PropertyKey::from(utf16!("daysInMonth")), context)
             .expect("method must exist on a object that implements the CalendarProtocol.");
         let val = method
             .as_callable()
             .expect("is method")
-            .call(&self.calendar.clone().into(), &[date_like], context)
+            .call(&self.clone().into(), &[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))?;
 
         // Validate the return value.
@@ -711,7 +692,7 @@ impl CalendarProtocol for JsCustomCalendar {
 
     fn days_in_year(
         &self,
-        date_like: &CalendarDateLike<JsCustomCalendar>,
+        date_like: &CalendarDateLike<JsObject>,
         context: &mut dyn Any,
     ) -> TemporalResult<u16> {
         let context = context
@@ -721,14 +702,13 @@ impl CalendarProtocol for JsCustomCalendar {
         let date_like = date_like_to_object(date_like, context)?;
 
         let method = self
-            .calendar
             .get(PropertyKey::from(utf16!("daysInYear")), context)
             .expect("method must exist on a object that implements the CalendarProtocol.");
 
         let val = method
             .as_callable()
             .expect("is method")
-            .call(&self.calendar.clone().into(), &[date_like], context)
+            .call(&self.clone().into(), &[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))?;
 
         // Validate the return value.
@@ -760,7 +740,7 @@ impl CalendarProtocol for JsCustomCalendar {
 
     fn months_in_year(
         &self,
-        date_like: &CalendarDateLike<JsCustomCalendar>,
+        date_like: &CalendarDateLike<JsObject>,
         context: &mut dyn Any,
     ) -> TemporalResult<u16> {
         let context = context
@@ -770,14 +750,13 @@ impl CalendarProtocol for JsCustomCalendar {
         let date_like = date_like_to_object(date_like, context)?;
 
         let method = self
-            .calendar
             .get(PropertyKey::from(utf16!("monthsInYear")), context)
             .expect("method must exist on a object that implements the CalendarProtocol.");
 
         let val = method
             .as_callable()
             .expect("is method")
-            .call(&self.calendar.clone().into(), &[date_like], context)
+            .call(&self.clone().into(), &[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))?;
 
         // Validate the return value.
@@ -811,7 +790,7 @@ impl CalendarProtocol for JsCustomCalendar {
 
     fn in_leap_year(
         &self,
-        date_like: &CalendarDateLike<JsCustomCalendar>,
+        date_like: &CalendarDateLike<JsObject>,
         context: &mut dyn Any,
     ) -> TemporalResult<bool> {
         let context = context
@@ -821,14 +800,13 @@ impl CalendarProtocol for JsCustomCalendar {
         let date_like = date_like_to_object(date_like, context)?;
 
         let method = self
-            .calendar
             .get(PropertyKey::from(utf16!("inLeapYear")), context)
             .expect("method must exist on a object that implements the CalendarProtocol.");
 
         let val = method
             .as_callable()
             .expect("is method")
-            .call(&self.calendar.clone().into(), &[date_like], context)
+            .call(&self.clone().into(), &[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))?;
 
         let JsValue::Boolean(result) = val else {
@@ -851,14 +829,13 @@ impl CalendarProtocol for JsCustomCalendar {
         );
 
         let method = self
-            .calendar
             .get(PropertyKey::from(utf16!("fields")), context)
             .expect("method must exist on an object that implements the CalendarProtocol.");
 
         let result = method
             .as_callable()
             .expect("is method")
-            .call(&self.calendar.clone().into(), &[fields_js.into()], context)
+            .call(&self.clone().into(), &[fields_js.into()], context)
             .map_err(|e| TemporalError::general(e.to_string()))?;
 
         // validate result and map to a `Vec<String>`
@@ -902,7 +879,6 @@ impl CalendarProtocol for JsCustomCalendar {
             .map_err(|e| TemporalError::general(e.to_string()))?;
 
         let method = self
-            .calendar
             .get(PropertyKey::from(utf16!("mergeFields")), context)
             .expect("method must exist on an object that implements the CalendarProtocol.");
 
@@ -910,7 +886,7 @@ impl CalendarProtocol for JsCustomCalendar {
             .as_callable()
             .expect("is method")
             .call(
-                &self.calendar.clone().into(),
+                &self.clone().into(),
                 &[fields.into(), add_fields.into()],
                 context,
             )
@@ -931,10 +907,9 @@ impl CalendarProtocol for JsCustomCalendar {
             .expect("Context was not provided for a CustomCalendar.");
 
         let identifier = self
-            .calendar
             .__get__(
                 &PropertyKey::from(utf16!("id")),
-                self.calendar.clone().into(),
+                self.clone().into(),
                 &mut context.into(),
             )
             .expect("method must exist on a object that implements the CalendarProtocol.");
@@ -949,7 +924,7 @@ impl CalendarProtocol for JsCustomCalendar {
 
 /// Utility function for converting `Temporal`'s `CalendarDateLike` to it's `Boa` specific `JsObject`.
 pub(crate) fn date_like_to_object(
-    date_like: &CalendarDateLike<JsCustomCalendar>,
+    date_like: &CalendarDateLike<JsObject>,
     context: &mut Context,
 ) -> TemporalResult<JsValue> {
     match date_like {
@@ -961,13 +936,9 @@ pub(crate) fn date_like_to_object(
                 .map_err(|e| TemporalError::general(e.to_string()))
                 .map(Into::into)
         }
-        CalendarDateLike::MonthDay(md) => {
-            plain_month_day::create_temporal_month_day(md.clone(), None, context)
-                .map_err(|e| TemporalError::general(e.to_string()))
-        }
-        CalendarDateLike::YearMonth(ym) => {
-            plain_year_month::create_temporal_year_month(ym.clone(), None, context)
-                .map_err(|e| TemporalError::general(e.to_string()))
-        }
+        CalendarDateLike::CustomMonthDay(md) => Ok(md.clone().upcast().into()),
+        CalendarDateLike::CustomYearMonth(ym) => Ok(ym.clone().upcast().into()),
+        CalendarDateLike::CustomDate(pd) => Ok(pd.clone().upcast().into()),
+        CalendarDateLike::CustomDateTime(pdt) => Ok(pdt.clone().upcast().into()),
     }
 }

@@ -33,15 +33,12 @@ use boa_temporal::{
 
 mod object;
 
-#[doc(inline)]
-pub(crate) use object::JsCustomCalendar;
-
 #[cfg(test)]
 mod tests;
 /// The `Temporal.Calendar` object.
 #[derive(Debug, Finalize, JsData)]
 pub struct Calendar {
-    slot: CalendarSlot<JsCustomCalendar>,
+    slot: CalendarSlot<JsObject>,
 }
 
 unsafe impl Trace for Calendar {
@@ -55,7 +52,7 @@ unsafe impl Trace for Calendar {
 }
 
 impl Calendar {
-    pub(crate) fn new(slot: CalendarSlot<JsCustomCalendar>) -> Self {
+    pub(crate) fn new(slot: CalendarSlot<JsObject>) -> Self {
         Self { slot }
     }
 }
@@ -155,7 +152,7 @@ impl BuiltInConstructor for Calendar {
 
         // 4. Return ? CreateTemporalCalendar(id, NewTarget).
         create_temporal_calendar(
-            CalendarSlot::<JsCustomCalendar>::from_str(&id.to_std_string_escaped())?,
+            CalendarSlot::<JsObject>::from_str(&id.to_std_string_escaped())?,
             Some(new_target.clone()),
             context,
         )
@@ -956,7 +953,7 @@ impl Calendar {
 
 /// 12.2.1 `CreateTemporalCalendar ( identifier [ , newTarget ] )`
 pub(crate) fn create_temporal_calendar(
-    identifier: CalendarSlot<JsCustomCalendar>,
+    identifier: CalendarSlot<JsObject>,
     new_target: Option<JsValue>,
     context: &mut Context,
 ) -> JsResult<JsValue> {
@@ -992,23 +989,21 @@ fn extract_from_temporal_type<DF, DTF, YMF, MDF, ZDTF, Ret>(
     zoned_datetime_f: ZDTF,
 ) -> JsResult<Option<Ret>>
 where
-    DF: FnOnce(&PlainDate) -> JsResult<Option<Ret>>,
-    DTF: FnOnce(&PlainDateTime) -> JsResult<Option<Ret>>,
-    YMF: FnOnce(&PlainYearMonth) -> JsResult<Option<Ret>>,
-    MDF: FnOnce(&PlainMonthDay) -> JsResult<Option<Ret>>,
-    ZDTF: FnOnce(&ZonedDateTime) -> JsResult<Option<Ret>>,
+    DF: FnOnce(JsObject<PlainDate>) -> JsResult<Option<Ret>>,
+    DTF: FnOnce(JsObject<PlainDateTime>) -> JsResult<Option<Ret>>,
+    YMF: FnOnce(JsObject<PlainYearMonth>) -> JsResult<Option<Ret>>,
+    MDF: FnOnce(JsObject<PlainMonthDay>) -> JsResult<Option<Ret>>,
+    ZDTF: FnOnce(JsObject<ZonedDateTime>) -> JsResult<Option<Ret>>,
 {
-    let o = object.borrow();
-
-    if let Some(date) = o.downcast_ref::<PlainDate>() {
+    if let Ok(date) = object.clone().downcast::<PlainDate>() {
         return date_f(date);
-    } else if let Some(dt) = o.downcast_ref::<PlainDateTime>() {
+    } else if let Ok(dt) = object.clone().downcast::<PlainDateTime>() {
         return datetime_f(dt);
-    } else if let Some(ym) = o.downcast_ref::<PlainYearMonth>() {
+    } else if let Ok(ym) = object.clone().downcast::<PlainYearMonth>() {
         return year_month_f(ym);
-    } else if let Some(md) = o.downcast_ref::<PlainMonthDay>() {
+    } else if let Ok(md) = object.clone().downcast::<PlainMonthDay>() {
         return month_day_f(md);
-    } else if let Some(dt) = o.downcast_ref::<ZonedDateTime>() {
+    } else if let Ok(dt) = object.clone().downcast::<ZonedDateTime>() {
         return zoned_datetime_f(dt);
     }
 
@@ -1020,15 +1015,15 @@ where
 pub(crate) fn get_temporal_calendar_slot_value_with_default(
     item: &JsObject,
     context: &mut Context,
-) -> JsResult<CalendarSlot<JsCustomCalendar>> {
+) -> JsResult<CalendarSlot<JsObject>> {
     // 1. If item has an [[InitializedTemporalDate]], [[InitializedTemporalDateTime]], [[InitializedTemporalMonthDay]], [[InitializedTemporalYearMonth]], or [[InitializedTemporalZonedDateTime]] internal slot, then
     // a. Return item.[[Calendar]].
     if let Some(calendar) = extract_from_temporal_type(
         item,
-        |d| Ok(Some(d.inner.calendar().clone())),
-        |dt| Ok(Some(dt.inner.calendar().clone())),
-        |ym| Ok(Some(ym.inner.calendar().clone())),
-        |md| Ok(Some(md.inner.calendar().clone())),
+        |d| Ok(Some(d.borrow().data().inner.calendar().clone())),
+        |dt| Ok(Some(dt.borrow().data().inner.calendar().clone())),
+        |ym| Ok(Some(ym.borrow().data().inner.calendar().clone())),
+        |md| Ok(Some(md.borrow().data().inner.calendar().clone())),
         |zdt| {
             Err(JsNativeError::range()
                 .with_message("Not yet implemented.")
@@ -1049,7 +1044,7 @@ pub(crate) fn get_temporal_calendar_slot_value_with_default(
 pub(crate) fn to_temporal_calendar_slot_value(
     calendar_like: &JsValue,
     context: &mut Context,
-) -> JsResult<CalendarSlot<JsCustomCalendar>> {
+) -> JsResult<CalendarSlot<JsObject>> {
     // 1. If temporalCalendarLike is undefined and default is present, then
     // a. Assert: IsBuiltinCalendar(default) is true.
     // b. Return default.
@@ -1061,11 +1056,11 @@ pub(crate) fn to_temporal_calendar_slot_value(
         // i. Return temporalCalendarLike.[[Calendar]].
         if let Some(calendar) = extract_from_temporal_type(
             calendar_like,
-            |d| Ok(Some(d.inner.calendar().clone())),
-            |dt| Ok(Some(dt.inner.calendar().clone())),
-            |ym| Ok(Some(ym.inner.calendar().clone())),
-            |md| Ok(Some(md.inner.calendar().clone())),
-            |zdt| Ok(Some(zdt.inner.calendar().clone())),
+            |d| Ok(Some(d.borrow().data().inner.calendar().clone())),
+            |dt| Ok(Some(dt.borrow().data().inner.calendar().clone())),
+            |ym| Ok(Some(ym.borrow().data().inner.calendar().clone())),
+            |md| Ok(Some(md.borrow().data().inner.calendar().clone())),
+            |zdt| Ok(Some(zdt.borrow().data().inner.calendar().clone())),
         )? {
             return Ok(calendar);
         }
@@ -1078,10 +1073,8 @@ pub(crate) fn to_temporal_calendar_slot_value(
                 .into());
         }
 
-        // Types: Box<dyn CalendarProtocol> <- UserCalendar
-        let custom = JsCustomCalendar::new(calendar_like);
         // c. Return temporalCalendarLike.
-        return Ok(CalendarSlot::Protocol(custom));
+        return Ok(CalendarSlot::Protocol(calendar_like.clone()));
     }
 
     // 3. If temporalCalendarLike is not a String, throw a TypeError exception.
@@ -1094,7 +1087,7 @@ pub(crate) fn to_temporal_calendar_slot_value(
     // 4. Let identifier be ? ParseTemporalCalendarString(temporalCalendarLike).
     // 5. If IsBuiltinCalendar(identifier) is false, throw a RangeError exception.
     // 6. Return the ASCII-lowercase of identifier.
-    Ok(CalendarSlot::<JsCustomCalendar>::from_str(
+    Ok(CalendarSlot::<JsObject>::from_str(
         &calendar_id.to_std_string_escaped(),
     )?)
 }
@@ -1111,7 +1104,7 @@ fn object_implements_calendar_protocol(calendar_like: &JsObject, context: &mut C
 fn to_calendar_date_like(
     date_like: &JsValue,
     context: &mut Context,
-) -> JsResult<CalendarDateLike<JsCustomCalendar>> {
+) -> JsResult<CalendarDateLike<JsObject>> {
     let Some(obj) = date_like.as_object() else {
         let date = temporal::plain_date::to_temporal_date(date_like, None, context)?;
 
@@ -1120,9 +1113,9 @@ fn to_calendar_date_like(
 
     let Some(date_like) = extract_from_temporal_type(
         obj,
-        |d| Ok(Some(CalendarDateLike::Date(d.inner.clone()))),
-        |dt| Ok(Some(CalendarDateLike::DateTime(dt.inner.clone()))),
-        |ym| Ok(Some(CalendarDateLike::YearMonth(ym.inner.clone()))),
+        |d| Ok(Some(CalendarDateLike::CustomDate(d))),
+        |dt| Ok(Some(CalendarDateLike::CustomDateTime(dt))),
+        |ym| Ok(Some(CalendarDateLike::CustomYearMonth(ym))),
         |_| Ok(None),
         |_| Ok(None),
     )?

@@ -17,24 +17,43 @@ use crate::{
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
 
-use boa_temporal::components::DateTime as InnerDateTime;
+#[cfg(test)]
+mod tests;
 
-use super::JsCustomCalendar;
+use boa_temporal::{
+    components::{
+        calendar::{CalendarSlot, GetCalendarSlot},
+        DateTime as InnerDateTime,
+    },
+    iso::{IsoDate, IsoDateSlots},
+};
 
 /// The `Temporal.PlainDateTime` object.
 #[derive(Debug, Clone, Trace, Finalize, JsData)]
 #[boa_gc(unsafe_empty_trace)] // TODO: Remove this!!! `InnerDateTime` could contain `Trace` types.
 pub struct PlainDateTime {
-    pub(crate) inner: InnerDateTime<JsCustomCalendar>,
+    pub(crate) inner: InnerDateTime<JsObject>,
 }
 
 impl PlainDateTime {
-    fn new(inner: InnerDateTime<JsCustomCalendar>) -> Self {
+    fn new(inner: InnerDateTime<JsObject>) -> Self {
         Self { inner }
     }
 
-    pub(crate) fn inner(&self) -> &InnerDateTime<JsCustomCalendar> {
+    pub(crate) fn inner(&self) -> &InnerDateTime<JsObject> {
         &self.inner
+    }
+}
+
+impl IsoDateSlots for JsObject<PlainDateTime> {
+    fn iso_date(&self) -> IsoDate {
+        self.borrow().data().inner.iso_date()
+    }
+}
+
+impl GetCalendarSlot<JsObject> for JsObject<PlainDateTime> {
+    fn get_calendar(&self) -> CalendarSlot<JsObject> {
+        self.borrow().data().inner.get_calendar()
     }
 }
 
@@ -343,50 +362,65 @@ impl PlainDateTime {
 
     /// 5.3.4 get `Temporal.PlainDateTime.prototype.year`
     fn get_year(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let date = this
+        let obj = this
             .as_object()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
-            })?;
+            .ok_or_else(|| JsNativeError::typ().with_message("this must be an object."))?;
 
-        Ok(date.inner.contextual_year(context)?.into())
+        let Ok(date) = obj.clone().downcast::<Self>() else {
+            return Err(JsNativeError::typ()
+                .with_message("the this object must be a PlainDateTime object.")
+                .into());
+        };
+
+        Ok(InnerDateTime::<JsObject>::contextualized_year(&date, context)?.into())
     }
 
     /// 5.3.5 get `Temporal.PlainDateTime.prototype.month`
     fn get_month(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let date = this
+        let obj = this
             .as_object()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
-            })?;
+            .ok_or_else(|| JsNativeError::typ().with_message("this must be an object."))?;
 
-        Ok(date.inner.contextual_month(context)?.into())
+        let Ok(date) = obj.clone().downcast::<Self>() else {
+            return Err(JsNativeError::typ()
+                .with_message("the this object must be a PlainDateTime object.")
+                .into());
+        };
+
+        Ok(InnerDateTime::<JsObject>::contextualized_month(&date, context)?.into())
     }
 
     /// 5.3.6 get Temporal.PlainDateTime.prototype.monthCode
     fn get_month_code(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let date = this
+        let obj = this
             .as_object()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
-            })?;
+            .ok_or_else(|| JsNativeError::typ().with_message("this must be an object."))?;
 
-        Ok(JsString::from(date.inner.contextual_month_code(context)?.as_str()).into())
+        let Ok(date) = obj.clone().downcast::<Self>() else {
+            return Err(JsNativeError::typ()
+                .with_message("the this object must be a PlainDateTime object.")
+                .into());
+        };
+
+        Ok(JsString::from(
+            InnerDateTime::<JsObject>::contextualized_month_code(&date, context)?.as_str(),
+        )
+        .into())
     }
 
     /// 5.3.7 get `Temporal.PlainDateTime.prototype.day`
     fn get_day(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let date = this
+        let obj = this
             .as_object()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
-            })?;
+            .ok_or_else(|| JsNativeError::typ().with_message("this must be an object."))?;
 
-        Ok(date.inner.contextual_day(context)?.into())
+        let Ok(date) = obj.clone().downcast::<Self>() else {
+            return Err(JsNativeError::typ()
+                .with_message("the this object must be a PlainDateTime object.")
+                .into());
+        };
+
+        Ok(InnerDateTime::<JsObject>::contextualized_day(&date, context)?.into())
     }
 
     /// 5.3.8 get `Temporal.PlainDateTime.prototype.hour`
@@ -481,62 +515,77 @@ impl PlainDateTime {
 
     /// 5.3.14 get `Temporal.PlainDateTime.prototype.dayOfWeek`
     fn get_day_of_week(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let date = this
+        let obj = this
             .as_object()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
-            })?;
+            .ok_or_else(|| JsNativeError::typ().with_message("this must be an object."))?;
 
-        Ok(date.inner.contextual_day_of_week(context)?.into())
+        let Ok(date) = obj.clone().downcast::<Self>() else {
+            return Err(JsNativeError::typ()
+                .with_message("the this object must be a PlainDateTime object.")
+                .into());
+        };
+
+        Ok(InnerDateTime::<JsObject>::contextualized_day_of_week(&date, context)?.into())
     }
 
     /// 5.3.15 get `Temporal.PlainDateTime.prototype.dayOfYear`
     fn get_day_of_year(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let date = this
+        let obj = this
             .as_object()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
-            })?;
+            .ok_or_else(|| JsNativeError::typ().with_message("this must be an object."))?;
 
-        Ok(date.inner.contextual_day_of_year(context)?.into())
+        let Ok(date) = obj.clone().downcast::<Self>() else {
+            return Err(JsNativeError::typ()
+                .with_message("the this object must be a PlainDateTime object.")
+                .into());
+        };
+
+        Ok(InnerDateTime::<JsObject>::contextualized_day_of_year(&date, context)?.into())
     }
 
     /// 5.3.16 get `Temporal.PlainDateTime.prototype.weekOfYear`
     fn get_week_of_year(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let date = this
+        let obj = this
             .as_object()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
-            })?;
+            .ok_or_else(|| JsNativeError::typ().with_message("this must be an object."))?;
 
-        Ok(date.inner.contextual_week_of_year(context)?.into())
+        let Ok(date) = obj.clone().downcast::<Self>() else {
+            return Err(JsNativeError::typ()
+                .with_message("the this object must be a PlainDateTime object.")
+                .into());
+        };
+
+        Ok(InnerDateTime::<JsObject>::contextualized_week_of_year(&date, context)?.into())
     }
 
     /// 5.3.17 get `Temporal.PlainDateTime.prototype.yearOfWeek`
     fn get_year_of_week(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let date = this
+        let obj = this
             .as_object()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
-            })?;
+            .ok_or_else(|| JsNativeError::typ().with_message("this must be an object."))?;
 
-        Ok(date.inner.contextual_year_of_week(context)?.into())
+        let Ok(date) = obj.clone().downcast::<Self>() else {
+            return Err(JsNativeError::typ()
+                .with_message("the this object must be a PlainDateTime object.")
+                .into());
+        };
+
+        Ok(InnerDateTime::<JsObject>::contextualized_year_of_week(&date, context)?.into())
     }
 
     /// 5.3.18 get `Temporal.PlainDateTime.prototype.daysInWeek`
     fn get_days_in_week(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let date = this
+        let obj = this
             .as_object()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
-            })?;
+            .ok_or_else(|| JsNativeError::typ().with_message("this must be an object."))?;
 
-        Ok(date.inner.contextual_days_in_week(context)?.into())
+        let Ok(date) = obj.clone().downcast::<Self>() else {
+            return Err(JsNativeError::typ()
+                .with_message("the this object must be a PlainDateTime object.")
+                .into());
+        };
+
+        Ok(InnerDateTime::<JsObject>::contextualized_days_in_week(&date, context)?.into())
     }
 
     /// 5.3.19 get `Temporal.PlainDateTime.prototype.daysInMonth`
@@ -545,26 +594,32 @@ impl PlainDateTime {
         _: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        let date = this
+        let obj = this
             .as_object()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
-            })?;
+            .ok_or_else(|| JsNativeError::typ().with_message("this must be an object."))?;
 
-        Ok(date.inner.contextual_days_in_month(context)?.into())
+        let Ok(date) = obj.clone().downcast::<Self>() else {
+            return Err(JsNativeError::typ()
+                .with_message("the this object must be a PlainDateTime object.")
+                .into());
+        };
+
+        Ok(InnerDateTime::<JsObject>::contextualized_days_in_month(&date, context)?.into())
     }
 
     /// 5.3.20 get `Temporal.PlainDateTime.prototype.daysInYear`
     fn get_days_in_year(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let date = this
+        let obj = this
             .as_object()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
-            })?;
+            .ok_or_else(|| JsNativeError::typ().with_message("this must be an object."))?;
 
-        Ok(date.inner.contextual_days_in_year(context)?.into())
+        let Ok(date) = obj.clone().downcast::<Self>() else {
+            return Err(JsNativeError::typ()
+                .with_message("the this object must be a PlainDateTime object.")
+                .into());
+        };
+
+        Ok(InnerDateTime::<JsObject>::contextualized_days_in_year(&date, context)?.into())
     }
 
     /// 5.3.21 get `Temporal.PlainDateTime.prototype.monthsInYear`
@@ -573,33 +628,39 @@ impl PlainDateTime {
         _: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        let date = this
+        let obj = this
             .as_object()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
-            })?;
+            .ok_or_else(|| JsNativeError::typ().with_message("this must be an object."))?;
 
-        Ok(date.inner.contextual_months_in_year(context)?.into())
+        let Ok(date) = obj.clone().downcast::<Self>() else {
+            return Err(JsNativeError::typ()
+                .with_message("the this object must be a PlainDateTime object.")
+                .into());
+        };
+
+        Ok(InnerDateTime::<JsObject>::contextualized_months_in_year(&date, context)?.into())
     }
 
     /// 5.3.22 get `Temporal.PlainDateTime.prototype.inLeapYear`
     fn get_in_leap_year(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let date = this
+        let obj = this
             .as_object()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
-            })?;
+            .ok_or_else(|| JsNativeError::typ().with_message("this must be an object."))?;
 
-        Ok(date.inner.contextual_in_leap_year(context)?.into())
+        let Ok(date) = obj.clone().downcast::<Self>() else {
+            return Err(JsNativeError::typ()
+                .with_message("the this object must be a PlainDateTime object.")
+                .into());
+        };
+
+        Ok(InnerDateTime::<JsObject>::contextualized_in_leap_year(&date, context)?.into())
     }
 }
 
 // ==== `PlainDateTime` Abstract Operations` ====
 
 pub(crate) fn create_temporal_datetime(
-    inner: InnerDateTime<JsCustomCalendar>,
+    inner: InnerDateTime<JsObject>,
     new_target: Option<&JsValue>,
     context: &mut Context,
 ) -> JsResult<JsObject> {
