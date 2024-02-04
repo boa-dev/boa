@@ -284,7 +284,7 @@ impl PlainDate {
                 .into());
         };
 
-        Ok(InnerDate::<JsObject>::year(&date, context)?.into())
+        Ok(InnerDate::<JsObject>::contextual_year(&date, context)?.into())
     }
 
     /// 3.3.5 get `Temporal.PlainDate.prototype.month`
@@ -299,7 +299,7 @@ impl PlainDate {
                 .into());
         };
 
-        Ok(InnerDate::<JsObject>::month(&date, context)?.into())
+        Ok(InnerDate::<JsObject>::contextual_month(&date, context)?.into())
     }
 
     /// 3.3.6 get Temporal.PlainDate.prototype.monthCode
@@ -314,7 +314,10 @@ impl PlainDate {
                 .into());
         };
 
-        Ok(JsString::from(InnerDate::<JsObject>::month_code(&date, context)?.as_str()).into())
+        Ok(
+            JsString::from(InnerDate::<JsObject>::contextual_month_code(&date, context)?.as_str())
+                .into(),
+        )
     }
 
     /// 3.3.7 get `Temporal.PlainDate.prototype.day`
@@ -329,7 +332,7 @@ impl PlainDate {
                 .into());
         };
 
-        Ok(InnerDate::<JsObject>::day(&date, context)?.into())
+        Ok(InnerDate::<JsObject>::contextual_day(&date, context)?.into())
     }
 
     /// 3.3.8 get `Temporal.PlainDate.prototype.dayOfWeek`
@@ -344,7 +347,7 @@ impl PlainDate {
                 .into());
         };
 
-        Ok(InnerDate::<JsObject>::day_of_week(&date, context)?.into())
+        Ok(InnerDate::<JsObject>::contextual_day_of_week(&date, context)?.into())
     }
 
     /// 3.3.9 get `Temporal.PlainDate.prototype.dayOfYear`
@@ -359,7 +362,7 @@ impl PlainDate {
                 .into());
         };
 
-        Ok(InnerDate::<JsObject>::day_of_year(&date, context)?.into())
+        Ok(InnerDate::<JsObject>::contextual_day_of_year(&date, context)?.into())
     }
 
     /// 3.3.10 get `Temporal.PlainDate.prototype.weekOfYear`
@@ -374,7 +377,7 @@ impl PlainDate {
                 .into());
         };
 
-        Ok(InnerDate::<JsObject>::week_of_year(&date, context)?.into())
+        Ok(InnerDate::<JsObject>::contextual_week_of_year(&date, context)?.into())
     }
 
     /// 3.3.11 get `Temporal.PlainDate.prototype.yearOfWeek`
@@ -389,7 +392,7 @@ impl PlainDate {
                 .into());
         };
 
-        Ok(InnerDate::<JsObject>::year_of_week(&date, context)?.into())
+        Ok(InnerDate::<JsObject>::contextual_year_of_week(&date, context)?.into())
     }
 
     /// 3.3.12 get `Temporal.PlainDate.prototype.daysInWeek`
@@ -404,7 +407,7 @@ impl PlainDate {
                 .into());
         };
 
-        Ok(InnerDate::<JsObject>::days_in_week(&date, context)?.into())
+        Ok(InnerDate::<JsObject>::contextual_days_in_week(&date, context)?.into())
     }
 
     /// 3.3.13 get `Temporal.PlainDate.prototype.daysInMonth`
@@ -423,7 +426,7 @@ impl PlainDate {
                 .into());
         };
 
-        Ok(InnerDate::<JsObject>::days_in_month(&date, context)?.into())
+        Ok(InnerDate::<JsObject>::contextual_days_in_month(&date, context)?.into())
     }
 
     /// 3.3.14 get `Temporal.PlainDate.prototype.daysInYear`
@@ -438,7 +441,7 @@ impl PlainDate {
                 .into());
         };
 
-        Ok(InnerDate::<JsObject>::days_in_year(&date, context)?.into())
+        Ok(InnerDate::<JsObject>::contextual_days_in_year(&date, context)?.into())
     }
 
     /// 3.3.15 get `Temporal.PlainDate.prototype.monthsInYear`
@@ -457,7 +460,7 @@ impl PlainDate {
                 .into());
         };
 
-        Ok(InnerDate::<JsObject>::months_in_year(&date, context)?.into())
+        Ok(InnerDate::<JsObject>::contextual_months_in_year(&date, context)?.into())
     }
 
     /// 3.3.16 get `Temporal.PlainDate.prototype.inLeapYear`
@@ -472,7 +475,7 @@ impl PlainDate {
                 .into());
         };
 
-        Ok(InnerDate::<JsObject>::in_leap_year(&date, context)?.into())
+        Ok(InnerDate::<JsObject>::contextual_in_leap_year(&date, context)?.into())
     }
 }
 

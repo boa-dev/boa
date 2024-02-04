@@ -44,7 +44,8 @@ impl<C: CalendarProtocol> Date<C> {
         duration: &Duration,
         context: &mut C::Context,
     ) -> TemporalResult<(Self, f64)> {
-        let new_date = self.add_date(duration, ArithmeticOverflow::Constrain, context)?;
+        let new_date =
+            self.contextual_add_date(duration, ArithmeticOverflow::Constrain, context)?;
         let days = f64::from(self.days_until(&new_date));
         Ok((new_date, days))
     }
@@ -127,84 +128,190 @@ impl<C: CalendarProtocol> Date<C> {
     }
 }
 
+// ==== Calendar-derived Public API ====
+
+impl Date<()> {
+    /// Returns the calendar year value.
+    pub fn year(&self) -> TemporalResult<i32> {
+        self.calendar
+            .year(&CalendarDateLike::Date(self.clone()), &mut ())
+    }
+
+    /// Returns the calendar month value.
+    pub fn month(&self) -> TemporalResult<u8> {
+        self.calendar
+            .month(&CalendarDateLike::Date(self.clone()), &mut ())
+    }
+
+    /// Returns the calendar month code value.
+    pub fn month_code(&self) -> TemporalResult<TinyAsciiStr<4>> {
+        self.calendar
+            .month_code(&CalendarDateLike::Date(self.clone()), &mut ())
+    }
+
+    /// Returns the calendar day value.
+    pub fn day(&self) -> TemporalResult<u8> {
+        self.calendar
+            .day(&CalendarDateLike::Date(self.clone()), &mut ())
+    }
+
+    /// Returns the calendar day of week value.
+    pub fn day_of_week(&self) -> TemporalResult<u16> {
+        self.calendar
+            .day_of_week(&CalendarDateLike::Date(self.clone()), &mut ())
+    }
+
+    /// Returns the calendar day of year value.
+    pub fn day_of_year(&self) -> TemporalResult<u16> {
+        self.calendar
+            .day_of_year(&CalendarDateLike::Date(self.clone()), &mut ())
+    }
+
+    /// Returns the calendar week of year value.
+    pub fn week_of_year(&self) -> TemporalResult<u16> {
+        self.calendar
+            .week_of_year(&CalendarDateLike::Date(self.clone()), &mut ())
+    }
+
+    /// Returns the calendar year of week value.
+    pub fn year_of_week(&self) -> TemporalResult<i32> {
+        self.calendar
+            .year_of_week(&CalendarDateLike::Date(self.clone()), &mut ())
+    }
+
+    /// Returns the calendar days in week value.
+    pub fn days_in_week(&self) -> TemporalResult<u16> {
+        self.calendar
+            .days_in_week(&CalendarDateLike::Date(self.clone()), &mut ())
+    }
+
+    /// Returns the calendar days in month value.
+    pub fn days_in_month(&self) -> TemporalResult<u16> {
+        self.calendar
+            .days_in_month(&CalendarDateLike::Date(self.clone()), &mut ())
+    }
+
+    /// Returns the calendar days in year value.
+    pub fn days_in_year(&self) -> TemporalResult<u16> {
+        self.calendar
+            .days_in_year(&CalendarDateLike::Date(self.clone()), &mut ())
+    }
+
+    /// Returns the calendar months in year value.
+    pub fn months_in_year(&self) -> TemporalResult<u16> {
+        self.calendar
+            .months_in_year(&CalendarDateLike::Date(self.clone()), &mut ())
+    }
+
+    /// Returns returns whether the date in a leap year for the given calendar.
+    pub fn in_leap_year(&self) -> TemporalResult<bool> {
+        self.calendar
+            .in_leap_year(&CalendarDateLike::Date(self.clone()), &mut ())
+    }
+}
+
 // NOTE(nekevss): The clone below should ideally not change the memory address, but that may
 // not be true across all cases. I.e., it should be fine as long as the clone is simply a
 // reference count increment. Need to test.
 impl<C: CalendarProtocol> Date<C> {
     /// Returns the calendar year value with provided context.
-    pub fn year(this: &C::Date, context: &mut C::Context) -> TemporalResult<i32> {
+    pub fn contextual_year(this: &C::Date, context: &mut C::Context) -> TemporalResult<i32> {
         this.get_calendar()
             .year(&CalendarDateLike::CustomDate(this.clone()), context)
     }
 
     /// Returns the calendar month value with provided context.
-    pub fn month(this: &C::Date, context: &mut C::Context) -> TemporalResult<u8> {
+    pub fn contextual_month(this: &C::Date, context: &mut C::Context) -> TemporalResult<u8> {
         this.get_calendar()
             .month(&CalendarDateLike::CustomDate(this.clone()), context)
     }
 
     /// Returns the calendar month code value with provided context.
-    pub fn month_code(this: &C::Date, context: &mut C::Context) -> TemporalResult<TinyAsciiStr<4>> {
+    pub fn contextual_month_code(
+        this: &C::Date,
+        context: &mut C::Context,
+    ) -> TemporalResult<TinyAsciiStr<4>> {
         this.get_calendar()
             .month_code(&CalendarDateLike::CustomDate(this.clone()), context)
     }
 
     /// Returns the calendar day value with provided context.
-    pub fn day(this: &C::Date, context: &mut C::Context) -> TemporalResult<u8> {
+    pub fn contextual_day(this: &C::Date, context: &mut C::Context) -> TemporalResult<u8> {
         this.get_calendar()
             .day(&CalendarDateLike::CustomDate(this.clone()), context)
     }
 
     /// Returns the calendar day of week value with provided context.
-    pub fn day_of_week(this: &C::Date, context: &mut C::Context) -> TemporalResult<u16> {
+    pub fn contextual_day_of_week(this: &C::Date, context: &mut C::Context) -> TemporalResult<u16> {
         this.get_calendar()
             .day_of_week(&CalendarDateLike::CustomDate(this.clone()), context)
     }
 
     /// Returns the calendar day of year value with provided context.
-    pub fn day_of_year(this: &C::Date, context: &mut C::Context) -> TemporalResult<u16> {
+    pub fn contextual_day_of_year(this: &C::Date, context: &mut C::Context) -> TemporalResult<u16> {
         this.get_calendar()
             .day_of_year(&CalendarDateLike::CustomDate(this.clone()), context)
     }
 
     /// Returns the calendar week of year value with provided context.
-    pub fn week_of_year(this: &C::Date, context: &mut C::Context) -> TemporalResult<u16> {
+    pub fn contextual_week_of_year(
+        this: &C::Date,
+        context: &mut C::Context,
+    ) -> TemporalResult<u16> {
         this.get_calendar()
             .week_of_year(&CalendarDateLike::CustomDate(this.clone()), context)
     }
 
     /// Returns the calendar year of week value with provided context.
-    pub fn year_of_week(this: &C::Date, context: &mut C::Context) -> TemporalResult<i32> {
+    pub fn contextual_year_of_week(
+        this: &C::Date,
+        context: &mut C::Context,
+    ) -> TemporalResult<i32> {
         this.get_calendar()
             .year_of_week(&CalendarDateLike::CustomDate(this.clone()), context)
     }
 
     /// Returns the calendar days in week value with provided context.
-    pub fn days_in_week(this: &C::Date, context: &mut C::Context) -> TemporalResult<u16> {
+    pub fn contextual_days_in_week(
+        this: &C::Date,
+        context: &mut C::Context,
+    ) -> TemporalResult<u16> {
         this.get_calendar()
             .days_in_week(&CalendarDateLike::CustomDate(this.clone()), context)
     }
 
     /// Returns the calendar days in month value with provided context.
-    pub fn days_in_month(this: &C::Date, context: &mut C::Context) -> TemporalResult<u16> {
+    pub fn contextual_days_in_month(
+        this: &C::Date,
+        context: &mut C::Context,
+    ) -> TemporalResult<u16> {
         this.get_calendar()
             .days_in_month(&CalendarDateLike::CustomDate(this.clone()), context)
     }
 
     /// Returns the calendar days in year value with provided context.
-    pub fn days_in_year(this: &C::Date, context: &mut C::Context) -> TemporalResult<u16> {
+    pub fn contextual_days_in_year(
+        this: &C::Date,
+        context: &mut C::Context,
+    ) -> TemporalResult<u16> {
         this.get_calendar()
             .days_in_year(&CalendarDateLike::CustomDate(this.clone()), context)
     }
 
     /// Returns the calendar months in year value with provided context.
-    pub fn months_in_year(this: &C::Date, context: &mut C::Context) -> TemporalResult<u16> {
+    pub fn contextual_months_in_year(
+        this: &C::Date,
+        context: &mut C::Context,
+    ) -> TemporalResult<u16> {
         this.get_calendar()
             .months_in_year(&CalendarDateLike::CustomDate(this.clone()), context)
     }
 
     /// Returns whether the date is in a leap year for the given calendar with provided context.
-    pub fn in_leap_year(this: &C::Date, context: &mut C::Context) -> TemporalResult<bool> {
+    pub fn contextual_in_leap_year(
+        this: &C::Date,
+        context: &mut C::Context,
+    ) -> TemporalResult<bool> {
         this.get_calendar()
             .in_leap_year(&CalendarDateLike::CustomDate(this.clone()), context)
     }
@@ -230,7 +337,7 @@ impl<C: CalendarProtocol> Date<C> {
     ///
     /// Temporal Equivalent: 3.5.13 `AddDate ( calendar, plainDate, duration [ , options [ , dateAdd ] ] )`
     #[inline]
-    pub fn add_date(
+    pub fn contextual_add_date(
         &self,
         duration: &Duration,
         overflow: ArithmeticOverflow,
@@ -273,7 +380,7 @@ impl<C: CalendarProtocol> Date<C> {
     ///
     /// Temporal Equivalent: 3.5.6 `DifferenceDate ( calendar, one, two, options )`
     #[inline]
-    pub fn difference_date(
+    pub fn contextual_difference_date(
         &self,
         other: &Self,
         largest_unit: TemporalUnit,

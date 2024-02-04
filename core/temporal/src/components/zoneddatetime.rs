@@ -102,7 +102,7 @@ where
 {
     /// Returns the `year` value for this `ZonedDateTime`.
     #[inline]
-    pub fn year(&self, context: &mut C::Context) -> TemporalResult<i32> {
+    pub fn contextual_year(&self, context: &mut C::Context) -> TemporalResult<i32> {
         let dt = self
             .tz
             .get_datetime_for(&self.instant, &self.calendar, context)?;
@@ -110,7 +110,7 @@ where
     }
 
     /// Returns the `month` value for this `ZonedDateTime`.
-    pub fn month(&self, context: &mut C::Context) -> TemporalResult<u8> {
+    pub fn contextual_month(&self, context: &mut C::Context) -> TemporalResult<u8> {
         let dt = self
             .tz
             .get_datetime_for(&self.instant, &self.calendar, context)?;
@@ -119,7 +119,7 @@ where
     }
 
     /// Returns the `monthCode` value for this `ZonedDateTime`.
-    pub fn month_code(&self, context: &mut C::Context) -> TemporalResult<TinyStr4> {
+    pub fn contextual_month_code(&self, context: &mut C::Context) -> TemporalResult<TinyStr4> {
         let dt = self
             .tz
             .get_datetime_for(&self.instant, &self.calendar, context)?;
@@ -128,7 +128,7 @@ where
     }
 
     /// Returns the `day` value for this `ZonedDateTime`.
-    pub fn day(&self, context: &mut C::Context) -> TemporalResult<u8> {
+    pub fn contextual_day(&self, context: &mut C::Context) -> TemporalResult<u8> {
         let dt = self
             .tz
             .get_datetime_for(&self.instant, &self.calendar, context)?;
@@ -136,7 +136,7 @@ where
     }
 
     /// Returns the `hour` value for this `ZonedDateTime`.
-    pub fn hour(&self, context: &mut C::Context) -> TemporalResult<u8> {
+    pub fn contextual_hour(&self, context: &mut C::Context) -> TemporalResult<u8> {
         let dt = self
             .tz
             .get_datetime_for(&self.instant, &self.calendar, context)?;
@@ -144,7 +144,7 @@ where
     }
 
     /// Returns the `minute` value for this `ZonedDateTime`.
-    pub fn minute(&self, context: &mut C::Context) -> TemporalResult<u8> {
+    pub fn contextual_minute(&self, context: &mut C::Context) -> TemporalResult<u8> {
         let dt = self
             .tz
             .get_datetime_for(&self.instant, &self.calendar, context)?;
@@ -152,7 +152,7 @@ where
     }
 
     /// Returns the `second` value for this `ZonedDateTime`.
-    pub fn second(&self, context: &mut C::Context) -> TemporalResult<u8> {
+    pub fn contextual_second(&self, context: &mut C::Context) -> TemporalResult<u8> {
         let dt = self
             .tz
             .get_datetime_for(&self.instant, &self.calendar, context)?;
@@ -160,7 +160,7 @@ where
     }
 
     /// Returns the `millisecond` value for this `ZonedDateTime`.
-    pub fn millisecond(&self, context: &mut C::Context) -> TemporalResult<u16> {
+    pub fn contextual_millisecond(&self, context: &mut C::Context) -> TemporalResult<u16> {
         let dt = self
             .tz
             .get_datetime_for(&self.instant, &self.calendar, context)?;
@@ -168,7 +168,7 @@ where
     }
 
     /// Returns the `microsecond` value for this `ZonedDateTime`.
-    pub fn microsecond(&self, context: &mut C::Context) -> TemporalResult<u16> {
+    pub fn contextual_microsecond(&self, context: &mut C::Context) -> TemporalResult<u16> {
         let dt = self
             .tz
             .get_datetime_for(&self.instant, &self.calendar, context)?;
@@ -176,7 +176,7 @@ where
     }
 
     /// Returns the `nanosecond` value for this `ZonedDateTime`.
-    pub fn nanosecond(&self, context: &mut C::Context) -> TemporalResult<u16> {
+    pub fn contextual_nanosecond(&self, context: &mut C::Context) -> TemporalResult<u16> {
         let dt = self
             .tz
             .get_datetime_for(&self.instant, &self.calendar, context)?;
@@ -207,12 +207,12 @@ mod tests {
         )
         .unwrap();
 
-        assert_eq!(zdt.year(&mut ()).unwrap(), 2023);
-        assert_eq!(zdt.month(&mut ()).unwrap(), 11);
-        assert_eq!(zdt.day(&mut ()).unwrap(), 30);
-        assert_eq!(zdt.hour(&mut ()).unwrap(), 1);
-        assert_eq!(zdt.minute(&mut ()).unwrap(), 49);
-        assert_eq!(zdt.second(&mut ()).unwrap(), 12);
+        assert_eq!(zdt.contextual_year(&mut ()).unwrap(), 2023);
+        assert_eq!(zdt.contextual_month(&mut ()).unwrap(), 11);
+        assert_eq!(zdt.contextual_day(&mut ()).unwrap(), 30);
+        assert_eq!(zdt.contextual_hour(&mut ()).unwrap(), 1);
+        assert_eq!(zdt.contextual_minute(&mut ()).unwrap(), 49);
+        assert_eq!(zdt.contextual_second(&mut ()).unwrap(), 12);
 
         let zdt_minus_five = ZonedDateTime::<(), ()>::new(
             nov_30_2023_utc,
@@ -224,11 +224,11 @@ mod tests {
         )
         .unwrap();
 
-        assert_eq!(zdt_minus_five.year(&mut ()).unwrap(), 2023);
-        assert_eq!(zdt_minus_five.month(&mut ()).unwrap(), 11);
-        assert_eq!(zdt_minus_five.day(&mut ()).unwrap(), 29);
-        assert_eq!(zdt_minus_five.hour(&mut ()).unwrap(), 20);
-        assert_eq!(zdt_minus_five.minute(&mut ()).unwrap(), 49);
-        assert_eq!(zdt_minus_five.second(&mut ()).unwrap(), 12);
+        assert_eq!(zdt_minus_five.contextual_year(&mut ()).unwrap(), 2023);
+        assert_eq!(zdt_minus_five.contextual_month(&mut ()).unwrap(), 11);
+        assert_eq!(zdt_minus_five.contextual_day(&mut ()).unwrap(), 29);
+        assert_eq!(zdt_minus_five.contextual_hour(&mut ()).unwrap(), 20);
+        assert_eq!(zdt_minus_five.contextual_minute(&mut ()).unwrap(), 49);
+        assert_eq!(zdt_minus_five.contextual_second(&mut ()).unwrap(), 12);
     }
 }
