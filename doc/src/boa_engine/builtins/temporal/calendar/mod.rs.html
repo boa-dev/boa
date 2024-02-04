@@ -1127,13 +1127,6 @@
 <a href="#1127" id="1127">1127</a>
 <a href="#1128" id="1128">1128</a>
 <a href="#1129" id="1129">1129</a>
-<a href="#1130" id="1130">1130</a>
-<a href="#1131" id="1131">1131</a>
-<a href="#1132" id="1132">1132</a>
-<a href="#1133" id="1133">1133</a>
-<a href="#1134" id="1134">1134</a>
-<a href="#1135" id="1135">1135</a>
-<a href="#1136" id="1136">1136</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! An implementation of the `Temporal` proposal&#39;s Calendar builtin.
 
 </span><span class="kw">use </span>std::str::FromStr;
@@ -1169,15 +1162,12 @@
 
 <span class="kw">mod </span>object;
 
-<span class="attr">#[doc(inline)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>object::JsCustomCalendar;
-
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
 <span class="doccomment">/// The `Temporal.Calendar` object.
 </span><span class="attr">#[derive(Debug, Finalize, JsData)]
 </span><span class="kw">pub struct </span>Calendar {
-    slot: CalendarSlot&lt;JsCustomCalendar&gt;,
+    slot: CalendarSlot&lt;JsObject&gt;,
 }
 
 <span class="kw">unsafe impl </span>Trace <span class="kw">for </span>Calendar {
@@ -1191,7 +1181,7 @@
 }
 
 <span class="kw">impl </span>Calendar {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(slot: CalendarSlot&lt;JsCustomCalendar&gt;) -&gt; <span class="self">Self </span>{
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(slot: CalendarSlot&lt;JsObject&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{ slot }
     }
 }
@@ -1291,7 +1281,7 @@
 
         // 4. Return ? CreateTemporalCalendar(id, NewTarget).
         </span>create_temporal_calendar(
-            CalendarSlot::&lt;JsCustomCalendar&gt;::from_str(<span class="kw-2">&amp;</span>id.to_std_string_escaped())<span class="question-mark">?</span>,
+            CalendarSlot::&lt;JsObject&gt;::from_str(<span class="kw-2">&amp;</span>id.to_std_string_escaped())<span class="question-mark">?</span>,
             <span class="prelude-val">Some</span>(new_target.clone()),
             context,
         )
@@ -2092,7 +2082,7 @@
 
 </span><span class="doccomment">/// 12.2.1 `CreateTemporalCalendar ( identifier [ , newTarget ] )`
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_temporal_calendar(
-    identifier: CalendarSlot&lt;JsCustomCalendar&gt;,
+    identifier: CalendarSlot&lt;JsObject&gt;,
     new_target: <span class="prelude-ty">Option</span>&lt;JsValue&gt;,
     context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;JsValue&gt; {
@@ -2128,23 +2118,21 @@
     zoned_datetime_f: ZDTF,
 ) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;Ret&gt;&gt;
 <span class="kw">where
-    </span>DF: FnOnce(<span class="kw-2">&amp;</span>PlainDate) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;Ret&gt;&gt;,
-    DTF: FnOnce(<span class="kw-2">&amp;</span>PlainDateTime) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;Ret&gt;&gt;,
-    YMF: FnOnce(<span class="kw-2">&amp;</span>PlainYearMonth) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;Ret&gt;&gt;,
-    MDF: FnOnce(<span class="kw-2">&amp;</span>PlainMonthDay) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;Ret&gt;&gt;,
-    ZDTF: FnOnce(<span class="kw-2">&amp;</span>ZonedDateTime) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;Ret&gt;&gt;,
+    </span>DF: FnOnce(JsObject&lt;PlainDate&gt;) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;Ret&gt;&gt;,
+    DTF: FnOnce(JsObject&lt;PlainDateTime&gt;) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;Ret&gt;&gt;,
+    YMF: FnOnce(JsObject&lt;PlainYearMonth&gt;) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;Ret&gt;&gt;,
+    MDF: FnOnce(JsObject&lt;PlainMonthDay&gt;) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;Ret&gt;&gt;,
+    ZDTF: FnOnce(JsObject&lt;ZonedDateTime&gt;) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;Ret&gt;&gt;,
 {
-    <span class="kw">let </span>o = object.borrow();
-
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(date) = o.downcast_ref::&lt;PlainDate&gt;() {
+    <span class="kw">if let </span><span class="prelude-val">Ok</span>(date) = object.clone().downcast::&lt;PlainDate&gt;() {
         <span class="kw">return </span>date_f(date);
-    } <span class="kw">else if let </span><span class="prelude-val">Some</span>(dt) = o.downcast_ref::&lt;PlainDateTime&gt;() {
+    } <span class="kw">else if let </span><span class="prelude-val">Ok</span>(dt) = object.clone().downcast::&lt;PlainDateTime&gt;() {
         <span class="kw">return </span>datetime_f(dt);
-    } <span class="kw">else if let </span><span class="prelude-val">Some</span>(ym) = o.downcast_ref::&lt;PlainYearMonth&gt;() {
+    } <span class="kw">else if let </span><span class="prelude-val">Ok</span>(ym) = object.clone().downcast::&lt;PlainYearMonth&gt;() {
         <span class="kw">return </span>year_month_f(ym);
-    } <span class="kw">else if let </span><span class="prelude-val">Some</span>(md) = o.downcast_ref::&lt;PlainMonthDay&gt;() {
+    } <span class="kw">else if let </span><span class="prelude-val">Ok</span>(md) = object.clone().downcast::&lt;PlainMonthDay&gt;() {
         <span class="kw">return </span>month_day_f(md);
-    } <span class="kw">else if let </span><span class="prelude-val">Some</span>(dt) = o.downcast_ref::&lt;ZonedDateTime&gt;() {
+    } <span class="kw">else if let </span><span class="prelude-val">Ok</span>(dt) = object.clone().downcast::&lt;ZonedDateTime&gt;() {
         <span class="kw">return </span>zoned_datetime_f(dt);
     }
 
@@ -2156,15 +2144,15 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_temporal_calendar_slot_value_with_default(
     item: <span class="kw-2">&amp;</span>JsObject,
     context: <span class="kw-2">&amp;mut </span>Context,
-) -&gt; JsResult&lt;CalendarSlot&lt;JsCustomCalendar&gt;&gt; {
+) -&gt; JsResult&lt;CalendarSlot&lt;JsObject&gt;&gt; {
     <span class="comment">// 1. If item has an [[InitializedTemporalDate]], [[InitializedTemporalDateTime]], [[InitializedTemporalMonthDay]], [[InitializedTemporalYearMonth]], or [[InitializedTemporalZonedDateTime]] internal slot, then
     // a. Return item.[[Calendar]].
     </span><span class="kw">if let </span><span class="prelude-val">Some</span>(calendar) = extract_from_temporal_type(
         item,
-        |d| <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(d.inner.calendar().clone())),
-        |dt| <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(dt.inner.calendar().clone())),
-        |ym| <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(ym.inner.calendar().clone())),
-        |md| <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(md.inner.calendar().clone())),
+        |d| <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(d.borrow().data().inner.calendar().clone())),
+        |dt| <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(dt.borrow().data().inner.calendar().clone())),
+        |ym| <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(ym.borrow().data().inner.calendar().clone())),
+        |md| <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(md.borrow().data().inner.calendar().clone())),
         |zdt| {
             <span class="prelude-val">Err</span>(JsNativeError::range()
                 .with_message(<span class="string">&quot;Not yet implemented.&quot;</span>)
@@ -2185,7 +2173,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_temporal_calendar_slot_value(
     calendar_like: <span class="kw-2">&amp;</span>JsValue,
     context: <span class="kw-2">&amp;mut </span>Context,
-) -&gt; JsResult&lt;CalendarSlot&lt;JsCustomCalendar&gt;&gt; {
+) -&gt; JsResult&lt;CalendarSlot&lt;JsObject&gt;&gt; {
     <span class="comment">// 1. If temporalCalendarLike is undefined and default is present, then
     // a. Assert: IsBuiltinCalendar(default) is true.
     // b. Return default.
@@ -2197,11 +2185,11 @@
         // i. Return temporalCalendarLike.[[Calendar]].
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(calendar) = extract_from_temporal_type(
             calendar_like,
-            |d| <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(d.inner.calendar().clone())),
-            |dt| <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(dt.inner.calendar().clone())),
-            |ym| <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(ym.inner.calendar().clone())),
-            |md| <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(md.inner.calendar().clone())),
-            |zdt| <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(zdt.inner.calendar().clone())),
+            |d| <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(d.borrow().data().inner.calendar().clone())),
+            |dt| <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(dt.borrow().data().inner.calendar().clone())),
+            |ym| <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(ym.borrow().data().inner.calendar().clone())),
+            |md| <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(md.borrow().data().inner.calendar().clone())),
+            |zdt| <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(zdt.borrow().data().inner.calendar().clone())),
         )<span class="question-mark">? </span>{
             <span class="kw">return </span><span class="prelude-val">Ok</span>(calendar);
         }
@@ -2214,10 +2202,8 @@
                 .into());
         }
 
-        <span class="comment">// Types: Box&lt;dyn CalendarProtocol&gt; &lt;- UserCalendar
-        </span><span class="kw">let </span>custom = JsCustomCalendar::new(calendar_like);
         <span class="comment">// c. Return temporalCalendarLike.
-        </span><span class="kw">return </span><span class="prelude-val">Ok</span>(CalendarSlot::Protocol(custom));
+        </span><span class="kw">return </span><span class="prelude-val">Ok</span>(CalendarSlot::Protocol(calendar_like.clone()));
     }
 
     <span class="comment">// 3. If temporalCalendarLike is not a String, throw a TypeError exception.
@@ -2230,7 +2216,7 @@
     <span class="comment">// 4. Let identifier be ? ParseTemporalCalendarString(temporalCalendarLike).
     // 5. If IsBuiltinCalendar(identifier) is false, throw a RangeError exception.
     // 6. Return the ASCII-lowercase of identifier.
-    </span><span class="prelude-val">Ok</span>(CalendarSlot::&lt;JsCustomCalendar&gt;::from_str(
+    </span><span class="prelude-val">Ok</span>(CalendarSlot::&lt;JsObject&gt;::from_str(
         <span class="kw-2">&amp;</span>calendar_id.to_std_string_escaped(),
     )<span class="question-mark">?</span>)
 }
@@ -2247,7 +2233,7 @@
 </span><span class="kw">fn </span>to_calendar_date_like(
     date_like: <span class="kw-2">&amp;</span>JsValue,
     context: <span class="kw-2">&amp;mut </span>Context,
-) -&gt; JsResult&lt;CalendarDateLike&lt;JsCustomCalendar&gt;&gt; {
+) -&gt; JsResult&lt;CalendarDateLike&lt;JsObject&gt;&gt; {
     <span class="kw">let </span><span class="prelude-val">Some</span>(obj) = date_like.as_object() <span class="kw">else </span>{
         <span class="kw">let </span>date = temporal::plain_date::to_temporal_date(date_like, <span class="prelude-val">None</span>, context)<span class="question-mark">?</span>;
 
@@ -2256,9 +2242,9 @@
 
     <span class="kw">let </span><span class="prelude-val">Some</span>(date_like) = extract_from_temporal_type(
         obj,
-        |d| <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(CalendarDateLike::Date(d.inner.clone()))),
-        |dt| <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(CalendarDateLike::DateTime(dt.inner.clone()))),
-        |ym| <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(CalendarDateLike::YearMonth(ym.inner.clone()))),
+        |d| <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(CalendarDateLike::CustomDate(d))),
+        |dt| <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(CalendarDateLike::CustomDateTime(dt))),
+        |ym| <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(CalendarDateLike::CustomYearMonth(ym))),
         |<span class="kw">_</span>| <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
         |<span class="kw">_</span>| <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
     )<span class="question-mark">?

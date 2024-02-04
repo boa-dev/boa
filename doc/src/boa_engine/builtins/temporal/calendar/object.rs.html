@@ -942,35 +942,6 @@
 <a href="#942" id="942">942</a>
 <a href="#943" id="943">943</a>
 <a href="#944" id="944">944</a>
-<a href="#945" id="945">945</a>
-<a href="#946" id="946">946</a>
-<a href="#947" id="947">947</a>
-<a href="#948" id="948">948</a>
-<a href="#949" id="949">949</a>
-<a href="#950" id="950">950</a>
-<a href="#951" id="951">951</a>
-<a href="#952" id="952">952</a>
-<a href="#953" id="953">953</a>
-<a href="#954" id="954">954</a>
-<a href="#955" id="955">955</a>
-<a href="#956" id="956">956</a>
-<a href="#957" id="957">957</a>
-<a href="#958" id="958">958</a>
-<a href="#959" id="959">959</a>
-<a href="#960" id="960">960</a>
-<a href="#961" id="961">961</a>
-<a href="#962" id="962">962</a>
-<a href="#963" id="963">963</a>
-<a href="#964" id="964">964</a>
-<a href="#965" id="965">965</a>
-<a href="#966" id="966">966</a>
-<a href="#967" id="967">967</a>
-<a href="#968" id="968">968</a>
-<a href="#969" id="969">969</a>
-<a href="#970" id="970">970</a>
-<a href="#971" id="971">971</a>
-<a href="#972" id="972">972</a>
-<a href="#973" id="973">973</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of a user-defined Anonymous Calendar.
 
 </span><span class="kw">use crate</span>::{
@@ -987,11 +958,10 @@
 };
 <span class="kw">use </span>std::any::Any;
 
-<span class="kw">use </span>boa_gc::{Finalize, Trace};
 <span class="kw">use </span>boa_macros::utf16;
 <span class="kw">use </span>boa_temporal::{
     components::{
-        calendar::{CalendarDateLike, CalendarProtocol},
+        calendar::{CalendarDateLike, CalendarProtocol, DateTypes},
         Date, Duration, MonthDay, YearMonth,
     },
     options::ArithmeticOverflow,
@@ -999,28 +969,23 @@
 };
 <span class="kw">use </span>num_traits::ToPrimitive;
 <span class="kw">use </span>plain_date::PlainDate;
+<span class="kw">use </span>plain_date_time::PlainDateTime;
 <span class="kw">use </span>plain_month_day::PlainMonthDay;
 <span class="kw">use </span>plain_year_month::PlainYearMonth;
 
-<span class="doccomment">/// A user-defined, custom calendar that is only known at runtime
-/// and executed at runtime.
-///
-/// A user-defined calendar implements all of the `CalendarProtocolMethods`
-/// and therefore satisfies the requirements to be used as a calendar.
-</span><span class="attr">#[derive(Debug, Clone, Trace, Finalize)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>JsCustomCalendar {
-    calendar: JsObject,
+<span class="doccomment">/// The custom data types for a Custom `JsObject` Calendar.
+</span><span class="attr">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub struct </span>CustomDateLikes;
+
+<span class="kw">impl </span>DateTypes&lt;JsObject&gt; <span class="kw">for </span>CustomDateLikes {
+    <span class="kw">type </span>Date = JsObject&lt;PlainDate&gt;;
+    <span class="kw">type </span>DateTime = JsObject&lt;PlainDateTime&gt;;
+    <span class="kw">type </span>YearMonth = JsObject&lt;PlainYearMonth&gt;;
+    <span class="kw">type </span>MonthDay = JsObject&lt;PlainMonthDay&gt;;
 }
 
-<span class="kw">impl </span>JsCustomCalendar {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(calendar: <span class="kw-2">&amp;</span>JsObject) -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{
-            calendar: calendar.clone(),
-        }
-    }
-}
-
-<span class="kw">impl </span>CalendarProtocol <span class="kw">for </span>JsCustomCalendar {
+<span class="kw">impl </span>CalendarProtocol <span class="kw">for </span>JsObject {
+    <span class="kw">type </span>DateLikes = CustomDateLikes;
     <span class="kw">fn </span>date_from_fields(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         fields: <span class="kw-2">&amp;mut </span>TemporalFields,
@@ -1032,8 +997,7 @@
             .expect(<span class="string">&quot;Context was not provided for a CustomCalendar.&quot;</span>);
 
         <span class="kw">let </span>method = <span class="self">self
-            </span>.calendar
-            .get(<span class="macro">utf16!</span>(<span class="string">&quot;dateFromFields&quot;</span>), context)
+            </span>.get(<span class="macro">utf16!</span>(<span class="string">&quot;dateFromFields&quot;</span>), context)
             .expect(<span class="string">&quot;method must exist on a object that implements the CalendarProtocol.&quot;</span>);
 
         <span class="kw">let </span>fields = JsObject::from_temporal_fields(fields, context)
@@ -1055,7 +1019,7 @@
                 TemporalError::general(<span class="string">&quot;dateFromFields must be implemented as a callable method.&quot;</span>)
             })<span class="question-mark">?
             </span>.call(
-                <span class="kw-2">&amp;</span><span class="self">self</span>.calendar.clone().into(),
+                <span class="kw-2">&amp;</span><span class="self">self</span>.clone().into(),
                 <span class="kw-2">&amp;</span>[fields.into(), overflow_obj.into()],
                 context,
             )
@@ -1078,14 +1042,13 @@
         fields: <span class="kw-2">&amp;mut </span>TemporalFields,
         overflow: ArithmeticOverflow,
         context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
-    ) -&gt; TemporalResult&lt;YearMonth&lt;JsCustomCalendar&gt;&gt; {
+    ) -&gt; TemporalResult&lt;YearMonth&lt;JsObject&gt;&gt; {
         <span class="kw">let </span>context = context
             .downcast_mut::&lt;Context&gt;()
             .expect(<span class="string">&quot;Context was not provided for a CustomCalendar.&quot;</span>);
 
         <span class="kw">let </span>method = <span class="self">self
-            </span>.calendar
-            .get(<span class="macro">utf16!</span>(<span class="string">&quot;yearMonthFromFields&quot;</span>), context)
+            </span>.get(<span class="macro">utf16!</span>(<span class="string">&quot;yearMonthFromFields&quot;</span>), context)
             .expect(<span class="string">&quot;method must exist on a object that implements the CalendarProtocol.&quot;</span>);
 
         <span class="kw">let </span>fields = JsObject::from_temporal_fields(fields, context)
@@ -1109,7 +1072,7 @@
                 )
             })<span class="question-mark">?
             </span>.call(
-                <span class="kw-2">&amp;</span><span class="self">self</span>.calendar.clone().into(),
+                <span class="kw-2">&amp;</span><span class="self">self</span>.clone().into(),
                 <span class="kw-2">&amp;</span>[fields.into(), overflow_obj.into()],
                 context,
             )
@@ -1132,14 +1095,13 @@
         fields: <span class="kw-2">&amp;mut </span>TemporalFields,
         overflow: ArithmeticOverflow,
         context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
-    ) -&gt; TemporalResult&lt;MonthDay&lt;JsCustomCalendar&gt;&gt; {
+    ) -&gt; TemporalResult&lt;MonthDay&lt;JsObject&gt;&gt; {
         <span class="kw">let </span>context = context
             .downcast_mut::&lt;Context&gt;()
             .expect(<span class="string">&quot;Context was not provided for a CustomCalendar.&quot;</span>);
 
         <span class="kw">let </span>method = <span class="self">self
-            </span>.calendar
-            .get(<span class="macro">utf16!</span>(<span class="string">&quot;yearMonthFromFields&quot;</span>), context)
+            </span>.get(<span class="macro">utf16!</span>(<span class="string">&quot;yearMonthFromFields&quot;</span>), context)
             .expect(<span class="string">&quot;method must exist on a object that implements the CalendarProtocol.&quot;</span>);
 
         <span class="kw">let </span>fields = JsObject::from_temporal_fields(fields, context)
@@ -1163,7 +1125,7 @@
                 )
             })<span class="question-mark">?
             </span>.call(
-                <span class="kw-2">&amp;</span><span class="self">self</span>.calendar.clone().into(),
+                <span class="kw-2">&amp;</span><span class="self">self</span>.clone().into(),
                 <span class="kw-2">&amp;</span>[fields.into(), overflow_obj.into()],
                 context,
             )
@@ -1183,19 +1145,19 @@
 
     <span class="kw">fn </span>date_add(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        _date: <span class="kw-2">&amp;</span>Date&lt;JsCustomCalendar&gt;,
+        _date: <span class="kw-2">&amp;</span>Date&lt;JsObject&gt;,
         _duration: <span class="kw-2">&amp;</span>Duration,
         _overflow: ArithmeticOverflow,
         _context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
-    ) -&gt; TemporalResult&lt;Date&lt;JsCustomCalendar&gt;&gt; {
+    ) -&gt; TemporalResult&lt;Date&lt;JsObject&gt;&gt; {
         <span class="comment">// TODO
         </span><span class="prelude-val">Err</span>(TemporalError::general(<span class="string">&quot;Not yet implemented.&quot;</span>))
     }
 
     <span class="kw">fn </span>date_until(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        _one: <span class="kw-2">&amp;</span>Date&lt;JsCustomCalendar&gt;,
-        _two: <span class="kw-2">&amp;</span>Date&lt;JsCustomCalendar&gt;,
+        _one: <span class="kw-2">&amp;</span>Date&lt;JsObject&gt;,
+        _two: <span class="kw-2">&amp;</span>Date&lt;JsObject&gt;,
         _largest_unit: boa_temporal::options::TemporalUnit,
         _context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
     ) -&gt; TemporalResult&lt;Duration&gt; {
@@ -1205,7 +1167,7 @@
 
     <span class="kw">fn </span>era(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span>CalendarDateLike&lt;JsCustomCalendar&gt;,
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span>CalendarDateLike&lt;JsObject&gt;,
         <span class="kw">_</span>: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
     ) -&gt; TemporalResult&lt;<span class="prelude-ty">Option</span>&lt;TinyAsciiStr&lt;<span class="number">16</span>&gt;&gt;&gt; {
         <span class="comment">// Return undefined as custom calendars do not implement -&gt; Currently.
@@ -1214,7 +1176,7 @@
 
     <span class="kw">fn </span>era_year(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span>CalendarDateLike&lt;JsCustomCalendar&gt;,
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span>CalendarDateLike&lt;JsObject&gt;,
         <span class="kw">_</span>: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
     ) -&gt; TemporalResult&lt;<span class="prelude-ty">Option</span>&lt;i32&gt;&gt; {
         <span class="comment">// Return undefined as custom calendars do not implement -&gt; Currently.
@@ -1223,7 +1185,7 @@
 
     <span class="kw">fn </span>year(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        date_like: <span class="kw-2">&amp;</span>CalendarDateLike&lt;JsCustomCalendar&gt;,
+        date_like: <span class="kw-2">&amp;</span>CalendarDateLike&lt;JsObject&gt;,
         context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
     ) -&gt; TemporalResult&lt;i32&gt; {
         <span class="kw">let </span>context = context
@@ -1233,14 +1195,13 @@
         <span class="kw">let </span>date_like = date_like_to_object(date_like, context)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>method = <span class="self">self
-            </span>.calendar
-            .get(PropertyKey::from(<span class="macro">utf16!</span>(<span class="string">&quot;year&quot;</span>)), context)
+            </span>.get(PropertyKey::from(<span class="macro">utf16!</span>(<span class="string">&quot;year&quot;</span>)), context)
             .expect(<span class="string">&quot;method must exist on a object that implements the CalendarProtocol.&quot;</span>);
 
         <span class="kw">let </span>val = method
             .as_callable()
             .expect(<span class="string">&quot;is method&quot;</span>)
-            .call(<span class="kw-2">&amp;</span><span class="self">self</span>.calendar.clone().into(), <span class="kw-2">&amp;</span>[date_like], context)
+            .call(<span class="kw-2">&amp;</span><span class="self">self</span>.clone().into(), <span class="kw-2">&amp;</span>[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))<span class="question-mark">?</span>;
 
         <span class="comment">// Validate the return value.
@@ -1270,7 +1231,7 @@
 
     <span class="kw">fn </span>month(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        date_like: <span class="kw-2">&amp;</span>CalendarDateLike&lt;JsCustomCalendar&gt;,
+        date_like: <span class="kw-2">&amp;</span>CalendarDateLike&lt;JsObject&gt;,
         context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
     ) -&gt; TemporalResult&lt;u8&gt; {
         <span class="kw">let </span>context = context
@@ -1280,14 +1241,13 @@
         <span class="kw">let </span>date_like = date_like_to_object(date_like, context)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>method = <span class="self">self
-            </span>.calendar
-            .get(PropertyKey::from(<span class="macro">utf16!</span>(<span class="string">&quot;month&quot;</span>)), context)
+            </span>.get(PropertyKey::from(<span class="macro">utf16!</span>(<span class="string">&quot;month&quot;</span>)), context)
             .expect(<span class="string">&quot;method must exist on a object that implements the CalendarProtocol.&quot;</span>);
 
         <span class="kw">let </span>val = method
             .as_callable()
             .expect(<span class="string">&quot;is method&quot;</span>)
-            .call(<span class="kw-2">&amp;</span><span class="self">self</span>.calendar.clone().into(), <span class="kw-2">&amp;</span>[date_like], context)
+            .call(<span class="kw-2">&amp;</span><span class="self">self</span>.clone().into(), <span class="kw-2">&amp;</span>[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))<span class="question-mark">?</span>;
 
         <span class="comment">// Validate the return value.
@@ -1317,7 +1277,7 @@
 
     <span class="kw">fn </span>month_code(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        date_like: <span class="kw-2">&amp;</span>CalendarDateLike&lt;JsCustomCalendar&gt;,
+        date_like: <span class="kw-2">&amp;</span>CalendarDateLike&lt;JsObject&gt;,
         context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
     ) -&gt; TemporalResult&lt;TinyAsciiStr&lt;<span class="number">4</span>&gt;&gt; {
         <span class="kw">let </span>context = context
@@ -1327,14 +1287,13 @@
         <span class="kw">let </span>date_like = date_like_to_object(date_like, context)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>method = <span class="self">self
-            </span>.calendar
-            .get(PropertyKey::from(<span class="macro">utf16!</span>(<span class="string">&quot;monthCode&quot;</span>)), context)
+            </span>.get(PropertyKey::from(<span class="macro">utf16!</span>(<span class="string">&quot;monthCode&quot;</span>)), context)
             .expect(<span class="string">&quot;method must exist on a object that implements the CalendarProtocol.&quot;</span>);
 
         <span class="kw">let </span>val = method
             .as_callable()
             .expect(<span class="string">&quot;is method&quot;</span>)
-            .call(<span class="kw-2">&amp;</span><span class="self">self</span>.calendar.clone().into(), <span class="kw-2">&amp;</span>[date_like], context)
+            .call(<span class="kw-2">&amp;</span><span class="self">self</span>.clone().into(), <span class="kw-2">&amp;</span>[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))<span class="question-mark">?</span>;
 
         <span class="kw">let </span>JsValue::String(result) = val <span class="kw">else </span>{
@@ -1349,7 +1308,7 @@
 
     <span class="kw">fn </span>day(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        date_like: <span class="kw-2">&amp;</span>CalendarDateLike&lt;JsCustomCalendar&gt;,
+        date_like: <span class="kw-2">&amp;</span>CalendarDateLike&lt;JsObject&gt;,
         context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
     ) -&gt; TemporalResult&lt;u8&gt; {
         <span class="kw">let </span>context = context
@@ -1359,14 +1318,13 @@
         <span class="kw">let </span>date_like = date_like_to_object(date_like, context)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>method = <span class="self">self
-            </span>.calendar
-            .get(PropertyKey::from(<span class="macro">utf16!</span>(<span class="string">&quot;day&quot;</span>)), context)
+            </span>.get(PropertyKey::from(<span class="macro">utf16!</span>(<span class="string">&quot;day&quot;</span>)), context)
             .expect(<span class="string">&quot;method must exist on a object that implements the CalendarProtocol.&quot;</span>);
 
         <span class="kw">let </span>val = method
             .as_callable()
             .expect(<span class="string">&quot;is method&quot;</span>)
-            .call(<span class="kw-2">&amp;</span><span class="self">self</span>.calendar.clone().into(), <span class="kw-2">&amp;</span>[date_like], context)
+            .call(<span class="kw-2">&amp;</span><span class="self">self</span>.clone().into(), <span class="kw-2">&amp;</span>[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))<span class="question-mark">?</span>;
 
         <span class="comment">// Validate the return value.
@@ -1396,7 +1354,7 @@
 
     <span class="kw">fn </span>day_of_week(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        date_like: <span class="kw-2">&amp;</span>CalendarDateLike&lt;JsCustomCalendar&gt;,
+        date_like: <span class="kw-2">&amp;</span>CalendarDateLike&lt;JsObject&gt;,
         context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
     ) -&gt; TemporalResult&lt;u16&gt; {
         <span class="kw">let </span>context = context
@@ -1406,14 +1364,13 @@
         <span class="kw">let </span>date_like = date_like_to_object(date_like, context)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>method = <span class="self">self
-            </span>.calendar
-            .get(PropertyKey::from(<span class="macro">utf16!</span>(<span class="string">&quot;dayOfWeek&quot;</span>)), context)
+            </span>.get(PropertyKey::from(<span class="macro">utf16!</span>(<span class="string">&quot;dayOfWeek&quot;</span>)), context)
             .expect(<span class="string">&quot;method must exist on a object that implements the CalendarProtocol.&quot;</span>);
 
         <span class="kw">let </span>val = method
             .as_callable()
             .expect(<span class="string">&quot;is method&quot;</span>)
-            .call(<span class="kw-2">&amp;</span><span class="self">self</span>.calendar.clone().into(), <span class="kw-2">&amp;</span>[date_like], context)
+            .call(<span class="kw-2">&amp;</span><span class="self">self</span>.clone().into(), <span class="kw-2">&amp;</span>[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))<span class="question-mark">?</span>;
 
         <span class="comment">// Validate the return value.
@@ -1445,7 +1402,7 @@
 
     <span class="kw">fn </span>day_of_year(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        date_like: <span class="kw-2">&amp;</span>CalendarDateLike&lt;JsCustomCalendar&gt;,
+        date_like: <span class="kw-2">&amp;</span>CalendarDateLike&lt;JsObject&gt;,
         context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
     ) -&gt; TemporalResult&lt;u16&gt; {
         <span class="kw">let </span>context = context
@@ -1455,14 +1412,13 @@
         <span class="kw">let </span>date_like = date_like_to_object(date_like, context)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>method = <span class="self">self
-            </span>.calendar
-            .get(PropertyKey::from(<span class="macro">utf16!</span>(<span class="string">&quot;dayOfYear&quot;</span>)), context)
+            </span>.get(PropertyKey::from(<span class="macro">utf16!</span>(<span class="string">&quot;dayOfYear&quot;</span>)), context)
             .expect(<span class="string">&quot;method must exist on a object that implements the CalendarProtocol.&quot;</span>);
 
         <span class="kw">let </span>val = method
             .as_callable()
             .expect(<span class="string">&quot;is method&quot;</span>)
-            .call(<span class="kw-2">&amp;</span><span class="self">self</span>.calendar.clone().into(), <span class="kw-2">&amp;</span>[date_like], context)
+            .call(<span class="kw-2">&amp;</span><span class="self">self</span>.clone().into(), <span class="kw-2">&amp;</span>[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))<span class="question-mark">?</span>;
 
         <span class="comment">// Validate the return value.
@@ -1494,7 +1450,7 @@
 
     <span class="kw">fn </span>week_of_year(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        date_like: <span class="kw-2">&amp;</span>CalendarDateLike&lt;JsCustomCalendar&gt;,
+        date_like: <span class="kw-2">&amp;</span>CalendarDateLike&lt;JsObject&gt;,
         context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
     ) -&gt; TemporalResult&lt;u16&gt; {
         <span class="kw">let </span>context = context
@@ -1504,14 +1460,13 @@
         <span class="kw">let </span>date_like = date_like_to_object(date_like, context)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>method = <span class="self">self
-            </span>.calendar
-            .get(PropertyKey::from(<span class="macro">utf16!</span>(<span class="string">&quot;weekOfYear&quot;</span>)), context)
+            </span>.get(PropertyKey::from(<span class="macro">utf16!</span>(<span class="string">&quot;weekOfYear&quot;</span>)), context)
             .expect(<span class="string">&quot;method must exist on a object that implements the CalendarProtocol.&quot;</span>);
 
         <span class="kw">let </span>val = method
             .as_callable()
             .expect(<span class="string">&quot;is method&quot;</span>)
-            .call(<span class="kw-2">&amp;</span><span class="self">self</span>.calendar.clone().into(), <span class="kw-2">&amp;</span>[date_like], context)
+            .call(<span class="kw-2">&amp;</span><span class="self">self</span>.clone().into(), <span class="kw-2">&amp;</span>[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))<span class="question-mark">?</span>;
 
         <span class="comment">// Validate the return value.
@@ -1543,7 +1498,7 @@
 
     <span class="kw">fn </span>year_of_week(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        date_like: <span class="kw-2">&amp;</span>CalendarDateLike&lt;JsCustomCalendar&gt;,
+        date_like: <span class="kw-2">&amp;</span>CalendarDateLike&lt;JsObject&gt;,
         context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
     ) -&gt; TemporalResult&lt;i32&gt; {
         <span class="kw">let </span>context = context
@@ -1553,14 +1508,13 @@
         <span class="kw">let </span>date_like = date_like_to_object(date_like, context)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>method = <span class="self">self
-            </span>.calendar
-            .get(PropertyKey::from(<span class="macro">utf16!</span>(<span class="string">&quot;yearOfWeek&quot;</span>)), context)
+            </span>.get(PropertyKey::from(<span class="macro">utf16!</span>(<span class="string">&quot;yearOfWeek&quot;</span>)), context)
             .expect(<span class="string">&quot;method must exist on a object that implements the CalendarProtocol.&quot;</span>);
 
         <span class="kw">let </span>val = method
             .as_callable()
             .expect(<span class="string">&quot;is method&quot;</span>)
-            .call(<span class="kw-2">&amp;</span><span class="self">self</span>.calendar.clone().into(), <span class="kw-2">&amp;</span>[date_like], context)
+            .call(<span class="kw-2">&amp;</span><span class="self">self</span>.clone().into(), <span class="kw-2">&amp;</span>[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))<span class="question-mark">?</span>;
 
         <span class="comment">// Validate the return value.
@@ -1585,7 +1539,7 @@
 
     <span class="kw">fn </span>days_in_week(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        date_like: <span class="kw-2">&amp;</span>CalendarDateLike&lt;JsCustomCalendar&gt;,
+        date_like: <span class="kw-2">&amp;</span>CalendarDateLike&lt;JsObject&gt;,
         context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
     ) -&gt; TemporalResult&lt;u16&gt; {
         <span class="kw">let </span>context = context
@@ -1595,14 +1549,13 @@
         <span class="kw">let </span>date_like = date_like_to_object(date_like, context)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>method = <span class="self">self
-            </span>.calendar
-            .get(PropertyKey::from(<span class="macro">utf16!</span>(<span class="string">&quot;daysInWeek&quot;</span>)), context)
+            </span>.get(PropertyKey::from(<span class="macro">utf16!</span>(<span class="string">&quot;daysInWeek&quot;</span>)), context)
             .expect(<span class="string">&quot;method must exist on a object that implements the CalendarProtocol.&quot;</span>);
 
         <span class="kw">let </span>val = method
             .as_callable()
             .expect(<span class="string">&quot;is method&quot;</span>)
-            .call(<span class="kw-2">&amp;</span><span class="self">self</span>.calendar.clone().into(), <span class="kw-2">&amp;</span>[date_like], context)
+            .call(<span class="kw-2">&amp;</span><span class="self">self</span>.clone().into(), <span class="kw-2">&amp;</span>[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))<span class="question-mark">?</span>;
 
         <span class="comment">// Validate the return value.
@@ -1634,7 +1587,7 @@
 
     <span class="kw">fn </span>days_in_month(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        date_like: <span class="kw-2">&amp;</span>CalendarDateLike&lt;JsCustomCalendar&gt;,
+        date_like: <span class="kw-2">&amp;</span>CalendarDateLike&lt;JsObject&gt;,
         context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
     ) -&gt; TemporalResult&lt;u16&gt; {
         <span class="kw">let </span>context = context
@@ -1644,13 +1597,12 @@
         <span class="kw">let </span>date_like = date_like_to_object(date_like, context)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>method = <span class="self">self
-            </span>.calendar
-            .get(PropertyKey::from(<span class="macro">utf16!</span>(<span class="string">&quot;daysInMonth&quot;</span>)), context)
+            </span>.get(PropertyKey::from(<span class="macro">utf16!</span>(<span class="string">&quot;daysInMonth&quot;</span>)), context)
             .expect(<span class="string">&quot;method must exist on a object that implements the CalendarProtocol.&quot;</span>);
         <span class="kw">let </span>val = method
             .as_callable()
             .expect(<span class="string">&quot;is method&quot;</span>)
-            .call(<span class="kw-2">&amp;</span><span class="self">self</span>.calendar.clone().into(), <span class="kw-2">&amp;</span>[date_like], context)
+            .call(<span class="kw-2">&amp;</span><span class="self">self</span>.clone().into(), <span class="kw-2">&amp;</span>[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))<span class="question-mark">?</span>;
 
         <span class="comment">// Validate the return value.
@@ -1684,7 +1636,7 @@
 
     <span class="kw">fn </span>days_in_year(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        date_like: <span class="kw-2">&amp;</span>CalendarDateLike&lt;JsCustomCalendar&gt;,
+        date_like: <span class="kw-2">&amp;</span>CalendarDateLike&lt;JsObject&gt;,
         context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
     ) -&gt; TemporalResult&lt;u16&gt; {
         <span class="kw">let </span>context = context
@@ -1694,14 +1646,13 @@
         <span class="kw">let </span>date_like = date_like_to_object(date_like, context)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>method = <span class="self">self
-            </span>.calendar
-            .get(PropertyKey::from(<span class="macro">utf16!</span>(<span class="string">&quot;daysInYear&quot;</span>)), context)
+            </span>.get(PropertyKey::from(<span class="macro">utf16!</span>(<span class="string">&quot;daysInYear&quot;</span>)), context)
             .expect(<span class="string">&quot;method must exist on a object that implements the CalendarProtocol.&quot;</span>);
 
         <span class="kw">let </span>val = method
             .as_callable()
             .expect(<span class="string">&quot;is method&quot;</span>)
-            .call(<span class="kw-2">&amp;</span><span class="self">self</span>.calendar.clone().into(), <span class="kw-2">&amp;</span>[date_like], context)
+            .call(<span class="kw-2">&amp;</span><span class="self">self</span>.clone().into(), <span class="kw-2">&amp;</span>[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))<span class="question-mark">?</span>;
 
         <span class="comment">// Validate the return value.
@@ -1733,7 +1684,7 @@
 
     <span class="kw">fn </span>months_in_year(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        date_like: <span class="kw-2">&amp;</span>CalendarDateLike&lt;JsCustomCalendar&gt;,
+        date_like: <span class="kw-2">&amp;</span>CalendarDateLike&lt;JsObject&gt;,
         context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
     ) -&gt; TemporalResult&lt;u16&gt; {
         <span class="kw">let </span>context = context
@@ -1743,14 +1694,13 @@
         <span class="kw">let </span>date_like = date_like_to_object(date_like, context)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>method = <span class="self">self
-            </span>.calendar
-            .get(PropertyKey::from(<span class="macro">utf16!</span>(<span class="string">&quot;monthsInYear&quot;</span>)), context)
+            </span>.get(PropertyKey::from(<span class="macro">utf16!</span>(<span class="string">&quot;monthsInYear&quot;</span>)), context)
             .expect(<span class="string">&quot;method must exist on a object that implements the CalendarProtocol.&quot;</span>);
 
         <span class="kw">let </span>val = method
             .as_callable()
             .expect(<span class="string">&quot;is method&quot;</span>)
-            .call(<span class="kw-2">&amp;</span><span class="self">self</span>.calendar.clone().into(), <span class="kw-2">&amp;</span>[date_like], context)
+            .call(<span class="kw-2">&amp;</span><span class="self">self</span>.clone().into(), <span class="kw-2">&amp;</span>[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))<span class="question-mark">?</span>;
 
         <span class="comment">// Validate the return value.
@@ -1784,7 +1734,7 @@
 
     <span class="kw">fn </span>in_leap_year(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        date_like: <span class="kw-2">&amp;</span>CalendarDateLike&lt;JsCustomCalendar&gt;,
+        date_like: <span class="kw-2">&amp;</span>CalendarDateLike&lt;JsObject&gt;,
         context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
     ) -&gt; TemporalResult&lt;bool&gt; {
         <span class="kw">let </span>context = context
@@ -1794,14 +1744,13 @@
         <span class="kw">let </span>date_like = date_like_to_object(date_like, context)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>method = <span class="self">self
-            </span>.calendar
-            .get(PropertyKey::from(<span class="macro">utf16!</span>(<span class="string">&quot;inLeapYear&quot;</span>)), context)
+            </span>.get(PropertyKey::from(<span class="macro">utf16!</span>(<span class="string">&quot;inLeapYear&quot;</span>)), context)
             .expect(<span class="string">&quot;method must exist on a object that implements the CalendarProtocol.&quot;</span>);
 
         <span class="kw">let </span>val = method
             .as_callable()
             .expect(<span class="string">&quot;is method&quot;</span>)
-            .call(<span class="kw-2">&amp;</span><span class="self">self</span>.calendar.clone().into(), <span class="kw-2">&amp;</span>[date_like], context)
+            .call(<span class="kw-2">&amp;</span><span class="self">self</span>.clone().into(), <span class="kw-2">&amp;</span>[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))<span class="question-mark">?</span>;
 
         <span class="kw">let </span>JsValue::Boolean(result) = val <span class="kw">else </span>{
@@ -1824,14 +1773,13 @@
         );
 
         <span class="kw">let </span>method = <span class="self">self
-            </span>.calendar
-            .get(PropertyKey::from(<span class="macro">utf16!</span>(<span class="string">&quot;fields&quot;</span>)), context)
+            </span>.get(PropertyKey::from(<span class="macro">utf16!</span>(<span class="string">&quot;fields&quot;</span>)), context)
             .expect(<span class="string">&quot;method must exist on an object that implements the CalendarProtocol.&quot;</span>);
 
         <span class="kw">let </span>result = method
             .as_callable()
             .expect(<span class="string">&quot;is method&quot;</span>)
-            .call(<span class="kw-2">&amp;</span><span class="self">self</span>.calendar.clone().into(), <span class="kw-2">&amp;</span>[fields_js.into()], context)
+            .call(<span class="kw-2">&amp;</span><span class="self">self</span>.clone().into(), <span class="kw-2">&amp;</span>[fields_js.into()], context)
             .map_err(|e| TemporalError::general(e.to_string()))<span class="question-mark">?</span>;
 
         <span class="comment">// validate result and map to a `Vec&lt;String&gt;`
@@ -1875,15 +1823,14 @@
             .map_err(|e| TemporalError::general(e.to_string()))<span class="question-mark">?</span>;
 
         <span class="kw">let </span>method = <span class="self">self
-            </span>.calendar
-            .get(PropertyKey::from(<span class="macro">utf16!</span>(<span class="string">&quot;mergeFields&quot;</span>)), context)
+            </span>.get(PropertyKey::from(<span class="macro">utf16!</span>(<span class="string">&quot;mergeFields&quot;</span>)), context)
             .expect(<span class="string">&quot;method must exist on an object that implements the CalendarProtocol.&quot;</span>);
 
         <span class="kw">let </span>value = method
             .as_callable()
             .expect(<span class="string">&quot;is method&quot;</span>)
             .call(
-                <span class="kw-2">&amp;</span><span class="self">self</span>.calendar.clone().into(),
+                <span class="kw-2">&amp;</span><span class="self">self</span>.clone().into(),
                 <span class="kw-2">&amp;</span>[fields.into(), add_fields.into()],
                 context,
             )
@@ -1904,10 +1851,9 @@
             .expect(<span class="string">&quot;Context was not provided for a CustomCalendar.&quot;</span>);
 
         <span class="kw">let </span>identifier = <span class="self">self
-            </span>.calendar
-            .__get__(
+            </span>.__get__(
                 <span class="kw-2">&amp;</span>PropertyKey::from(<span class="macro">utf16!</span>(<span class="string">&quot;id&quot;</span>)),
-                <span class="self">self</span>.calendar.clone().into(),
+                <span class="self">self</span>.clone().into(),
                 <span class="kw-2">&amp;mut </span>context.into(),
             )
             .expect(<span class="string">&quot;method must exist on a object that implements the CalendarProtocol.&quot;</span>);
@@ -1922,7 +1868,7 @@
 
 <span class="doccomment">/// Utility function for converting `Temporal`&#39;s `CalendarDateLike` to it&#39;s `Boa` specific `JsObject`.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>date_like_to_object(
-    date_like: <span class="kw-2">&amp;</span>CalendarDateLike&lt;JsCustomCalendar&gt;,
+    date_like: <span class="kw-2">&amp;</span>CalendarDateLike&lt;JsObject&gt;,
     context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; TemporalResult&lt;JsValue&gt; {
     <span class="kw">match </span>date_like {
@@ -1934,14 +1880,10 @@
                 .map_err(|e| TemporalError::general(e.to_string()))
                 .map(Into::into)
         }
-        CalendarDateLike::MonthDay(md) =&gt; {
-            plain_month_day::create_temporal_month_day(md.clone(), <span class="prelude-val">None</span>, context)
-                .map_err(|e| TemporalError::general(e.to_string()))
-        }
-        CalendarDateLike::YearMonth(ym) =&gt; {
-            plain_year_month::create_temporal_year_month(ym.clone(), <span class="prelude-val">None</span>, context)
-                .map_err(|e| TemporalError::general(e.to_string()))
-        }
+        CalendarDateLike::CustomMonthDay(md) =&gt; <span class="prelude-val">Ok</span>(md.clone().upcast().into()),
+        CalendarDateLike::CustomYearMonth(ym) =&gt; <span class="prelude-val">Ok</span>(ym.clone().upcast().into()),
+        CalendarDateLike::CustomDate(pd) =&gt; <span class="prelude-val">Ok</span>(pd.clone().upcast().into()),
+        CalendarDateLike::CustomDateTime(pdt) =&gt; <span class="prelude-val">Ok</span>(pdt.clone().upcast().into()),
     }
 }
 </code></pre></div></section></main></body></html>

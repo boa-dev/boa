@@ -316,6 +316,28 @@
 <a href="#316" id="316">316</a>
 <a href="#317" id="317">317</a>
 <a href="#318" id="318">318</a>
+<a href="#319" id="319">319</a>
+<a href="#320" id="320">320</a>
+<a href="#321" id="321">321</a>
+<a href="#322" id="322">322</a>
+<a href="#323" id="323">323</a>
+<a href="#324" id="324">324</a>
+<a href="#325" id="325">325</a>
+<a href="#326" id="326">326</a>
+<a href="#327" id="327">327</a>
+<a href="#328" id="328">328</a>
+<a href="#329" id="329">329</a>
+<a href="#330" id="330">330</a>
+<a href="#331" id="331">331</a>
+<a href="#332" id="332">332</a>
+<a href="#333" id="333">333</a>
+<a href="#334" id="334">334</a>
+<a href="#335" id="335">335</a>
+<a href="#336" id="336">336</a>
+<a href="#337" id="337">337</a>
+<a href="#338" id="338">338</a>
+<a href="#339" id="339">339</a>
+<a href="#340" id="340">340</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of the `Temporal.PlainYearMonth` builtin object.
 
 </span><span class="kw">use crate</span>::{
@@ -331,19 +353,41 @@
 <span class="kw">use </span>boa_gc::{Finalize, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
 
-<span class="kw">use super</span>::{calendar::to_temporal_calendar_slot_value, JsCustomCalendar};
-<span class="kw">use </span>boa_temporal::{components::YearMonth <span class="kw">as </span>InnerYearMonth, options::ArithmeticOverflow};
+<span class="kw">use </span><span class="kw">super</span>::calendar::to_temporal_calendar_slot_value;
+
+<span class="kw">use </span>boa_temporal::{
+    iso::IsoDateSlots,
+    {
+        components::{
+            calendar::{CalendarSlot, GetCalendarSlot},
+            YearMonth <span class="kw">as </span>InnerYearMonth,
+        },
+        options::ArithmeticOverflow,
+    },
+};
 
 <span class="doccomment">/// The `Temporal.PlainYearMonth` object.
 </span><span class="attr">#[derive(Debug, Clone, Trace, Finalize, JsData)]
 #[boa_gc(unsafe_empty_trace)] </span><span class="comment">// TODO: Remove this!!! `InnerYearMonth` could contain `Trace` types.
 </span><span class="kw">pub struct </span>PlainYearMonth {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) inner: InnerYearMonth&lt;JsCustomCalendar&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) inner: InnerYearMonth&lt;JsObject&gt;,
 }
 
 <span class="kw">impl </span>PlainYearMonth {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(inner: InnerYearMonth&lt;JsCustomCalendar&gt;) -&gt; <span class="self">Self </span>{
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(inner: InnerYearMonth&lt;JsObject&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{ inner }
+    }
+}
+
+<span class="kw">impl </span>IsoDateSlots <span class="kw">for </span>JsObject&lt;PlainYearMonth&gt; {
+    <span class="kw">fn </span>iso_date(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; boa_temporal::iso::IsoDate {
+        <span class="self">self</span>.borrow().data().inner.iso_date()
+    }
+}
+
+<span class="kw">impl </span>GetCalendarSlot&lt;JsObject&gt; <span class="kw">for </span>JsObject&lt;PlainYearMonth&gt; {
+    <span class="kw">fn </span>get_calendar(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; CalendarSlot&lt;JsObject&gt; {
+        <span class="self">self</span>.borrow().data().inner.get_calendar()
     }
 }
 
@@ -597,7 +641,7 @@
 
 // 9.5.5 `CreateTemporalYearMonth ( isoYear, isoMonth, calendar, referenceISODay [ , newTarget ] )`
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_temporal_year_month(
-    ym: InnerYearMonth&lt;JsCustomCalendar&gt;,
+    ym: InnerYearMonth&lt;JsObject&gt;,
     new_target: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsValue&gt;,
     context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;JsValue&gt; {

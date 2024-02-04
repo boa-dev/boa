@@ -165,12 +165,12 @@
     ZonedDateTime <span class="kw">as </span>InnerZdt,
 };
 
-<span class="kw">use super</span>::{JsCustomCalendar, JsCustomTimeZone};
+<span class="kw">use </span><span class="kw">super</span>::JsCustomTimeZone;
 
 <span class="doccomment">/// The `Temporal.ZonedDateTime` object.
 </span><span class="attr">#[derive(Debug, Clone, Finalize, JsData)]
 </span><span class="kw">pub struct </span>ZonedDateTime {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) inner: InnerZdt&lt;JsCustomCalendar, JsCustomTimeZone&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) inner: InnerZdt&lt;JsObject, JsCustomTimeZone&gt;,
 }
 
 <span class="kw">unsafe impl </span>Trace <span class="kw">for </span>ZonedDateTime {

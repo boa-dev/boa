@@ -644,6 +644,67 @@
 <a href="#644" id="644">644</a>
 <a href="#645" id="645">645</a>
 <a href="#646" id="646">646</a>
+<a href="#647" id="647">647</a>
+<a href="#648" id="648">648</a>
+<a href="#649" id="649">649</a>
+<a href="#650" id="650">650</a>
+<a href="#651" id="651">651</a>
+<a href="#652" id="652">652</a>
+<a href="#653" id="653">653</a>
+<a href="#654" id="654">654</a>
+<a href="#655" id="655">655</a>
+<a href="#656" id="656">656</a>
+<a href="#657" id="657">657</a>
+<a href="#658" id="658">658</a>
+<a href="#659" id="659">659</a>
+<a href="#660" id="660">660</a>
+<a href="#661" id="661">661</a>
+<a href="#662" id="662">662</a>
+<a href="#663" id="663">663</a>
+<a href="#664" id="664">664</a>
+<a href="#665" id="665">665</a>
+<a href="#666" id="666">666</a>
+<a href="#667" id="667">667</a>
+<a href="#668" id="668">668</a>
+<a href="#669" id="669">669</a>
+<a href="#670" id="670">670</a>
+<a href="#671" id="671">671</a>
+<a href="#672" id="672">672</a>
+<a href="#673" id="673">673</a>
+<a href="#674" id="674">674</a>
+<a href="#675" id="675">675</a>
+<a href="#676" id="676">676</a>
+<a href="#677" id="677">677</a>
+<a href="#678" id="678">678</a>
+<a href="#679" id="679">679</a>
+<a href="#680" id="680">680</a>
+<a href="#681" id="681">681</a>
+<a href="#682" id="682">682</a>
+<a href="#683" id="683">683</a>
+<a href="#684" id="684">684</a>
+<a href="#685" id="685">685</a>
+<a href="#686" id="686">686</a>
+<a href="#687" id="687">687</a>
+<a href="#688" id="688">688</a>
+<a href="#689" id="689">689</a>
+<a href="#690" id="690">690</a>
+<a href="#691" id="691">691</a>
+<a href="#692" id="692">692</a>
+<a href="#693" id="693">693</a>
+<a href="#694" id="694">694</a>
+<a href="#695" id="695">695</a>
+<a href="#696" id="696">696</a>
+<a href="#697" id="697">697</a>
+<a href="#698" id="698">698</a>
+<a href="#699" id="699">699</a>
+<a href="#700" id="700">700</a>
+<a href="#701" id="701">701</a>
+<a href="#702" id="702">702</a>
+<a href="#703" id="703">703</a>
+<a href="#704" id="704">704</a>
+<a href="#705" id="705">705</a>
+<a href="#706" id="706">706</a>
+<a href="#707" id="707">707</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of the ECMAScript `Temporal.PlainDateTime` builtin object.
 </span><span class="attr">#![allow(dead_code, unused_variables)]
 
@@ -663,24 +724,43 @@
 <span class="kw">use </span>boa_gc::{Finalize, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
 
-<span class="kw">use </span>boa_temporal::components::DateTime <span class="kw">as </span>InnerDateTime;
+<span class="attr">#[cfg(test)]
+</span><span class="kw">mod </span>tests;
 
-<span class="kw">use </span><span class="kw">super</span>::JsCustomCalendar;
+<span class="kw">use </span>boa_temporal::{
+    components::{
+        calendar::{CalendarSlot, GetCalendarSlot},
+        DateTime <span class="kw">as </span>InnerDateTime,
+    },
+    iso::{IsoDate, IsoDateSlots},
+};
 
 <span class="doccomment">/// The `Temporal.PlainDateTime` object.
 </span><span class="attr">#[derive(Debug, Clone, Trace, Finalize, JsData)]
 #[boa_gc(unsafe_empty_trace)] </span><span class="comment">// TODO: Remove this!!! `InnerDateTime` could contain `Trace` types.
 </span><span class="kw">pub struct </span>PlainDateTime {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) inner: InnerDateTime&lt;JsCustomCalendar&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) inner: InnerDateTime&lt;JsObject&gt;,
 }
 
 <span class="kw">impl </span>PlainDateTime {
-    <span class="kw">fn </span>new(inner: InnerDateTime&lt;JsCustomCalendar&gt;) -&gt; <span class="self">Self </span>{
+    <span class="kw">fn </span>new(inner: InnerDateTime&lt;JsObject&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{ inner }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>inner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>InnerDateTime&lt;JsCustomCalendar&gt; {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>inner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>InnerDateTime&lt;JsObject&gt; {
         <span class="kw-2">&amp;</span><span class="self">self</span>.inner
+    }
+}
+
+<span class="kw">impl </span>IsoDateSlots <span class="kw">for </span>JsObject&lt;PlainDateTime&gt; {
+    <span class="kw">fn </span>iso_date(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; IsoDate {
+        <span class="self">self</span>.borrow().data().inner.iso_date()
+    }
+}
+
+<span class="kw">impl </span>GetCalendarSlot&lt;JsObject&gt; <span class="kw">for </span>JsObject&lt;PlainDateTime&gt; {
+    <span class="kw">fn </span>get_calendar(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; CalendarSlot&lt;JsObject&gt; {
+        <span class="self">self</span>.borrow().data().inner.get_calendar()
     }
 }
 
@@ -989,50 +1069,65 @@
 
     <span class="doccomment">/// 5.3.4 get `Temporal.PlainDateTime.prototype.year`
     </span><span class="kw">fn </span>get_year(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
-        <span class="kw">let </span>date = this
+        <span class="kw">let </span>obj = this
             .as_object()
-            .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message(<span class="string">&quot;the this object must be a PlainDateTime object.&quot;</span>)
-            })<span class="question-mark">?</span>;
+            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;this must be an object.&quot;</span>))<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(date.inner.contextual_year(context)<span class="question-mark">?</span>.into())
+        <span class="kw">let </span><span class="prelude-val">Ok</span>(date) = obj.clone().downcast::&lt;<span class="self">Self</span>&gt;() <span class="kw">else </span>{
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;the this object must be a PlainDateTime object.&quot;</span>)
+                .into());
+        };
+
+        <span class="prelude-val">Ok</span>(InnerDateTime::&lt;JsObject&gt;::contextualized_year(<span class="kw-2">&amp;</span>date, context)<span class="question-mark">?</span>.into())
     }
 
     <span class="doccomment">/// 5.3.5 get `Temporal.PlainDateTime.prototype.month`
     </span><span class="kw">fn </span>get_month(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
-        <span class="kw">let </span>date = this
+        <span class="kw">let </span>obj = this
             .as_object()
-            .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message(<span class="string">&quot;the this object must be a PlainDateTime object.&quot;</span>)
-            })<span class="question-mark">?</span>;
+            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;this must be an object.&quot;</span>))<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(date.inner.contextual_month(context)<span class="question-mark">?</span>.into())
+        <span class="kw">let </span><span class="prelude-val">Ok</span>(date) = obj.clone().downcast::&lt;<span class="self">Self</span>&gt;() <span class="kw">else </span>{
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;the this object must be a PlainDateTime object.&quot;</span>)
+                .into());
+        };
+
+        <span class="prelude-val">Ok</span>(InnerDateTime::&lt;JsObject&gt;::contextualized_month(<span class="kw-2">&amp;</span>date, context)<span class="question-mark">?</span>.into())
     }
 
     <span class="doccomment">/// 5.3.6 get Temporal.PlainDateTime.prototype.monthCode
     </span><span class="kw">fn </span>get_month_code(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
-        <span class="kw">let </span>date = this
+        <span class="kw">let </span>obj = this
             .as_object()
-            .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message(<span class="string">&quot;the this object must be a PlainDateTime object.&quot;</span>)
-            })<span class="question-mark">?</span>;
+            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;this must be an object.&quot;</span>))<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(JsString::from(date.inner.contextual_month_code(context)<span class="question-mark">?</span>.as_str()).into())
+        <span class="kw">let </span><span class="prelude-val">Ok</span>(date) = obj.clone().downcast::&lt;<span class="self">Self</span>&gt;() <span class="kw">else </span>{
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;the this object must be a PlainDateTime object.&quot;</span>)
+                .into());
+        };
+
+        <span class="prelude-val">Ok</span>(JsString::from(
+            InnerDateTime::&lt;JsObject&gt;::contextualized_month_code(<span class="kw-2">&amp;</span>date, context)<span class="question-mark">?</span>.as_str(),
+        )
+        .into())
     }
 
     <span class="doccomment">/// 5.3.7 get `Temporal.PlainDateTime.prototype.day`
     </span><span class="kw">fn </span>get_day(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
-        <span class="kw">let </span>date = this
+        <span class="kw">let </span>obj = this
             .as_object()
-            .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message(<span class="string">&quot;the this object must be a PlainDateTime object.&quot;</span>)
-            })<span class="question-mark">?</span>;
+            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;this must be an object.&quot;</span>))<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(date.inner.contextual_day(context)<span class="question-mark">?</span>.into())
+        <span class="kw">let </span><span class="prelude-val">Ok</span>(date) = obj.clone().downcast::&lt;<span class="self">Self</span>&gt;() <span class="kw">else </span>{
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;the this object must be a PlainDateTime object.&quot;</span>)
+                .into());
+        };
+
+        <span class="prelude-val">Ok</span>(InnerDateTime::&lt;JsObject&gt;::contextualized_day(<span class="kw-2">&amp;</span>date, context)<span class="question-mark">?</span>.into())
     }
 
     <span class="doccomment">/// 5.3.8 get `Temporal.PlainDateTime.prototype.hour`
@@ -1127,62 +1222,77 @@
 
     <span class="doccomment">/// 5.3.14 get `Temporal.PlainDateTime.prototype.dayOfWeek`
     </span><span class="kw">fn </span>get_day_of_week(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
-        <span class="kw">let </span>date = this
+        <span class="kw">let </span>obj = this
             .as_object()
-            .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message(<span class="string">&quot;the this object must be a PlainDateTime object.&quot;</span>)
-            })<span class="question-mark">?</span>;
+            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;this must be an object.&quot;</span>))<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(date.inner.contextual_day_of_week(context)<span class="question-mark">?</span>.into())
+        <span class="kw">let </span><span class="prelude-val">Ok</span>(date) = obj.clone().downcast::&lt;<span class="self">Self</span>&gt;() <span class="kw">else </span>{
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;the this object must be a PlainDateTime object.&quot;</span>)
+                .into());
+        };
+
+        <span class="prelude-val">Ok</span>(InnerDateTime::&lt;JsObject&gt;::contextualized_day_of_week(<span class="kw-2">&amp;</span>date, context)<span class="question-mark">?</span>.into())
     }
 
     <span class="doccomment">/// 5.3.15 get `Temporal.PlainDateTime.prototype.dayOfYear`
     </span><span class="kw">fn </span>get_day_of_year(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
-        <span class="kw">let </span>date = this
+        <span class="kw">let </span>obj = this
             .as_object()
-            .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message(<span class="string">&quot;the this object must be a PlainDateTime object.&quot;</span>)
-            })<span class="question-mark">?</span>;
+            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;this must be an object.&quot;</span>))<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(date.inner.contextual_day_of_year(context)<span class="question-mark">?</span>.into())
+        <span class="kw">let </span><span class="prelude-val">Ok</span>(date) = obj.clone().downcast::&lt;<span class="self">Self</span>&gt;() <span class="kw">else </span>{
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;the this object must be a PlainDateTime object.&quot;</span>)
+                .into());
+        };
+
+        <span class="prelude-val">Ok</span>(InnerDateTime::&lt;JsObject&gt;::contextualized_day_of_year(<span class="kw-2">&amp;</span>date, context)<span class="question-mark">?</span>.into())
     }
 
     <span class="doccomment">/// 5.3.16 get `Temporal.PlainDateTime.prototype.weekOfYear`
     </span><span class="kw">fn </span>get_week_of_year(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
-        <span class="kw">let </span>date = this
+        <span class="kw">let </span>obj = this
             .as_object()
-            .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message(<span class="string">&quot;the this object must be a PlainDateTime object.&quot;</span>)
-            })<span class="question-mark">?</span>;
+            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;this must be an object.&quot;</span>))<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(date.inner.contextual_week_of_year(context)<span class="question-mark">?</span>.into())
+        <span class="kw">let </span><span class="prelude-val">Ok</span>(date) = obj.clone().downcast::&lt;<span class="self">Self</span>&gt;() <span class="kw">else </span>{
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;the this object must be a PlainDateTime object.&quot;</span>)
+                .into());
+        };
+
+        <span class="prelude-val">Ok</span>(InnerDateTime::&lt;JsObject&gt;::contextualized_week_of_year(<span class="kw-2">&amp;</span>date, context)<span class="question-mark">?</span>.into())
     }
 
     <span class="doccomment">/// 5.3.17 get `Temporal.PlainDateTime.prototype.yearOfWeek`
     </span><span class="kw">fn </span>get_year_of_week(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
-        <span class="kw">let </span>date = this
+        <span class="kw">let </span>obj = this
             .as_object()
-            .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message(<span class="string">&quot;the this object must be a PlainDateTime object.&quot;</span>)
-            })<span class="question-mark">?</span>;
+            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;this must be an object.&quot;</span>))<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(date.inner.contextual_year_of_week(context)<span class="question-mark">?</span>.into())
+        <span class="kw">let </span><span class="prelude-val">Ok</span>(date) = obj.clone().downcast::&lt;<span class="self">Self</span>&gt;() <span class="kw">else </span>{
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;the this object must be a PlainDateTime object.&quot;</span>)
+                .into());
+        };
+
+        <span class="prelude-val">Ok</span>(InnerDateTime::&lt;JsObject&gt;::contextualized_year_of_week(<span class="kw-2">&amp;</span>date, context)<span class="question-mark">?</span>.into())
     }
 
     <span class="doccomment">/// 5.3.18 get `Temporal.PlainDateTime.prototype.daysInWeek`
     </span><span class="kw">fn </span>get_days_in_week(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
-        <span class="kw">let </span>date = this
+        <span class="kw">let </span>obj = this
             .as_object()
-            .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message(<span class="string">&quot;the this object must be a PlainDateTime object.&quot;</span>)
-            })<span class="question-mark">?</span>;
+            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;this must be an object.&quot;</span>))<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(date.inner.contextual_days_in_week(context)<span class="question-mark">?</span>.into())
+        <span class="kw">let </span><span class="prelude-val">Ok</span>(date) = obj.clone().downcast::&lt;<span class="self">Self</span>&gt;() <span class="kw">else </span>{
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;the this object must be a PlainDateTime object.&quot;</span>)
+                .into());
+        };
+
+        <span class="prelude-val">Ok</span>(InnerDateTime::&lt;JsObject&gt;::contextualized_days_in_week(<span class="kw-2">&amp;</span>date, context)<span class="question-mark">?</span>.into())
     }
 
     <span class="doccomment">/// 5.3.19 get `Temporal.PlainDateTime.prototype.daysInMonth`
@@ -1191,26 +1301,32 @@
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
         context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
-        <span class="kw">let </span>date = this
+        <span class="kw">let </span>obj = this
             .as_object()
-            .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message(<span class="string">&quot;the this object must be a PlainDateTime object.&quot;</span>)
-            })<span class="question-mark">?</span>;
+            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;this must be an object.&quot;</span>))<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(date.inner.contextual_days_in_month(context)<span class="question-mark">?</span>.into())
+        <span class="kw">let </span><span class="prelude-val">Ok</span>(date) = obj.clone().downcast::&lt;<span class="self">Self</span>&gt;() <span class="kw">else </span>{
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;the this object must be a PlainDateTime object.&quot;</span>)
+                .into());
+        };
+
+        <span class="prelude-val">Ok</span>(InnerDateTime::&lt;JsObject&gt;::contextualized_days_in_month(<span class="kw-2">&amp;</span>date, context)<span class="question-mark">?</span>.into())
     }
 
     <span class="doccomment">/// 5.3.20 get `Temporal.PlainDateTime.prototype.daysInYear`
     </span><span class="kw">fn </span>get_days_in_year(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
-        <span class="kw">let </span>date = this
+        <span class="kw">let </span>obj = this
             .as_object()
-            .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message(<span class="string">&quot;the this object must be a PlainDateTime object.&quot;</span>)
-            })<span class="question-mark">?</span>;
+            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;this must be an object.&quot;</span>))<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(date.inner.contextual_days_in_year(context)<span class="question-mark">?</span>.into())
+        <span class="kw">let </span><span class="prelude-val">Ok</span>(date) = obj.clone().downcast::&lt;<span class="self">Self</span>&gt;() <span class="kw">else </span>{
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;the this object must be a PlainDateTime object.&quot;</span>)
+                .into());
+        };
+
+        <span class="prelude-val">Ok</span>(InnerDateTime::&lt;JsObject&gt;::contextualized_days_in_year(<span class="kw-2">&amp;</span>date, context)<span class="question-mark">?</span>.into())
     }
 
     <span class="doccomment">/// 5.3.21 get `Temporal.PlainDateTime.prototype.monthsInYear`
@@ -1219,33 +1335,39 @@
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
         context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
-        <span class="kw">let </span>date = this
+        <span class="kw">let </span>obj = this
             .as_object()
-            .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message(<span class="string">&quot;the this object must be a PlainDateTime object.&quot;</span>)
-            })<span class="question-mark">?</span>;
+            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;this must be an object.&quot;</span>))<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(date.inner.contextual_months_in_year(context)<span class="question-mark">?</span>.into())
+        <span class="kw">let </span><span class="prelude-val">Ok</span>(date) = obj.clone().downcast::&lt;<span class="self">Self</span>&gt;() <span class="kw">else </span>{
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;the this object must be a PlainDateTime object.&quot;</span>)
+                .into());
+        };
+
+        <span class="prelude-val">Ok</span>(InnerDateTime::&lt;JsObject&gt;::contextualized_months_in_year(<span class="kw-2">&amp;</span>date, context)<span class="question-mark">?</span>.into())
     }
 
     <span class="doccomment">/// 5.3.22 get `Temporal.PlainDateTime.prototype.inLeapYear`
     </span><span class="kw">fn </span>get_in_leap_year(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
-        <span class="kw">let </span>date = this
+        <span class="kw">let </span>obj = this
             .as_object()
-            .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message(<span class="string">&quot;the this object must be a PlainDateTime object.&quot;</span>)
-            })<span class="question-mark">?</span>;
+            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;this must be an object.&quot;</span>))<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(date.inner.contextual_in_leap_year(context)<span class="question-mark">?</span>.into())
+        <span class="kw">let </span><span class="prelude-val">Ok</span>(date) = obj.clone().downcast::&lt;<span class="self">Self</span>&gt;() <span class="kw">else </span>{
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">&quot;the this object must be a PlainDateTime object.&quot;</span>)
+                .into());
+        };
+
+        <span class="prelude-val">Ok</span>(InnerDateTime::&lt;JsObject&gt;::contextualized_in_leap_year(<span class="kw-2">&amp;</span>date, context)<span class="question-mark">?</span>.into())
     }
 }
 
 <span class="comment">// ==== `PlainDateTime` Abstract Operations` ====
 
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_temporal_datetime(
-    inner: InnerDateTime&lt;JsCustomCalendar&gt;,
+    inner: InnerDateTime&lt;JsObject&gt;,
     new_target: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsValue&gt;,
     context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;JsObject&gt; {
