@@ -2,7 +2,7 @@
 #![cfg_attr(not(test), forbid(clippy::unwrap_used))]
 #![allow(unused_crate_dependencies)]
 
-use boa_engine::{Context, Source, vm::trace::Tracer};
+use boa_engine::{vm::trace::Tracer, Context, Source};
 use getrandom as _;
 use std::fmt;
 use wasm_bindgen::prelude::*;
