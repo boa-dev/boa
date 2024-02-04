@@ -314,10 +314,7 @@ impl PlainDate {
                 .into());
         };
 
-        Ok(JsString::from(
-            InnerDate::<JsObject>::month_code(&date, context)?.as_str(),
-        )
-        .into())
+        Ok(JsString::from(InnerDate::<JsObject>::month_code(&date, context)?.as_str()).into())
     }
 
     /// 3.3.7 get `Temporal.PlainDate.prototype.day`
