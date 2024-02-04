@@ -14,11 +14,8 @@ pub(crate) struct JsCustomTimeZone {
 }
 
 impl TzProtocol for JsCustomTimeZone {
-    fn get_offset_nanos_for(&self, ctx: &mut dyn std::any::Any) -> TemporalResult<BigInt> {
-        let context = ctx
-            .downcast_mut::<Context>()
-            .expect("Context was not provided for a CustomTz");
-
+    type Context = Context;
+    fn get_offset_nanos_for(&self, context: &mut Context) -> TemporalResult<BigInt> {
         let method = self
             .tz
             .get(utf16!("getOffsetNanosFor"), context)
@@ -39,23 +36,12 @@ impl TzProtocol for JsCustomTimeZone {
         Ok(bigint.as_inner().clone())
     }
 
-    fn get_possible_instant_for(
-        &self,
-        ctx: &mut dyn std::any::Any,
-    ) -> TemporalResult<Vec<Instant>> {
-        let _context = ctx
-            .downcast_mut::<Context>()
-            .expect("Context was not provided for a CustomTz");
-
+    fn get_possible_instant_for(&self, _context: &mut Context) -> TemporalResult<Vec<Instant>> {
         // TODO: Implement once Instant has been migrated to `boa_temporal`'s Instant.
         Err(TemporalError::range().with_message("Not yet implemented."))
     }
 
-    fn id(&self, ctx: &mut dyn std::any::Any) -> TemporalResult<String> {
-        let context = ctx
-            .downcast_mut::<Context>()
-            .expect("Context was not provided for a CustomTz");
-
+    fn id(&self, context: &mut Context) -> TemporalResult<String> {
         let ident = self
             .tz
             .__get__(

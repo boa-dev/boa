@@ -372,7 +372,7 @@ impl PlainDateTime {
                 .into());
         };
 
-        Ok(InnerDateTime::<JsObject>::contextualized_year(&date, context)?.into())
+        Ok(InnerDateTime::<JsObject>::year(&date, context)?.into())
     }
 
     /// 5.3.5 get `Temporal.PlainDateTime.prototype.month`
@@ -387,7 +387,7 @@ impl PlainDateTime {
                 .into());
         };
 
-        Ok(InnerDateTime::<JsObject>::contextualized_month(&date, context)?.into())
+        Ok(InnerDateTime::<JsObject>::month(&date, context)?.into())
     }
 
     /// 5.3.6 get Temporal.PlainDateTime.prototype.monthCode
@@ -402,10 +402,7 @@ impl PlainDateTime {
                 .into());
         };
 
-        Ok(JsString::from(
-            InnerDateTime::<JsObject>::contextualized_month_code(&date, context)?.as_str(),
-        )
-        .into())
+        Ok(JsString::from(InnerDateTime::<JsObject>::month_code(&date, context)?.as_str()).into())
     }
 
     /// 5.3.7 get `Temporal.PlainDateTime.prototype.day`
@@ -420,7 +417,7 @@ impl PlainDateTime {
                 .into());
         };
 
-        Ok(InnerDateTime::<JsObject>::contextualized_day(&date, context)?.into())
+        Ok(InnerDateTime::<JsObject>::day(&date, context)?.into())
     }
 
     /// 5.3.8 get `Temporal.PlainDateTime.prototype.hour`
@@ -525,7 +522,7 @@ impl PlainDateTime {
                 .into());
         };
 
-        Ok(InnerDateTime::<JsObject>::contextualized_day_of_week(&date, context)?.into())
+        Ok(InnerDateTime::<JsObject>::day_of_week(&date, context)?.into())
     }
 
     /// 5.3.15 get `Temporal.PlainDateTime.prototype.dayOfYear`
@@ -540,7 +537,7 @@ impl PlainDateTime {
                 .into());
         };
 
-        Ok(InnerDateTime::<JsObject>::contextualized_day_of_year(&date, context)?.into())
+        Ok(InnerDateTime::<JsObject>::day_of_year(&date, context)?.into())
     }
 
     /// 5.3.16 get `Temporal.PlainDateTime.prototype.weekOfYear`
@@ -555,7 +552,7 @@ impl PlainDateTime {
                 .into());
         };
 
-        Ok(InnerDateTime::<JsObject>::contextualized_week_of_year(&date, context)?.into())
+        Ok(InnerDateTime::<JsObject>::week_of_year(&date, context)?.into())
     }
 
     /// 5.3.17 get `Temporal.PlainDateTime.prototype.yearOfWeek`
@@ -570,7 +567,7 @@ impl PlainDateTime {
                 .into());
         };
 
-        Ok(InnerDateTime::<JsObject>::contextualized_year_of_week(&date, context)?.into())
+        Ok(InnerDateTime::<JsObject>::year_of_week(&date, context)?.into())
     }
 
     /// 5.3.18 get `Temporal.PlainDateTime.prototype.daysInWeek`
@@ -585,7 +582,7 @@ impl PlainDateTime {
                 .into());
         };
 
-        Ok(InnerDateTime::<JsObject>::contextualized_days_in_week(&date, context)?.into())
+        Ok(InnerDateTime::<JsObject>::days_in_week(&date, context)?.into())
     }
 
     /// 5.3.19 get `Temporal.PlainDateTime.prototype.daysInMonth`
@@ -604,7 +601,7 @@ impl PlainDateTime {
                 .into());
         };
 
-        Ok(InnerDateTime::<JsObject>::contextualized_days_in_month(&date, context)?.into())
+        Ok(InnerDateTime::<JsObject>::days_in_month(&date, context)?.into())
     }
 
     /// 5.3.20 get `Temporal.PlainDateTime.prototype.daysInYear`
@@ -619,7 +616,7 @@ impl PlainDateTime {
                 .into());
         };
 
-        Ok(InnerDateTime::<JsObject>::contextualized_days_in_year(&date, context)?.into())
+        Ok(InnerDateTime::<JsObject>::days_in_year(&date, context)?.into())
     }
 
     /// 5.3.21 get `Temporal.PlainDateTime.prototype.monthsInYear`
@@ -638,7 +635,7 @@ impl PlainDateTime {
                 .into());
         };
 
-        Ok(InnerDateTime::<JsObject>::contextualized_months_in_year(&date, context)?.into())
+        Ok(InnerDateTime::<JsObject>::months_in_year(&date, context)?.into())
     }
 
     /// 5.3.22 get `Temporal.PlainDateTime.prototype.inLeapYear`
@@ -653,7 +650,7 @@ impl PlainDateTime {
                 .into());
         };
 
-        Ok(InnerDateTime::<JsObject>::contextualized_in_leap_year(&date, context)?.into())
+        Ok(InnerDateTime::<JsObject>::in_leap_year(&date, context)?.into())
     }
 }
 

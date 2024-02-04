@@ -6,7 +6,7 @@ use crate::{
     parser::{duration::parse_duration, Cursor},
     TemporalError, TemporalResult,
 };
-use std::{any::Any, str::FromStr};
+use std::str::FromStr;
 
 use super::{calendar::CalendarProtocol, tz::TzProtocol};
 
@@ -370,7 +370,7 @@ impl Duration {
         &self,
         largest_unit: TemporalUnit,
         plain_relative_to: Option<&Date<C>>,
-        context: &mut dyn Any,
+        context: &mut C::Context,
     ) -> TemporalResult<DateDuration> {
         // 1. Let allZero be false.
         // 2. If years = 0, and months = 0, and weeks = 0, and days = 0, set allZero to true.
@@ -576,7 +576,7 @@ impl Duration {
         &self,
         largest_unit: TemporalUnit,
         plain_relative_to: Option<&Date<C>>,
-        context: &mut dyn Any,
+        context: &mut C::Context,
     ) -> TemporalResult<DateDuration> {
         let mut result = self.date;
 
@@ -816,7 +816,7 @@ impl Duration {
             Option<&ZonedDateTime<C, Z>>,
             Option<&DateTime<C>>,
         ),
-        context: &mut dyn Any,
+        context: &mut C::Context,
     ) -> TemporalResult<(Self, f64)> {
         match unit {
             TemporalUnit::Year | TemporalUnit::Month | TemporalUnit::Week | TemporalUnit::Day => {

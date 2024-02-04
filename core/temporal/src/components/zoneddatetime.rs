@@ -12,8 +12,6 @@ use crate::{
     TemporalResult,
 };
 
-use core::any::Any;
-
 use super::tz::TzProtocol;
 
 /// The native Rust implementation of `Temporal.ZonedDateTime`.
@@ -98,24 +96,21 @@ impl<C: CalendarProtocol, Z: TzProtocol> ZonedDateTime<C, Z> {
 
 // ==== Context based API ====
 
-impl<C: CalendarProtocol, Z: TzProtocol> ZonedDateTime<C, Z> {
+impl<C, Z: TzProtocol> ZonedDateTime<C, Z>
+where
+    C: CalendarProtocol<Context = Z::Context>,
+{
     /// Returns the `year` value for this `ZonedDateTime`.
     #[inline]
-    pub fn contextual_year(&self, context: &mut dyn Any) -> TemporalResult<i32> {
+    pub fn year(&self, context: &mut C::Context) -> TemporalResult<i32> {
         let dt = self
             .tz
             .get_datetime_for(&self.instant, &self.calendar, context)?;
         self.calendar.year(&CalendarDateLike::DateTime(dt), context)
     }
 
-    /// Returns the `year` value for this `ZonedDateTime`.
-    #[inline]
-    pub fn year(&self) -> TemporalResult<i32> {
-        self.contextual_year(&mut ())
-    }
-
     /// Returns the `month` value for this `ZonedDateTime`.
-    pub fn contextual_month(&self, context: &mut dyn Any) -> TemporalResult<u8> {
+    pub fn month(&self, context: &mut C::Context) -> TemporalResult<u8> {
         let dt = self
             .tz
             .get_datetime_for(&self.instant, &self.calendar, context)?;
@@ -123,14 +118,8 @@ impl<C: CalendarProtocol, Z: TzProtocol> ZonedDateTime<C, Z> {
             .month(&CalendarDateLike::DateTime(dt), context)
     }
 
-    /// Returns the `month` value for this `ZonedDateTime`.
-    #[inline]
-    pub fn month(&self) -> TemporalResult<u8> {
-        self.contextual_month(&mut ())
-    }
-
     /// Returns the `monthCode` value for this `ZonedDateTime`.
-    pub fn contextual_month_code(&self, context: &mut dyn Any) -> TemporalResult<TinyStr4> {
+    pub fn month_code(&self, context: &mut C::Context) -> TemporalResult<TinyStr4> {
         let dt = self
             .tz
             .get_datetime_for(&self.instant, &self.calendar, context)?;
@@ -138,79 +127,40 @@ impl<C: CalendarProtocol, Z: TzProtocol> ZonedDateTime<C, Z> {
             .month_code(&CalendarDateLike::DateTime(dt), context)
     }
 
-    /// Returns the `monthCode` value for this `ZonedDateTime`.
-    #[inline]
-    pub fn month_code(&self) -> TemporalResult<TinyStr4> {
-        self.contextual_month_code(&mut ())
-    }
-
     /// Returns the `day` value for this `ZonedDateTime`.
-    pub fn contextual_day(&self, context: &mut dyn Any) -> TemporalResult<u8> {
+    pub fn day(&self, context: &mut C::Context) -> TemporalResult<u8> {
         let dt = self
             .tz
             .get_datetime_for(&self.instant, &self.calendar, context)?;
         self.calendar.day(&CalendarDateLike::DateTime(dt), context)
     }
 
-    /// Returns the `day` value for this `ZonedDateTime`.
-    pub fn day(&self) -> TemporalResult<u8> {
-        self.contextual_day(&mut ())
-    }
-
     /// Returns the `hour` value for this `ZonedDateTime`.
-    pub fn contextual_hour(&self, context: &mut dyn Any) -> TemporalResult<u8> {
+    pub fn hour(&self, context: &mut C::Context) -> TemporalResult<u8> {
         let dt = self
             .tz
             .get_datetime_for(&self.instant, &self.calendar, context)?;
         Ok(dt.hour())
     }
 
-    /// Returns the `hour` value for this `ZonedDateTime`.
-    pub fn hour(&self) -> TemporalResult<u8> {
-        self.contextual_hour(&mut ())
-    }
-
     /// Returns the `minute` value for this `ZonedDateTime`.
-    pub fn contextual_minute(&self, context: &mut dyn Any) -> TemporalResult<u8> {
+    pub fn minute(&self, context: &mut C::Context) -> TemporalResult<u8> {
         let dt = self
             .tz
             .get_datetime_for(&self.instant, &self.calendar, context)?;
         Ok(dt.minute())
     }
 
-    /// Returns the `minute` value for this `ZonedDateTime`.
-    pub fn minute(&self) -> TemporalResult<u8> {
-        self.contextual_minute(&mut ())
-    }
-
     /// Returns the `second` value for this `ZonedDateTime`.
-    pub fn contextual_second(&self, context: &mut dyn Any) -> TemporalResult<u8> {
+    pub fn second(&self, context: &mut C::Context) -> TemporalResult<u8> {
         let dt = self
             .tz
             .get_datetime_for(&self.instant, &self.calendar, context)?;
         Ok(dt.second())
     }
 
-    /// Returns the `second` value for this `ZonedDateTime`.
-    pub fn second(&self) -> TemporalResult<u8> {
-        self.contextual_second(&mut ())
-    }
-
     /// Returns the `millisecond` value for this `ZonedDateTime`.
-    pub fn contextual_millisecond(&self, context: &mut dyn Any) -> TemporalResult<u16> {
-        let dt = self
-            .tz
-            .get_datetime_for(&self.instant, &self.calendar, context)?;
-        Ok(dt.millisecond())
-    }
-
-    /// Returns the `millisecond` value for this `ZonedDateTime`.
-    pub fn millisecond(&self) -> TemporalResult<u16> {
-        self.contextual_millisecond(&mut ())
-    }
-
-    /// Returns the `microsecond` value for this `ZonedDateTime`.
-    pub fn contextual_microsecond(&self, context: &mut dyn Any) -> TemporalResult<u16> {
+    pub fn millisecond(&self, context: &mut C::Context) -> TemporalResult<u16> {
         let dt = self
             .tz
             .get_datetime_for(&self.instant, &self.calendar, context)?;
@@ -218,21 +168,19 @@ impl<C: CalendarProtocol, Z: TzProtocol> ZonedDateTime<C, Z> {
     }
 
     /// Returns the `microsecond` value for this `ZonedDateTime`.
-    pub fn microsecond(&self) -> TemporalResult<u16> {
-        self.contextual_microsecond(&mut ())
+    pub fn microsecond(&self, context: &mut C::Context) -> TemporalResult<u16> {
+        let dt = self
+            .tz
+            .get_datetime_for(&self.instant, &self.calendar, context)?;
+        Ok(dt.millisecond())
     }
 
     /// Returns the `nanosecond` value for this `ZonedDateTime`.
-    pub fn contextual_nanosecond(&self, context: &mut dyn Any) -> TemporalResult<u16> {
+    pub fn nanosecond(&self, context: &mut C::Context) -> TemporalResult<u16> {
         let dt = self
             .tz
             .get_datetime_for(&self.instant, &self.calendar, context)?;
         Ok(dt.nanosecond())
-    }
-
-    /// Returns the `nanosecond` value for this `ZonedDateTime`.
-    pub fn nanosecond(&self) -> TemporalResult<u16> {
-        self.contextual_nanosecond(&mut ())
     }
 }
 
@@ -259,12 +207,12 @@ mod tests {
         )
         .unwrap();
 
-        assert_eq!(zdt.year().unwrap(), 2023);
-        assert_eq!(zdt.month().unwrap(), 11);
-        assert_eq!(zdt.day().unwrap(), 30);
-        assert_eq!(zdt.hour().unwrap(), 1);
-        assert_eq!(zdt.minute().unwrap(), 49);
-        assert_eq!(zdt.second().unwrap(), 12);
+        assert_eq!(zdt.year(&mut ()).unwrap(), 2023);
+        assert_eq!(zdt.month(&mut ()).unwrap(), 11);
+        assert_eq!(zdt.day(&mut ()).unwrap(), 30);
+        assert_eq!(zdt.hour(&mut ()).unwrap(), 1);
+        assert_eq!(zdt.minute(&mut ()).unwrap(), 49);
+        assert_eq!(zdt.second(&mut ()).unwrap(), 12);
 
         let zdt_minus_five = ZonedDateTime::<(), ()>::new(
             nov_30_2023_utc,
@@ -276,11 +224,11 @@ mod tests {
         )
         .unwrap();
 
-        assert_eq!(zdt_minus_five.year().unwrap(), 2023);
-        assert_eq!(zdt_minus_five.month().unwrap(), 11);
-        assert_eq!(zdt_minus_five.day().unwrap(), 29);
-        assert_eq!(zdt_minus_five.hour().unwrap(), 20);
-        assert_eq!(zdt_minus_five.minute().unwrap(), 49);
-        assert_eq!(zdt_minus_five.second().unwrap(), 12);
+        assert_eq!(zdt_minus_five.year(&mut ()).unwrap(), 2023);
+        assert_eq!(zdt_minus_five.month(&mut ()).unwrap(), 11);
+        assert_eq!(zdt_minus_five.day(&mut ()).unwrap(), 29);
+        assert_eq!(zdt_minus_five.hour(&mut ()).unwrap(), 20);
+        assert_eq!(zdt_minus_five.minute(&mut ()).unwrap(), 49);
+        assert_eq!(zdt_minus_five.second(&mut ()).unwrap(), 12);
     }
 }

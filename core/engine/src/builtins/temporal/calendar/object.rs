@@ -12,12 +12,11 @@ use crate::{
     property::PropertyKey,
     Context, JsObject, JsString, JsValue,
 };
-use std::any::Any;
 
 use boa_macros::utf16;
 use boa_temporal::{
     components::{
-        calendar::{CalendarDateLike, CalendarProtocol, DateTypes},
+        calendar::{CalendarDateLike, CalendarProtocol},
         Date, Duration, MonthDay, YearMonth,
     },
     options::ArithmeticOverflow,
@@ -29,29 +28,18 @@ use plain_date_time::PlainDateTime;
 use plain_month_day::PlainMonthDay;
 use plain_year_month::PlainYearMonth;
 
-/// The custom data types for a Custom `JsObject` Calendar.
-#[derive(Debug, Clone, Copy)]
-pub struct CustomDateLikes;
-
-impl DateTypes<JsObject> for CustomDateLikes {
+impl CalendarProtocol for JsObject {
     type Date = JsObject<PlainDate>;
     type DateTime = JsObject<PlainDateTime>;
     type YearMonth = JsObject<PlainYearMonth>;
     type MonthDay = JsObject<PlainMonthDay>;
-}
-
-impl CalendarProtocol for JsObject {
-    type DateLikes = CustomDateLikes;
+    type Context = Context;
     fn date_from_fields(
         &self,
         fields: &mut TemporalFields,
         overflow: ArithmeticOverflow,
-        context: &mut dyn Any,
+        context: &mut Context,
     ) -> TemporalResult<Date<Self>> {
-        let context = context
-            .downcast_mut::<Context>()
-            .expect("Context was not provided for a CustomCalendar.");
-
         let method = self
             .get(utf16!("dateFromFields"), context)
             .expect("method must exist on a object that implements the CalendarProtocol.");
@@ -97,12 +85,8 @@ impl CalendarProtocol for JsObject {
         &self,
         fields: &mut TemporalFields,
         overflow: ArithmeticOverflow,
-        context: &mut dyn Any,
+        context: &mut Context,
     ) -> TemporalResult<YearMonth<JsObject>> {
-        let context = context
-            .downcast_mut::<Context>()
-            .expect("Context was not provided for a CustomCalendar.");
-
         let method = self
             .get(utf16!("yearMonthFromFields"), context)
             .expect("method must exist on a object that implements the CalendarProtocol.");
@@ -150,12 +134,8 @@ impl CalendarProtocol for JsObject {
         &self,
         fields: &mut TemporalFields,
         overflow: ArithmeticOverflow,
-        context: &mut dyn Any,
+        context: &mut Context,
     ) -> TemporalResult<MonthDay<JsObject>> {
-        let context = context
-            .downcast_mut::<Context>()
-            .expect("Context was not provided for a CustomCalendar.");
-
         let method = self
             .get(utf16!("yearMonthFromFields"), context)
             .expect("method must exist on a object that implements the CalendarProtocol.");
@@ -204,7 +184,7 @@ impl CalendarProtocol for JsObject {
         _date: &Date<JsObject>,
         _duration: &Duration,
         _overflow: ArithmeticOverflow,
-        _context: &mut dyn Any,
+        _context: &mut Context,
     ) -> TemporalResult<Date<JsObject>> {
         // TODO
         Err(TemporalError::general("Not yet implemented."))
@@ -215,7 +195,7 @@ impl CalendarProtocol for JsObject {
         _one: &Date<JsObject>,
         _two: &Date<JsObject>,
         _largest_unit: boa_temporal::options::TemporalUnit,
-        _context: &mut dyn Any,
+        _context: &mut Context,
     ) -> TemporalResult<Duration> {
         // TODO
         Err(TemporalError::general("Not yet implemented."))
@@ -224,7 +204,7 @@ impl CalendarProtocol for JsObject {
     fn era(
         &self,
         _: &CalendarDateLike<JsObject>,
-        _: &mut dyn Any,
+        _: &mut Context,
     ) -> TemporalResult<Option<TinyAsciiStr<16>>> {
         // Return undefined as custom calendars do not implement -> Currently.
         Ok(None)
@@ -233,7 +213,7 @@ impl CalendarProtocol for JsObject {
     fn era_year(
         &self,
         _: &CalendarDateLike<JsObject>,
-        _: &mut dyn Any,
+        _: &mut Context,
     ) -> TemporalResult<Option<i32>> {
         // Return undefined as custom calendars do not implement -> Currently.
         Ok(None)
@@ -242,12 +222,8 @@ impl CalendarProtocol for JsObject {
     fn year(
         &self,
         date_like: &CalendarDateLike<JsObject>,
-        context: &mut dyn Any,
+        context: &mut Context,
     ) -> TemporalResult<i32> {
-        let context = context
-            .downcast_mut::<Context>()
-            .expect("Context was not provided for a CustomCalendar.");
-
         let date_like = date_like_to_object(date_like, context)?;
 
         let method = self
@@ -288,12 +264,8 @@ impl CalendarProtocol for JsObject {
     fn month(
         &self,
         date_like: &CalendarDateLike<JsObject>,
-        context: &mut dyn Any,
+        context: &mut Context,
     ) -> TemporalResult<u8> {
-        let context = context
-            .downcast_mut::<Context>()
-            .expect("Context was not provided for a CustomCalendar.");
-
         let date_like = date_like_to_object(date_like, context)?;
 
         let method = self
@@ -334,12 +306,8 @@ impl CalendarProtocol for JsObject {
     fn month_code(
         &self,
         date_like: &CalendarDateLike<JsObject>,
-        context: &mut dyn Any,
+        context: &mut Context,
     ) -> TemporalResult<TinyAsciiStr<4>> {
-        let context = context
-            .downcast_mut::<Context>()
-            .expect("Context was not provided for a CustomCalendar.");
-
         let date_like = date_like_to_object(date_like, context)?;
 
         let method = self
@@ -365,12 +333,8 @@ impl CalendarProtocol for JsObject {
     fn day(
         &self,
         date_like: &CalendarDateLike<JsObject>,
-        context: &mut dyn Any,
+        context: &mut Context,
     ) -> TemporalResult<u8> {
-        let context = context
-            .downcast_mut::<Context>()
-            .expect("Context was not provided for a CustomCalendar.");
-
         let date_like = date_like_to_object(date_like, context)?;
 
         let method = self
@@ -411,12 +375,8 @@ impl CalendarProtocol for JsObject {
     fn day_of_week(
         &self,
         date_like: &CalendarDateLike<JsObject>,
-        context: &mut dyn Any,
+        context: &mut Context,
     ) -> TemporalResult<u16> {
-        let context = context
-            .downcast_mut::<Context>()
-            .expect("Context was not provided for a CustomCalendar.");
-
         let date_like = date_like_to_object(date_like, context)?;
 
         let method = self
@@ -459,12 +419,8 @@ impl CalendarProtocol for JsObject {
     fn day_of_year(
         &self,
         date_like: &CalendarDateLike<JsObject>,
-        context: &mut dyn Any,
+        context: &mut Context,
     ) -> TemporalResult<u16> {
-        let context = context
-            .downcast_mut::<Context>()
-            .expect("Context was not provided for a CustomCalendar.");
-
         let date_like = date_like_to_object(date_like, context)?;
 
         let method = self
@@ -507,12 +463,8 @@ impl CalendarProtocol for JsObject {
     fn week_of_year(
         &self,
         date_like: &CalendarDateLike<JsObject>,
-        context: &mut dyn Any,
+        context: &mut Context,
     ) -> TemporalResult<u16> {
-        let context = context
-            .downcast_mut::<Context>()
-            .expect("Context was not provided for a CustomCalendar.");
-
         let date_like = date_like_to_object(date_like, context)?;
 
         let method = self
@@ -555,12 +507,8 @@ impl CalendarProtocol for JsObject {
     fn year_of_week(
         &self,
         date_like: &CalendarDateLike<JsObject>,
-        context: &mut dyn Any,
+        context: &mut Context,
     ) -> TemporalResult<i32> {
-        let context = context
-            .downcast_mut::<Context>()
-            .expect("Context was not provided for a CustomCalendar.");
-
         let date_like = date_like_to_object(date_like, context)?;
 
         let method = self
@@ -596,12 +544,8 @@ impl CalendarProtocol for JsObject {
     fn days_in_week(
         &self,
         date_like: &CalendarDateLike<JsObject>,
-        context: &mut dyn Any,
+        context: &mut Context,
     ) -> TemporalResult<u16> {
-        let context = context
-            .downcast_mut::<Context>()
-            .expect("Context was not provided for a CustomCalendar.");
-
         let date_like = date_like_to_object(date_like, context)?;
 
         let method = self
@@ -644,12 +588,8 @@ impl CalendarProtocol for JsObject {
     fn days_in_month(
         &self,
         date_like: &CalendarDateLike<JsObject>,
-        context: &mut dyn Any,
+        context: &mut Context,
     ) -> TemporalResult<u16> {
-        let context = context
-            .downcast_mut::<Context>()
-            .expect("Context was not provided for a CustomCalendar.");
-
         let date_like = date_like_to_object(date_like, context)?;
 
         let method = self
@@ -693,12 +633,8 @@ impl CalendarProtocol for JsObject {
     fn days_in_year(
         &self,
         date_like: &CalendarDateLike<JsObject>,
-        context: &mut dyn Any,
+        context: &mut Context,
     ) -> TemporalResult<u16> {
-        let context = context
-            .downcast_mut::<Context>()
-            .expect("Context was not provided for a CustomCalendar.");
-
         let date_like = date_like_to_object(date_like, context)?;
 
         let method = self
@@ -741,12 +677,8 @@ impl CalendarProtocol for JsObject {
     fn months_in_year(
         &self,
         date_like: &CalendarDateLike<JsObject>,
-        context: &mut dyn Any,
+        context: &mut Context,
     ) -> TemporalResult<u16> {
-        let context = context
-            .downcast_mut::<Context>()
-            .expect("Context was not provided for a CustomCalendar.");
-
         let date_like = date_like_to_object(date_like, context)?;
 
         let method = self
@@ -791,12 +723,8 @@ impl CalendarProtocol for JsObject {
     fn in_leap_year(
         &self,
         date_like: &CalendarDateLike<JsObject>,
-        context: &mut dyn Any,
+        context: &mut Context,
     ) -> TemporalResult<bool> {
-        let context = context
-            .downcast_mut::<Context>()
-            .expect("Context was not provided for a CustomCalendar.");
-
         let date_like = date_like_to_object(date_like, context)?;
 
         let method = self
@@ -818,11 +746,7 @@ impl CalendarProtocol for JsObject {
         Ok(result)
     }
 
-    fn fields(&self, fields: Vec<String>, context: &mut dyn Any) -> TemporalResult<Vec<String>> {
-        let context = context
-            .downcast_mut::<Context>()
-            .expect("Context was not provided for a CustomCalendar.");
-
+    fn fields(&self, fields: Vec<String>, context: &mut Context) -> TemporalResult<Vec<String>> {
         let fields_js = Array::create_array_from_list(
             fields.iter().map(|s| JsString::from(s.clone()).into()),
             context,
@@ -867,12 +791,8 @@ impl CalendarProtocol for JsObject {
         &self,
         fields: &TemporalFields,
         additional_fields: &TemporalFields,
-        context: &mut dyn Any,
+        context: &mut Context,
     ) -> TemporalResult<TemporalFields> {
-        let context = context
-            .downcast_mut::<Context>()
-            .expect("Context was not provided for a CustomCalendar.");
-
         let fields = JsObject::from_temporal_fields(fields, context)
             .map_err(|e| TemporalError::general(e.to_string()))?;
         let add_fields = JsObject::from_temporal_fields(additional_fields, context)
@@ -901,11 +821,7 @@ impl CalendarProtocol for JsObject {
         object_to_temporal_fields(&o, context).map_err(|e| TemporalError::general(e.to_string()))
     }
 
-    fn identifier(&self, context: &mut dyn Any) -> TemporalResult<String> {
-        let context = context
-            .downcast_mut::<Context>()
-            .expect("Context was not provided for a CustomCalendar.");
-
+    fn identifier(&self, context: &mut Context) -> TemporalResult<String> {
         let identifier = self
             .__get__(
                 &PropertyKey::from(utf16!("id")),
