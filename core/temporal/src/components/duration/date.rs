@@ -9,8 +9,6 @@ use crate::{
     utils, TemporalError, TemporalResult, NS_PER_DAY,
 };
 
-use std::any::Any;
-
 /// `DateDuration` represents the [date duration record][spec] of the `Duration.`
 ///
 /// These fields are laid out in the [Temporal Proposal][field spec] as 64-bit floating point numbers.
@@ -147,7 +145,7 @@ impl DateDuration {
             Option<&ZonedDateTime<C, Z>>,
             Option<&DateTime<C>>,
         ),
-        context: &mut dyn Any,
+        context: &mut C::Context,
     ) -> TemporalResult<(Self, f64)> {
         // 1. If plainRelativeTo is not present, set plainRelativeTo to undefined.
         let plain_relative_to = relative_targets.0;

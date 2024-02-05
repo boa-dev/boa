@@ -11,10 +11,10 @@ use crate::{
     TemporalError, TemporalResult,
 };
 
-use std::{any::Any, str::FromStr};
+use std::str::FromStr;
 use tinystr::TinyAsciiStr;
 
-use super::calendar::{CalendarDateLike, DateTypes, GetCalendarSlot};
+use super::calendar::{CalendarDateLike, GetCalendarSlot};
 
 /// The native Rust implementation of `Temporal.PlainDateTime`
 #[derive(Debug, Default, Clone)]
@@ -248,117 +248,108 @@ impl DateTime<()> {
 
 impl<C: CalendarProtocol> DateTime<C> {
     /// Returns the calendar year value with provided context.
-    pub fn contextualized_year(
-        this: &<C::DateLikes as DateTypes<C>>::DateTime,
-        context: &mut dyn Any,
-    ) -> TemporalResult<i32> {
+    pub fn contextual_year(this: &C::DateTime, context: &mut C::Context) -> TemporalResult<i32> {
         this.get_calendar()
             .year(&CalendarDateLike::CustomDateTime(this.clone()), context)
     }
 
     /// Returns the calendar month value with provided context.
-    pub fn contextualized_month(
-        this: &<C::DateLikes as DateTypes<C>>::DateTime,
-        context: &mut dyn Any,
-    ) -> TemporalResult<u8> {
+    pub fn contextual_month(this: &C::DateTime, context: &mut C::Context) -> TemporalResult<u8> {
         this.get_calendar()
             .month(&CalendarDateLike::CustomDateTime(this.clone()), context)
     }
 
     /// Returns the calendar month code value with provided context.
-    pub fn contextualized_month_code(
-        this: &<C::DateLikes as DateTypes<C>>::DateTime,
-        context: &mut dyn Any,
+    pub fn contextual_month_code(
+        this: &C::DateTime,
+        context: &mut C::Context,
     ) -> TemporalResult<TinyAsciiStr<4>> {
         this.get_calendar()
             .month_code(&CalendarDateLike::CustomDateTime(this.clone()), context)
     }
 
     /// Returns the calendar day value with provided context.
-    pub fn contextualized_day(
-        this: &<C::DateLikes as DateTypes<C>>::DateTime,
-        context: &mut dyn Any,
-    ) -> TemporalResult<u8> {
+    pub fn contextual_day(this: &C::DateTime, context: &mut C::Context) -> TemporalResult<u8> {
         this.get_calendar()
             .day(&CalendarDateLike::CustomDateTime(this.clone()), context)
     }
 
     /// Returns the calendar day of week value with provided context.
-    pub fn contextualized_day_of_week(
-        this: &<C::DateLikes as DateTypes<C>>::DateTime,
-        context: &mut dyn Any,
+    pub fn contextual_day_of_week(
+        this: &C::DateTime,
+        context: &mut C::Context,
     ) -> TemporalResult<u16> {
         this.get_calendar()
             .day_of_week(&CalendarDateLike::CustomDateTime(this.clone()), context)
     }
 
     /// Returns the calendar day of year value with provided context.
-    pub fn contextualized_day_of_year(
-        this: &<C::DateLikes as DateTypes<C>>::DateTime,
-        context: &mut dyn Any,
+    pub fn contextual_day_of_year(
+        this: &C::DateTime,
+        context: &mut C::Context,
     ) -> TemporalResult<u16> {
         this.get_calendar()
             .day_of_year(&CalendarDateLike::CustomDateTime(this.clone()), context)
     }
 
     /// Returns the calendar week of year value with provided context.
-    pub fn contextualized_week_of_year(
-        this: &<C::DateLikes as DateTypes<C>>::DateTime,
-        context: &mut dyn Any,
+    pub fn contextual_week_of_year(
+        this: &C::DateTime,
+        context: &mut C::Context,
     ) -> TemporalResult<u16> {
         this.get_calendar()
             .week_of_year(&CalendarDateLike::CustomDateTime(this.clone()), context)
     }
 
     /// Returns the calendar year of week value with provided context.
-    pub fn contextualized_year_of_week(
-        this: &<C::DateLikes as DateTypes<C>>::DateTime,
-        context: &mut dyn Any,
+    pub fn contextual_year_of_week(
+        this: &C::DateTime,
+        context: &mut C::Context,
     ) -> TemporalResult<i32> {
         this.get_calendar()
             .year_of_week(&CalendarDateLike::CustomDateTime(this.clone()), context)
     }
 
     /// Returns the calendar days in week value with provided context.
-    pub fn contextualized_days_in_week(
-        this: &<C::DateLikes as DateTypes<C>>::DateTime,
-        context: &mut dyn Any,
+    pub fn contextual_days_in_week(
+        this: &C::DateTime,
+        context: &mut C::Context,
     ) -> TemporalResult<u16> {
         this.get_calendar()
             .days_in_week(&CalendarDateLike::CustomDateTime(this.clone()), context)
     }
 
     /// Returns the calendar days in month value with provided context.
-    pub fn contextualized_days_in_month(
-        this: &<C::DateLikes as DateTypes<C>>::DateTime,
-        context: &mut dyn Any,
+    pub fn contextual_days_in_month(
+        this: &C::DateTime,
+        context: &mut C::Context,
     ) -> TemporalResult<u16> {
         this.get_calendar()
             .days_in_month(&CalendarDateLike::CustomDateTime(this.clone()), context)
     }
 
     /// Returns the calendar days in year value with provided context.
-    pub fn contextualized_days_in_year(
-        this: &<C::DateLikes as DateTypes<C>>::DateTime,
-        context: &mut dyn Any,
+    pub fn contextual_days_in_year(
+        this: &C::DateTime,
+        context: &mut C::Context,
     ) -> TemporalResult<u16> {
         this.get_calendar()
             .days_in_year(&CalendarDateLike::CustomDateTime(this.clone()), context)
     }
 
     /// Returns the calendar months in year value with provided context.
-    pub fn contextualized_months_in_year(
-        this: &<C::DateLikes as DateTypes<C>>::DateTime,
-        context: &mut dyn Any,
+    pub fn contextual_months_in_year(
+        this: &C::DateTime,
+        context: &mut C::Context,
     ) -> TemporalResult<u16> {
         this.get_calendar()
             .months_in_year(&CalendarDateLike::CustomDateTime(this.clone()), context)
     }
 
     /// Returns whether the date is in a leap year for the given calendar with provided context.
-    pub fn contextualized_in_leap_year(
-        this: &<C::DateLikes as DateTypes<C>>::DateTime,
-        context: &mut dyn Any,
+    pub fn contextual_in_leap_year(
+        this: &C::DateTime,
+        context: &mut C::Context,
     ) -> TemporalResult<bool> {
         this.get_calendar()
             .in_leap_year(&CalendarDateLike::CustomDateTime(this.clone()), context)
