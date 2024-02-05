@@ -1028,7 +1028,7 @@
     parser::{duration::parse_duration, Cursor},
     TemporalError, TemporalResult,
 };
-<span class="kw">use </span>std::{any::Any, str::FromStr};
+<span class="kw">use </span>std::str::FromStr;
 
 <span class="kw">use super</span>::{calendar::CalendarProtocol, tz::TzProtocol};
 
@@ -1392,7 +1392,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         largest_unit: TemporalUnit,
         plain_relative_to: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Date&lt;C&gt;&gt;,
-        context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
+        context: <span class="kw-2">&amp;mut </span>C::Context,
     ) -&gt; TemporalResult&lt;DateDuration&gt; {
         <span class="comment">// 1. Let allZero be false.
         // 2. If years = 0, and months = 0, and weeks = 0, and days = 0, set allZero to true.
@@ -1598,7 +1598,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         largest_unit: TemporalUnit,
         plain_relative_to: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Date&lt;C&gt;&gt;,
-        context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
+        context: <span class="kw-2">&amp;mut </span>C::Context,
     ) -&gt; TemporalResult&lt;DateDuration&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>result = <span class="self">self</span>.date;
 
@@ -1838,7 +1838,7 @@
             <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>ZonedDateTime&lt;C, Z&gt;&gt;,
             <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>DateTime&lt;C&gt;&gt;,
         ),
-        context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
+        context: <span class="kw-2">&amp;mut </span>C::Context,
     ) -&gt; TemporalResult&lt;(<span class="self">Self</span>, f64)&gt; {
         <span class="kw">match </span>unit {
             TemporalUnit::Year | TemporalUnit::Month | TemporalUnit::Week | TemporalUnit::Day =&gt; {

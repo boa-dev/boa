@@ -969,7 +969,7 @@
                 .into());
         };
 
-        <span class="prelude-val">Ok</span>(InnerDate::&lt;JsObject&gt;::contextualized_year(<span class="kw-2">&amp;</span>date, context)<span class="question-mark">?</span>.into())
+        <span class="prelude-val">Ok</span>(InnerDate::&lt;JsObject&gt;::contextual_year(<span class="kw-2">&amp;</span>date, context)<span class="question-mark">?</span>.into())
     }
 
     <span class="doccomment">/// 3.3.5 get `Temporal.PlainDate.prototype.month`
@@ -984,7 +984,7 @@
                 .into());
         };
 
-        <span class="prelude-val">Ok</span>(InnerDate::&lt;JsObject&gt;::contextualized_month(<span class="kw-2">&amp;</span>date, context)<span class="question-mark">?</span>.into())
+        <span class="prelude-val">Ok</span>(InnerDate::&lt;JsObject&gt;::contextual_month(<span class="kw-2">&amp;</span>date, context)<span class="question-mark">?</span>.into())
     }
 
     <span class="doccomment">/// 3.3.6 get Temporal.PlainDate.prototype.monthCode
@@ -999,10 +999,10 @@
                 .into());
         };
 
-        <span class="prelude-val">Ok</span>(JsString::from(
-            InnerDate::&lt;JsObject&gt;::contextualized_month_code(<span class="kw-2">&amp;</span>date, context)<span class="question-mark">?</span>.as_str(),
+        <span class="prelude-val">Ok</span>(
+            JsString::from(InnerDate::&lt;JsObject&gt;::contextual_month_code(<span class="kw-2">&amp;</span>date, context)<span class="question-mark">?</span>.as_str())
+                .into(),
         )
-        .into())
     }
 
     <span class="doccomment">/// 3.3.7 get `Temporal.PlainDate.prototype.day`
@@ -1017,7 +1017,7 @@
                 .into());
         };
 
-        <span class="prelude-val">Ok</span>(InnerDate::&lt;JsObject&gt;::contextualized_day(<span class="kw-2">&amp;</span>date, context)<span class="question-mark">?</span>.into())
+        <span class="prelude-val">Ok</span>(InnerDate::&lt;JsObject&gt;::contextual_day(<span class="kw-2">&amp;</span>date, context)<span class="question-mark">?</span>.into())
     }
 
     <span class="doccomment">/// 3.3.8 get `Temporal.PlainDate.prototype.dayOfWeek`
@@ -1032,7 +1032,7 @@
                 .into());
         };
 
-        <span class="prelude-val">Ok</span>(InnerDate::&lt;JsObject&gt;::contextualized_day_of_week(<span class="kw-2">&amp;</span>date, context)<span class="question-mark">?</span>.into())
+        <span class="prelude-val">Ok</span>(InnerDate::&lt;JsObject&gt;::contextual_day_of_week(<span class="kw-2">&amp;</span>date, context)<span class="question-mark">?</span>.into())
     }
 
     <span class="doccomment">/// 3.3.9 get `Temporal.PlainDate.prototype.dayOfYear`
@@ -1047,7 +1047,7 @@
                 .into());
         };
 
-        <span class="prelude-val">Ok</span>(InnerDate::&lt;JsObject&gt;::contextualized_day_of_year(<span class="kw-2">&amp;</span>date, context)<span class="question-mark">?</span>.into())
+        <span class="prelude-val">Ok</span>(InnerDate::&lt;JsObject&gt;::contextual_day_of_year(<span class="kw-2">&amp;</span>date, context)<span class="question-mark">?</span>.into())
     }
 
     <span class="doccomment">/// 3.3.10 get `Temporal.PlainDate.prototype.weekOfYear`
@@ -1062,7 +1062,7 @@
                 .into());
         };
 
-        <span class="prelude-val">Ok</span>(InnerDate::&lt;JsObject&gt;::contextualized_week_of_year(<span class="kw-2">&amp;</span>date, context)<span class="question-mark">?</span>.into())
+        <span class="prelude-val">Ok</span>(InnerDate::&lt;JsObject&gt;::contextual_week_of_year(<span class="kw-2">&amp;</span>date, context)<span class="question-mark">?</span>.into())
     }
 
     <span class="doccomment">/// 3.3.11 get `Temporal.PlainDate.prototype.yearOfWeek`
@@ -1077,7 +1077,7 @@
                 .into());
         };
 
-        <span class="prelude-val">Ok</span>(InnerDate::&lt;JsObject&gt;::contextualized_year_of_week(<span class="kw-2">&amp;</span>date, context)<span class="question-mark">?</span>.into())
+        <span class="prelude-val">Ok</span>(InnerDate::&lt;JsObject&gt;::contextual_year_of_week(<span class="kw-2">&amp;</span>date, context)<span class="question-mark">?</span>.into())
     }
 
     <span class="doccomment">/// 3.3.12 get `Temporal.PlainDate.prototype.daysInWeek`
@@ -1092,7 +1092,7 @@
                 .into());
         };
 
-        <span class="prelude-val">Ok</span>(InnerDate::&lt;JsObject&gt;::contextualized_days_in_week(<span class="kw-2">&amp;</span>date, context)<span class="question-mark">?</span>.into())
+        <span class="prelude-val">Ok</span>(InnerDate::&lt;JsObject&gt;::contextual_days_in_week(<span class="kw-2">&amp;</span>date, context)<span class="question-mark">?</span>.into())
     }
 
     <span class="doccomment">/// 3.3.13 get `Temporal.PlainDate.prototype.daysInMonth`
@@ -1111,7 +1111,7 @@
                 .into());
         };
 
-        <span class="prelude-val">Ok</span>(InnerDate::&lt;JsObject&gt;::contextualized_days_in_month(<span class="kw-2">&amp;</span>date, context)<span class="question-mark">?</span>.into())
+        <span class="prelude-val">Ok</span>(InnerDate::&lt;JsObject&gt;::contextual_days_in_month(<span class="kw-2">&amp;</span>date, context)<span class="question-mark">?</span>.into())
     }
 
     <span class="doccomment">/// 3.3.14 get `Temporal.PlainDate.prototype.daysInYear`
@@ -1126,7 +1126,7 @@
                 .into());
         };
 
-        <span class="prelude-val">Ok</span>(InnerDate::&lt;JsObject&gt;::contextualized_days_in_year(<span class="kw-2">&amp;</span>date, context)<span class="question-mark">?</span>.into())
+        <span class="prelude-val">Ok</span>(InnerDate::&lt;JsObject&gt;::contextual_days_in_year(<span class="kw-2">&amp;</span>date, context)<span class="question-mark">?</span>.into())
     }
 
     <span class="doccomment">/// 3.3.15 get `Temporal.PlainDate.prototype.monthsInYear`
@@ -1145,7 +1145,7 @@
                 .into());
         };
 
-        <span class="prelude-val">Ok</span>(InnerDate::&lt;JsObject&gt;::contextualized_months_in_year(<span class="kw-2">&amp;</span>date, context)<span class="question-mark">?</span>.into())
+        <span class="prelude-val">Ok</span>(InnerDate::&lt;JsObject&gt;::contextual_months_in_year(<span class="kw-2">&amp;</span>date, context)<span class="question-mark">?</span>.into())
     }
 
     <span class="doccomment">/// 3.3.16 get `Temporal.PlainDate.prototype.inLeapYear`
@@ -1160,7 +1160,7 @@
                 .into());
         };
 
-        <span class="prelude-val">Ok</span>(InnerDate::&lt;JsObject&gt;::contextualized_in_leap_year(<span class="kw-2">&amp;</span>date, context)<span class="question-mark">?</span>.into())
+        <span class="prelude-val">Ok</span>(InnerDate::&lt;JsObject&gt;::contextual_in_leap_year(<span class="kw-2">&amp;</span>date, context)<span class="question-mark">?</span>.into())
     }
 }
 

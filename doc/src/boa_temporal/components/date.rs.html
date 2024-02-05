@@ -431,45 +431,6 @@
 <a href="#431" id="431">431</a>
 <a href="#432" id="432">432</a>
 <a href="#433" id="433">433</a>
-<a href="#434" id="434">434</a>
-<a href="#435" id="435">435</a>
-<a href="#436" id="436">436</a>
-<a href="#437" id="437">437</a>
-<a href="#438" id="438">438</a>
-<a href="#439" id="439">439</a>
-<a href="#440" id="440">440</a>
-<a href="#441" id="441">441</a>
-<a href="#442" id="442">442</a>
-<a href="#443" id="443">443</a>
-<a href="#444" id="444">444</a>
-<a href="#445" id="445">445</a>
-<a href="#446" id="446">446</a>
-<a href="#447" id="447">447</a>
-<a href="#448" id="448">448</a>
-<a href="#449" id="449">449</a>
-<a href="#450" id="450">450</a>
-<a href="#451" id="451">451</a>
-<a href="#452" id="452">452</a>
-<a href="#453" id="453">453</a>
-<a href="#454" id="454">454</a>
-<a href="#455" id="455">455</a>
-<a href="#456" id="456">456</a>
-<a href="#457" id="457">457</a>
-<a href="#458" id="458">458</a>
-<a href="#459" id="459">459</a>
-<a href="#460" id="460">460</a>
-<a href="#461" id="461">461</a>
-<a href="#462" id="462">462</a>
-<a href="#463" id="463">463</a>
-<a href="#464" id="464">464</a>
-<a href="#465" id="465">465</a>
-<a href="#466" id="466">466</a>
-<a href="#467" id="467">467</a>
-<a href="#468" id="468">468</a>
-<a href="#469" id="469">469</a>
-<a href="#470" id="470">470</a>
-<a href="#471" id="471">471</a>
-<a href="#472" id="472">472</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module implements `Date` and any directly related algorithms.
 
 </span><span class="kw">use </span>tinystr::TinyAsciiStr;
@@ -485,10 +446,10 @@
     parser::parse_date_time,
     TemporalError, TemporalResult,
 };
-<span class="kw">use </span>std::{any::Any, str::FromStr};
+<span class="kw">use </span>std::str::FromStr;
 
 <span class="kw">use super</span>::{
-    calendar::{CalendarDateLike, DateTypes, GetCalendarSlot},
+    calendar::{CalendarDateLike, GetCalendarSlot},
     duration::TimeDuration,
 };
 
@@ -514,7 +475,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>move_relative_date(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         duration: <span class="kw-2">&amp;</span>Duration,
-        context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
+        context: <span class="kw-2">&amp;mut </span>C::Context,
     ) -&gt; TemporalResult&lt;(<span class="self">Self</span>, f64)&gt; {
         <span class="kw">let </span>new_date =
             <span class="self">self</span>.contextual_add_date(duration, ArithmeticOverflow::Constrain, context)<span class="question-mark">?</span>;
@@ -687,117 +648,102 @@
 // reference count increment. Need to test.
 </span><span class="kw">impl</span>&lt;C: CalendarProtocol&gt; Date&lt;C&gt; {
     <span class="doccomment">/// Returns the calendar year value with provided context.
-    </span><span class="kw">pub fn </span>contextualized_year(
-        this: <span class="kw-2">&amp;</span>&lt;C::DateLikes <span class="kw">as </span>DateTypes&lt;C&gt;&gt;::Date,
-        context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
-    ) -&gt; TemporalResult&lt;i32&gt; {
+    </span><span class="kw">pub fn </span>contextual_year(this: <span class="kw-2">&amp;</span>C::Date, context: <span class="kw-2">&amp;mut </span>C::Context) -&gt; TemporalResult&lt;i32&gt; {
         this.get_calendar()
             .year(<span class="kw-2">&amp;</span>CalendarDateLike::CustomDate(this.clone()), context)
     }
 
     <span class="doccomment">/// Returns the calendar month value with provided context.
-    </span><span class="kw">pub fn </span>contextualized_month(
-        this: <span class="kw-2">&amp;</span>&lt;C::DateLikes <span class="kw">as </span>DateTypes&lt;C&gt;&gt;::Date,
-        context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
-    ) -&gt; TemporalResult&lt;u8&gt; {
+    </span><span class="kw">pub fn </span>contextual_month(this: <span class="kw-2">&amp;</span>C::Date, context: <span class="kw-2">&amp;mut </span>C::Context) -&gt; TemporalResult&lt;u8&gt; {
         this.get_calendar()
             .month(<span class="kw-2">&amp;</span>CalendarDateLike::CustomDate(this.clone()), context)
     }
 
     <span class="doccomment">/// Returns the calendar month code value with provided context.
-    </span><span class="kw">pub fn </span>contextualized_month_code(
-        this: <span class="kw-2">&amp;</span>&lt;C::DateLikes <span class="kw">as </span>DateTypes&lt;C&gt;&gt;::Date,
-        context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
+    </span><span class="kw">pub fn </span>contextual_month_code(
+        this: <span class="kw-2">&amp;</span>C::Date,
+        context: <span class="kw-2">&amp;mut </span>C::Context,
     ) -&gt; TemporalResult&lt;TinyAsciiStr&lt;<span class="number">4</span>&gt;&gt; {
         this.get_calendar()
             .month_code(<span class="kw-2">&amp;</span>CalendarDateLike::CustomDate(this.clone()), context)
     }
 
     <span class="doccomment">/// Returns the calendar day value with provided context.
-    </span><span class="kw">pub fn </span>contextualized_day(
-        this: <span class="kw-2">&amp;</span>&lt;C::DateLikes <span class="kw">as </span>DateTypes&lt;C&gt;&gt;::Date,
-        context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
-    ) -&gt; TemporalResult&lt;u8&gt; {
+    </span><span class="kw">pub fn </span>contextual_day(this: <span class="kw-2">&amp;</span>C::Date, context: <span class="kw-2">&amp;mut </span>C::Context) -&gt; TemporalResult&lt;u8&gt; {
         this.get_calendar()
             .day(<span class="kw-2">&amp;</span>CalendarDateLike::CustomDate(this.clone()), context)
     }
 
     <span class="doccomment">/// Returns the calendar day of week value with provided context.
-    </span><span class="kw">pub fn </span>contextualized_day_of_week(
-        this: <span class="kw-2">&amp;</span>&lt;C::DateLikes <span class="kw">as </span>DateTypes&lt;C&gt;&gt;::Date,
-        context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
-    ) -&gt; TemporalResult&lt;u16&gt; {
+    </span><span class="kw">pub fn </span>contextual_day_of_week(this: <span class="kw-2">&amp;</span>C::Date, context: <span class="kw-2">&amp;mut </span>C::Context) -&gt; TemporalResult&lt;u16&gt; {
         this.get_calendar()
             .day_of_week(<span class="kw-2">&amp;</span>CalendarDateLike::CustomDate(this.clone()), context)
     }
 
     <span class="doccomment">/// Returns the calendar day of year value with provided context.
-    </span><span class="kw">pub fn </span>contextualized_day_of_year(
-        this: <span class="kw-2">&amp;</span>&lt;C::DateLikes <span class="kw">as </span>DateTypes&lt;C&gt;&gt;::Date,
-        context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
-    ) -&gt; TemporalResult&lt;u16&gt; {
+    </span><span class="kw">pub fn </span>contextual_day_of_year(this: <span class="kw-2">&amp;</span>C::Date, context: <span class="kw-2">&amp;mut </span>C::Context) -&gt; TemporalResult&lt;u16&gt; {
         this.get_calendar()
             .day_of_year(<span class="kw-2">&amp;</span>CalendarDateLike::CustomDate(this.clone()), context)
     }
 
     <span class="doccomment">/// Returns the calendar week of year value with provided context.
-    </span><span class="kw">pub fn </span>contextualized_week_of_year(
-        this: <span class="kw-2">&amp;</span>&lt;C::DateLikes <span class="kw">as </span>DateTypes&lt;C&gt;&gt;::Date,
-        context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
+    </span><span class="kw">pub fn </span>contextual_week_of_year(
+        this: <span class="kw-2">&amp;</span>C::Date,
+        context: <span class="kw-2">&amp;mut </span>C::Context,
     ) -&gt; TemporalResult&lt;u16&gt; {
         this.get_calendar()
             .week_of_year(<span class="kw-2">&amp;</span>CalendarDateLike::CustomDate(this.clone()), context)
     }
 
     <span class="doccomment">/// Returns the calendar year of week value with provided context.
-    </span><span class="kw">pub fn </span>contextualized_year_of_week(
-        this: <span class="kw-2">&amp;</span>&lt;C::DateLikes <span class="kw">as </span>DateTypes&lt;C&gt;&gt;::Date,
-        context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
+    </span><span class="kw">pub fn </span>contextual_year_of_week(
+        this: <span class="kw-2">&amp;</span>C::Date,
+        context: <span class="kw-2">&amp;mut </span>C::Context,
     ) -&gt; TemporalResult&lt;i32&gt; {
         this.get_calendar()
             .year_of_week(<span class="kw-2">&amp;</span>CalendarDateLike::CustomDate(this.clone()), context)
     }
 
     <span class="doccomment">/// Returns the calendar days in week value with provided context.
-    </span><span class="kw">pub fn </span>contextualized_days_in_week(
-        this: <span class="kw-2">&amp;</span>&lt;C::DateLikes <span class="kw">as </span>DateTypes&lt;C&gt;&gt;::Date,
-        context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
+    </span><span class="kw">pub fn </span>contextual_days_in_week(
+        this: <span class="kw-2">&amp;</span>C::Date,
+        context: <span class="kw-2">&amp;mut </span>C::Context,
     ) -&gt; TemporalResult&lt;u16&gt; {
         this.get_calendar()
             .days_in_week(<span class="kw-2">&amp;</span>CalendarDateLike::CustomDate(this.clone()), context)
     }
 
     <span class="doccomment">/// Returns the calendar days in month value with provided context.
-    </span><span class="kw">pub fn </span>contextualized_days_in_month(
-        this: <span class="kw-2">&amp;</span>&lt;C::DateLikes <span class="kw">as </span>DateTypes&lt;C&gt;&gt;::Date,
-        context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
+    </span><span class="kw">pub fn </span>contextual_days_in_month(
+        this: <span class="kw-2">&amp;</span>C::Date,
+        context: <span class="kw-2">&amp;mut </span>C::Context,
     ) -&gt; TemporalResult&lt;u16&gt; {
         this.get_calendar()
             .days_in_month(<span class="kw-2">&amp;</span>CalendarDateLike::CustomDate(this.clone()), context)
     }
 
     <span class="doccomment">/// Returns the calendar days in year value with provided context.
-    </span><span class="kw">pub fn </span>contextualized_days_in_year(
-        this: <span class="kw-2">&amp;</span>&lt;C::DateLikes <span class="kw">as </span>DateTypes&lt;C&gt;&gt;::Date,
-        context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
+    </span><span class="kw">pub fn </span>contextual_days_in_year(
+        this: <span class="kw-2">&amp;</span>C::Date,
+        context: <span class="kw-2">&amp;mut </span>C::Context,
     ) -&gt; TemporalResult&lt;u16&gt; {
         this.get_calendar()
             .days_in_year(<span class="kw-2">&amp;</span>CalendarDateLike::CustomDate(this.clone()), context)
     }
 
     <span class="doccomment">/// Returns the calendar months in year value with provided context.
-    </span><span class="kw">pub fn </span>contextualized_months_in_year(
-        this: <span class="kw-2">&amp;</span>&lt;C::DateLikes <span class="kw">as </span>DateTypes&lt;C&gt;&gt;::Date,
-        context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
+    </span><span class="kw">pub fn </span>contextual_months_in_year(
+        this: <span class="kw-2">&amp;</span>C::Date,
+        context: <span class="kw-2">&amp;mut </span>C::Context,
     ) -&gt; TemporalResult&lt;u16&gt; {
         this.get_calendar()
             .months_in_year(<span class="kw-2">&amp;</span>CalendarDateLike::CustomDate(this.clone()), context)
     }
 
     <span class="doccomment">/// Returns whether the date is in a leap year for the given calendar with provided context.
-    </span><span class="kw">pub fn </span>contextualized_in_leap_year(
-        this: <span class="kw-2">&amp;</span>&lt;C::DateLikes <span class="kw">as </span>DateTypes&lt;C&gt;&gt;::Date,
-        context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
+    </span><span class="kw">pub fn </span>contextual_in_leap_year(
+        this: <span class="kw-2">&amp;</span>C::Date,
+        context: <span class="kw-2">&amp;mut </span>C::Context,
     ) -&gt; TemporalResult&lt;bool&gt; {
         this.get_calendar()
             .in_leap_year(<span class="kw-2">&amp;</span>CalendarDateLike::CustomDate(this.clone()), context)
@@ -828,7 +774,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         duration: <span class="kw-2">&amp;</span>Duration,
         overflow: ArithmeticOverflow,
-        context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
+        context: <span class="kw-2">&amp;mut </span>C::Context,
     ) -&gt; TemporalResult&lt;<span class="self">Self</span>&gt; {
         <span class="comment">// 1. If options is not present, set options to undefined.
         // 2. If duration.[[Years]] ≠ 0, or duration.[[Months]] ≠ 0, or duration.[[Weeks]] ≠ 0, then
@@ -863,18 +809,6 @@
         <span class="prelude-val">Ok</span>(<span class="self">Self</span>::new_unchecked(result, <span class="self">self</span>.calendar().clone()))
     }
 
-    <span class="doccomment">/// Returns the date after adding the given duration to date.
-    ///
-    /// Temporal Equivalent: 3.5.13 `AddDate ( calendar, plainDate, duration [ , options [ , dateAdd ] ] )`
-    </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>add_date(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        duration: <span class="kw-2">&amp;</span>Duration,
-        overflow: ArithmeticOverflow,
-    ) -&gt; TemporalResult&lt;<span class="self">Self</span>&gt; {
-        <span class="self">self</span>.contextual_add_date(duration, overflow, <span class="kw-2">&amp;mut </span>())
-    }
-
     <span class="doccomment">/// Returns a duration representing the difference between the dates one and two with a provided context.
     ///
     /// Temporal Equivalent: 3.5.6 `DifferenceDate ( calendar, one, two, options )`
@@ -883,7 +817,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         other: <span class="kw-2">&amp;</span><span class="self">Self</span>,
         largest_unit: TemporalUnit,
-        context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
+        context: <span class="kw-2">&amp;mut </span>C::Context,
     ) -&gt; TemporalResult&lt;Duration&gt; {
         <span class="kw">if </span><span class="self">self</span>.iso.year == other.iso.year
             &amp;&amp; <span class="self">self</span>.iso.month == other.iso.month
@@ -904,18 +838,6 @@
 
         <span class="self">self</span>.calendar()
             .date_until(<span class="self">self</span>, other, largest_unit, context)
-    }
-
-    <span class="doccomment">/// Returns a duration representing the difference between the dates one and two.
-    ///
-    /// Temporal Equivalent: 3.5.6 `DifferenceDate ( calendar, one, two, options )`
-    </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>difference_date(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        other: <span class="kw-2">&amp;</span><span class="self">Self</span>,
-        largest_unit: TemporalUnit,
-    ) -&gt; TemporalResult&lt;Duration&gt; {
-        <span class="self">self</span>.contextual_difference_date(other, largest_unit, <span class="kw-2">&amp;mut </span>())
     }
 }
 

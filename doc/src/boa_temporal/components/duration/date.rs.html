@@ -484,8 +484,6 @@
 <a href="#484" id="484">484</a>
 <a href="#485" id="485">485</a>
 <a href="#486" id="486">486</a>
-<a href="#487" id="487">487</a>
-<a href="#488" id="488">488</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Implementation of a `DateDuration`
 
 </span><span class="kw">use crate</span>::{
@@ -496,8 +494,6 @@
     options::{ArithmeticOverflow, TemporalRoundingMode, TemporalUnit},
     utils, TemporalError, TemporalResult, NS_PER_DAY,
 };
-
-<span class="kw">use </span>std::any::Any;
 
 <span class="doccomment">/// `DateDuration` represents the [date duration record][spec] of the `Duration.`
 ///
@@ -635,7 +631,7 @@
             <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>ZonedDateTime&lt;C, Z&gt;&gt;,
             <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>DateTime&lt;C&gt;&gt;,
         ),
-        context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
+        context: <span class="kw-2">&amp;mut </span>C::Context,
     ) -&gt; TemporalResult&lt;(<span class="self">Self</span>, f64)&gt; {
         <span class="comment">// 1. If plainRelativeTo is not present, set plainRelativeTo to undefined.
         </span><span class="kw">let </span>plain_relative_to = relative_targets.<span class="number">0</span>;

@@ -1003,6 +1003,12 @@
 <a href="#1003" id="1003">1003</a>
 <a href="#1004" id="1004">1004</a>
 <a href="#1005" id="1005">1005</a>
+<a href="#1006" id="1006">1006</a>
+<a href="#1007" id="1007">1007</a>
+<a href="#1008" id="1008">1008</a>
+<a href="#1009" id="1009">1009</a>
+<a href="#1010" id="1010">1010</a>
+<a href="#1011" id="1011">1011</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module implements the calendar traits and related components.
 //!
 //! The goal of the calendar module of `boa_temporal` is to provide
@@ -1013,7 +1019,7 @@
 //! the calendar protocol), but it does aim to provide the necessary tools and API for
 //! implementing one.
 
-</span><span class="kw">use </span>std::{any::Any, str::FromStr};
+</span><span class="kw">use </span>std::str::FromStr;
 
 <span class="kw">use crate</span>::{
     components::{Date, DateTime, Duration, MonthDay, YearMonth},
@@ -1093,13 +1099,13 @@
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub enum </span>CalendarDateLike&lt;C: CalendarProtocol&gt; {
     <span class="doccomment">/// Represents a user-defined `Date` datelike
-    </span>CustomDate(&lt;&lt;C <span class="kw">as </span>CalendarProtocol&gt;::DateLikes <span class="kw">as </span>DateTypes&lt;C&gt;&gt;::Date),
+    </span>CustomDate(C::Date),
     <span class="doccomment">/// Represents a user-defined `DateTime` datelike
-    </span>CustomDateTime(&lt;&lt;C <span class="kw">as </span>CalendarProtocol&gt;::DateLikes <span class="kw">as </span>DateTypes&lt;C&gt;&gt;::DateTime),
+    </span>CustomDateTime(C::DateTime),
     <span class="doccomment">/// Represents a user-defined `YearMonth` datelike
-    </span>CustomYearMonth(&lt;&lt;C <span class="kw">as </span>CalendarProtocol&gt;::DateLikes <span class="kw">as </span>DateTypes&lt;C&gt;&gt;::YearMonth),
+    </span>CustomYearMonth(C::YearMonth),
     <span class="doccomment">/// Represents a user-defined `MonthDay` datelike
-    </span>CustomMonthDay(&lt;&lt;C <span class="kw">as </span>CalendarProtocol&gt;::DateLikes <span class="kw">as </span>DateTypes&lt;C&gt;&gt;::MonthDay),
+    </span>CustomMonthDay(C::MonthDay),
     <span class="doccomment">/// Represents a `DateTime&lt;C&gt;`.
     </span>DateTime(DateTime&lt;C&gt;),
     <span class="doccomment">/// Represents a `Date&lt;C&gt;`.
@@ -1122,45 +1128,41 @@
     }
 }
 
-<span class="comment">// TODO: DateTypes should implement a trait -&gt; `ToTemporalDate`: `GetCalendarSlot`
-</span><span class="doccomment">/// A trait for implementing `DateLike` types
-</span><span class="kw">pub trait </span>DateTypes&lt;C: CalendarProtocol&gt; {
-    <span class="doccomment">/// A Custom `Date` Type for an associated `CalendarProtocol`. Default `Date&lt;C&gt;`
-    </span><span class="kw">type </span>Date: IsoDateSlots + GetCalendarSlot&lt;C&gt; + Clone + core::fmt::Debug;
-    <span class="doccomment">/// A Custom `DateTime` Type for an associated `CalendarProtocol`. Default `DateTime&lt;C&gt;`
-    </span><span class="kw">type </span>DateTime: IsoDateSlots + GetCalendarSlot&lt;C&gt; + Clone + core::fmt::Debug;
-    <span class="doccomment">/// A Custom `YearMonth` Type for an associated `CalendarProtocol`. Default `YearMonth&lt;C&gt;`
-    </span><span class="kw">type </span>YearMonth: IsoDateSlots + GetCalendarSlot&lt;C&gt; + Clone + core::fmt::Debug;
-    <span class="doccomment">/// A Custom `MonthDay` Type for an associated `CalendarProtocol`. Default `MonthDay&lt;C&gt;`
-    </span><span class="kw">type </span>MonthDay: IsoDateSlots + GetCalendarSlot&lt;C&gt; + Clone + core::fmt::Debug;
-}
-
 <span class="comment">// ==== CalendarProtocol trait ====
 
 </span><span class="doccomment">/// A trait for implementing a Builtin Calendar&#39;s Calendar Protocol in Rust.
 </span><span class="kw">pub trait </span>CalendarProtocol: Clone {
-    <span class="doccomment">/// Registers a valid set of custom `CalendarDateLike` values.
-    </span><span class="kw">type </span>DateLikes: DateTypes&lt;<span class="self">Self</span>&gt;;
+    <span class="doccomment">/// A Custom `Date` Type for an associated `CalendarProtocol`. Default `Date&lt;C&gt;`
+    </span><span class="kw">type </span>Date: IsoDateSlots + GetCalendarSlot&lt;<span class="self">Self</span>&gt; + Clone + core::fmt::Debug;
+    <span class="doccomment">/// A Custom `DateTime` Type for an associated `CalendarProtocol`. Default `DateTime&lt;C&gt;`
+    </span><span class="kw">type </span>DateTime: IsoDateSlots + GetCalendarSlot&lt;<span class="self">Self</span>&gt; + Clone + core::fmt::Debug;
+    <span class="doccomment">/// A Custom `YearMonth` Type for an associated `CalendarProtocol`. Default `YearMonth&lt;C&gt;`
+    </span><span class="kw">type </span>YearMonth: IsoDateSlots + GetCalendarSlot&lt;<span class="self">Self</span>&gt; + Clone + core::fmt::Debug;
+    <span class="doccomment">/// A Custom `MonthDay` Type for an associated `CalendarProtocol`. Default `MonthDay&lt;C&gt;`
+    </span><span class="kw">type </span>MonthDay: IsoDateSlots + GetCalendarSlot&lt;<span class="self">Self</span>&gt; + Clone + core::fmt::Debug;
+    <span class="doccomment">/// The context passed to every method of the `CalendarProtocol`.
+    </span><span class="kw">type </span>Context;
+
     <span class="doccomment">/// Creates a `Temporal.PlainDate` object from provided fields.
     </span><span class="kw">fn </span>date_from_fields(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         fields: <span class="kw-2">&amp;mut </span>TemporalFields,
         overflow: ArithmeticOverflow,
-        context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
+        context: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Context,
     ) -&gt; TemporalResult&lt;Date&lt;<span class="self">Self</span>&gt;&gt;;
     <span class="doccomment">/// Creates a `Temporal.PlainYearMonth` object from the provided fields.
     </span><span class="kw">fn </span>year_month_from_fields(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         fields: <span class="kw-2">&amp;mut </span>TemporalFields,
         overflow: ArithmeticOverflow,
-        context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
+        context: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Context,
     ) -&gt; TemporalResult&lt;YearMonth&lt;<span class="self">Self</span>&gt;&gt;;
     <span class="doccomment">/// Creates a `Temporal.PlainMonthDay` object from the provided fields.
     </span><span class="kw">fn </span>month_day_from_fields(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         fields: <span class="kw-2">&amp;mut </span>TemporalFields,
         overflow: ArithmeticOverflow,
-        context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
+        context: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Context,
     ) -&gt; TemporalResult&lt;MonthDay&lt;<span class="self">Self</span>&gt;&gt;;
     <span class="doccomment">/// Returns a `Temporal.PlainDate` based off an added date.
     </span><span class="kw">fn </span>date_add(
@@ -1168,7 +1170,7 @@
         date: <span class="kw-2">&amp;</span>Date&lt;<span class="self">Self</span>&gt;,
         duration: <span class="kw-2">&amp;</span>Duration,
         overflow: ArithmeticOverflow,
-        context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
+        context: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Context,
     ) -&gt; TemporalResult&lt;Date&lt;<span class="self">Self</span>&gt;&gt;;
     <span class="doccomment">/// Returns a `Temporal.Duration` representing the duration between two dates.
     </span><span class="kw">fn </span>date_until(
@@ -1176,106 +1178,114 @@
         one: <span class="kw-2">&amp;</span>Date&lt;<span class="self">Self</span>&gt;,
         two: <span class="kw-2">&amp;</span>Date&lt;<span class="self">Self</span>&gt;,
         largest_unit: TemporalUnit,
-        context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
+        context: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Context,
     ) -&gt; TemporalResult&lt;Duration&gt;;
     <span class="doccomment">/// Returns the era for a given `temporaldatelike`.
     </span><span class="kw">fn </span>era(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         date_like: <span class="kw-2">&amp;</span>CalendarDateLike&lt;<span class="self">Self</span>&gt;,
-        context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
+        context: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Context,
     ) -&gt; TemporalResult&lt;<span class="prelude-ty">Option</span>&lt;TinyAsciiStr&lt;<span class="number">16</span>&gt;&gt;&gt;;
     <span class="doccomment">/// Returns the era year for a given `temporaldatelike`
     </span><span class="kw">fn </span>era_year(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         date_like: <span class="kw-2">&amp;</span>CalendarDateLike&lt;<span class="self">Self</span>&gt;,
-        context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
+        context: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Context,
     ) -&gt; TemporalResult&lt;<span class="prelude-ty">Option</span>&lt;i32&gt;&gt;;
     <span class="doccomment">/// Returns the `year` for a given `temporaldatelike`
     </span><span class="kw">fn </span>year(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         date_like: <span class="kw-2">&amp;</span>CalendarDateLike&lt;<span class="self">Self</span>&gt;,
-        context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
+        context: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Context,
     ) -&gt; TemporalResult&lt;i32&gt;;
     <span class="doccomment">/// Returns the `month` for a given `temporaldatelike`
     </span><span class="kw">fn </span>month(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         date_like: <span class="kw-2">&amp;</span>CalendarDateLike&lt;<span class="self">Self</span>&gt;,
-        context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
+        context: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Context,
     ) -&gt; TemporalResult&lt;u8&gt;;
     <span class="comment">// Note: Best practice would probably be to switch to a MonthCode enum after extraction.
     </span><span class="doccomment">/// Returns the `monthCode` for a given `temporaldatelike`
     </span><span class="kw">fn </span>month_code(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         date_like: <span class="kw-2">&amp;</span>CalendarDateLike&lt;<span class="self">Self</span>&gt;,
-        context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
+        context: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Context,
     ) -&gt; TemporalResult&lt;TinyAsciiStr&lt;<span class="number">4</span>&gt;&gt;;
     <span class="doccomment">/// Returns the `day` for a given `temporaldatelike`
-    </span><span class="kw">fn </span>day(<span class="kw-2">&amp;</span><span class="self">self</span>, date_like: <span class="kw-2">&amp;</span>CalendarDateLike&lt;<span class="self">Self</span>&gt;, context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any) -&gt; TemporalResult&lt;u8&gt;;
+    </span><span class="kw">fn </span>day(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        date_like: <span class="kw-2">&amp;</span>CalendarDateLike&lt;<span class="self">Self</span>&gt;,
+        context: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Context,
+    ) -&gt; TemporalResult&lt;u8&gt;;
     <span class="doccomment">/// Returns a value representing the day of the week for a date.
     </span><span class="kw">fn </span>day_of_week(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         date_like: <span class="kw-2">&amp;</span>CalendarDateLike&lt;<span class="self">Self</span>&gt;,
-        context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
+        context: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Context,
     ) -&gt; TemporalResult&lt;u16&gt;;
     <span class="doccomment">/// Returns a value representing the day of the year for a given calendar.
     </span><span class="kw">fn </span>day_of_year(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         date_like: <span class="kw-2">&amp;</span>CalendarDateLike&lt;<span class="self">Self</span>&gt;,
-        context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
+        context: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Context,
     ) -&gt; TemporalResult&lt;u16&gt;;
     <span class="doccomment">/// Returns a value representing the week of the year for a given calendar.
     </span><span class="kw">fn </span>week_of_year(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         date_like: <span class="kw-2">&amp;</span>CalendarDateLike&lt;<span class="self">Self</span>&gt;,
-        context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
+        context: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Context,
     ) -&gt; TemporalResult&lt;u16&gt;;
     <span class="doccomment">/// Returns the year of a given week.
     </span><span class="kw">fn </span>year_of_week(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         date_like: <span class="kw-2">&amp;</span>CalendarDateLike&lt;<span class="self">Self</span>&gt;,
-        context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
+        context: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Context,
     ) -&gt; TemporalResult&lt;i32&gt;;
     <span class="doccomment">/// Returns the days in a week for a given calendar.
     </span><span class="kw">fn </span>days_in_week(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         date_like: <span class="kw-2">&amp;</span>CalendarDateLike&lt;<span class="self">Self</span>&gt;,
-        context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
+        context: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Context,
     ) -&gt; TemporalResult&lt;u16&gt;;
     <span class="doccomment">/// Returns the days in a month for a given calendar.
     </span><span class="kw">fn </span>days_in_month(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         date_like: <span class="kw-2">&amp;</span>CalendarDateLike&lt;<span class="self">Self</span>&gt;,
-        context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
+        context: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Context,
     ) -&gt; TemporalResult&lt;u16&gt;;
     <span class="doccomment">/// Returns the days in a year for a given calendar.
     </span><span class="kw">fn </span>days_in_year(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         date_like: <span class="kw-2">&amp;</span>CalendarDateLike&lt;<span class="self">Self</span>&gt;,
-        context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
+        context: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Context,
     ) -&gt; TemporalResult&lt;u16&gt;;
     <span class="doccomment">/// Returns the months in a year for a given calendar.
     </span><span class="kw">fn </span>months_in_year(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         date_like: <span class="kw-2">&amp;</span>CalendarDateLike&lt;<span class="self">Self</span>&gt;,
-        context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
+        context: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Context,
     ) -&gt; TemporalResult&lt;u16&gt;;
     <span class="doccomment">/// Returns whether a value is within a leap year according to the designated calendar.
     </span><span class="kw">fn </span>in_leap_year(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         date_like: <span class="kw-2">&amp;</span>CalendarDateLike&lt;<span class="self">Self</span>&gt;,
-        context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
+        context: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Context,
     ) -&gt; TemporalResult&lt;bool&gt;;
     <span class="doccomment">/// Return the fields for a value.
-    </span><span class="kw">fn </span>fields(<span class="kw-2">&amp;</span><span class="self">self</span>, fields: Vec&lt;String&gt;, context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any) -&gt; TemporalResult&lt;Vec&lt;String&gt;&gt;;
+    </span><span class="kw">fn </span>fields(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        fields: Vec&lt;String&gt;,
+        context: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Context,
+    ) -&gt; TemporalResult&lt;Vec&lt;String&gt;&gt;;
     <span class="doccomment">/// Merge fields based on the calendar and provided values.
     </span><span class="kw">fn </span>merge_fields(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         fields: <span class="kw-2">&amp;</span>TemporalFields,
         additional_fields: <span class="kw-2">&amp;</span>TemporalFields,
-        context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
+        context: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Context,
     ) -&gt; TemporalResult&lt;TemporalFields&gt;;
     <span class="doccomment">/// Debug name
-    </span><span class="kw">fn </span>identifier(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any) -&gt; TemporalResult&lt;String&gt;;
+    </span><span class="kw">fn </span>identifier(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Context) -&gt; TemporalResult&lt;String&gt;;
 }
 
 <span class="doccomment">/// A trait for retrieving an internal calendar slice.
@@ -1374,7 +1384,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         fields: <span class="kw-2">&amp;mut </span>TemporalFields,
         overflow: ArithmeticOverflow,
-        context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
+        context: <span class="kw-2">&amp;mut </span>C::Context,
     ) -&gt; TemporalResult&lt;Date&lt;C&gt;&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             CalendarSlot::Builtin(AnyCalendar::Iso(<span class="kw">_</span>)) =&gt; {
@@ -1417,7 +1427,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         fields: <span class="kw-2">&amp;mut </span>TemporalFields,
         overflow: ArithmeticOverflow,
-        context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
+        context: <span class="kw-2">&amp;mut </span>C::Context,
     ) -&gt; TemporalResult&lt;MonthDay&lt;C&gt;&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             CalendarSlot::Builtin(AnyCalendar::Iso(<span class="kw">_</span>)) =&gt; {
@@ -1445,7 +1455,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         fields: <span class="kw-2">&amp;mut </span>TemporalFields,
         overflow: ArithmeticOverflow,
-        context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
+        context: <span class="kw-2">&amp;mut </span>C::Context,
     ) -&gt; TemporalResult&lt;YearMonth&lt;C&gt;&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             CalendarSlot::Builtin(AnyCalendar::Iso(<span class="kw">_</span>)) =&gt; {
@@ -1487,7 +1497,7 @@
         date: <span class="kw-2">&amp;</span>Date&lt;C&gt;,
         duration: <span class="kw-2">&amp;</span>Duration,
         overflow: ArithmeticOverflow,
-        context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
+        context: <span class="kw-2">&amp;mut </span>C::Context,
     ) -&gt; TemporalResult&lt;Date&lt;C&gt;&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             CalendarSlot::Builtin(<span class="kw">_</span>) =&gt; {
@@ -1505,7 +1515,7 @@
         one: <span class="kw-2">&amp;</span>Date&lt;C&gt;,
         two: <span class="kw-2">&amp;</span>Date&lt;C&gt;,
         largest_unit: TemporalUnit,
-        context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
+        context: <span class="kw-2">&amp;mut </span>C::Context,
     ) -&gt; TemporalResult&lt;Duration&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             CalendarSlot::Builtin(<span class="kw">_</span>) =&gt; {
@@ -1521,7 +1531,7 @@
     </span><span class="kw">pub fn </span>era(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         date_like: <span class="kw-2">&amp;</span>CalendarDateLike&lt;C&gt;,
-        context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
+        context: <span class="kw-2">&amp;mut </span>C::Context,
     ) -&gt; TemporalResult&lt;<span class="prelude-ty">Option</span>&lt;TinyAsciiStr&lt;<span class="number">16</span>&gt;&gt;&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             CalendarSlot::Builtin(AnyCalendar::Iso(<span class="kw">_</span>)) =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
@@ -1537,7 +1547,7 @@
     </span><span class="kw">pub fn </span>era_year(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         date_like: <span class="kw-2">&amp;</span>CalendarDateLike&lt;C&gt;,
-        context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
+        context: <span class="kw-2">&amp;mut </span>C::Context,
     ) -&gt; TemporalResult&lt;<span class="prelude-ty">Option</span>&lt;i32&gt;&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             CalendarSlot::Builtin(AnyCalendar::Iso(<span class="kw">_</span>)) =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
@@ -1553,7 +1563,7 @@
     </span><span class="kw">pub fn </span>year(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         date_like: <span class="kw-2">&amp;</span>CalendarDateLike&lt;C&gt;,
-        context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
+        context: <span class="kw-2">&amp;mut </span>C::Context,
     ) -&gt; TemporalResult&lt;i32&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             CalendarSlot::Builtin(AnyCalendar::Iso(<span class="kw">_</span>)) =&gt; <span class="prelude-val">Ok</span>(date_like.as_iso_date().year),
@@ -1569,7 +1579,7 @@
     </span><span class="kw">pub fn </span>month(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         date_like: <span class="kw-2">&amp;</span>CalendarDateLike&lt;C&gt;,
-        context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
+        context: <span class="kw-2">&amp;mut </span>C::Context,
     ) -&gt; TemporalResult&lt;u8&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             CalendarSlot::Builtin(AnyCalendar::Iso(<span class="kw">_</span>)) =&gt; <span class="prelude-val">Ok</span>(date_like.as_iso_date().month),
@@ -1584,7 +1594,7 @@
     </span><span class="kw">pub fn </span>month_code(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         date_like: <span class="kw-2">&amp;</span>CalendarDateLike&lt;C&gt;,
-        context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
+        context: <span class="kw-2">&amp;mut </span>C::Context,
     ) -&gt; TemporalResult&lt;TinyAsciiStr&lt;<span class="number">4</span>&gt;&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             CalendarSlot::Builtin(AnyCalendar::Iso(<span class="kw">_</span>)) =&gt; {
@@ -1601,7 +1611,7 @@
     </span><span class="kw">pub fn </span>day(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         date_like: <span class="kw-2">&amp;</span>CalendarDateLike&lt;C&gt;,
-        context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
+        context: <span class="kw-2">&amp;mut </span>C::Context,
     ) -&gt; TemporalResult&lt;u8&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             CalendarSlot::Builtin(AnyCalendar::Iso(<span class="kw">_</span>)) =&gt; <span class="prelude-val">Ok</span>(date_like.as_iso_date().day),
@@ -1616,7 +1626,7 @@
     </span><span class="kw">pub fn </span>day_of_week(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         date_like: <span class="kw-2">&amp;</span>CalendarDateLike&lt;C&gt;,
-        context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
+        context: <span class="kw-2">&amp;mut </span>C::Context,
     ) -&gt; TemporalResult&lt;u16&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             CalendarSlot::Builtin(AnyCalendar::Iso(<span class="kw">_</span>)) =&gt; {
@@ -1633,7 +1643,7 @@
     </span><span class="kw">pub fn </span>day_of_year(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         date_like: <span class="kw-2">&amp;</span>CalendarDateLike&lt;C&gt;,
-        context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
+        context: <span class="kw-2">&amp;mut </span>C::Context,
     ) -&gt; TemporalResult&lt;u16&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             CalendarSlot::Builtin(AnyCalendar::Iso(<span class="kw">_</span>)) =&gt; <span class="prelude-val">Ok</span>(date_like
@@ -1652,7 +1662,7 @@
     </span><span class="kw">pub fn </span>week_of_year(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         date_like: <span class="kw-2">&amp;</span>CalendarDateLike&lt;C&gt;,
-        context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
+        context: <span class="kw-2">&amp;mut </span>C::Context,
     ) -&gt; TemporalResult&lt;u16&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             CalendarSlot::Builtin(AnyCalendar::Iso(<span class="kw">_</span>)) =&gt; {
@@ -1677,7 +1687,7 @@
     </span><span class="kw">pub fn </span>year_of_week(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         date_like: <span class="kw-2">&amp;</span>CalendarDateLike&lt;C&gt;,
-        context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
+        context: <span class="kw-2">&amp;mut </span>C::Context,
     ) -&gt; TemporalResult&lt;i32&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             CalendarSlot::Builtin(AnyCalendar::Iso(<span class="kw">_</span>)) =&gt; {
@@ -1706,7 +1716,7 @@
     </span><span class="kw">pub fn </span>days_in_week(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         date_like: <span class="kw-2">&amp;</span>CalendarDateLike&lt;C&gt;,
-        context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
+        context: <span class="kw-2">&amp;mut </span>C::Context,
     ) -&gt; TemporalResult&lt;u16&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             CalendarSlot::Builtin(AnyCalendar::Iso(<span class="kw">_</span>)) =&gt; <span class="prelude-val">Ok</span>(<span class="number">7</span>),
@@ -1721,7 +1731,7 @@
     </span><span class="kw">pub fn </span>days_in_month(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         date_like: <span class="kw-2">&amp;</span>CalendarDateLike&lt;C&gt;,
-        context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
+        context: <span class="kw-2">&amp;mut </span>C::Context,
     ) -&gt; TemporalResult&lt;u16&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             CalendarSlot::Builtin(AnyCalendar::Iso(<span class="kw">_</span>)) =&gt; {
@@ -1739,7 +1749,7 @@
     </span><span class="kw">pub fn </span>days_in_year(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         date_like: <span class="kw-2">&amp;</span>CalendarDateLike&lt;C&gt;,
-        context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
+        context: <span class="kw-2">&amp;mut </span>C::Context,
     ) -&gt; TemporalResult&lt;u16&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             CalendarSlot::Builtin(AnyCalendar::Iso(<span class="kw">_</span>)) =&gt; {
@@ -1756,7 +1766,7 @@
     </span><span class="kw">pub fn </span>months_in_year(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         date_like: <span class="kw-2">&amp;</span>CalendarDateLike&lt;C&gt;,
-        context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
+        context: <span class="kw-2">&amp;mut </span>C::Context,
     ) -&gt; TemporalResult&lt;u16&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             CalendarSlot::Builtin(AnyCalendar::Iso(<span class="kw">_</span>)) =&gt; <span class="prelude-val">Ok</span>(<span class="number">12</span>),
@@ -1771,7 +1781,7 @@
     </span><span class="kw">pub fn </span>in_leap_year(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         date_like: <span class="kw-2">&amp;</span>CalendarDateLike&lt;C&gt;,
-        context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
+        context: <span class="kw-2">&amp;mut </span>C::Context,
     ) -&gt; TemporalResult&lt;bool&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             CalendarSlot::Builtin(AnyCalendar::Iso(<span class="kw">_</span>)) =&gt; {
@@ -1788,7 +1798,7 @@
     </span><span class="kw">pub fn </span>fields(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         fields: Vec&lt;String&gt;,
-        context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
+        context: <span class="kw-2">&amp;mut </span>C::Context,
     ) -&gt; TemporalResult&lt;Vec&lt;String&gt;&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             CalendarSlot::Builtin(AnyCalendar::Iso(<span class="kw">_</span>)) =&gt; <span class="prelude-val">Ok</span>(fields),
@@ -1804,7 +1814,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         fields: <span class="kw-2">&amp;</span>TemporalFields,
         additional_fields: <span class="kw-2">&amp;</span>TemporalFields,
-        context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
+        context: <span class="kw-2">&amp;mut </span>C::Context,
     ) -&gt; TemporalResult&lt;TemporalFields&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             CalendarSlot::Builtin(<span class="kw">_</span>) =&gt; fields.merge_fields(additional_fields, <span class="self">self</span>),
@@ -1815,7 +1825,7 @@
     }
 
     <span class="doccomment">/// Returns the identifier of this calendar slot.
-    </span><span class="kw">pub fn </span>identifier(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any) -&gt; TemporalResult&lt;String&gt; {
+    </span><span class="kw">pub fn </span>identifier(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>C::Context) -&gt; TemporalResult&lt;String&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             CalendarSlot::Builtin(AnyCalendar::Iso(<span class="kw">_</span>)) =&gt; <span class="prelude-val">Ok</span>(String::from(<span class="string">&quot;iso8601&quot;</span>)),
             CalendarSlot::Builtin(builtin) =&gt; <span class="prelude-val">Ok</span>(String::from(builtin.debug_name())),
@@ -1862,25 +1872,27 @@
     }
 }
 
-<span class="kw">impl </span>DateTypes&lt;()&gt; <span class="kw">for </span>() {
-    <span class="kw">type </span>Date = Date&lt;()&gt;;
-    <span class="kw">type </span>DateTime = DateTime&lt;()&gt;;
-    <span class="kw">type </span>YearMonth = YearMonth&lt;()&gt;;
-    <span class="kw">type </span>MonthDay = MonthDay&lt;()&gt;;
-}
-
 <span class="doccomment">/// An empty `CalendarProtocol` implementation on `()`.
 ///
 /// # Panics
 ///
 /// Attempting to use this empty calendar implementation as a valid calendar is an error and will cause a panic.
 </span><span class="kw">impl </span>CalendarProtocol <span class="kw">for </span>() {
-    <span class="kw">type </span>DateLikes = ();
+    <span class="kw">type </span>Date = Date&lt;()&gt;;
+
+    <span class="kw">type </span>DateTime = DateTime&lt;()&gt;;
+
+    <span class="kw">type </span>YearMonth = YearMonth&lt;()&gt;;
+
+    <span class="kw">type </span>MonthDay = MonthDay&lt;()&gt;;
+
+    <span class="kw">type </span>Context = ();
+
     <span class="kw">fn </span>date_from_fields(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>TemporalFields,
         <span class="kw">_</span>: ArithmeticOverflow,
-        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
+        (): <span class="kw-2">&amp;mut </span>(),
     ) -&gt; TemporalResult&lt;Date&lt;<span class="self">Self</span>&gt;&gt; {
         <span class="macro">unreachable!</span>();
     }
@@ -1889,7 +1901,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>TemporalFields,
         <span class="kw">_</span>: ArithmeticOverflow,
-        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
+        (): <span class="kw-2">&amp;mut </span>(),
     ) -&gt; TemporalResult&lt;MonthDay&lt;()&gt;&gt; {
         <span class="macro">unreachable!</span>();
     }
@@ -1898,7 +1910,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>TemporalFields,
         <span class="kw">_</span>: ArithmeticOverflow,
-        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
+        (): <span class="kw-2">&amp;mut </span>(),
     ) -&gt; TemporalResult&lt;YearMonth&lt;<span class="self">Self</span>&gt;&gt; {
         <span class="macro">unreachable!</span>()
     }
@@ -1908,7 +1920,7 @@
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>Date&lt;<span class="self">Self</span>&gt;,
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>Duration,
         <span class="kw">_</span>: ArithmeticOverflow,
-        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
+        (): <span class="kw-2">&amp;mut </span>(),
     ) -&gt; TemporalResult&lt;Date&lt;<span class="self">Self</span>&gt;&gt; {
         <span class="macro">unreachable!</span>();
     }
@@ -1918,7 +1930,7 @@
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>Date&lt;()&gt;,
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>Date&lt;()&gt;,
         <span class="kw">_</span>: TemporalUnit,
-        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
+        (): <span class="kw-2">&amp;mut </span>(),
     ) -&gt; TemporalResult&lt;Duration&gt; {
         <span class="macro">unreachable!</span>();
     }
@@ -1926,72 +1938,72 @@
     <span class="kw">fn </span>era(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>CalendarDateLike&lt;<span class="self">Self</span>&gt;,
-        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
+        (): <span class="kw-2">&amp;mut </span>(),
     ) -&gt; TemporalResult&lt;<span class="prelude-ty">Option</span>&lt;TinyAsciiStr&lt;<span class="number">16</span>&gt;&gt;&gt; {
         <span class="macro">unreachable!</span>();
     }
 
-    <span class="kw">fn </span>era_year(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>CalendarDateLike&lt;<span class="self">Self</span>&gt;, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any) -&gt; TemporalResult&lt;<span class="prelude-ty">Option</span>&lt;i32&gt;&gt; {
+    <span class="kw">fn </span>era_year(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>CalendarDateLike&lt;<span class="self">Self</span>&gt;, (): <span class="kw-2">&amp;mut </span>()) -&gt; TemporalResult&lt;<span class="prelude-ty">Option</span>&lt;i32&gt;&gt; {
         <span class="macro">unreachable!</span>();
     }
 
-    <span class="kw">fn </span>year(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>CalendarDateLike&lt;<span class="self">Self</span>&gt;, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any) -&gt; TemporalResult&lt;i32&gt; {
+    <span class="kw">fn </span>year(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>CalendarDateLike&lt;<span class="self">Self</span>&gt;, (): <span class="kw-2">&amp;mut </span>()) -&gt; TemporalResult&lt;i32&gt; {
         <span class="macro">unreachable!</span>();
     }
 
-    <span class="kw">fn </span>month(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>CalendarDateLike&lt;<span class="self">Self</span>&gt;, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any) -&gt; TemporalResult&lt;u8&gt; {
+    <span class="kw">fn </span>month(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>CalendarDateLike&lt;<span class="self">Self</span>&gt;, (): <span class="kw-2">&amp;mut </span>()) -&gt; TemporalResult&lt;u8&gt; {
         <span class="macro">unreachable!</span>();
     }
 
     <span class="kw">fn </span>month_code(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>CalendarDateLike&lt;<span class="self">Self</span>&gt;,
-        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
+        (): <span class="kw-2">&amp;mut </span>(),
     ) -&gt; TemporalResult&lt;TinyAsciiStr&lt;<span class="number">4</span>&gt;&gt; {
         <span class="macro">unreachable!</span>();
     }
 
-    <span class="kw">fn </span>day(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>CalendarDateLike&lt;<span class="self">Self</span>&gt;, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any) -&gt; TemporalResult&lt;u8&gt; {
+    <span class="kw">fn </span>day(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>CalendarDateLike&lt;<span class="self">Self</span>&gt;, (): <span class="kw-2">&amp;mut </span>()) -&gt; TemporalResult&lt;u8&gt; {
         <span class="macro">unreachable!</span>();
     }
 
-    <span class="kw">fn </span>day_of_week(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>CalendarDateLike&lt;<span class="self">Self</span>&gt;, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any) -&gt; TemporalResult&lt;u16&gt; {
+    <span class="kw">fn </span>day_of_week(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>CalendarDateLike&lt;<span class="self">Self</span>&gt;, (): <span class="kw-2">&amp;mut </span>()) -&gt; TemporalResult&lt;u16&gt; {
         <span class="macro">unreachable!</span>();
     }
 
-    <span class="kw">fn </span>day_of_year(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>CalendarDateLike&lt;<span class="self">Self</span>&gt;, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any) -&gt; TemporalResult&lt;u16&gt; {
+    <span class="kw">fn </span>day_of_year(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>CalendarDateLike&lt;<span class="self">Self</span>&gt;, (): <span class="kw-2">&amp;mut </span>()) -&gt; TemporalResult&lt;u16&gt; {
         <span class="macro">unreachable!</span>();
     }
 
-    <span class="kw">fn </span>week_of_year(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>CalendarDateLike&lt;<span class="self">Self</span>&gt;, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any) -&gt; TemporalResult&lt;u16&gt; {
+    <span class="kw">fn </span>week_of_year(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>CalendarDateLike&lt;<span class="self">Self</span>&gt;, (): <span class="kw-2">&amp;mut </span>()) -&gt; TemporalResult&lt;u16&gt; {
         <span class="macro">unreachable!</span>();
     }
 
-    <span class="kw">fn </span>year_of_week(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>CalendarDateLike&lt;<span class="self">Self</span>&gt;, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any) -&gt; TemporalResult&lt;i32&gt; {
+    <span class="kw">fn </span>year_of_week(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>CalendarDateLike&lt;<span class="self">Self</span>&gt;, (): <span class="kw-2">&amp;mut </span>()) -&gt; TemporalResult&lt;i32&gt; {
         <span class="macro">unreachable!</span>();
     }
 
-    <span class="kw">fn </span>days_in_week(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>CalendarDateLike&lt;<span class="self">Self</span>&gt;, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any) -&gt; TemporalResult&lt;u16&gt; {
+    <span class="kw">fn </span>days_in_week(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>CalendarDateLike&lt;<span class="self">Self</span>&gt;, (): <span class="kw-2">&amp;mut </span>()) -&gt; TemporalResult&lt;u16&gt; {
         <span class="macro">unreachable!</span>();
     }
 
-    <span class="kw">fn </span>days_in_month(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>CalendarDateLike&lt;<span class="self">Self</span>&gt;, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any) -&gt; TemporalResult&lt;u16&gt; {
+    <span class="kw">fn </span>days_in_month(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>CalendarDateLike&lt;<span class="self">Self</span>&gt;, (): <span class="kw-2">&amp;mut </span>()) -&gt; TemporalResult&lt;u16&gt; {
         <span class="macro">unreachable!</span>();
     }
 
-    <span class="kw">fn </span>days_in_year(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>CalendarDateLike&lt;<span class="self">Self</span>&gt;, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any) -&gt; TemporalResult&lt;u16&gt; {
+    <span class="kw">fn </span>days_in_year(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>CalendarDateLike&lt;<span class="self">Self</span>&gt;, (): <span class="kw-2">&amp;mut </span>()) -&gt; TemporalResult&lt;u16&gt; {
         <span class="macro">unreachable!</span>();
     }
 
-    <span class="kw">fn </span>months_in_year(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>CalendarDateLike&lt;<span class="self">Self</span>&gt;, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any) -&gt; TemporalResult&lt;u16&gt; {
+    <span class="kw">fn </span>months_in_year(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>CalendarDateLike&lt;<span class="self">Self</span>&gt;, (): <span class="kw-2">&amp;mut </span>()) -&gt; TemporalResult&lt;u16&gt; {
         <span class="macro">unreachable!</span>();
     }
 
-    <span class="kw">fn </span>in_leap_year(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>CalendarDateLike&lt;<span class="self">Self</span>&gt;, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any) -&gt; TemporalResult&lt;bool&gt; {
+    <span class="kw">fn </span>in_leap_year(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>CalendarDateLike&lt;<span class="self">Self</span>&gt;, (): <span class="kw-2">&amp;mut </span>()) -&gt; TemporalResult&lt;bool&gt; {
         <span class="macro">unreachable!</span>();
     }
 
-    <span class="kw">fn </span>fields(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: Vec&lt;String&gt;, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any) -&gt; TemporalResult&lt;Vec&lt;String&gt;&gt; {
+    <span class="kw">fn </span>fields(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: Vec&lt;String&gt;, (): <span class="kw-2">&amp;mut </span>()) -&gt; TemporalResult&lt;Vec&lt;String&gt;&gt; {
         <span class="macro">unreachable!</span>();
     }
 
@@ -1999,12 +2011,12 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>TemporalFields,
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>TemporalFields,
-        <span class="kw">_</span>: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any,
+        (): <span class="kw-2">&amp;mut </span>(),
     ) -&gt; TemporalResult&lt;TemporalFields&gt; {
         <span class="macro">unreachable!</span>();
     }
 
-    <span class="kw">fn </span>identifier(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any) -&gt; TemporalResult&lt;String&gt; {
+    <span class="kw">fn </span>identifier(<span class="kw-2">&amp;</span><span class="self">self</span>, (): <span class="kw-2">&amp;mut </span>()) -&gt; TemporalResult&lt;String&gt; {
         <span class="macro">unreachable!</span>();
     }
 }
