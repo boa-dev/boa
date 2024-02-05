@@ -23,7 +23,7 @@ colored.workspace = true
 regex.workspace = true
 phf = { workspace = true, features = ["macros"] }
 pollster.workspace = true
-dhat = { version = "0.3.2", optional = true }
+dhat = { version = "0.3.3", optional = true }
 
 [features]
 default = ["boa_engine/annex-b", "boa_engine/experimental", "boa_engine/intl"]
