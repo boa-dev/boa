@@ -438,7 +438,7 @@ dependencies = [
  "textwrap",
  "thin-vec",
  "thiserror",
- "time 0.3.33",
+ "time 0.3.34",
  "web-time",
  "writeable",
  "yoke",
@@ -457,7 +457,7 @@ dependencies = [
  "boa_runtime",
  "futures-util",
  "smol",
- "time 0.3.33",
+ "time 0.3.34",
 ]
 
 [[package]]
@@ -591,7 +591,7 @@ dependencies = [
  "serde_json",
  "serde_repr",
  "serde_yaml",
- "time 0.3.33",
+ "time 0.3.34",
  "toml 0.8.9",
 ]
 
@@ -3171,7 +3171,7 @@ checksum = "8e7e46c8c90251d47d08b28b8a419ffb4aede0f87c2eea95e17d1d5bacbf3ef1"
 dependencies = [
  "colored",
  "log",
- "time 0.3.33",
+ "time 0.3.34",
  "windows-sys 0.48.0",
 ]
 
@@ -3481,9 +3481,9 @@ dependencies = [
 
 [[package]]
 name = "time"
-version = "0.3.33"
+version = "0.3.34"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "00b24b79b7a07f10209f19e683ca1e289d80b1e76ffa8c2b779718566a083679"
+checksum = "c8248b6521bb14bc45b4067159b9b6ad792e2d6d754d6c41fb50e29fefe38749"
 dependencies = [
  "deranged",
  "itoa",
