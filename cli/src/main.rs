@@ -347,7 +347,9 @@ fn main() -> Result<(), io::Error> {
     add_runtime(&mut context);
 
     // Trace Output
-    context.set_trace(args.trace);
+    if args.trace {
+        context.init_trace();
+    }
 
     if args.debug_object {
         init_boa_debug_object(&mut context);

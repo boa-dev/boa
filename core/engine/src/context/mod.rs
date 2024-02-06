@@ -17,6 +17,9 @@ use intrinsics::Intrinsics;
 pub use std::marker::PhantomData;
 use std::{cell::Cell, path::Path, rc::Rc};
 
+#[cfg(feature = "trace")]
+use crate::vm::trace;
+
 use crate::{
     builtins,
     class::{Class, ClassBuilder},
@@ -448,11 +451,18 @@ impl Context {
         &self.vm.realm
     }
 
-    /// Set the value of trace on the context
     #[cfg(feature = "trace")]
     #[inline]
-    pub fn set_trace(&mut self, trace: bool) {
-        self.vm.trace = trace;
+    /// Initializes the default `Vm` trace from the context
+    pub fn init_trace(&mut self) {
+        self.vm.trace.activate_trace();
+    }
+
+    #[cfg(feature = "trace")]
+    /// Sets custom handling of trace messages.
+    pub fn set_tracer_implementation(&mut self, tracer: Box<dyn trace::Tracer>) {
+        // self.init_trace();
+        self.vm.trace.set_tracer(tracer);
     }
 
     /// Get optimizer options.
