@@ -291,8 +291,9 @@ impl PropertyMap {
             out_slot.index = slot.index;
 
             // Remove all descriptor attributes, but keep inline caching bits.
-            out_slot.attributes =
-                (out_slot.attributes & SlotAttributes::INLINE_CACHE_BITS) | slot.attributes;
+            out_slot.attributes = (out_slot.attributes & SlotAttributes::INLINE_CACHE_BITS)
+                | slot.attributes
+                | SlotAttributes::FOUND;
             return Some(self.get_storage(slot));
         }
 

@@ -45,6 +45,11 @@ impl SlotAttributes {
     pub(crate) const fn is_cachable(self) -> bool {
         !self.contains(Self::NOT_CACHABLE) && self.contains(Self::FOUND)
     }
+
+    #[cfg(test)]
+    pub(crate) const fn in_prototype(self) -> bool {
+        self.contains(Self::PROTOTYPE)
+    }
 }
 
 /// Represents an [`u32`] index and it's slot attributes of an element in a object storage.
@@ -67,6 +72,11 @@ impl Slot {
 
     pub(crate) const fn is_cachable(self) -> bool {
         self.attributes.is_cachable()
+    }
+
+    #[cfg(test)]
+    pub(crate) const fn in_prototype(self) -> bool {
+        self.attributes.in_prototype()
     }
 
     /// Get the width of the slot.

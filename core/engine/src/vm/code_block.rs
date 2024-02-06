@@ -8,20 +8,17 @@ use crate::{
         OrdinaryObject,
     },
     environments::{BindingLocator, CompileTimeEnvironment},
-    object::{
-        shape::{slot::Slot, Shape, WeakShape},
-        JsObject,
-    },
+    object::JsObject,
     Context, JsBigInt, JsString, JsValue,
 };
 use bitflags::bitflags;
 use boa_ast::function::FormalParameterList;
-use boa_gc::{empty_trace, Finalize, Gc, GcRefCell, Trace};
+use boa_gc::{empty_trace, Finalize, Gc, Trace};
 use boa_profiler::Profiler;
 use std::{cell::Cell, fmt::Display, mem::size_of, rc::Rc};
 use thin_vec::ThinVec;
 
-use super::{Instruction, InstructionIterator};
+use super::{InlineCache, Instruction, InstructionIterator};
 
 /// This represents whether a value can be read from [`CodeBlock`] code.
 ///
@@ -121,43 +118,6 @@ pub(crate) enum Constant {
     //
     // TODO(#3034): Maybe changing this to Gc after garbage collection would be better than Rc.
     CompileTimeEnvironment(#[unsafe_ignore_trace] Rc<CompileTimeEnvironment>),
-}
-
-/// An inline cache entry for a property access.
-#[derive(Clone, Debug, Trace, Finalize)]
-pub(crate) struct InlineCache {
-    /// The property that is accessed.
-    pub(crate) name: JsString,
-
-    /// A pointer is kept to the shape to avoid the shape from being deallocated.
-    pub(crate) shape: GcRefCell<WeakShape>,
-
-    /// The [`Slot`] of the property.
-    #[unsafe_ignore_trace]
-    pub(crate) slot: Cell<Slot>,
-}
-
-impl InlineCache {
-    pub(crate) const fn new(name: JsString) -> Self {
-        Self {
-            name,
-            shape: GcRefCell::new(WeakShape::None),
-            slot: Cell::new(Slot::new()),
-        }
-    }
-
-    pub(crate) fn set(&self, shape: &Shape, slot: Slot) {
-        *self.shape.borrow_mut() = shape.into();
-        self.slot.set(slot);
-    }
-
-    pub(crate) fn slot(&self) -> Slot {
-        self.slot.get()
-    }
-
-    pub(crate) fn matches(&self, shape: &Shape) -> bool {
-        self.shape.borrow().to_addr_usize() == shape.to_addr_usize()
-    }
 }
 
 /// The internal representation of a JavaScript function.

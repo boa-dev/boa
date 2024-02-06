@@ -231,7 +231,7 @@ impl From<SharedShape> for Shape {
 }
 
 /// Represents a weak reaference to an object's [`Shape`].
-#[derive(Debug, Trace, Finalize, Clone)]
+#[derive(Debug, Trace, Finalize, Clone, PartialEq)]
 pub(crate) enum WeakShape {
     Unique(WeakUniqueShape),
     Shared(WeakSharedShape),
@@ -249,6 +249,19 @@ impl WeakShape {
             WeakShape::Shared(shape) => shape.to_addr_usize(),
             WeakShape::Unique(shape) => shape.to_addr_usize(),
             WeakShape::None => 0,
+        }
+    }
+
+    /// Return location in memory of the [`Shape`].
+    ///
+    /// Returns `0` if the shape has been freed.
+    #[inline]
+    #[must_use]
+    pub(crate) fn upgrade(&self) -> Option<Shape> {
+        match self {
+            WeakShape::Shared(shape) => Some(shape.upgrade()?.into()),
+            WeakShape::Unique(shape) => Some(shape.upgrade()?.into()),
+            WeakShape::None => None,
         }
     }
 }
