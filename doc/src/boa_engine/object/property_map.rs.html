@@ -678,6 +678,7 @@
 <a href="#678" id="678">678</a>
 <a href="#679" id="679">679</a>
 <a href="#680" id="680">680</a>
+<a href="#681" id="681">681</a>
 </pre></div><pre class="rust"><code><span class="kw">use super</span>::{
     shape::{
         property_table::PropertyTableInner,
@@ -971,8 +972,9 @@
             out_slot.index = slot.index;
 
             <span class="comment">// Remove all descriptor attributes, but keep inline caching bits.
-            </span>out_slot.attributes =
-                (out_slot.attributes &amp; SlotAttributes::INLINE_CACHE_BITS) | slot.attributes;
+            </span>out_slot.attributes = (out_slot.attributes &amp; SlotAttributes::INLINE_CACHE_BITS)
+                | slot.attributes
+                | SlotAttributes::FOUND;
             <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="self">self</span>.get_storage(slot));
         }
 

@@ -1057,13 +1057,6 @@
 <a href="#1057" id="1057">1057</a>
 <a href="#1058" id="1058">1058</a>
 <a href="#1059" id="1059">1059</a>
-<a href="#1060" id="1060">1060</a>
-<a href="#1061" id="1061">1061</a>
-<a href="#1062" id="1062">1062</a>
-<a href="#1063" id="1063">1063</a>
-<a href="#1064" id="1064">1064</a>
-<a href="#1065" id="1065">1065</a>
-<a href="#1066" id="1066">1066</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module defines the object internal methods.
 //!
 //! More information:
@@ -1643,8 +1636,6 @@
     // 2. Let hasOwn be ? O.[[GetOwnProperty]](P).
     // 3. If hasOwn is not undefined, return true.
     </span><span class="kw">if </span>obj.__get_own_property__(key, context)<span class="question-mark">?</span>.is_some() {
-        context.slot().attributes |= SlotAttributes::FOUND;
-
         <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>)
     } <span class="kw">else </span>{
         <span class="comment">// 4. Let parent be ? O.[[GetPrototypeOf]]().
@@ -1693,8 +1684,6 @@
             }
         }
         <span class="prelude-val">Some</span>(<span class="kw-2">ref </span>desc) =&gt; {
-            context.slot().attributes |= SlotAttributes::FOUND;
-
             <span class="kw">match </span>desc.kind() {
                 <span class="comment">// 4. If IsDataDescriptor(desc) is true, return desc.[[Value]].
                 </span>DescriptorKind::Data {
@@ -1812,8 +1801,6 @@
         // ii. Return ? CreateDataProperty(Receiver, P, V).
         </span><span class="kw">return </span>receiver.create_data_property_with_slot(key, value, context);
     }
-
-    context.slot().attributes |= SlotAttributes::FOUND;
 
     <span class="comment">// 4. Assert: IsAccessorDescriptor(ownDesc) is true.
     </span><span class="macro">debug_assert!</span>(own_desc.is_accessor_descriptor());
@@ -1968,7 +1955,6 @@
                 },
                 slot,
             );
-            slot.attributes |= SlotAttributes::FOUND;
         }
 
         <span class="comment">// e. Return true.

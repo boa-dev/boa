@@ -267,6 +267,16 @@
 <a href="#267" id="267">267</a>
 <a href="#268" id="268">268</a>
 <a href="#269" id="269">269</a>
+<a href="#270" id="270">270</a>
+<a href="#271" id="271">271</a>
+<a href="#272" id="272">272</a>
+<a href="#273" id="273">273</a>
+<a href="#274" id="274">274</a>
+<a href="#275" id="275">275</a>
+<a href="#276" id="276">276</a>
+<a href="#277" id="277">277</a>
+<a href="#278" id="278">278</a>
+<a href="#279" id="279">279</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::{cell::RefCell, fmt::Debug};
 
 <span class="kw">use </span>boa_gc::{Finalize, Gc, GcRefCell, Trace, WeakGc};
@@ -510,7 +520,7 @@
 }
 
 <span class="doccomment">/// Represents a weak reference to [`UniqueShape`].
-</span><span class="attr">#[derive(Debug, Clone, Trace, Finalize)]
+</span><span class="attr">#[derive(Debug, Clone, Trace, Finalize, PartialEq)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>WeakUniqueShape {
     inner: WeakGc&lt;Inner&gt;,
 }
@@ -525,6 +535,16 @@
         <span class="self">self</span>.inner.upgrade().map_or(<span class="number">0</span>, |inner| {
             <span class="kw">let </span>ptr: <span class="kw-2">*const </span><span class="kw">_ </span>= inner.as_ref();
             ptr <span class="kw">as </span>usize
+        })
+    }
+
+    <span class="doccomment">/// Upgrade returns a [`UniqueShape`] pointer for the internal value if the pointer is still live,
+    /// or [`None`] if the value was already garbage collected.
+    </span><span class="attr">#[inline]
+    #[must_use]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>upgrade(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;UniqueShape&gt; {
+        <span class="prelude-val">Some</span>(UniqueShape {
+            inner: <span class="self">self</span>.inner.upgrade()<span class="question-mark">?</span>,
         })
     }
 }

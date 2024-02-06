@@ -108,6 +108,16 @@
 <a href="#108" id="108">108</a>
 <a href="#109" id="109">109</a>
 <a href="#110" id="110">110</a>
+<a href="#111" id="111">111</a>
+<a href="#112" id="112">112</a>
+<a href="#113" id="113">113</a>
+<a href="#114" id="114">114</a>
+<a href="#115" id="115">115</a>
+<a href="#116" id="116">116</a>
+<a href="#117" id="117">117</a>
+<a href="#118" id="118">118</a>
+<a href="#119" id="119">119</a>
+<a href="#120" id="120">120</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>bitflags::bitflags;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>SlotIndex = u32;
 
@@ -155,6 +165,11 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>is_cachable(<span class="self">self</span>) -&gt; bool {
         !<span class="self">self</span>.contains(<span class="self">Self</span>::NOT_CACHABLE) &amp;&amp; <span class="self">self</span>.contains(<span class="self">Self</span>::FOUND)
     }
+
+    <span class="attr">#[cfg(test)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>in_prototype(<span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.contains(<span class="self">Self</span>::PROTOTYPE)
+    }
 }
 
 <span class="doccomment">/// Represents an [`u32`] index and it&#39;s slot attributes of an element in a object storage.
@@ -177,6 +192,11 @@
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>is_cachable(<span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.attributes.is_cachable()
+    }
+
+    <span class="attr">#[cfg(test)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>in_prototype(<span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.attributes.in_prototype()
     }
 
     <span class="doccomment">/// Get the width of the slot.

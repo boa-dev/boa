@@ -608,6 +608,7 @@
 <a href="#608" id="608">608</a>
 <a href="#609" id="609">609</a>
 <a href="#610" id="610">610</a>
+<a href="#611" id="611">611</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s ECMAScript Virtual Machine
 //!
 //! The Virtual Machine (VM) handles generating instructions, then executing them.
@@ -629,12 +630,14 @@
 <span class="kw">mod </span>call_frame;
 <span class="kw">mod </span>code_block;
 <span class="kw">mod </span>completion_record;
+<span class="kw">mod </span>inline_cache;
 <span class="kw">mod </span>opcode;
-
 <span class="kw">mod </span>runtime_limits;
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;flowgraph&quot;</span>)]
 </span><span class="kw">pub mod </span>flowgraph;
+
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>inline_cache::InlineCache;
 
 <span class="comment">// TODO: see if this can be exposed on all features.
 </span><span class="attr">#[allow(unused_imports)]
@@ -649,7 +652,6 @@
     call_frame::CallFrameFlags,
     code_block::{
         create_function_object, create_function_object_fast, CodeBlockFlags, Constant, Handler,
-        InlineCache,
     },
     completion_record::CompletionRecord,
     opcode::BindingOpcode,

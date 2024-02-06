@@ -182,13 +182,6 @@
 <a href="#182" id="182">182</a>
 <a href="#183" id="183">183</a>
 <a href="#184" id="184">184</a>
-<a href="#185" id="185">185</a>
-<a href="#186" id="186">186</a>
-<a href="#187" id="187">187</a>
-<a href="#188" id="188">188</a>
-<a href="#189" id="189">189</a>
-<a href="#190" id="190">190</a>
-<a href="#191" id="191">191</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     object::{internal_methods::InternalMethodContext, shape::slot::SlotAttributes},
     property::PropertyKey,
@@ -214,45 +207,38 @@
         </span>};
 
         <span class="kw">let </span>ic = <span class="kw-2">&amp;</span>context.vm.frame().code_block().ic[index];
-        <span class="kw">let </span><span class="kw-2">mut </span>slot = ic.slot();
-        <span class="kw">if </span>slot.is_cachable() {
-            <span class="kw">let </span>object_borrowed = object.borrow();
-            <span class="kw">if </span>ic.matches(object_borrowed.shape()) {
-                <span class="kw">let </span><span class="kw-2">mut </span>result = <span class="kw">if </span>slot.attributes.contains(SlotAttributes::PROTOTYPE) {
-                    <span class="kw">let </span>prototype = object
-                        .borrow()
-                        .properties()
-                        .shape
-                        .prototype()
-                        .expect(<span class="string">&quot;prototype should have value&quot;</span>);
-                    <span class="kw">let </span>prototype = prototype.borrow();
-                    prototype.properties().storage[slot.index <span class="kw">as </span>usize].clone()
-                } <span class="kw">else </span>{
-                    object_borrowed.properties().storage[slot.index <span class="kw">as </span>usize].clone()
-                };
+        <span class="kw">let </span>object_borrowed = object.borrow();
+        <span class="kw">if let </span><span class="prelude-val">Some</span>((shape, slot)) = ic.match_or_reset(object_borrowed.shape()) {
+            <span class="kw">let </span><span class="kw-2">mut </span>result = <span class="kw">if </span>slot.attributes.contains(SlotAttributes::PROTOTYPE) {
+                <span class="kw">let </span>prototype = shape.prototype().expect(<span class="string">&quot;prototype should have value&quot;</span>);
+                <span class="kw">let </span>prototype = prototype.borrow();
+                prototype.properties().storage[slot.index <span class="kw">as </span>usize].clone()
+            } <span class="kw">else </span>{
+                object_borrowed.properties().storage[slot.index <span class="kw">as </span>usize].clone()
+            };
 
-                drop(object_borrowed);
-                <span class="kw">if </span>slot.attributes.has_get() &amp;&amp; result.is_object() {
-                    result = result.as_object().expect(<span class="string">&quot;should contain getter&quot;</span>).call(
-                        <span class="kw-2">&amp;</span>receiver,
-                        <span class="kw-2">&amp;</span>[],
-                        context,
-                    )<span class="question-mark">?</span>;
-                }
-                context.vm.push(result);
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(CompletionType::Normal);
+            drop(object_borrowed);
+            <span class="kw">if </span>slot.attributes.has_get() &amp;&amp; result.is_object() {
+                result = result.as_object().expect(<span class="string">&quot;should contain getter&quot;</span>).call(
+                    <span class="kw-2">&amp;</span>receiver,
+                    <span class="kw-2">&amp;</span>[],
+                    context,
+                )<span class="question-mark">?</span>;
             }
+            context.vm.push(result);
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(CompletionType::Normal);
         }
+
+        drop(object_borrowed);
 
         <span class="kw">let </span>key: PropertyKey = ic.name.clone().into();
 
         <span class="kw">let </span>context = <span class="kw-2">&amp;mut </span>InternalMethodContext::new(context);
         <span class="kw">let </span>result = object.__get__(<span class="kw-2">&amp;</span>key, receiver, context)<span class="question-mark">?</span>;
 
-        slot = <span class="kw-2">*</span>context.slot();
-
         <span class="comment">// Cache the property.
-        </span><span class="kw">if </span>slot.attributes.is_cachable() {
+        </span><span class="kw">let </span>slot = <span class="kw-2">*</span>context.slot();
+        <span class="kw">if </span>slot.is_cachable() {
             <span class="kw">let </span>ic = <span class="kw-2">&amp;</span>context.vm.frame().code_block.ic[index];
             <span class="kw">let </span>object_borrowed = object.borrow();
             <span class="kw">let </span>shape = object_borrowed.shape();

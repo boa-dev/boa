@@ -261,6 +261,19 @@
 <a href="#261" id="261">261</a>
 <a href="#262" id="262">262</a>
 <a href="#263" id="263">263</a>
+<a href="#264" id="264">264</a>
+<a href="#265" id="265">265</a>
+<a href="#266" id="266">266</a>
+<a href="#267" id="267">267</a>
+<a href="#268" id="268">268</a>
+<a href="#269" id="269">269</a>
+<a href="#270" id="270">270</a>
+<a href="#271" id="271">271</a>
+<a href="#272" id="272">272</a>
+<a href="#273" id="273">273</a>
+<a href="#274" id="274">274</a>
+<a href="#275" id="275">275</a>
+<a href="#276" id="276">276</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Implements object shapes.
 
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>property_table;
@@ -494,7 +507,7 @@
 }
 
 <span class="doccomment">/// Represents a weak reaference to an object&#39;s [`Shape`].
-</span><span class="attr">#[derive(Debug, Trace, Finalize, Clone)]
+</span><span class="attr">#[derive(Debug, Trace, Finalize, Clone, PartialEq)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>WeakShape {
     Unique(WeakUniqueShape),
     Shared(WeakSharedShape),
@@ -512,6 +525,19 @@
             WeakShape::Shared(shape) =&gt; shape.to_addr_usize(),
             WeakShape::Unique(shape) =&gt; shape.to_addr_usize(),
             WeakShape::None =&gt; <span class="number">0</span>,
+        }
+    }
+
+    <span class="doccomment">/// Return location in memory of the [`Shape`].
+    ///
+    /// Returns `0` if the shape has been freed.
+    </span><span class="attr">#[inline]
+    #[must_use]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>upgrade(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Shape&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            WeakShape::Shared(shape) =&gt; <span class="prelude-val">Some</span>(shape.upgrade()<span class="question-mark">?</span>.into()),
+            WeakShape::Unique(shape) =&gt; <span class="prelude-val">Some</span>(shape.upgrade()<span class="question-mark">?</span>.into()),
+            WeakShape::None =&gt; <span class="prelude-val">None</span>,
         }
     }
 }
