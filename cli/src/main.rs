@@ -1,4 +1,4 @@
-//! A ECMAScript REPL implementation based on boa_engine.
+//! A CLI implementation for `boa_engine` that comes complete with file execution and a REPL.
 #![doc = include_str!("../ABOUT.md")]
 #![doc(
     html_logo_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg",
