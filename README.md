@@ -59,9 +59,9 @@ boa_engine = "0.17.3"
 Then in `main.rs`, copy the below:
 
 ```rust
-use boa_engine::{Context, Source};
+use boa_engine::{Context, Source, JsResult};
 
-fn main() {
+fn main() -> JsResult<()> {
   let js_code = r#"
       let two = 1 + 1;
       let definitely_not_four = two + "2";
@@ -73,18 +73,11 @@ fn main() {
   let mut context = Context::default();
 
   // Parse the source code
-  match context.eval(Source::from_bytes(js_code)) {
-      Ok(res) => {
-          println!(
-              "{}",
-              res.to_string(&mut context).unwrap().to_std_string_escaped()
-          );
-      }
-      Err(e) => {
-          // Pretty print the error
-          eprintln!("Uncaught {e}");
-      }
-  };
+  let result = context.eval(Source::from_bytes(js_code))?;
+
+  println!("{}", result.display());
+
+  Ok(())
 }
 
 ```
