@@ -70,7 +70,7 @@ num-traits.workspace = true
 regress.workspace = true
 rustc-hash = { workspace = true, features = ["std"] }
 num-bigint = { workspace = true, features = ["serde"] }
-num-integer = "0.1.45"
+num-integer = "0.1.46"
 bitflags.workspace = true
 indexmap = { workspace = true, features = ["std"] }
 ryu-js = "1.0.0"
