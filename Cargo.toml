@@ -54,7 +54,7 @@ indexmap = { version = "2.2.2", default-features = false }
 indoc = "2.0.4"
 jemallocator = "0.5.4"
 num-bigint = "0.4.4"
-num-traits = "0.2.17"
+num-traits = "0.2.18"
 once_cell = { version = "1.19.0", default-features = false }
 phf = { version = "0.11.2", default-features = false }
 pollster = "0.3.0"
