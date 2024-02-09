@@ -1106,6 +1106,7 @@ pub struct IntrinsicObjects {
 
 impl IntrinsicObjects {
     /// Creates a new set of uninitialized intrinsic objects.
+    #[allow(clippy::unnecessary_wraps)]
     pub(crate) fn uninit() -> Option<Self> {
         Some(Self {
             reflect: JsObject::default(),
