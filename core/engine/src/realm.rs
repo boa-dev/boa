@@ -19,7 +19,7 @@ use crate::{
     environments::DeclarativeEnvironment,
     module::Module,
     object::shape::RootShape,
-    HostDefined, JsObject, JsString,
+    HostDefined, JsNativeError, JsObject, JsResult, JsString,
 };
 use boa_gc::{Finalize, Gc, GcRef, GcRefCell, GcRefMut, Trace};
 use boa_profiler::Profiler;
@@ -67,10 +67,13 @@ struct Inner {
 impl Realm {
     /// Create a new [`Realm`].
     #[inline]
-    pub fn create(hooks: &dyn HostHooks, root_shape: &RootShape) -> Self {
+    pub fn create(hooks: &dyn HostHooks, root_shape: &RootShape) -> JsResult<Self> {
         let _timer = Profiler::global().start_event("Realm::create", "realm");
 
-        let intrinsics = Intrinsics::new(root_shape);
+        let intrinsics = Intrinsics::uninit(root_shape).ok_or_else(|| {
+            JsNativeError::typ().with_message("failed to create the realm intrinsics")
+        })?;
+
         let global_object = hooks.create_global_object(&intrinsics);
         let global_this = hooks
             .create_global_this(&intrinsics)
@@ -92,7 +95,7 @@ impl Realm {
 
         realm.initialize();
 
-        realm
+        Ok(realm)
     }
 
     /// Gets the intrinsics of this `Realm`.

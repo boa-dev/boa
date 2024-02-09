@@ -22,9 +22,10 @@ use crate::{
     realm::Realm,
     string::common::StaticJsStrings,
     symbol::JsSymbol,
-    Context, JsArgs, JsResult, JsString, JsValue,
+    Context, JsArgs, JsData, JsResult, JsString, JsValue,
 };
 
+use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
 use icu_provider::KeyedDataMarker;
 
@@ -38,14 +39,30 @@ pub(crate) mod segmenter;
 
 pub(crate) use self::{
     collator::Collator, date_time_format::DateTimeFormat, list_format::ListFormat, locale::Locale,
-    plural_rules::PluralRules, segmenter::Segmenter,
+    number_format::NumberFormat, plural_rules::PluralRules, segmenter::Segmenter,
 };
 
 mod options;
 
 /// JavaScript `Intl` object.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub(crate) struct Intl;
+#[derive(Debug, Clone, Trace, Finalize, JsData)]
+#[boa_gc(unsafe_empty_trace)]
+pub struct Intl {
+    fallback_symbol: JsSymbol,
+}
+
+impl Intl {
+    /// Gets this realm's `Intl` object's `[[FallbackSymbol]]` slot.
+    #[must_use]
+    pub fn fallback_symbol(&self) -> JsSymbol {
+        self.fallback_symbol.clone()
+    }
+
+    pub(crate) fn new() -> Option<Self> {
+        let fallback_symbol = JsSymbol::new(Some(js_string!("IntlLegacyConstructedSymbol")))?;
+        Some(Self { fallback_symbol })
+    }
+}
 
 impl IntrinsicObject for Intl {
     fn init(realm: &Realm) {
@@ -99,6 +116,15 @@ impl IntrinsicObject for Intl {
                     .constructor(),
                 DateTimeFormat::ATTRIBUTE,
             )
+            .static_property(
+                NumberFormat::NAME,
+                realm
+                    .intrinsics()
+                    .constructors()
+                    .number_format()
+                    .constructor(),
+                NumberFormat::ATTRIBUTE,
+            )
             .static_method(
                 Self::get_canonical_locales,
                 js_string!("getCanonicalLocales"),
@@ -108,7 +134,7 @@ impl IntrinsicObject for Intl {
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {
-        intrinsics.objects().intl()
+        intrinsics.objects().intl().upcast()
     }
 }
 

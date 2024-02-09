@@ -14,6 +14,9 @@ use crate::{
     JsSymbol,
 };
 
+#[cfg(feature = "intl")]
+use crate::builtins::intl::Intl;
+
 /// The intrinsic objects and constructors.
 ///
 /// `Intrinsics` is internally stored using a `Gc`, which makes it cheapily clonable
@@ -29,15 +32,16 @@ pub struct Intrinsics {
 }
 
 impl Intrinsics {
-    pub(crate) fn new(root_shape: &RootShape) -> Self {
+    /// Creates a new set of uninitialized intrinsics.
+    pub(crate) fn uninit(root_shape: &RootShape) -> Option<Self> {
         let constructors = StandardConstructors::default();
         let templates = ObjectTemplates::new(root_shape, &constructors);
 
-        Self {
+        Some(Self {
             constructors,
-            objects: IntrinsicObjects::default(),
+            objects: IntrinsicObjects::uninit()?,
             templates,
-        }
+        })
     }
 
     /// Return the cached intrinsic objects.
@@ -168,6 +172,8 @@ pub struct StandardConstructors {
     segmenter: StandardConstructor,
     #[cfg(feature = "intl")]
     plural_rules: StandardConstructor,
+    #[cfg(feature = "intl")]
+    number_format: StandardConstructor,
     #[cfg(feature = "temporal")]
     instant: StandardConstructor,
     #[cfg(feature = "temporal")]
@@ -258,6 +264,8 @@ impl Default for StandardConstructors {
             segmenter: StandardConstructor::default(),
             #[cfg(feature = "intl")]
             plural_rules: StandardConstructor::default(),
+            #[cfg(feature = "intl")]
+            number_format: StandardConstructor::default(),
             #[cfg(feature = "temporal")]
             instant: StandardConstructor::default(),
             #[cfg(feature = "temporal")]
@@ -876,6 +884,19 @@ impl StandardConstructors {
         &self.plural_rules
     }
 
+    /// Returns the `Intl.NumberFormat` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma402/#sec-intl.numberformat
+    #[inline]
+    #[must_use]
+    #[cfg(feature = "intl")]
+    pub const fn number_format(&self) -> &StandardConstructor {
+        &self.number_format
+    }
+
     /// Returns the `Temporal.Instant` constructor.
     ///
     /// More information:
@@ -1068,7 +1089,7 @@ pub struct IntrinsicObjects {
 
     /// [`%Intl%`](https://tc39.es/ecma402/#intl-object)
     #[cfg(feature = "intl")]
-    intl: JsObject,
+    intl: JsObject<Intl>,
 
     /// [`%SegmentsPrototype%`](https://tc39.es/ecma402/#sec-%segmentsprototype%-object)
     #[cfg(feature = "intl")]
@@ -1083,9 +1104,10 @@ pub struct IntrinsicObjects {
     now: JsObject,
 }
 
-impl Default for IntrinsicObjects {
-    fn default() -> Self {
-        Self {
+impl IntrinsicObjects {
+    /// Creates a new set of uninitialized intrinsic objects.
+    pub(crate) fn uninit() -> Option<Self> {
+        Some(Self {
             reflect: JsObject::default(),
             math: JsObject::default(),
             json: JsObject::default(),
@@ -1107,18 +1129,16 @@ impl Default for IntrinsicObjects {
             #[cfg(feature = "annex-b")]
             unescape: JsFunction::empty_intrinsic_function(false),
             #[cfg(feature = "intl")]
-            intl: JsObject::default(),
+            intl: JsObject::new_unique(None, Intl::new()?),
             #[cfg(feature = "intl")]
             segments_prototype: JsObject::default(),
             #[cfg(feature = "temporal")]
             temporal: JsObject::default(),
             #[cfg(feature = "temporal")]
             now: JsObject::default(),
-        }
+        })
     }
-}
 
-impl IntrinsicObjects {
     /// Gets the [`%ThrowTypeError%`][spec] intrinsic function.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%throwtypeerror%
@@ -1285,7 +1305,7 @@ impl IntrinsicObjects {
     #[must_use]
     #[cfg(feature = "intl")]
     #[inline]
-    pub fn intl(&self) -> JsObject {
+    pub fn intl(&self) -> JsObject<Intl> {
         self.intl.clone()
     }
 

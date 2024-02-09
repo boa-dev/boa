@@ -597,6 +597,28 @@ impl<T: NativeObject + ?Sized> JsObject<T> {
         Self { inner }
     }
 
+    /// Creates a new `JsObject` from prototype, and data.
+    ///
+    /// Note that the returned object will not be erased to be convertible to a
+    /// `JsValue`. To erase the pointer, call [`JsObject::upcast`].
+    pub fn new_unique<O: Into<Option<JsObject>>>(prototype: O, data: T) -> Self
+    where
+        T: Sized,
+    {
+        let internal_methods = data.internal_methods();
+        let inner = Gc::new(VTableObject {
+            object: GcRefCell::new(Object {
+                data,
+                properties: PropertyMap::from_prototype_unique_shape(prototype.into()),
+                extensible: true,
+                private_elements: ThinVec::new(),
+            }),
+            vtable: internal_methods,
+        });
+
+        Self { inner }
+    }
+
     /// Upcasts this object's inner data from a specific type `T` to an erased type
     /// `dyn NativeObject`.
     #[must_use]
