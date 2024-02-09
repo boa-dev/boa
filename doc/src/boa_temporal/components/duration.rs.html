@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/temporal/src/components/duration.rs`."><title>duration.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="boa_temporal" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../boa_temporal/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_temporal"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/temporal/src/components/duration.rs`."><title>duration.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="boa_temporal" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../../boa_temporal/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_temporal"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1020,7 +1021,7 @@
 <a href="#1020" id="1020">1020</a>
 <a href="#1021" id="1021">1021</a>
 <a href="#1022" id="1022">1022</a>
-</pre></div><pre class="rust"><code><span class="doccomment">//! This module implements `Duration` along with it&#39;s methods and components.
+</pre></div><pre class="rust"><code><span class="doccomment">//! This module implements `Duration` along with it's methods and components.
 
 </span><span class="kw">use crate</span>::{
     components::{Date, DateTime, ZonedDateTime},
@@ -1114,7 +1115,7 @@
             ),
         );
         <span class="kw">if </span>!is_valid_duration(<span class="kw-2">&amp;</span>duration.into_iter().collect()) {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">&quot;Duration was not valid.&quot;</span>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">"Duration was not valid."</span>));
         }
         <span class="prelude-val">Ok</span>(duration)
     }
@@ -1155,7 +1156,7 @@
             time: TimeDuration::from_partial(partial.time()),
         };
         <span class="kw">if </span>!is_valid_duration(<span class="kw-2">&amp;</span>duration.into_iter().collect()) {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">&quot;Duration was not valid.&quot;</span>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">"Duration was not valid."</span>));
         }
         <span class="prelude-val">Ok</span>(duration)
     }
@@ -1167,14 +1168,14 @@
         <span class="self">self</span>.time.is_within_range()
     }
 
-    <span class="doccomment">/// Returns whether `Duration`&#39;s `DateDuration` isn&#39;t empty and is therefore a `DateDuration` or `Duration`.
+    <span class="doccomment">/// Returns whether `Duration`'s `DateDuration` isn't empty and is therefore a `DateDuration` or `Duration`.
     </span><span class="attr">#[inline]
     #[must_use]
     </span><span class="kw">pub fn </span>is_date_duration(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.date().iter().any(|x| x != <span class="number">0.0</span>) &amp;&amp; <span class="self">self</span>.time().iter().all(|x| x == <span class="number">0.0</span>)
     }
 
-    <span class="doccomment">/// Returns whether `Duration`&#39;s `DateDuration` is empty and is therefore a `TimeDuration`.
+    <span class="doccomment">/// Returns whether `Duration`'s `DateDuration` is empty and is therefore a `TimeDuration`.
     </span><span class="attr">#[inline]
     #[must_use]
     </span><span class="kw">pub fn </span>is_time_duration(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
@@ -1199,7 +1200,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>.date
     }
 
-    <span class="doccomment">/// Set this `DurationRecord`&#39;s `TimeDuration`.
+    <span class="doccomment">/// Set this `DurationRecord`'s `TimeDuration`.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>set_time_duration(<span class="kw-2">&amp;mut </span><span class="self">self</span>, time: TimeDuration) {
         <span class="self">self</span>.time = time;
@@ -1335,16 +1336,16 @@
         <span class="self">self</span>.time.nanoseconds
     }
 
-    <span class="doccomment">/// Returns `Duration`&#39;s iterator
+    <span class="doccomment">/// Returns `Duration`'s iterator
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; DurationIter&lt;<span class="lifetime">&#39;_</span>&gt; {
+    </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; DurationIter&lt;<span class="lifetime">'_</span>&gt; {
         &lt;<span class="kw-2">&amp;</span><span class="self">Self </span><span class="kw">as </span>IntoIterator&gt;::into_iter(<span class="self">self</span>)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; IntoIterator <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Duration {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; IntoIterator <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">'a </span>Duration {
     <span class="kw">type </span>Item = f64;
-    <span class="kw">type </span>IntoIter = DurationIter&lt;<span class="lifetime">&#39;a</span>&gt;;
+    <span class="kw">type </span>IntoIter = DurationIter&lt;<span class="lifetime">'a</span>&gt;;
 
     <span class="kw">fn </span>into_iter(<span class="self">self</span>) -&gt; <span class="self">Self</span>::IntoIter {
         DurationIter {
@@ -1356,12 +1357,12 @@
 
 <span class="doccomment">/// A Duration iterator that iterates through all duration fields.
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>DurationIter&lt;<span class="lifetime">&#39;a</span>&gt; {
-    duration: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Duration,
+</span><span class="kw">pub struct </span>DurationIter&lt;<span class="lifetime">'a</span>&gt; {
+    duration: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Duration,
     index: usize,
 }
 
-<span class="kw">impl </span>Iterator <span class="kw">for </span>DurationIter&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>Iterator <span class="kw">for </span>DurationIter&lt;<span class="lifetime">'_</span>&gt; {
     <span class="kw">type </span>Item = f64;
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
@@ -1401,7 +1402,7 @@
             </span>&amp;&amp; <span class="self">self</span>.date.weeks == <span class="number">0_f64
             </span>&amp;&amp; <span class="self">self</span>.date.days == <span class="number">0_f64</span>;
 
-        <span class="comment">// 3. If largestUnit is &quot;year&quot; or allZero is true, then
+        <span class="comment">// 3. If largestUnit is "year" or allZero is true, then
         </span><span class="kw">if </span>largest_unit == TemporalUnit::Year || all_zero {
             <span class="comment">// a. Return ! CreateDateDurationRecord(years, months, weeks, days).
             </span><span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="self">self</span>.date);
@@ -1421,7 +1422,7 @@
         // 10. Else,
         // a. Let calendar be undefined.
 
-        // 11. If largestUnit is &quot;month&quot;, then
+        // 11. If largestUnit is "month", then
         </span><span class="kw">if </span>largest_unit == TemporalUnit::Month {
             <span class="comment">// a. If years = 0, return ! CreateDateDurationRecord(0, months, weeks, days).
             </span><span class="kw">if </span><span class="self">self</span>.date.years == <span class="number">0f64 </span>{
@@ -1431,12 +1432,12 @@
             <span class="comment">// b. If calendar is undefined, then
             </span><span class="kw">let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>plain_relative_to) = plain_relative_to.map(Clone::clone) <span class="kw">else </span>{
                 <span class="comment">// i. Throw a RangeError exception.
-                </span><span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">&quot;Calendar cannot be undefined.&quot;</span>));
+                </span><span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">"Calendar cannot be undefined."</span>));
             };
 
             <span class="comment">// c. If calendar is an Object, then
-            // i. Let dateAdd be ? GetMethod(calendar, &quot;dateAdd&quot;).
-            // ii. Let dateUntil be ? GetMethod(calendar, &quot;dateUntil&quot;).
+            // i. Let dateAdd be ? GetMethod(calendar, "dateAdd").
+            // ii. Let dateUntil be ? GetMethod(calendar, "dateUntil").
             // d. Else,
             // i. Let dateAdd be unused.
             // ii. Let dateUntil be unused.
@@ -1454,7 +1455,7 @@
                 )<span class="question-mark">?</span>;
 
                 <span class="comment">// ii. Let untilOptions be OrdinaryObjectCreate(null).
-                // iii. Perform ! CreateDataPropertyOrThrow(untilOptions, &quot;largestUnit&quot;, &quot;month&quot;).
+                // iii. Perform ! CreateDataPropertyOrThrow(untilOptions, "largestUnit", "month").
                 // iv. Let untilResult be ? CalendarDateUntil(calendar, plainRelativeTo, newRelativeTo, untilOptions, dateUntil).
                 </span><span class="kw">let </span>until_result = plain_relative_to.calendar().date_until(
                     <span class="kw-2">&amp;</span>plain_relative_to,
@@ -1477,7 +1478,7 @@
             <span class="comment">// f. Return ? CreateDateDurationRecord(0, months, weeks, days).
             </span><span class="kw">return </span>DateDuration::new(years, months, <span class="self">self</span>.date.weeks, <span class="self">self</span>.date.days);
 
-        <span class="comment">// 12. If largestUnit is &quot;week&quot;, then
+        <span class="comment">// 12. If largestUnit is "week", then
         </span>} <span class="kw">else if </span>largest_unit == TemporalUnit::Week {
             <span class="comment">// a. If years = 0 and months = 0, return ! CreateDateDurationRecord(0, 0, weeks, days).
             </span><span class="kw">if </span><span class="self">self</span>.date.years == <span class="number">0f64 </span>&amp;&amp; <span class="self">self</span>.date.months == <span class="number">0f64 </span>{
@@ -1487,11 +1488,11 @@
             <span class="comment">// b. If calendar is undefined, then
             </span><span class="kw">let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>plain_relative_to) = plain_relative_to.map(Clone::clone) <span class="kw">else </span>{
                 <span class="comment">// i. Throw a RangeError exception.
-                </span><span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">&quot;Calendar cannot be undefined.&quot;</span>));
+                </span><span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">"Calendar cannot be undefined."</span>));
             };
 
             <span class="comment">// c. If calendar is an Object, then
-            // i. Let dateAdd be ? GetMethod(calendar, &quot;dateAdd&quot;).
+            // i. Let dateAdd be ? GetMethod(calendar, "dateAdd").
             // d. Else,
             // i. Let dateAdd be unused.
 
@@ -1538,11 +1539,11 @@
         <span class="comment">// 14. If calendar is undefined, then
         </span><span class="kw">let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>plain_relative_to) = plain_relative_to.map(Clone::clone) <span class="kw">else </span>{
             <span class="comment">// a. Throw a RangeError exception.
-            </span><span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">&quot;Calendar cannot be undefined.&quot;</span>));
+            </span><span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">"Calendar cannot be undefined."</span>));
         };
 
         <span class="comment">// 15. If calendar is an Object, then
-        // a. Let dateAdd be ? GetMethod(calendar, &quot;dateAdd&quot;).
+        // a. Let dateAdd be ? GetMethod(calendar, "dateAdd").
         // 16. Else,
         // a. Let dateAdd be unused.
 
@@ -1609,7 +1610,7 @@
             </span>&amp;&amp; <span class="self">self</span>.date.weeks == <span class="number">0.0
             </span>&amp;&amp; <span class="self">self</span>.date.days == <span class="number">0.0</span>;
 
-        <span class="comment">// 3. If largestUnit is not one of &quot;year&quot;, &quot;month&quot;, or &quot;week&quot;, or allZero is true, then
+        <span class="comment">// 3. If largestUnit is not one of "year", "month", or "week", or allZero is true, then
         </span><span class="kw">match </span>largest_unit {
             TemporalUnit::Year | TemporalUnit::Month | TemporalUnit::Week <span class="kw">if </span>!all_zero =&gt; {}
             <span class="kw">_ </span>=&gt; {
@@ -1621,7 +1622,7 @@
         <span class="comment">// 4. If plainRelativeTo is undefined, then
         </span><span class="kw">let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>plain_relative_to) = plain_relative_to.map(Clone::clone) <span class="kw">else </span>{
             <span class="comment">// a. Throw a RangeError exception.
-            </span><span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">&quot;relativeTo cannot be undefined.&quot;</span>));
+            </span><span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">"relativeTo cannot be undefined."</span>));
         };
 
         <span class="comment">// 5. Let sign be ! DurationSign(years, months, weeks, days, 0, 0, 0, 0, 0, 0).
@@ -1638,10 +1639,10 @@
         <span class="comment">// 10. Let calendar be relativeTo.[[Calendar]].
 
         </span><span class="kw">match </span>largest_unit {
-            <span class="comment">// 12. If largestUnit is &quot;year&quot;, then
+            <span class="comment">// 12. If largestUnit is "year", then
             </span>TemporalUnit::Year =&gt; {
                 <span class="comment">// a. If calendar is an Object, then
-                // i. Let dateAdd be ? GetMethod(calendar, &quot;dateAdd&quot;).
+                // i. Let dateAdd be ? GetMethod(calendar, "dateAdd").
                 // b. Else,
                 // i. Let dateAdd be unused.
 
@@ -1703,11 +1704,11 @@
                 )<span class="question-mark">?</span>;
 
                 <span class="comment">// l. If calendar is an Object, then
-                // i. Let dateUntil be ? GetMethod(calendar, &quot;dateUntil&quot;).
+                // i. Let dateUntil be ? GetMethod(calendar, "dateUntil").
                 // m. Else,
                 // i. Let dateUntil be unused.
                 // n. Let untilOptions be OrdinaryObjectCreate(null).
-                // o. Perform ! CreateDataPropertyOrThrow(untilOptions, &quot;largestUnit&quot;, &quot;month&quot;).
+                // o. Perform ! CreateDataPropertyOrThrow(untilOptions, "largestUnit", "month").
 
                 // p. Let untilResult be ? CalendarDateUntil(calendar, relativeTo, newRelativeTo, untilOptions, dateUntil).
                 </span><span class="kw">let </span><span class="kw-2">mut </span>until_result = plain_relative_to.calendar().date_until(
@@ -1739,7 +1740,7 @@
                     )<span class="question-mark">?</span>;
 
                     <span class="comment">// v. Set untilOptions to OrdinaryObjectCreate(null).
-                    // vi. Perform ! CreateDataPropertyOrThrow(untilOptions, &quot;largestUnit&quot;, &quot;month&quot;).
+                    // vi. Perform ! CreateDataPropertyOrThrow(untilOptions, "largestUnit", "month").
                     // vii. Set untilResult to ? CalendarDateUntil(calendar, relativeTo, newRelativeTo, untilOptions, dateUntil).
                     </span>until_result = plain_relative_to.calendar().date_until(
                         <span class="kw-2">&amp;</span>plain_relative_to,
@@ -1752,10 +1753,10 @@
                     </span>one_year_months = until_result.date.months();
                 }
             }
-            <span class="comment">// 13. Else if largestUnit is &quot;month&quot;, then
+            <span class="comment">// 13. Else if largestUnit is "month", then
             </span>TemporalUnit::Month =&gt; {
                 <span class="comment">// a. If calendar is an Object, then
-                // i. Let dateAdd be ? GetMethod(calendar, &quot;dateAdd&quot;).
+                // i. Let dateAdd be ? GetMethod(calendar, "dateAdd").
                 // b. Else,
                 // i. Let dateAdd be unused.
 
@@ -1787,9 +1788,9 @@
             }
             <span class="comment">// 14. Else,
             </span>TemporalUnit::Week =&gt; {
-                <span class="comment">// a. Assert: largestUnit is &quot;week&quot;.
+                <span class="comment">// a. Assert: largestUnit is "week".
                 // b. If calendar is an Object, then
-                // i. Let dateAdd be ? GetMethod(calendar, &quot;dateAdd&quot;).
+                // i. Let dateAdd be ? GetMethod(calendar, "dateAdd").
                 // c. Else,
                 // i. Let dateAdd be unused.
 
@@ -1823,7 +1824,7 @@
         </span><span class="prelude-val">Ok</span>(result)
     }
 
-    <span class="comment">// TODO: Refactor relative_to&#39;s into a RelativeTo struct?
+    <span class="comment">// TODO: Refactor relative_to's into a RelativeTo struct?
     </span><span class="doccomment">/// Abstract Operation 7.5.26 `RoundDuration ( years, months, weeks, days, hours, minutes,
     ///   seconds, milliseconds, microseconds, nanoseconds, increment, unit,
     ///   roundingMode [ , plainRelativeTo [, zonedRelativeTo [, precalculatedDateTime]]] )`
@@ -1867,7 +1868,7 @@
                 <span class="prelude-val">Ok</span>((result, round_result.<span class="number">1</span>))
             }
             TemporalUnit::Auto =&gt; {
-                <span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">&quot;Invalid TemporalUnit for Duration.round&quot;</span>))
+                <span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">"Invalid TemporalUnit for Duration.round"</span>))
             }
         }
 
@@ -1924,7 +1925,7 @@
         TemporalUnit::Nanosecond
     }
 
-    <span class="doccomment">/// Calls `TimeDuration`&#39;s balance method on the current `Duration`.
+    <span class="doccomment">/// Calls `TimeDuration`'s balance method on the current `Duration`.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>balance_time_duration(<span class="kw-2">&amp;</span><span class="self">self</span>, unit: TemporalUnit) -&gt; TemporalResult&lt;(f64, TimeDuration)&gt; {
         TimeDuration::new_unchecked(

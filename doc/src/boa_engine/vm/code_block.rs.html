@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/vm/code_block.rs`."><title>code_block.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/vm/code_block.rs`."><title>code_block.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1009,7 +1010,7 @@
 ///
 /// # Safety
 ///
-/// This trait is safe to implement as long as the type doesn&#39;t implement `Drop`.
+/// This trait is safe to implement as long as the type doesn't implement `Drop`.
 /// At some point, if [negative impls][negative_impls] are stabilized, we might be able to remove
 /// the unsafe bound.
 ///
@@ -1049,11 +1050,11 @@
         <span class="kw">const </span>IS_ASYNC = <span class="number">0b0010_0000</span>;
         <span class="kw">const </span>IS_GENERATOR = <span class="number">0b0100_0000</span>;
 
-        <span class="doccomment">/// Arrow and method functions don&#39;t have `&quot;prototype&quot;` property.
+        <span class="doccomment">/// Arrow and method functions don't have `"prototype"` property.
         </span><span class="kw">const </span>HAS_PROTOTYPE_PROPERTY = <span class="number">0b1000_0000</span>;
 
         <span class="doccomment">/// Trace instruction execution to `stdout`.
-        </span><span class="attr">#[cfg(feature = <span class="string">&quot;trace&quot;</span>)]
+        </span><span class="attr">#[cfg(feature = <span class="string">"trace"</span>)]
         </span><span class="kw">const </span>TRACEABLE = <span class="number">0b1000_0000_0000_0000</span>;
     }
 }
@@ -1178,12 +1179,12 @@
     }
 
     <span class="doccomment">/// Check if the function is traced.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;trace&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">"trace"</span>)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>traceable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.flags.get().contains(CodeBlockFlags::TRACEABLE)
     }
     <span class="doccomment">/// Enable or disable instruction tracing to `stdout`.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;trace&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">"trace"</span>)]
     #[inline]
     </span><span class="kw">pub fn </span>set_traceable(<span class="kw-2">&amp;</span><span class="self">self</span>, value: bool) {
         <span class="kw">let </span><span class="kw-2">mut </span>flags = <span class="self">self</span>.flags.get();
@@ -1246,7 +1247,7 @@
         !<span class="self">self</span>.is_async() &amp;&amp; !<span class="self">self</span>.is_generator()
     }
 
-    <span class="doccomment">/// Returns true if this function has the `&quot;prototype&quot;` property when function object is created.
+    <span class="doccomment">/// Returns true if this function has the `"prototype"` property when function object is created.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>has_prototype_property(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.flags
             .get()
@@ -1274,7 +1275,7 @@
             <span class="kw">return </span>value.clone();
         }
 
-        <span class="macro">panic!</span>(<span class="string">&quot;expected string constant at index {index}&quot;</span>)
+        <span class="macro">panic!</span>(<span class="string">"expected string constant at index {index}"</span>)
     }
 
     <span class="doccomment">/// Get the function ([`Gc&lt;CodeBlock&gt;`]) constant from the [`CodeBlock`].
@@ -1288,7 +1289,7 @@
             <span class="kw">return </span>value.clone();
         }
 
-        <span class="macro">panic!</span>(<span class="string">&quot;expected function constant at index {index}&quot;</span>)
+        <span class="macro">panic!</span>(<span class="string">"expected function constant at index {index}"</span>)
     }
 
     <span class="doccomment">/// Get the [`CompileTimeEnvironment`] constant from the [`CodeBlock`].
@@ -1305,7 +1306,7 @@
             <span class="kw">return </span>value.clone();
         }
 
-        <span class="macro">panic!</span>(<span class="string">&quot;expected compile time environment constant at index {index}&quot;</span>)
+        <span class="macro">panic!</span>(<span class="string">"expected compile time environment constant at index {index}"</span>)
     }
 }
 
@@ -1323,7 +1324,7 @@
         <span class="comment">// Safety:
         // The function caller must ensure that the read is in bounds.
         //
-        // This has to be an unaligned read because we can&#39;t guarantee that
+        // This has to be an unaligned read because we can't guarantee that
         // the types are aligned.
         </span><span class="kw">unsafe </span>{
             <span class="self">self</span>.bytecode
@@ -1354,15 +1355,15 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>instruction_operands(<span class="kw-2">&amp;</span><span class="self">self</span>, instruction: <span class="kw-2">&amp;</span>Instruction) -&gt; String {
         <span class="kw">match </span>instruction {
             Instruction::SetFunctionName { prefix } =&gt; <span class="kw">match </span>prefix {
-                <span class="number">0 </span>=&gt; <span class="string">&quot;prefix: none&quot;</span>,
-                <span class="number">1 </span>=&gt; <span class="string">&quot;prefix: get&quot;</span>,
-                <span class="number">2 </span>=&gt; <span class="string">&quot;prefix: set&quot;</span>,
+                <span class="number">0 </span>=&gt; <span class="string">"prefix: none"</span>,
+                <span class="number">1 </span>=&gt; <span class="string">"prefix: get"</span>,
+                <span class="number">2 </span>=&gt; <span class="string">"prefix: set"</span>,
                 <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
             }
             .to_owned(),
             Instruction::RotateLeft { n } | Instruction::RotateRight { n } =&gt; n.to_string(),
             Instruction::Generator { r#async } =&gt; {
-                <span class="macro">format!</span>(<span class="string">&quot;async: {async}&quot;</span>)
+                <span class="macro">format!</span>(<span class="string">"async: {async}"</span>)
             }
             Instruction::PushInt8 { value } =&gt; value.to_string(),
             Instruction::PushInt16 { value } =&gt; value.to_string(),
@@ -1381,7 +1382,7 @@
                 <span class="kw">let </span>flags = <span class="self">self
                     </span>.constant_string(flag_index.value() <span class="kw">as </span>usize)
                     .to_std_string_escaped();
-                <span class="macro">format!</span>(<span class="string">&quot;/{pattern}/{flags}&quot;</span>)
+                <span class="macro">format!</span>(<span class="string">"/{pattern}/{flags}"</span>)
             }
             Instruction::Jump { address: value }
             | Instruction::JumpIfTrue { address: value }
@@ -1413,7 +1414,7 @@
             Instruction::CopyDataProperties {
                 excluded_key_count: value1,
                 excluded_key_count_computed: value2,
-            } =&gt; <span class="macro">format!</span>(<span class="string">&quot;{}, {}&quot;</span>, value1.value(), value2.value()),
+            } =&gt; <span class="macro">format!</span>(<span class="string">"{}, {}"</span>, value1.value(), value2.value()),
             Instruction::GeneratorDelegateNext {
                 return_method_undefined: value1,
                 throw_method_undefined: value2,
@@ -1422,16 +1423,16 @@
                 exit: value1,
                 r#return: value2,
             } =&gt; {
-                <span class="macro">format!</span>(<span class="string">&quot;{value1}, {value2}&quot;</span>)
+                <span class="macro">format!</span>(<span class="string">"{value1}, {value2}"</span>)
             }
-            Instruction::TemplateLookup { exit: value, site } =&gt; <span class="macro">format!</span>(<span class="string">&quot;{value}, {site}&quot;</span>),
+            Instruction::TemplateLookup { exit: value, site } =&gt; <span class="macro">format!</span>(<span class="string">"{value}, {site}"</span>),
             Instruction::TemplateCreate { count, site } =&gt; {
-                <span class="macro">format!</span>(<span class="string">&quot;{}, {site}&quot;</span>, count.value())
+                <span class="macro">format!</span>(<span class="string">"{}, {site}"</span>, count.value())
             }
             Instruction::GetFunction { index } =&gt; {
                 <span class="kw">let </span>index = index.value() <span class="kw">as </span>usize;
                 <span class="macro">format!</span>(
-                    <span class="string">&quot;{index:04}: &#39;{}&#39; (length: {})&quot;</span>,
+                    <span class="string">"{index:04}: '{}' (length: {})"</span>,
                     <span class="self">self</span>.constant_function(index).name().to_std_string_escaped(),
                     <span class="self">self</span>.constant_function(index).length
                 )
@@ -1446,7 +1447,7 @@
             | Instruction::SetName { index }
             | Instruction::DeleteName { index } =&gt; {
                 <span class="macro">format!</span>(
-                    <span class="string">&quot;{:04}: &#39;{}&#39;&quot;</span>,
+                    <span class="string">"{:04}: '{}'"</span>,
                     index.value(),
                     <span class="self">self</span>.bindings[index.value() <span class="kw">as </span>usize]
                         .name()
@@ -1476,7 +1477,7 @@
             | Instruction::PushClassPrivateSetter { index }
             | Instruction::PushClassPrivateMethod { index } =&gt; {
                 <span class="macro">format!</span>(
-                    <span class="string">&quot;{:04}: &#39;{}&#39;&quot;</span>,
+                    <span class="string">"{:04}: '{}'"</span>,
                     index.value(),
                     <span class="self">self</span>.constant_string(index.value() <span class="kw">as </span>usize)
                         .to_std_string_escaped(),
@@ -1486,7 +1487,7 @@
                 <span class="kw">let </span>ic = <span class="kw-2">&amp;</span><span class="self">self</span>.ic[index.value() <span class="kw">as </span>usize];
                 <span class="kw">let </span>slot = ic.slot();
                 <span class="macro">format!</span>(
-                    <span class="string">&quot;{:04}: &#39;{}&#39;, Shape: 0x{:x}, Slot: index: {}, attributes {:?}&quot;</span>,
+                    <span class="string">"{:04}: '{}', Shape: 0x{:x}, Slot: index: {}, attributes {:?}"</span>,
                     index.value(),
                     ic.name.to_std_string_escaped(),
                     ic.shape.borrow().to_addr_usize(),
@@ -1495,20 +1496,20 @@
                 )
             }
             Instruction::PushPrivateEnvironment { name_indices } =&gt; {
-                <span class="macro">format!</span>(<span class="string">&quot;{name_indices:?}&quot;</span>)
+                <span class="macro">format!</span>(<span class="string">"{name_indices:?}"</span>)
             }
             Instruction::JumpTable { default, addresses } =&gt; {
-                <span class="kw">let </span><span class="kw-2">mut </span>operands = <span class="macro">format!</span>(<span class="string">&quot;#{}: Default: {default:4}&quot;</span>, addresses.len());
+                <span class="kw">let </span><span class="kw-2">mut </span>operands = <span class="macro">format!</span>(<span class="string">"#{}: Default: {default:4}"</span>, addresses.len());
                 <span class="kw">for </span>(i, address) <span class="kw">in </span>addresses.iter().enumerate() {
-                    operands += <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;, {i}: {address}&quot;</span>);
+                    operands += <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">", {i}: {address}"</span>);
                 }
                 operands
             }
             Instruction::JumpIfNotResumeKind { exit, resume_kind } =&gt; {
-                <span class="macro">format!</span>(<span class="string">&quot;ResumeKind: {resume_kind:?}, exit: {exit}&quot;</span>)
+                <span class="macro">format!</span>(<span class="string">"ResumeKind: {resume_kind:?}, exit: {exit}"</span>)
             }
             Instruction::CreateIteratorResult { done } =&gt; {
-                <span class="macro">format!</span>(<span class="string">&quot;done: {done}&quot;</span>)
+                <span class="macro">format!</span>(<span class="string">"done: {done}"</span>)
             }
             Instruction::CreateGlobalFunctionBinding {
                 name_index,
@@ -1517,7 +1518,7 @@
                 <span class="kw">let </span>name = <span class="self">self
                     </span>.constant_string(name_index.value() <span class="kw">as </span>usize)
                     .to_std_string_escaped();
-                <span class="macro">format!</span>(<span class="string">&quot;name: {name}, configurable: {configurable}&quot;</span>)
+                <span class="macro">format!</span>(<span class="string">"name: {name}, configurable: {configurable}"</span>)
             }
             Instruction::Pop
             | Instruction::Dup
@@ -1702,19 +1703,19 @@
             | Instruction::Reserved55
             | Instruction::Reserved56
             | Instruction::Reserved57
-            | Instruction::Reserved58 =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;Reserved opcodes are unrechable&quot;</span>),
+            | Instruction::Reserved58 =&gt; <span class="macro">unreachable!</span>(<span class="string">"Reserved opcodes are unrechable"</span>),
         }
     }
 }
 
 <span class="kw">impl </span>Display <span class="kw">for </span>CodeBlock {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
         <span class="kw">let </span>name = <span class="self">self</span>.name();
 
         <span class="macro">writeln!</span>(
             f,
-            <span class="string">&quot;{:-^70}\nLocation  Count    Handler    Opcode                     Operands\n&quot;</span>,
-            <span class="macro">format!</span>(<span class="string">&quot;Compiled Output: &#39;{}&#39;&quot;</span>, name.to_std_string_escaped()),
+            <span class="string">"{:-^70}\nLocation  Count    Handler    Opcode                     Operands\n"</span>,
+            <span class="macro">format!</span>(<span class="string">"Compiled Output: '{}'"</span>, name.to_std_string_escaped()),
         )<span class="question-mark">?</span>;
 
         <span class="kw">let </span><span class="kw-2">mut </span>iterator = InstructionIterator::new(<span class="kw-2">&amp;</span><span class="self">self</span>.bytecode);
@@ -1729,57 +1730,57 @@
             <span class="kw">let </span>handler = <span class="kw">if let </span><span class="prelude-val">Some</span>((i, handler)) = <span class="self">self</span>.find_handler(instruction_start_pc <span class="kw">as </span>u32)
             {
                 <span class="kw">let </span>border_char = <span class="kw">if </span>instruction_start_pc <span class="kw">as </span>u32 == handler.start {
-                    <span class="string">&#39;&gt;&#39;
+                    <span class="string">'&gt;'
                 </span>} <span class="kw">else if </span>pc <span class="kw">as </span>u32 == handler.end {
-                    <span class="string">&#39;&lt;&#39;
+                    <span class="string">'&lt;'
                 </span>} <span class="kw">else </span>{
-                    <span class="string">&#39; &#39;
+                    <span class="string">' '
                 </span>};
-                <span class="macro">format!</span>(<span class="string">&quot;{border_char}{i:2}: {:04}&quot;</span>, handler.handler())
+                <span class="macro">format!</span>(<span class="string">"{border_char}{i:2}: {:04}"</span>, handler.handler())
             } <span class="kw">else </span>{
-                <span class="string">&quot;   none  &quot;</span>.to_string()
+                <span class="string">"   none  "</span>.to_string()
             };
 
             <span class="kw">let </span>varying_operand_kind = <span class="kw">match </span>varying_operand_kind {
-                <span class="kw">super</span>::VaryingOperandKind::U8 =&gt; <span class="string">&quot;&quot;</span>,
-                <span class="kw">super</span>::VaryingOperandKind::U16 =&gt; <span class="string">&quot;.U16&quot;</span>,
-                <span class="kw">super</span>::VaryingOperandKind::U32 =&gt; <span class="string">&quot;.U32&quot;</span>,
+                <span class="kw">super</span>::VaryingOperandKind::U8 =&gt; <span class="string">""</span>,
+                <span class="kw">super</span>::VaryingOperandKind::U16 =&gt; <span class="string">".U16"</span>,
+                <span class="kw">super</span>::VaryingOperandKind::U32 =&gt; <span class="string">".U32"</span>,
             };
 
             <span class="macro">writeln!</span>(
                 f,
-                    <span class="string">&quot;{instruction_start_pc:06}    {count:04}   {handler}    {opcode}{varying_operand_kind:&lt;27}{operands}&quot;</span>,
+                    <span class="string">"{instruction_start_pc:06}    {count:04}   {handler}    {opcode}{varying_operand_kind:&lt;27}{operands}"</span>,
                 )<span class="question-mark">?</span>;
             count += <span class="number">1</span>;
         }
 
-        f.write_str(<span class="string">&quot;\nConstants:&quot;</span>)<span class="question-mark">?</span>;
+        f.write_str(<span class="string">"\nConstants:"</span>)<span class="question-mark">?</span>;
 
         <span class="kw">if </span><span class="self">self</span>.constants.is_empty() {
-            f.write_str(<span class="string">&quot; &lt;empty&gt;\n&quot;</span>)<span class="question-mark">?</span>;
+            f.write_str(<span class="string">" &lt;empty&gt;\n"</span>)<span class="question-mark">?</span>;
         } <span class="kw">else </span>{
-            f.write_str(<span class="string">&quot;\n&quot;</span>)<span class="question-mark">?</span>;
+            f.write_str(<span class="string">"\n"</span>)<span class="question-mark">?</span>;
             <span class="kw">for </span>(i, value) <span class="kw">in </span><span class="self">self</span>.constants.iter().enumerate() {
-                <span class="macro">write!</span>(f, <span class="string">&quot;    {i:04}: &quot;</span>)<span class="question-mark">?</span>;
+                <span class="macro">write!</span>(f, <span class="string">"    {i:04}: "</span>)<span class="question-mark">?</span>;
                 <span class="kw">match </span>value {
                     Constant::String(v) =&gt; {
                         <span class="macro">writeln!</span>(
                             f,
-                            <span class="string">&quot;[STRING] \&quot;{}\&quot;&quot;</span>,
+                            <span class="string">"[STRING] \"{}\""</span>,
                             v.to_std_string_escaped().escape_debug()
                         )<span class="question-mark">?</span>;
                     }
-                    Constant::BigInt(v) =&gt; <span class="macro">writeln!</span>(f, <span class="string">&quot;[BIGINT] {v}n&quot;</span>)<span class="question-mark">?</span>,
+                    Constant::BigInt(v) =&gt; <span class="macro">writeln!</span>(f, <span class="string">"[BIGINT] {v}n"</span>)<span class="question-mark">?</span>,
                     Constant::Function(code) =&gt; <span class="macro">writeln!</span>(
                         f,
-                        <span class="string">&quot;[FUNCTION] name: &#39;{}&#39; (length: {})\n&quot;</span>,
+                        <span class="string">"[FUNCTION] name: '{}' (length: {})\n"</span>,
                         code.name().to_std_string_escaped(),
                         code.length
                     )<span class="question-mark">?</span>,
                     Constant::CompileTimeEnvironment(v) =&gt; {
                         <span class="macro">writeln!</span>(
                             f,
-                            <span class="string">&quot;[ENVIRONMENT] index: {}, bindings: {}&quot;</span>,
+                            <span class="string">"[ENVIRONMENT] index: {}, bindings: {}"</span>,
                             v.environment_index(),
                             v.num_bindings()
                         )<span class="question-mark">?</span>;
@@ -1788,26 +1789,26 @@
             }
         }
 
-        f.write_str(<span class="string">&quot;\nBindings:\n&quot;</span>)<span class="question-mark">?</span>;
+        f.write_str(<span class="string">"\nBindings:\n"</span>)<span class="question-mark">?</span>;
         <span class="kw">if </span><span class="self">self</span>.bindings.is_empty() {
-            f.write_str(<span class="string">&quot;    &lt;empty&gt;\n&quot;</span>)<span class="question-mark">?</span>;
+            f.write_str(<span class="string">"    &lt;empty&gt;\n"</span>)<span class="question-mark">?</span>;
         } <span class="kw">else </span>{
             <span class="kw">for </span>(i, binding_locator) <span class="kw">in </span><span class="self">self</span>.bindings.iter().enumerate() {
                 <span class="macro">writeln!</span>(
                     f,
-                    <span class="string">&quot;    {i:04}: {}&quot;</span>,
+                    <span class="string">"    {i:04}: {}"</span>,
                     binding_locator.name().to_std_string_escaped()
                 )<span class="question-mark">?</span>;
             }
         }
 
-        f.write_str(<span class="string">&quot;\nHandlers:\n&quot;</span>)<span class="question-mark">?</span>;
+        f.write_str(<span class="string">"\nHandlers:\n"</span>)<span class="question-mark">?</span>;
         <span class="kw">if </span><span class="self">self</span>.handlers.is_empty() {
-            f.write_str(<span class="string">&quot;    &lt;empty&gt;\n&quot;</span>)<span class="question-mark">?</span>;
+            f.write_str(<span class="string">"    &lt;empty&gt;\n"</span>)<span class="question-mark">?</span>;
         } <span class="kw">else </span>{
             <span class="kw">for </span>(i, handler) <span class="kw">in </span><span class="self">self</span>.handlers.iter().enumerate() {
                 <span class="macro">writeln!</span>(f,
-                    <span class="string">&quot;    {i:04}: Range: [{:04}, {:04}): Handler: {:04}, Stack: {:02}, Environment: {:02}&quot;</span>,
+                    <span class="string">"    {i:04}: Range: [{:04}, {:04}): Handler: {:04}, Stack: {:02}, Environment: {:02}"</span>,
                     handler.start,
                     handler.end,
                     handler.handler(),
@@ -1822,7 +1823,7 @@
 
 <span class="doccomment">/// Creates a new function object.
 ///
-/// This is used in cases that the prototype is not known if it&#39;s [`None`] or [`Some`].
+/// This is used in cases that the prototype is not known if it's [`None`] or [`Some`].
 ///
 /// If the prototype given is [`None`] it will use [`create_function_object_fast`]. Otherwise
 /// it will construct the function from template objects that have all the fields except the
@@ -1834,7 +1835,7 @@
     prototype: JsObject,
     context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsObject {
-    <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;create_function_object&quot;</span>, <span class="string">&quot;vm&quot;</span>);
+    <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">"create_function_object"</span>, <span class="string">"vm"</span>);
 
     <span class="kw">let </span>name: JsValue = code.name().clone().into();
     <span class="kw">let </span>length: JsValue = code.length.into();
@@ -1904,7 +1905,7 @@
 /// because it constructs the function from a pre-initialized object template,
 /// with all the properties and prototype set.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_function_object_fast(code: Gc&lt;CodeBlock&gt;, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsObject {
-    <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;create_function_object_fast&quot;</span>, <span class="string">&quot;vm&quot;</span>);
+    <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">"create_function_object_fast"</span>, <span class="string">"vm"</span>);
 
     <span class="kw">let </span>name: JsValue = code.name().clone().into();
     <span class="kw">let </span>length: JsValue = code.length.into();

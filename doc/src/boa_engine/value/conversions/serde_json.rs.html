@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/value/conversions/serde_json.rs`."><title>serde_json.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/value/conversions/serde_json.rs`."><title>serde_json.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -281,15 +282,15 @@
     /// ```
     /// use boa_engine::{Context, JsValue};
     ///
-    /// let data = r#&quot;
+    /// let data = r#"
     ///     {
-    ///         &quot;name&quot;: &quot;John Doe&quot;,
-    ///         &quot;age&quot;: 43,
-    ///         &quot;phones&quot;: [
-    ///             &quot;+44 1234567&quot;,
-    ///             &quot;+44 2345678&quot;
+    ///         "name": "John Doe",
+    ///         "age": 43,
+    ///         "phones": [
+    ///             "+44 1234567",
+    ///             "+44 2345678"
     ///         ]
-    ///      }&quot;#;
+    ///      }"#;
     ///
     /// let json: serde_json::Value = serde_json::from_str(data).unwrap();
     ///
@@ -315,7 +316,7 @@
                 .or_else(|| num.as_f64().map(<span class="self">Self</span>::Rational))
                 .ok_or_else(|| {
                     JsNativeError::typ()
-                        .with_message(<span class="macro">format!</span>(<span class="string">&quot;could not convert JSON number {num} to JsValue&quot;</span>))
+                        .with_message(<span class="macro">format!</span>(<span class="string">"could not convert JSON number {num} to JsValue"</span>))
                         .into()
                 }),
             Value::String(string) =&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::from(<span class="macro">js_string!</span>(string.as_str()))),
@@ -351,15 +352,15 @@
     /// ```
     /// use boa_engine::{Context, JsValue};
     ///
-    /// let data = r#&quot;
+    /// let data = r#"
     ///     {
-    ///         &quot;name&quot;: &quot;John Doe&quot;,
-    ///         &quot;age&quot;: 43,
-    ///         &quot;phones&quot;: [
-    ///             &quot;+44 1234567&quot;,
-    ///             &quot;+44 2345678&quot;
+    ///         "name": "John Doe",
+    ///         "age": 43,
+    ///         "phones": [
+    ///             "+44 1234567",
+    ///             "+44 2345678"
     ///         ]
-    ///      }&quot;#;
+    ///      }"#;
     ///
     /// let json: serde_json::Value = serde_json::from_str(data).unwrap();
     ///
@@ -377,13 +378,13 @@
     </span><span class="kw">pub fn </span>to_json(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;Value&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Null =&gt; <span class="prelude-val">Ok</span>(Value::Null),
-            <span class="self">Self</span>::Undefined =&gt; <span class="macro">todo!</span>(<span class="string">&quot;undefined to JSON&quot;</span>),
+            <span class="self">Self</span>::Undefined =&gt; <span class="macro">todo!</span>(<span class="string">"undefined to JSON"</span>),
             <span class="kw-2">&amp;</span><span class="self">Self</span>::Boolean(b) =&gt; <span class="prelude-val">Ok</span>(b.into()),
             <span class="self">Self</span>::String(string) =&gt; <span class="prelude-val">Ok</span>(string.to_std_string_escaped().into()),
             <span class="kw-2">&amp;</span><span class="self">Self</span>::Rational(rat) =&gt; <span class="prelude-val">Ok</span>(rat.into()),
             <span class="kw-2">&amp;</span><span class="self">Self</span>::Integer(int) =&gt; <span class="prelude-val">Ok</span>(int.into()),
             <span class="self">Self</span>::BigInt(_bigint) =&gt; <span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;cannot convert bigint to JSON&quot;</span>)
+                .with_message(<span class="string">"cannot convert bigint to JSON"</span>)
                 .into()),
             <span class="self">Self</span>::Object(obj) =&gt; {
                 <span class="kw">if </span>obj.is_array() {
@@ -408,7 +409,7 @@
                             PropertyKey::Index(i) =&gt; i.get().to_string(),
                             PropertyKey::Symbol(_sym) =&gt; {
                                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                                    .with_message(<span class="string">&quot;cannot convert Symbol to JSON&quot;</span>)
+                                    .with_message(<span class="string">"cannot convert Symbol to JSON"</span>)
                                     .into())
                             }
                         };
@@ -430,7 +431,7 @@
                 }
             }
             <span class="self">Self</span>::Symbol(_sym) =&gt; <span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;cannot convert Symbol to JSON&quot;</span>)
+                .with_message(<span class="string">"cannot convert Symbol to JSON"</span>)
                 .into()),
         }
     }
@@ -447,23 +448,23 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>json_conversions() {
-        <span class="kw">const </span>DATA: <span class="kw-2">&amp;</span>str = <span class="macro">indoc! </span>{<span class="string">r#&quot;
+        <span class="kw">const </span>DATA: <span class="kw-2">&amp;</span>str = <span class="macro">indoc! </span>{<span class="string">r#"
             {
-                &quot;name&quot;: &quot;John Doe&quot;,
-                &quot;age&quot;: 43,
-                &quot;minor&quot;: false,
-                &quot;adult&quot;: true,
-                &quot;extra&quot;: {
-                    &quot;address&quot;: null
+                "name": "John Doe",
+                "age": 43,
+                "minor": false,
+                "adult": true,
+                "extra": {
+                    "address": null
                 },
-                &quot;phones&quot;: [
-                    &quot;+44 1234567&quot;,
+                "phones": [
+                    "+44 1234567",
                     -45,
                     {},
                     true
                 ]
             }
-        &quot;#</span>};
+        "#</span>};
 
         run_test_actions([TestAction::inspect_context(|ctx| {
             <span class="kw">let </span>json: serde_json::Value = serde_json::from_str(DATA).unwrap();
@@ -472,23 +473,23 @@
             <span class="kw">let </span>value = JsValue::from_json(<span class="kw-2">&amp;</span>json, ctx).unwrap();
             <span class="kw">let </span>obj = value.as_object().unwrap();
             <span class="macro">assert_eq!</span>(
-                obj.get(<span class="macro">utf16!</span>(<span class="string">&quot;name&quot;</span>), ctx).unwrap(),
-                <span class="macro">js_string!</span>(<span class="string">&quot;John Doe&quot;</span>).into()
+                obj.get(<span class="macro">utf16!</span>(<span class="string">"name"</span>), ctx).unwrap(),
+                <span class="macro">js_string!</span>(<span class="string">"John Doe"</span>).into()
             );
-            <span class="macro">assert_eq!</span>(obj.get(<span class="macro">utf16!</span>(<span class="string">&quot;age&quot;</span>), ctx).unwrap(), <span class="number">43_i32</span>.into());
-            <span class="macro">assert_eq!</span>(obj.get(<span class="macro">utf16!</span>(<span class="string">&quot;minor&quot;</span>), ctx).unwrap(), <span class="bool-val">false</span>.into());
-            <span class="macro">assert_eq!</span>(obj.get(<span class="macro">utf16!</span>(<span class="string">&quot;adult&quot;</span>), ctx).unwrap(), <span class="bool-val">true</span>.into());
+            <span class="macro">assert_eq!</span>(obj.get(<span class="macro">utf16!</span>(<span class="string">"age"</span>), ctx).unwrap(), <span class="number">43_i32</span>.into());
+            <span class="macro">assert_eq!</span>(obj.get(<span class="macro">utf16!</span>(<span class="string">"minor"</span>), ctx).unwrap(), <span class="bool-val">false</span>.into());
+            <span class="macro">assert_eq!</span>(obj.get(<span class="macro">utf16!</span>(<span class="string">"adult"</span>), ctx).unwrap(), <span class="bool-val">true</span>.into());
             {
-                <span class="kw">let </span>extra = obj.get(<span class="macro">utf16!</span>(<span class="string">&quot;extra&quot;</span>), ctx).unwrap();
+                <span class="kw">let </span>extra = obj.get(<span class="macro">utf16!</span>(<span class="string">"extra"</span>), ctx).unwrap();
                 <span class="kw">let </span>extra = extra.as_object().unwrap();
-                <span class="macro">assert!</span>(extra.get(<span class="macro">utf16!</span>(<span class="string">&quot;address&quot;</span>), ctx).unwrap().is_null());
+                <span class="macro">assert!</span>(extra.get(<span class="macro">utf16!</span>(<span class="string">"address"</span>), ctx).unwrap().is_null());
             }
             {
-                <span class="kw">let </span>phones = obj.get(<span class="macro">utf16!</span>(<span class="string">&quot;phones&quot;</span>), ctx).unwrap();
+                <span class="kw">let </span>phones = obj.get(<span class="macro">utf16!</span>(<span class="string">"phones"</span>), ctx).unwrap();
                 <span class="kw">let </span>phones = phones.as_object().unwrap();
 
                 <span class="kw">let </span>arr = JsArray::from_object(phones.clone()).unwrap();
-                <span class="macro">assert_eq!</span>(arr.at(<span class="number">0</span>, ctx).unwrap(), <span class="macro">js_string!</span>(<span class="string">&quot;+44 1234567&quot;</span>).into());
+                <span class="macro">assert_eq!</span>(arr.at(<span class="number">0</span>, ctx).unwrap(), <span class="macro">js_string!</span>(<span class="string">"+44 1234567"</span>).into());
                 <span class="macro">assert_eq!</span>(arr.at(<span class="number">1</span>, ctx).unwrap(), JsValue::from(-<span class="number">45_i32</span>));
                 <span class="macro">assert!</span>(arr.at(<span class="number">2</span>, ctx).unwrap().is_object());
                 <span class="macro">assert_eq!</span>(arr.at(<span class="number">3</span>, ctx).unwrap(), <span class="bool-val">true</span>.into());
@@ -501,22 +502,22 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>integer_ops_to_json() {
         run_test_actions([
-            TestAction::assert_with_op(<span class="string">&quot;1000000 + 500&quot;</span>, |v, ctx| {
+            TestAction::assert_with_op(<span class="string">"1000000 + 500"</span>, |v, ctx| {
                 v.to_json(ctx).unwrap() == <span class="macro">json!</span>(<span class="number">1_000_500</span>)
             }),
-            TestAction::assert_with_op(<span class="string">&quot;1000000 - 500&quot;</span>, |v, ctx| {
+            TestAction::assert_with_op(<span class="string">"1000000 - 500"</span>, |v, ctx| {
                 v.to_json(ctx).unwrap() == <span class="macro">json!</span>(<span class="number">999_500</span>)
             }),
-            TestAction::assert_with_op(<span class="string">&quot;1000000 * 500&quot;</span>, |v, ctx| {
+            TestAction::assert_with_op(<span class="string">"1000000 * 500"</span>, |v, ctx| {
                 v.to_json(ctx).unwrap() == <span class="macro">json!</span>(<span class="number">500_000_000</span>)
             }),
-            TestAction::assert_with_op(<span class="string">&quot;1000000 / 500&quot;</span>, |v, ctx| {
+            TestAction::assert_with_op(<span class="string">"1000000 / 500"</span>, |v, ctx| {
                 v.to_json(ctx).unwrap() == <span class="macro">json!</span>(<span class="number">2_000</span>)
             }),
-            TestAction::assert_with_op(<span class="string">&quot;233894 % 500&quot;</span>, |v, ctx| {
+            TestAction::assert_with_op(<span class="string">"233894 % 500"</span>, |v, ctx| {
                 v.to_json(ctx).unwrap() == <span class="macro">json!</span>(<span class="number">394</span>)
             }),
-            TestAction::assert_with_op(<span class="string">&quot;36 ** 5&quot;</span>, |v, ctx| {
+            TestAction::assert_with_op(<span class="string">"36 ** 5"</span>, |v, ctx| {
                 v.to_json(ctx).unwrap() == <span class="macro">json!</span>(<span class="number">60_466_176</span>)
             }),
         ]);

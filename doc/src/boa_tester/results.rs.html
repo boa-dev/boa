@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `tests/tester/src/results.rs`."><title>results.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="boa_tester" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../boa_tester/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_tester"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `tests/tester/src/results.rs`."><title>results.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="boa_tester" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../boa_tester/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_tester"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -520,24 +521,24 @@
 <span class="doccomment">/// Structure to store full result information.
 </span><span class="attr">#[derive(Debug, Clone, Deserialize, Serialize)]
 </span><span class="kw">struct </span>ResultInfo {
-    <span class="attr">#[serde(rename = <span class="string">&quot;c&quot;</span>)]
+    <span class="attr">#[serde(rename = <span class="string">"c"</span>)]
     </span>commit: Box&lt;str&gt;,
-    <span class="attr">#[serde(rename = <span class="string">&quot;u&quot;</span>)]
+    <span class="attr">#[serde(rename = <span class="string">"u"</span>)]
     </span>test262_commit: Box&lt;str&gt;,
-    <span class="attr">#[serde(rename = <span class="string">&quot;r&quot;</span>)]
+    <span class="attr">#[serde(rename = <span class="string">"r"</span>)]
     </span>results: SuiteResult,
 }
 
 <span class="doccomment">/// Structure to store full result information.
 </span><span class="attr">#[derive(Debug, Clone, Deserialize, Serialize)]
 </span><span class="kw">struct </span>ReducedResultInfo {
-    <span class="attr">#[serde(rename = <span class="string">&quot;c&quot;</span>)]
+    <span class="attr">#[serde(rename = <span class="string">"c"</span>)]
     </span>commit: Box&lt;str&gt;,
-    <span class="attr">#[serde(rename = <span class="string">&quot;u&quot;</span>)]
+    <span class="attr">#[serde(rename = <span class="string">"u"</span>)]
     </span>test262_commit: Box&lt;str&gt;,
-    <span class="attr">#[serde(rename = <span class="string">&quot;a&quot;</span>)]
+    <span class="attr">#[serde(rename = <span class="string">"a"</span>)]
     </span>stats: Statistics,
-    <span class="attr">#[serde(rename = <span class="string">&quot;av&quot;</span>, default)]
+    <span class="attr">#[serde(rename = <span class="string">"av"</span>, default)]
     </span>versioned_stats: VersionedStats,
 }
 
@@ -555,13 +556,13 @@
 
 <span class="attr">#[derive(Debug, Clone, Deserialize, Serialize)]
 </span><span class="kw">struct </span>FeaturesInfo {
-    <span class="attr">#[serde(rename = <span class="string">&quot;c&quot;</span>)]
+    <span class="attr">#[serde(rename = <span class="string">"c"</span>)]
     </span>commit: Box&lt;str&gt;,
-    <span class="attr">#[serde(rename = <span class="string">&quot;u&quot;</span>)]
+    <span class="attr">#[serde(rename = <span class="string">"u"</span>)]
     </span>test262_commit: Box&lt;str&gt;,
-    <span class="attr">#[serde(rename = <span class="string">&quot;n&quot;</span>)]
+    <span class="attr">#[serde(rename = <span class="string">"n"</span>)]
     </span>suite_name: Box&lt;str&gt;,
-    <span class="attr">#[serde(rename = <span class="string">&quot;f&quot;</span>)]
+    <span class="attr">#[serde(rename = <span class="string">"f"</span>)]
     </span>features: FxHashSet&lt;String&gt;,
 }
 
@@ -576,14 +577,14 @@
     }
 }
 
-<span class="doccomment">/// File name of the &quot;latest results&quot; JSON file.
-</span><span class="kw">const </span>LATEST_FILE_NAME: <span class="kw-2">&amp;</span>str = <span class="string">&quot;latest.json&quot;</span>;
+<span class="doccomment">/// File name of the "latest results" JSON file.
+</span><span class="kw">const </span>LATEST_FILE_NAME: <span class="kw-2">&amp;</span>str = <span class="string">"latest.json"</span>;
 
-<span class="doccomment">/// File name of the &quot;all results&quot; JSON file.
-</span><span class="kw">const </span>RESULTS_FILE_NAME: <span class="kw-2">&amp;</span>str = <span class="string">&quot;results.json&quot;</span>;
+<span class="doccomment">/// File name of the "all results" JSON file.
+</span><span class="kw">const </span>RESULTS_FILE_NAME: <span class="kw-2">&amp;</span>str = <span class="string">"results.json"</span>;
 
-<span class="doccomment">/// File name of the &quot;features&quot; JSON file.
-</span><span class="kw">const </span>FEATURES_FILE_NAME: <span class="kw-2">&amp;</span>str = <span class="string">&quot;features.json&quot;</span>;
+<span class="doccomment">/// File name of the "features" JSON file.
+</span><span class="kw">const </span>FEATURES_FILE_NAME: <span class="kw-2">&amp;</span>str = <span class="string">"features.json"</span>;
 
 <span class="doccomment">/// Writes the results of running the test suite to the given JSON output file.
 ///
@@ -594,9 +595,9 @@
     verbose: u8,
     test262_path: <span class="kw-2">&amp;</span>Path,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-    <span class="kw">let </span><span class="kw-2">mut </span>branch = env::var(<span class="string">&quot;GITHUB_REF&quot;</span>).unwrap_or_default();
-    <span class="kw">if </span>branch.starts_with(<span class="string">&quot;refs/pull&quot;</span>) {
-        branch = <span class="string">&quot;pull&quot;</span>.to_owned();
+    <span class="kw">let </span><span class="kw-2">mut </span>branch = env::var(<span class="string">"GITHUB_REF"</span>).unwrap_or_default();
+    <span class="kw">if </span>branch.starts_with(<span class="string">"refs/pull"</span>) {
+        branch = <span class="string">"pull"</span>.to_owned();
     }
 
     <span class="kw">let </span>output_dir = <span class="kw">if </span>branch.is_empty() {
@@ -611,7 +612,7 @@
     </span>update_gh_pages_repo(output_dir.as_path(), verbose);
 
     <span class="kw">if </span>verbose != <span class="number">0 </span>{
-        <span class="macro">println!</span>(<span class="string">&quot;Writing the results to {}...&quot;</span>, output_dir.display());
+        <span class="macro">println!</span>(<span class="string">"Writing the results to {}..."</span>, output_dir.display());
     }
 
     <span class="comment">// Write the latest results.
@@ -619,7 +620,7 @@
     </span><span class="kw">let </span>latest = output_dir.join(LATEST_FILE_NAME);
 
     <span class="kw">let </span>new_results = ResultInfo {
-        commit: env::var(<span class="string">&quot;GITHUB_SHA&quot;</span>).unwrap_or_default().into_boxed_str(),
+        commit: env::var(<span class="string">"GITHUB_SHA"</span>).unwrap_or_default().into_boxed_str(),
         test262_commit: get_test262_commit(test262_path)<span class="question-mark">?</span>,
         results,
     };
@@ -643,7 +644,7 @@
     serde_json::to_writer(output, <span class="kw-2">&amp;</span>all_results)<span class="question-mark">?</span>;
 
     <span class="kw">if </span>verbose != <span class="number">0 </span>{
-        <span class="macro">println!</span>(<span class="string">&quot;Results written correctly&quot;</span>);
+        <span class="macro">println!</span>(<span class="string">"Results written correctly"</span>);
     }
 
     <span class="comment">// Write the full list of features, existing features go first.
@@ -662,7 +663,7 @@
     serde_json::to_writer(features, <span class="kw-2">&amp;</span>all_features)<span class="question-mark">?</span>;
 
     <span class="kw">if </span>verbose != <span class="number">0 </span>{
-        <span class="macro">println!</span>(<span class="string">&quot;Features written correctly&quot;</span>);
+        <span class="macro">println!</span>(<span class="string">"Features written correctly"</span>);
     }
 
     <span class="prelude-val">Ok</span>(())
@@ -670,7 +671,7 @@
 
 <span class="doccomment">/// Gets the commit OID of the test262 submodule.
 </span><span class="kw">fn </span>get_test262_commit(test262_path: <span class="kw-2">&amp;</span>Path) -&gt; <span class="prelude-ty">Result</span>&lt;Box&lt;str&gt;&gt; {
-    <span class="kw">let </span>main_head_path = test262_path.join(<span class="string">&quot;.git/refs/heads/main&quot;</span>);
+    <span class="kw">let </span>main_head_path = test262_path.join(<span class="string">".git/refs/heads/main"</span>);
     <span class="kw">let </span><span class="kw-2">mut </span>commit_id = fs::read_to_string(main_head_path)<span class="question-mark">?</span>;
     <span class="comment">// Remove newline.
     </span>commit_id.pop();
@@ -679,28 +680,28 @@
 
 <span class="doccomment">/// Updates the GitHub pages repository by pulling latest changes before writing the new things.
 </span><span class="kw">fn </span>update_gh_pages_repo(path: <span class="kw-2">&amp;</span>Path, verbose: u8) {
-    <span class="kw">if </span>env::var(<span class="string">&quot;GITHUB_REF&quot;</span>).is_ok() {
+    <span class="kw">if </span>env::var(<span class="string">"GITHUB_REF"</span>).is_ok() {
         <span class="kw">use </span>std::process::Command;
 
         <span class="comment">// We run the command to pull the gh-pages branch: git -C ../gh-pages/ pull origin
-        </span>Command::new(<span class="string">&quot;git&quot;</span>)
-            .args([<span class="string">&quot;-C&quot;</span>, <span class="string">&quot;../gh-pages&quot;</span>, <span class="string">&quot;pull&quot;</span>, <span class="string">&quot;--ff-only&quot;</span>])
+        </span>Command::new(<span class="string">"git"</span>)
+            .args([<span class="string">"-C"</span>, <span class="string">"../gh-pages"</span>, <span class="string">"pull"</span>, <span class="string">"--ff-only"</span>])
             .output()
-            .expect(<span class="string">&quot;could not update GitHub Pages&quot;</span>);
+            .expect(<span class="string">"could not update GitHub Pages"</span>);
 
         <span class="comment">// Copy the full results file
-        </span><span class="kw">let </span>from = Path::new(<span class="string">&quot;../gh-pages/test262/refs/heads/main/&quot;</span>).join(RESULTS_FILE_NAME);
+        </span><span class="kw">let </span>from = Path::new(<span class="string">"../gh-pages/test262/refs/heads/main/"</span>).join(RESULTS_FILE_NAME);
         <span class="kw">let </span>to = path.join(RESULTS_FILE_NAME);
 
         <span class="kw">if </span>verbose != <span class="number">0 </span>{
             <span class="macro">println!</span>(
-                <span class="string">&quot;Copying the {} file to {} in order to add the results&quot;</span>,
+                <span class="string">"Copying the {} file to {} in order to add the results"</span>,
                 from.display(),
                 to.display()
             );
         }
 
-        fs::copy(from, to).expect(<span class="string">&quot;could not copy the main results file&quot;</span>);
+        fs::copy(from, to).expect(<span class="string">"could not copy the main results file"</span>);
     }
 }
 
@@ -708,14 +709,14 @@
 </span><span class="attr">#[allow(clippy::cast_possible_wrap)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compare_results(base: <span class="kw-2">&amp;</span>Path, new: <span class="kw-2">&amp;</span>Path, markdown: bool) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
     <span class="kw">let </span>base_results: ResultInfo = serde_json::from_reader(BufReader::new(
-        fs::File::open(base).wrap_err(<span class="string">&quot;could not open the base results file&quot;</span>)<span class="question-mark">?</span>,
+        fs::File::open(base).wrap_err(<span class="string">"could not open the base results file"</span>)<span class="question-mark">?</span>,
     ))
-    .wrap_err(<span class="string">&quot;could not read the base results&quot;</span>)<span class="question-mark">?</span>;
+    .wrap_err(<span class="string">"could not read the base results"</span>)<span class="question-mark">?</span>;
 
     <span class="kw">let </span>new_results: ResultInfo = serde_json::from_reader(BufReader::new(
-        fs::File::open(new).wrap_err(<span class="string">&quot;could not open the new results file&quot;</span>)<span class="question-mark">?</span>,
+        fs::File::open(new).wrap_err(<span class="string">"could not open the new results file"</span>)<span class="question-mark">?</span>,
     ))
-    .wrap_err(<span class="string">&quot;could not read the new results&quot;</span>)<span class="question-mark">?</span>;
+    .wrap_err(<span class="string">"could not read the new results"</span>)<span class="question-mark">?</span>;
 
     <span class="kw">let </span>base_total = base_results.results.stats.total <span class="kw">as </span>isize;
     <span class="kw">let </span>new_total = new_results.results.stats.total <span class="kw">as </span>isize;
@@ -741,7 +742,7 @@
     <span class="kw">let </span>new_conformance = (new_passed <span class="kw">as </span>f64 / new_total <span class="kw">as </span>f64) * <span class="number">100_f64</span>;
     <span class="kw">let </span>conformance_diff = new_conformance - base_conformance;
 
-    <span class="kw">let </span>test_diff = compute_result_diff(Path::new(<span class="string">&quot;&quot;</span>), <span class="kw-2">&amp;</span>base_results.results, <span class="kw-2">&amp;</span>new_results.results);
+    <span class="kw">let </span>test_diff = compute_result_diff(Path::new(<span class="string">""</span>), <span class="kw-2">&amp;</span>base_results.results, <span class="kw-2">&amp;</span>new_results.results);
 
     <span class="kw">if </span>markdown {
         <span class="doccomment">/// Simple function to add commas as thousands separator for integers.
@@ -750,7 +751,7 @@
 
             <span class="kw">for </span>(idx, val) <span class="kw">in </span>i.abs().to_string().chars().rev().enumerate() {
                 <span class="kw">if </span>idx != <span class="number">0 </span>&amp;&amp; idx % <span class="number">3 </span>== <span class="number">0 </span>{
-                    res.insert(<span class="number">0</span>, <span class="string">&#39;,&#39;</span>);
+                    res.insert(<span class="number">0</span>, <span class="string">','</span>);
                 }
                 res.insert(<span class="number">0</span>, val);
             }
@@ -760,174 +761,174 @@
         <span class="doccomment">/// Generates a proper diff format, with some bold text if things change.
         </span><span class="kw">fn </span>diff_format(diff: isize) -&gt; String {
             <span class="macro">format!</span>(
-                <span class="string">&quot;{}{}{}{}&quot;</span>,
-                <span class="kw">if </span>diff == <span class="number">0 </span>{ <span class="string">&quot;&quot; </span>} <span class="kw">else </span>{ <span class="string">&quot;**&quot; </span>},
+                <span class="string">"{}{}{}{}"</span>,
+                <span class="kw">if </span>diff == <span class="number">0 </span>{ <span class="string">"" </span>} <span class="kw">else </span>{ <span class="string">"**" </span>},
                 <span class="kw">if </span>diff.is_positive() {
-                    <span class="string">&quot;+&quot;
+                    <span class="string">"+"
                 </span>} <span class="kw">else if </span>diff.is_negative() {
-                    <span class="string">&quot;-&quot;
+                    <span class="string">"-"
                 </span>} <span class="kw">else </span>{
-                    <span class="string">&quot;&quot;
+                    <span class="string">""
                 </span>},
                 pretty_int(diff),
-                <span class="kw">if </span>diff == <span class="number">0 </span>{ <span class="string">&quot;&quot; </span>} <span class="kw">else </span>{ <span class="string">&quot;**&quot; </span>}
+                <span class="kw">if </span>diff == <span class="number">0 </span>{ <span class="string">"" </span>} <span class="kw">else </span>{ <span class="string">"**" </span>}
             )
         }
 
-        <span class="macro">println!</span>(<span class="string">&quot;| Test result | main count | PR count | difference |&quot;</span>);
-        <span class="macro">println!</span>(<span class="string">&quot;| :---------: | :----------: | :------: | :--------: |&quot;</span>);
+        <span class="macro">println!</span>(<span class="string">"| Test result | main count | PR count | difference |"</span>);
+        <span class="macro">println!</span>(<span class="string">"| :---------: | :----------: | :------: | :--------: |"</span>);
         <span class="macro">println!</span>(
-            <span class="string">&quot;| Total | {} | {} | {} |&quot;</span>,
+            <span class="string">"| Total | {} | {} | {} |"</span>,
             pretty_int(base_total),
             pretty_int(new_total),
             diff_format(total_diff),
         );
         <span class="macro">println!</span>(
-            <span class="string">&quot;| Passed | {} | {} | {} |&quot;</span>,
+            <span class="string">"| Passed | {} | {} | {} |"</span>,
             pretty_int(base_passed),
             pretty_int(new_passed),
             diff_format(passed_diff),
         );
         <span class="macro">println!</span>(
-            <span class="string">&quot;| Ignored | {} | {} | {} |&quot;</span>,
+            <span class="string">"| Ignored | {} | {} | {} |"</span>,
             pretty_int(base_ignored),
             pretty_int(new_ignored),
             diff_format(ignored_diff),
         );
         <span class="macro">println!</span>(
-            <span class="string">&quot;| Failed | {} | {} | {} |&quot;</span>,
+            <span class="string">"| Failed | {} | {} | {} |"</span>,
             pretty_int(base_failed),
             pretty_int(new_failed),
             diff_format(failed_diff),
         );
         <span class="macro">println!</span>(
-            <span class="string">&quot;| Panics | {} | {} | {} |&quot;</span>,
+            <span class="string">"| Panics | {} | {} | {} |"</span>,
             pretty_int(base_panics),
             pretty_int(new_panics),
             diff_format(panic_diff),
         );
         <span class="macro">println!</span>(
-            <span class="string">&quot;| Conformance | {:.2}% | {:.2}% | {}{}{:.2}%{} |&quot;</span>,
+            <span class="string">"| Conformance | {:.2}% | {:.2}% | {}{}{:.2}%{} |"</span>,
             base_conformance,
             new_conformance,
             <span class="kw">if </span>conformance_diff.abs() &gt; f64::EPSILON {
-                <span class="string">&quot;**&quot;
+                <span class="string">"**"
             </span>} <span class="kw">else </span>{
-                <span class="string">&quot;&quot;
+                <span class="string">""
             </span>},
-            <span class="kw">if </span>conformance_diff &gt; <span class="number">0_f64 </span>{ <span class="string">&quot;+&quot; </span>} <span class="kw">else </span>{ <span class="string">&quot;&quot; </span>},
+            <span class="kw">if </span>conformance_diff &gt; <span class="number">0_f64 </span>{ <span class="string">"+" </span>} <span class="kw">else </span>{ <span class="string">"" </span>},
             conformance_diff,
             <span class="kw">if </span>conformance_diff.abs() &gt; f64::EPSILON {
-                <span class="string">&quot;**&quot;
+                <span class="string">"**"
             </span>} <span class="kw">else </span>{
-                <span class="string">&quot;&quot;
+                <span class="string">""
             </span>},
         );
 
         <span class="kw">if </span>!test_diff.fixed.is_empty() {
             <span class="macro">println!</span>();
             <span class="macro">println!</span>(
-                <span class="string">&quot;&lt;details&gt;&lt;summary&gt;&lt;b&gt;Fixed tests ({}):&lt;/b&gt;&lt;/summary&gt;&quot;</span>,
+                <span class="string">"&lt;details&gt;&lt;summary&gt;&lt;b&gt;Fixed tests ({}):&lt;/b&gt;&lt;/summary&gt;"</span>,
                 test_diff.fixed.len()
             );
-            <span class="macro">println!</span>(<span class="string">&quot;\n```&quot;</span>);
+            <span class="macro">println!</span>(<span class="string">"\n```"</span>);
             <span class="kw">for </span>test <span class="kw">in </span>test_diff.fixed {
-                <span class="macro">println!</span>(<span class="string">&quot;{test}&quot;</span>);
+                <span class="macro">println!</span>(<span class="string">"{test}"</span>);
             }
-            <span class="macro">println!</span>(<span class="string">&quot;```&quot;</span>);
-            <span class="macro">println!</span>(<span class="string">&quot;&lt;/details&gt;&quot;</span>);
+            <span class="macro">println!</span>(<span class="string">"```"</span>);
+            <span class="macro">println!</span>(<span class="string">"&lt;/details&gt;"</span>);
         }
 
         <span class="kw">if </span>!test_diff.broken.is_empty() {
             <span class="macro">println!</span>();
             <span class="macro">println!</span>(
-                <span class="string">&quot;&lt;details&gt;&lt;summary&gt;&lt;b&gt;Broken tests ({}):&lt;/b&gt;&lt;/summary&gt;&quot;</span>,
+                <span class="string">"&lt;details&gt;&lt;summary&gt;&lt;b&gt;Broken tests ({}):&lt;/b&gt;&lt;/summary&gt;"</span>,
                 test_diff.broken.len()
             );
-            <span class="macro">println!</span>(<span class="string">&quot;\n```&quot;</span>);
+            <span class="macro">println!</span>(<span class="string">"\n```"</span>);
             <span class="kw">for </span>test <span class="kw">in </span>test_diff.broken {
-                <span class="macro">println!</span>(<span class="string">&quot;{test}&quot;</span>);
+                <span class="macro">println!</span>(<span class="string">"{test}"</span>);
             }
-            <span class="macro">println!</span>(<span class="string">&quot;```&quot;</span>);
-            <span class="macro">println!</span>(<span class="string">&quot;&lt;/details&gt;&quot;</span>);
+            <span class="macro">println!</span>(<span class="string">"```"</span>);
+            <span class="macro">println!</span>(<span class="string">"&lt;/details&gt;"</span>);
         }
 
         <span class="kw">if </span>!test_diff.new_panics.is_empty() {
             <span class="macro">println!</span>();
             <span class="macro">println!</span>(
-                <span class="string">&quot;&lt;details&gt;&lt;summary&gt;&lt;b&gt;New panics ({}):&lt;/b&gt;&lt;/summary&gt;&quot;</span>,
+                <span class="string">"&lt;details&gt;&lt;summary&gt;&lt;b&gt;New panics ({}):&lt;/b&gt;&lt;/summary&gt;"</span>,
                 test_diff.new_panics.len()
             );
-            <span class="macro">println!</span>(<span class="string">&quot;\n```&quot;</span>);
+            <span class="macro">println!</span>(<span class="string">"\n```"</span>);
             <span class="kw">for </span>test <span class="kw">in </span>test_diff.new_panics {
-                <span class="macro">println!</span>(<span class="string">&quot;{test}&quot;</span>);
+                <span class="macro">println!</span>(<span class="string">"{test}"</span>);
             }
-            <span class="macro">println!</span>(<span class="string">&quot;```&quot;</span>);
-            <span class="macro">println!</span>(<span class="string">&quot;&lt;/details&gt;&quot;</span>);
+            <span class="macro">println!</span>(<span class="string">"```"</span>);
+            <span class="macro">println!</span>(<span class="string">"&lt;/details&gt;"</span>);
         }
 
         <span class="kw">if </span>!test_diff.panic_fixes.is_empty() {
             <span class="macro">println!</span>();
             <span class="macro">println!</span>(
-                <span class="string">&quot;&lt;details&gt;&lt;summary&gt;&lt;b&gt;Fixed panics ({}):&lt;/b&gt;&lt;/summary&gt;&quot;</span>,
+                <span class="string">"&lt;details&gt;&lt;summary&gt;&lt;b&gt;Fixed panics ({}):&lt;/b&gt;&lt;/summary&gt;"</span>,
                 test_diff.panic_fixes.len()
             );
-            <span class="macro">println!</span>(<span class="string">&quot;\n```&quot;</span>);
+            <span class="macro">println!</span>(<span class="string">"\n```"</span>);
             <span class="kw">for </span>test <span class="kw">in </span>test_diff.panic_fixes {
-                <span class="macro">println!</span>(<span class="string">&quot;{test}&quot;</span>);
+                <span class="macro">println!</span>(<span class="string">"{test}"</span>);
             }
-            <span class="macro">println!</span>(<span class="string">&quot;```&quot;</span>);
-            <span class="macro">println!</span>(<span class="string">&quot;&lt;/details&gt;&quot;</span>);
+            <span class="macro">println!</span>(<span class="string">"```"</span>);
+            <span class="macro">println!</span>(<span class="string">"&lt;/details&gt;"</span>);
         }
     } <span class="kw">else </span>{
-        <span class="macro">println!</span>(<span class="string">&quot;Test262 conformance changes:&quot;</span>);
-        <span class="macro">println!</span>(<span class="string">&quot;| Test result | main |    PR   | difference |&quot;</span>);
+        <span class="macro">println!</span>(<span class="string">"Test262 conformance changes:"</span>);
+        <span class="macro">println!</span>(<span class="string">"| Test result | main |    PR   | difference |"</span>);
         <span class="macro">println!</span>(
-            <span class="string">&quot;|    Passed   | {base_passed:^6} | {new_passed:^5} | {:^10} |&quot;</span>,
+            <span class="string">"|    Passed   | {base_passed:^6} | {new_passed:^5} | {:^10} |"</span>,
             base_passed - new_passed
         );
         <span class="macro">println!</span>(
-            <span class="string">&quot;|   Ignored   | {base_ignored:^6} | {new_ignored:^5} | {:^10} |&quot;</span>,
+            <span class="string">"|   Ignored   | {base_ignored:^6} | {new_ignored:^5} | {:^10} |"</span>,
             base_ignored - new_ignored
         );
         <span class="macro">println!</span>(
-            <span class="string">&quot;|   Failed    | {base_failed:^6} | {new_failed:^5} | {:^10} |&quot;</span>,
+            <span class="string">"|   Failed    | {base_failed:^6} | {new_failed:^5} | {:^10} |"</span>,
             base_failed - new_failed,
         );
         <span class="macro">println!</span>(
-            <span class="string">&quot;|   Panics    | {base_panics:^6} | {new_panics:^5} | {:^10} |&quot;</span>,
+            <span class="string">"|   Panics    | {base_panics:^6} | {new_panics:^5} | {:^10} |"</span>,
             base_panics - new_panics
         );
 
         <span class="kw">if </span>!test_diff.fixed.is_empty() {
             <span class="macro">println!</span>();
-            <span class="macro">println!</span>(<span class="string">&quot;Fixed tests ({}):&quot;</span>, test_diff.fixed.len());
+            <span class="macro">println!</span>(<span class="string">"Fixed tests ({}):"</span>, test_diff.fixed.len());
             <span class="kw">for </span>test <span class="kw">in </span>test_diff.fixed {
-                <span class="macro">println!</span>(<span class="string">&quot;{test}&quot;</span>);
+                <span class="macro">println!</span>(<span class="string">"{test}"</span>);
             }
         }
 
         <span class="kw">if </span>!test_diff.broken.is_empty() {
             <span class="macro">println!</span>();
-            <span class="macro">println!</span>(<span class="string">&quot;Broken tests ({}):&quot;</span>, test_diff.broken.len());
+            <span class="macro">println!</span>(<span class="string">"Broken tests ({}):"</span>, test_diff.broken.len());
             <span class="kw">for </span>test <span class="kw">in </span>test_diff.broken {
-                <span class="macro">println!</span>(<span class="string">&quot;{test}&quot;</span>);
+                <span class="macro">println!</span>(<span class="string">"{test}"</span>);
             }
         }
 
         <span class="kw">if </span>!test_diff.new_panics.is_empty() {
             <span class="macro">println!</span>();
-            <span class="macro">println!</span>(<span class="string">&quot;New panics ({}):&quot;</span>, test_diff.new_panics.len());
+            <span class="macro">println!</span>(<span class="string">"New panics ({}):"</span>, test_diff.new_panics.len());
             <span class="kw">for </span>test <span class="kw">in </span>test_diff.new_panics {
-                <span class="macro">println!</span>(<span class="string">&quot;{test}&quot;</span>);
+                <span class="macro">println!</span>(<span class="string">"{test}"</span>);
             }
         }
 
         <span class="kw">if </span>!test_diff.panic_fixes.is_empty() {
             <span class="macro">println!</span>();
-            <span class="macro">println!</span>(<span class="string">&quot;Fixed panics ({}):&quot;</span>, test_diff.panic_fixes.len());
+            <span class="macro">println!</span>(<span class="string">"Fixed panics ({}):"</span>, test_diff.panic_fixes.len());
             <span class="kw">for </span>test <span class="kw">in </span>test_diff.panic_fixes {
-                <span class="macro">println!</span>(<span class="string">&quot;{test}&quot;</span>);
+                <span class="macro">println!</span>(<span class="string">"{test}"</span>);
             }
         }
     }
@@ -971,13 +972,13 @@
             .find(|new_test| new_test.strict == base_test.strict &amp;&amp; new_test.name == base_test.name)
         {
             <span class="kw">let </span>test_name = <span class="macro">format!</span>(
-                <span class="string">&quot;test/{}/{}.js {}(previously {:?})&quot;</span>,
+                <span class="string">"test/{}/{}.js {}(previously {:?})"</span>,
                 base.display(),
                 new_test.name,
                 <span class="kw">if </span>base_test.strict {
-                    <span class="string">&quot;[strict mode] &quot;
+                    <span class="string">"[strict mode] "
                 </span>} <span class="kw">else </span>{
-                    <span class="string">&quot;&quot;
+                    <span class="string">""
                 </span>},
                 base_test.result
             )

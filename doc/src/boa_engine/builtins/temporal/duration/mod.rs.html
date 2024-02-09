@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/builtins/temporal/duration/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/builtins/temporal/duration/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1109,7 +1110,7 @@
 <a href="#1109" id="1109">1109</a>
 <a href="#1110" id="1110">1110</a>
 <a href="#1111" id="1111">1111</a>
-</pre></div><pre class="rust"><code><span class="comment">// Boa&#39;s implementation of the `Temporal.Duration` Builtin Object.
+</pre></div><pre class="rust"><code><span class="comment">// Boa's implementation of the `Temporal.Duration` Builtin Object.
 
 </span><span class="kw">use crate</span>::{
     builtins::{
@@ -1161,54 +1162,54 @@
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>Duration {
     <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(std::any::type_name::&lt;<span class="self">Self</span>&gt;(), <span class="string">&quot;init&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(std::any::type_name::&lt;<span class="self">Self</span>&gt;(), <span class="string">"init"</span>);
 
         <span class="kw">let </span>get_years = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_years)
-            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get Years&quot;</span>))
+            .name(<span class="macro">js_string!</span>(<span class="string">"get Years"</span>))
             .build();
 
         <span class="kw">let </span>get_months = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_months)
-            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get Months&quot;</span>))
+            .name(<span class="macro">js_string!</span>(<span class="string">"get Months"</span>))
             .build();
 
         <span class="kw">let </span>get_weeks = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_weeks)
-            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get Weeks&quot;</span>))
+            .name(<span class="macro">js_string!</span>(<span class="string">"get Weeks"</span>))
             .build();
 
         <span class="kw">let </span>get_days = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_days)
-            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get Days&quot;</span>))
+            .name(<span class="macro">js_string!</span>(<span class="string">"get Days"</span>))
             .build();
 
         <span class="kw">let </span>get_hours = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_hours)
-            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get Hours&quot;</span>))
+            .name(<span class="macro">js_string!</span>(<span class="string">"get Hours"</span>))
             .build();
 
         <span class="kw">let </span>get_minutes = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_minutes)
-            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get Minutes&quot;</span>))
+            .name(<span class="macro">js_string!</span>(<span class="string">"get Minutes"</span>))
             .build();
 
         <span class="kw">let </span>get_seconds = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_seconds)
-            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get Seconds&quot;</span>))
+            .name(<span class="macro">js_string!</span>(<span class="string">"get Seconds"</span>))
             .build();
 
         <span class="kw">let </span>get_milliseconds = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_milliseconds)
-            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get Milliseconds&quot;</span>))
+            .name(<span class="macro">js_string!</span>(<span class="string">"get Milliseconds"</span>))
             .build();
 
         <span class="kw">let </span>get_microseconds = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_microseconds)
-            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get Microseconds&quot;</span>))
+            .name(<span class="macro">js_string!</span>(<span class="string">"get Microseconds"</span>))
             .build();
 
         <span class="kw">let </span>get_nanoseconds = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_nanoseconds)
-            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get Nanoseconds&quot;</span>))
+            .name(<span class="macro">js_string!</span>(<span class="string">"get Nanoseconds"</span>))
             .build();
 
         <span class="kw">let </span>get_sign = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_sign)
-            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get Sign&quot;</span>))
+            .name(<span class="macro">js_string!</span>(<span class="string">"get Sign"</span>))
             .build();
 
         <span class="kw">let </span>is_blank = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_blank)
-            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get blank&quot;</span>))
+            .name(<span class="macro">js_string!</span>(<span class="string">"get blank"</span>))
             .build();
 
         BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
@@ -1218,86 +1219,86 @@
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .accessor(
-                <span class="macro">utf16!</span>(<span class="string">&quot;years&quot;</span>),
+                <span class="macro">utf16!</span>(<span class="string">"years"</span>),
                 <span class="prelude-val">Some</span>(get_years),
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                <span class="macro">utf16!</span>(<span class="string">&quot;months&quot;</span>),
+                <span class="macro">utf16!</span>(<span class="string">"months"</span>),
                 <span class="prelude-val">Some</span>(get_months),
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                <span class="macro">utf16!</span>(<span class="string">&quot;weeks&quot;</span>),
+                <span class="macro">utf16!</span>(<span class="string">"weeks"</span>),
                 <span class="prelude-val">Some</span>(get_weeks),
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                <span class="macro">utf16!</span>(<span class="string">&quot;days&quot;</span>),
+                <span class="macro">utf16!</span>(<span class="string">"days"</span>),
                 <span class="prelude-val">Some</span>(get_days),
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                <span class="macro">utf16!</span>(<span class="string">&quot;hours&quot;</span>),
+                <span class="macro">utf16!</span>(<span class="string">"hours"</span>),
                 <span class="prelude-val">Some</span>(get_hours),
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                <span class="macro">utf16!</span>(<span class="string">&quot;minutes&quot;</span>),
+                <span class="macro">utf16!</span>(<span class="string">"minutes"</span>),
                 <span class="prelude-val">Some</span>(get_minutes),
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                <span class="macro">utf16!</span>(<span class="string">&quot;seconds&quot;</span>),
+                <span class="macro">utf16!</span>(<span class="string">"seconds"</span>),
                 <span class="prelude-val">Some</span>(get_seconds),
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                <span class="macro">utf16!</span>(<span class="string">&quot;milliseconds&quot;</span>),
+                <span class="macro">utf16!</span>(<span class="string">"milliseconds"</span>),
                 <span class="prelude-val">Some</span>(get_milliseconds),
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                <span class="macro">utf16!</span>(<span class="string">&quot;microseconds&quot;</span>),
+                <span class="macro">utf16!</span>(<span class="string">"microseconds"</span>),
                 <span class="prelude-val">Some</span>(get_microseconds),
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                <span class="macro">utf16!</span>(<span class="string">&quot;nanoseconds&quot;</span>),
+                <span class="macro">utf16!</span>(<span class="string">"nanoseconds"</span>),
                 <span class="prelude-val">Some</span>(get_nanoseconds),
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                <span class="macro">utf16!</span>(<span class="string">&quot;sign&quot;</span>),
+                <span class="macro">utf16!</span>(<span class="string">"sign"</span>),
                 <span class="prelude-val">Some</span>(get_sign),
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                <span class="macro">utf16!</span>(<span class="string">&quot;blank&quot;</span>),
+                <span class="macro">utf16!</span>(<span class="string">"blank"</span>),
                 <span class="prelude-val">Some</span>(is_blank),
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE,
             )
-            .method(<span class="self">Self</span>::with, <span class="macro">js_string!</span>(<span class="string">&quot;with&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::negated, <span class="macro">js_string!</span>(<span class="string">&quot;negated&quot;</span>), <span class="number">0</span>)
-            .method(<span class="self">Self</span>::abs, <span class="macro">js_string!</span>(<span class="string">&quot;abs&quot;</span>), <span class="number">0</span>)
-            .method(<span class="self">Self</span>::add, <span class="macro">js_string!</span>(<span class="string">&quot;add&quot;</span>), <span class="number">2</span>)
-            .method(<span class="self">Self</span>::subtract, <span class="macro">js_string!</span>(<span class="string">&quot;subtract&quot;</span>), <span class="number">2</span>)
-            .method(<span class="self">Self</span>::round, <span class="macro">js_string!</span>(<span class="string">&quot;round&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::total, <span class="macro">js_string!</span>(<span class="string">&quot;total&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::to_string, <span class="macro">js_string!</span>(<span class="string">&quot;toString&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::to_json, <span class="macro">js_string!</span>(<span class="string">&quot;toJSON&quot;</span>), <span class="number">0</span>)
+            .method(<span class="self">Self</span>::with, <span class="macro">js_string!</span>(<span class="string">"with"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::negated, <span class="macro">js_string!</span>(<span class="string">"negated"</span>), <span class="number">0</span>)
+            .method(<span class="self">Self</span>::abs, <span class="macro">js_string!</span>(<span class="string">"abs"</span>), <span class="number">0</span>)
+            .method(<span class="self">Self</span>::add, <span class="macro">js_string!</span>(<span class="string">"add"</span>), <span class="number">2</span>)
+            .method(<span class="self">Self</span>::subtract, <span class="macro">js_string!</span>(<span class="string">"subtract"</span>), <span class="number">2</span>)
+            .method(<span class="self">Self</span>::round, <span class="macro">js_string!</span>(<span class="string">"round"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::total, <span class="macro">js_string!</span>(<span class="string">"total"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::to_string, <span class="macro">js_string!</span>(<span class="string">"toString"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::to_json, <span class="macro">js_string!</span>(<span class="string">"toJSON"</span>), <span class="number">0</span>)
             .build();
     }
 
@@ -1321,7 +1322,7 @@
         </span><span class="kw">if </span>new_target.is_undefined() {
             <span class="comment">// a. Throw a TypeError exception.
             </span><span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;NewTarget cannot be undefined for Temporal.Duration constructor.&quot;</span>)
+                .with_message(<span class="string">"NewTarget cannot be undefined for Temporal.Duration constructor."</span>)
                 .into());
         }
 
@@ -1412,7 +1413,7 @@
             .as_object()
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message(<span class="string">&quot;this value must be a Duration object.&quot;</span>)
+                JsNativeError::typ().with_message(<span class="string">"this value must be a Duration object."</span>)
             })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>inner = <span class="kw-2">&amp;</span>duration.inner;
@@ -1429,7 +1430,7 @@
             DateTimeValues::Microsecond =&gt; <span class="prelude-val">Ok</span>(JsValue::Rational(inner.time().microseconds())),
             DateTimeValues::Nanosecond =&gt; <span class="prelude-val">Ok</span>(JsValue::Rational(inner.time().nanoseconds())),
             DateTimeValues::MonthCode =&gt; <span class="macro">unreachable!</span>(
-                <span class="string">&quot;Any other DateTimeValue fields on Duration would be an implementation error.&quot;
+                <span class="string">"Any other DateTimeValue fields on Duration would be an implementation error."
             </span>),
         }
     }
@@ -1492,7 +1493,7 @@
             .as_object()
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message(<span class="string">&quot;this value must be a Duration object.&quot;</span>)
+                JsNativeError::typ().with_message(<span class="string">"this value must be a Duration object."</span>)
             })<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Return 𝔽(! DurationSign(duration.[[Years]], duration.[[Months]], duration.[[Weeks]],
@@ -1509,7 +1510,7 @@
             .as_object()
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message(<span class="string">&quot;this value must be a Duration object.&quot;</span>)
+                JsNativeError::typ().with_message(<span class="string">"this value must be a Duration object."</span>)
             })<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Let sign be ! DurationSign(duration.[[Years]], duration.[[Months]], duration.[[Weeks]],
@@ -1541,7 +1542,7 @@
             .as_object()
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message(<span class="string">&quot;this value must be a Duration object.&quot;</span>)
+                JsNativeError::typ().with_message(<span class="string">"this value must be a Duration object."</span>)
             })<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Let temporalDurationLike be ? ToTemporalPartialDurationRecord(temporalDurationLike).
@@ -1672,7 +1673,7 @@
         // 3. Return ! CreateNegatedTemporalDuration(duration).
 
         </span><span class="prelude-val">Err</span>(JsNativeError::range()
-            .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
+            .with_message(<span class="string">"not yet implemented."</span>)
             .into())
     }
 
@@ -1687,7 +1688,7 @@
             .as_object()
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message(<span class="string">&quot;this value must be a Duration object.&quot;</span>)
+                JsNativeError::typ().with_message(<span class="string">"this value must be a Duration object."</span>)
             })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>abs = duration.inner.abs();
@@ -1698,14 +1699,14 @@
     <span class="doccomment">/// 7.3.18 `Temporal.Duration.prototype.add ( other [ , options ] )`
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>add(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="prelude-val">Err</span>(JsNativeError::range()
-            .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
+            .with_message(<span class="string">"not yet implemented."</span>)
             .into())
     }
 
     <span class="doccomment">/// 7.3.19 `Temporal.Duration.prototype.subtract ( other [ , options ] )`
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>subtract(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="prelude-val">Err</span>(JsNativeError::range()
-            .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
+            .with_message(<span class="string">"not yet implemented."</span>)
             .into())
     }
 
@@ -1722,14 +1723,14 @@
             .as_object()
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message(<span class="string">&quot;this value must be a Duration object.&quot;</span>)
+                JsNativeError::typ().with_message(<span class="string">"this value must be a Duration object."</span>)
             })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>round_to = <span class="kw">match </span>args.first() {
             <span class="comment">// 3. If roundTo is undefined, then
             </span><span class="prelude-val">None </span>| <span class="prelude-val">Some</span>(JsValue::Undefined) =&gt; {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                    .with_message(<span class="string">&quot;roundTo cannot be undefined.&quot;</span>)
+                    .with_message(<span class="string">"roundTo cannot be undefined."</span>)
                     .into())
             }
             <span class="comment">// 4. If Type(roundTo) is String, then
@@ -1738,9 +1739,9 @@
                 </span><span class="kw">let </span>param_string = rt.clone();
                 <span class="comment">// b. Set roundTo to OrdinaryObjectCreate(null).
                 </span><span class="kw">let </span>new_round_to = JsObject::with_null_proto();
-                <span class="comment">// c. Perform ! CreateDataPropertyOrThrow(roundTo, &quot;smallestUnit&quot;, paramString).
+                <span class="comment">// c. Perform ! CreateDataPropertyOrThrow(roundTo, "smallestUnit", paramString).
                 </span>new_round_to.create_data_property_or_throw(
-                    <span class="macro">utf16!</span>(<span class="string">&quot;smallestUnit&quot;</span>),
+                    <span class="macro">utf16!</span>(<span class="string">"smallestUnit"</span>),
                     param_string,
                     context,
                 )<span class="question-mark">?</span>;
@@ -1757,11 +1758,11 @@
         // 6. Let smallestUnitPresent be true.
         // 7. Let largestUnitPresent be true.
 
-        // 8. NOTE: The following steps read options and perform independent validation in alphabetical order (ToRelativeTemporalObject reads &quot;relativeTo&quot;, ToTemporalRoundingIncrement reads &quot;roundingIncrement&quot; and ToTemporalRoundingMode reads &quot;roundingMode&quot;).
-        // 9. Let largestUnit be ? GetTemporalUnit(roundTo, &quot;largestUnit&quot;, datetime, undefined, « &quot;auto&quot; »).
+        // 8. NOTE: The following steps read options and perform independent validation in alphabetical order (ToRelativeTemporalObject reads "relativeTo", ToTemporalRoundingIncrement reads "roundingIncrement" and ToTemporalRoundingMode reads "roundingMode").
+        // 9. Let largestUnit be ? GetTemporalUnit(roundTo, "largestUnit", datetime, undefined, « "auto" »).
         </span><span class="kw">let </span>largest_unit = get_temporal_unit(
             <span class="kw-2">&amp;</span>round_to,
-            <span class="macro">utf16!</span>(<span class="string">&quot;largestUnit&quot;</span>),
+            <span class="macro">utf16!</span>(<span class="string">"largestUnit"</span>),
             TemporalUnitGroup::DateTime,
             <span class="prelude-val">Some</span>([TemporalUnit::Auto].into()),
             context,
@@ -1776,14 +1777,14 @@
         <span class="comment">// 13. Let roundingIncrement be ? ToTemporalRoundingIncrement(roundTo).
         </span><span class="kw">let </span>rounding_increment = get_temporal_rounding_increment(<span class="kw-2">&amp;</span>round_to, context)<span class="question-mark">?</span>;
 
-        <span class="comment">// 14. Let roundingMode be ? ToTemporalRoundingMode(roundTo, &quot;halfExpand&quot;).
-        </span><span class="kw">let </span>_rounding_mode = get_option(<span class="kw-2">&amp;</span>round_to, <span class="macro">utf16!</span>(<span class="string">&quot;roundingMode&quot;</span>), context)<span class="question-mark">?
+        <span class="comment">// 14. Let roundingMode be ? ToTemporalRoundingMode(roundTo, "halfExpand").
+        </span><span class="kw">let </span>_rounding_mode = get_option(<span class="kw-2">&amp;</span>round_to, <span class="macro">utf16!</span>(<span class="string">"roundingMode"</span>), context)<span class="question-mark">?
             </span>.unwrap_or(RoundingMode::HalfExpand);
 
-        <span class="comment">// 15. Let smallestUnit be ? GetTemporalUnit(roundTo, &quot;smallestUnit&quot;, datetime, undefined).
+        <span class="comment">// 15. Let smallestUnit be ? GetTemporalUnit(roundTo, "smallestUnit", datetime, undefined).
         </span><span class="kw">let </span>smallest_unit = get_temporal_unit(
             <span class="kw-2">&amp;</span>round_to,
-            <span class="macro">utf16!</span>(<span class="string">&quot;smallestUnit&quot;</span>),
+            <span class="macro">utf16!</span>(<span class="string">"smallestUnit"</span>),
             TemporalUnitGroup::DateTime,
             <span class="prelude-val">None</span>,
             context,
@@ -1794,7 +1795,7 @@
         </span><span class="kw">if </span>smallest_unit.is_none() &amp;&amp; largest_unit.is_none() {
             <span class="comment">// a. Throw a RangeError exception.
             </span><span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
-                .with_message(<span class="string">&quot;smallestUnit or largestUnit must be present.&quot;</span>)
+                .with_message(<span class="string">"smallestUnit or largestUnit must be present."</span>)
                 .into());
         }
 
@@ -1803,7 +1804,7 @@
             unit
         } <span class="kw">else </span>{
             <span class="comment">// a. Set smallestUnitPresent to false.
-            // b. Set smallestUnit to &quot;nanosecond&quot;.
+            // b. Set smallestUnit to "nanosecond".
             </span>TemporalUnit::Nanosecond
         };
 
@@ -1815,7 +1816,7 @@
 
         <span class="comment">// 19. If largestUnit is undefined, then
         </span><span class="kw">let </span>largest_unit = <span class="kw">match </span>largest_unit {
-            <span class="comment">// 20. Else if largestUnit is &quot;auto&quot;, then
+            <span class="comment">// 20. Else if largestUnit is "auto", then
             // a. Set largestUnit to defaultLargestUnit.
             </span><span class="prelude-val">Some</span>(TemporalUnit::Auto) =&gt; default_largest_unit,
             <span class="prelude-val">Some</span>(u) =&gt; u,
@@ -1829,7 +1830,7 @@
         <span class="comment">// 22. If LargerOfTwoTemporalUnits(largestUnit, smallestUnit) is not largestUnit, throw a RangeError exception.
         </span><span class="kw">if </span>core::cmp::max(largest_unit, smallest_unit) != largest_unit {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
-                .with_message(<span class="string">&quot;largestUnit must be larger than smallestUnit&quot;</span>)
+                .with_message(<span class="string">"largestUnit must be larger than smallestUnit"</span>)
                 .into());
         }
 
@@ -1851,7 +1852,7 @@
                 <span class="number">24f64 </span>&lt;= duration.inner.time().hours().abs()
             };
 
-        <span class="comment">// 28. If smallestUnit is &quot;nanosecond&quot; and roundingIncrement = 1, let roundingGranularityIsNoop be true; else let roundingGranularityIsNoop be false.
+        <span class="comment">// 28. If smallestUnit is "nanosecond" and roundingIncrement = 1, let roundingGranularityIsNoop be true; else let roundingGranularityIsNoop be false.
         </span><span class="kw">let </span>is_noop = smallest_unit == TemporalUnit::Nanosecond &amp;&amp; rounding_increment == <span class="number">1</span>;
 
         <span class="comment">// 29. If duration.[[Years]] = 0 and duration.[[Months]] = 0 and duration.[[Weeks]] = 0, let calendarUnitsPresent be false; else let calendarUnitsPresent be true.
@@ -1879,8 +1880,8 @@
         <span class="comment">// 31. Let precalculatedPlainDateTime be undefined.
         // let mut precalc_datetime = None;
 
-        // 32. If roundingGranularityIsNoop is false, or largestUnit is &quot;year&quot;, or largestUnit is &quot;month&quot;,
-        // or largestUnit is &quot;week&quot;, or largestUnit is &quot;day&quot;, or calendarUnitsPresent is true, or duration.[[Days]] ≠ 0,
+        // 32. If roundingGranularityIsNoop is false, or largestUnit is "year", or largestUnit is "month",
+        // or largestUnit is "week", or largestUnit is "day", or calendarUnitsPresent is true, or duration.[[Days]] ≠ 0,
         // let plainDateTimeOrRelativeToWillBeUsed be true; else let plainDateTimeOrRelativeToWillBeUsed be false.
         </span><span class="kw">let </span>pdt_or_rel_will_be_used = !is_noop
             || largest_unit == TemporalUnit::Year
@@ -1897,7 +1898,7 @@
             <span class="comment">// TODO(TimeZone): Implement GetPlainDateTimeFor
             // TODO(ZonedDateTime): Implement ZonedDateTime related methods.
             </span><span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
-                .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
+                .with_message(<span class="string">"not yet implemented."</span>)
                 .into());
 
             <span class="comment">// a. NOTE: The above conditions mean that the corresponding Temporal.PlainDateTime or Temporal.PlainDate for zonedRelativeTo will be used in one of the operations below.
@@ -1926,7 +1927,7 @@
 
         // NOTE: Below is currently incorrect: Handling of zonedRelativeTo and precalculatedPlainDateTime is needed.
         </span><span class="prelude-val">Err</span>(JsNativeError::range()
-            .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
+            .with_message(<span class="string">"not yet implemented."</span>)
             .into())
     }
 
@@ -1942,7 +1943,7 @@
             .as_object()
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message(<span class="string">&quot;this value must be a Duration object.&quot;</span>)
+                JsNativeError::typ().with_message(<span class="string">"this value must be a Duration object."</span>)
             })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>total_of = args.get_or_undefined(<span class="number">0</span>);
@@ -1951,7 +1952,7 @@
             <span class="comment">// 3. If totalOf is undefined, throw a TypeError exception.
             </span>JsValue::Undefined =&gt; {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                    .with_message(<span class="string">&quot;totalOf cannot be undefined.&quot;</span>)
+                    .with_message(<span class="string">"totalOf cannot be undefined."</span>)
                     .into());
             }
             <span class="comment">// 4. If Type(totalOf) is String, then
@@ -1959,9 +1960,9 @@
                 <span class="comment">// a. Let paramString be totalOf.
                 // b. Set totalOf to OrdinaryObjectCreate(null).
                 </span><span class="kw">let </span>total_of = JsObject::with_null_proto();
-                <span class="comment">// c. Perform ! CreateDataPropertyOrThrow(totalOf, &quot;unit&quot;, paramString).
+                <span class="comment">// c. Perform ! CreateDataPropertyOrThrow(totalOf, "unit", paramString).
                 </span>total_of.create_data_property_or_throw(
-                    <span class="macro">utf16!</span>(<span class="string">&quot;unit&quot;</span>),
+                    <span class="macro">utf16!</span>(<span class="string">"unit"</span>),
                     param_string.clone(),
                     context,
                 )<span class="question-mark">?</span>;
@@ -1974,41 +1975,41 @@
             </span>}
         };
 
-        <span class="comment">// 6. NOTE: The following steps read options and perform independent validation in alphabetical order (ToRelativeTemporalObject reads &quot;relativeTo&quot;).
+        <span class="comment">// 6. NOTE: The following steps read options and perform independent validation in alphabetical order (ToRelativeTemporalObject reads "relativeTo").
         // 7. Let relativeToRecord be ? ToRelativeTemporalObject(totalOf).
         // 8. Let zonedRelativeTo be relativeToRecord.[[ZonedRelativeTo]].
         // 9. Let plainRelativeTo be relativeToRecord.[[PlainRelativeTo]].
         </span><span class="kw">let </span>(_plain_relative_to, _zoned_relative_to) =
             <span class="kw">super</span>::to_relative_temporal_object(<span class="kw-2">&amp;</span>total_of, context)<span class="question-mark">?</span>;
 
-        <span class="comment">// 10. Let unit be ? GetTemporalUnit(totalOf, &quot;unit&quot;, datetime, required).
+        <span class="comment">// 10. Let unit be ? GetTemporalUnit(totalOf, "unit", datetime, required).
         </span><span class="kw">let </span>_unit = get_temporal_unit(
             <span class="kw-2">&amp;</span>total_of,
-            <span class="macro">utf16!</span>(<span class="string">&quot;unit&quot;</span>),
+            <span class="macro">utf16!</span>(<span class="string">"unit"</span>),
             TemporalUnitGroup::DateTime,
             <span class="prelude-val">None</span>,
             context,
         )<span class="question-mark">?
-        </span>.ok_or_else(|| JsNativeError::range().with_message(<span class="string">&quot;unit cannot be undefined.&quot;</span>))<span class="question-mark">?</span>;
+        </span>.ok_or_else(|| JsNativeError::range().with_message(<span class="string">"unit cannot be undefined."</span>))<span class="question-mark">?</span>;
 
         <span class="comment">// TODO: Implement the rest of the new `Temporal.Duration.prototype.total`
 
         </span><span class="prelude-val">Err</span>(JsNativeError::range()
-            .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
+            .with_message(<span class="string">"not yet implemented."</span>)
             .into())
     }
 
     <span class="doccomment">/// 7.3.22 `Temporal.Duration.prototype.toString ( [ options ] )`
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_string(_this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="prelude-val">Err</span>(JsNativeError::range()
-            .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
+            .with_message(<span class="string">"not yet implemented."</span>)
             .into())
     }
 
     <span class="doccomment">/// 7.3.23 `Temporal.Duration.prototype.toJSON ( )`
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_json(_this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="prelude-val">Err</span>(JsNativeError::range()
-            .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
+            .with_message(<span class="string">"not yet implemented."</span>)
             .into())
     }
 }
@@ -2045,7 +2046,7 @@
         <span class="comment">// a. If temporalDurationLike is not a String, throw a TypeError exception.
         </span><span class="kw">let </span>JsValue::String(duration_string) = temporal_duration_like <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;Invalid TemporalDurationLike value.&quot;</span>)
+                .with_message(<span class="string">"Invalid TemporalDurationLike value."</span>)
                 .into());
         };
 
@@ -2103,7 +2104,7 @@
             .into()
     };
 
-    <span class="comment">// 3. Let object be ? OrdinaryCreateFromConstructor(newTarget, &quot;%Temporal.Duration.prototype%&quot;, « [[InitializedTemporalDuration]], [[Years]], [[Months]], [[Weeks]], [[Days]], [[Hours]], [[Minutes]], [[Seconds]], [[Milliseconds]], [[Microseconds]], [[Nanoseconds]] »).
+    <span class="comment">// 3. Let object be ? OrdinaryCreateFromConstructor(newTarget, "%Temporal.Duration.prototype%", « [[InitializedTemporalDuration]], [[Years]], [[Months]], [[Weeks]], [[Days]], [[Hours]], [[Minutes]], [[Seconds]], [[Milliseconds]], [[Microseconds]], [[Nanoseconds]] »).
     </span><span class="kw">let </span>prototype =
         get_prototype_from_constructor(<span class="kw-2">&amp;</span>new_target, StandardConstructors::duration, context)<span class="question-mark">?</span>;
 
@@ -2132,7 +2133,7 @@
     </span><span class="kw">let </span>JsValue::Object(unknown_object) = duration_like <span class="kw">else </span>{
         <span class="comment">// a. Throw a TypeError exception.
         </span><span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-            .with_message(<span class="string">&quot;temporalDurationLike must be an object.&quot;</span>)
+            .with_message(<span class="string">"temporalDurationLike must be an object."</span>)
             .into());
     };
 
@@ -2140,71 +2141,71 @@
     </span><span class="kw">let </span><span class="kw-2">mut </span>result = InnerDuration::partial();
 
     <span class="comment">// 3. NOTE: The following steps read properties and perform independent validation in alphabetical order.
-    // 4. Let days be ? Get(temporalDurationLike, &quot;days&quot;).
-    </span><span class="kw">let </span>days = unknown_object.get(<span class="macro">utf16!</span>(<span class="string">&quot;days&quot;</span>), context)<span class="question-mark">?</span>;
+    // 4. Let days be ? Get(temporalDurationLike, "days").
+    </span><span class="kw">let </span>days = unknown_object.get(<span class="macro">utf16!</span>(<span class="string">"days"</span>), context)<span class="question-mark">?</span>;
     <span class="kw">if </span>!days.is_undefined() {
         <span class="comment">// 5. If days is not undefined, set result.[[Days]] to ? ToIntegerIfIntegral(days).
         </span>result.set_days(f64::from(to_integer_if_integral(<span class="kw-2">&amp;</span>days, context)<span class="question-mark">?</span>));
     }
 
-    <span class="comment">// 6. Let hours be ? Get(temporalDurationLike, &quot;hours&quot;).
-    </span><span class="kw">let </span>hours = unknown_object.get(<span class="macro">utf16!</span>(<span class="string">&quot;hours&quot;</span>), context)<span class="question-mark">?</span>;
+    <span class="comment">// 6. Let hours be ? Get(temporalDurationLike, "hours").
+    </span><span class="kw">let </span>hours = unknown_object.get(<span class="macro">utf16!</span>(<span class="string">"hours"</span>), context)<span class="question-mark">?</span>;
     <span class="comment">// 7. If hours is not undefined, set result.[[Hours]] to ? ToIntegerIfIntegral(hours).
     </span><span class="kw">if </span>!hours.is_undefined() {
         result.set_days(f64::from(to_integer_if_integral(<span class="kw-2">&amp;</span>hours, context)<span class="question-mark">?</span>));
     }
 
-    <span class="comment">// 8. Let microseconds be ? Get(temporalDurationLike, &quot;microseconds&quot;).
-    </span><span class="kw">let </span>microseconds = unknown_object.get(<span class="macro">utf16!</span>(<span class="string">&quot;microseconds&quot;</span>), context)<span class="question-mark">?</span>;
+    <span class="comment">// 8. Let microseconds be ? Get(temporalDurationLike, "microseconds").
+    </span><span class="kw">let </span>microseconds = unknown_object.get(<span class="macro">utf16!</span>(<span class="string">"microseconds"</span>), context)<span class="question-mark">?</span>;
     <span class="comment">// 9. If microseconds is not undefined, set result.[[Microseconds]] to ? ToIntegerIfIntegral(microseconds).
     </span><span class="kw">if </span>!microseconds.is_undefined() {
         result.set_days(f64::from(to_integer_if_integral(<span class="kw-2">&amp;</span>microseconds, context)<span class="question-mark">?</span>));
     }
 
-    <span class="comment">// 10. Let milliseconds be ? Get(temporalDurationLike, &quot;milliseconds&quot;).
-    </span><span class="kw">let </span>milliseconds = unknown_object.get(<span class="macro">utf16!</span>(<span class="string">&quot;milliseconds&quot;</span>), context)<span class="question-mark">?</span>;
+    <span class="comment">// 10. Let milliseconds be ? Get(temporalDurationLike, "milliseconds").
+    </span><span class="kw">let </span>milliseconds = unknown_object.get(<span class="macro">utf16!</span>(<span class="string">"milliseconds"</span>), context)<span class="question-mark">?</span>;
     <span class="comment">// 11. If milliseconds is not undefined, set result.[[Milliseconds]] to ? ToIntegerIfIntegral(milliseconds).
     </span><span class="kw">if </span>!milliseconds.is_undefined() {
         result.set_days(f64::from(to_integer_if_integral(<span class="kw-2">&amp;</span>milliseconds, context)<span class="question-mark">?</span>));
     }
 
-    <span class="comment">// 12. Let minutes be ? Get(temporalDurationLike, &quot;minutes&quot;).
-    </span><span class="kw">let </span>minutes = unknown_object.get(<span class="macro">utf16!</span>(<span class="string">&quot;minutes&quot;</span>), context)<span class="question-mark">?</span>;
+    <span class="comment">// 12. Let minutes be ? Get(temporalDurationLike, "minutes").
+    </span><span class="kw">let </span>minutes = unknown_object.get(<span class="macro">utf16!</span>(<span class="string">"minutes"</span>), context)<span class="question-mark">?</span>;
     <span class="comment">// 13. If minutes is not undefined, set result.[[Minutes]] to ? ToIntegerIfIntegral(minutes).
     </span><span class="kw">if </span>!minutes.is_undefined() {
         result.set_days(f64::from(to_integer_if_integral(<span class="kw-2">&amp;</span>minutes, context)<span class="question-mark">?</span>));
     }
 
-    <span class="comment">// 14. Let months be ? Get(temporalDurationLike, &quot;months&quot;).
-    </span><span class="kw">let </span>months = unknown_object.get(<span class="macro">utf16!</span>(<span class="string">&quot;months&quot;</span>), context)<span class="question-mark">?</span>;
+    <span class="comment">// 14. Let months be ? Get(temporalDurationLike, "months").
+    </span><span class="kw">let </span>months = unknown_object.get(<span class="macro">utf16!</span>(<span class="string">"months"</span>), context)<span class="question-mark">?</span>;
     <span class="comment">// 15. If months is not undefined, set result.[[Months]] to ? ToIntegerIfIntegral(months).
     </span><span class="kw">if </span>!months.is_undefined() {
         result.set_days(f64::from(to_integer_if_integral(<span class="kw-2">&amp;</span>months, context)<span class="question-mark">?</span>));
     }
 
-    <span class="comment">// 16. Let nanoseconds be ? Get(temporalDurationLike, &quot;nanoseconds&quot;).
-    </span><span class="kw">let </span>nanoseconds = unknown_object.get(<span class="macro">utf16!</span>(<span class="string">&quot;nanoseconds&quot;</span>), context)<span class="question-mark">?</span>;
+    <span class="comment">// 16. Let nanoseconds be ? Get(temporalDurationLike, "nanoseconds").
+    </span><span class="kw">let </span>nanoseconds = unknown_object.get(<span class="macro">utf16!</span>(<span class="string">"nanoseconds"</span>), context)<span class="question-mark">?</span>;
     <span class="comment">// 17. If nanoseconds is not undefined, set result.[[Nanoseconds]] to ? ToIntegerIfIntegral(nanoseconds).
     </span><span class="kw">if </span>!nanoseconds.is_undefined() {
         result.set_days(f64::from(to_integer_if_integral(<span class="kw-2">&amp;</span>nanoseconds, context)<span class="question-mark">?</span>));
     }
 
-    <span class="comment">// 18. Let seconds be ? Get(temporalDurationLike, &quot;seconds&quot;).
-    </span><span class="kw">let </span>seconds = unknown_object.get(<span class="macro">utf16!</span>(<span class="string">&quot;seconds&quot;</span>), context)<span class="question-mark">?</span>;
+    <span class="comment">// 18. Let seconds be ? Get(temporalDurationLike, "seconds").
+    </span><span class="kw">let </span>seconds = unknown_object.get(<span class="macro">utf16!</span>(<span class="string">"seconds"</span>), context)<span class="question-mark">?</span>;
     <span class="comment">// 19. If seconds is not undefined, set result.[[Seconds]] to ? ToIntegerIfIntegral(seconds).
     </span><span class="kw">if </span>!seconds.is_undefined() {
         result.set_days(f64::from(to_integer_if_integral(<span class="kw-2">&amp;</span>seconds, context)<span class="question-mark">?</span>));
     }
 
-    <span class="comment">// 20. Let weeks be ? Get(temporalDurationLike, &quot;weeks&quot;).
-    </span><span class="kw">let </span>weeks = unknown_object.get(<span class="macro">utf16!</span>(<span class="string">&quot;weeks&quot;</span>), context)<span class="question-mark">?</span>;
+    <span class="comment">// 20. Let weeks be ? Get(temporalDurationLike, "weeks").
+    </span><span class="kw">let </span>weeks = unknown_object.get(<span class="macro">utf16!</span>(<span class="string">"weeks"</span>), context)<span class="question-mark">?</span>;
     <span class="comment">// 21. If weeks is not undefined, set result.[[Weeks]] to ? ToIntegerIfIntegral(weeks).
     </span><span class="kw">if </span>!weeks.is_undefined() {
         result.set_days(f64::from(to_integer_if_integral(<span class="kw-2">&amp;</span>weeks, context)<span class="question-mark">?</span>));
     }
 
-    <span class="comment">// 22. Let years be ? Get(temporalDurationLike, &quot;years&quot;).
-    </span><span class="kw">let </span>years = unknown_object.get(<span class="macro">utf16!</span>(<span class="string">&quot;years&quot;</span>), context)<span class="question-mark">?</span>;
+    <span class="comment">// 22. Let years be ? Get(temporalDurationLike, "years").
+    </span><span class="kw">let </span>years = unknown_object.get(<span class="macro">utf16!</span>(<span class="string">"years"</span>), context)<span class="question-mark">?</span>;
     <span class="comment">// 23. If years is not undefined, set result.[[Years]] to ? ToIntegerIfIntegral(years).
     </span><span class="kw">if </span>!years.is_undefined() {
         result.set_days(f64::from(to_integer_if_integral(<span class="kw-2">&amp;</span>years, context)<span class="question-mark">?</span>));
@@ -2213,7 +2214,7 @@
     <span class="comment">// 24. If years is undefined, and months is undefined, and weeks is undefined, and days is undefined, and hours is undefined, and minutes is undefined, and seconds is undefined, and milliseconds is undefined, and microseconds is undefined, and nanoseconds is undefined, throw a TypeError exception.
     </span><span class="kw">if </span>result.into_iter().all(f64::is_nan) {
         <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-            .with_message(<span class="string">&quot;no valid Duration fields on temporalDurationLike.&quot;</span>)
+            .with_message(<span class="string">"no valid Duration fields on temporalDurationLike."</span>)
             .into());
     }
 

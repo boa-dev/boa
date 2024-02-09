@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/script.rs`."><title>script.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/script.rs`."><title>script.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -213,7 +214,7 @@
 <a href="#213" id="213">213</a>
 <a href="#214" id="214">214</a>
 <a href="#215" id="215">215</a>
-</pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s Scripts.
+</pre></div><pre class="rust"><code><span class="doccomment">//! Boa's implementation of ECMAScript's Scripts.
 //!
 //! This module contains the [`Script`] type, which represents a [**Script Record**][script].
 //!
@@ -236,7 +237,7 @@
     Context, HostDefined, JsResult, JsString, JsValue, Module,
 };
 
-<span class="doccomment">/// ECMAScript&#39;s [**Script Record**][spec].
+<span class="doccomment">/// ECMAScript's [**Script Record**][spec].
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-script-records
 </span><span class="attr">#[derive(Clone, Trace, Finalize)]
@@ -245,11 +246,11 @@
 }
 
 <span class="kw">impl </span>std::fmt::Debug <span class="kw">for </span>Script {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
-        f.debug_struct(<span class="string">&quot;Script&quot;</span>)
-            .field(<span class="string">&quot;realm&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.inner.realm.addr())
-            .field(<span class="string">&quot;code&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.inner.source)
-            .field(<span class="string">&quot;loaded_modules&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.inner.loaded_modules)
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
+        f.debug_struct(<span class="string">"Script"</span>)
+            .field(<span class="string">"realm"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.inner.realm.addr())
+            .field(<span class="string">"code"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.inner.source)
+            .field(<span class="string">"loaded_modules"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.inner.loaded_modules)
             .finish()
     }
 }
@@ -290,11 +291,11 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-parse-script
     </span><span class="kw">pub fn </span>parse&lt;R: ReadChar&gt;(
-        src: Source&lt;<span class="lifetime">&#39;_</span>, R&gt;,
+        src: Source&lt;<span class="lifetime">'_</span>, R&gt;,
         realm: <span class="prelude-ty">Option</span>&lt;Realm&gt;,
         context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Script parsing&quot;</span>, <span class="string">&quot;Main&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">"Script parsing"</span>, <span class="string">"Main"</span>);
         <span class="kw">let </span><span class="kw-2">mut </span>parser = Parser::new(src);
         parser.set_identifier(context.next_parser_identifier());
         <span class="kw">if </span>context.is_strict() {
@@ -326,10 +327,10 @@
             <span class="kw">return </span><span class="prelude-val">Ok</span>(codeblock.clone());
         };
 
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Script compilation&quot;</span>, <span class="string">&quot;Main&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">"Script compilation"</span>, <span class="string">"Main"</span>);
 
         <span class="kw">let </span><span class="kw-2">mut </span>compiler = ByteCompiler::new(
-            <span class="macro">js_string!</span>(<span class="string">&quot;&lt;main&gt;&quot;</span>),
+            <span class="macro">js_string!</span>(<span class="string">"&lt;main&gt;"</span>),
             <span class="self">self</span>.inner.source.strict(),
             <span class="bool-val">false</span>,
             <span class="self">self</span>.inner.realm.environment().compile_env(),
@@ -352,12 +353,12 @@
 
     <span class="doccomment">/// Evaluates this script and returns its result.
     ///
-    /// Note that this won&#39;t run any scheduled promise jobs; you need to call [`Context::run_jobs`]
+    /// Note that this won't run any scheduled promise jobs; you need to call [`Context::run_jobs`]
     /// on the context or [`JobQueue::run_jobs`] on the provided queue to run them.
     ///
     /// [`JobQueue::run_jobs`]: crate::job::JobQueue::run_jobs
     </span><span class="kw">pub fn </span>evaluate(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Execution&quot;</span>, <span class="string">&quot;Main&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">"Execution"</span>, <span class="string">"Main"</span>);
 
         <span class="self">self</span>.prepare_run(context)<span class="question-mark">?</span>;
         <span class="kw">let </span>record = context.run();
@@ -371,7 +372,7 @@
     <span class="doccomment">/// Evaluates this script and returns its result, periodically yielding to the executor
     /// in order to avoid blocking the current thread.
     ///
-    /// This uses an implementation defined amount of &quot;clock cycles&quot; that need to pass before
+    /// This uses an implementation defined amount of "clock cycles" that need to pass before
     /// execution is suspended. See [`Script::evaluate_async_with_budget`] if you want to also
     /// customize this parameter.
     </span><span class="attr">#[allow(clippy::future_not_send)]
@@ -380,11 +381,11 @@
     </span>}
 
     <span class="doccomment">/// Evaluates this script and returns its result, yielding to the executor each time `budget`
-    /// number of &quot;clock cycles&quot; pass.
+    /// number of "clock cycles" pass.
     ///
-    /// Note that &quot;clock cycle&quot; is in quotation marks because we can&#39;t determine exactly how many
-    /// CPU clock cycles a VM instruction will take, but all instructions have a &quot;cost&quot; associated
-    /// with them that depends on their individual complexity. We&#39;d recommend benchmarking with
+    /// Note that "clock cycle" is in quotation marks because we can't determine exactly how many
+    /// CPU clock cycles a VM instruction will take, but all instructions have a "cost" associated
+    /// with them that depends on their individual complexity. We'd recommend benchmarking with
     /// different budget sizes in order to find the ideal yielding time for your application.
     </span><span class="attr">#[allow(clippy::future_not_send)]
     </span><span class="kw">pub async fn </span>evaluate_async_with_budget(
@@ -392,7 +393,7 @@
         context: <span class="kw-2">&amp;mut </span>Context,
         budget: u32,
     ) -&gt; JsResult&lt;JsValue&gt; {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Async Execution&quot;</span>, <span class="string">&quot;Main&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">"Async Execution"</span>, <span class="string">"Main"</span>);
 
         <span class="self">self</span>.prepare_run(context)<span class="question-mark">?</span>;
 

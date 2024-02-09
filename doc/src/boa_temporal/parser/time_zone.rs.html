@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/temporal/src/parser/time_zone.rs`."><title>time_zone.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="boa_temporal" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../boa_temporal/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_temporal"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/temporal/src/parser/time_zone.rs`."><title>time_zone.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="boa_temporal" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../../boa_temporal/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_temporal"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -286,7 +287,7 @@
                 {
                     <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
                 } <span class="kw">else if </span>is_annotation_close(ch) {
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::syntax().with_message(<span class="string">&quot;Invalid Annotation&quot;</span>));
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::syntax().with_message(<span class="string">"Invalid Annotation"</span>));
                 }
 
                 peek_pos += <span class="number">1</span>;
@@ -301,13 +302,13 @@
         <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
     };
 
-    <span class="prelude-val">Err</span>(TemporalError::syntax().with_message(<span class="string">&quot;Unexpected character in ambiguous annotation.&quot;</span>))
+    <span class="prelude-val">Err</span>(TemporalError::syntax().with_message(<span class="string">"Unexpected character in ambiguous annotation."</span>))
 }
 
 <span class="kw">fn </span>parse_tz_annotation(cursor: <span class="kw-2">&amp;mut </span>Cursor) -&gt; TemporalResult&lt;TimeZoneAnnotation&gt; {
     <span class="macro">assert_syntax!</span>(
         is_annotation_open(cursor.abrupt_next()<span class="question-mark">?</span>),
-        <span class="string">&quot;Invalid annotation opening character.&quot;
+        <span class="string">"Invalid annotation opening character."
     </span>);
 
     <span class="kw">let </span>critical = cursor.check_or(<span class="bool-val">false</span>, is_critical_flag);
@@ -317,7 +318,7 @@
 
     <span class="macro">assert_syntax!</span>(
         is_annotation_close(cursor.abrupt_next()<span class="question-mark">?</span>),
-        <span class="string">&quot;Invalid annotation closing character.&quot;
+        <span class="string">"Invalid annotation closing character."
     </span>);
 
     <span class="prelude-val">Ok</span>(TimeZoneAnnotation { critical, tz })
@@ -342,7 +343,7 @@
         });
     }
 
-    <span class="prelude-val">Err</span>(TemporalError::syntax().with_message(<span class="string">&quot;Invalid leading character for a TimeZoneIdentifier&quot;</span>))
+    <span class="prelude-val">Err</span>(TemporalError::syntax().with_message(<span class="string">"Invalid leading character for a TimeZoneIdentifier"</span>))
 }
 
 <span class="doccomment">/// Parse a `TimeZoneIANAName` Parse Node
@@ -360,14 +361,14 @@
         <span class="kw">if </span>is_tz_name_separator(potential_value_char) {
             <span class="macro">assert_syntax!</span>(
                 cursor.peek_n(<span class="number">2</span>).map_or(<span class="bool-val">false</span>, is_tz_char),
-                <span class="string">&quot;Missing IANA name component after &#39;/&#39;&quot;
+                <span class="string">"Missing IANA name component after '/'"
             </span>);
             <span class="kw">continue</span>;
         }
 
         <span class="macro">assert_syntax!</span>(
             is_tz_char(potential_value_char),
-            <span class="string">&quot;Invalid TimeZone IANA name character.&quot;
+            <span class="string">"Invalid TimeZone IANA name character."
         </span>);
     }
 
@@ -381,7 +382,7 @@
     <span class="kw">if </span>cursor.check_or(<span class="bool-val">false</span>, is_utc_designator) {
         cursor.advance();
         <span class="kw">return </span><span class="prelude-val">Ok</span>(TimeZone {
-            name: <span class="prelude-val">Some</span>(<span class="string">&quot;UTC&quot;</span>.to_owned()),
+            name: <span class="prelude-val">Some</span>(<span class="string">"UTC"</span>.to_owned()),
             offset: <span class="prelude-val">None</span>,
         });
     }
@@ -391,7 +392,7 @@
     <span class="kw">let </span><span class="kw-2">mut </span>utc_to_minute = parse_utc_offset_minute_precision(cursor)<span class="question-mark">?</span>;
 
     <span class="kw">if </span>cursor.check_or(<span class="bool-val">false</span>, is_time_separator) &amp;&amp; !separated {
-        <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::syntax().with_message(<span class="string">&quot;Invalid time separator in UTC offset.&quot;</span>));
+        <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::syntax().with_message(<span class="string">"Invalid time separator in UTC offset."</span>));
     }
     cursor.advance_if(cursor.check_or(<span class="bool-val">false</span>, is_time_separator));
 
@@ -423,7 +424,7 @@
 <span class="doccomment">/// Parse an `UtcOffsetMinutePrecision` node
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>parse_utc_offset_minute_precision(cursor: <span class="kw-2">&amp;mut </span>Cursor) -&gt; TemporalResult&lt;UTCOffset&gt; {
     <span class="kw">let </span>sign = <span class="kw">if </span>cursor.check_or(<span class="bool-val">false</span>, is_sign) {
-        <span class="kw">if </span>cursor.expect_next() == <span class="string">&#39;+&#39; </span>{
+        <span class="kw">if </span>cursor.expect_next() == <span class="string">'+' </span>{
             <span class="number">1
         </span>} <span class="kw">else </span>{
             -<span class="number">1

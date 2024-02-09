@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/interner/src/sym.rs`."><title>sym.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="boa_interner" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../boa_interner/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_interner"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/interner/src/sym.rs`."><title>sym.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="boa_interner" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../boa_interner/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_interner"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -157,21 +158,21 @@
 
 <span class="doccomment">/// The string symbol type for Boa.
 ///
-/// This symbol type is internally a `NonZeroUsize`, which makes it pointer-width in size and it&#39;s
+/// This symbol type is internally a `NonZeroUsize`, which makes it pointer-width in size and it's
 /// optimized so that it can occupy 1 pointer width even in an `Option` type.
 </span><span class="attr">#[cfg_attr(
-    feature = <span class="string">&quot;serde&quot;</span>,
+    feature = <span class="string">"serde"</span>,
     derive(serde::Serialize, serde::Deserialize),
     serde(transparent)
 )]
-#[cfg_attr(feature = <span class="string">&quot;arbitrary&quot;</span>, derive(arbitrary::Arbitrary))]
+#[cfg_attr(feature = <span class="string">"arbitrary"</span>, derive(arbitrary::Arbitrary))]
 #[allow(clippy::unsafe_derive_deserialize)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Finalize)]
 </span><span class="kw">pub struct </span>Sym {
     value: NonZeroUsize,
 }
 
-<span class="comment">// SAFETY: `NonZeroUsize` is a constrained `usize`, and all primitive types don&#39;t need to be traced
+<span class="comment">// SAFETY: `NonZeroUsize` is a constrained `usize`, and all primitive types don't need to be traced
 // by the garbage collector.
 </span><span class="kw">unsafe impl </span>Trace <span class="kw">for </span>Sym {
     <span class="macro">empty_trace!</span>();
@@ -230,78 +231,78 @@
     <span class="comment">// Reserved identifiers
     // See: &lt;https://tc39.es/ecma262/#prod-ReservedWord&gt;
     // Note, they must all be together.
-    </span><span class="string">&quot;break&quot;</span>,
-    <span class="string">&quot;case&quot;</span>,
-    <span class="string">&quot;catch&quot;</span>,
-    <span class="string">&quot;class&quot;</span>,
-    <span class="string">&quot;const&quot;</span>,
-    <span class="string">&quot;continue&quot;</span>,
-    <span class="string">&quot;debugger&quot;</span>,
-    <span class="string">&quot;default&quot;</span>,
-    <span class="string">&quot;delete&quot;</span>,
-    <span class="string">&quot;do&quot;</span>,
-    <span class="string">&quot;else&quot;</span>,
-    <span class="string">&quot;enum&quot;</span>,
-    <span class="string">&quot;export&quot;</span>,
-    <span class="string">&quot;extends&quot;</span>,
-    <span class="string">&quot;false&quot;</span>,
-    <span class="string">&quot;finally&quot;</span>,
-    <span class="string">&quot;for&quot;</span>,
-    <span class="string">&quot;function&quot;</span>,
-    <span class="string">&quot;if&quot;</span>,
-    <span class="string">&quot;import&quot;</span>,
-    <span class="string">&quot;in&quot;</span>,
-    <span class="string">&quot;instanceof&quot;</span>,
-    <span class="string">&quot;new&quot;</span>,
-    <span class="string">&quot;null&quot;</span>,
-    <span class="string">&quot;return&quot;</span>,
-    <span class="string">&quot;super&quot;</span>,
-    <span class="string">&quot;switch&quot;</span>,
-    <span class="string">&quot;this&quot;</span>,
-    <span class="string">&quot;throw&quot;</span>,
-    <span class="string">&quot;true&quot;</span>,
-    <span class="string">&quot;try&quot;</span>,
-    <span class="string">&quot;typeof&quot;</span>,
-    <span class="string">&quot;var&quot;</span>,
-    <span class="string">&quot;void&quot;</span>,
-    <span class="string">&quot;while&quot;</span>,
-    <span class="string">&quot;with&quot;</span>,
+    </span><span class="string">"break"</span>,
+    <span class="string">"case"</span>,
+    <span class="string">"catch"</span>,
+    <span class="string">"class"</span>,
+    <span class="string">"const"</span>,
+    <span class="string">"continue"</span>,
+    <span class="string">"debugger"</span>,
+    <span class="string">"default"</span>,
+    <span class="string">"delete"</span>,
+    <span class="string">"do"</span>,
+    <span class="string">"else"</span>,
+    <span class="string">"enum"</span>,
+    <span class="string">"export"</span>,
+    <span class="string">"extends"</span>,
+    <span class="string">"false"</span>,
+    <span class="string">"finally"</span>,
+    <span class="string">"for"</span>,
+    <span class="string">"function"</span>,
+    <span class="string">"if"</span>,
+    <span class="string">"import"</span>,
+    <span class="string">"in"</span>,
+    <span class="string">"instanceof"</span>,
+    <span class="string">"new"</span>,
+    <span class="string">"null"</span>,
+    <span class="string">"return"</span>,
+    <span class="string">"super"</span>,
+    <span class="string">"switch"</span>,
+    <span class="string">"this"</span>,
+    <span class="string">"throw"</span>,
+    <span class="string">"true"</span>,
+    <span class="string">"try"</span>,
+    <span class="string">"typeof"</span>,
+    <span class="string">"var"</span>,
+    <span class="string">"void"</span>,
+    <span class="string">"while"</span>,
+    <span class="string">"with"</span>,
     <span class="comment">// End reserved identifier
 
     // strict reserved identifiers.
     // See: &lt;https://tc39.es/ecma262/#prod-Identifier&gt;
     // Note, they must all be together.
-    </span><span class="string">&quot;implements&quot;</span>,
-    <span class="string">&quot;interface&quot;</span>,
-    <span class="string">&quot;let&quot;</span>,
-    <span class="string">&quot;package&quot;</span>,
-    <span class="string">&quot;private&quot;</span>,
-    <span class="string">&quot;protected&quot;</span>,
-    <span class="string">&quot;public&quot;</span>,
-    <span class="string">&quot;static&quot;</span>,
-    <span class="string">&quot;yield&quot;</span>,
+    </span><span class="string">"implements"</span>,
+    <span class="string">"interface"</span>,
+    <span class="string">"let"</span>,
+    <span class="string">"package"</span>,
+    <span class="string">"private"</span>,
+    <span class="string">"protected"</span>,
+    <span class="string">"public"</span>,
+    <span class="string">"static"</span>,
+    <span class="string">"yield"</span>,
     <span class="comment">// End strict reserved identifiers
 
-    </span>(<span class="string">&quot;&quot;</span>, EMPTY_STRING),
-    <span class="string">&quot;prototype&quot;</span>,
-    <span class="string">&quot;constructor&quot;</span>,
-    <span class="string">&quot;arguments&quot;</span>,
-    <span class="string">&quot;eval&quot;</span>,
-    <span class="string">&quot;RegExp&quot;</span>,
-    <span class="string">&quot;get&quot;</span>,
-    <span class="string">&quot;set&quot;</span>,
-    (<span class="string">&quot;&lt;main&gt;&quot;</span>, MAIN),
-    <span class="string">&quot;raw&quot;</span>,
-    <span class="string">&quot;anonymous&quot;</span>,
-    <span class="string">&quot;async&quot;</span>,
-    <span class="string">&quot;of&quot;</span>,
-    <span class="string">&quot;target&quot;</span>,
-    <span class="string">&quot;as&quot;</span>,
-    <span class="string">&quot;from&quot;</span>,
-    <span class="string">&quot;__proto__&quot;</span>,
-    <span class="string">&quot;name&quot;</span>,
-    <span class="string">&quot;await&quot;</span>,
-    (<span class="string">&quot;*default*&quot;</span>, DEFAULT_EXPORT),
-    <span class="string">&quot;meta&quot;
+    </span>(<span class="string">""</span>, EMPTY_STRING),
+    <span class="string">"prototype"</span>,
+    <span class="string">"constructor"</span>,
+    <span class="string">"arguments"</span>,
+    <span class="string">"eval"</span>,
+    <span class="string">"RegExp"</span>,
+    <span class="string">"get"</span>,
+    <span class="string">"set"</span>,
+    (<span class="string">"&lt;main&gt;"</span>, MAIN),
+    <span class="string">"raw"</span>,
+    <span class="string">"anonymous"</span>,
+    <span class="string">"async"</span>,
+    <span class="string">"of"</span>,
+    <span class="string">"target"</span>,
+    <span class="string">"as"</span>,
+    <span class="string">"from"</span>,
+    <span class="string">"__proto__"</span>,
+    <span class="string">"name"</span>,
+    <span class="string">"await"</span>,
+    (<span class="string">"*default*"</span>, DEFAULT_EXPORT),
+    <span class="string">"meta"
 </span>}
 </code></pre></div></section></main></body></html>

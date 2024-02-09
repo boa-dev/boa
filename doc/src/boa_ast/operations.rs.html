@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/ast/src/operations.rs`."><title>operations.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="boa_ast" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../boa_ast/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_ast"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/ast/src/operations.rs`."><title>operations.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="boa_ast" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../boa_ast/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_ast"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -2215,7 +2216,7 @@
     </span>This,
     <span class="doccomment">/// A method definition.
     </span>MethodDefinition,
-    <span class="doccomment">/// The BindingIdentifier &quot;eval&quot; or &quot;arguments&quot;.
+    <span class="doccomment">/// The BindingIdentifier "eval" or "arguments".
     </span>EvalOrArguments,
 }
 
@@ -2233,10 +2234,10 @@
     </span><span class="attr">#[derive(Debug, Clone, Copy)]
     </span><span class="kw">struct </span>ContainsVisitor(ContainsSymbol);
 
-    <span class="kw">impl</span>&lt;<span class="lifetime">&#39;ast</span>&gt; Visitor&lt;<span class="lifetime">&#39;ast</span>&gt; <span class="kw">for </span>ContainsVisitor {
+    <span class="kw">impl</span>&lt;<span class="lifetime">'ast</span>&gt; Visitor&lt;<span class="lifetime">'ast</span>&gt; <span class="kw">for </span>ContainsVisitor {
         <span class="kw">type </span>BreakTy = ();
 
-        <span class="kw">fn </span>visit_identifier(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>Identifier) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+        <span class="kw">fn </span>visit_identifier(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>Identifier) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
             <span class="kw">if </span><span class="self">self</span>.<span class="number">0 </span>== ContainsSymbol::EvalOrArguments
                 &amp;&amp; (node.sym() == Sym::EVAL || node.sym() == Sym::ARGUMENTS)
             {
@@ -2245,23 +2246,23 @@
             ControlFlow::Continue(())
         }
 
-        <span class="kw">fn </span>visit_function(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>Function) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+        <span class="kw">fn </span>visit_function(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>Function) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
             ControlFlow::Continue(())
         }
 
-        <span class="kw">fn </span>visit_async_function(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>AsyncFunction) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+        <span class="kw">fn </span>visit_async_function(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>AsyncFunction) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
             ControlFlow::Continue(())
         }
 
-        <span class="kw">fn </span>visit_generator(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>Generator) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+        <span class="kw">fn </span>visit_generator(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>Generator) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
             ControlFlow::Continue(())
         }
 
-        <span class="kw">fn </span>visit_async_generator(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>AsyncGenerator) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+        <span class="kw">fn </span>visit_async_generator(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>AsyncGenerator) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
             ControlFlow::Continue(())
         }
 
-        <span class="kw">fn </span>visit_class(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>Class) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+        <span class="kw">fn </span>visit_class(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>Class) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
             <span class="kw">if </span>!node.elements().is_empty() &amp;&amp; <span class="self">self</span>.<span class="number">0 </span>== ContainsSymbol::ClassBody {
                 <span class="kw">return </span>ControlFlow::Break(());
             }
@@ -2274,7 +2275,7 @@
         }
 
         <span class="comment">// `ComputedPropertyContains`: https://tc39.es/ecma262/#sec-static-semantics-computedpropertycontains
-        </span><span class="kw">fn </span>visit_class_element(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>ClassElement) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+        </span><span class="kw">fn </span>visit_class_element(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>ClassElement) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
             <span class="kw">match </span>node {
                 ClassElement::MethodDefinition(name, <span class="kw">_</span>)
                 | ClassElement::StaticMethodDefinition(name, <span class="kw">_</span>)
@@ -2286,7 +2287,7 @@
 
         <span class="kw">fn </span>visit_property_definition(
             <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-            node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>PropertyDefinition,
+            node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>PropertyDefinition,
         ) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
             <span class="kw">if let </span>PropertyDefinition::MethodDefinition(name, <span class="kw">_</span>) = node {
                 <span class="kw">if </span><span class="self">self</span>.<span class="number">0 </span>== ContainsSymbol::MethodDefinition {
@@ -2300,7 +2301,7 @@
 
         <span class="kw">fn </span>visit_arrow_function(
             <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-            node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>ArrowFunction,
+            node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>ArrowFunction,
         ) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
             <span class="kw">if </span>![
                 ContainsSymbol::NewTarget,
@@ -2319,7 +2320,7 @@
 
         <span class="kw">fn </span>visit_async_arrow_function(
             <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-            node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>AsyncArrowFunction,
+            node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>AsyncArrowFunction,
         ) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
             <span class="kw">if </span>![
                 ContainsSymbol::NewTarget,
@@ -2338,7 +2339,7 @@
 
         <span class="kw">fn </span>visit_super_property_access(
             <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-            node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>SuperPropertyAccess,
+            node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>SuperPropertyAccess,
         ) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
             <span class="kw">if </span>[ContainsSymbol::SuperProperty, ContainsSymbol::Super].contains(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>) {
                 <span class="kw">return </span>ControlFlow::Break(());
@@ -2346,14 +2347,14 @@
             node.visit_with(<span class="self">self</span>)
         }
 
-        <span class="kw">fn </span>visit_super_call(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>SuperCall) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+        <span class="kw">fn </span>visit_super_call(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>SuperCall) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
             <span class="kw">if </span>[ContainsSymbol::SuperCall, ContainsSymbol::Super].contains(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>) {
                 <span class="kw">return </span>ControlFlow::Break(());
             }
             node.visit_with(<span class="self">self</span>)
         }
 
-        <span class="kw">fn </span>visit_yield(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>Yield) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+        <span class="kw">fn </span>visit_yield(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>Yield) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
             <span class="kw">if </span><span class="self">self</span>.<span class="number">0 </span>== ContainsSymbol::YieldExpression {
                 <span class="kw">return </span>ControlFlow::Break(());
             }
@@ -2361,7 +2362,7 @@
             node.visit_with(<span class="self">self</span>)
         }
 
-        <span class="kw">fn </span>visit_await(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>Await) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+        <span class="kw">fn </span>visit_await(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>Await) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
             <span class="kw">if </span><span class="self">self</span>.<span class="number">0 </span>== ContainsSymbol::AwaitExpression {
                 <span class="kw">return </span>ControlFlow::Break(());
             }
@@ -2369,7 +2370,7 @@
             node.visit_with(<span class="self">self</span>)
         }
 
-        <span class="kw">fn </span>visit_expression(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>Expression) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+        <span class="kw">fn </span>visit_expression(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>Expression) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
             <span class="kw">if </span>node == <span class="kw-2">&amp;</span>Expression::This &amp;&amp; <span class="self">self</span>.<span class="number">0 </span>== ContainsSymbol::This {
                 <span class="kw">return </span>ControlFlow::Break(());
             }
@@ -2397,10 +2398,10 @@
     </span><span class="attr">#[derive(Debug, Clone, Copy)]
     </span><span class="kw">struct </span>ContainsArgsVisitor;
 
-    <span class="kw">impl</span>&lt;<span class="lifetime">&#39;ast</span>&gt; Visitor&lt;<span class="lifetime">&#39;ast</span>&gt; <span class="kw">for </span>ContainsArgsVisitor {
+    <span class="kw">impl</span>&lt;<span class="lifetime">'ast</span>&gt; Visitor&lt;<span class="lifetime">'ast</span>&gt; <span class="kw">for </span>ContainsArgsVisitor {
         <span class="kw">type </span>BreakTy = ();
 
-        <span class="kw">fn </span>visit_identifier(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>Identifier) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+        <span class="kw">fn </span>visit_identifier(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>Identifier) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
             <span class="kw">if </span>node.sym() == Sym::ARGUMENTS {
                 ControlFlow::Break(())
             } <span class="kw">else </span>{
@@ -2408,23 +2409,23 @@
             }
         }
 
-        <span class="kw">fn </span>visit_function(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>Function) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+        <span class="kw">fn </span>visit_function(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>Function) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
             ControlFlow::Continue(())
         }
 
-        <span class="kw">fn </span>visit_async_function(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>AsyncFunction) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+        <span class="kw">fn </span>visit_async_function(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>AsyncFunction) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
             ControlFlow::Continue(())
         }
 
-        <span class="kw">fn </span>visit_generator(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>Generator) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+        <span class="kw">fn </span>visit_generator(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>Generator) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
             ControlFlow::Continue(())
         }
 
-        <span class="kw">fn </span>visit_async_generator(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>AsyncGenerator) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+        <span class="kw">fn </span>visit_async_generator(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>AsyncGenerator) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
             ControlFlow::Continue(())
         }
 
-        <span class="kw">fn </span>visit_class_element(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>ClassElement) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+        <span class="kw">fn </span>visit_class_element(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>ClassElement) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
             <span class="kw">match </span>node {
                 ClassElement::MethodDefinition(name, <span class="kw">_</span>)
                 | ClassElement::StaticMethodDefinition(name, <span class="kw">_</span>) =&gt; <span class="kw">return </span>name.visit_with(<span class="self">self</span>),
@@ -2435,7 +2436,7 @@
 
         <span class="kw">fn </span>visit_property_definition(
             <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-            node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>PropertyDefinition,
+            node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>PropertyDefinition,
         ) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
             <span class="kw">if let </span>PropertyDefinition::MethodDefinition(name, <span class="kw">_</span>) = node {
                 name.visit_with(<span class="self">self</span>)
@@ -2496,49 +2497,49 @@
 
 <span class="doccomment">/// The [`Visitor`] used to obtain the bound names of a node.
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>BoundNamesVisitor&lt;<span class="lifetime">&#39;a</span>, T: IdentList&gt;(<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>T);
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>BoundNamesVisitor&lt;<span class="lifetime">'a</span>, T: IdentList&gt;(<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>T);
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ast</span>, T: IdentList&gt; Visitor&lt;<span class="lifetime">&#39;ast</span>&gt; <span class="kw">for </span>BoundNamesVisitor&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ast</span>, T: IdentList&gt; Visitor&lt;<span class="lifetime">'ast</span>&gt; <span class="kw">for </span>BoundNamesVisitor&lt;<span class="lifetime">'_</span>, T&gt; {
     <span class="kw">type </span>BreakTy = Infallible;
 
-    <span class="kw">fn </span>visit_identifier(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>Identifier) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+    <span class="kw">fn </span>visit_identifier(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>Identifier) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="self">self</span>.<span class="number">0</span>.add(node.sym(), <span class="bool-val">false</span>);
         ControlFlow::Continue(())
     }
 
-    <span class="kw">fn </span>visit_expression(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>Expression) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+    <span class="kw">fn </span>visit_expression(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>Expression) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         ControlFlow::Continue(())
     }
 
-    <span class="kw">fn </span>visit_function(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>Function) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+    <span class="kw">fn </span>visit_function(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>Function) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(ident) = node.name() {
             <span class="self">self</span>.<span class="number">0</span>.add(ident.sym(), <span class="bool-val">true</span>);
         }
         ControlFlow::Continue(())
     }
 
-    <span class="kw">fn </span>visit_generator(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>Generator) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+    <span class="kw">fn </span>visit_generator(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>Generator) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(ident) = node.name() {
             <span class="self">self</span>.<span class="number">0</span>.add(ident.sym(), <span class="bool-val">false</span>);
         }
         ControlFlow::Continue(())
     }
 
-    <span class="kw">fn </span>visit_async_function(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>AsyncFunction) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+    <span class="kw">fn </span>visit_async_function(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>AsyncFunction) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(ident) = node.name() {
             <span class="self">self</span>.<span class="number">0</span>.add(ident.sym(), <span class="bool-val">false</span>);
         }
         ControlFlow::Continue(())
     }
 
-    <span class="kw">fn </span>visit_async_generator(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>AsyncGenerator) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+    <span class="kw">fn </span>visit_async_generator(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>AsyncGenerator) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(ident) = node.name() {
             <span class="self">self</span>.<span class="number">0</span>.add(ident.sym(), <span class="bool-val">false</span>);
         }
         ControlFlow::Continue(())
     }
 
-    <span class="kw">fn </span>visit_class(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>Class) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+    <span class="kw">fn </span>visit_class(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>Class) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(ident) = node.name() {
             <span class="self">self</span>.<span class="number">0</span>.add(ident.sym(), <span class="bool-val">false</span>);
         }
@@ -2547,7 +2548,7 @@
 
     <span class="kw">fn </span>visit_export_declaration(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>ExportDeclaration,
+        node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>ExportDeclaration,
     ) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="kw">match </span>node {
             ExportDeclaration::VarStatement(var) =&gt; <span class="macro">try_break!</span>(<span class="self">self</span>.visit_var_declaration(var)),
@@ -2594,9 +2595,9 @@
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-boundnames
 </span><span class="attr">#[must_use]
-</span><span class="kw">pub fn </span>bound_names&lt;<span class="lifetime">&#39;a</span>, N&gt;(node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>N) -&gt; Vec&lt;Identifier&gt;
+</span><span class="kw">pub fn </span>bound_names&lt;<span class="lifetime">'a</span>, N&gt;(node: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>N) -&gt; Vec&lt;Identifier&gt;
 <span class="kw">where
-    </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>N: Into&lt;NodeRef&lt;<span class="lifetime">&#39;a</span>&gt;&gt;,
+    </span><span class="kw-2">&amp;</span><span class="lifetime">'a </span>N: Into&lt;NodeRef&lt;<span class="lifetime">'a</span>&gt;&gt;,
 {
     <span class="kw">let </span><span class="kw-2">mut </span>names = Vec::new();
     BoundNamesVisitor(<span class="kw-2">&amp;mut </span>names).visit(node.into());
@@ -2606,17 +2607,17 @@
 
 <span class="doccomment">/// The [`Visitor`] used to obtain the lexically declared names of a node.
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">struct </span>LexicallyDeclaredNamesVisitor&lt;<span class="lifetime">&#39;a</span>, T: IdentList&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>T);
+</span><span class="kw">struct </span>LexicallyDeclaredNamesVisitor&lt;<span class="lifetime">'a</span>, T: IdentList&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>T);
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ast</span>, T: IdentList&gt; Visitor&lt;<span class="lifetime">&#39;ast</span>&gt; <span class="kw">for </span>LexicallyDeclaredNamesVisitor&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ast</span>, T: IdentList&gt; Visitor&lt;<span class="lifetime">'ast</span>&gt; <span class="kw">for </span>LexicallyDeclaredNamesVisitor&lt;<span class="lifetime">'_</span>, T&gt; {
     <span class="kw">type </span>BreakTy = Infallible;
 
-    <span class="kw">fn </span>visit_script(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>Script) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+    <span class="kw">fn </span>visit_script(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>Script) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         top_level_lexicals(node.statements(), <span class="self">self</span>.<span class="number">0</span>);
         ControlFlow::Continue(())
     }
 
-    <span class="kw">fn </span>visit_module_item(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>ModuleItem) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+    <span class="kw">fn </span>visit_module_item(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>ModuleItem) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="kw">match </span>node {
             <span class="comment">// ModuleItem : ImportDeclaration
             </span>ModuleItem::ImportDeclaration(import) =&gt; {
@@ -2643,56 +2644,56 @@
         }
     }
 
-    <span class="kw">fn </span>visit_expression(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>Expression) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+    <span class="kw">fn </span>visit_expression(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>Expression) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         ControlFlow::Continue(())
     }
 
-    <span class="kw">fn </span>visit_statement(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>Statement) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+    <span class="kw">fn </span>visit_statement(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>Statement) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="kw">if let </span>Statement::Labelled(labelled) = node {
             <span class="kw">return </span><span class="self">self</span>.visit_labelled(labelled);
         }
         ControlFlow::Continue(())
     }
 
-    <span class="kw">fn </span>visit_declaration(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>Declaration) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+    <span class="kw">fn </span>visit_declaration(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>Declaration) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         BoundNamesVisitor(<span class="self">self</span>.<span class="number">0</span>).visit_declaration(node)
     }
 
-    <span class="kw">fn </span>visit_labelled_item(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>LabelledItem) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+    <span class="kw">fn </span>visit_labelled_item(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>LabelledItem) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="kw">match </span>node {
             LabelledItem::Function(f) =&gt; BoundNamesVisitor(<span class="self">self</span>.<span class="number">0</span>).visit_function(f),
             LabelledItem::Statement(<span class="kw">_</span>) =&gt; ControlFlow::Continue(()),
         }
     }
 
-    <span class="kw">fn </span>visit_function(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>Function) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+    <span class="kw">fn </span>visit_function(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>Function) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="self">self</span>.visit_script(node.body())
     }
 
-    <span class="kw">fn </span>visit_async_function(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>AsyncFunction) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+    <span class="kw">fn </span>visit_async_function(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>AsyncFunction) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="self">self</span>.visit_script(node.body())
     }
 
-    <span class="kw">fn </span>visit_generator(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>Generator) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+    <span class="kw">fn </span>visit_generator(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>Generator) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="self">self</span>.visit_script(node.body())
     }
 
-    <span class="kw">fn </span>visit_async_generator(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>AsyncGenerator) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+    <span class="kw">fn </span>visit_async_generator(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>AsyncGenerator) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="self">self</span>.visit_script(node.body())
     }
 
-    <span class="kw">fn </span>visit_arrow_function(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>ArrowFunction) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+    <span class="kw">fn </span>visit_arrow_function(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>ArrowFunction) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="self">self</span>.visit_script(node.body())
     }
 
     <span class="kw">fn </span>visit_async_arrow_function(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>AsyncArrowFunction,
+        node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>AsyncArrowFunction,
     ) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="self">self</span>.visit_script(node.body())
     }
 
-    <span class="kw">fn </span>visit_class_element(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>ClassElement) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+    <span class="kw">fn </span>visit_class_element(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>ClassElement) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="kw">if let </span>ClassElement::StaticBlock(body) = node {
             <span class="self">self</span>.visit_script(body);
         }
@@ -2701,14 +2702,14 @@
 
     <span class="kw">fn </span>visit_import_declaration(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>ImportDeclaration,
+        node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>ImportDeclaration,
     ) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         BoundNamesVisitor(<span class="self">self</span>.<span class="number">0</span>).visit_import_declaration(node)
     }
 
     <span class="kw">fn </span>visit_export_declaration(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>ExportDeclaration,
+        node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>ExportDeclaration,
     ) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="kw">if </span><span class="macro">matches!</span>(node, ExportDeclaration::VarStatement(<span class="kw">_</span>)) {
             <span class="kw">return </span>ControlFlow::Continue(());
@@ -2723,9 +2724,9 @@
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-lexicallydeclarednames
 </span><span class="attr">#[must_use]
-</span><span class="kw">pub fn </span>lexically_declared_names&lt;<span class="lifetime">&#39;a</span>, N&gt;(node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>N) -&gt; Vec&lt;Identifier&gt;
+</span><span class="kw">pub fn </span>lexically_declared_names&lt;<span class="lifetime">'a</span>, N&gt;(node: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>N) -&gt; Vec&lt;Identifier&gt;
 <span class="kw">where
-    </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>N: Into&lt;NodeRef&lt;<span class="lifetime">&#39;a</span>&gt;&gt;,
+    </span><span class="kw-2">&amp;</span><span class="lifetime">'a </span>N: Into&lt;NodeRef&lt;<span class="lifetime">'a</span>&gt;&gt;,
 {
     <span class="kw">let </span><span class="kw-2">mut </span>names = Vec::new();
     LexicallyDeclaredNamesVisitor(<span class="kw-2">&amp;mut </span>names).visit(node.into());
@@ -2740,9 +2741,9 @@
 /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-lexicallydeclarednames
 /// [changes]: https://tc39.es/ecma262/#sec-block-duplicates-allowed-static-semantics
 </span><span class="attr">#[must_use]
-</span><span class="kw">pub fn </span>lexically_declared_names_legacy&lt;<span class="lifetime">&#39;a</span>, N&gt;(node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>N) -&gt; Vec&lt;(Identifier, bool)&gt;
+</span><span class="kw">pub fn </span>lexically_declared_names_legacy&lt;<span class="lifetime">'a</span>, N&gt;(node: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>N) -&gt; Vec&lt;(Identifier, bool)&gt;
 <span class="kw">where
-    </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>N: Into&lt;NodeRef&lt;<span class="lifetime">&#39;a</span>&gt;&gt;,
+    </span><span class="kw-2">&amp;</span><span class="lifetime">'a </span>N: Into&lt;NodeRef&lt;<span class="lifetime">'a</span>&gt;&gt;,
 {
     <span class="kw">let </span><span class="kw-2">mut </span>names = Vec::new();
     LexicallyDeclaredNamesVisitor(<span class="kw-2">&amp;mut </span>names).visit(node.into());
@@ -2751,17 +2752,17 @@
 
 <span class="doccomment">/// The [`Visitor`] used to obtain the var declared names of a node.
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">struct </span>VarDeclaredNamesVisitor&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>FxHashSet&lt;Identifier&gt;);
+</span><span class="kw">struct </span>VarDeclaredNamesVisitor&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>FxHashSet&lt;Identifier&gt;);
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ast</span>&gt; Visitor&lt;<span class="lifetime">&#39;ast</span>&gt; <span class="kw">for </span>VarDeclaredNamesVisitor&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ast</span>&gt; Visitor&lt;<span class="lifetime">'ast</span>&gt; <span class="kw">for </span>VarDeclaredNamesVisitor&lt;<span class="lifetime">'_</span>&gt; {
     <span class="kw">type </span>BreakTy = Infallible;
 
-    <span class="kw">fn </span>visit_script(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>Script) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+    <span class="kw">fn </span>visit_script(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>Script) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         top_level_vars(node.statements(), <span class="self">self</span>.<span class="number">0</span>);
         ControlFlow::Continue(())
     }
 
-    <span class="kw">fn </span>visit_module_item(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>ModuleItem) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+    <span class="kw">fn </span>visit_module_item(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>ModuleItem) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="kw">match </span>node {
             <span class="comment">// ModuleItem : ImportDeclaration
             </span>ModuleItem::ImportDeclaration(<span class="kw">_</span>) =&gt; {
@@ -2784,7 +2785,7 @@
         }
     }
 
-    <span class="kw">fn </span>visit_statement(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>Statement) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+    <span class="kw">fn </span>visit_statement(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>Statement) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="kw">match </span>node {
             Statement::Empty
             | Statement::Expression(<span class="kw">_</span>)
@@ -2809,7 +2810,7 @@
 
     <span class="kw">fn </span>visit_statement_list_item(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>StatementListItem,
+        node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>StatementListItem,
     ) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="kw">match </span>node {
             StatementListItem::Statement(stmt) =&gt; <span class="self">self</span>.visit_statement(stmt),
@@ -2817,11 +2818,11 @@
         }
     }
 
-    <span class="kw">fn </span>visit_variable(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>Variable) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+    <span class="kw">fn </span>visit_variable(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>Variable) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         BoundNamesVisitor(<span class="self">self</span>.<span class="number">0</span>).visit_variable(node)
     }
 
-    <span class="kw">fn </span>visit_if(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span><span class="kw">crate</span>::statement::If) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+    <span class="kw">fn </span>visit_if(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span><span class="kw">crate</span>::statement::If) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(node) = node.else_node() {
             <span class="self">self</span>.visit(node);
         }
@@ -2830,21 +2831,21 @@
 
     <span class="kw">fn </span>visit_do_while_loop(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span><span class="kw">crate</span>::statement::DoWhileLoop,
+        node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span><span class="kw">crate</span>::statement::DoWhileLoop,
     ) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="self">self</span>.visit(node.body())
     }
 
     <span class="kw">fn </span>visit_while_loop(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span><span class="kw">crate</span>::statement::WhileLoop,
+        node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span><span class="kw">crate</span>::statement::WhileLoop,
     ) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="self">self</span>.visit(node.body())
     }
 
     <span class="kw">fn </span>visit_for_loop(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span><span class="kw">crate</span>::statement::ForLoop,
+        node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span><span class="kw">crate</span>::statement::ForLoop,
     ) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(ForLoopInitializer::Var(node)) = node.init() {
             BoundNamesVisitor(<span class="self">self</span>.<span class="number">0</span>).visit_var_declaration(node);
@@ -2854,7 +2855,7 @@
 
     <span class="kw">fn </span>visit_for_in_loop(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span><span class="kw">crate</span>::statement::ForInLoop,
+        node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span><span class="kw">crate</span>::statement::ForInLoop,
     ) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="kw">if let </span>IterableLoopInitializer::Var(node) = node.initializer() {
             BoundNamesVisitor(<span class="self">self</span>.<span class="number">0</span>).visit_variable(node);
@@ -2864,7 +2865,7 @@
 
     <span class="kw">fn </span>visit_for_of_loop(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span><span class="kw">crate</span>::statement::ForOfLoop,
+        node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span><span class="kw">crate</span>::statement::ForOfLoop,
     ) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="kw">if let </span>IterableLoopInitializer::Var(node) = node.initializer() {
             BoundNamesVisitor(<span class="self">self</span>.<span class="number">0</span>).visit_variable(node);
@@ -2872,11 +2873,11 @@
         <span class="self">self</span>.visit(node.body())
     }
 
-    <span class="kw">fn </span>visit_with(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span><span class="kw">crate</span>::statement::With) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+    <span class="kw">fn </span>visit_with(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span><span class="kw">crate</span>::statement::With) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="self">self</span>.visit(node.statement())
     }
 
-    <span class="kw">fn </span>visit_switch(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span><span class="kw">crate</span>::statement::Switch) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+    <span class="kw">fn </span>visit_switch(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span><span class="kw">crate</span>::statement::Switch) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="kw">for </span>case <span class="kw">in </span>node.cases() {
             <span class="self">self</span>.visit(case);
         }
@@ -2886,14 +2887,14 @@
         ControlFlow::Continue(())
     }
 
-    <span class="kw">fn </span>visit_labelled_item(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>LabelledItem) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+    <span class="kw">fn </span>visit_labelled_item(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>LabelledItem) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="kw">match </span>node {
             LabelledItem::Function(<span class="kw">_</span>) =&gt; ControlFlow::Continue(()),
             LabelledItem::Statement(stmt) =&gt; <span class="self">self</span>.visit(stmt),
         }
     }
 
-    <span class="kw">fn </span>visit_try(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span><span class="kw">crate</span>::statement::Try) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+    <span class="kw">fn </span>visit_try(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span><span class="kw">crate</span>::statement::Try) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(node) = node.finally() {
             <span class="self">self</span>.visit(node);
         }
@@ -2903,23 +2904,23 @@
         <span class="self">self</span>.visit(node.block())
     }
 
-    <span class="kw">fn </span>visit_function(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>Function) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+    <span class="kw">fn </span>visit_function(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>Function) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="self">self</span>.visit_script(node.body())
     }
 
-    <span class="kw">fn </span>visit_async_function(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>AsyncFunction) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+    <span class="kw">fn </span>visit_async_function(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>AsyncFunction) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="self">self</span>.visit_script(node.body())
     }
 
-    <span class="kw">fn </span>visit_generator(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>Generator) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+    <span class="kw">fn </span>visit_generator(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>Generator) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="self">self</span>.visit_script(node.body())
     }
 
-    <span class="kw">fn </span>visit_async_generator(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>AsyncGenerator) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+    <span class="kw">fn </span>visit_async_generator(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>AsyncGenerator) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="self">self</span>.visit_script(node.body())
     }
 
-    <span class="kw">fn </span>visit_class_element(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>ClassElement) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+    <span class="kw">fn </span>visit_class_element(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>ClassElement) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="kw">if let </span>ClassElement::StaticBlock(body) = node {
             <span class="self">self</span>.visit_script(body);
         }
@@ -2928,14 +2929,14 @@
 
     <span class="kw">fn </span>visit_import_declaration(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>ImportDeclaration,
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>ImportDeclaration,
     ) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         ControlFlow::Continue(())
     }
 
     <span class="kw">fn </span>visit_export_declaration(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>ExportDeclaration,
+        node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>ExportDeclaration,
     ) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="kw">match </span>node {
             ExportDeclaration::VarStatement(var) =&gt; {
@@ -2952,9 +2953,9 @@
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-vardeclarednames
 </span><span class="attr">#[must_use]
-</span><span class="kw">pub fn </span>var_declared_names&lt;<span class="lifetime">&#39;a</span>, N&gt;(node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>N) -&gt; FxHashSet&lt;Identifier&gt;
+</span><span class="kw">pub fn </span>var_declared_names&lt;<span class="lifetime">'a</span>, N&gt;(node: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>N) -&gt; FxHashSet&lt;Identifier&gt;
 <span class="kw">where
-    </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>N: Into&lt;NodeRef&lt;<span class="lifetime">&#39;a</span>&gt;&gt;,
+    </span><span class="kw-2">&amp;</span><span class="lifetime">'a </span>N: Into&lt;NodeRef&lt;<span class="lifetime">'a</span>&gt;&gt;,
 {
     <span class="kw">let </span><span class="kw-2">mut </span>names = FxHashSet::default();
     VarDeclaredNamesVisitor(<span class="kw-2">&amp;mut </span>names).visit(node.into());
@@ -3042,9 +3043,9 @@
 /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-allprivateidentifiersvalid
 </span><span class="attr">#[must_use]
 #[inline]
-</span><span class="kw">pub fn </span>all_private_identifiers_valid&lt;<span class="lifetime">&#39;a</span>, N&gt;(node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>N, private_names: Vec&lt;Sym&gt;) -&gt; bool
+</span><span class="kw">pub fn </span>all_private_identifiers_valid&lt;<span class="lifetime">'a</span>, N&gt;(node: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>N, private_names: Vec&lt;Sym&gt;) -&gt; bool
 <span class="kw">where
-    </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>N: Into&lt;NodeRef&lt;<span class="lifetime">&#39;a</span>&gt;&gt;,
+    </span><span class="kw-2">&amp;</span><span class="lifetime">'a </span>N: Into&lt;NodeRef&lt;<span class="lifetime">'a</span>&gt;&gt;,
 {
     AllPrivateIdentifiersValidVisitor(private_names)
         .visit(node.into())
@@ -3053,10 +3054,10 @@
 
 <span class="kw">struct </span>AllPrivateIdentifiersValidVisitor(Vec&lt;Sym&gt;);
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ast</span>&gt; Visitor&lt;<span class="lifetime">&#39;ast</span>&gt; <span class="kw">for </span>AllPrivateIdentifiersValidVisitor {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ast</span>&gt; Visitor&lt;<span class="lifetime">'ast</span>&gt; <span class="kw">for </span>AllPrivateIdentifiersValidVisitor {
     <span class="kw">type </span>BreakTy = ();
 
-    <span class="kw">fn </span>visit_class(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>Class) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+    <span class="kw">fn </span>visit_class(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>Class) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(node) = node.super_ref() {
             <span class="macro">try_break!</span>(<span class="self">self</span>.visit(node));
         }
@@ -3115,7 +3116,7 @@
 
     <span class="kw">fn </span>visit_private_property_access(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>PrivatePropertyAccess,
+        node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>PrivatePropertyAccess,
     ) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="kw">if </span><span class="self">self</span>.<span class="number">0</span>.contains(<span class="kw-2">&amp;</span>node.field().description()) {
             <span class="self">self</span>.visit(node.target())
@@ -3126,7 +3127,7 @@
 
     <span class="kw">fn </span>visit_binary_in_private(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>BinaryInPrivate,
+        node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>BinaryInPrivate,
     ) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="kw">if </span><span class="self">self</span>.<span class="number">0</span>.contains(<span class="kw-2">&amp;</span>node.lhs().description()) {
             <span class="self">self</span>.visit(node.rhs())
@@ -3137,7 +3138,7 @@
 
     <span class="kw">fn </span>visit_optional_operation_kind(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>OptionalOperationKind,
+        node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>OptionalOperationKind,
     ) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="kw">match </span>node {
             OptionalOperationKind::SimplePropertyAccess { field } =&gt; {
@@ -3185,20 +3186,20 @@
     </span><span class="kw">pub fn </span>message(<span class="kw-2">&amp;</span><span class="self">self</span>, interner: <span class="kw-2">&amp;</span>Interner) -&gt; String {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::DuplicateLabel(label) =&gt; {
-                <span class="macro">format!</span>(<span class="string">&quot;duplicate label: {}&quot;</span>, interner.resolve_expect(<span class="kw-2">*</span>label))
+                <span class="macro">format!</span>(<span class="string">"duplicate label: {}"</span>, interner.resolve_expect(<span class="kw-2">*</span>label))
             }
             <span class="self">Self</span>::UndefinedBreakTarget(label) =&gt; {
                 <span class="macro">format!</span>(
-                    <span class="string">&quot;undefined break target: {}&quot;</span>,
+                    <span class="string">"undefined break target: {}"</span>,
                     interner.resolve_expect(<span class="kw-2">*</span>label)
                 )
             }
             <span class="self">Self</span>::UndefinedContinueTarget(label) =&gt; <span class="macro">format!</span>(
-                <span class="string">&quot;undefined continue target: {}&quot;</span>,
+                <span class="string">"undefined continue target: {}"</span>,
                 interner.resolve_expect(<span class="kw-2">*</span>label)
             ),
-            <span class="self">Self</span>::IllegalBreakStatement =&gt; <span class="string">&quot;illegal break statement&quot;</span>.into(),
-            <span class="self">Self</span>::IllegalContinueStatement =&gt; <span class="string">&quot;illegal continue statement&quot;</span>.into(),
+            <span class="self">Self</span>::IllegalBreakStatement =&gt; <span class="string">"illegal break statement"</span>.into(),
+            <span class="self">Self</span>::IllegalContinueStatement =&gt; <span class="string">"illegal continue statement"</span>.into(),
         }
     }
 }
@@ -3234,10 +3235,10 @@
         switch: bool,
     }
 
-    <span class="kw">impl</span>&lt;<span class="lifetime">&#39;ast</span>&gt; Visitor&lt;<span class="lifetime">&#39;ast</span>&gt; <span class="kw">for </span>CheckLabelsResolver {
+    <span class="kw">impl</span>&lt;<span class="lifetime">'ast</span>&gt; Visitor&lt;<span class="lifetime">'ast</span>&gt; <span class="kw">for </span>CheckLabelsResolver {
         <span class="kw">type </span>BreakTy = CheckLabelsError;
 
-        <span class="kw">fn </span>visit_statement(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>Statement) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+        <span class="kw">fn </span>visit_statement(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>Statement) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
             <span class="kw">match </span>node {
                 Statement::Block(node) =&gt; <span class="self">self</span>.visit_block(node),
                 Statement::Var(<span class="kw">_</span>)
@@ -3262,7 +3263,7 @@
 
         <span class="kw">fn </span>visit_block(
             <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-            node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span><span class="kw">crate</span>::statement::Block,
+            node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span><span class="kw">crate</span>::statement::Block,
         ) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
             <span class="kw">let </span>continue_labels = <span class="self">self</span>.continue_labels.take();
             <span class="macro">try_break!</span>(<span class="self">self</span>.visit_statement_list(node.statement_list()));
@@ -3272,7 +3273,7 @@
 
         <span class="kw">fn </span>visit_break(
             <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-            node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span><span class="kw">crate</span>::statement::Break,
+            node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span><span class="kw">crate</span>::statement::Break,
         ) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(label) = node.label() {
                 <span class="kw">if </span>!<span class="self">self</span>.labels.contains(<span class="kw-2">&amp;</span>label) {
@@ -3286,7 +3287,7 @@
 
         <span class="kw">fn </span>visit_continue(
             <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-            node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span><span class="kw">crate</span>::statement::Continue,
+            node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span><span class="kw">crate</span>::statement::Continue,
         ) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
             <span class="kw">if </span>!<span class="self">self</span>.iteration {
                 <span class="kw">return </span>ControlFlow::Break(CheckLabelsError::IllegalContinueStatement);
@@ -3302,7 +3303,7 @@
 
         <span class="kw">fn </span>visit_do_while_loop(
             <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-            node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span><span class="kw">crate</span>::statement::DoWhileLoop,
+            node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span><span class="kw">crate</span>::statement::DoWhileLoop,
         ) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
             <span class="kw">let </span>continue_labels = <span class="self">self</span>.continue_labels.take();
             <span class="kw">let </span>continue_iteration_labels = <span class="self">self</span>.continue_iteration_labels.clone();
@@ -3320,7 +3321,7 @@
 
         <span class="kw">fn </span>visit_while_loop(
             <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-            node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span><span class="kw">crate</span>::statement::WhileLoop,
+            node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span><span class="kw">crate</span>::statement::WhileLoop,
         ) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
             <span class="kw">let </span>continue_labels = <span class="self">self</span>.continue_labels.take();
             <span class="kw">let </span>continue_iteration_labels = <span class="self">self</span>.continue_iteration_labels.clone();
@@ -3338,7 +3339,7 @@
 
         <span class="kw">fn </span>visit_for_loop(
             <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-            node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span><span class="kw">crate</span>::statement::ForLoop,
+            node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span><span class="kw">crate</span>::statement::ForLoop,
         ) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
             <span class="kw">let </span>continue_labels = <span class="self">self</span>.continue_labels.take();
             <span class="kw">let </span>continue_iteration_labels = <span class="self">self</span>.continue_iteration_labels.clone();
@@ -3356,7 +3357,7 @@
 
         <span class="kw">fn </span>visit_for_in_loop(
             <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-            node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span><span class="kw">crate</span>::statement::ForInLoop,
+            node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span><span class="kw">crate</span>::statement::ForInLoop,
         ) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
             <span class="kw">let </span>continue_labels = <span class="self">self</span>.continue_labels.take();
             <span class="kw">let </span>continue_iteration_labels = <span class="self">self</span>.continue_iteration_labels.clone();
@@ -3374,7 +3375,7 @@
 
         <span class="kw">fn </span>visit_for_of_loop(
             <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-            node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span><span class="kw">crate</span>::statement::ForOfLoop,
+            node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span><span class="kw">crate</span>::statement::ForOfLoop,
         ) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
             <span class="kw">let </span>continue_labels = <span class="self">self</span>.continue_labels.take();
             <span class="kw">let </span>continue_iteration_labels = <span class="self">self</span>.continue_iteration_labels.clone();
@@ -3392,7 +3393,7 @@
 
         <span class="kw">fn </span>visit_statement_list_item(
             <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-            node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>StatementListItem,
+            node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>StatementListItem,
         ) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
             <span class="kw">let </span>continue_labels = <span class="self">self</span>.continue_labels.take();
             <span class="kw">if let </span>StatementListItem::Statement(stmt) = node {
@@ -3402,7 +3403,7 @@
             ControlFlow::Continue(())
         }
 
-        <span class="kw">fn </span>visit_if(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span><span class="kw">crate</span>::statement::If) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+        <span class="kw">fn </span>visit_if(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span><span class="kw">crate</span>::statement::If) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
             <span class="kw">let </span>continue_labels = <span class="self">self</span>.continue_labels.take();
             <span class="macro">try_break!</span>(<span class="self">self</span>.visit_statement(node.body()));
             <span class="kw">if let </span><span class="prelude-val">Some</span>(stmt) = node.else_node() {
@@ -3414,7 +3415,7 @@
 
         <span class="kw">fn </span>visit_switch(
             <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-            node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span><span class="kw">crate</span>::statement::Switch,
+            node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span><span class="kw">crate</span>::statement::Switch,
         ) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
             <span class="kw">let </span>continue_labels = <span class="self">self</span>.continue_labels.take();
             <span class="kw">let </span>switch = <span class="self">self</span>.switch;
@@ -3432,7 +3433,7 @@
 
         <span class="kw">fn </span>visit_labelled(
             <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-            node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span><span class="kw">crate</span>::statement::Labelled,
+            node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span><span class="kw">crate</span>::statement::Labelled,
         ) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
             <span class="kw">let </span>continue_labels = <span class="self">self</span>.continue_labels.clone();
             <span class="kw">if let </span><span class="prelude-val">Some</span>(continue_labels) = <span class="kw-2">&amp;mut </span><span class="self">self</span>.continue_labels {
@@ -3452,14 +3453,14 @@
             ControlFlow::Continue(())
         }
 
-        <span class="kw">fn </span>visit_labelled_item(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>LabelledItem) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+        <span class="kw">fn </span>visit_labelled_item(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>LabelledItem) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
             <span class="kw">match </span>node {
                 LabelledItem::Statement(stmt) =&gt; <span class="self">self</span>.visit_statement(stmt),
                 LabelledItem::Function(<span class="kw">_</span>) =&gt; ControlFlow::Continue(()),
             }
         }
 
-        <span class="kw">fn </span>visit_try(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span><span class="kw">crate</span>::statement::Try) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+        <span class="kw">fn </span>visit_try(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span><span class="kw">crate</span>::statement::Try) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
             <span class="kw">let </span>continue_labels = <span class="self">self</span>.continue_labels.take();
             <span class="macro">try_break!</span>(<span class="self">self</span>.visit_block(node.block()));
             <span class="kw">if let </span><span class="prelude-val">Some</span>(catch) = node.catch() {
@@ -3474,7 +3475,7 @@
 
         <span class="kw">fn </span>visit_module_item_list(
             <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-            node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span><span class="kw">crate</span>::ModuleItemList,
+            node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span><span class="kw">crate</span>::ModuleItemList,
         ) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
             <span class="kw">let </span>continue_labels = <span class="self">self</span>.continue_labels.take();
             <span class="kw">for </span>item <span class="kw">in </span>node.items() {
@@ -3484,7 +3485,7 @@
             ControlFlow::Continue(())
         }
 
-        <span class="kw">fn </span>visit_module_item(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>ModuleItem) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+        <span class="kw">fn </span>visit_module_item(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>ModuleItem) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
             <span class="kw">match </span>node {
                 <span class="kw">crate</span>::ModuleItem::ImportDeclaration(<span class="kw">_</span>)
                 | <span class="kw">crate</span>::ModuleItem::ExportDeclaration(<span class="kw">_</span>) =&gt; ControlFlow::Continue(()),
@@ -3517,12 +3518,12 @@
     <span class="attr">#[derive(Debug, Clone)]
     </span><span class="kw">struct </span>ContainsInvalidObjectLiteral {}
 
-    <span class="kw">impl</span>&lt;<span class="lifetime">&#39;ast</span>&gt; Visitor&lt;<span class="lifetime">&#39;ast</span>&gt; <span class="kw">for </span>ContainsInvalidObjectLiteral {
+    <span class="kw">impl</span>&lt;<span class="lifetime">'ast</span>&gt; Visitor&lt;<span class="lifetime">'ast</span>&gt; <span class="kw">for </span>ContainsInvalidObjectLiteral {
         <span class="kw">type </span>BreakTy = ();
 
         <span class="kw">fn </span>visit_object_literal(
             <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-            node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span><span class="kw">crate</span>::expression::literal::ObjectLiteral,
+            node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span><span class="kw">crate</span>::expression::literal::ObjectLiteral,
         ) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
             <span class="kw">for </span>pd <span class="kw">in </span>node.properties() {
                 <span class="kw">if let </span>PropertyDefinition::CoverInitializedName(..) = pd {
@@ -3541,32 +3542,32 @@
 
 <span class="doccomment">/// The type of a lexically scoped declaration.
 </span><span class="attr">#[derive(Copy, Clone, Debug)]
-</span><span class="kw">pub enum </span>LexicallyScopedDeclaration&lt;<span class="lifetime">&#39;a</span>&gt; {
+</span><span class="kw">pub enum </span>LexicallyScopedDeclaration&lt;<span class="lifetime">'a</span>&gt; {
     <span class="doccomment">/// See [`LexicalDeclaration`]
-    </span>LexicalDeclaration(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>LexicalDeclaration),
+    </span>LexicalDeclaration(<span class="kw-2">&amp;</span><span class="lifetime">'a </span>LexicalDeclaration),
 
     <span class="doccomment">/// See [`Function`]
-    </span>Function(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Function),
+    </span>Function(<span class="kw-2">&amp;</span><span class="lifetime">'a </span>Function),
 
     <span class="doccomment">/// See [`Generator`]
-    </span>Generator(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Generator),
+    </span>Generator(<span class="kw-2">&amp;</span><span class="lifetime">'a </span>Generator),
 
     <span class="doccomment">/// See [`AsyncFunction`]
-    </span>AsyncFunction(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>AsyncFunction),
+    </span>AsyncFunction(<span class="kw-2">&amp;</span><span class="lifetime">'a </span>AsyncFunction),
 
     <span class="doccomment">/// See [`AsyncGenerator`]
-    </span>AsyncGenerator(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>AsyncGenerator),
+    </span>AsyncGenerator(<span class="kw-2">&amp;</span><span class="lifetime">'a </span>AsyncGenerator),
 
     <span class="doccomment">/// See [`Class`]
-    </span>Class(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Class),
+    </span>Class(<span class="kw-2">&amp;</span><span class="lifetime">'a </span>Class),
 
     <span class="doccomment">/// A default assignment expression as an export declaration.
     ///
     /// Only valid inside module exports.
-    </span>AssignmentExpression(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Expression),
+    </span>AssignmentExpression(<span class="kw-2">&amp;</span><span class="lifetime">'a </span>Expression),
 }
 
-<span class="kw">impl </span>LexicallyScopedDeclaration&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>LexicallyScopedDeclaration&lt;<span class="lifetime">'_</span>&gt; {
     <span class="doccomment">/// Return the bound names of the declaration.
     </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>bound_names(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;Identifier&gt; {
@@ -3582,8 +3583,8 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ast</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>Declaration&gt; <span class="kw">for </span>LexicallyScopedDeclaration&lt;<span class="lifetime">&#39;ast</span>&gt; {
-    <span class="kw">fn </span>from(value: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>Declaration) -&gt; LexicallyScopedDeclaration&lt;<span class="lifetime">&#39;ast</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ast</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">'ast </span>Declaration&gt; <span class="kw">for </span>LexicallyScopedDeclaration&lt;<span class="lifetime">'ast</span>&gt; {
+    <span class="kw">fn </span>from(value: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>Declaration) -&gt; LexicallyScopedDeclaration&lt;<span class="lifetime">'ast</span>&gt; {
         <span class="kw">match </span>value {
             Declaration::Function(f) =&gt; <span class="self">Self</span>::Function(f),
             Declaration::Generator(g) =&gt; <span class="self">Self</span>::Generator(g),
@@ -3601,9 +3602,9 @@
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-lexicallyscopeddeclarations
 </span><span class="attr">#[must_use]
-</span><span class="kw">pub fn </span>lexically_scoped_declarations&lt;<span class="lifetime">&#39;a</span>, N&gt;(node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>N) -&gt; Vec&lt;LexicallyScopedDeclaration&lt;<span class="lifetime">&#39;a</span>&gt;&gt;
+</span><span class="kw">pub fn </span>lexically_scoped_declarations&lt;<span class="lifetime">'a</span>, N&gt;(node: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>N) -&gt; Vec&lt;LexicallyScopedDeclaration&lt;<span class="lifetime">'a</span>&gt;&gt;
 <span class="kw">where
-    </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>N: Into&lt;NodeRef&lt;<span class="lifetime">&#39;a</span>&gt;&gt;,
+    </span><span class="kw-2">&amp;</span><span class="lifetime">'a </span>N: Into&lt;NodeRef&lt;<span class="lifetime">'a</span>&gt;&gt;,
 {
     <span class="kw">let </span><span class="kw-2">mut </span>declarations = Vec::new();
     LexicallyScopedDeclarationsVisitor(<span class="kw-2">&amp;mut </span>declarations).visit(node.into());
@@ -3612,20 +3613,20 @@
 
 <span class="doccomment">/// The [`Visitor`] used to obtain the lexically scoped declarations of a node.
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">struct </span>LexicallyScopedDeclarationsVisitor&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;ast</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Vec&lt;LexicallyScopedDeclaration&lt;<span class="lifetime">&#39;ast</span>&gt;&gt;);
+</span><span class="kw">struct </span>LexicallyScopedDeclarationsVisitor&lt;<span class="lifetime">'a</span>, <span class="lifetime">'ast</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>Vec&lt;LexicallyScopedDeclaration&lt;<span class="lifetime">'ast</span>&gt;&gt;);
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ast</span>&gt; Visitor&lt;<span class="lifetime">&#39;ast</span>&gt; <span class="kw">for </span>LexicallyScopedDeclarationsVisitor&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;ast</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ast</span>&gt; Visitor&lt;<span class="lifetime">'ast</span>&gt; <span class="kw">for </span>LexicallyScopedDeclarationsVisitor&lt;<span class="lifetime">'_</span>, <span class="lifetime">'ast</span>&gt; {
     <span class="kw">type </span>BreakTy = Infallible;
 
     <span class="comment">// ScriptBody : StatementList
-    </span><span class="kw">fn </span>visit_script(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>Script) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+    </span><span class="kw">fn </span>visit_script(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>Script) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="comment">// 1. Return TopLevelLexicallyScopedDeclarations of StatementList.
         </span>TopLevelLexicallyScopedDeclarationsVisitor(<span class="self">self</span>.<span class="number">0</span>).visit_statement_list(node.statements())
     }
 
     <span class="kw">fn </span>visit_export_declaration(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>ExportDeclaration,
+        node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>ExportDeclaration,
     ) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="kw">let </span>decl = <span class="kw">match </span>node {
             <span class="comment">// ExportDeclaration :
@@ -3676,7 +3677,7 @@
 
     <span class="kw">fn </span>visit_statement_list_item(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>StatementListItem,
+        node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>StatementListItem,
     ) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="kw">match </span>node {
             <span class="comment">// StatementListItem : Statement
@@ -3698,7 +3699,7 @@
         }
     }
 
-    <span class="kw">fn </span>visit_labelled_item(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>LabelledItem) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+    <span class="kw">fn </span>visit_labelled_item(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>LabelledItem) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="kw">match </span>node {
             <span class="comment">// LabelledItem : FunctionDeclaration
             </span>LabelledItem::Function(f) =&gt; {
@@ -3714,7 +3715,7 @@
         ControlFlow::Continue(())
     }
 
-    <span class="kw">fn </span>visit_module_item(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>ModuleItem) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+    <span class="kw">fn </span>visit_module_item(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>ModuleItem) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="kw">match </span>node {
             ModuleItem::StatementListItem(item) =&gt; <span class="self">self</span>.visit_statement_list_item(item),
             ModuleItem::ExportDeclaration(export) =&gt; <span class="self">self</span>.visit_export_declaration(export),
@@ -3733,16 +3734,16 @@
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-toplevellexicallyscopeddeclarations
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">struct </span>TopLevelLexicallyScopedDeclarationsVisitor&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;ast</span>&gt;(
-    <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Vec&lt;LexicallyScopedDeclaration&lt;<span class="lifetime">&#39;ast</span>&gt;&gt;,
+</span><span class="kw">struct </span>TopLevelLexicallyScopedDeclarationsVisitor&lt;<span class="lifetime">'a</span>, <span class="lifetime">'ast</span>&gt;(
+    <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>Vec&lt;LexicallyScopedDeclaration&lt;<span class="lifetime">'ast</span>&gt;&gt;,
 );
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ast</span>&gt; Visitor&lt;<span class="lifetime">&#39;ast</span>&gt; <span class="kw">for </span>TopLevelLexicallyScopedDeclarationsVisitor&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;ast</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ast</span>&gt; Visitor&lt;<span class="lifetime">'ast</span>&gt; <span class="kw">for </span>TopLevelLexicallyScopedDeclarationsVisitor&lt;<span class="lifetime">'_</span>, <span class="lifetime">'ast</span>&gt; {
     <span class="kw">type </span>BreakTy = Infallible;
 
     <span class="kw">fn </span>visit_statement_list_item(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>StatementListItem,
+        node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>StatementListItem,
     ) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="kw">match </span>node {
             <span class="comment">// StatementListItem : Declaration
@@ -3814,9 +3815,9 @@
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-varscopeddeclarations
 </span><span class="attr">#[must_use]
-</span><span class="kw">pub fn </span>var_scoped_declarations&lt;<span class="lifetime">&#39;a</span>, N&gt;(node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>N) -&gt; Vec&lt;VarScopedDeclaration&gt;
+</span><span class="kw">pub fn </span>var_scoped_declarations&lt;<span class="lifetime">'a</span>, N&gt;(node: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>N) -&gt; Vec&lt;VarScopedDeclaration&gt;
 <span class="kw">where
-    </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>N: Into&lt;NodeRef&lt;<span class="lifetime">&#39;a</span>&gt;&gt;,
+    </span><span class="kw-2">&amp;</span><span class="lifetime">'a </span>N: Into&lt;NodeRef&lt;<span class="lifetime">'a</span>&gt;&gt;,
 {
     <span class="kw">let </span><span class="kw-2">mut </span>declarations = Vec::new();
     VarScopedDeclarationsVisitor(<span class="kw-2">&amp;mut </span>declarations).visit(node.into());
@@ -3825,18 +3826,18 @@
 
 <span class="doccomment">/// The [`Visitor`] used to obtain the var scoped declarations of a node.
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">struct </span>VarScopedDeclarationsVisitor&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Vec&lt;VarScopedDeclaration&gt;);
+</span><span class="kw">struct </span>VarScopedDeclarationsVisitor&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>Vec&lt;VarScopedDeclaration&gt;);
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ast</span>&gt; Visitor&lt;<span class="lifetime">&#39;ast</span>&gt; <span class="kw">for </span>VarScopedDeclarationsVisitor&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ast</span>&gt; Visitor&lt;<span class="lifetime">'ast</span>&gt; <span class="kw">for </span>VarScopedDeclarationsVisitor&lt;<span class="lifetime">'_</span>&gt; {
     <span class="kw">type </span>BreakTy = Infallible;
 
     <span class="comment">// ScriptBody : StatementList
-    </span><span class="kw">fn </span>visit_script(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>Script) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+    </span><span class="kw">fn </span>visit_script(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>Script) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="comment">// 1. Return TopLevelVarScopedDeclarations of StatementList.
         </span>TopLevelVarScopedDeclarationsVisitor(<span class="self">self</span>.<span class="number">0</span>).visit_statement_list(node.statements())
     }
 
-    <span class="kw">fn </span>visit_statement(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>Statement) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+    <span class="kw">fn </span>visit_statement(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>Statement) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="kw">match </span>node {
             Statement::Block(s) =&gt; <span class="self">self</span>.visit(s),
             Statement::Var(s) =&gt; <span class="self">self</span>.visit(s),
@@ -3861,7 +3862,7 @@
 
     <span class="kw">fn </span>visit_statement_list_item(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>StatementListItem,
+        node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>StatementListItem,
     ) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="kw">match </span>node {
             StatementListItem::Declaration(<span class="kw">_</span>) =&gt; ControlFlow::Continue(()),
@@ -3869,7 +3870,7 @@
         }
     }
 
-    <span class="kw">fn </span>visit_var_declaration(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>VarDeclaration) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+    <span class="kw">fn </span>visit_var_declaration(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>VarDeclaration) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="kw">for </span>var <span class="kw">in </span>node.<span class="number">0</span>.as_ref() {
             <span class="self">self</span>.<span class="number">0
                 </span>.push(VarScopedDeclaration::VariableDeclaration(var.clone()));
@@ -3877,7 +3878,7 @@
         ControlFlow::Continue(())
     }
 
-    <span class="kw">fn </span>visit_if(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span><span class="kw">crate</span>::statement::If) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+    <span class="kw">fn </span>visit_if(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span><span class="kw">crate</span>::statement::If) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="self">self</span>.visit(node.body());
         <span class="kw">if let </span><span class="prelude-val">Some</span>(else_node) = node.else_node() {
             <span class="self">self</span>.visit(else_node);
@@ -3887,7 +3888,7 @@
 
     <span class="kw">fn </span>visit_do_while_loop(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span><span class="kw">crate</span>::statement::DoWhileLoop,
+        node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span><span class="kw">crate</span>::statement::DoWhileLoop,
     ) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="self">self</span>.visit(node.body());
         ControlFlow::Continue(())
@@ -3895,7 +3896,7 @@
 
     <span class="kw">fn </span>visit_while_loop(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span><span class="kw">crate</span>::statement::WhileLoop,
+        node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span><span class="kw">crate</span>::statement::WhileLoop,
     ) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="self">self</span>.visit(node.body());
         ControlFlow::Continue(())
@@ -3903,7 +3904,7 @@
 
     <span class="kw">fn </span>visit_for_loop(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span><span class="kw">crate</span>::statement::ForLoop,
+        node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span><span class="kw">crate</span>::statement::ForLoop,
     ) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(ForLoopInitializer::Var(v)) = node.init() {
             <span class="self">self</span>.visit(v);
@@ -3914,7 +3915,7 @@
 
     <span class="kw">fn </span>visit_for_in_loop(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span><span class="kw">crate</span>::statement::ForInLoop,
+        node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span><span class="kw">crate</span>::statement::ForInLoop,
     ) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="kw">if let </span>IterableLoopInitializer::Var(var) = node.initializer() {
             <span class="self">self</span>.<span class="number">0
@@ -3926,7 +3927,7 @@
 
     <span class="kw">fn </span>visit_for_of_loop(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span><span class="kw">crate</span>::statement::ForOfLoop,
+        node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span><span class="kw">crate</span>::statement::ForOfLoop,
     ) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="kw">if let </span>IterableLoopInitializer::Var(var) = node.initializer() {
             <span class="self">self</span>.<span class="number">0
@@ -3936,12 +3937,12 @@
         ControlFlow::Continue(())
     }
 
-    <span class="kw">fn </span>visit_with(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span><span class="kw">crate</span>::statement::With) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+    <span class="kw">fn </span>visit_with(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span><span class="kw">crate</span>::statement::With) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="self">self</span>.visit(node.statement());
         ControlFlow::Continue(())
     }
 
-    <span class="kw">fn </span>visit_switch(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span><span class="kw">crate</span>::statement::Switch) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+    <span class="kw">fn </span>visit_switch(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span><span class="kw">crate</span>::statement::Switch) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="kw">for </span>case <span class="kw">in </span>node.cases() {
             <span class="self">self</span>.visit(case);
         }
@@ -3951,24 +3952,24 @@
         ControlFlow::Continue(())
     }
 
-    <span class="kw">fn </span>visit_case(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span><span class="kw">crate</span>::statement::Case) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+    <span class="kw">fn </span>visit_case(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span><span class="kw">crate</span>::statement::Case) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="self">self</span>.visit(node.body());
         ControlFlow::Continue(())
     }
 
-    <span class="kw">fn </span>visit_labelled_item(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>LabelledItem) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+    <span class="kw">fn </span>visit_labelled_item(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>LabelledItem) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="kw">match </span>node {
             LabelledItem::Statement(s) =&gt; <span class="self">self</span>.visit(s),
             LabelledItem::Function(<span class="kw">_</span>) =&gt; ControlFlow::Continue(()),
         }
     }
 
-    <span class="kw">fn </span>visit_catch(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span><span class="kw">crate</span>::statement::Catch) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+    <span class="kw">fn </span>visit_catch(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span><span class="kw">crate</span>::statement::Catch) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="self">self</span>.visit(node.block());
         ControlFlow::Continue(())
     }
 
-    <span class="kw">fn </span>visit_module_item(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>ModuleItem) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+    <span class="kw">fn </span>visit_module_item(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>ModuleItem) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="kw">match </span>node {
             <span class="comment">// ModuleItem : ExportDeclaration
             </span>ModuleItem::ExportDeclaration(decl) =&gt; {
@@ -3996,14 +3997,14 @@
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-toplevelvarscopeddeclarations
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">struct </span>TopLevelVarScopedDeclarationsVisitor&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Vec&lt;VarScopedDeclaration&gt;);
+</span><span class="kw">struct </span>TopLevelVarScopedDeclarationsVisitor&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>Vec&lt;VarScopedDeclaration&gt;);
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ast</span>&gt; Visitor&lt;<span class="lifetime">&#39;ast</span>&gt; <span class="kw">for </span>TopLevelVarScopedDeclarationsVisitor&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ast</span>&gt; Visitor&lt;<span class="lifetime">'ast</span>&gt; <span class="kw">for </span>TopLevelVarScopedDeclarationsVisitor&lt;<span class="lifetime">'_</span>&gt; {
     <span class="kw">type </span>BreakTy = Infallible;
 
     <span class="kw">fn </span>visit_statement_list_item(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>StatementListItem,
+        node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>StatementListItem,
     ) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="kw">match </span>node {
             StatementListItem::Declaration(d) =&gt; {
@@ -4032,7 +4033,7 @@
         }
     }
 
-    <span class="kw">fn </span>visit_labelled_item(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>LabelledItem) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+    <span class="kw">fn </span>visit_labelled_item(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>LabelledItem) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="kw">match </span>node {
             LabelledItem::Statement(Statement::Labelled(s)) =&gt; <span class="self">self</span>.visit(s),
             LabelledItem::Statement(s) =&gt; {
@@ -4060,9 +4061,9 @@
 /// [spec1]: https://tc39.es/ecma262/#sec-web-compat-globaldeclarationinstantiation
 /// [spec2]: https://tc39.es/ecma262/#sec-web-compat-evaldeclarationinstantiation
 </span><span class="attr">#[must_use]
-</span><span class="kw">pub fn </span>annex_b_function_declarations_names&lt;<span class="lifetime">&#39;a</span>, N&gt;(node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>N) -&gt; Vec&lt;Identifier&gt;
+</span><span class="kw">pub fn </span>annex_b_function_declarations_names&lt;<span class="lifetime">'a</span>, N&gt;(node: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>N) -&gt; Vec&lt;Identifier&gt;
 <span class="kw">where
-    </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>N: Into&lt;NodeRef&lt;<span class="lifetime">&#39;a</span>&gt;&gt;,
+    </span><span class="kw-2">&amp;</span><span class="lifetime">'a </span>N: Into&lt;NodeRef&lt;<span class="lifetime">'a</span>&gt;&gt;,
 {
     <span class="kw">let </span><span class="kw-2">mut </span>declarations = Vec::new();
     AnnexBFunctionDeclarationNamesVisitor(<span class="kw-2">&amp;mut </span>declarations).visit(node.into());
@@ -4071,14 +4072,14 @@
 
 <span class="doccomment">/// The [`Visitor`] used for [`annex_b_function_declarations_names`].
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">struct </span>AnnexBFunctionDeclarationNamesVisitor&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Vec&lt;Identifier&gt;);
+</span><span class="kw">struct </span>AnnexBFunctionDeclarationNamesVisitor&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>Vec&lt;Identifier&gt;);
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ast</span>&gt; Visitor&lt;<span class="lifetime">&#39;ast</span>&gt; <span class="kw">for </span>AnnexBFunctionDeclarationNamesVisitor&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ast</span>&gt; Visitor&lt;<span class="lifetime">'ast</span>&gt; <span class="kw">for </span>AnnexBFunctionDeclarationNamesVisitor&lt;<span class="lifetime">'_</span>&gt; {
     <span class="kw">type </span>BreakTy = Infallible;
 
     <span class="kw">fn </span>visit_statement_list_item(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>StatementListItem,
+        node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>StatementListItem,
     ) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="kw">match </span>node {
             StatementListItem::Statement(node) =&gt; <span class="self">self</span>.visit(node),
@@ -4086,7 +4087,7 @@
         }
     }
 
-    <span class="kw">fn </span>visit_statement(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>Statement) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+    <span class="kw">fn </span>visit_statement(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>Statement) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="kw">match </span>node {
             Statement::Block(node) =&gt; <span class="self">self</span>.visit(node),
             Statement::If(node) =&gt; <span class="self">self</span>.visit(node),
@@ -4103,13 +4104,13 @@
         }
     }
 
-    <span class="kw">fn </span>visit_block(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span><span class="kw">crate</span>::statement::Block) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+    <span class="kw">fn </span>visit_block(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span><span class="kw">crate</span>::statement::Block) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="self">self</span>.visit(node.statement_list());
         <span class="kw">for </span>statement <span class="kw">in </span>node.statement_list().statements() {
             <span class="kw">if let </span>StatementListItem::Declaration(Declaration::Function(function)) = statement {
                 <span class="kw">let </span>name = function
                     .name()
-                    .expect(<span class="string">&quot;function declaration must have name&quot;</span>);
+                    .expect(<span class="string">"function declaration must have name"</span>);
                 <span class="self">self</span>.<span class="number">0</span>.push(name);
             }
         }
@@ -4122,14 +4123,14 @@
         ControlFlow::Continue(())
     }
 
-    <span class="kw">fn </span>visit_switch(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span><span class="kw">crate</span>::statement::Switch) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+    <span class="kw">fn </span>visit_switch(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span><span class="kw">crate</span>::statement::Switch) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="kw">for </span>case <span class="kw">in </span>node.cases() {
             <span class="self">self</span>.visit(case);
             <span class="kw">for </span>statement <span class="kw">in </span>case.body().statements() {
                 <span class="kw">if let </span>StatementListItem::Declaration(Declaration::Function(function)) = statement {
                     <span class="kw">let </span>name = function
                         .name()
-                        .expect(<span class="string">&quot;function declaration must have name&quot;</span>);
+                        .expect(<span class="string">"function declaration must have name"</span>);
                     <span class="self">self</span>.<span class="number">0</span>.push(name);
                 }
             }
@@ -4140,7 +4141,7 @@
                 <span class="kw">if let </span>StatementListItem::Declaration(Declaration::Function(function)) = statement {
                     <span class="kw">let </span>name = function
                         .name()
-                        .expect(<span class="string">&quot;function declaration must have name&quot;</span>);
+                        .expect(<span class="string">"function declaration must have name"</span>);
                     <span class="self">self</span>.<span class="number">0</span>.push(name);
                 }
             }
@@ -4154,7 +4155,7 @@
         ControlFlow::Continue(())
     }
 
-    <span class="kw">fn </span>visit_try(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span><span class="kw">crate</span>::statement::Try) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+    <span class="kw">fn </span>visit_try(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span><span class="kw">crate</span>::statement::Try) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="self">self</span>.visit(node.block());
         <span class="kw">if let </span><span class="prelude-val">Some</span>(catch) = node.catch() {
             <span class="self">self</span>.visit(catch.block());
@@ -4171,7 +4172,7 @@
         ControlFlow::Continue(())
     }
 
-    <span class="kw">fn </span>visit_if(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span><span class="kw">crate</span>::statement::If) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+    <span class="kw">fn </span>visit_if(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span><span class="kw">crate</span>::statement::If) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(node) = node.else_node() {
             <span class="self">self</span>.visit(node);
         }
@@ -4180,21 +4181,21 @@
 
     <span class="kw">fn </span>visit_do_while_loop(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span><span class="kw">crate</span>::statement::DoWhileLoop,
+        node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span><span class="kw">crate</span>::statement::DoWhileLoop,
     ) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="self">self</span>.visit(node.body())
     }
 
     <span class="kw">fn </span>visit_while_loop(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span><span class="kw">crate</span>::statement::WhileLoop,
+        node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span><span class="kw">crate</span>::statement::WhileLoop,
     ) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="self">self</span>.visit(node.body())
     }
 
     <span class="kw">fn </span>visit_for_loop(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span><span class="kw">crate</span>::statement::ForLoop,
+        node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span><span class="kw">crate</span>::statement::ForLoop,
     ) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="self">self</span>.visit(node.body());
 
@@ -4208,7 +4209,7 @@
 
     <span class="kw">fn </span>visit_for_in_loop(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span><span class="kw">crate</span>::statement::ForInLoop,
+        node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span><span class="kw">crate</span>::statement::ForInLoop,
     ) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="self">self</span>.visit(node.body());
 
@@ -4226,7 +4227,7 @@
 
     <span class="kw">fn </span>visit_for_of_loop(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span><span class="kw">crate</span>::statement::ForOfLoop,
+        node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span><span class="kw">crate</span>::statement::ForOfLoop,
     ) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="self">self</span>.visit(node.body());
 
@@ -4244,7 +4245,7 @@
 
     <span class="kw">fn </span>visit_labelled(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span><span class="kw">crate</span>::statement::Labelled,
+        node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span><span class="kw">crate</span>::statement::Labelled,
     ) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="kw">if let </span>LabelledItem::Statement(node) = node.item() {
             <span class="self">self</span>.visit(node);
@@ -4252,16 +4253,16 @@
         ControlFlow::Continue(())
     }
 
-    <span class="kw">fn </span>visit_with(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span><span class="kw">crate</span>::statement::With) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+    <span class="kw">fn </span>visit_with(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span><span class="kw">crate</span>::statement::With) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="self">self</span>.visit(node.statement())
     }
 }
 
 <span class="doccomment">/// Returns `true` if the given statement returns a value.
 </span><span class="attr">#[must_use]
-</span><span class="kw">pub fn </span>returns_value&lt;<span class="lifetime">&#39;a</span>, N&gt;(node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>N) -&gt; bool
+</span><span class="kw">pub fn </span>returns_value&lt;<span class="lifetime">'a</span>, N&gt;(node: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>N) -&gt; bool
 <span class="kw">where
-    </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>N: Into&lt;NodeRef&lt;<span class="lifetime">&#39;a</span>&gt;&gt;,
+    </span><span class="kw-2">&amp;</span><span class="lifetime">'a </span>N: Into&lt;NodeRef&lt;<span class="lifetime">'a</span>&gt;&gt;,
 {
     ReturnsValueVisitor.visit(node.into()).is_break()
 }
@@ -4270,10 +4271,10 @@
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">struct </span>ReturnsValueVisitor;
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ast</span>&gt; Visitor&lt;<span class="lifetime">&#39;ast</span>&gt; <span class="kw">for </span>ReturnsValueVisitor {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ast</span>&gt; Visitor&lt;<span class="lifetime">'ast</span>&gt; <span class="kw">for </span>ReturnsValueVisitor {
     <span class="kw">type </span>BreakTy = ();
 
-    <span class="kw">fn </span>visit_block(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span><span class="kw">crate</span>::statement::Block) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+    <span class="kw">fn </span>visit_block(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span><span class="kw">crate</span>::statement::Block) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="kw">for </span>statement <span class="kw">in </span>node.statement_list().statements() {
             <span class="kw">match </span>statement {
                 StatementListItem::Declaration(<span class="kw">_</span>) =&gt; {}
@@ -4283,7 +4284,7 @@
         ControlFlow::Continue(())
     }
 
-    <span class="kw">fn </span>visit_statement(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span>Statement) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+    <span class="kw">fn </span>visit_statement(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span>Statement) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="kw">match </span>node {
             Statement::Empty | Statement::Var(<span class="kw">_</span>) =&gt; {}
             Statement::Block(node) =&gt; <span class="macro">try_break!</span>(<span class="self">self</span>.visit(node)),
@@ -4293,7 +4294,7 @@
         ControlFlow::Continue(())
     }
 
-    <span class="kw">fn </span>visit_case(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span><span class="kw">crate</span>::statement::Case) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
+    <span class="kw">fn </span>visit_case(<span class="kw-2">&amp;mut </span><span class="self">self</span>, node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span><span class="kw">crate</span>::statement::Case) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="kw">for </span>statement <span class="kw">in </span>node.body().statements() {
             <span class="kw">match </span>statement {
                 StatementListItem::Declaration(<span class="kw">_</span>) =&gt; {}
@@ -4305,7 +4306,7 @@
 
     <span class="kw">fn </span>visit_labelled(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ast </span><span class="kw">crate</span>::statement::Labelled,
+        node: <span class="kw-2">&amp;</span><span class="lifetime">'ast </span><span class="kw">crate</span>::statement::Labelled,
     ) -&gt; ControlFlow&lt;<span class="self">Self</span>::BreakTy&gt; {
         <span class="kw">match </span>node.item() {
             LabelledItem::Statement(node) =&gt; <span class="macro">try_break!</span>(<span class="self">self</span>.visit(node)),

@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `tests/tester/src/main.rs`."><title>main.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="boa_tester" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../boa_tester/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_tester"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `tests/tester/src/main.rs`."><title>main.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="boa_tester" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../boa_tester/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_tester"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -998,10 +999,10 @@
 //!
 //! This crate will run the full ECMAScript test suite (Test262) and report compliance of the
 //! `boa` engine.
-</span><span class="attr">#![doc = <span class="macro">include_str!</span>(<span class="string">&quot;../ABOUT.md&quot;</span>)]
+</span><span class="attr">#![doc = <span class="macro">include_str!</span>(<span class="string">"../ABOUT.md"</span>)]
 #![doc(
-    html_logo_url = <span class="string">&quot;https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg&quot;</span>,
-    html_favicon_url = <span class="string">&quot;https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg&quot;
+    html_logo_url = <span class="string">"https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"</span>,
+    html_favicon_url = <span class="string">"https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"
 </span>)]
 #![cfg_attr(not(test), deny(clippy::unwrap_used))]
 #![allow(
@@ -1073,7 +1074,7 @@
     </span>tests: FxHashSet&lt;Box&lt;str&gt;&gt;,
     <span class="attr">#[serde(default)]
     </span>features: FxHashSet&lt;Box&lt;str&gt;&gt;,
-    <span class="attr">#[serde(default = <span class="string">&quot;TestFlags::empty&quot;</span>)]
+    <span class="attr">#[serde(default = <span class="string">"TestFlags::empty"</span>)]
     </span>flags: TestFlags,
 }
 
@@ -1093,7 +1094,7 @@
         <span class="comment">// Some features are an accessor instead of a simple feature name e.g. `Intl.DurationFormat`.
         // This ensures those are also ignored.
         </span>feature
-            .split(<span class="string">&#39;.&#39;</span>)
+            .split(<span class="string">'.'</span>)
             .next()
             .map(|feat| <span class="self">self</span>.features.contains(feat))
             .unwrap_or_default()
@@ -1116,7 +1117,7 @@
 
 <span class="doccomment">/// Boa test262 tester
 </span><span class="attr">#[derive(Debug, Parser)]
-#[command(author, version, about, name = <span class="string">&quot;Boa test262 tester&quot;</span>)]
+#[command(author, version, about, name = <span class="string">"Boa test262 tester"</span>)]
 </span><span class="kw">enum </span>Cli {
     <span class="doccomment">/// Run the test suite.
     </span>Run {
@@ -1128,20 +1129,20 @@
         </span><span class="attr">#[arg(
             long,
             value_hint = ValueHint::DirPath,
-            conflicts_with = <span class="string">&quot;test262_commit&quot;
+            conflicts_with = <span class="string">"test262_commit"
         </span>)]
         </span>test262_path: <span class="prelude-ty">Option</span>&lt;PathBuf&gt;,
 
-        <span class="doccomment">/// Override config&#39;s Test262 commit. To checkout the latest commit set this to &quot;latest&quot;.
+        <span class="doccomment">/// Override config's Test262 commit. To checkout the latest commit set this to "latest".
         </span><span class="attr">#[arg(long)]
         </span>test262_commit: <span class="prelude-ty">Option</span>&lt;String&gt;,
 
-        <span class="doccomment">/// Which specific test or test suite to run. Should be a path relative to the Test262 directory: e.g. &quot;test/language/types/number&quot;
-        </span><span class="attr">#[arg(short, long, default_value = <span class="string">&quot;test&quot;</span>, value_hint = ValueHint::AnyPath)]
+        <span class="doccomment">/// Which specific test or test suite to run. Should be a path relative to the Test262 directory: e.g. "test/language/types/number"
+        </span><span class="attr">#[arg(short, long, default_value = <span class="string">"test"</span>, value_hint = ValueHint::AnyPath)]
         </span>suite: PathBuf,
 
         <span class="doccomment">/// Enable optimizations
-        </span><span class="attr">#[arg(long, short = <span class="string">&#39;O&#39;</span>)]
+        </span><span class="attr">#[arg(long, short = <span class="string">'O'</span>)]
         </span>optimize: bool,
 
         <span class="doccomment">/// Optional output folder for the full results information.
@@ -1153,7 +1154,7 @@
         </span>disable_parallelism: bool,
 
         <span class="doccomment">/// Path to a TOML file containing tester config.
-        </span><span class="attr">#[arg(short, long, default_value = <span class="string">&quot;test262_config.toml&quot;</span>, value_hint = ValueHint::FilePath)]
+        </span><span class="attr">#[arg(short, long, default_value = <span class="string">"test262_config.toml"</span>, value_hint = ValueHint::FilePath)]
         </span>config: PathBuf,
 
         <span class="doccomment">/// Maximum ECMAScript edition to test for.
@@ -1184,7 +1185,7 @@
     },
 }
 
-<span class="kw">const </span>DEFAULT_TEST262_DIRECTORY: <span class="kw-2">&amp;</span>str = <span class="string">&quot;test262&quot;</span>;
+<span class="kw">const </span>DEFAULT_TEST262_DIRECTORY: <span class="kw-2">&amp;</span>str = <span class="string">"test262"</span>;
 
 <span class="doccomment">/// Program entry point.
 </span><span class="kw">fn </span>main() -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
@@ -1213,13 +1214,13 @@
         } =&gt; {
             <span class="kw">let </span>config: Config = {
                 <span class="kw">let </span>input = std::fs::read_to_string(config_path)<span class="question-mark">?</span>;
-                toml::from_str(<span class="kw-2">&amp;</span>input).wrap_err(<span class="string">&quot;could not decode tester config file&quot;</span>)<span class="question-mark">?
+                toml::from_str(<span class="kw-2">&amp;</span>input).wrap_err(<span class="string">"could not decode tester config file"</span>)<span class="question-mark">?
             </span>};
 
             <span class="kw">let </span>test262_commit = test262_commit
                 .as_deref()
                 .or_else(|| <span class="prelude-val">Some</span>(config.commit()))
-                .filter(|s| ![<span class="string">&quot;&quot;</span>, <span class="string">&quot;latest&quot;</span>].contains(s));
+                .filter(|s| ![<span class="string">""</span>, <span class="string">"latest"</span>].contains(s));
 
             <span class="kw">let </span>test262_path = <span class="kw">if let </span><span class="prelude-val">Some</span>(path) = test262_path.as_deref() {
                 path
@@ -1257,19 +1258,19 @@
 <span class="doccomment">/// Returns the commit hash and commit message of the provided branch name.
 </span><span class="kw">fn </span>get_last_branch_commit(branch: <span class="kw-2">&amp;</span>str, verbose: u8) -&gt; <span class="prelude-ty">Result</span>&lt;(String, String)&gt; {
     <span class="kw">if </span>verbose &gt; <span class="number">1 </span>{
-        <span class="macro">println!</span>(<span class="string">&quot;Getting last commit on &#39;{branch}&#39; branch&quot;</span>);
+        <span class="macro">println!</span>(<span class="string">"Getting last commit on '{branch}' branch"</span>);
     }
-    <span class="kw">let </span>result = Command::new(<span class="string">&quot;git&quot;</span>)
-        .arg(<span class="string">&quot;log&quot;</span>)
-        .args([<span class="string">&quot;-n&quot;</span>, <span class="string">&quot;1&quot;</span>])
-        .arg(<span class="string">&quot;--pretty=format:%H %s&quot;</span>)
+    <span class="kw">let </span>result = Command::new(<span class="string">"git"</span>)
+        .arg(<span class="string">"log"</span>)
+        .args([<span class="string">"-n"</span>, <span class="string">"1"</span>])
+        .arg(<span class="string">"--pretty=format:%H %s"</span>)
         .arg(branch)
         .current_dir(DEFAULT_TEST262_DIRECTORY)
         .output()<span class="question-mark">?</span>;
 
     <span class="kw">if </span>!result.status.success() {
         <span class="macro">bail!</span>(
-            <span class="string">&quot;test262 getting commit hash and message failed with return code {:?}&quot;</span>,
+            <span class="string">"test262 getting commit hash and message failed with return code {:?}"</span>,
             result.status.code()
         );
     }
@@ -1277,27 +1278,27 @@
     <span class="kw">let </span>output = std::str::from_utf8(<span class="kw-2">&amp;</span>result.stdout)<span class="question-mark">?</span>.trim();
 
     <span class="kw">let </span>(hash, message) = output
-        .split_once(<span class="string">&#39; &#39;</span>)
-        .expect(<span class="string">&quot;git log output to contain hash and message&quot;</span>);
+        .split_once(<span class="string">' '</span>)
+        .expect(<span class="string">"git log output to contain hash and message"</span>);
 
     <span class="prelude-val">Ok</span>((hash.into(), message.into()))
 }
 
 <span class="kw">fn </span>reset_test262_commit(commit: <span class="kw-2">&amp;</span>str, verbose: u8) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
     <span class="kw">if </span>verbose != <span class="number">0 </span>{
-        <span class="macro">println!</span>(<span class="string">&quot;Reset test262 to commit: {commit}...&quot;</span>);
+        <span class="macro">println!</span>(<span class="string">"Reset test262 to commit: {commit}..."</span>);
     }
 
-    <span class="kw">let </span>result = Command::new(<span class="string">&quot;git&quot;</span>)
-        .arg(<span class="string">&quot;reset&quot;</span>)
-        .arg(<span class="string">&quot;--hard&quot;</span>)
+    <span class="kw">let </span>result = Command::new(<span class="string">"git"</span>)
+        .arg(<span class="string">"reset"</span>)
+        .arg(<span class="string">"--hard"</span>)
         .arg(commit)
         .current_dir(DEFAULT_TEST262_DIRECTORY)
         .status()<span class="question-mark">?</span>;
 
     <span class="kw">if </span>!result.success() {
         <span class="macro">bail!</span>(
-            <span class="string">&quot;test262 commit {commit} checkout failed with return code: {:?}&quot;</span>,
+            <span class="string">"test262 commit {commit} checkout failed with return code: {:?}"</span>,
             result.code()
         );
     }
@@ -1306,13 +1307,13 @@
 }
 
 <span class="kw">fn </span>clone_test262(commit: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;, verbose: u8) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-    <span class="kw">const </span>TEST262_REPOSITORY: <span class="kw-2">&amp;</span>str = <span class="string">&quot;https://github.com/tc39/test262&quot;</span>;
+    <span class="kw">const </span>TEST262_REPOSITORY: <span class="kw-2">&amp;</span>str = <span class="string">"https://github.com/tc39/test262"</span>;
 
     <span class="kw">let </span>update = commit.is_none();
 
     <span class="kw">if </span>Path::new(DEFAULT_TEST262_DIRECTORY).is_dir() {
         <span class="kw">let </span>(current_commit_hash, current_commit_message) =
-            get_last_branch_commit(<span class="string">&quot;HEAD&quot;</span>, verbose)<span class="question-mark">?</span>;
+            get_last_branch_commit(<span class="string">"HEAD"</span>, verbose)<span class="question-mark">?</span>;
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(commit) = commit {
             <span class="kw">if </span>current_commit_hash == commit {
@@ -1321,41 +1322,41 @@
         }
 
         <span class="kw">if </span>verbose != <span class="number">0 </span>{
-            <span class="macro">println!</span>(<span class="string">&quot;Fetching latest test262 commits...&quot;</span>);
+            <span class="macro">println!</span>(<span class="string">"Fetching latest test262 commits..."</span>);
         }
-        <span class="kw">let </span>result = Command::new(<span class="string">&quot;git&quot;</span>)
-            .arg(<span class="string">&quot;fetch&quot;</span>)
+        <span class="kw">let </span>result = Command::new(<span class="string">"git"</span>)
+            .arg(<span class="string">"fetch"</span>)
             .current_dir(DEFAULT_TEST262_DIRECTORY)
             .status()<span class="question-mark">?</span>;
 
         <span class="kw">if </span>!result.success() {
             <span class="macro">bail!</span>(
-                <span class="string">&quot;Test262 fetching latest failed with return code {:?}&quot;</span>,
+                <span class="string">"Test262 fetching latest failed with return code {:?}"</span>,
                 result.code()
             );
         }
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(commit) = commit {
-            <span class="macro">println!</span>(<span class="string">&quot;Test262 switching to commit {commit}...&quot;</span>);
+            <span class="macro">println!</span>(<span class="string">"Test262 switching to commit {commit}..."</span>);
             reset_test262_commit(commit, verbose)<span class="question-mark">?</span>;
             <span class="kw">return </span><span class="prelude-val">Ok</span>(());
         }
 
         <span class="kw">if </span>verbose != <span class="number">0 </span>{
-            <span class="macro">println!</span>(<span class="string">&quot;Checking latest Test262 with current HEAD...&quot;</span>);
+            <span class="macro">println!</span>(<span class="string">"Checking latest Test262 with current HEAD..."</span>);
         }
         <span class="kw">let </span>(latest_commit_hash, latest_commit_message) =
-            get_last_branch_commit(<span class="string">&quot;origin/main&quot;</span>, verbose)<span class="question-mark">?</span>;
+            get_last_branch_commit(<span class="string">"origin/main"</span>, verbose)<span class="question-mark">?</span>;
 
         <span class="kw">if </span>current_commit_hash != latest_commit_hash {
             <span class="kw">if </span>update {
-                <span class="macro">println!</span>(<span class="string">&quot;Updating Test262 repository:&quot;</span>);
+                <span class="macro">println!</span>(<span class="string">"Updating Test262 repository:"</span>);
             } <span class="kw">else </span>{
-                <span class="macro">println!</span>(<span class="string">&quot;Warning Test262 repository is not in sync, use &#39;--test262-commit latest&#39; to automatically update it:&quot;</span>);
+                <span class="macro">println!</span>(<span class="string">"Warning Test262 repository is not in sync, use '--test262-commit latest' to automatically update it:"</span>);
             }
 
-            <span class="macro">println!</span>(<span class="string">&quot;    Current commit: {current_commit_hash} {current_commit_message}&quot;</span>);
-            <span class="macro">println!</span>(<span class="string">&quot;    Latest commit:  {latest_commit_hash} {latest_commit_message}&quot;</span>);
+            <span class="macro">println!</span>(<span class="string">"    Current commit: {current_commit_hash} {current_commit_message}"</span>);
+            <span class="macro">println!</span>(<span class="string">"    Latest commit:  {latest_commit_hash} {latest_commit_message}"</span>);
 
             <span class="kw">if </span>update {
                 reset_test262_commit(<span class="kw-2">&amp;</span>latest_commit_hash, verbose)<span class="question-mark">?</span>;
@@ -1365,23 +1366,23 @@
         <span class="kw">return </span><span class="prelude-val">Ok</span>(());
     }
 
-    <span class="macro">println!</span>(<span class="string">&quot;Cloning test262...&quot;</span>);
-    <span class="kw">let </span>result = Command::new(<span class="string">&quot;git&quot;</span>)
-        .arg(<span class="string">&quot;clone&quot;</span>)
+    <span class="macro">println!</span>(<span class="string">"Cloning test262..."</span>);
+    <span class="kw">let </span>result = Command::new(<span class="string">"git"</span>)
+        .arg(<span class="string">"clone"</span>)
         .arg(TEST262_REPOSITORY)
         .arg(DEFAULT_TEST262_DIRECTORY)
         .status()<span class="question-mark">?</span>;
 
     <span class="kw">if </span>!result.success() {
         <span class="macro">bail!</span>(
-            <span class="string">&quot;Cloning Test262 repository failed with return code {:?}&quot;</span>,
+            <span class="string">"Cloning Test262 repository failed with return code {:?}"</span>,
             result.code()
         );
     }
 
     <span class="kw">if let </span><span class="prelude-val">Some</span>(commit) = commit {
         <span class="kw">if </span>verbose != <span class="number">0 </span>{
-            <span class="macro">println!</span>(<span class="string">&quot;Reset Test262 to commit: {commit}...&quot;</span>);
+            <span class="macro">println!</span>(<span class="string">"Reset Test262 to commit: {commit}..."</span>);
         }
 
         reset_test262_commit(commit, verbose)<span class="question-mark">?</span>;
@@ -1407,32 +1408,32 @@
     <span class="kw">if let </span><span class="prelude-val">Some</span>(path) = output {
         <span class="kw">if </span>path.exists() {
             <span class="kw">if </span>!path.is_dir() {
-                <span class="macro">bail!</span>(<span class="string">&quot;the output path must be a directory.&quot;</span>);
+                <span class="macro">bail!</span>(<span class="string">"the output path must be a directory."</span>);
             }
         } <span class="kw">else </span>{
-            std::fs::create_dir_all(path).wrap_err(<span class="string">&quot;could not create the output directory&quot;</span>)<span class="question-mark">?</span>;
+            std::fs::create_dir_all(path).wrap_err(<span class="string">"could not create the output directory"</span>)<span class="question-mark">?</span>;
         }
     }
 
     <span class="kw">if </span>verbose != <span class="number">0 </span>{
-        <span class="macro">println!</span>(<span class="string">&quot;Loading the test suite...&quot;</span>);
+        <span class="macro">println!</span>(<span class="string">"Loading the test suite..."</span>);
     }
-    <span class="kw">let </span>harness = read_harness(test262_path).wrap_err(<span class="string">&quot;could not read harness&quot;</span>)<span class="question-mark">?</span>;
+    <span class="kw">let </span>harness = read_harness(test262_path).wrap_err(<span class="string">"could not read harness"</span>)<span class="question-mark">?</span>;
 
-    <span class="kw">if </span>suite.to_string_lossy().ends_with(<span class="string">&quot;.js&quot;</span>) {
+    <span class="kw">if </span>suite.to_string_lossy().ends_with(<span class="string">".js"</span>) {
         <span class="kw">let </span>test = read_test(<span class="kw-2">&amp;</span>test262_path.join(suite)).wrap_err_with(|| {
             <span class="kw">let </span>suite = suite.display();
-            <span class="macro">format!</span>(<span class="string">&quot;could not read the test {suite}&quot;</span>)
+            <span class="macro">format!</span>(<span class="string">"could not read the test {suite}"</span>)
         })<span class="question-mark">?</span>;
 
         <span class="kw">if </span>test.edition &lt;= edition {
             <span class="kw">if </span>verbose != <span class="number">0 </span>{
-                <span class="macro">println!</span>(<span class="string">&quot;Test loaded, starting...&quot;</span>);
+                <span class="macro">println!</span>(<span class="string">"Test loaded, starting..."</span>);
             }
             test.run(<span class="kw-2">&amp;</span>harness, verbose, optimizer_options, console);
         } <span class="kw">else </span>{
             <span class="macro">println!</span>(
-                <span class="string">&quot;Minimum spec edition of test is bigger than the specified edition. Skipping.&quot;
+                <span class="string">"Minimum spec edition of test is bigger than the specified edition. Skipping."
             </span>);
         }
 
@@ -1441,11 +1442,11 @@
         <span class="kw">let </span>suite =
             read_suite(<span class="kw-2">&amp;</span>test262_path.join(suite), config.ignored(), <span class="bool-val">false</span>).wrap_err_with(|| {
                 <span class="kw">let </span>suite = suite.display();
-                <span class="macro">format!</span>(<span class="string">&quot;could not read the suite {suite}&quot;</span>)
+                <span class="macro">format!</span>(<span class="string">"could not read the suite {suite}"</span>)
             })<span class="question-mark">?</span>;
 
         <span class="kw">if </span>verbose != <span class="number">0 </span>{
-            <span class="macro">println!</span>(<span class="string">&quot;Test suite loaded, starting tests...&quot;</span>);
+            <span class="macro">println!</span>(<span class="string">"Test suite loaded, starting tests..."</span>);
         }
         <span class="kw">let </span>results = suite.run(
             <span class="kw-2">&amp;</span>harness,
@@ -1460,7 +1461,7 @@
             <span class="kw">let </span><span class="kw-2">mut </span>table = comfy_table::Table::new();
             table.load_preset(comfy_table::presets::UTF8_HORIZONTAL_ONLY);
             table.set_header(<span class="macro">vec!</span>[
-                <span class="string">&quot;Edition&quot;</span>, <span class="string">&quot;Total&quot;</span>, <span class="string">&quot;Passed&quot;</span>, <span class="string">&quot;Ignored&quot;</span>, <span class="string">&quot;Failed&quot;</span>, <span class="string">&quot;Panics&quot;</span>, <span class="string">&quot;%&quot;</span>,
+                <span class="string">"Edition"</span>, <span class="string">"Total"</span>, <span class="string">"Passed"</span>, <span class="string">"Ignored"</span>, <span class="string">"Failed"</span>, <span class="string">"Panics"</span>, <span class="string">"%"</span>,
             ]);
             <span class="kw">for </span>column <span class="kw">in </span>table.column_iter_mut().skip(<span class="number">1</span>) {
                 column.set_cell_alignment(comfy_table::CellAlignment::Right);
@@ -1480,7 +1481,7 @@
                 } = stats;
                 <span class="kw">let </span>failed = total - passed - ignored;
                 <span class="kw">let </span>conformance = (passed <span class="kw">as </span>f64 / total <span class="kw">as </span>f64) * <span class="number">100.0</span>;
-                <span class="kw">let </span>conformance = <span class="macro">format!</span>(<span class="string">&quot;{conformance:.2}&quot;</span>);
+                <span class="kw">let </span>conformance = <span class="macro">format!</span>(<span class="string">"{conformance:.2}"</span>);
                 table.add_row(<span class="macro">vec!</span>[
                     v.to_string(),
                     total.to_string(),
@@ -1491,8 +1492,8 @@
                     conformance,
                 ]);
             }
-            <span class="macro">println!</span>(<span class="string">&quot;\n\nResults\n&quot;</span>);
-            <span class="macro">println!</span>(<span class="string">&quot;{table}&quot;</span>);
+            <span class="macro">println!</span>(<span class="string">"\n\nResults\n"</span>);
+            <span class="macro">println!</span>(<span class="string">"{table}"</span>);
         } <span class="kw">else </span>{
             <span class="kw">let </span>Statistics {
                 total,
@@ -1500,24 +1501,24 @@
                 ignored,
                 panic,
             } = results.stats;
-            <span class="macro">println!</span>(<span class="string">&quot;\n\nResults ({edition}):&quot;</span>);
-            <span class="macro">println!</span>(<span class="string">&quot;Total tests: {total}&quot;</span>);
-            <span class="macro">println!</span>(<span class="string">&quot;Passed tests: {}&quot;</span>, passed.to_string().green());
-            <span class="macro">println!</span>(<span class="string">&quot;Ignored tests: {}&quot;</span>, ignored.to_string().yellow());
+            <span class="macro">println!</span>(<span class="string">"\n\nResults ({edition}):"</span>);
+            <span class="macro">println!</span>(<span class="string">"Total tests: {total}"</span>);
+            <span class="macro">println!</span>(<span class="string">"Passed tests: {}"</span>, passed.to_string().green());
+            <span class="macro">println!</span>(<span class="string">"Ignored tests: {}"</span>, ignored.to_string().yellow());
             <span class="macro">println!</span>(
-                <span class="string">&quot;Failed tests: {} ({})&quot;</span>,
+                <span class="string">"Failed tests: {} ({})"</span>,
                 (total - passed - ignored).to_string().red(),
-                <span class="macro">format!</span>(<span class="string">&quot;{panic} panics&quot;</span>).red()
+                <span class="macro">format!</span>(<span class="string">"{panic} panics"</span>).red()
             );
             <span class="macro">println!</span>(
-                <span class="string">&quot;Conformance: {:.2}%&quot;</span>,
+                <span class="string">"Conformance: {:.2}%"</span>,
                 (passed <span class="kw">as </span>f64 / total <span class="kw">as </span>f64) * <span class="number">100.0
             </span>);
         }
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(output) = output {
             write_json(results, output, verbose, test262_path)
-                .wrap_err(<span class="string">&quot;could not write the results to the output JSON file&quot;</span>)<span class="question-mark">?</span>;
+                .wrap_err(<span class="string">"could not write the results to the output JSON file"</span>)<span class="question-mark">?</span>;
         }
     }
 
@@ -1551,13 +1552,13 @@
 <span class="doccomment">/// Represents a tests statistic
 </span><span class="attr">#[derive(Default, Debug, Copy, Clone, Serialize, Deserialize)]
 </span><span class="kw">struct </span>Statistics {
-    <span class="attr">#[serde(rename = <span class="string">&quot;t&quot;</span>)]
+    <span class="attr">#[serde(rename = <span class="string">"t"</span>)]
     </span>total: usize,
-    <span class="attr">#[serde(rename = <span class="string">&quot;o&quot;</span>)]
+    <span class="attr">#[serde(rename = <span class="string">"o"</span>)]
     </span>passed: usize,
-    <span class="attr">#[serde(rename = <span class="string">&quot;i&quot;</span>)]
+    <span class="attr">#[serde(rename = <span class="string">"i"</span>)]
     </span>ignored: usize,
-    <span class="attr">#[serde(rename = <span class="string">&quot;p&quot;</span>)]
+    <span class="attr">#[serde(rename = <span class="string">"p"</span>)]
     </span>panic: usize,
 }
 
@@ -1598,10 +1599,10 @@
     es14: Statistics,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; Deserialize&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>VersionedStats {
+<span class="kw">impl</span>&lt;<span class="lifetime">'de</span>&gt; Deserialize&lt;<span class="lifetime">'de</span>&gt; <span class="kw">for </span>VersionedStats {
     <span class="kw">fn </span>deserialize&lt;D&gt;(deserializer: D) -&gt; std::result::Result&lt;<span class="self">Self</span>, D::Error&gt;
     <span class="kw">where
-        </span>D: Deserializer&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>D: Deserializer&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="attr">#[derive(Deserialize)]
         </span><span class="kw">struct </span>Inner {
@@ -1736,20 +1737,20 @@
 <span class="doccomment">/// Outcome of a test suite.
 </span><span class="attr">#[derive(Debug, Clone, Serialize, Deserialize)]
 </span><span class="kw">struct </span>SuiteResult {
-    <span class="attr">#[serde(rename = <span class="string">&quot;n&quot;</span>)]
+    <span class="attr">#[serde(rename = <span class="string">"n"</span>)]
     </span>name: Box&lt;str&gt;,
-    <span class="attr">#[serde(rename = <span class="string">&quot;a&quot;</span>)]
+    <span class="attr">#[serde(rename = <span class="string">"a"</span>)]
     </span>stats: Statistics,
-    <span class="attr">#[serde(rename = <span class="string">&quot;av&quot;</span>, default)]
+    <span class="attr">#[serde(rename = <span class="string">"av"</span>, default)]
     </span>versioned_stats: VersionedStats,
-    <span class="attr">#[serde(skip_serializing_if = <span class="string">&quot;Vec::is_empty&quot;</span>, default)]
-    #[serde(rename = <span class="string">&quot;s&quot;</span>)]
+    <span class="attr">#[serde(skip_serializing_if = <span class="string">"Vec::is_empty"</span>, default)]
+    #[serde(rename = <span class="string">"s"</span>)]
     </span>suites: Vec&lt;SuiteResult&gt;,
-    <span class="attr">#[serde(skip_serializing_if = <span class="string">&quot;Vec::is_empty&quot;</span>, default)]
-    #[serde(rename = <span class="string">&quot;t&quot;</span>)]
+    <span class="attr">#[serde(skip_serializing_if = <span class="string">"Vec::is_empty"</span>, default)]
+    #[serde(rename = <span class="string">"t"</span>)]
     </span>tests: Vec&lt;TestResult&gt;,
-    <span class="attr">#[serde(skip_serializing_if = <span class="string">&quot;FxHashSet::is_empty&quot;</span>, default)]
-    #[serde(rename = <span class="string">&quot;f&quot;</span>)]
+    <span class="attr">#[serde(skip_serializing_if = <span class="string">"FxHashSet::is_empty"</span>, default)]
+    #[serde(rename = <span class="string">"f"</span>)]
     </span>features: FxHashSet&lt;String&gt;,
 }
 
@@ -1757,27 +1758,27 @@
 </span><span class="attr">#[derive(Debug, Clone, Serialize, Deserialize)]
 #[allow(dead_code)]
 </span><span class="kw">struct </span>TestResult {
-    <span class="attr">#[serde(rename = <span class="string">&quot;n&quot;</span>)]
+    <span class="attr">#[serde(rename = <span class="string">"n"</span>)]
     </span>name: Box&lt;str&gt;,
-    <span class="attr">#[serde(rename = <span class="string">&quot;v&quot;</span>, default)]
+    <span class="attr">#[serde(rename = <span class="string">"v"</span>, default)]
     </span>edition: SpecEdition,
-    <span class="attr">#[serde(rename = <span class="string">&quot;s&quot;</span>, default)]
+    <span class="attr">#[serde(rename = <span class="string">"s"</span>, default)]
     </span>strict: bool,
     <span class="attr">#[serde(skip)]
     </span>result_text: Box&lt;str&gt;,
-    <span class="attr">#[serde(rename = <span class="string">&quot;r&quot;</span>)]
+    <span class="attr">#[serde(rename = <span class="string">"r"</span>)]
     </span>result: TestOutcomeResult,
 }
 
 <span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 </span><span class="kw">enum </span>TestOutcomeResult {
-    <span class="attr">#[serde(rename = <span class="string">&quot;O&quot;</span>)]
+    <span class="attr">#[serde(rename = <span class="string">"O"</span>)]
     </span>Passed,
-    <span class="attr">#[serde(rename = <span class="string">&quot;I&quot;</span>)]
+    <span class="attr">#[serde(rename = <span class="string">"I"</span>)]
     </span>Ignored,
-    <span class="attr">#[serde(rename = <span class="string">&quot;F&quot;</span>)]
+    <span class="attr">#[serde(rename = <span class="string">"F"</span>)]
     </span>Failed,
-    <span class="attr">#[serde(rename = <span class="string">&quot;P&quot;</span>)]
+    <span class="attr">#[serde(rename = <span class="string">"P"</span>)]
     </span>Panic,
 }
 
@@ -1807,7 +1808,7 @@
         C: Into&lt;Box&lt;Path&gt;&gt;,
     {
         <span class="kw">let </span>edition = SpecEdition::from_test_metadata(<span class="kw-2">&amp;</span>metadata)
-            .map_err(|feats| <span class="macro">eyre!</span>(<span class="string">&quot;test metadata contained unknown features: {feats:?}&quot;</span>))<span class="question-mark">?</span>;
+            .map_err(|feats| <span class="macro">eyre!</span>(<span class="string">"test metadata contained unknown features: {feats:?}"</span>))<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
             edition,
@@ -1921,23 +1922,23 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; Deserialize&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>TestFlags {
+<span class="kw">impl</span>&lt;<span class="lifetime">'de</span>&gt; Deserialize&lt;<span class="lifetime">'de</span>&gt; <span class="kw">for </span>TestFlags {
     <span class="kw">fn </span>deserialize&lt;D&gt;(deserializer: D) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, D::Error&gt;
     <span class="kw">where
-        </span>D: Deserializer&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>D: Deserializer&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="kw">struct </span>FlagsVisitor;
 
-        <span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; Visitor&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>FlagsVisitor {
+        <span class="kw">impl</span>&lt;<span class="lifetime">'de</span>&gt; Visitor&lt;<span class="lifetime">'de</span>&gt; <span class="kw">for </span>FlagsVisitor {
             <span class="kw">type </span>Value = TestFlags;
 
-            <span class="kw">fn </span>expecting(<span class="kw-2">&amp;</span><span class="self">self</span>, formatter: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
-                <span class="macro">write!</span>(formatter, <span class="string">&quot;a sequence of flags&quot;</span>)
+            <span class="kw">fn </span>expecting(<span class="kw-2">&amp;</span><span class="self">self</span>, formatter: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
+                <span class="macro">write!</span>(formatter, <span class="string">"a sequence of flags"</span>)
             }
 
             <span class="kw">fn </span>visit_seq&lt;A&gt;(<span class="self">self</span>, <span class="kw-2">mut </span>seq: A) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Value, A::Error&gt;
             <span class="kw">where
-                </span>A: serde::de::SeqAccess&lt;<span class="lifetime">&#39;de</span>&gt;,
+                </span>A: serde::de::SeqAccess&lt;<span class="lifetime">'de</span>&gt;,
             {
                 <span class="kw">let </span><span class="kw-2">mut </span>flags = TestFlags::empty();
                 <span class="kw">while let </span><span class="prelude-val">Some</span>(elem) = seq.next_element::&lt;TestFlag&gt;()<span class="question-mark">? </span>{
@@ -1949,11 +1950,11 @@
 
         <span class="kw">struct </span>RawFlagsVisitor;
 
-        <span class="kw">impl </span>Visitor&lt;<span class="lifetime">&#39;_</span>&gt; <span class="kw">for </span>RawFlagsVisitor {
+        <span class="kw">impl </span>Visitor&lt;<span class="lifetime">'_</span>&gt; <span class="kw">for </span>RawFlagsVisitor {
             <span class="kw">type </span>Value = TestFlags;
 
-            <span class="kw">fn </span>expecting(<span class="kw-2">&amp;</span><span class="self">self</span>, formatter: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
-                <span class="macro">write!</span>(formatter, <span class="string">&quot;a flags number&quot;</span>)
+            <span class="kw">fn </span>expecting(<span class="kw-2">&amp;</span><span class="self">self</span>, formatter: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
+                <span class="macro">write!</span>(formatter, <span class="string">"a flags number"</span>)
             }
 
             <span class="kw">fn </span>visit_u16&lt;E&gt;(<span class="self">self</span>, v: u16) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Value, E&gt;
@@ -1961,7 +1962,7 @@
                 </span>E: serde::de::Error,
             {
                 TestFlags::from_bits(v).ok_or_else(|| {
-                    E::invalid_value(Unexpected::Unsigned(v.into()), <span class="kw-2">&amp;</span><span class="string">&quot;a valid flag number&quot;</span>)
+                    E::invalid_value(Unexpected::Unsigned(v.into()), <span class="kw-2">&amp;</span><span class="string">"a valid flag number"</span>)
                 })
             }
         }
@@ -1976,7 +1977,7 @@
 
 <span class="doccomment">/// Phase for an error.
 </span><span class="attr">#[derive(Debug, Clone, Copy, Deserialize)]
-#[serde(rename_all = <span class="string">&quot;lowercase&quot;</span>)]
+#[serde(rename_all = <span class="string">"lowercase"</span>)]
 </span><span class="kw">enum </span>Phase {
     Parse,
     Resolution,

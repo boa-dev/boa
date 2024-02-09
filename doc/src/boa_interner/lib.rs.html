@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/interner/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="boa_interner" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../boa_interner/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_interner"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/interner/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="boa_interner" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../boa_interner/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_interner"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -397,21 +398,21 @@
 <a href="#397" id="397">397</a>
 <a href="#398" id="398">398</a>
 <a href="#399" id="399">399</a>
-</pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s **`boa_interner`** is a string interner for compiler performance.
+</pre></div><pre class="rust"><code><span class="doccomment">//! Boa's **`boa_interner`** is a string interner for compiler performance.
 //!
 //! # Crate Overview
 //!
 //! The idea behind using a string interner is that in most of the code, strings such as
 //! identifiers and literals are often repeated. This causes extra burden when comparing them and
 //! storing them. A string interner stores a unique `usize` symbol for each string, making sure
-//! that there are no duplicates. This makes it much easier to compare, since it&#39;s just comparing
-//! to `usize`, and also it&#39;s easier to store, since instead of a heap-allocated string, you only
+//! that there are no duplicates. This makes it much easier to compare, since it's just comparing
+//! to `usize`, and also it's easier to store, since instead of a heap-allocated string, you only
 //! need to store a `usize`. This reduces memory consumption and improves performance in the
 //! compiler.
-</span><span class="attr">#![doc = <span class="macro">include_str!</span>(<span class="string">&quot;../ABOUT.md&quot;</span>)]
+</span><span class="attr">#![doc = <span class="macro">include_str!</span>(<span class="string">"../ABOUT.md"</span>)]
 #![doc(
-    html_logo_url = <span class="string">&quot;https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg&quot;</span>,
-    html_favicon_url = <span class="string">&quot;https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg&quot;
+    html_logo_url = <span class="string">"https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"</span>,
+    html_favicon_url = <span class="string">"https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"
 </span>)]
 #![cfg_attr(not(test), forbid(clippy::unwrap_used))]
 #![allow(
@@ -419,7 +420,7 @@
     <span class="comment">// TODO deny once false positive is fixed (https://github.com/rust-lang/rust-clippy/issues/9626).
     </span>clippy::trait_duplication_in_bounds
 )]
-#![cfg_attr(not(feature = <span class="string">&quot;arbitrary&quot;</span>), no_std)]
+#![cfg_attr(not(feature = <span class="string">"arbitrary"</span>), no_std)]
 
 </span><span class="kw">extern crate </span>alloc;
 
@@ -441,28 +442,28 @@
 /// This struct allows us to intern either `UTF-8` or `UTF-16` str references, which are the two
 /// encodings [`Interner`] can store.
 </span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-</span><span class="kw">pub enum </span>JStrRef&lt;<span class="lifetime">&#39;a</span>&gt; {
+</span><span class="kw">pub enum </span>JStrRef&lt;<span class="lifetime">'a</span>&gt; {
     <span class="doccomment">/// A `UTF-8` string reference.
-    </span>Utf8(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str),
+    </span>Utf8(<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str),
 
     <span class="doccomment">/// A `UTF-16` string reference.
-    </span>Utf16(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u16]),
+    </span>Utf16(<span class="kw-2">&amp;</span><span class="lifetime">'a </span>[u16]),
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str&gt; <span class="kw">for </span>JStrRef&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>from(s: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str) -&gt; <span class="self">Self </span>{
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str&gt; <span class="kw">for </span>JStrRef&lt;<span class="lifetime">'a</span>&gt; {
+    <span class="kw">fn </span>from(s: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str) -&gt; <span class="self">Self </span>{
         JStrRef::Utf8(s)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u16]&gt; <span class="kw">for </span>JStrRef&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>from(s: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u16]) -&gt; <span class="self">Self </span>{
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>[u16]&gt; <span class="kw">for </span>JStrRef&lt;<span class="lifetime">'a</span>&gt; {
+    <span class="kw">fn </span>from(s: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>[u16]) -&gt; <span class="self">Self </span>{
         JStrRef::Utf16(s)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="kw">const </span>N: usize&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u16; N]&gt; <span class="kw">for </span>JStrRef&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>from(s: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u16; N]) -&gt; <span class="self">Self </span>{
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, <span class="kw">const </span>N: usize&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>[u16; N]&gt; <span class="kw">for </span>JStrRef&lt;<span class="lifetime">'a</span>&gt; {
+    <span class="kw">fn </span>from(s: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>[u16; N]) -&gt; <span class="self">Self </span>{
         JStrRef::Utf16(s)
     }
 }
@@ -474,24 +475,24 @@
 /// string is representable as a `UTF-16` string, so `JSInternedStrRef::utf8` returns a
 /// [&lt;code&gt;&amp;\[u16\]&lt;/code&gt;][core::slice].
 </span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-</span><span class="kw">pub struct </span>JSInternedStrRef&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; {
-    utf8: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str&gt;,
-    utf16: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>[u16],
+</span><span class="kw">pub struct </span>JSInternedStrRef&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>&gt; {
+    utf8: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str&gt;,
+    utf16: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>[u16],
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; JSInternedStrRef&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>&gt; JSInternedStrRef&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>&gt; {
     <span class="doccomment">/// Returns the inner reference to the interned string in `UTF-8` encoding.
     /// if the string is not representable in `UTF-8`, returns [`None`]
     </span><span class="attr">#[inline]
     #[must_use]
-    </span><span class="kw">pub const fn </span>utf8(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str&gt; {
+    </span><span class="kw">pub const fn </span>utf8(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str&gt; {
         <span class="self">self</span>.utf8
     }
 
     <span class="doccomment">/// Returns the inner reference to the interned string in `UTF-16` encoding.
     </span><span class="attr">#[inline]
     #[must_use]
-    </span><span class="kw">pub const fn </span>utf16(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>[u16] {
+    </span><span class="kw">pub const fn </span>utf16(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'b </span>[u16] {
         <span class="self">self</span>.utf16
     }
 
@@ -502,8 +503,8 @@
     /// `UTF-16` string. Otherwise, it will directly call `g`.
     </span><span class="kw">pub fn </span>join&lt;F, G, T&gt;(<span class="self">self</span>, f: F, g: G, prioritize_utf8: bool) -&gt; T
     <span class="kw">where
-        </span>F: FnOnce(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str) -&gt; T,
-        G: FnOnce(<span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>[u16]) -&gt; T,
+        </span>F: FnOnce(<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str) -&gt; T,
+        G: FnOnce(<span class="kw-2">&amp;</span><span class="lifetime">'b </span>[u16]) -&gt; T,
     {
         <span class="kw">if </span>prioritize_utf8 {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(str) = <span class="self">self</span>.utf8 {
@@ -519,8 +520,8 @@
     /// the same time.
     </span><span class="kw">pub fn </span>join_with_context&lt;C, F, G, T&gt;(<span class="self">self</span>, f: F, g: G, ctx: C, prioritize_utf8: bool) -&gt; T
     <span class="kw">where
-        </span>F: FnOnce(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str, C) -&gt; T,
-        G: FnOnce(<span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>[u16], C) -&gt; T,
+        </span>F: FnOnce(<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str, C) -&gt; T,
+        G: FnOnce(<span class="kw-2">&amp;</span><span class="lifetime">'b </span>[u16], C) -&gt; T,
     {
         <span class="kw">if </span>prioritize_utf8 {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(str) = <span class="self">self</span>.utf8 {
@@ -538,21 +539,21 @@
     /// directly convert its `UTF-16` representation.
     </span><span class="kw">pub fn </span>into_common&lt;C&gt;(<span class="self">self</span>, prioritize_utf8: bool) -&gt; C
     <span class="kw">where
-        </span>C: From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str&gt; + From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>[u16]&gt;,
+        </span>C: From&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str&gt; + From&lt;<span class="kw-2">&amp;</span><span class="lifetime">'b </span>[u16]&gt;,
     {
         <span class="self">self</span>.join(Into::into, Into::into, prioritize_utf8)
     }
 }
 
-<span class="kw">impl </span>core::fmt::Display <span class="kw">for </span>JSInternedStrRef&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>core::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; core::fmt::Result {
+<span class="kw">impl </span>core::fmt::Display <span class="kw">for </span>JSInternedStrRef&lt;<span class="lifetime">'_</span>, <span class="lifetime">'_</span>&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>core::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; core::fmt::Result {
         <span class="self">self</span>.join_with_context(
             core::fmt::Display::fmt,
             |js, f| {
                 char::decode_utf16(js.iter().copied())
                     .map(|r| <span class="kw">match </span>r {
                         <span class="prelude-val">Ok</span>(c) =&gt; String::from(c),
-                        <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">format!</span>(<span class="string">&quot;\\u{:04X}&quot;</span>, e.unpaired_surrogate()),
+                        <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">format!</span>(<span class="string">"\\u{:04X}"</span>, e.unpaired_surrogate()),
                     })
                     .collect::&lt;String&gt;()
                     .fmt(f)
@@ -607,9 +608,9 @@
     <span class="doccomment">/// Returns the symbol for the given string if any.
     ///
     /// Can be used to query if a string has already been interned without interning.
-    </span><span class="kw">pub fn </span>get&lt;<span class="lifetime">&#39;a</span>, T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, string: T) -&gt; <span class="prelude-ty">Option</span>&lt;Sym&gt;
+    </span><span class="kw">pub fn </span>get&lt;<span class="lifetime">'a</span>, T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, string: T) -&gt; <span class="prelude-ty">Option</span>&lt;Sym&gt;
     <span class="kw">where
-        </span>T: Into&lt;JStrRef&lt;<span class="lifetime">&#39;a</span>&gt;&gt;,
+        </span>T: Into&lt;JStrRef&lt;<span class="lifetime">'a</span>&gt;&gt;,
     {
         <span class="kw">let </span>string = string.into();
         <span class="self">Self</span>::get_common(string).or_else(|| {
@@ -632,9 +633,9 @@
     /// # Panics
     ///
     /// If the interner already interns the maximum number of strings possible by the chosen symbol type.
-    </span><span class="kw">pub fn </span>get_or_intern&lt;<span class="lifetime">&#39;a</span>, T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, string: T) -&gt; Sym
+    </span><span class="kw">pub fn </span>get_or_intern&lt;<span class="lifetime">'a</span>, T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, string: T) -&gt; Sym
     <span class="kw">where
-        </span>T: Into&lt;JStrRef&lt;<span class="lifetime">&#39;a</span>&gt;&gt;,
+        </span>T: Into&lt;JStrRef&lt;<span class="lifetime">'a</span>&gt;&gt;,
     {
         <span class="kw">let </span>string = string.into();
         <span class="self">self</span>.get(string).unwrap_or_else(|| {
@@ -648,15 +649,15 @@
 
             <span class="comment">// We need a way to check for the strings that can be interned by `utf16_interner` but
             // not by `utf8_interner` (since there are some UTF-16 strings with surrogates that are
-            // not representable in UTF-8), so we use the sentinel value `&quot;&quot;` as a marker indicating
+            // not representable in UTF-8), so we use the sentinel value `""` as a marker indicating
             // that the `Sym` corresponding to that string is only available in `utf16_interner`.
             //
-            // We don&#39;t need to worry about matches with `&quot;&quot;` inside `get`, because
+            // We don't need to worry about matches with `""` inside `get`, because
             // `COMMON_STRINGS_UTF8` filters all the empty strings before interning.
             </span><span class="kw">let </span>index = <span class="kw">if let </span><span class="prelude-val">Some</span>(utf8) = utf8 {
                 <span class="self">self</span>.utf8_interner.intern(utf8.as_bytes())
             } <span class="kw">else </span>{
-                <span class="self">self</span>.utf8_interner.intern_static(<span class="string">b&quot;&quot;</span>)
+                <span class="self">self</span>.utf8_interner.intern_static(<span class="string">b""</span>)
             };
 
             <span class="kw">let </span>utf16_index = <span class="self">self</span>.utf16_interner.intern(<span class="kw-2">&amp;</span>utf16);
@@ -667,11 +668,11 @@
             index
                 .checked_add(<span class="number">1 </span>+ COMMON_STRINGS_UTF8.len())
                 .and_then(Sym::new)
-                .expect(<span class="string">&quot;Cannot intern new string: integer overflow&quot;</span>)
+                .expect(<span class="string">"Cannot intern new string: integer overflow"</span>)
         })
     }
 
-    <span class="doccomment">/// Interns the given `&#39;static` string.
+    <span class="doccomment">/// Interns the given `'static` string.
     ///
     /// Returns a symbol for resolution into the original string.
     ///
@@ -684,8 +685,8 @@
     /// # Panics
     ///
     /// If the interner already interns the maximum number of strings possible by the chosen symbol type.
-    </span><span class="kw">pub fn </span>get_or_intern_static(<span class="kw-2">&amp;mut </span><span class="self">self</span>, utf8: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, utf16: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[u16]) -&gt; Sym {
-        <span class="comment">// Uses the utf8 because it&#39;s quicker to check inside `COMMON_STRINGS_UTF8`
+    </span><span class="kw">pub fn </span>get_or_intern_static(<span class="kw-2">&amp;mut </span><span class="self">self</span>, utf8: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str, utf16: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>[u16]) -&gt; Sym {
+        <span class="comment">// Uses the utf8 because it's quicker to check inside `COMMON_STRINGS_UTF8`
         // (which is a perfect hash set) than to check inside `COMMON_STRINGS_UTF16`
         // (which is a lazy static hash set).
         </span><span class="self">self</span>.get(utf8).unwrap_or_else(|| {
@@ -698,7 +699,7 @@
             index
                 .checked_add(<span class="number">1 </span>+ COMMON_STRINGS_UTF8.len())
                 .and_then(Sym::new)
-                .expect(<span class="string">&quot;Cannot intern new string: integer overflow&quot;</span>)
+                .expect(<span class="string">"Cannot intern new string: integer overflow"</span>)
         })
     }
 
@@ -709,14 +710,14 @@
     /// Panics if the size of both statics is not equal or the interners do
     /// not have the same size
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>resolve(<span class="kw-2">&amp;</span><span class="self">self</span>, symbol: Sym) -&gt; <span class="prelude-ty">Option</span>&lt;JSInternedStrRef&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt;&gt; {
+    </span><span class="kw">pub fn </span>resolve(<span class="kw-2">&amp;</span><span class="self">self</span>, symbol: Sym) -&gt; <span class="prelude-ty">Option</span>&lt;JSInternedStrRef&lt;<span class="lifetime">'_</span>, <span class="lifetime">'_</span>&gt;&gt; {
         <span class="kw">let </span>index = symbol.get() - <span class="number">1</span>;
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(utf8) = COMMON_STRINGS_UTF8.index(index).copied() {
             <span class="kw">let </span>utf16 = COMMON_STRINGS_UTF16
                 .get_index(index)
                 .copied()
-                .expect(<span class="string">&quot;The sizes of both statics must be equal&quot;</span>);
+                .expect(<span class="string">"The sizes of both statics must be equal"</span>);
             <span class="kw">return </span><span class="prelude-val">Some</span>(JSInternedStrRef {
                 utf8: <span class="prelude-val">Some</span>(utf8),
                 utf16,
@@ -734,7 +735,7 @@
                 core::str::from_utf8_unchecked(
                     <span class="self">self</span>.utf8_interner
                         .index(index)
-                        .expect(<span class="string">&quot;both interners must have the same size&quot;</span>),
+                        .expect(<span class="string">"both interners must have the same size"</span>),
                 )
             };
             <span class="kw">return </span><span class="prelude-val">Some</span>(JSInternedStrRef {
@@ -753,22 +754,22 @@
     /// If the interner cannot resolve the given symbol.
     </span><span class="attr">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>resolve_expect(<span class="kw-2">&amp;</span><span class="self">self</span>, symbol: Sym) -&gt; JSInternedStrRef&lt;<span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;_</span>&gt; {
-        <span class="self">self</span>.resolve(symbol).expect(<span class="string">&quot;string disappeared&quot;</span>)
+    </span><span class="kw">pub fn </span>resolve_expect(<span class="kw-2">&amp;</span><span class="self">self</span>, symbol: Sym) -&gt; JSInternedStrRef&lt;<span class="lifetime">'_</span>, <span class="lifetime">'_</span>&gt; {
+        <span class="self">self</span>.resolve(symbol).expect(<span class="string">"string disappeared"</span>)
     }
 
     <span class="doccomment">/// Gets the symbol of the common string if one of them
-    </span><span class="kw">fn </span>get_common(string: JStrRef&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;Sym&gt; {
+    </span><span class="kw">fn </span>get_common(string: JStrRef&lt;<span class="lifetime">'_</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;Sym&gt; {
         <span class="kw">match </span>string {
             JStrRef::Utf8(s) =&gt; COMMON_STRINGS_UTF8.get_index(s).map(|idx| {
-                <span class="comment">// SAFETY: `idx &gt;= 0`, since it&#39;s an `usize`, and `idx + 1 &gt; 0`.
-                // In this case, we don&#39;t need to worry about overflows because we have a static
+                <span class="comment">// SAFETY: `idx &gt;= 0`, since it's an `usize`, and `idx + 1 &gt; 0`.
+                // In this case, we don't need to worry about overflows because we have a static
                 // assertion in place checking that `COMMON_STRINGS.len() &lt; usize::MAX`.
                 </span><span class="kw">unsafe </span>{ Sym::new_unchecked(idx + <span class="number">1</span>) }
             }),
             JStrRef::Utf16(s) =&gt; COMMON_STRINGS_UTF16.get_index_of(<span class="kw-2">&amp;</span>s).map(|idx| {
-                <span class="comment">// SAFETY: `idx &gt;= 0`, since it&#39;s an `usize`, and `idx + 1 &gt; 0`.
-                // In this case, we don&#39;t need to worry about overflows because we have a static
+                <span class="comment">// SAFETY: `idx &gt;= 0`, since it's an `usize`, and `idx + 1 &gt; 0`.
+                // In this case, we don't need to worry about overflows because we have a static
                 // assertion in place checking that `COMMON_STRINGS.len() &lt; usize::MAX`.
                 </span><span class="kw">unsafe </span>{ Sym::new_unchecked(idx + <span class="number">1</span>) }
             }),

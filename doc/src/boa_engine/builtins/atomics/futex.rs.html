@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/builtins/atomics/futex.rs`."><title>futex.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/builtins/atomics/futex.rs`."><title>futex.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -406,7 +407,7 @@
 
 // A bit of context about how exactly this thing works.
 //
-// `Atomics.wait/notify` is basically an emulation of the &quot;futex&quot; syscall, which internally uses
+// `Atomics.wait/notify` is basically an emulation of the "futex" syscall, which internally uses
 // a wait queue attached to a certain memory address, where processes and threads can manipulate
 // it to synchronize between them.
 // More information: https://en.wikipedia.org/wiki/Futex
@@ -440,7 +441,7 @@
 //
 // Each row here will represent an address and the corresponding wait queue for that address.
 //
-// Let&#39;s suppose that &quot;Thread 2&quot; wants to wait on the address 50. After locking the global mutex,
+// Let's suppose that "Thread 2" wants to wait on the address 50. After locking the global mutex,
 // it first creates a new instante of a `FutexWaiter` and passes a pointer to it to the
 // `FutexWaiters::add_waiter`:
 //
@@ -460,12 +461,12 @@
 //             │       └───────────────┘
 //             │
 //
-// Immediately after this, &quot;Thread 2&quot; calls `cond_var.wait`, unlocks the global mutex and sleeps
+// Immediately after this, "Thread 2" calls `cond_var.wait`, unlocks the global mutex and sleeps
 // until it is notified again (ignoring the spurious wakeups, those are handled in an infinite loop
 // anyways).
 //
-// Now, let&#39;s suppose that `Thread 1` has now acquired the lock and now wants to also
-// wait on the address `50`. Doing the same procedure as &quot;Thread 2&quot;, our map now looks like:
+// Now, let's suppose that `Thread 1` has now acquired the lock and now wants to also
+// wait on the address `50`. Doing the same procedure as "Thread 2", our map now looks like:
 //
 //   Address   │
 //             │
@@ -486,10 +487,10 @@
 // Note how the head of our list contains the first waiter which was registered, and the
 // tail of our list is our most recent waiter.
 //
-// After &quot;Thread 1&quot; sleeps, &quot;Thread 3&quot; has the opportunity to lock the global mutex.
-// In this case, &quot;Thread 3&quot; will notify one waiter of the address 50 using the `cond_var` inside
+// After "Thread 1" sleeps, "Thread 3" has the opportunity to lock the global mutex.
+// In this case, "Thread 3" will notify one waiter of the address 50 using the `cond_var` inside
 // `FutexWaiter`, and will also remove it from the linked list. In this case
-// the notified thread is &quot;Thread 2&quot;:
+// the notified thread is "Thread 2":
 //
 //   Address   │
 //             │
@@ -509,9 +510,9 @@
 //             │   └────────────────────────┘
 //             │
 //
-// Then, when the lock is released and &quot;Thread 2&quot; has woken up, it tries to lock the global mutex
-// again, checking if `waiting` is true to manually remove itself from the queue if that&#39;s the case.
-// In this case, `waiting` is false, which doesn&#39;t require any other handling, so it just
+// Then, when the lock is released and "Thread 2" has woken up, it tries to lock the global mutex
+// again, checking if `waiting` is true to manually remove itself from the queue if that's the case.
+// In this case, `waiting` is false, which doesn't require any other handling, so it just
 // removes the `FutexWaiter` from its stack and returns `AtomicsWaitResult::Ok`.
 //
 //   Address   │
@@ -532,8 +533,8 @@
 //             │
 //             │
 //
-// In a future point in time, &quot;Thread 1&quot; will be notified, which will proceed with the
-// exact same steps as &quot;Thread 2&quot;, emptying the wait queue and finishing the execution of our
+// In a future point in time, "Thread 1" will be notified, which will proceed with the
+// exact same steps as "Thread 2", emptying the wait queue and finishing the execution of our
 // program.
 
 </span><span class="attr">#![deny(unsafe_op_in_unsafe_fn)]
@@ -685,7 +686,7 @@
     // 12. Perform EnterCriticalSection(WL).
     </span><span class="kw">let </span><span class="kw-2">mut </span>waiters = CRITICAL_SECTION.lock().map_err(|<span class="kw">_</span>| {
         <span class="comment">// avoids exposing internals of our implementation.
-        </span>JsNativeError::typ().with_message(<span class="string">&quot;failed to synchronize with the agent cluster&quot;</span>)
+        </span>JsNativeError::typ().with_message(<span class="string">"failed to synchronize with the agent cluster"</span>)
     })<span class="question-mark">?</span>;
 
     <span class="kw">let </span>time_info = timeout.map(|timeout| (Instant::now(), timeout));
@@ -700,7 +701,7 @@
 
     <span class="comment">// 15. If v ≠ w, then
     //     a. Perform LeaveCriticalSection(WL).
-    //     b. Return &quot;not-equal&quot;.
+    //     b. Return "not-equal".
     </span><span class="kw">if </span>check != value {
         <span class="kw">return </span><span class="prelude-val">Ok</span>(AtomicsWaitResult::NotEqual);
     }
@@ -735,7 +736,7 @@
 
             <span class="comment">// Since the mutex is poisoned, `waiter` cannot be read from other threads, meaning
             // we can return directly.
-            // This doesn&#39;t use `wait_timeout_while` because it has to mutably borrow `waiter`,
+            // This doesn't use `wait_timeout_while` because it has to mutably borrow `waiter`,
             // which is a big nono since we have pointers to that location while the borrow is
             // active.
             // SAFETY: waiter is still valid
@@ -745,7 +746,7 @@
                     .wait_timeout(waiters, remaining)
                     .map_err(|<span class="kw">_</span>| {
                         JsNativeError::typ()
-                            .with_message(<span class="string">&quot;failed to synchronize with the agent cluster&quot;</span>)
+                            .with_message(<span class="string">"failed to synchronize with the agent cluster"</span>)
                     })<span class="question-mark">?
                     </span>.<span class="number">0
             </span>};
@@ -754,7 +755,7 @@
             </span>waiters = <span class="kw">unsafe </span>{
                 (<span class="kw-2">*</span>waiter_ptr).cond_var.wait(waiters).map_err(|<span class="kw">_</span>| {
                     JsNativeError::typ()
-                        .with_message(<span class="string">&quot;failed to synchronize with the agent cluster&quot;</span>)
+                        .with_message(<span class="string">"failed to synchronize with the agent cluster"</span>)
                 })<span class="question-mark">?
             </span>};
         }
@@ -776,8 +777,8 @@
     <span class="comment">// 21. Perform LeaveCriticalSection(WL).
     </span>drop(waiters);
 
-    <span class="comment">// 22. If notified is true, return &quot;ok&quot;.
-    // 23. Return &quot;timed-out&quot;.
+    <span class="comment">// 22. If notified is true, return "ok".
+    // 23. Return "timed-out".
     </span><span class="prelude-val">Ok</span>(result)
 }
 
@@ -789,7 +790,7 @@
     // 8. Perform EnterCriticalSection(WL).
     </span><span class="kw">let </span><span class="kw-2">mut </span>waiters = CRITICAL_SECTION.lock().map_err(|<span class="kw">_</span>| {
         <span class="comment">// avoids exposing internals of our implementation.
-        </span>JsNativeError::typ().with_message(<span class="string">&quot;failed to synchronize with the agent cluster&quot;</span>)
+        </span>JsNativeError::typ().with_message(<span class="string">"failed to synchronize with the agent cluster"</span>)
     })<span class="question-mark">?</span>;
 
     <span class="comment">// 9. Let S be RemoveWaiters(WL, c).

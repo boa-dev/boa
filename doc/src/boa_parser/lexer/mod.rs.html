@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/parser/src/lexer/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="boa_parser" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../boa_parser/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_parser"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/parser/src/lexer/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="boa_parser" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../../boa_parser/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_parser"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -416,7 +417,7 @@
 <a href="#416" id="416">416</a>
 <a href="#417" id="417">417</a>
 <a href="#418" id="418">418</a>
-</pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s lexical analyzer(Lexer) for ECMAScript source code.
+</pre></div><pre class="rust"><code><span class="doccomment">//! Boa's lexical analyzer(Lexer) for ECMAScript source code.
 //!
 //! The Lexer splits its input source code into a sequence of input elements called tokens,
 //! represented by the [Token] structure. It also removes
@@ -530,10 +531,10 @@
         }
     }
 
-    <span class="comment">// Handles lexing of a token starting &#39;/&#39; with the &#39;/&#39; already being consumed.
+    <span class="comment">// Handles lexing of a token starting '/' with the '/' already being consumed.
     // This could be a divide symbol or the start of a regex.
     //
-    // A &#39;/&#39; symbol can always be a comment but if as tested above it is not then
+    // A '/' symbol can always be a comment but if as tested above it is not then
     // that means it could be multiple different tokens depending on the input token.
     //
     // As per https://tc39.es/ecma262/#sec-ecmascript-language-lexical-grammar
@@ -545,18 +546,18 @@
     <span class="kw">where
         </span>R: ReadChar,
     {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;lex_slash_token&quot;</span>, <span class="string">&quot;Lexing&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">"lex_slash_token"</span>, <span class="string">"Lexing"</span>);
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(c) = <span class="self">self</span>.cursor.peek_char()<span class="question-mark">? </span>{
             <span class="kw">match </span>c {
                 <span class="comment">// /
                 </span><span class="number">0x002F </span>=&gt; {
-                    <span class="self">self</span>.cursor.next_char()<span class="question-mark">?</span>.expect(<span class="string">&quot;/ token vanished&quot;</span>); <span class="comment">// Consume the &#39;/&#39;
+                    <span class="self">self</span>.cursor.next_char()<span class="question-mark">?</span>.expect(<span class="string">"/ token vanished"</span>); <span class="comment">// Consume the '/'
                     </span>SingleLineComment.lex(<span class="kw-2">&amp;mut </span><span class="self">self</span>.cursor, start, interner)
                 }
                 <span class="comment">// *
                 </span><span class="number">0x002A </span>=&gt; {
-                    <span class="self">self</span>.cursor.next_char()<span class="question-mark">?</span>.expect(<span class="string">&quot;* token vanished&quot;</span>); <span class="comment">// Consume the &#39;*&#39;
+                    <span class="self">self</span>.cursor.next_char()<span class="question-mark">?</span>.expect(<span class="string">"* token vanished"</span>); <span class="comment">// Consume the '*'
                     </span>MultiLineComment.lex(<span class="kw-2">&amp;mut </span><span class="self">self</span>.cursor, start, interner)
                 }
                 ch =&gt; {
@@ -567,7 +568,7 @@
                             // =
                             </span><span class="kw">if </span>ch == <span class="number">0x003D </span>{
                                 <span class="comment">// Indicates this is an AssignDiv.
-                                </span><span class="self">self</span>.cursor.next_char()<span class="question-mark">?</span>.expect(<span class="string">&quot;= token vanished&quot;</span>); <span class="comment">// Consume the &#39;=&#39;
+                                </span><span class="self">self</span>.cursor.next_char()<span class="question-mark">?</span>.expect(<span class="string">"= token vanished"</span>); <span class="comment">// Consume the '='
                                 </span><span class="prelude-val">Ok</span>(Token::new(
                                     Punctuator::AssignDiv.into(),
                                     Span::new(start, <span class="self">self</span>.cursor.pos()),
@@ -588,7 +589,7 @@
             }
         } <span class="kw">else </span>{
             <span class="prelude-val">Err</span>(Error::syntax(
-                <span class="string">&quot;Abrupt end: Expecting Token /,*,= or regex&quot;</span>,
+                <span class="string">"Abrupt end: Expecting Token /,*,= or regex"</span>,
                 start,
             ))
         }
@@ -599,7 +600,7 @@
     <span class="kw">where
         </span>R: ReadChar,
     {
-        <span class="kw">if </span><span class="macro">cfg!</span>(not(feature = <span class="string">&quot;annex-b&quot;</span>)) || <span class="self">self</span>.module() {
+        <span class="kw">if </span><span class="macro">cfg!</span>(not(feature = <span class="string">"annex-b"</span>)) || <span class="self">self</span>.module() {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(());
         }
 
@@ -625,12 +626,12 @@
     /// # Errors
     ///
     /// Will return `Err` on invalid tokens and invalid reads of the bytes being lexed.
-    </span><span class="comment">// We intentionally don&#39;t implement Iterator trait as Result&lt;Option&gt; is cleaner to handle.
+    </span><span class="comment">// We intentionally don't implement Iterator trait as Result&lt;Option&gt; is cleaner to handle.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>next_no_skip(<span class="kw-2">&amp;mut </span><span class="self">self</span>, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Token&gt;, Error&gt;
     <span class="kw">where
         </span>R: ReadChar,
     {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;next()&quot;</span>, <span class="string">&quot;Lexing&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">"next()"</span>, <span class="string">"Lexing"</span>);
 
         <span class="kw">let </span>(start, next_ch) = <span class="kw">loop </span>{
             <span class="kw">let </span>start = <span class="self">self</span>.cursor.pos();
@@ -645,7 +646,7 @@
         };
 
         <span class="comment">//handle hashbang here so the below match block still throws error on
-        //# if position isn&#39;t (1, 1)
+        //# if position isn't (1, 1)
         </span><span class="kw">if </span>start.column_number() == <span class="number">1
             </span>&amp;&amp; start.line_number() == <span class="number">1
             </span>&amp;&amp; next_ch == <span class="number">0x23
@@ -657,65 +658,65 @@
 
         <span class="kw">if let </span><span class="prelude-val">Ok</span>(c) = char::try_from(next_ch) {
             <span class="kw">let </span>token = <span class="kw">match </span>c {
-                <span class="string">&#39;\r&#39; </span>| <span class="string">&#39;\n&#39; </span>| <span class="string">&#39;\u{2028}&#39; </span>| <span class="string">&#39;\u{2029}&#39; </span>=&gt; <span class="prelude-val">Ok</span>(Token::new(
+                <span class="string">'\r' </span>| <span class="string">'\n' </span>| <span class="string">'\u{2028}' </span>| <span class="string">'\u{2029}' </span>=&gt; <span class="prelude-val">Ok</span>(Token::new(
                     TokenKind::LineTerminator,
                     Span::new(start, <span class="self">self</span>.cursor.pos()),
                 )),
-                <span class="string">&#39;&quot;&#39; </span>| <span class="string">&#39;\&#39;&#39; </span>=&gt; StringLiteral::new(c).lex(<span class="kw-2">&amp;mut </span><span class="self">self</span>.cursor, start, interner),
-                <span class="string">&#39;`&#39; </span>=&gt; TemplateLiteral.lex(<span class="kw-2">&amp;mut </span><span class="self">self</span>.cursor, start, interner),
-                <span class="string">&#39;;&#39; </span>=&gt; <span class="prelude-val">Ok</span>(Token::new(
+                <span class="string">'"' </span>| <span class="string">'\'' </span>=&gt; StringLiteral::new(c).lex(<span class="kw-2">&amp;mut </span><span class="self">self</span>.cursor, start, interner),
+                <span class="string">'`' </span>=&gt; TemplateLiteral.lex(<span class="kw-2">&amp;mut </span><span class="self">self</span>.cursor, start, interner),
+                <span class="string">';' </span>=&gt; <span class="prelude-val">Ok</span>(Token::new(
                     Punctuator::Semicolon.into(),
                     Span::new(start, <span class="self">self</span>.cursor.pos()),
                 )),
-                <span class="string">&#39;:&#39; </span>=&gt; <span class="prelude-val">Ok</span>(Token::new(
+                <span class="string">':' </span>=&gt; <span class="prelude-val">Ok</span>(Token::new(
                     Punctuator::Colon.into(),
                     Span::new(start, <span class="self">self</span>.cursor.pos()),
                 )),
-                <span class="string">&#39;.&#39; </span>=&gt; {
+                <span class="string">'.' </span>=&gt; {
                     <span class="kw">if </span><span class="self">self
                         </span>.cursor
                         .peek_char()<span class="question-mark">?
                         </span>.filter(|c| (<span class="number">0x30</span>..=<span class="number">0x39</span><span class="comment">/* 0..=9 */</span>).contains(c))
                         .is_some()
                     {
-                        NumberLiteral::new(<span class="string">b&#39;.&#39;</span>).lex(<span class="kw-2">&amp;mut </span><span class="self">self</span>.cursor, start, interner)
+                        NumberLiteral::new(<span class="string">b'.'</span>).lex(<span class="kw-2">&amp;mut </span><span class="self">self</span>.cursor, start, interner)
                     } <span class="kw">else </span>{
                         SpreadLiteral::new().lex(<span class="kw-2">&amp;mut </span><span class="self">self</span>.cursor, start, interner)
                     }
                 }
-                <span class="string">&#39;(&#39; </span>=&gt; <span class="prelude-val">Ok</span>(Token::new(
+                <span class="string">'(' </span>=&gt; <span class="prelude-val">Ok</span>(Token::new(
                     Punctuator::OpenParen.into(),
                     Span::new(start, <span class="self">self</span>.cursor.pos()),
                 )),
-                <span class="string">&#39;)&#39; </span>=&gt; <span class="prelude-val">Ok</span>(Token::new(
+                <span class="string">')' </span>=&gt; <span class="prelude-val">Ok</span>(Token::new(
                     Punctuator::CloseParen.into(),
                     Span::new(start, <span class="self">self</span>.cursor.pos()),
                 )),
-                <span class="string">&#39;,&#39; </span>=&gt; <span class="prelude-val">Ok</span>(Token::new(
+                <span class="string">',' </span>=&gt; <span class="prelude-val">Ok</span>(Token::new(
                     Punctuator::Comma.into(),
                     Span::new(start, <span class="self">self</span>.cursor.pos()),
                 )),
-                <span class="string">&#39;{&#39; </span>=&gt; <span class="prelude-val">Ok</span>(Token::new(
+                <span class="string">'{' </span>=&gt; <span class="prelude-val">Ok</span>(Token::new(
                     Punctuator::OpenBlock.into(),
                     Span::new(start, <span class="self">self</span>.cursor.pos()),
                 )),
-                <span class="string">&#39;}&#39; </span>=&gt; <span class="prelude-val">Ok</span>(Token::new(
+                <span class="string">'}' </span>=&gt; <span class="prelude-val">Ok</span>(Token::new(
                     Punctuator::CloseBlock.into(),
                     Span::new(start, <span class="self">self</span>.cursor.pos()),
                 )),
-                <span class="string">&#39;[&#39; </span>=&gt; <span class="prelude-val">Ok</span>(Token::new(
+                <span class="string">'[' </span>=&gt; <span class="prelude-val">Ok</span>(Token::new(
                     Punctuator::OpenBracket.into(),
                     Span::new(start, <span class="self">self</span>.cursor.pos()),
                 )),
-                <span class="string">&#39;]&#39; </span>=&gt; <span class="prelude-val">Ok</span>(Token::new(
+                <span class="string">']' </span>=&gt; <span class="prelude-val">Ok</span>(Token::new(
                     Punctuator::CloseBracket.into(),
                     Span::new(start, <span class="self">self</span>.cursor.pos()),
                 )),
-                <span class="string">&#39;#&#39; </span>=&gt; PrivateIdentifier::new().lex(<span class="kw-2">&amp;mut </span><span class="self">self</span>.cursor, start, interner),
-                <span class="string">&#39;/&#39; </span>=&gt; <span class="self">self</span>.lex_slash_token(start, interner),
-                <span class="attr">#[cfg(feature = <span class="string">&quot;annex-b&quot;</span>)]
+                <span class="string">'#' </span>=&gt; PrivateIdentifier::new().lex(<span class="kw-2">&amp;mut </span><span class="self">self</span>.cursor, start, interner),
+                <span class="string">'/' </span>=&gt; <span class="self">self</span>.lex_slash_token(start, interner),
+                <span class="attr">#[cfg(feature = <span class="string">"annex-b"</span>)]
                 </span><span class="comment">// &lt;!--
-                </span><span class="string">&#39;&lt;&#39; </span><span class="kw">if </span>!<span class="self">self</span>.module()
+                </span><span class="string">'&lt;' </span><span class="kw">if </span>!<span class="self">self</span>.module()
                     &amp;&amp; <span class="self">self</span>.cursor.peek_n(<span class="number">3</span>)<span class="question-mark">?</span>[..<span class="number">3</span>] == [<span class="prelude-val">Some</span>(<span class="number">0x21</span>), <span class="prelude-val">Some</span>(<span class="number">0x2D</span>), <span class="prelude-val">Some</span>(<span class="number">0x2D</span>)] =&gt;
                 {
                     <span class="kw">let </span>_next = <span class="self">self</span>.cursor.next_char();
@@ -725,10 +726,10 @@
                     SingleLineComment.lex(<span class="kw-2">&amp;mut </span><span class="self">self</span>.cursor, start, interner)
                 }
                 <span class="attr">#[allow(clippy::cast_possible_truncation)]
-                </span><span class="string">&#39;=&#39; </span>| <span class="string">&#39;*&#39; </span>| <span class="string">&#39;+&#39; </span>| <span class="string">&#39;-&#39; </span>| <span class="string">&#39;%&#39; </span>| <span class="string">&#39;|&#39; </span>| <span class="string">&#39;&amp;&#39; </span>| <span class="string">&#39;^&#39; </span>| <span class="string">&#39;&lt;&#39; </span>| <span class="string">&#39;&gt;&#39; </span>| <span class="string">&#39;!&#39; </span>| <span class="string">&#39;~&#39; </span>| <span class="string">&#39;?&#39; </span>=&gt; {
+                </span><span class="string">'=' </span>| <span class="string">'*' </span>| <span class="string">'+' </span>| <span class="string">'-' </span>| <span class="string">'%' </span>| <span class="string">'|' </span>| <span class="string">'&amp;' </span>| <span class="string">'^' </span>| <span class="string">'&lt;' </span>| <span class="string">'&gt;' </span>| <span class="string">'!' </span>| <span class="string">'~' </span>| <span class="string">'?' </span>=&gt; {
                     Operator::new(next_ch <span class="kw">as </span>u8).lex(<span class="kw-2">&amp;mut </span><span class="self">self</span>.cursor, start, interner)
                 }
-                <span class="string">&#39;\\&#39; </span><span class="kw">if </span><span class="self">self</span>.cursor.peek_char()<span class="question-mark">? </span>== <span class="prelude-val">Some</span>(<span class="number">0x0075 </span><span class="comment">/* u */</span>) =&gt; {
+                <span class="string">'\\' </span><span class="kw">if </span><span class="self">self</span>.cursor.peek_char()<span class="question-mark">? </span>== <span class="prelude-val">Some</span>(<span class="number">0x0075 </span><span class="comment">/* u */</span>) =&gt; {
                     Identifier::new(c).lex(<span class="kw-2">&amp;mut </span><span class="self">self</span>.cursor, start, interner)
                 }
                 <span class="kw">_ if </span>Identifier::is_identifier_start(c <span class="kw">as </span>u32) =&gt; {
@@ -740,7 +741,7 @@
                 }
                 <span class="kw">_ </span>=&gt; {
                     <span class="kw">let </span>details = <span class="macro">format!</span>(
-                        <span class="string">&quot;unexpected &#39;{c}&#39; at line {}, column {}&quot;</span>,
+                        <span class="string">"unexpected '{c}' at line {}, column {}"</span>,
                         start.line_number(),
                         start.column_number()
                     );
@@ -752,7 +753,7 @@
         } <span class="kw">else </span>{
             <span class="prelude-val">Err</span>(Error::syntax(
                 <span class="macro">format!</span>(
-                    <span class="string">&quot;unexpected utf-8 char &#39;\\u{next_ch}&#39; at line {}, column {}&quot;</span>,
+                    <span class="string">"unexpected utf-8 char '\\u{next_ch}' at line {}, column {}"</span>,
                     start.line_number(),
                     start.column_number()
                 ),
@@ -766,7 +767,7 @@
     /// # Errors
     ///
     /// Will return `Err` on invalid tokens and invalid reads of the bytes being lexed.
-    </span><span class="comment">// We intentionally don&#39;t implement Iterator trait as Result&lt;Option&gt; is cleaner to handle.
+    </span><span class="comment">// We intentionally don't implement Iterator trait as Result&lt;Option&gt; is cleaner to handle.
     </span><span class="attr">#[allow(clippy::should_implement_trait)]
     </span><span class="kw">pub fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Token&gt;, Error&gt;
     <span class="kw">where
@@ -796,8 +797,8 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]&gt; <span class="kw">for </span>Lexer&lt;UTF8Input&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]&gt;&gt; {
-    <span class="kw">fn </span>from(input: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]) -&gt; <span class="self">Self </span>{
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>[u8]&gt; <span class="kw">for </span>Lexer&lt;UTF8Input&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>[u8]&gt;&gt; {
+    <span class="kw">fn </span>from(input: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>[u8]) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new(UTF8Input::new(input))
     }
 }

@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/builtins/temporal/plain_year_month/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/builtins/temporal/plain_year_month/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -338,7 +339,7 @@
 <a href="#338" id="338">338</a>
 <a href="#339" id="339">339</a>
 <a href="#340" id="340">340</a>
-</pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of the `Temporal.PlainYearMonth` builtin object.
+</pre></div><pre class="rust"><code><span class="doccomment">//! Boa's implementation of the `Temporal.PlainYearMonth` builtin object.
 
 </span><span class="kw">use crate</span>::{
     builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
@@ -397,38 +398,38 @@
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>PlainYearMonth {
     <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(std::any::type_name::&lt;<span class="self">Self</span>&gt;(), <span class="string">&quot;init&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(std::any::type_name::&lt;<span class="self">Self</span>&gt;(), <span class="string">"init"</span>);
 
         <span class="kw">let </span>get_calendar_id = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_calendar_id)
-            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get calendarId&quot;</span>))
+            .name(<span class="macro">js_string!</span>(<span class="string">"get calendarId"</span>))
             .build();
 
         <span class="kw">let </span>get_year = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_year)
-            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get year&quot;</span>))
+            .name(<span class="macro">js_string!</span>(<span class="string">"get year"</span>))
             .build();
 
         <span class="kw">let </span>get_month = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_month)
-            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get month&quot;</span>))
+            .name(<span class="macro">js_string!</span>(<span class="string">"get month"</span>))
             .build();
 
         <span class="kw">let </span>get_month_code = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_month_code)
-            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get monthCode&quot;</span>))
+            .name(<span class="macro">js_string!</span>(<span class="string">"get monthCode"</span>))
             .build();
 
         <span class="kw">let </span>get_days_in_month = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_days_in_month)
-            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get daysInMonth&quot;</span>))
+            .name(<span class="macro">js_string!</span>(<span class="string">"get daysInMonth"</span>))
             .build();
 
         <span class="kw">let </span>get_days_in_year = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_days_in_year)
-            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get daysInYear&quot;</span>))
+            .name(<span class="macro">js_string!</span>(<span class="string">"get daysInYear"</span>))
             .build();
 
         <span class="kw">let </span>get_months_in_year = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_months_in_year)
-            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get monthsInYear&quot;</span>))
+            .name(<span class="macro">js_string!</span>(<span class="string">"get monthsInYear"</span>))
             .build();
 
         <span class="kw">let </span>get_in_leap_year = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_in_leap_year)
-            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get inLeapYear&quot;</span>))
+            .name(<span class="macro">js_string!</span>(<span class="string">"get inLeapYear"</span>))
             .build();
 
         BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
@@ -438,59 +439,59 @@
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                <span class="macro">utf16!</span>(<span class="string">&quot;calendarId&quot;</span>),
+                <span class="macro">utf16!</span>(<span class="string">"calendarId"</span>),
                 <span class="prelude-val">Some</span>(get_calendar_id),
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                <span class="macro">utf16!</span>(<span class="string">&quot;year&quot;</span>),
+                <span class="macro">utf16!</span>(<span class="string">"year"</span>),
                 <span class="prelude-val">Some</span>(get_year),
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                <span class="macro">utf16!</span>(<span class="string">&quot;month&quot;</span>),
+                <span class="macro">utf16!</span>(<span class="string">"month"</span>),
                 <span class="prelude-val">Some</span>(get_month),
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                <span class="macro">utf16!</span>(<span class="string">&quot;monthCode&quot;</span>),
+                <span class="macro">utf16!</span>(<span class="string">"monthCode"</span>),
                 <span class="prelude-val">Some</span>(get_month_code),
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                <span class="macro">utf16!</span>(<span class="string">&quot;daysInMonth&quot;</span>),
+                <span class="macro">utf16!</span>(<span class="string">"daysInMonth"</span>),
                 <span class="prelude-val">Some</span>(get_days_in_month),
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                <span class="macro">utf16!</span>(<span class="string">&quot;daysInYear&quot;</span>),
+                <span class="macro">utf16!</span>(<span class="string">"daysInYear"</span>),
                 <span class="prelude-val">Some</span>(get_days_in_year),
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                <span class="macro">utf16!</span>(<span class="string">&quot;monthsInYear&quot;</span>),
+                <span class="macro">utf16!</span>(<span class="string">"monthsInYear"</span>),
                 <span class="prelude-val">Some</span>(get_months_in_year),
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                <span class="macro">utf16!</span>(<span class="string">&quot;inLeapYear&quot;</span>),
+                <span class="macro">utf16!</span>(<span class="string">"inLeapYear"</span>),
                 <span class="prelude-val">Some</span>(get_in_leap_year),
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE,
             )
-            .method(<span class="self">Self</span>::with, <span class="macro">js_string!</span>(<span class="string">&quot;with&quot;</span>), <span class="number">2</span>)
-            .method(<span class="self">Self</span>::add, <span class="macro">js_string!</span>(<span class="string">&quot;add&quot;</span>), <span class="number">2</span>)
-            .method(<span class="self">Self</span>::subtract, <span class="macro">js_string!</span>(<span class="string">&quot;subtract&quot;</span>), <span class="number">2</span>)
-            .method(<span class="self">Self</span>::until, <span class="macro">js_string!</span>(<span class="string">&quot;until&quot;</span>), <span class="number">2</span>)
-            .method(<span class="self">Self</span>::since, <span class="macro">js_string!</span>(<span class="string">&quot;since&quot;</span>), <span class="number">2</span>)
-            .method(<span class="self">Self</span>::equals, <span class="macro">js_string!</span>(<span class="string">&quot;equals&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::with, <span class="macro">js_string!</span>(<span class="string">"with"</span>), <span class="number">2</span>)
+            .method(<span class="self">Self</span>::add, <span class="macro">js_string!</span>(<span class="string">"add"</span>), <span class="number">2</span>)
+            .method(<span class="self">Self</span>::subtract, <span class="macro">js_string!</span>(<span class="string">"subtract"</span>), <span class="number">2</span>)
+            .method(<span class="self">Self</span>::until, <span class="macro">js_string!</span>(<span class="string">"until"</span>), <span class="number">2</span>)
+            .method(<span class="self">Self</span>::since, <span class="macro">js_string!</span>(<span class="string">"since"</span>), <span class="number">2</span>)
+            .method(<span class="self">Self</span>::equals, <span class="macro">js_string!</span>(<span class="string">"equals"</span>), <span class="number">1</span>)
             .build();
     }
 
@@ -514,7 +515,7 @@
         </span><span class="kw">if </span>new_target.is_undefined() {
             <span class="comment">// a. Throw a TypeError exception.
             </span><span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;NewTarget cannot be undefined when constructing a PlainYearMonth.&quot;</span>)
+                .with_message(<span class="string">"NewTarget cannot be undefined when constructing a PlainYearMonth."</span>)
                 .into());
         }
 
@@ -532,7 +533,7 @@
         </span><span class="kw">let </span>y = <span class="kw">super</span>::to_integer_with_truncation(args.get_or_undefined(<span class="number">0</span>), context)<span class="question-mark">?</span>;
         <span class="comment">// 4. Let m be ? ToIntegerWithTruncation(isoMonth).
         </span><span class="kw">let </span>m = <span class="kw">super</span>::to_integer_with_truncation(args.get_or_undefined(<span class="number">1</span>), context)<span class="question-mark">?</span>;
-        <span class="comment">// 5. Let calendar be ? ToTemporalCalendarSlotValue(calendarLike, &quot;iso8601&quot;).
+        <span class="comment">// 5. Let calendar be ? ToTemporalCalendarSlotValue(calendarLike, "iso8601").
         </span><span class="kw">let </span>calendar = to_temporal_calendar_slot_value(args.get_or_undefined(<span class="number">2</span>), context)<span class="question-mark">?</span>;
 
         <span class="comment">// 7. Return ? CreateTemporalYearMonth(y, m, calendar, ref, NewTarget).
@@ -547,49 +548,49 @@
 </span><span class="kw">impl </span>PlainYearMonth {
     <span class="kw">fn </span>get_calendar_id(_this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="prelude-val">Err</span>(JsNativeError::error()
-            .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
+            .with_message(<span class="string">"not yet implemented."</span>)
             .into())
     }
 
     <span class="kw">fn </span>get_year(_this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="prelude-val">Err</span>(JsNativeError::error()
-            .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
+            .with_message(<span class="string">"not yet implemented."</span>)
             .into())
     }
 
     <span class="kw">fn </span>get_month(_this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="prelude-val">Err</span>(JsNativeError::error()
-            .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
+            .with_message(<span class="string">"not yet implemented."</span>)
             .into())
     }
 
     <span class="kw">fn </span>get_month_code(_this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="prelude-val">Err</span>(JsNativeError::error()
-            .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
+            .with_message(<span class="string">"not yet implemented."</span>)
             .into())
     }
 
     <span class="kw">fn </span>get_days_in_year(_this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="prelude-val">Err</span>(JsNativeError::error()
-            .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
+            .with_message(<span class="string">"not yet implemented."</span>)
             .into())
     }
 
     <span class="kw">fn </span>get_days_in_month(_this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="prelude-val">Err</span>(JsNativeError::error()
-            .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
+            .with_message(<span class="string">"not yet implemented."</span>)
             .into())
     }
 
     <span class="kw">fn </span>get_months_in_year(_this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="prelude-val">Err</span>(JsNativeError::error()
-            .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
+            .with_message(<span class="string">"not yet implemented."</span>)
             .into())
     }
 
     <span class="kw">fn </span>get_in_leap_year(_this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="prelude-val">Err</span>(JsNativeError::error()
-            .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
+            .with_message(<span class="string">"not yet implemented."</span>)
             .into())
     }
 }
@@ -599,37 +600,37 @@
 </span><span class="kw">impl </span>PlainYearMonth {
     <span class="kw">fn </span>with(_this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="prelude-val">Err</span>(JsNativeError::typ()
-            .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
+            .with_message(<span class="string">"not yet implemented."</span>)
             .into())
     }
 
     <span class="kw">fn </span>add(_this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="prelude-val">Err</span>(JsNativeError::typ()
-            .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
+            .with_message(<span class="string">"not yet implemented."</span>)
             .into())
     }
 
     <span class="kw">fn </span>subtract(_this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="prelude-val">Err</span>(JsNativeError::typ()
-            .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
+            .with_message(<span class="string">"not yet implemented."</span>)
             .into())
     }
 
     <span class="kw">fn </span>until(_this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="prelude-val">Err</span>(JsNativeError::typ()
-            .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
+            .with_message(<span class="string">"not yet implemented."</span>)
             .into())
     }
 
     <span class="kw">fn </span>since(_this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="prelude-val">Err</span>(JsNativeError::typ()
-            .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
+            .with_message(<span class="string">"not yet implemented."</span>)
             .into())
     }
 
     <span class="kw">fn </span>equals(_this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="prelude-val">Err</span>(JsNativeError::typ()
-            .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
+            .with_message(<span class="string">"not yet implemented."</span>)
             .into())
     }
 }
@@ -661,7 +662,7 @@
             .into()
     };
 
-    <span class="comment">// 4. Let object be ? OrdinaryCreateFromConstructor(newTarget, &quot;%Temporal.PlainYearMonth.prototype%&quot;, « [[InitializedTemporalYearMonth]], [[ISOYear]], [[ISOMonth]], [[ISODay]], [[Calendar]] »).
+    <span class="comment">// 4. Let object be ? OrdinaryCreateFromConstructor(newTarget, "%Temporal.PlainYearMonth.prototype%", « [[InitializedTemporalYearMonth]], [[ISOYear]], [[ISOMonth]], [[ISODay]], [[Calendar]] »).
     </span><span class="kw">let </span>proto = get_prototype_from_constructor(
         <span class="kw-2">&amp;</span>new_target,
         StandardConstructors::plain_year_month,

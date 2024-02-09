@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/builtins/intl/segmenter/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/builtins/intl/segmenter/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -363,7 +364,7 @@
 };
 
 <span class="attr">#[derive(Debug, Trace, Finalize, JsData)]
-</span><span class="comment">// SAFETY: `Segmenter` doesn&#39;t contain any traceable data.
+</span><span class="comment">// SAFETY: `Segmenter` doesn't contain any traceable data.
 </span><span class="attr">#[boa_gc(unsafe_empty_trace)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Segmenter {
     locale: Locale,
@@ -389,7 +390,7 @@
 
     <span class="doccomment">/// Segment the passed string, returning an iterator with the index boundaries
     /// of the segments.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>segment&lt;<span class="lifetime">&#39;l</span>, <span class="lifetime">&#39;s</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;l </span><span class="self">self</span>, input: <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span>[u16]) -&gt; NativeSegmentIterator&lt;<span class="lifetime">&#39;l</span>, <span class="lifetime">&#39;s</span>&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>segment&lt;<span class="lifetime">'l</span>, <span class="lifetime">'s</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'l </span><span class="self">self</span>, input: <span class="kw-2">&amp;</span><span class="lifetime">'s </span>[u16]) -&gt; NativeSegmentIterator&lt;<span class="lifetime">'l</span>, <span class="lifetime">'s</span>&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Grapheme(g) =&gt; NativeSegmentIterator::Grapheme(g.segment_utf16(input)),
             <span class="self">Self</span>::Word(w) =&gt; NativeSegmentIterator::Word(w.segment_utf16(input)),
@@ -406,21 +407,21 @@
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>Segmenter {
     <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(std::any::type_name::&lt;<span class="self">Self</span>&gt;(), <span class="string">&quot;init&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(std::any::type_name::&lt;<span class="self">Self</span>&gt;(), <span class="string">"init"</span>);
 
         BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
             .static_method(
                 <span class="self">Self</span>::supported_locales_of,
-                <span class="macro">js_string!</span>(<span class="string">&quot;supportedLocalesOf&quot;</span>),
+                <span class="macro">js_string!</span>(<span class="string">"supportedLocalesOf"</span>),
                 <span class="number">1</span>,
             )
             .property(
                 JsSymbol::to_string_tag(),
-                <span class="macro">js_string!</span>(<span class="string">&quot;Intl.Segmenter&quot;</span>),
+                <span class="macro">js_string!</span>(<span class="string">"Intl.Segmenter"</span>),
                 Attribute::CONFIGURABLE,
             )
-            .method(<span class="self">Self</span>::resolved_options, <span class="macro">js_string!</span>(<span class="string">&quot;resolvedOptions&quot;</span>), <span class="number">0</span>)
-            .method(<span class="self">Self</span>::segment, <span class="macro">js_string!</span>(<span class="string">&quot;segment&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::resolved_options, <span class="macro">js_string!</span>(<span class="string">"resolvedOptions"</span>), <span class="number">0</span>)
+            .method(<span class="self">Self</span>::segment, <span class="macro">js_string!</span>(<span class="string">"segment"</span>), <span class="number">1</span>)
             .build();
     }
 
@@ -447,7 +448,7 @@
         <span class="comment">// 1. If NewTarget is undefined, throw a TypeError exception.
         </span><span class="kw">if </span>new_target.is_undefined() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;cannot call `Intl.Collator` constructor without `new`&quot;</span>)
+                .with_message(<span class="string">"cannot call `Intl.Collator` constructor without `new`"</span>)
                 .into());
         }
         <span class="kw">let </span>locales = args.get_or_undefined(<span class="number">0</span>);
@@ -460,8 +461,8 @@
         </span><span class="kw">let </span>options = get_options_object(options)<span class="question-mark">?</span>;
 
         <span class="comment">// 6. Let opt be a new Record.
-        // 7. Let matcher be ? GetOption(options, &quot;localeMatcher&quot;, string, « &quot;lookup&quot;, &quot;best fit&quot; », &quot;best fit&quot;).
-        </span><span class="kw">let </span>matcher = get_option(<span class="kw-2">&amp;</span>options, <span class="macro">utf16!</span>(<span class="string">&quot;localeMatcher&quot;</span>), context)<span class="question-mark">?</span>.unwrap_or_default();
+        // 7. Let matcher be ? GetOption(options, "localeMatcher", string, « "lookup", "best fit" », "best fit").
+        </span><span class="kw">let </span>matcher = get_option(<span class="kw-2">&amp;</span>options, <span class="macro">utf16!</span>(<span class="string">"localeMatcher"</span>), context)<span class="question-mark">?</span>.unwrap_or_default();
 
         <span class="comment">// 8. Set opt.[[localeMatcher]] to matcher.
         // 9. Let localeData be %Segmenter%.[[LocaleData]].
@@ -476,8 +477,8 @@
             context.intl_provider(),
         );
 
-        <span class="comment">// 12. Let granularity be ? GetOption(options, &quot;granularity&quot;, string, « &quot;grapheme&quot;, &quot;word&quot;, &quot;sentence&quot; », &quot;grapheme&quot;).
-        </span><span class="kw">let </span>granularity = get_option(<span class="kw-2">&amp;</span>options, <span class="macro">utf16!</span>(<span class="string">&quot;granularity&quot;</span>), context)<span class="question-mark">?</span>.unwrap_or_default();
+        <span class="comment">// 12. Let granularity be ? GetOption(options, "granularity", string, « "grapheme", "word", "sentence" », "grapheme").
+        </span><span class="kw">let </span>granularity = get_option(<span class="kw-2">&amp;</span>options, <span class="macro">utf16!</span>(<span class="string">"granularity"</span>), context)<span class="question-mark">?</span>.unwrap_or_default();
         <span class="comment">// 13. Set segmenter.[[SegmenterGranularity]] to granularity.
 
         </span><span class="kw">let </span>native = <span class="kw">match </span>granularity {
@@ -497,7 +498,7 @@
         <span class="kw">let </span>segmenter = <span class="self">Self </span>{ locale, native };
 
         <span class="comment">// 2. Let internalSlotsList be « [[InitializedSegmenter]], [[Locale]], [[SegmenterGranularity]] ».
-        // 3. Let segmenter be ? OrdinaryCreateFromConstructor(NewTarget, &quot;%Segmenter.prototype%&quot;, internalSlotsList).
+        // 3. Let segmenter be ? OrdinaryCreateFromConstructor(NewTarget, "%Segmenter.prototype%", internalSlotsList).
 
         </span><span class="kw">let </span>proto =
             get_prototype_from_constructor(new_target, StandardConstructors::segmenter, context)<span class="question-mark">?</span>;
@@ -514,7 +515,7 @@
     <span class="doccomment">/// [`Intl.Segmenter.supportedLocalesOf ( locales [ , options ] )`][spec].
     ///
     /// Returns an array containing those of the provided locales that are supported in segmenting
-    /// without having to fall back to the runtime&#39;s default locale.
+    /// without having to fall back to the runtime's default locale.
     ///
     /// More information:
     ///  - [MDN documentation][mdn]
@@ -556,24 +557,24 @@
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message(
-                    <span class="string">&quot;`resolved_options` can only be called on an `Intl.Segmenter` object&quot;</span>,
+                    <span class="string">"`resolved_options` can only be called on an `Intl.Segmenter` object"</span>,
                 )
             })<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Let options be OrdinaryObjectCreate(%Object.prototype%).
         // 4. For each row of Table 19, except the header row, in table order, do
         //     a. Let p be the Property value of the current row.
-        //     b. Let v be the value of segmenter&#39;s internal slot whose name is the Internal Slot value of the current row.
+        //     b. Let v be the value of segmenter's internal slot whose name is the Internal Slot value of the current row.
         //     c. Assert: v is not undefined.
         //     d. Perform ! CreateDataPropertyOrThrow(options, p, v).
         </span><span class="kw">let </span>options = ObjectInitializer::new(context)
             .property(
-                <span class="macro">js_string!</span>(<span class="string">&quot;locale&quot;</span>),
+                <span class="macro">js_string!</span>(<span class="string">"locale"</span>),
                 <span class="macro">js_string!</span>(segmenter.locale.to_string()),
                 Attribute::all(),
             )
             .property(
-                <span class="macro">js_string!</span>(<span class="string">&quot;granularity&quot;</span>),
+                <span class="macro">js_string!</span>(<span class="string">"granularity"</span>),
                 <span class="macro">js_string!</span>(segmenter.native.granularity().to_string()),
                 Attribute::all(),
             )
@@ -596,7 +597,7 @@
             .filter(|o| o.borrow().is::&lt;<span class="self">Self</span>&gt;())
             .ok_or_else(|| {
                 JsNativeError::typ().with_message(
-                    <span class="string">&quot;`resolved_options` can only be called on an `Intl.Segmenter` object&quot;</span>,
+                    <span class="string">"`resolved_options` can only be called on an `Intl.Segmenter` object"</span>,
                 )
             })<span class="question-mark">?</span>;
 
@@ -634,19 +635,19 @@
     </span><span class="kw">let </span>object = <span class="kw-2">&amp;mut </span>ObjectInitializer::new(context);
 
     object
-        <span class="comment">// 7. Perform ! CreateDataPropertyOrThrow(result, &quot;segment&quot;, segment).
-        </span>.property(<span class="macro">js_string!</span>(<span class="string">&quot;segment&quot;</span>), segment, Attribute::all())
-        <span class="comment">// 8. Perform ! CreateDataPropertyOrThrow(result, &quot;index&quot;, 𝔽(startIndex)).
-        </span>.property(<span class="macro">js_string!</span>(<span class="string">&quot;index&quot;</span>), start, Attribute::all())
-        <span class="comment">// 9. Perform ! CreateDataPropertyOrThrow(result, &quot;input&quot;, string).
-        </span>.property(<span class="macro">js_string!</span>(<span class="string">&quot;input&quot;</span>), string, Attribute::all());
+        <span class="comment">// 7. Perform ! CreateDataPropertyOrThrow(result, "segment", segment).
+        </span>.property(<span class="macro">js_string!</span>(<span class="string">"segment"</span>), segment, Attribute::all())
+        <span class="comment">// 8. Perform ! CreateDataPropertyOrThrow(result, "index", 𝔽(startIndex)).
+        </span>.property(<span class="macro">js_string!</span>(<span class="string">"index"</span>), start, Attribute::all())
+        <span class="comment">// 9. Perform ! CreateDataPropertyOrThrow(result, "input", string).
+        </span>.property(<span class="macro">js_string!</span>(<span class="string">"input"</span>), string, Attribute::all());
 
     <span class="comment">// 10. Let granularity be segmenter.[[SegmenterGranularity]].
-    // 11. If granularity is &quot;word&quot;, then
+    // 11. If granularity is "word", then
     </span><span class="kw">if let </span><span class="prelude-val">Some</span>(is_word_like) = is_word_like {
-        <span class="comment">//     a. Let isWordLike be a Boolean value indicating whether the segment in string is &quot;word-like&quot; according to locale segmenter.[[Locale]].
-        //     b. Perform ! CreateDataPropertyOrThrow(result, &quot;isWordLike&quot;, isWordLike).
-        </span>object.property(<span class="macro">js_string!</span>(<span class="string">&quot;isWordLike&quot;</span>), is_word_like, Attribute::all());
+        <span class="comment">//     a. Let isWordLike be a Boolean value indicating whether the segment in string is "word-like" according to locale segmenter.[[Locale]].
+        //     b. Perform ! CreateDataPropertyOrThrow(result, "isWordLike", isWordLike).
+        </span>object.property(<span class="macro">js_string!</span>(<span class="string">"isWordLike"</span>), is_word_like, Attribute::all());
     }
 
     <span class="comment">// 12. Return result.

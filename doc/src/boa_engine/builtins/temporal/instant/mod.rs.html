@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/builtins/temporal/instant/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/builtins/temporal/instant/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -500,7 +501,7 @@
 <a href="#500" id="500">500</a>
 <a href="#501" id="501">501</a>
 <a href="#502" id="502">502</a>
-</pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s `Temporal.Instant` builtin object.
+</pre></div><pre class="rust"><code><span class="doccomment">//! Boa's implementation of ECMAScript's `Temporal.Instant` builtin object.
 
 </span><span class="kw">use crate</span>::{
     builtins::{
@@ -541,22 +542,22 @@
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>Instant {
     <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(std::any::type_name::&lt;<span class="self">Self</span>&gt;(), <span class="string">&quot;init&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(std::any::type_name::&lt;<span class="self">Self</span>&gt;(), <span class="string">"init"</span>);
 
         <span class="kw">let </span>get_seconds = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_epoc_seconds)
-            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get epochSeconds&quot;</span>))
+            .name(<span class="macro">js_string!</span>(<span class="string">"get epochSeconds"</span>))
             .build();
 
         <span class="kw">let </span>get_millis = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_epoc_milliseconds)
-            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get epochMilliseconds&quot;</span>))
+            .name(<span class="macro">js_string!</span>(<span class="string">"get epochMilliseconds"</span>))
             .build();
 
         <span class="kw">let </span>get_micros = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_epoc_microseconds)
-            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get epochMicroseconds&quot;</span>))
+            .name(<span class="macro">js_string!</span>(<span class="string">"get epochMicroseconds"</span>))
             .build();
 
         <span class="kw">let </span>get_nanos = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_epoc_nanoseconds)
-            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get epochNanoseconds&quot;</span>))
+            .name(<span class="macro">js_string!</span>(<span class="string">"get epochNanoseconds"</span>))
             .build();
 
         BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
@@ -566,39 +567,39 @@
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                <span class="macro">utf16!</span>(<span class="string">&quot;epochSeconds&quot;</span>),
+                <span class="macro">utf16!</span>(<span class="string">"epochSeconds"</span>),
                 <span class="prelude-val">Some</span>(get_seconds),
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                <span class="macro">utf16!</span>(<span class="string">&quot;epochMilliseconds&quot;</span>),
+                <span class="macro">utf16!</span>(<span class="string">"epochMilliseconds"</span>),
                 <span class="prelude-val">Some</span>(get_millis),
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                <span class="macro">utf16!</span>(<span class="string">&quot;epochMicroseconds&quot;</span>),
+                <span class="macro">utf16!</span>(<span class="string">"epochMicroseconds"</span>),
                 <span class="prelude-val">Some</span>(get_micros),
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                <span class="macro">utf16!</span>(<span class="string">&quot;epochNanoseconds&quot;</span>),
+                <span class="macro">utf16!</span>(<span class="string">"epochNanoseconds"</span>),
                 <span class="prelude-val">Some</span>(get_nanos),
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE,
             )
-            .method(<span class="self">Self</span>::add, <span class="macro">js_string!</span>(<span class="string">&quot;add&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::subtract, <span class="macro">js_string!</span>(<span class="string">&quot;subtract&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::until, <span class="macro">js_string!</span>(<span class="string">&quot;until&quot;</span>), <span class="number">2</span>)
-            .method(<span class="self">Self</span>::since, <span class="macro">js_string!</span>(<span class="string">&quot;since&quot;</span>), <span class="number">2</span>)
-            .method(<span class="self">Self</span>::round, <span class="macro">js_string!</span>(<span class="string">&quot;round&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::equals, <span class="macro">js_string!</span>(<span class="string">&quot;equals&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::to_zoned_date_time, <span class="macro">js_string!</span>(<span class="string">&quot;toZonedDateTime&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::add, <span class="macro">js_string!</span>(<span class="string">"add"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::subtract, <span class="macro">js_string!</span>(<span class="string">"subtract"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::until, <span class="macro">js_string!</span>(<span class="string">"until"</span>), <span class="number">2</span>)
+            .method(<span class="self">Self</span>::since, <span class="macro">js_string!</span>(<span class="string">"since"</span>), <span class="number">2</span>)
+            .method(<span class="self">Self</span>::round, <span class="macro">js_string!</span>(<span class="string">"round"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::equals, <span class="macro">js_string!</span>(<span class="string">"equals"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::to_zoned_date_time, <span class="macro">js_string!</span>(<span class="string">"toZonedDateTime"</span>), <span class="number">1</span>)
             .method(
                 <span class="self">Self</span>::to_zoned_date_time_iso,
-                <span class="macro">js_string!</span>(<span class="string">&quot;toZonedDateTimeISO&quot;</span>),
+                <span class="macro">js_string!</span>(<span class="string">"toZonedDateTimeISO"</span>),
                 <span class="number">1</span>,
             )
             .build();
@@ -624,7 +625,7 @@
         </span><span class="kw">if </span>new_target.is_undefined() {
             <span class="comment">// a. Throw a TypeError exception.
             </span><span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;Temporal.Instant new target cannot be undefined.&quot;</span>)
+                .with_message(<span class="string">"Temporal.Instant new target cannot be undefined."</span>)
                 .into());
         };
 
@@ -654,7 +655,7 @@
             .as_object()
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message(<span class="string">&quot;the this object must be an instant object.&quot;</span>)
+                JsNativeError::typ().with_message(<span class="string">"the this object must be an instant object."</span>)
             })<span class="question-mark">?</span>;
         <span class="comment">// 3. Let ns be instant.[[Nanoseconds]].
         </span><span class="prelude-val">Ok</span>(instant.inner.epoch_seconds().into())
@@ -672,7 +673,7 @@
             .as_object()
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message(<span class="string">&quot;the this object must be an instant object.&quot;</span>)
+                JsNativeError::typ().with_message(<span class="string">"the this object must be an instant object."</span>)
             })<span class="question-mark">?</span>;
         <span class="comment">// 3. Let ns be instant.[[Nanoseconds]].
         // 4. Let ms be floor(ℝ(ns) / 106).
@@ -692,13 +693,13 @@
             .as_object()
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message(<span class="string">&quot;the this object must be an instant object.&quot;</span>)
+                JsNativeError::typ().with_message(<span class="string">"the this object must be an instant object."</span>)
             })<span class="question-mark">?</span>;
         <span class="comment">// 3. Let ns be instant.[[Nanoseconds]].
         // 4. Let µs be floor(ℝ(ns) / 103).
         // 5. Return ℤ(µs).
         </span><span class="kw">let </span>big_int = JsBigInt::try_from(instant.inner.epoch_microseconds())
-            .expect(<span class="string">&quot;valid microseconds is in range of BigInt&quot;</span>);
+            .expect(<span class="string">"valid microseconds is in range of BigInt"</span>);
         <span class="prelude-val">Ok</span>(big_int.into())
     }
 
@@ -714,12 +715,12 @@
             .as_object()
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message(<span class="string">&quot;the this object must be an instant object.&quot;</span>)
+                JsNativeError::typ().with_message(<span class="string">"the this object must be an instant object."</span>)
             })<span class="question-mark">?</span>;
         <span class="comment">// 3. Let ns be instant.[[Nanoseconds]].
         // 4. Return ns.
         </span><span class="kw">let </span>big_int = JsBigInt::try_from(instant.inner.epoch_nanoseconds())
-            .expect(<span class="string">&quot;valid nanoseconds is in range of BigInt&quot;</span>);
+            .expect(<span class="string">"valid nanoseconds is in range of BigInt"</span>);
         <span class="prelude-val">Ok</span>(big_int.into())
     }
 
@@ -735,7 +736,7 @@
             .as_object()
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message(<span class="string">&quot;the this object must be an instant object.&quot;</span>)
+                JsNativeError::typ().with_message(<span class="string">"the this object must be an instant object."</span>)
             })<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Return ? AddDurationToOrSubtractDurationFromInstant(add, instant, temporalDurationLike).
@@ -757,7 +758,7 @@
             .as_object()
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message(<span class="string">&quot;the this object must be an instant object.&quot;</span>)
+                JsNativeError::typ().with_message(<span class="string">"the this object must be an instant object."</span>)
             })<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Return ? AddDurationToOrSubtractDurationFromInstant(subtract, instant, temporalDurationLike).
@@ -779,7 +780,7 @@
             .as_object()
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message(<span class="string">&quot;the this object must be an instant object.&quot;</span>)
+                JsNativeError::typ().with_message(<span class="string">"the this object must be an instant object."</span>)
             })<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Return ? DifferenceTemporalInstant(until, instant, other, options).
@@ -787,10 +788,10 @@
 
         <span class="comment">// Fetch the necessary options.
         </span><span class="kw">let </span>options = get_options_object(args.get_or_undefined(<span class="number">1</span>))<span class="question-mark">?</span>;
-        <span class="kw">let </span>mode = get_option::&lt;TemporalRoundingMode&gt;(<span class="kw-2">&amp;</span>options, <span class="macro">utf16!</span>(<span class="string">&quot;roundingMode&quot;</span>), context)<span class="question-mark">?</span>;
-        <span class="kw">let </span>increment = get_option::&lt;f64&gt;(<span class="kw-2">&amp;</span>options, <span class="macro">utf16!</span>(<span class="string">&quot;roundingIncrement&quot;</span>), context)<span class="question-mark">?</span>;
-        <span class="kw">let </span>smallest_unit = get_option::&lt;TemporalUnit&gt;(<span class="kw-2">&amp;</span>options, <span class="macro">utf16!</span>(<span class="string">&quot;smallestUnit&quot;</span>), context)<span class="question-mark">?</span>;
-        <span class="kw">let </span>largest_unit = get_option::&lt;TemporalUnit&gt;(<span class="kw-2">&amp;</span>options, <span class="macro">utf16!</span>(<span class="string">&quot;largestUnit&quot;</span>), context)<span class="question-mark">?</span>;
+        <span class="kw">let </span>mode = get_option::&lt;TemporalRoundingMode&gt;(<span class="kw-2">&amp;</span>options, <span class="macro">utf16!</span>(<span class="string">"roundingMode"</span>), context)<span class="question-mark">?</span>;
+        <span class="kw">let </span>increment = get_option::&lt;f64&gt;(<span class="kw-2">&amp;</span>options, <span class="macro">utf16!</span>(<span class="string">"roundingIncrement"</span>), context)<span class="question-mark">?</span>;
+        <span class="kw">let </span>smallest_unit = get_option::&lt;TemporalUnit&gt;(<span class="kw-2">&amp;</span>options, <span class="macro">utf16!</span>(<span class="string">"smallestUnit"</span>), context)<span class="question-mark">?</span>;
+        <span class="kw">let </span>largest_unit = get_option::&lt;TemporalUnit&gt;(<span class="kw-2">&amp;</span>options, <span class="macro">utf16!</span>(<span class="string">"largestUnit"</span>), context)<span class="question-mark">?</span>;
         <span class="kw">let </span>result = instant
             .inner
             .until(<span class="kw-2">&amp;</span>other, mode, increment, smallest_unit, largest_unit)<span class="question-mark">?</span>;
@@ -809,16 +810,16 @@
             .as_object()
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message(<span class="string">&quot;the this object must be an instant object.&quot;</span>)
+                JsNativeError::typ().with_message(<span class="string">"the this object must be an instant object."</span>)
             })<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Return ? DifferenceTemporalInstant(since, instant, other, options).
         </span><span class="kw">let </span>other = to_temporal_instant(args.get_or_undefined(<span class="number">0</span>))<span class="question-mark">?</span>;
         <span class="kw">let </span>options = get_options_object(args.get_or_undefined(<span class="number">1</span>))<span class="question-mark">?</span>;
-        <span class="kw">let </span>mode = get_option::&lt;TemporalRoundingMode&gt;(<span class="kw-2">&amp;</span>options, <span class="macro">utf16!</span>(<span class="string">&quot;roundingMode&quot;</span>), context)<span class="question-mark">?</span>;
-        <span class="kw">let </span>increment = get_option::&lt;f64&gt;(<span class="kw-2">&amp;</span>options, <span class="macro">utf16!</span>(<span class="string">&quot;roundingIncrement&quot;</span>), context)<span class="question-mark">?</span>;
-        <span class="kw">let </span>smallest_unit = get_option::&lt;TemporalUnit&gt;(<span class="kw-2">&amp;</span>options, <span class="macro">utf16!</span>(<span class="string">&quot;smallestUnit&quot;</span>), context)<span class="question-mark">?</span>;
-        <span class="kw">let </span>largest_unit = get_option::&lt;TemporalUnit&gt;(<span class="kw-2">&amp;</span>options, <span class="macro">utf16!</span>(<span class="string">&quot;largestUnit&quot;</span>), context)<span class="question-mark">?</span>;
+        <span class="kw">let </span>mode = get_option::&lt;TemporalRoundingMode&gt;(<span class="kw-2">&amp;</span>options, <span class="macro">utf16!</span>(<span class="string">"roundingMode"</span>), context)<span class="question-mark">?</span>;
+        <span class="kw">let </span>increment = get_option::&lt;f64&gt;(<span class="kw-2">&amp;</span>options, <span class="macro">utf16!</span>(<span class="string">"roundingIncrement"</span>), context)<span class="question-mark">?</span>;
+        <span class="kw">let </span>smallest_unit = get_option::&lt;TemporalUnit&gt;(<span class="kw-2">&amp;</span>options, <span class="macro">utf16!</span>(<span class="string">"smallestUnit"</span>), context)<span class="question-mark">?</span>;
+        <span class="kw">let </span>largest_unit = get_option::&lt;TemporalUnit&gt;(<span class="kw-2">&amp;</span>options, <span class="macro">utf16!</span>(<span class="string">"largestUnit"</span>), context)<span class="question-mark">?</span>;
         <span class="kw">let </span>result = instant
             .inner
             .since(<span class="kw-2">&amp;</span>other, mode, increment, smallest_unit, largest_unit)<span class="question-mark">?</span>;
@@ -837,14 +838,14 @@
             .as_object()
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message(<span class="string">&quot;the this object must be an instant object.&quot;</span>)
+                JsNativeError::typ().with_message(<span class="string">"the this object must be an instant object."</span>)
             })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>round_to = <span class="kw">match </span>args.first() {
             <span class="comment">// 3. If roundTo is undefined, then
             </span><span class="prelude-val">None </span>| <span class="prelude-val">Some</span>(JsValue::Undefined) =&gt; {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                    .with_message(<span class="string">&quot;roundTo cannot be undefined.&quot;</span>)
+                    .with_message(<span class="string">"roundTo cannot be undefined."</span>)
                     .into())
             }
             <span class="comment">// 4. If Type(roundTo) is String, then
@@ -853,9 +854,9 @@
                 </span><span class="kw">let </span>param_string = rt.clone();
                 <span class="comment">// b. Set roundTo to OrdinaryObjectCreate(null).
                 </span><span class="kw">let </span>new_round_to = JsObject::with_null_proto();
-                <span class="comment">// c. Perform ! CreateDataPropertyOrThrow(roundTo, &quot;smallestUnit&quot;, paramString).
+                <span class="comment">// c. Perform ! CreateDataPropertyOrThrow(roundTo, "smallestUnit", paramString).
                 </span>new_round_to.create_data_property_or_throw(
-                    <span class="macro">utf16!</span>(<span class="string">&quot;smallestUnit&quot;</span>),
+                    <span class="macro">utf16!</span>(<span class="string">"smallestUnit"</span>),
                     param_string,
                     context,
                 )<span class="question-mark">?</span>;
@@ -869,37 +870,37 @@
         };
 
         <span class="comment">// 6. NOTE: The following steps read options and perform independent validation in
-        // alphabetical order (ToTemporalRoundingIncrement reads &quot;roundingIncrement&quot; and ToTemporalRoundingMode reads &quot;roundingMode&quot;).
+        // alphabetical order (ToTemporalRoundingIncrement reads "roundingIncrement" and ToTemporalRoundingMode reads "roundingMode").
         // 7. Let roundingIncrement be ? ToTemporalRoundingIncrement(roundTo).
         </span><span class="kw">let </span>rounding_increment =
-            get_option::&lt;f64&gt;(<span class="kw-2">&amp;</span>round_to, <span class="macro">utf16!</span>(<span class="string">&quot;roundingIncrement&quot;</span>), context)<span class="question-mark">?</span>;
+            get_option::&lt;f64&gt;(<span class="kw-2">&amp;</span>round_to, <span class="macro">utf16!</span>(<span class="string">"roundingIncrement"</span>), context)<span class="question-mark">?</span>;
 
-        <span class="comment">// 8. Let roundingMode be ? ToTemporalRoundingMode(roundTo, &quot;halfExpand&quot;).
+        <span class="comment">// 8. Let roundingMode be ? ToTemporalRoundingMode(roundTo, "halfExpand").
         </span><span class="kw">let </span>rounding_mode =
-            get_option::&lt;TemporalRoundingMode&gt;(<span class="kw-2">&amp;</span>round_to, <span class="macro">utf16!</span>(<span class="string">&quot;roundingMode&quot;</span>), context)<span class="question-mark">?</span>;
+            get_option::&lt;TemporalRoundingMode&gt;(<span class="kw-2">&amp;</span>round_to, <span class="macro">utf16!</span>(<span class="string">"roundingMode"</span>), context)<span class="question-mark">?</span>;
 
-        <span class="comment">// 9. Let smallestUnit be ? GetTemporalUnit(roundTo, &quot;smallestUnit&quot;), time, required).
+        <span class="comment">// 9. Let smallestUnit be ? GetTemporalUnit(roundTo, "smallestUnit"), time, required).
         </span><span class="kw">let </span>smallest_unit = get_temporal_unit(
             <span class="kw-2">&amp;</span>round_to,
-            <span class="macro">utf16!</span>(<span class="string">&quot;smallestUnit&quot;</span>),
+            <span class="macro">utf16!</span>(<span class="string">"smallestUnit"</span>),
             TemporalUnitGroup::Time,
             <span class="prelude-val">None</span>,
             context,
         )<span class="question-mark">?
-        </span>.ok_or_else(|| JsNativeError::range().with_message(<span class="string">&quot;smallestUnit cannot be undefined.&quot;</span>))<span class="question-mark">?</span>;
+        </span>.ok_or_else(|| JsNativeError::range().with_message(<span class="string">"smallestUnit cannot be undefined."</span>))<span class="question-mark">?</span>;
 
-        <span class="comment">// 10. If smallestUnit is &quot;hour&quot;), then
+        <span class="comment">// 10. If smallestUnit is "hour"), then
         // a. Let maximum be HoursPerDay.
-        // 11. Else if smallestUnit is &quot;minute&quot;), then
+        // 11. Else if smallestUnit is "minute"), then
         // a. Let maximum be MinutesPerHour × HoursPerDay.
-        // 12. Else if smallestUnit is &quot;second&quot;), then
+        // 12. Else if smallestUnit is "second"), then
         // a. Let maximum be SecondsPerMinute × MinutesPerHour × HoursPerDay.
-        // 13. Else if smallestUnit is &quot;millisecond&quot;), then
+        // 13. Else if smallestUnit is "millisecond"), then
         // a. Let maximum be ℝ(msPerDay).
-        // 14. Else if smallestUnit is &quot;microsecond&quot;), then
+        // 14. Else if smallestUnit is "microsecond"), then
         // a. Let maximum be 10^3 × ℝ(msPerDay).
         // 15. Else,
-        // a. Assert: smallestUnit is &quot;nanosecond&quot;.
+        // a. Assert: smallestUnit is "nanosecond".
         // b. Let maximum be nsPerDay.
         // unreachable here functions as 15.a.
         // 16. Perform ? ValidateTemporalRoundingIncrement(roundingIncrement, maximum, true).
@@ -922,7 +923,7 @@
             .as_object()
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message(<span class="string">&quot;the this object must be an instant object.&quot;</span>)
+                JsNativeError::typ().with_message(<span class="string">"the this object must be an instant object."</span>)
             })<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Set other to ? ToTemporalInstant(other).
@@ -943,7 +944,7 @@
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// TODO: Complete
         </span><span class="prelude-val">Err</span>(JsNativeError::error()
-            .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
+            .with_message(<span class="string">"not yet implemented."</span>)
             .into())
     }
 
@@ -955,7 +956,7 @@
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// TODO Complete
         </span><span class="prelude-val">Err</span>(JsNativeError::error()
-            .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
+            .with_message(<span class="string">"not yet implemented."</span>)
             .into())
     }
 }
@@ -983,7 +984,7 @@
             .constructor()
             .into()
     });
-    <span class="comment">// 3. Let object be ? OrdinaryCreateFromConstructor(newTarget, &quot;%Temporal.Instant.prototype%&quot;), « [[InitializedTemporalInstant]], [[Nanoseconds]] »).
+    <span class="comment">// 3. Let object be ? OrdinaryCreateFromConstructor(newTarget, "%Temporal.Instant.prototype%"), « [[InitializedTemporalInstant]], [[Nanoseconds]] »).
     </span><span class="kw">let </span>proto =
         get_prototype_from_constructor(<span class="kw-2">&amp;</span>new_target, StandardConstructors::instant, context)<span class="question-mark">?</span>;
 
@@ -999,7 +1000,7 @@
 </span><span class="kw">fn </span>to_temporal_instant(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue) -&gt; JsResult&lt;InnerInstant&gt; {
     <span class="comment">// TODO: Need to implement parsing.
     </span><span class="prelude-val">Err</span>(JsNativeError::error()
-        .with_message(<span class="string">&quot;Instant parsing is not yet implemented.&quot;</span>)
+        .with_message(<span class="string">"Instant parsing is not yet implemented."</span>)
         .into())
 }
 </code></pre></div></section></main></body></html>

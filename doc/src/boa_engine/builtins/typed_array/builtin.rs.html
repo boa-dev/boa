@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/builtins/typed_array/builtin.rs`."><title>builtin.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/builtins/typed_array/builtin.rs`."><title>builtin.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -3262,31 +3263,31 @@
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>BuiltinTypedArray {
     <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
         <span class="kw">let </span>get_species = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_species)
-            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get [Symbol.species]&quot;</span>))
+            .name(<span class="macro">js_string!</span>(<span class="string">"get [Symbol.species]"</span>))
             .build();
 
         <span class="kw">let </span>get_buffer = BuiltInBuilder::callable(realm, <span class="self">Self</span>::buffer)
-            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get buffer&quot;</span>))
+            .name(<span class="macro">js_string!</span>(<span class="string">"get buffer"</span>))
             .build();
 
         <span class="kw">let </span>get_byte_length = BuiltInBuilder::callable(realm, <span class="self">Self</span>::byte_length)
-            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get byteLength&quot;</span>))
+            .name(<span class="macro">js_string!</span>(<span class="string">"get byteLength"</span>))
             .build();
 
         <span class="kw">let </span>get_byte_offset = BuiltInBuilder::callable(realm, <span class="self">Self</span>::byte_offset)
-            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get byteOffset&quot;</span>))
+            .name(<span class="macro">js_string!</span>(<span class="string">"get byteOffset"</span>))
             .build();
 
         <span class="kw">let </span>get_length = BuiltInBuilder::callable(realm, <span class="self">Self</span>::length)
-            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get length&quot;</span>))
+            .name(<span class="macro">js_string!</span>(<span class="string">"get length"</span>))
             .build();
 
         <span class="kw">let </span>get_to_string_tag = BuiltInBuilder::callable(realm, <span class="self">Self</span>::to_string_tag)
-            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get [Symbol.toStringTag]&quot;</span>))
+            .name(<span class="macro">js_string!</span>(<span class="string">"get [Symbol.toStringTag]"</span>))
             .build();
 
         <span class="kw">let </span>values_function = BuiltInBuilder::callable(realm, <span class="self">Self</span>::values)
-            .name(<span class="macro">js_string!</span>(<span class="string">&quot;values&quot;</span>))
+            .name(<span class="macro">js_string!</span>(<span class="string">"values"</span>))
             .length(<span class="number">0</span>)
             .build();
 
@@ -3303,25 +3304,25 @@
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .accessor(
-                <span class="macro">utf16!</span>(<span class="string">&quot;buffer&quot;</span>),
+                <span class="macro">utf16!</span>(<span class="string">"buffer"</span>),
                 <span class="prelude-val">Some</span>(get_buffer),
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
             )
             .accessor(
-                <span class="macro">utf16!</span>(<span class="string">&quot;byteLength&quot;</span>),
+                <span class="macro">utf16!</span>(<span class="string">"byteLength"</span>),
                 <span class="prelude-val">Some</span>(get_byte_length),
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
             )
             .accessor(
-                <span class="macro">utf16!</span>(<span class="string">&quot;byteOffset&quot;</span>),
+                <span class="macro">utf16!</span>(<span class="string">"byteOffset"</span>),
                 <span class="prelude-val">Some</span>(get_byte_offset),
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
             )
             .accessor(
-                <span class="macro">utf16!</span>(<span class="string">&quot;length&quot;</span>),
+                <span class="macro">utf16!</span>(<span class="string">"length"</span>),
                 <span class="prelude-val">Some</span>(get_length),
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
@@ -3332,47 +3333,47 @@
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
             )
-            .static_method(<span class="self">Self</span>::from, <span class="macro">js_string!</span>(<span class="string">&quot;from&quot;</span>), <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::of, <span class="macro">js_string!</span>(<span class="string">&quot;of&quot;</span>), <span class="number">0</span>)
-            .method(<span class="self">Self</span>::at, <span class="macro">js_string!</span>(<span class="string">&quot;at&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::copy_within, <span class="macro">js_string!</span>(<span class="string">&quot;copyWithin&quot;</span>), <span class="number">2</span>)
-            .method(<span class="self">Self</span>::entries, <span class="macro">js_string!</span>(<span class="string">&quot;entries&quot;</span>), <span class="number">0</span>)
-            .method(<span class="self">Self</span>::every, <span class="macro">js_string!</span>(<span class="string">&quot;every&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::fill, <span class="macro">js_string!</span>(<span class="string">&quot;fill&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::filter, <span class="macro">js_string!</span>(<span class="string">&quot;filter&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::find, <span class="macro">js_string!</span>(<span class="string">&quot;find&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::find_index, <span class="macro">js_string!</span>(<span class="string">&quot;findIndex&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::find_last, <span class="macro">js_string!</span>(<span class="string">&quot;findLast&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::find_last_index, <span class="macro">js_string!</span>(<span class="string">&quot;findLastIndex&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::foreach, <span class="macro">js_string!</span>(<span class="string">&quot;forEach&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::includes, <span class="macro">js_string!</span>(<span class="string">&quot;includes&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::index_of, <span class="macro">js_string!</span>(<span class="string">&quot;indexOf&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::join, <span class="macro">js_string!</span>(<span class="string">&quot;join&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::keys, <span class="macro">js_string!</span>(<span class="string">&quot;keys&quot;</span>), <span class="number">0</span>)
-            .method(<span class="self">Self</span>::last_index_of, <span class="macro">js_string!</span>(<span class="string">&quot;lastIndexOf&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::map, <span class="macro">js_string!</span>(<span class="string">&quot;map&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::reduce, <span class="macro">js_string!</span>(<span class="string">&quot;reduce&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::reduceright, <span class="macro">js_string!</span>(<span class="string">&quot;reduceRight&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::reverse, <span class="macro">js_string!</span>(<span class="string">&quot;reverse&quot;</span>), <span class="number">0</span>)
-            .method(<span class="self">Self</span>::set, <span class="macro">js_string!</span>(<span class="string">&quot;set&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::slice, <span class="macro">js_string!</span>(<span class="string">&quot;slice&quot;</span>), <span class="number">2</span>)
-            .method(<span class="self">Self</span>::some, <span class="macro">js_string!</span>(<span class="string">&quot;some&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::sort, <span class="macro">js_string!</span>(<span class="string">&quot;sort&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::subarray, <span class="macro">js_string!</span>(<span class="string">&quot;subarray&quot;</span>), <span class="number">2</span>)
-            .method(<span class="self">Self</span>::to_locale_string, <span class="macro">js_string!</span>(<span class="string">&quot;toLocaleString&quot;</span>), <span class="number">0</span>)
-            .method(<span class="self">Self</span>::to_reversed, <span class="macro">js_string!</span>(<span class="string">&quot;toReversed&quot;</span>), <span class="number">0</span>)
-            .method(<span class="self">Self</span>::to_sorted, <span class="macro">js_string!</span>(<span class="string">&quot;toSorted&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::with, <span class="macro">js_string!</span>(<span class="string">&quot;with&quot;</span>), <span class="number">2</span>)
+            .static_method(<span class="self">Self</span>::from, <span class="macro">js_string!</span>(<span class="string">"from"</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::of, <span class="macro">js_string!</span>(<span class="string">"of"</span>), <span class="number">0</span>)
+            .method(<span class="self">Self</span>::at, <span class="macro">js_string!</span>(<span class="string">"at"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::copy_within, <span class="macro">js_string!</span>(<span class="string">"copyWithin"</span>), <span class="number">2</span>)
+            .method(<span class="self">Self</span>::entries, <span class="macro">js_string!</span>(<span class="string">"entries"</span>), <span class="number">0</span>)
+            .method(<span class="self">Self</span>::every, <span class="macro">js_string!</span>(<span class="string">"every"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::fill, <span class="macro">js_string!</span>(<span class="string">"fill"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::filter, <span class="macro">js_string!</span>(<span class="string">"filter"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::find, <span class="macro">js_string!</span>(<span class="string">"find"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::find_index, <span class="macro">js_string!</span>(<span class="string">"findIndex"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::find_last, <span class="macro">js_string!</span>(<span class="string">"findLast"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::find_last_index, <span class="macro">js_string!</span>(<span class="string">"findLastIndex"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::foreach, <span class="macro">js_string!</span>(<span class="string">"forEach"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::includes, <span class="macro">js_string!</span>(<span class="string">"includes"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::index_of, <span class="macro">js_string!</span>(<span class="string">"indexOf"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::join, <span class="macro">js_string!</span>(<span class="string">"join"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::keys, <span class="macro">js_string!</span>(<span class="string">"keys"</span>), <span class="number">0</span>)
+            .method(<span class="self">Self</span>::last_index_of, <span class="macro">js_string!</span>(<span class="string">"lastIndexOf"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::map, <span class="macro">js_string!</span>(<span class="string">"map"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::reduce, <span class="macro">js_string!</span>(<span class="string">"reduce"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::reduceright, <span class="macro">js_string!</span>(<span class="string">"reduceRight"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::reverse, <span class="macro">js_string!</span>(<span class="string">"reverse"</span>), <span class="number">0</span>)
+            .method(<span class="self">Self</span>::set, <span class="macro">js_string!</span>(<span class="string">"set"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::slice, <span class="macro">js_string!</span>(<span class="string">"slice"</span>), <span class="number">2</span>)
+            .method(<span class="self">Self</span>::some, <span class="macro">js_string!</span>(<span class="string">"some"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::sort, <span class="macro">js_string!</span>(<span class="string">"sort"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::subarray, <span class="macro">js_string!</span>(<span class="string">"subarray"</span>), <span class="number">2</span>)
+            .method(<span class="self">Self</span>::to_locale_string, <span class="macro">js_string!</span>(<span class="string">"toLocaleString"</span>), <span class="number">0</span>)
+            .method(<span class="self">Self</span>::to_reversed, <span class="macro">js_string!</span>(<span class="string">"toReversed"</span>), <span class="number">0</span>)
+            .method(<span class="self">Self</span>::to_sorted, <span class="macro">js_string!</span>(<span class="string">"toSorted"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::with, <span class="macro">js_string!</span>(<span class="string">"with"</span>), <span class="number">2</span>)
             <span class="comment">// 23.2.3.29 %TypedArray%.prototype.toString ( )
             // The initial value of the %TypedArray%.prototype.toString data property is the same
             // built-in function object as the Array.prototype.toString method defined in 23.1.3.30.
             </span>.property(
-                <span class="macro">js_string!</span>(<span class="string">&quot;toString&quot;</span>),
+                <span class="macro">js_string!</span>(<span class="string">"toString"</span>),
                 realm.intrinsics().objects().array_prototype_to_string(),
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .property(
-                <span class="macro">js_string!</span>(<span class="string">&quot;values&quot;</span>),
+                <span class="macro">js_string!</span>(<span class="string">"values"</span>),
                 values_function,
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
@@ -3403,7 +3404,7 @@
     </span><span class="kw">fn </span>constructor(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Throw a TypeError exception.
         </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-            .with_message(<span class="string">&quot;the TypedArray constructor should never be called directly&quot;</span>)
+            .with_message(<span class="string">"the TypedArray constructor should never be called directly"</span>)
             .into())
     }
 }
@@ -3422,7 +3423,7 @@
             <span class="prelude-val">Some</span>(obj) <span class="kw">if </span>obj.is_constructor() =&gt; obj,
             <span class="kw">_ </span>=&gt; {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                    .with_message(<span class="string">&quot;TypedArray.from called on non-constructable value&quot;</span>)
+                    .with_message(<span class="string">"TypedArray.from called on non-constructable value"</span>)
                     .into())
             }
         };
@@ -3437,7 +3438,7 @@
                 <span class="comment">// a. If IsCallable(mapfn) is false, throw a TypeError exception.
                 </span><span class="kw">_ </span>=&gt; {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                        .with_message(<span class="string">&quot;TypedArray.from called with non-callable mapfn&quot;</span>)
+                        .with_message(<span class="string">"TypedArray.from called with non-callable mapfn"</span>)
                         .into())
                 }
             },
@@ -3486,7 +3487,7 @@
         // 8. Let arrayLike be ! ToObject(source).
         </span><span class="kw">let </span>array_like = source
             .to_object(context)
-            .expect(<span class="string">&quot;ToObject cannot fail here&quot;</span>);
+            .expect(<span class="string">"ToObject cannot fail here"</span>);
 
         <span class="comment">// 9. Let len be ? LengthOfArrayLike(arrayLike).
         </span><span class="kw">let </span>len = array_like.length_of_array_like(context)<span class="question-mark">?</span>;
@@ -3548,7 +3549,7 @@
             <span class="prelude-val">Some</span>(obj) <span class="kw">if </span>obj.is_constructor() =&gt; obj,
             <span class="kw">_ </span>=&gt; {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                    .with_message(<span class="string">&quot;TypedArray.of called on non-constructable value&quot;</span>)
+                    .with_message(<span class="string">"TypedArray.of called on non-constructable value"</span>)
                     .into())
             }
         };
@@ -3617,7 +3618,7 @@
         }
 
         <span class="comment">// 8. Return ! Get(O, ! ToString(𝔽(k))).
-        </span><span class="prelude-val">Ok</span>(o.upcast().get(k, context).expect(<span class="string">&quot;Get cannot fail here&quot;</span>))
+        </span><span class="prelude-val">Ok</span>(o.upcast().get(k, context).expect(<span class="string">"Get cannot fail here"</span>))
     }
 
     <span class="doccomment">/// `get %TypedArray%.prototype.buffer`
@@ -3634,7 +3635,7 @@
             .as_object()
             .and_then(JsObject::downcast_ref::&lt;TypedArray&gt;)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message(<span class="string">&quot;`this` is not a typed array object&quot;</span>)
+                JsNativeError::typ().with_message(<span class="string">"`this` is not a typed array object"</span>)
             })<span class="question-mark">?</span>;
 
         <span class="comment">// 4. Let buffer be O.[[ViewedArrayBuffer]].
@@ -3656,7 +3657,7 @@
             .as_object()
             .and_then(JsObject::downcast_ref::&lt;TypedArray&gt;)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message(<span class="string">&quot;`this` is not a typed array object&quot;</span>)
+                JsNativeError::typ().with_message(<span class="string">"`this` is not a typed array object"</span>)
             })<span class="question-mark">?</span>;
 
         <span class="comment">// 4. Let taRecord be MakeTypedArrayWithBufferWitnessRecord(O, seq-cst).
@@ -3686,7 +3687,7 @@
             .as_object()
             .and_then(JsObject::downcast_ref::&lt;TypedArray&gt;)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message(<span class="string">&quot;Value is not a typed array object&quot;</span>)
+                JsNativeError::typ().with_message(<span class="string">"Value is not a typed array object"</span>)
             })<span class="question-mark">?</span>;
 
         <span class="comment">// 4. Let taRecord be MakeTypedArrayWithBufferWitnessRecord(O, seq-cst).
@@ -3760,7 +3761,7 @@
                 .filter(|s| !ta.is_out_of_bounds(s.len()))
             <span class="kw">else </span>{
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                    .with_message(<span class="string">&quot;typed array is outside the bounds of its inner buffer&quot;</span>)
+                    .with_message(<span class="string">"typed array is outside the bounds of its inner buffer"</span>)
                     .into());
             };
 
@@ -3876,7 +3877,7 @@
             <span class="kw">_ </span>=&gt; {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
                     .with_message(
-                        <span class="string">&quot;TypedArray.prototype.every called with non-callable callback function&quot;</span>,
+                        <span class="string">"TypedArray.prototype.every called with non-callable callback function"</span>,
                     )
                     .into())
             }
@@ -3961,7 +3962,7 @@
                 .map(|b| b.len())
             <span class="kw">else </span>{
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                    .with_message(<span class="string">&quot;typed array is outside the bounds of its inner buffer&quot;</span>)
+                    .with_message(<span class="string">"typed array is outside the bounds of its inner buffer"</span>)
                     .into());
             };
 
@@ -3980,7 +3981,7 @@
             <span class="comment">// a. Let Pk be ! ToString(𝔽(k)).
             // b. Perform ! Set(O, Pk, value, true).
             </span>ta.set(k, value.clone(), <span class="bool-val">true</span>, context)
-                .expect(<span class="string">&quot;Set cannot fail here&quot;</span>);
+                .expect(<span class="string">"Set cannot fail here"</span>);
 
             <span class="comment">// c. Set k to k + 1.
         </span>}
@@ -4014,7 +4015,7 @@
                 <span class="prelude-val">Some</span>(obj) <span class="kw">if </span>obj.is_callable() =&gt; obj,
                 <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
                     .with_message(
-                        <span class="string">&quot;TypedArray.prototype.filter called with non-callable callback function&quot;</span>,
+                        <span class="string">"TypedArray.prototype.filter called with non-callable callback function"</span>,
                     )
                     .into()),
             };
@@ -4031,7 +4032,7 @@
         <span class="kw">for </span>k <span class="kw">in </span><span class="number">0</span>..len {
             <span class="comment">// a. Let Pk be ! ToString(𝔽(k)).
             // b. Let kValue be ! Get(O, Pk).
-            </span><span class="kw">let </span>k_value = ta.get(k, context).expect(<span class="string">&quot;Get cannot fail here&quot;</span>);
+            </span><span class="kw">let </span>k_value = ta.get(k, context).expect(<span class="string">"Get cannot fail here"</span>);
 
             <span class="comment">// c. Let selected be ! ToBoolean(? Call(callbackfn, thisArg, « kValue, 𝔽(k), O »)).#
             </span><span class="kw">let </span>selected = callback_fn
@@ -4060,7 +4061,7 @@
         </span><span class="kw">for </span>(n, e) <span class="kw">in </span>kept.iter().enumerate() {
             <span class="comment">// a. Perform ! Set(A, ! ToString(𝔽(n)), e, true).
             </span>a.set(n, e.clone(), <span class="bool-val">true</span>, context)
-                .expect(<span class="string">&quot;Set cannot fail here&quot;</span>);
+                .expect(<span class="string">"Set cannot fail here"</span>);
             <span class="comment">// b. Set n to n + 1.
         </span>}
 
@@ -4097,7 +4098,7 @@
             predicate,
             this_arg,
             context,
-            <span class="string">&quot;TypedArray.prototype.find&quot;</span>,
+            <span class="string">"TypedArray.prototype.find"</span>,
         )<span class="question-mark">?</span>;
 
         <span class="comment">// 5. Return findRec.[[Value]].
@@ -4133,7 +4134,7 @@
             predicate,
             this_arg,
             context,
-            <span class="string">&quot;TypedArray.prototype.findIndex&quot;</span>,
+            <span class="string">"TypedArray.prototype.findIndex"</span>,
         )<span class="question-mark">?</span>;
 
         <span class="comment">// 5. Return findRec.[[Index]].
@@ -4169,7 +4170,7 @@
             predicate,
             this_arg,
             context,
-            <span class="string">&quot;TypedArray.prototype.findLast&quot;</span>,
+            <span class="string">"TypedArray.prototype.findLast"</span>,
         )<span class="question-mark">?</span>;
 
         <span class="comment">// 5. Return findRec.[[Value]].
@@ -4205,7 +4206,7 @@
             predicate,
             this_arg,
             context,
-            <span class="string">&quot;TypedArray.prototype.findLastIndex&quot;</span>,
+            <span class="string">"TypedArray.prototype.findLastIndex"</span>,
         )<span class="question-mark">?</span>;
 
         <span class="comment">// 5. Return findRec.[[Index]].
@@ -4236,7 +4237,7 @@
                 <span class="prelude-val">Some</span>(obj) <span class="kw">if </span>obj.is_callable() =&gt; obj,
                 <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
                     .with_message(
-                        <span class="string">&quot;TypedArray.prototype.foreach called with non-callable callback function&quot;</span>,
+                        <span class="string">"TypedArray.prototype.foreach called with non-callable callback function"</span>,
                     )
                     .into()),
             };
@@ -4247,7 +4248,7 @@
         <span class="kw">for </span>k <span class="kw">in </span><span class="number">0</span>..len {
             <span class="comment">// a. Let Pk be ! ToString(𝔽(k)).
             // b. Let kValue be ! Get(O, Pk).
-            </span><span class="kw">let </span>k_value = ta.get(k, context).expect(<span class="string">&quot;Get cannot fail here&quot;</span>);
+            </span><span class="kw">let </span>k_value = ta.get(k, context).expect(<span class="string">"Get cannot fail here"</span>);
 
             <span class="comment">// c. Perform ? Call(callbackfn, thisArg, « kValue, 𝔽(k), O »).
             </span>callback_fn.call(
@@ -4311,7 +4312,7 @@
         </span><span class="kw">let </span>ta = ta.upcast();
         <span class="kw">for </span>k <span class="kw">in </span>k..len {
             <span class="comment">// a. Let elementK be ! Get(O, ! ToString(𝔽(k))).
-            </span><span class="kw">let </span>element_k = ta.get(k, context).expect(<span class="string">&quot;Get cannot fail here&quot;</span>);
+            </span><span class="kw">let </span>element_k = ta.get(k, context).expect(<span class="string">"Get cannot fail here"</span>);
 
             <span class="comment">// b. If SameValueZero(searchElement, elementK) is true, return true.
             </span><span class="kw">if </span>JsValue::same_value_zero(args.get_or_undefined(<span class="number">0</span>), <span class="kw-2">&amp;</span>element_k) {
@@ -4377,12 +4378,12 @@
             <span class="comment">// a. Let kPresent be ! HasProperty(O, ! ToString(𝔽(k))).
             </span><span class="kw">let </span>k_present = ta
                 .has_property(k, context)
-                .expect(<span class="string">&quot;HasProperty cannot fail here&quot;</span>);
+                .expect(<span class="string">"HasProperty cannot fail here"</span>);
 
             <span class="comment">// b. If kPresent is true, then
             </span><span class="kw">if </span>k_present {
                 <span class="comment">// i. Let elementK be ! Get(O, ! ToString(𝔽(k))).
-                </span><span class="kw">let </span>element_k = ta.get(k, context).expect(<span class="string">&quot;Get cannot fail here&quot;</span>);
+                </span><span class="kw">let </span>element_k = ta.get(k, context).expect(<span class="string">"Get cannot fail here"</span>);
 
                 <span class="comment">// ii. Let same be IsStrictlyEqual(searchElement, elementK).
                 // iii. If same is true, return 𝔽(k).
@@ -4416,10 +4417,10 @@
         <span class="comment">// 3. Let len be TypedArrayLength(taRecord).
         </span><span class="kw">let </span>len = ta.borrow().data.array_length(buf_len);
 
-        <span class="comment">// 4. If separator is undefined, let sep be the single-element String &quot;,&quot;.
+        <span class="comment">// 4. If separator is undefined, let sep be the single-element String ",".
         </span><span class="kw">let </span>separator = args.get_or_undefined(<span class="number">0</span>);
         <span class="kw">let </span>sep = <span class="kw">if </span>separator.is_undefined() {
-            <span class="macro">js_string!</span>(<span class="string">&quot;,&quot;</span>)
+            <span class="macro">js_string!</span>(<span class="string">","</span>)
         <span class="comment">// 5. Else, let sep be ? ToString(separator).
         </span>} <span class="kw">else </span>{
             separator.to_string(context)<span class="question-mark">?
@@ -4438,7 +4439,7 @@
             }
 
             <span class="comment">// b. Let element be ! Get(O, ! ToString(𝔽(k))).
-            </span><span class="kw">let </span>element = ta.get(k, context).expect(<span class="string">&quot;Get cannot fail here&quot;</span>);
+            </span><span class="kw">let </span>element = ta.get(k, context).expect(<span class="string">"Get cannot fail here"</span>);
 
             <span class="comment">// c. If element is undefined, let next be the empty String; otherwise, let next be ! ToString(element).
             // d. Set R to the string-concatenation of R and next.
@@ -4518,12 +4519,12 @@
             <span class="comment">// a. Let kPresent be ! HasProperty(O, ! ToString(𝔽(k))).
             </span><span class="kw">let </span>k_present = ta
                 .has_property(k, context)
-                .expect(<span class="string">&quot;HasProperty cannot fail here&quot;</span>);
+                .expect(<span class="string">"HasProperty cannot fail here"</span>);
 
             <span class="comment">// b. If kPresent is true, then
             </span><span class="kw">if </span>k_present {
                 <span class="comment">// i. Let elementK be ! Get(O, ! ToString(𝔽(k))).
-                </span><span class="kw">let </span>element_k = ta.get(k, context).expect(<span class="string">&quot;Get cannot fail here&quot;</span>);
+                </span><span class="kw">let </span>element_k = ta.get(k, context).expect(<span class="string">"Get cannot fail here"</span>);
 
                 <span class="comment">// ii. Let same be IsStrictlyEqual(searchElement, elementK).
                 // iii. If same is true, return 𝔽(k).
@@ -4553,7 +4554,7 @@
             .as_object()
             .and_then(JsObject::downcast_ref::&lt;TypedArray&gt;)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message(<span class="string">&quot;`this` is not a typed array object&quot;</span>)
+                JsNativeError::typ().with_message(<span class="string">"`this` is not a typed array object"</span>)
             })<span class="question-mark">?</span>;
 
         <span class="comment">// 4. Let taRecord be MakeTypedArrayWithBufferWitnessRecord(O, seq-cst).
@@ -4597,7 +4598,7 @@
             <span class="kw">_ </span>=&gt; {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
                     .with_message(
-                        <span class="string">&quot;TypedArray.prototype.map called with non-callable callback function&quot;</span>,
+                        <span class="string">"TypedArray.prototype.map called with non-callable callback function"</span>,
                     )
                     .into())
             }
@@ -4613,7 +4614,7 @@
         </span><span class="kw">for </span>k <span class="kw">in </span><span class="number">0</span>..len {
             <span class="comment">// a. Let Pk be ! ToString(𝔽(k)).
             // b. Let kValue be ! Get(O, Pk).
-            </span><span class="kw">let </span>k_value = ta.get(k, context).expect(<span class="string">&quot;Get cannot fail here&quot;</span>);
+            </span><span class="kw">let </span>k_value = ta.get(k, context).expect(<span class="string">"Get cannot fail here"</span>);
 
             <span class="comment">// c. Let mappedValue be ? Call(callbackfn, thisArg, « kValue, 𝔽(k), O »).
             </span><span class="kw">let </span>mapped_value = callback_fn.call(
@@ -4654,7 +4655,7 @@
                 <span class="prelude-val">Some</span>(obj) <span class="kw">if </span>obj.is_callable() =&gt; obj,
                 <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
                     .with_message(
-                        <span class="string">&quot;TypedArray.prototype.reduce called with non-callable callback function&quot;</span>,
+                        <span class="string">"TypedArray.prototype.reduce called with non-callable callback function"</span>,
                     )
                     .into()),
             };
@@ -4662,7 +4663,7 @@
         <span class="comment">// 5. If len = 0 and initialValue is not present, throw a TypeError exception.
         </span><span class="kw">if </span>len == <span class="number">0 </span>&amp;&amp; args.get(<span class="number">1</span>).is_none() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;Typed array length is 0 and initial value is not present&quot;</span>)
+                .with_message(<span class="string">"Typed array length is 0 and initial value is not present"</span>)
                 .into());
         }
 
@@ -4682,14 +4683,14 @@
             // b. Set accumulator to ! Get(O, Pk).
             // c. Set k to k + 1.
             </span>k += <span class="number">1</span>;
-            ta.get(<span class="number">0</span>, context).expect(<span class="string">&quot;Get cannot fail here&quot;</span>)
+            ta.get(<span class="number">0</span>, context).expect(<span class="string">"Get cannot fail here"</span>)
         };
 
         <span class="comment">// 10. Repeat, while k &lt; len,
         </span><span class="kw">for </span>k <span class="kw">in </span>k..len {
             <span class="comment">// a. Let Pk be ! ToString(𝔽(k)).
             // b. Let kValue be ! Get(O, Pk).
-            </span><span class="kw">let </span>k_value = ta.get(k, context).expect(<span class="string">&quot;Get cannot fail here&quot;</span>);
+            </span><span class="kw">let </span>k_value = ta.get(k, context).expect(<span class="string">"Get cannot fail here"</span>);
 
             <span class="comment">// c. Set accumulator to ? Call(callbackfn, undefined, « accumulator, kValue, 𝔽(k), O »).
             </span>accumulator = callback_fn.call(
@@ -4728,7 +4729,7 @@
             <span class="prelude-val">Some</span>(obj) <span class="kw">if </span>obj.is_callable() =&gt; obj,
             <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
                 .with_message(
-                    <span class="string">&quot;TypedArray.prototype.reduceright called with non-callable callback function&quot;</span>,
+                    <span class="string">"TypedArray.prototype.reduceright called with non-callable callback function"</span>,
                 )
                 .into()),
         };
@@ -4736,7 +4737,7 @@
         <span class="comment">// 5. If len = 0 and initialValue is not present, throw a TypeError exception.
         </span><span class="kw">if </span>len == <span class="number">0 </span>&amp;&amp; args.get(<span class="number">1</span>).is_none() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;Typed array length is 0 and initial value is not present&quot;</span>)
+                .with_message(<span class="string">"Typed array length is 0 and initial value is not present"</span>)
                 .into());
         }
 
@@ -4752,7 +4753,7 @@
         </span>} <span class="kw">else </span>{
             <span class="comment">// a. Let Pk be ! ToString(𝔽(k)).
             // b. Set accumulator to ! Get(O, Pk).
-            </span><span class="kw">let </span>accumulator = ta.get(len - <span class="number">1</span>, context).expect(<span class="string">&quot;Get cannot fail here&quot;</span>);
+            </span><span class="kw">let </span>accumulator = ta.get(len - <span class="number">1</span>, context).expect(<span class="string">"Get cannot fail here"</span>);
 
             <span class="comment">// c. Set k to k - 1.
             </span>(accumulator, len - <span class="number">1</span>)
@@ -4762,7 +4763,7 @@
         </span><span class="kw">for </span>k <span class="kw">in </span>(<span class="number">0</span>..k).rev() {
             <span class="comment">// a. Let Pk be ! ToString(𝔽(k)).
             // b. Let kValue be ! Get(O, Pk).
-            </span><span class="kw">let </span>k_value = ta.get(k, context).expect(<span class="string">&quot;Get cannot fail here&quot;</span>);
+            </span><span class="kw">let </span>k_value = ta.get(k, context).expect(<span class="string">"Get cannot fail here"</span>);
 
             <span class="comment">// c. Set accumulator to ? Call(callbackfn, undefined, « accumulator, kValue, 𝔽(k), O »).
             </span>accumulator = callback_fn.call(
@@ -4812,16 +4813,16 @@
             <span class="comment">// b. Let upperP be ! ToString(𝔽(upper)).
             // c. Let lowerP be ! ToString(𝔽(lower)).
             // d. Let lowerValue be ! Get(O, lowerP).
-            </span><span class="kw">let </span>lower_value = ta.get(lower, context).expect(<span class="string">&quot;Get cannot fail here&quot;</span>);
+            </span><span class="kw">let </span>lower_value = ta.get(lower, context).expect(<span class="string">"Get cannot fail here"</span>);
             <span class="comment">// e. Let upperValue be ! Get(O, upperP).
-            </span><span class="kw">let </span>upper_value = ta.get(upper, context).expect(<span class="string">&quot;Get cannot fail here&quot;</span>);
+            </span><span class="kw">let </span>upper_value = ta.get(upper, context).expect(<span class="string">"Get cannot fail here"</span>);
 
             <span class="comment">// f. Perform ! Set(O, lowerP, upperValue, true).
             </span>ta.set(lower, upper_value, <span class="bool-val">true</span>, context)
-                .expect(<span class="string">&quot;Set cannot fail here&quot;</span>);
+                .expect(<span class="string">"Set cannot fail here"</span>);
             <span class="comment">// g. Perform ! Set(O, upperP, lowerValue, true).
             </span>ta.set(upper, lower_value, <span class="bool-val">true</span>, context)
-                .expect(<span class="string">&quot;Set cannot fail here&quot;</span>);
+                .expect(<span class="string">"Set cannot fail here"</span>);
 
             <span class="comment">// h. Set lower to lower + 1.
             </span>lower += <span class="number">1</span>;
@@ -4859,11 +4860,11 @@
             // c. Let fromValue be ! Get(O, from).
             </span><span class="kw">let </span>value = ta
                 .get(len - k - <span class="number">1</span>, context)
-                .expect(<span class="string">&quot;cannot fail per the spec&quot;</span>);
+                .expect(<span class="string">"cannot fail per the spec"</span>);
             <span class="comment">// d. Perform ! Set(A, Pk, fromValue, true).
             </span>new_array
                 .set(k, value, <span class="bool-val">true</span>, context)
-                .expect(<span class="string">&quot;cannot fail per the spec&quot;</span>);
+                .expect(<span class="string">"cannot fail per the spec"</span>);
             <span class="comment">// e. Set k to k + 1.
         </span>}
 
@@ -4890,7 +4891,7 @@
             .and_then(|o| o.clone().downcast::&lt;TypedArray&gt;().ok())
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message(<span class="string">&quot;TypedArray.set must be called on typed array object&quot;</span>)
+                    .with_message(<span class="string">"TypedArray.set must be called on typed array object"</span>)
             })<span class="question-mark">?</span>;
 
         <span class="comment">// 4. Let targetOffset be ? ToIntegerOrInfinity(offset).
@@ -4900,12 +4901,12 @@
         </span><span class="kw">let </span>target_offset = <span class="kw">match </span>target_offset {
             IntegerOrInfinity::Integer(i) <span class="kw">if </span>i &lt; <span class="number">0 </span>=&gt; {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
-                    .with_message(<span class="string">&quot;TypedArray.set called with negative offset&quot;</span>)
+                    .with_message(<span class="string">"TypedArray.set called with negative offset"</span>)
                     .into())
             }
             IntegerOrInfinity::NegativeInfinity =&gt; {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
-                    .with_message(<span class="string">&quot;TypedArray.set called with negative offset&quot;</span>)
+                    .with_message(<span class="string">"TypedArray.set called with negative offset"</span>)
                     .into())
             }
             IntegerOrInfinity::PositiveInfinity =&gt; U64OrPositiveInfinity::PositiveInfinity,
@@ -4955,7 +4956,7 @@
             .map(|s| s.len())
         <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;typed array is outside the bounds of its inner buffer&quot;</span>)
+                .with_message(<span class="string">"typed array is outside the bounds of its inner buffer"</span>)
                 .into());
         };
 
@@ -4974,7 +4975,7 @@
             .map(|s| s.len())
         <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;typed array is outside the bounds of its inner buffer&quot;</span>)
+                .with_message(<span class="string">"typed array is outside the bounds of its inner buffer"</span>)
                 .into());
         };
 
@@ -5008,14 +5009,14 @@
         <span class="comment">// 15. If targetOffset = +∞, throw a RangeError exception.
         </span><span class="kw">let </span>U64OrPositiveInfinity::U64(target_offset) = target_offset <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
-                .with_message(<span class="string">&quot;Target offset cannot be Infinity&quot;</span>)
+                .with_message(<span class="string">"Target offset cannot be Infinity"</span>)
                 .into());
         };
 
         <span class="comment">// 16. If srcLength + targetOffset &gt; targetLength, throw a RangeError exception.
         </span><span class="kw">if </span>src_length + target_offset &gt; target_length {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
-                .with_message(<span class="string">&quot;Source typed array and target offset longer than target typed array&quot;</span>)
+                .with_message(<span class="string">"Source typed array and target offset longer than target typed array"</span>)
                 .into());
         }
 
@@ -5023,7 +5024,7 @@
         </span><span class="kw">if </span>target_type.content_type() != src_type.content_type() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
                 .with_message(
-                    <span class="string">&quot;Source typed array and target typed array have different content types&quot;</span>,
+                    <span class="string">"Source typed array and target typed array have different content types"</span>,
                 )
                 .into());
         }
@@ -5041,7 +5042,7 @@
                 <span class="kw">let </span>slice = src_buf_obj.as_buffer();
                 <span class="kw">let </span>slice = slice
                     .bytes_with_len(src_buf_len)
-                    .expect(<span class="string">&quot;Already checked for detached buffer&quot;</span>);
+                    .expect(<span class="string">"Already checked for detached buffer"</span>);
 
                 <span class="comment">// b. Set srcBuffer to ? CloneArrayBuffer(srcBuffer, srcByteOffset, srcByteLength, %ArrayBuffer%).
                 // c. NOTE: %ArrayBuffer% is used to clone srcBuffer because is it known to not have any observable side-effects.
@@ -5068,12 +5069,12 @@
         <span class="kw">let </span>src_buffer = src_buf_obj.as_buffer();
         <span class="kw">let </span>src_buffer = src_buffer
             .bytes_with_len(src_buf_len)
-            .expect(<span class="string">&quot;Already checked for detached buffer&quot;</span>);
+            .expect(<span class="string">"Already checked for detached buffer"</span>);
 
         <span class="kw">let </span><span class="kw-2">mut </span>target_buffer = target_buf_obj.as_buffer_mut();
         <span class="kw">let </span><span class="kw-2">mut </span>target_buffer = target_buffer
             .bytes_with_len(target_buf_len)
-            .expect(<span class="string">&quot;Already checked for detached buffer&quot;</span>);
+            .expect(<span class="string">"Already checked for detached buffer"</span>);
 
         <span class="comment">// 24. If srcType is the same as targetType, then
         </span><span class="kw">if </span>src_type == target_type {
@@ -5123,7 +5124,7 @@
 
                 <span class="kw">let </span>value = target_type
                     .get_element(<span class="kw-2">&amp;</span>value, context)
-                    .expect(<span class="string">&quot;value can only be f64 or BigInt&quot;</span>);
+                    .expect(<span class="string">"value can only be f64 or BigInt"</span>);
 
                 <span class="comment">// ii. Perform SetValueInBuffer(targetBuffer, targetByteIndex, targetType, value, true, Unordered).
                 // SAFETY: previous checks preserve the validity  of the indices.
@@ -5171,7 +5172,7 @@
                 .map(|s| s.len())
             <span class="kw">else </span>{
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                    .with_message(<span class="string">&quot;typed array is outside the bounds of its inner buffer&quot;</span>)
+                    .with_message(<span class="string">"typed array is outside the bounds of its inner buffer"</span>)
                     .into());
             };
 
@@ -5190,7 +5191,7 @@
             U64OrPositiveInfinity::U64(target_offset) =&gt; target_offset,
             U64OrPositiveInfinity::PositiveInfinity =&gt; {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
-                    .with_message(<span class="string">&quot;Target offset cannot be positive infinity&quot;</span>)
+                    .with_message(<span class="string">"Target offset cannot be positive infinity"</span>)
                     .into())
             }
         };
@@ -5198,7 +5199,7 @@
         <span class="comment">// 7. If srcLength + targetOffset &gt; targetLength, throw a RangeError exception.
         </span><span class="kw">if </span>src_length + target_offset &gt; target_length {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
-                .with_message(<span class="string">&quot;Source object and target offset longer than target typed array&quot;</span>)
+                .with_message(<span class="string">"Source object and target offset longer than target typed array"</span>)
                 .into());
         }
 
@@ -5284,7 +5285,7 @@
             .filter(|s| !src_borrow.data.is_out_of_bounds(s.len()))
         <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;typed array is outside the bounds of its inner buffer&quot;</span>)
+                .with_message(<span class="string">"typed array is outside the bounds of its inner buffer"</span>)
                 .into());
         };
 
@@ -5309,7 +5310,7 @@
                 <span class="kw">let </span><span class="kw-2">mut </span>target_buf = target_borrow.data.viewed_array_buffer().as_buffer_mut();
                 <span class="kw">let </span><span class="kw-2">mut </span>target_buf = target_buf
                     .bytes_with_len(byte_count)
-                    .expect(<span class="string">&quot;newly created array cannot be detached&quot;</span>);
+                    .expect(<span class="string">"newly created array cannot be detached"</span>);
 
                 <span class="comment">// iv. Let elementSize be TypedArrayElementSize(O).
                 </span><span class="kw">let </span>element_size = src_type.element_size();
@@ -5364,12 +5365,12 @@
             <span class="kw">for </span>(n, k) <span class="kw">in </span>(start_index..end_index).enumerate() {
                 <span class="comment">// 1. Let Pk be ! ToString(𝔽(k)).
                 // 2. Let kValue be ! Get(O, Pk).
-                </span><span class="kw">let </span>k_value = src.get(k, context).expect(<span class="string">&quot;Get cannot fail here&quot;</span>);
+                </span><span class="kw">let </span>k_value = src.get(k, context).expect(<span class="string">"Get cannot fail here"</span>);
 
                 <span class="comment">// 3. Perform ! Set(A, ! ToString(𝔽(n)), kValue, true).
                 </span>target
                     .set(n, k_value, <span class="bool-val">true</span>, context)
-                    .expect(<span class="string">&quot;Set cannot fail here&quot;</span>);
+                    .expect(<span class="string">"Set cannot fail here"</span>);
 
                 <span class="comment">// 4. Set k to k + 1.
                 // 5. Set n to n + 1.
@@ -5404,7 +5405,7 @@
             <span class="kw">_ </span>=&gt; {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
                     .with_message(
-                        <span class="string">&quot;TypedArray.prototype.some called with non-callable callback function&quot;</span>,
+                        <span class="string">"TypedArray.prototype.some called with non-callable callback function"</span>,
                     )
                     .into())
             }
@@ -5416,7 +5417,7 @@
         <span class="kw">for </span>k <span class="kw">in </span><span class="number">0</span>..len {
             <span class="comment">// a. Let Pk be ! ToString(𝔽(k)).
             // b. Let kValue be ! Get(O, Pk).
-            </span><span class="kw">let </span>k_value = ta.get(k, context).expect(<span class="string">&quot;Get cannot fail here&quot;</span>);
+            </span><span class="kw">let </span>k_value = ta.get(k, context).expect(<span class="string">"Get cannot fail here"</span>);
 
             <span class="comment">// c. Let testResult be ! ToBoolean(? Call(callbackfn, thisArg, « kValue, 𝔽(k), O »)).
             // d. If testResult is true, return true.
@@ -5453,7 +5454,7 @@
             <span class="prelude-val">Some</span>(JsValue::Object(obj)) <span class="kw">if </span>obj.is_callable() =&gt; <span class="prelude-val">Some</span>(obj),
             <span class="kw">_ </span>=&gt; {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                    .with_message(<span class="string">&quot;TypedArray.sort called with non-callable comparefn&quot;</span>)
+                    .with_message(<span class="string">"TypedArray.sort called with non-callable comparefn"</span>)
                     .into())
             }
         };
@@ -5482,7 +5483,7 @@
         </span><span class="kw">for </span>(j, item) <span class="kw">in </span>sorted.into_iter().enumerate() {
             <span class="comment">// a. Perform ! Set(obj, ! ToString(𝔽(j)), sortedList[j], true).
             </span>ta.set(j, item, <span class="bool-val">true</span>, context)
-                .expect(<span class="string">&quot;cannot fail per spec&quot;</span>);
+                .expect(<span class="string">"cannot fail per spec"</span>);
 
             <span class="comment">// b. Set j to j + 1.
         </span>}
@@ -5505,7 +5506,7 @@
             <span class="prelude-val">Some</span>(JsValue::Object(obj)) <span class="kw">if </span>obj.is_callable() =&gt; <span class="prelude-val">Some</span>(obj),
             <span class="kw">_ </span>=&gt; {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                    .with_message(<span class="string">&quot;TypedArray.sort called with non-callable comparefn&quot;</span>)
+                    .with_message(<span class="string">"TypedArray.sort called with non-callable comparefn"</span>)
                     .into())
             }
         };
@@ -5539,7 +5540,7 @@
             <span class="comment">// a. Perform ! Set(A, ! ToString(𝔽(j)), sortedList[j], true).
             </span>new_array
                 .set(j, item, <span class="bool-val">true</span>, context)
-                .expect(<span class="string">&quot;cannot fail per spec&quot;</span>);
+                .expect(<span class="string">"cannot fail per spec"</span>);
 
             <span class="comment">// b. Set j to j + 1.
         </span>}
@@ -5565,7 +5566,7 @@
             .as_object()
             .and_then(|o| o.clone().downcast::&lt;TypedArray&gt;().ok())
             .ok_or_else(|| {
-                JsNativeError::typ().with_message(<span class="string">&quot;Value is not a typed array object&quot;</span>)
+                JsNativeError::typ().with_message(<span class="string">"Value is not a typed array object"</span>)
             })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>src_borrow = src.borrow();
@@ -5662,15 +5663,15 @@
         context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// This is a distinct method that implements the same algorithm as Array.prototype.toLocaleString as defined in
-        // 23.1.3.32 except that TypedArrayLength is called in place of performing a [[Get]] of &quot;length&quot;.
+        // 23.1.3.32 except that TypedArrayLength is called in place of performing a [[Get]] of "length".
 
         </span><span class="kw">let </span>array = this.as_object().ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;Value is not a typed array object&quot;</span>)
+            JsNativeError::typ().with_message(<span class="string">"Value is not a typed array object"</span>)
         })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>(len, is_fixed_len) = {
             <span class="kw">let </span>o = array.downcast_ref::&lt;TypedArray&gt;().ok_or_else(|| {
-                JsNativeError::typ().with_message(<span class="string">&quot;Value is not a typed array object&quot;</span>)
+                JsNativeError::typ().with_message(<span class="string">"Value is not a typed array object"</span>)
             })<span class="question-mark">?</span>;
             <span class="kw">let </span>buf = o.viewed_array_buffer().as_buffer();
             <span class="kw">let </span><span class="prelude-val">Some</span>((buf_len, is_fixed_len)) = buf
@@ -5679,7 +5680,7 @@
                 .map(|s| (s.len(), buf.is_fixed_len()))
             <span class="kw">else </span>{
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                    .with_message(<span class="string">&quot;typed array is outside the bounds of its inner buffer&quot;</span>)
+                    .with_message(<span class="string">"typed array is outside the bounds of its inner buffer"</span>)
                     .into());
             };
 
@@ -5687,15 +5688,15 @@
         };
 
         <span class="kw">let </span>separator = {
-            <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"intl"</span>)]
             </span>{
                 <span class="comment">// TODO: this should eventually return a locale-sensitive separator.
-                </span><span class="macro">utf16!</span>(<span class="string">&quot;, &quot;</span>)
+                </span><span class="macro">utf16!</span>(<span class="string">", "</span>)
             }
 
-            <span class="attr">#[cfg(not(feature = <span class="string">&quot;intl&quot;</span>))]
+            <span class="attr">#[cfg(not(feature = <span class="string">"intl"</span>))]
             </span>{
-                <span class="macro">utf16!</span>(<span class="string">&quot;, &quot;</span>)
+                <span class="macro">utf16!</span>(<span class="string">", "</span>)
             }
         };
 
@@ -5713,7 +5714,7 @@
             </span><span class="kw">if </span>is_fixed_len || !next_element.is_undefined() {
                 <span class="kw">let </span>s = next_element
                     .invoke(
-                        <span class="macro">utf16!</span>(<span class="string">&quot;toLocaleString&quot;</span>),
+                        <span class="macro">utf16!</span>(<span class="string">"toLocaleString"</span>),
                         <span class="kw-2">&amp;</span>[
                             args.get_or_undefined(<span class="number">0</span>).clone(),
                             args.get_or_undefined(<span class="number">1</span>).clone(),
@@ -5781,7 +5782,7 @@
         <span class="comment">// 9. If IsValidIntegerIndex(O, 𝔽(actualIndex)) is false, throw a RangeError exception.
         </span><span class="kw">let </span>IntegerOrInfinity::Integer(relative_index) = relative_index <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
-                .with_message(<span class="string">&quot;invalid integer index for TypedArray operation&quot;</span>)
+                .with_message(<span class="string">"invalid integer index for TypedArray operation"</span>)
                 .into());
         };
         <span class="kw">let </span>actual_index = u64::try_from(relative_index) <span class="comment">// should succeed if `relative_index &gt;= 0`
@@ -5791,7 +5792,7 @@
             </span>.filter(|<span class="kw-2">&amp;</span>rel| is_valid_integer_index(<span class="kw-2">&amp;</span>ta.clone().upcast(), rel <span class="kw">as </span>f64))
             .ok_or_else(|| {
                 JsNativeError::range()
-                    .with_message(<span class="string">&quot;invalid integer index for TypedArray operation&quot;</span>)
+                    .with_message(<span class="string">"invalid integer index for TypedArray operation"</span>)
             })<span class="question-mark">?</span>;
 
         <span class="comment">// 10. Let A be ? TypedArrayCreateSameType(O, « 𝔽(len) »).
@@ -5807,12 +5808,12 @@
                 </span>numeric_value.clone()
             } <span class="kw">else </span>{
                 <span class="comment">// c. Else, let fromValue be ! Get(O, Pk).
-                </span>ta.get(k, context).expect(<span class="string">&quot;cannot fail per the spec&quot;</span>)
+                </span>ta.get(k, context).expect(<span class="string">"cannot fail per the spec"</span>)
             };
             <span class="comment">// d. Perform ! Set(A, Pk, fromValue, true).
             </span>new_array
                 .set(k, value, <span class="bool-val">true</span>, context)
-                .expect(<span class="string">&quot;cannot fail per the spec&quot;</span>);
+                .expect(<span class="string">"cannot fail per the spec"</span>);
 
             <span class="comment">// e. Set k to k + 1.
         </span>}
@@ -5869,7 +5870,7 @@
         // 5. If result.[[ContentType]] ≠ exemplar.[[ContentType]], throw a TypeError exception.
         </span><span class="kw">if </span>result.borrow().data.kind().content_type() != kind.content_type() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;New typed array has different context type than exemplar&quot;</span>)
+                .with_message(<span class="string">"New typed array has different context type than exemplar"</span>)
                 .into());
         }
 
@@ -5899,7 +5900,7 @@
                 <span class="comment">// a. If IsTypedArrayOutOfBounds(taRecord) is true, throw a TypeError exception.
                 </span><span class="kw">if </span>new_ta.data.is_out_of_bounds(buf_len) {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                        .with_message(<span class="string">&quot;new typed array outside of the bounds of its inner buffer&quot;</span>)
+                        .with_message(<span class="string">"new typed array outside of the bounds of its inner buffer"</span>)
                         .into());
                 }
 
@@ -5907,7 +5908,7 @@
                 // c. If length &lt; ℝ(argumentList[0]), throw a TypeError exception.
                 </span><span class="kw">if </span>(new_ta.data.array_length(buf_len) <span class="kw">as </span>f64) &lt; number {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                        .with_message(<span class="string">&quot;new typed array length is smaller than expected&quot;</span>)
+                        .with_message(<span class="string">"new typed array length is smaller than expected"</span>)
                         .into());
                 }
             }
@@ -6007,7 +6008,7 @@
 
         <span class="comment">// 3. Assert: obj.[[ViewedArrayBuffer]] is undefined.
         // 4. Set obj.[[TypedArrayName]] to constructorName.
-        // 5. If constructorName is &quot;BigInt64Array&quot; or &quot;BigUint64Array&quot;, set obj.[[ContentType]] to BigInt.
+        // 5. If constructorName is "BigInt64Array" or "BigUint64Array", set obj.[[ContentType]] to BigInt.
         // 6. Otherwise, set obj.[[ContentType]] to Number.
         // 7. If length is not present, then
         // a. Set obj.[[ByteLength]] to 0.
@@ -6063,7 +6064,7 @@
             .filter(|buf| !src_array.is_out_of_bounds(buf.len()))
         <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;Cannot initialize typed array from invalid buffer&quot;</span>)
+                .with_message(<span class="string">"Cannot initialize typed array from invalid buffer"</span>)
                 .into());
         };
 
@@ -6099,13 +6100,13 @@
                 <span class="kw">let </span><span class="kw-2">mut </span>data = SliceRefMut::Slice(
                     data.data
                         .bytes_mut()
-                        .expect(<span class="string">&quot;a new buffer cannot be detached&quot;</span>),
+                        .expect(<span class="string">"a new buffer cannot be detached"</span>),
                 );
 
                 <span class="comment">// b. If srcArray.[[ContentType]] is not O.[[ContentType]], throw a TypeError exception.
                 </span><span class="kw">if </span>src_type.content_type() != element_type.content_type() {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                        .with_message(<span class="string">&quot;Cannot initialize typed array from different content type&quot;</span>)
+                        .with_message(<span class="string">"Cannot initialize typed array from different content type"</span>)
                         .into());
                 }
 
@@ -6137,7 +6138,7 @@
                     <span class="comment">// TODO: cast between types instead of converting to `JsValue`.
                     </span><span class="kw">let </span>value = element_type
                         .get_element(<span class="kw-2">&amp;</span>value, context)
-                        .expect(<span class="string">&quot;value must be bigint or float&quot;</span>);
+                        .expect(<span class="string">"value must be bigint or float"</span>);
 
                     <span class="comment">// ii. Perform SetValueInBuffer(data, targetByteIndex, elementType, value, true, unordered).
                     // SAFETY: The newly created buffer has at least `element_size * element_length`
@@ -6200,7 +6201,7 @@
         <span class="comment">// 3. If offset modulo elementSize ≠ 0, throw a RangeError exception.
         </span><span class="kw">if </span>offset % element_size != <span class="number">0 </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
-                .with_message(<span class="string">&quot;byte offset of typed array must be aligned&quot;</span>)
+                .with_message(<span class="string">"byte offset of typed array must be aligned"</span>)
                 .into());
         }
 
@@ -6221,7 +6222,7 @@
             <span class="comment">// 6. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.
             </span><span class="kw">let </span><span class="prelude-val">Some</span>(data) = buffer.bytes(Ordering::SeqCst) <span class="kw">else </span>{
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                    .with_message(<span class="string">&quot;cannot construct typed array from detached buffer&quot;</span>)
+                    .with_message(<span class="string">"cannot construct typed array from detached buffer"</span>)
                     .into());
             };
 
@@ -6239,7 +6240,7 @@
             </span><span class="kw">if </span>offset + new_byte_length &gt; buffer_byte_length {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
                     .with_message(
-                        <span class="string">&quot;cannot create a typed array spanning a byte range outside of its buffer&quot;</span>,
+                        <span class="string">"cannot create a typed array spanning a byte range outside of its buffer"</span>,
                     )
                     .into());
             }
@@ -6252,7 +6253,7 @@
             //    a. If offset &gt; bufferByteLength, throw a RangeError exception.
             </span><span class="kw">if </span>offset &gt; buffer_byte_length {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
-                    .with_message(<span class="string">&quot;TypedArray offset outside of buffer length&quot;</span>)
+                    .with_message(<span class="string">"TypedArray offset outside of buffer length"</span>)
                     .into());
             }
 
@@ -6264,7 +6265,7 @@
             //    i. If bufferByteLength modulo elementSize ≠ 0, throw a RangeError exception.
             </span><span class="kw">if </span>buffer_byte_length % element_size != <span class="number">0 </span>{
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
-                    .with_message(<span class="string">&quot;cannot construct a typed array with an unaligned buffer&quot;</span>)
+                    .with_message(<span class="string">"cannot construct a typed array with an unaligned buffer"</span>)
                     .into());
             }
 
@@ -6272,7 +6273,7 @@
             //    iii. If newByteLength &lt; 0, throw a RangeError exception.
             </span><span class="kw">let </span><span class="prelude-val">Some</span>(new_byte_length) = buffer_byte_length.checked_sub(offset) <span class="kw">else </span>{
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
-                    .with_message(<span class="string">&quot;offset of typed array exceeds buffer size&quot;</span>)
+                    .with_message(<span class="string">"offset of typed array exceeds buffer size"</span>)
                     .into());
             };
 
@@ -6417,7 +6418,7 @@
             <span class="comment">// 10. Return +0𝔽.
             </span><span class="prelude-val">Ok</span>(cmp::Ordering::Equal)
         }
-        <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;x and y must be both Numbers or BigInts&quot;</span>),
+        <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">"x and y must be both Numbers or BigInts"</span>),
     }
 }
 
@@ -6431,7 +6432,7 @@
 /// [spec]: https://tc39.es/ecma262/#sec-isvalidintegerindex
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_valid_integer_index(obj: <span class="kw-2">&amp;</span>JsObject, index: f64) -&gt; bool {
     <span class="kw">let </span>inner = obj.downcast_ref::&lt;TypedArray&gt;().expect(
-        <span class="string">&quot;integer indexed exotic method should only be callable from integer indexed objects&quot;</span>,
+        <span class="string">"integer indexed exotic method should only be callable from integer indexed objects"</span>,
     );
 
     <span class="kw">let </span>buf = inner.viewed_array_buffer();
@@ -6439,7 +6440,7 @@
 
     <span class="comment">// 1. If IsDetachedBuffer(O.[[ViewedArrayBuffer]]) is true, return false.
     // 4. Let taRecord be MakeTypedArrayWithBufferWitnessRecord(O, unordered).
-    // 5. NOTE: Bounds checking is not a synchronizing operation when O&#39;s backing buffer is a growable SharedArrayBuffer.
+    // 5. NOTE: Bounds checking is not a synchronizing operation when O's backing buffer is a growable SharedArrayBuffer.
     </span><span class="kw">let </span><span class="prelude-val">Some</span>(buf_len) = buf.bytes(Ordering::Relaxed).map(|s| s.len()) <span class="kw">else </span>{
         <span class="kw">return </span><span class="bool-val">false</span>;
     };

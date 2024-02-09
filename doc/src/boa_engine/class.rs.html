@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/class.rs`."><title>class.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/class.rs`."><title>class.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -402,8 +403,8 @@
 //! }
 //!
 //! impl Class for Animal {
-//!     // we set the binging name of this function to be `&quot;Animal&quot;`.
-//!     const NAME: &amp;&#39;static str = &quot;Animal&quot;;
+//!     // we set the binging name of this function to be `"Animal"`.
+//!     const NAME: &amp;'static str = "Animal";
 //!
 //!     // We set the length to `2` since we accept 2 arguments in the constructor.
 //!     const LENGTH: usize = 2;
@@ -416,8 +417,8 @@
 //!         let kind = args.get_or_undefined(0).to_string(context)?;
 //!
 //!         let animal = match kind.to_std_string_escaped().as_str() {
-//!             &quot;cat&quot; =&gt; Self::Cat,
-//!             &quot;dog&quot; =&gt; Self::Dog,
+//!             "cat" =&gt; Self::Cat,
+//!             "dog" =&gt; Self::Dog,
 //!             _ =&gt; Self::Other,
 //!         };
 //!
@@ -434,7 +435,7 @@
 //!         let age = args.get_or_undefined(1).to_number(context)?;
 //!
 //!         // Roughly equivalent to `this.age = Number(age)`.
-//!         instance.set(js_string!(&quot;age&quot;), age, true, context)?;
+//!         instance.set(js_string!("age"), age, true, context)?;
 //!
 //!         Ok(())
 //!     }
@@ -442,19 +443,19 @@
 //!     /// This is where the class object is initialized.
 //!     fn init(class: &amp;mut ClassBuilder) -&gt; JsResult&lt;()&gt; {
 //!         class.method(
-//!             js_string!(&quot;speak&quot;),
+//!             js_string!("speak"),
 //!             0,
 //!             NativeFunction::from_fn_ptr(|this, _args, _ctx| {
 //!                 if let Some(object) = this.as_object() {
 //!                     if let Some(animal) = object.downcast_ref::&lt;Animal&gt;() {
 //!                         return Ok(match &amp;*animal {
-//!                             Self::Cat =&gt; js_string!(&quot;meow&quot;),
-//!                             Self::Dog =&gt; js_string!(&quot;woof&quot;),
-//!                             Self::Other =&gt; js_string!(r&quot;¯\_(ツ)_/¯&quot;),
+//!                             Self::Cat =&gt; js_string!("meow"),
+//!                             Self::Dog =&gt; js_string!("woof"),
+//!                             Self::Other =&gt; js_string!(r"¯\_(ツ)_/¯"),
 //!                         }.into());
 //!                     }
 //!                 }
-//!                 Err(JsNativeError::typ().with_message(&quot;invalid this for class method&quot;).into())
+//!                 Err(JsNativeError::typ().with_message("invalid this for class method").into())
 //!             }),
 //!         );
 //!         Ok(())
@@ -466,15 +467,15 @@
 //!
 //!     context.register_global_class::&lt;Animal&gt;().unwrap();
 //!
-//!     let result = context.eval(Source::from_bytes(r#&quot;
-//!         let pet = new Animal(&quot;dog&quot;, 3);
+//!     let result = context.eval(Source::from_bytes(r#"
+//!         let pet = new Animal("dog", 3);
 //!
 //!         `My pet is ${pet.age} years old. Right, buddy? - ${pet.speak()}!`
-//!     &quot;#)).unwrap();
+//!     "#)).unwrap();
 //!
 //!     assert_eq!(
 //!         result.as_string().unwrap(),
-//!         &amp;js_string!(&quot;My pet is 3 years old. Right, buddy? - woof!&quot;)
+//!         &amp;js_string!("My pet is 3 years old. Right, buddy? - woof!")
 //!     );
 //! }
 //! ```
@@ -495,15 +496,15 @@
 /// See the [module-level documentation][self] for more details.
 </span><span class="kw">pub trait </span>Class: NativeObject + Sized {
     <span class="doccomment">/// The binding name of this class.
-    </span><span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str;
-    <span class="doccomment">/// The amount of arguments this class&#39; constructor takes. Default is `0`.
+    </span><span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str;
+    <span class="doccomment">/// The amount of arguments this class' constructor takes. Default is `0`.
     </span><span class="kw">const </span>LENGTH: usize = <span class="number">0</span>;
-    <span class="doccomment">/// The property attributes of this class&#39; constructor in the global object.
+    <span class="doccomment">/// The property attributes of this class' constructor in the global object.
     /// Default is `writable`, `enumerable`, `configurable`.
     </span><span class="kw">const </span>ATTRIBUTES: Attribute = Attribute::all();
 
     <span class="doccomment">/// Initializes the properties and methods of this class.
-    </span><span class="kw">fn </span>init(class: <span class="kw-2">&amp;mut </span>ClassBuilder&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; JsResult&lt;()&gt;;
+    </span><span class="kw">fn </span>init(class: <span class="kw-2">&amp;mut </span>ClassBuilder&lt;<span class="lifetime">'_</span>&gt;) -&gt; JsResult&lt;()&gt;;
 
     <span class="doccomment">/// Creates the internal data for an instance of this class.
     </span><span class="kw">fn </span>data_constructor(
@@ -514,7 +515,7 @@
 
     <span class="doccomment">/// Initializes the properties of the constructed object for an instance of this class.
     ///
-    /// Useful to initialize additional properties for the constructed object that aren&#39;t
+    /// Useful to initialize additional properties for the constructed object that aren't
     /// stored inside the native data.
     </span><span class="attr">#[allow(unused_variables)] </span><span class="comment">// Saves work when IDEs autocomplete trait impls.
     </span><span class="kw">fn </span>object_constructor(
@@ -531,10 +532,10 @@
     /// # Errors
     ///
     /// - Throws an error if `new_target` is undefined.
-    /// - Throws an error if this class is not registered in `new_target`&#39;s realm.
+    /// - Throws an error if this class is not registered in `new_target`'s realm.
     /// See [`Context::register_global_class`].
     ///
-    /// &lt;div class=&quot;warning&quot;&gt;
+    /// &lt;div class="warning"&gt;
     /// Overriding this method could be useful for certain usages, but incorrectly implementing this
     /// could lead to weird errors like missing inherited methods or incorrect internal data.
     /// &lt;/div&gt;
@@ -546,16 +547,16 @@
         <span class="kw">if </span>new_target.is_undefined() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
                 .with_message(<span class="macro">format!</span>(
-                    <span class="string">&quot;cannot call constructor of native class `{}` without new&quot;</span>,
+                    <span class="string">"cannot call constructor of native class `{}` without new"</span>,
                     <span class="self">Self</span>::NAME
                 ))
                 .into());
         }
 
-        <span class="kw">let </span>prototype = <span class="lifetime">&#39;proto</span>: {
+        <span class="kw">let </span>prototype = <span class="lifetime">'proto</span>: {
             <span class="kw">let </span>realm = <span class="kw">if let </span><span class="prelude-val">Some</span>(constructor) = new_target.as_object() {
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(proto) = constructor.get(PROTOTYPE, context)<span class="question-mark">?</span>.as_object() {
-                    <span class="kw">break </span><span class="lifetime">&#39;proto </span>proto.clone();
+                    <span class="kw">break </span><span class="lifetime">'proto </span>proto.clone();
                 }
                 constructor.get_function_realm(context)<span class="question-mark">?
             </span>} <span class="kw">else </span>{
@@ -565,7 +566,7 @@
                 .get_class::&lt;<span class="self">Self</span>&gt;()
                 .ok_or_else(|| {
                     JsNativeError::typ().with_message(<span class="macro">format!</span>(
-                        <span class="string">&quot;could not find native class `{}` in the map of registered classes&quot;</span>,
+                        <span class="string">"could not find native class `{}` in the map of registered classes"</span>,
                         <span class="self">Self</span>::NAME
                     ))
                 })<span class="question-mark">?
@@ -584,14 +585,14 @@
 
     <span class="doccomment">/// Constructs an instance of this class from its inner native data.
     ///
-    /// Note that the default implementation won&#39;t call [`Class::data_constructor`], but it will
+    /// Note that the default implementation won't call [`Class::data_constructor`], but it will
     /// call [`Class::object_constructor`] with no arguments.
     ///
     /// # Errors
-    /// - Throws an error if this class is not registered in the context&#39;s realm. See
+    /// - Throws an error if this class is not registered in the context's realm. See
     /// [`Context::register_global_class`].
     ///
-    /// &lt;div class=&quot;warning&quot;&gt;
+    /// &lt;div class="warning"&gt;
     /// Overriding this method could be useful for certain usages, but incorrectly implementing this
     /// could lead to weird errors like missing inherited methods or incorrect internal data.
     /// &lt;/div&gt;
@@ -600,7 +601,7 @@
             .get_global_class::&lt;<span class="self">Self</span>&gt;()
             .ok_or_else(|| {
                 JsNativeError::typ().with_message(<span class="macro">format!</span>(
-                    <span class="string">&quot;could not find native class `{}` in the map of registered classes&quot;</span>,
+                    <span class="string">"could not find native class `{}` in the map of registered classes"</span>,
                     <span class="self">Self</span>::NAME
                 ))
             })<span class="question-mark">?
@@ -617,12 +618,12 @@
 
 <span class="doccomment">/// Class builder which allows adding methods and static methods to the class.
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>ClassBuilder&lt;<span class="lifetime">&#39;ctx</span>&gt; {
-    builder: ConstructorBuilder&lt;<span class="lifetime">&#39;ctx</span>&gt;,
+</span><span class="kw">pub struct </span>ClassBuilder&lt;<span class="lifetime">'ctx</span>&gt; {
+    builder: ConstructorBuilder&lt;<span class="lifetime">'ctx</span>&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; ClassBuilder&lt;<span class="lifetime">&#39;ctx</span>&gt; {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new&lt;T&gt;(context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span><span class="kw-2">mut </span>Context) -&gt; <span class="self">Self
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>&gt; ClassBuilder&lt;<span class="lifetime">'ctx</span>&gt; {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new&lt;T&gt;(context: <span class="kw-2">&amp;</span><span class="lifetime">'ctx </span><span class="kw-2">mut </span>Context) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>T: Class,
     {

@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/builtins/temporal/plain_date_time/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/builtins/temporal/plain_date_time/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -705,7 +706,7 @@
 <a href="#705" id="705">705</a>
 <a href="#706" id="706">706</a>
 <a href="#707" id="707">707</a>
-</pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of the ECMAScript `Temporal.PlainDateTime` builtin object.
+</pre></div><pre class="rust"><code><span class="doccomment">//! Boa's implementation of the ECMAScript `Temporal.PlainDateTime` builtin object.
 </span><span class="attr">#![allow(dead_code, unused_variables)]
 
 </span><span class="kw">use crate</span>::{
@@ -770,86 +771,86 @@
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>PlainDateTime {
     <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(std::any::type_name::&lt;<span class="self">Self</span>&gt;(), <span class="string">&quot;init&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(std::any::type_name::&lt;<span class="self">Self</span>&gt;(), <span class="string">"init"</span>);
 
         <span class="kw">let </span>get_calendar_id = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_calendar_id)
-            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get calendarId&quot;</span>))
+            .name(<span class="macro">js_string!</span>(<span class="string">"get calendarId"</span>))
             .build();
 
         <span class="kw">let </span>get_year = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_year)
-            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get year&quot;</span>))
+            .name(<span class="macro">js_string!</span>(<span class="string">"get year"</span>))
             .build();
 
         <span class="kw">let </span>get_month = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_month)
-            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get month&quot;</span>))
+            .name(<span class="macro">js_string!</span>(<span class="string">"get month"</span>))
             .build();
 
         <span class="kw">let </span>get_month_code = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_month_code)
-            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get monthCode&quot;</span>))
+            .name(<span class="macro">js_string!</span>(<span class="string">"get monthCode"</span>))
             .build();
 
         <span class="kw">let </span>get_day = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_day)
-            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get day&quot;</span>))
+            .name(<span class="macro">js_string!</span>(<span class="string">"get day"</span>))
             .build();
 
         <span class="kw">let </span>get_hour = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_hour)
-            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get hour&quot;</span>))
+            .name(<span class="macro">js_string!</span>(<span class="string">"get hour"</span>))
             .build();
 
         <span class="kw">let </span>get_minute = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_minute)
-            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get minute&quot;</span>))
+            .name(<span class="macro">js_string!</span>(<span class="string">"get minute"</span>))
             .build();
 
         <span class="kw">let </span>get_second = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_second)
-            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get second&quot;</span>))
+            .name(<span class="macro">js_string!</span>(<span class="string">"get second"</span>))
             .build();
 
         <span class="kw">let </span>get_millisecond = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_millisecond)
-            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get millisecond&quot;</span>))
+            .name(<span class="macro">js_string!</span>(<span class="string">"get millisecond"</span>))
             .build();
 
         <span class="kw">let </span>get_microsecond = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_microsecond)
-            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get microsecond&quot;</span>))
+            .name(<span class="macro">js_string!</span>(<span class="string">"get microsecond"</span>))
             .build();
 
         <span class="kw">let </span>get_nanosecond = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_nanosecond)
-            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get nanosecond&quot;</span>))
+            .name(<span class="macro">js_string!</span>(<span class="string">"get nanosecond"</span>))
             .build();
 
         <span class="kw">let </span>get_day_of_week = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_day_of_week)
-            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get dayOfWeek&quot;</span>))
+            .name(<span class="macro">js_string!</span>(<span class="string">"get dayOfWeek"</span>))
             .build();
 
         <span class="kw">let </span>get_day_of_year = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_day_of_year)
-            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get dayOfYear&quot;</span>))
+            .name(<span class="macro">js_string!</span>(<span class="string">"get dayOfYear"</span>))
             .build();
 
         <span class="kw">let </span>get_week_of_year = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_week_of_year)
-            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get weekOfYear&quot;</span>))
+            .name(<span class="macro">js_string!</span>(<span class="string">"get weekOfYear"</span>))
             .build();
 
         <span class="kw">let </span>get_year_of_week = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_year_of_week)
-            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get yearOfWeek&quot;</span>))
+            .name(<span class="macro">js_string!</span>(<span class="string">"get yearOfWeek"</span>))
             .build();
 
         <span class="kw">let </span>get_days_in_week = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_days_in_week)
-            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get daysInWeek&quot;</span>))
+            .name(<span class="macro">js_string!</span>(<span class="string">"get daysInWeek"</span>))
             .build();
 
         <span class="kw">let </span>get_days_in_month = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_days_in_month)
-            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get daysInMonth&quot;</span>))
+            .name(<span class="macro">js_string!</span>(<span class="string">"get daysInMonth"</span>))
             .build();
 
         <span class="kw">let </span>get_days_in_year = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_days_in_year)
-            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get daysInYear&quot;</span>))
+            .name(<span class="macro">js_string!</span>(<span class="string">"get daysInYear"</span>))
             .build();
 
         <span class="kw">let </span>get_months_in_year = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_months_in_year)
-            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get monthsInYear&quot;</span>))
+            .name(<span class="macro">js_string!</span>(<span class="string">"get monthsInYear"</span>))
             .build();
 
         <span class="kw">let </span>get_in_leap_year = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_in_leap_year)
-            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get inLeapYear&quot;</span>))
+            .name(<span class="macro">js_string!</span>(<span class="string">"get inLeapYear"</span>))
             .build();
 
         BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
@@ -859,116 +860,116 @@
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                <span class="macro">utf16!</span>(<span class="string">&quot;calendarId&quot;</span>),
+                <span class="macro">utf16!</span>(<span class="string">"calendarId"</span>),
                 <span class="prelude-val">Some</span>(get_calendar_id),
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                <span class="macro">utf16!</span>(<span class="string">&quot;year&quot;</span>),
+                <span class="macro">utf16!</span>(<span class="string">"year"</span>),
                 <span class="prelude-val">Some</span>(get_year),
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                <span class="macro">utf16!</span>(<span class="string">&quot;month&quot;</span>),
+                <span class="macro">utf16!</span>(<span class="string">"month"</span>),
                 <span class="prelude-val">Some</span>(get_month),
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                <span class="macro">utf16!</span>(<span class="string">&quot;monthCode&quot;</span>),
+                <span class="macro">utf16!</span>(<span class="string">"monthCode"</span>),
                 <span class="prelude-val">Some</span>(get_month_code),
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE,
             )
-            .accessor(<span class="macro">utf16!</span>(<span class="string">&quot;day&quot;</span>), <span class="prelude-val">Some</span>(get_day), <span class="prelude-val">None</span>, Attribute::CONFIGURABLE)
+            .accessor(<span class="macro">utf16!</span>(<span class="string">"day"</span>), <span class="prelude-val">Some</span>(get_day), <span class="prelude-val">None</span>, Attribute::CONFIGURABLE)
             .accessor(
-                <span class="macro">utf16!</span>(<span class="string">&quot;hour&quot;</span>),
+                <span class="macro">utf16!</span>(<span class="string">"hour"</span>),
                 <span class="prelude-val">Some</span>(get_hour),
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                <span class="macro">utf16!</span>(<span class="string">&quot;minute&quot;</span>),
+                <span class="macro">utf16!</span>(<span class="string">"minute"</span>),
                 <span class="prelude-val">Some</span>(get_minute),
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                <span class="macro">utf16!</span>(<span class="string">&quot;second&quot;</span>),
+                <span class="macro">utf16!</span>(<span class="string">"second"</span>),
                 <span class="prelude-val">Some</span>(get_second),
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                <span class="macro">utf16!</span>(<span class="string">&quot;millisecond&quot;</span>),
+                <span class="macro">utf16!</span>(<span class="string">"millisecond"</span>),
                 <span class="prelude-val">Some</span>(get_millisecond),
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                <span class="macro">utf16!</span>(<span class="string">&quot;microsecond&quot;</span>),
+                <span class="macro">utf16!</span>(<span class="string">"microsecond"</span>),
                 <span class="prelude-val">Some</span>(get_microsecond),
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                <span class="macro">utf16!</span>(<span class="string">&quot;nanosecond&quot;</span>),
+                <span class="macro">utf16!</span>(<span class="string">"nanosecond"</span>),
                 <span class="prelude-val">Some</span>(get_nanosecond),
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                <span class="macro">utf16!</span>(<span class="string">&quot;dayOfWeek&quot;</span>),
+                <span class="macro">utf16!</span>(<span class="string">"dayOfWeek"</span>),
                 <span class="prelude-val">Some</span>(get_day_of_week),
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                <span class="macro">utf16!</span>(<span class="string">&quot;dayOfYear&quot;</span>),
+                <span class="macro">utf16!</span>(<span class="string">"dayOfYear"</span>),
                 <span class="prelude-val">Some</span>(get_day_of_year),
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                <span class="macro">utf16!</span>(<span class="string">&quot;weekOfYear&quot;</span>),
+                <span class="macro">utf16!</span>(<span class="string">"weekOfYear"</span>),
                 <span class="prelude-val">Some</span>(get_week_of_year),
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                <span class="macro">utf16!</span>(<span class="string">&quot;yearOfWeek&quot;</span>),
+                <span class="macro">utf16!</span>(<span class="string">"yearOfWeek"</span>),
                 <span class="prelude-val">Some</span>(get_year_of_week),
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                <span class="macro">utf16!</span>(<span class="string">&quot;daysInWeek&quot;</span>),
+                <span class="macro">utf16!</span>(<span class="string">"daysInWeek"</span>),
                 <span class="prelude-val">Some</span>(get_days_in_week),
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                <span class="macro">utf16!</span>(<span class="string">&quot;daysInMonth&quot;</span>),
+                <span class="macro">utf16!</span>(<span class="string">"daysInMonth"</span>),
                 <span class="prelude-val">Some</span>(get_days_in_month),
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                <span class="macro">utf16!</span>(<span class="string">&quot;daysInYear&quot;</span>),
+                <span class="macro">utf16!</span>(<span class="string">"daysInYear"</span>),
                 <span class="prelude-val">Some</span>(get_days_in_year),
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                <span class="macro">utf16!</span>(<span class="string">&quot;monthsInYear&quot;</span>),
+                <span class="macro">utf16!</span>(<span class="string">"monthsInYear"</span>),
                 <span class="prelude-val">Some</span>(get_months_in_year),
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                <span class="macro">utf16!</span>(<span class="string">&quot;inLeapYear&quot;</span>),
+                <span class="macro">utf16!</span>(<span class="string">"inLeapYear"</span>),
                 <span class="prelude-val">Some</span>(get_in_leap_year),
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE,
@@ -996,7 +997,7 @@
         </span><span class="kw">if </span>new_target.is_undefined() {
             <span class="comment">// a. Throw a TypeError exception.
             </span><span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;NewTarget cannot be undefined when contructing PlainDateTime.&quot;</span>)
+                .with_message(<span class="string">"NewTarget cannot be undefined when contructing PlainDateTime."</span>)
                 .into());
         };
 
@@ -1030,7 +1031,7 @@
         </span><span class="kw">let </span>nanosecond = args
             .get(<span class="number">8</span>)
             .map_or(<span class="prelude-val">Ok</span>(<span class="number">0</span>), |v| to_integer_with_truncation(v, context))<span class="question-mark">?</span>;
-        <span class="comment">// 11. Let calendar be ? ToTemporalCalendarSlotValue(calendarLike, &quot;iso8601&quot;).
+        <span class="comment">// 11. Let calendar be ? ToTemporalCalendarSlotValue(calendarLike, "iso8601").
         </span><span class="kw">let </span>calendar_slot =
             calendar::to_temporal_calendar_slot_value(args.get_or_undefined(<span class="number">9</span>), context)<span class="question-mark">?</span>;
 
@@ -1061,7 +1062,7 @@
             .as_object()
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message(<span class="string">&quot;the this object must be a PlainDateTime object.&quot;</span>)
+                JsNativeError::typ().with_message(<span class="string">"the this object must be a PlainDateTime object."</span>)
             })<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(JsString::from(date.inner.calendar().identifier(context)<span class="question-mark">?</span>).into())
@@ -1071,11 +1072,11 @@
     </span><span class="kw">fn </span>get_year(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>obj = this
             .as_object()
-            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;this must be an object.&quot;</span>))<span class="question-mark">?</span>;
+            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">"this must be an object."</span>))<span class="question-mark">?</span>;
 
         <span class="kw">let </span><span class="prelude-val">Ok</span>(date) = obj.clone().downcast::&lt;<span class="self">Self</span>&gt;() <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;the this object must be a PlainDateTime object.&quot;</span>)
+                .with_message(<span class="string">"the this object must be a PlainDateTime object."</span>)
                 .into());
         };
 
@@ -1086,11 +1087,11 @@
     </span><span class="kw">fn </span>get_month(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>obj = this
             .as_object()
-            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;this must be an object.&quot;</span>))<span class="question-mark">?</span>;
+            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">"this must be an object."</span>))<span class="question-mark">?</span>;
 
         <span class="kw">let </span><span class="prelude-val">Ok</span>(date) = obj.clone().downcast::&lt;<span class="self">Self</span>&gt;() <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;the this object must be a PlainDateTime object.&quot;</span>)
+                .with_message(<span class="string">"the this object must be a PlainDateTime object."</span>)
                 .into());
         };
 
@@ -1101,11 +1102,11 @@
     </span><span class="kw">fn </span>get_month_code(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>obj = this
             .as_object()
-            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;this must be an object.&quot;</span>))<span class="question-mark">?</span>;
+            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">"this must be an object."</span>))<span class="question-mark">?</span>;
 
         <span class="kw">let </span><span class="prelude-val">Ok</span>(date) = obj.clone().downcast::&lt;<span class="self">Self</span>&gt;() <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;the this object must be a PlainDateTime object.&quot;</span>)
+                .with_message(<span class="string">"the this object must be a PlainDateTime object."</span>)
                 .into());
         };
 
@@ -1119,11 +1120,11 @@
     </span><span class="kw">fn </span>get_day(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>obj = this
             .as_object()
-            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;this must be an object.&quot;</span>))<span class="question-mark">?</span>;
+            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">"this must be an object."</span>))<span class="question-mark">?</span>;
 
         <span class="kw">let </span><span class="prelude-val">Ok</span>(date) = obj.clone().downcast::&lt;<span class="self">Self</span>&gt;() <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;the this object must be a PlainDateTime object.&quot;</span>)
+                .with_message(<span class="string">"the this object must be a PlainDateTime object."</span>)
                 .into());
         };
 
@@ -1138,7 +1139,7 @@
             .as_object()
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message(<span class="string">&quot;the this object must be a PlainDateTime object.&quot;</span>)
+                JsNativeError::typ().with_message(<span class="string">"the this object must be a PlainDateTime object."</span>)
             })<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Return 𝔽(dateTime.[[ISOHour]]).
@@ -1153,7 +1154,7 @@
             .as_object()
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message(<span class="string">&quot;the this object must be a PlainDateTime object.&quot;</span>)
+                JsNativeError::typ().with_message(<span class="string">"the this object must be a PlainDateTime object."</span>)
             })<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Return 𝔽(dateTime.[[ISOMinute]]).
@@ -1168,7 +1169,7 @@
             .as_object()
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message(<span class="string">&quot;the this object must be a PlainDateTime object.&quot;</span>)
+                JsNativeError::typ().with_message(<span class="string">"the this object must be a PlainDateTime object."</span>)
             })<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Return 𝔽(dateTime.[[ISOSecond]]).
@@ -1183,7 +1184,7 @@
             .as_object()
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message(<span class="string">&quot;the this object must be a PlainDateTime object.&quot;</span>)
+                JsNativeError::typ().with_message(<span class="string">"the this object must be a PlainDateTime object."</span>)
             })<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Return 𝔽(dateTime.[[ISOMillisecond]]).
@@ -1198,7 +1199,7 @@
             .as_object()
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message(<span class="string">&quot;the this object must be a PlainDateTime object.&quot;</span>)
+                JsNativeError::typ().with_message(<span class="string">"the this object must be a PlainDateTime object."</span>)
             })<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Return 𝔽(dateTime.[[ISOMicrosecond]]).
@@ -1213,7 +1214,7 @@
             .as_object()
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message(<span class="string">&quot;the this object must be a PlainDateTime object.&quot;</span>)
+                JsNativeError::typ().with_message(<span class="string">"the this object must be a PlainDateTime object."</span>)
             })<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Return 𝔽(dateTime.[[ISONanosecond]]).
@@ -1224,11 +1225,11 @@
     </span><span class="kw">fn </span>get_day_of_week(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>obj = this
             .as_object()
-            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;this must be an object.&quot;</span>))<span class="question-mark">?</span>;
+            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">"this must be an object."</span>))<span class="question-mark">?</span>;
 
         <span class="kw">let </span><span class="prelude-val">Ok</span>(date) = obj.clone().downcast::&lt;<span class="self">Self</span>&gt;() <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;the this object must be a PlainDateTime object.&quot;</span>)
+                .with_message(<span class="string">"the this object must be a PlainDateTime object."</span>)
                 .into());
         };
 
@@ -1239,11 +1240,11 @@
     </span><span class="kw">fn </span>get_day_of_year(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>obj = this
             .as_object()
-            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;this must be an object.&quot;</span>))<span class="question-mark">?</span>;
+            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">"this must be an object."</span>))<span class="question-mark">?</span>;
 
         <span class="kw">let </span><span class="prelude-val">Ok</span>(date) = obj.clone().downcast::&lt;<span class="self">Self</span>&gt;() <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;the this object must be a PlainDateTime object.&quot;</span>)
+                .with_message(<span class="string">"the this object must be a PlainDateTime object."</span>)
                 .into());
         };
 
@@ -1254,11 +1255,11 @@
     </span><span class="kw">fn </span>get_week_of_year(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>obj = this
             .as_object()
-            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;this must be an object.&quot;</span>))<span class="question-mark">?</span>;
+            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">"this must be an object."</span>))<span class="question-mark">?</span>;
 
         <span class="kw">let </span><span class="prelude-val">Ok</span>(date) = obj.clone().downcast::&lt;<span class="self">Self</span>&gt;() <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;the this object must be a PlainDateTime object.&quot;</span>)
+                .with_message(<span class="string">"the this object must be a PlainDateTime object."</span>)
                 .into());
         };
 
@@ -1269,11 +1270,11 @@
     </span><span class="kw">fn </span>get_year_of_week(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>obj = this
             .as_object()
-            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;this must be an object.&quot;</span>))<span class="question-mark">?</span>;
+            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">"this must be an object."</span>))<span class="question-mark">?</span>;
 
         <span class="kw">let </span><span class="prelude-val">Ok</span>(date) = obj.clone().downcast::&lt;<span class="self">Self</span>&gt;() <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;the this object must be a PlainDateTime object.&quot;</span>)
+                .with_message(<span class="string">"the this object must be a PlainDateTime object."</span>)
                 .into());
         };
 
@@ -1284,11 +1285,11 @@
     </span><span class="kw">fn </span>get_days_in_week(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>obj = this
             .as_object()
-            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;this must be an object.&quot;</span>))<span class="question-mark">?</span>;
+            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">"this must be an object."</span>))<span class="question-mark">?</span>;
 
         <span class="kw">let </span><span class="prelude-val">Ok</span>(date) = obj.clone().downcast::&lt;<span class="self">Self</span>&gt;() <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;the this object must be a PlainDateTime object.&quot;</span>)
+                .with_message(<span class="string">"the this object must be a PlainDateTime object."</span>)
                 .into());
         };
 
@@ -1303,11 +1304,11 @@
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>obj = this
             .as_object()
-            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;this must be an object.&quot;</span>))<span class="question-mark">?</span>;
+            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">"this must be an object."</span>))<span class="question-mark">?</span>;
 
         <span class="kw">let </span><span class="prelude-val">Ok</span>(date) = obj.clone().downcast::&lt;<span class="self">Self</span>&gt;() <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;the this object must be a PlainDateTime object.&quot;</span>)
+                .with_message(<span class="string">"the this object must be a PlainDateTime object."</span>)
                 .into());
         };
 
@@ -1318,11 +1319,11 @@
     </span><span class="kw">fn </span>get_days_in_year(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>obj = this
             .as_object()
-            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;this must be an object.&quot;</span>))<span class="question-mark">?</span>;
+            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">"this must be an object."</span>))<span class="question-mark">?</span>;
 
         <span class="kw">let </span><span class="prelude-val">Ok</span>(date) = obj.clone().downcast::&lt;<span class="self">Self</span>&gt;() <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;the this object must be a PlainDateTime object.&quot;</span>)
+                .with_message(<span class="string">"the this object must be a PlainDateTime object."</span>)
                 .into());
         };
 
@@ -1337,11 +1338,11 @@
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>obj = this
             .as_object()
-            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;this must be an object.&quot;</span>))<span class="question-mark">?</span>;
+            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">"this must be an object."</span>))<span class="question-mark">?</span>;
 
         <span class="kw">let </span><span class="prelude-val">Ok</span>(date) = obj.clone().downcast::&lt;<span class="self">Self</span>&gt;() <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;the this object must be a PlainDateTime object.&quot;</span>)
+                .with_message(<span class="string">"the this object must be a PlainDateTime object."</span>)
                 .into());
         };
 
@@ -1352,11 +1353,11 @@
     </span><span class="kw">fn </span>get_in_leap_year(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="kw">let </span>obj = this
             .as_object()
-            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;this must be an object.&quot;</span>))<span class="question-mark">?</span>;
+            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">"this must be an object."</span>))<span class="question-mark">?</span>;
 
         <span class="kw">let </span><span class="prelude-val">Ok</span>(date) = obj.clone().downcast::&lt;<span class="self">Self</span>&gt;() <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;the this object must be a PlainDateTime object.&quot;</span>)
+                .with_message(<span class="string">"the this object must be a PlainDateTime object."</span>)
                 .into());
         };
 
@@ -1390,7 +1391,7 @@
             .into()
     };
 
-    <span class="comment">// 5. Let object be ? OrdinaryCreateFromConstructor(newTarget, &quot;%Temporal.PlainDateTime.prototype%&quot;, « [[InitializedTemporalDateTime]], [[ISOYear]], [[ISOMonth]], [[ISODay]], [[ISOHour]], [[ISOMinute]], [[ISOSecond]], [[ISOMillisecond]], [[ISOMicrosecond]], [[ISONanosecond]], [[Calendar]] »).
+    <span class="comment">// 5. Let object be ? OrdinaryCreateFromConstructor(newTarget, "%Temporal.PlainDateTime.prototype%", « [[InitializedTemporalDateTime]], [[ISOYear]], [[ISOMonth]], [[ISODay]], [[ISOHour]], [[ISOMinute]], [[ISOSecond]], [[ISOMillisecond]], [[ISOMicrosecond]], [[ISONanosecond]], [[Calendar]] »).
     </span><span class="kw">let </span>prototype = get_prototype_from_constructor(
         <span class="kw-2">&amp;</span>new_target,
         StandardConstructors::plain_date_time,

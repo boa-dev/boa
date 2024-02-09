@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/builtins/iterable/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/builtins/iterable/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -602,7 +603,7 @@
 <a href="#602" id="602">602</a>
 <a href="#603" id="603">603</a>
 <a href="#604" id="604">604</a>
-</pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s `IteratorRecord` and iterator prototype objects.
+</pre></div><pre class="rust"><code><span class="doccomment">//! Boa's implementation of ECMAScript's `IteratorRecord` and iterator prototype objects.
 
 </span><span class="kw">use crate</span>::{
     builtins::{BuiltInBuilder, IntrinsicObject},
@@ -676,7 +677,7 @@
     </span>for_in: JsObject,
 
     <span class="doccomment">/// The `%SegmentIteratorPrototype%` prototype object.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">"intl"</span>)]
     </span>segment: JsObject,
 }
 
@@ -747,7 +748,7 @@
     <span class="doccomment">/// Returns the `%SegmentIteratorPrototype%` object.
     </span><span class="attr">#[inline]
     #[must_use]
-    #[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+    #[cfg(feature = <span class="string">"intl"</span>)]
     </span><span class="kw">pub fn </span>segment(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
         <span class="self">self</span>.segment.clone()
     }
@@ -764,7 +765,7 @@
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>Iterator {
     <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Iterator Prototype&quot;</span>, <span class="string">&quot;init&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">"Iterator Prototype"</span>, <span class="string">"init"</span>);
 
         BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(realm)
             .static_method(|v, <span class="kw">_</span>, <span class="kw">_</span>| <span class="prelude-val">Ok</span>(v.clone()), JsSymbol::iterator(), <span class="number">0</span>)
@@ -786,7 +787,7 @@
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>AsyncIterator {
     <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;AsyncIteratorPrototype&quot;</span>, <span class="string">&quot;init&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">"AsyncIteratorPrototype"</span>, <span class="string">"init"</span>);
 
         BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(realm)
             .static_method(|v, <span class="kw">_</span>, <span class="kw">_</span>| <span class="prelude-val">Ok</span>(v.clone()), JsSymbol::async_iterator(), <span class="number">0</span>)
@@ -802,12 +803,12 @@
 ///
 /// Generates an object supporting the `IteratorResult` interface.
 </span><span class="kw">pub fn </span>create_iter_result_object(value: JsValue, done: bool, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsValue {
-    <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;create_iter_result_object&quot;</span>, <span class="string">&quot;init&quot;</span>);
+    <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">"create_iter_result_object"</span>, <span class="string">"init"</span>);
 
     <span class="comment">// 1. Assert: Type(done) is Boolean.
     // 2. Let obj be ! OrdinaryObjectCreate(%Object.prototype%).
-    // 3. Perform ! CreateDataPropertyOrThrow(obj, &quot;value&quot;, value).
-    // 4. Perform ! CreateDataPropertyOrThrow(obj, &quot;done&quot;, done).
+    // 3. Perform ! CreateDataPropertyOrThrow(obj, "value", value).
+    // 4. Perform ! CreateDataPropertyOrThrow(obj, "done", done).
     </span><span class="kw">let </span>obj = context
         .intrinsics()
         .templates()
@@ -872,7 +873,7 @@
         }
         .ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="macro">format!</span>(
-                <span class="string">&quot;value with type `{}` is not iterable&quot;</span>,
+                <span class="string">"value with type `{}` is not iterable"</span>,
                 <span class="self">self</span>.type_of()
             ))
         })<span class="question-mark">?</span>;
@@ -882,11 +883,11 @@
 
         <span class="comment">// 4. If Type(iterator) is not Object, throw a TypeError exception.
         </span><span class="kw">let </span>iterator_obj = iterator.as_object().ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;returned iterator is not an object&quot;</span>)
+            JsNativeError::typ().with_message(<span class="string">"returned iterator is not an object"</span>)
         })<span class="question-mark">?</span>;
 
-        <span class="comment">// 5. Let nextMethod be ? GetV(iterator, &quot;next&quot;).
-        </span><span class="kw">let </span>next_method = iterator.get_v(<span class="macro">js_string!</span>(<span class="string">&quot;next&quot;</span>), context)<span class="question-mark">?</span>;
+        <span class="comment">// 5. Let nextMethod be ? GetV(iterator, "next").
+        </span><span class="kw">let </span>next_method = iterator.get_v(<span class="macro">js_string!</span>(<span class="string">"next"</span>), context)<span class="question-mark">?</span>;
 
         <span class="comment">// 6. Let iteratorRecord be the Record { [[Iterator]]: iterator, [[NextMethod]]: nextMethod, [[Done]]: false }.
         // 7. Return iteratorRecord.
@@ -908,7 +909,7 @@
             <span class="prelude-val">Ok</span>(<span class="self">Self </span>{ object: o })
         } <span class="kw">else </span>{
             <span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;next value should be an object&quot;</span>)
+                .with_message(<span class="string">"next value should be an object"</span>)
                 .into())
         }
     }
@@ -929,8 +930,8 @@
     /// [spec]: https://tc39.es/ecma262/#sec-iteratorcomplete
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>complete(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt; {
-        <span class="comment">// 1. Return ToBoolean(? Get(iterResult, &quot;done&quot;)).
-        </span><span class="prelude-val">Ok</span>(<span class="self">self</span>.object.get(<span class="macro">js_string!</span>(<span class="string">&quot;done&quot;</span>), context)<span class="question-mark">?</span>.to_boolean())
+        <span class="comment">// 1. Return ToBoolean(? Get(iterResult, "done")).
+        </span><span class="prelude-val">Ok</span>(<span class="self">self</span>.object.get(<span class="macro">js_string!</span>(<span class="string">"done"</span>), context)<span class="question-mark">?</span>.to_boolean())
     }
 
     <span class="doccomment">/// `IteratorValue ( iterResult )`
@@ -945,8 +946,8 @@
     /// [spec]: https://tc39.es/ecma262/#sec-iteratorvalue
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>value(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
-        <span class="comment">// 1. Return ? Get(iterResult, &quot;value&quot;).
-        </span><span class="self">self</span>.object.get(<span class="macro">js_string!</span>(<span class="string">&quot;value&quot;</span>), context)
+        <span class="comment">// 1. Return ? Get(iterResult, "value").
+        </span><span class="self">self</span>.object.get(<span class="macro">js_string!</span>(<span class="string">"value"</span>), context)
     }
 }
 
@@ -1070,7 +1071,7 @@
         value: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>JsValue&gt;,
         context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;bool&gt; {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;IteratorRecord::step_with&quot;</span>, <span class="string">&quot;iterator&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">"IteratorRecord::step_with"</span>, <span class="string">"iterator"</span>);
 
         <span class="self">self</span>.set_done_on_err(|iter| {
             <span class="comment">// 1. If value is not present, then
@@ -1120,15 +1121,15 @@
         completion: JsResult&lt;JsValue&gt;,
         context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;IteratorRecord::close&quot;</span>, <span class="string">&quot;iterator&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">"IteratorRecord::close"</span>, <span class="string">"iterator"</span>);
 
         <span class="comment">// 1. Assert: Type(iteratorRecord.[[Iterator]]) is Object.
 
         // 2. Let iterator be iteratorRecord.[[Iterator]].
         </span><span class="kw">let </span>iterator = <span class="kw-2">&amp;</span><span class="self">self</span>.iterator;
 
-        <span class="comment">// 3. Let innerResult be Completion(GetMethod(iterator, &quot;return&quot;)).
-        </span><span class="kw">let </span>inner_result = iterator.get_method(<span class="macro">js_string!</span>(<span class="string">&quot;return&quot;</span>), context);
+        <span class="comment">// 3. Let innerResult be Completion(GetMethod(iterator, "return")).
+        </span><span class="kw">let </span>inner_result = iterator.get_method(<span class="macro">js_string!</span>(<span class="string">"return"</span>), context);
 
         <span class="comment">// 4. If innerResult.[[Type]] is normal, then
         </span><span class="kw">let </span>inner_result = <span class="kw">match </span>inner_result {
@@ -1165,7 +1166,7 @@
         } <span class="kw">else </span>{
             <span class="comment">// 7. If Type(innerResult.[[Value]]) is not Object, throw a TypeError exception.
             </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;inner result was not an object&quot;</span>)
+                .with_message(<span class="string">"inner result was not an object"</span>)
                 .into())
         }
     }
@@ -1182,7 +1183,7 @@
     items: <span class="kw-2">&amp;</span>JsValue,
     method: <span class="prelude-ty">Option</span>&lt;JsObject&gt;,
 ) -&gt; JsResult&lt;Vec&lt;JsValue&gt;&gt; {
-    <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;iterable_to_list&quot;</span>, <span class="string">&quot;iterator&quot;</span>);
+    <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">"iterable_to_list"</span>, <span class="string">"iterator"</span>);
 
     <span class="comment">// 1. If method is present, then
     // a. Let iteratorRecord be ? GetIterator(items, sync, method).

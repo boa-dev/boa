@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/temporal/src/fields.rs`."><title>fields.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="boa_temporal" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../boa_temporal/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_temporal"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/temporal/src/fields.rs`."><title>fields.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="boa_temporal" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../boa_temporal/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_temporal"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -724,12 +725,12 @@
 
     <span class="kw">fn </span>from_str(s: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Err&gt; {
         <span class="kw">match </span>s {
-            <span class="string">&quot;year&quot; </span>| <span class="string">&quot;hour&quot; </span>| <span class="string">&quot;minute&quot; </span>| <span class="string">&quot;second&quot; </span>| <span class="string">&quot;millisecond&quot; </span>| <span class="string">&quot;microsecond&quot;
-            </span>| <span class="string">&quot;nanosecond&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::ToIntegerWithTruncation),
-            <span class="string">&quot;month&quot; </span>| <span class="string">&quot;day&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::ToPositiveIntegerWithTruncation),
-            <span class="string">&quot;monthCode&quot; </span>| <span class="string">&quot;offset&quot; </span>| <span class="string">&quot;eraYear&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::ToPrimativeAndRequireString),
+            <span class="string">"year" </span>| <span class="string">"hour" </span>| <span class="string">"minute" </span>| <span class="string">"second" </span>| <span class="string">"millisecond" </span>| <span class="string">"microsecond"
+            </span>| <span class="string">"nanosecond" </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::ToIntegerWithTruncation),
+            <span class="string">"month" </span>| <span class="string">"day" </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::ToPositiveIntegerWithTruncation),
+            <span class="string">"monthCode" </span>| <span class="string">"offset" </span>| <span class="string">"eraYear" </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::ToPrimativeAndRequireString),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(TemporalError::range()
-                .with_message(<span class="macro">format!</span>(<span class="string">&quot;{s} is not a valid TemporalField Property&quot;</span>))),
+                .with_message(<span class="macro">format!</span>(<span class="string">"{s} is not a valid TemporalField Property"</span>))),
         }
     }
 }
@@ -743,20 +744,20 @@
 ///
 /// |   Property   |           Conversion              |  Default   |
 /// | -------------|-----------------------------------|------------|
-/// | &quot;year&quot;       |     `ToIntegerWithTruncation`     | undefined  |
-/// | &quot;month&quot;      | `ToPositiveIntegerWithTruncation` | undefined  |
-/// | &quot;monthCode&quot;  |   `ToPrimitiveAndRequireString`   | undefined  |
-/// | &quot;day&quot;        | `ToPositiveIntegerWithTruncation` | undefined  |
-/// | &quot;hour&quot;       |     `ToIntegerWithTruncation`     |    +0𝔽     |
-/// | &quot;minute&quot;     |     `ToIntegerWithTruncation`     |    +0𝔽     |
-/// | &quot;second&quot;     |     `ToIntegerWithTruncation`     |    +0𝔽     |
-/// | &quot;millisecond&quot;|     `ToIntegerWithTruncation`     |    +0𝔽     |
-/// | &quot;microsecond&quot;|     `ToIntegerWithTruncation`     |    +0𝔽     |
-/// | &quot;nanosecond&quot; |     `ToIntegerWithTruncation`     |    +0𝔽     |
-/// | &quot;offset&quot;     |   `ToPrimitiveAndRequireString`   | undefined  |
-/// | &quot;era&quot;        |   `ToPrimitiveAndRequireString`   | undefined  |
-/// | &quot;eraYear&quot;    |     `ToIntegerWithTruncation`     | undefined  |
-/// | &quot;timeZone&quot;   |              `None`               | undefined  |
+/// | "year"       |     `ToIntegerWithTruncation`     | undefined  |
+/// | "month"      | `ToPositiveIntegerWithTruncation` | undefined  |
+/// | "monthCode"  |   `ToPrimitiveAndRequireString`   | undefined  |
+/// | "day"        | `ToPositiveIntegerWithTruncation` | undefined  |
+/// | "hour"       |     `ToIntegerWithTruncation`     |    +0𝔽     |
+/// | "minute"     |     `ToIntegerWithTruncation`     |    +0𝔽     |
+/// | "second"     |     `ToIntegerWithTruncation`     |    +0𝔽     |
+/// | "millisecond"|     `ToIntegerWithTruncation`     |    +0𝔽     |
+/// | "microsecond"|     `ToIntegerWithTruncation`     |    +0𝔽     |
+/// | "nanosecond" |     `ToIntegerWithTruncation`     |    +0𝔽     |
+/// | "offset"     |   `ToPrimitiveAndRequireString`   | undefined  |
+/// | "era"        |   `ToPrimitiveAndRequireString`   | undefined  |
+/// | "eraYear"    |     `ToIntegerWithTruncation`     | undefined  |
+/// | "timeZone"   |              `None`               | undefined  |
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>TemporalFields {
     bit_map: FieldMap,
@@ -800,7 +801,7 @@
 
 <span class="kw">impl </span>TemporalFields {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>era(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TinyAsciiStr&lt;<span class="number">16</span>&gt; {
-        <span class="self">self</span>.era.unwrap_or(<span class="string">&quot;default&quot;</span>.parse().expect(<span class="string">&quot;less than 8&quot;</span>))
+        <span class="self">self</span>.era.unwrap_or(<span class="string">"default"</span>.parse().expect(<span class="string">"less than 8"</span>))
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>year(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;i32&gt; {
@@ -814,7 +815,7 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>month_code(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TinyAsciiStr&lt;<span class="number">4</span>&gt; {
         <span class="comment">// Passing along an invalid MonthCode to ICU...might be better to figure out a different approach...TBD.
         </span><span class="self">self</span>.month_code
-            .unwrap_or(<span class="string">&quot;M00&quot;</span>.parse().expect(<span class="string">&quot;less than 4&quot;</span>))
+            .unwrap_or(<span class="string">"M00"</span>.parse().expect(<span class="string">"less than 4"</span>))
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>day(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;i32&gt; {
@@ -828,20 +829,20 @@
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>require_field(<span class="kw-2">&amp;mut </span><span class="self">self</span>, field: <span class="kw-2">&amp;</span>str) {
         <span class="kw">match </span>field {
-            <span class="string">&quot;year&quot; </span>=&gt; <span class="self">self</span>.bit_map.set(FieldMap::YEAR, <span class="bool-val">true</span>),
-            <span class="string">&quot;month&quot; </span>=&gt; <span class="self">self</span>.bit_map.set(FieldMap::MONTH, <span class="bool-val">true</span>),
-            <span class="string">&quot;monthCode&quot; </span>=&gt; <span class="self">self</span>.bit_map.set(FieldMap::MONTH_CODE, <span class="bool-val">true</span>),
-            <span class="string">&quot;day&quot; </span>=&gt; <span class="self">self</span>.bit_map.set(FieldMap::DAY, <span class="bool-val">true</span>),
-            <span class="string">&quot;hour&quot; </span>=&gt; <span class="self">self</span>.bit_map.set(FieldMap::HOUR, <span class="bool-val">true</span>),
-            <span class="string">&quot;minute&quot; </span>=&gt; <span class="self">self</span>.bit_map.set(FieldMap::MINUTE, <span class="bool-val">true</span>),
-            <span class="string">&quot;second&quot; </span>=&gt; <span class="self">self</span>.bit_map.set(FieldMap::SECOND, <span class="bool-val">true</span>),
-            <span class="string">&quot;millisecond&quot; </span>=&gt; <span class="self">self</span>.bit_map.set(FieldMap::MILLISECOND, <span class="bool-val">true</span>),
-            <span class="string">&quot;microsecond&quot; </span>=&gt; <span class="self">self</span>.bit_map.set(FieldMap::MICROSECOND, <span class="bool-val">true</span>),
-            <span class="string">&quot;nanosecond&quot; </span>=&gt; <span class="self">self</span>.bit_map.set(FieldMap::NANOSECOND, <span class="bool-val">true</span>),
-            <span class="string">&quot;offset&quot; </span>=&gt; <span class="self">self</span>.bit_map.set(FieldMap::OFFSET, <span class="bool-val">true</span>),
-            <span class="string">&quot;era&quot; </span>=&gt; <span class="self">self</span>.bit_map.set(FieldMap::ERA, <span class="bool-val">true</span>),
-            <span class="string">&quot;eraYear&quot; </span>=&gt; <span class="self">self</span>.bit_map.set(FieldMap::ERA_YEAR, <span class="bool-val">true</span>),
-            <span class="string">&quot;timeZone&quot; </span>=&gt; <span class="self">self</span>.bit_map.set(FieldMap::TIME_ZONE, <span class="bool-val">true</span>),
+            <span class="string">"year" </span>=&gt; <span class="self">self</span>.bit_map.set(FieldMap::YEAR, <span class="bool-val">true</span>),
+            <span class="string">"month" </span>=&gt; <span class="self">self</span>.bit_map.set(FieldMap::MONTH, <span class="bool-val">true</span>),
+            <span class="string">"monthCode" </span>=&gt; <span class="self">self</span>.bit_map.set(FieldMap::MONTH_CODE, <span class="bool-val">true</span>),
+            <span class="string">"day" </span>=&gt; <span class="self">self</span>.bit_map.set(FieldMap::DAY, <span class="bool-val">true</span>),
+            <span class="string">"hour" </span>=&gt; <span class="self">self</span>.bit_map.set(FieldMap::HOUR, <span class="bool-val">true</span>),
+            <span class="string">"minute" </span>=&gt; <span class="self">self</span>.bit_map.set(FieldMap::MINUTE, <span class="bool-val">true</span>),
+            <span class="string">"second" </span>=&gt; <span class="self">self</span>.bit_map.set(FieldMap::SECOND, <span class="bool-val">true</span>),
+            <span class="string">"millisecond" </span>=&gt; <span class="self">self</span>.bit_map.set(FieldMap::MILLISECOND, <span class="bool-val">true</span>),
+            <span class="string">"microsecond" </span>=&gt; <span class="self">self</span>.bit_map.set(FieldMap::MICROSECOND, <span class="bool-val">true</span>),
+            <span class="string">"nanosecond" </span>=&gt; <span class="self">self</span>.bit_map.set(FieldMap::NANOSECOND, <span class="bool-val">true</span>),
+            <span class="string">"offset" </span>=&gt; <span class="self">self</span>.bit_map.set(FieldMap::OFFSET, <span class="bool-val">true</span>),
+            <span class="string">"era" </span>=&gt; <span class="self">self</span>.bit_map.set(FieldMap::ERA, <span class="bool-val">true</span>),
+            <span class="string">"eraYear" </span>=&gt; <span class="self">self</span>.bit_map.set(FieldMap::ERA_YEAR, <span class="bool-val">true</span>),
+            <span class="string">"timeZone" </span>=&gt; <span class="self">self</span>.bit_map.set(FieldMap::TIME_ZONE, <span class="bool-val">true</span>),
             <span class="kw">_ </span>=&gt; {}
         }
     }
@@ -853,20 +854,20 @@
     /// expected to contain a preconverted value.
     </span><span class="kw">pub fn </span>set_field_value(<span class="kw-2">&amp;mut </span><span class="self">self</span>, field: <span class="kw-2">&amp;</span>str, value: <span class="kw-2">&amp;</span>FieldValue) -&gt; TemporalResult&lt;()&gt; {
         <span class="kw">match </span>field {
-            <span class="string">&quot;year&quot; </span>=&gt; <span class="self">self</span>.set_year(value)<span class="question-mark">?</span>,
-            <span class="string">&quot;month&quot; </span>=&gt; <span class="self">self</span>.set_month(value)<span class="question-mark">?</span>,
-            <span class="string">&quot;monthCode&quot; </span>=&gt; <span class="self">self</span>.set_month_code(value)<span class="question-mark">?</span>,
-            <span class="string">&quot;day&quot; </span>=&gt; <span class="self">self</span>.set_day(value)<span class="question-mark">?</span>,
-            <span class="string">&quot;hour&quot; </span>=&gt; <span class="self">self</span>.set_hour(value)<span class="question-mark">?</span>,
-            <span class="string">&quot;minute&quot; </span>=&gt; <span class="self">self</span>.set_minute(value)<span class="question-mark">?</span>,
-            <span class="string">&quot;second&quot; </span>=&gt; <span class="self">self</span>.set_second(value)<span class="question-mark">?</span>,
-            <span class="string">&quot;millisecond&quot; </span>=&gt; <span class="self">self</span>.set_milli(value)<span class="question-mark">?</span>,
-            <span class="string">&quot;microsecond&quot; </span>=&gt; <span class="self">self</span>.set_micro(value)<span class="question-mark">?</span>,
-            <span class="string">&quot;nanosecond&quot; </span>=&gt; <span class="self">self</span>.set_nano(value)<span class="question-mark">?</span>,
-            <span class="string">&quot;offset&quot; </span>=&gt; <span class="self">self</span>.set_offset(value)<span class="question-mark">?</span>,
-            <span class="string">&quot;era&quot; </span>=&gt; <span class="self">self</span>.set_era(value)<span class="question-mark">?</span>,
-            <span class="string">&quot;eraYear&quot; </span>=&gt; <span class="self">self</span>.set_era_year(value)<span class="question-mark">?</span>,
-            <span class="string">&quot;timeZone&quot; </span>=&gt; <span class="self">self</span>.set_time_zone(value)<span class="question-mark">?</span>,
+            <span class="string">"year" </span>=&gt; <span class="self">self</span>.set_year(value)<span class="question-mark">?</span>,
+            <span class="string">"month" </span>=&gt; <span class="self">self</span>.set_month(value)<span class="question-mark">?</span>,
+            <span class="string">"monthCode" </span>=&gt; <span class="self">self</span>.set_month_code(value)<span class="question-mark">?</span>,
+            <span class="string">"day" </span>=&gt; <span class="self">self</span>.set_day(value)<span class="question-mark">?</span>,
+            <span class="string">"hour" </span>=&gt; <span class="self">self</span>.set_hour(value)<span class="question-mark">?</span>,
+            <span class="string">"minute" </span>=&gt; <span class="self">self</span>.set_minute(value)<span class="question-mark">?</span>,
+            <span class="string">"second" </span>=&gt; <span class="self">self</span>.set_second(value)<span class="question-mark">?</span>,
+            <span class="string">"millisecond" </span>=&gt; <span class="self">self</span>.set_milli(value)<span class="question-mark">?</span>,
+            <span class="string">"microsecond" </span>=&gt; <span class="self">self</span>.set_micro(value)<span class="question-mark">?</span>,
+            <span class="string">"nanosecond" </span>=&gt; <span class="self">self</span>.set_nano(value)<span class="question-mark">?</span>,
+            <span class="string">"offset" </span>=&gt; <span class="self">self</span>.set_offset(value)<span class="question-mark">?</span>,
+            <span class="string">"era" </span>=&gt; <span class="self">self</span>.set_era(value)<span class="question-mark">?</span>,
+            <span class="string">"eraYear" </span>=&gt; <span class="self">self</span>.set_era_year(value)<span class="question-mark">?</span>,
+            <span class="string">"timeZone" </span>=&gt; <span class="self">self</span>.set_time_zone(value)<span class="question-mark">?</span>,
             <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
         }
 
@@ -879,20 +880,20 @@
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
         <span class="kw">match </span>field {
-            <span class="string">&quot;year&quot; </span>=&gt; <span class="self">self</span>.year.map(FieldValue::Integer),
-            <span class="string">&quot;month&quot; </span>=&gt; <span class="self">self</span>.month.map(FieldValue::Integer),
-            <span class="string">&quot;monthCode&quot; </span>=&gt; <span class="self">self</span>.month_code.map(|s| FieldValue::String(s.to_string())),
-            <span class="string">&quot;day&quot; </span>=&gt; <span class="self">self</span>.day.map(FieldValue::from),
-            <span class="string">&quot;hour&quot; </span>=&gt; <span class="prelude-val">Some</span>(FieldValue::Integer(<span class="self">self</span>.hour)),
-            <span class="string">&quot;minute&quot; </span>=&gt; <span class="prelude-val">Some</span>(FieldValue::Integer(<span class="self">self</span>.minute)),
-            <span class="string">&quot;second&quot; </span>=&gt; <span class="prelude-val">Some</span>(FieldValue::Integer(<span class="self">self</span>.second)),
-            <span class="string">&quot;millisecond&quot; </span>=&gt; <span class="prelude-val">Some</span>(FieldValue::Integer(<span class="self">self</span>.millisecond)),
-            <span class="string">&quot;microsecond&quot; </span>=&gt; <span class="prelude-val">Some</span>(FieldValue::Integer(<span class="self">self</span>.microsecond)),
-            <span class="string">&quot;nanosecond&quot; </span>=&gt; <span class="prelude-val">Some</span>(FieldValue::Integer(<span class="self">self</span>.nanosecond)),
-            <span class="string">&quot;offset&quot; </span>=&gt; <span class="self">self</span>.offset.as_ref().map(|s| FieldValue::String(s.clone())),
-            <span class="string">&quot;era&quot; </span>=&gt; <span class="self">self</span>.era.map(|s| FieldValue::String(s.to_string())),
-            <span class="string">&quot;eraYear&quot; </span>=&gt; <span class="self">self</span>.era_year.map(FieldValue::Integer),
-            <span class="string">&quot;timeZone&quot; </span>=&gt; <span class="self">self
+            <span class="string">"year" </span>=&gt; <span class="self">self</span>.year.map(FieldValue::Integer),
+            <span class="string">"month" </span>=&gt; <span class="self">self</span>.month.map(FieldValue::Integer),
+            <span class="string">"monthCode" </span>=&gt; <span class="self">self</span>.month_code.map(|s| FieldValue::String(s.to_string())),
+            <span class="string">"day" </span>=&gt; <span class="self">self</span>.day.map(FieldValue::from),
+            <span class="string">"hour" </span>=&gt; <span class="prelude-val">Some</span>(FieldValue::Integer(<span class="self">self</span>.hour)),
+            <span class="string">"minute" </span>=&gt; <span class="prelude-val">Some</span>(FieldValue::Integer(<span class="self">self</span>.minute)),
+            <span class="string">"second" </span>=&gt; <span class="prelude-val">Some</span>(FieldValue::Integer(<span class="self">self</span>.second)),
+            <span class="string">"millisecond" </span>=&gt; <span class="prelude-val">Some</span>(FieldValue::Integer(<span class="self">self</span>.millisecond)),
+            <span class="string">"microsecond" </span>=&gt; <span class="prelude-val">Some</span>(FieldValue::Integer(<span class="self">self</span>.microsecond)),
+            <span class="string">"nanosecond" </span>=&gt; <span class="prelude-val">Some</span>(FieldValue::Integer(<span class="self">self</span>.nanosecond)),
+            <span class="string">"offset" </span>=&gt; <span class="self">self</span>.offset.as_ref().map(|s| FieldValue::String(s.clone())),
+            <span class="string">"era" </span>=&gt; <span class="self">self</span>.era.map(|s| FieldValue::String(s.to_string())),
+            <span class="string">"eraYear" </span>=&gt; <span class="self">self</span>.era_year.map(FieldValue::Integer),
+            <span class="string">"timeZone" </span>=&gt; <span class="self">self
                 </span>.time_zone
                 .as_ref()
                 .map(|s| FieldValue::String(s.clone())),
@@ -902,20 +903,20 @@
 
     <span class="kw">fn </span>is_set_field(<span class="kw-2">&amp;</span><span class="self">self</span>, field: <span class="kw-2">&amp;</span>str) -&gt; bool {
         <span class="kw">match </span>field {
-            <span class="string">&quot;year&quot; </span>=&gt; <span class="self">self</span>.bit_map.contains(FieldMap::YEAR),
-            <span class="string">&quot;month&quot; </span>=&gt; <span class="self">self</span>.bit_map.contains(FieldMap::MONTH),
-            <span class="string">&quot;monthCode&quot; </span>=&gt; <span class="self">self</span>.bit_map.contains(FieldMap::MONTH_CODE),
-            <span class="string">&quot;day&quot; </span>=&gt; <span class="self">self</span>.bit_map.contains(FieldMap::DAY),
-            <span class="string">&quot;hour&quot; </span>=&gt; <span class="self">self</span>.bit_map.contains(FieldMap::HOUR),
-            <span class="string">&quot;minute&quot; </span>=&gt; <span class="self">self</span>.bit_map.contains(FieldMap::MINUTE),
-            <span class="string">&quot;second&quot; </span>=&gt; <span class="self">self</span>.bit_map.contains(FieldMap::SECOND),
-            <span class="string">&quot;millisecond&quot; </span>=&gt; <span class="self">self</span>.bit_map.contains(FieldMap::MILLISECOND),
-            <span class="string">&quot;microsecond&quot; </span>=&gt; <span class="self">self</span>.bit_map.contains(FieldMap::MICROSECOND),
-            <span class="string">&quot;nanosecond&quot; </span>=&gt; <span class="self">self</span>.bit_map.contains(FieldMap::NANOSECOND),
-            <span class="string">&quot;offset&quot; </span>=&gt; <span class="self">self</span>.bit_map.contains(FieldMap::OFFSET),
-            <span class="string">&quot;era&quot; </span>=&gt; <span class="self">self</span>.bit_map.contains(FieldMap::ERA),
-            <span class="string">&quot;eraYear&quot; </span>=&gt; <span class="self">self</span>.bit_map.contains(FieldMap::ERA_YEAR),
-            <span class="string">&quot;timeZone&quot; </span>=&gt; <span class="self">self</span>.bit_map.contains(FieldMap::TIME_ZONE),
+            <span class="string">"year" </span>=&gt; <span class="self">self</span>.bit_map.contains(FieldMap::YEAR),
+            <span class="string">"month" </span>=&gt; <span class="self">self</span>.bit_map.contains(FieldMap::MONTH),
+            <span class="string">"monthCode" </span>=&gt; <span class="self">self</span>.bit_map.contains(FieldMap::MONTH_CODE),
+            <span class="string">"day" </span>=&gt; <span class="self">self</span>.bit_map.contains(FieldMap::DAY),
+            <span class="string">"hour" </span>=&gt; <span class="self">self</span>.bit_map.contains(FieldMap::HOUR),
+            <span class="string">"minute" </span>=&gt; <span class="self">self</span>.bit_map.contains(FieldMap::MINUTE),
+            <span class="string">"second" </span>=&gt; <span class="self">self</span>.bit_map.contains(FieldMap::SECOND),
+            <span class="string">"millisecond" </span>=&gt; <span class="self">self</span>.bit_map.contains(FieldMap::MILLISECOND),
+            <span class="string">"microsecond" </span>=&gt; <span class="self">self</span>.bit_map.contains(FieldMap::MICROSECOND),
+            <span class="string">"nanosecond" </span>=&gt; <span class="self">self</span>.bit_map.contains(FieldMap::NANOSECOND),
+            <span class="string">"offset" </span>=&gt; <span class="self">self</span>.bit_map.contains(FieldMap::OFFSET),
+            <span class="string">"era" </span>=&gt; <span class="self">self</span>.bit_map.contains(FieldMap::ERA),
+            <span class="string">"eraYear" </span>=&gt; <span class="self">self</span>.bit_map.contains(FieldMap::ERA_YEAR),
+            <span class="string">"timeZone" </span>=&gt; <span class="self">self</span>.bit_map.contains(FieldMap::TIME_ZONE),
             <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
         }
     }
@@ -923,7 +924,7 @@
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>set_year(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>FieldValue) -&gt; TemporalResult&lt;()&gt; {
         <span class="kw">let </span>FieldValue::Integer(y) = value <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">&quot;Year must be an integer.&quot;</span>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">"Year must be an integer."</span>));
         };
         <span class="self">self</span>.year = <span class="prelude-val">Some</span>(<span class="kw-2">*</span>y);
         <span class="self">self</span>.bit_map.set(FieldMap::YEAR, <span class="bool-val">true</span>);
@@ -933,7 +934,7 @@
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>set_month(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>FieldValue) -&gt; TemporalResult&lt;()&gt; {
         <span class="kw">let </span>FieldValue::Integer(mo) = value <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">&quot;Month must be an integer.&quot;</span>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">"Month must be an integer."</span>));
         };
         <span class="self">self</span>.year = <span class="prelude-val">Some</span>(<span class="kw-2">*</span>mo);
         <span class="self">self</span>.bit_map.set(FieldMap::MONTH, <span class="bool-val">true</span>);
@@ -943,10 +944,10 @@
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>set_month_code(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>FieldValue) -&gt; TemporalResult&lt;()&gt; {
         <span class="kw">let </span>FieldValue::String(mc) = value <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">&quot;monthCode must be string.&quot;</span>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">"monthCode must be string."</span>));
         };
         <span class="self">self</span>.month_code =
-            <span class="prelude-val">Some</span>(TinyStr4::from_bytes(mc.as_bytes()).expect(<span class="string">&quot;monthCode must be less than 4 chars&quot;</span>));
+            <span class="prelude-val">Some</span>(TinyStr4::from_bytes(mc.as_bytes()).expect(<span class="string">"monthCode must be less than 4 chars"</span>));
         <span class="self">self</span>.bit_map.set(FieldMap::MONTH_CODE, <span class="bool-val">true</span>);
         <span class="prelude-val">Ok</span>(())
     }
@@ -954,7 +955,7 @@
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>set_day(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>FieldValue) -&gt; TemporalResult&lt;()&gt; {
         <span class="kw">let </span>FieldValue::Integer(d) = value <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">&quot;day must be an integer.&quot;</span>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">"day must be an integer."</span>));
         };
         <span class="self">self</span>.day = <span class="prelude-val">Some</span>(<span class="kw-2">*</span>d);
         <span class="self">self</span>.bit_map.set(FieldMap::DAY, <span class="bool-val">true</span>);
@@ -964,7 +965,7 @@
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>set_hour(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>FieldValue) -&gt; TemporalResult&lt;()&gt; {
         <span class="kw">let </span>FieldValue::Integer(h) = value <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">&quot;hour must be an integer.&quot;</span>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">"hour must be an integer."</span>));
         };
         <span class="self">self</span>.hour = <span class="kw-2">*</span>h;
         <span class="self">self</span>.bit_map.set(FieldMap::HOUR, <span class="bool-val">true</span>);
@@ -974,7 +975,7 @@
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>set_minute(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>FieldValue) -&gt; TemporalResult&lt;()&gt; {
         <span class="kw">let </span>FieldValue::Integer(min) = value <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">&quot;minute must be an integer.&quot;</span>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">"minute must be an integer."</span>));
         };
         <span class="self">self</span>.minute = <span class="kw-2">*</span>min;
         <span class="self">self</span>.bit_map.set(FieldMap::MINUTE, <span class="bool-val">true</span>);
@@ -984,7 +985,7 @@
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>set_second(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>FieldValue) -&gt; TemporalResult&lt;()&gt; {
         <span class="kw">let </span>FieldValue::Integer(sec) = value <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">&quot;Second must be an integer.&quot;</span>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">"Second must be an integer."</span>));
         };
         <span class="self">self</span>.second = <span class="kw-2">*</span>sec;
         <span class="self">self</span>.bit_map.set(FieldMap::SECOND, <span class="bool-val">true</span>);
@@ -994,7 +995,7 @@
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>set_milli(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>FieldValue) -&gt; TemporalResult&lt;()&gt; {
         <span class="kw">let </span>FieldValue::Integer(milli) = value <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">&quot;Second must be an integer.&quot;</span>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">"Second must be an integer."</span>));
         };
         <span class="self">self</span>.millisecond = <span class="kw-2">*</span>milli;
         <span class="self">self</span>.bit_map.set(FieldMap::MILLISECOND, <span class="bool-val">true</span>);
@@ -1004,7 +1005,7 @@
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>set_micro(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>FieldValue) -&gt; TemporalResult&lt;()&gt; {
         <span class="kw">let </span>FieldValue::Integer(micro) = value <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">&quot;microsecond must be an integer.&quot;</span>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">"microsecond must be an integer."</span>));
         };
         <span class="self">self</span>.microsecond = <span class="kw-2">*</span>micro;
         <span class="self">self</span>.bit_map.set(FieldMap::MICROSECOND, <span class="bool-val">true</span>);
@@ -1014,7 +1015,7 @@
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>set_nano(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>FieldValue) -&gt; TemporalResult&lt;()&gt; {
         <span class="kw">let </span>FieldValue::Integer(nano) = value <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">&quot;nanosecond must be an integer.&quot;</span>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">"nanosecond must be an integer."</span>));
         };
         <span class="self">self</span>.nanosecond = <span class="kw-2">*</span>nano;
         <span class="self">self</span>.bit_map.set(FieldMap::NANOSECOND, <span class="bool-val">true</span>);
@@ -1024,7 +1025,7 @@
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>set_offset(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>FieldValue) -&gt; TemporalResult&lt;()&gt; {
         <span class="kw">let </span>FieldValue::String(offset) = value <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">&quot;offset must be string.&quot;</span>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">"offset must be string."</span>));
         };
         <span class="self">self</span>.offset = <span class="prelude-val">Some</span>(offset.to_string());
         <span class="self">self</span>.bit_map.set(FieldMap::OFFSET, <span class="bool-val">true</span>);
@@ -1035,10 +1036,10 @@
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>set_era(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>FieldValue) -&gt; TemporalResult&lt;()&gt; {
         <span class="kw">let </span>FieldValue::String(era) = value <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">&quot;era must be string.&quot;</span>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">"era must be string."</span>));
         };
         <span class="self">self</span>.era =
-            <span class="prelude-val">Some</span>(TinyStr16::from_bytes(era.as_bytes()).expect(<span class="string">&quot;era should not exceed 16 bytes.&quot;</span>));
+            <span class="prelude-val">Some</span>(TinyStr16::from_bytes(era.as_bytes()).expect(<span class="string">"era should not exceed 16 bytes."</span>));
         <span class="self">self</span>.bit_map.set(FieldMap::ERA, <span class="bool-val">true</span>);
 
         <span class="prelude-val">Ok</span>(())
@@ -1047,7 +1048,7 @@
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>set_era_year(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>FieldValue) -&gt; TemporalResult&lt;()&gt; {
         <span class="kw">let </span>FieldValue::Integer(era_year) = value <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">&quot;eraYear must be an integer.&quot;</span>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">"eraYear must be an integer."</span>));
         };
         <span class="self">self</span>.era_year = <span class="prelude-val">Some</span>(<span class="kw-2">*</span>era_year);
         <span class="self">self</span>.bit_map.set(FieldMap::ERA_YEAR, <span class="bool-val">true</span>);
@@ -1057,7 +1058,7 @@
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>set_time_zone(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>FieldValue) -&gt; TemporalResult&lt;()&gt; {
         <span class="kw">let </span>FieldValue::String(tz) = value <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">&quot;tz must be string.&quot;</span>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">"tz must be string."</span>));
         };
         <span class="self">self</span>.time_zone = <span class="prelude-val">Some</span>(tz.to_string());
         <span class="self">self</span>.bit_map.set(FieldMap::TIME_ZONE, <span class="bool-val">true</span>);
@@ -1082,7 +1083,7 @@
 
     <span class="doccomment">/// Returns an iterator over the current values.
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>values(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Values&lt;<span class="lifetime">&#39;_</span>&gt; {
+    </span><span class="kw">pub fn </span>values(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Values&lt;<span class="lifetime">'_</span>&gt; {
         Values {
             fields: <span class="self">self</span>,
             iter: <span class="self">self</span>.bit_map.iter(),
@@ -1097,20 +1098,20 @@
             }
 
             <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::range()
-                .with_message(<span class="string">&quot;month and MonthCode values cannot both be undefined.&quot;</span>));
+                .with_message(<span class="string">"month and MonthCode values cannot both be undefined."</span>));
         }
 
         <span class="kw">let </span>unresolved_month_code = <span class="self">self
             </span>.month_code
             .as_ref()
-            .expect(<span class="string">&quot;monthCode must exist at this point.&quot;</span>);
+            .expect(<span class="string">"monthCode must exist at this point."</span>);
 
         <span class="kw">let </span>month_code_integer = month_code_to_integer(<span class="kw-2">*</span>unresolved_month_code)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>new_month = <span class="kw">match </span><span class="self">self</span>.month {
             <span class="prelude-val">Some</span>(month) <span class="kw">if </span>month != month_code_integer =&gt; {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(
-                    TemporalError::range().with_message(<span class="string">&quot;month and monthCode cannot be resolved.&quot;</span>)
+                    TemporalError::range().with_message(<span class="string">"month and monthCode cannot be resolved."</span>)
                 )
             }
             <span class="kw">_ </span>=&gt; month_code_integer,
@@ -1154,8 +1155,8 @@
 }
 
 <span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Keys {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        <span class="macro">write!</span>(f, <span class="string">&quot;TemporalFields KeyIterator&quot;</span>)
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">"TemporalFields KeyIterator"</span>)
     }
 }
 
@@ -1168,38 +1169,38 @@
         };
 
         <span class="kw">match </span>field {
-            FieldMap::YEAR =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;year&quot;</span>.to_owned()),
-            FieldMap::MONTH =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;month&quot;</span>.to_owned()),
-            FieldMap::MONTH_CODE =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;monthCode&quot;</span>.to_owned()),
-            FieldMap::DAY =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;day&quot;</span>.to_owned()),
-            FieldMap::HOUR =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;hour&quot;</span>.to_owned()),
-            FieldMap::MINUTE =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;minute&quot;</span>.to_owned()),
-            FieldMap::SECOND =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;second&quot;</span>.to_owned()),
-            FieldMap::MILLISECOND =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;millisecond&quot;</span>.to_owned()),
-            FieldMap::MICROSECOND =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;microsecond&quot;</span>.to_owned()),
-            FieldMap::NANOSECOND =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;nanosecond&quot;</span>.to_owned()),
-            FieldMap::OFFSET =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;offset&quot;</span>.to_owned()),
-            FieldMap::ERA =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;era&quot;</span>.to_owned()),
-            FieldMap::ERA_YEAR =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;eraYear&quot;</span>.to_owned()),
-            FieldMap::TIME_ZONE =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;timeZone&quot;</span>.to_owned()),
+            FieldMap::YEAR =&gt; <span class="prelude-val">Some</span>(<span class="string">"year"</span>.to_owned()),
+            FieldMap::MONTH =&gt; <span class="prelude-val">Some</span>(<span class="string">"month"</span>.to_owned()),
+            FieldMap::MONTH_CODE =&gt; <span class="prelude-val">Some</span>(<span class="string">"monthCode"</span>.to_owned()),
+            FieldMap::DAY =&gt; <span class="prelude-val">Some</span>(<span class="string">"day"</span>.to_owned()),
+            FieldMap::HOUR =&gt; <span class="prelude-val">Some</span>(<span class="string">"hour"</span>.to_owned()),
+            FieldMap::MINUTE =&gt; <span class="prelude-val">Some</span>(<span class="string">"minute"</span>.to_owned()),
+            FieldMap::SECOND =&gt; <span class="prelude-val">Some</span>(<span class="string">"second"</span>.to_owned()),
+            FieldMap::MILLISECOND =&gt; <span class="prelude-val">Some</span>(<span class="string">"millisecond"</span>.to_owned()),
+            FieldMap::MICROSECOND =&gt; <span class="prelude-val">Some</span>(<span class="string">"microsecond"</span>.to_owned()),
+            FieldMap::NANOSECOND =&gt; <span class="prelude-val">Some</span>(<span class="string">"nanosecond"</span>.to_owned()),
+            FieldMap::OFFSET =&gt; <span class="prelude-val">Some</span>(<span class="string">"offset"</span>.to_owned()),
+            FieldMap::ERA =&gt; <span class="prelude-val">Some</span>(<span class="string">"era"</span>.to_owned()),
+            FieldMap::ERA_YEAR =&gt; <span class="prelude-val">Some</span>(<span class="string">"eraYear"</span>.to_owned()),
+            FieldMap::TIME_ZONE =&gt; <span class="prelude-val">Some</span>(<span class="string">"timeZone"</span>.to_owned()),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
 }
 
-<span class="doccomment">/// An iterator over `TemporalFields`&#39;s values.
-</span><span class="kw">pub struct </span>Values&lt;<span class="lifetime">&#39;a</span>&gt; {
-    fields: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>TemporalFields,
+<span class="doccomment">/// An iterator over `TemporalFields`'s values.
+</span><span class="kw">pub struct </span>Values&lt;<span class="lifetime">'a</span>&gt; {
+    fields: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>TemporalFields,
     iter: bitflags::iter::Iter&lt;FieldMap&gt;,
 }
 
-<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Values&lt;<span class="lifetime">&#39;_</span>&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        <span class="macro">write!</span>(f, <span class="string">&quot;TemporalFields Values Iterator&quot;</span>)
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Values&lt;<span class="lifetime">'_</span>&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">"TemporalFields Values Iterator"</span>)
     }
 }
 
-<span class="kw">impl </span>Iterator <span class="kw">for </span>Values&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>Iterator <span class="kw">for </span>Values&lt;<span class="lifetime">'_</span>&gt; {
     <span class="kw">type </span>Item = FieldValue;
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
@@ -1262,20 +1263,20 @@
 
 <span class="kw">fn </span>month_code_to_integer(mc: TinyAsciiStr&lt;<span class="number">4</span>&gt;) -&gt; TemporalResult&lt;i32&gt; {
     <span class="kw">match </span>mc.as_str() {
-        <span class="string">&quot;M01&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="number">1</span>),
-        <span class="string">&quot;M02&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="number">2</span>),
-        <span class="string">&quot;M03&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="number">3</span>),
-        <span class="string">&quot;M04&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="number">4</span>),
-        <span class="string">&quot;M05&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="number">5</span>),
-        <span class="string">&quot;M06&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="number">6</span>),
-        <span class="string">&quot;M07&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="number">7</span>),
-        <span class="string">&quot;M08&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="number">8</span>),
-        <span class="string">&quot;M09&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="number">9</span>),
-        <span class="string">&quot;M10&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="number">10</span>),
-        <span class="string">&quot;M11&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="number">11</span>),
-        <span class="string">&quot;M12&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="number">12</span>),
-        <span class="string">&quot;M13&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="number">13</span>),
-        <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">&quot;monthCode is not within the valid values.&quot;</span>)),
+        <span class="string">"M01" </span>=&gt; <span class="prelude-val">Ok</span>(<span class="number">1</span>),
+        <span class="string">"M02" </span>=&gt; <span class="prelude-val">Ok</span>(<span class="number">2</span>),
+        <span class="string">"M03" </span>=&gt; <span class="prelude-val">Ok</span>(<span class="number">3</span>),
+        <span class="string">"M04" </span>=&gt; <span class="prelude-val">Ok</span>(<span class="number">4</span>),
+        <span class="string">"M05" </span>=&gt; <span class="prelude-val">Ok</span>(<span class="number">5</span>),
+        <span class="string">"M06" </span>=&gt; <span class="prelude-val">Ok</span>(<span class="number">6</span>),
+        <span class="string">"M07" </span>=&gt; <span class="prelude-val">Ok</span>(<span class="number">7</span>),
+        <span class="string">"M08" </span>=&gt; <span class="prelude-val">Ok</span>(<span class="number">8</span>),
+        <span class="string">"M09" </span>=&gt; <span class="prelude-val">Ok</span>(<span class="number">9</span>),
+        <span class="string">"M10" </span>=&gt; <span class="prelude-val">Ok</span>(<span class="number">10</span>),
+        <span class="string">"M11" </span>=&gt; <span class="prelude-val">Ok</span>(<span class="number">11</span>),
+        <span class="string">"M12" </span>=&gt; <span class="prelude-val">Ok</span>(<span class="number">12</span>),
+        <span class="string">"M13" </span>=&gt; <span class="prelude-val">Ok</span>(<span class="number">13</span>),
+        <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">"monthCode is not within the valid values."</span>)),
     }
 }
 </code></pre></div></section></main></body></html>

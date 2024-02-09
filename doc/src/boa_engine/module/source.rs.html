@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/module/source.rs`."><title>source.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/module/source.rs`."><title>source.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -2208,16 +2209,16 @@
 }
 
 <span class="kw">impl </span>std::fmt::Debug <span class="kw">for </span>SourceTextContext {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
-        f.debug_struct(<span class="string">&quot;SourceTextContext&quot;</span>)
-            .field(<span class="string">&quot;codeblock&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.codeblock)
-            .field(<span class="string">&quot;environments&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.environments)
-            .field(<span class="string">&quot;realm&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.realm.addr())
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
+        f.debug_struct(<span class="string">"SourceTextContext"</span>)
+            .field(<span class="string">"codeblock"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.codeblock)
+            .field(<span class="string">"environments"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.environments)
+            .field(<span class="string">"realm"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.realm.addr())
             .finish()
     }
 }
 
-<span class="doccomment">/// ECMAScript&#39;s [**Source Text Module Records**][spec].
+<span class="doccomment">/// ECMAScript's [**Source Text Module Records**][spec].
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-source-text-module-records
 </span><span class="attr">#[derive(Trace, Finalize)]
@@ -2231,12 +2232,12 @@
 }
 
 <span class="kw">impl </span>std::fmt::Debug <span class="kw">for </span>SourceTextModule {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
-        f.debug_struct(<span class="string">&quot;SourceTextModule&quot;</span>)
-            .field(<span class="string">&quot;status&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.status)
-            .field(<span class="string">&quot;loaded_modules&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.loaded_modules)
-            .field(<span class="string">&quot;async_parent_modules&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.async_parent_modules)
-            .field(<span class="string">&quot;import_meta&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.import_meta)
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
+        f.debug_struct(<span class="string">"SourceTextModule"</span>)
+            .field(<span class="string">"status"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.status)
+            .field(<span class="string">"loaded_modules"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.loaded_modules)
+            .field(<span class="string">"async_parent_modules"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.async_parent_modules)
+            .field(<span class="string">"import_meta"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.import_meta)
             .finish_non_exhaustive()
     }
 }
@@ -2406,7 +2407,7 @@
                             // 1. If result is a normal completion, then
                             </span><span class="kw">if let </span><span class="prelude-val">Ok</span>(loaded) = <span class="kw-2">&amp;</span>completion {
                                 <span class="kw">let </span>ModuleKind::SourceText(src) = src.kind() <span class="kw">else </span>{
-                                    <span class="macro">unreachable!</span>(<span class="string">&quot;captured src must be a source text module&quot;</span>);
+                                    <span class="macro">unreachable!</span>(<span class="string">"captured src must be a source text module"</span>);
                                 };
                                 <span class="comment">// a. If referrer.[[LoadedModules]] contains a Record whose [[Specifier]] is specifier, then
                                 // b. Else,
@@ -2416,7 +2417,7 @@
                                     .entry(required)
                                     .or_insert_with(|| loaded.clone());
 
-                                <span class="comment">//    i. Assert: That Record&#39;s [[Module]] is result.[[Value]].
+                                <span class="comment">//    i. Assert: That Record's [[Module]] is result.[[Value]].
                                 </span><span class="macro">assert_eq!</span>(entry, loaded);
                             }
 
@@ -2452,7 +2453,7 @@
                                             <span class="kw-2">&amp;</span>[err.to_opaque(context)],
                                             context,
                                         )
-                                        .expect(<span class="string">&quot;cannot fail for the default reject function&quot;</span>);
+                                        .expect(<span class="string">"cannot fail for the default reject function"</span>);
                                 }
                             }
 
@@ -2483,7 +2484,7 @@
 
         // 3. If exportStarSet contains module, then
         </span><span class="kw">if </span>export_star_set.contains(module_self) {
-            <span class="comment">// a. Assert: We&#39;ve reached the starting point of an export * circularity.
+            <span class="comment">// a. Assert: We've reached the starting point of an export * circularity.
             // b. Return a new empty List.
             </span><span class="kw">return </span>FxHashSet::default();
         }
@@ -2518,8 +2519,8 @@
             <span class="comment">// b. Let starNames be requestedModule.GetExportedNames(exportStarSet).
             // c. For each element n of starNames, do
             </span><span class="kw">for </span>n <span class="kw">in </span>requested_module.get_exported_names(export_star_set, interner) {
-                <span class="comment">// i. If SameValue(n, &quot;default&quot;) is false, then
-                </span><span class="kw">if </span><span class="kw-2">&amp;</span>n != <span class="macro">utf16!</span>(<span class="string">&quot;default&quot;</span>) {
+                <span class="comment">// i. If SameValue(n, "default") is false, then
+                </span><span class="kw">if </span><span class="kw-2">&amp;</span>n != <span class="macro">utf16!</span>(<span class="string">"default"</span>) {
                     <span class="comment">// 1. If exportedNames does not contain n, then
                     //    a. Append n to exportedNames.
                     </span>exported_names.insert(n);
@@ -2595,11 +2596,11 @@
             }
         }
 
-        <span class="comment">// 7. If SameValue(exportName, &quot;default&quot;) is true, then
-        </span><span class="kw">if </span><span class="kw-2">&amp;</span>export_name.clone() == <span class="macro">utf16!</span>(<span class="string">&quot;default&quot;</span>) {
+        <span class="comment">// 7. If SameValue(exportName, "default") is true, then
+        </span><span class="kw">if </span><span class="kw-2">&amp;</span>export_name.clone() == <span class="macro">utf16!</span>(<span class="string">"default"</span>) {
             <span class="comment">// a. Assert: A default export was not explicitly defined by this module.
             // b. Return null.
-            // c. NOTE: A default export cannot be provided by an export * from &quot;mod&quot; declaration.
+            // c. NOTE: A default export cannot be provided by an export * from "mod" declaration.
             </span><span class="kw">return </span><span class="prelude-val">Err</span>(ResolveExportError::NotFound);
         }
 
@@ -2791,7 +2792,7 @@
                         dfs_ancestor_index, ..
                     } = status
                         .dfs_info_mut()
-                        .expect(<span class="string">&quot;should be on the linking state&quot;</span>);
+                        .expect(<span class="string">"should be on the linking state"</span>);
                     <span class="kw-2">*</span>dfs_ancestor_index = usize::min(<span class="kw-2">*</span>dfs_ancestor_index, required_index);
                 }
             }
@@ -2815,7 +2816,7 @@
                 .borrow()
                 .dfs_info()
                 .copied()
-                .expect(<span class="string">&quot;should be linking&quot;</span>);
+                .expect(<span class="string">"should be linking"</span>);
             dfs_ancestor_index &lt;= dfs_index
         });
 
@@ -2828,9 +2829,9 @@
             </span><span class="prelude-val">Some</span>(info) <span class="kw">if </span>info.dfs_ancestor_index == info.dfs_index =&gt; <span class="kw">loop </span>{
                 <span class="comment">//    i. Let requiredModule be the last element of stack.
                 //    ii. Remove the last element of stack.
-                </span><span class="kw">let </span>last = stack.pop().expect(<span class="string">&quot;should have at least one element&quot;</span>);
+                </span><span class="kw">let </span>last = stack.pop().expect(<span class="string">"should have at least one element"</span>);
                 <span class="kw">let </span>ModuleKind::SourceText(last_src) = last.kind() <span class="kw">else </span>{
-                    <span class="macro">unreachable!</span>(<span class="string">&quot;iii. Assert: requiredModule is a Cyclic Module Record.&quot;</span>)
+                    <span class="macro">unreachable!</span>(<span class="string">"iii. Assert: requiredModule is a Cyclic Module Record."</span>)
                 };
 
                 <span class="comment">//    iv. Set requiredModule.[[Status]] to linked.
@@ -2849,7 +2850,7 @@
                         },
                         <span class="kw">_ </span>=&gt; {
                             <span class="macro">unreachable!</span>(
-                                <span class="string">&quot;can only transition to `Linked` from the `PreLinked` state&quot;
+                                <span class="string">"can only transition to `Linked` from the `PreLinked` state"
                             </span>)
                         }
                     });
@@ -2877,7 +2878,7 @@
                 | ModuleStatus::Linking { .. }
                 | ModuleStatus::PreLinked { .. }
                 | ModuleStatus::Evaluating { .. } =&gt; {
-                    <span class="macro">unreachable!</span>(<span class="string">&quot;2. Assert: module.[[Status]] is one of linked, evaluating-async, or evaluated.&quot;</span>)
+                    <span class="macro">unreachable!</span>(<span class="string">"2. Assert: module.[[Status]] is one of linked, evaluating-async, or evaluated."</span>)
                 }
                 ModuleStatus::Linked { .. } =&gt; (module_self.clone(), <span class="prelude-val">None</span>),
                 <span class="comment">// 3. If module.[[Status]] is either evaluating-async or evaluated, set module to module.[[CycleRoot]].
@@ -2894,7 +2895,7 @@
                     cycle_root.clone(),
                     top_level_capability.as_ref().map(|cap| {
                         JsPromise::from_object(cap.promise().clone())
-                            .expect(<span class="string">&quot;promise created from the %Promise% intrinsic is always native&quot;</span>)
+                            .expect(<span class="string">"promise created from the %Promise% intrinsic is always native"</span>)
                     }),
                 ),
             }
@@ -2915,11 +2916,11 @@
             <span class="kw-2">&amp;</span>context.intrinsics().constructors().promise().constructor(),
             context,
         )
-        .expect(<span class="string">&quot;capability creation must always succeed when using the `%Promise%` intrinsic&quot;</span>);
+        .expect(<span class="string">"capability creation must always succeed when using the `%Promise%` intrinsic"</span>);
 
         <span class="comment">// 8. Let result be Completion(InnerModuleEvaluation(module, stack, 0)).
         </span><span class="kw">let </span>ModuleKind::SourceText(module_src) = module.kind() <span class="kw">else </span>{
-            <span class="macro">unreachable!</span>(<span class="string">&quot;module must be a source text module&quot;</span>);
+            <span class="macro">unreachable!</span>(<span class="string">"module must be a source text module"</span>);
         };
         <span class="kw">let </span>result =
             module_src.inner_evaluate(<span class="kw-2">&amp;</span>module, <span class="kw-2">&amp;mut </span>stack, <span class="number">0</span>, <span class="prelude-val">Some</span>(capability.clone()), context);
@@ -2942,7 +2943,7 @@
                     </span>capability
                         .resolve()
                         .call(<span class="kw-2">&amp;</span>JsValue::undefined(), <span class="kw-2">&amp;</span>[], context)
-                        .expect(<span class="string">&quot;cannot fail for the default resolve function&quot;</span>);
+                        .expect(<span class="string">"cannot fail for the default resolve function"</span>);
                 }
 
                 <span class="comment">//     d. Assert: stack is empty.
@@ -2975,7 +2976,7 @@
                             }
                         },
                         <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(
-                            <span class="string">&quot;can only transition to `Evaluated` from the `Evaluating` or `EvaluatingAsync states&quot;
+                            <span class="string">"can only transition to `Evaluated` from the `Evaluating` or `EvaluatingAsync states"
                         </span>),
                     });
                 }
@@ -2989,13 +2990,13 @@
                 </span>capability
                     .reject()
                     .call(<span class="kw-2">&amp;</span>JsValue::undefined(), <span class="kw-2">&amp;</span>[err.to_opaque(context)], context)
-                    .expect(<span class="string">&quot;cannot fail for the default reject function&quot;</span>);
+                    .expect(<span class="string">"cannot fail for the default reject function"</span>);
             }
         }
 
         <span class="comment">// 11. Return capability.[[Promise]].
         </span>JsPromise::from_object(capability.promise().clone())
-            .expect(<span class="string">&quot;promise created from the %Promise% intrinsic is always native&quot;</span>)
+            .expect(<span class="string">"promise created from the %Promise% intrinsic is always native"</span>)
     }
 
     <span class="doccomment">/// Abstract operation [`InnerModuleEvaluation ( module, stack, index )`][spec]
@@ -3011,7 +3012,7 @@
     ) -&gt; JsResult&lt;usize&gt; {
         <span class="doccomment">/// Gets the next evaluation index of an async module.
         ///
-        /// Returns an error if there&#39;s no more available indices.
+        /// Returns an error if there's no more available indices.
         </span><span class="kw">fn </span>get_async_eval_index() -&gt; JsResult&lt;usize&gt; {
             <span class="macro">thread_local! </span>{
                 <span class="kw">static </span>ASYNC_EVAL_QUEUE_INDEX: Cell&lt;usize&gt; = Cell::new(<span class="number">0</span>);
@@ -3024,7 +3025,7 @@
                 })
                 .ok_or_else(|| {
                     JsNativeError::range()
-                        .with_message(<span class="string">&quot;exceeded the maximum number of async modules&quot;</span>)
+                        .with_message(<span class="string">"exceeded the maximum number of async modules"</span>)
                         .into()
                 })
         }
@@ -3043,7 +3044,7 @@
                 // evaluate a linked module
             </span>}
             <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(
-                <span class="string">&quot;2. Assert: module.[[Status]] is one of linked, evaluating-async, or evaluated.&quot;
+                <span class="string">"2. Assert: module.[[Status]] is one of linked, evaluating-async, or evaluated."
             </span>),
         }
 
@@ -3067,7 +3068,7 @@
                 },
                 async_eval_index: <span class="prelude-val">None</span>,
             },
-            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;already asserted that this state is `Linked`. &quot;</span>),
+            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">"already asserted that this state is `Linked`. "</span>),
         });
 
         <span class="comment">// 9. Set index to index + 1.
@@ -3109,7 +3110,7 @@
                     | ModuleStatus::Evaluated { cycle_root, .. } =&gt; {
                         <span class="comment">// 1. Set requiredModule to requiredModule.[[CycleRoot]].
                         </span><span class="kw">let </span>ModuleKind::SourceText(cycle_root_src) = cycle_root.kind() <span class="kw">else </span>{
-                            <span class="macro">unreachable!</span>(<span class="string">&quot;cycle_root must be a source text module&quot;</span>);
+                            <span class="macro">unreachable!</span>(<span class="string">"cycle_root must be a source text module"</span>);
                         };
 
                         <span class="comment">// 2. Assert: requiredModule.[[Status]] is either evaluating-async or evaluated.
@@ -3118,21 +3119,21 @@
                             <span class="comment">// 3. If requiredModule.[[EvaluationError]] is not empty, return ? requiredModule.[[EvaluationError]].
                             </span>ModuleStatus::Evaluated { error: <span class="prelude-val">Some</span>(error), .. } =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(error.clone()),
                             ModuleStatus::Evaluated { .. } =&gt; (cycle_root.clone(), <span class="bool-val">false</span>, <span class="prelude-val">None</span>),
-                            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;2. Assert: requiredModule.[[Status]] is either evaluating-async or evaluated.&quot;</span>),
+                            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">"2. Assert: requiredModule.[[Status]] is either evaluating-async or evaluated."</span>),
                         }
                     }
-                    <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;i. Assert: requiredModule.[[Status]] is one of evaluating, evaluating-async, or evaluated.&quot;</span>),
+                    <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">"i. Assert: requiredModule.[[Status]] is one of evaluating, evaluating-async, or evaluated."</span>),
                 };
 
                 <span class="kw">let </span>ModuleKind::SourceText(required_module) = required_module.kind() <span class="kw">else </span>{
-                    <span class="macro">unreachable!</span>(<span class="string">&quot;required_module must be a source text module&quot;</span>);
+                    <span class="macro">unreachable!</span>(<span class="string">"required_module must be a source text module"</span>);
                 };
 
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(req_info) = req_info {
                     <span class="kw">let </span><span class="kw-2">mut </span>status = <span class="self">self</span>.status.borrow_mut();
                     <span class="kw">let </span>info = status
                         .dfs_info_mut()
-                        .expect(<span class="string">&quot;self should still be in the evaluating state&quot;</span>);
+                        .expect(<span class="string">"self should still be in the evaluating state"</span>);
                     info.dfs_ancestor_index =
                         usize::min(info.dfs_ancestor_index, req_info.dfs_ancestor_index);
                 }
@@ -3158,7 +3159,7 @@
                     async_eval_index, ..
                 } = <span class="kw-2">&amp;mut *</span><span class="self">self</span>.status.borrow_mut()
                 <span class="kw">else </span>{
-                    <span class="macro">unreachable!</span>(<span class="string">&quot;self should still be in the evaluating state&quot;</span>)
+                    <span class="macro">unreachable!</span>(<span class="string">"self should still be in the evaluating state"</span>)
                 };
 
                 <span class="comment">// b. Set module.[[AsyncEvaluation]] to true.
@@ -3177,7 +3178,7 @@
         }
 
         <span class="kw">let </span>dfs_info = <span class="self">self</span>.status.borrow().dfs_info().copied().expect(
-            <span class="string">&quot;haven&#39;t transitioned from the `Evaluating` state, so it should have its dfs info&quot;</span>,
+            <span class="string">"haven't transitioned from the `Evaluating` state, so it should have its dfs info"</span>,
         );
 
         <span class="comment">// 14. Assert: module occurs exactly once in stack.
@@ -3194,11 +3195,11 @@
                 // ii. Remove the last element of stack.
                 </span><span class="kw">let </span>required_module = stack
                     .pop()
-                    .expect(<span class="string">&quot;should at least have `self` in the stack&quot;</span>);
+                    .expect(<span class="string">"should at least have `self` in the stack"</span>);
                 <span class="kw">let </span>is_self = module_self == <span class="kw-2">&amp;</span>required_module;
 
                 <span class="kw">let </span>ModuleKind::SourceText(required_module_src) = required_module.kind() <span class="kw">else </span>{
-                    <span class="macro">unreachable!</span>(<span class="string">&quot;iii. Assert: requiredModule is a Cyclic Module Record.&quot;</span>);
+                    <span class="macro">unreachable!</span>(<span class="string">"iii. Assert: requiredModule is a Cyclic Module Record."</span>);
                 };
                 required_module_src.status.borrow_mut().transition(|current| <span class="kw">match </span>current {
                 ModuleStatus::Evaluating {
@@ -3237,7 +3238,7 @@
                             }
                         }
                         <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(
-                            <span class="string">&quot;should only transition to `Evaluated` or `EvaluatingAsync` from the `Evaluating` state&quot;
+                            <span class="string">"should only transition to `Evaluated` or `EvaluatingAsync` from the `Evaluating` state"
                         </span>)
                     }
                 );
@@ -3270,10 +3271,10 @@
             <span class="kw-2">&amp;</span>context.intrinsics().constructors().promise().constructor(),
             context,
         )
-        .expect(<span class="string">&quot;cannot fail for the %Promise% intrinsic&quot;</span>);
+        .expect(<span class="string">"cannot fail for the %Promise% intrinsic"</span>);
 
         <span class="comment">// 4. Let fulfilledClosure be a new Abstract Closure with no parameters that captures module and performs the following steps when called:
-        // 5. Let onFulfilled be CreateBuiltinFunction(fulfilledClosure, 0, &quot;&quot;, « »).
+        // 5. Let onFulfilled be CreateBuiltinFunction(fulfilledClosure, 0, "", « »).
         </span><span class="kw">let </span>on_fulfilled = FunctionObjectBuilder::new(
             context.realm(),
             NativeFunction::from_copy_closure_with_captures(
@@ -3289,7 +3290,7 @@
         .build();
 
         <span class="comment">// 6. Let rejectedClosure be a new Abstract Closure with parameters (error) that captures module and performs the following steps when called:
-        // 7. Let onRejected be CreateBuiltinFunction(rejectedClosure, 0, &quot;&quot;, « »).
+        // 7. Let onRejected be CreateBuiltinFunction(rejectedClosure, 0, "", « »).
         </span><span class="kw">let </span>on_rejected = FunctionObjectBuilder::new(
             context.realm(),
             NativeFunction::from_copy_closure_with_captures(
@@ -3317,7 +3318,7 @@
         <span class="comment">// 9. Perform ! module.ExecuteModule(capability).
         // 10. Return unused.
         </span><span class="self">self</span>.execute(module_self, <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>capability), context)
-            .expect(<span class="string">&quot;async modules cannot directly throw&quot;</span>);
+            .expect(<span class="string">"async modules cannot directly throw"</span>);
     }
 
     <span class="doccomment">/// Abstract operation [`GatherAvailableAncestors ( module, execList )`][spec].
@@ -3360,7 +3361,7 @@
                     ..
                 } = <span class="kw-2">&amp;mut *</span>m_src.status.borrow_mut()
                 <span class="kw">else </span>{
-                    <span class="macro">unreachable!</span>(<span class="string">&quot;i. Assert: m.[[Status]] is evaluating-async.&quot;</span>);
+                    <span class="macro">unreachable!</span>(<span class="string">"i. Assert: m.[[Status]] is evaluating-async."</span>);
                 };
                 <span class="comment">// iv. Assert: m.[[PendingAsyncDependencies]] &gt; 0.
                 </span><span class="macro">assert!</span>(<span class="kw-2">*</span>pending_async_dependencies &gt; <span class="number">0</span>);
@@ -3413,13 +3414,13 @@
                     </span>.map_err(|err| <span class="kw">match </span>err {
                         ResolveExportError::NotFound =&gt; {
                             JsNativeError::syntax().with_message(<span class="macro">format!</span>(
-                                <span class="string">&quot;could not find export `{}`&quot;</span>,
+                                <span class="string">"could not find export `{}`"</span>,
                                 context.interner().resolve_expect(e.export_name())
                             ))
                         }
                         ResolveExportError::Ambiguous =&gt; {
                             JsNativeError::syntax().with_message(<span class="macro">format!</span>(
-                                <span class="string">&quot;could not resolve ambiguous export `{}`&quot;</span>,
+                                <span class="string">"could not resolve ambiguous export `{}`"</span>,
                                 context.interner().resolve_expect(e.export_name())
                             ))
                         }
@@ -3440,7 +3441,7 @@
         <span class="kw">let </span>env = Rc::new(CompileTimeEnvironment::new(global_compile_env, <span class="bool-val">true</span>));
 
         <span class="kw">let </span><span class="kw-2">mut </span>compiler = ByteCompiler::new(
-            <span class="macro">js_string!</span>(<span class="string">&quot;&lt;main&gt;&quot;</span>),
+            <span class="macro">js_string!</span>(<span class="string">"&lt;main&gt;"</span>),
             <span class="bool-val">true</span>,
             <span class="bool-val">false</span>,
             env.clone(),
@@ -3469,11 +3470,11 @@
                         <span class="comment">// ii. If resolution is either null or ambiguous, throw a SyntaxError exception.
                         </span>.map_err(|err| <span class="kw">match </span>err {
                             ResolveExportError::NotFound =&gt; JsNativeError::syntax().with_message(
-                                <span class="macro">format!</span>(<span class="string">&quot;could not find export `{}`&quot;</span>, name.to_std_string_escaped()),
+                                <span class="macro">format!</span>(<span class="string">"could not find export `{}`"</span>, name.to_std_string_escaped()),
                             ),
                             ResolveExportError::Ambiguous =&gt; {
                                 JsNativeError::syntax().with_message(<span class="macro">format!</span>(
-                                    <span class="string">&quot;could not resolve ambiguous export `{}`&quot;</span>,
+                                    <span class="string">"could not resolve ambiguous export `{}`"</span>,
                                     name.to_std_string_escaped()
                                 ))
                             }
@@ -3560,7 +3561,7 @@
                 // 2. Perform ! env.InitializeBinding(dn, fo).
                 //
                 // deferred to below.
-                </span><span class="kw">let </span>(spec, locator): (FunctionSpec&lt;<span class="lifetime">&#39;_</span>&gt;, <span class="kw">_</span>) = <span class="kw">match </span>declaration {
+                </span><span class="kw">let </span>(spec, locator): (FunctionSpec&lt;<span class="lifetime">'_</span>&gt;, <span class="kw">_</span>) = <span class="kw">match </span>declaration {
                     LexicallyScopedDeclaration::Function(f) =&gt; {
                         <span class="kw">let </span>name = bound_names(f)[<span class="number">0</span>].to_js_string(compiler.interner());
                         <span class="kw">let </span>locator = env.create_mutable_binding(name, <span class="bool-val">false</span>);
@@ -3681,7 +3682,7 @@
                         .declarative_expect()
                         .kind()
                         .as_module()
-                        .expect(<span class="string">&quot;last environment should be the module env&quot;</span>)
+                        .expect(<span class="string">"last environment should be the module env"</span>)
                         .set_indirect(locator.binding_index(), export_locator.module, name),
                     BindingName::Namespace =&gt; {
                         <span class="kw">let </span>namespace = export_locator.module.namespace(context);
@@ -3712,14 +3713,14 @@
         </span><span class="kw">let </span>frame = context
             .vm
             .pop_frame()
-            .expect(<span class="string">&quot;There should be a call frame&quot;</span>);
+            .expect(<span class="string">"There should be a call frame"</span>);
 
         <span class="kw">let </span>env = frame
             .environments
             .current()
             .as_declarative()
             .cloned()
-            .expect(<span class="string">&quot;frame must have a declarative environment&quot;</span>);
+            .expect(<span class="string">"frame must have a declarative environment"</span>);
 
         <span class="comment">// 16. Set module.[[Context]] to moduleContext.
         </span><span class="self">self</span>.status.borrow_mut().transition(|state| <span class="kw">match </span>state {
@@ -3733,7 +3734,7 @@
                 },
             },
             <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(
-                <span class="string">&quot;should only transition to the `PreLinked` state from the `Linking` state&quot;
+                <span class="string">"should only transition to the `PreLinked` state from the `Linking` state"
             </span>),
         });
 
@@ -3758,7 +3759,7 @@
         } = <span class="kw">match </span><span class="kw-2">&amp;*</span><span class="self">self</span>.status.borrow() {
             ModuleStatus::Evaluating { context, .. }
             | ModuleStatus::EvaluatingAsync { context, .. } =&gt; context.clone(),
-            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;`execute` should only be called for evaluating modules.&quot;</span>),
+            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">"`execute` should only be called for evaluating modules."</span>),
         };
 
         <span class="comment">// 2. Set the Function of moduleContext to null.
@@ -3786,7 +3787,7 @@
             .vm
             .frames
             .last()
-            .expect(<span class="string">&quot;there should be a frame&quot;</span>)
+            .expect(<span class="string">"there should be a frame"</span>)
             .set_promise_capability(<span class="kw-2">&amp;mut </span>context.vm.stack, capability);
 
         <span class="comment">// 9. If module.[[HasTLA]] is false, then
@@ -3835,7 +3836,7 @@
 </span><span class="attr">#[allow(clippy::mutable_key_type)]
 </span><span class="kw">fn </span>async_module_execution_fulfilled(module: <span class="kw-2">&amp;</span>Module, context: <span class="kw-2">&amp;mut </span>Context) {
     <span class="kw">let </span>ModuleKind::SourceText(module_src) = module.kind() <span class="kw">else </span>{
-        <span class="macro">unreachable!</span>(<span class="string">&quot;async executed module must be a source text module&quot;</span>);
+        <span class="macro">unreachable!</span>(<span class="string">"async executed module must be a source text module"</span>);
     };
 
     <span class="comment">// 1. If module.[[Status]] is evaluated, then
@@ -3877,7 +3878,7 @@
         <span class="comment">// b. Perform ! Call(module.[[TopLevelCapability]].[[Resolve]], undefined, « undefined »).
         </span>cap.resolve()
             .call(<span class="kw-2">&amp;</span>JsValue::undefined(), <span class="kw-2">&amp;</span>[], context)
-            .expect(<span class="string">&quot;default `resolve` function cannot fail&quot;</span>);
+            .expect(<span class="string">"default `resolve` function cannot fail"</span>);
     }
 
     <span class="comment">// 8. Let execList be a new empty List.
@@ -3892,14 +3893,14 @@
     <span class="comment">// 10. Let sortedExecList be a List whose elements are the elements of execList, in the order in which they had their [[AsyncEvaluation]] fields set to true in InnerModuleEvaluation.
     </span>ancestors.sort_by_cached_key(|m| {
         <span class="kw">let </span>ModuleKind::SourceText(m_src) = m.kind() <span class="kw">else </span>{
-            <span class="macro">unreachable!</span>(<span class="string">&quot;ancestors must only be source text modules&quot;</span>);
+            <span class="macro">unreachable!</span>(<span class="string">"ancestors must only be source text modules"</span>);
         };
 
         <span class="kw">let </span>ModuleStatus::EvaluatingAsync {
             async_eval_index, ..
         } = <span class="kw-2">&amp;*</span>m_src.status.borrow()
         <span class="kw">else </span>{
-            <span class="macro">unreachable!</span>(<span class="string">&quot;GatherAvailableAncestors: i. Assert: m.[[Status]] is evaluating-async.&quot;</span>);
+            <span class="macro">unreachable!</span>(<span class="string">"GatherAvailableAncestors: i. Assert: m.[[Status]] is evaluating-async."</span>);
         };
 
         <span class="kw-2">*</span>async_eval_index
@@ -3959,7 +3960,7 @@
                     <span class="comment">// b. Perform ! Call(m.[[TopLevelCapability]].[[Resolve]], undefined, « undefined »).
                     </span>cap.resolve()
                         .call(<span class="kw-2">&amp;</span>JsValue::undefined(), <span class="kw-2">&amp;</span>[], context)
-                        .expect(<span class="string">&quot;default `resolve` function cannot fail&quot;</span>);
+                        .expect(<span class="string">"default `resolve` function cannot fail"</span>);
                 }
             }
         }
@@ -3972,7 +3973,7 @@
 /// [spec]: https://tc39.es/ecma262/#sec-async-module-execution-rejected
 </span><span class="kw">fn </span>async_module_execution_rejected(module: <span class="kw-2">&amp;</span>Module, error: <span class="kw-2">&amp;</span>JsError, context: <span class="kw-2">&amp;mut </span>Context) {
     <span class="kw">let </span>ModuleKind::SourceText(module_src) = module.kind() <span class="kw">else </span>{
-        <span class="macro">unreachable!</span>(<span class="string">&quot;async executed module must be a source text module&quot;</span>);
+        <span class="macro">unreachable!</span>(<span class="string">"async executed module must be a source text module"</span>);
     };
     <span class="comment">// 1. If module.[[Status]] is evaluated, then
     </span><span class="kw">if let </span>ModuleStatus::Evaluated { error, .. } = <span class="kw-2">&amp;*</span>module_src.status.borrow() {
@@ -4020,7 +4021,7 @@
         <span class="comment">// b. Perform ! Call(module.[[TopLevelCapability]].[[Reject]], undefined, « error »).
         </span>cap.reject()
             .call(<span class="kw-2">&amp;</span>JsValue::undefined(), <span class="kw-2">&amp;</span>[error.to_opaque(context)], context)
-            .expect(<span class="string">&quot;default `reject` function cannot fail&quot;</span>);
+            .expect(<span class="string">"default `reject` function cannot fail"</span>);
     }
     <span class="comment">// 9. Return unused.
 </span>}

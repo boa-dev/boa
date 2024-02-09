@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/object/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/object/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1061,7 +1062,7 @@
 <a href="#1061" id="1061">1061</a>
 <a href="#1062" id="1062">1062</a>
 <a href="#1063" id="1063">1063</a>
-</pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s representation of a JavaScript object and builtin object wrappers
+</pre></div><pre class="rust"><code><span class="doccomment">//! Boa's representation of a JavaScript object and builtin object wrappers
 //!
 //! For the builtin object wrappers, please see [`object::builtins`][builtins] for implementors.
 
@@ -1115,10 +1116,10 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait </span>JsObjectType: Into&lt;JsValue&gt; + Into&lt;JsObject&gt; {}
 
 <span class="doccomment">/// Const `constructor`, usually set on prototypes as a key to point to their respective constructor object.
-</span><span class="kw">pub const </span>CONSTRUCTOR: <span class="kw-2">&amp;</span>[u16] = <span class="macro">utf16!</span>(<span class="string">&quot;constructor&quot;</span>);
+</span><span class="kw">pub const </span>CONSTRUCTOR: <span class="kw-2">&amp;</span>[u16] = <span class="macro">utf16!</span>(<span class="string">"constructor"</span>);
 
 <span class="doccomment">/// Const `prototype`, usually set on constructors as a key to point to their respective prototype object.
-</span><span class="kw">pub const </span>PROTOTYPE: <span class="kw-2">&amp;</span>[u16] = <span class="macro">utf16!</span>(<span class="string">&quot;prototype&quot;</span>);
+</span><span class="kw">pub const </span>PROTOTYPE: <span class="kw-2">&amp;</span>[u16] = <span class="macro">utf16!</span>(<span class="string">"prototype"</span>);
 
 <span class="doccomment">/// Common field names.
 
@@ -1127,7 +1128,7 @@
 /// A `None` values means that the prototype is the `null` value.
 </span><span class="kw">pub type </span>JsPrototype = <span class="prelude-ty">Option</span>&lt;JsObject&gt;;
 
-<span class="doccomment">/// The internal storage of an object&#39;s property values.
+<span class="doccomment">/// The internal storage of an object's property values.
 ///
 /// The [`shape::Shape`] contains the property names and attributes.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>ObjectStorage = Vec&lt;JsValue&gt;;
@@ -1143,7 +1144,7 @@
     </span><span class="kw">fn </span>as_mut_any(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Any;
 
     <span class="doccomment">/// Gets the type name of the value.
-    </span><span class="kw">fn </span>type_name_of_value(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str;
+    </span><span class="kw">fn </span>type_name_of_value(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str;
 }
 
 <span class="comment">// TODO: Use super trait casting in Rust 1.75
@@ -1156,8 +1157,8 @@
         <span class="self">self
     </span>}
 
-    <span class="kw">fn </span>type_name_of_value(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
-        <span class="kw">fn </span>name_of_val&lt;T: <span class="question-mark">?</span>Sized&gt;(_val: <span class="kw-2">&amp;</span>T) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
+    <span class="kw">fn </span>type_name_of_value(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str {
+        <span class="kw">fn </span>name_of_val&lt;T: <span class="question-mark">?</span>Sized&gt;(_val: <span class="kw-2">&amp;</span>T) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str {
             std::any::type_name::&lt;T&gt;()
         }
 
@@ -1181,7 +1182,7 @@
     }
 
     <span class="doccomment">/// Returns some reference to the inner value if it is of type `T`, or
-    /// `None` if it isn&#39;t.
+    /// `None` if it isn't.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>downcast_ref&lt;T: NativeObject&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>T&gt; {
         <span class="kw">if </span><span class="self">self</span>.is::&lt;T&gt;() {
@@ -1195,7 +1196,7 @@
     }
 
     <span class="doccomment">/// Returns some mutable reference to the inner value if it is of type `T`, or
-    /// `None` if it isn&#39;t.
+    /// `None` if it isn't.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>downcast_mut&lt;T: NativeObject&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>T&gt; {
         <span class="kw">if </span><span class="self">self</span>.is::&lt;T&gt;() {
@@ -1331,7 +1332,7 @@
             <span class="bool-val">true
         </span>} <span class="kw">else </span>{
             <span class="comment">// If target is non-extensible, [[SetPrototypeOf]] must return false
-            // unless V is the SameValue as the target&#39;s observed [[GetPrototypeOf]] value.
+            // unless V is the SameValue as the target's observed [[GetPrototypeOf]] value.
             </span><span class="self">self</span>.prototype() == prototype
         }
     }
@@ -1348,7 +1349,7 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>.properties
     }
 
-    <span class="doccomment">/// Inserts a field in the object `properties` without checking if it&#39;s writable.
+    <span class="doccomment">/// Inserts a field in the object `properties` without checking if it's writable.
     ///
     /// If a field was already in the object with the same name, then `true` is returned
     /// otherwise, `false` is returned.
@@ -1360,7 +1361,7 @@
         <span class="self">self</span>.properties.insert(<span class="kw-2">&amp;</span>key.into(), property.into())
     }
 
-    <span class="doccomment">/// Helper function for property removal without checking if it&#39;s configurable.
+    <span class="doccomment">/// Helper function for property removal without checking if it's configurable.
     ///
     /// Returns `true` if the property was removed, `false` otherwise.
     </span><span class="attr">#[inline]
@@ -1562,19 +1563,19 @@
 
 <span class="doccomment">/// Builder for creating native function objects
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>FunctionObjectBuilder&lt;<span class="lifetime">&#39;realm</span>&gt; {
-    realm: <span class="kw-2">&amp;</span><span class="lifetime">&#39;realm </span>Realm,
+</span><span class="kw">pub struct </span>FunctionObjectBuilder&lt;<span class="lifetime">'realm</span>&gt; {
+    realm: <span class="kw-2">&amp;</span><span class="lifetime">'realm </span>Realm,
     function: NativeFunction,
     constructor: <span class="prelude-ty">Option</span>&lt;ConstructorKind&gt;,
     name: JsString,
     length: usize,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;realm</span>&gt; FunctionObjectBuilder&lt;<span class="lifetime">&#39;realm</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'realm</span>&gt; FunctionObjectBuilder&lt;<span class="lifetime">'realm</span>&gt; {
     <span class="doccomment">/// Create a new `FunctionBuilder` for creating a native function.
     </span><span class="attr">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>new(realm: <span class="kw-2">&amp;</span><span class="lifetime">&#39;realm </span>Realm, function: NativeFunction) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>new(realm: <span class="kw-2">&amp;</span><span class="lifetime">'realm </span>Realm, function: NativeFunction) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             realm,
             function,
@@ -1586,7 +1587,7 @@
 
     <span class="doccomment">/// Specify the name property of object function object.
     ///
-    /// The default is `&quot;&quot;` (empty string).
+    /// The default is `""` (empty string).
     </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>name&lt;N&gt;(<span class="kw-2">mut </span><span class="self">self</span>, name: N) -&gt; <span class="self">Self
     </span><span class="kw">where
@@ -1648,11 +1649,11 @@
 /// # };
 /// let mut context = Context::default();
 /// let object = ObjectInitializer::new(&amp;mut context)
-///     .property(js_string!(&quot;hello&quot;), js_string!(&quot;world&quot;), Attribute::all())
+///     .property(js_string!("hello"), js_string!("world"), Attribute::all())
 ///     .property(1, 1, Attribute::all())
 ///     .function(
 ///         NativeFunction::from_fn_ptr(|_, _, _| Ok(JsValue::undefined())),
-///         js_string!(&quot;func&quot;),
+///         js_string!("func"),
 ///         0,
 ///     )
 ///     .build();
@@ -1661,27 +1662,27 @@
 /// The equivalent in JavaScript would be:
 /// ```text
 /// let object = {
-///     hello: &quot;world&quot;,
-///     &quot;1&quot;: 1,
+///     hello: "world",
+///     "1": 1,
 ///     func: function() {}
 /// }
 /// ```
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>ObjectInitializer&lt;<span class="lifetime">&#39;ctx</span>&gt; {
-    context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span><span class="kw-2">mut </span>Context,
+</span><span class="kw">pub struct </span>ObjectInitializer&lt;<span class="lifetime">'ctx</span>&gt; {
+    context: <span class="kw-2">&amp;</span><span class="lifetime">'ctx </span><span class="kw-2">mut </span>Context,
     object: JsObject,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; ObjectInitializer&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>&gt; ObjectInitializer&lt;<span class="lifetime">'ctx</span>&gt; {
     <span class="doccomment">/// Create a new `ObjectBuilder`.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>new(context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span><span class="kw-2">mut </span>Context) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>new(context: <span class="kw-2">&amp;</span><span class="lifetime">'ctx </span><span class="kw-2">mut </span>Context) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>object = JsObject::with_object_proto(context.intrinsics());
         <span class="self">Self </span>{ context, object }
     }
 
     <span class="doccomment">/// Create a new `ObjectBuilder` with custom [`NativeObject`] data.
-    </span><span class="kw">pub fn </span>with_native_data&lt;T: NativeObject&gt;(data: T, context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span><span class="kw-2">mut </span>Context) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>with_native_data&lt;T: NativeObject&gt;(data: T, context: <span class="kw-2">&amp;</span><span class="lifetime">'ctx </span><span class="kw-2">mut </span>Context) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>object = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             context.intrinsics().constructors().object().prototype(),
@@ -1694,7 +1695,7 @@
     </span><span class="kw">pub fn </span>with_native_data_and_proto&lt;T: NativeObject&gt;(
         data: T,
         proto: JsObject,
-        context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span><span class="kw-2">mut </span>Context,
+        context: <span class="kw-2">&amp;</span><span class="lifetime">'ctx </span><span class="kw-2">mut </span>Context,
     ) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>object =
             JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), proto, data);
@@ -1781,8 +1782,8 @@
 
 <span class="doccomment">/// Builder for creating constructors objects, like `Array`.
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>ConstructorBuilder&lt;<span class="lifetime">&#39;ctx</span>&gt; {
-    context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span><span class="kw-2">mut </span>Context,
+</span><span class="kw">pub struct </span>ConstructorBuilder&lt;<span class="lifetime">'ctx</span>&gt; {
+    context: <span class="kw-2">&amp;</span><span class="lifetime">'ctx </span><span class="kw-2">mut </span>Context,
     function: NativeFunction,
     constructor_object: Object&lt;OrdinaryObject&gt;,
     has_prototype_property: bool,
@@ -1795,10 +1796,10 @@
     custom_prototype: <span class="prelude-ty">Option</span>&lt;JsPrototype&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; ConstructorBuilder&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>&gt; ConstructorBuilder&lt;<span class="lifetime">'ctx</span>&gt; {
     <span class="doccomment">/// Create a new `ConstructorBuilder`.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>new(context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span><span class="kw-2">mut </span>Context, function: NativeFunction) -&gt; ConstructorBuilder&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    </span><span class="kw">pub fn </span>new(context: <span class="kw-2">&amp;</span><span class="lifetime">'ctx </span><span class="kw-2">mut </span>Context, function: NativeFunction) -&gt; ConstructorBuilder&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="self">Self </span>{
             context,
             function,
@@ -1875,7 +1876,7 @@
         <span class="self">self
     </span>}
 
-    <span class="doccomment">/// Add new data property to the constructor&#39;s prototype.
+    <span class="doccomment">/// Add new data property to the constructor's prototype.
     </span><span class="kw">pub fn </span>property&lt;K, V&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: K, value: V, attribute: Attribute) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self
     </span><span class="kw">where
         </span>K: Into&lt;PropertyKey&gt;,
@@ -1905,7 +1906,7 @@
         <span class="self">self
     </span>}
 
-    <span class="doccomment">/// Add new accessor property to the constructor&#39;s prototype.
+    <span class="doccomment">/// Add new accessor property to the constructor's prototype.
     </span><span class="kw">pub fn </span>accessor&lt;K&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         key: K,
@@ -1945,7 +1946,7 @@
         <span class="self">self
     </span>}
 
-    <span class="doccomment">/// Add new property to the constructor&#39;s prototype.
+    <span class="doccomment">/// Add new property to the constructor's prototype.
     </span><span class="kw">pub fn </span>property_descriptor&lt;K, P&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: K, property: P) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self
     </span><span class="kw">where
         </span>K: Into&lt;PropertyKey&gt;,
@@ -1978,7 +1979,7 @@
 
     <span class="doccomment">/// Specify the name of the constructor function.
     ///
-    /// Default is `&quot;[object]&quot;`
+    /// Default is `"[object]"`
     </span><span class="kw">pub fn </span>name&lt;N&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: N) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self
     </span><span class="kw">where
         </span>N: AsRef&lt;str&gt;,
@@ -2022,7 +2023,7 @@
         <span class="self">self
     </span>}
 
-    <span class="doccomment">/// Specify whether the constructor function has a &#39;prototype&#39; property.
+    <span class="doccomment">/// Specify whether the constructor function has a 'prototype' property.
     ///
     /// Default is `true`
     </span><span class="attr">#[inline]
@@ -2079,8 +2080,8 @@
                 },
             };
 
-            constructor.insert(<span class="macro">utf16!</span>(<span class="string">&quot;length&quot;</span>), length);
-            constructor.insert(<span class="macro">utf16!</span>(<span class="string">&quot;name&quot;</span>), name);
+            constructor.insert(<span class="macro">utf16!</span>(<span class="string">"length"</span>), length);
+            constructor.insert(<span class="macro">utf16!</span>(<span class="string">"name"</span>), name);
 
             <span class="kw">if let </span><span class="prelude-val">Some</span>(proto) = <span class="self">self</span>.custom_prototype.take() {
                 constructor.set_prototype(proto);

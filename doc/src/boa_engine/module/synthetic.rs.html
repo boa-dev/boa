@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/module/synthetic.rs`."><title>synthetic.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/module/synthetic.rs`."><title>synthetic.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -442,7 +443,7 @@
     </span>F: Fn(<span class="kw-2">&amp;</span>SyntheticModule, <span class="kw-2">&amp;</span>T, <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;()&gt;,
     T: Trace,
 {
-    <span class="comment">// SAFETY: `SyntheticModuleInitializer`&#39;s safe API ensures only `Copy` closures are stored; its unsafe API,
+    <span class="comment">// SAFETY: `SyntheticModuleInitializer`'s safe API ensures only `Copy` closures are stored; its unsafe API,
     // on the other hand, explains the invariants to hold in order for this to be safe, shifting
     // the responsibility to the caller.
     </span><span class="attr">#[unsafe_ignore_trace]
@@ -475,8 +476,8 @@
 }
 
 <span class="kw">impl </span>std::fmt::Debug <span class="kw">for </span>SyntheticModuleInitializer {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
-        f.debug_struct(<span class="string">&quot;ModuleInitializer&quot;</span>).finish_non_exhaustive()
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
+        f.debug_struct(<span class="string">"ModuleInitializer"</span>).finish_non_exhaustive()
     }
 }
 
@@ -484,7 +485,7 @@
     <span class="doccomment">/// Creates a `SyntheticModuleInitializer` from a [`Copy`] closure.
     </span><span class="kw">pub fn </span>from_copy_closure&lt;F&gt;(closure: F) -&gt; <span class="self">Self
     </span><span class="kw">where
-        </span>F: Fn(<span class="kw-2">&amp;</span>SyntheticModule, <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;()&gt; + Copy + <span class="lifetime">&#39;static</span>,
+        </span>F: Fn(<span class="kw-2">&amp;</span>SyntheticModule, <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;()&gt; + Copy + <span class="lifetime">'static</span>,
     {
         <span class="comment">// SAFETY: The `Copy` bound ensures there are no traceable types inside the closure.
         </span><span class="kw">unsafe </span>{ <span class="self">Self</span>::from_closure(closure) }
@@ -493,8 +494,8 @@
     <span class="doccomment">/// Creates a `SyntheticModuleInitializer` from a [`Copy`] closure and a list of traceable captures.
     </span><span class="kw">pub fn </span>from_copy_closure_with_captures&lt;F, T&gt;(closure: F, captures: T) -&gt; <span class="self">Self
     </span><span class="kw">where
-        </span>F: Fn(<span class="kw-2">&amp;</span>SyntheticModule, <span class="kw-2">&amp;</span>T, <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;()&gt; + Copy + <span class="lifetime">&#39;static</span>,
-        T: Trace + <span class="lifetime">&#39;static</span>,
+        </span>F: Fn(<span class="kw-2">&amp;</span>SyntheticModule, <span class="kw-2">&amp;</span>T, <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;()&gt; + Copy + <span class="lifetime">'static</span>,
+        T: Trace + <span class="lifetime">'static</span>,
     {
         <span class="comment">// SAFETY: The `Copy` bound ensures there are no traceable types inside the closure.
         </span><span class="kw">unsafe </span>{ <span class="self">Self</span>::from_closure_with_captures(closure, captures) }
@@ -510,7 +511,7 @@
     /// on why that is the case.
     </span><span class="kw">pub unsafe fn </span>from_closure&lt;F&gt;(closure: F) -&gt; <span class="self">Self
     </span><span class="kw">where
-        </span>F: Fn(<span class="kw-2">&amp;</span>SyntheticModule, <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;()&gt; + <span class="lifetime">&#39;static</span>,
+        </span>F: Fn(<span class="kw-2">&amp;</span>SyntheticModule, <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;()&gt; + <span class="lifetime">'static</span>,
     {
         <span class="comment">// SAFETY: The caller must ensure the invariants of the closure hold.
         </span><span class="kw">unsafe </span>{
@@ -531,8 +532,8 @@
     /// on why that is the case.
     </span><span class="kw">pub unsafe fn </span>from_closure_with_captures&lt;F, T&gt;(closure: F, captures: T) -&gt; <span class="self">Self
     </span><span class="kw">where
-        </span>F: Fn(<span class="kw-2">&amp;</span>SyntheticModule, <span class="kw-2">&amp;</span>T, <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;()&gt; + <span class="lifetime">&#39;static</span>,
-        T: Trace + <span class="lifetime">&#39;static</span>,
+        </span>F: Fn(<span class="kw-2">&amp;</span>SyntheticModule, <span class="kw-2">&amp;</span>T, <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;()&gt; + <span class="lifetime">'static</span>,
+        T: Trace + <span class="lifetime">'static</span>,
     {
         <span class="comment">// Hopefully, this unsafe operation will be replaced by the `CoerceUnsized` API in the
         // future: https://github.com/rust-lang/rust/issues/18598
@@ -584,7 +585,7 @@
     }
 }
 
-<span class="doccomment">/// ECMAScript&#39;s [**Synthetic Module Records**][spec].
+<span class="doccomment">/// ECMAScript's [**Synthetic Module Records**][spec].
 ///
 /// [spec]: https://tc39.es/proposal-json-modules/#sec-synthetic-module-records
 </span><span class="attr">#[derive(Trace, Finalize)]
@@ -596,10 +597,10 @@
 }
 
 <span class="kw">impl </span>std::fmt::Debug <span class="kw">for </span>SyntheticModule {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
-        f.debug_struct(<span class="string">&quot;SyntheticModule&quot;</span>)
-            .field(<span class="string">&quot;export_names&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.export_names)
-            .field(<span class="string">&quot;eval_steps&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.eval_steps)
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
+        f.debug_struct(<span class="string">"SyntheticModule"</span>)
+            .field(<span class="string">"export_names"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.export_names)
+            .field(<span class="string">"eval_steps"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.eval_steps)
             .finish_non_exhaustive()
     }
 }
@@ -611,20 +612,20 @@
     ///
     /// # Note
     ///
-    /// The default export corresponds to the name `&quot;default&quot;`, but note that it needs to
+    /// The default export corresponds to the name `"default"`, but note that it needs to
     /// be passed to the list of exported names in [`Module::synthetic`] beforehand.
     ///
     /// [spec]: https://tc39.es/proposal-json-modules/#sec-createsyntheticmodule
     </span><span class="kw">pub fn </span>set_export(<span class="kw-2">&amp;</span><span class="self">self</span>, export_name: <span class="kw-2">&amp;</span>JsString, export_value: JsValue) -&gt; JsResult&lt;()&gt; {
         <span class="kw">let </span>env = <span class="self">self</span>.environment().ok_or_else(|| {
             JsNativeError::typ().with_message(<span class="macro">format!</span>(
-                <span class="string">&quot;cannot set name `{}` in an unlinked synthetic module&quot;</span>,
+                <span class="string">"cannot set name `{}` in an unlinked synthetic module"</span>,
                 export_name.to_std_string_escaped()
             ))
         })<span class="question-mark">?</span>;
         <span class="kw">let </span>locator = env.compile_env().get_binding(export_name).ok_or_else(|| {
             JsNativeError::reference().with_message(<span class="macro">format!</span>(
-                <span class="string">&quot;cannot set name `{}` which was not included in the list of exports&quot;</span>,
+                <span class="string">"cannot set name `{}` which was not included in the list of exports"</span>,
                 export_name.to_std_string_escaped()
             ))
         })<span class="question-mark">?</span>;
@@ -698,7 +699,7 @@
         <span class="comment">// TODO: A bit of a hack to be able to pass the currently active runnable without an
         // available codeblock to execute.
         </span><span class="kw">let </span>compiler = ByteCompiler::new(
-            <span class="macro">js_string!</span>(<span class="string">&quot;&lt;main&gt;&quot;</span>),
+            <span class="macro">js_string!</span>(<span class="string">"&lt;main&gt;"</span>),
             <span class="bool-val">true</span>,
             <span class="bool-val">false</span>,
             module_compile_env.clone(),
@@ -734,7 +735,7 @@
             .current()
             .as_declarative()
             .cloned()
-            .expect(<span class="string">&quot;should have the module environment&quot;</span>);
+            .expect(<span class="string">"should have the module environment"</span>);
 
         <span class="self">self</span>.state
             .borrow_mut()
@@ -757,12 +758,12 @@
                     .call(
                         <span class="kw-2">&amp;</span>JsValue::undefined(),
                         <span class="kw-2">&amp;</span>[JsNativeError::typ()
-                            .with_message(<span class="string">&quot;cannot evaluate unlinked synthetic module&quot;</span>)
+                            .with_message(<span class="string">"cannot evaluate unlinked synthetic module"</span>)
                             .to_opaque(context)
                             .into()],
                         context,
                     )
-                    .expect(<span class="string">&quot;native resolving functions cannot throw&quot;</span>);
+                    .expect(<span class="string">"native resolving functions cannot throw"</span>);
                 <span class="kw">return </span>promise;
             }
             ModuleStatus::Linked { eval_context, .. } =&gt; eval_context.clone(),
@@ -798,7 +799,7 @@
 
         <span class="comment">// 11. Suspend moduleContext and remove it from the execution context stack.
         // 12. Resume the context that is now on the top of the execution context stack as the running execution context.
-        </span><span class="kw">let </span>frame = context.vm.pop_frame().expect(<span class="string">&quot;there should be a frame&quot;</span>);
+        </span><span class="kw">let </span>frame = context.vm.pop_frame().expect(<span class="string">"there should be a frame"</span>);
         frame.restore_stack(<span class="kw-2">&amp;mut </span>context.vm);
 
         <span class="comment">// 13. Let pc be ! NewPromiseCapability(%Promise%).
@@ -810,14 +811,14 @@
             <span class="comment">// 14. IfAbruptRejectPromise(result, pc).
             </span><span class="prelude-val">Err</span>(err) =&gt; reject.call(<span class="kw-2">&amp;</span>JsValue::undefined(), <span class="kw-2">&amp;</span>[err.to_opaque(context)], context),
         }
-        .expect(<span class="string">&quot;default resolving functions cannot throw&quot;</span>);
+        .expect(<span class="string">"default resolving functions cannot throw"</span>);
 
         <span class="self">self</span>.state.borrow_mut().transition(|state| <span class="kw">match </span>state {
             ModuleStatus::Linked { environment, .. } =&gt; ModuleStatus::Evaluated {
                 environment,
                 promise: promise.clone(),
             },
-            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;checks above ensure the module is linked&quot;</span>),
+            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">"checks above ensure the module is linked"</span>),
         });
 
         <span class="comment">// 16. Return pc.[[Promise]].

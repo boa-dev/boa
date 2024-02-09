@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/parser/src/lexer/token.rs`."><title>token.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="boa_parser" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../boa_parser/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_parser"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/parser/src/lexer/token.rs`."><title>token.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="boa_parser" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../../boa_parser/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_parser"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -325,7 +326,7 @@
 <a href="#325" id="325">325</a>
 <a href="#326" id="326">326</a>
 <a href="#327" id="327">327</a>
-</pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of all ECMAScript [Token]s.
+</pre></div><pre class="rust"><code><span class="doccomment">//! Boa's implementation of all ECMAScript [Token]s.
 //!
 //! More information:
 //!  - [ECMAScript reference][spec]
@@ -344,7 +345,7 @@
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-tokens
-</span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;deser&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
+</span><span class="attr">#[cfg_attr(feature = <span class="string">"deser"</span>, derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone, PartialEq)]
 </span><span class="kw">pub struct </span>Token {
     <span class="doccomment">/// The token kind, which contains the actual data of the token.
@@ -383,7 +384,7 @@
 }
 
 <span class="doccomment">/// Represents the type different types of numeric literals.
-</span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;deser&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
+</span><span class="attr">#[cfg_attr(feature = <span class="string">"deser"</span>, derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, PartialEq, Debug)]
 </span><span class="kw">pub enum </span>Numeric {
     <span class="doccomment">/// A floating point number
@@ -418,7 +419,7 @@
 }
 
 <span class="doccomment">/// Represents the type of Token and the data it has inside.
-</span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;deser&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
+</span><span class="attr">#[cfg_attr(feature = <span class="string">"deser"</span>, derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, PartialEq, Debug)]
 </span><span class="kw">pub enum </span>TokenKind {
     <span class="doccomment">/// A boolean literal, which is either `true` or `false`.
@@ -472,7 +473,7 @@
     /// [spec]: https://tc39.es/ecma262/#prod-LineTerminator
     </span>LineTerminator,
 
-    <span class="doccomment">/// Indicates a comment, the content isn&#39;t stored.
+    <span class="doccomment">/// Indicates a comment, the content isn't stored.
     </span>Comment,
 }
 
@@ -577,7 +578,7 @@
         <span class="self">Self</span>::LineTerminator
     }
 
-    <span class="doccomment">/// Creates a &#39;Comment&#39; token kind.
+    <span class="doccomment">/// Creates a 'Comment' token kind.
     </span><span class="attr">#[inline]
     #[must_use]
     </span><span class="kw">pub const fn </span>comment() -&gt; <span class="self">Self </span>{
@@ -589,14 +590,14 @@
     </span><span class="kw">pub fn </span>to_string(<span class="kw-2">&amp;</span><span class="self">self</span>, interner: <span class="kw-2">&amp;</span>Interner) -&gt; String {
         <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
             <span class="self">Self</span>::BooleanLiteral((val, <span class="kw">_</span>)) =&gt; val.to_string(),
-            <span class="self">Self</span>::EOF =&gt; <span class="string">&quot;end of file&quot;</span>.to_owned(),
+            <span class="self">Self</span>::EOF =&gt; <span class="string">"end of file"</span>.to_owned(),
             <span class="self">Self</span>::IdentifierName((ident, <span class="kw">_</span>)) =&gt; interner.resolve_expect(ident).to_string(),
-            <span class="self">Self</span>::PrivateIdentifier(ident) =&gt; <span class="macro">format!</span>(<span class="string">&quot;#{}&quot;</span>, interner.resolve_expect(ident)),
+            <span class="self">Self</span>::PrivateIdentifier(ident) =&gt; <span class="macro">format!</span>(<span class="string">"#{}"</span>, interner.resolve_expect(ident)),
             <span class="self">Self</span>::Keyword((word, <span class="kw">_</span>)) =&gt; word.to_string(),
-            <span class="self">Self</span>::NullLiteral(<span class="kw">_</span>) =&gt; <span class="string">&quot;null&quot;</span>.to_owned(),
+            <span class="self">Self</span>::NullLiteral(<span class="kw">_</span>) =&gt; <span class="string">"null"</span>.to_owned(),
             <span class="self">Self</span>::NumericLiteral(Numeric::Rational(num)) =&gt; num.to_string(),
             <span class="self">Self</span>::NumericLiteral(Numeric::Integer(num)) =&gt; num.to_string(),
-            <span class="self">Self</span>::NumericLiteral(Numeric::BigInt(<span class="kw-2">ref </span>num)) =&gt; <span class="macro">format!</span>(<span class="string">&quot;{num}n&quot;</span>),
+            <span class="self">Self</span>::NumericLiteral(Numeric::BigInt(<span class="kw-2">ref </span>num)) =&gt; <span class="macro">format!</span>(<span class="string">"{num}n"</span>),
             <span class="self">Self</span>::Punctuator(punc) =&gt; punc.to_string(),
             <span class="self">Self</span>::StringLiteral((lit, <span class="kw">_</span>)) =&gt; interner.resolve_expect(lit).to_string(),
             <span class="self">Self</span>::TemplateNoSubstitution(ts) | <span class="self">Self</span>::TemplateMiddle(ts) =&gt; {
@@ -604,20 +605,20 @@
             }
             <span class="self">Self</span>::RegularExpressionLiteral(body, flags) =&gt; {
                 <span class="macro">format!</span>(
-                    <span class="string">&quot;/{}/{}&quot;</span>,
+                    <span class="string">"/{}/{}"</span>,
                     interner.resolve_expect(body),
                     interner.resolve_expect(flags),
                 )
             }
-            <span class="self">Self</span>::LineTerminator =&gt; <span class="string">&quot;line terminator&quot;</span>.to_owned(),
-            <span class="self">Self</span>::Comment =&gt; <span class="string">&quot;comment&quot;</span>.to_owned(),
+            <span class="self">Self</span>::LineTerminator =&gt; <span class="string">"line terminator"</span>.to_owned(),
+            <span class="self">Self</span>::Comment =&gt; <span class="string">"comment"</span>.to_owned(),
         }
     }
 }
 
 <span class="macro">bitflags! </span>{
     <span class="doccomment">/// Indicates the set of escape sequences a string contains.
-    </span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;deser&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
+    </span><span class="attr">#[cfg_attr(feature = <span class="string">"deser"</span>, derive(serde::Serialize, serde::Deserialize))]
     #[derive(Clone, Copy, Debug, PartialEq, Eq)]
     </span><span class="kw">pub struct </span>EscapeSequence: u8 {
         <span class="doccomment">/// A legacy escape sequence starting with `0` - `7`.
@@ -649,7 +650,7 @@
 }
 
 <span class="doccomment">/// Indicates if an identifier contains an escape sequence.
-</span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;deser&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
+</span><span class="attr">#[cfg_attr(feature = <span class="string">"deser"</span>, derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 </span><span class="kw">pub struct </span>ContainsEscapeSequence(<span class="kw">pub </span>bool);
 </code></pre></div></section></main></body></html>

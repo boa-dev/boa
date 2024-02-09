@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/value/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/value/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1113,7 +1114,7 @@
 <a href="#1113" id="1113">1113</a>
 <a href="#1114" id="1114">1114</a>
 <a href="#1115" id="1115">1115</a>
-</pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s ECMAScript Value implementation.
+</pre></div><pre class="rust"><code><span class="doccomment">//! Boa's ECMAScript Value implementation.
 //!
 //! Javascript values, utility methods and conversion between Javascript values and Rust values.
 
@@ -1175,13 +1176,13 @@
 <span class="doccomment">/// A Javascript value
 </span><span class="attr">#[derive(Finalize, Debug, Clone)]
 </span><span class="kw">pub enum </span>JsValue {
-    <span class="doccomment">/// `null` - A null value, for when a value doesn&#39;t exist.
+    <span class="doccomment">/// `null` - A null value, for when a value doesn't exist.
     </span>Null,
-    <span class="doccomment">/// `undefined` - An undefined value, for when a field or index doesn&#39;t exist.
+    <span class="doccomment">/// `undefined` - An undefined value, for when a field or index doesn't exist.
     </span>Undefined,
     <span class="doccomment">/// `boolean` - A `true` / `false` value, for if a certain criteria is met.
     </span>Boolean(bool),
-    <span class="doccomment">/// `String` - A UTF-16 string, such as `&quot;Hello, world&quot;`.
+    <span class="doccomment">/// `String` - A UTF-16 string, such as `"Hello, world"`.
     </span>String(JsString),
     <span class="doccomment">/// `Number` - A 64-bit floating point number, such as `3.1415`
     </span>Rational(f64),
@@ -1476,15 +1477,15 @@
 
             <span class="comment">// b. If exoticToPrim is not undefined, then
             </span><span class="kw">if let </span><span class="prelude-val">Some</span>(exotic_to_prim) = exotic_to_prim {
-                <span class="comment">// i. If preferredType is not present, let hint be &quot;default&quot;.
-                // ii. Else if preferredType is string, let hint be &quot;string&quot;.
+                <span class="comment">// i. If preferredType is not present, let hint be "default".
+                // ii. Else if preferredType is string, let hint be "string".
                 // iii. Else,
                 //     1. Assert: preferredType is number.
-                //     2. Let hint be &quot;number&quot;.
+                //     2. Let hint be "number".
                 </span><span class="kw">let </span>hint = <span class="kw">match </span>preferred_type {
-                    PreferredType::Default =&gt; <span class="macro">js_string!</span>(<span class="string">&quot;default&quot;</span>),
-                    PreferredType::String =&gt; <span class="macro">js_string!</span>(<span class="string">&quot;string&quot;</span>),
-                    PreferredType::Number =&gt; <span class="macro">js_string!</span>(<span class="string">&quot;number&quot;</span>),
+                    PreferredType::Default =&gt; <span class="macro">js_string!</span>(<span class="string">"default"</span>),
+                    PreferredType::String =&gt; <span class="macro">js_string!</span>(<span class="string">"string"</span>),
+                    PreferredType::Number =&gt; <span class="macro">js_string!</span>(<span class="string">"number"</span>),
                 }
                 .into();
 
@@ -1494,7 +1495,7 @@
                 // vi. Throw a TypeError exception.
                 </span><span class="kw">return if </span>result.is_object() {
                     <span class="prelude-val">Err</span>(JsNativeError::typ()
-                        .with_message(<span class="string">&quot;Symbol.toPrimitive cannot return an object&quot;</span>)
+                        .with_message(<span class="string">"Symbol.toPrimitive cannot return an object"</span>)
                         .into())
                 } <span class="kw">else </span>{
                     <span class="prelude-val">Ok</span>(result)
@@ -1524,16 +1525,16 @@
     </span><span class="kw">pub fn </span>to_bigint(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsBigInt&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Null =&gt; <span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;cannot convert null to a BigInt&quot;</span>)
+                .with_message(<span class="string">"cannot convert null to a BigInt"</span>)
                 .into()),
             <span class="self">Self</span>::Undefined =&gt; <span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;cannot convert undefined to a BigInt&quot;</span>)
+                .with_message(<span class="string">"cannot convert undefined to a BigInt"</span>)
                 .into()),
             <span class="self">Self</span>::String(<span class="kw-2">ref </span>string) =&gt; string.to_big_int().map_or_else(
                 || {
                     <span class="prelude-val">Err</span>(JsNativeError::syntax()
                         .with_message(<span class="macro">format!</span>(
-                            <span class="string">&quot;cannot convert string &#39;{}&#39; to bigint primitive&quot;</span>,
+                            <span class="string">"cannot convert string '{}' to bigint primitive"</span>,
                             string.to_std_string_escaped()
                         ))
                         .into())
@@ -1543,7 +1544,7 @@
             <span class="self">Self</span>::Boolean(<span class="bool-val">true</span>) =&gt; <span class="prelude-val">Ok</span>(JsBigInt::one()),
             <span class="self">Self</span>::Boolean(<span class="bool-val">false</span>) =&gt; <span class="prelude-val">Ok</span>(JsBigInt::zero()),
             <span class="self">Self</span>::Integer(<span class="kw">_</span>) | <span class="self">Self</span>::Rational(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;cannot convert Number to a BigInt&quot;</span>)
+                .with_message(<span class="string">"cannot convert Number to a BigInt"</span>)
                 .into()),
             <span class="self">Self</span>::BigInt(b) =&gt; <span class="prelude-val">Ok</span>(b.clone()),
             <span class="self">Self</span>::Object(<span class="kw">_</span>) =&gt; {
@@ -1551,7 +1552,7 @@
                 primitive.to_bigint(context)
             }
             <span class="self">Self</span>::Symbol(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;cannot convert Symbol to a BigInt&quot;</span>)
+                .with_message(<span class="string">"cannot convert Symbol to a BigInt"</span>)
                 .into()),
         }
     }
@@ -1568,11 +1569,11 @@
     ///
     /// let value = JsValue::new(3);
     ///
-    /// println!(&quot;{}&quot;, value.display());
+    /// println!("{}", value.display());
     /// ```
     </span><span class="attr">#[must_use]
     #[inline]
-    </span><span class="kw">pub const fn </span>display(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ValueDisplay&lt;<span class="lifetime">&#39;_</span>&gt; {
+    </span><span class="kw">pub const fn </span>display(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ValueDisplay&lt;<span class="lifetime">'_</span>&gt; {
         ValueDisplay {
             value: <span class="self">self</span>,
             internals: <span class="bool-val">false</span>,
@@ -1584,14 +1585,14 @@
     /// This function is equivalent to `String(value)` in JavaScript.
     </span><span class="kw">pub fn </span>to_string(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsString&gt; {
         <span class="kw">match </span><span class="self">self </span>{
-            <span class="self">Self</span>::Null =&gt; <span class="prelude-val">Ok</span>(<span class="string">&quot;null&quot;</span>.into()),
-            <span class="self">Self</span>::Undefined =&gt; <span class="prelude-val">Ok</span>(<span class="string">&quot;undefined&quot;</span>.into()),
+            <span class="self">Self</span>::Null =&gt; <span class="prelude-val">Ok</span>(<span class="string">"null"</span>.into()),
+            <span class="self">Self</span>::Undefined =&gt; <span class="prelude-val">Ok</span>(<span class="string">"undefined"</span>.into()),
             <span class="self">Self</span>::Boolean(boolean) =&gt; <span class="prelude-val">Ok</span>(boolean.to_string().into()),
             <span class="self">Self</span>::Rational(rational) =&gt; <span class="prelude-val">Ok</span>(Number::to_js_string(<span class="kw-2">*</span>rational)),
             <span class="self">Self</span>::Integer(integer) =&gt; <span class="prelude-val">Ok</span>(integer.to_string().into()),
             <span class="self">Self</span>::String(string) =&gt; <span class="prelude-val">Ok</span>(string.clone()),
             <span class="self">Self</span>::Symbol(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;can&#39;t convert symbol to string&quot;</span>)
+                .with_message(<span class="string">"can't convert symbol to string"</span>)
                 .into()),
             <span class="self">Self</span>::BigInt(<span class="kw-2">ref </span>bigint) =&gt; <span class="prelude-val">Ok</span>(bigint.to_string().into()),
             <span class="self">Self</span>::Object(<span class="kw">_</span>) =&gt; {
@@ -1610,7 +1611,7 @@
         <span class="comment">// TODO: add fast paths with object template
         </span><span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Undefined | <span class="self">Self</span>::Null =&gt; <span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;cannot convert &#39;null&#39; or &#39;undefined&#39; to object&quot;</span>)
+                .with_message(<span class="string">"cannot convert 'null' or 'undefined' to object"</span>)
                 .into()),
             <span class="self">Self</span>::Boolean(boolean) =&gt; <span class="prelude-val">Ok</span>(context
                 .intrinsics()
@@ -1889,7 +1890,7 @@
 
         <span class="prelude-val">Ok</span>(value
             .to_i64()
-            .expect(<span class="string">&quot;should be within the range of `i64` by the mod operation&quot;</span>))
+            .expect(<span class="string">"should be within the range of `i64` by the mod operation"</span>))
     }
 
     <span class="doccomment">/// `7.1.16 ToBigUint64 ( argument )`
@@ -1907,7 +1908,7 @@
         </span><span class="prelude-val">Ok</span>(n.as_inner()
             .mod_floor(<span class="kw-2">&amp;</span>TWO_E_64)
             .to_u64()
-            .expect(<span class="string">&quot;should be within the range of `u64` by the mod operation&quot;</span>))
+            .expect(<span class="string">"should be within the range of `u64` by the mod operation"</span>))
     }
 
     <span class="doccomment">/// Converts a value to a non-negative integer if it is a valid integer index value.
@@ -1930,7 +1931,7 @@
         <span class="comment">// c. If ! SameValue(𝔽(integer), clamped) is false, throw a RangeError exception.
         </span><span class="kw">if </span>integer != clamped {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
-                .with_message(<span class="string">&quot;Index must be between 0 and  2^53 - 1&quot;</span>)
+                .with_message(<span class="string">"Index must be between 0 and  2^53 - 1"</span>)
                 .into());
         }
 
@@ -1984,10 +1985,10 @@
             <span class="self">Self</span>::Rational(number) =&gt; <span class="prelude-val">Ok</span>(number),
             <span class="self">Self</span>::Integer(integer) =&gt; <span class="prelude-val">Ok</span>(f64::from(integer)),
             <span class="self">Self</span>::Symbol(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;argument must not be a symbol&quot;</span>)
+                .with_message(<span class="string">"argument must not be a symbol"</span>)
                 .into()),
             <span class="self">Self</span>::BigInt(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;argument must not be a bigint&quot;</span>)
+                .with_message(<span class="string">"argument must not be a bigint"</span>)
                 .into()),
             <span class="self">Self</span>::Object(<span class="kw">_</span>) =&gt; {
                 <span class="kw">let </span>primitive = <span class="self">self</span>.to_primitive(context, PreferredType::Number)<span class="question-mark">?</span>;
@@ -2024,7 +2025,7 @@
     </span><span class="kw">pub fn </span>require_object_coercible(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsResult&lt;<span class="kw-2">&amp;</span><span class="self">Self</span>&gt; {
         <span class="kw">if </span><span class="self">self</span>.is_null_or_undefined() {
             <span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;cannot convert null or undefined to Object&quot;</span>)
+                .with_message(<span class="string">"cannot convert null or undefined to Object"</span>)
                 .into())
         } <span class="kw">else </span>{
             <span class="prelude-val">Ok</span>(<span class="self">self</span>)
@@ -2043,7 +2044,7 @@
         </span><span class="self">self</span>.as_object()
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message(<span class="string">&quot;Cannot construct a property descriptor from a non-object&quot;</span>)
+                    .with_message(<span class="string">"Cannot construct a property descriptor from a non-object"</span>)
                     .into()
             })
             .and_then(|obj| obj.to_property_descriptor(context))
@@ -2057,20 +2058,20 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-typeof-operator
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>type_of(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
+    </span><span class="kw">pub fn </span>type_of(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str {
         <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
-            <span class="self">Self</span>::Rational(<span class="kw">_</span>) | <span class="self">Self</span>::Integer(<span class="kw">_</span>) =&gt; <span class="string">&quot;number&quot;</span>,
-            <span class="self">Self</span>::String(<span class="kw">_</span>) =&gt; <span class="string">&quot;string&quot;</span>,
-            <span class="self">Self</span>::Boolean(<span class="kw">_</span>) =&gt; <span class="string">&quot;boolean&quot;</span>,
-            <span class="self">Self</span>::Symbol(<span class="kw">_</span>) =&gt; <span class="string">&quot;symbol&quot;</span>,
-            <span class="self">Self</span>::Null =&gt; <span class="string">&quot;object&quot;</span>,
-            <span class="self">Self</span>::Undefined =&gt; <span class="string">&quot;undefined&quot;</span>,
-            <span class="self">Self</span>::BigInt(<span class="kw">_</span>) =&gt; <span class="string">&quot;bigint&quot;</span>,
+            <span class="self">Self</span>::Rational(<span class="kw">_</span>) | <span class="self">Self</span>::Integer(<span class="kw">_</span>) =&gt; <span class="string">"number"</span>,
+            <span class="self">Self</span>::String(<span class="kw">_</span>) =&gt; <span class="string">"string"</span>,
+            <span class="self">Self</span>::Boolean(<span class="kw">_</span>) =&gt; <span class="string">"boolean"</span>,
+            <span class="self">Self</span>::Symbol(<span class="kw">_</span>) =&gt; <span class="string">"symbol"</span>,
+            <span class="self">Self</span>::Null =&gt; <span class="string">"object"</span>,
+            <span class="self">Self</span>::Undefined =&gt; <span class="string">"undefined"</span>,
+            <span class="self">Self</span>::BigInt(<span class="kw">_</span>) =&gt; <span class="string">"bigint"</span>,
             <span class="self">Self</span>::Object(<span class="kw-2">ref </span>object) =&gt; {
                 <span class="kw">if </span>object.is_callable() {
-                    <span class="string">&quot;function&quot;
+                    <span class="string">"function"
                 </span>} <span class="kw">else </span>{
-                    <span class="string">&quot;object&quot;
+                    <span class="string">"object"
                 </span>}
             }
         }
@@ -2080,18 +2081,18 @@
     </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>js_type_of(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsString {
         <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
-            <span class="self">Self</span>::Rational(<span class="kw">_</span>) | <span class="self">Self</span>::Integer(<span class="kw">_</span>) =&gt; <span class="macro">js_string!</span>(<span class="string">&quot;number&quot;</span>),
-            <span class="self">Self</span>::String(<span class="kw">_</span>) =&gt; <span class="macro">js_string!</span>(<span class="string">&quot;string&quot;</span>),
-            <span class="self">Self</span>::Boolean(<span class="kw">_</span>) =&gt; <span class="macro">js_string!</span>(<span class="string">&quot;boolean&quot;</span>),
-            <span class="self">Self</span>::Symbol(<span class="kw">_</span>) =&gt; <span class="macro">js_string!</span>(<span class="string">&quot;symbol&quot;</span>),
-            <span class="self">Self</span>::Null =&gt; <span class="macro">js_string!</span>(<span class="string">&quot;object&quot;</span>),
-            <span class="self">Self</span>::Undefined =&gt; <span class="macro">js_string!</span>(<span class="string">&quot;undefined&quot;</span>),
-            <span class="self">Self</span>::BigInt(<span class="kw">_</span>) =&gt; <span class="macro">js_string!</span>(<span class="string">&quot;bigint&quot;</span>),
+            <span class="self">Self</span>::Rational(<span class="kw">_</span>) | <span class="self">Self</span>::Integer(<span class="kw">_</span>) =&gt; <span class="macro">js_string!</span>(<span class="string">"number"</span>),
+            <span class="self">Self</span>::String(<span class="kw">_</span>) =&gt; <span class="macro">js_string!</span>(<span class="string">"string"</span>),
+            <span class="self">Self</span>::Boolean(<span class="kw">_</span>) =&gt; <span class="macro">js_string!</span>(<span class="string">"boolean"</span>),
+            <span class="self">Self</span>::Symbol(<span class="kw">_</span>) =&gt; <span class="macro">js_string!</span>(<span class="string">"symbol"</span>),
+            <span class="self">Self</span>::Null =&gt; <span class="macro">js_string!</span>(<span class="string">"object"</span>),
+            <span class="self">Self</span>::Undefined =&gt; <span class="macro">js_string!</span>(<span class="string">"undefined"</span>),
+            <span class="self">Self</span>::BigInt(<span class="kw">_</span>) =&gt; <span class="macro">js_string!</span>(<span class="string">"bigint"</span>),
             <span class="self">Self</span>::Object(<span class="kw-2">ref </span>object) =&gt; {
                 <span class="kw">if </span>object.is_callable() {
-                    <span class="macro">js_string!</span>(<span class="string">&quot;function&quot;</span>)
+                    <span class="macro">js_string!</span>(<span class="string">"function"</span>)
                 } <span class="kw">else </span>{
-                    <span class="macro">js_string!</span>(<span class="string">&quot;object&quot;</span>)
+                    <span class="macro">js_string!</span>(<span class="string">"object"</span>)
                 }
             }
         }

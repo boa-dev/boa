@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/parser/src/parser/statement/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="boa_parser" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../boa_parser/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_parser"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/parser/src/parser/statement/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="boa_parser" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../../../boa_parser/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_parser"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1103,7 +1104,7 @@
     <span class="kw">type </span>Output = ast::Statement;
 
     <span class="kw">fn </span>parse(<span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Statement&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">"Statement"</span>, <span class="string">"Parsing"</span>);
         <span class="comment">// TODO: add BreakableStatement and divide Whiles, fors and so on to another place.
         </span><span class="kw">let </span>tok = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>;
 
@@ -1147,7 +1148,7 @@
                     <span class="prelude-val">Err</span>(Error::unexpected(
                         tok.to_string(interner),
                         tok.span(),
-                        <span class="string">&quot;statement&quot;</span>,
+                        <span class="string">"statement"</span>,
                     ))
                 }
             }
@@ -1225,7 +1226,7 @@
     allow_yield: AllowYield,
     allow_await: AllowAwait,
     allow_return: AllowReturn,
-    break_nodes: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[TokenKind],
+    break_nodes: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>[TokenKind],
     directive_prologues: bool,
     strict: bool,
 }
@@ -1236,7 +1237,7 @@
         allow_yield: Y,
         allow_await: A,
         allow_return: R,
-        break_nodes: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[TokenKind],
+        break_nodes: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>[TokenKind],
         directive_prologues: bool,
         strict: bool,
     ) -&gt; <span class="self">Self
@@ -1262,7 +1263,7 @@
 {
     <span class="kw">type </span>Output = ast::StatementList;
 
-    <span class="doccomment">/// The function parses a `node::StatementList` using the `StatementList`&#39;s
+    <span class="doccomment">/// The function parses a `node::StatementList` using the `StatementList`'s
     /// `break_nodes` to know when to terminate.
     ///
     /// Returns a `ParseError::AbruptEnd` if end of stream is reached before a
@@ -1273,7 +1274,7 @@
     /// Note that the last token which causes the parse to finish is not
     /// consumed.
     </span><span class="kw">fn </span>parse(<span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;StatementList&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">"StatementList"</span>, <span class="string">"Parsing"</span>);
         <span class="kw">let </span><span class="kw-2">mut </span>items = Vec::new();
 
         <span class="kw">let </span>global_strict = cursor.strict();
@@ -1303,10 +1304,10 @@
                         ast::Expression::Literal(ast::expression::literal::Literal::String(string)),
                     )) <span class="kw">if </span>!strict =&gt; {
                         <span class="kw">if </span>interner.resolve_expect(<span class="kw-2">*</span>string).join(
-                            |s| s == <span class="string">&quot;use strict&quot;</span>,
-                            |g| g == <span class="macro">utf16!</span>(<span class="string">&quot;use strict&quot;</span>),
+                            |s| s == <span class="string">"use strict"</span>,
+                            |g| g == <span class="macro">utf16!</span>(<span class="string">"use strict"</span>),
                             <span class="bool-val">true</span>,
-                        ) &amp;&amp; directives_stack.last().expect(<span class="string">&quot;token should exist&quot;</span>).<span class="number">1
+                        ) &amp;&amp; directives_stack.last().expect(<span class="string">"token should exist"</span>).<span class="number">1
                             </span>== EscapeSequence::empty()
                         {
                             cursor.set_strict(<span class="bool-val">true</span>);
@@ -1317,14 +1318,14 @@
                             <span class="kw">for </span>(position, escape) <span class="kw">in </span>std::mem::take(<span class="kw-2">&amp;mut </span>directives_stack) {
                                 <span class="kw">if </span>escape.contains(EscapeSequence::LEGACY_OCTAL) {
                                     <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
-                                        <span class="string">&quot;legacy octal escape sequences are not allowed in strict mode&quot;</span>,
+                                        <span class="string">"legacy octal escape sequences are not allowed in strict mode"</span>,
                                         position,
                                     ));
                                 }
 
                                 <span class="kw">if </span>escape.contains(EscapeSequence::NON_OCTAL_DECIMAL) {
                                     <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
-                                        <span class="string">&quot;decimal escape sequences are not allowed in strict mode&quot;</span>,
+                                        <span class="string">"decimal escape sequences are not allowed in strict mode"</span>,
                                         position,
                                     ));
                                 }
@@ -1394,7 +1395,7 @@
     <span class="kw">type </span>Output = ast::StatementListItem;
 
     <span class="kw">fn </span>parse(<span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;StatementListItem&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">"StatementListItem"</span>, <span class="string">"Parsing"</span>);
         <span class="kw">let </span>tok = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>;
 
         <span class="kw">match </span><span class="kw-2">*</span>tok.kind() {
@@ -1464,11 +1465,11 @@
     <span class="kw">type </span>Output = Vec&lt;ObjectPatternElement&gt;;
 
     <span class="kw">fn </span>parse(<span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;ObjectBindingPattern&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">"ObjectBindingPattern"</span>, <span class="string">"Parsing"</span>);
 
         cursor.expect(
             TokenKind::Punctuator(Punctuator::OpenBlock),
-            <span class="string">&quot;object binding pattern&quot;</span>,
+            <span class="string">"object binding pattern"</span>,
             interner,
         )<span class="question-mark">?</span>;
 
@@ -1483,7 +1484,7 @@
                 TokenKind::Punctuator(Punctuator::CloseBlock) =&gt; {
                     cursor.expect(
                         TokenKind::Punctuator(Punctuator::CloseBlock),
-                        <span class="string">&quot;object binding pattern&quot;</span>,
+                        <span class="string">"object binding pattern"</span>,
                         interner,
                     )<span class="question-mark">?</span>;
                     <span class="kw">return </span><span class="prelude-val">Ok</span>(patterns);
@@ -1491,14 +1492,14 @@
                 TokenKind::Punctuator(Punctuator::Spread) =&gt; {
                     cursor.expect(
                         TokenKind::Punctuator(Punctuator::Spread),
-                        <span class="string">&quot;object binding pattern&quot;</span>,
+                        <span class="string">"object binding pattern"</span>,
                         interner,
                     )<span class="question-mark">?</span>;
                     <span class="kw">let </span>ident = BindingIdentifier::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
                         .parse(cursor, interner)<span class="question-mark">?</span>;
                     cursor.expect(
                         TokenKind::Punctuator(Punctuator::CloseBlock),
-                        <span class="string">&quot;object binding pattern&quot;</span>,
+                        <span class="string">"object binding pattern"</span>,
                         interner,
                     )<span class="question-mark">?</span>;
                     patterns.push(ObjectPatternElement::RestProperty {
@@ -1527,7 +1528,7 @@
                         }
                         cursor.expect(
                             TokenKind::Punctuator(Punctuator::Colon),
-                            <span class="string">&quot;object binding pattern&quot;</span>,
+                            <span class="string">"object binding pattern"</span>,
                             interner,
                         )<span class="question-mark">?</span>;
                         <span class="kw">if let </span><span class="prelude-val">Some</span>(peek_token) = cursor.peek(<span class="number">0</span>, interner)<span class="question-mark">? </span>{
@@ -1667,7 +1668,7 @@
                 <span class="kw">if </span>peek_token.kind() == <span class="kw-2">&amp;</span>TokenKind::Punctuator(Punctuator::Comma) {
                     cursor.expect(
                         TokenKind::Punctuator(Punctuator::Comma),
-                        <span class="string">&quot;object binding pattern&quot;</span>,
+                        <span class="string">"object binding pattern"</span>,
                         interner,
                     )<span class="question-mark">?</span>;
                 }
@@ -1709,11 +1710,11 @@
     <span class="kw">type </span>Output = Vec&lt;ArrayPatternElement&gt;;
 
     <span class="kw">fn </span>parse(<span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;ArrayBindingPattern&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">"ArrayBindingPattern"</span>, <span class="string">"Parsing"</span>);
 
         cursor.expect(
             TokenKind::Punctuator(Punctuator::OpenBracket),
-            <span class="string">&quot;array binding pattern&quot;</span>,
+            <span class="string">"array binding pattern"</span>,
             interner,
         )<span class="question-mark">?</span>;
 
@@ -1725,7 +1726,7 @@
                 TokenKind::Punctuator(Punctuator::CloseBracket) =&gt; {
                     cursor.expect(
                         TokenKind::Punctuator(Punctuator::CloseBracket),
-                        <span class="string">&quot;array binding pattern&quot;</span>,
+                        <span class="string">"array binding pattern"</span>,
                         interner,
                     )<span class="question-mark">?</span>;
                     <span class="kw">return </span><span class="prelude-val">Ok</span>(patterns);
@@ -1733,7 +1734,7 @@
                 TokenKind::Punctuator(Punctuator::Comma) =&gt; {
                     cursor.expect(
                         TokenKind::Punctuator(Punctuator::Comma),
-                        <span class="string">&quot;array binding pattern&quot;</span>,
+                        <span class="string">"array binding pattern"</span>,
                         interner,
                     )<span class="question-mark">?</span>;
                     <span class="kw">if </span>last_elision_or_first {
@@ -1746,7 +1747,7 @@
                 TokenKind::Punctuator(Punctuator::Spread) =&gt; {
                     cursor.expect(
                         TokenKind::Punctuator(Punctuator::Spread),
-                        <span class="string">&quot;array binding pattern&quot;</span>,
+                        <span class="string">"array binding pattern"</span>,
                         interner,
                     )<span class="question-mark">?</span>;
 
@@ -1778,7 +1779,7 @@
 
                     cursor.expect(
                         TokenKind::Punctuator(Punctuator::CloseBracket),
-                        <span class="string">&quot;array binding pattern&quot;</span>,
+                        <span class="string">"array binding pattern"</span>,
                         interner,
                     )<span class="question-mark">?</span>;
 
@@ -1865,7 +1866,7 @@
                 <span class="kw">if </span>peek_token.kind() == <span class="kw-2">&amp;</span>TokenKind::Punctuator(Punctuator::Comma) {
                     cursor.expect(
                         TokenKind::Punctuator(Punctuator::Comma),
-                        <span class="string">&quot;array binding pattern&quot;</span>,
+                        <span class="string">"array binding pattern"</span>,
                         interner,
                     )<span class="question-mark">?</span>;
                     <span class="kw">if </span>last_elision_or_first {
@@ -1908,7 +1909,7 @@
 
             <span class="kw">if </span>contains_invalid_object_literal(<span class="kw-2">&amp;</span>item) {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
-                    <span class="string">&quot;invalid object literal in module item list&quot;</span>.into(),
+                    <span class="string">"invalid object literal in module item list"</span>.into(),
                     Position::new(<span class="number">1</span>, <span class="number">1</span>),
                 )));
             }
@@ -1921,7 +1922,7 @@
         <span class="comment">// It is a Syntax Error if AllPrivateIdentifiersValid of ModuleItemList with argument « » is false.
         </span><span class="kw">if </span>!all_private_identifiers_valid(<span class="kw-2">&amp;</span>list, Vec::new()) {
             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
-                <span class="string">&quot;invalid private identifier usage&quot;</span>,
+                <span class="string">"invalid private identifier usage"</span>,
                 Position::new(<span class="number">1</span>, <span class="number">1</span>),
             ));
         }

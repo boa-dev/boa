@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/object/jsobject.rs`."><title>jsobject.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/object/jsobject.rs`."><title>jsobject.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -984,10 +985,10 @@
 <span class="kw">use </span>thin_vec::ThinVec;
 
 <span class="doccomment">/// A wrapper type for an immutably borrowed type T.
-</span><span class="kw">pub type </span>Ref&lt;<span class="lifetime">&#39;a</span>, T&gt; = boa_gc::GcRef&lt;<span class="lifetime">&#39;a</span>, T&gt;;
+</span><span class="kw">pub type </span>Ref&lt;<span class="lifetime">'a</span>, T&gt; = boa_gc::GcRef&lt;<span class="lifetime">'a</span>, T&gt;;
 
 <span class="doccomment">/// A wrapper type for a mutably borrowed type T.
-</span><span class="kw">pub type </span>RefMut&lt;<span class="lifetime">&#39;a</span>, T, U&gt; = boa_gc::GcRefMut&lt;<span class="lifetime">&#39;a</span>, T, U&gt;;
+</span><span class="kw">pub type </span>RefMut&lt;<span class="lifetime">'a</span>, T, U&gt; = boa_gc::GcRefMut&lt;<span class="lifetime">'a</span>, T, U&gt;;
 
 <span class="doccomment">/// An `Object` with inner data set to `dyn NativeObject`.
 </span><span class="kw">pub type </span>ErasedObject = Object&lt;<span class="kw">dyn </span>NativeObject&gt;;
@@ -1017,7 +1018,7 @@
 #[derive(Trace, Finalize)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>VTableObject&lt;T: NativeObject + <span class="question-mark">?</span>Sized&gt; {
     <span class="attr">#[unsafe_ignore_trace]
-    </span>vtable: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>InternalObjectMethods,
+    </span>vtable: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>InternalObjectMethods,
     object: GcRefCell&lt;Object&lt;T&gt;&gt;,
 }
 
@@ -1031,7 +1032,7 @@
     <span class="doccomment">/// Creates a new `JsObject` from its inner object and its vtable.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_object_and_vtable&lt;T: NativeObject&gt;(
         object: Object&lt;T&gt;,
-        vtable: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>InternalObjectMethods,
+        vtable: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>InternalObjectMethods,
     ) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>gc = Gc::new(VTableObject {
             object: GcRefCell::new(object),
@@ -1045,7 +1046,7 @@
 
     <span class="doccomment">/// Creates a new ordinary object with its prototype set to the `Object` prototype.
     ///
-    /// This is equivalent to calling the specification&#39;s abstract operation
+    /// This is equivalent to calling the specification's abstract operation
     /// [`OrdinaryObjectCreate(%Object.prototype%)`][call].
     ///
     /// [call]: https://tc39.es/ecma262/#sec-ordinaryobjectcreate
@@ -1060,7 +1061,7 @@
 
     <span class="doccomment">/// Creates a new ordinary object, with its prototype set to null.
     ///
-    /// This is equivalent to calling the specification&#39;s abstract operation
+    /// This is equivalent to calling the specification's abstract operation
     /// [`OrdinaryObjectCreate(null)`][call].
     ///
     /// [call]: https://tc39.es/ecma262/#sec-ordinaryobjectcreate
@@ -1072,7 +1073,7 @@
 
     <span class="doccomment">/// Creates a new object with the provided prototype and object data.
     ///
-    /// This is equivalent to calling the specification&#39;s abstract operation [`OrdinaryObjectCreate`],
+    /// This is equivalent to calling the specification's abstract operation [`OrdinaryObjectCreate`],
     /// with the difference that the `additionalInternalSlotsList` parameter is determined by
     /// the provided `data`.
     ///
@@ -1099,7 +1100,7 @@
 
     <span class="doccomment">/// Creates a new object with the provided prototype and object data.
     ///
-    /// This is equivalent to calling the specification&#39;s abstract operation [`OrdinaryObjectCreate`],
+    /// This is equivalent to calling the specification's abstract operation [`OrdinaryObjectCreate`],
     /// with the difference that the `additionalInternalSlotsList` parameter is determined by
     /// the provided `data`.
     ///
@@ -1128,7 +1129,7 @@
         }
     }
 
-    <span class="doccomment">/// Downcasts the object&#39;s inner data if the object is of type `T`.
+    <span class="doccomment">/// Downcasts the object's inner data if the object is of type `T`.
     ///
     /// # Panics
     ///
@@ -1142,7 +1143,7 @@
             </span><span class="kw">unsafe </span>{
                 <span class="kw">let </span>erased = ptr.as_ref();
 
-                <span class="comment">// Some sanity checks to ensure we&#39;re doing the correct cast.
+                <span class="comment">// Some sanity checks to ensure we're doing the correct cast.
                 </span><span class="macro">assert_eq!</span>(
                     std::mem::size_of_val(erased),
                     std::mem::size_of::&lt;GcBox&lt;VTableObject&lt;T&gt;&gt;&gt;()
@@ -1166,7 +1167,7 @@
         }
     }
 
-    <span class="doccomment">/// Downcasts the object&#39;s inner data to `T` without verifying the inner type of `T`.
+    <span class="doccomment">/// Downcasts the object's inner data to `T` without verifying the inner type of `T`.
     ///
     /// # Safety
     ///
@@ -1192,7 +1193,7 @@
     /// Panics if the object is currently mutably borrowed.
     </span><span class="attr">#[must_use]
     #[track_caller]
-    </span><span class="kw">pub fn </span>downcast_ref&lt;T: NativeObject&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Ref&lt;<span class="lifetime">&#39;_</span>, T&gt;&gt; {
+    </span><span class="kw">pub fn </span>downcast_ref&lt;T: NativeObject&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Ref&lt;<span class="lifetime">'_</span>, T&gt;&gt; {
         Ref::try_map(<span class="self">self</span>.borrow(), ErasedObject::downcast_ref)
     }
 
@@ -1204,7 +1205,7 @@
     /// Panics if the object is currently borrowed.
     </span><span class="attr">#[must_use]
     #[track_caller]
-    </span><span class="kw">pub fn </span>downcast_mut&lt;T: NativeObject&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;RefMut&lt;<span class="lifetime">&#39;_</span>, ErasedObject, T&gt;&gt; {
+    </span><span class="kw">pub fn </span>downcast_mut&lt;T: NativeObject&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;RefMut&lt;<span class="lifetime">'_</span>, ErasedObject, T&gt;&gt; {
         RefMut::try_map(<span class="self">self</span>.borrow_mut(), ErasedObject::downcast_mut)
     }
 
@@ -1220,7 +1221,7 @@
         <span class="self">self</span>.borrow().is::&lt;T&gt;()
     }
 
-    <span class="doccomment">/// Checks if it&#39;s an ordinary object.
+    <span class="doccomment">/// Checks if it's an ordinary object.
     ///
     /// # Panics
     ///
@@ -1232,7 +1233,7 @@
         <span class="self">self</span>.is::&lt;OrdinaryObject&gt;()
     }
 
-    <span class="doccomment">/// Checks if it&#39;s an `Array` object.
+    <span class="doccomment">/// Checks if it's an `Array` object.
     </span><span class="attr">#[inline]
     #[must_use]
     #[track_caller]
@@ -1247,11 +1248,11 @@
     /// ```javascript
     /// let a = [1];
     /// a[1] = a;
-    /// console.log(a.toString()); // We print &quot;1,&quot;
+    /// console.log(a.toString()); // We print "1,"
     /// ```
-    /// The spec doesn&#39;t mention what to do in this situation, but a naive implementation
+    /// The spec doesn't mention what to do in this situation, but a naive implementation
     /// would overflow the stack recursively calling `toString()`. We follow v8 and SpiderMonkey
-    /// instead by returning a default value for the given `hint` -- either `0.` or `&quot;&quot;`.
+    /// instead by returning a default value for the given `hint` -- either `0.` or `""`.
     /// Example in v8: &lt;https://repl.it/repls/IvoryCircularCertification#index.js&gt;
     ///
     /// More information:
@@ -1265,31 +1266,31 @@
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Assert: Type(O) is Object.
         //      Already is JsObject by type.
-        // 2. Assert: Type(hint) is String and its value is either &quot;string&quot; or &quot;number&quot;.
+        // 2. Assert: Type(hint) is String and its value is either "string" or "number".
         </span><span class="macro">debug_assert!</span>(hint == PreferredType::String || hint == PreferredType::Number);
 
-        <span class="comment">// Diverge from the spec here to make sure we aren&#39;t going to overflow the stack by converting
+        <span class="comment">// Diverge from the spec here to make sure we aren't going to overflow the stack by converting
         // a recursive structure
-        // We can follow v8 &amp; SpiderMonkey&#39;s lead and return a default value for the hint in this situation
+        // We can follow v8 &amp; SpiderMonkey's lead and return a default value for the hint in this situation
         // (see https://repl.it/repls/IvoryCircularCertification#index.js)
         </span><span class="kw">let </span>recursion_limiter = RecursionLimiter::new(<span class="self">self</span>.as_ref());
         <span class="kw">if </span>recursion_limiter.live {
-            <span class="comment">// we&#39;re in a recursive object, bail
+            <span class="comment">// we're in a recursive object, bail
             </span><span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="kw">match </span>hint {
                 PreferredType::Number =&gt; JsValue::new(<span class="number">0</span>),
                 PreferredType::String =&gt; JsValue::new(<span class="macro">js_string!</span>()),
-                PreferredType::Default =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;checked type hint in step 2&quot;</span>),
+                PreferredType::Default =&gt; <span class="macro">unreachable!</span>(<span class="string">"checked type hint in step 2"</span>),
             });
         }
 
-        <span class="comment">// 3. If hint is &quot;string&quot;, then
-        //    a. Let methodNames be « &quot;toString&quot;, &quot;valueOf&quot; ».
+        <span class="comment">// 3. If hint is "string", then
+        //    a. Let methodNames be « "toString", "valueOf" ».
         // 4. Else,
-        //    a. Let methodNames be « &quot;valueOf&quot;, &quot;toString&quot; ».
+        //    a. Let methodNames be « "valueOf", "toString" ».
         </span><span class="kw">let </span>method_names = <span class="kw">if </span>hint == PreferredType::String {
-            [<span class="macro">utf16!</span>(<span class="string">&quot;toString&quot;</span>), <span class="macro">utf16!</span>(<span class="string">&quot;valueOf&quot;</span>)]
+            [<span class="macro">utf16!</span>(<span class="string">"toString"</span>), <span class="macro">utf16!</span>(<span class="string">"valueOf"</span>)]
         } <span class="kw">else </span>{
-            [<span class="macro">utf16!</span>(<span class="string">&quot;valueOf&quot;</span>), <span class="macro">utf16!</span>(<span class="string">&quot;toString&quot;</span>)]
+            [<span class="macro">utf16!</span>(<span class="string">"valueOf"</span>), <span class="macro">utf16!</span>(<span class="string">"toString"</span>)]
         };
 
         <span class="comment">// 5. For each name in methodNames in List order, do
@@ -1311,7 +1312,7 @@
 
         <span class="comment">// 6. Throw a TypeError exception.
         </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-            .with_message(<span class="string">&quot;cannot convert object to primitive value&quot;</span>)
+            .with_message(<span class="string">"cannot convert object to primitive value"</span>)
             .into())
     }
 
@@ -1327,48 +1328,48 @@
         // 2. Let desc be a new Property Descriptor that initially has no fields.
         </span><span class="kw">let </span><span class="kw-2">mut </span>desc = PropertyDescriptor::builder();
 
-        <span class="comment">// 3. Let hasEnumerable be ? HasProperty(Obj, &quot;enumerable&quot;).
+        <span class="comment">// 3. Let hasEnumerable be ? HasProperty(Obj, "enumerable").
         // 4. If hasEnumerable is true, then ...
-        </span><span class="kw">if </span><span class="self">self</span>.has_property(<span class="macro">utf16!</span>(<span class="string">&quot;enumerable&quot;</span>), context)<span class="question-mark">? </span>{
-            <span class="comment">// a. Let enumerable be ! ToBoolean(? Get(Obj, &quot;enumerable&quot;)).
+        </span><span class="kw">if </span><span class="self">self</span>.has_property(<span class="macro">utf16!</span>(<span class="string">"enumerable"</span>), context)<span class="question-mark">? </span>{
+            <span class="comment">// a. Let enumerable be ! ToBoolean(? Get(Obj, "enumerable")).
             // b. Set desc.[[Enumerable]] to enumerable.
-            </span>desc = desc.enumerable(<span class="self">self</span>.get(<span class="macro">utf16!</span>(<span class="string">&quot;enumerable&quot;</span>), context)<span class="question-mark">?</span>.to_boolean());
+            </span>desc = desc.enumerable(<span class="self">self</span>.get(<span class="macro">utf16!</span>(<span class="string">"enumerable"</span>), context)<span class="question-mark">?</span>.to_boolean());
         }
 
-        <span class="comment">// 5. Let hasConfigurable be ? HasProperty(Obj, &quot;configurable&quot;).
+        <span class="comment">// 5. Let hasConfigurable be ? HasProperty(Obj, "configurable").
         // 6. If hasConfigurable is true, then ...
-        </span><span class="kw">if </span><span class="self">self</span>.has_property(<span class="macro">utf16!</span>(<span class="string">&quot;configurable&quot;</span>), context)<span class="question-mark">? </span>{
-            <span class="comment">// a. Let configurable be ! ToBoolean(? Get(Obj, &quot;configurable&quot;)).
+        </span><span class="kw">if </span><span class="self">self</span>.has_property(<span class="macro">utf16!</span>(<span class="string">"configurable"</span>), context)<span class="question-mark">? </span>{
+            <span class="comment">// a. Let configurable be ! ToBoolean(? Get(Obj, "configurable")).
             // b. Set desc.[[Configurable]] to configurable.
-            </span>desc = desc.configurable(<span class="self">self</span>.get(<span class="macro">utf16!</span>(<span class="string">&quot;configurable&quot;</span>), context)<span class="question-mark">?</span>.to_boolean());
+            </span>desc = desc.configurable(<span class="self">self</span>.get(<span class="macro">utf16!</span>(<span class="string">"configurable"</span>), context)<span class="question-mark">?</span>.to_boolean());
         }
 
-        <span class="comment">// 7. Let hasValue be ? HasProperty(Obj, &quot;value&quot;).
+        <span class="comment">// 7. Let hasValue be ? HasProperty(Obj, "value").
         // 8. If hasValue is true, then ...
-        </span><span class="kw">if </span><span class="self">self</span>.has_property(<span class="macro">utf16!</span>(<span class="string">&quot;value&quot;</span>), context)<span class="question-mark">? </span>{
-            <span class="comment">// a. Let value be ? Get(Obj, &quot;value&quot;).
+        </span><span class="kw">if </span><span class="self">self</span>.has_property(<span class="macro">utf16!</span>(<span class="string">"value"</span>), context)<span class="question-mark">? </span>{
+            <span class="comment">// a. Let value be ? Get(Obj, "value").
             // b. Set desc.[[Value]] to value.
-            </span>desc = desc.value(<span class="self">self</span>.get(<span class="macro">utf16!</span>(<span class="string">&quot;value&quot;</span>), context)<span class="question-mark">?</span>);
+            </span>desc = desc.value(<span class="self">self</span>.get(<span class="macro">utf16!</span>(<span class="string">"value"</span>), context)<span class="question-mark">?</span>);
         }
 
         <span class="comment">// 9. Let hasWritable be ? HasProperty(Obj, ).
         // 10. If hasWritable is true, then ...
-        </span><span class="kw">if </span><span class="self">self</span>.has_property(<span class="macro">utf16!</span>(<span class="string">&quot;writable&quot;</span>), context)<span class="question-mark">? </span>{
-            <span class="comment">// a. Let writable be ! ToBoolean(? Get(Obj, &quot;writable&quot;)).
+        </span><span class="kw">if </span><span class="self">self</span>.has_property(<span class="macro">utf16!</span>(<span class="string">"writable"</span>), context)<span class="question-mark">? </span>{
+            <span class="comment">// a. Let writable be ! ToBoolean(? Get(Obj, "writable")).
             // b. Set desc.[[Writable]] to writable.
-            </span>desc = desc.writable(<span class="self">self</span>.get(<span class="macro">utf16!</span>(<span class="string">&quot;writable&quot;</span>), context)<span class="question-mark">?</span>.to_boolean());
+            </span>desc = desc.writable(<span class="self">self</span>.get(<span class="macro">utf16!</span>(<span class="string">"writable"</span>), context)<span class="question-mark">?</span>.to_boolean());
         }
 
-        <span class="comment">// 11. Let hasGet be ? HasProperty(Obj, &quot;get&quot;).
+        <span class="comment">// 11. Let hasGet be ? HasProperty(Obj, "get").
         // 12. If hasGet is true, then
-        </span><span class="kw">let </span>get = <span class="kw">if </span><span class="self">self</span>.has_property(<span class="macro">utf16!</span>(<span class="string">&quot;get&quot;</span>), context)<span class="question-mark">? </span>{
-            <span class="comment">// a. Let getter be ? Get(Obj, &quot;get&quot;).
-            </span><span class="kw">let </span>getter = <span class="self">self</span>.get(<span class="macro">utf16!</span>(<span class="string">&quot;get&quot;</span>), context)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>get = <span class="kw">if </span><span class="self">self</span>.has_property(<span class="macro">utf16!</span>(<span class="string">"get"</span>), context)<span class="question-mark">? </span>{
+            <span class="comment">// a. Let getter be ? Get(Obj, "get").
+            </span><span class="kw">let </span>getter = <span class="self">self</span>.get(<span class="macro">utf16!</span>(<span class="string">"get"</span>), context)<span class="question-mark">?</span>;
             <span class="comment">// b. If IsCallable(getter) is false and getter is not undefined, throw a TypeError exception.
             // todo: extract IsCallable to be callable from Value
             </span><span class="kw">if </span>!getter.is_undefined() &amp;&amp; getter.as_object().map_or(<span class="bool-val">true</span>, |o| !o.is_callable()) {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                    .with_message(<span class="string">&quot;Property descriptor getter must be callable&quot;</span>)
+                    .with_message(<span class="string">"Property descriptor getter must be callable"</span>)
                     .into());
             }
             <span class="comment">// c. Set desc.[[Get]] to getter.
@@ -1377,16 +1378,16 @@
             <span class="prelude-val">None
         </span>};
 
-        <span class="comment">// 13. Let hasSet be ? HasProperty(Obj, &quot;set&quot;).
+        <span class="comment">// 13. Let hasSet be ? HasProperty(Obj, "set").
         // 14. If hasSet is true, then
-        </span><span class="kw">let </span>set = <span class="kw">if </span><span class="self">self</span>.has_property(<span class="macro">utf16!</span>(<span class="string">&quot;set&quot;</span>), context)<span class="question-mark">? </span>{
-            <span class="comment">// 14.a. Let setter be ? Get(Obj, &quot;set&quot;).
-            </span><span class="kw">let </span>setter = <span class="self">self</span>.get(<span class="macro">utf16!</span>(<span class="string">&quot;set&quot;</span>), context)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>set = <span class="kw">if </span><span class="self">self</span>.has_property(<span class="macro">utf16!</span>(<span class="string">"set"</span>), context)<span class="question-mark">? </span>{
+            <span class="comment">// 14.a. Let setter be ? Get(Obj, "set").
+            </span><span class="kw">let </span>setter = <span class="self">self</span>.get(<span class="macro">utf16!</span>(<span class="string">"set"</span>), context)<span class="question-mark">?</span>;
             <span class="comment">// 14.b. If IsCallable(setter) is false and setter is not undefined, throw a TypeError exception.
             // todo: extract IsCallable to be callable from Value
             </span><span class="kw">if </span>!setter.is_undefined() &amp;&amp; setter.as_object().map_or(<span class="bool-val">true</span>, |o| !o.is_callable()) {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                    .with_message(<span class="string">&quot;Property descriptor setter must be callable&quot;</span>)
+                    .with_message(<span class="string">"Property descriptor setter must be callable"</span>)
                     .into());
             }
             <span class="comment">// 14.c. Set desc.[[Set]] to setter.
@@ -1400,8 +1401,8 @@
         </span><span class="kw">if </span>get.as_ref().or(set.as_ref()).is_some() &amp;&amp; desc.inner().is_data_descriptor() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
                 .with_message(
-                    <span class="string">&quot;Invalid property descriptor.\
-Cannot both specify accessors and a value or writable attribute&quot;</span>,
+                    <span class="string">"Invalid property descriptor.\
+Cannot both specify accessors and a value or writable attribute"</span>,
                 )
                 .into());
         }
@@ -1439,7 +1440,7 @@ Cannot both specify accessors and a value or writable attribute&quot;</span>,
         <span class="comment">// 4. Let from be ! ToObject(source).
         </span><span class="kw">let </span>from = source
             .to_object(context)
-            .expect(<span class="string">&quot;function ToObject should never complete abruptly here&quot;</span>);
+            .expect(<span class="string">"function ToObject should never complete abruptly here"</span>);
 
         <span class="comment">// 5. Let keys be ? from.[[OwnPropertyKeys]]().
         // 6. For each element nextKey of keys, do
@@ -1472,7 +1473,7 @@ Cannot both specify accessors and a value or writable attribute&quot;</span>,
                             <span class="comment">// 2. Perform ! CreateDataPropertyOrThrow(target, nextKey, propValue).
                             </span><span class="self">self</span>.create_data_property_or_throw(key, prop_value, context)
                                 .expect(
-                                    <span class="string">&quot;CreateDataPropertyOrThrow should never complete abruptly here&quot;</span>,
+                                    <span class="string">"CreateDataPropertyOrThrow should never complete abruptly here"</span>,
                                 );
                         }
                     }
@@ -1547,7 +1548,7 @@ Cannot both specify accessors and a value or writable attribute&quot;</span>,
         <span class="self">Self </span>{ inner }
     }
 
-    <span class="doccomment">/// Upcasts this object&#39;s inner data from a specific type `T` to an erased type
+    <span class="doccomment">/// Upcasts this object's inner data from a specific type `T` to an erased type
     /// `dyn NativeObject`.
     </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>upcast(<span class="self">self</span>) -&gt; JsObject
@@ -1570,8 +1571,8 @@ Cannot both specify accessors and a value or writable attribute&quot;</span>,
     </span><span class="attr">#[inline]
     #[must_use]
     #[track_caller]
-    </span><span class="kw">pub fn </span>borrow(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Ref&lt;<span class="lifetime">&#39;_</span>, Object&lt;T&gt;&gt; {
-        <span class="self">self</span>.try_borrow().expect(<span class="string">&quot;Object already mutably borrowed&quot;</span>)
+    </span><span class="kw">pub fn </span>borrow(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Ref&lt;<span class="lifetime">'_</span>, Object&lt;T&gt;&gt; {
+        <span class="self">self</span>.try_borrow().expect(<span class="string">"Object already mutably borrowed"</span>)
     }
 
     <span class="doccomment">/// Mutably borrows the Object.
@@ -1584,8 +1585,8 @@ Cannot both specify accessors and a value or writable attribute&quot;</span>,
     </span><span class="attr">#[inline]
     #[must_use]
     #[track_caller]
-    </span><span class="kw">pub fn </span>borrow_mut(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RefMut&lt;<span class="lifetime">&#39;_</span>, Object&lt;T&gt;, Object&lt;T&gt;&gt; {
-        <span class="self">self</span>.try_borrow_mut().expect(<span class="string">&quot;Object already borrowed&quot;</span>)
+    </span><span class="kw">pub fn </span>borrow_mut(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RefMut&lt;<span class="lifetime">'_</span>, Object&lt;T&gt;, Object&lt;T&gt;&gt; {
+        <span class="self">self</span>.try_borrow_mut().expect(<span class="string">"Object already borrowed"</span>)
     }
 
     <span class="doccomment">/// Immutably borrows the `Object`, returning an error if the value is currently mutably borrowed.
@@ -1595,7 +1596,7 @@ Cannot both specify accessors and a value or writable attribute&quot;</span>,
     ///
     /// This is the non-panicking variant of [`borrow`](#method.borrow).
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>try_borrow(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; StdResult&lt;Ref&lt;<span class="lifetime">&#39;_</span>, Object&lt;T&gt;&gt;, BorrowError&gt; {
+    </span><span class="kw">pub fn </span>try_borrow(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; StdResult&lt;Ref&lt;<span class="lifetime">'_</span>, Object&lt;T&gt;&gt;, BorrowError&gt; {
         <span class="self">self</span>.inner.object.try_borrow().map_err(|<span class="kw">_</span>| BorrowError)
     }
 
@@ -1606,7 +1607,7 @@ Cannot both specify accessors and a value or writable attribute&quot;</span>,
     ///
     /// This is the non-panicking variant of [`borrow_mut`](#method.borrow_mut).
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>try_borrow_mut(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; StdResult&lt;RefMut&lt;<span class="lifetime">&#39;_</span>, Object&lt;T&gt;, Object&lt;T&gt;&gt;, BorrowMutError&gt; {
+    </span><span class="kw">pub fn </span>try_borrow_mut(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; StdResult&lt;RefMut&lt;<span class="lifetime">'_</span>, Object&lt;T&gt;, Object&lt;T&gt;&gt;, BorrowMutError&gt; {
         <span class="self">self</span>.inner
             .object
             .try_borrow_mut()
@@ -1663,7 +1664,7 @@ Cannot both specify accessors and a value or writable attribute&quot;</span>,
         <span class="self">self</span>.borrow_mut().insert(key, property)
     }
 
-    <span class="doccomment">/// Inserts a field in the object `properties` without checking if it&#39;s writable.
+    <span class="doccomment">/// Inserts a field in the object `properties` without checking if it's writable.
     ///
     /// If a field was already in the object with the same name, than `true` is returned
     /// with that field, otherwise `false` is returned.
@@ -1699,7 +1700,7 @@ Cannot both specify accessors and a value or writable attribute&quot;</span>,
         <span class="self">self</span>.inner.vtable.__construct__ != ORDINARY_INTERNAL_METHODS.__construct__
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>vtable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>InternalObjectMethods {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>vtable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>InternalObjectMethods {
         <span class="self">self</span>.inner.vtable
     }
 
@@ -1748,8 +1749,8 @@ Cannot both specify accessors and a value or writable attribute&quot;</span>,
 
 <span class="kw">impl </span>Display <span class="kw">for </span>BorrowError {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        Display::fmt(<span class="string">&quot;Object already mutably borrowed&quot;</span>, f)
+    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        Display::fmt(<span class="string">"Object already mutably borrowed"</span>, f)
     }
 }
 
@@ -1761,8 +1762,8 @@ Cannot both specify accessors and a value or writable attribute&quot;</span>,
 
 <span class="kw">impl </span>Display <span class="kw">for </span>BorrowMutError {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        Display::fmt(<span class="string">&quot;Object already borrowed&quot;</span>, f)
+    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        Display::fmt(<span class="string">"Object already borrowed"</span>, f)
     }
 }
 
@@ -1770,15 +1771,15 @@ Cannot both specify accessors and a value or writable attribute&quot;</span>,
 
 <span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 </span><span class="kw">enum </span>RecursionValueState {
-    <span class="doccomment">/// This value is &quot;live&quot;: there&#39;s an active RecursionLimiter that hasn&#39;t been dropped.
+    <span class="doccomment">/// This value is "live": there's an active RecursionLimiter that hasn't been dropped.
     </span>Live,
     <span class="doccomment">/// This value has been seen before, but the recursion limiter has been dropped.
     /// For example:
     /// ```javascript
     /// let b = [];
     /// JSON.stringify([ // Create a recursion limiter for the root here
-    ///    b,            // state for b&#39;s &amp;JsObject here is None
-    ///    b,            // state for b&#39;s &amp;JsObject here is Visited
+    ///    b,            // state for b's &amp;JsObject here is None
+    ///    b,            // state for b's &amp;JsObject here is Visited
     /// ]);
     /// ```
     </span>Visited,
@@ -1805,7 +1806,7 @@ Cannot both specify accessors and a value or writable attribute&quot;</span>,
             <span class="comment">// When the top level of the graph is dropped, we can free the entire map for the next traversal.
             </span>SEEN.with(|hm| hm.borrow_mut().clear());
         } <span class="kw">else if </span>!<span class="self">self</span>.live {
-            <span class="comment">// This was the first RL for this object to become live, so it&#39;s no longer live now that it&#39;s dropped.
+            <span class="comment">// This was the first RL for this object to become live, so it's no longer live now that it's dropped.
             </span>SEEN.with(|hm| {
                 hm.borrow_mut()
                     .insert(<span class="self">self</span>.ptr, RecursionValueState::Visited)
@@ -1851,7 +1852,7 @@ Cannot both specify accessors and a value or writable attribute&quot;</span>,
 }
 
 <span class="kw">impl</span>&lt;T: NativeObject + <span class="question-mark">?</span>Sized&gt; Debug <span class="kw">for </span>JsObject&lt;T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
         <span class="kw">let </span>limiter = RecursionLimiter::new(<span class="self">self</span>.as_ref());
 
         <span class="comment">// Typically, using `!limiter.live` would be good enough here.
@@ -1868,7 +1869,7 @@ Cannot both specify accessors and a value or writable attribute&quot;</span>,
             <span class="kw">if </span><span class="self">self</span>.is_callable() {
                 <span class="kw">let </span>name_prop = obj
                     .properties()
-                    .get(<span class="kw-2">&amp;</span>PropertyKey::String(JsString::from(<span class="string">&quot;name&quot;</span>)));
+                    .get(<span class="kw-2">&amp;</span>PropertyKey::String(JsString::from(<span class="string">"name"</span>)));
                 <span class="kw">let </span>name = <span class="kw">match </span>name_prop {
                     <span class="prelude-val">None </span>=&gt; JsString::default(),
                     <span class="prelude-val">Some</span>(prop) =&gt; prop
@@ -1878,12 +1879,12 @@ Cannot both specify accessors and a value or writable attribute&quot;</span>,
                         .unwrap_or_default(),
                 };
 
-                <span class="kw">return </span>f.write_fmt(<span class="macro">format_args!</span>(<span class="string">&quot;({:?}) {:?} 0x{:X}&quot;</span>, kind, name, ptr <span class="kw">as </span>usize));
+                <span class="kw">return </span>f.write_fmt(<span class="macro">format_args!</span>(<span class="string">"({:?}) {:?} 0x{:X}"</span>, kind, name, ptr <span class="kw">as </span>usize));
             }
 
-            f.write_fmt(<span class="macro">format_args!</span>(<span class="string">&quot;({:?}) 0x{:X}&quot;</span>, kind, ptr <span class="kw">as </span>usize))
+            f.write_fmt(<span class="macro">format_args!</span>(<span class="string">"({:?}) 0x{:X}"</span>, kind, ptr <span class="kw">as </span>usize))
         } <span class="kw">else </span>{
-            f.write_str(<span class="string">&quot;{ ... }&quot;</span>)
+            f.write_str(<span class="string">"{ ... }"</span>)
         }
     }
 }

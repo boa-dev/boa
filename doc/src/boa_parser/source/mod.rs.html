@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/parser/src/source/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="boa_parser" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../boa_parser/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_parser"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/parser/src/source/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="boa_parser" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../../boa_parser/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_parser"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -211,12 +212,12 @@
 /// [`Source`]s can be created from plain [`str`]s, file [`Path`]s or more generally, any [`Read`]
 /// instance.
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>Source&lt;<span class="lifetime">&#39;path</span>, R&gt; {
+</span><span class="kw">pub struct </span>Source&lt;<span class="lifetime">'path</span>, R&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) reader: R,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) path: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;path </span>Path&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) path: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'path </span>Path&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;bytes</span>&gt; Source&lt;<span class="lifetime">&#39;static</span>, UTF8Input&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;bytes </span>[u8]&gt;&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'bytes</span>&gt; Source&lt;<span class="lifetime">'static</span>, UTF8Input&lt;<span class="kw-2">&amp;</span><span class="lifetime">'bytes </span>[u8]&gt;&gt; {
     <span class="doccomment">/// Creates a new `Source` from any type equivalent to a slice of bytes e.g. [`&amp;str`][str],
     /// &lt;code&gt;[Vec]&lt;[u8]&gt;&lt;/code&gt;, &lt;code&gt;[Box]&lt;[\[u8\]][slice]&gt;&lt;/code&gt; or a plain slice
     /// &lt;code&gt;[&amp;\[u8\]][slice]&lt;/code&gt;.
@@ -225,12 +226,12 @@
     ///
     /// ```
     /// # use boa_parser::Source;
-    /// let code = r#&quot;var array = [5, 4, 3, 2, 1];&quot;#;
+    /// let code = r#"var array = [5, 4, 3, 2, 1];"#;
     /// let source = Source::from_bytes(code);
     /// ```
     ///
     /// [slice]: std::slice
-    </span><span class="kw">pub fn </span>from_bytes&lt;T: AsRef&lt;[u8]&gt; + <span class="question-mark">?</span>Sized&gt;(source: <span class="kw-2">&amp;</span><span class="lifetime">&#39;bytes </span>T) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>from_bytes&lt;T: AsRef&lt;[u8]&gt; + <span class="question-mark">?</span>Sized&gt;(source: <span class="kw-2">&amp;</span><span class="lifetime">'bytes </span>T) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             reader: UTF8Input::new(source.as_ref()),
             path: <span class="prelude-val">None</span>,
@@ -238,20 +239,20 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;input</span>&gt; Source&lt;<span class="lifetime">&#39;static</span>, UTF16Input&lt;<span class="lifetime">&#39;input</span>&gt;&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'input</span>&gt; Source&lt;<span class="lifetime">'static</span>, UTF16Input&lt;<span class="lifetime">'input</span>&gt;&gt; {
     <span class="doccomment">/// Creates a new `Source` from a UTF-16 encoded slice e.g. &lt;code&gt;[&amp;\[u16\]][slice]&lt;/code&gt;.
     ///
     /// # Examples
     ///
     /// ```
     /// # use boa_parser::Source;
-    /// let utf16: Vec&lt;u16&gt; = &quot;var array = [5, 4, 3, 2, 1];&quot;.encode_utf16().collect();
+    /// let utf16: Vec&lt;u16&gt; = "var array = [5, 4, 3, 2, 1];".encode_utf16().collect();
     /// let source = Source::from_utf16(&amp;utf16);
     /// ```
     ///
     /// [slice]: std::slice
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>from_utf16(input: <span class="kw-2">&amp;</span><span class="lifetime">&#39;input </span>[u16]) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>from_utf16(input: <span class="kw-2">&amp;</span><span class="lifetime">'input </span>[u16]) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             reader: UTF16Input::new(input),
             path: <span class="prelude-val">None</span>,
@@ -259,7 +260,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;path</span>&gt; Source&lt;<span class="lifetime">&#39;path</span>, UTF8Input&lt;BufReader&lt;File&gt;&gt;&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'path</span>&gt; Source&lt;<span class="lifetime">'path</span>, UTF8Input&lt;BufReader&lt;File&gt;&gt;&gt; {
     <span class="doccomment">/// Creates a new `Source` from a `Path` to a file.
     ///
     /// # Errors
@@ -272,12 +273,12 @@
     /// # use boa_parser::Source;
     /// # use std::{fs::File, path::Path};
     /// # fn main() -&gt; std::io::Result&lt;()&gt; {
-    /// let path = Path::new(&quot;script.js&quot;);
+    /// let path = Path::new("script.js");
     /// let source = Source::from_filepath(path)?;
     /// # Ok(())
     /// # }
     /// ```
-    </span><span class="kw">pub fn </span>from_filepath(source: <span class="kw-2">&amp;</span><span class="lifetime">&#39;path </span>Path) -&gt; io::Result&lt;<span class="self">Self</span>&gt; {
+    </span><span class="kw">pub fn </span>from_filepath(source: <span class="kw-2">&amp;</span><span class="lifetime">'path </span>Path) -&gt; io::Result&lt;<span class="self">Self</span>&gt; {
         <span class="kw">let </span>reader = File::open(source)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
             reader: UTF8Input::new(BufReader::new(reader)),
@@ -286,7 +287,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;path</span>, R: Read&gt; Source&lt;<span class="lifetime">&#39;path</span>, UTF8Input&lt;R&gt;&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'path</span>, R: Read&gt; Source&lt;<span class="lifetime">'path</span>, UTF8Input&lt;R&gt;&gt; {
     <span class="doccomment">/// Creates a new `Source` from a [`Read`] instance and an optional [`Path`].
     ///
     /// # Examples
@@ -295,9 +296,9 @@
     /// # use boa_parser::Source;
     /// # use std::{fs::File, io::Read, path::Path};
     /// # fn main() -&gt; std::io::Result&lt;()&gt; {
-    /// let strictler = r#&quot;&quot;use strict&quot;&quot;#;
+    /// let strictler = r#""use strict""#;
     ///
-    /// let path = Path::new(&quot;no_strict.js&quot;);
+    /// let path = Path::new("no_strict.js");
     /// let file = File::open(path)?;
     /// let strict = strictler.as_bytes().chain(file);
     ///
@@ -305,7 +306,7 @@
     /// #    Ok(())
     /// # }
     /// ```
-    </span><span class="kw">pub fn </span>from_reader(reader: R, path: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;path </span>Path&gt;) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>from_reader(reader: R, path: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'path </span>Path&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             reader: UTF8Input::new(reader),
             path,
@@ -330,7 +331,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>from_bytes() {
-        <span class="kw">let </span><span class="kw-2">mut </span>source = Source::from_bytes(<span class="string">&quot;&#39;Hello&#39; + &#39;World&#39;;&quot;</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>source = Source::from_bytes(<span class="string">"'Hello' + 'World';"</span>);
 
         <span class="macro">assert!</span>(source.path.is_none());
 
@@ -339,13 +340,13 @@
             content.push(char::from_u32(c).unwrap());
         }
 
-        <span class="macro">assert_eq!</span>(content, <span class="string">&quot;&#39;Hello&#39; + &#39;World&#39;;&quot;</span>);
+        <span class="macro">assert_eq!</span>(content, <span class="string">"'Hello' + 'World';"</span>);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>from_filepath() {
-        <span class="kw">let </span>manifest_path = Path::new(<span class="macro">env!</span>(<span class="string">&quot;CARGO_MANIFEST_DIR&quot;</span>));
-        <span class="kw">let </span>filepath = manifest_path.join(<span class="string">&quot;src/parser/tests/test.js&quot;</span>);
+        <span class="kw">let </span>manifest_path = Path::new(<span class="macro">env!</span>(<span class="string">"CARGO_MANIFEST_DIR"</span>));
+        <span class="kw">let </span>filepath = manifest_path.join(<span class="string">"src/parser/tests/test.js"</span>);
         <span class="kw">let </span><span class="kw-2">mut </span>source = Source::from_filepath(<span class="kw-2">&amp;</span>filepath).unwrap();
 
         <span class="macro">assert_eq!</span>(source.path, <span class="prelude-val">Some</span>(<span class="kw-2">&amp;*</span>filepath));
@@ -355,13 +356,13 @@
             content.push(char::from_u32(c).unwrap());
         }
 
-        <span class="macro">assert_eq!</span>(content, <span class="string">&quot;\&quot;Hello\&quot; + \&quot;World\&quot;;\n&quot;</span>);
+        <span class="macro">assert_eq!</span>(content, <span class="string">"\"Hello\" + \"World\";\n"</span>);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>from_reader() {
         <span class="comment">// Without path
-        </span><span class="kw">let </span><span class="kw-2">mut </span>source = Source::from_reader(Cursor::new(<span class="string">&quot;&#39;Hello&#39; + &#39;World&#39;;&quot;</span>), <span class="prelude-val">None</span>);
+        </span><span class="kw">let </span><span class="kw-2">mut </span>source = Source::from_reader(Cursor::new(<span class="string">"'Hello' + 'World';"</span>), <span class="prelude-val">None</span>);
 
         <span class="macro">assert!</span>(source.path.is_none());
 
@@ -370,20 +371,20 @@
             content.push(char::from_u32(c).unwrap());
         }
 
-        <span class="macro">assert_eq!</span>(content, <span class="string">&quot;&#39;Hello&#39; + &#39;World&#39;;&quot;</span>);
+        <span class="macro">assert_eq!</span>(content, <span class="string">"'Hello' + 'World';"</span>);
 
         <span class="comment">// With path
         </span><span class="kw">let </span><span class="kw-2">mut </span>source =
-            Source::from_reader(Cursor::new(<span class="string">&quot;&#39;Hello&#39; + &#39;World&#39;;&quot;</span>), <span class="prelude-val">Some</span>(<span class="string">&quot;test.js&quot;</span>.as_ref()));
+            Source::from_reader(Cursor::new(<span class="string">"'Hello' + 'World';"</span>), <span class="prelude-val">Some</span>(<span class="string">"test.js"</span>.as_ref()));
 
-        <span class="macro">assert_eq!</span>(source.path, <span class="prelude-val">Some</span>(<span class="string">&quot;test.js&quot;</span>.as_ref()));
+        <span class="macro">assert_eq!</span>(source.path, <span class="prelude-val">Some</span>(<span class="string">"test.js"</span>.as_ref()));
 
         <span class="kw">let </span><span class="kw-2">mut </span>content = String::new();
         <span class="kw">while let </span><span class="prelude-val">Some</span>(c) = source.reader.next_char().unwrap() {
             content.push(char::from_u32(c).unwrap());
         }
 
-        <span class="macro">assert_eq!</span>(content, <span class="string">&quot;&#39;Hello&#39; + &#39;World&#39;;&quot;</span>);
+        <span class="macro">assert_eq!</span>(content, <span class="string">"'Hello' + 'World';"</span>);
     }
 }
 </code></pre></div></section></main></body></html>

@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/object/builtins/jspromise.rs`."><title>jspromise.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/object/builtins/jspromise.rs`."><title>jspromise.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1140,7 +1141,7 @@
 <a href="#1140" id="1140">1140</a>
 <a href="#1141" id="1141">1141</a>
 <a href="#1142" id="1142">1142</a>
-</pre></div><pre class="rust"><code><span class="doccomment">//! A Rust API wrapper for Boa&#39;s promise Builtin ECMAScript Object
+</pre></div><pre class="rust"><code><span class="doccomment">//! A Rust API wrapper for Boa's promise Builtin ECMAScript Object
 
 </span><span class="kw">use </span>std::{future::Future, pin::Pin, task};
 
@@ -1177,14 +1178,14 @@
 /// let context = &amp;mut Context::default();
 ///
 /// context.register_global_property(
-///     js_string!(&quot;finally&quot;),
+///     js_string!("finally"),
 ///     false,
 ///     Attribute::all(),
 /// );
 ///
 /// let promise = JsPromise::new(
 ///     |resolvers, context| {
-///         let result = js_string!(&quot;hello world!&quot;).into();
+///         let result = js_string!("hello world!").into();
 ///         resolvers.resolve.call(
 ///             &amp;JsValue::undefined(),
 ///             &amp;[result],
@@ -1217,7 +1218,7 @@
 ///     .finally(
 ///         NativeFunction::from_fn_ptr(|_, _, context| {
 ///             context.global_object().clone().set(
-///                 js_string!(&quot;finally&quot;),
+///                 js_string!("finally"),
 ///                 JsValue::from(true),
 ///                 true,
 ///                 context,
@@ -1232,14 +1233,14 @@
 ///
 /// assert_eq!(
 ///     promise.state(),
-///     PromiseState::Fulfilled(js_string!(&quot;hello world!&quot;).into())
+///     PromiseState::Fulfilled(js_string!("hello world!").into())
 /// );
 ///
 /// assert_eq!(
 ///     context
 ///         .global_object()
 ///         .clone()
-///         .get(js_string!(&quot;finally&quot;), context)?,
+///         .get(js_string!("finally"), context)?,
 ///     JsValue::from(true)
 /// );
 ///
@@ -1281,7 +1282,7 @@
     ///
     /// let promise = JsPromise::new(
     ///     |resolvers, context| {
-    ///         let result = js_string!(&quot;hello world&quot;).into();
+    ///         let result = js_string!("hello world").into();
     ///         resolvers.resolve.call(
     ///             &amp;JsValue::undefined(),
     ///             &amp;[result],
@@ -1296,7 +1297,7 @@
     ///
     /// assert_eq!(
     ///     promise.state(),
-    ///     PromiseState::Fulfilled(js_string!(&quot;hello world&quot;).into())
+    ///     PromiseState::Fulfilled(js_string!("hello world").into())
     /// );
     /// # Ok(())
     /// # }
@@ -1319,7 +1320,7 @@
             resolvers
                 .reject
                 .call(<span class="kw-2">&amp;</span>JsValue::undefined(), <span class="kw-2">&amp;</span>[e], context)
-                .expect(<span class="string">&quot;default `reject` function cannot throw&quot;</span>);
+                .expect(<span class="string">"default `reject` function cannot throw"</span>);
         }
 
         <span class="self">Self </span>{ inner: promise }
@@ -1365,7 +1366,7 @@
         );
         <span class="kw">let </span>resolvers = Promise::create_resolving_functions(<span class="kw-2">&amp;</span>promise, context);
         <span class="kw">let </span>promise =
-            <span class="self">Self</span>::from_object(promise).expect(<span class="string">&quot;this shouldn&#39;t fail with a newly created promise&quot;</span>);
+            <span class="self">Self</span>::from_object(promise).expect(<span class="string">"this shouldn't fail with a newly created promise"</span>);
 
         (promise, resolvers)
     }
@@ -1386,7 +1387,7 @@
     /// let context = &amp;mut Context::default();
     ///
     /// let promise = context.eval(Source::from_bytes(
-    ///     &quot;new Promise((resolve, reject) =&gt; resolve())&quot;,
+    ///     "new Promise((resolve, reject) =&gt; resolve())",
     /// ))?;
     /// let promise = promise.as_object().cloned().unwrap();
     ///
@@ -1406,7 +1407,7 @@
     </span><span class="kw">pub fn </span>from_object(object: JsObject) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="kw">if </span>!object.is::&lt;Promise&gt;() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;`object` is not a Promise&quot;</span>)
+                .with_message(<span class="string">"`object` is not a Promise"</span>)
                 .into());
         }
         <span class="prelude-val">Ok</span>(<span class="self">Self </span>{ inner: object })
@@ -1441,7 +1442,7 @@
     /// [async_fn]: crate::native_function::NativeFunction::from_async_fn
     </span><span class="kw">pub fn </span>from_future&lt;Fut&gt;(future: Fut, context: <span class="kw-2">&amp;mut </span>Context) -&gt; <span class="self">Self
     </span><span class="kw">where
-        </span>Fut: std::future::IntoFuture&lt;Output = JsResult&lt;JsValue&gt;&gt; + <span class="lifetime">&#39;static</span>,
+        </span>Fut: std::future::IntoFuture&lt;Output = JsResult&lt;JsValue&gt;&gt; + <span class="lifetime">'static</span>,
     {
         <span class="kw">let </span>(promise, resolvers) = <span class="self">Self</span>::new_pending(context);
 
@@ -1483,11 +1484,11 @@
     /// # };
     /// let context = &amp;mut Context::default();
     ///
-    /// let promise = JsPromise::resolve(js_string!(&quot;resolved!&quot;), context);
+    /// let promise = JsPromise::resolve(js_string!("resolved!"), context);
     ///
     /// assert_eq!(
     ///     promise.state(),
-    ///     PromiseState::Fulfilled(js_string!(&quot;resolved!&quot;).into())
+    ///     PromiseState::Fulfilled(js_string!("resolved!").into())
     /// );
     /// ```
     ///
@@ -1500,7 +1501,7 @@
             context,
         )
         .and_then(<span class="self">Self</span>::from_object)
-        .expect(<span class="string">&quot;default resolving functions cannot throw and must return a promise&quot;</span>)
+        .expect(<span class="string">"default resolving functions cannot throw and must return a promise"</span>)
     }
 
     <span class="doccomment">/// Creates a `JsPromise` that is rejected with the reason `error`.
@@ -1522,13 +1523,13 @@
     /// let context = &amp;mut Context::default();
     ///
     /// let promise = JsPromise::reject(
-    ///     JsError::from_opaque(js_string!(&quot;oops!&quot;).into()),
+    ///     JsError::from_opaque(js_string!("oops!").into()),
     ///     context,
     /// );
     ///
     /// assert_eq!(
     ///     promise.state(),
-    ///     PromiseState::Rejected(js_string!(&quot;oops!&quot;).into())
+    ///     PromiseState::Rejected(js_string!("oops!").into())
     /// );
     /// ```
     ///
@@ -1541,7 +1542,7 @@
             context,
         )
         .and_then(<span class="self">Self</span>::from_object)
-        .expect(<span class="string">&quot;default resolving functions cannot throw and must return a promise&quot;</span>)
+        .expect(<span class="string">"default resolving functions cannot throw and must return a promise"</span>)
     }
 
     <span class="doccomment">/// Gets the current state of the promise.
@@ -1566,7 +1567,7 @@
     </span><span class="kw">pub fn </span>state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; PromiseState {
         <span class="self">self</span>.inner
             .downcast_ref::&lt;Promise&gt;()
-            .expect(<span class="string">&quot;objects cannot change type after creation&quot;</span>)
+            .expect(<span class="string">"objects cannot change type after creation"</span>)
             .state()
             .clone()
     }
@@ -1588,12 +1589,12 @@
     /// the callback:
     ///
     /// - returns a value: the created promise gets fulfilled with the returned value.
-    /// - doesn&#39;t return: the created promise gets fulfilled with undefined.
+    /// - doesn't return: the created promise gets fulfilled with undefined.
     /// - throws: the created promise gets rejected with the thrown error as its value.
-    /// - returns a fulfilled promise: the created promise gets fulfilled with that promise&#39;s value as its value.
-    /// - returns a rejected promise: the created promise gets rejected with that promise&#39;s value as its value.
+    /// - returns a fulfilled promise: the created promise gets fulfilled with that promise's value as its value.
+    /// - returns a rejected promise: the created promise gets rejected with that promise's value as its value.
     /// - returns another pending promise: the created promise remains pending but becomes settled with that
-    /// promise&#39;s value as its value immediately after that promise becomes settled.
+    /// promise's value as its value immediately after that promise becomes settled.
     ///
     /// # Examples
     ///
@@ -1635,7 +1636,7 @@
     ///
     /// assert_eq!(
     ///     promise.state(),
-    ///     PromiseState::Fulfilled(js_string!(&quot;255.255&quot;).into())
+    ///     PromiseState::Fulfilled(js_string!("255.255").into())
     /// );
     /// ```
     ///
@@ -1650,7 +1651,7 @@
     ) -&gt; <span class="self">Self </span>{
         Promise::inner_then(<span class="self">self</span>, on_fulfilled, on_rejected, context)
             .and_then(<span class="self">Self</span>::from_object)
-            .expect(<span class="string">&quot;`inner_then` cannot fail for native `JsPromise`&quot;</span>)
+            .expect(<span class="string">"`inner_then` cannot fail for native `JsPromise`"</span>)
     }
 
     <span class="doccomment">/// Schedules a callback to run when the promise is rejected.
@@ -1674,7 +1675,7 @@
     ///
     /// let promise = JsPromise::new(
     ///     |resolvers, context| {
-    ///         let error = JsNativeError::typ().with_message(&quot;thrown&quot;);
+    ///         let error = JsNativeError::typ().with_message("thrown");
     ///         let error = error.to_opaque(context);
     ///         resolvers.reject.call(
     ///             &amp;JsValue::undefined(),
@@ -1699,7 +1700,7 @@
     ///
     /// assert_eq!(
     ///     promise.state(),
-    ///     PromiseState::Fulfilled(js_string!(&quot;TypeError: thrown&quot;).into())
+    ///     PromiseState::Fulfilled(js_string!("TypeError: thrown").into())
     /// );
     /// ```
     ///
@@ -1717,9 +1718,9 @@
     ///
     /// While this could be seen as a shortcut for calling [`promise.then(Some(function), Some(function))`][then],
     /// it has slightly different semantics than `then`:
-    /// - `on_finally` doesn&#39;t receive any argument, unlike `on_fulfilled` and `on_rejected`.
-    /// - `finally()` is transparent; a call like `Promise.resolve(&quot;first&quot;).finally(() =&gt; &quot;second&quot;)`
-    /// returns a promise fulfilled with the value `&quot;first&quot;`, which would return `&quot;second&quot;` if `finally`
+    /// - `on_finally` doesn't receive any argument, unlike `on_fulfilled` and `on_rejected`.
+    /// - `finally()` is transparent; a call like `Promise.resolve("first").finally(() =&gt; "second")`
+    /// returns a promise fulfilled with the value `"first"`, which would return `"second"` if `finally`
     /// was a shortcut of `then`.
     ///
     /// # Examples
@@ -1735,14 +1736,14 @@
     /// let context = &amp;mut Context::default();
     ///
     /// context.register_global_property(
-    ///     js_string!(&quot;finally&quot;),
+    ///     js_string!("finally"),
     ///     false,
     ///     Attribute::all(),
     /// )?;
     ///
     /// let promise = JsPromise::new(
     ///     |resolvers, context| {
-    ///         let error = JsNativeError::typ().with_message(&quot;thrown&quot;);
+    ///         let error = JsNativeError::typ().with_message("thrown");
     ///         let error = error.to_opaque(context);
     ///         resolvers.reject.call(
     ///             &amp;JsValue::undefined(),
@@ -1756,7 +1757,7 @@
     /// .finally(
     ///     NativeFunction::from_fn_ptr(|_, _, context| {
     ///         context.global_object().clone().set(
-    ///             js_string!(&quot;finally&quot;),
+    ///             js_string!("finally"),
     ///             JsValue::from(true),
     ///             true,
     ///             context,
@@ -1773,7 +1774,7 @@
     ///     context
     ///         .global_object()
     ///         .clone()
-    ///         .get(js_string!(&quot;finally&quot;), context)?,
+    ///         .get(js_string!("finally"), context)?,
     ///     JsValue::from(true)
     /// );
     ///
@@ -1793,7 +1794,7 @@
         );
         Promise::inner_then(<span class="self">self</span>, <span class="prelude-val">Some</span>(then), <span class="prelude-val">Some</span>(catch), context)
             .and_then(<span class="self">Self</span>::from_object)
-            .expect(<span class="string">&quot;`inner_then` cannot fail for native `JsPromise`&quot;</span>)
+            .expect(<span class="string">"`inner_then` cannot fail for native `JsPromise`"</span>)
     }
 
     <span class="doccomment">/// Waits for a list of promises to settle with fulfilled values, rejecting the aggregate promise
@@ -1845,7 +1846,7 @@
     /// assert_eq!(array.at(2, context)?, 4.into());
     ///
     /// let error = promise2.state().as_rejected().unwrap().clone();
-    /// assert_eq!(error.to_string(context)?, js_string!(&quot;TypeError&quot;));
+    /// assert_eq!(error.to_string(context)?, js_string!("TypeError"));
     ///
     /// # Ok(())
     /// # }
@@ -1866,14 +1867,14 @@
             .into();
 
         <span class="kw">let </span>value = Promise::all(c, <span class="kw-2">&amp;</span>[promises.into()], context)
-            .expect(<span class="string">&quot;Promise.all cannot fail with the default `%Promise%` constructor&quot;</span>);
+            .expect(<span class="string">"Promise.all cannot fail with the default `%Promise%` constructor"</span>);
 
         <span class="kw">let </span>object = value
             .as_object()
-            .expect(<span class="string">&quot;`Promise.all` always returns an object on success&quot;</span>);
+            .expect(<span class="string">"`Promise.all` always returns an object on success"</span>);
 
         <span class="self">Self</span>::from_object(object.clone())
-        .expect(<span class="string">&quot;`Promise::all` with the  default `%Promise%` constructor always returns a native `JsPromise`&quot;</span>)
+        .expect(<span class="string">"`Promise::all` with the  default `%Promise%` constructor always returns a native `JsPromise`"</span>)
     }
 
     <span class="doccomment">/// Waits for a list of promises to settle, fulfilling with an array of the outcomes of every
@@ -1914,27 +1915,27 @@
     ///
     /// let a = array.at(0, context)?.as_object().unwrap().clone();
     /// assert_eq!(
-    ///     a.get(js_string!(&quot;status&quot;), context)?,
-    ///     js_string!(&quot;fulfilled&quot;).into()
+    ///     a.get(js_string!("status"), context)?,
+    ///     js_string!("fulfilled").into()
     /// );
-    /// assert_eq!(a.get(js_string!(&quot;value&quot;), context)?, 1.into());
+    /// assert_eq!(a.get(js_string!("value"), context)?, 1.into());
     ///
     /// let b = array.at(1, context)?.as_object().unwrap().clone();
     /// assert_eq!(
-    ///     b.get(js_string!(&quot;status&quot;), context)?,
-    ///     js_string!(&quot;rejected&quot;).into()
+    ///     b.get(js_string!("status"), context)?,
+    ///     js_string!("rejected").into()
     /// );
     /// assert_eq!(
-    ///     b.get(js_string!(&quot;reason&quot;), context)?.to_string(context)?,
-    ///     js_string!(&quot;TypeError&quot;)
+    ///     b.get(js_string!("reason"), context)?.to_string(context)?,
+    ///     js_string!("TypeError")
     /// );
     ///
     /// let c = array.at(2, context)?.as_object().unwrap().clone();
     /// assert_eq!(
-    ///     c.get(js_string!(&quot;status&quot;), context)?,
-    ///     js_string!(&quot;fulfilled&quot;).into()
+    ///     c.get(js_string!("status"), context)?,
+    ///     js_string!("fulfilled").into()
     /// );
-    /// assert_eq!(c.get(js_string!(&quot;value&quot;), context)?, 3.into());
+    /// assert_eq!(c.get(js_string!("value"), context)?, 3.into());
     ///
     /// # Ok(())
     /// # }
@@ -1955,21 +1956,21 @@
             .into();
 
         <span class="kw">let </span>value = Promise::all_settled(c, <span class="kw-2">&amp;</span>[promises.into()], context)
-            .expect(<span class="string">&quot;`Promise.all_settled` cannot fail with the default `%Promise%` constructor&quot;</span>);
+            .expect(<span class="string">"`Promise.all_settled` cannot fail with the default `%Promise%` constructor"</span>);
 
         <span class="kw">let </span>object = value
             .as_object()
-            .expect(<span class="string">&quot;`Promise.all_settled` always returns an object on success&quot;</span>);
+            .expect(<span class="string">"`Promise.all_settled` always returns an object on success"</span>);
 
         <span class="self">Self</span>::from_object(object.clone())
-        .expect(<span class="string">&quot;`Promise::all_settled` with the  default `%Promise%` constructor always returns a native `JsPromise`&quot;</span>)
+        .expect(<span class="string">"`Promise::all_settled` with the  default `%Promise%` constructor always returns a native `JsPromise`"</span>)
     }
 
     <span class="doccomment">/// Returns the first promise that fulfills from a list of promises.
     ///
     /// Equivalent to the [`Promise.any`] static method.
     ///
-    /// If after settling all promises in `promises` there isn&#39;t a fulfilled promise, the returned
+    /// If after settling all promises in `promises` there isn't a fulfilled promise, the returned
     /// promise will be rejected with an `AggregatorError` containing the rejection values of every
     /// promise; this includes the case where `promises` is an empty iterator.
     ///
@@ -1989,7 +1990,7 @@
     ///     [
     ///         JsPromise::reject(JsNativeError::syntax(), context),
     ///         JsPromise::reject(JsNativeError::typ(), context),
-    ///         JsPromise::resolve(js_string!(&quot;fulfilled&quot;), context),
+    ///         JsPromise::resolve(js_string!("fulfilled"), context),
     ///         JsPromise::reject(JsNativeError::range(), context),
     ///     ],
     ///     context,
@@ -1999,7 +2000,7 @@
     ///
     /// assert_eq!(
     ///     promise.state(),
-    ///     PromiseState::Fulfilled(js_string!(&quot;fulfilled&quot;).into())
+    ///     PromiseState::Fulfilled(js_string!("fulfilled").into())
     /// );
     /// ```
     ///
@@ -2018,14 +2019,14 @@
             .into();
 
         <span class="kw">let </span>value = Promise::any(c, <span class="kw-2">&amp;</span>[promises.into()], context)
-            .expect(<span class="string">&quot;`Promise.any` cannot fail with the default `%Promise%` constructor&quot;</span>);
+            .expect(<span class="string">"`Promise.any` cannot fail with the default `%Promise%` constructor"</span>);
 
         <span class="kw">let </span>object = value
             .as_object()
-            .expect(<span class="string">&quot;`Promise.any` always returns an object on success&quot;</span>);
+            .expect(<span class="string">"`Promise.any` always returns an object on success"</span>);
 
         <span class="self">Self</span>::from_object(object.clone())
-        .expect(<span class="string">&quot;`Promise::any` with the  default `%Promise%` constructor always returns a native `JsPromise`&quot;</span>)
+        .expect(<span class="string">"`Promise::any` with the  default `%Promise%` constructor always returns a native `JsPromise`"</span>)
     }
 
     <span class="doccomment">/// Returns the first promise that settles from a list of promises.
@@ -2062,7 +2063,7 @@
     ///     .call(&amp;JsValue::undefined(), &amp;[5.into()], context)?;
     /// resolvers_c.reject.call(
     ///     &amp;JsValue::undefined(),
-    ///     &amp;[js_string!(&quot;c error&quot;).into()],
+    ///     &amp;[js_string!("c error").into()],
     ///     context,
     /// )?;
     ///
@@ -2092,19 +2093,19 @@
             .into();
 
         <span class="kw">let </span>value = Promise::race(c, <span class="kw-2">&amp;</span>[promises.into()], context)
-            .expect(<span class="string">&quot;`Promise.race` cannot fail with the default `%Promise%` constructor&quot;</span>);
+            .expect(<span class="string">"`Promise.race` cannot fail with the default `%Promise%` constructor"</span>);
 
         <span class="kw">let </span>object = value
             .as_object()
-            .expect(<span class="string">&quot;`Promise.race` always returns an object on success&quot;</span>);
+            .expect(<span class="string">"`Promise.race` always returns an object on success"</span>);
 
         <span class="self">Self</span>::from_object(object.clone())
-        .expect(<span class="string">&quot;`Promise::race` with the  default `%Promise%` constructor always returns a native `JsPromise`&quot;</span>)
+        .expect(<span class="string">"`Promise::race` with the  default `%Promise%` constructor always returns a native `JsPromise`"</span>)
     }
 
     <span class="doccomment">/// Creates a `JsFuture` from this `JsPromise`.
     ///
-    /// The returned `JsFuture` implements [`Future`], which means it can be `await`ed within Rust&#39;s
+    /// The returned `JsFuture` implements [`Future`], which means it can be `await`ed within Rust's
     /// async contexts (async functions and async blocks).
     ///
     /// # Examples
@@ -2237,15 +2238,15 @@
         <span class="kw">match </span>value {
             JsValue::Object(o) =&gt; <span class="self">Self</span>::from_object(o.clone()),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;value is not a Promise object&quot;</span>)
+                .with_message(<span class="string">"value is not a Promise object"</span>)
                 .into()),
         }
     }
 }
 
-<span class="doccomment">/// A Rust&#39;s `Future` that becomes ready when a `JsPromise` fulfills.
+<span class="doccomment">/// A Rust's `Future` that becomes ready when a `JsPromise` fulfills.
 ///
-/// This type allows `await`ing `JsPromise`s inside Rust&#39;s async contexts, which makes interfacing
+/// This type allows `await`ing `JsPromise`s inside Rust's async contexts, which makes interfacing
 /// between promises and futures a bit easier.
 ///
 /// The only way to construct an instance of `JsFuture` is by calling [`JsPromise::into_js_future`].
@@ -2254,8 +2255,8 @@
 }
 
 <span class="kw">impl </span>std::fmt::Debug <span class="kw">for </span>JsFuture {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
-        f.debug_struct(<span class="string">&quot;JsFuture&quot;</span>).finish_non_exhaustive()
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
+        f.debug_struct(<span class="string">"JsFuture"</span>).finish_non_exhaustive()
     }
 }
 
@@ -2271,7 +2272,7 @@
 </span><span class="kw">impl </span>Future <span class="kw">for </span>JsFuture {
     <span class="kw">type </span>Output = JsResult&lt;JsValue&gt;;
 
-    <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; task::Poll&lt;<span class="self">Self</span>::Output&gt; {
+    <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>task::Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; task::Poll&lt;<span class="self">Self</span>::Output&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>inner = <span class="self">self</span>.inner.borrow_mut();
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(result) = inner.result.take() {

@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/gc/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="boa_gc" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../boa_gc/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_gc"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/gc/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="boa_gc" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../boa_gc/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_gc"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -588,15 +589,15 @@
 <a href="#588" id="588">588</a>
 <a href="#589" id="589">589</a>
 <a href="#590" id="590">590</a>
-</pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s **`boa_gc`** crate implements a garbage collector.
+</pre></div><pre class="rust"><code><span class="doccomment">//! Boa's **`boa_gc`** crate implements a garbage collector.
 //!
 //! # Crate Overview
 //! **`boa_gc`** is a mark-sweep garbage collector that implements a [`Trace`] and [`Finalize`] trait
 //! for garbage collected values.
-</span><span class="attr">#![doc = <span class="macro">include_str!</span>(<span class="string">&quot;../ABOUT.md&quot;</span>)]
+</span><span class="attr">#![doc = <span class="macro">include_str!</span>(<span class="string">"../ABOUT.md"</span>)]
 #![doc(
-    html_logo_url = <span class="string">&quot;https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg&quot;</span>,
-    html_favicon_url = <span class="string">&quot;https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg&quot;
+    html_logo_url = <span class="string">"https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"</span>,
+    html_favicon_url = <span class="string">"https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"
 </span>)]
 #![cfg_attr(not(test), forbid(clippy::unwrap_used))]
 #![allow(
@@ -715,9 +716,9 @@
 </span><span class="kw">struct </span>Allocator;
 
 <span class="kw">impl </span>Allocator {
-    <span class="doccomment">/// Allocate a new garbage collected value to the Garbage Collector&#39;s heap.
+    <span class="doccomment">/// Allocate a new garbage collected value to the Garbage Collector's heap.
     </span><span class="kw">fn </span>alloc_gc&lt;T: Trace&gt;(value: GcBox&lt;T&gt;) -&gt; NonNull&lt;GcBox&lt;T&gt;&gt; {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;New GcBox&quot;</span>, <span class="string">&quot;BoaAlloc&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">"New GcBox"</span>, <span class="string">"BoaAlloc"</span>);
         <span class="kw">let </span>element_size = mem::size_of_val::&lt;GcBox&lt;T&gt;&gt;(<span class="kw-2">&amp;</span>value);
         BOA_GC.with(|st| {
             <span class="kw">let </span><span class="kw-2">mut </span>gc = st.borrow_mut();
@@ -737,7 +738,7 @@
     <span class="kw">fn </span>alloc_ephemeron&lt;K: Trace + <span class="question-mark">?</span>Sized, V: Trace&gt;(
         value: EphemeronBox&lt;K, V&gt;,
     ) -&gt; NonNull&lt;EphemeronBox&lt;K, V&gt;&gt; {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;New EphemeronBox&quot;</span>, <span class="string">&quot;BoaAlloc&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">"New EphemeronBox"</span>, <span class="string">"BoaAlloc"</span>);
         <span class="kw">let </span>element_size = mem::size_of_val::&lt;EphemeronBox&lt;K, V&gt;&gt;(<span class="kw-2">&amp;</span>value);
         BOA_GC.with(|st| {
             <span class="kw">let </span><span class="kw-2">mut </span>gc = st.borrow_mut();
@@ -755,7 +756,7 @@
     }
 
     <span class="kw">fn </span>alloc_weak_map&lt;K: Trace + <span class="question-mark">?</span>Sized, V: Trace + Clone&gt;() -&gt; WeakMap&lt;K, V&gt; {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;New WeakMap&quot;</span>, <span class="string">&quot;BoaAlloc&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">"New WeakMap"</span>, <span class="string">"BoaAlloc"</span>);
 
         <span class="kw">let </span>weak_map = WeakMap {
             inner: Gc::new(GcRefCell::new(RawWeakMap::new())),
@@ -813,7 +814,7 @@
 <span class="kw">impl </span>Collector {
     <span class="doccomment">/// Run a collection on the full heap.
     </span><span class="kw">fn </span>collect(gc: <span class="kw-2">&amp;mut </span>BoaGc) {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Gc Full Collection&quot;</span>, <span class="string">&quot;gc&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">"Gc Full Collection"</span>, <span class="string">"gc"</span>);
         gc.runtime.collections += <span class="number">1</span>;
 
         <span class="self">Self</span>::trace_non_roots(gc);
@@ -822,15 +823,15 @@
 
         <span class="kw">let </span>unreachables = <span class="self">Self</span>::mark_heap(<span class="kw-2">&amp;mut </span>tracer, <span class="kw-2">&amp;</span>gc.strongs, <span class="kw-2">&amp;</span>gc.weaks, <span class="kw-2">&amp;</span>gc.weak_maps);
 
-        <span class="macro">assert!</span>(tracer.is_empty(), <span class="string">&quot;The queue should be empty&quot;</span>);
+        <span class="macro">assert!</span>(tracer.is_empty(), <span class="string">"The queue should be empty"</span>);
 
         <span class="comment">// Only finalize if there are any unreachable nodes.
         </span><span class="kw">if </span>!unreachables.strong.is_empty() || !unreachables.weak.is_empty() {
             <span class="comment">// Finalize all the unreachable nodes.
-            // SAFETY: All passed pointers are valid, since we won&#39;t deallocate until `Self::sweep`.
+            // SAFETY: All passed pointers are valid, since we won't deallocate until `Self::sweep`.
             </span><span class="kw">unsafe </span>{ <span class="self">Self</span>::finalize(unreachables) };
 
-            <span class="comment">// Reuse the tracer&#39;s already allocated capacity.
+            <span class="comment">// Reuse the tracer's already allocated capacity.
             </span><span class="kw">let </span>_final_unreachables =
                 <span class="self">Self</span>::mark_heap(<span class="kw-2">&amp;mut </span>tracer, <span class="kw-2">&amp;</span>gc.strongs, <span class="kw-2">&amp;</span>gc.weaks, <span class="kw-2">&amp;</span>gc.weak_maps);
         }
@@ -875,7 +876,7 @@
             <span class="comment">// SAFETY: node must be valid as this phase cannot drop any node.
             </span><span class="kw">let </span>trace_non_roots_fn = <span class="kw">unsafe </span>{ node.as_ref() }.trace_non_roots_fn();
 
-            <span class="comment">// SAFETY: The function pointer is appropriate for this node type because we extract it from it&#39;s VTable.
+            <span class="comment">// SAFETY: The function pointer is appropriate for this node type because we extract it from it's VTable.
             </span><span class="kw">unsafe </span>{
                 trace_non_roots_fn(<span class="kw-2">*</span>node);
             }
@@ -895,7 +896,7 @@
         weaks: <span class="kw-2">&amp;</span>[EphemeronPointer],
         weak_maps: <span class="kw-2">&amp;</span>[ErasedWeakMapBoxPointer],
     ) -&gt; Unreachables {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Gc Marking&quot;</span>, <span class="string">&quot;gc&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">"Gc Marking"</span>, <span class="string">"gc"</span>);
 
         <span class="comment">// Walk the list, tracing and marking the nodes
         </span><span class="kw">let </span><span class="kw-2">mut </span>strong_dead = Vec::new();
@@ -924,7 +925,7 @@
 
                         </span><span class="kw">let </span>trace_fn = node_ref.trace_fn();
 
-                        <span class="comment">// SAFETY: The function pointer is appropriate for this node type because we extract it from it&#39;s VTable.
+                        <span class="comment">// SAFETY: The function pointer is appropriate for this node type because we extract it from it's VTable.
                         </span><span class="kw">unsafe </span>{ trace_fn(node, tracer) }
                     }
                 }
@@ -967,7 +968,7 @@
                 <span class="comment">// SAFETY: node must be valid as this phase cannot drop any node.
                 </span><span class="kw">let </span>trace_fn = <span class="kw">unsafe </span>{ node.as_ref() }.trace_fn();
 
-                <span class="comment">// SAFETY: The function pointer is appropriate for this node type because we extract it from it&#39;s VTable.
+                <span class="comment">// SAFETY: The function pointer is appropriate for this node type because we extract it from it's VTable.
                 </span><span class="kw">unsafe </span>{
                     trace_fn(node, tracer);
                 }
@@ -986,7 +987,7 @@
                 <span class="comment">// SAFETY: node must be valid as this phase cannot drop any node.
                 </span><span class="kw">let </span>trace_fn = <span class="kw">unsafe </span>{ node.as_ref() }.trace_fn();
 
-                <span class="comment">// SAFETY: The function pointer is appropriate for this node type because we extract it from it&#39;s VTable.
+                <span class="comment">// SAFETY: The function pointer is appropriate for this node type because we extract it from it's VTable.
                 </span><span class="kw">unsafe </span>{
                     trace_fn(node, tracer);
                 }
@@ -1008,7 +1009,7 @@
                     <span class="comment">// SAFETY: node must be valid as this phase cannot drop any node.
                     </span><span class="kw">let </span>trace_fn = <span class="kw">unsafe </span>{ node.as_ref() }.trace_fn();
 
-                    <span class="comment">// SAFETY: The function pointer is appropriate for this node type because we extract it from it&#39;s VTable.
+                    <span class="comment">// SAFETY: The function pointer is appropriate for this node type because we extract it from it's VTable.
                     </span><span class="kw">unsafe </span>{
                         trace_fn(node, tracer);
                     }
@@ -1042,13 +1043,13 @@
     ///
     /// Passing a `strong` or a `weak` vec with invalid pointers will result in Undefined Behaviour.
     </span><span class="kw">unsafe fn </span>finalize(unreachables: Unreachables) {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Gc Finalization&quot;</span>, <span class="string">&quot;gc&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">"Gc Finalization"</span>, <span class="string">"gc"</span>);
         <span class="kw">for </span>node <span class="kw">in </span>unreachables.strong {
             <span class="comment">// SAFETY: The caller must ensure all pointers inside `unreachables.strong` are valid.
             </span><span class="kw">let </span>node_ref = <span class="kw">unsafe </span>{ node.as_ref() };
             <span class="kw">let </span>run_finalizer_fn = node_ref.run_finalizer_fn();
 
-            <span class="comment">// SAFETY: The function pointer is appropriate for this node type because we extract it from it&#39;s VTable.
+            <span class="comment">// SAFETY: The function pointer is appropriate for this node type because we extract it from it's VTable.
             </span><span class="kw">unsafe </span>{
                 run_finalizer_fn(node);
             }
@@ -1064,14 +1065,14 @@
     ///
     /// - Providing an invalid pointer in the `heap_start` or in any of the headers of each
     /// node will result in Undefined Behaviour.
-    /// - Providing a list of pointers that weren&#39;t allocated by `Box::into_raw(Box::new(..))`
+    /// - Providing a list of pointers that weren't allocated by `Box::into_raw(Box::new(..))`
     /// will result in Undefined Behaviour.
     </span><span class="kw">unsafe fn </span>sweep(
         strong: <span class="kw-2">&amp;mut </span>Vec&lt;GcErasedPointer&gt;,
         weak: <span class="kw-2">&amp;mut </span>Vec&lt;EphemeronPointer&gt;,
         total_allocated: <span class="kw-2">&amp;mut </span>usize,
     ) {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Gc Sweeping&quot;</span>, <span class="string">&quot;gc&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">"Gc Sweeping"</span>, <span class="string">"gc"</span>);
         <span class="kw">let </span>_guard = DropGuard::new();
 
         strong.retain(|node| {
@@ -1089,7 +1090,7 @@
                 <span class="kw">let </span>size = node_ref.size();
                 <span class="kw-2">*</span>total_allocated -= size;
 
-                <span class="comment">// SAFETY: The function pointer is appropriate for this node type because we extract it from it&#39;s VTable.
+                <span class="comment">// SAFETY: The function pointer is appropriate for this node type because we extract it from it's VTable.
                 </span><span class="kw">unsafe </span>{
                     drop_fn(<span class="kw-2">*</span>node);
                 }
@@ -1122,7 +1123,7 @@
     <span class="comment">// Clean up the heap when BoaGc is dropped
     </span><span class="kw">fn </span>dump(gc: <span class="kw-2">&amp;mut </span>BoaGc) {
         <span class="comment">// Weak maps have to be dropped first, since the process dereferences GcBoxes.
-        // This can be done without initializing a dropguard since no GcBox&#39;s are being dropped.
+        // This can be done without initializing a dropguard since no GcBox's are being dropped.
         </span><span class="kw">for </span>node <span class="kw">in </span>std::mem::take(<span class="kw-2">&amp;mut </span>gc.weak_maps) {
             <span class="comment">// SAFETY:
             // The `Allocator` must always ensure its start node is a valid, non-null pointer that
@@ -1139,7 +1140,7 @@
             // was allocated by `Box::from_raw(Box::new(..))`.
             </span><span class="kw">let </span>drop_fn = <span class="kw">unsafe </span>{ node.as_ref() }.drop_fn();
 
-            <span class="comment">// SAFETY: The function pointer is appropriate for this node type because we extract it from it&#39;s VTable.
+            <span class="comment">// SAFETY: The function pointer is appropriate for this node type because we extract it from it's VTable.
             </span><span class="kw">unsafe </span>{
                 drop_fn(node);
             }

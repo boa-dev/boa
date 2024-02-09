@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/builtins/json/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/builtins/json/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -826,10 +827,10 @@
 <a href="#826" id="826">826</a>
 <a href="#827" id="827">827</a>
 <a href="#828" id="828">828</a>
-</pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `JSON` object.
+</pre></div><pre class="rust"><code><span class="doccomment">//! Boa's implementation of ECMAScript's global `JSON` object.
 //!
 //! The `JSON` object contains methods for parsing [JavaScript Object Notation (JSON)][spec]
-//! and converting values to JSON. It can&#39;t be called or constructed, and aside from its
+//! and converting values to JSON. It can't be called or constructed, and aside from its
 //! two method properties, it has no interesting functionality of its own.
 //!
 //! More information:
@@ -875,14 +876,14 @@
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>Json {
     <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(std::any::type_name::&lt;<span class="self">Self</span>&gt;(), <span class="string">&quot;init&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(std::any::type_name::&lt;<span class="self">Self</span>&gt;(), <span class="string">"init"</span>);
 
         <span class="kw">let </span>to_string_tag = JsSymbol::to_string_tag();
         <span class="kw">let </span>attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
 
         BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(realm)
-            .static_method(<span class="self">Self</span>::parse, <span class="macro">js_string!</span>(<span class="string">&quot;parse&quot;</span>), <span class="number">2</span>)
-            .static_method(<span class="self">Self</span>::stringify, <span class="macro">js_string!</span>(<span class="string">&quot;stringify&quot;</span>), <span class="number">3</span>)
+            .static_method(<span class="self">Self</span>::parse, <span class="macro">js_string!</span>(<span class="string">"parse"</span>), <span class="number">2</span>)
+            .static_method(<span class="self">Self</span>::stringify, <span class="macro">js_string!</span>(<span class="string">"stringify"</span>), <span class="number">3</span>)
             .static_property(to_string_tag, <span class="self">Self</span>::NAME, attribute)
             .build();
     }
@@ -925,9 +926,9 @@
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::syntax().with_message(e.to_string()).into());
         }
 
-        <span class="comment">// 3. Let scriptString be the string-concatenation of &quot;(&quot;, jsonString, and &quot;);&quot;.
+        <span class="comment">// 3. Let scriptString be the string-concatenation of "(", jsonString, and ");".
         // TODO: fix script read for eval
-        </span><span class="kw">let </span>script_string = <span class="macro">format!</span>(<span class="string">&quot;({json_string});&quot;</span>);
+        </span><span class="kw">let </span>script_string = <span class="macro">format!</span>(<span class="string">"({json_string});"</span>);
 
         <span class="comment">// 4. Let script be ParseText(! StringToCodePoints(scriptString), Script).
         // 5. NOTE: The early error rules defined in 13.2.5.1 have special handling for the above invocation of ParseText.
@@ -941,7 +942,7 @@
         <span class="kw">let </span>script = parser.parse_script(context.interner_mut())<span class="question-mark">?</span>;
         <span class="kw">let </span>code_block = {
             <span class="kw">let </span><span class="kw-2">mut </span>compiler = ByteCompiler::new(
-                <span class="macro">js_string!</span>(<span class="string">&quot;&lt;main&gt;&quot;</span>),
+                <span class="macro">js_string!</span>(<span class="string">"&lt;main&gt;"</span>),
                 script.strict(),
                 <span class="bool-val">true</span>,
                 context.realm().environment().compile_env(),
@@ -976,11 +977,11 @@
 
             <span class="comment">// b. Let rootName be the empty String.
             // c. Perform ! CreateDataPropertyOrThrow(root, rootName, unfiltered).
-            </span>root.create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;&quot;</span>), unfiltered, context)
-                .expect(<span class="string">&quot;CreateDataPropertyOrThrow should never throw here&quot;</span>);
+            </span>root.create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">""</span>), unfiltered, context)
+                .expect(<span class="string">"CreateDataPropertyOrThrow should never throw here"</span>);
 
             <span class="comment">// d. Return ? InternalizeJSONProperty(root, rootName, reviver).
-            </span><span class="self">Self</span>::internalize_json_property(<span class="kw-2">&amp;</span>root, <span class="string">&quot;&quot;</span>.into(), obj, context)
+            </span><span class="self">Self</span>::internalize_json_property(<span class="kw-2">&amp;</span>root, <span class="string">""</span>.into(), obj, context)
         } <span class="kw">else </span>{
             <span class="comment">// 12. Else,
             // a. Return unfiltered.
@@ -1041,10 +1042,10 @@
 
                 <span class="comment">// ii. For each String P of keys, do
                 </span><span class="kw">for </span>p <span class="kw">in </span>keys {
-                    <span class="comment">// This is safe, because EnumerableOwnPropertyNames with &#39;key&#39; type only returns strings.
+                    <span class="comment">// This is safe, because EnumerableOwnPropertyNames with 'key' type only returns strings.
                     </span><span class="kw">let </span>p = p
                         .as_string()
-                        .expect(<span class="string">&quot;EnumerableOwnPropertyNames only returns strings&quot;</span>)
+                        .expect(<span class="string">"EnumerableOwnPropertyNames only returns strings"</span>)
                         .clone();
 
                     <span class="comment">// 1. Let newElement be ? InternalizeJSONProperty(val, P, reviver).
@@ -1076,7 +1077,7 @@
     /// This method optionally replaces values if a `replacer` function is specified or
     /// optionally including only the specified properties if a replacer array is specified.
     ///
-    /// An optional `space` argument can be supplied of type `String` or `Number` that&#39;s used to insert
+    /// An optional `space` argument can be supplied of type `String` or `Number` that's used to insert
     /// white space into the output JSON string for readability purposes.
     ///
     /// More information:
@@ -1139,7 +1140,7 @@
                         } <span class="kw">else if </span>v.is_number() {
                             property_set.insert(
                                 v.to_string(context)
-                                    .expect(<span class="string">&quot;ToString cannot fail on number value&quot;</span>),
+                                    .expect(<span class="string">"ToString cannot fail on number value"</span>),
                             );
                         } <span class="kw">else if let </span><span class="prelude-val">Some</span>(obj) = v.as_object() {
                             <span class="comment">// i. If v has a [[StringData]] or [[NumberData]] internal slot, set item to ? ToString(v).
@@ -1179,16 +1180,16 @@
             // c. If spaceMV &lt; 1, let gap be the empty String; otherwise let gap be the String value containing spaceMV occurrences of the code unit 0x0020 (SPACE).
             </span><span class="kw">match </span>space
                 .to_integer_or_infinity(context)
-                .expect(<span class="string">&quot;ToIntegerOrInfinity cannot fail on number&quot;</span>)
+                .expect(<span class="string">"ToIntegerOrInfinity cannot fail on number"</span>)
             {
-                IntegerOrInfinity::PositiveInfinity =&gt; <span class="macro">js_string!</span>(<span class="string">&quot;          &quot;</span>),
+                IntegerOrInfinity::PositiveInfinity =&gt; <span class="macro">js_string!</span>(<span class="string">"          "</span>),
                 IntegerOrInfinity::NegativeInfinity =&gt; <span class="macro">js_string!</span>(),
                 IntegerOrInfinity::Integer(i) <span class="kw">if </span>i &lt; <span class="number">1 </span>=&gt; <span class="macro">js_string!</span>(),
                 IntegerOrInfinity::Integer(i) =&gt; {
                     <span class="kw">let </span><span class="kw-2">mut </span>s = String::new();
                     <span class="kw">let </span>i = std::cmp::min(<span class="number">10</span>, i);
                     <span class="kw">for _ in </span><span class="number">0</span>..i {
-                        s.push(<span class="string">&#39; &#39;</span>);
+                        s.push(<span class="string">' '</span>);
                     }
                     s.into()
                 }
@@ -1208,8 +1209,8 @@
 
         <span class="comment">// 10. Perform ! CreateDataPropertyOrThrow(wrapper, the empty String, value).
         </span>wrapper
-            .create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;&quot;</span>), args.get_or_undefined(<span class="number">0</span>).clone(), context)
-            .expect(<span class="string">&quot;CreateDataPropertyOrThrow should never fail here&quot;</span>);
+            .create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">""</span>), args.get_or_undefined(<span class="number">0</span>).clone(), context)
+            .expect(<span class="string">"CreateDataPropertyOrThrow should never fail here"</span>);
 
         <span class="comment">// 11. Let state be the Record { [[ReplacerFunction]]: ReplacerFunction, [[Stack]]: stack, [[Indent]]: indent, [[Gap]]: gap, [[PropertyList]]: PropertyList }.
         </span><span class="kw">let </span><span class="kw-2">mut </span>state = StateRecord {
@@ -1245,8 +1246,8 @@
 
         <span class="comment">// 2. If Type(value) is Object or BigInt, then
         </span><span class="kw">if </span>value.is_object() || value.is_bigint() {
-            <span class="comment">// a. Let toJSON be ? GetV(value, &quot;toJSON&quot;).
-            </span><span class="kw">let </span>to_json = value.get_v(<span class="macro">utf16!</span>(<span class="string">&quot;toJSON&quot;</span>), context)<span class="question-mark">?</span>;
+            <span class="comment">// a. Let toJSON be ? GetV(value, "toJSON").
+            </span><span class="kw">let </span>to_json = value.get_v(<span class="macro">utf16!</span>(<span class="string">"toJSON"</span>), context)<span class="question-mark">?</span>;
 
             <span class="comment">// b. If IsCallable(toJSON) is true, then
             </span><span class="kw">if let </span><span class="prelude-val">Some</span>(obj) = to_json.as_object() {
@@ -1287,18 +1288,18 @@
             }
         }
 
-        <span class="comment">// 5. If value is null, return &quot;null&quot;.
+        <span class="comment">// 5. If value is null, return "null".
         </span><span class="kw">if </span>value.is_null() {
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="macro">js_string!</span>(<span class="string">&quot;null&quot;</span>)));
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="macro">js_string!</span>(<span class="string">"null"</span>)));
         }
 
-        <span class="comment">// 6. If value is true, return &quot;true&quot;.
-        // 7. If value is false, return &quot;false&quot;.
+        <span class="comment">// 6. If value is true, return "true".
+        // 7. If value is false, return "false".
         </span><span class="kw">if </span>value.is_boolean() {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="macro">js_string!</span>(<span class="kw">if </span>value.to_boolean() {
-                <span class="string">&quot;true&quot;
+                <span class="string">"true"
             </span>} <span class="kw">else </span>{
-                <span class="string">&quot;false&quot;
+                <span class="string">"false"
             </span>})));
         }
 
@@ -1314,18 +1315,18 @@
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(
                     value
                         .to_string(context)
-                        .expect(<span class="string">&quot;ToString should never fail here&quot;</span>),
+                        .expect(<span class="string">"ToString should never fail here"</span>),
                 ));
             }
 
-            <span class="comment">// b. Return &quot;null&quot;.
-            </span><span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="macro">js_string!</span>(<span class="string">&quot;null&quot;</span>)));
+            <span class="comment">// b. Return "null".
+            </span><span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="macro">js_string!</span>(<span class="string">"null"</span>)));
         }
 
         <span class="comment">// 10. If Type(value) is BigInt, throw a TypeError exception.
         </span><span class="kw">if </span>value.is_bigint() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;cannot serialize bigint to JSON&quot;</span>)
+                .with_message(<span class="string">"cannot serialize bigint to JSON"</span>)
                 .into());
         }
 
@@ -1356,7 +1357,7 @@
     </span><span class="kw">fn </span>quote_json_string(value: <span class="kw-2">&amp;</span>JsString) -&gt; JsString {
         <span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0</span>; <span class="number">2</span>];
         <span class="comment">// 1. Let product be the String value consisting solely of the code unit 0x0022 (QUOTATION MARK).
-        </span><span class="kw">let </span><span class="kw-2">mut </span>product = <span class="macro">vec!</span>[<span class="string">&#39;&quot;&#39; </span><span class="kw">as </span>u16];
+        </span><span class="kw">let </span><span class="kw-2">mut </span>product = <span class="macro">vec!</span>[<span class="string">'"' </span><span class="kw">as </span>u16];
 
         <span class="comment">// 2. For each code point C of ! StringToCodePoints(value), do
         </span><span class="kw">for </span>code_point <span class="kw">in </span>value.code_points() {
@@ -1365,13 +1366,13 @@
                 // i. Set product to the string-concatenation of product and the
                 // escape sequence for C as specified in the “Escape Sequence”
                 // column of the corresponding row.
-                </span>CodePoint::Unicode(<span class="string">&#39;\u{0008}&#39;</span>) =&gt; product.extend_from_slice(<span class="macro">utf16!</span>(<span class="string">r&quot;\b&quot;</span>)),
-                CodePoint::Unicode(<span class="string">&#39;\u{0009}&#39;</span>) =&gt; product.extend_from_slice(<span class="macro">utf16!</span>(<span class="string">r&quot;\t&quot;</span>)),
-                CodePoint::Unicode(<span class="string">&#39;\u{000A}&#39;</span>) =&gt; product.extend_from_slice(<span class="macro">utf16!</span>(<span class="string">r&quot;\n&quot;</span>)),
-                CodePoint::Unicode(<span class="string">&#39;\u{000C}&#39;</span>) =&gt; product.extend_from_slice(<span class="macro">utf16!</span>(<span class="string">r&quot;\f&quot;</span>)),
-                CodePoint::Unicode(<span class="string">&#39;\u{000D}&#39;</span>) =&gt; product.extend_from_slice(<span class="macro">utf16!</span>(<span class="string">r&quot;\r&quot;</span>)),
-                CodePoint::Unicode(<span class="string">&#39;\u{0022}&#39;</span>) =&gt; product.extend_from_slice(<span class="macro">utf16!</span>(<span class="string">r#&quot;\&quot;&quot;#</span>)),
-                CodePoint::Unicode(<span class="string">&#39;\u{005C}&#39;</span>) =&gt; product.extend_from_slice(<span class="macro">utf16!</span>(<span class="string">r&quot;\\&quot;</span>)),
+                </span>CodePoint::Unicode(<span class="string">'\u{0008}'</span>) =&gt; product.extend_from_slice(<span class="macro">utf16!</span>(<span class="string">r"\b"</span>)),
+                CodePoint::Unicode(<span class="string">'\u{0009}'</span>) =&gt; product.extend_from_slice(<span class="macro">utf16!</span>(<span class="string">r"\t"</span>)),
+                CodePoint::Unicode(<span class="string">'\u{000A}'</span>) =&gt; product.extend_from_slice(<span class="macro">utf16!</span>(<span class="string">r"\n"</span>)),
+                CodePoint::Unicode(<span class="string">'\u{000C}'</span>) =&gt; product.extend_from_slice(<span class="macro">utf16!</span>(<span class="string">r"\f"</span>)),
+                CodePoint::Unicode(<span class="string">'\u{000D}'</span>) =&gt; product.extend_from_slice(<span class="macro">utf16!</span>(<span class="string">r"\r"</span>)),
+                CodePoint::Unicode(<span class="string">'\u{0022}'</span>) =&gt; product.extend_from_slice(<span class="macro">utf16!</span>(<span class="string">r#"\""#</span>)),
+                CodePoint::Unicode(<span class="string">'\u{005C}'</span>) =&gt; product.extend_from_slice(<span class="macro">utf16!</span>(<span class="string">r"\\"</span>)),
                 <span class="comment">// b. Else if C has a numeric value less than 0x0020 (SPACE), or
                 // if C has the same numeric value as a leading surrogate or
                 // trailing surrogate, then
@@ -1379,11 +1380,11 @@
                 //     of C.
                 //     ii. Set product to the string-concatenation of product
                 //     and UnicodeEscape(unit).
-                </span>CodePoint::Unicode(c) <span class="kw">if </span>c &lt; <span class="string">&#39;\u{0020}&#39; </span>=&gt; {
-                    product.extend(<span class="macro">format!</span>(<span class="string">&quot;\\u{:04x}&quot;</span>, c <span class="kw">as </span>u32).encode_utf16());
+                </span>CodePoint::Unicode(c) <span class="kw">if </span>c &lt; <span class="string">'\u{0020}' </span>=&gt; {
+                    product.extend(<span class="macro">format!</span>(<span class="string">"\\u{:04x}"</span>, c <span class="kw">as </span>u32).encode_utf16());
                 }
                 CodePoint::UnpairedSurrogate(surr) =&gt; {
-                    product.extend(<span class="macro">format!</span>(<span class="string">&quot;\\u{surr:04x}&quot;</span>).encode_utf16());
+                    product.extend(<span class="macro">format!</span>(<span class="string">"\\u{surr:04x}"</span>).encode_utf16());
                 }
                 <span class="comment">// c. Else,
                 </span>CodePoint::Unicode(c) =&gt; {
@@ -1394,7 +1395,7 @@
         }
 
         <span class="comment">// 3. Set product to the string-concatenation of product and the code unit 0x0022 (QUOTATION MARK).
-        </span>product.push(<span class="string">&#39;&quot;&#39; </span><span class="kw">as </span>u16);
+        </span>product.push(<span class="string">'"' </span><span class="kw">as </span>u16);
 
         <span class="comment">// 4. Return product.
         </span><span class="macro">js_string!</span>(<span class="kw-2">&amp;</span>product[..])
@@ -1414,7 +1415,7 @@
         <span class="comment">// 1. If state.[[Stack]] contains value, throw a TypeError exception because the structure is cyclical.
         </span><span class="kw">if </span>state.stack.contains(value) {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;cyclic object value&quot;</span>)
+                .with_message(<span class="string">"cyclic object value"</span>)
                 .into());
         }
 
@@ -1435,11 +1436,11 @@
         </span>} <span class="kw">else </span>{
             <span class="comment">// a. Let K be ? EnumerableOwnPropertyNames(value, key).
             </span><span class="kw">let </span>keys = value.enumerable_own_property_names(PropertyNameKind::Key, context)<span class="question-mark">?</span>;
-            <span class="comment">// Unwrap is safe, because EnumerableOwnPropertyNames with kind &quot;key&quot; only returns string values.
+            <span class="comment">// Unwrap is safe, because EnumerableOwnPropertyNames with kind "key" only returns string values.
             </span>keys.iter()
                 .map(|v| {
                     v.to_string(context)
-                        .expect(<span class="string">&quot;EnumerableOwnPropertyNames only returns strings&quot;</span>)
+                        .expect(<span class="string">"EnumerableOwnPropertyNames only returns strings"</span>)
                 })
                 .collect()
         };
@@ -1457,13 +1458,13 @@
                 <span class="comment">// i. Let member be QuoteJSONString(P).
                 </span><span class="kw">let </span><span class="kw-2">mut </span>member = <span class="self">Self</span>::quote_json_string(p).to_vec();
 
-                <span class="comment">// ii. Set member to the string-concatenation of member and &quot;:&quot;.
-                </span>member.push(<span class="string">&#39;:&#39; </span><span class="kw">as </span>u16);
+                <span class="comment">// ii. Set member to the string-concatenation of member and ":".
+                </span>member.push(<span class="string">':' </span><span class="kw">as </span>u16);
 
                 <span class="comment">// iii. If state.[[Gap]] is not the empty String, then
                 </span><span class="kw">if </span>!state.gap.is_empty() {
                     <span class="comment">// 1. Set member to the string-concatenation of member and the code unit 0x0020 (SPACE).
-                    </span>member.push(<span class="string">&#39; &#39; </span><span class="kw">as </span>u16);
+                    </span>member.push(<span class="string">' ' </span><span class="kw">as </span>u16);
                 }
 
                 <span class="comment">// iv. Set member to the string-concatenation of member and strP.
@@ -1476,8 +1477,8 @@
 
         <span class="comment">// 9. If partial is empty, then
         </span><span class="kw">let </span>r#final = <span class="kw">if </span>partial.is_empty() {
-            <span class="comment">// a. Let final be &quot;{}&quot;.
-            </span><span class="macro">js_string!</span>(<span class="string">&quot;{}&quot;</span>)
+            <span class="comment">// a. Let final be "{}".
+            </span><span class="macro">js_string!</span>(<span class="string">"{}"</span>)
         <span class="comment">// 10. Else,
         </span>} <span class="kw">else </span>{
             <span class="comment">// a. If state.[[Gap]] is the empty String, then
@@ -1485,14 +1486,14 @@
                 <span class="comment">// i. Let properties be the String value formed by concatenating all the element Strings of partial
                 //    with each adjacent pair of Strings separated with the code unit 0x002C (COMMA).
                 //    A comma is not inserted either before the first String or after the last String.
-                // ii. Let final be the string-concatenation of &quot;{&quot;, properties, and &quot;}&quot;.
-                </span><span class="kw">let </span>separator = <span class="macro">utf16!</span>(<span class="string">&quot;,&quot;</span>);
-                <span class="kw">let </span>result = once(<span class="macro">utf16!</span>(<span class="string">&quot;{&quot;</span>))
+                // ii. Let final be the string-concatenation of "{", properties, and "}".
+                </span><span class="kw">let </span>separator = <span class="macro">utf16!</span>(<span class="string">","</span>);
+                <span class="kw">let </span>result = once(<span class="macro">utf16!</span>(<span class="string">"{"</span>))
                     .chain(Itertools::intersperse(
                         partial.iter().map(Vec::as_slice),
                         separator,
                     ))
-                    .chain(once(<span class="macro">utf16!</span>(<span class="string">&quot;}&quot;</span>)))
+                    .chain(once(<span class="macro">utf16!</span>(<span class="string">"}"</span>)))
                     .flatten()
                     .copied()
                     .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
@@ -1501,21 +1502,21 @@
             </span>} <span class="kw">else </span>{
                 <span class="comment">// i. Let separator be the string-concatenation of the code unit 0x002C (COMMA),
                 //    the code unit 0x000A (LINE FEED), and state.[[Indent]].
-                </span><span class="kw">let </span><span class="kw-2">mut </span>separator = <span class="macro">utf16!</span>(<span class="string">&quot;,\n&quot;</span>).to_vec();
+                </span><span class="kw">let </span><span class="kw-2">mut </span>separator = <span class="macro">utf16!</span>(<span class="string">",\n"</span>).to_vec();
                 separator.extend_from_slice(<span class="kw-2">&amp;</span>state.indent);
                 <span class="comment">// ii. Let properties be the String value formed by concatenating all the element Strings of partial
                 //     with each adjacent pair of Strings separated with separator.
                 //     The separator String is not inserted either before the first String or after the last String.
-                // iii. Let final be the string-concatenation of &quot;{&quot;, the code
+                // iii. Let final be the string-concatenation of "{", the code
                 //      unit 0x000A (LINE FEED), state.[[Indent]], properties,
-                //      the code unit 0x000A (LINE FEED), stepback, and &quot;}&quot;.
-                </span><span class="kw">let </span>result = [<span class="macro">utf16!</span>(<span class="string">&quot;{\n&quot;</span>), <span class="kw-2">&amp;</span>state.indent[..]]
+                //      the code unit 0x000A (LINE FEED), stepback, and "}".
+                </span><span class="kw">let </span>result = [<span class="macro">utf16!</span>(<span class="string">"{\n"</span>), <span class="kw-2">&amp;</span>state.indent[..]]
                     .into_iter()
                     .chain(Itertools::intersperse(
                         partial.iter().map(Vec::as_slice),
                         <span class="kw-2">&amp;</span>separator,
                     ))
-                    .chain([<span class="macro">utf16!</span>(<span class="string">&quot;\n&quot;</span>), <span class="kw-2">&amp;</span>stepback[..], <span class="macro">utf16!</span>(<span class="string">&quot;}&quot;</span>)])
+                    .chain([<span class="macro">utf16!</span>(<span class="string">"\n"</span>), <span class="kw-2">&amp;</span>stepback[..], <span class="macro">utf16!</span>(<span class="string">"}"</span>)])
                     .flatten()
                     .copied()
                     .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
@@ -1547,7 +1548,7 @@
         <span class="comment">// 1. If state.[[Stack]] contains value, throw a TypeError exception because the structure is cyclical.
         </span><span class="kw">if </span>state.stack.contains(value) {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;cyclic object value&quot;</span>)
+                .with_message(<span class="string">"cyclic object value"</span>)
                 .into());
         }
 
@@ -1581,8 +1582,8 @@
                 </span>partial.push(Cow::Owned(str_p.to_vec()));
             <span class="comment">// c. Else,
             </span>} <span class="kw">else </span>{
-                <span class="comment">// i. Append &quot;null&quot; to partial.
-                </span>partial.push(Cow::Borrowed(<span class="macro">utf16!</span>(<span class="string">&quot;null&quot;</span>)));
+                <span class="comment">// i. Append "null" to partial.
+                </span>partial.push(Cow::Borrowed(<span class="macro">utf16!</span>(<span class="string">"null"</span>)));
             }
 
             <span class="comment">// d. Set index to index + 1.
@@ -1591,8 +1592,8 @@
 
         <span class="comment">// 9. If partial is empty, then
         </span><span class="kw">let </span>r#final = <span class="kw">if </span>partial.is_empty() {
-            <span class="comment">// a. Let final be &quot;[]&quot;.
-            </span><span class="macro">js_string!</span>(<span class="string">&quot;[]&quot;</span>)
+            <span class="comment">// a. Let final be "[]".
+            </span><span class="macro">js_string!</span>(<span class="string">"[]"</span>)
         <span class="comment">// 10. Else,
         </span>} <span class="kw">else </span>{
             <span class="comment">// a. If state.[[Gap]] is the empty String, then
@@ -1600,14 +1601,14 @@
                 <span class="comment">// i. Let properties be the String value formed by concatenating all the element Strings of partial
                 //    with each adjacent pair of Strings separated with the code unit 0x002C (COMMA).
                 //    A comma is not inserted either before the first String or after the last String.
-                // ii. Let final be the string-concatenation of &quot;[&quot;, properties, and &quot;]&quot;.
-                </span><span class="kw">let </span>separator = <span class="macro">utf16!</span>(<span class="string">&quot;,&quot;</span>);
-                <span class="kw">let </span>result = once(<span class="macro">utf16!</span>(<span class="string">&quot;[&quot;</span>))
+                // ii. Let final be the string-concatenation of "[", properties, and "]".
+                </span><span class="kw">let </span>separator = <span class="macro">utf16!</span>(<span class="string">","</span>);
+                <span class="kw">let </span>result = once(<span class="macro">utf16!</span>(<span class="string">"["</span>))
                     .chain(Itertools::intersperse(
                         partial.iter().map(Cow::as_ref),
                         separator,
                     ))
-                    .chain(once(<span class="macro">utf16!</span>(<span class="string">&quot;]&quot;</span>)))
+                    .chain(once(<span class="macro">utf16!</span>(<span class="string">"]"</span>)))
                     .flatten()
                     .copied()
                     .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
@@ -1616,19 +1617,19 @@
             </span>} <span class="kw">else </span>{
                 <span class="comment">// i. Let separator be the string-concatenation of the code unit 0x002C (COMMA),
                 //    the code unit 0x000A (LINE FEED), and state.[[Indent]].
-                </span><span class="kw">let </span><span class="kw-2">mut </span>separator = <span class="macro">utf16!</span>(<span class="string">&quot;,\n&quot;</span>).to_vec();
+                </span><span class="kw">let </span><span class="kw-2">mut </span>separator = <span class="macro">utf16!</span>(<span class="string">",\n"</span>).to_vec();
                 separator.extend_from_slice(<span class="kw-2">&amp;</span>state.indent);
                 <span class="comment">// ii. Let properties be the String value formed by concatenating all the element Strings of partial
                 //     with each adjacent pair of Strings separated with separator.
                 //     The separator String is not inserted either before the first String or after the last String.
-                // iii. Let final be the string-concatenation of &quot;[&quot;, the code unit 0x000A (LINE FEED), state.[[Indent]], properties, the code unit 0x000A (LINE FEED), stepback, and &quot;]&quot;.
-                </span><span class="kw">let </span>result = [<span class="macro">utf16!</span>(<span class="string">&quot;[\n&quot;</span>), <span class="kw-2">&amp;</span>state.indent[..]]
+                // iii. Let final be the string-concatenation of "[", the code unit 0x000A (LINE FEED), state.[[Indent]], properties, the code unit 0x000A (LINE FEED), stepback, and "]".
+                </span><span class="kw">let </span>result = [<span class="macro">utf16!</span>(<span class="string">"[\n"</span>), <span class="kw-2">&amp;</span>state.indent[..]]
                     .into_iter()
                     .chain(Itertools::intersperse(
                         partial.iter().map(Cow::as_ref),
                         <span class="kw-2">&amp;</span>separator,
                     ))
-                    .chain([<span class="macro">utf16!</span>(<span class="string">&quot;\n&quot;</span>), <span class="kw-2">&amp;</span>stepback[..], <span class="macro">utf16!</span>(<span class="string">&quot;]&quot;</span>)])
+                    .chain([<span class="macro">utf16!</span>(<span class="string">"\n"</span>), <span class="kw-2">&amp;</span>stepback[..], <span class="macro">utf16!</span>(<span class="string">"]"</span>)])
                     .flatten()
                     .copied()
                     .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();

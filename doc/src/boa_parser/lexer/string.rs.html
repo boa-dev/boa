@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/parser/src/lexer/string.rs`."><title>string.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="boa_parser" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../boa_parser/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_parser"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/parser/src/lexer/string.rs`."><title>string.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="boa_parser" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../../boa_parser/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_parser"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -393,7 +394,7 @@
 <a href="#393" id="393">393</a>
 <a href="#394" id="394">394</a>
 <a href="#395" id="395">395</a>
-</pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s lexing for ECMAScript string literals.
+</pre></div><pre class="rust"><code><span class="doccomment">//! Boa's lexing for ECMAScript string literals.
 
 </span><span class="kw">use </span><span class="kw">crate</span>::lexer::{token::EscapeSequence, Cursor, Error, Token, TokenKind, Tokenizer};
 <span class="kw">use </span><span class="kw">crate</span>::source::ReadChar;
@@ -404,7 +405,7 @@
 
 <span class="doccomment">/// String literal lexing.
 ///
-/// Note: expects for the initializer `&#39;` or `&quot;` to already be consumed from the cursor.
+/// Note: expects for the initializer `'` or `"` to already be consumed from the cursor.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
@@ -421,8 +422,8 @@
     <span class="doccomment">/// Creates a new string literal lexer.
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(init: char) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>terminator = <span class="kw">match </span>init {
-            <span class="string">&#39;\&#39;&#39; </span>=&gt; StringTerminator::SingleQuote,
-            <span class="string">&#39;&quot;&#39; </span>=&gt; StringTerminator::DoubleQuote,
+            <span class="string">'\'' </span>=&gt; StringTerminator::SingleQuote,
+            <span class="string">'"' </span>=&gt; StringTerminator::DoubleQuote,
             <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
         };
 
@@ -456,10 +457,10 @@
 
         <span class="kw">let </span>cu1 = (code_point / <span class="number">1024 </span>+ <span class="number">0xD800</span>)
             .try_into()
-            .expect(<span class="string">&quot;decoded an u32 into two u16.&quot;</span>);
+            .expect(<span class="string">"decoded an u32 into two u16."</span>);
         <span class="kw">let </span>cu2 = (code_point % <span class="number">1024 </span>+ <span class="number">0xDC00</span>)
             .try_into()
-            .expect(<span class="string">&quot;decoded an u32 into two u16.&quot;</span>);
+            .expect(<span class="string">"decoded an u32 into two u16."</span>);
         <span class="self">self</span>.push(cu1);
         <span class="self">self</span>.push(cu2);
     }
@@ -479,7 +480,7 @@
     <span class="kw">where
         </span>R: ReadChar,
     {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;StringLiteral&quot;</span>, <span class="string">&quot;Lexing&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">"StringLiteral"</span>, <span class="string">"Lexing"</span>);
 
         <span class="kw">let </span>(lit, span, escape_sequence) =
             <span class="self">Self</span>::take_string_characters(cursor, start_pos, <span class="self">self</span>.terminator, cursor.strict())<span class="question-mark">?</span>;
@@ -522,11 +523,11 @@
             <span class="kw">let </span>ch = cursor.next_char()<span class="question-mark">?</span>;
 
             <span class="kw">match </span>ch {
-                <span class="prelude-val">Some</span>(<span class="number">0x0027 </span><span class="comment">/* &#39; */</span>) <span class="kw">if </span>terminator == StringTerminator::SingleQuote =&gt; <span class="kw">break</span>,
-                <span class="prelude-val">Some</span>(<span class="number">0x0022 </span><span class="comment">/* &quot; */</span>) <span class="kw">if </span>terminator == StringTerminator::DoubleQuote =&gt; <span class="kw">break</span>,
+                <span class="prelude-val">Some</span>(<span class="number">0x0027 </span><span class="comment">/* ' */</span>) <span class="kw">if </span>terminator == StringTerminator::SingleQuote =&gt; <span class="kw">break</span>,
+                <span class="prelude-val">Some</span>(<span class="number">0x0022 </span><span class="comment">/* " */</span>) <span class="kw">if </span>terminator == StringTerminator::DoubleQuote =&gt; <span class="kw">break</span>,
                 <span class="prelude-val">Some</span>(<span class="number">0x005C </span><span class="comment">/* \ */</span>) =&gt; {
                     <span class="kw">let </span>_timer =
-                        Profiler::global().start_event(<span class="string">&quot;StringLiteral - escape sequence&quot;</span>, <span class="string">&quot;Lexing&quot;</span>);
+                        Profiler::global().start_event(<span class="string">"StringLiteral - escape sequence"</span>, <span class="string">"Lexing"</span>);
 
                     <span class="kw">let </span>(escape_value, escape) = <span class="self">Self</span>::take_escape_sequence_or_line_continuation(
                         cursor,
@@ -549,7 +550,7 @@
                 <span class="kw">_ </span>=&gt; {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(Error::from(io::Error::new(
                         ErrorKind::UnexpectedEof,
-                        <span class="string">&quot;unterminated string literal&quot;</span>,
+                        <span class="string">"unterminated string literal"</span>,
                     )));
                 }
             }
@@ -570,7 +571,7 @@
         <span class="kw">let </span>escape_ch = cursor.next_char()<span class="question-mark">?</span>.ok_or_else(|| {
             Error::from(io::Error::new(
                 ErrorKind::UnexpectedEof,
-                <span class="string">&quot;unterminated escape sequence in literal&quot;</span>,
+                <span class="string">"unterminated escape sequence in literal"</span>,
             ))
         })<span class="question-mark">?</span>;
 
@@ -581,8 +582,8 @@
             <span class="number">0x0076 </span><span class="comment">/* v */ </span>=&gt; (<span class="prelude-val">Some</span>(<span class="number">0x000B </span><span class="comment">/* &lt;VT&gt; */</span>), EscapeSequence::OTHER),
             <span class="number">0x0066 </span><span class="comment">/* f */ </span>=&gt; (<span class="prelude-val">Some</span>(<span class="number">0x000C </span><span class="comment">/* &lt;FF&gt; */</span>), EscapeSequence::OTHER),
             <span class="number">0x0072 </span><span class="comment">/* r */ </span>=&gt; (<span class="prelude-val">Some</span>(<span class="number">0x000D </span><span class="comment">/* &lt;CR&gt; */</span>), EscapeSequence::OTHER),
-            <span class="number">0x0022 </span><span class="comment">/* &quot; */ </span>=&gt; (<span class="prelude-val">Some</span>(<span class="number">0x0022 </span><span class="comment">/* &quot; */</span>), EscapeSequence::OTHER),
-            <span class="number">0x0027 </span><span class="comment">/* &#39; */ </span>=&gt; (<span class="prelude-val">Some</span>(<span class="number">0x0027 </span><span class="comment">/* &#39; */</span>), EscapeSequence::OTHER),
+            <span class="number">0x0022 </span><span class="comment">/* " */ </span>=&gt; (<span class="prelude-val">Some</span>(<span class="number">0x0022 </span><span class="comment">/* " */</span>), EscapeSequence::OTHER),
+            <span class="number">0x0027 </span><span class="comment">/* ' */ </span>=&gt; (<span class="prelude-val">Some</span>(<span class="number">0x0027 </span><span class="comment">/* ' */</span>), EscapeSequence::OTHER),
             <span class="number">0x005C </span><span class="comment">/* \ */ </span>=&gt; (<span class="prelude-val">Some</span>(<span class="number">0x005C </span><span class="comment">/* \ */</span>), EscapeSequence::OTHER),
             <span class="number">0x0030 </span><span class="comment">/* 0 */ </span><span class="kw">if </span>cursor
                 .peek_char()<span class="question-mark">?
@@ -599,35 +600,35 @@
                 <span class="comment">// Grammar: NonOctalDecimalEscapeSequence
                 </span><span class="kw">if </span>is_template_literal {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(Error::syntax(
-                        <span class="string">&quot;\\8 and \\9 are not allowed in template literal&quot;</span>,
+                        <span class="string">"\\8 and \\9 are not allowed in template literal"</span>,
                         start_pos,
                     ));
                 } <span class="kw">else if </span>strict {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(Error::syntax(
-                        <span class="string">&quot;\\8 and \\9 are not allowed in strict mode&quot;</span>,
+                        <span class="string">"\\8 and \\9 are not allowed in strict mode"</span>,
                         start_pos,
                     ));
                 }
                     (<span class="prelude-val">Some</span>(escape_ch), EscapeSequence::NON_OCTAL_DECIMAL)
             }
-            <span class="kw">_ if </span>(<span class="number">0x0030</span>..=<span class="number">0x0037 </span><span class="comment">/* &#39;0&#39;..=&#39;7&#39; */</span>).contains(<span class="kw-2">&amp;</span>escape_ch) =&gt; {
+            <span class="kw">_ if </span>(<span class="number">0x0030</span>..=<span class="number">0x0037 </span><span class="comment">/* '0'..='7' */</span>).contains(<span class="kw-2">&amp;</span>escape_ch) =&gt; {
                 <span class="kw">if </span>is_template_literal {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(Error::syntax(
-                        <span class="string">&quot;octal escape sequences are not allowed in template literal&quot;</span>,
+                        <span class="string">"octal escape sequences are not allowed in template literal"</span>,
                         start_pos,
                     ));
                 }
 
                 <span class="kw">if </span>strict {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(Error::syntax(
-                        <span class="string">&quot;octal escape sequences are not allowed in strict mode&quot;</span>,
+                        <span class="string">"octal escape sequences are not allowed in strict mode"</span>,
                         start_pos,
                     ));
                 }
 
                 (<span class="prelude-val">Some</span>(<span class="self">Self</span>::take_legacy_octal_escape_sequence(
                     cursor,
-                    escape_ch.try_into().expect(<span class="string">&quot;an ascii char must not fail to convert&quot;</span>),
+                    escape_ch.try_into().expect(<span class="string">"an ascii char must not fail to convert"</span>),
                 )<span class="question-mark">?</span>), EscapeSequence::LEGACY_OCTAL)
             }
             <span class="kw">_ if </span><span class="self">Self</span>::is_line_terminator(escape_ch) =&gt; {
@@ -663,7 +664,7 @@
                     s.push(c);
                 } <span class="kw">else </span>{
                     <span class="kw">return </span><span class="prelude-val">Err</span>(Error::syntax(
-                        <span class="string">&quot;malformed Unicode character escape sequence&quot;</span>,
+                        <span class="string">"malformed Unicode character escape sequence"</span>,
                         start_pos,
                     ));
                 }
@@ -671,7 +672,7 @@
 
             <span class="kw">let </span><span class="prelude-val">Ok</span>(code_point) = u32::from_str_radix(<span class="kw-2">&amp;</span>s, <span class="number">16</span>) <span class="kw">else </span>{
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Error::syntax(
-                    <span class="string">&quot;malformed Unicode character escape sequence&quot;</span>,
+                    <span class="string">"malformed Unicode character escape sequence"</span>,
                     start_pos,
                 ));
             };
@@ -679,7 +680,7 @@
             <span class="comment">// UTF16Encoding of a numeric code point value
             </span><span class="kw">if </span>code_point &gt; <span class="number">0x10_FFFF </span>{
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Error::syntax(
-                    <span class="string">&quot;Unicode codepoint must not be greater than 0x10FFFF in escape sequence&quot;</span>,
+                    <span class="string">"Unicode codepoint must not be greater than 0x10FFFF in escape sequence"</span>,
                     start_pos,
                 ));
             }
@@ -687,32 +688,32 @@
             <span class="prelude-val">Ok</span>(code_point)
         } <span class="kw">else </span>{
             <span class="comment">// Grammar: Hex4Digits
-            // Collect each character after \u e.g \uD83D will give &quot;D83D&quot;
+            // Collect each character after \u e.g \uD83D will give "D83D"
             </span><span class="kw">let </span><span class="kw-2">mut </span>buffer = [<span class="number">0u32</span>; <span class="number">4</span>];
             buffer[<span class="number">0</span>] = cursor
                 .next_char()<span class="question-mark">?
-                </span>.ok_or_else(|| Error::syntax(<span class="string">&quot;invalid Unicode escape sequence&quot;</span>, start_pos))<span class="question-mark">?</span>;
+                </span>.ok_or_else(|| Error::syntax(<span class="string">"invalid Unicode escape sequence"</span>, start_pos))<span class="question-mark">?</span>;
             buffer[<span class="number">1</span>] = cursor
                 .next_char()<span class="question-mark">?
-                </span>.ok_or_else(|| Error::syntax(<span class="string">&quot;invalid Unicode escape sequence&quot;</span>, start_pos))<span class="question-mark">?</span>;
+                </span>.ok_or_else(|| Error::syntax(<span class="string">"invalid Unicode escape sequence"</span>, start_pos))<span class="question-mark">?</span>;
             buffer[<span class="number">2</span>] = cursor
                 .next_char()<span class="question-mark">?
-                </span>.ok_or_else(|| Error::syntax(<span class="string">&quot;invalid Unicode escape sequence&quot;</span>, start_pos))<span class="question-mark">?</span>;
+                </span>.ok_or_else(|| Error::syntax(<span class="string">"invalid Unicode escape sequence"</span>, start_pos))<span class="question-mark">?</span>;
             buffer[<span class="number">3</span>] = cursor
                 .next_char()<span class="question-mark">?
-                </span>.ok_or_else(|| Error::syntax(<span class="string">&quot;invalid Unicode escape sequence&quot;</span>, start_pos))<span class="question-mark">?</span>;
+                </span>.ok_or_else(|| Error::syntax(<span class="string">"invalid Unicode escape sequence"</span>, start_pos))<span class="question-mark">?</span>;
 
             <span class="kw">let </span><span class="kw-2">mut </span>s = String::with_capacity(buffer.len());
             <span class="kw">for </span>c <span class="kw">in </span>buffer {
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(c) = char::from_u32(c) {
                     s.push(c);
                 } <span class="kw">else </span>{
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(Error::syntax(<span class="string">&quot;invalid Unicode escape sequence&quot;</span>, start_pos));
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(Error::syntax(<span class="string">"invalid Unicode escape sequence"</span>, start_pos));
                 }
             }
 
             <span class="kw">let </span><span class="prelude-val">Ok</span>(code_point) = u16::from_str_radix(<span class="kw-2">&amp;</span>s, <span class="number">16</span>) <span class="kw">else </span>{
-                <span class="kw">return </span><span class="prelude-val">Err</span>(Error::syntax(<span class="string">&quot;invalid Unicode escape sequence&quot;</span>, start_pos));
+                <span class="kw">return </span><span class="prelude-val">Err</span>(Error::syntax(<span class="string">"invalid Unicode escape sequence"</span>, start_pos));
             };
 
             <span class="prelude-val">Ok</span>(u32::from(code_point))
@@ -729,10 +730,10 @@
         <span class="kw">let </span><span class="kw-2">mut </span>buffer = [<span class="number">0u32</span>; <span class="number">2</span>];
         buffer[<span class="number">0</span>] = cursor
             .next_char()<span class="question-mark">?
-            </span>.ok_or_else(|| Error::syntax(<span class="string">&quot;invalid Hexadecimal escape sequence&quot;</span>, start_pos))<span class="question-mark">?</span>;
+            </span>.ok_or_else(|| Error::syntax(<span class="string">"invalid Hexadecimal escape sequence"</span>, start_pos))<span class="question-mark">?</span>;
         buffer[<span class="number">1</span>] = cursor
             .next_char()<span class="question-mark">?
-            </span>.ok_or_else(|| Error::syntax(<span class="string">&quot;invalid Hexadecimal escape sequence&quot;</span>, start_pos))<span class="question-mark">?</span>;
+            </span>.ok_or_else(|| Error::syntax(<span class="string">"invalid Hexadecimal escape sequence"</span>, start_pos))<span class="question-mark">?</span>;
 
         <span class="kw">let </span><span class="kw-2">mut </span>s = String::with_capacity(buffer.len());
         <span class="kw">for </span>c <span class="kw">in </span>buffer {
@@ -740,7 +741,7 @@
                 s.push(c);
             } <span class="kw">else </span>{
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Error::syntax(
-                    <span class="string">&quot;invalid Hexadecimal escape sequence&quot;</span>,
+                    <span class="string">"invalid Hexadecimal escape sequence"</span>,
                     start_pos,
                 ));
             }
@@ -748,7 +749,7 @@
 
         <span class="kw">let </span><span class="prelude-val">Ok</span>(code_point) = u16::from_str_radix(<span class="kw-2">&amp;</span>s, <span class="number">16</span>) <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::syntax(
-                <span class="string">&quot;invalid Hexadecimal escape sequence&quot;</span>,
+                <span class="string">"invalid Hexadecimal escape sequence"</span>,
                 start_pos,
             ));
         };
@@ -764,7 +765,7 @@
         </span>R: ReadChar,
     {
         <span class="comment">// Grammar: OctalDigit
-        </span><span class="kw">let </span><span class="kw-2">mut </span>code_point = u32::from(init_byte - <span class="string">b&#39;0&#39;</span>);
+        </span><span class="kw">let </span><span class="kw-2">mut </span>code_point = u32::from(init_byte - <span class="string">b'0'</span>);
 
         <span class="comment">// Grammar: ZeroToThree OctalDigit
         // Grammar: FourToSeven OctalDigit

@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/object/builtins/jsregexp.rs`."><title>jsregexp.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/object/builtins/jsregexp.rs`."><title>jsregexp.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -282,7 +283,7 @@
 <a href="#282" id="282">282</a>
 <a href="#283" id="283">283</a>
 <a href="#284" id="284">284</a>
-</pre></div><pre class="rust"><code><span class="doccomment">//! A Rust API wrapper for Boa&#39;s `RegExp` Builtin ECMAScript Object
+</pre></div><pre class="rust"><code><span class="doccomment">//! A Rust API wrapper for Boa's `RegExp` Builtin ECMAScript Object
 </span><span class="kw">use crate</span>::{
     builtins::RegExp,
     object::{JsArray, JsObject, JsObjectType},
@@ -293,7 +294,7 @@
 <span class="kw">use </span>boa_gc::{Finalize, Trace};
 <span class="kw">use </span>std::ops::Deref;
 
-<span class="doccomment">/// `JsRegExp` provides a wrapper for Boa&#39;s implementation of the ECMAScript `RegExp` builtin object
+<span class="doccomment">/// `JsRegExp` provides a wrapper for Boa's implementation of the ECMAScript `RegExp` builtin object
 ///
 /// # Examples
 ///
@@ -309,13 +310,13 @@
 /// let context = &amp;mut Context::default();
 ///
 /// // Create a new RegExp with pattern and flags
-/// let regexp = JsRegExp::new(js_string!(&quot;foo&quot;), js_string!(&quot;gi&quot;), context)?;
+/// let regexp = JsRegExp::new(js_string!("foo"), js_string!("gi"), context)?;
 ///
-/// let test_result = regexp.test(js_string!(&quot;football&quot;), context)?;
+/// let test_result = regexp.test(js_string!("football"), context)?;
 /// assert!(test_result);
 ///
 /// let to_string = regexp.to_string(context)?;
-/// assert_eq!(to_string, String::from(&quot;/foo/gi&quot;));
+/// assert_eq!(to_string, String::from("/foo/gi"));
 /// # Ok(())
 /// # }
 /// ```
@@ -336,7 +337,7 @@
     /// let context = &amp;mut Context::default();
     ///
     /// // Create a new RegExp with pattern and flags
-    /// let regexp = JsRegExp::new(js_string!(&quot;foo&quot;), js_string!(&quot;gi&quot;), context)?;
+    /// let regexp = JsRegExp::new(js_string!("foo"), js_string!("gi"), context)?;
     /// # Ok(())
     /// # }
     /// ```
@@ -346,7 +347,7 @@
     {
         <span class="kw">let </span>regexp = RegExp::initialize(<span class="prelude-val">None</span>, <span class="kw-2">&amp;</span>pattern.into(), <span class="kw-2">&amp;</span>flags.into(), context)<span class="question-mark">?
             </span>.as_object()
-            .expect(<span class="string">&quot;RegExp::initialize must return a RegExp object&quot;</span>)
+            .expect(<span class="string">"RegExp::initialize must return a RegExp object"</span>)
             .clone();
 
         <span class="prelude-val">Ok</span>(<span class="self">Self </span>{ inner: regexp })
@@ -359,7 +360,7 @@
             <span class="prelude-val">Ok</span>(<span class="self">Self </span>{ inner: object })
         } <span class="kw">else </span>{
             <span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;object is not a RegExp&quot;</span>)
+                .with_message(<span class="string">"object is not a RegExp"</span>)
                 .into())
         }
     }
@@ -368,49 +369,49 @@
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>has_indices(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt; {
         RegExp::get_has_indices(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[], context)
-            .map(|v| v.as_boolean().expect(<span class="string">&quot;value must be a bool&quot;</span>))
+            .map(|v| v.as_boolean().expect(<span class="string">"value must be a bool"</span>))
     }
 
     <span class="doccomment">/// Returns a boolean value for whether the `g` flag is present in `JsRegExp` flags
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>global(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt; {
         RegExp::get_global(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[], context)
-            .map(|v| v.as_boolean().expect(<span class="string">&quot;value must be a bool&quot;</span>))
+            .map(|v| v.as_boolean().expect(<span class="string">"value must be a bool"</span>))
     }
 
     <span class="doccomment">/// Returns a boolean value for whether the `i` flag is present in `JsRegExp` flags
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>ignore_case(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt; {
         RegExp::get_ignore_case(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[], context)
-            .map(|v| v.as_boolean().expect(<span class="string">&quot;value must be a bool&quot;</span>))
+            .map(|v| v.as_boolean().expect(<span class="string">"value must be a bool"</span>))
     }
 
     <span class="doccomment">/// Returns a boolean value for whether the `m` flag is present in `JsRegExp` flags
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>multiline(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt; {
         RegExp::get_multiline(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[], context)
-            .map(|v| v.as_boolean().expect(<span class="string">&quot;value must be a bool&quot;</span>))
+            .map(|v| v.as_boolean().expect(<span class="string">"value must be a bool"</span>))
     }
 
     <span class="doccomment">/// Returns a boolean value for whether the `s` flag is present in `JsRegExp` flags
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>dot_all(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt; {
         RegExp::get_dot_all(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[], context)
-            .map(|v| v.as_boolean().expect(<span class="string">&quot;value must be a bool&quot;</span>))
+            .map(|v| v.as_boolean().expect(<span class="string">"value must be a bool"</span>))
     }
 
     <span class="doccomment">/// Returns a boolean value for whether the `u` flag is present in `JsRegExp` flags
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>unicode(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt; {
         RegExp::get_unicode(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[], context)
-            .map(|v| v.as_boolean().expect(<span class="string">&quot;value must be a bool&quot;</span>))
+            .map(|v| v.as_boolean().expect(<span class="string">"value must be a bool"</span>))
     }
 
     <span class="doccomment">/// Returns a boolean value for whether the `y` flag is present in `JsRegExp` flags
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>sticky(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;bool&gt; {
         RegExp::get_sticky(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[], context)
-            .map(|v| v.as_boolean().expect(<span class="string">&quot;value must be a bool&quot;</span>))
+            .map(|v| v.as_boolean().expect(<span class="string">"value must be a bool"</span>))
     }
 
     <span class="doccomment">/// Returns the flags of `JsRegExp` as a string
@@ -421,10 +422,10 @@
     /// # };
     /// # fn main() -&gt; JsResult&lt;()&gt; {
     /// # let context = &amp;mut Context::default();
-    /// let regexp = JsRegExp::new(js_string!(&quot;foo&quot;), js_string!(&quot;gi&quot;), context)?;
+    /// let regexp = JsRegExp::new(js_string!("foo"), js_string!("gi"), context)?;
     ///
     /// let flags = regexp.flags(context)?;
-    /// assert_eq!(flags, String::from(&quot;gi&quot;));
+    /// assert_eq!(flags, String::from("gi"));
     /// # Ok(())
     /// # }
     /// ```
@@ -432,9 +433,9 @@
     </span><span class="kw">pub fn </span>flags(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;String&gt; {
         RegExp::get_flags(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[], context).map(|v| {
             v.as_string()
-                .expect(<span class="string">&quot;value must be string&quot;</span>)
+                .expect(<span class="string">"value must be string"</span>)
                 .to_std_string()
-                .expect(<span class="string">&quot;flags must be a valid string&quot;</span>)
+                .expect(<span class="string">"flags must be a valid string"</span>)
         })
     }
 
@@ -446,10 +447,10 @@
     /// # };
     /// # fn main() -&gt; JsResult&lt;()&gt; {
     /// # let context = &amp;mut Context::default();
-    /// let regexp = JsRegExp::new(js_string!(&quot;foo&quot;), js_string!(&quot;gi&quot;), context)?;
+    /// let regexp = JsRegExp::new(js_string!("foo"), js_string!("gi"), context)?;
     ///
     /// let src = regexp.source(context)?;
-    /// assert_eq!(src, String::from(&quot;foo&quot;));
+    /// assert_eq!(src, String::from("foo"));
     /// # Ok(())
     /// # }
     /// ```
@@ -457,9 +458,9 @@
     </span><span class="kw">pub fn </span>source(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;String&gt; {
         RegExp::get_source(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[], context).map(|v| {
             v.as_string()
-                .expect(<span class="string">&quot;value must be string&quot;</span>)
+                .expect(<span class="string">"value must be string"</span>)
                 .to_std_string()
-                .expect(<span class="string">&quot;source must be a valid string&quot;</span>)
+                .expect(<span class="string">"source must be a valid string"</span>)
         })
     }
 
@@ -471,9 +472,9 @@
     /// # };
     /// # fn main() -&gt; JsResult&lt;()&gt; {
     /// # let context = &amp;mut Context::default();
-    /// let regexp = JsRegExp::new(js_string!(&quot;foo&quot;), js_string!(&quot;gi&quot;), context)?;
+    /// let regexp = JsRegExp::new(js_string!("foo"), js_string!("gi"), context)?;
     ///
-    /// let test_result = regexp.test(js_string!(&quot;football&quot;), context)?;
+    /// let test_result = regexp.test(js_string!("football"), context)?;
     /// assert!(test_result);
     /// # Ok(())
     /// # }
@@ -483,7 +484,7 @@
         </span>S: Into&lt;JsValue&gt;,
     {
         RegExp::test(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[search_string.into()], context)
-            .map(|v| v.as_boolean().expect(<span class="string">&quot;value must be a bool&quot;</span>))
+            .map(|v| v.as_boolean().expect(<span class="string">"value must be a bool"</span>))
     }
 
     <span class="doccomment">/// Executes a search for a match in a specified string
@@ -498,8 +499,8 @@
                 <span class="prelude-val">None
             </span>} <span class="kw">else </span>{
                 <span class="prelude-val">Some</span>(
-                    JsArray::from_object(v.to_object(context).expect(<span class="string">&quot;v must be an array&quot;</span>))
-                        .expect(<span class="string">&quot;from_object must not fail if v is an array object&quot;</span>),
+                    JsArray::from_object(v.to_object(context).expect(<span class="string">"v must be an array"</span>))
+                        .expect(<span class="string">"from_object must not fail if v is an array object"</span>),
                 )
             }
         })
@@ -513,10 +514,10 @@
     /// # };
     /// # fn main() -&gt; JsResult&lt;()&gt; {
     /// # let context = &amp;mut Context::default();
-    /// let regexp = JsRegExp::new(js_string!(&quot;foo&quot;), js_string!(&quot;gi&quot;), context)?;
+    /// let regexp = JsRegExp::new(js_string!("foo"), js_string!("gi"), context)?;
     ///
     /// let to_string = regexp.to_string(context)?;
-    /// assert_eq!(to_string, &quot;/foo/gi&quot;);
+    /// assert_eq!(to_string, "/foo/gi");
     /// # Ok(())
     /// # }
     /// ```
@@ -524,9 +525,9 @@
     </span><span class="kw">pub fn </span>to_string(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;String&gt; {
         RegExp::to_string(<span class="kw-2">&amp;</span><span class="self">self</span>.inner.clone().into(), <span class="kw-2">&amp;</span>[], context).map(|v| {
             v.as_string()
-                .expect(<span class="string">&quot;value must be a string&quot;</span>)
+                .expect(<span class="string">"value must be a string"</span>)
                 .to_std_string()
-                .expect(<span class="string">&quot;to_string value must be a valid string&quot;</span>)
+                .expect(<span class="string">"to_string value must be a valid string"</span>)
         })
     }
 }
@@ -561,7 +562,7 @@
         <span class="kw">match </span>value {
             JsValue::Object(o) =&gt; <span class="self">Self</span>::from_object(o.clone()),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;value is not a RegExp object&quot;</span>)
+                .with_message(<span class="string">"value is not a RegExp object"</span>)
                 .into()),
         }
     }

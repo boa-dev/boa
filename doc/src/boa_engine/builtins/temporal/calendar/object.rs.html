@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/builtins/temporal/calendar/object.rs`."><title>object.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/builtins/temporal/calendar/object.rs`."><title>object.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -858,7 +859,7 @@
 <a href="#858" id="858">858</a>
 <a href="#859" id="859">859</a>
 <a href="#860" id="860">860</a>
-</pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of a user-defined Anonymous Calendar.
+</pre></div><pre class="rust"><code><span class="doccomment">//! Boa's implementation of a user-defined Anonymous Calendar.
 
 </span><span class="kw">use crate</span>::{
     builtins::{
@@ -901,8 +902,8 @@
         context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; TemporalResult&lt;Date&lt;<span class="self">Self</span>&gt;&gt; {
         <span class="kw">let </span>method = <span class="self">self
-            </span>.get(<span class="macro">utf16!</span>(<span class="string">&quot;dateFromFields&quot;</span>), context)
-            .expect(<span class="string">&quot;method must exist on a object that implements the CalendarProtocol.&quot;</span>);
+            </span>.get(<span class="macro">utf16!</span>(<span class="string">"dateFromFields"</span>), context)
+            .expect(<span class="string">"method must exist on a object that implements the CalendarProtocol."</span>);
 
         <span class="kw">let </span>fields = JsObject::from_temporal_fields(fields, context)
             .map_err(|e| TemporalError::general(e.to_string()))<span class="question-mark">?</span>;
@@ -911,7 +912,7 @@
 
         overflow_obj
             .create_data_property_or_throw(
-                <span class="macro">utf16!</span>(<span class="string">&quot;overflow&quot;</span>),
+                <span class="macro">utf16!</span>(<span class="string">"overflow"</span>),
                 JsString::from(overflow.to_string()),
                 context,
             )
@@ -920,7 +921,7 @@
         <span class="kw">let </span>value = method
             .as_callable()
             .ok_or_else(|| {
-                TemporalError::general(<span class="string">&quot;dateFromFields must be implemented as a callable method.&quot;</span>)
+                TemporalError::general(<span class="string">"dateFromFields must be implemented as a callable method."</span>)
             })<span class="question-mark">?
             </span>.call(
                 <span class="kw-2">&amp;</span><span class="self">self</span>.clone().into(),
@@ -931,11 +932,11 @@
 
         <span class="kw">let </span>obj = value.as_object().map(JsObject::borrow).ok_or_else(|| {
             TemporalError::r#type()
-                .with_message(<span class="string">&quot;datefromFields must return a valid PlainDate object.&quot;</span>)
+                .with_message(<span class="string">"datefromFields must return a valid PlainDate object."</span>)
         })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>pd = obj.downcast_ref::&lt;PlainDate&gt;().ok_or_else(|| {
-            TemporalError::r#type().with_message(<span class="string">&quot;Object returned was not a PlainDate&quot;</span>)
+            TemporalError::r#type().with_message(<span class="string">"Object returned was not a PlainDate"</span>)
         })<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(pd.inner.clone())
@@ -948,8 +949,8 @@
         context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; TemporalResult&lt;YearMonth&lt;JsObject&gt;&gt; {
         <span class="kw">let </span>method = <span class="self">self
-            </span>.get(<span class="macro">utf16!</span>(<span class="string">&quot;yearMonthFromFields&quot;</span>), context)
-            .expect(<span class="string">&quot;method must exist on a object that implements the CalendarProtocol.&quot;</span>);
+            </span>.get(<span class="macro">utf16!</span>(<span class="string">"yearMonthFromFields"</span>), context)
+            .expect(<span class="string">"method must exist on a object that implements the CalendarProtocol."</span>);
 
         <span class="kw">let </span>fields = JsObject::from_temporal_fields(fields, context)
             .map_err(|e| TemporalError::general(e.to_string()))<span class="question-mark">?</span>;
@@ -958,7 +959,7 @@
 
         overflow_obj
             .create_data_property_or_throw(
-                <span class="macro">utf16!</span>(<span class="string">&quot;overflow&quot;</span>),
+                <span class="macro">utf16!</span>(<span class="string">"overflow"</span>),
                 JsString::from(overflow.to_string()),
                 context,
             )
@@ -968,7 +969,7 @@
             .as_callable()
             .ok_or_else(|| {
                 TemporalError::general(
-                    <span class="string">&quot;yearMonthFromFields must be implemented as a callable method.&quot;</span>,
+                    <span class="string">"yearMonthFromFields must be implemented as a callable method."</span>,
                 )
             })<span class="question-mark">?
             </span>.call(
@@ -980,11 +981,11 @@
 
         <span class="kw">let </span>obj = value.as_object().map(JsObject::borrow).ok_or_else(|| {
             TemporalError::r#type()
-                .with_message(<span class="string">&quot;yearMonthFromFields must return a valid PlainYearMonth object.&quot;</span>)
+                .with_message(<span class="string">"yearMonthFromFields must return a valid PlainYearMonth object."</span>)
         })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>ym = obj.downcast_ref::&lt;PlainYearMonth&gt;().ok_or_else(|| {
-            TemporalError::r#type().with_message(<span class="string">&quot;Object returned was not a PlainDate&quot;</span>)
+            TemporalError::r#type().with_message(<span class="string">"Object returned was not a PlainDate"</span>)
         })<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(ym.inner.clone())
@@ -997,8 +998,8 @@
         context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; TemporalResult&lt;MonthDay&lt;JsObject&gt;&gt; {
         <span class="kw">let </span>method = <span class="self">self
-            </span>.get(<span class="macro">utf16!</span>(<span class="string">&quot;yearMonthFromFields&quot;</span>), context)
-            .expect(<span class="string">&quot;method must exist on a object that implements the CalendarProtocol.&quot;</span>);
+            </span>.get(<span class="macro">utf16!</span>(<span class="string">"yearMonthFromFields"</span>), context)
+            .expect(<span class="string">"method must exist on a object that implements the CalendarProtocol."</span>);
 
         <span class="kw">let </span>fields = JsObject::from_temporal_fields(fields, context)
             .map_err(|e| TemporalError::general(e.to_string()))<span class="question-mark">?</span>;
@@ -1007,7 +1008,7 @@
 
         overflow_obj
             .create_data_property_or_throw(
-                <span class="macro">utf16!</span>(<span class="string">&quot;overflow&quot;</span>),
+                <span class="macro">utf16!</span>(<span class="string">"overflow"</span>),
                 JsString::from(overflow.to_string()),
                 context,
             )
@@ -1017,7 +1018,7 @@
             .as_callable()
             .ok_or_else(|| {
                 TemporalError::general(
-                    <span class="string">&quot;yearMonthFromFields must be implemented as a callable method.&quot;</span>,
+                    <span class="string">"yearMonthFromFields must be implemented as a callable method."</span>,
                 )
             })<span class="question-mark">?
             </span>.call(
@@ -1029,11 +1030,11 @@
 
         <span class="kw">let </span>obj = value.as_object().map(JsObject::borrow).ok_or_else(|| {
             TemporalError::r#type()
-                .with_message(<span class="string">&quot;yearMonthFromFields must return a valid PlainYearMonth object.&quot;</span>)
+                .with_message(<span class="string">"yearMonthFromFields must return a valid PlainYearMonth object."</span>)
         })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>md = obj.downcast_ref::&lt;PlainMonthDay&gt;().ok_or_else(|| {
-            TemporalError::r#type().with_message(<span class="string">&quot;Object returned was not a PlainDate&quot;</span>)
+            TemporalError::r#type().with_message(<span class="string">"Object returned was not a PlainDate"</span>)
         })<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(md.inner.clone())
@@ -1047,7 +1048,7 @@
         _context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; TemporalResult&lt;Date&lt;JsObject&gt;&gt; {
         <span class="comment">// TODO
-        </span><span class="prelude-val">Err</span>(TemporalError::general(<span class="string">&quot;Not yet implemented.&quot;</span>))
+        </span><span class="prelude-val">Err</span>(TemporalError::general(<span class="string">"Not yet implemented."</span>))
     }
 
     <span class="kw">fn </span>date_until(
@@ -1058,7 +1059,7 @@
         _context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; TemporalResult&lt;Duration&gt; {
         <span class="comment">// TODO
-        </span><span class="prelude-val">Err</span>(TemporalError::general(<span class="string">&quot;Not yet implemented.&quot;</span>))
+        </span><span class="prelude-val">Err</span>(TemporalError::general(<span class="string">"Not yet implemented."</span>))
     }
 
     <span class="kw">fn </span>era(
@@ -1087,12 +1088,12 @@
         <span class="kw">let </span>date_like = date_like_to_object(date_like, context)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>method = <span class="self">self
-            </span>.get(PropertyKey::from(<span class="macro">utf16!</span>(<span class="string">&quot;year&quot;</span>)), context)
-            .expect(<span class="string">&quot;method must exist on a object that implements the CalendarProtocol.&quot;</span>);
+            </span>.get(PropertyKey::from(<span class="macro">utf16!</span>(<span class="string">"year"</span>)), context)
+            .expect(<span class="string">"method must exist on a object that implements the CalendarProtocol."</span>);
 
         <span class="kw">let </span>val = method
             .as_callable()
-            .expect(<span class="string">&quot;is method&quot;</span>)
+            .expect(<span class="string">"is method"</span>)
             .call(<span class="kw-2">&amp;</span><span class="self">self</span>.clone().into(), <span class="kw-2">&amp;</span>[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))<span class="question-mark">?</span>;
 
@@ -1103,20 +1104,20 @@
         // 6. Return ℝ(result).
 
         </span><span class="kw">let </span><span class="prelude-val">Some</span>(number) = val.as_number() <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">&quot;year must return a number.&quot;</span>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">"year must return a number."</span>));
         };
 
         <span class="kw">if </span>!number.is_finite() || number.fract() != <span class="number">0.0 </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">&quot;year return must be integral.&quot;</span>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">"year return must be integral."</span>));
         }
 
         <span class="kw">if </span>number &lt; <span class="number">1f64 </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">&quot;year return must be larger than 1.&quot;</span>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">"year return must be larger than 1."</span>));
         }
 
         <span class="kw">let </span>result = number
             .to_i32()
-            .ok_or_else(|| TemporalError::range().with_message(<span class="string">&quot;year exceeded a valid range.&quot;</span>))<span class="question-mark">?</span>;
+            .ok_or_else(|| TemporalError::range().with_message(<span class="string">"year exceeded a valid range."</span>))<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(result)
     }
@@ -1129,12 +1130,12 @@
         <span class="kw">let </span>date_like = date_like_to_object(date_like, context)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>method = <span class="self">self
-            </span>.get(PropertyKey::from(<span class="macro">utf16!</span>(<span class="string">&quot;month&quot;</span>)), context)
-            .expect(<span class="string">&quot;method must exist on a object that implements the CalendarProtocol.&quot;</span>);
+            </span>.get(PropertyKey::from(<span class="macro">utf16!</span>(<span class="string">"month"</span>)), context)
+            .expect(<span class="string">"method must exist on a object that implements the CalendarProtocol."</span>);
 
         <span class="kw">let </span>val = method
             .as_callable()
-            .expect(<span class="string">&quot;is method&quot;</span>)
+            .expect(<span class="string">"is method"</span>)
             .call(<span class="kw-2">&amp;</span><span class="self">self</span>.clone().into(), <span class="kw-2">&amp;</span>[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))<span class="question-mark">?</span>;
 
@@ -1145,20 +1146,20 @@
         // 6. Return ℝ(result).
 
         </span><span class="kw">let </span><span class="prelude-val">Some</span>(number) = val.as_number() <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">&quot;month must return a number.&quot;</span>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">"month must return a number."</span>));
         };
 
         <span class="kw">if </span>!number.is_finite() || number.fract() != <span class="number">0.0 </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">&quot;month return must be integral.&quot;</span>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">"month return must be integral."</span>));
         }
 
         <span class="kw">if </span>number &lt; <span class="number">1f64 </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">&quot;month return must be larger than 1.&quot;</span>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">"month return must be larger than 1."</span>));
         }
 
         <span class="kw">let </span>result = number
             .to_u8()
-            .ok_or_else(|| TemporalError::range().with_message(<span class="string">&quot;month exceeded a valid range.&quot;</span>))<span class="question-mark">?</span>;
+            .ok_or_else(|| TemporalError::range().with_message(<span class="string">"month exceeded a valid range."</span>))<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(result)
     }
@@ -1171,21 +1172,21 @@
         <span class="kw">let </span>date_like = date_like_to_object(date_like, context)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>method = <span class="self">self
-            </span>.get(PropertyKey::from(<span class="macro">utf16!</span>(<span class="string">&quot;monthCode&quot;</span>)), context)
-            .expect(<span class="string">&quot;method must exist on a object that implements the CalendarProtocol.&quot;</span>);
+            </span>.get(PropertyKey::from(<span class="macro">utf16!</span>(<span class="string">"monthCode"</span>)), context)
+            .expect(<span class="string">"method must exist on a object that implements the CalendarProtocol."</span>);
 
         <span class="kw">let </span>val = method
             .as_callable()
-            .expect(<span class="string">&quot;is method&quot;</span>)
+            .expect(<span class="string">"is method"</span>)
             .call(<span class="kw-2">&amp;</span><span class="self">self</span>.clone().into(), <span class="kw-2">&amp;</span>[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))<span class="question-mark">?</span>;
 
         <span class="kw">let </span>JsValue::String(result) = val <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">&quot;monthCode return must be a String.&quot;</span>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">"monthCode return must be a String."</span>));
         };
 
         <span class="kw">let </span>result = TinyAsciiStr::&lt;<span class="number">4</span>&gt;::from_str(<span class="kw-2">&amp;</span>result.to_std_string_escaped())
-            .map_err(|<span class="kw">_</span>| TemporalError::general(<span class="string">&quot;Unexpected monthCode value.&quot;</span>))<span class="question-mark">?</span>;
+            .map_err(|<span class="kw">_</span>| TemporalError::general(<span class="string">"Unexpected monthCode value."</span>))<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(result)
     }
@@ -1198,12 +1199,12 @@
         <span class="kw">let </span>date_like = date_like_to_object(date_like, context)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>method = <span class="self">self
-            </span>.get(PropertyKey::from(<span class="macro">utf16!</span>(<span class="string">&quot;day&quot;</span>)), context)
-            .expect(<span class="string">&quot;method must exist on a object that implements the CalendarProtocol.&quot;</span>);
+            </span>.get(PropertyKey::from(<span class="macro">utf16!</span>(<span class="string">"day"</span>)), context)
+            .expect(<span class="string">"method must exist on a object that implements the CalendarProtocol."</span>);
 
         <span class="kw">let </span>val = method
             .as_callable()
-            .expect(<span class="string">&quot;is method&quot;</span>)
+            .expect(<span class="string">"is method"</span>)
             .call(<span class="kw-2">&amp;</span><span class="self">self</span>.clone().into(), <span class="kw-2">&amp;</span>[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))<span class="question-mark">?</span>;
 
@@ -1214,20 +1215,20 @@
         // 6. Return ℝ(result).
 
         </span><span class="kw">let </span><span class="prelude-val">Some</span>(number) = val.as_number() <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">&quot;day must return a number.&quot;</span>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">"day must return a number."</span>));
         };
 
         <span class="kw">if </span>!number.is_finite() || number.fract() != <span class="number">0.0 </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">&quot;day return must be integral.&quot;</span>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">"day return must be integral."</span>));
         }
 
         <span class="kw">if </span>number &lt; <span class="number">1f64 </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">&quot;day return must be larger than 1.&quot;</span>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">"day return must be larger than 1."</span>));
         }
 
         <span class="kw">let </span>result = number
             .to_u8()
-            .ok_or_else(|| TemporalError::range().with_message(<span class="string">&quot;day exceeded a valid range.&quot;</span>))<span class="question-mark">?</span>;
+            .ok_or_else(|| TemporalError::range().with_message(<span class="string">"day exceeded a valid range."</span>))<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(result)
     }
@@ -1240,12 +1241,12 @@
         <span class="kw">let </span>date_like = date_like_to_object(date_like, context)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>method = <span class="self">self
-            </span>.get(PropertyKey::from(<span class="macro">utf16!</span>(<span class="string">&quot;dayOfWeek&quot;</span>)), context)
-            .expect(<span class="string">&quot;method must exist on a object that implements the CalendarProtocol.&quot;</span>);
+            </span>.get(PropertyKey::from(<span class="macro">utf16!</span>(<span class="string">"dayOfWeek"</span>)), context)
+            .expect(<span class="string">"method must exist on a object that implements the CalendarProtocol."</span>);
 
         <span class="kw">let </span>val = method
             .as_callable()
-            .expect(<span class="string">&quot;is method&quot;</span>)
+            .expect(<span class="string">"is method"</span>)
             .call(<span class="kw-2">&amp;</span><span class="self">self</span>.clone().into(), <span class="kw-2">&amp;</span>[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))<span class="question-mark">?</span>;
 
@@ -1256,21 +1257,21 @@
         // 6. Return ℝ(result).
 
         </span><span class="kw">let </span><span class="prelude-val">Some</span>(number) = val.as_number() <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">&quot;DayOfWeek must return a number.&quot;</span>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">"DayOfWeek must return a number."</span>));
         };
 
         <span class="kw">if </span>!number.is_finite() || number.fract() != <span class="number">0.0 </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">&quot;DayOfWeek return must be integral.&quot;</span>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">"DayOfWeek return must be integral."</span>));
         }
 
         <span class="kw">if </span>number &lt; <span class="number">1f64 </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(
-                TemporalError::r#type().with_message(<span class="string">&quot;DayOfWeek return must be larger than 1.&quot;</span>)
+                TemporalError::r#type().with_message(<span class="string">"DayOfWeek return must be larger than 1."</span>)
             );
         }
 
         <span class="kw">let </span>result = number.to_u16().ok_or_else(|| {
-            TemporalError::range().with_message(<span class="string">&quot;DayOfWeek exceeded valid range.&quot;</span>)
+            TemporalError::range().with_message(<span class="string">"DayOfWeek exceeded valid range."</span>)
         })<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(result)
@@ -1284,12 +1285,12 @@
         <span class="kw">let </span>date_like = date_like_to_object(date_like, context)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>method = <span class="self">self
-            </span>.get(PropertyKey::from(<span class="macro">utf16!</span>(<span class="string">&quot;dayOfYear&quot;</span>)), context)
-            .expect(<span class="string">&quot;method must exist on a object that implements the CalendarProtocol.&quot;</span>);
+            </span>.get(PropertyKey::from(<span class="macro">utf16!</span>(<span class="string">"dayOfYear"</span>)), context)
+            .expect(<span class="string">"method must exist on a object that implements the CalendarProtocol."</span>);
 
         <span class="kw">let </span>val = method
             .as_callable()
-            .expect(<span class="string">&quot;is method&quot;</span>)
+            .expect(<span class="string">"is method"</span>)
             .call(<span class="kw-2">&amp;</span><span class="self">self</span>.clone().into(), <span class="kw-2">&amp;</span>[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))<span class="question-mark">?</span>;
 
@@ -1300,21 +1301,21 @@
         // 6. Return ℝ(result).
 
         </span><span class="kw">let </span><span class="prelude-val">Some</span>(number) = val.as_number() <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">&quot;dayOfYear must return a number.&quot;</span>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">"dayOfYear must return a number."</span>));
         };
 
         <span class="kw">if </span>!number.is_finite() || number.fract() != <span class="number">0.0 </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">&quot;dayOfYear return must be integral.&quot;</span>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">"dayOfYear return must be integral."</span>));
         }
 
         <span class="kw">if </span>number &lt; <span class="number">1f64 </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(
-                TemporalError::r#type().with_message(<span class="string">&quot;dayOfYear return must be larger than 1.&quot;</span>)
+                TemporalError::r#type().with_message(<span class="string">"dayOfYear return must be larger than 1."</span>)
             );
         }
 
         <span class="kw">let </span>result = number.to_u16().ok_or_else(|| {
-            TemporalError::range().with_message(<span class="string">&quot;dayOfYear exceeded valid range.&quot;</span>)
+            TemporalError::range().with_message(<span class="string">"dayOfYear exceeded valid range."</span>)
         })<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(result)
@@ -1328,12 +1329,12 @@
         <span class="kw">let </span>date_like = date_like_to_object(date_like, context)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>method = <span class="self">self
-            </span>.get(PropertyKey::from(<span class="macro">utf16!</span>(<span class="string">&quot;weekOfYear&quot;</span>)), context)
-            .expect(<span class="string">&quot;method must exist on a object that implements the CalendarProtocol.&quot;</span>);
+            </span>.get(PropertyKey::from(<span class="macro">utf16!</span>(<span class="string">"weekOfYear"</span>)), context)
+            .expect(<span class="string">"method must exist on a object that implements the CalendarProtocol."</span>);
 
         <span class="kw">let </span>val = method
             .as_callable()
-            .expect(<span class="string">&quot;is method&quot;</span>)
+            .expect(<span class="string">"is method"</span>)
             .call(<span class="kw-2">&amp;</span><span class="self">self</span>.clone().into(), <span class="kw-2">&amp;</span>[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))<span class="question-mark">?</span>;
 
@@ -1344,21 +1345,21 @@
         // 6. Return ℝ(result).
 
         </span><span class="kw">let </span><span class="prelude-val">Some</span>(number) = val.as_number() <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">&quot;weekOfYear must return a number.&quot;</span>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">"weekOfYear must return a number."</span>));
         };
 
         <span class="kw">if </span>!number.is_finite() || number.fract() != <span class="number">0.0 </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">&quot;weekOfYear return must be integral.&quot;</span>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">"weekOfYear return must be integral."</span>));
         }
 
         <span class="kw">if </span>number &lt; <span class="number">1f64 </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(
-                TemporalError::r#type().with_message(<span class="string">&quot;weekOfYear return must be larger than 1.&quot;</span>)
+                TemporalError::r#type().with_message(<span class="string">"weekOfYear return must be larger than 1."</span>)
             );
         }
 
         <span class="kw">let </span>result = number.to_u16().ok_or_else(|| {
-            TemporalError::range().with_message(<span class="string">&quot;weekOfYear exceeded valid range.&quot;</span>)
+            TemporalError::range().with_message(<span class="string">"weekOfYear exceeded valid range."</span>)
         })<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(result)
@@ -1372,12 +1373,12 @@
         <span class="kw">let </span>date_like = date_like_to_object(date_like, context)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>method = <span class="self">self
-            </span>.get(PropertyKey::from(<span class="macro">utf16!</span>(<span class="string">&quot;yearOfWeek&quot;</span>)), context)
-            .expect(<span class="string">&quot;method must exist on a object that implements the CalendarProtocol.&quot;</span>);
+            </span>.get(PropertyKey::from(<span class="macro">utf16!</span>(<span class="string">"yearOfWeek"</span>)), context)
+            .expect(<span class="string">"method must exist on a object that implements the CalendarProtocol."</span>);
 
         <span class="kw">let </span>val = method
             .as_callable()
-            .expect(<span class="string">&quot;is method&quot;</span>)
+            .expect(<span class="string">"is method"</span>)
             .call(<span class="kw-2">&amp;</span><span class="self">self</span>.clone().into(), <span class="kw-2">&amp;</span>[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))<span class="question-mark">?</span>;
 
@@ -1387,15 +1388,15 @@
         // 5. Return ℝ(result).
 
         </span><span class="kw">let </span><span class="prelude-val">Some</span>(number) = val.as_number() <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">&quot;yearOfWeek must return a number.&quot;</span>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">"yearOfWeek must return a number."</span>));
         };
 
         <span class="kw">if </span>!number.is_finite() || number.fract() != <span class="number">0.0 </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">&quot;yearOfWeek return must be integral.&quot;</span>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">"yearOfWeek return must be integral."</span>));
         }
 
         <span class="kw">let </span>result = number.to_i32().ok_or_else(|| {
-            TemporalError::range().with_message(<span class="string">&quot;yearOfWeek exceeded valid range.&quot;</span>)
+            TemporalError::range().with_message(<span class="string">"yearOfWeek exceeded valid range."</span>)
         })<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(result)
@@ -1409,12 +1410,12 @@
         <span class="kw">let </span>date_like = date_like_to_object(date_like, context)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>method = <span class="self">self
-            </span>.get(PropertyKey::from(<span class="macro">utf16!</span>(<span class="string">&quot;daysInWeek&quot;</span>)), context)
-            .expect(<span class="string">&quot;method must exist on a object that implements the CalendarProtocol.&quot;</span>);
+            </span>.get(PropertyKey::from(<span class="macro">utf16!</span>(<span class="string">"daysInWeek"</span>)), context)
+            .expect(<span class="string">"method must exist on a object that implements the CalendarProtocol."</span>);
 
         <span class="kw">let </span>val = method
             .as_callable()
-            .expect(<span class="string">&quot;is method&quot;</span>)
+            .expect(<span class="string">"is method"</span>)
             .call(<span class="kw-2">&amp;</span><span class="self">self</span>.clone().into(), <span class="kw-2">&amp;</span>[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))<span class="question-mark">?</span>;
 
@@ -1425,21 +1426,21 @@
         // 6. Return ℝ(result).
 
         </span><span class="kw">let </span><span class="prelude-val">Some</span>(number) = val.as_number() <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">&quot;daysInWeek must return a number.&quot;</span>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">"daysInWeek must return a number."</span>));
         };
 
         <span class="kw">if </span>!number.is_finite() || number.fract() != <span class="number">0.0 </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">&quot;daysInWeek return must be integral.&quot;</span>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">"daysInWeek return must be integral."</span>));
         }
 
         <span class="kw">if </span>number &lt; <span class="number">1f64 </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(
-                TemporalError::r#type().with_message(<span class="string">&quot;daysInWeek return must be larger than 1.&quot;</span>)
+                TemporalError::r#type().with_message(<span class="string">"daysInWeek return must be larger than 1."</span>)
             );
         }
 
         <span class="kw">let </span>result = number.to_u16().ok_or_else(|| {
-            TemporalError::range().with_message(<span class="string">&quot;daysInWeek exceeded valid range.&quot;</span>)
+            TemporalError::range().with_message(<span class="string">"daysInWeek exceeded valid range."</span>)
         })<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(result)
@@ -1453,11 +1454,11 @@
         <span class="kw">let </span>date_like = date_like_to_object(date_like, context)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>method = <span class="self">self
-            </span>.get(PropertyKey::from(<span class="macro">utf16!</span>(<span class="string">&quot;daysInMonth&quot;</span>)), context)
-            .expect(<span class="string">&quot;method must exist on a object that implements the CalendarProtocol.&quot;</span>);
+            </span>.get(PropertyKey::from(<span class="macro">utf16!</span>(<span class="string">"daysInMonth"</span>)), context)
+            .expect(<span class="string">"method must exist on a object that implements the CalendarProtocol."</span>);
         <span class="kw">let </span>val = method
             .as_callable()
-            .expect(<span class="string">&quot;is method&quot;</span>)
+            .expect(<span class="string">"is method"</span>)
             .call(<span class="kw-2">&amp;</span><span class="self">self</span>.clone().into(), <span class="kw-2">&amp;</span>[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))<span class="question-mark">?</span>;
 
@@ -1468,23 +1469,23 @@
         // 6. Return ℝ(result).
 
         </span><span class="kw">let </span><span class="prelude-val">Some</span>(number) = val.as_number() <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">&quot;daysInMonth must return a number.&quot;</span>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">"daysInMonth must return a number."</span>));
         };
 
         <span class="kw">if </span>!number.is_finite() || number.fract() != <span class="number">0.0 </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(
-                TemporalError::r#type().with_message(<span class="string">&quot;daysInMonth return must be integral.&quot;</span>)
+                TemporalError::r#type().with_message(<span class="string">"daysInMonth return must be integral."</span>)
             );
         }
 
         <span class="kw">if </span>number &lt; <span class="number">1f64 </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(
-                TemporalError::r#type().with_message(<span class="string">&quot;daysInMonth return must be larger than 1.&quot;</span>)
+                TemporalError::r#type().with_message(<span class="string">"daysInMonth return must be larger than 1."</span>)
             );
         }
 
         <span class="kw">let </span>result = number.to_u16().ok_or_else(|| {
-            TemporalError::range().with_message(<span class="string">&quot;daysInMonth exceeded valid range.&quot;</span>)
+            TemporalError::range().with_message(<span class="string">"daysInMonth exceeded valid range."</span>)
         })<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(result)
@@ -1498,12 +1499,12 @@
         <span class="kw">let </span>date_like = date_like_to_object(date_like, context)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>method = <span class="self">self
-            </span>.get(PropertyKey::from(<span class="macro">utf16!</span>(<span class="string">&quot;daysInYear&quot;</span>)), context)
-            .expect(<span class="string">&quot;method must exist on a object that implements the CalendarProtocol.&quot;</span>);
+            </span>.get(PropertyKey::from(<span class="macro">utf16!</span>(<span class="string">"daysInYear"</span>)), context)
+            .expect(<span class="string">"method must exist on a object that implements the CalendarProtocol."</span>);
 
         <span class="kw">let </span>val = method
             .as_callable()
-            .expect(<span class="string">&quot;is method&quot;</span>)
+            .expect(<span class="string">"is method"</span>)
             .call(<span class="kw-2">&amp;</span><span class="self">self</span>.clone().into(), <span class="kw-2">&amp;</span>[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))<span class="question-mark">?</span>;
 
@@ -1514,21 +1515,21 @@
         // 6. Return ℝ(result).
 
         </span><span class="kw">let </span><span class="prelude-val">Some</span>(number) = val.as_number() <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">&quot;daysInYear must return a number.&quot;</span>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">"daysInYear must return a number."</span>));
         };
 
         <span class="kw">if </span>!number.is_finite() || number.fract() != <span class="number">0.0 </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">&quot;daysInYear return must be integral.&quot;</span>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">"daysInYear return must be integral."</span>));
         }
 
         <span class="kw">if </span>number &lt; <span class="number">1f64 </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(
-                TemporalError::r#type().with_message(<span class="string">&quot;daysInYear return must be larger than 1.&quot;</span>)
+                TemporalError::r#type().with_message(<span class="string">"daysInYear return must be larger than 1."</span>)
             );
         }
 
         <span class="kw">let </span>result = number.to_u16().ok_or_else(|| {
-            TemporalError::range().with_message(<span class="string">&quot;monthsInYear exceeded valid range.&quot;</span>)
+            TemporalError::range().with_message(<span class="string">"monthsInYear exceeded valid range."</span>)
         })<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(result)
@@ -1542,12 +1543,12 @@
         <span class="kw">let </span>date_like = date_like_to_object(date_like, context)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>method = <span class="self">self
-            </span>.get(PropertyKey::from(<span class="macro">utf16!</span>(<span class="string">&quot;monthsInYear&quot;</span>)), context)
-            .expect(<span class="string">&quot;method must exist on a object that implements the CalendarProtocol.&quot;</span>);
+            </span>.get(PropertyKey::from(<span class="macro">utf16!</span>(<span class="string">"monthsInYear"</span>)), context)
+            .expect(<span class="string">"method must exist on a object that implements the CalendarProtocol."</span>);
 
         <span class="kw">let </span>val = method
             .as_callable()
-            .expect(<span class="string">&quot;is method&quot;</span>)
+            .expect(<span class="string">"is method"</span>)
             .call(<span class="kw-2">&amp;</span><span class="self">self</span>.clone().into(), <span class="kw-2">&amp;</span>[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))<span class="question-mark">?</span>;
 
@@ -1558,23 +1559,23 @@
         // 6. Return ℝ(result).
 
         </span><span class="kw">let </span><span class="prelude-val">Some</span>(number) = val.as_number() <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">&quot;monthsInYear must return a number.&quot;</span>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type().with_message(<span class="string">"monthsInYear must return a number."</span>));
         };
 
         <span class="kw">if </span>!number.is_finite() || number.fract() != <span class="number">0.0 </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(
-                TemporalError::r#type().with_message(<span class="string">&quot;monthsInYear return must be integral.&quot;</span>)
+                TemporalError::r#type().with_message(<span class="string">"monthsInYear return must be integral."</span>)
             );
         }
 
         <span class="kw">if </span>number &lt; <span class="number">1f64 </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(
-                TemporalError::r#type().with_message(<span class="string">&quot;monthsInYear return must be larger than 1.&quot;</span>)
+                TemporalError::r#type().with_message(<span class="string">"monthsInYear return must be larger than 1."</span>)
             );
         }
 
         <span class="kw">let </span>result = number.to_u16().ok_or_else(|| {
-            TemporalError::range().with_message(<span class="string">&quot;monthsInYear exceeded valid range.&quot;</span>)
+            TemporalError::range().with_message(<span class="string">"monthsInYear exceeded valid range."</span>)
         })<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(result)
@@ -1588,18 +1589,18 @@
         <span class="kw">let </span>date_like = date_like_to_object(date_like, context)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>method = <span class="self">self
-            </span>.get(PropertyKey::from(<span class="macro">utf16!</span>(<span class="string">&quot;inLeapYear&quot;</span>)), context)
-            .expect(<span class="string">&quot;method must exist on a object that implements the CalendarProtocol.&quot;</span>);
+            </span>.get(PropertyKey::from(<span class="macro">utf16!</span>(<span class="string">"inLeapYear"</span>)), context)
+            .expect(<span class="string">"method must exist on a object that implements the CalendarProtocol."</span>);
 
         <span class="kw">let </span>val = method
             .as_callable()
-            .expect(<span class="string">&quot;is method&quot;</span>)
+            .expect(<span class="string">"is method"</span>)
             .call(<span class="kw-2">&amp;</span><span class="self">self</span>.clone().into(), <span class="kw-2">&amp;</span>[date_like], context)
             .map_err(|err| TemporalError::general(err.to_string()))<span class="question-mark">?</span>;
 
         <span class="kw">let </span>JsValue::Boolean(result) = val <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(
-                TemporalError::r#type().with_message(<span class="string">&quot;inLeapYear must return a valid boolean.&quot;</span>)
+                TemporalError::r#type().with_message(<span class="string">"inLeapYear must return a valid boolean."</span>)
             );
         };
 
@@ -1613,12 +1614,12 @@
         );
 
         <span class="kw">let </span>method = <span class="self">self
-            </span>.get(PropertyKey::from(<span class="macro">utf16!</span>(<span class="string">&quot;fields&quot;</span>)), context)
-            .expect(<span class="string">&quot;method must exist on an object that implements the CalendarProtocol.&quot;</span>);
+            </span>.get(PropertyKey::from(<span class="macro">utf16!</span>(<span class="string">"fields"</span>)), context)
+            .expect(<span class="string">"method must exist on an object that implements the CalendarProtocol."</span>);
 
         <span class="kw">let </span>result = method
             .as_callable()
-            .expect(<span class="string">&quot;is method&quot;</span>)
+            .expect(<span class="string">"is method"</span>)
             .call(<span class="kw-2">&amp;</span><span class="self">self</span>.clone().into(), <span class="kw-2">&amp;</span>[fields_js.into()], context)
             .map_err(|e| TemporalError::general(e.to_string()))<span class="question-mark">?</span>;
 
@@ -1638,7 +1639,7 @@
 
             <span class="kw">let </span>JsValue::String(s) = next_value <span class="kw">else </span>{
                 <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type()
-                    .with_message(<span class="string">&quot;Invalid return type in fields method implementation.&quot;</span>));
+                    .with_message(<span class="string">"Invalid return type in fields method implementation."</span>));
             };
 
             result.push(s.to_std_string_escaped());
@@ -1659,12 +1660,12 @@
             .map_err(|e| TemporalError::general(e.to_string()))<span class="question-mark">?</span>;
 
         <span class="kw">let </span>method = <span class="self">self
-            </span>.get(PropertyKey::from(<span class="macro">utf16!</span>(<span class="string">&quot;mergeFields&quot;</span>)), context)
-            .expect(<span class="string">&quot;method must exist on an object that implements the CalendarProtocol.&quot;</span>);
+            </span>.get(PropertyKey::from(<span class="macro">utf16!</span>(<span class="string">"mergeFields"</span>)), context)
+            .expect(<span class="string">"method must exist on an object that implements the CalendarProtocol."</span>);
 
         <span class="kw">let </span>value = method
             .as_callable()
-            .expect(<span class="string">&quot;is method&quot;</span>)
+            .expect(<span class="string">"is method"</span>)
             .call(
                 <span class="kw-2">&amp;</span><span class="self">self</span>.clone().into(),
                 <span class="kw-2">&amp;</span>[fields.into(), add_fields.into()],
@@ -1674,7 +1675,7 @@
 
         <span class="kw">let </span>JsValue::Object(o) = value <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(
-                TemporalError::r#type().with_message(<span class="string">&quot;mergeFields did not return an object.&quot;</span>)
+                TemporalError::r#type().with_message(<span class="string">"mergeFields did not return an object."</span>)
             );
         };
 
@@ -1684,21 +1685,21 @@
     <span class="kw">fn </span>identifier(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; TemporalResult&lt;String&gt; {
         <span class="kw">let </span>identifier = <span class="self">self
             </span>.__get__(
-                <span class="kw-2">&amp;</span>PropertyKey::from(<span class="macro">utf16!</span>(<span class="string">&quot;id&quot;</span>)),
+                <span class="kw-2">&amp;</span>PropertyKey::from(<span class="macro">utf16!</span>(<span class="string">"id"</span>)),
                 <span class="self">self</span>.clone().into(),
                 <span class="kw-2">&amp;mut </span>context.into(),
             )
-            .expect(<span class="string">&quot;method must exist on a object that implements the CalendarProtocol.&quot;</span>);
+            .expect(<span class="string">"method must exist on a object that implements the CalendarProtocol."</span>);
 
         <span class="kw">let </span>JsValue::String(s) = identifier <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">&quot;Identifier was not a string&quot;</span>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">"Identifier was not a string"</span>));
         };
 
         <span class="prelude-val">Ok</span>(s.to_std_string_escaped())
     }
 }
 
-<span class="doccomment">/// Utility function for converting `Temporal`&#39;s `CalendarDateLike` to it&#39;s `Boa` specific `JsObject`.
+<span class="doccomment">/// Utility function for converting `Temporal`'s `CalendarDateLike` to it's `Boa` specific `JsObject`.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>date_like_to_object(
     date_like: <span class="kw-2">&amp;</span>CalendarDateLike&lt;JsObject&gt;,
     context: <span class="kw-2">&amp;mut </span>Context,

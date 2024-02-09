@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/builtins/number/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/builtins/number/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -935,7 +936,7 @@
 <a href="#935" id="935">935</a>
 <a href="#936" id="936">936</a>
 <a href="#937" id="937">937</a>
-</pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Number` object.
+</pre></div><pre class="rust"><code><span class="doccomment">//! Boa's implementation of ECMAScript's global `Number` object.
 //!
 //! The `Number` ECMAScript object is a wrapper object allowing you to work with numerical values.
 //! A `Number` object is created using the `Number()` constructor. A primitive type object number is created using the `Number()` **function**.
@@ -985,51 +986,51 @@
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>Number {
     <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(std::any::type_name::&lt;<span class="self">Self</span>&gt;(), <span class="string">&quot;init&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(std::any::type_name::&lt;<span class="self">Self</span>&gt;(), <span class="string">"init"</span>);
 
         <span class="kw">let </span>attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
 
         BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
-            .static_property(<span class="macro">js_string!</span>(<span class="string">&quot;EPSILON&quot;</span>), f64::EPSILON, attribute)
+            .static_property(<span class="macro">js_string!</span>(<span class="string">"EPSILON"</span>), f64::EPSILON, attribute)
             .static_property(
-                <span class="macro">js_string!</span>(<span class="string">&quot;MAX_SAFE_INTEGER&quot;</span>),
+                <span class="macro">js_string!</span>(<span class="string">"MAX_SAFE_INTEGER"</span>),
                 <span class="self">Self</span>::MAX_SAFE_INTEGER,
                 attribute,
             )
             .static_property(
-                <span class="macro">js_string!</span>(<span class="string">&quot;MIN_SAFE_INTEGER&quot;</span>),
+                <span class="macro">js_string!</span>(<span class="string">"MIN_SAFE_INTEGER"</span>),
                 <span class="self">Self</span>::MIN_SAFE_INTEGER,
                 attribute,
             )
-            .static_property(<span class="macro">js_string!</span>(<span class="string">&quot;MAX_VALUE&quot;</span>), <span class="self">Self</span>::MAX_VALUE, attribute)
-            .static_property(<span class="macro">js_string!</span>(<span class="string">&quot;MIN_VALUE&quot;</span>), <span class="self">Self</span>::MIN_VALUE, attribute)
+            .static_property(<span class="macro">js_string!</span>(<span class="string">"MAX_VALUE"</span>), <span class="self">Self</span>::MAX_VALUE, attribute)
+            .static_property(<span class="macro">js_string!</span>(<span class="string">"MIN_VALUE"</span>), <span class="self">Self</span>::MIN_VALUE, attribute)
             .static_property(
-                <span class="macro">js_string!</span>(<span class="string">&quot;NEGATIVE_INFINITY&quot;</span>),
+                <span class="macro">js_string!</span>(<span class="string">"NEGATIVE_INFINITY"</span>),
                 f64::NEG_INFINITY,
                 attribute,
             )
-            .static_property(<span class="macro">js_string!</span>(<span class="string">&quot;POSITIVE_INFINITY&quot;</span>), f64::INFINITY, attribute)
-            .static_property(<span class="macro">js_string!</span>(<span class="string">&quot;NaN&quot;</span>), f64::NAN, attribute)
+            .static_property(<span class="macro">js_string!</span>(<span class="string">"POSITIVE_INFINITY"</span>), f64::INFINITY, attribute)
+            .static_property(<span class="macro">js_string!</span>(<span class="string">"NaN"</span>), f64::NAN, attribute)
             .static_property(
-                <span class="macro">js_string!</span>(<span class="string">&quot;parseInt&quot;</span>),
+                <span class="macro">js_string!</span>(<span class="string">"parseInt"</span>),
                 realm.intrinsics().objects().parse_int(),
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .static_property(
-                <span class="macro">js_string!</span>(<span class="string">&quot;parseFloat&quot;</span>),
+                <span class="macro">js_string!</span>(<span class="string">"parseFloat"</span>),
                 realm.intrinsics().objects().parse_float(),
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
-            .static_method(<span class="self">Self</span>::number_is_finite, <span class="macro">js_string!</span>(<span class="string">&quot;isFinite&quot;</span>), <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::number_is_nan, <span class="macro">js_string!</span>(<span class="string">&quot;isNaN&quot;</span>), <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::is_safe_integer, <span class="macro">js_string!</span>(<span class="string">&quot;isSafeInteger&quot;</span>), <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::number_is_integer, <span class="macro">js_string!</span>(<span class="string">&quot;isInteger&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::to_exponential, <span class="macro">js_string!</span>(<span class="string">&quot;toExponential&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::to_fixed, <span class="macro">js_string!</span>(<span class="string">&quot;toFixed&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::to_locale_string, <span class="macro">js_string!</span>(<span class="string">&quot;toLocaleString&quot;</span>), <span class="number">0</span>)
-            .method(<span class="self">Self</span>::to_precision, <span class="macro">js_string!</span>(<span class="string">&quot;toPrecision&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::to_string, <span class="macro">js_string!</span>(<span class="string">&quot;toString&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::value_of, <span class="macro">js_string!</span>(<span class="string">&quot;valueOf&quot;</span>), <span class="number">0</span>)
+            .static_method(<span class="self">Self</span>::number_is_finite, <span class="macro">js_string!</span>(<span class="string">"isFinite"</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::number_is_nan, <span class="macro">js_string!</span>(<span class="string">"isNaN"</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::is_safe_integer, <span class="macro">js_string!</span>(<span class="string">"isSafeInteger"</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::number_is_integer, <span class="macro">js_string!</span>(<span class="string">"isInteger"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::to_exponential, <span class="macro">js_string!</span>(<span class="string">"toExponential"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::to_fixed, <span class="macro">js_string!</span>(<span class="string">"toFixed"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::to_locale_string, <span class="macro">js_string!</span>(<span class="string">"toLocaleString"</span>), <span class="number">0</span>)
+            .method(<span class="self">Self</span>::to_precision, <span class="macro">js_string!</span>(<span class="string">"toPrecision"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::to_string, <span class="macro">js_string!</span>(<span class="string">"toString"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::value_of, <span class="macro">js_string!</span>(<span class="string">"valueOf"</span>), <span class="number">0</span>)
             .build();
     }
 
@@ -1106,7 +1107,7 @@
     <span class="doccomment">/// The `Number.MIN_VALUE` property represents the smallest positive numeric value representable in JavaScript.
     ///
     /// The `MIN_VALUE` property is the number closest to `0`, not the most negative number, that JavaScript can represent.
-    /// It has a value of approximately `5e-324`. Values smaller than `MIN_VALUE` (&quot;underflow values&quot;) are converted to `0`.
+    /// It has a value of approximately `5e-324`. Values smaller than `MIN_VALUE` ("underflow values") are converted to `0`.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -1135,7 +1136,7 @@
             })
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message(<span class="string">&quot;&#39;this&#39; is not a number&quot;</span>)
+                    .with_message(<span class="string">"'this' is not a number"</span>)
                     .into()
             })
     }
@@ -1167,7 +1168,7 @@
         </span><span class="kw">if </span>!this_num.is_finite() {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(JsValue::new(<span class="self">Self</span>::to_js_string(this_num)));
         }
-        <span class="comment">// Get rid of the &#39;-&#39; sign for -0.0
+        <span class="comment">// Get rid of the '-' sign for -0.0
         </span><span class="kw">let </span>this_num = <span class="kw">if </span>this_num == <span class="number">0. </span>{ <span class="number">0. </span>} <span class="kw">else </span>{ this_num };
         <span class="kw">let </span>this_str_num = <span class="kw">match </span>precision {
             <span class="prelude-val">None </span>=&gt; f64_to_exponential(this_num),
@@ -1178,7 +1179,7 @@
             }
             <span class="kw">_ </span>=&gt; {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
-                    .with_message(<span class="string">&quot;toExponential() argument must be between 0 and 100&quot;</span>)
+                    .with_message(<span class="string">"toExponential() argument must be between 0 and 100"</span>)
                     .into())
             }
         };
@@ -1214,7 +1215,7 @@
             .filter(|i| (<span class="number">0</span>..=<span class="number">100</span>).contains(i))
             .ok_or_else(|| {
                 JsNativeError::range()
-                    .with_message(<span class="string">&quot;toFixed() digits argument must be between 0 and 100&quot;</span>)
+                    .with_message(<span class="string">"toFixed() digits argument must be between 0 and 100"</span>)
             })<span class="question-mark">? </span><span class="kw">as </span>u8;
 
         <span class="kw">let </span><span class="kw-2">mut </span>buffer = ryu_js::Buffer::new();
@@ -1255,12 +1256,12 @@
         <span class="kw">let </span><span class="kw-2">mut </span>non_zero_encountered = <span class="bool-val">false</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>dot_encountered = <span class="bool-val">false</span>;
         <span class="kw">for </span>(i, c) <span class="kw">in </span>flt.chars().enumerate() {
-            <span class="kw">if </span>c == <span class="string">&#39;.&#39; </span>{
+            <span class="kw">if </span>c == <span class="string">'.' </span>{
                 <span class="kw">if </span>non_zero_encountered {
                     <span class="kw">return </span>(i <span class="kw">as </span>i32) - <span class="number">1</span>;
                 }
                 dot_encountered = <span class="bool-val">true</span>;
-            } <span class="kw">else if </span>c != <span class="string">&#39;0&#39; </span>{
+            } <span class="kw">else if </span>c != <span class="string">'0' </span>{
                 <span class="kw">if </span>dot_encountered {
                     <span class="kw">return </span><span class="number">1 </span>- (i <span class="kw">as </span>i32);
                 }
@@ -1289,27 +1290,27 @@
             <span class="kw">let </span>to_round = digits.split_off(precision);
             <span class="kw">let </span><span class="kw-2">mut </span>digit = digits
                 .pop()
-                .expect(<span class="string">&quot;already checked that length is bigger than precision&quot;</span>)
+                .expect(<span class="string">"already checked that length is bigger than precision"</span>)
                 <span class="kw">as </span>u8;
             <span class="kw">if let </span><span class="prelude-val">Some</span>(first) = to_round.chars().next() {
-                <span class="kw">if </span>first &gt; <span class="string">&#39;4&#39; </span>{
+                <span class="kw">if </span>first &gt; <span class="string">'4' </span>{
                     digit += <span class="number">1</span>;
                 }
             }
 
-            <span class="kw">if </span>digit <span class="kw">as </span>char == <span class="string">&#39;:&#39; </span>{
-                <span class="comment">// &#39;:&#39; is &#39;9&#39; + 1
+            <span class="kw">if </span>digit <span class="kw">as </span>char == <span class="string">':' </span>{
+                <span class="comment">// ':' is '9' + 1
                 // need to propagate the increment backward
-                </span><span class="kw">let </span><span class="kw-2">mut </span>replacement = String::from(<span class="string">&quot;0&quot;</span>);
+                </span><span class="kw">let </span><span class="kw-2">mut </span>replacement = String::from(<span class="string">"0"</span>);
                 <span class="kw">let </span><span class="kw-2">mut </span>propagated = <span class="bool-val">false</span>;
                 <span class="kw">for </span>c <span class="kw">in </span>digits.chars().rev() {
                     <span class="kw">let </span>d = <span class="kw">match </span>(c, propagated) {
-                        (<span class="string">&#39;0&#39;</span>..=<span class="string">&#39;8&#39;</span>, <span class="bool-val">false</span>) =&gt; (c <span class="kw">as </span>u8 + <span class="number">1</span>) <span class="kw">as </span>char,
-                        (<span class="kw">_</span>, <span class="bool-val">false</span>) =&gt; <span class="string">&#39;0&#39;</span>,
+                        (<span class="string">'0'</span>..=<span class="string">'8'</span>, <span class="bool-val">false</span>) =&gt; (c <span class="kw">as </span>u8 + <span class="number">1</span>) <span class="kw">as </span>char,
+                        (<span class="kw">_</span>, <span class="bool-val">false</span>) =&gt; <span class="string">'0'</span>,
                         (<span class="kw">_</span>, <span class="bool-val">true</span>) =&gt; c,
                     };
                     replacement.push(d);
-                    <span class="kw">if </span>d != <span class="string">&#39;0&#39; </span>{
+                    <span class="kw">if </span>d != <span class="string">'0' </span>{
                         propagated = <span class="bool-val">true</span>;
                     }
                 }
@@ -1317,7 +1318,7 @@
                 <span class="kw">let </span>replacement = <span class="kw">if </span>propagated {
                     replacement.as_str()
                 } <span class="kw">else </span>{
-                    digits.push(<span class="string">&#39;1&#39;</span>);
+                    digits.push(<span class="string">'1'</span>);
                     <span class="kw-2">&amp;</span>replacement.as_str()[<span class="number">1</span>..]
                 };
                 <span class="kw">for </span>c <span class="kw">in </span>replacement.chars().rev() {
@@ -1329,7 +1330,7 @@
                 <span class="bool-val">false
             </span>}
         } <span class="kw">else </span>{
-            digits.push_str(<span class="kw-2">&amp;</span><span class="string">&quot;0&quot;</span>.repeat(precision - digits.len()));
+            digits.push_str(<span class="kw-2">&amp;</span><span class="string">"0"</span>.repeat(precision - digits.len()));
             <span class="bool-val">false
         </span>}
     }
@@ -1372,40 +1373,40 @@
             <span class="kw">_ </span>=&gt; {
                 <span class="comment">// 5
                 </span><span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
-                    .with_message(<span class="string">&quot;precision must be an integer at least 1 and no greater than 100&quot;</span>)
+                    .with_message(<span class="string">"precision must be an integer at least 1 and no greater than 100"</span>)
                     .into());
             }
         };
         <span class="kw">let </span>precision_i32 = precision <span class="kw">as </span>i32;
 
         <span class="comment">// 7
-        </span><span class="kw">let </span><span class="kw-2">mut </span>prefix = String::new(); <span class="comment">// spec: &#39;s&#39;
-        </span><span class="kw">let </span><span class="kw-2">mut </span>suffix: String; <span class="comment">// spec: &#39;m&#39;
-        </span><span class="kw">let </span><span class="kw-2">mut </span>exponent: i32; <span class="comment">// spec: &#39;e&#39;
+        </span><span class="kw">let </span><span class="kw-2">mut </span>prefix = String::new(); <span class="comment">// spec: 's'
+        </span><span class="kw">let </span><span class="kw-2">mut </span>suffix: String; <span class="comment">// spec: 'm'
+        </span><span class="kw">let </span><span class="kw-2">mut </span>exponent: i32; <span class="comment">// spec: 'e'
 
         // 8
         </span><span class="kw">if </span>this_num &lt; <span class="number">0.0 </span>{
-            prefix.push(<span class="string">&#39;-&#39;</span>);
+            prefix.push(<span class="string">'-'</span>);
             this_num = -this_num;
         }
 
         <span class="comment">// 9
         </span><span class="kw">if </span>this_num == <span class="number">0.0 </span>{
-            suffix = <span class="string">&quot;0&quot;</span>.repeat(precision);
+            suffix = <span class="string">"0"</span>.repeat(precision);
             exponent = <span class="number">0</span>;
         <span class="comment">// 10
         </span>} <span class="kw">else </span>{
             <span class="comment">// Due to f64 limitations, this part differs a bit from the spec,
             // but has the same effect. It manipulates the string constructed
             // by `format`: digits with an optional dot between two of them.
-            </span>suffix = <span class="macro">format!</span>(<span class="string">&quot;{this_num:.100}&quot;</span>);
+            </span>suffix = <span class="macro">format!</span>(<span class="string">"{this_num:.100}"</span>);
 
             <span class="comment">// a: getting an exponent
             </span>exponent = <span class="self">Self</span>::flt_str_to_exp(<span class="kw-2">&amp;</span>suffix);
             <span class="comment">// b: getting relevant digits only
             </span><span class="kw">if </span>exponent &lt; <span class="number">0 </span>{
                 suffix = suffix.split_off((<span class="number">1 </span>- exponent) <span class="kw">as </span>usize);
-            } <span class="kw">else if let </span><span class="prelude-val">Some</span>(n) = suffix.find(<span class="string">&#39;.&#39;</span>) {
+            } <span class="kw">else if let </span><span class="prelude-val">Some</span>(n) = suffix.find(<span class="string">'.'</span>) {
                 suffix.remove(n);
             }
             <span class="comment">// impl: having exactly `precision` digits in `suffix`
@@ -1418,13 +1419,13 @@
             <span class="kw">if </span>exponent &lt; -<span class="number">6 </span>|| great_exp {
                 <span class="comment">// ii
                 </span><span class="kw">if </span>precision &gt; <span class="number">1 </span>{
-                    suffix.insert(<span class="number">1</span>, <span class="string">&#39;.&#39;</span>);
+                    suffix.insert(<span class="number">1</span>, <span class="string">'.'</span>);
                 }
                 <span class="comment">// vi
-                </span>suffix.push(<span class="string">&#39;e&#39;</span>);
+                </span>suffix.push(<span class="string">'e'</span>);
                 <span class="comment">// iii
                 </span><span class="kw">if </span>great_exp {
-                    suffix.push(<span class="string">&#39;+&#39;</span>);
+                    suffix.push(<span class="string">'+'</span>);
                 }
                 <span class="comment">// iv, v
                 </span>suffix.push_str(<span class="kw-2">&amp;</span>exponent.to_string());
@@ -1441,12 +1442,12 @@
 
         <span class="comment">// 12
         </span><span class="kw">if </span>exponent &gt;= <span class="number">0 </span>{
-            suffix.insert(e_inc <span class="kw">as </span>usize, <span class="string">&#39;.&#39;</span>);
+            suffix.insert(e_inc <span class="kw">as </span>usize, <span class="string">'.'</span>);
         <span class="comment">// 13
         </span>} <span class="kw">else </span>{
-            prefix.push(<span class="string">&#39;0&#39;</span>);
-            prefix.push(<span class="string">&#39;.&#39;</span>);
-            prefix.push_str(<span class="kw-2">&amp;</span><span class="string">&quot;0&quot;</span>.repeat(-e_inc <span class="kw">as </span>usize));
+            prefix.push(<span class="string">'0'</span>);
+            prefix.push(<span class="string">'.'</span>);
+            prefix.push_str(<span class="kw-2">&amp;</span><span class="string">"0"</span>.repeat(-e_inc <span class="kw">as </span>usize));
         }
 
         <span class="comment">// 14
@@ -1495,13 +1496,13 @@
         </span><span class="kw">let </span><span class="kw-2">mut </span>integer = value.floor();
         <span class="kw">let </span><span class="kw-2">mut </span>fraction = value - integer;
 
-        <span class="comment">// We only compute fractional digits up to the input double&#39;s precision.
+        <span class="comment">// We only compute fractional digits up to the input double's precision.
         </span><span class="kw">let </span><span class="kw-2">mut </span>delta = <span class="number">0.5 </span>* (<span class="self">Self</span>::next_after(value, f64::MAX) - value);
         delta = <span class="self">Self</span>::next_after(<span class="number">0.0</span>, f64::MAX).max(delta);
         <span class="macro">assert!</span>(delta &gt; <span class="number">0.0</span>);
         <span class="kw">if </span>fraction &gt;= delta {
             <span class="comment">// Insert decimal point.
-            </span>frac_buf[fraction_cursor] = <span class="string">b&#39;.&#39;</span>;
+            </span>frac_buf[fraction_cursor] = <span class="string">b'.'</span>;
             fraction_cursor += <span class="number">1</span>;
             <span class="kw">loop </span>{
                 <span class="comment">// Shift up by one digit.
@@ -1510,7 +1511,7 @@
                 <span class="comment">// Write digit.
                 </span><span class="kw">let </span>digit = fraction <span class="kw">as </span>u32;
                 frac_buf[fraction_cursor] = std::char::from_digit(digit, u32::from(radix))
-                    .expect(<span class="string">&quot;radix already checked&quot;</span>)
+                    .expect(<span class="string">"radix already checked"</span>)
                     <span class="kw">as </span>u8;
                 fraction_cursor += <span class="number">1</span>;
                 <span class="comment">// Calculate remainder.
@@ -1523,19 +1524,19 @@
                         <span class="comment">// We need to back trace already written digits in case of carry-over.
                         </span>fraction_cursor -= <span class="number">1</span>;
                         <span class="kw">if </span>fraction_cursor == <span class="number">0 </span>{
-                            <span class="comment">//              CHECK_EQ(&#39;.&#39;, buffer[fraction_cursor]);
+                            <span class="comment">//              CHECK_EQ('.', buffer[fraction_cursor]);
                             // Carry over to the integer part.
                             </span>integer += <span class="number">1.</span>;
                         } <span class="kw">else </span>{
                             <span class="kw">let </span>c: u8 = frac_buf[fraction_cursor];
                             <span class="comment">// Reconstruct digit.
-                            </span><span class="kw">let </span>digit = <span class="kw">if </span>c &gt; <span class="string">b&#39;9&#39; </span>{ c - <span class="string">b&#39;a&#39; </span>+ <span class="number">10 </span>} <span class="kw">else </span>{ c - <span class="string">b&#39;0&#39; </span>};
+                            </span><span class="kw">let </span>digit = <span class="kw">if </span>c &gt; <span class="string">b'9' </span>{ c - <span class="string">b'a' </span>+ <span class="number">10 </span>} <span class="kw">else </span>{ c - <span class="string">b'0' </span>};
                             <span class="kw">if </span>digit + <span class="number">1 </span>&gt;= radix {
                                 <span class="kw">continue</span>;
                             }
                             frac_buf[fraction_cursor] =
                                 std::char::from_digit(u32::from(digit + <span class="number">1</span>), u32::from(radix))
-                                    .expect(<span class="string">&quot;digit was not a valid number in the given radix&quot;</span>)
+                                    .expect(<span class="string">"digit was not a valid number in the given radix"</span>)
                                     <span class="kw">as </span>u8;
                             fraction_cursor += <span class="number">1</span>;
                         }
@@ -1553,14 +1554,14 @@
         </span><span class="kw">let </span><span class="kw-2">mut </span>int_iter = int_buf.iter_mut().enumerate().rev();
         <span class="kw">while </span>FloatCore::integer_decode(integer / f64::from(radix)).<span class="number">1 </span>&gt; <span class="number">0 </span>{
             integer /= f64::from(radix);
-            <span class="kw-2">*</span>int_iter.next().expect(<span class="string">&quot;integer buffer exhausted&quot;</span>).<span class="number">1 </span>= <span class="string">b&#39;0&#39;</span>;
+            <span class="kw-2">*</span>int_iter.next().expect(<span class="string">"integer buffer exhausted"</span>).<span class="number">1 </span>= <span class="string">b'0'</span>;
         }
 
         <span class="kw">loop </span>{
             <span class="kw">let </span>remainder = integer % f64::from(radix);
-            <span class="kw-2">*</span>int_iter.next().expect(<span class="string">&quot;integer buffer exhausted&quot;</span>).<span class="number">1 </span>=
+            <span class="kw-2">*</span>int_iter.next().expect(<span class="string">"integer buffer exhausted"</span>).<span class="number">1 </span>=
                 std::char::from_digit(remainder <span class="kw">as </span>u32, u32::from(radix))
-                    .expect(<span class="string">&quot;remainder not a digit in the given number&quot;</span>) <span class="kw">as </span>u8;
+                    .expect(<span class="string">"remainder not a digit in the given number"</span>) <span class="kw">as </span>u8;
             integer = (integer - remainder) / f64::from(radix);
             <span class="kw">if </span>integer &lt;= <span class="number">0f64 </span>{
                 <span class="kw">break</span>;
@@ -1568,11 +1569,11 @@
         }
         <span class="comment">// Add sign and terminate string.
         </span><span class="kw">if </span>negative {
-            <span class="kw-2">*</span>int_iter.next().expect(<span class="string">&quot;integer buffer exhausted&quot;</span>).<span class="number">1 </span>= <span class="string">b&#39;-&#39;</span>;
+            <span class="kw-2">*</span>int_iter.next().expect(<span class="string">"integer buffer exhausted"</span>).<span class="number">1 </span>= <span class="string">b'-'</span>;
         }
         <span class="macro">assert!</span>(fraction_cursor &lt; BUF_SIZE);
 
-        <span class="kw">let </span>integer_cursor = int_iter.next().expect(<span class="string">&quot;integer buffer exhausted&quot;</span>).<span class="number">0 </span>+ <span class="number">1</span>;
+        <span class="kw">let </span>integer_cursor = int_iter.next().expect(<span class="string">"integer buffer exhausted"</span>).<span class="number">0 </span>+ <span class="number">1</span>;
         <span class="kw">let </span>fraction_cursor = fraction_cursor + BUF_SIZE / <span class="number">2</span>;
         <span class="macro">js_string!</span>(<span class="kw-2">&amp;*</span>String::from_utf8_lossy(
             <span class="kw-2">&amp;</span>buffer[integer_cursor..fraction_cursor]
@@ -1617,7 +1618,7 @@
                 </span>.filter(|i| (<span class="number">2</span>..=<span class="number">36</span>).contains(i))
                 .ok_or_else(|| {
                     JsNativeError::range()
-                        .with_message(<span class="string">&quot;radix must be an integer at least 2 and no greater than 36&quot;</span>)
+                        .with_message(<span class="string">"radix must be an integer at least 2 and no greater than 36"</span>)
                 })<span class="question-mark">?
         </span>} <span class="kw">as </span>u8;
 
@@ -1627,13 +1628,13 @@
         }
 
         <span class="kw">if </span>x == -<span class="number">0. </span>{
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(JsValue::new(<span class="macro">js_string!</span>(<span class="string">&quot;0&quot;</span>)));
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(JsValue::new(<span class="macro">js_string!</span>(<span class="string">"0"</span>)));
         } <span class="kw">else if </span>x.is_nan() {
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(JsValue::new(<span class="macro">js_string!</span>(<span class="string">&quot;NaN&quot;</span>)));
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(JsValue::new(<span class="macro">js_string!</span>(<span class="string">"NaN"</span>)));
         } <span class="kw">else if </span>x.is_infinite() &amp;&amp; x.is_sign_positive() {
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(JsValue::new(<span class="macro">js_string!</span>(<span class="string">&quot;Infinity&quot;</span>)));
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(JsValue::new(<span class="macro">js_string!</span>(<span class="string">"Infinity"</span>)));
         } <span class="kw">else if </span>x.is_infinite() &amp;&amp; x.is_sign_negative() {
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(JsValue::new(<span class="macro">js_string!</span>(<span class="string">&quot;-Infinity&quot;</span>)));
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(JsValue::new(<span class="macro">js_string!</span>(<span class="string">"-Infinity"</span>)));
         }
 
         <span class="comment">// This is a Optimization from the v8 source code to print values that can fit in a single character
@@ -1664,7 +1665,7 @@
 
     <span class="doccomment">/// `Number.isFinite( number )`
     ///
-    /// Checks if the argument is a number, returning false if it isn&#39;t.
+    /// Checks if the argument is a number, returning false if it isn't.
     ///
     /// If the number is `NaN`, `+∞`, or `-∞`, `false` is returned.
     ///
@@ -1713,7 +1714,7 @@
 
     <span class="doccomment">/// `Number.isNaN( number )`
     ///
-    /// Checks if the argument is a number, returning false if it isn&#39;t.
+    /// Checks if the argument is a number, returning false if it isn't.
     ///
     /// If the number is `NaN`, `true` is returned.
     ///
@@ -1742,7 +1743,7 @@
 
     <span class="doccomment">/// `Number.isSafeInteger( number )`
     ///
-    /// Checks if the argument is an integer, returning false if it isn&#39;t.
+    /// Checks if the argument is an integer, returning false if it isn't.
     ///
     /// If `abs(number) ≤ MAX_SAFE_INTEGER`, `true` is returned.
     ///
@@ -1855,20 +1856,20 @@
 <span class="doccomment">/// Helper function that formats a float as a ES6-style exponential number string.
 </span><span class="kw">fn </span>f64_to_exponential(n: f64) -&gt; JsString {
     <span class="macro">js_string!</span>(<span class="kw">match </span>n.abs() {
-        x <span class="kw">if </span>x &gt;= <span class="number">1.0 </span>|| x == <span class="number">0.0 </span>=&gt; <span class="macro">format!</span>(<span class="string">&quot;{n:e}&quot;</span>).replace(<span class="string">&#39;e&#39;</span>, <span class="string">&quot;e+&quot;</span>),
-        <span class="kw">_ </span>=&gt; <span class="macro">format!</span>(<span class="string">&quot;{n:e}&quot;</span>),
+        x <span class="kw">if </span>x &gt;= <span class="number">1.0 </span>|| x == <span class="number">0.0 </span>=&gt; <span class="macro">format!</span>(<span class="string">"{n:e}"</span>).replace(<span class="string">'e'</span>, <span class="string">"e+"</span>),
+        <span class="kw">_ </span>=&gt; <span class="macro">format!</span>(<span class="string">"{n:e}"</span>),
     })
 }
 
 <span class="doccomment">/// Helper function that formats a float as a ES6-style exponential number string with a given precision.
-</span><span class="comment">// We can&#39;t use the same approach as in `f64_to_exponential`
+</span><span class="comment">// We can't use the same approach as in `f64_to_exponential`
 // because in cases like (0.999).toExponential(0) the result will be 1e0.
-// Instead we get the index of &#39;e&#39;, and if the next character is not &#39;-&#39; we insert the plus sign
+// Instead we get the index of 'e', and if the next character is not '-' we insert the plus sign
 </span><span class="kw">fn </span>f64_to_exponential_with_precision(n: f64, prec: usize) -&gt; JsString {
-    <span class="kw">let </span><span class="kw-2">mut </span>res = <span class="macro">format!</span>(<span class="string">&quot;{n:.prec$e}&quot;</span>);
-    <span class="kw">let </span>idx = res.find(<span class="string">&#39;e&#39;</span>).expect(<span class="string">&quot;&#39;e&#39; not found in exponential string&quot;</span>);
-    <span class="kw">if </span>res.as_bytes()[idx + <span class="number">1</span>] != <span class="string">b&#39;-&#39; </span>{
-        res.insert(idx + <span class="number">1</span>, <span class="string">&#39;+&#39;</span>);
+    <span class="kw">let </span><span class="kw-2">mut </span>res = <span class="macro">format!</span>(<span class="string">"{n:.prec$e}"</span>);
+    <span class="kw">let </span>idx = res.find(<span class="string">'e'</span>).expect(<span class="string">"'e' not found in exponential string"</span>);
+    <span class="kw">if </span>res.as_bytes()[idx + <span class="number">1</span>] != <span class="string">b'-' </span>{
+        res.insert(idx + <span class="number">1</span>, <span class="string">'+'</span>);
     }
     <span class="macro">js_string!</span>(res)
 }

@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/temporal/src/options.rs`."><title>options.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="boa_temporal" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../boa_temporal/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_temporal"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/temporal/src/options.rs`."><title>options.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="boa_temporal" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../boa_temporal/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_temporal"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -437,7 +438,7 @@
 <a href="#437" id="437">437</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Native implementation of the `Temporal` options.
 //!
-//! Temporal has various instances where user&#39;s can define options for how an
+//! Temporal has various instances where user's can define options for how an
 //! operation may be completed.
 
 </span><span class="kw">use </span>core::{fmt, str::FromStr};
@@ -483,13 +484,13 @@
             Auto, Day, Hour, Microsecond, Millisecond, Minute, Month, Nanosecond, Second, Week,
             Year,
         };
-        <span class="comment">// 1. If unit is &quot;year&quot;, &quot;month&quot;, &quot;week&quot;, or &quot;day&quot;, then
+        <span class="comment">// 1. If unit is "year", "month", "week", or "day", then
         // a. Return undefined.
-        // 2. If unit is &quot;hour&quot;, then
+        // 2. If unit is "hour", then
         // a. Return 24.
-        // 3. If unit is &quot;minute&quot; or &quot;second&quot;, then
+        // 3. If unit is "minute" or "second", then
         // a. Return 60.
-        // 4. Assert: unit is one of &quot;millisecond&quot;, &quot;microsecond&quot;, or &quot;nanosecond&quot;.
+        // 4. Assert: unit is one of "millisecond", "microsecond", or "nanosecond".
         // 5. Return 1000.
         </span><span class="kw">match </span><span class="self">self </span>{
             Year | Month | Week | Day =&gt; <span class="prelude-val">None</span>,
@@ -525,8 +526,8 @@
 </span><span class="kw">pub struct </span>ParseTemporalUnitError;
 
 <span class="kw">impl </span>fmt::Display <span class="kw">for </span>ParseTemporalUnitError {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
-        f.write_str(<span class="string">&quot;provided string was not a valid TemporalUnit&quot;</span>)
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
+        f.write_str(<span class="string">"provided string was not a valid TemporalUnit"</span>)
     }
 }
 
@@ -535,44 +536,44 @@
 
     <span class="kw">fn </span>from_str(s: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Err&gt; {
         <span class="kw">match </span>s {
-            <span class="string">&quot;auto&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Auto),
-            <span class="string">&quot;year&quot; </span>| <span class="string">&quot;years&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Year),
-            <span class="string">&quot;month&quot; </span>| <span class="string">&quot;months&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Month),
-            <span class="string">&quot;week&quot; </span>| <span class="string">&quot;weeks&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Week),
-            <span class="string">&quot;day&quot; </span>| <span class="string">&quot;days&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Day),
-            <span class="string">&quot;hour&quot; </span>| <span class="string">&quot;hours&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Hour),
-            <span class="string">&quot;minute&quot; </span>| <span class="string">&quot;minutes&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Minute),
-            <span class="string">&quot;second&quot; </span>| <span class="string">&quot;seconds&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Second),
-            <span class="string">&quot;millisecond&quot; </span>| <span class="string">&quot;milliseconds&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Millisecond),
-            <span class="string">&quot;microsecond&quot; </span>| <span class="string">&quot;microseconds&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Microsecond),
-            <span class="string">&quot;nanosecond&quot; </span>| <span class="string">&quot;nanoseconds&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Nanosecond),
+            <span class="string">"auto" </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Auto),
+            <span class="string">"year" </span>| <span class="string">"years" </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Year),
+            <span class="string">"month" </span>| <span class="string">"months" </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Month),
+            <span class="string">"week" </span>| <span class="string">"weeks" </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Week),
+            <span class="string">"day" </span>| <span class="string">"days" </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Day),
+            <span class="string">"hour" </span>| <span class="string">"hours" </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Hour),
+            <span class="string">"minute" </span>| <span class="string">"minutes" </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Minute),
+            <span class="string">"second" </span>| <span class="string">"seconds" </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Second),
+            <span class="string">"millisecond" </span>| <span class="string">"milliseconds" </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Millisecond),
+            <span class="string">"microsecond" </span>| <span class="string">"microseconds" </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Microsecond),
+            <span class="string">"nanosecond" </span>| <span class="string">"nanoseconds" </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Nanosecond),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(ParseTemporalUnitError),
         }
     }
 }
 
 <span class="kw">impl </span>fmt::Display <span class="kw">for </span>TemporalUnit {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
         <span class="kw">match </span><span class="self">self </span>{
-            <span class="self">Self</span>::Auto =&gt; <span class="string">&quot;auto&quot;</span>,
-            <span class="self">Self</span>::Year =&gt; <span class="string">&quot;constrain&quot;</span>,
-            <span class="self">Self</span>::Month =&gt; <span class="string">&quot;month&quot;</span>,
-            <span class="self">Self</span>::Week =&gt; <span class="string">&quot;week&quot;</span>,
-            <span class="self">Self</span>::Day =&gt; <span class="string">&quot;day&quot;</span>,
-            <span class="self">Self</span>::Hour =&gt; <span class="string">&quot;hour&quot;</span>,
-            <span class="self">Self</span>::Minute =&gt; <span class="string">&quot;minute&quot;</span>,
-            <span class="self">Self</span>::Second =&gt; <span class="string">&quot;second&quot;</span>,
-            <span class="self">Self</span>::Millisecond =&gt; <span class="string">&quot;millsecond&quot;</span>,
-            <span class="self">Self</span>::Microsecond =&gt; <span class="string">&quot;microsecond&quot;</span>,
-            <span class="self">Self</span>::Nanosecond =&gt; <span class="string">&quot;nanosecond&quot;</span>,
+            <span class="self">Self</span>::Auto =&gt; <span class="string">"auto"</span>,
+            <span class="self">Self</span>::Year =&gt; <span class="string">"constrain"</span>,
+            <span class="self">Self</span>::Month =&gt; <span class="string">"month"</span>,
+            <span class="self">Self</span>::Week =&gt; <span class="string">"week"</span>,
+            <span class="self">Self</span>::Day =&gt; <span class="string">"day"</span>,
+            <span class="self">Self</span>::Hour =&gt; <span class="string">"hour"</span>,
+            <span class="self">Self</span>::Minute =&gt; <span class="string">"minute"</span>,
+            <span class="self">Self</span>::Second =&gt; <span class="string">"second"</span>,
+            <span class="self">Self</span>::Millisecond =&gt; <span class="string">"millsecond"</span>,
+            <span class="self">Self</span>::Microsecond =&gt; <span class="string">"microsecond"</span>,
+            <span class="self">Self</span>::Nanosecond =&gt; <span class="string">"nanosecond"</span>,
         }
         .fmt(f)
     }
 }
 
 <span class="doccomment">/// `ArithmeticOverflow` can also be used as an
-/// assignment overflow and consists of the &quot;constrain&quot;
-/// and &quot;reject&quot; options.
+/// assignment overflow and consists of the "constrain"
+/// and "reject" options.
 </span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 </span><span class="kw">pub enum </span>ArithmeticOverflow {
     <span class="doccomment">/// Constrain option
@@ -586,8 +587,8 @@
 </span><span class="kw">pub struct </span>ParseArithmeticOverflowError;
 
 <span class="kw">impl </span>fmt::Display <span class="kw">for </span>ParseArithmeticOverflowError {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
-        f.write_str(<span class="string">&quot;provided string was not a valid overflow value&quot;</span>)
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
+        f.write_str(<span class="string">"provided string was not a valid overflow value"</span>)
     }
 }
 
@@ -596,18 +597,18 @@
 
     <span class="kw">fn </span>from_str(s: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Err&gt; {
         <span class="kw">match </span>s {
-            <span class="string">&quot;constrain&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Constrain),
-            <span class="string">&quot;reject&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Reject),
+            <span class="string">"constrain" </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Constrain),
+            <span class="string">"reject" </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Reject),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(ParseArithmeticOverflowError),
         }
     }
 }
 
 <span class="kw">impl </span>fmt::Display <span class="kw">for </span>ArithmeticOverflow {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
         <span class="kw">match </span><span class="self">self </span>{
-            <span class="self">Self</span>::Constrain =&gt; <span class="string">&quot;constrain&quot;</span>,
-            <span class="self">Self</span>::Reject =&gt; <span class="string">&quot;reject&quot;</span>,
+            <span class="self">Self</span>::Constrain =&gt; <span class="string">"constrain"</span>,
+            <span class="self">Self</span>::Reject =&gt; <span class="string">"reject"</span>,
         }
         .fmt(f)
     }
@@ -627,8 +628,8 @@
 </span><span class="kw">pub struct </span>ParseDurationOverflowError;
 
 <span class="kw">impl </span>fmt::Display <span class="kw">for </span>ParseDurationOverflowError {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
-        f.write_str(<span class="string">&quot;provided string was not a valid duration overflow value&quot;</span>)
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
+        f.write_str(<span class="string">"provided string was not a valid duration overflow value"</span>)
     }
 }
 
@@ -637,18 +638,18 @@
 
     <span class="kw">fn </span>from_str(s: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Err&gt; {
         <span class="kw">match </span>s {
-            <span class="string">&quot;constrain&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Constrain),
-            <span class="string">&quot;balance&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Balance),
+            <span class="string">"constrain" </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Constrain),
+            <span class="string">"balance" </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Balance),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(ParseDurationOverflowError),
         }
     }
 }
 
 <span class="kw">impl </span>fmt::Display <span class="kw">for </span>DurationOverflow {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
         <span class="kw">match </span><span class="self">self </span>{
-            <span class="self">Self</span>::Constrain =&gt; <span class="string">&quot;constrain&quot;</span>,
-            <span class="self">Self</span>::Balance =&gt; <span class="string">&quot;balance&quot;</span>,
+            <span class="self">Self</span>::Constrain =&gt; <span class="string">"constrain"</span>,
+            <span class="self">Self</span>::Balance =&gt; <span class="string">"balance"</span>,
         }
         .fmt(f)
     }
@@ -672,8 +673,8 @@
 </span><span class="kw">pub struct </span>ParseInstantDisambiguationError;
 
 <span class="kw">impl </span>fmt::Display <span class="kw">for </span>ParseInstantDisambiguationError {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
-        f.write_str(<span class="string">&quot;provided string was not a valid instant disambiguation value&quot;</span>)
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
+        f.write_str(<span class="string">"provided string was not a valid instant disambiguation value"</span>)
     }
 }
 
@@ -682,22 +683,22 @@
 
     <span class="kw">fn </span>from_str(s: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Err&gt; {
         <span class="kw">match </span>s {
-            <span class="string">&quot;compatible&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Compatible),
-            <span class="string">&quot;earlier&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Earlier),
-            <span class="string">&quot;later&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Later),
-            <span class="string">&quot;reject&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Reject),
+            <span class="string">"compatible" </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Compatible),
+            <span class="string">"earlier" </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Earlier),
+            <span class="string">"later" </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Later),
+            <span class="string">"reject" </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Reject),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(ParseInstantDisambiguationError),
         }
     }
 }
 
 <span class="kw">impl </span>fmt::Display <span class="kw">for </span>InstantDisambiguation {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
         <span class="kw">match </span><span class="self">self </span>{
-            <span class="self">Self</span>::Compatible =&gt; <span class="string">&quot;compatible&quot;</span>,
-            <span class="self">Self</span>::Earlier =&gt; <span class="string">&quot;earlier&quot;</span>,
-            <span class="self">Self</span>::Later =&gt; <span class="string">&quot;later&quot;</span>,
-            <span class="self">Self</span>::Reject =&gt; <span class="string">&quot;reject&quot;</span>,
+            <span class="self">Self</span>::Compatible =&gt; <span class="string">"compatible"</span>,
+            <span class="self">Self</span>::Earlier =&gt; <span class="string">"earlier"</span>,
+            <span class="self">Self</span>::Later =&gt; <span class="string">"later"</span>,
+            <span class="self">Self</span>::Reject =&gt; <span class="string">"reject"</span>,
         }
         .fmt(f)
     }
@@ -721,8 +722,8 @@
 </span><span class="kw">pub struct </span>ParseOffsetDisambiguationError;
 
 <span class="kw">impl </span>fmt::Display <span class="kw">for </span>ParseOffsetDisambiguationError {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
-        f.write_str(<span class="string">&quot;provided string was not a valid offset disambiguation value&quot;</span>)
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
+        f.write_str(<span class="string">"provided string was not a valid offset disambiguation value"</span>)
     }
 }
 
@@ -731,28 +732,28 @@
 
     <span class="kw">fn </span>from_str(s: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Err&gt; {
         <span class="kw">match </span>s {
-            <span class="string">&quot;use&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Use),
-            <span class="string">&quot;prefer&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Prefer),
-            <span class="string">&quot;ignore&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Ignore),
-            <span class="string">&quot;reject&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Reject),
+            <span class="string">"use" </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Use),
+            <span class="string">"prefer" </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Prefer),
+            <span class="string">"ignore" </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Ignore),
+            <span class="string">"reject" </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Reject),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(ParseOffsetDisambiguationError),
         }
     }
 }
 
 <span class="kw">impl </span>fmt::Display <span class="kw">for </span>OffsetDisambiguation {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
         <span class="kw">match </span><span class="self">self </span>{
-            <span class="self">Self</span>::Use =&gt; <span class="string">&quot;use&quot;</span>,
-            <span class="self">Self</span>::Prefer =&gt; <span class="string">&quot;prefer&quot;</span>,
-            <span class="self">Self</span>::Ignore =&gt; <span class="string">&quot;ignore&quot;</span>,
-            <span class="self">Self</span>::Reject =&gt; <span class="string">&quot;reject&quot;</span>,
+            <span class="self">Self</span>::Use =&gt; <span class="string">"use"</span>,
+            <span class="self">Self</span>::Prefer =&gt; <span class="string">"prefer"</span>,
+            <span class="self">Self</span>::Ignore =&gt; <span class="string">"ignore"</span>,
+            <span class="self">Self</span>::Reject =&gt; <span class="string">"reject"</span>,
         }
         .fmt(f)
     }
 }
 
-<span class="comment">// TODO: Figure out what to do with intl&#39;s RoundingMode
+<span class="comment">// TODO: Figure out what to do with intl's RoundingMode
 
 </span><span class="doccomment">/// Declares the specified `RoundingMode` for the operation.
 </span><span class="attr">#[derive(Debug, Copy, Clone, Default)]
@@ -842,32 +843,32 @@
 
     <span class="kw">fn </span>from_str(s: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Err&gt; {
         <span class="kw">match </span>s {
-            <span class="string">&quot;ceil&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Ceil),
-            <span class="string">&quot;floor&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Floor),
-            <span class="string">&quot;expand&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Expand),
-            <span class="string">&quot;trunc&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Trunc),
-            <span class="string">&quot;halfCeil&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::HalfCeil),
-            <span class="string">&quot;halfFloor&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::HalfFloor),
-            <span class="string">&quot;halfExpand&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::HalfExpand),
-            <span class="string">&quot;halfTrunc&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::HalfTrunc),
-            <span class="string">&quot;halfEven&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::HalfEven),
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">&quot;RoundingMode not an accepted value.&quot;</span>)),
+            <span class="string">"ceil" </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Ceil),
+            <span class="string">"floor" </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Floor),
+            <span class="string">"expand" </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Expand),
+            <span class="string">"trunc" </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Trunc),
+            <span class="string">"halfCeil" </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::HalfCeil),
+            <span class="string">"halfFloor" </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::HalfFloor),
+            <span class="string">"halfExpand" </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::HalfExpand),
+            <span class="string">"halfTrunc" </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::HalfTrunc),
+            <span class="string">"halfEven" </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::HalfEven),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">"RoundingMode not an accepted value."</span>)),
         }
     }
 }
 
 <span class="kw">impl </span>fmt::Display <span class="kw">for </span>TemporalRoundingMode {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
         <span class="kw">match </span><span class="self">self </span>{
-            <span class="self">Self</span>::Ceil =&gt; <span class="string">&quot;ceil&quot;</span>,
-            <span class="self">Self</span>::Floor =&gt; <span class="string">&quot;floor&quot;</span>,
-            <span class="self">Self</span>::Expand =&gt; <span class="string">&quot;expand&quot;</span>,
-            <span class="self">Self</span>::Trunc =&gt; <span class="string">&quot;trunc&quot;</span>,
-            <span class="self">Self</span>::HalfCeil =&gt; <span class="string">&quot;halfCeil&quot;</span>,
-            <span class="self">Self</span>::HalfFloor =&gt; <span class="string">&quot;halfFloor&quot;</span>,
-            <span class="self">Self</span>::HalfExpand =&gt; <span class="string">&quot;halfExpand&quot;</span>,
-            <span class="self">Self</span>::HalfTrunc =&gt; <span class="string">&quot;halfTrunc&quot;</span>,
-            <span class="self">Self</span>::HalfEven =&gt; <span class="string">&quot;halfEven&quot;</span>,
+            <span class="self">Self</span>::Ceil =&gt; <span class="string">"ceil"</span>,
+            <span class="self">Self</span>::Floor =&gt; <span class="string">"floor"</span>,
+            <span class="self">Self</span>::Expand =&gt; <span class="string">"expand"</span>,
+            <span class="self">Self</span>::Trunc =&gt; <span class="string">"trunc"</span>,
+            <span class="self">Self</span>::HalfCeil =&gt; <span class="string">"halfCeil"</span>,
+            <span class="self">Self</span>::HalfFloor =&gt; <span class="string">"halfFloor"</span>,
+            <span class="self">Self</span>::HalfExpand =&gt; <span class="string">"halfExpand"</span>,
+            <span class="self">Self</span>::HalfTrunc =&gt; <span class="string">"halfTrunc"</span>,
+            <span class="self">Self</span>::HalfEven =&gt; <span class="string">"halfEven"</span>,
         }
         .fmt(f)
     }

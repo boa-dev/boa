@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/builtins/string/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/builtins/string/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -2770,7 +2771,7 @@
 <a href="#2770" id="2770">2770</a>
 <a href="#2771" id="2771">2771</a>
 <a href="#2772" id="2772">2772</a>
-</pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `String` object.
+</pre></div><pre class="rust"><code><span class="doccomment">//! Boa's implementation of ECMAScript's global `String` object.
 //!
 //! The `String` global object is a constructor for strings or a sequence of characters.
 //!
@@ -2827,18 +2828,18 @@
     <span class="comment">// The rust implementation of `trim` does not regard the same characters whitespace as ecma standard does
     //
     // Rust uses \p{White_Space} by default, which also includes:
-    // `\u{0085}&#39; (next line)
+    // `\u{0085}' (next line)
     // And does not include:
-    // &#39;\u{FEFF}&#39; (zero width non-breaking space)
+    // '\u{FEFF}' (zero width non-breaking space)
     // Explicit whitespace: https://tc39.es/ecma262/#sec-white-space
     </span><span class="macro">matches!</span>(
         c,
-        <span class="string">&#39;\u{0009}&#39; </span>| <span class="string">&#39;\u{000B}&#39; </span>| <span class="string">&#39;\u{000C}&#39; </span>| <span class="string">&#39;\u{0020}&#39; </span>| <span class="string">&#39;\u{00A0}&#39; </span>| <span class="string">&#39;\u{FEFF}&#39; </span>|
+        <span class="string">'\u{0009}' </span>| <span class="string">'\u{000B}' </span>| <span class="string">'\u{000C}' </span>| <span class="string">'\u{0020}' </span>| <span class="string">'\u{00A0}' </span>| <span class="string">'\u{FEFF}' </span>|
     <span class="comment">// Unicode Space_Separator category
-    </span><span class="string">&#39;\u{1680}&#39; </span>| <span class="string">&#39;\u{2000}&#39;
-            </span>..=<span class="string">&#39;\u{200A}&#39; </span>| <span class="string">&#39;\u{202F}&#39; </span>| <span class="string">&#39;\u{205F}&#39; </span>| <span class="string">&#39;\u{3000}&#39; </span>|
+    </span><span class="string">'\u{1680}' </span>| <span class="string">'\u{2000}'
+            </span>..=<span class="string">'\u{200A}' </span>| <span class="string">'\u{202F}' </span>| <span class="string">'\u{205F}' </span>| <span class="string">'\u{3000}' </span>|
     <span class="comment">// Line terminators: https://tc39.es/ecma262/#sec-line-terminators
-    </span><span class="string">&#39;\u{000A}&#39; </span>| <span class="string">&#39;\u{000D}&#39; </span>| <span class="string">&#39;\u{2028}&#39; </span>| <span class="string">&#39;\u{2029}&#39;
+    </span><span class="string">'\u{000A}' </span>| <span class="string">'\u{000D}' </span>| <span class="string">'\u{2028}' </span>| <span class="string">'\u{2029}'
     </span>)
 }
 
@@ -2848,109 +2849,109 @@
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>String {
     <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(std::any::type_name::&lt;<span class="self">Self</span>&gt;(), <span class="string">&quot;init&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(std::any::type_name::&lt;<span class="self">Self</span>&gt;(), <span class="string">"init"</span>);
 
         <span class="kw">let </span>trim_start = BuiltInBuilder::callable(realm, <span class="self">Self</span>::trim_start)
             .length(<span class="number">0</span>)
-            .name(<span class="macro">js_string!</span>(<span class="string">&quot;trimStart&quot;</span>))
+            .name(<span class="macro">js_string!</span>(<span class="string">"trimStart"</span>))
             .build();
 
         <span class="kw">let </span>trim_end = BuiltInBuilder::callable(realm, <span class="self">Self</span>::trim_end)
             .length(<span class="number">0</span>)
-            .name(<span class="macro">js_string!</span>(<span class="string">&quot;trimEnd&quot;</span>))
+            .name(<span class="macro">js_string!</span>(<span class="string">"trimEnd"</span>))
             .build();
 
-        <span class="attr">#[cfg(feature = <span class="string">&quot;annex-b&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">"annex-b"</span>)]
         </span><span class="kw">let </span>trim_left = trim_start.clone();
 
-        <span class="attr">#[cfg(feature = <span class="string">&quot;annex-b&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">"annex-b"</span>)]
         </span><span class="kw">let </span>trim_right = trim_end.clone();
 
         <span class="kw">let </span>attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
         <span class="kw">let </span>builder = BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
-            .property(<span class="macro">js_string!</span>(<span class="string">&quot;length&quot;</span>), <span class="number">0</span>, attribute)
+            .property(<span class="macro">js_string!</span>(<span class="string">"length"</span>), <span class="number">0</span>, attribute)
             .property(
-                <span class="macro">js_string!</span>(<span class="string">&quot;trimStart&quot;</span>),
+                <span class="macro">js_string!</span>(<span class="string">"trimStart"</span>),
                 trim_start,
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .property(
-                <span class="macro">js_string!</span>(<span class="string">&quot;trimEnd&quot;</span>),
+                <span class="macro">js_string!</span>(<span class="string">"trimEnd"</span>),
                 trim_end,
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
-            .static_method(<span class="self">Self</span>::raw, <span class="macro">js_string!</span>(<span class="string">&quot;raw&quot;</span>), <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::from_char_code, <span class="macro">js_string!</span>(<span class="string">&quot;fromCharCode&quot;</span>), <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::from_code_point, <span class="macro">js_string!</span>(<span class="string">&quot;fromCodePoint&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::char_at, <span class="macro">js_string!</span>(<span class="string">&quot;charAt&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::char_code_at, <span class="macro">js_string!</span>(<span class="string">&quot;charCodeAt&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::code_point_at, <span class="macro">js_string!</span>(<span class="string">&quot;codePointAt&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::to_string, <span class="macro">js_string!</span>(<span class="string">&quot;toString&quot;</span>), <span class="number">0</span>)
-            .method(<span class="self">Self</span>::concat, <span class="macro">js_string!</span>(<span class="string">&quot;concat&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::repeat, <span class="macro">js_string!</span>(<span class="string">&quot;repeat&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::slice, <span class="macro">js_string!</span>(<span class="string">&quot;slice&quot;</span>), <span class="number">2</span>)
-            .method(<span class="self">Self</span>::starts_with, <span class="macro">js_string!</span>(<span class="string">&quot;startsWith&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::ends_with, <span class="macro">js_string!</span>(<span class="string">&quot;endsWith&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::includes, <span class="macro">js_string!</span>(<span class="string">&quot;includes&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::index_of, <span class="macro">js_string!</span>(<span class="string">&quot;indexOf&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::is_well_formed, <span class="macro">js_string!</span>(<span class="string">&quot;isWellFormed&quot;</span>), <span class="number">0</span>)
-            .method(<span class="self">Self</span>::last_index_of, <span class="macro">js_string!</span>(<span class="string">&quot;lastIndexOf&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::locale_compare, <span class="macro">js_string!</span>(<span class="string">&quot;localeCompare&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::r#match, <span class="macro">js_string!</span>(<span class="string">&quot;match&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::normalize, <span class="macro">js_string!</span>(<span class="string">&quot;normalize&quot;</span>), <span class="number">0</span>)
-            .method(<span class="self">Self</span>::pad_end, <span class="macro">js_string!</span>(<span class="string">&quot;padEnd&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::pad_start, <span class="macro">js_string!</span>(<span class="string">&quot;padStart&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::trim, <span class="macro">js_string!</span>(<span class="string">&quot;trim&quot;</span>), <span class="number">0</span>)
-            .method(<span class="self">Self</span>::to_case::&lt;<span class="bool-val">false</span>&gt;, <span class="macro">js_string!</span>(<span class="string">&quot;toLowerCase&quot;</span>), <span class="number">0</span>)
-            .method(<span class="self">Self</span>::to_case::&lt;<span class="bool-val">true</span>&gt;, <span class="macro">js_string!</span>(<span class="string">&quot;toUpperCase&quot;</span>), <span class="number">0</span>)
-            .method(<span class="self">Self</span>::to_well_formed, <span class="macro">js_string!</span>(<span class="string">&quot;toWellFormed&quot;</span>), <span class="number">0</span>)
+            .static_method(<span class="self">Self</span>::raw, <span class="macro">js_string!</span>(<span class="string">"raw"</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::from_char_code, <span class="macro">js_string!</span>(<span class="string">"fromCharCode"</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::from_code_point, <span class="macro">js_string!</span>(<span class="string">"fromCodePoint"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::char_at, <span class="macro">js_string!</span>(<span class="string">"charAt"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::char_code_at, <span class="macro">js_string!</span>(<span class="string">"charCodeAt"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::code_point_at, <span class="macro">js_string!</span>(<span class="string">"codePointAt"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::to_string, <span class="macro">js_string!</span>(<span class="string">"toString"</span>), <span class="number">0</span>)
+            .method(<span class="self">Self</span>::concat, <span class="macro">js_string!</span>(<span class="string">"concat"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::repeat, <span class="macro">js_string!</span>(<span class="string">"repeat"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::slice, <span class="macro">js_string!</span>(<span class="string">"slice"</span>), <span class="number">2</span>)
+            .method(<span class="self">Self</span>::starts_with, <span class="macro">js_string!</span>(<span class="string">"startsWith"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::ends_with, <span class="macro">js_string!</span>(<span class="string">"endsWith"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::includes, <span class="macro">js_string!</span>(<span class="string">"includes"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::index_of, <span class="macro">js_string!</span>(<span class="string">"indexOf"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::is_well_formed, <span class="macro">js_string!</span>(<span class="string">"isWellFormed"</span>), <span class="number">0</span>)
+            .method(<span class="self">Self</span>::last_index_of, <span class="macro">js_string!</span>(<span class="string">"lastIndexOf"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::locale_compare, <span class="macro">js_string!</span>(<span class="string">"localeCompare"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::r#match, <span class="macro">js_string!</span>(<span class="string">"match"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::normalize, <span class="macro">js_string!</span>(<span class="string">"normalize"</span>), <span class="number">0</span>)
+            .method(<span class="self">Self</span>::pad_end, <span class="macro">js_string!</span>(<span class="string">"padEnd"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::pad_start, <span class="macro">js_string!</span>(<span class="string">"padStart"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::trim, <span class="macro">js_string!</span>(<span class="string">"trim"</span>), <span class="number">0</span>)
+            .method(<span class="self">Self</span>::to_case::&lt;<span class="bool-val">false</span>&gt;, <span class="macro">js_string!</span>(<span class="string">"toLowerCase"</span>), <span class="number">0</span>)
+            .method(<span class="self">Self</span>::to_case::&lt;<span class="bool-val">true</span>&gt;, <span class="macro">js_string!</span>(<span class="string">"toUpperCase"</span>), <span class="number">0</span>)
+            .method(<span class="self">Self</span>::to_well_formed, <span class="macro">js_string!</span>(<span class="string">"toWellFormed"</span>), <span class="number">0</span>)
             .method(
                 <span class="self">Self</span>::to_locale_case::&lt;<span class="bool-val">false</span>&gt;,
-                <span class="macro">js_string!</span>(<span class="string">&quot;toLocaleLowerCase&quot;</span>),
+                <span class="macro">js_string!</span>(<span class="string">"toLocaleLowerCase"</span>),
                 <span class="number">0</span>,
             )
             .method(
                 <span class="self">Self</span>::to_locale_case::&lt;<span class="bool-val">true</span>&gt;,
-                <span class="macro">js_string!</span>(<span class="string">&quot;toLocaleUpperCase&quot;</span>),
+                <span class="macro">js_string!</span>(<span class="string">"toLocaleUpperCase"</span>),
                 <span class="number">0</span>,
             )
-            .method(<span class="self">Self</span>::substring, <span class="macro">js_string!</span>(<span class="string">&quot;substring&quot;</span>), <span class="number">2</span>)
-            .method(<span class="self">Self</span>::split, <span class="macro">js_string!</span>(<span class="string">&quot;split&quot;</span>), <span class="number">2</span>)
-            .method(<span class="self">Self</span>::value_of, <span class="macro">js_string!</span>(<span class="string">&quot;valueOf&quot;</span>), <span class="number">0</span>)
-            .method(<span class="self">Self</span>::match_all, <span class="macro">js_string!</span>(<span class="string">&quot;matchAll&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::replace, <span class="macro">js_string!</span>(<span class="string">&quot;replace&quot;</span>), <span class="number">2</span>)
-            .method(<span class="self">Self</span>::replace_all, <span class="macro">js_string!</span>(<span class="string">&quot;replaceAll&quot;</span>), <span class="number">2</span>)
+            .method(<span class="self">Self</span>::substring, <span class="macro">js_string!</span>(<span class="string">"substring"</span>), <span class="number">2</span>)
+            .method(<span class="self">Self</span>::split, <span class="macro">js_string!</span>(<span class="string">"split"</span>), <span class="number">2</span>)
+            .method(<span class="self">Self</span>::value_of, <span class="macro">js_string!</span>(<span class="string">"valueOf"</span>), <span class="number">0</span>)
+            .method(<span class="self">Self</span>::match_all, <span class="macro">js_string!</span>(<span class="string">"matchAll"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::replace, <span class="macro">js_string!</span>(<span class="string">"replace"</span>), <span class="number">2</span>)
+            .method(<span class="self">Self</span>::replace_all, <span class="macro">js_string!</span>(<span class="string">"replaceAll"</span>), <span class="number">2</span>)
             .method(<span class="self">Self</span>::iterator, JsSymbol::iterator(), <span class="number">0</span>)
-            .method(<span class="self">Self</span>::search, <span class="macro">js_string!</span>(<span class="string">&quot;search&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::at, <span class="macro">js_string!</span>(<span class="string">&quot;at&quot;</span>), <span class="number">1</span>);
+            .method(<span class="self">Self</span>::search, <span class="macro">js_string!</span>(<span class="string">"search"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::at, <span class="macro">js_string!</span>(<span class="string">"at"</span>), <span class="number">1</span>);
 
-        <span class="attr">#[cfg(feature = <span class="string">&quot;annex-b&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">"annex-b"</span>)]
         </span><span class="kw">let </span>builder = {
             builder
                 .property(
-                    <span class="macro">js_string!</span>(<span class="string">&quot;trimLeft&quot;</span>),
+                    <span class="macro">js_string!</span>(<span class="string">"trimLeft"</span>),
                     trim_left,
                     Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
                 )
                 .property(
-                    <span class="macro">js_string!</span>(<span class="string">&quot;trimRight&quot;</span>),
+                    <span class="macro">js_string!</span>(<span class="string">"trimRight"</span>),
                     trim_right,
                     Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
                 )
-                .method(<span class="self">Self</span>::substr, <span class="macro">js_string!</span>(<span class="string">&quot;substr&quot;</span>), <span class="number">2</span>)
-                .method(<span class="self">Self</span>::anchor, <span class="macro">js_string!</span>(<span class="string">&quot;anchor&quot;</span>), <span class="number">1</span>)
-                .method(<span class="self">Self</span>::big, <span class="macro">js_string!</span>(<span class="string">&quot;big&quot;</span>), <span class="number">0</span>)
-                .method(<span class="self">Self</span>::blink, <span class="macro">js_string!</span>(<span class="string">&quot;blink&quot;</span>), <span class="number">0</span>)
-                .method(<span class="self">Self</span>::bold, <span class="macro">js_string!</span>(<span class="string">&quot;bold&quot;</span>), <span class="number">0</span>)
-                .method(<span class="self">Self</span>::fixed, <span class="macro">js_string!</span>(<span class="string">&quot;fixed&quot;</span>), <span class="number">0</span>)
-                .method(<span class="self">Self</span>::fontcolor, <span class="macro">js_string!</span>(<span class="string">&quot;fontcolor&quot;</span>), <span class="number">1</span>)
-                .method(<span class="self">Self</span>::fontsize, <span class="macro">js_string!</span>(<span class="string">&quot;fontsize&quot;</span>), <span class="number">1</span>)
-                .method(<span class="self">Self</span>::italics, <span class="macro">js_string!</span>(<span class="string">&quot;italics&quot;</span>), <span class="number">0</span>)
-                .method(<span class="self">Self</span>::link, <span class="macro">js_string!</span>(<span class="string">&quot;link&quot;</span>), <span class="number">1</span>)
-                .method(<span class="self">Self</span>::small, <span class="macro">js_string!</span>(<span class="string">&quot;small&quot;</span>), <span class="number">0</span>)
-                .method(<span class="self">Self</span>::strike, <span class="macro">js_string!</span>(<span class="string">&quot;strike&quot;</span>), <span class="number">0</span>)
-                .method(<span class="self">Self</span>::sub, <span class="macro">js_string!</span>(<span class="string">&quot;sub&quot;</span>), <span class="number">0</span>)
-                .method(<span class="self">Self</span>::sup, <span class="macro">js_string!</span>(<span class="string">&quot;sup&quot;</span>), <span class="number">0</span>)
+                .method(<span class="self">Self</span>::substr, <span class="macro">js_string!</span>(<span class="string">"substr"</span>), <span class="number">2</span>)
+                .method(<span class="self">Self</span>::anchor, <span class="macro">js_string!</span>(<span class="string">"anchor"</span>), <span class="number">1</span>)
+                .method(<span class="self">Self</span>::big, <span class="macro">js_string!</span>(<span class="string">"big"</span>), <span class="number">0</span>)
+                .method(<span class="self">Self</span>::blink, <span class="macro">js_string!</span>(<span class="string">"blink"</span>), <span class="number">0</span>)
+                .method(<span class="self">Self</span>::bold, <span class="macro">js_string!</span>(<span class="string">"bold"</span>), <span class="number">0</span>)
+                .method(<span class="self">Self</span>::fixed, <span class="macro">js_string!</span>(<span class="string">"fixed"</span>), <span class="number">0</span>)
+                .method(<span class="self">Self</span>::fontcolor, <span class="macro">js_string!</span>(<span class="string">"fontcolor"</span>), <span class="number">1</span>)
+                .method(<span class="self">Self</span>::fontsize, <span class="macro">js_string!</span>(<span class="string">"fontsize"</span>), <span class="number">1</span>)
+                .method(<span class="self">Self</span>::italics, <span class="macro">js_string!</span>(<span class="string">"italics"</span>), <span class="number">0</span>)
+                .method(<span class="self">Self</span>::link, <span class="macro">js_string!</span>(<span class="string">"link"</span>), <span class="number">1</span>)
+                .method(<span class="self">Self</span>::small, <span class="macro">js_string!</span>(<span class="string">"small"</span>), <span class="number">0</span>)
+                .method(<span class="self">Self</span>::strike, <span class="macro">js_string!</span>(<span class="string">"strike"</span>), <span class="number">0</span>)
+                .method(<span class="self">Self</span>::sub, <span class="macro">js_string!</span>(<span class="string">"sub"</span>), <span class="number">0</span>)
+                .method(<span class="self">Self</span>::sup, <span class="macro">js_string!</span>(<span class="string">"sup"</span>), <span class="number">0</span>)
         };
 
         builder.build();
@@ -3000,7 +3001,7 @@
 
         <span class="kw">let </span>prototype =
             get_prototype_from_constructor(new_target, StandardConstructors::string, context)<span class="question-mark">?</span>;
-        <span class="comment">// 4. Return ! StringCreate(s, ? GetPrototypeFromConstructor(NewTarget, &quot;%String.prototype%&quot;)).
+        <span class="comment">// 4. Return ! StringCreate(s, ? GetPrototypeFromConstructor(NewTarget, "%String.prototype%")).
         </span><span class="prelude-val">Ok</span>(<span class="self">Self</span>::string_create(string, prototype, context).into())
     }
 }
@@ -3034,10 +3035,10 @@
         </span><span class="kw">let </span>s =
             JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), prototype, value);
 
-        <span class="comment">// 8. Perform ! DefinePropertyOrThrow(S, &quot;length&quot;, PropertyDescriptor { [[Value]]: 𝔽(length),
+        <span class="comment">// 8. Perform ! DefinePropertyOrThrow(S, "length", PropertyDescriptor { [[Value]]: 𝔽(length),
         // [[Writable]]: false, [[Enumerable]]: false, [[Configurable]]: false }).
         </span>s.define_property_or_throw(
-            <span class="macro">utf16!</span>(<span class="string">&quot;length&quot;</span>),
+            <span class="macro">utf16!</span>(<span class="string">"length"</span>),
             PropertyDescriptor::builder()
                 .value(len)
                 .writable(<span class="bool-val">false</span>)
@@ -3045,7 +3046,7 @@
                 .configurable(<span class="bool-val">false</span>),
             context,
         )
-        .expect(<span class="string">&quot;length definition for a new string must not fail&quot;</span>);
+        .expect(<span class="string">"length definition for a new string must not fail"</span>);
 
         <span class="comment">// 9. Return S.
         </span>s
@@ -3072,7 +3073,7 @@
             <span class="comment">// 3. Throw a TypeError exception.
             </span>.ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message(<span class="string">&quot;&#39;this&#39; is not a string&quot;</span>)
+                    .with_message(<span class="string">"'this' is not a string"</span>)
                     .into()
             })
     }
@@ -3105,14 +3106,14 @@
             <span class="comment">// b. If ! IsIntegralNumber(nextCP) is false, throw a RangeError exception.
             </span><span class="kw">if </span>!Number::is_float_integer(nextcp) {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
-                    .with_message(<span class="macro">format!</span>(<span class="string">&quot;codepoint `{nextcp}` is not an integer&quot;</span>))
+                    .with_message(<span class="macro">format!</span>(<span class="string">"codepoint `{nextcp}` is not an integer"</span>))
                     .into());
             }
 
             <span class="comment">// c. If ℝ(nextCP) &lt; 0 or ℝ(nextCP) &gt; 0x10FFFF, throw a RangeError exception.
             </span><span class="kw">if </span>nextcp &lt; <span class="number">0.0 </span>|| nextcp &gt; f64::from(<span class="number">0x0010_FFFF</span>) {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
-                    .with_message(<span class="macro">format!</span>(<span class="string">&quot;codepoint `{nextcp}` outside of Unicode range&quot;</span>))
+                    .with_message(<span class="macro">format!</span>(<span class="string">"codepoint `{nextcp}` outside of Unicode range"</span>))
                     .into());
             }
 
@@ -3126,7 +3127,7 @@
             </span>result.extend_from_slice(<span class="kw">match </span>u16::try_from(nextcp) {
                 <span class="prelude-val">Ok</span>(<span class="kw-2">ref </span>cp) =&gt; std::slice::from_ref(cp),
                 <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; char::from_u32(nextcp)
-                    .expect(<span class="string">&quot;u32 is in range and cannot be a surrogate by the conversion above&quot;</span>)
+                    .expect(<span class="string">"u32 is in range and cannot be a surrogate by the conversion above"</span>)
                     .encode_utf16(<span class="kw-2">&amp;mut </span>buf),
             });
         }
@@ -3153,8 +3154,8 @@
         <span class="comment">// 2. Let cooked be ? ToObject(template).
         </span><span class="kw">let </span>cooked = args.get_or_undefined(<span class="number">0</span>).to_object(context)<span class="question-mark">?</span>;
 
-        <span class="comment">// 3. Let raw be ? ToObject(? Get(cooked, &quot;raw&quot;)).
-        </span><span class="kw">let </span>raw = cooked.get(<span class="macro">utf16!</span>(<span class="string">&quot;raw&quot;</span>), context)<span class="question-mark">?</span>.to_object(context)<span class="question-mark">?</span>;
+        <span class="comment">// 3. Let raw be ? ToObject(? Get(cooked, "raw")).
+        </span><span class="kw">let </span>raw = cooked.get(<span class="macro">utf16!</span>(<span class="string">"raw"</span>), context)<span class="question-mark">?</span>.to_object(context)<span class="question-mark">?</span>;
 
         <span class="comment">// 4. Let literalSegments be ? LengthOfArrayLike(raw).
         </span><span class="kw">let </span>literal_segments = raw.length_of_array_like(context)<span class="question-mark">?</span>;
@@ -3250,7 +3251,7 @@
 
     <span class="doccomment">/// `String.prototype.charAt( index )`
     ///
-    /// The `String` object&#39;s `charAt()` method returns a new string consisting of the single UTF-16 code unit located at the specified offset into the string.
+    /// The `String` object's `charAt()` method returns a new string consisting of the single UTF-16 code unit located at the specified offset into the string.
     ///
     /// Characters in a string are indexed from left to right. The index of the first character is `0`,
     /// and the index of the last character—in a string called `stringName`—is `stringName.length - 1`.
@@ -3292,7 +3293,7 @@
 
     <span class="doccomment">/// `String.prototype.at ( index )`
     ///
-    /// This String object&#39;s at() method returns a String consisting of the single UTF-16 code unit located at the specified position.
+    /// This String object's `at()` method returns a String consisting of the single UTF-16 code unit located at the specified position.
     /// Returns undefined if the given index cannot be found.
     ///
     /// More information:
@@ -3362,7 +3363,7 @@
                 <span class="comment">// 6. Let cp be ! CodePointAt(S, position).
                 // 7. Return 𝔽(cp.[[CodePoint]]).
                 </span><span class="prelude-val">Ok</span>(string
-                    .code_point_at(usize::try_from(i).expect(<span class="string">&quot;already checked that i &gt;= 0&quot;</span>))
+                    .code_point_at(usize::try_from(i).expect(<span class="string">"already checked that i &gt;= 0"</span>))
                     .as_u32()
                     .into())
             }
@@ -3414,7 +3415,7 @@
     ///
     /// The `concat()` method concatenates the string arguments to the calling string and returns a new string.
     ///
-    /// Changes to the original string or the returned string don&#39;t affect the other.
+    /// Changes to the original string or the returned string don't affect the other.
     ///
     /// If the arguments are not of the type string, they are converted to string values before concatenating.
     ///
@@ -3494,8 +3495,8 @@
             <span class="comment">// 4. If n &lt; 0 or n is +∞, throw a RangeError exception.
             </span><span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(JsNativeError::range()
                 .with_message(
-                    <span class="string">&quot;repeat count must be a positive finite number \
-                        that doesn&#39;t overflow the maximum string length (2^32 - 1)&quot;</span>,
+                    <span class="string">"repeat count must be a positive finite number \
+                        that doesn't overflow the maximum string length (2^32 - 1)"</span>,
                 )
                 .into()),
         }
@@ -3593,7 +3594,7 @@
         // 4. If isRegExp is true, throw a TypeError exception.
         </span><span class="kw">if </span>RegExp::is_reg_exp(search_string, context)<span class="question-mark">?</span>.is_some() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ().with_message(
-                <span class="string">&quot;First argument to String.prototype.startsWith must not be a regular expression&quot;</span>,
+                <span class="string">"First argument to String.prototype.startsWith must not be a regular expression"</span>,
             ).into());
         }
 
@@ -3661,7 +3662,7 @@
             // 4. If isRegExp is true, throw a TypeError exception.
             </span>search_string <span class="kw">if </span>RegExp::is_reg_exp(search_string, context)<span class="question-mark">?</span>.is_some() =&gt; {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ().with_message(
-                    <span class="string">&quot;First argument to String.prototype.endsWith must not be a regular expression&quot;</span>,
+                    <span class="string">"First argument to String.prototype.endsWith must not be a regular expression"</span>,
                 ).into());
             }
             <span class="comment">// 5. Let searchStr be ? ToString(searchString).
@@ -3727,7 +3728,7 @@
             </span>search_string <span class="kw">if </span>RegExp::is_reg_exp(search_string, context)<span class="question-mark">?</span>.is_some() =&gt; {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ().with_message(
                     <span class="comment">// 4. If isRegExp is true, throw a TypeError exception.
-                    </span><span class="string">&quot;First argument to String.prototype.includes must not be a regular expression&quot;</span>,
+                    </span><span class="string">"First argument to String.prototype.includes must not be a regular expression"</span>,
                 ).into());
             }
             <span class="comment">// 5. Let searchStr be ? ToString(searchString).
@@ -3769,8 +3770,8 @@
         context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// Helper enum.
-        </span><span class="kw">enum </span>CallableOrString&lt;<span class="lifetime">&#39;a</span>&gt; {
-            FunctionalReplace(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>JsObject),
+        </span><span class="kw">enum </span>CallableOrString&lt;<span class="lifetime">'a</span>&gt; {
+            FunctionalReplace(<span class="kw-2">&amp;</span><span class="lifetime">'a </span>JsObject),
             ReplaceValue(JsString),
         }
 
@@ -3858,7 +3859,7 @@
 
     <span class="doccomment">/// `22.1.3.18 String.prototype.replaceAll ( searchValue, replaceValue )`
     ///
-    /// The replaceAll() method returns a new string with all matches of a pattern replaced by a
+    /// The `replaceAll()` method returns a new string with all matches of a pattern replaced by a
     /// replacement.
     ///
     /// The pattern can be a string or a `RegExp`, and the replacement can be a string or a
@@ -3888,17 +3889,17 @@
             <span class="comment">// a. Let isRegExp be ? IsRegExp(searchValue).
             // b. If isRegExp is true, then
             </span><span class="kw">if let </span><span class="prelude-val">Some</span>(obj) = RegExp::is_reg_exp(search_value, context)<span class="question-mark">? </span>{
-                <span class="comment">// i. Let flags be ? Get(searchValue, &quot;flags&quot;).
-                </span><span class="kw">let </span>flags = obj.get(<span class="macro">utf16!</span>(<span class="string">&quot;flags&quot;</span>), context)<span class="question-mark">?</span>;
+                <span class="comment">// i. Let flags be ? Get(searchValue, "flags").
+                </span><span class="kw">let </span>flags = obj.get(<span class="macro">utf16!</span>(<span class="string">"flags"</span>), context)<span class="question-mark">?</span>;
 
                 <span class="comment">// ii. Perform ? RequireObjectCoercible(flags).
                 </span>flags.require_object_coercible()<span class="question-mark">?</span>;
 
-                <span class="comment">// iii. If ? ToString(flags) does not contain &quot;g&quot;, throw a TypeError exception.
-                </span><span class="kw">if </span>!flags.to_string(context)<span class="question-mark">?</span>.contains(<span class="kw-2">&amp;</span>u16::from(<span class="string">b&#39;g&#39;</span>)) {
+                <span class="comment">// iii. If ? ToString(flags) does not contain "g", throw a TypeError exception.
+                </span><span class="kw">if </span>!flags.to_string(context)<span class="question-mark">?</span>.contains(<span class="kw-2">&amp;</span>u16::from(<span class="string">b'g'</span>)) {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
                         .with_message(
-                            <span class="string">&quot;String.prototype.replaceAll called with a non-global RegExp argument&quot;</span>,
+                            <span class="string">"String.prototype.replaceAll called with a non-global RegExp argument"</span>,
                         )
                         .into());
                 }
@@ -3990,7 +3991,7 @@
                     replace_str,
                     context,
                 )
-                .expect(<span class="string">&quot;GetSubstitution should never fail here.&quot;</span>),
+                .expect(<span class="string">"GetSubstitution should never fail here."</span>),
             };
 
             <span class="comment">// d. Set result to the string-concatenation of result, preserved, and replacement.
@@ -4120,7 +4121,7 @@
         } <span class="kw">else </span>{
             JsValue::new(num_pos)
                 .to_integer_or_infinity(context)
-                .expect(<span class="string">&quot;Already called `to_number so this must not fail.&quot;</span>)
+                .expect(<span class="string">"Already called `to_number so this must not fail."</span>)
         };
 
         <span class="comment">// 7. Let len be the length of S.
@@ -4178,7 +4179,7 @@
         </span><span class="kw">let </span>that_value = args.get_or_undefined(<span class="number">0</span>).to_string(context)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>cmp = {
-            <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"intl"</span>)]
             </span>{
                 <span class="kw">use </span><span class="kw">crate</span>::builtins::intl::Collator;
 
@@ -4197,17 +4198,17 @@
                 <span class="kw">let </span>collator = collator
                     .as_object()
                     .map(JsObject::borrow)
-                    .expect(<span class="string">&quot;constructor must return a JsObject&quot;</span>);
+                    .expect(<span class="string">"constructor must return a JsObject"</span>);
                 <span class="kw">let </span>collator = collator
                     .downcast_ref::&lt;Collator&gt;()
-                    .expect(<span class="string">&quot;constructor must return a `Collator` object&quot;</span>)
+                    .expect(<span class="string">"constructor must return a `Collator` object"</span>)
                     .collator();
 
                 collator.compare_utf16(<span class="kw-2">&amp;</span>s, <span class="kw-2">&amp;</span>that_value) <span class="kw">as </span>i8
             }
 
-            <span class="comment">// Default to common comparison if the user doesn&#39;t have `Intl` enabled.
-            </span><span class="attr">#[cfg(not(feature = <span class="string">&quot;intl&quot;</span>))]
+            <span class="comment">// Default to common comparison if the user doesn't have `Intl` enabled.
+            </span><span class="attr">#[cfg(not(feature = <span class="string">"intl"</span>))]
             </span>{
                 s.cmp(<span class="kw-2">&amp;</span>that_value) <span class="kw">as </span>i8
             }
@@ -4289,7 +4290,7 @@
 
         <span class="comment">// 5. If fillString is undefined, let filler be the String value consisting solely of the code unit 0x0020 (SPACE).
         </span><span class="kw">let </span>filler = <span class="kw">if </span>fill_string.is_undefined() {
-            <span class="macro">js_string!</span>(<span class="string">&quot;\u{0020}&quot;</span>)
+            <span class="macro">js_string!</span>(<span class="string">"\u{0020}"</span>)
         } <span class="kw">else </span>{
             <span class="comment">// 6. Else, let filler be ? ToString(fillString).
             </span>fill_string.to_string(context)<span class="question-mark">?
@@ -4382,7 +4383,7 @@
         </span><span class="self">Self</span>::string_pad(this, max_length, fill_string, Placement::Start, context)
     }
 
-    <span class="doccomment">/// String.prototype.trim()
+    <span class="doccomment">/// `String.prototype.trim()`
     ///
     /// The `trim()` method removes whitespace from both ends of a string.
     ///
@@ -4426,7 +4427,7 @@
         <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(string.trim_start()).into())
     }
 
-    <span class="doccomment">/// String.prototype.trimEnd()
+    <span class="doccomment">/// `String.prototype.trimEnd()`
     ///
     /// The `trimEnd()` method removes whitespace from the end of a string.
     ///
@@ -4454,7 +4455,7 @@
     ///
     /// The case methods return the calling string value converted to uppercase or lowercase.
     ///
-    /// The value will be **converted** to a string if it isn&#39;t one.
+    /// The value will be **converted** to a string if it isn't one.
     ///
     /// More information:
     ///  - [MDN documentation][mdn]
@@ -4499,7 +4500,7 @@
         args: <span class="kw-2">&amp;</span>[JsValue],
         context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
-        <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">"intl"</span>)]
         </span>{
             <span class="kw">use </span><span class="kw">super</span>::intl::locale::{
                 best_available_locale, canonicalize_locale_list, default_locale,
@@ -4531,7 +4532,7 @@
             <span class="comment">// 4. Let noExtensionsLocale be the String value that is requestedLocale with any Unicode locale extension sequences (6.2.1) removed.
             // 5. Let availableLocales be a List with language tags that includes the languages for which the Unicode Character Database contains language sensitive case mappings. Implementations may add additional language tags if they support case mapping for additional locales.
             // 6. Let locale be ! BestAvailableLocale(availableLocales, noExtensionsLocale).
-            // 7. If locale is undefined, set locale to &quot;und&quot;.
+            // 7. If locale is undefined, set locale to "und".
             </span><span class="kw">let </span>lang = best_available_locale::&lt;CaseMapV1Marker&gt;(lang, context.intl_provider())
                 .unwrap_or(LanguageIdentifier::UND);
 
@@ -4555,7 +4556,7 @@
             </span><span class="prelude-val">Ok</span>(result.into())
         }
 
-        <span class="attr">#[cfg(not(feature = <span class="string">&quot;intl&quot;</span>))]
+        <span class="attr">#[cfg(not(feature = <span class="string">"intl"</span>))]
         </span>{
             <span class="self">Self</span>::to_case::&lt;UPPER&gt;(this, args, context)
         }
@@ -4593,7 +4594,7 @@
         </span><span class="kw">let </span>result = s
             .code_points()
             .map(|code_point| <span class="kw">match </span>code_point {
-                CodePoint::UnpairedSurrogate(<span class="kw">_</span>) =&gt; <span class="string">&#39;\u{FFFD}&#39;</span>,
+                CodePoint::UnpairedSurrogate(<span class="kw">_</span>) =&gt; <span class="string">'\u{FFFD}'</span>,
                 CodePoint::Unicode(char) =&gt; char,
             })
             .collect::&lt;std::string::String&gt;();
@@ -4653,8 +4654,8 @@
 
     <span class="doccomment">/// `String.prototype.split ( separator, limit )`
     ///
-    /// The split() method divides a String into an ordered list of substrings, puts these substrings into an array, and returns the array.
-    /// The division is done by searching for a pattern; where the pattern is provided as the first parameter in the method&#39;s call.
+    /// The `split()` method divides a String into an ordered list of substrings, puts these substrings into an array, and returns the array.
+    /// The division is done by searching for a pattern; where the pattern is provided as the first parameter in the method's call.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -4771,7 +4772,7 @@
         )
     }
 
-    <span class="doccomment">/// String.prototype.valueOf()
+    <span class="doccomment">/// `String.prototype.valueOf()`
     ///
     /// The `valueOf()` method returns the primitive value of a `String` object.
     ///
@@ -4816,17 +4817,17 @@
             <span class="comment">// a. Let isRegExp be ? IsRegExp(regexp).
             // b. If isRegExp is true, then
             </span><span class="kw">if let </span><span class="prelude-val">Some</span>(regexp) = RegExp::is_reg_exp(regexp, context)<span class="question-mark">? </span>{
-                <span class="comment">// i. Let flags be ? Get(regexp, &quot;flags&quot;).
-                </span><span class="kw">let </span>flags = regexp.get(<span class="macro">utf16!</span>(<span class="string">&quot;flags&quot;</span>), context)<span class="question-mark">?</span>;
+                <span class="comment">// i. Let flags be ? Get(regexp, "flags").
+                </span><span class="kw">let </span>flags = regexp.get(<span class="macro">utf16!</span>(<span class="string">"flags"</span>), context)<span class="question-mark">?</span>;
 
                 <span class="comment">// ii. Perform ? RequireObjectCoercible(flags).
                 </span>flags.require_object_coercible()<span class="question-mark">?</span>;
 
-                <span class="comment">// iii. If ? ToString(flags) does not contain &quot;g&quot;, throw a TypeError exception.
-                </span><span class="kw">if </span>!flags.to_string(context)<span class="question-mark">?</span>.contains(<span class="kw-2">&amp;</span>u16::from(<span class="string">b&#39;g&#39;</span>)) {
+                <span class="comment">// iii. If ? ToString(flags) does not contain "g", throw a TypeError exception.
+                </span><span class="kw">if </span>!flags.to_string(context)<span class="question-mark">?</span>.contains(<span class="kw-2">&amp;</span>u16::from(<span class="string">b'g'</span>)) {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
                         .with_message(
-                            <span class="string">&quot;String.prototype.matchAll called with a non-global RegExp argument&quot;</span>,
+                            <span class="string">"String.prototype.matchAll called with a non-global RegExp argument"</span>,
                         )
                         .into());
                 }
@@ -4842,8 +4843,8 @@
         <span class="comment">// 3. Let S be ? ToString(O).
         </span><span class="kw">let </span>s = o.to_string(context)<span class="question-mark">?</span>;
 
-        <span class="comment">// 4. Let rx be ? RegExpCreate(regexp, &quot;g&quot;).
-        </span><span class="kw">let </span>rx = RegExp::create(regexp, <span class="kw-2">&amp;</span>JsValue::new(<span class="macro">js_string!</span>(<span class="string">&quot;g&quot;</span>)), context)<span class="question-mark">?</span>;
+        <span class="comment">// 4. Let rx be ? RegExpCreate(regexp, "g").
+        </span><span class="kw">let </span>rx = RegExp::create(regexp, <span class="kw-2">&amp;</span>JsValue::new(<span class="macro">js_string!</span>(<span class="string">"g"</span>)), context)<span class="question-mark">?</span>;
 
         <span class="comment">// 5. Return ? Invoke(rx, @@matchAll, « S »).
         </span>rx.invoke(JsSymbol::match_all(), <span class="kw-2">&amp;</span>[JsValue::new(s)], context)
@@ -4851,7 +4852,7 @@
 
     <span class="doccomment">/// `String.prototype.normalize( [ form ] )`
     ///
-    /// The normalize() method normalizes a string into a form specified in the Unicode® Standard Annex #15
+    /// The `normalize()` method normalizes a string into a form specified in the Unicode® Standard Annex #15
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -4883,19 +4884,19 @@
         // into the normalization form named by f as specified in
         // https://unicode.org/reports/tr15/.
         </span><span class="kw">let </span>normalization = <span class="kw">match </span>args.get_or_undefined(<span class="number">0</span>) {
-            <span class="comment">// 3. If form is undefined, let f be &quot;NFC&quot;.
+            <span class="comment">// 3. If form is undefined, let f be "NFC".
             </span><span class="kw-2">&amp;</span>JsValue::Undefined =&gt; Normalization::Nfc,
             <span class="comment">// 4. Else, let f be ? ToString(form).
             </span>f =&gt; <span class="kw">match </span>f.to_string(context)<span class="question-mark">? </span>{
-                ntype <span class="kw">if </span><span class="kw-2">&amp;</span>ntype == <span class="macro">utf16!</span>(<span class="string">&quot;NFC&quot;</span>) =&gt; Normalization::Nfc,
-                ntype <span class="kw">if </span><span class="kw-2">&amp;</span>ntype == <span class="macro">utf16!</span>(<span class="string">&quot;NFD&quot;</span>) =&gt; Normalization::Nfd,
-                ntype <span class="kw">if </span><span class="kw-2">&amp;</span>ntype == <span class="macro">utf16!</span>(<span class="string">&quot;NFKC&quot;</span>) =&gt; Normalization::Nfkc,
-                ntype <span class="kw">if </span><span class="kw-2">&amp;</span>ntype == <span class="macro">utf16!</span>(<span class="string">&quot;NFKD&quot;</span>) =&gt; Normalization::Nfkd,
-                <span class="comment">// 5. If f is not one of &quot;NFC&quot;, &quot;NFD&quot;, &quot;NFKC&quot;, or &quot;NFKD&quot;, throw a RangeError exception.
+                ntype <span class="kw">if </span><span class="kw-2">&amp;</span>ntype == <span class="macro">utf16!</span>(<span class="string">"NFC"</span>) =&gt; Normalization::Nfc,
+                ntype <span class="kw">if </span><span class="kw-2">&amp;</span>ntype == <span class="macro">utf16!</span>(<span class="string">"NFD"</span>) =&gt; Normalization::Nfd,
+                ntype <span class="kw">if </span><span class="kw-2">&amp;</span>ntype == <span class="macro">utf16!</span>(<span class="string">"NFKC"</span>) =&gt; Normalization::Nfkc,
+                ntype <span class="kw">if </span><span class="kw-2">&amp;</span>ntype == <span class="macro">utf16!</span>(<span class="string">"NFKD"</span>) =&gt; Normalization::Nfkd,
+                <span class="comment">// 5. If f is not one of "NFC", "NFD", "NFKC", or "NFKD", throw a RangeError exception.
                 </span><span class="kw">_ </span>=&gt; {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
                         .with_message(
-                            <span class="string">&quot;The normalization form should be one of NFC, NFD, NFKC, NFKD.&quot;</span>,
+                            <span class="string">"The normalization form should be one of NFC, NFD, NFKC, NFKD."</span>,
                         )
                         .into());
                 }
@@ -4903,7 +4904,7 @@
         };
 
         <span class="kw">let </span>normalizers = {
-            <span class="attr">#[cfg(not(feature = <span class="string">&quot;intl&quot;</span>))]
+            <span class="attr">#[cfg(not(feature = <span class="string">"intl"</span>))]
             </span>{
                 <span class="kw">const </span>NORMALIZERS: StringNormalizers = StringNormalizers {
                     nfc: ComposingNormalizer::new_nfc(),
@@ -4913,7 +4914,7 @@
                 };
                 <span class="kw-2">&amp;</span>NORMALIZERS
             }
-            <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"intl"</span>)]
             </span>{
                 context.intl_provider().string_normalizers()
             }
@@ -4932,7 +4933,7 @@
 
     <span class="doccomment">/// `String.prototype.search( regexp )`
     ///
-    /// The search() method executes a search for a match between a regular expression and this String object.
+    /// The `search()` method executes a search for a match between a regular expression and this String object.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -4984,7 +4985,7 @@
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;annex-b&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"annex-b"</span>)]
 </span><span class="kw">impl </span>String {
     <span class="doccomment">/// `String.prototype.substr( start[, length] )`
     ///
@@ -5072,8 +5073,8 @@
         <span class="comment">// 2. Let S be ? ToString(str).
         </span><span class="kw">let </span>s = str.to_string(context)<span class="question-mark">?</span>;
 
-        <span class="comment">// 3. Let p1 be the string-concatenation of &quot;&lt;&quot; and tag.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>p1 = JsString::concat_array(<span class="kw-2">&amp;</span>[<span class="macro">utf16!</span>(<span class="string">&quot;&lt;&quot;</span>), tag]);
+        <span class="comment">// 3. Let p1 be the string-concatenation of "&lt;" and tag.
+        </span><span class="kw">let </span><span class="kw-2">mut </span>p1 = JsString::concat_array(<span class="kw-2">&amp;</span>[<span class="macro">utf16!</span>(<span class="string">"&lt;"</span>), tag]);
 
         <span class="comment">// 4. If attribute is not the empty String, then
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>((attribute, value)) = attribute_and_value {
@@ -5082,11 +5083,11 @@
 
             <span class="comment">// b. Let escapedV be the String value that is the same as V except that each occurrence
             //    of the code unit 0x0022 (QUOTATION MARK) in V has been replaced with the six
-            //    code unit sequence &quot;&amp;quot;&quot;.
+            //    code unit sequence "&amp;quot;".
             </span><span class="kw">let </span><span class="kw-2">mut </span>escaped_v = Vec::with_capacity(v.len());
             <span class="kw">for </span>c <span class="kw">in </span>v.as_slice().iter().copied() {
                 <span class="kw">if </span>c == <span class="number">0x0022 </span>{
-                    escaped_v.extend(<span class="macro">utf16!</span>(<span class="string">&quot;&amp;quot;&quot;</span>));
+                    escaped_v.extend(<span class="macro">utf16!</span>(<span class="string">"&amp;quot;"</span>));
                     <span class="kw">continue</span>;
                 }
                 escaped_v.push(c);
@@ -5102,24 +5103,24 @@
             //    the code unit 0x0022 (QUOTATION MARK)
             </span>p1 = JsString::concat_array(<span class="kw-2">&amp;</span>[
                 p1.as_slice(),
-                <span class="macro">utf16!</span>(<span class="string">&quot; &quot;</span>),
+                <span class="macro">utf16!</span>(<span class="string">" "</span>),
                 attribute,
-                <span class="macro">utf16!</span>(<span class="string">&quot;=\&quot;&quot;</span>),
+                <span class="macro">utf16!</span>(<span class="string">"=\""</span>),
                 escaped_v.as_slice(),
-                <span class="macro">utf16!</span>(<span class="string">&quot;\&quot;&quot;</span>),
+                <span class="macro">utf16!</span>(<span class="string">"\""</span>),
             ]);
         }
 
-        <span class="comment">// 5. Let p2 be the string-concatenation of p1 and &quot;&gt;&quot;.
+        <span class="comment">// 5. Let p2 be the string-concatenation of p1 and "&gt;".
         // 6. Let p3 be the string-concatenation of p2 and S.
-        // 7. Let p4 be the string-concatenation of p3, &quot;&lt;/&quot;, tag, and &quot;&gt;&quot;.
+        // 7. Let p4 be the string-concatenation of p3, "&lt;/", tag, and "&gt;".
         </span><span class="kw">let </span>p4 = JsString::concat_array(<span class="kw-2">&amp;</span>[
             p1.as_slice(),
-            <span class="macro">utf16!</span>(<span class="string">&quot;&gt;&quot;</span>),
+            <span class="macro">utf16!</span>(<span class="string">"&gt;"</span>),
             s.as_slice(),
-            <span class="macro">utf16!</span>(<span class="string">&quot;&lt;/&quot;</span>),
+            <span class="macro">utf16!</span>(<span class="string">"&lt;/"</span>),
             tag,
-            <span class="macro">utf16!</span>(<span class="string">&quot;&gt;&quot;</span>),
+            <span class="macro">utf16!</span>(<span class="string">"&gt;"</span>),
         ]);
 
         <span class="comment">// 8. Return p4.
@@ -5143,8 +5144,8 @@
 
         <span class="comment">// 1. Let S be the this value.
         </span><span class="kw">let </span>s = this;
-        <span class="comment">// 2. Return ? CreateHTML(S, &quot;a&quot;, &quot;name&quot;, name).
-        </span><span class="self">Self</span>::create_html(s, <span class="macro">utf16!</span>(<span class="string">&quot;a&quot;</span>), <span class="prelude-val">Some</span>((<span class="macro">utf16!</span>(<span class="string">&quot;name&quot;</span>), name)), context)
+        <span class="comment">// 2. Return ? CreateHTML(S, "a", "name", name).
+        </span><span class="self">Self</span>::create_html(s, <span class="macro">utf16!</span>(<span class="string">"a"</span>), <span class="prelude-val">Some</span>((<span class="macro">utf16!</span>(<span class="string">"name"</span>), name)), context)
     }
 
     <span class="doccomment">/// `String.prototype.big( )`
@@ -5158,8 +5159,8 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>big(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let S be the this value.
         </span><span class="kw">let </span>s = this;
-        <span class="comment">// 2. Return ? CreateHTML(S, &quot;big&quot;, &quot;&quot;, &quot;&quot;).
-        </span><span class="self">Self</span>::create_html(s, <span class="macro">utf16!</span>(<span class="string">&quot;big&quot;</span>), <span class="prelude-val">None</span>, context)
+        <span class="comment">// 2. Return ? CreateHTML(S, "big", "", "").
+        </span><span class="self">Self</span>::create_html(s, <span class="macro">utf16!</span>(<span class="string">"big"</span>), <span class="prelude-val">None</span>, context)
     }
 
     <span class="doccomment">/// `String.prototype.blink( )`
@@ -5173,8 +5174,8 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>blink(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let S be the this value.
         </span><span class="kw">let </span>s = this;
-        <span class="comment">// 2. Return ? CreateHTML(S, &quot;blink&quot;, &quot;&quot;, &quot;&quot;).
-        </span><span class="self">Self</span>::create_html(s, <span class="macro">utf16!</span>(<span class="string">&quot;blink&quot;</span>), <span class="prelude-val">None</span>, context)
+        <span class="comment">// 2. Return ? CreateHTML(S, "blink", "", "").
+        </span><span class="self">Self</span>::create_html(s, <span class="macro">utf16!</span>(<span class="string">"blink"</span>), <span class="prelude-val">None</span>, context)
     }
 
     <span class="doccomment">/// `String.prototype.bold( )`
@@ -5188,8 +5189,8 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>bold(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let S be the this value.
         </span><span class="kw">let </span>s = this;
-        <span class="comment">// 2. Return ? CreateHTML(S, &quot;b&quot;, &quot;&quot;, &quot;&quot;).
-        </span><span class="self">Self</span>::create_html(s, <span class="macro">utf16!</span>(<span class="string">&quot;b&quot;</span>), <span class="prelude-val">None</span>, context)
+        <span class="comment">// 2. Return ? CreateHTML(S, "b", "", "").
+        </span><span class="self">Self</span>::create_html(s, <span class="macro">utf16!</span>(<span class="string">"b"</span>), <span class="prelude-val">None</span>, context)
     }
 
     <span class="doccomment">/// `String.prototype.fixed( )`
@@ -5203,8 +5204,8 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>fixed(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let S be the this value.
         </span><span class="kw">let </span>s = this;
-        <span class="comment">// 2. Return ? CreateHTML(S, &quot;big&quot;, &quot;&quot;, &quot;&quot;).
-        </span><span class="self">Self</span>::create_html(s, <span class="macro">utf16!</span>(<span class="string">&quot;tt&quot;</span>), <span class="prelude-val">None</span>, context)
+        <span class="comment">// 2. Return ? CreateHTML(S, "big", "", "").
+        </span><span class="self">Self</span>::create_html(s, <span class="macro">utf16!</span>(<span class="string">"tt"</span>), <span class="prelude-val">None</span>, context)
     }
 
     <span class="doccomment">/// `String.prototype.fontcolor( color )`
@@ -5224,8 +5225,8 @@
 
         <span class="comment">// 1. Let S be the this value.
         </span><span class="kw">let </span>s = this;
-        <span class="comment">// 2. Return ? CreateHTML(S, &quot;font&quot;, &quot;color&quot;, color).
-        </span><span class="self">Self</span>::create_html(s, <span class="macro">utf16!</span>(<span class="string">&quot;font&quot;</span>), <span class="prelude-val">Some</span>((<span class="macro">utf16!</span>(<span class="string">&quot;color&quot;</span>), color)), context)
+        <span class="comment">// 2. Return ? CreateHTML(S, "font", "color", color).
+        </span><span class="self">Self</span>::create_html(s, <span class="macro">utf16!</span>(<span class="string">"font"</span>), <span class="prelude-val">Some</span>((<span class="macro">utf16!</span>(<span class="string">"color"</span>), color)), context)
     }
 
     <span class="doccomment">/// `String.prototype.fontsize( size )`
@@ -5245,8 +5246,8 @@
 
         <span class="comment">// 1. Let S be the this value.
         </span><span class="kw">let </span>s = this;
-        <span class="comment">// 2. Return ? CreateHTML(S, &quot;font&quot;, &quot;size&quot;, size).
-        </span><span class="self">Self</span>::create_html(s, <span class="macro">utf16!</span>(<span class="string">&quot;font&quot;</span>), <span class="prelude-val">Some</span>((<span class="macro">utf16!</span>(<span class="string">&quot;size&quot;</span>), size)), context)
+        <span class="comment">// 2. Return ? CreateHTML(S, "font", "size", size).
+        </span><span class="self">Self</span>::create_html(s, <span class="macro">utf16!</span>(<span class="string">"font"</span>), <span class="prelude-val">Some</span>((<span class="macro">utf16!</span>(<span class="string">"size"</span>), size)), context)
     }
 
     <span class="doccomment">/// `String.prototype.italics( )`
@@ -5264,8 +5265,8 @@
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let S be the this value.
         </span><span class="kw">let </span>s = this;
-        <span class="comment">// 2. Return ? CreateHTML(S, &quot;i&quot;, &quot;&quot;, &quot;&quot;).
-        </span><span class="self">Self</span>::create_html(s, <span class="macro">utf16!</span>(<span class="string">&quot;i&quot;</span>), <span class="prelude-val">None</span>, context)
+        <span class="comment">// 2. Return ? CreateHTML(S, "i", "", "").
+        </span><span class="self">Self</span>::create_html(s, <span class="macro">utf16!</span>(<span class="string">"i"</span>), <span class="prelude-val">None</span>, context)
     }
 
     <span class="doccomment">/// `String.prototype.link( url )`
@@ -5285,8 +5286,8 @@
 
         <span class="comment">// 1. Let S be the this value.
         </span><span class="kw">let </span>s = this;
-        <span class="comment">// 2. Return ? CreateHTML(S, &quot;a&quot;, &quot;href&quot;, url).
-        </span><span class="self">Self</span>::create_html(s, <span class="macro">utf16!</span>(<span class="string">&quot;a&quot;</span>), <span class="prelude-val">Some</span>((<span class="macro">utf16!</span>(<span class="string">&quot;href&quot;</span>), url)), context)
+        <span class="comment">// 2. Return ? CreateHTML(S, "a", "href", url).
+        </span><span class="self">Self</span>::create_html(s, <span class="macro">utf16!</span>(<span class="string">"a"</span>), <span class="prelude-val">Some</span>((<span class="macro">utf16!</span>(<span class="string">"href"</span>), url)), context)
     }
 
     <span class="doccomment">/// `String.prototype.small( )`
@@ -5300,8 +5301,8 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>small(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let S be the this value.
         </span><span class="kw">let </span>s = this;
-        <span class="comment">// 2. Return ? CreateHTML(S, &quot;small&quot;, &quot;&quot;, &quot;&quot;).
-        </span><span class="self">Self</span>::create_html(s, <span class="macro">utf16!</span>(<span class="string">&quot;small&quot;</span>), <span class="prelude-val">None</span>, context)
+        <span class="comment">// 2. Return ? CreateHTML(S, "small", "", "").
+        </span><span class="self">Self</span>::create_html(s, <span class="macro">utf16!</span>(<span class="string">"small"</span>), <span class="prelude-val">None</span>, context)
     }
 
     <span class="doccomment">/// `String.prototype.strike( )`
@@ -5319,8 +5320,8 @@
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let S be the this value.
         </span><span class="kw">let </span>s = this;
-        <span class="comment">// 2. Return ? CreateHTML(S, &quot;strike&quot;, &quot;&quot;, &quot;&quot;).
-        </span><span class="self">Self</span>::create_html(s, <span class="macro">utf16!</span>(<span class="string">&quot;strike&quot;</span>), <span class="prelude-val">None</span>, context)
+        <span class="comment">// 2. Return ? CreateHTML(S, "strike", "", "").
+        </span><span class="self">Self</span>::create_html(s, <span class="macro">utf16!</span>(<span class="string">"strike"</span>), <span class="prelude-val">None</span>, context)
     }
 
     <span class="doccomment">/// `String.prototype.sub( )`
@@ -5334,8 +5335,8 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>sub(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let S be the this value.
         </span><span class="kw">let </span>s = this;
-        <span class="comment">// 2. Return ? CreateHTML(S, &quot;sub&quot;, &quot;&quot;, &quot;&quot;).
-        </span><span class="self">Self</span>::create_html(s, <span class="macro">utf16!</span>(<span class="string">&quot;sub&quot;</span>), <span class="prelude-val">None</span>, context)
+        <span class="comment">// 2. Return ? CreateHTML(S, "sub", "", "").
+        </span><span class="self">Self</span>::create_html(s, <span class="macro">utf16!</span>(<span class="string">"sub"</span>), <span class="prelude-val">None</span>, context)
     }
 
     <span class="doccomment">/// `String.prototype.sup( )`
@@ -5349,8 +5350,8 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>sup(this: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let S be the this value.
         </span><span class="kw">let </span>s = this;
-        <span class="comment">// 2. Return ? CreateHTML(S, &quot;sup&quot;, &quot;&quot;, &quot;&quot;).
-        </span><span class="self">Self</span>::create_html(s, <span class="macro">utf16!</span>(<span class="string">&quot;sup&quot;</span>), <span class="prelude-val">None</span>, context)
+        <span class="comment">// 2. Return ? CreateHTML(S, "sup", "", "").
+        </span><span class="self">Self</span>::create_html(s, <span class="macro">utf16!</span>(<span class="string">"sup"</span>), <span class="prelude-val">None</span>, context)
     }
 }
 
@@ -5395,7 +5396,7 @@
     <span class="kw">let </span><span class="kw-2">mut </span>chars = replacement.code_points().peekable();
 
     <span class="kw">while let </span><span class="prelude-val">Some</span>(first) = chars.next() {
-        <span class="kw">if </span>first == CodePoint::Unicode(<span class="string">&#39;$&#39;</span>) {
+        <span class="kw">if </span>first == CodePoint::Unicode(<span class="string">'$'</span>) {
             <span class="kw">let </span>second = chars.next();
             <span class="kw">let </span>second_is_digit = second
                 .and_then(CodePoint::as_char)
@@ -5404,22 +5405,22 @@
 
             <span class="kw">match </span>second {
                 <span class="comment">// $$
-                </span><span class="prelude-val">Some</span>(CodePoint::Unicode(<span class="string">&#39;$&#39;</span>)) =&gt; {
+                </span><span class="prelude-val">Some</span>(CodePoint::Unicode(<span class="string">'$'</span>)) =&gt; {
                     <span class="comment">// $
-                    </span>result.push(<span class="string">&#39;$&#39; </span><span class="kw">as </span>u16);
+                    </span>result.push(<span class="string">'$' </span><span class="kw">as </span>u16);
                 }
                 <span class="comment">// $&amp;
-                </span><span class="prelude-val">Some</span>(CodePoint::Unicode(<span class="string">&#39;&amp;&#39;</span>)) =&gt; {
+                </span><span class="prelude-val">Some</span>(CodePoint::Unicode(<span class="string">'&amp;'</span>)) =&gt; {
                     <span class="comment">// matched
                     </span>result.extend_from_slice(matched);
                 }
                 <span class="comment">// $`
-                </span><span class="prelude-val">Some</span>(CodePoint::Unicode(<span class="string">&#39;`&#39;</span>)) =&gt; {
+                </span><span class="prelude-val">Some</span>(CodePoint::Unicode(<span class="string">'`'</span>)) =&gt; {
                     <span class="comment">// The replacement is the substring of str from 0 to position.
                     </span>result.extend_from_slice(<span class="kw-2">&amp;</span>str[..position]);
                 }
-                <span class="comment">// $&#39;
-                </span><span class="prelude-val">Some</span>(CodePoint::Unicode(<span class="string">&#39;\&#39;&#39;</span>)) =&gt; {
+                <span class="comment">// $'
+                </span><span class="prelude-val">Some</span>(CodePoint::Unicode(<span class="string">'\''</span>)) =&gt; {
                     <span class="comment">// If tailPos ≥ stringLength, the replacement is the empty String.
                     // Otherwise the replacement is the substring of str from tailPos.
                     </span><span class="kw">if </span>tail_pos &lt; str_length {
@@ -5427,15 +5428,15 @@
                     }
                 }
                 <span class="comment">// $nn
-                // f. Else if templateRemainder starts with &quot;$&quot; followed by 1 or more decimal digits, then
+                // f. Else if templateRemainder starts with "$" followed by 1 or more decimal digits, then
                 </span><span class="prelude-val">Some</span>(CodePoint::Unicode(second)) <span class="kw">if </span>second_is_digit =&gt; {
-                    <span class="comment">// i. If templateRemainder starts with &quot;$&quot; followed by 2 or more decimal digits, let digitCount be 2. Otherwise, let digitCount be 1.
+                    <span class="comment">// i. If templateRemainder starts with "$" followed by 2 or more decimal digits, let digitCount be 2. Otherwise, let digitCount be 1.
                     // ii. Let ref be the substring of templateRemainder from 0 to 1 + digitCount.
                     // iii. Let digits be the substring of templateRemainder from 1 to 1 + digitCount.
                     // iv. Let index be ℝ(StringToNumber(digits)).
                     </span><span class="kw">let </span><span class="kw-2">mut </span>index = second
                         .to_digit(<span class="number">10</span>)
-                        .expect(<span class="string">&quot;could not convert character to digit after checking it&quot;</span>)
+                        .expect(<span class="string">"could not convert character to digit after checking it"</span>)
                         <span class="kw">as </span>usize;
 
                     <span class="comment">// vi. Let captureLen be the number of elements in captures.
@@ -5450,7 +5451,7 @@
                         .and_then(CodePoint::as_char)
                         .and_then(|n| n.to_digit(<span class="number">10</span>))
                     {
-                        <span class="comment">// If there is two digits, and it&#39;s not in range fallback to one digit.
+                        <span class="comment">// If there is two digits, and it's not in range fallback to one digit.
                         </span><span class="kw">let </span>two_digit_index = index * <span class="number">10 </span>+ digit <span class="kw">as </span>usize;
                         <span class="kw">if </span>(<span class="number">1</span>..=capture_len).contains(<span class="kw-2">&amp;</span>two_digit_index) {
                             index = two_digit_index;
@@ -5477,27 +5478,27 @@
                     <span class="comment">// viii. Else,
                     </span>} <span class="kw">else </span>{
                         <span class="comment">// 1. Let refReplacement be ref.
-                        </span>result.extend_from_slice(<span class="kw-2">&amp;</span>[<span class="string">&#39;$&#39; </span><span class="kw">as </span>u16, second <span class="kw">as </span>u16]);
+                        </span>result.extend_from_slice(<span class="kw-2">&amp;</span>[<span class="string">'$' </span><span class="kw">as </span>u16, second <span class="kw">as </span>u16]);
                     }
                 }
                 <span class="comment">// $&lt;
-                </span><span class="prelude-val">Some</span>(CodePoint::Unicode(<span class="string">&#39;&lt;&#39;</span>)) =&gt; {
-                    <span class="comment">// 1. If namedCaptures is undefined, the replacement text is the String &quot;$&lt;&quot;.
+                </span><span class="prelude-val">Some</span>(CodePoint::Unicode(<span class="string">'&lt;'</span>)) =&gt; {
+                    <span class="comment">// 1. If namedCaptures is undefined, the replacement text is the String "$&lt;".
                     // 2. Else,
                     </span><span class="kw">if </span>named_captures.is_undefined() {
-                        result.extend_from_slice(<span class="macro">utf16!</span>(<span class="string">&quot;$&lt;&quot;</span>));
+                        result.extend_from_slice(<span class="macro">utf16!</span>(<span class="string">"$&lt;"</span>));
                     } <span class="kw">else </span>{
                         <span class="comment">// a. Assert: Type(namedCaptures) is Object.
                         </span><span class="kw">let </span>named_captures = named_captures
                             .as_object()
-                            .expect(<span class="string">&quot;should be an object according to spec&quot;</span>);
+                            .expect(<span class="string">"should be an object according to spec"</span>);
 
                         <span class="comment">// b. Scan until the next &gt; U+003E (GREATER-THAN SIGN).
                         </span><span class="kw">let </span><span class="kw-2">mut </span>group_name = <span class="macro">vec!</span>[];
                         <span class="kw">let </span><span class="kw-2">mut </span>found = <span class="bool-val">false</span>;
                         <span class="kw">loop </span>{
                             <span class="kw">match </span>chars.next() {
-                                <span class="prelude-val">Some</span>(CodePoint::Unicode(<span class="string">&#39;&gt;&#39;</span>)) =&gt; {
+                                <span class="prelude-val">Some</span>(CodePoint::Unicode(<span class="string">'&gt;'</span>)) =&gt; {
                                     found = <span class="bool-val">true</span>;
                                     <span class="kw">break</span>;
                                 }
@@ -5506,10 +5507,10 @@
                             }
                         }
 
-                        <span class="comment">// c. If none is found, the replacement text is the String &quot;$&lt;&quot;.
+                        <span class="comment">// c. If none is found, the replacement text is the String "$&lt;".
                         </span><span class="attr">#[allow(clippy::if_not_else)]
                         </span><span class="kw">if </span>!found {
-                            result.extend_from_slice(<span class="macro">utf16!</span>(<span class="string">&quot;$&lt;&quot;</span>));
+                            result.extend_from_slice(<span class="macro">utf16!</span>(<span class="string">"$&lt;"</span>));
                             result.extend_from_slice(<span class="kw-2">&amp;</span>group_name);
                         <span class="comment">// d. Else,
                         </span>} <span class="kw">else </span>{
@@ -5528,7 +5529,7 @@
                 }
                 <span class="comment">// $?, ? is none of the above
                 </span><span class="kw">_ </span>=&gt; {
-                    result.push(<span class="string">&#39;$&#39; </span><span class="kw">as </span>u16);
+                    result.push(<span class="string">'$' </span><span class="kw">as </span>u16);
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(second) = second {
                         result.extend_from_slice(second.encode_utf16(<span class="kw-2">&amp;mut </span>buf));
                     }

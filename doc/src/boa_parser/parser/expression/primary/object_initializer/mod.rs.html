@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/parser/src/parser/expression/primary/object_initializer/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../../../" data-static-root-path="../../../../../../static.files/" data-current-crate="boa_parser" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../../../src-files.js"></script><script defer src="../../../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../../../boa_parser/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_parser"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/parser/src/parser/expression/primary/object_initializer/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../../../../" data-static-root-path="../../../../../../static.files/" data-current-crate="boa_parser" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../../../../src-files.js"></script><script defer src="../../../../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../../../../../boa_parser/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_parser"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1163,7 +1164,7 @@
     <span class="kw">type </span>Output = literal::ObjectLiteral;
 
     <span class="kw">fn </span>parse(<span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;ObjectLiteral&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">"ObjectLiteral"</span>, <span class="string">"Parsing"</span>);
         <span class="kw">let </span><span class="kw-2">mut </span>elements = Vec::new();
 
         <span class="kw">let </span><span class="kw-2">mut </span>has_proto = <span class="bool-val">false</span>;
@@ -1202,10 +1203,10 @@
             <span class="kw">if </span>cursor.next_if(Punctuator::Comma, interner)<span class="question-mark">?</span>.is_none() {
                 <span class="kw">let </span>next_token = cursor.next(interner).or_abrupt()<span class="question-mark">?</span>;
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Error::expected(
-                    [<span class="string">&quot;,&quot;</span>.to_owned(), <span class="string">&quot;}&quot;</span>.to_owned()],
+                    [<span class="string">","</span>.to_owned(), <span class="string">"}"</span>.to_owned()],
                     next_token.to_string(interner),
                     next_token.span(),
-                    <span class="string">&quot;object literal&quot;</span>,
+                    <span class="string">"object literal"</span>,
                 ));
             }
         }
@@ -1217,7 +1218,7 @@
                 })
             {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
-                    <span class="string">&quot;Duplicate __proto__ fields are not allowed in object literals.&quot;</span>,
+                    <span class="string">"Duplicate __proto__ fields are not allowed in object literals."</span>,
                     position,
                 ));
             }
@@ -1260,7 +1261,7 @@
     <span class="kw">type </span>Output = property::PropertyDefinition;
 
     <span class="kw">fn </span>parse(<span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;PropertyDefinition&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">"PropertyDefinition"</span>, <span class="string">"Parsing"</span>);
 
         <span class="kw">match </span>cursor.peek(<span class="number">1</span>, interner).or_abrupt()<span class="question-mark">?</span>.kind() {
             TokenKind::Punctuator(Punctuator::CloseBlock | Punctuator::Comma) =&gt; {
@@ -1292,13 +1293,13 @@
         <span class="kw">match </span>token.kind() {
             TokenKind::Keyword((Keyword::Async, <span class="bool-val">true</span>)) <span class="kw">if </span>is_keyword =&gt; {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
-                    <span class="string">&quot;Keyword must not contain escaped characters&quot;</span>,
+                    <span class="string">"Keyword must not contain escaped characters"</span>,
                     token.span().start(),
                 ));
             }
             TokenKind::Keyword((Keyword::Async, <span class="bool-val">false</span>)) <span class="kw">if </span>is_keyword =&gt; {
                 cursor.advance(interner);
-                cursor.peek_expect_no_lineterminator(<span class="number">0</span>, <span class="string">&quot;Async object methods&quot;</span>, interner)<span class="question-mark">?</span>;
+                cursor.peek_expect_no_lineterminator(<span class="number">0</span>, <span class="string">"Async object methods"</span>, interner)<span class="question-mark">?</span>;
 
                 <span class="kw">let </span>token = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>;
                 <span class="kw">let </span>position = token.span().start();
@@ -1310,14 +1311,14 @@
 
                     <span class="comment">// It is a Syntax Error if HasDirectSuper of MethodDefinition is true.
                     </span><span class="kw">if </span>has_direct_super(<span class="kw-2">&amp;</span>method) {
-                        <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(<span class="string">&quot;invalid super usage&quot;</span>, position));
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(<span class="string">"invalid super usage"</span>, position));
                     }
 
                     <span class="kw">let </span>property::ClassElementName::PropertyName(property_name) =
                         class_element_name
                     <span class="kw">else </span>{
                         <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
-                            <span class="string">&quot;private identifiers not allowed in object literal&quot;</span>,
+                            <span class="string">"private identifiers not allowed in object literal"</span>,
                             position,
                         ));
                     };
@@ -1333,14 +1334,14 @@
                 <span class="kw">let </span>property::ClassElementName::PropertyName(property_name) = class_element_name
                 <span class="kw">else </span>{
                     <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
-                        <span class="string">&quot;private identifiers not allowed in object literal&quot;</span>,
+                        <span class="string">"private identifiers not allowed in object literal"</span>,
                         position,
                     ));
                 };
 
                 <span class="comment">// It is a Syntax Error if HasDirectSuper of MethodDefinition is true.
                 </span><span class="kw">if </span>has_direct_super(<span class="kw-2">&amp;</span>method) {
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(<span class="string">&quot;invalid super usage&quot;</span>, position));
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(<span class="string">"invalid super usage"</span>, position));
                 }
 
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(property::PropertyDefinition::MethodDefinition(
@@ -1360,7 +1361,7 @@
 
             <span class="comment">// It is a Syntax Error if HasDirectSuper of MethodDefinition is true.
             </span><span class="kw">if </span>has_direct_super(<span class="kw-2">&amp;</span>method) {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(<span class="string">&quot;invalid super usage&quot;</span>, position));
+                <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(<span class="string">"invalid super usage"</span>, position));
             }
 
             <span class="kw">match </span>class_element_name {
@@ -1372,7 +1373,7 @@
                 }
                 property::ClassElementName::PrivateIdentifier(<span class="kw">_</span>) =&gt; {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
-                        <span class="string">&quot;private identifier not allowed in object literal&quot;</span>,
+                        <span class="string">"private identifier not allowed in object literal"</span>,
                         position,
                     ))
                 }
@@ -1410,7 +1411,7 @@
             </span>property::PropertyName::Literal(str) <span class="kw">if </span>str == Sym::GET &amp;&amp; !ordinary_method =&gt; {
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(position) = set_or_get_escaped_position {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
-                        <span class="string">&quot;Keyword must not contain escaped characters&quot;</span>,
+                        <span class="string">"Keyword must not contain escaped characters"</span>,
                         position,
                     ));
                 }
@@ -1422,31 +1423,31 @@
 
                 cursor.expect(
                     TokenKind::Punctuator(Punctuator::OpenParen),
-                    <span class="string">&quot;get method definition&quot;</span>,
+                    <span class="string">"get method definition"</span>,
                     interner,
                 )<span class="question-mark">?</span>;
                 cursor.expect(
                     TokenKind::Punctuator(Punctuator::CloseParen),
-                    <span class="string">&quot;get method definition&quot;</span>,
+                    <span class="string">"get method definition"</span>,
                     interner,
                 )<span class="question-mark">?</span>;
 
                 cursor.expect(
                     TokenKind::Punctuator(Punctuator::OpenBlock),
-                    <span class="string">&quot;get method definition&quot;</span>,
+                    <span class="string">"get method definition"</span>,
                     interner,
                 )<span class="question-mark">?</span>;
                 <span class="kw">let </span>body = FunctionBody::new(<span class="bool-val">false</span>, <span class="bool-val">false</span>).parse(cursor, interner)<span class="question-mark">?</span>;
                 cursor.expect(
                     TokenKind::Punctuator(Punctuator::CloseBlock),
-                    <span class="string">&quot;get method definition&quot;</span>,
+                    <span class="string">"get method definition"</span>,
                     interner,
                 )<span class="question-mark">?</span>;
 
                 <span class="kw">let </span>name = property_name.literal().map(|name| {
                     <span class="kw">let </span>s = interner.resolve_expect(name).utf16();
                     interner
-                        .get_or_intern([<span class="macro">utf16!</span>(<span class="string">&quot;get &quot;</span>), s].concat().as_slice())
+                        .get_or_intern([<span class="macro">utf16!</span>(<span class="string">"get "</span>), s].concat().as_slice())
                         .into()
                 });
 
@@ -1458,7 +1459,7 @@
 
                 <span class="comment">// It is a Syntax Error if HasDirectSuper of MethodDefinition is true.
                 </span><span class="kw">if </span>has_direct_super(<span class="kw-2">&amp;</span>method) {
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(<span class="string">&quot;invalid super usage&quot;</span>, position));
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(<span class="string">"invalid super usage"</span>, position));
                 }
 
                 <span class="prelude-val">Ok</span>(property::PropertyDefinition::MethodDefinition(
@@ -1470,7 +1471,7 @@
             </span>property::PropertyName::Literal(str) <span class="kw">if </span>str == Sym::SET &amp;&amp; !ordinary_method =&gt; {
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(position) = set_or_get_escaped_position {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
-                        <span class="string">&quot;Keyword must not contain escaped characters&quot;</span>,
+                        <span class="string">"Keyword must not contain escaped characters"</span>,
                         position,
                     ));
                 }
@@ -1481,7 +1482,7 @@
                 <span class="kw">let </span>params_start_position = cursor
                     .expect(
                         TokenKind::Punctuator(Punctuator::OpenParen),
-                        <span class="string">&quot;set method definition&quot;</span>,
+                        <span class="string">"set method definition"</span>,
                         interner,
                     )<span class="question-mark">?
                     </span>.span()
@@ -1491,26 +1492,26 @@
                     </span>.into();
                 cursor.expect(
                     TokenKind::Punctuator(Punctuator::CloseParen),
-                    <span class="string">&quot;set method definition&quot;</span>,
+                    <span class="string">"set method definition"</span>,
                     interner,
                 )<span class="question-mark">?</span>;
 
                 cursor.expect(
                     TokenKind::Punctuator(Punctuator::OpenBlock),
-                    <span class="string">&quot;set method definition&quot;</span>,
+                    <span class="string">"set method definition"</span>,
                     interner,
                 )<span class="question-mark">?</span>;
                 <span class="kw">let </span>body = FunctionBody::new(<span class="bool-val">false</span>, <span class="bool-val">false</span>).parse(cursor, interner)<span class="question-mark">?</span>;
                 cursor.expect(
                     TokenKind::Punctuator(Punctuator::CloseBlock),
-                    <span class="string">&quot;set method definition&quot;</span>,
+                    <span class="string">"set method definition"</span>,
                     interner,
                 )<span class="question-mark">?</span>;
 
                 <span class="comment">// Catch early error for BindingIdentifier.
                 </span><span class="kw">if </span>body.strict() &amp;&amp; contains(<span class="kw-2">&amp;</span>parameters, ContainsSymbol::EvalOrArguments) {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
-                        <span class="string">&quot;unexpected identifier &#39;eval&#39; or &#39;arguments&#39; in strict mode&quot;</span>.into(),
+                        <span class="string">"unexpected identifier 'eval' or 'arguments' in strict mode"</span>.into(),
                         params_start_position,
                     )));
                 }
@@ -1520,7 +1521,7 @@
                 // https://tc39.es/ecma262/#sec-method-definitions-static-semantics-early-errors
                 </span><span class="kw">if </span>body.strict() &amp;&amp; !parameters.is_simple() {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
-                        <span class="string">&quot;Illegal &#39;use strict&#39; directive in function with non-simple parameter list&quot;
+                        <span class="string">"Illegal 'use strict' directive in function with non-simple parameter list"
                             </span>.into(),
                         params_start_position,
                     )));
@@ -1539,7 +1540,7 @@
                 <span class="kw">let </span>name = property_name.literal().map(|name| {
                     <span class="kw">let </span>s = interner.resolve_expect(name).utf16();
                     interner
-                        .get_or_intern([<span class="macro">utf16!</span>(<span class="string">&quot;set &quot;</span>), s].concat().as_slice())
+                        .get_or_intern([<span class="macro">utf16!</span>(<span class="string">"set "</span>), s].concat().as_slice())
                         .into()
                 });
 
@@ -1548,7 +1549,7 @@
                 <span class="comment">// It is a Syntax Error if HasDirectSuper of MethodDefinition is true.
                 // https://tc39.es/ecma262/#sec-object-initializer-static-semantics-early-errors
                 </span><span class="kw">if </span>has_direct_super(<span class="kw-2">&amp;</span>method) {
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(<span class="string">&quot;invalid super usage&quot;</span>, params_start_position));
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(<span class="string">"invalid super usage"</span>, params_start_position));
                 }
 
                 <span class="prelude-val">Ok</span>(property::PropertyDefinition::MethodDefinition(
@@ -1561,7 +1562,7 @@
                 <span class="kw">let </span>params_start_position = cursor
                     .expect(
                         TokenKind::Punctuator(Punctuator::OpenParen),
-                        <span class="string">&quot;method definition&quot;</span>,
+                        <span class="string">"method definition"</span>,
                         interner,
                     )<span class="question-mark">?
                     </span>.span()
@@ -1569,27 +1570,27 @@
                 <span class="kw">let </span>params = FormalParameters::new(<span class="bool-val">false</span>, <span class="bool-val">false</span>).parse(cursor, interner)<span class="question-mark">?</span>;
                 cursor.expect(
                     TokenKind::Punctuator(Punctuator::CloseParen),
-                    <span class="string">&quot;method definition&quot;</span>,
+                    <span class="string">"method definition"</span>,
                     interner,
                 )<span class="question-mark">?</span>;
 
                 <span class="comment">// Early Error: UniqueFormalParameters : FormalParameters
                 </span><span class="kw">if </span>params.has_duplicates() {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
-                        <span class="string">&quot;Duplicate parameter name not allowed in this context&quot;</span>.into(),
+                        <span class="string">"Duplicate parameter name not allowed in this context"</span>.into(),
                         params_start_position,
                     )));
                 }
 
                 cursor.expect(
                     TokenKind::Punctuator(Punctuator::OpenBlock),
-                    <span class="string">&quot;method definition&quot;</span>,
+                    <span class="string">"method definition"</span>,
                     interner,
                 )<span class="question-mark">?</span>;
                 <span class="kw">let </span>body = FunctionBody::new(<span class="bool-val">false</span>, <span class="bool-val">false</span>).parse(cursor, interner)<span class="question-mark">?</span>;
                 cursor.expect(
                     TokenKind::Punctuator(Punctuator::CloseBlock),
-                    <span class="string">&quot;method definition&quot;</span>,
+                    <span class="string">"method definition"</span>,
                     interner,
                 )<span class="question-mark">?</span>;
 
@@ -1597,7 +1598,7 @@
                 // and IsSimpleParameterList of UniqueFormalParameters is false.
                 </span><span class="kw">if </span>body.strict() &amp;&amp; !params.is_simple() {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
-                        <span class="string">&quot;Illegal &#39;use strict&#39; directive in function with non-simple parameter list&quot;
+                        <span class="string">"Illegal 'use strict' directive in function with non-simple parameter list"
                             </span>.into(),
                         params_start_position,
                     )));
@@ -1620,7 +1621,7 @@
 
                 <span class="comment">// It is a Syntax Error if HasDirectSuper of MethodDefinition is true.
                 </span><span class="kw">if </span>has_direct_super(<span class="kw-2">&amp;</span>method) {
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(<span class="string">&quot;invalid super usage&quot;</span>, params_start_position));
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(<span class="string">"invalid super usage"</span>, params_start_position));
                 }
 
                 <span class="prelude-val">Ok</span>(property::PropertyDefinition::MethodDefinition(
@@ -1665,7 +1666,7 @@
     <span class="kw">type </span>Output = property::PropertyName;
 
     <span class="kw">fn </span>parse(<span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;PropertyName&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">"PropertyName"</span>, <span class="string">"Parsing"</span>);
 
         <span class="kw">let </span>token = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>;
         <span class="kw">let </span>name = <span class="kw">match </span>token.kind() {
@@ -1674,7 +1675,7 @@
                 <span class="kw">let </span>node =
                     AssignmentExpression::new(<span class="prelude-val">None</span>, <span class="bool-val">true</span>, <span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
                         .parse(cursor, interner)<span class="question-mark">?</span>;
-                cursor.expect(Punctuator::CloseBracket, <span class="string">&quot;expected token &#39;]&#39;&quot;</span>, interner)<span class="question-mark">?</span>;
+                cursor.expect(Punctuator::CloseBracket, <span class="string">"expected token ']'"</span>, interner)<span class="question-mark">?</span>;
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(node.into());
             }
             TokenKind::IdentifierName((name, <span class="kw">_</span>)) | TokenKind::StringLiteral((name, <span class="kw">_</span>)) =&gt; {
@@ -1696,10 +1697,10 @@
             },
             <span class="kw">_ </span>=&gt; {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Error::expected(
-                    <span class="macro">vec!</span>[<span class="string">&quot;property name&quot;</span>.to_owned()],
+                    <span class="macro">vec!</span>[<span class="string">"property name"</span>.to_owned()],
                     token.to_string(interner),
                     token.span(),
-                    <span class="string">&quot;property name&quot;</span>,
+                    <span class="string">"property name"</span>,
                 ))
             }
         };
@@ -1741,7 +1742,7 @@
     <span class="kw">type </span>Output = property::ClassElementName;
 
     <span class="kw">fn </span>parse(<span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;ClassElementName&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">"ClassElementName"</span>, <span class="string">"Parsing"</span>);
 
         <span class="kw">let </span>token = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>;
         <span class="kw">match </span>token.kind() {
@@ -1803,9 +1804,9 @@
     <span class="kw">type </span>Output = Expression;
 
     <span class="kw">fn </span>parse(<span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Initializer&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">"Initializer"</span>, <span class="string">"Parsing"</span>);
 
-        cursor.expect(Punctuator::Assign, <span class="string">&quot;initializer&quot;</span>, interner)<span class="question-mark">?</span>;
+        cursor.expect(Punctuator::Assign, <span class="string">"initializer"</span>, interner)<span class="question-mark">?</span>;
         AssignmentExpression::new(<span class="self">self</span>.name, <span class="self">self</span>.allow_in, <span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
             .parse(cursor, interner)
     }
@@ -1844,8 +1845,8 @@
     <span class="kw">type </span>Output = (property::ClassElementName, MethodDefinition);
 
     <span class="kw">fn </span>parse(<span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;GeneratorMethod&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
-        cursor.expect(Punctuator::Mul, <span class="string">&quot;generator method definition&quot;</span>, interner)<span class="question-mark">?</span>;
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">"GeneratorMethod"</span>, <span class="string">"Parsing"</span>);
+        cursor.expect(Punctuator::Mul, <span class="string">"generator method definition"</span>, interner)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>class_element_name =
             ClassElementName::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await).parse(cursor, interner)<span class="question-mark">?</span>;
@@ -1857,7 +1858,7 @@
         <span class="comment">// It is a Syntax Error if UniqueFormalParameters Contains YieldExpression is true.
         </span><span class="kw">if </span>contains(<span class="kw-2">&amp;</span>params, ContainsSymbol::YieldExpression) {
             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
-                <span class="string">&quot;yield expression not allowed in generator method definition parameters&quot;</span>.into(),
+                <span class="string">"yield expression not allowed in generator method definition parameters"</span>.into(),
                 params_start_position,
             )));
         }
@@ -1865,7 +1866,7 @@
         <span class="kw">let </span>body_start = cursor
             .expect(
                 TokenKind::Punctuator(Punctuator::OpenBlock),
-                <span class="string">&quot;generator method definition&quot;</span>,
+                <span class="string">"generator method definition"</span>,
                 interner,
             )<span class="question-mark">?
             </span>.span()
@@ -1873,7 +1874,7 @@
         <span class="kw">let </span>body = FunctionBody::new(<span class="bool-val">true</span>, <span class="bool-val">false</span>).parse(cursor, interner)<span class="question-mark">?</span>;
         cursor.expect(
             TokenKind::Punctuator(Punctuator::CloseBlock),
-            <span class="string">&quot;generator method definition&quot;</span>,
+            <span class="string">"generator method definition"</span>,
             interner,
         )<span class="question-mark">?</span>;
 
@@ -1881,7 +1882,7 @@
         // and IsSimpleParameterList of UniqueFormalParameters is false.
         </span><span class="kw">if </span>body.strict() &amp;&amp; !params.is_simple() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
-                <span class="string">&quot;Illegal &#39;use strict&#39; directive in function with non-simple parameter list&quot;</span>.into(),
+                <span class="string">"Illegal 'use strict' directive in function with non-simple parameter list"</span>.into(),
                 body_start,
             )));
         }
@@ -1904,7 +1905,7 @@
 
         <span class="kw">if </span>contains(<span class="kw-2">&amp;</span>method, ContainsSymbol::Super) {
             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
-                <span class="string">&quot;invalid super usage&quot;</span>.into(),
+                <span class="string">"invalid super usage"</span>.into(),
                 body_start,
             )));
         }
@@ -1946,10 +1947,10 @@
     <span class="kw">type </span>Output = (property::ClassElementName, MethodDefinition);
 
     <span class="kw">fn </span>parse(<span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;AsyncGeneratorMethod&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">"AsyncGeneratorMethod"</span>, <span class="string">"Parsing"</span>);
         cursor.expect(
             Punctuator::Mul,
-            <span class="string">&quot;async generator method definition&quot;</span>,
+            <span class="string">"async generator method definition"</span>,
             interner,
         )<span class="question-mark">?</span>;
 
@@ -1963,7 +1964,7 @@
         <span class="comment">// It is a Syntax Error if FormalParameters Contains YieldExpression is true.
         </span><span class="kw">if </span>contains(<span class="kw-2">&amp;</span>params, ContainsSymbol::YieldExpression) {
             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
-                <span class="string">&quot;yield expression not allowed in async generator method definition parameters&quot;
+                <span class="string">"yield expression not allowed in async generator method definition parameters"
                     </span>.into(),
                 params_start_position,
             )));
@@ -1972,7 +1973,7 @@
         <span class="comment">// It is a Syntax Error if FormalParameters Contains AwaitExpression is true.
         </span><span class="kw">if </span>contains(<span class="kw-2">&amp;</span>params, ContainsSymbol::AwaitExpression) {
             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
-                <span class="string">&quot;await expression not allowed in async generator method definition parameters&quot;
+                <span class="string">"await expression not allowed in async generator method definition parameters"
                     </span>.into(),
                 params_start_position,
             )));
@@ -1981,7 +1982,7 @@
         <span class="kw">let </span>body_start = cursor
             .expect(
                 TokenKind::Punctuator(Punctuator::OpenBlock),
-                <span class="string">&quot;async generator method definition&quot;</span>,
+                <span class="string">"async generator method definition"</span>,
                 interner,
             )<span class="question-mark">?
             </span>.span()
@@ -1989,7 +1990,7 @@
         <span class="kw">let </span>body = FunctionBody::new(<span class="bool-val">true</span>, <span class="bool-val">true</span>).parse(cursor, interner)<span class="question-mark">?</span>;
         cursor.expect(
             TokenKind::Punctuator(Punctuator::CloseBlock),
-            <span class="string">&quot;async generator method definition&quot;</span>,
+            <span class="string">"async generator method definition"</span>,
             interner,
         )<span class="question-mark">?</span>;
 
@@ -1997,7 +1998,7 @@
         // and IsSimpleParameterList of UniqueFormalParameters is false.
         </span><span class="kw">if </span>body.strict() &amp;&amp; !params.is_simple() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
-                <span class="string">&quot;Illegal &#39;use strict&#39; directive in function with non-simple parameter list&quot;</span>.into(),
+                <span class="string">"Illegal 'use strict' directive in function with non-simple parameter list"</span>.into(),
                 body_start,
             )));
         }
@@ -2020,7 +2021,7 @@
 
         <span class="kw">if </span>contains(<span class="kw-2">&amp;</span>method, ContainsSymbol::Super) {
             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
-                <span class="string">&quot;invalid super usage&quot;</span>.into(),
+                <span class="string">"invalid super usage"</span>.into(),
                 body_start,
             )));
         }
@@ -2062,7 +2063,7 @@
     <span class="kw">type </span>Output = (property::ClassElementName, MethodDefinition);
 
     <span class="kw">fn </span>parse(<span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;AsyncMethod&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">"AsyncMethod"</span>, <span class="string">"Parsing"</span>);
 
         <span class="kw">let </span>class_element_name =
             ClassElementName::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await).parse(cursor, interner)<span class="question-mark">?</span>;
@@ -2074,7 +2075,7 @@
         <span class="kw">let </span>body_start = cursor
             .expect(
                 TokenKind::Punctuator(Punctuator::OpenBlock),
-                <span class="string">&quot;async method definition&quot;</span>,
+                <span class="string">"async method definition"</span>,
                 interner,
             )<span class="question-mark">?
             </span>.span()
@@ -2082,7 +2083,7 @@
         <span class="kw">let </span>body = FunctionBody::new(<span class="bool-val">true</span>, <span class="bool-val">true</span>).parse(cursor, interner)<span class="question-mark">?</span>;
         cursor.expect(
             TokenKind::Punctuator(Punctuator::CloseBlock),
-            <span class="string">&quot;async method definition&quot;</span>,
+            <span class="string">"async method definition"</span>,
             interner,
         )<span class="question-mark">?</span>;
 
@@ -2090,7 +2091,7 @@
         // and IsSimpleParameterList of UniqueFormalParameters is false.
         </span><span class="kw">if </span>body.strict() &amp;&amp; !params.is_simple() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
-                <span class="string">&quot;Illegal &#39;use strict&#39; directive in function with non-simple parameter list&quot;</span>.into(),
+                <span class="string">"Illegal 'use strict' directive in function with non-simple parameter list"</span>.into(),
                 body_start,
             )));
         }
@@ -2113,7 +2114,7 @@
 
         <span class="kw">if </span>contains(<span class="kw-2">&amp;</span>method, ContainsSymbol::Super) {
             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
-                <span class="string">&quot;invalid super usage&quot;</span>.into(),
+                <span class="string">"invalid super usage"</span>.into(),
                 body_start,
             )));
         }
@@ -2155,12 +2156,12 @@
     <span class="kw">type </span>Output = property::PropertyDefinition;
 
     <span class="kw">fn </span>parse(<span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;CoverInitializedName&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">"CoverInitializedName"</span>, <span class="string">"Parsing"</span>);
 
         <span class="kw">let </span>ident =
             IdentifierReference::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await).parse(cursor, interner)<span class="question-mark">?</span>;
 
-        cursor.expect(Punctuator::Assign, <span class="string">&quot;CoverInitializedName&quot;</span>, interner)<span class="question-mark">?</span>;
+        cursor.expect(Punctuator::Assign, <span class="string">"CoverInitializedName"</span>, interner)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>expr = AssignmentExpression::new(ident, <span class="bool-val">true</span>, <span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
             .parse(cursor, interner)<span class="question-mark">?</span>;

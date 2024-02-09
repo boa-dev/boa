@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/small_map/entry.rs`."><title>entry.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/small_map/entry.rs`."><title>entry.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -337,65 +338,65 @@
 /// This `enum` is constructed from the [`entry`] method on [`SmallMap`].
 ///
 /// [`entry`]: SmallMap::entry
-</span><span class="kw">pub enum </span>Entry&lt;<span class="lifetime">&#39;a</span>, K, V, <span class="kw">const </span>ARRAY_SIZE: usize&gt; {
+</span><span class="kw">pub enum </span>Entry&lt;<span class="lifetime">'a</span>, K, V, <span class="kw">const </span>ARRAY_SIZE: usize&gt; {
     <span class="doccomment">/// A vacant entry.
-    </span>Vacant(VacantEntry&lt;<span class="lifetime">&#39;a</span>, K, V, ARRAY_SIZE&gt;),
+    </span>Vacant(VacantEntry&lt;<span class="lifetime">'a</span>, K, V, ARRAY_SIZE&gt;),
     <span class="doccomment">/// An occupied entry.
-    </span>Occupied(OccupiedEntry&lt;<span class="lifetime">&#39;a</span>, K, V, ARRAY_SIZE&gt;),
+    </span>Occupied(OccupiedEntry&lt;<span class="lifetime">'a</span>, K, V, ARRAY_SIZE&gt;),
 }
 
-<span class="kw">impl</span>&lt;K: Debug + Ord, V: Debug, <span class="kw">const </span>ARRAY_SIZE: usize&gt; Debug <span class="kw">for </span>Entry&lt;<span class="lifetime">&#39;_</span>, K, V, ARRAY_SIZE&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+<span class="kw">impl</span>&lt;K: Debug + Ord, V: Debug, <span class="kw">const </span>ARRAY_SIZE: usize&gt; Debug <span class="kw">for </span>Entry&lt;<span class="lifetime">'_</span>, K, V, ARRAY_SIZE&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
         <span class="kw">match </span><span class="self">self </span>{
-            <span class="self">Self</span>::Vacant(<span class="kw-2">ref </span>v) =&gt; f.debug_tuple(<span class="string">&quot;Entry&quot;</span>).field(v).finish(),
-            <span class="self">Self</span>::Occupied(<span class="kw-2">ref </span>o) =&gt; f.debug_tuple(<span class="string">&quot;Entry&quot;</span>).field(o).finish(),
+            <span class="self">Self</span>::Vacant(<span class="kw-2">ref </span>v) =&gt; f.debug_tuple(<span class="string">"Entry"</span>).field(v).finish(),
+            <span class="self">Self</span>::Occupied(<span class="kw-2">ref </span>o) =&gt; f.debug_tuple(<span class="string">"Entry"</span>).field(o).finish(),
         }
     }
 }
 
 <span class="doccomment">/// A view into a vacant entry in a `SmallMap`.
 /// It is part of the [`Entry`] enum.
-</span><span class="kw">pub struct </span>VacantEntry&lt;<span class="lifetime">&#39;a</span>, K, V, <span class="kw">const </span>ARRAY_SIZE: usize&gt; {
-    <span class="kw">pub</span>(<span class="kw">super</span>) inner: InnerVacant&lt;<span class="lifetime">&#39;a</span>, K, V, ARRAY_SIZE&gt;,
+</span><span class="kw">pub struct </span>VacantEntry&lt;<span class="lifetime">'a</span>, K, V, <span class="kw">const </span>ARRAY_SIZE: usize&gt; {
+    <span class="kw">pub</span>(<span class="kw">super</span>) inner: InnerVacant&lt;<span class="lifetime">'a</span>, K, V, ARRAY_SIZE&gt;,
 }
 
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">enum </span>InnerVacant&lt;<span class="lifetime">&#39;a</span>, K, V, <span class="kw">const </span>ARRAY_SIZE: usize&gt; {
-    Inline(InlineVacantEntry&lt;<span class="lifetime">&#39;a</span>, K, V, ARRAY_SIZE&gt;),
-    Heap(btree_map::VacantEntry&lt;<span class="lifetime">&#39;a</span>, K, V&gt;),
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">enum </span>InnerVacant&lt;<span class="lifetime">'a</span>, K, V, <span class="kw">const </span>ARRAY_SIZE: usize&gt; {
+    Inline(InlineVacantEntry&lt;<span class="lifetime">'a</span>, K, V, ARRAY_SIZE&gt;),
+    Heap(btree_map::VacantEntry&lt;<span class="lifetime">'a</span>, K, V&gt;),
 }
 
-<span class="kw">impl</span>&lt;K: Debug + Ord, V, <span class="kw">const </span>ARRAY_SIZE: usize&gt; Debug <span class="kw">for </span>VacantEntry&lt;<span class="lifetime">&#39;_</span>, K, V, ARRAY_SIZE&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
-        f.debug_tuple(<span class="string">&quot;VacantEntry&quot;</span>).field(<span class="self">self</span>.key()).finish()
+<span class="kw">impl</span>&lt;K: Debug + Ord, V, <span class="kw">const </span>ARRAY_SIZE: usize&gt; Debug <span class="kw">for </span>VacantEntry&lt;<span class="lifetime">'_</span>, K, V, ARRAY_SIZE&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
+        f.debug_tuple(<span class="string">"VacantEntry"</span>).field(<span class="self">self</span>.key()).finish()
     }
 }
 
 <span class="doccomment">/// A view into an occupied entry in a `SmallMap`.
 /// It is part of the [`Entry`] enum.
-</span><span class="kw">pub struct </span>OccupiedEntry&lt;<span class="lifetime">&#39;a</span>, K, V, <span class="kw">const </span>ARRAY_SIZE: usize&gt; {
-    <span class="kw">pub</span>(<span class="kw">super</span>) inner: InnerOccupied&lt;<span class="lifetime">&#39;a</span>, K, V, ARRAY_SIZE&gt;,
+</span><span class="kw">pub struct </span>OccupiedEntry&lt;<span class="lifetime">'a</span>, K, V, <span class="kw">const </span>ARRAY_SIZE: usize&gt; {
+    <span class="kw">pub</span>(<span class="kw">super</span>) inner: InnerOccupied&lt;<span class="lifetime">'a</span>, K, V, ARRAY_SIZE&gt;,
 }
 
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">enum </span>InnerOccupied&lt;<span class="lifetime">&#39;a</span>, K, V, <span class="kw">const </span>ARRAY_SIZE: usize&gt; {
-    Inline(InlineOccupiedEntry&lt;<span class="lifetime">&#39;a</span>, K, V, ARRAY_SIZE&gt;),
-    Heap(btree_map::OccupiedEntry&lt;<span class="lifetime">&#39;a</span>, K, V&gt;),
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">enum </span>InnerOccupied&lt;<span class="lifetime">'a</span>, K, V, <span class="kw">const </span>ARRAY_SIZE: usize&gt; {
+    Inline(InlineOccupiedEntry&lt;<span class="lifetime">'a</span>, K, V, ARRAY_SIZE&gt;),
+    Heap(btree_map::OccupiedEntry&lt;<span class="lifetime">'a</span>, K, V&gt;),
 }
 
 <span class="kw">impl</span>&lt;K: Ord + Debug, V: Debug, <span class="kw">const </span>ARRAY_SIZE: usize&gt; Debug
-    <span class="kw">for </span>OccupiedEntry&lt;<span class="lifetime">&#39;_</span>, K, V, ARRAY_SIZE&gt;
+    <span class="kw">for </span>OccupiedEntry&lt;<span class="lifetime">'_</span>, K, V, ARRAY_SIZE&gt;
 {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
-        f.debug_struct(<span class="string">&quot;OccupiedEntry&quot;</span>)
-            .field(<span class="string">&quot;key&quot;</span>, <span class="self">self</span>.key())
-            .field(<span class="string">&quot;value&quot;</span>, <span class="self">self</span>.get())
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
+        f.debug_struct(<span class="string">"OccupiedEntry"</span>)
+            .field(<span class="string">"key"</span>, <span class="self">self</span>.key())
+            .field(<span class="string">"value"</span>, <span class="self">self</span>.get())
             .finish()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, K: Ord, V, <span class="kw">const </span>ARRAY_SIZE: usize&gt; Entry&lt;<span class="lifetime">&#39;a</span>, K, V, ARRAY_SIZE&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, K: Ord, V, <span class="kw">const </span>ARRAY_SIZE: usize&gt; Entry&lt;<span class="lifetime">'a</span>, K, V, ARRAY_SIZE&gt; {
     <span class="doccomment">/// Ensures a value is in the entry by inserting the default if empty, and returns
     /// a mutable reference to the value in the entry.
-    </span><span class="kw">pub fn </span>or_insert(<span class="self">self</span>, default: V) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>V {
+    </span><span class="kw">pub fn </span>or_insert(<span class="self">self</span>, default: V) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>V {
         <span class="kw">match </span><span class="self">self </span>{
             Occupied(entry) =&gt; entry.into_mut(),
             Vacant(entry) =&gt; entry.insert(default),
@@ -404,7 +405,7 @@
 
     <span class="doccomment">/// Ensures a value is in the entry by inserting the result of the default function if empty,
     /// and returns a mutable reference to the value in the entry.
-    </span><span class="kw">pub fn </span>or_insert_with&lt;F: FnOnce() -&gt; V&gt;(<span class="self">self</span>, default: F) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>V {
+    </span><span class="kw">pub fn </span>or_insert_with&lt;F: FnOnce() -&gt; V&gt;(<span class="self">self</span>, default: F) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>V {
         <span class="kw">match </span><span class="self">self </span>{
             Occupied(entry) =&gt; entry.into_mut(),
             Vacant(entry) =&gt; entry.insert(default()),
@@ -417,7 +418,7 @@
     ///
     /// The reference to the moved key is provided so that cloning or copying the key is
     /// unnecessary, unlike with `.or_insert_with(|| ... )`.
-    </span><span class="kw">pub fn </span>or_insert_with_key&lt;F: FnOnce(<span class="kw-2">&amp;</span>K) -&gt; V&gt;(<span class="self">self</span>, default: F) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>V {
+    </span><span class="kw">pub fn </span>or_insert_with_key&lt;F: FnOnce(<span class="kw-2">&amp;</span>K) -&gt; V&gt;(<span class="self">self</span>, default: F) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>V {
         <span class="kw">match </span><span class="self">self </span>{
             Occupied(entry) =&gt; entry.into_mut(),
             Vacant(entry) =&gt; {
@@ -427,7 +428,7 @@
         }
     }
 
-    <span class="doccomment">/// Returns a reference to this entry&#39;s key.
+    <span class="doccomment">/// Returns a reference to this entry's key.
     </span><span class="kw">pub fn </span>key(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>K {
         <span class="kw">match </span><span class="self">self </span>{
             Occupied(entry) =&gt; entry.key(),
@@ -451,10 +452,10 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, K: Ord, V: Default, <span class="kw">const </span>ARRAY_SIZE: usize&gt; Entry&lt;<span class="lifetime">&#39;a</span>, K, V, ARRAY_SIZE&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, K: Ord, V: Default, <span class="kw">const </span>ARRAY_SIZE: usize&gt; Entry&lt;<span class="lifetime">'a</span>, K, V, ARRAY_SIZE&gt; {
     <span class="doccomment">/// Ensures a value is in the entry by inserting the default value if empty,
     /// and returns a mutable reference to the value in the entry.
-    </span><span class="kw">pub fn </span>or_default(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>V {
+    </span><span class="kw">pub fn </span>or_default(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>V {
         <span class="kw">match </span><span class="self">self </span>{
             Occupied(entry) =&gt; entry.into_mut(),
             Vacant(entry) =&gt; entry.insert(Default::default()),
@@ -462,7 +463,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, K: Ord, V, <span class="kw">const </span>ARRAY_SIZE: usize&gt; VacantEntry&lt;<span class="lifetime">&#39;a</span>, K, V, ARRAY_SIZE&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, K: Ord, V, <span class="kw">const </span>ARRAY_SIZE: usize&gt; VacantEntry&lt;<span class="lifetime">'a</span>, K, V, ARRAY_SIZE&gt; {
     <span class="doccomment">/// Gets a reference to the key that would be used when inserting a value
     /// through the `VacantEntry`.
     </span><span class="kw">pub fn </span>key(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>K {
@@ -480,9 +481,9 @@
         }
     }
 
-    <span class="doccomment">/// Sets the value of the entry with the `VacantEntry`&#39;s key,
+    <span class="doccomment">/// Sets the value of the entry with the `VacantEntry`'s key,
     /// and returns a mutable reference to it.
-    </span><span class="kw">pub fn </span>insert(<span class="self">self</span>, value: V) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>V {
+    </span><span class="kw">pub fn </span>insert(<span class="self">self</span>, value: V) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>V {
         <span class="kw">match </span><span class="self">self</span>.inner {
             InnerVacant::Inline(i) =&gt; i.insert(value),
             InnerVacant::Heap(v) =&gt; v.insert(value),
@@ -490,7 +491,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, K: Ord, V, <span class="kw">const </span>ARRAY_SIZE: usize&gt; OccupiedEntry&lt;<span class="lifetime">&#39;a</span>, K, V, ARRAY_SIZE&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, K: Ord, V, <span class="kw">const </span>ARRAY_SIZE: usize&gt; OccupiedEntry&lt;<span class="lifetime">'a</span>, K, V, ARRAY_SIZE&gt; {
     <span class="doccomment">/// Gets a reference to the key in the entry.
     </span><span class="kw">pub fn </span>key(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>K {
         <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.inner {
@@ -533,15 +534,15 @@
     /// If you need multiple references to the `OccupiedEntry`, see [`get_mut`].
     ///
     /// [`get_mut`]: OccupiedEntry::get_mut
-    </span><span class="kw">pub fn </span>into_mut(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>V {
+    </span><span class="kw">pub fn </span>into_mut(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>V {
         <span class="kw">match </span><span class="self">self</span>.inner {
             InnerOccupied::Inline(o) =&gt; o.into_mut(),
             InnerOccupied::Heap(o) =&gt; o.into_mut(),
         }
     }
 
-    <span class="doccomment">/// Sets the value of the entry with the `OccupiedEntry`&#39;s key,
-    /// and returns the entry&#39;s old value.
+    <span class="doccomment">/// Sets the value of the entry with the `OccupiedEntry`'s key,
+    /// and returns the entry's old value.
     </span><span class="kw">pub fn </span>insert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: V) -&gt; V {
         <span class="kw">match </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.inner {
             InnerOccupied::Inline(o) =&gt; o.insert(value),
@@ -558,12 +559,12 @@
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>InlineVacantEntry&lt;<span class="lifetime">&#39;a</span>, K, V, <span class="kw">const </span>ARRAY_SIZE: usize&gt; {
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>InlineVacantEntry&lt;<span class="lifetime">'a</span>, K, V, <span class="kw">const </span>ARRAY_SIZE: usize&gt; {
     <span class="kw">pub</span>(<span class="kw">super</span>) key: K,
-    <span class="kw">pub</span>(<span class="kw">super</span>) map: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>SmallMap&lt;K, V, ARRAY_SIZE&gt;,
+    <span class="kw">pub</span>(<span class="kw">super</span>) map: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>SmallMap&lt;K, V, ARRAY_SIZE&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, K: Ord + Eq, V, <span class="kw">const </span>ARRAY_SIZE: usize&gt; InlineVacantEntry&lt;<span class="lifetime">&#39;a</span>, K, V, ARRAY_SIZE&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, K: Ord + Eq, V, <span class="kw">const </span>ARRAY_SIZE: usize&gt; InlineVacantEntry&lt;<span class="lifetime">'a</span>, K, V, ARRAY_SIZE&gt; {
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>key(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>K {
         <span class="kw-2">&amp;</span><span class="self">self</span>.key
     }
@@ -572,7 +573,7 @@
         <span class="self">self</span>.key
     }
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>insert(<span class="self">self</span>, value: V) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>V {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>insert(<span class="self">self</span>, value: V) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>V {
         <span class="kw">let </span>InlineVacantEntry { key, map } = <span class="self">self</span>;
 
         <span class="kw">let </span>vec = <span class="kw">match </span><span class="kw-2">&amp;mut </span>map.inner {
@@ -610,12 +611,12 @@
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>InlineOccupiedEntry&lt;<span class="lifetime">&#39;a</span>, K, V, <span class="kw">const </span>ARRAY_SIZE: usize&gt; {
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>InlineOccupiedEntry&lt;<span class="lifetime">'a</span>, K, V, <span class="kw">const </span>ARRAY_SIZE: usize&gt; {
     <span class="kw">pub</span>(<span class="kw">super</span>) index: usize,
-    <span class="kw">pub</span>(<span class="kw">super</span>) array: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>ArrayVec&lt;(K, V), ARRAY_SIZE&gt;,
+    <span class="kw">pub</span>(<span class="kw">super</span>) array: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>ArrayVec&lt;(K, V), ARRAY_SIZE&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, K, V, <span class="kw">const </span>ARRAY_SIZE: usize&gt; InlineOccupiedEntry&lt;<span class="lifetime">&#39;a</span>, K, V, ARRAY_SIZE&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, K, V, <span class="kw">const </span>ARRAY_SIZE: usize&gt; InlineOccupiedEntry&lt;<span class="lifetime">'a</span>, K, V, ARRAY_SIZE&gt; {
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>key(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>K {
         <span class="kw-2">&amp;</span><span class="self">self</span>.array[<span class="self">self</span>.index].<span class="number">0
     </span>}
@@ -632,7 +633,7 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>.array[<span class="self">self</span>.index].<span class="number">1
     </span>}
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>into_mut(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>V {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>into_mut(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>V {
         <span class="kw-2">&amp;mut </span><span class="self">self</span>.array[<span class="self">self</span>.index].<span class="number">1
     </span>}
 

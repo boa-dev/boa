@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/builtins/uri/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/builtins/uri/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -565,7 +566,7 @@
 <a href="#565" id="565">565</a>
 <a href="#566" id="566">566</a>
 <a href="#567" id="567">567</a>
-</pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s URI Handling Functions.
+</pre></div><pre class="rust"><code><span class="doccomment">//! Boa's implementation of ECMAScript's URI Handling Functions.
 //!
 //! Uniform Resource Identifiers, or URIs, are Strings that identify resources (e.g. web pages or
 //! files) and transport protocols by which to access them (e.g. HTTP or FTP) on the Internet. The
@@ -747,7 +748,7 @@
     <span class="comment">// 1. Let uriString be ? ToString(encodedURI).
     </span><span class="kw">let </span>uri_string = encoded_uri.to_string(context)<span class="question-mark">?</span>;
 
-    <span class="comment">// 2. Let reservedURISet be a String containing one instance of each code unit valid in uriReserved plus &quot;#&quot;.
+    <span class="comment">// 2. Let reservedURISet be a String containing one instance of each code unit valid in uriReserved plus "#".
     </span><span class="kw">let </span>reserved_uri_set = is_uri_reserved_or_number_sign;
 
     <span class="comment">// 3. Return ? Decode(uriString, reservedURISet).
@@ -807,7 +808,7 @@
     <span class="comment">// 1. Let uriString be ? ToString(uri).
     </span><span class="kw">let </span>uri_string = uri.to_string(context)<span class="question-mark">?</span>;
 
-    <span class="comment">// 2. Let unescapedURISet be a String containing one instance of each code unit valid in uriReserved and uriUnescaped plus &quot;#&quot;.
+    <span class="comment">// 2. Let unescapedURISet be a String containing one instance of each code unit valid in uriReserved and uriUnescaped plus "#".
     </span><span class="kw">let </span>unescaped_uri_set = is_uri_reserved_or_uri_unescaped_or_number_sign;
 
     <span class="comment">// 3. Return ? Encode(uriString, unescapedURISet).
@@ -893,7 +894,7 @@
             <span class="comment">// ii. If cp.[[IsUnpairedSurrogate]] is true, throw a URIError exception.
             </span><span class="kw">let </span>CodePoint::Unicode(ch) = cp <span class="kw">else </span>{
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::uri()
-                    .with_message(<span class="string">&quot;trying to encode an invalid string&quot;</span>)
+                    .with_message(<span class="string">"trying to encode an invalid string"</span>)
                     .into());
             };
 
@@ -910,10 +911,10 @@
             </span><span class="kw">for </span>octet <span class="kw">in </span>octets.bytes() {
                 <span class="comment">// 1. Set R to the string-concatenation of:
                 //    R
-                //    &quot;%&quot;
+                //    "%"
                 //    the String representation of octet, formatted as a two-digit uppercase
                 //    hexadecimal number, padded to the left with a zero if necessary
-                </span>r.extend(<span class="macro">format!</span>(<span class="string">&quot;%{octet:0&gt;2X}&quot;</span>).encode_utf16());
+                </span>r.extend(<span class="macro">format!</span>(<span class="string">"%{octet:0&gt;2X}"</span>).encode_utf16());
             }
         }
     }
@@ -966,7 +967,7 @@
             <span class="comment">// ii. If k + 2 ≥ strLen, throw a URIError exception.
             </span><span class="kw">if </span>k + <span class="number">2 </span>&gt;= str_len {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::uri()
-                    .with_message(<span class="string">&quot;invalid escape character found&quot;</span>)
+                    .with_message(<span class="string">"invalid escape character found"</span>)
                     .into());
             }
 
@@ -974,7 +975,7 @@
             // hexadecimal digits, throw a URIError exception.
             // iv. Let B be the 8-bit value represented by the two hexadecimal digits at index (k + 1) and (k + 2).
             </span><span class="kw">let </span>b = decode_hex_byte(string[k + <span class="number">1</span>], string[k + <span class="number">2</span>]).ok_or_else(|| {
-                JsNativeError::uri().with_message(<span class="string">&quot;invalid hexadecimal digit found&quot;</span>)
+                JsNativeError::uri().with_message(<span class="string">"invalid hexadecimal digit found"</span>)
             })<span class="question-mark">?</span>;
 
             <span class="comment">// v. Set k to k + 2.
@@ -1002,14 +1003,14 @@
                 // 1. If n = 1 or n &gt; 4, throw a URIError exception.
                 </span><span class="kw">if </span>n == <span class="number">1 </span>|| n &gt; <span class="number">4 </span>{
                     <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::uri()
-                        .with_message(<span class="string">&quot;invalid escaped character found&quot;</span>)
+                        .with_message(<span class="string">"invalid escaped character found"</span>)
                         .into());
                 }
 
                 <span class="comment">// 2. If k + (3 × (n - 1)) ≥ strLen, throw a URIError exception.
                 </span><span class="kw">if </span>k + (<span class="number">3 </span>* (n - <span class="number">1</span>)) &gt; str_len {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::uri()
-                        .with_message(<span class="string">&quot;non-terminated escape character found&quot;</span>)
+                        .with_message(<span class="string">"non-terminated escape character found"</span>)
                         .into());
                 }
 
@@ -1025,14 +1026,14 @@
                     <span class="comment">// b. If the code unit at index k within string is not the code unit 0x0025 (PERCENT SIGN), throw a URIError exception.
                     </span><span class="kw">if </span>string[k] != <span class="number">0x0025 </span>{
                         <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::uri()
-                            .with_message(<span class="string">&quot;escape characters must be preceded with a % sign&quot;</span>)
+                            .with_message(<span class="string">"escape characters must be preceded with a % sign"</span>)
                             .into());
                     }
 
                     <span class="comment">// c. If the code units at index (k + 1) and (k + 2) within string do not represent hexadecimal digits, throw a URIError exception.
                     // d. Let B be the 8-bit value represented by the two hexadecimal digits at index (k + 1) and (k + 2).
                     </span><span class="kw">let </span>b = decode_hex_byte(string[k + <span class="number">1</span>], string[k + <span class="number">2</span>]).ok_or_else(|| {
-                        JsNativeError::uri().with_message(<span class="string">&quot;invalid hexadecimal digit found&quot;</span>)
+                        JsNativeError::uri().with_message(<span class="string">"invalid hexadecimal digit found"</span>)
                     })<span class="question-mark">?</span>;
 
                     <span class="comment">// e. Set k to k + 2.
@@ -1051,7 +1052,7 @@
                 </span><span class="kw">match </span>std::str::from_utf8(<span class="kw-2">&amp;</span>octets) {
                     <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
                         <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::uri()
-                            .with_message(<span class="string">&quot;invalid UTF-8 encoding found&quot;</span>)
+                            .with_message(<span class="string">"invalid UTF-8 encoding found"</span>)
                             .into())
                     }
                     <span class="prelude-val">Ok</span>(v) =&gt; {
@@ -1098,38 +1099,38 @@
     </span><span class="kw">fn </span>decode_byte() {
         <span class="comment">// Sunny day tests
         </span><span class="macro">assert_eq!</span>(
-            decode_hex_byte(u16::from(<span class="string">b&#39;2&#39;</span>), u16::from(<span class="string">b&#39;0&#39;</span>)).unwrap(),
+            decode_hex_byte(u16::from(<span class="string">b'2'</span>), u16::from(<span class="string">b'0'</span>)).unwrap(),
             <span class="number">0x20
         </span>);
         <span class="macro">assert_eq!</span>(
-            decode_hex_byte(u16::from(<span class="string">b&#39;2&#39;</span>), u16::from(<span class="string">b&#39;A&#39;</span>)).unwrap(),
+            decode_hex_byte(u16::from(<span class="string">b'2'</span>), u16::from(<span class="string">b'A'</span>)).unwrap(),
             <span class="number">0x2A
         </span>);
         <span class="macro">assert_eq!</span>(
-            decode_hex_byte(u16::from(<span class="string">b&#39;3&#39;</span>), u16::from(<span class="string">b&#39;C&#39;</span>)).unwrap(),
+            decode_hex_byte(u16::from(<span class="string">b'3'</span>), u16::from(<span class="string">b'C'</span>)).unwrap(),
             <span class="number">0x3C
         </span>);
         <span class="macro">assert_eq!</span>(
-            decode_hex_byte(u16::from(<span class="string">b&#39;4&#39;</span>), u16::from(<span class="string">b&#39;0&#39;</span>)).unwrap(),
+            decode_hex_byte(u16::from(<span class="string">b'4'</span>), u16::from(<span class="string">b'0'</span>)).unwrap(),
             <span class="number">0x40
         </span>);
         <span class="macro">assert_eq!</span>(
-            decode_hex_byte(u16::from(<span class="string">b&#39;7&#39;</span>), u16::from(<span class="string">b&#39;E&#39;</span>)).unwrap(),
+            decode_hex_byte(u16::from(<span class="string">b'7'</span>), u16::from(<span class="string">b'E'</span>)).unwrap(),
             <span class="number">0x7E
         </span>);
         <span class="macro">assert_eq!</span>(
-            decode_hex_byte(u16::from(<span class="string">b&#39;0&#39;</span>), u16::from(<span class="string">b&#39;0&#39;</span>)).unwrap(),
+            decode_hex_byte(u16::from(<span class="string">b'0'</span>), u16::from(<span class="string">b'0'</span>)).unwrap(),
             <span class="number">0x00
         </span>);
 
         <span class="comment">// Rainy day tests
-        </span><span class="macro">assert!</span>(decode_hex_byte(u16::from(<span class="string">b&#39;-&#39;</span>), u16::from(<span class="string">b&#39;0&#39;</span>)).is_none());
-        <span class="macro">assert!</span>(decode_hex_byte(u16::from(<span class="string">b&#39;f&#39;</span>), u16::from(<span class="string">b&#39;~&#39;</span>)).is_none());
-        <span class="macro">assert!</span>(decode_hex_byte(u16::from(<span class="string">b&#39;A&#39;</span>), <span class="number">0_u16</span>).is_none());
-        <span class="macro">assert!</span>(decode_hex_byte(u16::from(<span class="string">b&#39;%&#39;</span>), u16::from(<span class="string">b&#39;&amp;&#39;</span>)).is_none());
+        </span><span class="macro">assert!</span>(decode_hex_byte(u16::from(<span class="string">b'-'</span>), u16::from(<span class="string">b'0'</span>)).is_none());
+        <span class="macro">assert!</span>(decode_hex_byte(u16::from(<span class="string">b'f'</span>), u16::from(<span class="string">b'~'</span>)).is_none());
+        <span class="macro">assert!</span>(decode_hex_byte(u16::from(<span class="string">b'A'</span>), <span class="number">0_u16</span>).is_none());
+        <span class="macro">assert!</span>(decode_hex_byte(u16::from(<span class="string">b'%'</span>), u16::from(<span class="string">b'&amp;'</span>)).is_none());
 
-        <span class="macro">assert!</span>(decode_hex_byte(<span class="number">0xFACD_u16</span>, u16::from(<span class="string">b&#39;-&#39;</span>)).is_none());
-        <span class="macro">assert!</span>(decode_hex_byte(u16::from(<span class="string">b&#39;-&#39;</span>), <span class="number">0xA0FD_u16</span>).is_none());
+        <span class="macro">assert!</span>(decode_hex_byte(<span class="number">0xFACD_u16</span>, u16::from(<span class="string">b'-'</span>)).is_none());
+        <span class="macro">assert!</span>(decode_hex_byte(u16::from(<span class="string">b'-'</span>), <span class="number">0xA0FD_u16</span>).is_none());
     }
 }
 </code></pre></div></section></main></body></html>

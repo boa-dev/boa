@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/builtins/async_generator/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/builtins/async_generator/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -686,7 +687,7 @@
 <a href="#686" id="686">686</a>
 <a href="#687" id="687">687</a>
 <a href="#688" id="688">688</a>
-</pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `AsyncGenerator` object.
+</pre></div><pre class="rust"><code><span class="doccomment">//! Boa's implementation of ECMAScript's global `AsyncGenerator` object.
 //!
 //! More information:
 //!  - [ECMAScript reference][spec]
@@ -758,7 +759,7 @@
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>AsyncGenerator {
     <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(std::any::type_name::&lt;<span class="self">Self</span>&gt;(), <span class="string">&quot;init&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(std::any::type_name::&lt;<span class="self">Self</span>&gt;(), <span class="string">"init"</span>);
 
         BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(realm)
             .prototype(
@@ -768,9 +769,9 @@
                     .iterator_prototypes()
                     .async_iterator(),
             )
-            .static_method(<span class="self">Self</span>::next, <span class="macro">js_string!</span>(<span class="string">&quot;next&quot;</span>), <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::r#return, <span class="macro">js_string!</span>(<span class="string">&quot;return&quot;</span>), <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::throw, <span class="macro">js_string!</span>(<span class="string">&quot;throw&quot;</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::next, <span class="macro">js_string!</span>(<span class="string">"next"</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::r#return, <span class="macro">js_string!</span>(<span class="string">"return"</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::throw, <span class="macro">js_string!</span>(<span class="string">"throw"</span>), <span class="number">1</span>)
             .static_property(
                 JsSymbol::to_string_tag(),
                 <span class="self">Self</span>::NAME,
@@ -815,19 +816,19 @@
             <span class="kw-2">&amp;</span>context.intrinsics().constructors().promise().constructor(),
             context,
         )
-        .expect(<span class="string">&quot;cannot fail with promise constructor&quot;</span>);
+        .expect(<span class="string">"cannot fail with promise constructor"</span>);
 
         <span class="comment">// 3. Let result be Completion(AsyncGeneratorValidate(generator, empty)).
         // 4. IfAbruptRejectPromise(result, promiseCapability).
         </span><span class="kw">let </span>result: JsResult&lt;<span class="kw">_</span>&gt; = generator.as_object().ok_or_else(|| {
             JsNativeError::typ()
-                .with_message(<span class="string">&quot;generator resumed on non generator object&quot;</span>)
+                .with_message(<span class="string">"generator resumed on non generator object"</span>)
                 .into()
         });
         <span class="kw">let </span>generator_object = <span class="macro">if_abrupt_reject_promise!</span>(result, promise_capability, context);
         <span class="kw">let </span>result: JsResult&lt;<span class="kw">_</span>&gt; = generator_object.downcast_mut::&lt;<span class="self">Self</span>&gt;().ok_or_else(|| {
             JsNativeError::typ()
-                .with_message(<span class="string">&quot;generator resumed on non generator object&quot;</span>)
+                .with_message(<span class="string">"generator resumed on non generator object"</span>)
                 .into()
         });
         <span class="kw">let </span><span class="kw-2">mut </span>generator = <span class="macro">if_abrupt_reject_promise!</span>(result, promise_capability, context);
@@ -846,7 +847,7 @@
             </span>promise_capability
                 .resolve()
                 .call(<span class="kw-2">&amp;</span>JsValue::undefined(), <span class="kw-2">&amp;</span>[iterator_result], context)
-                .expect(<span class="string">&quot;cannot fail per spec&quot;</span>);
+                .expect(<span class="string">"cannot fail per spec"</span>);
 
             <span class="comment">// c. Return promiseCapability.[[Promise]].
             </span><span class="kw">return </span><span class="prelude-val">Ok</span>(promise_capability.promise().clone().into());
@@ -866,7 +867,7 @@
             </span><span class="kw">let </span>generator_context = generator
                 .context
                 .take()
-                .expect(<span class="string">&quot;generator context cannot be empty here&quot;</span>);
+                .expect(<span class="string">"generator context cannot be empty here"</span>);
 
             drop(generator);
 
@@ -902,19 +903,19 @@
             <span class="kw-2">&amp;</span>context.intrinsics().constructors().promise().constructor(),
             context,
         )
-        .expect(<span class="string">&quot;cannot fail with promise constructor&quot;</span>);
+        .expect(<span class="string">"cannot fail with promise constructor"</span>);
 
         <span class="comment">// 3. Let result be Completion(AsyncGeneratorValidate(generator, empty)).
         // 4. IfAbruptRejectPromise(result, promiseCapability).
         </span><span class="kw">let </span>result: JsResult&lt;<span class="kw">_</span>&gt; = generator.as_object().ok_or_else(|| {
             JsNativeError::typ()
-                .with_message(<span class="string">&quot;generator resumed on non generator object&quot;</span>)
+                .with_message(<span class="string">"generator resumed on non generator object"</span>)
                 .into()
         });
         <span class="kw">let </span>generator_object = <span class="macro">if_abrupt_reject_promise!</span>(result, promise_capability, context);
         <span class="kw">let </span>result: JsResult&lt;<span class="kw">_</span>&gt; = generator_object.downcast_mut::&lt;<span class="self">Self</span>&gt;().ok_or_else(|| {
             JsNativeError::typ()
-                .with_message(<span class="string">&quot;generator resumed on non generator object&quot;</span>)
+                .with_message(<span class="string">"generator resumed on non generator object"</span>)
                 .into()
         });
         <span class="kw">let </span><span class="kw-2">mut </span>generator = <span class="macro">if_abrupt_reject_promise!</span>(result, promise_capability, context);
@@ -944,7 +945,7 @@
             </span><span class="kw">let </span>generator_context = generator
                 .context
                 .take()
-                .expect(<span class="string">&quot;generator context cannot be empty here&quot;</span>);
+                .expect(<span class="string">"generator context cannot be empty here"</span>);
 
             drop(generator);
             <span class="self">Self</span>::resume(
@@ -979,19 +980,19 @@
             <span class="kw-2">&amp;</span>context.intrinsics().constructors().promise().constructor(),
             context,
         )
-        .expect(<span class="string">&quot;cannot fail with promise constructor&quot;</span>);
+        .expect(<span class="string">"cannot fail with promise constructor"</span>);
 
         <span class="comment">// 3. Let result be Completion(AsyncGeneratorValidate(generator, empty)).
         // 4. IfAbruptRejectPromise(result, promiseCapability).
         </span><span class="kw">let </span>result: JsResult&lt;<span class="kw">_</span>&gt; = generator.as_object().ok_or_else(|| {
             JsNativeError::typ()
-                .with_message(<span class="string">&quot;generator resumed on non generator object&quot;</span>)
+                .with_message(<span class="string">"generator resumed on non generator object"</span>)
                 .into()
         });
         <span class="kw">let </span>generator_object = <span class="macro">if_abrupt_reject_promise!</span>(result, promise_capability, context);
         <span class="kw">let </span>result: JsResult&lt;<span class="kw">_</span>&gt; = generator_object.downcast_mut::&lt;<span class="self">Self</span>&gt;().ok_or_else(|| {
             JsNativeError::typ()
-                .with_message(<span class="string">&quot;generator resumed on non generator object&quot;</span>)
+                .with_message(<span class="string">"generator resumed on non generator object"</span>)
                 .into()
         });
         <span class="kw">let </span><span class="kw-2">mut </span>generator = <span class="macro">if_abrupt_reject_promise!</span>(result, promise_capability, context);
@@ -1021,7 +1022,7 @@
                     <span class="kw-2">&amp;</span>[args.get_or_undefined(<span class="number">0</span>).clone()],
                     context,
                 )
-                .expect(<span class="string">&quot;cannot fail per spec&quot;</span>);
+                .expect(<span class="string">"cannot fail per spec"</span>);
 
             <span class="comment">// b. Return promiseCapability.[[Promise]].
             </span><span class="kw">return </span><span class="prelude-val">Ok</span>(promise_capability.promise().clone().into());
@@ -1039,7 +1040,7 @@
             <span class="kw">let </span>generator_context = generator
                 .context
                 .take()
-                .expect(<span class="string">&quot;generator context cannot be empty here&quot;</span>);
+                .expect(<span class="string">"generator context cannot be empty here"</span>);
             drop(generator);
 
             <span class="comment">// a. Perform AsyncGeneratorResume(generator, completion).
@@ -1105,7 +1106,7 @@
                 </span>promise_capability
                     .reject()
                     .call(<span class="kw-2">&amp;</span>JsValue::undefined(), <span class="kw-2">&amp;</span>[e.to_opaque(context)], context)
-                    .expect(<span class="string">&quot;cannot fail per spec&quot;</span>);
+                    .expect(<span class="string">"cannot fail per spec"</span>);
             }
             <span class="comment">// 8. Else,
             </span><span class="prelude-val">Ok</span>(value) =&gt; {
@@ -1113,14 +1114,14 @@
 
                 // b. If realm is present, then
                 </span><span class="kw">let </span>iterator_result = <span class="kw">if let </span><span class="prelude-val">Some</span>(realm) = realm {
-                    <span class="comment">// i. Let oldRealm be the running execution context&#39;s Realm.
-                    // ii. Set the running execution context&#39;s Realm to realm.
+                    <span class="comment">// i. Let oldRealm be the running execution context's Realm.
+                    // ii. Set the running execution context's Realm to realm.
                     </span><span class="kw">let </span>old_realm = context.enter_realm(realm);
 
                     <span class="comment">// iii. Let iteratorResult be CreateIterResultObject(value, done).
                     </span><span class="kw">let </span>iterator_result = create_iter_result_object(value, done, context);
 
-                    <span class="comment">// iv. Set the running execution context&#39;s Realm to oldRealm.
+                    <span class="comment">// iv. Set the running execution context's Realm to oldRealm.
                     </span>context.enter_realm(old_realm);
 
                     iterator_result
@@ -1134,7 +1135,7 @@
                 </span>promise_capability
                     .resolve()
                     .call(<span class="kw-2">&amp;</span>JsValue::undefined(), <span class="kw-2">&amp;</span>[iterator_result], context)
-                    .expect(<span class="string">&quot;cannot fail per spec&quot;</span>);
+                    .expect(<span class="string">"cannot fail per spec"</span>);
             }
         }
     }
@@ -1166,7 +1167,7 @@
         // 5. Set generator.[[AsyncGeneratorState]] to executing.
         </span>generator
             .downcast_mut::&lt;<span class="self">Self</span>&gt;()
-            .expect(<span class="string">&quot;already checked before&quot;</span>)
+            .expect(<span class="string">"already checked before"</span>)
             .state = AsyncGeneratorState::Executing;
 
         <span class="kw">let </span>(value, resume_kind) = <span class="kw">match </span>completion {
@@ -1182,7 +1183,7 @@
 
         </span>generator
             .downcast_mut::&lt;<span class="self">Self</span>&gt;()
-            .expect(<span class="string">&quot;already checked before&quot;</span>)
+            .expect(<span class="string">"already checked before"</span>)
             .context = <span class="prelude-val">Some</span>(generator_context);
 
         <span class="comment">// 8. Assert: result is never an abrupt completion.
@@ -1220,10 +1221,10 @@
             <span class="prelude-val">Err</span>(value) =&gt; {
                 <span class="kw">let </span><span class="kw-2">mut </span>gen = generator
                     .downcast_mut::&lt;<span class="self">Self</span>&gt;()
-                    .expect(<span class="string">&quot;already checked before&quot;</span>);
+                    .expect(<span class="string">"already checked before"</span>);
                 gen.state = AsyncGeneratorState::Completed;
                 gen.context = <span class="prelude-val">None</span>;
-                <span class="kw">let </span>next = gen.queue.pop_front().expect(<span class="string">&quot;queue must not be empty&quot;</span>);
+                <span class="kw">let </span>next = gen.queue.pop_front().expect(<span class="string">"queue must not be empty"</span>);
                 drop(gen);
                 <span class="self">Self</span>::complete_step(<span class="kw-2">&amp;</span>next, <span class="prelude-val">Err</span>(value), <span class="bool-val">true</span>, <span class="prelude-val">None</span>, context);
                 <span class="self">Self</span>::drain_queue(<span class="kw-2">&amp;</span>generator, context);
@@ -1232,7 +1233,7 @@
         };
 
         <span class="comment">// 7. Let fulfilledClosure be a new Abstract Closure with parameters (value) that captures generator and performs the following steps when called:
-        // 8. Let onFulfilled be CreateBuiltinFunction(fulfilledClosure, 1, &quot;&quot;, « »).
+        // 8. Let onFulfilled be CreateBuiltinFunction(fulfilledClosure, 1, "", « »).
         </span><span class="kw">let </span>on_fulfilled = FunctionObjectBuilder::new(
             context.realm(),
             NativeFunction::from_copy_closure_with_captures(
@@ -1240,13 +1241,13 @@
                     <span class="kw">let </span>next = {
                         <span class="kw">let </span><span class="kw-2">mut </span>gen = generator
                             .downcast_mut::&lt;<span class="self">Self</span>&gt;()
-                            .expect(<span class="string">&quot;already checked before&quot;</span>);
+                            .expect(<span class="string">"already checked before"</span>);
 
                         <span class="comment">// a. Set generator.[[AsyncGeneratorState]] to completed.
                         </span>gen.state = AsyncGeneratorState::Completed;
                         gen.context = <span class="prelude-val">None</span>;
 
-                        gen.queue.pop_front().expect(<span class="string">&quot;must have one entry&quot;</span>)
+                        gen.queue.pop_front().expect(<span class="string">"must have one entry"</span>)
                     };
 
                     <span class="comment">// b. Let result be NormalCompletion(value).
@@ -1264,19 +1265,19 @@
                 generator.clone(),
             ),
         )
-        .name(<span class="string">&quot;&quot;</span>)
+        .name(<span class="string">""</span>)
         .length(<span class="number">1</span>)
         .build();
 
         <span class="comment">// 9. Let rejectedClosure be a new Abstract Closure with parameters (reason) that captures generator and performs the following steps when called:
-        // 10. Let onRejected be CreateBuiltinFunction(rejectedClosure, 1, &quot;&quot;, « »).
+        // 10. Let onRejected be CreateBuiltinFunction(rejectedClosure, 1, "", « »).
         </span><span class="kw">let </span>on_rejected = FunctionObjectBuilder::new(
             context.realm(),
             NativeFunction::from_copy_closure_with_captures(
                 |_this, args, generator, context| {
                     <span class="kw">let </span><span class="kw-2">mut </span>gen = generator
                         .downcast_mut::&lt;<span class="self">Self</span>&gt;()
-                        .expect(<span class="string">&quot;already checked before&quot;</span>);
+                        .expect(<span class="string">"already checked before"</span>);
 
                     <span class="comment">// a. Set generator.[[AsyncGeneratorState]] to completed.
                     </span>gen.state = AsyncGeneratorState::Completed;
@@ -1286,7 +1287,7 @@
                     </span><span class="kw">let </span>result = <span class="prelude-val">Err</span>(JsError::from_opaque(args.get_or_undefined(<span class="number">0</span>).clone()));
 
                     <span class="comment">// c. Perform AsyncGeneratorCompleteStep(generator, result, true).
-                    </span><span class="kw">let </span>next = gen.queue.pop_front().expect(<span class="string">&quot;must have one entry&quot;</span>);
+                    </span><span class="kw">let </span>next = gen.queue.pop_front().expect(<span class="string">"must have one entry"</span>);
                     drop(gen);
                     <span class="self">Self</span>::complete_step(<span class="kw-2">&amp;</span>next, result, <span class="bool-val">true</span>, <span class="prelude-val">None</span>, context);
 
@@ -1299,7 +1300,7 @@
                 generator,
             ),
         )
-        .name(<span class="string">&quot;&quot;</span>)
+        .name(<span class="string">""</span>)
         .length(<span class="number">1</span>)
         .build();
 
@@ -1322,7 +1323,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>drain_queue(generator: <span class="kw-2">&amp;</span>JsObject, context: <span class="kw-2">&amp;mut </span>Context) {
         <span class="kw">let </span><span class="kw-2">mut </span>gen = generator
             .downcast_mut::&lt;<span class="self">Self</span>&gt;()
-            .expect(<span class="string">&quot;already checked before&quot;</span>);
+            .expect(<span class="string">"already checked before"</span>);
 
         <span class="comment">// 1. Assert: generator.[[AsyncGeneratorState]] is completed.
         </span><span class="macro">assert_eq!</span>(gen.state, AsyncGeneratorState::Completed);
@@ -1339,7 +1340,7 @@
         // 5. Repeat, while done is false,
         </span><span class="kw">loop </span>{
             <span class="comment">// a. Let next be the first element of queue.
-            </span><span class="kw">let </span>next = queue.front().expect(<span class="string">&quot;must have entry&quot;</span>);
+            </span><span class="kw">let </span>next = queue.front().expect(<span class="string">"must have entry"</span>);
 
             <span class="comment">// b. Let completion be Completion(next.[[Completion]]).
             </span><span class="kw">match </span>next.completion.clone() {
@@ -1362,7 +1363,7 @@
                     </span><span class="kw">let </span>completion = completion.consume().map(|<span class="kw">_</span>| JsValue::undefined());
 
                     <span class="comment">// ii. Perform AsyncGeneratorCompleteStep(generator, completion, true).
-                    </span><span class="kw">let </span>next = queue.pop_front().expect(<span class="string">&quot;must have entry&quot;</span>);
+                    </span><span class="kw">let </span>next = queue.pop_front().expect(<span class="string">"must have entry"</span>);
                     <span class="self">Self</span>::complete_step(<span class="kw-2">&amp;</span>next, completion, <span class="bool-val">true</span>, <span class="prelude-val">None</span>, context);
 
                     <span class="comment">// iii. If queue is empty, set done to true.

@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/builtins/math/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/builtins/math/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -895,11 +896,11 @@
 <a href="#895" id="895">895</a>
 <a href="#896" id="896">896</a>
 <a href="#897" id="897">897</a>
-</pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Math` object.
+</pre></div><pre class="rust"><code><span class="doccomment">//! Boa's implementation of ECMAScript's global `Math` object.
 //!
 //! `Math` is a built-in object that has properties and methods for mathematical constants and functions. It’s not a function object.
 //!
-//! `Math` works with the `Number` type. It doesn&#39;t work with `BigInt`.
+//! `Math` works with the `Number` type. It doesn't work with `BigInt`.
 //!
 //! More information:
 //!  - [ECMAScript reference][spec]
@@ -926,57 +927,57 @@
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>Math {
     <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(std::any::type_name::&lt;<span class="self">Self</span>&gt;(), <span class="string">&quot;init&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(std::any::type_name::&lt;<span class="self">Self</span>&gt;(), <span class="string">"init"</span>);
 
         <span class="kw">let </span>attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
         BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(realm)
-            .static_property(<span class="macro">js_string!</span>(<span class="string">&quot;E&quot;</span>), std::f64::consts::E, attribute)
-            .static_property(<span class="macro">js_string!</span>(<span class="string">&quot;LN10&quot;</span>), std::f64::consts::LN_10, attribute)
-            .static_property(<span class="macro">js_string!</span>(<span class="string">&quot;LN2&quot;</span>), std::f64::consts::LN_2, attribute)
-            .static_property(<span class="macro">js_string!</span>(<span class="string">&quot;LOG10E&quot;</span>), std::f64::consts::LOG10_E, attribute)
-            .static_property(<span class="macro">js_string!</span>(<span class="string">&quot;LOG2E&quot;</span>), std::f64::consts::LOG2_E, attribute)
-            .static_property(<span class="macro">js_string!</span>(<span class="string">&quot;PI&quot;</span>), std::f64::consts::PI, attribute)
+            .static_property(<span class="macro">js_string!</span>(<span class="string">"E"</span>), std::f64::consts::E, attribute)
+            .static_property(<span class="macro">js_string!</span>(<span class="string">"LN10"</span>), std::f64::consts::LN_10, attribute)
+            .static_property(<span class="macro">js_string!</span>(<span class="string">"LN2"</span>), std::f64::consts::LN_2, attribute)
+            .static_property(<span class="macro">js_string!</span>(<span class="string">"LOG10E"</span>), std::f64::consts::LOG10_E, attribute)
+            .static_property(<span class="macro">js_string!</span>(<span class="string">"LOG2E"</span>), std::f64::consts::LOG2_E, attribute)
+            .static_property(<span class="macro">js_string!</span>(<span class="string">"PI"</span>), std::f64::consts::PI, attribute)
             .static_property(
-                <span class="macro">js_string!</span>(<span class="string">&quot;SQRT1_2&quot;</span>),
+                <span class="macro">js_string!</span>(<span class="string">"SQRT1_2"</span>),
                 std::f64::consts::FRAC_1_SQRT_2,
                 attribute,
             )
-            .static_property(<span class="macro">js_string!</span>(<span class="string">&quot;SQRT2&quot;</span>), std::f64::consts::SQRT_2, attribute)
-            .static_method(<span class="self">Self</span>::abs, <span class="macro">js_string!</span>(<span class="string">&quot;abs&quot;</span>), <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::acos, <span class="macro">js_string!</span>(<span class="string">&quot;acos&quot;</span>), <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::acosh, <span class="macro">js_string!</span>(<span class="string">&quot;acosh&quot;</span>), <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::asin, <span class="macro">js_string!</span>(<span class="string">&quot;asin&quot;</span>), <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::asinh, <span class="macro">js_string!</span>(<span class="string">&quot;asinh&quot;</span>), <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::atan, <span class="macro">js_string!</span>(<span class="string">&quot;atan&quot;</span>), <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::atanh, <span class="macro">js_string!</span>(<span class="string">&quot;atanh&quot;</span>), <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::atan2, <span class="macro">js_string!</span>(<span class="string">&quot;atan2&quot;</span>), <span class="number">2</span>)
-            .static_method(<span class="self">Self</span>::cbrt, <span class="macro">js_string!</span>(<span class="string">&quot;cbrt&quot;</span>), <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::ceil, <span class="macro">js_string!</span>(<span class="string">&quot;ceil&quot;</span>), <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::clz32, <span class="macro">js_string!</span>(<span class="string">&quot;clz32&quot;</span>), <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::cos, <span class="macro">js_string!</span>(<span class="string">&quot;cos&quot;</span>), <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::cosh, <span class="macro">js_string!</span>(<span class="string">&quot;cosh&quot;</span>), <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::exp, <span class="macro">js_string!</span>(<span class="string">&quot;exp&quot;</span>), <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::expm1, <span class="macro">js_string!</span>(<span class="string">&quot;expm1&quot;</span>), <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::floor, <span class="macro">js_string!</span>(<span class="string">&quot;floor&quot;</span>), <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::fround, <span class="macro">js_string!</span>(<span class="string">&quot;fround&quot;</span>), <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::hypot, <span class="macro">js_string!</span>(<span class="string">&quot;hypot&quot;</span>), <span class="number">2</span>)
-            .static_method(<span class="self">Self</span>::imul, <span class="macro">js_string!</span>(<span class="string">&quot;imul&quot;</span>), <span class="number">2</span>)
-            .static_method(<span class="self">Self</span>::log, <span class="macro">js_string!</span>(<span class="string">&quot;log&quot;</span>), <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::log1p, <span class="macro">js_string!</span>(<span class="string">&quot;log1p&quot;</span>), <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::log10, <span class="macro">js_string!</span>(<span class="string">&quot;log10&quot;</span>), <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::log2, <span class="macro">js_string!</span>(<span class="string">&quot;log2&quot;</span>), <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::max, <span class="macro">js_string!</span>(<span class="string">&quot;max&quot;</span>), <span class="number">2</span>)
-            .static_method(<span class="self">Self</span>::min, <span class="macro">js_string!</span>(<span class="string">&quot;min&quot;</span>), <span class="number">2</span>)
-            .static_method(<span class="self">Self</span>::pow, <span class="macro">js_string!</span>(<span class="string">&quot;pow&quot;</span>), <span class="number">2</span>)
-            .static_method(<span class="self">Self</span>::random, <span class="macro">js_string!</span>(<span class="string">&quot;random&quot;</span>), <span class="number">0</span>)
-            .static_method(<span class="self">Self</span>::round, <span class="macro">js_string!</span>(<span class="string">&quot;round&quot;</span>), <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::sign, <span class="macro">js_string!</span>(<span class="string">&quot;sign&quot;</span>), <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::sin, <span class="macro">js_string!</span>(<span class="string">&quot;sin&quot;</span>), <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::sinh, <span class="macro">js_string!</span>(<span class="string">&quot;sinh&quot;</span>), <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::sqrt, <span class="macro">js_string!</span>(<span class="string">&quot;sqrt&quot;</span>), <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::tan, <span class="macro">js_string!</span>(<span class="string">&quot;tan&quot;</span>), <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::tanh, <span class="macro">js_string!</span>(<span class="string">&quot;tanh&quot;</span>), <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::trunc, <span class="macro">js_string!</span>(<span class="string">&quot;trunc&quot;</span>), <span class="number">1</span>)
+            .static_property(<span class="macro">js_string!</span>(<span class="string">"SQRT2"</span>), std::f64::consts::SQRT_2, attribute)
+            .static_method(<span class="self">Self</span>::abs, <span class="macro">js_string!</span>(<span class="string">"abs"</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::acos, <span class="macro">js_string!</span>(<span class="string">"acos"</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::acosh, <span class="macro">js_string!</span>(<span class="string">"acosh"</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::asin, <span class="macro">js_string!</span>(<span class="string">"asin"</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::asinh, <span class="macro">js_string!</span>(<span class="string">"asinh"</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::atan, <span class="macro">js_string!</span>(<span class="string">"atan"</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::atanh, <span class="macro">js_string!</span>(<span class="string">"atanh"</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::atan2, <span class="macro">js_string!</span>(<span class="string">"atan2"</span>), <span class="number">2</span>)
+            .static_method(<span class="self">Self</span>::cbrt, <span class="macro">js_string!</span>(<span class="string">"cbrt"</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::ceil, <span class="macro">js_string!</span>(<span class="string">"ceil"</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::clz32, <span class="macro">js_string!</span>(<span class="string">"clz32"</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::cos, <span class="macro">js_string!</span>(<span class="string">"cos"</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::cosh, <span class="macro">js_string!</span>(<span class="string">"cosh"</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::exp, <span class="macro">js_string!</span>(<span class="string">"exp"</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::expm1, <span class="macro">js_string!</span>(<span class="string">"expm1"</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::floor, <span class="macro">js_string!</span>(<span class="string">"floor"</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::fround, <span class="macro">js_string!</span>(<span class="string">"fround"</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::hypot, <span class="macro">js_string!</span>(<span class="string">"hypot"</span>), <span class="number">2</span>)
+            .static_method(<span class="self">Self</span>::imul, <span class="macro">js_string!</span>(<span class="string">"imul"</span>), <span class="number">2</span>)
+            .static_method(<span class="self">Self</span>::log, <span class="macro">js_string!</span>(<span class="string">"log"</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::log1p, <span class="macro">js_string!</span>(<span class="string">"log1p"</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::log10, <span class="macro">js_string!</span>(<span class="string">"log10"</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::log2, <span class="macro">js_string!</span>(<span class="string">"log2"</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::max, <span class="macro">js_string!</span>(<span class="string">"max"</span>), <span class="number">2</span>)
+            .static_method(<span class="self">Self</span>::min, <span class="macro">js_string!</span>(<span class="string">"min"</span>), <span class="number">2</span>)
+            .static_method(<span class="self">Self</span>::pow, <span class="macro">js_string!</span>(<span class="string">"pow"</span>), <span class="number">2</span>)
+            .static_method(<span class="self">Self</span>::random, <span class="macro">js_string!</span>(<span class="string">"random"</span>), <span class="number">0</span>)
+            .static_method(<span class="self">Self</span>::round, <span class="macro">js_string!</span>(<span class="string">"round"</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::sign, <span class="macro">js_string!</span>(<span class="string">"sign"</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::sin, <span class="macro">js_string!</span>(<span class="string">"sin"</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::sinh, <span class="macro">js_string!</span>(<span class="string">"sinh"</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::sqrt, <span class="macro">js_string!</span>(<span class="string">"sqrt"</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::tan, <span class="macro">js_string!</span>(<span class="string">"tan"</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::tanh, <span class="macro">js_string!</span>(<span class="string">"tanh"</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::trunc, <span class="macro">js_string!</span>(<span class="string">"trunc"</span>), <span class="number">1</span>)
             .static_property(
                 JsSymbol::to_string_tag(),
                 <span class="self">Self</span>::NAME,
@@ -1304,7 +1305,7 @@
             .into())
     }
 
-    <span class="doccomment">/// The Math.expm1() function returns e^x - 1, where x is the argument, and e the base of
+    <span class="doccomment">/// The `Math.expm1()` function returns e^x - 1, where x is the argument, and e the base of
     /// the natural logarithms. The result is computed in a way that is accurate even when the
     /// value of x is close 0
     ///

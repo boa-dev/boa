@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `tests/tester/src/exec/js262.rs`."><title>js262.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="boa_tester" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../boa_tester/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_tester"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `tests/tester/src/exec/js262.rs`."><title>js262.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="boa_tester" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../../boa_tester/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_tester"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -384,7 +385,7 @@
                 <span class="kw">match </span>result {
                     <span class="prelude-val">Ok</span>(<span class="prelude-val">Ok</span>(())) =&gt; WorkerResult::Ok,
                     <span class="prelude-val">Ok</span>(<span class="prelude-val">Err</span>(msg)) =&gt; {
-                        <span class="macro">eprintln!</span>(<span class="string">&quot;Detected error on worker thread: {msg}&quot;</span>);
+                        <span class="macro">eprintln!</span>(<span class="string">"Detected error on worker thread: {msg}"</span>);
                         WorkerResult::Err(msg)
                     }
                     <span class="prelude-val">Err</span>(e) =&gt; {
@@ -392,7 +393,7 @@
                             .downcast_ref::&lt;<span class="kw-2">&amp;</span>str&gt;()
                             .map(|<span class="kw-2">&amp;</span>s| String::from(s))
                             .unwrap_or_default();
-                        <span class="macro">eprintln!</span>(<span class="string">&quot;Detected panic on worker thread: {msg}&quot;</span>);
+                        <span class="macro">eprintln!</span>(<span class="string">"Detected panic on worker thread: {msg}"</span>);
                         WorkerResult::Panic(msg)
                     }
                 }
@@ -416,27 +417,27 @@
     <span class="kw">let </span>js262 = ObjectInitializer::new(context)
         .function(
             NativeFunction::from_fn_ptr(create_realm),
-            <span class="macro">js_string!</span>(<span class="string">&quot;createRealm&quot;</span>),
+            <span class="macro">js_string!</span>(<span class="string">"createRealm"</span>),
             <span class="number">0</span>,
         )
         .function(
             NativeFunction::from_fn_ptr(detach_array_buffer),
-            <span class="macro">js_string!</span>(<span class="string">&quot;detachArrayBuffer&quot;</span>),
+            <span class="macro">js_string!</span>(<span class="string">"detachArrayBuffer"</span>),
             <span class="number">2</span>,
         )
         .function(
             NativeFunction::from_fn_ptr(eval_script),
-            <span class="macro">js_string!</span>(<span class="string">&quot;evalScript&quot;</span>),
+            <span class="macro">js_string!</span>(<span class="string">"evalScript"</span>),
             <span class="number">1</span>,
         )
-        .function(NativeFunction::from_fn_ptr(gc), <span class="macro">js_string!</span>(<span class="string">&quot;gc&quot;</span>), <span class="number">0</span>)
+        .function(NativeFunction::from_fn_ptr(gc), <span class="macro">js_string!</span>(<span class="string">"gc"</span>), <span class="number">0</span>)
         .property(
-            <span class="macro">js_string!</span>(<span class="string">&quot;global&quot;</span>),
+            <span class="macro">js_string!</span>(<span class="string">"global"</span>),
             global_obj,
             Attribute::WRITABLE | Attribute::CONFIGURABLE,
         )
         .property(
-            <span class="macro">js_string!</span>(<span class="string">&quot;agent&quot;</span>),
+            <span class="macro">js_string!</span>(<span class="string">"agent"</span>),
             agent,
             Attribute::WRITABLE | Attribute::CONFIGURABLE,
         )
@@ -444,19 +445,19 @@
 
     context
         .register_global_property(
-            <span class="macro">js_string!</span>(<span class="string">&quot;$262&quot;</span>),
+            <span class="macro">js_string!</span>(<span class="string">"$262"</span>),
             js262.clone(),
             Attribute::WRITABLE | Attribute::CONFIGURABLE,
         )
-        .expect(<span class="string">&quot;shouldn&#39;t fail with the default global&quot;</span>);
+        .expect(<span class="string">"shouldn't fail with the default global"</span>);
 
     js262
 }
 
 <span class="doccomment">/// The `$262.createRealm()` function.
 ///
-/// Creates a new ECMAScript Realm, defines this API on the new realm&#39;s global object, and
-/// returns the `$262` property of the new realm&#39;s global object.
+/// Creates a new ECMAScript Realm, defines this API on the new realm's global object, and
+/// returns the `$262` property of the new realm's global object.
 </span><span class="attr">#[allow(clippy::unnecessary_wraps)]
 </span><span class="kw">fn </span>create_realm(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
     <span class="kw">let </span>context = <span class="kw-2">&amp;mut </span>Context::default();
@@ -471,7 +472,7 @@
 /// Implements the `DetachArrayBuffer` abstract operation.
 </span><span class="kw">fn </span>detach_array_buffer(<span class="kw">_</span>: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
     <span class="kw">fn </span>type_err() -&gt; JsNativeError {
-        JsNativeError::typ().with_message(<span class="string">&quot;The provided object was not an ArrayBuffer&quot;</span>)
+        JsNativeError::typ().with_message(<span class="string">"The provided object was not an ArrayBuffer"</span>)
     }
 
     <span class="kw">let </span>array_buffer = args
@@ -509,7 +510,7 @@
 
 <span class="doccomment">/// The `$262.gc()` function.
 ///
-/// Wraps the host&#39;s garbage collection invocation mechanism, if such a capability exists.
+/// Wraps the host's garbage collection invocation mechanism, if such a capability exists.
 /// Must throw an exception if no capability exists. This is necessary for testing the
 /// semantics of any feature that relies on garbage collection, e.g. the `WeakRef` API.
 </span><span class="attr">#[allow(clippy::unnecessary_wraps)]
@@ -571,12 +572,12 @@
         <span class="comment">// should technically also have a second numeric argument, but the test262 never uses it.
         </span>NativeFunction::from_closure(<span class="kw">move </span>|<span class="kw">_</span>, args, <span class="kw">_</span>| {
             <span class="kw">let </span>buffer = args.get_or_undefined(<span class="number">0</span>).as_object().ok_or_else(|| {
-                JsNativeError::typ().with_message(<span class="string">&quot;argument was not a shared array&quot;</span>)
+                JsNativeError::typ().with_message(<span class="string">"argument was not a shared array"</span>)
             })<span class="question-mark">?</span>;
             <span class="kw">let </span>buffer = buffer
                 .downcast_ref::&lt;SharedArrayBuffer&gt;()
                 .ok_or_else(|| {
-                    JsNativeError::typ().with_message(<span class="string">&quot;argument was not a shared array&quot;</span>)
+                    JsNativeError::typ().with_message(<span class="string">"argument was not a shared array"</span>)
                 })<span class="question-mark">?
                 </span>.clone();
 
@@ -597,13 +598,13 @@
     };
 
     ObjectInitializer::new(context)
-        .function(start, <span class="macro">js_string!</span>(<span class="string">&quot;start&quot;</span>), <span class="number">1</span>)
-        .function(broadcast, <span class="macro">js_string!</span>(<span class="string">&quot;broadcast&quot;</span>), <span class="number">2</span>)
-        .function(get_report, <span class="macro">js_string!</span>(<span class="string">&quot;getReport&quot;</span>), <span class="number">0</span>)
-        .function(NativeFunction::from_fn_ptr(sleep), <span class="macro">js_string!</span>(<span class="string">&quot;sleep&quot;</span>), <span class="number">1</span>)
+        .function(start, <span class="macro">js_string!</span>(<span class="string">"start"</span>), <span class="number">1</span>)
+        .function(broadcast, <span class="macro">js_string!</span>(<span class="string">"broadcast"</span>), <span class="number">2</span>)
+        .function(get_report, <span class="macro">js_string!</span>(<span class="string">"getReport"</span>), <span class="number">0</span>)
+        .function(NativeFunction::from_fn_ptr(sleep), <span class="macro">js_string!</span>(<span class="string">"sleep"</span>), <span class="number">1</span>)
         .function(
             NativeFunction::from_fn_ptr(monotonic_now),
-            <span class="macro">js_string!</span>(<span class="string">&quot;monotonicNow&quot;</span>),
+            <span class="macro">js_string!</span>(<span class="string">"monotonicNow"</span>),
             <span class="number">0</span>,
         )
         .build()
@@ -620,13 +621,13 @@
         <span class="comment">// should technically also have a second numeric argument, but the test262 never uses it.
         </span>NativeFunction::from_closure(<span class="kw">move </span>|<span class="kw">_</span>, args, context| {
             <span class="kw">let </span>array = rx.borrow_mut().recv().map_err(|err| {
-                JsNativeError::typ().with_message(<span class="macro">format!</span>(<span class="string">&quot;failed to receive buffer: {err}&quot;</span>))
+                JsNativeError::typ().with_message(<span class="macro">format!</span>(<span class="string">"failed to receive buffer: {err}"</span>))
             })<span class="question-mark">?</span>;
 
             <span class="kw">let </span>callable = args
                 .get_or_undefined(<span class="number">0</span>)
                 .as_callable()
-                .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;argument is not callable&quot;</span>))<span class="question-mark">?</span>;
+                .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">"argument is not callable"</span>))<span class="question-mark">?</span>;
 
             <span class="kw">let </span>buffer = JsSharedArrayBuffer::from_buffer(array, context);
             callable.call(<span class="kw-2">&amp;</span>JsValue::undefined(), <span class="kw-2">&amp;</span>[buffer.into()], context)
@@ -643,26 +644,26 @@
     };
 
     <span class="kw">let </span>agent = ObjectInitializer::new(context)
-        .function(receive_broadcast, <span class="macro">js_string!</span>(<span class="string">&quot;receiveBroadcast&quot;</span>), <span class="number">1</span>)
-        .function(report, <span class="macro">js_string!</span>(<span class="string">&quot;report&quot;</span>), <span class="number">1</span>)
-        .function(NativeFunction::from_fn_ptr(sleep), <span class="macro">js_string!</span>(<span class="string">&quot;sleep&quot;</span>), <span class="number">1</span>)
-        <span class="comment">// Don&#39;t need to signal leaving, the main thread will join with the worker
+        .function(receive_broadcast, <span class="macro">js_string!</span>(<span class="string">"receiveBroadcast"</span>), <span class="number">1</span>)
+        .function(report, <span class="macro">js_string!</span>(<span class="string">"report"</span>), <span class="number">1</span>)
+        .function(NativeFunction::from_fn_ptr(sleep), <span class="macro">js_string!</span>(<span class="string">"sleep"</span>), <span class="number">1</span>)
+        <span class="comment">// Don't need to signal leaving, the main thread will join with the worker
         // threads anyways.
         </span>.function(
             NativeFunction::from_fn_ptr(|<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>| <span class="prelude-val">Ok</span>(JsValue::undefined())),
-            <span class="macro">js_string!</span>(<span class="string">&quot;leaving&quot;</span>),
+            <span class="macro">js_string!</span>(<span class="string">"leaving"</span>),
             <span class="number">0</span>,
         )
         .function(
             NativeFunction::from_fn_ptr(monotonic_now),
-            <span class="macro">js_string!</span>(<span class="string">&quot;monotonicNow&quot;</span>),
+            <span class="macro">js_string!</span>(<span class="string">"monotonicNow"</span>),
             <span class="number">0</span>,
         )
         .build();
 
     <span class="kw">let </span>js262 = ObjectInitializer::new(context)
         .property(
-            <span class="macro">js_string!</span>(<span class="string">&quot;agent&quot;</span>),
+            <span class="macro">js_string!</span>(<span class="string">"agent"</span>),
             agent,
             Attribute::WRITABLE | Attribute::CONFIGURABLE,
         )
@@ -670,10 +671,10 @@
 
     context
         .register_global_property(
-            <span class="macro">js_string!</span>(<span class="string">&quot;$262&quot;</span>),
+            <span class="macro">js_string!</span>(<span class="string">"$262"</span>),
             js262,
             Attribute::WRITABLE | Attribute::CONFIGURABLE,
         )
-        .expect(<span class="string">&quot;shouldn&#39;t fail with the default global&quot;</span>);
+        .expect(<span class="string">"shouldn't fail with the default global"</span>);
 }
 </code></pre></div></section></main></body></html>

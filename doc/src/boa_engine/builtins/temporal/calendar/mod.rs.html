@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/builtins/temporal/calendar/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/builtins/temporal/calendar/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1127,7 +1128,7 @@
 <a href="#1127" id="1127">1127</a>
 <a href="#1128" id="1128">1128</a>
 <a href="#1129" id="1129">1129</a>
-</pre></div><pre class="rust"><code><span class="doccomment">//! An implementation of the `Temporal` proposal&#39;s Calendar builtin.
+</pre></div><pre class="rust"><code><span class="doccomment">//! An implementation of the `Temporal` proposal's Calendar builtin.
 
 </span><span class="kw">use </span>std::str::FromStr;
 
@@ -1192,10 +1193,10 @@
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>Calendar {
     <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(std::any::type_name::&lt;<span class="self">Self</span>&gt;(), <span class="string">&quot;init&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(std::any::type_name::&lt;<span class="self">Self</span>&gt;(), <span class="string">"init"</span>);
 
         <span class="kw">let </span>get_id = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_id)
-            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get Id&quot;</span>))
+            .name(<span class="macro">js_string!</span>(<span class="string">"get Id"</span>))
             .build();
 
         BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
@@ -1204,40 +1205,40 @@
                 <span class="self">Self</span>::NAME,
                 Attribute::CONFIGURABLE,
             )
-            .accessor(<span class="macro">utf16!</span>(<span class="string">&quot;id&quot;</span>), <span class="prelude-val">Some</span>(get_id), <span class="prelude-val">None</span>, Attribute::CONFIGURABLE)
-            .static_method(<span class="self">Self</span>::from, <span class="macro">js_string!</span>(<span class="string">&quot;from&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::date_from_fields, <span class="macro">js_string!</span>(<span class="string">&quot;dateFromFields&quot;</span>), <span class="number">2</span>)
+            .accessor(<span class="macro">utf16!</span>(<span class="string">"id"</span>), <span class="prelude-val">Some</span>(get_id), <span class="prelude-val">None</span>, Attribute::CONFIGURABLE)
+            .static_method(<span class="self">Self</span>::from, <span class="macro">js_string!</span>(<span class="string">"from"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::date_from_fields, <span class="macro">js_string!</span>(<span class="string">"dateFromFields"</span>), <span class="number">2</span>)
             .method(
                 <span class="self">Self</span>::year_month_from_fields,
-                <span class="macro">js_string!</span>(<span class="string">&quot;yearMonthFromFields&quot;</span>),
+                <span class="macro">js_string!</span>(<span class="string">"yearMonthFromFields"</span>),
                 <span class="number">2</span>,
             )
             .method(
                 <span class="self">Self</span>::month_day_from_fields,
-                <span class="macro">js_string!</span>(<span class="string">&quot;monthDayFromFields&quot;</span>),
+                <span class="macro">js_string!</span>(<span class="string">"monthDayFromFields"</span>),
                 <span class="number">2</span>,
             )
-            .method(<span class="self">Self</span>::date_add, <span class="macro">js_string!</span>(<span class="string">&quot;dateAdd&quot;</span>), <span class="number">3</span>)
-            .method(<span class="self">Self</span>::date_until, <span class="macro">js_string!</span>(<span class="string">&quot;dateUntil&quot;</span>), <span class="number">3</span>)
-            .method(<span class="self">Self</span>::era, <span class="macro">js_string!</span>(<span class="string">&quot;era&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::era_year, <span class="macro">js_string!</span>(<span class="string">&quot;eraYear&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::year, <span class="macro">js_string!</span>(<span class="string">&quot;year&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::month, <span class="macro">js_string!</span>(<span class="string">&quot;month&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::month_code, <span class="macro">js_string!</span>(<span class="string">&quot;monthCode&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::day, <span class="macro">js_string!</span>(<span class="string">&quot;day&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::day_of_week, <span class="macro">js_string!</span>(<span class="string">&quot;dayOfWeek&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::day_of_year, <span class="macro">js_string!</span>(<span class="string">&quot;dayOfYear&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::week_of_year, <span class="macro">js_string!</span>(<span class="string">&quot;weekOfYear&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::year_of_week, <span class="macro">js_string!</span>(<span class="string">&quot;yearOfWeek&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::days_in_week, <span class="macro">js_string!</span>(<span class="string">&quot;daysInWeek&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::days_in_month, <span class="macro">js_string!</span>(<span class="string">&quot;daysInMonth&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::days_in_year, <span class="macro">js_string!</span>(<span class="string">&quot;daysInYear&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::months_in_year, <span class="macro">js_string!</span>(<span class="string">&quot;monthsInYear&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::in_leap_year, <span class="macro">js_string!</span>(<span class="string">&quot;inLeapYear&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::fields, <span class="macro">js_string!</span>(<span class="string">&quot;fields&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::merge_fields, <span class="macro">js_string!</span>(<span class="string">&quot;mergeFields&quot;</span>), <span class="number">2</span>)
-            .method(<span class="self">Self</span>::get_id, <span class="macro">js_string!</span>(<span class="string">&quot;toString&quot;</span>), <span class="number">0</span>)
-            .method(<span class="self">Self</span>::get_id, <span class="macro">js_string!</span>(<span class="string">&quot;toJSON&quot;</span>), <span class="number">0</span>)
+            .method(<span class="self">Self</span>::date_add, <span class="macro">js_string!</span>(<span class="string">"dateAdd"</span>), <span class="number">3</span>)
+            .method(<span class="self">Self</span>::date_until, <span class="macro">js_string!</span>(<span class="string">"dateUntil"</span>), <span class="number">3</span>)
+            .method(<span class="self">Self</span>::era, <span class="macro">js_string!</span>(<span class="string">"era"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::era_year, <span class="macro">js_string!</span>(<span class="string">"eraYear"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::year, <span class="macro">js_string!</span>(<span class="string">"year"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::month, <span class="macro">js_string!</span>(<span class="string">"month"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::month_code, <span class="macro">js_string!</span>(<span class="string">"monthCode"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::day, <span class="macro">js_string!</span>(<span class="string">"day"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::day_of_week, <span class="macro">js_string!</span>(<span class="string">"dayOfWeek"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::day_of_year, <span class="macro">js_string!</span>(<span class="string">"dayOfYear"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::week_of_year, <span class="macro">js_string!</span>(<span class="string">"weekOfYear"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::year_of_week, <span class="macro">js_string!</span>(<span class="string">"yearOfWeek"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::days_in_week, <span class="macro">js_string!</span>(<span class="string">"daysInWeek"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::days_in_month, <span class="macro">js_string!</span>(<span class="string">"daysInMonth"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::days_in_year, <span class="macro">js_string!</span>(<span class="string">"daysInYear"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::months_in_year, <span class="macro">js_string!</span>(<span class="string">"monthsInYear"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::in_leap_year, <span class="macro">js_string!</span>(<span class="string">"inLeapYear"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::fields, <span class="macro">js_string!</span>(<span class="string">"fields"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::merge_fields, <span class="macro">js_string!</span>(<span class="string">"mergeFields"</span>), <span class="number">2</span>)
+            .method(<span class="self">Self</span>::get_id, <span class="macro">js_string!</span>(<span class="string">"toString"</span>), <span class="number">0</span>)
+            .method(<span class="self">Self</span>::get_id, <span class="macro">js_string!</span>(<span class="string">"toJSON"</span>), <span class="number">0</span>)
             .build();
     }
 
@@ -1262,7 +1263,7 @@
             <span class="comment">// a. Throw a TypeError exception.
             </span><span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
                 .with_message(
-                    <span class="string">&quot;newTarget cannot be undefined when constructing a Temporal.Calendar object.&quot;</span>,
+                    <span class="string">"newTarget cannot be undefined when constructing a Temporal.Calendar object."</span>,
                 )
                 .into());
         }
@@ -1272,7 +1273,7 @@
         <span class="comment">// 2. If id is not a String, throw a TypeError exception.
         </span><span class="kw">let </span>JsValue::String(id) = identifier <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;Calendar id must be a string.&quot;</span>)
+                .with_message(<span class="string">"Calendar id must be a string."</span>)
                 .into());
         };
 
@@ -1301,7 +1302,7 @@
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message(
-                    <span class="string">&quot;the this value of Calendar.prototype.id must be a Calendar object.&quot;</span>,
+                    <span class="string">"the this value of Calendar.prototype.id must be a Calendar object."</span>,
                 )
             })<span class="question-mark">?</span>;
 
@@ -1321,31 +1322,31 @@
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message(
-                    <span class="string">&quot;this value of Calendar dateFromFields must be a Calendar object.&quot;</span>,
+                    <span class="string">"this value of Calendar dateFromFields must be a Calendar object."</span>,
                 )
             })<span class="question-mark">?</span>;
 
         <span class="comment">// 3. If Type(fields) is not Object, throw a TypeError exception.
         </span><span class="kw">let </span>fields = args.get_or_undefined(<span class="number">0</span>);
         <span class="kw">let </span>fields_obj = fields.as_object().ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;fields parameter must be an object.&quot;</span>)
+            JsNativeError::typ().with_message(<span class="string">"fields parameter must be an object."</span>)
         })<span class="question-mark">?</span>;
 
         <span class="comment">// 4. Set options to ? GetOptionsObject(options).
         </span><span class="kw">let </span>options = get_options_object(args.get_or_undefined(<span class="number">1</span>))<span class="question-mark">?</span>;
 
-        <span class="comment">// 5. Let relevantFieldNames be « &quot;day&quot;, &quot;month&quot;, &quot;monthCode&quot;, &quot;year&quot; ».
+        <span class="comment">// 5. Let relevantFieldNames be « "day", "month", "monthCode", "year" ».
         </span><span class="kw">let </span><span class="kw-2">mut </span>relevant_field_names = Vec::from([
-            <span class="macro">js_string!</span>(<span class="string">&quot;day&quot;</span>),
-            <span class="macro">js_string!</span>(<span class="string">&quot;month&quot;</span>),
-            <span class="macro">js_string!</span>(<span class="string">&quot;monthCode&quot;</span>),
-            <span class="macro">js_string!</span>(<span class="string">&quot;year&quot;</span>),
+            <span class="macro">js_string!</span>(<span class="string">"day"</span>),
+            <span class="macro">js_string!</span>(<span class="string">"month"</span>),
+            <span class="macro">js_string!</span>(<span class="string">"monthCode"</span>),
+            <span class="macro">js_string!</span>(<span class="string">"year"</span>),
         ]);
 
-        <span class="comment">// 6. If calendar.[[Identifier]] is &quot;iso8601&quot;, then
+        <span class="comment">// 6. If calendar.[[Identifier]] is "iso8601", then
         </span><span class="kw">let </span><span class="kw-2">mut </span>fields = <span class="kw">if </span>calendar.slot.is_iso() {
-            <span class="comment">// a. Set fields to ? PrepareTemporalFields(fields, relevantFieldNames, « &quot;year&quot;, &quot;day&quot; »).
-            </span><span class="kw">let </span><span class="kw-2">mut </span>required_fields = Vec::from([<span class="macro">js_string!</span>(<span class="string">&quot;year&quot;</span>), <span class="macro">js_string!</span>(<span class="string">&quot;day&quot;</span>)]);
+            <span class="comment">// a. Set fields to ? PrepareTemporalFields(fields, relevantFieldNames, « "year", "day" »).
+            </span><span class="kw">let </span><span class="kw-2">mut </span>required_fields = Vec::from([<span class="macro">js_string!</span>(<span class="string">"year"</span>), <span class="macro">js_string!</span>(<span class="string">"day"</span>)]);
             fields::prepare_temporal_fields(
                 fields_obj,
                 <span class="kw-2">&amp;mut </span>relevant_field_names,
@@ -1373,11 +1374,11 @@
         </span>};
 
         <span class="comment">// 8. Let overflow be ? ToTemporalOverflow(options).
-        </span><span class="kw">let </span>overflow = get_option(<span class="kw-2">&amp;</span>options, <span class="macro">utf16!</span>(<span class="string">&quot;overflow&quot;</span>), context)<span class="question-mark">?
+        </span><span class="kw">let </span>overflow = get_option(<span class="kw-2">&amp;</span>options, <span class="macro">utf16!</span>(<span class="string">"overflow"</span>), context)<span class="question-mark">?
             </span>.unwrap_or(ArithmeticOverflow::Constrain);
 
         <span class="comment">// NOTE: implement the below on the calenar itself
-        // 9. If calendar.[[Identifier]] is &quot;iso8601&quot;, then
+        // 9. If calendar.[[Identifier]] is "iso8601", then
         // a. Perform ? ISOResolveMonth(fields).
         // b. Let result be ? ISODateFromFields(fields, overflow).
         // 10. Else,
@@ -1402,28 +1403,28 @@
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message(
-                    <span class="string">&quot;this value of Calendar yearMonthFromFields must be a Calendar object.&quot;</span>,
+                    <span class="string">"this value of Calendar yearMonthFromFields must be a Calendar object."</span>,
                 )
             })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>fields = args.get_or_undefined(<span class="number">0</span>);
         <span class="kw">let </span>fields_obj = fields.as_object().ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;fields parameter must be an object.&quot;</span>)
+            JsNativeError::typ().with_message(<span class="string">"fields parameter must be an object."</span>)
         })<span class="question-mark">?</span>;
 
         <span class="comment">// 5. Set options to ? GetOptionsObject(options).
         </span><span class="kw">let </span>options = get_options_object(args.get_or_undefined(<span class="number">1</span>))<span class="question-mark">?</span>;
 
         <span class="kw">let </span><span class="kw-2">mut </span>relevant_field_names = Vec::from([
-            <span class="macro">js_string!</span>(<span class="string">&quot;year&quot;</span>),
-            <span class="macro">js_string!</span>(<span class="string">&quot;month&quot;</span>),
-            <span class="macro">js_string!</span>(<span class="string">&quot;monthCode&quot;</span>),
+            <span class="macro">js_string!</span>(<span class="string">"year"</span>),
+            <span class="macro">js_string!</span>(<span class="string">"month"</span>),
+            <span class="macro">js_string!</span>(<span class="string">"monthCode"</span>),
         ]);
 
-        <span class="comment">// 6. Set fields to ? PrepareTemporalFields(fields, « &quot;month&quot;, &quot;monthCode&quot;, &quot;year&quot; », « &quot;year&quot; »).
-        </span><span class="kw">let </span><span class="kw-2">mut </span>fields = <span class="kw">if </span>calendar.slot.identifier(context)<span class="question-mark">?</span>.as_str() == <span class="string">&quot;iso8601&quot; </span>{
-            <span class="comment">// a. Set fields to ? PrepareTemporalFields(fields, relevantFieldNames, « &quot;year&quot; »).
-            </span><span class="kw">let </span><span class="kw-2">mut </span>required_fields = Vec::from([<span class="macro">js_string!</span>(<span class="string">&quot;year&quot;</span>)]);
+        <span class="comment">// 6. Set fields to ? PrepareTemporalFields(fields, « "month", "monthCode", "year" », « "year" »).
+        </span><span class="kw">let </span><span class="kw-2">mut </span>fields = <span class="kw">if </span>calendar.slot.identifier(context)<span class="question-mark">?</span>.as_str() == <span class="string">"iso8601" </span>{
+            <span class="comment">// a. Set fields to ? PrepareTemporalFields(fields, relevantFieldNames, « "year" »).
+            </span><span class="kw">let </span><span class="kw-2">mut </span>required_fields = Vec::from([<span class="macro">js_string!</span>(<span class="string">"year"</span>)]);
             fields::prepare_temporal_fields(
                 fields_obj,
                 <span class="kw-2">&amp;mut </span>relevant_field_names,
@@ -1451,12 +1452,12 @@
             )<span class="question-mark">?
 
             </span><span class="comment">// TODO: figure out the below. Maybe a method on fields?
-            // c. Let firstDayIndex be the 1-based index of the first day of the month described by fields (i.e., 1 unless the month&#39;s first day is skipped by this calendar.)
-            // d. Perform ! CreateDataPropertyOrThrow(fields, &quot;day&quot;, 𝔽(firstDayIndex)).
+            // c. Let firstDayIndex be the 1-based index of the first day of the month described by fields (i.e., 1 unless the month's first day is skipped by this calendar.)
+            // d. Perform ! CreateDataPropertyOrThrow(fields, "day", 𝔽(firstDayIndex)).
         </span>};
 
         <span class="comment">// 7. Let overflow be ? ToTemporalOverflow(options).
-        </span><span class="kw">let </span>overflow = get_option::&lt;ArithmeticOverflow&gt;(<span class="kw-2">&amp;</span>options, <span class="macro">utf16!</span>(<span class="string">&quot;overflow&quot;</span>), context)<span class="question-mark">?
+        </span><span class="kw">let </span>overflow = get_option::&lt;ArithmeticOverflow&gt;(<span class="kw-2">&amp;</span>options, <span class="macro">utf16!</span>(<span class="string">"overflow"</span>), context)<span class="question-mark">?
             </span>.unwrap_or(ArithmeticOverflow::Constrain);
 
         <span class="kw">let </span>result = calendar
@@ -1479,31 +1480,31 @@
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message(
-                    <span class="string">&quot;this value of Calendar monthDayFromFields must be a Calendar object.&quot;</span>,
+                    <span class="string">"this value of Calendar monthDayFromFields must be a Calendar object."</span>,
                 )
             })<span class="question-mark">?</span>;
 
         <span class="comment">// 3. If Type(fields) is not Object, throw a TypeError exception.
         </span><span class="kw">let </span>fields = args.get_or_undefined(<span class="number">0</span>);
         <span class="kw">let </span>fields_obj = fields.as_object().ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;fields parameter must be an object.&quot;</span>)
+            JsNativeError::typ().with_message(<span class="string">"fields parameter must be an object."</span>)
         })<span class="question-mark">?</span>;
 
         <span class="comment">// 4. Set options to ? GetOptionsObject(options).
         </span><span class="kw">let </span>options = get_options_object(args.get_or_undefined(<span class="number">1</span>))<span class="question-mark">?</span>;
 
-        <span class="comment">// 5. Let relevantFieldNames be « &quot;day&quot;, &quot;month&quot;, &quot;monthCode&quot;, &quot;year&quot; ».
+        <span class="comment">// 5. Let relevantFieldNames be « "day", "month", "monthCode", "year" ».
         </span><span class="kw">let </span><span class="kw-2">mut </span>relevant_field_names = Vec::from([
-            <span class="macro">js_string!</span>(<span class="string">&quot;day&quot;</span>),
-            <span class="macro">js_string!</span>(<span class="string">&quot;month&quot;</span>),
-            <span class="macro">js_string!</span>(<span class="string">&quot;monthCode&quot;</span>),
-            <span class="macro">js_string!</span>(<span class="string">&quot;year&quot;</span>),
+            <span class="macro">js_string!</span>(<span class="string">"day"</span>),
+            <span class="macro">js_string!</span>(<span class="string">"month"</span>),
+            <span class="macro">js_string!</span>(<span class="string">"monthCode"</span>),
+            <span class="macro">js_string!</span>(<span class="string">"year"</span>),
         ]);
 
-        <span class="comment">// 6. If calendar.[[Identifier]] is &quot;iso8601&quot;, then
-        </span><span class="kw">let </span><span class="kw-2">mut </span>fields = <span class="kw">if </span>calendar.slot.identifier(context)<span class="question-mark">?</span>.as_str() == <span class="string">&quot;iso8601&quot; </span>{
-            <span class="comment">// a. Set fields to ? PrepareTemporalFields(fields, relevantFieldNames, « &quot;day&quot; »).
-            </span><span class="kw">let </span><span class="kw-2">mut </span>required_fields = Vec::from([<span class="macro">js_string!</span>(<span class="string">&quot;day&quot;</span>)]);
+        <span class="comment">// 6. If calendar.[[Identifier]] is "iso8601", then
+        </span><span class="kw">let </span><span class="kw-2">mut </span>fields = <span class="kw">if </span>calendar.slot.identifier(context)<span class="question-mark">?</span>.as_str() == <span class="string">"iso8601" </span>{
+            <span class="comment">// a. Set fields to ? PrepareTemporalFields(fields, relevantFieldNames, « "day" »).
+            </span><span class="kw">let </span><span class="kw-2">mut </span>required_fields = Vec::from([<span class="macro">js_string!</span>(<span class="string">"day"</span>)]);
             fields::prepare_temporal_fields(
                 fields_obj,
                 <span class="kw-2">&amp;mut </span>relevant_field_names,
@@ -1532,7 +1533,7 @@
         </span>};
 
         <span class="comment">// 8. Let overflow be ? ToTemporalOverflow(options).
-        </span><span class="kw">let </span>overflow = get_option(<span class="kw-2">&amp;</span>options, <span class="macro">utf16!</span>(<span class="string">&quot;overflow&quot;</span>), context)<span class="question-mark">?
+        </span><span class="kw">let </span>overflow = get_option(<span class="kw-2">&amp;</span>options, <span class="macro">utf16!</span>(<span class="string">"overflow"</span>), context)<span class="question-mark">?
             </span>.unwrap_or(ArithmeticOverflow::Constrain);
 
         <span class="kw">let </span>result = calendar
@@ -1546,13 +1547,13 @@
     </span><span class="kw">fn </span>date_add(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let calendar be the this value.
         // 2. Perform ? RequireInternalSlot(calendar, [[InitializedTemporalCalendar]]).
-        // 3. Assert: calendar.[[Identifier]] is &quot;iso8601&quot;.
+        // 3. Assert: calendar.[[Identifier]] is "iso8601".
         </span><span class="kw">let </span>calendar = this
             .as_object()
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message(<span class="string">&quot;this value of Calendar dateAdd must be a Calendar object.&quot;</span>)
+                    .with_message(<span class="string">"this value of Calendar dateAdd must be a Calendar object."</span>)
             })<span class="question-mark">?</span>;
 
         <span class="comment">// 4. Set date to ? ToTemporalDate(date).
@@ -1568,10 +1569,10 @@
         <span class="kw">let </span>options_obj = get_options_object(options)<span class="question-mark">?</span>;
 
         <span class="comment">// 7. Let overflow be ? ToTemporalOverflow(options).
-        </span><span class="kw">let </span>overflow = get_option(<span class="kw-2">&amp;</span>options_obj, <span class="macro">utf16!</span>(<span class="string">&quot;overflow&quot;</span>), context)<span class="question-mark">?
+        </span><span class="kw">let </span>overflow = get_option(<span class="kw-2">&amp;</span>options_obj, <span class="macro">utf16!</span>(<span class="string">"overflow"</span>), context)<span class="question-mark">?
             </span>.unwrap_or(ArithmeticOverflow::Constrain);
 
-        <span class="comment">// 8. Let balanceResult be ? BalanceTimeDuration(duration.[[Days]], duration.[[Hours]], duration.[[Minutes]], duration.[[Seconds]], duration.[[Milliseconds]], duration.[[Microseconds]], duration.[[Nanoseconds]], &quot;day&quot;).
+        <span class="comment">// 8. Let balanceResult be ? BalanceTimeDuration(duration.[[Days]], duration.[[Hours]], duration.[[Minutes]], duration.[[Seconds]], duration.[[Milliseconds]], duration.[[Microseconds]], duration.[[Nanoseconds]], "day").
         </span>duration.balance_time_duration(TemporalUnit::Day)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>result = calendar
@@ -1585,13 +1586,13 @@
     </span><span class="kw">fn </span>date_until(this: <span class="kw-2">&amp;</span>JsValue, args: <span class="kw-2">&amp;</span>[JsValue], context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let calendar be the this value.
         // 2. Perform ? RequireInternalSlot(calendar, [[InitializedTemporalCalendar]]).
-        // 3. Assert: calendar.[[Identifier]] is &quot;iso8601&quot;.
+        // 3. Assert: calendar.[[Identifier]] is "iso8601".
         </span><span class="kw">let </span>calendar = this
             .as_object()
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message(<span class="string">&quot;this value of Calendar dateUntil must be a Calendar object.&quot;</span>)
+                    .with_message(<span class="string">"this value of Calendar dateUntil must be a Calendar object."</span>)
             })<span class="question-mark">?</span>;
 
         <span class="comment">// 4. Set one to ? ToTemporalDate(one).
@@ -1602,11 +1603,11 @@
         <span class="comment">// 6. Set options to ? GetOptionsObject(options).
         </span><span class="kw">let </span>options = get_options_object(args.get_or_undefined(<span class="number">2</span>))<span class="question-mark">?</span>;
 
-        <span class="comment">// 7. Let largestUnit be ? GetTemporalUnit(options, &quot;largestUnit&quot;, date, &quot;auto&quot;).
-        // 8. If largestUnit is &quot;auto&quot;, set largestUnit to &quot;day&quot;.
+        <span class="comment">// 7. Let largestUnit be ? GetTemporalUnit(options, "largestUnit", date, "auto").
+        // 8. If largestUnit is "auto", set largestUnit to "day".
         </span><span class="kw">let </span>largest_unit = <span class="kw">super</span>::options::get_temporal_unit(
             <span class="kw-2">&amp;</span>options,
-            <span class="macro">utf16!</span>(<span class="string">&quot;largestUnit&quot;</span>),
+            <span class="macro">utf16!</span>(<span class="string">"largestUnit"</span>),
             TemporalUnitGroup::Date,
             <span class="prelude-val">None</span>,
             context,
@@ -1627,7 +1628,7 @@
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message(<span class="string">&quot;this value of Calendar era must be a Calendar object.&quot;</span>)
+                    .with_message(<span class="string">"this value of Calendar era must be a Calendar object."</span>)
             })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>date_like = to_calendar_date_like(args.get_or_undefined(<span class="number">0</span>), context)<span class="question-mark">?</span>;
@@ -1647,7 +1648,7 @@
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message(<span class="string">&quot;this value of Calendar eraYear must be a Calendar object.&quot;</span>)
+                    .with_message(<span class="string">"this value of Calendar eraYear must be a Calendar object."</span>)
             })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>date_like = to_calendar_date_like(args.get_or_undefined(<span class="number">0</span>), context)<span class="question-mark">?</span>;
@@ -1667,7 +1668,7 @@
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message(<span class="string">&quot;this value of Calendar year must be a Calendar object.&quot;</span>)
+                    .with_message(<span class="string">"this value of Calendar year must be a Calendar object."</span>)
             })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>date_like = to_calendar_date_like(args.get_or_undefined(<span class="number">0</span>), context)<span class="question-mark">?</span>;
@@ -1684,7 +1685,7 @@
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message(<span class="string">&quot;this value of Calendar month must be a Calendar object.&quot;</span>)
+                    .with_message(<span class="string">"this value of Calendar month must be a Calendar object."</span>)
             })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>date_like = to_calendar_date_like(args.get_or_undefined(<span class="number">0</span>), context)<span class="question-mark">?</span>;
@@ -1706,7 +1707,7 @@
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message(<span class="string">&quot;this value of Calendar monthCode must be a Calendar object.&quot;</span>)
+                    .with_message(<span class="string">"this value of Calendar monthCode must be a Calendar object."</span>)
             })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>date_like = to_calendar_date_like(args.get_or_undefined(<span class="number">0</span>), context)<span class="question-mark">?</span>;
@@ -1723,7 +1724,7 @@
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message(<span class="string">&quot;this value of Calendar day must be a Calendar object.&quot;</span>)
+                    .with_message(<span class="string">"this value of Calendar day must be a Calendar object."</span>)
             })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>date_like = to_calendar_date_like(args.get_or_undefined(<span class="number">0</span>), context)<span class="question-mark">?</span>;
@@ -1742,7 +1743,7 @@
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message(<span class="string">&quot;this value of Calendar dayOfWeek must be a Calendar object.&quot;</span>)
+                    .with_message(<span class="string">"this value of Calendar dayOfWeek must be a Calendar object."</span>)
             })<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Let temporalDate be ? ToTemporalDate(temporalDateLike).
@@ -1762,7 +1763,7 @@
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message(<span class="string">&quot;this value of Calendar dayOfYear must be a Calendar object.&quot;</span>)
+                    .with_message(<span class="string">"this value of Calendar dayOfYear must be a Calendar object."</span>)
             })<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Let temporalDate be ? ToTemporalDate(temporalDateLike).
@@ -1782,7 +1783,7 @@
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message(<span class="string">&quot;this value of Calendar weekOfYear must be a Calendar object.&quot;</span>)
+                    .with_message(<span class="string">"this value of Calendar weekOfYear must be a Calendar object."</span>)
             })<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Let temporalDate be ? ToTemporalDate(temporalDateLike).
@@ -1802,7 +1803,7 @@
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message(<span class="string">&quot;this value of Calendar yearOfWeek must be a Calendar object.&quot;</span>)
+                    .with_message(<span class="string">"this value of Calendar yearOfWeek must be a Calendar object."</span>)
             })<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Let temporalDate be ? ToTemporalDate(temporalDateLike).
@@ -1822,7 +1823,7 @@
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message(<span class="string">&quot;this value of Calendar daysInWeek must be a Calendar object.&quot;</span>)
+                    .with_message(<span class="string">"this value of Calendar daysInWeek must be a Calendar object."</span>)
             })<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Let temporalDate be ? ToTemporalDate(temporalDateLike).
@@ -1842,7 +1843,7 @@
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message(<span class="string">&quot;this value of Calendar daysInMonth must be a Calendar object.&quot;</span>)
+                    .with_message(<span class="string">"this value of Calendar daysInMonth must be a Calendar object."</span>)
             })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>date_like = to_calendar_date_like(args.get_or_undefined(<span class="number">0</span>), context)<span class="question-mark">?</span>;
@@ -1859,7 +1860,7 @@
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message(<span class="string">&quot;this value of Calendar daysInYear must be a Calendar object.&quot;</span>)
+                    .with_message(<span class="string">"this value of Calendar daysInYear must be a Calendar object."</span>)
             })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>date_like = to_calendar_date_like(args.get_or_undefined(<span class="number">0</span>), context)<span class="question-mark">?</span>;
@@ -1879,7 +1880,7 @@
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message(<span class="string">&quot;this value of Calendar monthsInYear must be a Calendar object.&quot;</span>)
+                    .with_message(<span class="string">"this value of Calendar monthsInYear must be a Calendar object."</span>)
             })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>date_like = to_calendar_date_like(args.get_or_undefined(<span class="number">0</span>), context)<span class="question-mark">?</span>;
@@ -1896,7 +1897,7 @@
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message(<span class="string">&quot;this value of Calendar inLeapYear must be a Calendar object.&quot;</span>)
+                    .with_message(<span class="string">"this value of Calendar inLeapYear must be a Calendar object."</span>)
             })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>date_like = to_calendar_date_like(args.get_or_undefined(<span class="number">0</span>), context)<span class="question-mark">?</span>;
@@ -1915,7 +1916,7 @@
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message(<span class="string">&quot;this value of Calendar Fields must be a Calendar object.&quot;</span>)
+                    .with_message(<span class="string">"this value of Calendar Fields must be a Calendar object."</span>)
             })<span class="question-mark">?</span>;
 
         <span class="comment">// Custom Calendars override the `fields` method.
@@ -1934,7 +1935,7 @@
                 } <span class="kw">else </span>{
                     <span class="comment">// 1. Let completion be ThrowCompletion(a newly created TypeError object).
                     </span><span class="kw">let </span>completion = <span class="prelude-val">Err</span>(JsNativeError::typ()
-                        .with_message(<span class="string">&quot;field must be of type string&quot;</span>)
+                        .with_message(<span class="string">"field must be of type string"</span>)
                         .into());
                     <span class="comment">// 2. Return ? IteratorClose(iteratorRecord, completion).
                     </span><span class="kw">return </span>iterator_record.close(completion, context);
@@ -1970,20 +1971,20 @@
                 <span class="comment">// iii. If fieldNames contains nextValue, then
                 // 1. Let completion be ThrowCompletion(a newly created RangeError object).
                 // 2. Return ? IteratorClose(iteratorRecord, completion).
-                // iv. If nextValue is not one of &quot;year&quot;, &quot;month&quot;, &quot;monthCode&quot;, or &quot;day&quot;, then
+                // iv. If nextValue is not one of "year", "month", "monthCode", or "day", then
                 // 1. Let completion be ThrowCompletion(a newly created RangeError object).
                 // 2. Return ? IteratorClose(iteratorRecord, completion).
                 // v. Append nextValue to the end of the List fieldNames.
                 </span><span class="kw">let </span>this_field = value.to_std_string_escaped();
                 <span class="kw">match </span>this_field.as_str() {
-                    <span class="string">&quot;year&quot; </span>| <span class="string">&quot;month&quot; </span>| <span class="string">&quot;monthCode&quot; </span>| <span class="string">&quot;day&quot;
+                    <span class="string">"year" </span>| <span class="string">"month" </span>| <span class="string">"monthCode" </span>| <span class="string">"day"
                         </span><span class="kw">if </span>!fields_names.contains(<span class="kw-2">&amp;</span>this_field) =&gt;
                     {
                         fields_names.push(this_field);
                     }
                     <span class="kw">_ </span>=&gt; {
                         <span class="kw">let </span>completion = <span class="prelude-val">Err</span>(JsNativeError::range()
-                            .with_message(<span class="string">&quot;Invalid field name string.&quot;</span>)
+                            .with_message(<span class="string">"Invalid field name string."</span>)
                             .into());
                         <span class="kw">return </span>iterator_record.close(completion, context);
                     }
@@ -1991,7 +1992,7 @@
             } <span class="kw">else </span>{
                 <span class="comment">// 1. Let completion be ThrowCompletion(a newly created TypeError object).
                 </span><span class="kw">let </span>completion = <span class="prelude-val">Err</span>(JsNativeError::typ()
-                    .with_message(<span class="string">&quot;field must be of type string&quot;</span>)
+                    .with_message(<span class="string">"field must be of type string"</span>)
                     .into());
                 <span class="comment">// 2. Return ? IteratorClose(iteratorRecord, completion).
                 </span><span class="kw">return </span>iterator_record.close(completion, context);
@@ -1999,7 +2000,7 @@
         }
 
         <span class="comment">// 7. Let result be fieldNames.
-        // 8. If calendar.[[Identifier]] is not &quot;iso8601&quot;, then
+        // 8. If calendar.[[Identifier]] is not "iso8601", then
         </span><span class="kw">if </span>!calendar.slot.is_iso() {
             <span class="comment">// a. NOTE: Every built-in calendar preserves all input field names in output.
             // b. Let extraFieldDescriptors be CalendarFieldDescriptors(calendar.[[Identifier]], fieldNames).
@@ -2032,7 +2033,7 @@
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message(<span class="string">&quot;this value of Calendar mergeFields must be a Calendar object.&quot;</span>)
+                    .with_message(<span class="string">"this value of Calendar mergeFields must be a Calendar object."</span>)
             })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>fields = args.get_or_undefined(<span class="number">0</span>).to_object(context)<span class="question-mark">?</span>;
@@ -2054,7 +2055,7 @@
         <span class="comment">// 5. NOTE: Every property of fieldsCopy and additionalFieldsCopy is an enumerable data property with non-undefined value,
         // but some property keys may be Symbols.
         // 6. Let additionalKeys be ! additionalFieldsCopy.[[OwnPropertyKeys]]().
-        // 7. If calendar.[[Identifier]] is &quot;iso8601&quot;, then
+        // 7. If calendar.[[Identifier]] is "iso8601", then
         // a. Let overriddenKeys be ISOFieldKeysToIgnore(additionalKeys).
         // 8. Else,
         // a. Let overriddenKeys be CalendarFieldKeysToIgnore(calendar, additionalKeys).
@@ -2098,7 +2099,7 @@
             .into()
     });
 
-    <span class="comment">// 3. Let object be ? OrdinaryCreateFromConstructor(newTarget, &quot;%Temporal.Calendar.prototype%&quot;, « [[InitializedTemporalCalendar]], [[Identifier]] »).
+    <span class="comment">// 3. Let object be ? OrdinaryCreateFromConstructor(newTarget, "%Temporal.Calendar.prototype%", « [[InitializedTemporalCalendar]], [[Identifier]] »).
     </span><span class="kw">let </span>proto =
         get_prototype_from_constructor(<span class="kw-2">&amp;</span>new_target, StandardConstructors::calendar, context)<span class="question-mark">?</span>;
 
@@ -2155,17 +2156,17 @@
         |md| <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(md.borrow().data().inner.calendar().clone())),
         |zdt| {
             <span class="prelude-val">Err</span>(JsNativeError::range()
-                .with_message(<span class="string">&quot;Not yet implemented.&quot;</span>)
+                .with_message(<span class="string">"Not yet implemented."</span>)
                 .into())
         },
     )<span class="question-mark">? </span>{
         <span class="kw">return </span><span class="prelude-val">Ok</span>(calendar);
     }
 
-    <span class="comment">// 2. Let calendarLike be ? Get(item, &quot;calendar&quot;).
-    </span><span class="kw">let </span>calendar_like = item.get(<span class="macro">utf16!</span>(<span class="string">&quot;calendar&quot;</span>), context)<span class="question-mark">?</span>;
+    <span class="comment">// 2. Let calendarLike be ? Get(item, "calendar").
+    </span><span class="kw">let </span>calendar_like = item.get(<span class="macro">utf16!</span>(<span class="string">"calendar"</span>), context)<span class="question-mark">?</span>;
 
-    <span class="comment">// 3. Return ? ToTemporalCalendarSlotValue(calendarLike, &quot;iso8601&quot;).
+    <span class="comment">// 3. Return ? ToTemporalCalendarSlotValue(calendarLike, "iso8601").
     </span>to_temporal_calendar_slot_value(<span class="kw-2">&amp;</span>calendar_like, context)
 }
 
@@ -2198,7 +2199,7 @@
         // b. If ? ObjectImplementsTemporalCalendarProtocol(temporalCalendarLike) is false, throw a TypeError exception.
         </span><span class="kw">if </span>!object_implements_calendar_protocol(calendar_like, context) {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;CalendarLike does not implement the CalendarProtocol.&quot;</span>)
+                .with_message(<span class="string">"CalendarLike does not implement the CalendarProtocol."</span>)
                 .into());
         }
 
@@ -2209,7 +2210,7 @@
     <span class="comment">// 3. If temporalCalendarLike is not a String, throw a TypeError exception.
     </span><span class="kw">let </span>JsValue::String(calendar_id) = calendar_like <span class="kw">else </span>{
         <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-            .with_message(<span class="string">&quot;temporalCalendarLike is not a string.&quot;</span>)
+            .with_message(<span class="string">"temporalCalendarLike is not a string."</span>)
             .into());
     };
 

@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/parser/src/parser/statement/iteration/for_statement.rs`."><title>for_statement.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="boa_parser" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../../boa_parser/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_parser"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/parser/src/parser/statement/iteration/for_statement.rs`."><title>for_statement.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="boa_parser" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../../../../boa_parser/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_parser"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -496,8 +497,8 @@
     <span class="kw">type </span>Output = ast::Statement;
 
     <span class="kw">fn </span>parse(<span class="self">self</span>, cursor: <span class="kw-2">&amp;mut </span>Cursor&lt;R&gt;, interner: <span class="kw-2">&amp;mut </span>Interner) -&gt; ParseResult&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;ForStatement&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
-        cursor.expect((Keyword::For, <span class="bool-val">false</span>), <span class="string">&quot;for statement&quot;</span>, interner)<span class="question-mark">?</span>;
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">"ForStatement"</span>, <span class="string">"Parsing"</span>);
+        cursor.expect((Keyword::For, <span class="bool-val">false</span>), <span class="string">"for statement"</span>, interner)<span class="question-mark">?</span>;
 
         <span class="kw">let </span><span class="kw-2">mut </span>r#await = <span class="bool-val">false</span>;
 
@@ -508,13 +509,13 @@
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Error::unexpected(
                     next.to_string(interner),
                     next.span(),
-                    <span class="string">&quot;for await...of is only valid in async functions or async generators&quot;</span>,
+                    <span class="string">"for await...of is only valid in async functions or async generators"</span>,
                 ));
             }
             TokenKind::Keyword((Keyword::Await, <span class="kw">_</span>)) =&gt; {
                 r#await = <span class="bool-val">true</span>;
                 cursor
-                    .expect(Punctuator::OpenParen, <span class="string">&quot;for await...of&quot;</span>, interner)<span class="question-mark">?
+                    .expect(Punctuator::OpenParen, <span class="string">"for await...of"</span>, interner)<span class="question-mark">?
                     </span>.span()
                     .end()
             }
@@ -522,7 +523,7 @@
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Error::unexpected(
                     next.to_string(interner),
                     next.span(),
-                    <span class="string">&quot;for statement&quot;</span>,
+                    <span class="string">"for statement"</span>,
                 ));
             }
         };
@@ -536,12 +537,12 @@
                         </span>.into(),
                 )
             }
-            TokenKind::Keyword((Keyword::Let, <span class="kw">_</span>)) =&gt; <span class="prelude-val">Some</span>(<span class="lifetime">&#39;exit</span>: {
+            TokenKind::Keyword((Keyword::Let, <span class="kw">_</span>)) =&gt; <span class="prelude-val">Some</span>(<span class="lifetime">'exit</span>: {
                 <span class="kw">if </span>!cursor.strict() {
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(token) = cursor.peek(<span class="number">1</span>, interner)<span class="question-mark">? </span>{
                         <span class="kw">if </span>token.kind() == <span class="kw-2">&amp;</span>TokenKind::Keyword((Keyword::In, <span class="bool-val">false</span>)) {
                             cursor.advance(interner);
-                            <span class="kw">break </span><span class="lifetime">&#39;exit </span>boa_ast::Expression::Identifier(Sym::LET.into()).into();
+                            <span class="kw">break </span><span class="lifetime">'exit </span>boa_ast::Expression::Identifier(Sym::LET.into()).into();
                         }
                     }
                 }
@@ -559,7 +560,7 @@
                 <span class="kw">match </span>cursor.peek(<span class="number">1</span>, interner).or_abrupt()<span class="question-mark">?</span>.kind() {
                     TokenKind::Keyword((Keyword::Of, <span class="kw">_</span>)) =&gt; {
                         <span class="kw">return </span><span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
-                            <span class="string">&quot;invalid left-hand side expression &#39;async&#39; of a for-of loop&quot;</span>.into(),
+                            <span class="string">"invalid left-hand side expression 'async' of a for-of loop"</span>.into(),
                             init_position,
                         )));
                     }
@@ -583,13 +584,13 @@
         <span class="kw">let </span>init = <span class="kw">match </span>(init, token.kind()) {
             (<span class="prelude-val">Some</span>(<span class="kw">_</span>), TokenKind::Keyword((Keyword::In | Keyword::Of, <span class="bool-val">true</span>))) =&gt; {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
-                    <span class="string">&quot;Keyword must not contain escaped characters&quot;</span>,
+                    <span class="string">"Keyword must not contain escaped characters"</span>,
                     position,
                 ));
             }
             (<span class="prelude-val">Some</span>(<span class="kw">_</span>), TokenKind::Keyword((Keyword::In, <span class="bool-val">false</span>))) <span class="kw">if </span>r#await =&gt; {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
-                    <span class="string">&quot;`await` can only be used in a `for await .. of` loop&quot;</span>,
+                    <span class="string">"`await` can only be used in a `for await .. of` loop"</span>,
                     position,
                 ));
             }
@@ -611,7 +612,7 @@
                         .parse(cursor, interner)<span class="question-mark">?
                 </span>};
 
-                cursor.expect(Punctuator::CloseParen, <span class="string">&quot;for in/of statement&quot;</span>, interner)<span class="question-mark">?</span>;
+                cursor.expect(Punctuator::CloseParen, <span class="string">"for in/of statement"</span>, interner)<span class="question-mark">?</span>;
 
                 <span class="kw">let </span>position = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>.span().start();
 
@@ -628,7 +629,7 @@
                     <span class="kw-2">&amp;</span>init,
                     IterableLoopInitializer::Const(<span class="kw">_</span>) | IterableLoopInitializer::Let(<span class="kw">_</span>)
                 ) {
-                    <span class="comment">// It is a Syntax Error if the BoundNames of ForDeclaration contains &quot;let&quot;.
+                    <span class="comment">// It is a Syntax Error if the BoundNames of ForDeclaration contains "let".
                     // It is a Syntax Error if any element of the BoundNames of ForDeclaration also occurs in the VarDeclaredNames of Statement.
                     // It is a Syntax Error if the BoundNames of ForDeclaration contains any duplicate entries.
                     </span><span class="kw">let </span>vars = var_declared_names(<span class="kw-2">&amp;</span>body);
@@ -636,19 +637,19 @@
                     <span class="kw">for </span>name <span class="kw">in </span>bound_names(<span class="kw-2">&amp;</span>init) {
                         <span class="kw">if </span>name == Sym::LET {
                             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
-                                <span class="string">&quot;Cannot use &#39;let&#39; as a lexically bound name&quot;</span>,
+                                <span class="string">"Cannot use 'let' as a lexically bound name"</span>,
                                 position,
                             ));
                         }
                         <span class="kw">if </span>vars.contains(<span class="kw-2">&amp;</span>name) {
                             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
-                                <span class="string">&quot;For loop initializer declared in loop body&quot;</span>,
+                                <span class="string">"For loop initializer declared in loop body"</span>,
                                 position,
                             ));
                         }
                         <span class="kw">if </span>!names.insert(name) {
                             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
-                                <span class="string">&quot;For loop initializer cannot contain duplicate identifiers&quot;</span>,
+                                <span class="string">"For loop initializer cannot contain duplicate identifiers"</span>,
                                 position,
                             ));
                         }
@@ -670,21 +671,21 @@
             <span class="kw">for </span>decl <span class="kw">in </span>list.as_ref() {
                 <span class="kw">if </span>decl.init().is_none() {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
-                        <span class="string">&quot;Expected initializer for const declaration&quot;</span>,
+                        <span class="string">"Expected initializer for const declaration"</span>,
                         position,
                     ));
                 }
             }
         }
 
-        cursor.expect(Punctuator::Semicolon, <span class="string">&quot;for statement&quot;</span>, interner)<span class="question-mark">?</span>;
+        cursor.expect(Punctuator::Semicolon, <span class="string">"for statement"</span>, interner)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>cond = <span class="kw">if </span>cursor.next_if(Punctuator::Semicolon, interner)<span class="question-mark">?</span>.is_some() {
             <span class="prelude-val">None
         </span>} <span class="kw">else </span>{
             <span class="kw">let </span>step = Expression::new(<span class="prelude-val">None</span>, <span class="bool-val">true</span>, <span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
                 .parse(cursor, interner)<span class="question-mark">?</span>;
-            cursor.expect(Punctuator::Semicolon, <span class="string">&quot;for statement&quot;</span>, interner)<span class="question-mark">?</span>;
+            cursor.expect(Punctuator::Semicolon, <span class="string">"for statement"</span>, interner)<span class="question-mark">?</span>;
             <span class="prelude-val">Some</span>(step)
         };
 
@@ -695,7 +696,7 @@
                 .parse(cursor, interner)<span class="question-mark">?</span>;
             cursor.expect(
                 TokenKind::Punctuator(Punctuator::CloseParen),
-                <span class="string">&quot;for statement&quot;</span>,
+                <span class="string">"for statement"</span>,
                 interner,
             )<span class="question-mark">?</span>;
             <span class="prelude-val">Some</span>(step)
@@ -719,7 +720,7 @@
             <span class="kw">for </span>name <span class="kw">in </span>bound_names(decl) {
                 <span class="kw">if </span>vars.contains(<span class="kw-2">&amp;</span>name) {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(
-                        <span class="string">&quot;For loop initializer declared in loop body&quot;</span>,
+                        <span class="string">"For loop initializer declared in loop body"</span>,
                         position,
                     ));
                 }
@@ -736,7 +737,7 @@
     strict: bool,
     in_loop: bool,
 ) -&gt; ParseResult&lt;IterableLoopInitializer&gt; {
-    <span class="kw">let </span>loop_type = <span class="kw">if </span>in_loop { <span class="string">&quot;for-in&quot; </span>} <span class="kw">else </span>{ <span class="string">&quot;for-of&quot; </span>};
+    <span class="kw">let </span>loop_type = <span class="kw">if </span>in_loop { <span class="string">"for-in" </span>} <span class="kw">else </span>{ <span class="string">"for-of" </span>};
     <span class="kw">match </span>initializer {
         ForLoopInitializer::Expression(<span class="kw-2">mut </span>expr) =&gt; {
             <span class="kw">while let </span>ast::Expression::Parenthesized(p) = expr {
@@ -747,7 +748,7 @@
                     <span class="kw">if </span>strict &amp;&amp; [Sym::EVAL, Sym::ARGUMENTS].contains(<span class="kw-2">&amp;</span>ident.sym()) =&gt;
                 {
                     <span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
-                        <span class="string">&quot;cannot use `eval` or `arguments` as iterable loop variable in strict code&quot;
+                        <span class="string">"cannot use `eval` or `arguments` as iterable loop variable in strict code"
                             </span>.into(),
                         position,
                     )))
@@ -759,7 +760,7 @@
                     .to_pattern(strict)
                     .ok_or_else(|| {
                         Error::general(
-                            <span class="string">&quot;invalid array destructuring pattern in iterable loop initializer&quot;</span>,
+                            <span class="string">"invalid array destructuring pattern in iterable loop initializer"</span>,
                             position,
                         )
                     })
@@ -768,7 +769,7 @@
                     .to_pattern(strict)
                     .ok_or_else(|| {
                         Error::general(
-                            <span class="string">&quot;invalid object destructuring pattern in iterable loop initializer&quot;</span>,
+                            <span class="string">"invalid object destructuring pattern in iterable loop initializer"</span>,
                             position,
                         )
                     })
@@ -777,7 +778,7 @@
                     <span class="prelude-val">Ok</span>(IterableLoopInitializer::Access(access))
                 }
                 <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
-                    <span class="string">&quot;invalid variable for iterable loop&quot;</span>.into(),
+                    <span class="string">"invalid variable for iterable loop"</span>.into(),
                     position,
                 ))),
             }
@@ -786,7 +787,7 @@
             [declaration] =&gt; {
                 <span class="kw">if </span>declaration.init().is_some() {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
-                        <span class="macro">format!</span>(<span class="string">&quot;a lexical declaration in the head of a {loop_type} loop can&#39;t have an initializer&quot;</span>)
+                        <span class="macro">format!</span>(<span class="string">"a lexical declaration in the head of a {loop_type} loop can't have an initializer"</span>)
                             .into(),
                         position,
                     )));
@@ -801,7 +802,7 @@
                 })
             }
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
-                <span class="macro">format!</span>(<span class="string">&quot;only one variable can be declared in the head of a {loop_type} loop&quot;</span>)
+                <span class="macro">format!</span>(<span class="string">"only one variable can be declared in the head of a {loop_type} loop"</span>)
                     .into(),
                 position,
             ))),
@@ -811,17 +812,17 @@
                 <span class="comment">// https://tc39.es/ecma262/#sec-initializers-in-forin-statement-heads
                 </span><span class="kw">let </span>is_pattern = <span class="macro">matches!</span>(declaration.binding(), Binding::Pattern(<span class="kw">_</span>));
                 <span class="kw">if </span>declaration.init().is_some()
-                    &amp;&amp; (<span class="macro">cfg!</span>(not(feature = <span class="string">&quot;annex-b&quot;</span>)) || strict || !in_loop || is_pattern)
+                    &amp;&amp; (<span class="macro">cfg!</span>(not(feature = <span class="string">"annex-b"</span>)) || strict || !in_loop || is_pattern)
                 {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
                         <span class="macro">format!</span>(
-                            <span class="string">&quot;{}a {} declaration in the head of a {loop_type} loop \
-                            cannot have an initializer&quot;</span>,
-                            <span class="kw">if </span>strict { <span class="string">&quot;in strict mode, &quot; </span>} <span class="kw">else </span>{ <span class="string">&quot;&quot; </span>},
+                            <span class="string">"{}a {} declaration in the head of a {loop_type} loop \
+                            cannot have an initializer"</span>,
+                            <span class="kw">if </span>strict { <span class="string">"in strict mode, " </span>} <span class="kw">else </span>{ <span class="string">"" </span>},
                             <span class="kw">if </span>is_pattern {
-                                <span class="string">&quot;binding pattern&quot;
+                                <span class="string">"binding pattern"
                             </span>} <span class="kw">else </span>{
-                                <span class="string">&quot;binding declaration&quot;
+                                <span class="string">"binding declaration"
                             </span>}
                         )
                         .into(),
@@ -831,7 +832,7 @@
                 <span class="prelude-val">Ok</span>(IterableLoopInitializer::Var(declaration.clone()))
             }
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
-                <span class="macro">format!</span>(<span class="string">&quot;only one variable can be declared in the head of a {loop_type} loop&quot;</span>)
+                <span class="macro">format!</span>(<span class="string">"only one variable can be declared in the head of a {loop_type} loop"</span>)
                     .into(),
                 position,
             ))),

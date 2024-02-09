@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/bytecompiler/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/bytecompiler/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1659,16 +1660,16 @@
 
 <span class="doccomment">/// Describes the complete specification of a function node.
 </span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>FunctionSpec&lt;<span class="lifetime">&#39;a</span>&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>FunctionSpec&lt;<span class="lifetime">'a</span>&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) kind: FunctionKind,
     <span class="kw">pub</span>(<span class="kw">crate</span>) name: <span class="prelude-ty">Option</span>&lt;Identifier&gt;,
-    parameters: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>FormalParameterList,
-    body: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>FunctionBody,
+    parameters: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>FormalParameterList,
+    body: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>FunctionBody,
     has_binding_identifier: bool,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Function&gt; <span class="kw">for </span>FunctionSpec&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>from(function: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Function) -&gt; <span class="self">Self </span>{
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>Function&gt; <span class="kw">for </span>FunctionSpec&lt;<span class="lifetime">'a</span>&gt; {
+    <span class="kw">fn </span>from(function: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Function) -&gt; <span class="self">Self </span>{
         FunctionSpec {
             kind: FunctionKind::Ordinary,
             name: function.name(),
@@ -1679,8 +1680,8 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>ArrowFunction&gt; <span class="kw">for </span>FunctionSpec&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>from(function: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>ArrowFunction) -&gt; <span class="self">Self </span>{
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>ArrowFunction&gt; <span class="kw">for </span>FunctionSpec&lt;<span class="lifetime">'a</span>&gt; {
+    <span class="kw">fn </span>from(function: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>ArrowFunction) -&gt; <span class="self">Self </span>{
         FunctionSpec {
             kind: FunctionKind::Arrow,
             name: function.name(),
@@ -1691,8 +1692,8 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>AsyncArrowFunction&gt; <span class="kw">for </span>FunctionSpec&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>from(function: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>AsyncArrowFunction) -&gt; <span class="self">Self </span>{
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>AsyncArrowFunction&gt; <span class="kw">for </span>FunctionSpec&lt;<span class="lifetime">'a</span>&gt; {
+    <span class="kw">fn </span>from(function: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>AsyncArrowFunction) -&gt; <span class="self">Self </span>{
         FunctionSpec {
             kind: FunctionKind::AsyncArrow,
             name: function.name(),
@@ -1703,8 +1704,8 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>AsyncFunction&gt; <span class="kw">for </span>FunctionSpec&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>from(function: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>AsyncFunction) -&gt; <span class="self">Self </span>{
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>AsyncFunction&gt; <span class="kw">for </span>FunctionSpec&lt;<span class="lifetime">'a</span>&gt; {
+    <span class="kw">fn </span>from(function: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>AsyncFunction) -&gt; <span class="self">Self </span>{
         FunctionSpec {
             kind: FunctionKind::Async,
             name: function.name(),
@@ -1715,8 +1716,8 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Generator&gt; <span class="kw">for </span>FunctionSpec&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>from(function: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Generator) -&gt; <span class="self">Self </span>{
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>Generator&gt; <span class="kw">for </span>FunctionSpec&lt;<span class="lifetime">'a</span>&gt; {
+    <span class="kw">fn </span>from(function: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Generator) -&gt; <span class="self">Self </span>{
         FunctionSpec {
             kind: FunctionKind::Generator,
             name: function.name(),
@@ -1727,8 +1728,8 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>AsyncGenerator&gt; <span class="kw">for </span>FunctionSpec&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>from(function: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>AsyncGenerator) -&gt; <span class="self">Self </span>{
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>AsyncGenerator&gt; <span class="kw">for </span>FunctionSpec&lt;<span class="lifetime">'a</span>&gt; {
+    <span class="kw">fn </span>from(function: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>AsyncGenerator) -&gt; <span class="self">Self </span>{
         FunctionSpec {
             kind: FunctionKind::AsyncGenerator,
             name: function.name(),
@@ -1741,9 +1742,9 @@
 
 <span class="doccomment">/// Represents a callable expression, like `f()` or `new Cl()`
 </span><span class="attr">#[derive(Debug, Clone, Copy)]
-</span><span class="kw">enum </span>Callable&lt;<span class="lifetime">&#39;a</span>&gt; {
-    Call(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Call),
-    New(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>New),
+</span><span class="kw">enum </span>Callable&lt;<span class="lifetime">'a</span>&gt; {
+    Call(<span class="kw-2">&amp;</span><span class="lifetime">'a </span>Call),
+    New(<span class="kw-2">&amp;</span><span class="lifetime">'a </span>New),
 }
 
 <span class="attr">#[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -1759,14 +1760,14 @@
 }
 
 <span class="attr">#[derive(Debug, Clone, Copy)]
-</span><span class="kw">enum </span>Access&lt;<span class="lifetime">&#39;a</span>&gt; {
+</span><span class="kw">enum </span>Access&lt;<span class="lifetime">'a</span>&gt; {
     Variable { name: Identifier },
-    Property { access: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>PropertyAccess },
+    Property { access: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>PropertyAccess },
     This,
 }
 
-<span class="kw">impl </span>Access&lt;<span class="lifetime">&#39;_</span>&gt; {
-    <span class="kw">const fn </span>from_assign_target(target: <span class="kw-2">&amp;</span>AssignTarget) -&gt; <span class="prelude-ty">Result</span>&lt;Access&lt;<span class="lifetime">&#39;_</span>&gt;, <span class="kw-2">&amp;</span>Pattern&gt; {
+<span class="kw">impl </span>Access&lt;<span class="lifetime">'_</span>&gt; {
+    <span class="kw">const fn </span>from_assign_target(target: <span class="kw-2">&amp;</span>AssignTarget) -&gt; <span class="prelude-ty">Result</span>&lt;Access&lt;<span class="lifetime">'_</span>&gt;, <span class="kw-2">&amp;</span>Pattern&gt; {
         <span class="kw">match </span>target {
             AssignTarget::Identifier(ident) =&gt; <span class="prelude-val">Ok</span>(Access::Variable { name: <span class="kw-2">*</span>ident }),
             AssignTarget::Access(access) =&gt; <span class="prelude-val">Ok</span>(Access::Property { access }),
@@ -1774,7 +1775,7 @@
         }
     }
 
-    <span class="kw">const fn </span>from_expression(expr: <span class="kw-2">&amp;</span>Expression) -&gt; <span class="prelude-ty">Option</span>&lt;Access&lt;<span class="lifetime">&#39;_</span>&gt;&gt; {
+    <span class="kw">const fn </span>from_expression(expr: <span class="kw-2">&amp;</span>Expression) -&gt; <span class="prelude-ty">Option</span>&lt;Access&lt;<span class="lifetime">'_</span>&gt;&gt; {
         <span class="kw">match </span>expr {
             Expression::Identifier(name) =&gt; <span class="prelude-val">Some</span>(Access::Variable { name: <span class="kw-2">*</span>name }),
             Expression::PropertyAccess(access) =&gt; <span class="prelude-val">Some</span>(Access::Property { access }),
@@ -1784,7 +1785,7 @@
         }
     }
 
-    <span class="kw">const fn </span>from_update_target(target: <span class="kw-2">&amp;</span>UpdateTarget) -&gt; Access&lt;<span class="lifetime">&#39;_</span>&gt; {
+    <span class="kw">const fn </span>from_update_target(target: <span class="kw-2">&amp;</span>UpdateTarget) -&gt; Access&lt;<span class="lifetime">'_</span>&gt; {
         <span class="kw">match </span>target {
             UpdateTarget::Identifier(name) =&gt; Access::Variable { name: <span class="kw-2">*</span>name },
             UpdateTarget::PropertyAccess(access) =&gt; Access::Property { access },
@@ -1811,7 +1812,7 @@
 <span class="doccomment">/// The [`ByteCompiler`] is used to compile ECMAScript AST from [`boa_ast`] to bytecode.
 </span><span class="attr">#[derive(Debug)]
 #[allow(clippy::struct_excessive_bools)]
-</span><span class="kw">pub struct </span>ByteCompiler&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+</span><span class="kw">pub struct </span>ByteCompiler&lt;<span class="lifetime">'ctx</span>&gt; {
     <span class="doccomment">/// Name of this function.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) function_name: JsString,
 
@@ -1857,13 +1858,13 @@
     json_parse: bool,
 
     <span class="comment">// TODO: remove when we separate scripts from the context
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span><span class="kw-2">mut </span>Context,
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) context: <span class="kw-2">&amp;</span><span class="lifetime">'ctx </span><span class="kw-2">mut </span>Context,
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;annex-b&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"annex-b"</span>)]
     </span>annex_b_function_names: Vec&lt;Identifier&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; ByteCompiler&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>&gt; ByteCompiler&lt;<span class="lifetime">'ctx</span>&gt; {
     <span class="doccomment">/// Represents a placeholder address that will be patched later.
     </span><span class="kw">const </span>DUMMY_ADDRESS: u32 = u32::MAX;
     <span class="kw">const </span>DUMMY_LABEL: Label = Label { index: u32::MAX };
@@ -1877,8 +1878,8 @@
         variable_environment: Rc&lt;CompileTimeEnvironment&gt;,
         lexical_environment: Rc&lt;CompileTimeEnvironment&gt;,
         <span class="comment">// TODO: remove when we separate scripts from the context
-        </span>context: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span><span class="kw-2">mut </span>Context,
-    ) -&gt; ByteCompiler&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+        </span>context: <span class="kw-2">&amp;</span><span class="lifetime">'ctx </span><span class="kw-2">mut </span>Context,
+    ) -&gt; ByteCompiler&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>code_block_flags = CodeBlockFlags::empty();
         code_block_flags.set(CodeBlockFlags::STRICT, strict);
         code_block_flags |= CodeBlockFlags::HAS_PROTOTYPE_PROPERTY;
@@ -1908,7 +1909,7 @@
             lexical_environment,
             context,
 
-            <span class="attr">#[cfg(feature = <span class="string">&quot;annex-b&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"annex-b"</span>)]
             </span>annex_b_function_names: Vec::new(),
         }
     }
@@ -2112,7 +2113,7 @@
 
         <span class="kw">let </span>name_index = <span class="self">self</span>.get_or_insert_name(Identifier::new(ident));
         <span class="kw">let </span>Constant::String(<span class="kw-2">ref </span>name) = <span class="self">self</span>.constants[name_index <span class="kw">as </span>usize].clone() <span class="kw">else </span>{
-            <span class="macro">unreachable!</span>(<span class="string">&quot;there should be a string at index&quot;</span>)
+            <span class="macro">unreachable!</span>(<span class="string">"there should be a string at index"</span>)
         };
         <span class="self">self</span>.ic.push(InlineCache::new(name.clone()));
 
@@ -2124,7 +2125,7 @@
 
         <span class="kw">let </span>name_index = <span class="self">self</span>.get_or_insert_name(Identifier::new(ident));
         <span class="kw">let </span>Constant::String(<span class="kw-2">ref </span>name) = <span class="self">self</span>.constants[name_index <span class="kw">as </span>usize].clone() <span class="kw">else </span>{
-            <span class="macro">unreachable!</span>(<span class="string">&quot;there should be a string at index&quot;</span>)
+            <span class="macro">unreachable!</span>(<span class="string">"there should be a string at index"</span>)
         };
         <span class="self">self</span>.ic.push(InlineCache::new(name.clone()));
 
@@ -2300,7 +2301,7 @@
         <span class="macro">js_string!</span>(<span class="self">self</span>.interner().resolve_expect(identifier.sym()).utf16())
     }
 
-    <span class="kw">fn </span>access_get(<span class="kw-2">&amp;mut </span><span class="self">self</span>, access: Access&lt;<span class="lifetime">&#39;_</span>&gt;, use_expr: bool) {
+    <span class="kw">fn </span>access_get(<span class="kw-2">&amp;mut </span><span class="self">self</span>, access: Access&lt;<span class="lifetime">'_</span>&gt;, use_expr: bool) {
         <span class="kw">match </span>access {
             Access::Variable { name } =&gt; {
                 <span class="kw">let </span>name = <span class="self">self</span>.resolve_identifier_expect(name);
@@ -2352,7 +2353,7 @@
         }
     }
 
-    <span class="kw">fn </span>access_set_top_of_stack_expr_fn(compiler: <span class="kw-2">&amp;mut </span>ByteCompiler&lt;<span class="lifetime">&#39;_</span>&gt;, level: u8) {
+    <span class="kw">fn </span>access_set_top_of_stack_expr_fn(compiler: <span class="kw-2">&amp;mut </span>ByteCompiler&lt;<span class="lifetime">'_</span>&gt;, level: u8) {
         <span class="kw">match </span>level {
             <span class="number">0 </span>=&gt; {}
             <span class="number">1 </span>=&gt; compiler.emit_opcode(Opcode::Swap),
@@ -2362,9 +2363,9 @@
         }
     }
 
-    <span class="kw">fn </span>access_set&lt;F, R&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, access: Access&lt;<span class="lifetime">&#39;_</span>&gt;, use_expr: bool, expr_fn: F)
+    <span class="kw">fn </span>access_set&lt;F, R&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, access: Access&lt;<span class="lifetime">'_</span>&gt;, use_expr: bool, expr_fn: F)
     <span class="kw">where
-        </span>F: FnOnce(<span class="kw-2">&amp;mut </span>ByteCompiler&lt;<span class="lifetime">&#39;_</span>&gt;, u8) -&gt; R,
+        </span>F: FnOnce(<span class="kw-2">&amp;mut </span>ByteCompiler&lt;<span class="lifetime">'_</span>&gt;, u8) -&gt; R,
     {
         <span class="kw">match </span>access {
             Access::Variable { name } =&gt; {
@@ -2455,11 +2456,11 @@
                     }
                 },
             },
-            Access::This =&gt; <span class="macro">todo!</span>(<span class="string">&quot;access_set `this`&quot;</span>),
+            Access::This =&gt; <span class="macro">todo!</span>(<span class="string">"access_set `this`"</span>),
         }
     }
 
-    <span class="kw">fn </span>access_delete(<span class="kw-2">&amp;mut </span><span class="self">self</span>, access: Access&lt;<span class="lifetime">&#39;_</span>&gt;) {
+    <span class="kw">fn </span>access_delete(<span class="kw-2">&amp;mut </span><span class="self">self</span>, access: Access&lt;<span class="lifetime">'_</span>&gt;) {
         <span class="kw">match </span>access {
             Access::Property { access } =&gt; <span class="kw">match </span>access {
                 PropertyAccess::Simple(access) =&gt; <span class="kw">match </span>access.field() {
@@ -2477,7 +2478,7 @@
                 <span class="comment">// TODO: throw ReferenceError on super deletion.
                 </span>PropertyAccess::Super(<span class="kw">_</span>) =&gt; <span class="self">self</span>.emit_opcode(Opcode::DeleteSuperThrow),
                 PropertyAccess::Private(<span class="kw">_</span>) =&gt; {
-                    <span class="macro">unreachable!</span>(<span class="string">&quot;deleting private properties should always throw early errors.&quot;</span>)
+                    <span class="macro">unreachable!</span>(<span class="string">"deleting private properties should always throw early errors."</span>)
                 }
             },
             Access::Variable { name } =&gt; {
@@ -2605,7 +2606,7 @@
         <span class="kw">let </span>(first, rest) = optional
             .chain()
             .split_first()
-            .expect(<span class="string">&quot;chain must have at least one element&quot;</span>);
+            .expect(<span class="string">"chain must have at least one element"</span>);
         <span class="macro">assert!</span>(first.shorted());
 
         <span class="self">self</span>.compile_optional_item_kind(first.kind());
@@ -2761,7 +2762,7 @@
                             <span class="kw">let </span>ident = ident.to_js_string(<span class="self">self</span>.interner());
                             <span class="kw">let </span>init = variable
                                 .init()
-                                .expect(<span class="string">&quot;const declaration must have initializer&quot;</span>);
+                                .expect(<span class="string">"const declaration must have initializer"</span>);
                             <span class="self">self</span>.compile_expr(init, <span class="bool-val">true</span>);
                             <span class="self">self</span>.emit_binding(BindingOpcode::InitLexical, ident);
                         }
@@ -2794,11 +2795,11 @@
     </span><span class="attr">#[allow(unused_variables)]
     </span><span class="kw">pub fn </span>compile_decl(<span class="kw-2">&amp;mut </span><span class="self">self</span>, decl: <span class="kw-2">&amp;</span>Declaration, block: bool) {
         <span class="kw">match </span>decl {
-            <span class="attr">#[cfg(feature = <span class="string">&quot;annex-b&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"annex-b"</span>)]
             </span>Declaration::Function(function) <span class="kw">if </span>block =&gt; {
                 <span class="kw">let </span>name = function
                     .name()
-                    .expect(<span class="string">&quot;function declaration must have name&quot;</span>);
+                    .expect(<span class="string">"function declaration must have name"</span>);
                 <span class="kw">if </span><span class="self">self</span>.annex_b_function_names.contains(<span class="kw-2">&amp;</span>name) {
                     <span class="kw">let </span>name = name.to_js_string(<span class="self">self</span>.interner());
                     <span class="kw">let </span>binding = <span class="self">self
@@ -2833,7 +2834,7 @@
 
     <span class="doccomment">/// Compiles a function AST Node into bytecode, and returns its index into
     /// the `functions` array.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>function(<span class="kw-2">&amp;mut </span><span class="self">self</span>, function: FunctionSpec&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; u32 {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>function(<span class="kw-2">&amp;mut </span><span class="self">self</span>, function: FunctionSpec&lt;<span class="lifetime">'_</span>&gt;) -&gt; u32 {
         <span class="kw">let </span>(generator, r#async, arrow) = (
             function.kind.is_generator(),
             function.kind.is_async(),
@@ -2881,7 +2882,7 @@
     /// pushing it to the stack if necessary.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>function_with_binding(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        function: FunctionSpec&lt;<span class="lifetime">&#39;_</span>&gt;,
+        function: FunctionSpec&lt;<span class="lifetime">'_</span>&gt;,
         node_kind: NodeKind,
         use_expr: bool,
     ) {
@@ -2894,7 +2895,7 @@
             NodeKind::Declaration =&gt; {
                 <span class="self">self</span>.emit_binding(
                     BindingOpcode::InitVar,
-                    name.expect(<span class="string">&quot;function declaration must have a name&quot;</span>)
+                    name.expect(<span class="string">"function declaration must have a name"</span>)
                         .to_js_string(<span class="self">self</span>.interner()),
                 );
             }
@@ -2907,7 +2908,7 @@
     }
 
     <span class="doccomment">/// Compile an object method AST Node into bytecode.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>object_method(<span class="kw-2">&amp;mut </span><span class="self">self</span>, function: FunctionSpec&lt;<span class="lifetime">&#39;_</span>&gt;) {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>object_method(<span class="kw-2">&amp;mut </span><span class="self">self</span>, function: FunctionSpec&lt;<span class="lifetime">'_</span>&gt;) {
         <span class="kw">let </span>(generator, r#async, arrow) = (
             function.kind.is_generator(),
             function.kind.is_async(),
@@ -2954,7 +2955,7 @@
     }
 
     <span class="doccomment">/// Compile a class method AST Node into bytecode.
-    </span><span class="kw">fn </span>method(<span class="kw-2">&amp;mut </span><span class="self">self</span>, function: FunctionSpec&lt;<span class="lifetime">&#39;_</span>&gt;) {
+    </span><span class="kw">fn </span>method(<span class="kw-2">&amp;mut </span><span class="self">self</span>, function: FunctionSpec&lt;<span class="lifetime">'_</span>&gt;) {
         <span class="kw">let </span>(generator, r#async, arrow) = (
             function.kind.is_generator(),
             function.kind.is_async(),
@@ -3000,7 +3001,7 @@
         <span class="self">self</span>.emit_with_varying_operand(Opcode::GetFunction, index);
     }
 
-    <span class="kw">fn </span>call(<span class="kw-2">&amp;mut </span><span class="self">self</span>, callable: Callable&lt;<span class="lifetime">&#39;_</span>&gt;, use_expr: bool) {
+    <span class="kw">fn </span>call(<span class="kw-2">&amp;mut </span><span class="self">self</span>, callable: Callable&lt;<span class="lifetime">'_</span>&gt;, use_expr: bool) {
         <span class="attr">#[derive(PartialEq)]
         </span><span class="kw">enum </span>CallKind {
             CallEval,
@@ -3095,7 +3096,7 @@
             }
         }
 
-        <span class="comment">// NOTE: Offset the handlers stack count so we don&#39;t pop the registers
+        <span class="comment">// NOTE: Offset the handlers stack count so we don't pop the registers
         //       when a exception is thrown.
         </span><span class="kw">for </span>handler <span class="kw">in </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.handlers {
             handler.stack_count += <span class="self">self</span>.register_count;

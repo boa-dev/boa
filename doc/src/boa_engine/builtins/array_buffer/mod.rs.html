@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/builtins/array_buffer/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/builtins/array_buffer/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -950,7 +951,7 @@
 <a href="#950" id="950">950</a>
 <a href="#951" id="951">951</a>
 <a href="#952" id="952">952</a>
-</pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `ArrayBuffer` and `SharedArrayBuffer` objects
+</pre></div><pre class="rust"><code><span class="doccomment">//! Boa's implementation of ECMAScript's global `ArrayBuffer` and `SharedArrayBuffer` objects
 //!
 //! More information:
 //!  - [ECMAScript reference][spec]
@@ -1006,7 +1007,7 @@
     S: Deref&lt;Target = SharedArrayBuffer&gt;,
 {
     <span class="doccomment">/// Gets the inner data of the buffer.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>bytes(<span class="kw-2">&amp;</span><span class="self">self</span>, ordering: Ordering) -&gt; <span class="prelude-ty">Option</span>&lt;SliceRef&lt;<span class="lifetime">&#39;_</span>&gt;&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>bytes(<span class="kw-2">&amp;</span><span class="self">self</span>, ordering: Ordering) -&gt; <span class="prelude-ty">Option</span>&lt;SliceRef&lt;<span class="lifetime">'_</span>&gt;&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Buffer(buf) =&gt; buf.deref().bytes().map(SliceRef::Slice),
             <span class="self">Self</span>::SharedBuffer(buf) =&gt; <span class="prelude-val">Some</span>(SliceRef::AtomicSlice(buf.deref().bytes(ordering))),
@@ -1018,7 +1019,7 @@
     /// Returns `None` if the buffer is detached or if the provided `len` is bigger than
     /// the allocated buffer.
     </span><span class="attr">#[track_caller]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>bytes_with_len(<span class="kw-2">&amp;</span><span class="self">self</span>, len: usize) -&gt; <span class="prelude-ty">Option</span>&lt;SliceRef&lt;<span class="lifetime">&#39;_</span>&gt;&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>bytes_with_len(<span class="kw-2">&amp;</span><span class="self">self</span>, len: usize) -&gt; <span class="prelude-ty">Option</span>&lt;SliceRef&lt;<span class="lifetime">'_</span>&gt;&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Buffer(buf) =&gt; buf.deref().bytes_with_len(len).map(SliceRef::Slice),
             <span class="self">Self</span>::SharedBuffer(buf) =&gt; <span class="prelude-val">Some</span>(SliceRef::AtomicSlice(buf.deref().bytes_with_len(len))),
@@ -1044,7 +1045,7 @@
     </span>B: DerefMut&lt;Target = ArrayBuffer&gt;,
     S: DerefMut&lt;Target = SharedArrayBuffer&gt;,
 {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>bytes(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ordering: Ordering) -&gt; <span class="prelude-ty">Option</span>&lt;SliceRefMut&lt;<span class="lifetime">&#39;_</span>&gt;&gt; {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>bytes(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ordering: Ordering) -&gt; <span class="prelude-ty">Option</span>&lt;SliceRefMut&lt;<span class="lifetime">'_</span>&gt;&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Buffer(buf) =&gt; buf.deref_mut().bytes_mut().map(SliceRefMut::Slice),
             <span class="self">Self</span>::SharedBuffer(buf) =&gt; {
@@ -1057,7 +1058,7 @@
     ///
     /// Returns `None` if the buffer is detached or if the provided `len` is bigger than
     /// the allocated buffer.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>bytes_with_len(<span class="kw-2">&amp;mut </span><span class="self">self</span>, len: usize) -&gt; <span class="prelude-ty">Option</span>&lt;SliceRefMut&lt;<span class="lifetime">&#39;_</span>&gt;&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>bytes_with_len(<span class="kw-2">&amp;mut </span><span class="self">self</span>, len: usize) -&gt; <span class="prelude-ty">Option</span>&lt;SliceRefMut&lt;<span class="lifetime">'_</span>&gt;&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Buffer(buf) =&gt; buf
                 .deref_mut()
@@ -1099,7 +1100,7 @@
     #[must_use]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>as_buffer(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-    ) -&gt; BufferRef&lt;GcRef&lt;<span class="lifetime">&#39;_</span>, ArrayBuffer&gt;, GcRef&lt;<span class="lifetime">&#39;_</span>, SharedArrayBuffer&gt;&gt; {
+    ) -&gt; BufferRef&lt;GcRef&lt;<span class="lifetime">'_</span>, ArrayBuffer&gt;, GcRef&lt;<span class="lifetime">'_</span>, SharedArrayBuffer&gt;&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Buffer(buf) =&gt; BufferRef::Buffer(GcRef::map(buf.borrow(), |o| <span class="kw-2">&amp;</span>o.data)),
             <span class="self">Self</span>::SharedBuffer(buf) =&gt; {
@@ -1113,8 +1114,8 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>as_buffer_mut(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
     ) -&gt; BufferRefMut&lt;
-        GcRefMut&lt;<span class="lifetime">&#39;_</span>, Object&lt;ArrayBuffer&gt;, ArrayBuffer&gt;,
-        GcRefMut&lt;<span class="lifetime">&#39;_</span>, Object&lt;SharedArrayBuffer&gt;, SharedArrayBuffer&gt;,
+        GcRefMut&lt;<span class="lifetime">'_</span>, Object&lt;ArrayBuffer&gt;, ArrayBuffer&gt;,
+        GcRefMut&lt;<span class="lifetime">'_</span>, Object&lt;SharedArrayBuffer&gt;, SharedArrayBuffer&gt;,
     &gt; {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Buffer(buf) =&gt; {
@@ -1213,7 +1214,7 @@
     </span><span class="kw">pub fn </span>detach(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>JsValue) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;Vec&lt;u8&gt;&gt;&gt; {
         <span class="kw">if </span>!JsValue::same_value(<span class="kw-2">&amp;</span><span class="self">self</span>.detach_key, key) {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;Cannot detach array buffer with different key&quot;</span>)
+                .with_message(<span class="string">"Cannot detach array buffer with different key"</span>)
                 .into());
         }
 
@@ -1239,29 +1240,29 @@
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>ArrayBuffer {
     <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(std::any::type_name::&lt;<span class="self">Self</span>&gt;(), <span class="string">&quot;init&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(std::any::type_name::&lt;<span class="self">Self</span>&gt;(), <span class="string">"init"</span>);
 
         <span class="kw">let </span>flag_attributes = Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE;
 
         <span class="kw">let </span>get_species = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_species)
-            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get [Symbol.species]&quot;</span>))
+            .name(<span class="macro">js_string!</span>(<span class="string">"get [Symbol.species]"</span>))
             .build();
 
         <span class="kw">let </span>get_byte_length = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_byte_length)
-            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get byteLength&quot;</span>))
+            .name(<span class="macro">js_string!</span>(<span class="string">"get byteLength"</span>))
             .build();
 
         <span class="kw">let </span>get_resizable = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_resizable)
-            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get resizable&quot;</span>))
+            .name(<span class="macro">js_string!</span>(<span class="string">"get resizable"</span>))
             .build();
 
         <span class="kw">let </span>get_max_byte_length = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_max_byte_length)
-            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get maxByteLength&quot;</span>))
+            .name(<span class="macro">js_string!</span>(<span class="string">"get maxByteLength"</span>))
             .build();
 
-        <span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">"experimental"</span>)]
         </span><span class="kw">let </span>get_detached = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_detached)
-            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get detached&quot;</span>))
+            .name(<span class="macro">js_string!</span>(<span class="string">"get detached"</span>))
             .build();
 
         <span class="kw">let </span>builder = BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
@@ -1271,45 +1272,45 @@
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE,
             )
-            .static_method(<span class="self">Self</span>::is_view, <span class="macro">js_string!</span>(<span class="string">&quot;isView&quot;</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::is_view, <span class="macro">js_string!</span>(<span class="string">"isView"</span>), <span class="number">1</span>)
             .accessor(
-                <span class="macro">js_string!</span>(<span class="string">&quot;byteLength&quot;</span>),
+                <span class="macro">js_string!</span>(<span class="string">"byteLength"</span>),
                 <span class="prelude-val">Some</span>(get_byte_length),
                 <span class="prelude-val">None</span>,
                 flag_attributes,
             )
             .accessor(
-                <span class="macro">js_string!</span>(<span class="string">&quot;resizable&quot;</span>),
+                <span class="macro">js_string!</span>(<span class="string">"resizable"</span>),
                 <span class="prelude-val">Some</span>(get_resizable),
                 <span class="prelude-val">None</span>,
                 flag_attributes,
             )
             .accessor(
-                <span class="macro">js_string!</span>(<span class="string">&quot;maxByteLength&quot;</span>),
+                <span class="macro">js_string!</span>(<span class="string">"maxByteLength"</span>),
                 <span class="prelude-val">Some</span>(get_max_byte_length),
                 <span class="prelude-val">None</span>,
                 flag_attributes,
             )
-            .method(<span class="self">Self</span>::resize, <span class="macro">js_string!</span>(<span class="string">&quot;resize&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::slice, <span class="macro">js_string!</span>(<span class="string">&quot;slice&quot;</span>), <span class="number">2</span>)
+            .method(<span class="self">Self</span>::resize, <span class="macro">js_string!</span>(<span class="string">"resize"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::slice, <span class="macro">js_string!</span>(<span class="string">"slice"</span>), <span class="number">2</span>)
             .property(
                 JsSymbol::to_string_tag(),
                 <span class="self">Self</span>::NAME,
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             );
 
-        <span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">"experimental"</span>)]
         </span><span class="kw">let </span>builder = builder
             .accessor(
-                <span class="macro">js_string!</span>(<span class="string">&quot;detached&quot;</span>),
+                <span class="macro">js_string!</span>(<span class="string">"detached"</span>),
                 <span class="prelude-val">Some</span>(get_detached),
                 <span class="prelude-val">None</span>,
                 flag_attributes,
             )
-            .method(<span class="self">Self</span>::transfer::&lt;<span class="bool-val">false</span>&gt;, <span class="macro">js_string!</span>(<span class="string">&quot;transfer&quot;</span>), <span class="number">0</span>)
+            .method(<span class="self">Self</span>::transfer::&lt;<span class="bool-val">false</span>&gt;, <span class="macro">js_string!</span>(<span class="string">"transfer"</span>), <span class="number">0</span>)
             .method(
                 <span class="self">Self</span>::transfer::&lt;<span class="bool-val">true</span>&gt;,
-                <span class="macro">js_string!</span>(<span class="string">&quot;transferToFixedLength&quot;</span>),
+                <span class="macro">js_string!</span>(<span class="string">"transferToFixedLength"</span>),
                 <span class="number">0</span>,
             );
 
@@ -1345,7 +1346,7 @@
         <span class="comment">// 1. If NewTarget is undefined, throw a TypeError exception.
         </span><span class="kw">if </span>new_target.is_undefined() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;ArrayBuffer.constructor called with undefined new target&quot;</span>)
+                .with_message(<span class="string">"ArrayBuffer.constructor called with undefined new target"</span>)
                 .into());
         }
 
@@ -1413,7 +1414,7 @@
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message(<span class="string">&quot;get ArrayBuffer.prototype.byteLength called with invalid `this`&quot;</span>)
+                    .with_message(<span class="string">"get ArrayBuffer.prototype.byteLength called with invalid `this`"</span>)
             })<span class="question-mark">?</span>;
 
         <span class="comment">// 4. If IsDetachedBuffer(O) is true, return +0𝔽.
@@ -1438,7 +1439,7 @@
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message(
-                    <span class="string">&quot;get ArrayBuffer.prototype.maxByteLength called with invalid `this`&quot;</span>,
+                    <span class="string">"get ArrayBuffer.prototype.maxByteLength called with invalid `this`"</span>,
                 )
             })<span class="question-mark">?</span>;
 
@@ -1471,7 +1472,7 @@
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message(<span class="string">&quot;get ArrayBuffer.prototype.resizable called with invalid `this`&quot;</span>)
+                    .with_message(<span class="string">"get ArrayBuffer.prototype.resizable called with invalid `this`"</span>)
             })<span class="question-mark">?</span>;
 
         <span class="comment">// 4. If IsFixedLengthArrayBuffer(O) is false, return true; otherwise return false.
@@ -1481,7 +1482,7 @@
     <span class="doccomment">/// [`get ArrayBuffer.prototype.detached`][spec].
     ///
     /// [spec]: https://tc39.es/proposal-arraybuffer-transfer/#sec-get-arraybuffer.prototype.detached
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">"experimental"</span>)]
     </span><span class="kw">fn </span>get_detached(
         this: <span class="kw-2">&amp;</span>JsValue,
         _args: <span class="kw-2">&amp;</span>[JsValue],
@@ -1495,7 +1496,7 @@
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message(<span class="string">&quot;get ArrayBuffer.prototype.detached called with invalid `this`&quot;</span>)
+                    .with_message(<span class="string">"get ArrayBuffer.prototype.detached called with invalid `this`"</span>)
             })<span class="question-mark">?</span>;
 
         <span class="comment">// 4. Return IsDetachedBuffer(O).
@@ -1518,12 +1519,12 @@
             .and_then(|o| o.clone().downcast::&lt;<span class="self">Self</span>&gt;().ok())
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message(<span class="string">&quot;ArrayBuffer.prototype.resize called with invalid `this`&quot;</span>)
+                    .with_message(<span class="string">"ArrayBuffer.prototype.resize called with invalid `this`"</span>)
             })<span class="question-mark">?</span>;
 
         <span class="kw">let </span><span class="prelude-val">Some</span>(max_byte_len) = buf.borrow().data.max_byte_len <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;ArrayBuffer.resize: cannot resize a fixed-length buffer&quot;</span>)
+                .with_message(<span class="string">"ArrayBuffer.resize: cannot resize a fixed-length buffer"</span>)
                 .into());
         };
 
@@ -1534,7 +1535,7 @@
         <span class="comment">// 5. If IsDetachedBuffer(O) is true, throw a TypeError exception.
         </span><span class="kw">let </span><span class="prelude-val">Some</span>(buf) = buf.data.vec_mut() <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;ArrayBuffer.resize: cannot resize a detached buffer&quot;</span>)
+                .with_message(<span class="string">"ArrayBuffer.resize: cannot resize a detached buffer"</span>)
                 .into());
         };
 
@@ -1542,14 +1543,14 @@
         </span><span class="kw">if </span>new_byte_length &gt; max_byte_len {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
                 .with_message(
-                    <span class="string">&quot;ArrayBuffer.resize: new byte length exceeds buffer&#39;s maximum byte length&quot;</span>,
+                    <span class="string">"ArrayBuffer.resize: new byte length exceeds buffer's maximum byte length"</span>,
                 )
                 .into());
         }
 
         <span class="comment">// TODO: 7. Let hostHandled be ? HostResizeArrayBuffer(O, newByteLength).
         // 8. If hostHandled is handled, return undefined.
-        // Used in engines to handle WASM buffers in a special way, but we don&#39;t
+        // Used in engines to handle WASM buffers in a special way, but we don't
         // have a WASM interpreter in place yet.
 
         // 9. Let oldBlock be O.[[ArrayBufferData]].
@@ -1581,7 +1582,7 @@
             .and_then(|o| o.clone().downcast::&lt;<span class="self">Self</span>&gt;().ok())
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message(<span class="string">&quot;ArrayBuffer.slice called with invalid `this` value&quot;</span>)
+                    .with_message(<span class="string">"ArrayBuffer.slice called with invalid `this` value"</span>)
             })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>len = {
@@ -1589,7 +1590,7 @@
             <span class="comment">// 4. If IsDetachedBuffer(O) is true, throw a TypeError exception.
             </span><span class="kw">if </span>buf.data.is_detached() {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                    .with_message(<span class="string">&quot;ArrayBuffer.slice called with detached buffer&quot;</span>)
+                    .with_message(<span class="string">"ArrayBuffer.slice called with detached buffer"</span>)
                     .into());
             }
             <span class="comment">// 5. Let len be O.[[ArrayBufferByteLength]].
@@ -1624,14 +1625,14 @@
         // 18. If IsSharedArrayBuffer(new) is true, throw a TypeError exception.
         </span><span class="kw">let </span><span class="prelude-val">Ok</span>(new) = new.downcast::&lt;<span class="self">Self</span>&gt;() <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;ArrayBuffer constructor returned invalid object&quot;</span>)
+                .with_message(<span class="string">"ArrayBuffer constructor returned invalid object"</span>)
                 .into());
         };
 
         <span class="comment">// 20. If SameValue(new, O) is true, throw a TypeError exception.
         </span><span class="kw">if </span>JsObject::equals(<span class="kw-2">&amp;</span>buf, <span class="kw-2">&amp;</span>new) {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;new ArrayBuffer is the same as this ArrayBuffer&quot;</span>)
+                .with_message(<span class="string">"new ArrayBuffer is the same as this ArrayBuffer"</span>)
                 .into());
         }
 
@@ -1641,14 +1642,14 @@
             </span><span class="kw">let </span><span class="kw-2">mut </span>new = new.borrow_mut();
             <span class="kw">let </span><span class="prelude-val">Some</span>(to_buf) = new.data.bytes_mut() <span class="kw">else </span>{
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                    .with_message(<span class="string">&quot;ArrayBuffer constructor returned detached ArrayBuffer&quot;</span>)
+                    .with_message(<span class="string">"ArrayBuffer constructor returned detached ArrayBuffer"</span>)
                     .into());
             };
 
             <span class="comment">// 21. If new.[[ArrayBufferByteLength]] &lt; newLen, throw a TypeError exception.
             </span><span class="kw">if </span>(to_buf.len() <span class="kw">as </span>u64) &lt; new_len {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                    .with_message(<span class="string">&quot;new ArrayBuffer length too small&quot;</span>)
+                    .with_message(<span class="string">"new ArrayBuffer length too small"</span>)
                     .into());
             }
 
@@ -1658,7 +1659,7 @@
             </span><span class="kw">let </span>buf = buf.borrow();
             <span class="kw">let </span><span class="prelude-val">Some</span>(from_buf) = buf.data.bytes() <span class="kw">else </span>{
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                    .with_message(<span class="string">&quot;ArrayBuffer detached while ArrayBuffer.slice was running&quot;</span>)
+                    .with_message(<span class="string">"ArrayBuffer detached while ArrayBuffer.slice was running"</span>)
                     .into());
             };
 
@@ -1677,7 +1678,7 @@
     ///
     /// [transfer]: https://tc39.es/proposal-arraybuffer-transfer/#sec-arraybuffer.prototype.transfer
     /// [transferFL]: https://tc39.es/proposal-arraybuffer-transfer/#sec-arraybuffer.prototype.transfertofixedlength
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;experimental&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">"experimental"</span>)]
     </span><span class="kw">fn </span>transfer&lt;<span class="kw">const </span>TO_FIXED_LENGTH: bool&gt;(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
@@ -1698,9 +1699,9 @@
             .and_then(|o| o.clone().downcast::&lt;<span class="self">Self</span>&gt;().ok())
             .ok_or_else(|| {
                 JsNativeError::typ().with_message(<span class="kw">if </span>TO_FIXED_LENGTH {
-                    <span class="string">&quot;ArrayBuffer.prototype.transferToFixedLength called with invalid `this`&quot;
+                    <span class="string">"ArrayBuffer.prototype.transferToFixedLength called with invalid `this`"
                 </span>} <span class="kw">else </span>{
-                    <span class="string">&quot;ArrayBuffer.prototype.transfer called with invalid `this`&quot;
+                    <span class="string">"ArrayBuffer.prototype.transfer called with invalid `this`"
                 </span>})
             })<span class="question-mark">?</span>;
 
@@ -1717,7 +1718,7 @@
         <span class="comment">// 5. If IsDetachedBuffer(arrayBuffer) is true, throw a TypeError exception.
         </span><span class="kw">let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>bytes) = buf.borrow_mut().data.data.take() <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;cannot transfer a detached buffer&quot;</span>)
+                .with_message(<span class="string">"cannot transfer a detached buffer"</span>)
                 .into());
         };
 
@@ -1732,7 +1733,7 @@
         </span><span class="kw">if </span>!buf.borrow().data.detach_key.is_undefined() {
             buf.borrow_mut().data.data = <span class="prelude-val">Some</span>(bytes);
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;cannot transfer a buffer with a detach key&quot;</span>)
+                .with_message(<span class="string">"cannot transfer a buffer with a detach key"</span>)
                 .into());
         }
 
@@ -1752,7 +1753,7 @@
             <span class="kw">if </span>new_len &gt; new_max_len {
                 buf.borrow_mut().data.data = <span class="prelude-val">Some</span>(bytes);
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
-                    .with_message(<span class="string">&quot;`length` cannot be bigger than `maxByteLength`&quot;</span>)
+                    .with_message(<span class="string">"`length` cannot be bigger than `maxByteLength`"</span>)
                     .into());
             }
             <span class="comment">// Should only truncate without reallocating.
@@ -1802,12 +1803,12 @@
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(max_byte_len) = max_byte_len {
             <span class="kw">if </span>byte_len &gt; max_byte_len {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
-                    .with_message(<span class="string">&quot;`length` cannot be bigger than `maxByteLength`&quot;</span>)
+                    .with_message(<span class="string">"`length` cannot be bigger than `maxByteLength`"</span>)
                     .into());
             }
         }
 
-        <span class="comment">// 4. Let obj be ? OrdinaryCreateFromConstructor(constructor, &quot;%ArrayBuffer.prototype%&quot;, slots).
+        <span class="comment">// 4. Let obj be ? OrdinaryCreateFromConstructor(constructor, "%ArrayBuffer.prototype%", slots).
         </span><span class="kw">let </span>prototype = get_prototype_from_constructor(
             constructor,
             StandardConstructors::array_buffer,
@@ -1849,8 +1850,8 @@
         <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
     };
 
-    <span class="comment">// 2. Let maxByteLength be ? Get(options, &quot;maxByteLength&quot;).
-    </span><span class="kw">let </span>max_byte_len = options.get(<span class="macro">js_string!</span>(<span class="string">&quot;maxByteLength&quot;</span>), context)<span class="question-mark">?</span>;
+    <span class="comment">// 2. Let maxByteLength be ? Get(options, "maxByteLength").
+    </span><span class="kw">let </span>max_byte_len = options.get(<span class="macro">js_string!</span>(<span class="string">"maxByteLength"</span>), context)<span class="question-mark">?</span>;
 
     <span class="comment">// 3. If maxByteLength is undefined, return empty.
     </span><span class="kw">if </span>max_byte_len.is_undefined() {
@@ -1878,19 +1879,19 @@
 
     <span class="kw">if </span>alloc_size &gt; context.host_hooks().max_buffer_size(context) {
         <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
-            .with_message(<span class="string">&quot;cannot allocate a buffer that exceeds the maximum buffer size&quot;</span>)
+            .with_message(<span class="string">"cannot allocate a buffer that exceeds the maximum buffer size"</span>)
             .into());
     }
 
     <span class="comment">// 1. Let db be a new Data Block value consisting of size bytes. If it is impossible to
     //    create such a Data Block, throw a RangeError exception.
     </span><span class="kw">let </span>alloc_size = alloc_size.try_into().map_err(|e| {
-        JsNativeError::range().with_message(<span class="macro">format!</span>(<span class="string">&quot;couldn&#39;t allocate the data block: {e}&quot;</span>))
+        JsNativeError::range().with_message(<span class="macro">format!</span>(<span class="string">"couldn't allocate the data block: {e}"</span>))
     })<span class="question-mark">?</span>;
 
     <span class="kw">let </span><span class="kw-2">mut </span>data_block = Vec::new();
     data_block.try_reserve_exact(alloc_size).map_err(|e| {
-        JsNativeError::range().with_message(<span class="macro">format!</span>(<span class="string">&quot;couldn&#39;t allocate the data block: {e}&quot;</span>))
+        JsNativeError::range().with_message(<span class="macro">format!</span>(<span class="string">"couldn't allocate the data block: {e}"</span>))
     })<span class="question-mark">?</span>;
 
     <span class="comment">// since size &lt;= alloc_size, then `size` must also fit inside a `usize`.

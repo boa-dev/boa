@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/parser/src/lexer/comment.rs`."><title>comment.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="boa_parser" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../boa_parser/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_parser"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/parser/src/lexer/comment.rs`."><title>comment.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="boa_parser" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../../boa_parser/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_parser"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -133,7 +134,7 @@
 <a href="#133" id="133">133</a>
 <a href="#134" id="134">134</a>
 <a href="#135" id="135">135</a>
-</pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s lexing for ECMAScript comments.
+</pre></div><pre class="rust"><code><span class="doccomment">//! Boa's lexing for ECMAScript comments.
 
 </span><span class="kw">use </span><span class="kw">crate</span>::lexer::{Cursor, Error, Token, TokenKind, Tokenizer};
 <span class="kw">use </span><span class="kw">crate</span>::source::ReadChar;
@@ -143,7 +144,7 @@
 
 <span class="doccomment">/// Lexes a single line comment.
 ///
-/// Assumes that the initial &#39;//&#39; is already consumed.
+/// Assumes that the initial '//' is already consumed.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
@@ -163,16 +164,16 @@
     <span class="kw">where
         </span>R: ReadChar,
     {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;SingleLineComment&quot;</span>, <span class="string">&quot;Lexing&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">"SingleLineComment"</span>, <span class="string">"Lexing"</span>);
 
         <span class="comment">// Skip either to the end of the line or to the end of the input
         </span><span class="kw">while let </span><span class="prelude-val">Some</span>(ch) = cursor.peek_char()<span class="question-mark">? </span>{
             <span class="kw">let </span>tried_ch = char::try_from(ch);
             <span class="kw">match </span>tried_ch {
-                <span class="prelude-val">Ok</span>(c) <span class="kw">if </span>c == <span class="string">&#39;\r&#39; </span>|| c == <span class="string">&#39;\n&#39; </span>|| c == <span class="string">&#39;\u{2028}&#39; </span>|| c == <span class="string">&#39;\u{2029}&#39; </span>=&gt; <span class="kw">break</span>,
+                <span class="prelude-val">Ok</span>(c) <span class="kw">if </span>c == <span class="string">'\r' </span>|| c == <span class="string">'\n' </span>|| c == <span class="string">'\u{2028}' </span>|| c == <span class="string">'\u{2029}' </span>=&gt; <span class="kw">break</span>,
                 <span class="kw">_ </span>=&gt; {}
             };
-            cursor.next_char().expect(<span class="string">&quot;Comment character vanished&quot;</span>);
+            cursor.next_char().expect(<span class="string">"Comment character vanished"</span>);
         }
         <span class="prelude-val">Ok</span>(Token::new(
             TokenKind::Comment,
@@ -183,7 +184,7 @@
 
 <span class="doccomment">/// Lexes a block (multi-line) comment.
 ///
-/// Assumes that the initial &#39;/*&#39; is already consumed.
+/// Assumes that the initial '/*' is already consumed.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
@@ -203,13 +204,13 @@
     <span class="kw">where
         </span>R: ReadChar,
     {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;MultiLineComment&quot;</span>, <span class="string">&quot;Lexing&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">"MultiLineComment"</span>, <span class="string">"Lexing"</span>);
 
         <span class="kw">let </span><span class="kw-2">mut </span>new_line = <span class="bool-val">false</span>;
         <span class="kw">while let </span><span class="prelude-val">Some</span>(ch) = cursor.next_char()<span class="question-mark">? </span>{
             <span class="kw">let </span>tried_ch = char::try_from(ch);
             <span class="kw">match </span>tried_ch {
-                <span class="prelude-val">Ok</span>(c) <span class="kw">if </span>c == <span class="string">&#39;*&#39; </span>&amp;&amp; cursor.next_if(<span class="number">0x2F </span><span class="comment">/* / */</span>)<span class="question-mark">? </span>=&gt; {
+                <span class="prelude-val">Ok</span>(c) <span class="kw">if </span>c == <span class="string">'*' </span>&amp;&amp; cursor.next_if(<span class="number">0x2F </span><span class="comment">/* / */</span>)<span class="question-mark">? </span>=&gt; {
                     <span class="kw">return </span><span class="prelude-val">Ok</span>(Token::new(
                         <span class="kw">if </span>new_line {
                             TokenKind::LineTerminator
@@ -219,7 +220,7 @@
                         Span::new(start_pos, cursor.pos()),
                     ))
                 }
-                <span class="prelude-val">Ok</span>(c) <span class="kw">if </span>c == <span class="string">&#39;\r&#39; </span>|| c == <span class="string">&#39;\n&#39; </span>|| c == <span class="string">&#39;\u{2028}&#39; </span>|| c == <span class="string">&#39;\u{2029}&#39; </span>=&gt; {
+                <span class="prelude-val">Ok</span>(c) <span class="kw">if </span>c == <span class="string">'\r' </span>|| c == <span class="string">'\n' </span>|| c == <span class="string">'\u{2028}' </span>|| c == <span class="string">'\u{2029}' </span>=&gt; {
                     new_line = <span class="bool-val">true</span>;
                 }
                 <span class="kw">_ </span>=&gt; {}
@@ -227,7 +228,7 @@
         }
 
         <span class="prelude-val">Err</span>(Error::syntax(
-            <span class="string">&quot;unterminated multiline comment&quot;</span>,
+            <span class="string">"unterminated multiline comment"</span>,
             cursor.pos(),
         ))
     }
@@ -252,12 +253,12 @@
     <span class="kw">where
         </span>R: ReadChar,
     {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;Hashbang&quot;</span>, <span class="string">&quot;Lexing&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">"Hashbang"</span>, <span class="string">"Lexing"</span>);
 
         <span class="kw">while let </span><span class="prelude-val">Some</span>(ch) = cursor.next_char()<span class="question-mark">? </span>{
             <span class="kw">let </span>tried_ch = char::try_from(ch);
             <span class="kw">match </span>tried_ch {
-                <span class="prelude-val">Ok</span>(c) <span class="kw">if </span>c == <span class="string">&#39;\r&#39; </span>|| c == <span class="string">&#39;\n&#39; </span>|| c == <span class="string">&#39;\u{2028}&#39; </span>|| c == <span class="string">&#39;\u{2029}&#39; </span>=&gt; <span class="kw">break</span>,
+                <span class="prelude-val">Ok</span>(c) <span class="kw">if </span>c == <span class="string">'\r' </span>|| c == <span class="string">'\n' </span>|| c == <span class="string">'\u{2028}' </span>|| c == <span class="string">'\u{2029}' </span>=&gt; <span class="kw">break</span>,
                 <span class="kw">_ </span>=&gt; {}
             };
         }

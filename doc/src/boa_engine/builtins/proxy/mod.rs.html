@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/builtins/proxy/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/builtins/proxy/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1209,7 +1210,7 @@
 <a href="#1209" id="1209">1209</a>
 <a href="#1210" id="1210">1210</a>
 <a href="#1211" id="1211">1211</a>
-</pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Proxy` object.
+</pre></div><pre class="rust"><code><span class="doccomment">//! Boa's implementation of ECMAScript's global `Proxy` object.
 //!
 //! The `Proxy` object enables you to create a proxy for another object,
 //! which can intercept and redefine fundamental operations for that object.
@@ -1254,7 +1255,7 @@
 }
 
 <span class="kw">impl </span>JsData <span class="kw">for </span>Proxy {
-    <span class="kw">fn </span>internal_methods(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>InternalObjectMethods {
+    <span class="kw">fn </span>internal_methods(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>InternalObjectMethods {
         <span class="kw">static </span>BASIC: InternalObjectMethods = InternalObjectMethods {
             __get_prototype_of__: proxy_exotic_get_prototype_of,
             __set_prototype_of__: proxy_exotic_set_prototype_of,
@@ -1297,10 +1298,10 @@
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>Proxy {
     <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(std::any::type_name::&lt;<span class="self">Self</span>&gt;(), <span class="string">&quot;init&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(std::any::type_name::&lt;<span class="self">Self</span>&gt;(), <span class="string">"init"</span>);
 
         BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
-            .static_method(<span class="self">Self</span>::revocable, <span class="macro">js_string!</span>(<span class="string">&quot;revocable&quot;</span>), <span class="number">2</span>)
+            .static_method(<span class="self">Self</span>::revocable, <span class="macro">js_string!</span>(<span class="string">"revocable"</span>), <span class="number">2</span>)
             .build_without_prototype();
     }
 
@@ -1333,7 +1334,7 @@
         <span class="comment">// 1. If NewTarget is undefined, throw a TypeError exception.
         </span><span class="kw">if </span>new_target.is_undefined() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;Proxy constructor called on undefined new target&quot;</span>)
+                .with_message(<span class="string">"Proxy constructor called on undefined new target"</span>)
                 .into());
         }
 
@@ -1355,7 +1356,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>try_data(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsResult&lt;(JsObject, JsObject)&gt; {
         <span class="self">self</span>.data.clone().ok_or_else(|| {
             JsNativeError::typ()
-                .with_message(<span class="string">&quot;Proxy object has empty handler and target&quot;</span>)
+                .with_message(<span class="string">"Proxy object has empty handler and target"</span>)
                 .into()
         })
     }
@@ -1373,16 +1374,16 @@
     ) -&gt; JsResult&lt;JsObject&gt; {
         <span class="comment">// 1. If Type(target) is not Object, throw a TypeError exception.
         </span><span class="kw">let </span>target = target.as_object().ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;Proxy constructor called with non-object target&quot;</span>)
+            JsNativeError::typ().with_message(<span class="string">"Proxy constructor called with non-object target"</span>)
         })<span class="question-mark">?</span>;
 
         <span class="comment">// 2. If Type(handler) is not Object, throw a TypeError exception.
         </span><span class="kw">let </span>handler = handler.as_object().ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;Proxy constructor called with non-object handler&quot;</span>)
+            JsNativeError::typ().with_message(<span class="string">"Proxy constructor called with non-object handler"</span>)
         })<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Let P be ! MakeBasicObject(« [[ProxyHandler]], [[ProxyTarget]] »).
-        // 4. Set P&#39;s essential internal methods, except for [[Call]] and [[Construct]], to the definitions specified in 10.5.
+        // 4. Set P's essential internal methods, except for [[Call]] and [[Construct]], to the definitions specified in 10.5.
         // 5. If IsCallable(target) is true, then
         // a. Set P.[[Call]] as specified in 10.5.12.
         // b. If IsConstructor(target) is true, then
@@ -1400,7 +1401,7 @@
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>revoker(proxy: JsObject, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsFunction {
-        <span class="comment">// 3. Let revoker be ! CreateBuiltinFunction(revokerClosure, 0, &quot;&quot;, « [[RevocableProxy]] »).
+        <span class="comment">// 3. Let revoker be ! CreateBuiltinFunction(revokerClosure, 0, "", « [[RevocableProxy]] »).
         // 4. Set revoker.[[RevocableProxy]] to p.
 
         </span>NativeFunction::from_copy_closure_with_captures(
@@ -1413,7 +1414,7 @@
                     // f. Set p.[[ProxyTarget]] to null.
                     // g. Set p.[[ProxyHandler]] to null.
                     </span>p.downcast_mut::&lt;Proxy&gt;()
-                        .expect(<span class="string">&quot;[[RevocableProxy]] must be a proxy object&quot;</span>)
+                        .expect(<span class="string">"[[RevocableProxy]] must be a proxy object"</span>)
                         .data = <span class="prelude-val">None</span>;
                 }
 
@@ -1442,15 +1443,15 @@
         <span class="comment">// 5. Let result be ! OrdinaryObjectCreate(%Object.prototype%).
         </span><span class="kw">let </span>result = JsObject::with_object_proto(context.intrinsics());
 
-        <span class="comment">// 6. Perform ! CreateDataPropertyOrThrow(result, &quot;proxy&quot;, p).
+        <span class="comment">// 6. Perform ! CreateDataPropertyOrThrow(result, "proxy", p).
         </span>result
-            .create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;proxy&quot;</span>), p, context)
-            .expect(<span class="string">&quot;CreateDataPropertyOrThrow cannot fail here&quot;</span>);
+            .create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">"proxy"</span>), p, context)
+            .expect(<span class="string">"CreateDataPropertyOrThrow cannot fail here"</span>);
 
-        <span class="comment">// 7. Perform ! CreateDataPropertyOrThrow(result, &quot;revoke&quot;, revoker).
+        <span class="comment">// 7. Perform ! CreateDataPropertyOrThrow(result, "revoke", revoker).
         </span>result
-            .create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;revoke&quot;</span>), revoker, context)
-            .expect(<span class="string">&quot;CreateDataPropertyOrThrow cannot fail here&quot;</span>);
+            .create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">"revoke"</span>), revoker, context)
+            .expect(<span class="string">"CreateDataPropertyOrThrow cannot fail here"</span>);
 
         <span class="comment">// 8. Return result.
         </span><span class="prelude-val">Ok</span>(result.into())
@@ -1473,11 +1474,11 @@
     // 4. Let target be O.[[ProxyTarget]].
     </span><span class="kw">let </span>(target, handler) = obj
         .downcast_ref::&lt;Proxy&gt;()
-        .expect(<span class="string">&quot;Proxy object internal internal method called on non-proxy object&quot;</span>)
+        .expect(<span class="string">"Proxy object internal internal method called on non-proxy object"</span>)
         .try_data()<span class="question-mark">?</span>;
 
-    <span class="comment">// 5. Let trap be ? GetMethod(handler, &quot;getPrototypeOf&quot;).
-    </span><span class="kw">let </span><span class="prelude-val">Some</span>(trap) = handler.get_method(<span class="macro">utf16!</span>(<span class="string">&quot;getPrototypeOf&quot;</span>), context)<span class="question-mark">? </span><span class="kw">else </span>{
+    <span class="comment">// 5. Let trap be ? GetMethod(handler, "getPrototypeOf").
+    </span><span class="kw">let </span><span class="prelude-val">Some</span>(trap) = handler.get_method(<span class="macro">utf16!</span>(<span class="string">"getPrototypeOf"</span>), context)<span class="question-mark">? </span><span class="kw">else </span>{
         <span class="comment">// 6. If trap is undefined, then
         // a. Return ? target.[[GetPrototypeOf]]().
         </span><span class="kw">return </span>target.__get_prototype_of__(context);
@@ -1492,7 +1493,7 @@
         JsValue::Null =&gt; <span class="prelude-val">None</span>,
         <span class="kw">_ </span>=&gt; {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;Proxy trap result is neither object nor null&quot;</span>)
+                .with_message(<span class="string">"Proxy trap result is neither object nor null"</span>)
                 .into())
         }
     };
@@ -1509,7 +1510,7 @@
     <span class="comment">// 12. If SameValue(handlerProto, targetProto) is false, throw a TypeError exception.
     </span><span class="kw">if </span>handler_proto != target_proto {
         <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-            .with_message(<span class="string">&quot;Proxy trap returned unexpected prototype&quot;</span>)
+            .with_message(<span class="string">"Proxy trap returned unexpected prototype"</span>)
             .into());
     }
 
@@ -1534,11 +1535,11 @@
     // 4. Let target be O.[[ProxyTarget]].
     </span><span class="kw">let </span>(target, handler) = obj
         .downcast_ref::&lt;Proxy&gt;()
-        .expect(<span class="string">&quot;Proxy object internal internal method called on non-proxy object&quot;</span>)
+        .expect(<span class="string">"Proxy object internal internal method called on non-proxy object"</span>)
         .try_data()<span class="question-mark">?</span>;
 
-    <span class="comment">// 5. Let trap be ? GetMethod(handler, &quot;setPrototypeOf&quot;).
-    </span><span class="kw">let </span><span class="prelude-val">Some</span>(trap) = handler.get_method(<span class="macro">utf16!</span>(<span class="string">&quot;setPrototypeOf&quot;</span>), context)<span class="question-mark">? </span><span class="kw">else </span>{
+    <span class="comment">// 5. Let trap be ? GetMethod(handler, "setPrototypeOf").
+    </span><span class="kw">let </span><span class="prelude-val">Some</span>(trap) = handler.get_method(<span class="macro">utf16!</span>(<span class="string">"setPrototypeOf"</span>), context)<span class="question-mark">? </span><span class="kw">else </span>{
         <span class="comment">// 6. If trap is undefined, then
         // a. Return ? target.[[SetPrototypeOf]](V).
         </span><span class="kw">return </span>target.__set_prototype_of__(val, context);
@@ -1572,7 +1573,7 @@
     <span class="comment">// 12. If SameValue(V, targetProto) is false, throw a TypeError exception.
     </span><span class="kw">if </span>val != target_proto {
         <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-            .with_message(<span class="string">&quot;Proxy trap failed to set prototype&quot;</span>)
+            .with_message(<span class="string">"Proxy trap failed to set prototype"</span>)
             .into());
     }
 
@@ -1593,11 +1594,11 @@
     // 4. Let target be O.[[ProxyTarget]].
     </span><span class="kw">let </span>(target, handler) = obj
         .downcast_ref::&lt;Proxy&gt;()
-        .expect(<span class="string">&quot;Proxy object internal internal method called on non-proxy object&quot;</span>)
+        .expect(<span class="string">"Proxy object internal internal method called on non-proxy object"</span>)
         .try_data()<span class="question-mark">?</span>;
 
-    <span class="comment">// 5. Let trap be ? GetMethod(handler, &quot;isExtensible&quot;).
-    </span><span class="kw">let </span><span class="prelude-val">Some</span>(trap) = handler.get_method(<span class="macro">utf16!</span>(<span class="string">&quot;isExtensible&quot;</span>), context)<span class="question-mark">? </span><span class="kw">else </span>{
+    <span class="comment">// 5. Let trap be ? GetMethod(handler, "isExtensible").
+    </span><span class="kw">let </span><span class="prelude-val">Some</span>(trap) = handler.get_method(<span class="macro">utf16!</span>(<span class="string">"isExtensible"</span>), context)<span class="question-mark">? </span><span class="kw">else </span>{
         <span class="comment">// 6. If trap is undefined, then
         // a. Return ? IsExtensible(target).
         </span><span class="kw">return </span>target.is_extensible(context);
@@ -1614,7 +1615,7 @@
     <span class="comment">// 9. If SameValue(booleanTrapResult, targetResult) is false, throw a TypeError exception.
     </span><span class="kw">if </span>boolean_trap_result != target_result {
         <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-            .with_message(<span class="string">&quot;Proxy trap returned unexpected extensible value&quot;</span>)
+            .with_message(<span class="string">"Proxy trap returned unexpected extensible value"</span>)
             .into());
     }
 
@@ -1638,11 +1639,11 @@
     // 4. Let target be O.[[ProxyTarget]].
     </span><span class="kw">let </span>(target, handler) = obj
         .downcast_ref::&lt;Proxy&gt;()
-        .expect(<span class="string">&quot;Proxy object internal internal method called on non-proxy object&quot;</span>)
+        .expect(<span class="string">"Proxy object internal internal method called on non-proxy object"</span>)
         .try_data()<span class="question-mark">?</span>;
 
-    <span class="comment">// 5. Let trap be ? GetMethod(handler, &quot;preventExtensions&quot;).
-    </span><span class="kw">let </span><span class="prelude-val">Some</span>(trap) = handler.get_method(<span class="macro">utf16!</span>(<span class="string">&quot;preventExtensions&quot;</span>), context)<span class="question-mark">? </span><span class="kw">else </span>{
+    <span class="comment">// 5. Let trap be ? GetMethod(handler, "preventExtensions").
+    </span><span class="kw">let </span><span class="prelude-val">Some</span>(trap) = handler.get_method(<span class="macro">utf16!</span>(<span class="string">"preventExtensions"</span>), context)<span class="question-mark">? </span><span class="kw">else </span>{
         <span class="comment">// 6. If trap is undefined, then
         // a. Return ? target.[[PreventExtensions]]().
         </span><span class="kw">return </span>target.__prevent_extensions__(context);
@@ -1658,7 +1659,7 @@
         <span class="comment">// a. Let extensibleTarget be ? IsExtensible(target).
         // b. If extensibleTarget is true, throw a TypeError exception.
         </span><span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-            .with_message(<span class="string">&quot;Proxy trap failed to set extensible&quot;</span>)
+            .with_message(<span class="string">"Proxy trap failed to set extensible"</span>)
             .into());
     }
 
@@ -1675,7 +1676,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>proxy_exotic_get_own_property(
     obj: <span class="kw-2">&amp;</span>JsObject,
     key: <span class="kw-2">&amp;</span>PropertyKey,
-    context: <span class="kw-2">&amp;mut </span>InternalMethodContext&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>InternalMethodContext&lt;<span class="lifetime">'_</span>&gt;,
 ) -&gt; JsResult&lt;<span class="prelude-ty">Option</span>&lt;PropertyDescriptor&gt;&gt; {
     context.slot().attributes |= SlotAttributes::NOT_CACHABLE;
 
@@ -1685,11 +1686,11 @@
     // 4. Let target be O.[[ProxyTarget]].
     </span><span class="kw">let </span>(target, handler) = obj
         .downcast_ref::&lt;Proxy&gt;()
-        .expect(<span class="string">&quot;Proxy object internal internal method called on non-proxy object&quot;</span>)
+        .expect(<span class="string">"Proxy object internal internal method called on non-proxy object"</span>)
         .try_data()<span class="question-mark">?</span>;
 
-    <span class="comment">// 5. Let trap be ? GetMethod(handler, &quot;getOwnPropertyDescriptor&quot;).
-    </span><span class="kw">let </span><span class="prelude-val">Some</span>(trap) = handler.get_method(<span class="macro">utf16!</span>(<span class="string">&quot;getOwnPropertyDescriptor&quot;</span>), context)<span class="question-mark">? </span><span class="kw">else </span>{
+    <span class="comment">// 5. Let trap be ? GetMethod(handler, "getOwnPropertyDescriptor").
+    </span><span class="kw">let </span><span class="prelude-val">Some</span>(trap) = handler.get_method(<span class="macro">utf16!</span>(<span class="string">"getOwnPropertyDescriptor"</span>), context)<span class="question-mark">? </span><span class="kw">else </span>{
         <span class="comment">// 6. If trap is undefined, then
         // a. Return ? target.[[GetOwnProperty]](P).
         </span><span class="kw">return </span>target.__get_own_property__(key, context);
@@ -1705,7 +1706,7 @@
     <span class="comment">// 8. If Type(trapResultObj) is neither Object nor Undefined, throw a TypeError exception.
     </span><span class="kw">if </span>!trap_result_obj.is_object() &amp;&amp; !trap_result_obj.is_undefined() {
         <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-            .with_message(<span class="string">&quot;Proxy trap result is neither object nor undefined&quot;</span>)
+            .with_message(<span class="string">"Proxy trap result is neither object nor undefined"</span>)
             .into());
     }
 
@@ -1719,7 +1720,7 @@
             </span><span class="kw">if </span>!desc.expect_configurable() {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
                     .with_message(
-                        <span class="string">&quot;Proxy trap result is undefined adn target result is not configurable&quot;</span>,
+                        <span class="string">"Proxy trap result is undefined adn target result is not configurable"</span>,
                     )
                     .into());
             }
@@ -1728,7 +1729,7 @@
             // d. If extensibleTarget is false, throw a TypeError exception.
             </span><span class="kw">if </span>!target.is_extensible(context)<span class="question-mark">? </span>{
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                    .with_message(<span class="string">&quot;Proxy trap result is undefined and target is not extensible&quot;</span>)
+                    .with_message(<span class="string">"Proxy trap result is undefined and target is not extensible"</span>)
                     .into());
             }
             <span class="comment">// e. Return undefined.
@@ -1756,7 +1757,7 @@
         target_desc.clone(),
     ) {
         <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-            .with_message(<span class="string">&quot;Proxy trap returned unexpected property&quot;</span>)
+            .with_message(<span class="string">"Proxy trap returned unexpected property"</span>)
             .into());
     }
 
@@ -1770,7 +1771,7 @@
                     <span class="comment">// i. If targetDesc.[[Writable]] is true, throw a TypeError exception.
                     </span><span class="kw">if </span>desc.expect_writable() {
                         <span class="kw">return
-                            </span><span class="prelude-val">Err</span>(JsNativeError::typ().with_message(<span class="string">&quot;Proxy trap result is writable and not configurable while target result is not configurable&quot;</span>).into())
+                            </span><span class="prelude-val">Err</span>(JsNativeError::typ().with_message(<span class="string">"Proxy trap result is writable and not configurable while target result is not configurable"</span>).into())
                         ;
                     }
                 }
@@ -1779,7 +1780,7 @@
             </span><span class="kw">_ </span>=&gt; {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
                     .with_message(
-                        <span class="string">&quot;Proxy trap result is not configurable and target result is undefined&quot;</span>,
+                        <span class="string">"Proxy trap result is not configurable and target result is undefined"</span>,
                     )
                     .into())
             }
@@ -1800,7 +1801,7 @@
     obj: <span class="kw-2">&amp;</span>JsObject,
     key: <span class="kw-2">&amp;</span>PropertyKey,
     desc: PropertyDescriptor,
-    context: <span class="kw-2">&amp;mut </span>InternalMethodContext&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>InternalMethodContext&lt;<span class="lifetime">'_</span>&gt;,
 ) -&gt; JsResult&lt;bool&gt; {
     context.slot().attributes |= SlotAttributes::NOT_CACHABLE;
 
@@ -1810,11 +1811,11 @@
     // 4. Let target be O.[[ProxyTarget]].
     </span><span class="kw">let </span>(target, handler) = obj
         .downcast_ref::&lt;Proxy&gt;()
-        .expect(<span class="string">&quot;Proxy object internal internal method called on non-proxy object&quot;</span>)
+        .expect(<span class="string">"Proxy object internal internal method called on non-proxy object"</span>)
         .try_data()<span class="question-mark">?</span>;
 
-    <span class="comment">// 5. Let trap be ? GetMethod(handler, &quot;defineProperty&quot;).
-    </span><span class="kw">let </span><span class="prelude-val">Some</span>(trap) = handler.get_method(<span class="macro">utf16!</span>(<span class="string">&quot;defineProperty&quot;</span>), context)<span class="question-mark">? </span><span class="kw">else </span>{
+    <span class="comment">// 5. Let trap be ? GetMethod(handler, "defineProperty").
+    </span><span class="kw">let </span><span class="prelude-val">Some</span>(trap) = handler.get_method(<span class="macro">utf16!</span>(<span class="string">"defineProperty"</span>), context)<span class="question-mark">? </span><span class="kw">else </span>{
         <span class="comment">// 6. If trap is undefined, then
         // a. Return ? target.[[DefineOwnProperty]](P, Desc).
         </span><span class="kw">return </span>target.__define_own_property__(key, desc, context);
@@ -1851,14 +1852,14 @@
             <span class="comment">// a. If extensibleTarget is false, throw a TypeError exception.
             </span><span class="kw">if </span>!extensible_target {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                    .with_message(<span class="string">&quot;Proxy trap failed to set property&quot;</span>)
+                    .with_message(<span class="string">"Proxy trap failed to set property"</span>)
                     .into());
             }
 
             <span class="comment">// b. If settingConfigFalse is true, throw a TypeError exception.
             </span><span class="kw">if </span>setting_config_false {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                    .with_message(<span class="string">&quot;Proxy trap failed to set property&quot;</span>)
+                    .with_message(<span class="string">"Proxy trap failed to set property"</span>)
                     .into());
             }
         }
@@ -1871,14 +1872,14 @@
                 <span class="prelude-val">Some</span>(target_desc.clone()),
             ) {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                    .with_message(<span class="string">&quot;Proxy trap set property to unexpected value&quot;</span>)
+                    .with_message(<span class="string">"Proxy trap set property to unexpected value"</span>)
                     .into());
             }
 
             <span class="comment">// b. If settingConfigFalse is true and targetDesc.[[Configurable]] is true, throw a TypeError exception.
             </span><span class="kw">if </span>setting_config_false &amp;&amp; target_desc.expect_configurable() {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                    .with_message(<span class="string">&quot;Proxy trap set property with unexpected configurable field&quot;</span>)
+                    .with_message(<span class="string">"Proxy trap set property with unexpected configurable field"</span>)
                     .into());
             }
 
@@ -1891,7 +1892,7 @@
                 </span><span class="kw">if let </span><span class="prelude-val">Some</span>(writable) = desc.writable() {
                     <span class="kw">if </span>!writable {
                         <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                            .with_message(<span class="string">&quot;Proxy trap set property with unexpected writable field&quot;</span>)
+                            .with_message(<span class="string">"Proxy trap set property with unexpected writable field"</span>)
                             .into());
                     }
                 }
@@ -1912,7 +1913,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>proxy_exotic_has_property(
     obj: <span class="kw-2">&amp;</span>JsObject,
     key: <span class="kw-2">&amp;</span>PropertyKey,
-    context: <span class="kw-2">&amp;mut </span>InternalMethodContext&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>InternalMethodContext&lt;<span class="lifetime">'_</span>&gt;,
 ) -&gt; JsResult&lt;bool&gt; {
     context.slot().attributes |= SlotAttributes::NOT_CACHABLE;
 
@@ -1922,11 +1923,11 @@
     // 4. Let target be O.[[ProxyTarget]].
     </span><span class="kw">let </span>(target, handler) = obj
         .downcast_ref::&lt;Proxy&gt;()
-        .expect(<span class="string">&quot;Proxy object internal internal method called on non-proxy object&quot;</span>)
+        .expect(<span class="string">"Proxy object internal internal method called on non-proxy object"</span>)
         .try_data()<span class="question-mark">?</span>;
 
-    <span class="comment">// 5. Let trap be ? GetMethod(handler, &quot;has&quot;).
-    </span><span class="kw">let </span><span class="prelude-val">Some</span>(trap) = handler.get_method(<span class="macro">utf16!</span>(<span class="string">&quot;has&quot;</span>), context)<span class="question-mark">? </span><span class="kw">else </span>{
+    <span class="comment">// 5. Let trap be ? GetMethod(handler, "has").
+    </span><span class="kw">let </span><span class="prelude-val">Some</span>(trap) = handler.get_method(<span class="macro">utf16!</span>(<span class="string">"has"</span>), context)<span class="question-mark">? </span><span class="kw">else </span>{
         <span class="comment">// 6. If trap is undefined, then
         // a. Return ? target.[[HasProperty]](P).
         </span><span class="kw">return </span>target.has_property(key.clone(), context);
@@ -1951,7 +1952,7 @@
             <span class="comment">// i. If targetDesc.[[Configurable]] is false, throw a TypeError exception.
             </span><span class="kw">if </span>!target_desc.expect_configurable() {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                    .with_message(<span class="string">&quot;Proxy trap returned unexpected property&quot;</span>)
+                    .with_message(<span class="string">"Proxy trap returned unexpected property"</span>)
                     .into());
             }
 
@@ -1959,7 +1960,7 @@
             // iii. If extensibleTarget is false, throw a TypeError exception.
             </span><span class="kw">if </span>!target.is_extensible(context)<span class="question-mark">? </span>{
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                    .with_message(<span class="string">&quot;Proxy trap returned unexpected property&quot;</span>)
+                    .with_message(<span class="string">"Proxy trap returned unexpected property"</span>)
                     .into());
             }
         }
@@ -1979,9 +1980,9 @@
     obj: <span class="kw-2">&amp;</span>JsObject,
     key: <span class="kw-2">&amp;</span>PropertyKey,
     receiver: JsValue,
-    context: <span class="kw-2">&amp;mut </span>InternalMethodContext&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>InternalMethodContext&lt;<span class="lifetime">'_</span>&gt;,
 ) -&gt; JsResult&lt;JsValue&gt; {
-    <span class="comment">// Proxy object can&#39;t be cached.
+    <span class="comment">// Proxy object can't be cached.
     </span>context.slot().attributes |= SlotAttributes::NOT_CACHABLE;
 
     <span class="comment">// 1. Let handler be O.[[ProxyHandler]].
@@ -1990,11 +1991,11 @@
     // 4. Let target be O.[[ProxyTarget]].
     </span><span class="kw">let </span>(target, handler) = obj
         .downcast_ref::&lt;Proxy&gt;()
-        .expect(<span class="string">&quot;Proxy object internal internal method called on non-proxy object&quot;</span>)
+        .expect(<span class="string">"Proxy object internal internal method called on non-proxy object"</span>)
         .try_data()<span class="question-mark">?</span>;
 
-    <span class="comment">// 5. Let trap be ? GetMethod(handler, &quot;get&quot;).
-    </span><span class="kw">let </span><span class="prelude-val">Some</span>(trap) = handler.get_method(<span class="macro">utf16!</span>(<span class="string">&quot;get&quot;</span>), context)<span class="question-mark">? </span><span class="kw">else </span>{
+    <span class="comment">// 5. Let trap be ? GetMethod(handler, "get").
+    </span><span class="kw">let </span><span class="prelude-val">Some</span>(trap) = handler.get_method(<span class="macro">utf16!</span>(<span class="string">"get"</span>), context)<span class="question-mark">? </span><span class="kw">else </span>{
         <span class="comment">// 6. If trap is undefined, then
         // a. Return ? target.[[Get]](P, Receiver).
         </span><span class="kw">return </span>target.__get__(key, receiver, context);
@@ -2018,7 +2019,7 @@
                 <span class="comment">// i. If SameValue(trapResult, targetDesc.[[Value]]) is false, throw a TypeError exception.
                 </span><span class="kw">if </span>!JsValue::same_value(<span class="kw-2">&amp;</span>trap_result, target_desc.expect_value()) {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                        .with_message(<span class="string">&quot;Proxy trap returned unexpected data descriptor&quot;</span>)
+                        .with_message(<span class="string">"Proxy trap returned unexpected data descriptor"</span>)
                         .into());
                 }
             }
@@ -2028,7 +2029,7 @@
                 <span class="comment">// i. If trapResult is not undefined, throw a TypeError exception.
                 </span><span class="kw">if </span>!trap_result.is_undefined() {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                        .with_message(<span class="string">&quot;Proxy trap returned unexpected accessor descriptor&quot;</span>)
+                        .with_message(<span class="string">"Proxy trap returned unexpected accessor descriptor"</span>)
                         .into());
                 }
             }
@@ -2050,7 +2051,7 @@
     key: PropertyKey,
     value: JsValue,
     receiver: JsValue,
-    context: <span class="kw-2">&amp;mut </span>InternalMethodContext&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>InternalMethodContext&lt;<span class="lifetime">'_</span>&gt;,
 ) -&gt; JsResult&lt;bool&gt; {
     context.slot().attributes |= SlotAttributes::NOT_CACHABLE;
 
@@ -2060,11 +2061,11 @@
     // 4. Let target be O.[[ProxyTarget]].
     </span><span class="kw">let </span>(target, handler) = obj
         .downcast_ref::&lt;Proxy&gt;()
-        .expect(<span class="string">&quot;Proxy object internal internal method called on non-proxy object&quot;</span>)
+        .expect(<span class="string">"Proxy object internal internal method called on non-proxy object"</span>)
         .try_data()<span class="question-mark">?</span>;
 
-    <span class="comment">// 5. Let trap be ? GetMethod(handler, &quot;set&quot;).
-    </span><span class="kw">let </span><span class="prelude-val">Some</span>(trap) = handler.get_method(<span class="macro">utf16!</span>(<span class="string">&quot;set&quot;</span>), context)<span class="question-mark">? </span><span class="kw">else </span>{
+    <span class="comment">// 5. Let trap be ? GetMethod(handler, "set").
+    </span><span class="kw">let </span><span class="prelude-val">Some</span>(trap) = handler.get_method(<span class="macro">utf16!</span>(<span class="string">"set"</span>), context)<span class="question-mark">? </span><span class="kw">else </span>{
         <span class="comment">// 6. If trap is undefined, then
         // a. Return ? target.[[Set]](P, V, Receiver).
         </span><span class="kw">return </span>target.__set__(key, value, receiver, context);
@@ -2099,7 +2100,7 @@
                 <span class="comment">// i. If SameValue(V, targetDesc.[[Value]]) is false, throw a TypeError exception.
                 </span><span class="kw">if </span>!JsValue::same_value(<span class="kw-2">&amp;</span>value, target_desc.expect_value()) {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                        .with_message(<span class="string">&quot;Proxy trap set unexpected data descriptor&quot;</span>)
+                        .with_message(<span class="string">"Proxy trap set unexpected data descriptor"</span>)
                         .into());
                 }
             }
@@ -2110,7 +2111,7 @@
                 </span><span class="kw">match </span>target_desc.set() {
                     <span class="prelude-val">None </span>| <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>JsValue::Undefined) =&gt; {
                         <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                            .with_message(<span class="string">&quot;Proxy trap set unexpected accessor descriptor&quot;</span>)
+                            .with_message(<span class="string">"Proxy trap set unexpected accessor descriptor"</span>)
                             .into());
                     }
                     <span class="kw">_ </span>=&gt; {}
@@ -2132,7 +2133,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>proxy_exotic_delete(
     obj: <span class="kw-2">&amp;</span>JsObject,
     key: <span class="kw-2">&amp;</span>PropertyKey,
-    context: <span class="kw-2">&amp;mut </span>InternalMethodContext&lt;<span class="lifetime">&#39;_</span>&gt;,
+    context: <span class="kw-2">&amp;mut </span>InternalMethodContext&lt;<span class="lifetime">'_</span>&gt;,
 ) -&gt; JsResult&lt;bool&gt; {
     <span class="comment">// 1. Let handler be O.[[ProxyHandler]].
     // 2. If handler is null, throw a TypeError exception.
@@ -2140,11 +2141,11 @@
     // 4. Let target be O.[[ProxyTarget]].
     </span><span class="kw">let </span>(target, handler) = obj
         .downcast_ref::&lt;Proxy&gt;()
-        .expect(<span class="string">&quot;Proxy object internal internal method called on non-proxy object&quot;</span>)
+        .expect(<span class="string">"Proxy object internal internal method called on non-proxy object"</span>)
         .try_data()<span class="question-mark">?</span>;
 
-    <span class="comment">// 5. Let trap be ? GetMethod(handler, &quot;deleteProperty&quot;).
-    </span><span class="kw">let </span><span class="prelude-val">Some</span>(trap) = handler.get_method(<span class="macro">utf16!</span>(<span class="string">&quot;deleteProperty&quot;</span>), context)<span class="question-mark">? </span><span class="kw">else </span>{
+    <span class="comment">// 5. Let trap be ? GetMethod(handler, "deleteProperty").
+    </span><span class="kw">let </span><span class="prelude-val">Some</span>(trap) = handler.get_method(<span class="macro">utf16!</span>(<span class="string">"deleteProperty"</span>), context)<span class="question-mark">? </span><span class="kw">else </span>{
         <span class="comment">// 6. If trap is undefined, then
         // a. Return ? target.[[Delete]](P).
         </span><span class="kw">return </span>target.__delete__(key, context);
@@ -2171,7 +2172,7 @@
         </span><span class="prelude-val">Some</span>(target_desc) =&gt; {
             <span class="kw">if </span>!target_desc.expect_configurable() {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                    .with_message(<span class="string">&quot;Proxy trap failed to delete property&quot;</span>)
+                    .with_message(<span class="string">"Proxy trap failed to delete property"</span>)
                     .into());
             }
         }
@@ -2181,7 +2182,7 @@
     // 13. If extensibleTarget is false, throw a TypeError exception.
     </span><span class="kw">if </span>!target.is_extensible(context)<span class="question-mark">? </span>{
         <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-            .with_message(<span class="string">&quot;Proxy trap failed to delete property&quot;</span>)
+            .with_message(<span class="string">"Proxy trap failed to delete property"</span>)
             .into());
     }
 
@@ -2205,11 +2206,11 @@
     // 4. Let target be O.[[ProxyTarget]].
     </span><span class="kw">let </span>(target, handler) = obj
         .downcast_ref::&lt;Proxy&gt;()
-        .expect(<span class="string">&quot;Proxy object internal internal method called on non-proxy object&quot;</span>)
+        .expect(<span class="string">"Proxy object internal internal method called on non-proxy object"</span>)
         .try_data()<span class="question-mark">?</span>;
 
-    <span class="comment">// 5. Let trap be ? GetMethod(handler, &quot;ownKeys&quot;).
-    </span><span class="kw">let </span><span class="prelude-val">Some</span>(trap) = handler.get_method(<span class="macro">utf16!</span>(<span class="string">&quot;ownKeys&quot;</span>), context)<span class="question-mark">? </span><span class="kw">else </span>{
+    <span class="comment">// 5. Let trap be ? GetMethod(handler, "ownKeys").
+    </span><span class="kw">let </span><span class="prelude-val">Some</span>(trap) = handler.get_method(<span class="macro">utf16!</span>(<span class="string">"ownKeys"</span>), context)<span class="question-mark">? </span><span class="kw">else </span>{
         <span class="comment">// 6. If trap is undefined, then
         // a. Return ? target.[[OwnPropertyKeys]]().
         </span><span class="kw">return </span>target.__own_property_keys__(context);
@@ -2230,7 +2231,7 @@
             JsValue::String(s) =&gt; {
                 <span class="kw">if </span>!unchecked_result_keys.insert(s.clone().into()) {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                        .with_message(<span class="string">&quot;Proxy trap result contains duplicate string property keys&quot;</span>)
+                        .with_message(<span class="string">"Proxy trap result contains duplicate string property keys"</span>)
                         .into());
                 }
                 trap_result.push(s.clone().into());
@@ -2238,7 +2239,7 @@
             JsValue::Symbol(s) =&gt; {
                 <span class="kw">if </span>!unchecked_result_keys.insert(s.clone().into()) {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                        .with_message(<span class="string">&quot;Proxy trap result contains duplicate symbol property keys&quot;</span>)
+                        .with_message(<span class="string">"Proxy trap result contains duplicate symbol property keys"</span>)
                         .into());
                 }
                 trap_result.push(s.clone().into());
@@ -2290,7 +2291,7 @@
         // b. Remove key from uncheckedResultKeys.
         </span><span class="kw">if </span>!unchecked_result_keys.remove(<span class="kw-2">&amp;</span>key) {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;Proxy trap failed to return all non-configurable property keys&quot;</span>)
+                .with_message(<span class="string">"Proxy trap failed to return all non-configurable property keys"</span>)
                 .into());
         }
     }
@@ -2306,7 +2307,7 @@
         // b. Remove key from uncheckedResultKeys.
         </span><span class="kw">if </span>!unchecked_result_keys.remove(<span class="kw-2">&amp;</span>key) {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;Proxy trap failed to return all configurable property keys&quot;</span>)
+                .with_message(<span class="string">"Proxy trap failed to return all configurable property keys"</span>)
                 .into());
         }
     }
@@ -2314,7 +2315,7 @@
     <span class="comment">// 22. If uncheckedResultKeys is not empty, throw a TypeError exception.
     </span><span class="kw">if </span>!unchecked_result_keys.is_empty() {
         <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-            .with_message(<span class="string">&quot;Proxy trap failed to return all property keys&quot;</span>)
+            .with_message(<span class="string">"Proxy trap failed to return all property keys"</span>)
             .into());
     }
 
@@ -2339,11 +2340,11 @@
     // 4. Let target be O.[[ProxyTarget]].
     </span><span class="kw">let </span>(target, handler) = obj
         .downcast_ref::&lt;Proxy&gt;()
-        .expect(<span class="string">&quot;Proxy object internal internal method called on non-proxy object&quot;</span>)
+        .expect(<span class="string">"Proxy object internal internal method called on non-proxy object"</span>)
         .try_data()<span class="question-mark">?</span>;
 
-    <span class="comment">// 5. Let trap be ? GetMethod(handler, &quot;apply&quot;).
-    </span><span class="kw">let </span><span class="prelude-val">Some</span>(trap) = handler.get_method(<span class="macro">utf16!</span>(<span class="string">&quot;apply&quot;</span>), context)<span class="question-mark">? </span><span class="kw">else </span>{
+    <span class="comment">// 5. Let trap be ? GetMethod(handler, "apply").
+    </span><span class="kw">let </span><span class="prelude-val">Some</span>(trap) = handler.get_method(<span class="macro">utf16!</span>(<span class="string">"apply"</span>), context)<span class="question-mark">? </span><span class="kw">else </span>{
         <span class="comment">// 6. If trap is undefined, then
         // a. Return ? Call(target, thisArgument, argumentsList).
         </span><span class="kw">return </span><span class="prelude-val">Ok</span>(target.__call__(argument_count));
@@ -2384,14 +2385,14 @@
     // 4. Let target be O.[[ProxyTarget]].
     </span><span class="kw">let </span>(target, handler) = obj
         .downcast_ref::&lt;Proxy&gt;()
-        .expect(<span class="string">&quot;Proxy object internal internal method called on non-proxy object&quot;</span>)
+        .expect(<span class="string">"Proxy object internal internal method called on non-proxy object"</span>)
         .try_data()<span class="question-mark">?</span>;
 
     <span class="comment">// 5. Assert: IsConstructor(target) is true.
     </span><span class="macro">assert!</span>(target.is_constructor());
 
-    <span class="comment">// 6. Let trap be ? GetMethod(handler, &quot;construct&quot;).
-    </span><span class="kw">let </span><span class="prelude-val">Some</span>(trap) = handler.get_method(<span class="macro">utf16!</span>(<span class="string">&quot;construct&quot;</span>), context)<span class="question-mark">? </span><span class="kw">else </span>{
+    <span class="comment">// 6. Let trap be ? GetMethod(handler, "construct").
+    </span><span class="kw">let </span><span class="prelude-val">Some</span>(trap) = handler.get_method(<span class="macro">utf16!</span>(<span class="string">"construct"</span>), context)<span class="question-mark">? </span><span class="kw">else </span>{
         <span class="comment">// 7. If trap is undefined, then
         // a. Return ? Construct(target, argumentsList, newTarget).
         </span><span class="kw">return </span><span class="prelude-val">Ok</span>(target.__construct__(argument_count));
@@ -2413,7 +2414,7 @@
 
     <span class="comment">// 10. If Type(newObj) is not Object, throw a TypeError exception.
     </span><span class="kw">let </span>new_obj = new_obj.as_object().cloned().ok_or_else(|| {
-        JsNativeError::typ().with_message(<span class="string">&quot;Proxy trap constructor returned non-object value&quot;</span>)
+        JsNativeError::typ().with_message(<span class="string">"Proxy trap constructor returned non-object value"</span>)
     })<span class="question-mark">?</span>;
 
     <span class="comment">// 11. Return newObj.

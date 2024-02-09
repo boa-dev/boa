@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/builtins/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/builtins/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -404,7 +405,7 @@
 <a href="#404" id="404">404</a>
 <a href="#405" id="405">405</a>
 <a href="#406" id="406">406</a>
-</pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s ECMAScript built-in object implementations, e.g. Object, String, Math, Array, etc.
+</pre></div><pre class="rust"><code><span class="doccomment">//! Boa's ECMAScript built-in object implementations, e.g. Object, String, Math, Array, etc.
 
 </span><span class="kw">pub mod </span>array;
 <span class="kw">pub mod </span>array_buffer;
@@ -444,17 +445,17 @@
 
 <span class="kw">use </span>builder::BuiltInBuilder;
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;annex-b&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"annex-b"</span>)]
 </span><span class="kw">pub mod </span>escape;
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"intl"</span>)]
 </span><span class="kw">pub mod </span>intl;
 
 <span class="comment">// TODO: remove `cfg` when `Temporal` gets to stage 4.
-</span><span class="attr">#[cfg(any(feature = <span class="string">&quot;intl&quot;</span>, feature = <span class="string">&quot;temporal&quot;</span>))]
+</span><span class="attr">#[cfg(any(feature = <span class="string">"intl"</span>, feature = <span class="string">"temporal"</span>))]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>options;
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"temporal"</span>)]
 </span><span class="kw">pub mod </span>temporal;
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><span class="self">self</span>::{
@@ -544,7 +545,7 @@
     <span class="doccomment">/// Binding name of the builtin inside the global object.
     ///
     /// E.g. If you want access the properties of a `Complex` built-in with the name `Cplx` you must
-    /// assign `&quot;Cplx&quot;` to this constant, making any property inside it accessible from ECMAScript
+    /// assign `"Cplx"` to this constant, making any property inside it accessible from ECMAScript
     /// as `Cplx.prop`
     </span><span class="kw">const </span>NAME: JsString;
 
@@ -668,13 +669,13 @@
         WeakSet::init(<span class="self">self</span>);
         Atomics::init(<span class="self">self</span>);
 
-        <span class="attr">#[cfg(feature = <span class="string">&quot;annex-b&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">"annex-b"</span>)]
         </span>{
             escape::Escape::init(<span class="self">self</span>);
             escape::Unescape::init(<span class="self">self</span>);
         }
 
-        <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">"intl"</span>)]
         </span>{
             intl::Intl::init(<span class="self">self</span>);
             intl::Collator::init(<span class="self">self</span>);
@@ -687,7 +688,7 @@
             intl::PluralRules::init(<span class="self">self</span>);
         }
 
-        <span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">"temporal"</span>)]
         </span>{
             temporal::TimeZone::init(<span class="self">self</span>);
             temporal::Temporal::init(<span class="self">self</span>);
@@ -712,7 +713,7 @@
     <span class="kw">let </span>global_object = context.global_object();
 
     global_object.define_property_or_throw(
-        <span class="macro">utf16!</span>(<span class="string">&quot;globalThis&quot;</span>),
+        <span class="macro">utf16!</span>(<span class="string">"globalThis"</span>),
         PropertyDescriptor::builder()
             .value(context.realm().global_this().clone())
             .writable(<span class="bool-val">true</span>)
@@ -725,17 +726,17 @@
         .enumerable(<span class="bool-val">false</span>)
         .configurable(<span class="bool-val">false</span>);
     global_object.define_property_or_throw(
-        <span class="macro">utf16!</span>(<span class="string">&quot;Infinity&quot;</span>),
+        <span class="macro">utf16!</span>(<span class="string">"Infinity"</span>),
         restricted.clone().value(f64::INFINITY),
         context,
     )<span class="question-mark">?</span>;
     global_object.define_property_or_throw(
-        <span class="macro">utf16!</span>(<span class="string">&quot;NaN&quot;</span>),
+        <span class="macro">utf16!</span>(<span class="string">"NaN"</span>),
         restricted.clone().value(f64::NAN),
         context,
     )<span class="question-mark">?</span>;
     global_object.define_property_or_throw(
-        <span class="macro">utf16!</span>(<span class="string">&quot;undefined&quot;</span>),
+        <span class="macro">utf16!</span>(<span class="string">"undefined"</span>),
         restricted.value(JsValue::undefined()),
         context,
     )<span class="question-mark">?</span>;
@@ -794,16 +795,16 @@
     global_binding::&lt;WeakSet&gt;(context)<span class="question-mark">?</span>;
     global_binding::&lt;Atomics&gt;(context)<span class="question-mark">?</span>;
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;annex-b&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"annex-b"</span>)]
     </span>{
         global_binding::&lt;escape::Escape&gt;(context)<span class="question-mark">?</span>;
         global_binding::&lt;escape::Unescape&gt;(context)<span class="question-mark">?</span>;
     }
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"intl"</span>)]
     </span>global_binding::&lt;intl::Intl&gt;(context)<span class="question-mark">?</span>;
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"temporal"</span>)]
     </span>{
         global_binding::&lt;temporal::Temporal&gt;(context)<span class="question-mark">?</span>;
     }

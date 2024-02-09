@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/context/intrinsics.rs`."><title>intrinsics.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/context/intrinsics.rs`."><title>intrinsics.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1899,35 +1900,35 @@
     weak_ref: StandardConstructor,
     weak_map: StandardConstructor,
     weak_set: StandardConstructor,
-    <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"intl"</span>)]
     </span>collator: StandardConstructor,
-    <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"intl"</span>)]
     </span>list_format: StandardConstructor,
-    <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"intl"</span>)]
     </span>locale: StandardConstructor,
-    <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"intl"</span>)]
     </span>segmenter: StandardConstructor,
-    <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"intl"</span>)]
     </span>plural_rules: StandardConstructor,
-    <span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"temporal"</span>)]
     </span>instant: StandardConstructor,
-    <span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"temporal"</span>)]
     </span>plain_date_time: StandardConstructor,
-    <span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"temporal"</span>)]
     </span>plain_date: StandardConstructor,
-    <span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"temporal"</span>)]
     </span>plain_time: StandardConstructor,
-    <span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"temporal"</span>)]
     </span>plain_year_month: StandardConstructor,
-    <span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"temporal"</span>)]
     </span>plain_month_day: StandardConstructor,
-    <span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"temporal"</span>)]
     </span>time_zone: StandardConstructor,
-    <span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"temporal"</span>)]
     </span>duration: StandardConstructor,
-    <span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"temporal"</span>)]
     </span>zoned_date_time: StandardConstructor,
-    <span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"temporal"</span>)]
     </span>calendar: StandardConstructor,
 }
 
@@ -1989,35 +1990,35 @@
             weak_ref: StandardConstructor::default(),
             weak_map: StandardConstructor::default(),
             weak_set: StandardConstructor::default(),
-            <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"intl"</span>)]
             </span>collator: StandardConstructor::default(),
-            <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"intl"</span>)]
             </span>list_format: StandardConstructor::default(),
-            <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"intl"</span>)]
             </span>locale: StandardConstructor::default(),
-            <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"intl"</span>)]
             </span>segmenter: StandardConstructor::default(),
-            <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"intl"</span>)]
             </span>plural_rules: StandardConstructor::default(),
-            <span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"temporal"</span>)]
             </span>instant: StandardConstructor::default(),
-            <span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"temporal"</span>)]
             </span>plain_date_time: StandardConstructor::default(),
-            <span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"temporal"</span>)]
             </span>plain_date: StandardConstructor::default(),
-            <span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"temporal"</span>)]
             </span>plain_time: StandardConstructor::default(),
-            <span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"temporal"</span>)]
             </span>plain_year_month: StandardConstructor::default(),
-            <span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"temporal"</span>)]
             </span>plain_month_day: StandardConstructor::default(),
-            <span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"temporal"</span>)]
             </span>time_zone: StandardConstructor::default(),
-            <span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"temporal"</span>)]
             </span>duration: StandardConstructor::default(),
-            <span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"temporal"</span>)]
             </span>zoned_date_time: StandardConstructor::default(),
-            <span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"temporal"</span>)]
             </span>calendar: StandardConstructor::default(),
         }
     }
@@ -2560,7 +2561,7 @@
     /// [spec]: https://tc39.es/ecma402/#sec-intl.collator
     </span><span class="attr">#[inline]
     #[must_use]
-    #[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+    #[cfg(feature = <span class="string">"intl"</span>)]
     </span><span class="kw">pub const fn </span>collator(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.collator
     }
@@ -2573,7 +2574,7 @@
     /// [spec]: https://tc39.es/ecma402/#sec-Intl.ListFormat
     </span><span class="attr">#[inline]
     #[must_use]
-    #[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+    #[cfg(feature = <span class="string">"intl"</span>)]
     </span><span class="kw">pub const fn </span>list_format(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.list_format
     }
@@ -2586,7 +2587,7 @@
     /// [spec]: https://tc39.es/ecma402/#sec-Intl.Locale
     </span><span class="attr">#[inline]
     #[must_use]
-    #[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+    #[cfg(feature = <span class="string">"intl"</span>)]
     </span><span class="kw">pub const fn </span>locale(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.locale
     }
@@ -2599,7 +2600,7 @@
     /// [spec]: https://tc39.es/ecma402/#sec-intl.segmenter
     </span><span class="attr">#[inline]
     #[must_use]
-    #[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+    #[cfg(feature = <span class="string">"intl"</span>)]
     </span><span class="kw">pub const fn </span>segmenter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.segmenter
     }
@@ -2612,7 +2613,7 @@
     /// [spec]: https://tc39.es/ecma402/#sec-intl.pluralrules
     </span><span class="attr">#[inline]
     #[must_use]
-    #[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+    #[cfg(feature = <span class="string">"intl"</span>)]
     </span><span class="kw">pub const fn </span>plural_rules(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.plural_rules
     }
@@ -2625,7 +2626,7 @@
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal-instant-constructor
     </span><span class="attr">#[inline]
     #[must_use]
-    #[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
+    #[cfg(feature = <span class="string">"temporal"</span>)]
     </span><span class="kw">pub const fn </span>instant(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.instant
     }
@@ -2638,7 +2639,7 @@
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal-plaindatetime-constructor
     </span><span class="attr">#[inline]
     #[must_use]
-    #[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
+    #[cfg(feature = <span class="string">"temporal"</span>)]
     </span><span class="kw">pub const fn </span>plain_date_time(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.plain_date_time
     }
@@ -2651,7 +2652,7 @@
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal-plaindate-constructor
     </span><span class="attr">#[inline]
     #[must_use]
-    #[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
+    #[cfg(feature = <span class="string">"temporal"</span>)]
     </span><span class="kw">pub const fn </span>plain_date(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.plain_date
     }
@@ -2664,7 +2665,7 @@
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal-plaintime-constructor
     </span><span class="attr">#[inline]
     #[must_use]
-    #[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
+    #[cfg(feature = <span class="string">"temporal"</span>)]
     </span><span class="kw">pub const fn </span>plain_time(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.plain_time
     }
@@ -2677,7 +2678,7 @@
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal-plainyearmonth-constructor
     </span><span class="attr">#[inline]
     #[must_use]
-    #[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
+    #[cfg(feature = <span class="string">"temporal"</span>)]
     </span><span class="kw">pub const fn </span>plain_year_month(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.plain_year_month
     }
@@ -2690,7 +2691,7 @@
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal-plainmonthday-constructor
     </span><span class="attr">#[inline]
     #[must_use]
-    #[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
+    #[cfg(feature = <span class="string">"temporal"</span>)]
     </span><span class="kw">pub const fn </span>plain_month_day(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.plain_month_day
     }
@@ -2703,7 +2704,7 @@
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal-timezone-constructor
     </span><span class="attr">#[inline]
     #[must_use]
-    #[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
+    #[cfg(feature = <span class="string">"temporal"</span>)]
     </span><span class="kw">pub const fn </span>time_zone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.time_zone
     }
@@ -2716,7 +2717,7 @@
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal-duration-constructor
     </span><span class="attr">#[inline]
     #[must_use]
-    #[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
+    #[cfg(feature = <span class="string">"temporal"</span>)]
     </span><span class="kw">pub const fn </span>duration(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.duration
     }
@@ -2729,7 +2730,7 @@
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal-zoneddatetime-constructor
     </span><span class="attr">#[inline]
     #[must_use]
-    #[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
+    #[cfg(feature = <span class="string">"temporal"</span>)]
     </span><span class="kw">pub const fn </span>zoned_date_time(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.zoned_date_time
     }
@@ -2742,7 +2743,7 @@
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal-calendar-constructor
     </span><span class="attr">#[inline]
     #[must_use]
-    #[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
+    #[cfg(feature = <span class="string">"temporal"</span>)]
     </span><span class="kw">pub const fn </span>calendar(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
         <span class="kw-2">&amp;</span><span class="self">self</span>.calendar
     }
@@ -2800,27 +2801,27 @@
     </span>parse_int: JsFunction,
 
     <span class="doccomment">/// [`%escape%`](https://tc39.es/ecma262/#sec-escape-string)
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;annex-b&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">"annex-b"</span>)]
     </span>escape: JsFunction,
 
     <span class="doccomment">/// [`%unescape%`](https://tc39.es/ecma262/#sec-unescape-string)
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;annex-b&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">"annex-b"</span>)]
     </span>unescape: JsFunction,
 
     <span class="doccomment">/// [`%Intl%`](https://tc39.es/ecma402/#intl-object)
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">"intl"</span>)]
     </span>intl: JsObject,
 
     <span class="doccomment">/// [`%SegmentsPrototype%`](https://tc39.es/ecma402/#sec-%segmentsprototype%-object)
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">"intl"</span>)]
     </span>segments_prototype: JsObject,
 
     <span class="doccomment">/// [`%Temporal%`](https://tc39.es/proposal-temporal/#sec-temporal-objects)
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">"temporal"</span>)]
     </span>temporal: JsObject,
 
     <span class="doccomment">/// [`%Temporal.Now%`](https://tc39.es/proposal-temporal/#sec-temporal-now-object)
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">"temporal"</span>)]
     </span>now: JsObject,
 }
 
@@ -2843,17 +2844,17 @@
             is_nan: JsFunction::empty_intrinsic_function(<span class="bool-val">false</span>),
             parse_float: JsFunction::empty_intrinsic_function(<span class="bool-val">false</span>),
             parse_int: JsFunction::empty_intrinsic_function(<span class="bool-val">false</span>),
-            <span class="attr">#[cfg(feature = <span class="string">&quot;annex-b&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"annex-b"</span>)]
             </span>escape: JsFunction::empty_intrinsic_function(<span class="bool-val">false</span>),
-            <span class="attr">#[cfg(feature = <span class="string">&quot;annex-b&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"annex-b"</span>)]
             </span>unescape: JsFunction::empty_intrinsic_function(<span class="bool-val">false</span>),
-            <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"intl"</span>)]
             </span>intl: JsObject::default(),
-            <span class="attr">#[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"intl"</span>)]
             </span>segments_prototype: JsObject::default(),
-            <span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"temporal"</span>)]
             </span>temporal: JsObject::default(),
-            <span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"temporal"</span>)]
             </span>now: JsObject::default(),
         }
     }
@@ -3004,7 +3005,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-escape-string
     </span><span class="attr">#[must_use]
-    #[cfg(feature = <span class="string">&quot;annex-b&quot;</span>)]
+    #[cfg(feature = <span class="string">"annex-b"</span>)]
     #[inline]
     </span><span class="kw">pub fn </span>escape(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsFunction {
         <span class="self">self</span>.escape.clone()
@@ -3014,7 +3015,7 @@
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-unescape-string
     </span><span class="attr">#[must_use]
-    #[cfg(feature = <span class="string">&quot;annex-b&quot;</span>)]
+    #[cfg(feature = <span class="string">"annex-b"</span>)]
     #[inline]
     </span><span class="kw">pub fn </span>unescape(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsFunction {
         <span class="self">self</span>.unescape.clone()
@@ -3024,7 +3025,7 @@
     ///
     /// [spec]: https://tc39.es/ecma402/#intl-object
     </span><span class="attr">#[must_use]
-    #[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+    #[cfg(feature = <span class="string">"intl"</span>)]
     #[inline]
     </span><span class="kw">pub fn </span>intl(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
         <span class="self">self</span>.intl.clone()
@@ -3034,7 +3035,7 @@
     ///
     /// [spec]: https://tc39.es/ecma402/#sec-%segmentsprototype%-object
     </span><span class="attr">#[must_use]
-    #[cfg(feature = <span class="string">&quot;intl&quot;</span>)]
+    #[cfg(feature = <span class="string">"intl"</span>)]
     </span><span class="kw">pub fn </span>segments_prototype(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
         <span class="self">self</span>.segments_prototype.clone()
     }
@@ -3042,7 +3043,7 @@
     <span class="doccomment">/// Gets the [`%Temporal%`][spec] intrinsic object.
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal-objects
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">"temporal"</span>)]
     #[must_use]
     #[inline]
     </span><span class="kw">pub fn </span>temporal(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
@@ -3052,7 +3053,7 @@
     <span class="doccomment">/// Gets the [`%Temporal.Now%`][spec] intrinsic object.
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal-now-object
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;temporal&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">"temporal"</span>)]
     #[must_use]
     #[inline]
     </span><span class="kw">pub fn </span>now(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
@@ -3102,7 +3103,7 @@
         </span><span class="kw">let </span>ordinary_object =
             ObjectTemplate::with_prototype(root_shape, constructors.object().prototype());
         <span class="kw">let </span><span class="kw-2">mut </span>array = ObjectTemplate::new(root_shape);
-        <span class="kw">let </span>length_property_key: PropertyKey = <span class="macro">js_string!</span>(<span class="string">&quot;length&quot;</span>).into();
+        <span class="kw">let </span>length_property_key: PropertyKey = <span class="macro">js_string!</span>(<span class="string">"length"</span>).into();
         array.property(
             length_property_key.clone(),
             Attribute::WRITABLE | Attribute::PERMANENT | Attribute::NON_ENUMERABLE,
@@ -3122,12 +3123,12 @@
         string.set_prototype(constructors.string().prototype());
 
         <span class="kw">let </span><span class="kw-2">mut </span>regexp_without_proto = ObjectTemplate::new(root_shape);
-        regexp_without_proto.property(<span class="macro">js_string!</span>(<span class="string">&quot;lastIndex&quot;</span>).into(), Attribute::WRITABLE);
+        regexp_without_proto.property(<span class="macro">js_string!</span>(<span class="string">"lastIndex"</span>).into(), Attribute::WRITABLE);
 
         <span class="kw">let </span><span class="kw-2">mut </span>regexp = regexp_without_proto.clone();
         regexp.set_prototype(constructors.regexp().prototype());
 
-        <span class="kw">let </span>name_property_key: PropertyKey = <span class="macro">js_string!</span>(<span class="string">&quot;name&quot;</span>).into();
+        <span class="kw">let </span>name_property_key: PropertyKey = <span class="macro">js_string!</span>(<span class="string">"name"</span>).into();
         <span class="kw">let </span><span class="kw-2">mut </span>function = ObjectTemplate::new(root_shape);
         function.property(
             length_property_key.clone(),
@@ -3165,7 +3166,7 @@
 
         <span class="kw">let </span><span class="kw-2">mut </span>unmapped_arguments = ordinary_object.clone();
 
-        <span class="comment">// 4. Perform DefinePropertyOrThrow(obj, &quot;length&quot;, PropertyDescriptor { [[Value]]: 𝔽(len),
+        <span class="comment">// 4. Perform DefinePropertyOrThrow(obj, "length", PropertyDescriptor { [[Value]]: 𝔽(len),
         // [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: true }).
         </span>unmapped_arguments.property(
             length_property_key,
@@ -3182,30 +3183,30 @@
 
         <span class="kw">let </span><span class="kw-2">mut </span>mapped_arguments = unmapped_arguments.clone();
 
-        <span class="comment">// 8. Perform ! DefinePropertyOrThrow(obj, &quot;callee&quot;, PropertyDescriptor {
+        <span class="comment">// 8. Perform ! DefinePropertyOrThrow(obj, "callee", PropertyDescriptor {
         // [[Get]]: %ThrowTypeError%, [[Set]]: %ThrowTypeError%, [[Enumerable]]: false,
         // [[Configurable]]: false }).
         </span>unmapped_arguments.accessor(
-            <span class="macro">js_string!</span>(<span class="string">&quot;callee&quot;</span>).into(),
+            <span class="macro">js_string!</span>(<span class="string">"callee"</span>).into(),
             <span class="bool-val">true</span>,
             <span class="bool-val">true</span>,
             Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
         );
 
-        <span class="comment">// 21. Perform ! DefinePropertyOrThrow(obj, &quot;callee&quot;, PropertyDescriptor {
+        <span class="comment">// 21. Perform ! DefinePropertyOrThrow(obj, "callee", PropertyDescriptor {
         // [[Value]]: func, [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: true }).
         </span>mapped_arguments.property(
-            <span class="macro">js_string!</span>(<span class="string">&quot;callee&quot;</span>).into(),
+            <span class="macro">js_string!</span>(<span class="string">"callee"</span>).into(),
             Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         );
 
         <span class="kw">let </span><span class="kw-2">mut </span>iterator_result = ordinary_object.clone();
         iterator_result.property(
-            <span class="macro">js_string!</span>(<span class="string">&quot;value&quot;</span>).into(),
+            <span class="macro">js_string!</span>(<span class="string">"value"</span>).into(),
             Attribute::WRITABLE | Attribute::CONFIGURABLE | Attribute::ENUMERABLE,
         );
         iterator_result.property(
-            <span class="macro">js_string!</span>(<span class="string">&quot;done&quot;</span>).into(),
+            <span class="macro">js_string!</span>(<span class="string">"done"</span>).into(),
             Attribute::WRITABLE | Attribute::CONFIGURABLE | Attribute::ENUMERABLE,
         );
 
@@ -3216,12 +3217,12 @@
             <span class="kw">let </span><span class="kw-2">mut </span>with_resolvers = ordinary_object.clone();
 
             with_resolvers
-                <span class="comment">// 4. Perform ! CreateDataPropertyOrThrow(obj, &quot;promise&quot;, promiseCapability.[[Promise]]).
-                </span>.property(<span class="macro">js_string!</span>(<span class="string">&quot;promise&quot;</span>).into(), Attribute::all())
-                <span class="comment">// 5. Perform ! CreateDataPropertyOrThrow(obj, &quot;resolve&quot;, promiseCapability.[[Resolve]]).
-                </span>.property(<span class="macro">js_string!</span>(<span class="string">&quot;resolve&quot;</span>).into(), Attribute::all())
-                <span class="comment">// 6. Perform ! CreateDataPropertyOrThrow(obj, &quot;reject&quot;, promiseCapability.[[Reject]]).
-                </span>.property(<span class="macro">js_string!</span>(<span class="string">&quot;reject&quot;</span>).into(), Attribute::all());
+                <span class="comment">// 4. Perform ! CreateDataPropertyOrThrow(obj, "promise", promiseCapability.[[Promise]]).
+                </span>.property(<span class="macro">js_string!</span>(<span class="string">"promise"</span>).into(), Attribute::all())
+                <span class="comment">// 5. Perform ! CreateDataPropertyOrThrow(obj, "resolve", promiseCapability.[[Resolve]]).
+                </span>.property(<span class="macro">js_string!</span>(<span class="string">"resolve"</span>).into(), Attribute::all())
+                <span class="comment">// 6. Perform ! CreateDataPropertyOrThrow(obj, "reject", promiseCapability.[[Reject]]).
+                </span>.property(<span class="macro">js_string!</span>(<span class="string">"reject"</span>).into(), Attribute::all());
 
             with_resolvers
         };
@@ -3257,8 +3258,8 @@
     /// Transitions:
     ///
     /// 1. `__proto__`: `Object.prototype`
-    /// 2. `&quot;done&quot;`: (`WRITABLE`, `CONFIGURABLE`, `ENUMERABLE`)
-    /// 3. `&quot;value&quot;`: (`WRITABLE`, `CONFIGURABLE`, `ENUMERABLE`)
+    /// 2. `"done"`: (`WRITABLE`, `CONFIGURABLE`, `ENUMERABLE`)
+    /// 3. `"value"`: (`WRITABLE`, `CONFIGURABLE`, `ENUMERABLE`)
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>iterator_result(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>ObjectTemplate {
         <span class="kw-2">&amp;</span><span class="self">self</span>.iterator_result
     }
@@ -3276,7 +3277,7 @@
     ///
     /// Transitions:
     ///
-    /// 1. `&quot;length&quot;`: (`WRITABLE`, `PERMANENT`,`NON_ENUMERABLE`)
+    /// 1. `"length"`: (`WRITABLE`, `PERMANENT`,`NON_ENUMERABLE`)
     /// 2. `__proto__`: `Array.prototype`
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>ObjectTemplate {
         <span class="kw-2">&amp;</span><span class="self">self</span>.array
@@ -3295,7 +3296,7 @@
     ///
     /// Transitions:
     ///
-    /// 1. `&quot;length&quot;`: (`READONLY`, `PERMANENT`,`NON_ENUMERABLE`)
+    /// 1. `"length"`: (`READONLY`, `PERMANENT`,`NON_ENUMERABLE`)
     /// 2. `__proto__`: `String.prototype`
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>string(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>ObjectTemplate {
         <span class="kw-2">&amp;</span><span class="self">self</span>.string
@@ -3332,7 +3333,7 @@
     ///
     /// Transitions:
     ///
-    /// 1. `&quot;lastIndex&quot;`: (`WRITABLE` , `PERMANENT`,`NON_ENUMERABLE`)
+    /// 1. `"lastIndex"`: (`WRITABLE` , `PERMANENT`,`NON_ENUMERABLE`)
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>regexp(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>ObjectTemplate {
         <span class="kw-2">&amp;</span><span class="self">self</span>.regexp
     }
@@ -3341,7 +3342,7 @@
     ///
     /// Transitions:
     ///
-    /// 1. `&quot;lastIndex&quot;`: (`WRITABLE` , `PERMANENT`,`NON_ENUMERABLE`)
+    /// 1. `"lastIndex"`: (`WRITABLE` , `PERMANENT`,`NON_ENUMERABLE`)
     /// 2. `__proto__`: `RegExp.prototype`
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>regexp_without_proto(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>ObjectTemplate {
         <span class="kw-2">&amp;</span><span class="self">self</span>.regexp_without_proto
@@ -3352,9 +3353,9 @@
     /// Transitions:
     ///
     /// 1. `__proto__`: `Object.prototype`
-    /// 2. `&quot;length&quot;`: (`WRITABLE`, `NON_ENUMERABLE`, `CONFIGURABLE`)
+    /// 2. `"length"`: (`WRITABLE`, `NON_ENUMERABLE`, `CONFIGURABLE`)
     /// 3. `@@iterator`: (`WRITABLE`, `NON_ENUMERABLE`, `CONFIGURABLE`)
-    /// 4. `get/set` `&quot;callee&quot;`: (`NON_ENUMERABLE`, `PERMANENT`)
+    /// 4. `get/set` `"callee"`: (`NON_ENUMERABLE`, `PERMANENT`)
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>unmapped_arguments(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>ObjectTemplate {
         <span class="kw-2">&amp;</span><span class="self">self</span>.unmapped_arguments
     }
@@ -3364,20 +3365,20 @@
     /// Transitions:
     ///
     /// 1. `__proto__`: `Object.prototype`
-    /// 2. `&quot;length&quot;`: (`WRITABLE`, `NON_ENUMERABLE`, `CONFIGURABLE`)
+    /// 2. `"length"`: (`WRITABLE`, `NON_ENUMERABLE`, `CONFIGURABLE`)
     /// 3. `@@iterator`: (`WRITABLE`, `NON_ENUMERABLE`, `CONFIGURABLE`)
-    /// 4. `&quot;callee&quot;`: (`WRITABLE`, `NON_ENUMERABLE`, `CONFIGURABLE`)
+    /// 4. `"callee"`: (`WRITABLE`, `NON_ENUMERABLE`, `CONFIGURABLE`)
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>mapped_arguments(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>ObjectTemplate {
         <span class="kw-2">&amp;</span><span class="self">self</span>.mapped_arguments
     }
 
-    <span class="doccomment">/// Cached function object with `&quot;prototype&quot;` property template.
+    <span class="doccomment">/// Cached function object with `"prototype"` property template.
     ///
     /// Transitions:
     ///
-    /// 1. `&quot;length&quot;`: (`READONLY`, `NON_ENUMERABLE`, `CONFIGURABLE`)
-    /// 2. `&quot;name&quot;`: (`READONLY`, `NON_ENUMERABLE`, `CONFIGURABLE`)
-    /// 3. `&quot;prototype&quot;`: (`WRITABLE`, `PERMANENT`, `NON_ENUMERABLE`)
+    /// 1. `"length"`: (`READONLY`, `NON_ENUMERABLE`, `CONFIGURABLE`)
+    /// 2. `"name"`: (`READONLY`, `NON_ENUMERABLE`, `CONFIGURABLE`)
+    /// 3. `"prototype"`: (`WRITABLE`, `PERMANENT`, `NON_ENUMERABLE`)
     /// 4. `__proto__`: `Function.prototype`
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>function_with_prototype(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>ObjectTemplate {
         <span class="kw-2">&amp;</span><span class="self">self</span>.function_with_prototype
@@ -3388,7 +3389,7 @@
     /// Transitions:
     ///
     /// 1. `__proto__`: `Object.prototype`
-    /// 2. `&quot;contructor&quot;`: (`WRITABLE`, `CONFIGURABLE`, `NON_ENUMERABLE`)
+    /// 2. `"contructor"`: (`WRITABLE`, `CONFIGURABLE`, `NON_ENUMERABLE`)
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>function_prototype(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>ObjectTemplate {
         <span class="kw-2">&amp;</span><span class="self">self</span>.function_prototype
     }
@@ -3397,8 +3398,8 @@
     ///
     /// Transitions:
     ///
-    /// 1. `&quot;length&quot;`: (`READONLY`, `NON_ENUMERABLE`, `CONFIGURABLE`)
-    /// 2. `&quot;name&quot;`: (`READONLY`, `NON_ENUMERABLE`, `CONFIGURABLE`)
+    /// 1. `"length"`: (`READONLY`, `NON_ENUMERABLE`, `CONFIGURABLE`)
+    /// 2. `"name"`: (`READONLY`, `NON_ENUMERABLE`, `CONFIGURABLE`)
     /// 3. `__proto__`: `Function.prototype`
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>function(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>ObjectTemplate {
         <span class="kw-2">&amp;</span><span class="self">self</span>.function
@@ -3408,8 +3409,8 @@
     ///
     /// Transitions:
     ///
-    /// 1. `&quot;length&quot;`: (`READONLY`, `NON_ENUMERABLE`, `CONFIGURABLE`)
-    /// 2. `&quot;name&quot;`: (`READONLY`, `NON_ENUMERABLE`, `CONFIGURABLE`)
+    /// 1. `"length"`: (`READONLY`, `NON_ENUMERABLE`, `CONFIGURABLE`)
+    /// 2. `"name"`: (`READONLY`, `NON_ENUMERABLE`, `CONFIGURABLE`)
     /// 3. `__proto__`: `AsyncFunction.prototype`
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>async_function(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>ObjectTemplate {
         <span class="kw-2">&amp;</span><span class="self">self</span>.async_function
@@ -3419,9 +3420,9 @@
     ///
     /// Transitions:
     ///
-    /// 1. `&quot;length&quot;`: (`READONLY`, `NON_ENUMERABLE`, `CONFIGURABLE`)
-    /// 2. `&quot;name&quot;`: (`READONLY`, `NON_ENUMERABLE`, `CONFIGURABLE`)
-    /// 3. `&quot;prototype&quot;`: (`WRITABLE`, `PERMANENT`, `NON_ENUMERABLE`)
+    /// 1. `"length"`: (`READONLY`, `NON_ENUMERABLE`, `CONFIGURABLE`)
+    /// 2. `"name"`: (`READONLY`, `NON_ENUMERABLE`, `CONFIGURABLE`)
+    /// 3. `"prototype"`: (`WRITABLE`, `PERMANENT`, `NON_ENUMERABLE`)
     /// 4. `__proto__`: `GeneratorFunction.prototype`
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>generator_function(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>ObjectTemplate {
         <span class="kw-2">&amp;</span><span class="self">self</span>.generator_function
@@ -3431,9 +3432,9 @@
     ///
     /// Transitions:
     ///
-    /// 1. `&quot;length&quot;`: (`READONLY`, `NON_ENUMERABLE`, `CONFIGURABLE`)
-    /// 2. `&quot;name&quot;`: (`READONLY`, `NON_ENUMERABLE`, `CONFIGURABLE`)
-    /// 3. `&quot;prototype&quot;`: (`WRITABLE`, `PERMANENT`, `NON_ENUMERABLE`)
+    /// 1. `"length"`: (`READONLY`, `NON_ENUMERABLE`, `CONFIGURABLE`)
+    /// 2. `"name"`: (`READONLY`, `NON_ENUMERABLE`, `CONFIGURABLE`)
+    /// 3. `"prototype"`: (`WRITABLE`, `PERMANENT`, `NON_ENUMERABLE`)
     /// 4. `__proto__`: `AsyncGeneratorFunction.prototype`
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>async_generator_function(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>ObjectTemplate {
         <span class="kw-2">&amp;</span><span class="self">self</span>.async_generator_function
@@ -3443,19 +3444,19 @@
     ///
     /// Transitions:
     ///
-    /// 1. `&quot;length&quot;`: (`READONLY`, `NON_ENUMERABLE`, `CONFIGURABLE`)
-    /// 2. `&quot;name&quot;`: (`READONLY`, `NON_ENUMERABLE`, `CONFIGURABLE`)
+    /// 1. `"length"`: (`READONLY`, `NON_ENUMERABLE`, `CONFIGURABLE`)
+    /// 2. `"name"`: (`READONLY`, `NON_ENUMERABLE`, `CONFIGURABLE`)
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>function_without_proto(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>ObjectTemplate {
         <span class="kw-2">&amp;</span><span class="self">self</span>.function_without_proto
     }
 
-    <span class="doccomment">/// Cached function object with `&quot;prototype&quot;` and without `__proto__` template.
+    <span class="doccomment">/// Cached function object with `"prototype"` and without `__proto__` template.
     ///
     /// Transitions:
     ///
-    /// 1. `&quot;length&quot;`: (`READONLY`, `NON_ENUMERABLE`, `CONFIGURABLE`)
-    /// 2. `&quot;name&quot;`: (`READONLY`, `NON_ENUMERABLE`, `CONFIGURABLE`)
-    /// 3. `&quot;prototype&quot;`: (`WRITABLE`, `PERMANENT`, `NON_ENUMERABLE`)
+    /// 1. `"length"`: (`READONLY`, `NON_ENUMERABLE`, `CONFIGURABLE`)
+    /// 2. `"name"`: (`READONLY`, `NON_ENUMERABLE`, `CONFIGURABLE`)
+    /// 3. `"prototype"`: (`WRITABLE`, `PERMANENT`, `NON_ENUMERABLE`)
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>function_with_prototype_without_proto(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>ObjectTemplate {
         <span class="kw-2">&amp;</span><span class="self">self</span>.function_with_prototype_without_proto
     }
@@ -3473,9 +3474,9 @@
     ///
     /// Transitions:
     ///
-    /// 1. `&quot;promise&quot;`: (`WRITABLE`, `ENUMERABLE`, `CONFIGURABLE`)
-    /// 2. `&quot;resolve&quot;`: (`WRITABLE`, `ENUMERABLE`, `CONFIGURABLE`)
-    /// 3. `&quot;reject&quot;`: (`WRITABLE`, `ENUMERABLE`, `CONFIGURABLE`)
+    /// 1. `"promise"`: (`WRITABLE`, `ENUMERABLE`, `CONFIGURABLE`)
+    /// 2. `"resolve"`: (`WRITABLE`, `ENUMERABLE`, `CONFIGURABLE`)
+    /// 3. `"reject"`: (`WRITABLE`, `ENUMERABLE`, `CONFIGURABLE`)
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>with_resolvers(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>ObjectTemplate {
         <span class="kw-2">&amp;</span><span class="self">self</span>.with_resolvers
     }

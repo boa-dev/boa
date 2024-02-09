@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/vm/flowgraph/graph.rs`."><title>graph.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/vm/flowgraph/graph.rs`."><title>graph.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -385,7 +386,7 @@
     ) -&gt; <span class="kw-2">&amp;mut </span>Edge {
         <span class="kw">let </span>edge = Edge::new(from, to, label, color, style);
         <span class="self">self</span>.edges.push(edge);
-        <span class="self">self</span>.edges.last_mut().expect(<span class="string">&quot;Already pushed edge&quot;</span>)
+        <span class="self">self</span>.edges.last_mut().expect(<span class="string">"Already pushed edge"</span>)
     }
 
     <span class="doccomment">/// Create a subgraph in this subgraph.
@@ -395,113 +396,113 @@
         <span class="kw">let </span>result = <span class="self">self
             </span>.subgraphs
             .last_mut()
-            .expect(<span class="string">&quot;We just pushed a subgraph&quot;</span>);
+            .expect(<span class="string">"We just pushed a subgraph"</span>);
         result.set_direction(<span class="self">self</span>.direction);
         result
     }
 
     <span class="doccomment">/// Format into the graphviz format.
     </span><span class="kw">fn </span>graphviz_format(<span class="kw-2">&amp;</span><span class="self">self</span>, result: <span class="kw-2">&amp;mut </span>String, prefix: <span class="kw-2">&amp;</span>str) {
-        <span class="kw">let </span>label = <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, RandomState::new().hash_one(<span class="kw-2">&amp;</span><span class="self">self</span>.label));
-        result.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;\tsubgraph cluster_{prefix}_{label} {{\n&quot;</span>));
-        result.push_str(<span class="string">&quot;\t\tstyle = filled;\n&quot;</span>);
+        <span class="kw">let </span>label = <span class="macro">format!</span>(<span class="string">"{}"</span>, RandomState::new().hash_one(<span class="kw-2">&amp;</span><span class="self">self</span>.label));
+        result.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">"\tsubgraph cluster_{prefix}_{label} {{\n"</span>));
+        result.push_str(<span class="string">"\t\tstyle = filled;\n"</span>);
         result.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
-            <span class="string">&quot;\t\tlabel = \&quot;{}\&quot;;\n&quot;</span>,
+            <span class="string">"\t\tlabel = \"{}\";\n"</span>,
             <span class="kw">if </span><span class="self">self</span>.label.is_empty() {
-                <span class="string">&quot;Anonymous Function&quot;
+                <span class="string">"Anonymous Function"
             </span>} <span class="kw">else </span>{
                 <span class="self">self</span>.label.as_ref()
             }
         ));
 
         result.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
-            <span class="string">&quot;\t\t{prefix}_{label}_start [label=\&quot;Start\&quot;,shape=Mdiamond,style=filled,color=green]\n&quot;
+            <span class="string">"\t\t{prefix}_{label}_start [label=\"Start\",shape=Mdiamond,style=filled,color=green]\n"
         </span>));
         <span class="kw">if </span>!<span class="self">self</span>.nodes.is_empty() {
             result.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
-                <span class="string">&quot;\t\t{prefix}_{label}_start -&gt; {prefix}_{label}_i_0\n&quot;
+                <span class="string">"\t\t{prefix}_{label}_start -&gt; {prefix}_{label}_i_0\n"
             </span>));
         }
 
         <span class="kw">for </span>node <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.nodes {
             <span class="kw">let </span>shape = <span class="kw">match </span>node.shape {
-                NodeShape::None =&gt; <span class="string">&quot;&quot;</span>,
-                NodeShape::Record =&gt; <span class="string">&quot;, shape=record&quot;</span>,
-                NodeShape::Diamond =&gt; <span class="string">&quot;, shape=diamond&quot;</span>,
+                NodeShape::None =&gt; <span class="string">""</span>,
+                NodeShape::Record =&gt; <span class="string">", shape=record"</span>,
+                NodeShape::Diamond =&gt; <span class="string">", shape=diamond"</span>,
             };
-            <span class="kw">let </span>color = <span class="macro">format!</span>(<span class="string">&quot;,style=filled,color=\&quot;{}\&quot;&quot;</span>, node.color);
+            <span class="kw">let </span>color = <span class="macro">format!</span>(<span class="string">",style=filled,color=\"{}\""</span>, node.color);
             result.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
-                <span class="string">&quot;\t\t{prefix}_{}_i_{}[label=\&quot;{:04}: {}\&quot;{shape}{color}];\n&quot;</span>,
+                <span class="string">"\t\t{prefix}_{}_i_{}[label=\"{:04}: {}\"{shape}{color}];\n"</span>,
                 label, node.location, node.location, node.label
             ));
         }
 
         <span class="kw">for </span>edge <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.edges {
-            <span class="kw">let </span>color = <span class="macro">format!</span>(<span class="string">&quot;,color=\&quot;{}\&quot;&quot;</span>, edge.color);
+            <span class="kw">let </span>color = <span class="macro">format!</span>(<span class="string">",color=\"{}\""</span>, edge.color);
             <span class="kw">let </span>style = <span class="kw">match </span>(edge.style, edge.type_) {
-                (EdgeStyle::Line, EdgeType::None) =&gt; <span class="string">&quot;,dir=none&quot;</span>,
-                (EdgeStyle::Line, EdgeType::Arrow) =&gt; <span class="string">&quot;&quot;</span>,
-                (EdgeStyle::Dotted, EdgeType::None) =&gt; <span class="string">&quot;,style=dotted,dir=none&quot;</span>,
-                (EdgeStyle::Dotted, EdgeType::Arrow) =&gt; <span class="string">&quot;,style=dotted&quot;</span>,
-                (EdgeStyle::Dashed, EdgeType::None) =&gt; <span class="string">&quot;,style=dashed,dir=none&quot;</span>,
-                (EdgeStyle::Dashed, EdgeType::Arrow) =&gt; <span class="string">&quot;,style=dashed,&quot;</span>,
+                (EdgeStyle::Line, EdgeType::None) =&gt; <span class="string">",dir=none"</span>,
+                (EdgeStyle::Line, EdgeType::Arrow) =&gt; <span class="string">""</span>,
+                (EdgeStyle::Dotted, EdgeType::None) =&gt; <span class="string">",style=dotted,dir=none"</span>,
+                (EdgeStyle::Dotted, EdgeType::Arrow) =&gt; <span class="string">",style=dotted"</span>,
+                (EdgeStyle::Dashed, EdgeType::None) =&gt; <span class="string">",style=dashed,dir=none"</span>,
+                (EdgeStyle::Dashed, EdgeType::Arrow) =&gt; <span class="string">",style=dashed,"</span>,
             };
             result.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
-                <span class="string">&quot;\t\t{prefix}_{}_i_{} -&gt; {prefix}_{}_i_{} [label=\&quot;{}\&quot;, len=f{style}{color}];\n&quot;</span>,
+                <span class="string">"\t\t{prefix}_{}_i_{} -&gt; {prefix}_{}_i_{} [label=\"{}\", len=f{style}{color}];\n"</span>,
                 label,
                 edge.from,
                 label,
                 edge.to,
-                edge.label.as_deref().unwrap_or(<span class="string">&quot;&quot;</span>)
+                edge.label.as_deref().unwrap_or(<span class="string">""</span>)
             ));
         }
         <span class="kw">for </span>(index, subgraph) <span class="kw">in </span><span class="self">self</span>.subgraphs.iter().enumerate() {
-            <span class="kw">let </span>prefix = <span class="macro">format!</span>(<span class="string">&quot;{prefix}_F{index}&quot;</span>);
+            <span class="kw">let </span>prefix = <span class="macro">format!</span>(<span class="string">"{prefix}_F{index}"</span>);
             subgraph.graphviz_format(result, <span class="kw-2">&amp;</span>prefix);
         }
-        result.push_str(<span class="string">&quot;\t}\n&quot;</span>);
+        result.push_str(<span class="string">"\t}\n"</span>);
     }
 
     <span class="doccomment">/// Format into the mermaid format.
     </span><span class="kw">fn </span>mermaid_format(<span class="kw-2">&amp;</span><span class="self">self</span>, result: <span class="kw-2">&amp;mut </span>String, prefix: <span class="kw-2">&amp;</span>str) {
-        <span class="kw">let </span>label = <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, RandomState::new().hash_one(<span class="kw-2">&amp;</span><span class="self">self</span>.label));
+        <span class="kw">let </span>label = <span class="macro">format!</span>(<span class="string">"{}"</span>, RandomState::new().hash_one(<span class="kw-2">&amp;</span><span class="self">self</span>.label));
         <span class="kw">let </span>rankdir = <span class="kw">match </span><span class="self">self</span>.direction {
-            Direction::TopToBottom =&gt; <span class="string">&quot;TB&quot;</span>,
-            Direction::BottomToTop =&gt; <span class="string">&quot;BT&quot;</span>,
-            Direction::LeftToRight =&gt; <span class="string">&quot;LR&quot;</span>,
-            Direction::RightToLeft =&gt; <span class="string">&quot;RL&quot;</span>,
+            Direction::TopToBottom =&gt; <span class="string">"TB"</span>,
+            Direction::BottomToTop =&gt; <span class="string">"BT"</span>,
+            Direction::LeftToRight =&gt; <span class="string">"LR"</span>,
+            Direction::RightToLeft =&gt; <span class="string">"RL"</span>,
         };
         result.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
-            <span class="string">&quot;  subgraph {prefix}_{}[\&quot;{}\&quot;]\n&quot;</span>,
+            <span class="string">"  subgraph {prefix}_{}[\"{}\"]\n"</span>,
             label,
             <span class="kw">if </span><span class="self">self</span>.label.is_empty() {
-                <span class="string">&quot;Anonymous Function&quot;
+                <span class="string">"Anonymous Function"
             </span>} <span class="kw">else </span>{
                 <span class="self">self</span>.label.as_ref()
             }
         ));
-        result.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;  direction {rankdir}\n&quot;</span>));
+        result.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">"  direction {rankdir}\n"</span>));
 
-        result.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;  {prefix}_{label}_start{{Start}}\n&quot;</span>));
-        result.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;  style {prefix}_{label}_start fill:green\n&quot;</span>));
+        result.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">"  {prefix}_{label}_start{{Start}}\n"</span>));
+        result.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">"  style {prefix}_{label}_start fill:green\n"</span>));
         <span class="kw">if </span>!<span class="self">self</span>.nodes.is_empty() {
             result.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
-                <span class="string">&quot;  {prefix}_{label}_start --&gt; {prefix}_{label}_i_0\n&quot;
+                <span class="string">"  {prefix}_{label}_start --&gt; {prefix}_{label}_i_0\n"
             </span>));
         }
 
         <span class="kw">for </span>node <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.nodes {
             <span class="kw">let </span>(shape_begin, shape_end) = <span class="kw">match </span>node.shape {
-                NodeShape::None | NodeShape::Record =&gt; (<span class="string">&#39;[&#39;</span>, <span class="string">&#39;]&#39;</span>),
-                NodeShape::Diamond =&gt; (<span class="string">&#39;{&#39;</span>, <span class="string">&#39;}&#39;</span>),
+                NodeShape::None | NodeShape::Record =&gt; (<span class="string">'['</span>, <span class="string">']'</span>),
+                NodeShape::Diamond =&gt; (<span class="string">'{'</span>, <span class="string">'}'</span>),
             };
             result.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
-                <span class="string">&quot;  {prefix}_{}_i_{}{shape_begin}\&quot;{:04}: {}\&quot;{shape_end}\n&quot;</span>,
+                <span class="string">"  {prefix}_{}_i_{}{shape_begin}\"{:04}: {}\"{shape_end}\n"</span>,
                 label, node.location, node.location, node.label
             ));
             <span class="kw">if </span>!node.color.is_none() {
                 result.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
-                    <span class="string">&quot;  style {prefix}_{}_i_{} fill:{}\n&quot;</span>,
+                    <span class="string">"  style {prefix}_{}_i_{} fill:{}\n"</span>,
                     label, node.location, node.color
                 ));
             }
@@ -509,33 +510,33 @@
 
         <span class="kw">for </span>(index, edge) <span class="kw">in </span><span class="self">self</span>.edges.iter().enumerate() {
             <span class="kw">let </span>style = <span class="kw">match </span>(edge.style, edge.type_) {
-                (EdgeStyle::Line, EdgeType::None) =&gt; <span class="string">&quot;---&quot;</span>,
-                (EdgeStyle::Line, EdgeType::Arrow) =&gt; <span class="string">&quot;--&gt;&quot;</span>,
-                (EdgeStyle::Dotted | EdgeStyle::Dashed, EdgeType::None) =&gt; <span class="string">&quot;-.-&quot;</span>,
-                (EdgeStyle::Dotted | EdgeStyle::Dashed, EdgeType::Arrow) =&gt; <span class="string">&quot;-.-&gt;&quot;</span>,
+                (EdgeStyle::Line, EdgeType::None) =&gt; <span class="string">"---"</span>,
+                (EdgeStyle::Line, EdgeType::Arrow) =&gt; <span class="string">"--&gt;"</span>,
+                (EdgeStyle::Dotted | EdgeStyle::Dashed, EdgeType::None) =&gt; <span class="string">"-.-"</span>,
+                (EdgeStyle::Dotted | EdgeStyle::Dashed, EdgeType::Arrow) =&gt; <span class="string">"-.-&gt;"</span>,
             };
             result.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
-                <span class="string">&quot;  {prefix}_{}_i_{} {style}| {}| {prefix}_{}_i_{}\n&quot;</span>,
+                <span class="string">"  {prefix}_{}_i_{} {style}| {}| {prefix}_{}_i_{}\n"</span>,
                 label,
                 edge.from,
-                edge.label.as_deref().unwrap_or(<span class="string">&quot;&quot;</span>),
+                edge.label.as_deref().unwrap_or(<span class="string">""</span>),
                 label,
                 edge.to,
             ));
 
             <span class="kw">if </span>!edge.color.is_none() {
                 result.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
-                    <span class="string">&quot;  linkStyle {} stroke:{}, stroke-width: 4px\n&quot;</span>,
+                    <span class="string">"  linkStyle {} stroke:{}, stroke-width: 4px\n"</span>,
                     index + <span class="number">1</span>,
                     edge.color
                 ));
             }
         }
         <span class="kw">for </span>(index, subgraph) <span class="kw">in </span><span class="self">self</span>.subgraphs.iter().enumerate() {
-            <span class="kw">let </span>prefix = <span class="macro">format!</span>(<span class="string">&quot;{prefix}_F{index}&quot;</span>);
+            <span class="kw">let </span>prefix = <span class="macro">format!</span>(<span class="string">"{prefix}_F{index}"</span>);
             subgraph.mermaid_format(result, <span class="kw-2">&amp;</span>prefix);
         }
-        result.push_str(<span class="string">&quot;  end\n&quot;</span>);
+        result.push_str(<span class="string">"  end\n"</span>);
     }
 }
 
@@ -564,7 +565,7 @@
         <span class="kw">let </span>result = <span class="self">self
             </span>.subgraphs
             .last_mut()
-            .expect(<span class="string">&quot;We just pushed a subgraph&quot;</span>);
+            .expect(<span class="string">"We just pushed a subgraph"</span>);
         result.set_direction(<span class="self">self</span>.direction);
         result
     }
@@ -573,21 +574,21 @@
     </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>to_graphviz_format(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
         <span class="kw">let </span><span class="kw-2">mut </span>result = String::new();
-        result += <span class="string">&quot;digraph {\n&quot;</span>;
-        result += <span class="string">&quot;\tnode [shape=record];\n&quot;</span>;
+        result += <span class="string">"digraph {\n"</span>;
+        result += <span class="string">"\tnode [shape=record];\n"</span>;
 
         <span class="kw">let </span>rankdir = <span class="kw">match </span><span class="self">self</span>.direction {
-            Direction::TopToBottom =&gt; <span class="string">&quot;TB&quot;</span>,
-            Direction::BottomToTop =&gt; <span class="string">&quot;BT&quot;</span>,
-            Direction::LeftToRight =&gt; <span class="string">&quot;LR&quot;</span>,
-            Direction::RightToLeft =&gt; <span class="string">&quot;RL&quot;</span>,
+            Direction::TopToBottom =&gt; <span class="string">"TB"</span>,
+            Direction::BottomToTop =&gt; <span class="string">"BT"</span>,
+            Direction::LeftToRight =&gt; <span class="string">"LR"</span>,
+            Direction::RightToLeft =&gt; <span class="string">"RL"</span>,
         };
-        result += <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;\trankdir={rankdir};\n&quot;</span>);
+        result += <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">"\trankdir={rankdir};\n"</span>);
 
         <span class="kw">for </span>subgraph <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.subgraphs {
-            subgraph.graphviz_format(<span class="kw-2">&amp;mut </span>result, <span class="string">&quot;&quot;</span>);
+            subgraph.graphviz_format(<span class="kw-2">&amp;mut </span>result, <span class="string">""</span>);
         }
-        result += <span class="string">&quot;}\n&quot;</span>;
+        result += <span class="string">"}\n"</span>;
         result
     }
 
@@ -596,17 +597,17 @@
     </span><span class="kw">pub fn </span>to_mermaid_format(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
         <span class="kw">let </span><span class="kw-2">mut </span>result = String::new();
         <span class="kw">let </span>rankdir = <span class="kw">match </span><span class="self">self</span>.direction {
-            Direction::TopToBottom =&gt; <span class="string">&quot;TD&quot;</span>,
-            Direction::BottomToTop =&gt; <span class="string">&quot;DT&quot;</span>,
-            Direction::LeftToRight =&gt; <span class="string">&quot;LR&quot;</span>,
-            Direction::RightToLeft =&gt; <span class="string">&quot;RL&quot;</span>,
+            Direction::TopToBottom =&gt; <span class="string">"TD"</span>,
+            Direction::BottomToTop =&gt; <span class="string">"DT"</span>,
+            Direction::LeftToRight =&gt; <span class="string">"LR"</span>,
+            Direction::RightToLeft =&gt; <span class="string">"RL"</span>,
         };
-        result += <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;graph {rankdir}\n&quot;</span>);
+        result += <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">"graph {rankdir}\n"</span>);
 
         <span class="kw">for </span>subgraph <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.subgraphs {
-            subgraph.mermaid_format(<span class="kw-2">&amp;mut </span>result, <span class="string">&quot;&quot;</span>);
+            subgraph.mermaid_format(<span class="kw-2">&amp;mut </span>result, <span class="string">""</span>);
         }
-        result += <span class="string">&quot;\n&quot;</span>;
+        result += <span class="string">"\n"</span>;
         result
     }
 }

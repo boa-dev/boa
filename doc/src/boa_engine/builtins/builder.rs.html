@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/builtins/builder.rs`."><title>builder.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/builtins/builder.rs`."><title>builder.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -741,13 +742,13 @@
         {
             <span class="kw">let </span><span class="kw-2">mut </span>function = object
                 .downcast_mut::&lt;NativeFunctionObject&gt;()
-                .expect(<span class="string">&quot;Builtin must be a function object&quot;</span>);
+                .expect(<span class="string">"Builtin must be a function object"</span>);
             function.f = NativeFunction::from_fn_ptr(<span class="self">self</span>.function);
             function.constructor = S::IS_CONSTRUCTOR.then_some(ConstructorKind::Base);
             function.realm = <span class="prelude-val">Some</span>(<span class="self">self</span>.realm);
         }
         object.insert(
-            <span class="macro">utf16!</span>(<span class="string">&quot;length&quot;</span>),
+            <span class="macro">utf16!</span>(<span class="string">"length"</span>),
             PropertyDescriptor::builder()
                 .value(<span class="self">self</span>.length)
                 .writable(<span class="bool-val">false</span>)
@@ -755,7 +756,7 @@
                 .configurable(<span class="bool-val">true</span>),
         );
         object.insert(
-            <span class="macro">utf16!</span>(<span class="string">&quot;name&quot;</span>),
+            <span class="macro">utf16!</span>(<span class="string">"name"</span>),
             PropertyDescriptor::builder()
                 .value(<span class="self">self</span>.name)
                 .writable(<span class="bool-val">false</span>)
@@ -776,18 +777,18 @@
 /// The marker `ObjectType` restricts the methods that can be called depending on the
 /// type of object that is being constructed.
 </span><span class="attr">#[derive(Debug)]
-#[must_use = <span class="string">&quot;You need to call the `build` method in order for this to correctly assign the inner data&quot;</span>]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>BuiltInBuilder&lt;<span class="lifetime">&#39;ctx</span>, Kind&gt; {
-    realm: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span>Realm,
+#[must_use = <span class="string">"You need to call the `build` method in order for this to correctly assign the inner data"</span>]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>BuiltInBuilder&lt;<span class="lifetime">'ctx</span>, Kind&gt; {
+    realm: <span class="kw-2">&amp;</span><span class="lifetime">'ctx </span>Realm,
     object: JsObject,
     kind: Kind,
     prototype: JsObject,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; BuiltInBuilder&lt;<span class="lifetime">&#39;ctx</span>, OrdinaryObject&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>&gt; BuiltInBuilder&lt;<span class="lifetime">'ctx</span>, OrdinaryObject&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>with_intrinsic&lt;I: IntrinsicObject&gt;(
-        realm: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span>Realm,
-    ) -&gt; BuiltInBuilder&lt;<span class="lifetime">&#39;ctx</span>, OrdinaryObject&gt; {
+        realm: <span class="kw-2">&amp;</span><span class="lifetime">'ctx </span>Realm,
+    ) -&gt; BuiltInBuilder&lt;<span class="lifetime">'ctx</span>, OrdinaryObject&gt; {
         BuiltInBuilder {
             realm,
             object: I::get(realm.intrinsics()),
@@ -797,8 +798,8 @@
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>BuiltInConstructorWithPrototype&lt;<span class="lifetime">&#39;ctx</span>&gt; {
-    realm: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span>Realm,
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>BuiltInConstructorWithPrototype&lt;<span class="lifetime">'ctx</span>&gt; {
+    realm: <span class="kw-2">&amp;</span><span class="lifetime">'ctx </span>Realm,
     function: NativeFunctionPointer,
     name: JsString,
     length: usize,
@@ -816,7 +817,7 @@
 }
 
 <span class="attr">#[allow(dead_code)]
-</span><span class="kw">impl </span>BuiltInConstructorWithPrototype&lt;<span class="lifetime">&#39;_</span>&gt; {
+</span><span class="kw">impl </span>BuiltInConstructorWithPrototype&lt;<span class="lifetime">'_</span>&gt; {
     <span class="doccomment">/// Specify how many arguments the constructor function takes.
     ///
     /// Default is `0`.
@@ -828,7 +829,7 @@
 
     <span class="doccomment">/// Specify the name of the constructor function.
     ///
-    /// Default is `&quot;&quot;`
+    /// Default is `""`
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>name(<span class="kw-2">mut </span><span class="self">self</span>, name: JsString) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.name = name;
         <span class="self">self
@@ -913,7 +914,7 @@
         <span class="self">self
     </span>}
 
-    <span class="doccomment">/// Adds a new method to the constructor&#39;s prototype.
+    <span class="doccomment">/// Adds a new method to the constructor's prototype.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>method&lt;B&gt;(
         <span class="kw-2">mut </span><span class="self">self</span>,
         function: NativeFunctionPointer,
@@ -942,7 +943,7 @@
         <span class="self">self
     </span>}
 
-    <span class="doccomment">/// Adds a new data property to the constructor&#39;s prototype.
+    <span class="doccomment">/// Adds a new data property to the constructor's prototype.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>property&lt;K, V&gt;(<span class="kw-2">mut </span><span class="self">self</span>, key: K, value: V, attribute: Attribute) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>K: Into&lt;PropertyKey&gt;,
@@ -957,7 +958,7 @@
         <span class="self">self
     </span>}
 
-    <span class="doccomment">/// Adds new accessor property to the constructor&#39;s prototype.
+    <span class="doccomment">/// Adds new accessor property to the constructor's prototype.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>accessor&lt;K&gt;(
         <span class="kw-2">mut </span><span class="self">self</span>,
         key: K,
@@ -993,7 +994,7 @@
         <span class="self">self
     </span>}
 
-    <span class="doccomment">/// Specifies the property attributes of the prototype&#39;s &quot;constructor&quot; property.
+    <span class="doccomment">/// Specifies the property attributes of the prototype's "constructor" property.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>constructor_attributes(<span class="kw-2">mut </span><span class="self">self</span>, attributes: Attribute) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.attributes = attributes;
         <span class="self">self
@@ -1003,8 +1004,8 @@
         <span class="kw">let </span>length = <span class="self">self</span>.length;
         <span class="kw">let </span>name = <span class="self">self</span>.name.clone();
         <span class="kw">let </span>prototype = <span class="self">self</span>.prototype.clone();
-        <span class="self">self </span>= <span class="self">self</span>.static_property(<span class="macro">js_string!</span>(<span class="string">&quot;length&quot;</span>), length, Attribute::CONFIGURABLE);
-        <span class="self">self </span>= <span class="self">self</span>.static_property(<span class="macro">js_string!</span>(<span class="string">&quot;name&quot;</span>), name, Attribute::CONFIGURABLE);
+        <span class="self">self </span>= <span class="self">self</span>.static_property(<span class="macro">js_string!</span>(<span class="string">"length"</span>), length, Attribute::CONFIGURABLE);
+        <span class="self">self </span>= <span class="self">self</span>.static_property(<span class="macro">js_string!</span>(<span class="string">"name"</span>), name, Attribute::CONFIGURABLE);
         <span class="self">self </span>= <span class="self">self</span>.static_property(PROTOTYPE, prototype, Attribute::empty());
 
         <span class="kw">let </span>attributes = <span class="self">self</span>.attributes;
@@ -1017,7 +1018,7 @@
                 .properties_mut()
                 .shape
                 .as_unique()
-                .expect(<span class="string">&quot;The object should have a unique shape&quot;</span>)
+                .expect(<span class="string">"The object should have a unique shape"</span>)
                 .override_internal(<span class="self">self</span>.prototype_property_table, <span class="self">self</span>.inherits);
 
             <span class="kw">let </span>prototype_old_storage = std::mem::replace(
@@ -1031,7 +1032,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>object = <span class="self">self</span>.object.borrow_mut();
         <span class="kw">let </span>function = object
             .downcast_mut::&lt;NativeFunctionObject&gt;()
-            .expect(<span class="string">&quot;Builtin must be a function object&quot;</span>);
+            .expect(<span class="string">"Builtin must be a function object"</span>);
         function.f = NativeFunction::from_fn_ptr(<span class="self">self</span>.function);
         function.constructor = <span class="prelude-val">Some</span>(ConstructorKind::Base);
         function.realm = <span class="prelude-val">Some</span>(<span class="self">self</span>.realm.clone());
@@ -1039,7 +1040,7 @@
             .properties_mut()
             .shape
             .as_unique()
-            .expect(<span class="string">&quot;The object should have a unique shape&quot;</span>)
+            .expect(<span class="string">"The object should have a unique shape"</span>)
             .override_internal(<span class="self">self</span>.object_property_table, <span class="self">self</span>.__proto__);
 
         <span class="kw">let </span>object_old_storage =
@@ -1051,13 +1052,13 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>build_without_prototype(<span class="kw-2">mut </span><span class="self">self</span>) {
         <span class="kw">let </span>length = <span class="self">self</span>.length;
         <span class="kw">let </span>name = <span class="self">self</span>.name.clone();
-        <span class="self">self </span>= <span class="self">self</span>.static_property(<span class="macro">js_string!</span>(<span class="string">&quot;length&quot;</span>), length, Attribute::CONFIGURABLE);
-        <span class="self">self </span>= <span class="self">self</span>.static_property(<span class="macro">js_string!</span>(<span class="string">&quot;name&quot;</span>), name, Attribute::CONFIGURABLE);
+        <span class="self">self </span>= <span class="self">self</span>.static_property(<span class="macro">js_string!</span>(<span class="string">"length"</span>), length, Attribute::CONFIGURABLE);
+        <span class="self">self </span>= <span class="self">self</span>.static_property(<span class="macro">js_string!</span>(<span class="string">"name"</span>), name, Attribute::CONFIGURABLE);
 
         <span class="kw">let </span><span class="kw-2">mut </span>object = <span class="self">self</span>.object.borrow_mut();
         <span class="kw">let </span>function = object
             .downcast_mut::&lt;NativeFunctionObject&gt;()
-            .expect(<span class="string">&quot;Builtin must be a function object&quot;</span>);
+            .expect(<span class="string">"Builtin must be a function object"</span>);
         function.f = NativeFunction::from_fn_ptr(<span class="self">self</span>.function);
         function.constructor = <span class="prelude-val">Some</span>(ConstructorKind::Base);
         function.realm = <span class="prelude-val">Some</span>(<span class="self">self</span>.realm.clone());
@@ -1065,7 +1066,7 @@
             .properties_mut()
             .shape
             .as_unique()
-            .expect(<span class="string">&quot;The object should have a unique shape&quot;</span>)
+            .expect(<span class="string">"The object should have a unique shape"</span>)
             .override_internal(<span class="self">self</span>.object_property_table, <span class="self">self</span>.__proto__);
 
         <span class="kw">let </span>object_old_storage =
@@ -1075,14 +1076,14 @@
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>BuiltInCallable&lt;<span class="lifetime">&#39;ctx</span>&gt; {
-    realm: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span>Realm,
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>BuiltInCallable&lt;<span class="lifetime">'ctx</span>&gt; {
+    realm: <span class="kw-2">&amp;</span><span class="lifetime">'ctx </span>Realm,
     function: NativeFunctionPointer,
     name: JsString,
     length: usize,
 }
 
-<span class="kw">impl </span>BuiltInCallable&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>BuiltInCallable&lt;<span class="lifetime">'_</span>&gt; {
     <span class="doccomment">/// Specify how many arguments the constructor function takes.
     ///
     /// Default is `0`.
@@ -1094,7 +1095,7 @@
 
     <span class="doccomment">/// Specify the name of the constructor function.
     ///
-    /// Default is `&quot;&quot;`
+    /// Default is `""`
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>name(<span class="kw-2">mut </span><span class="self">self</span>, name: JsString) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.name = name;
         <span class="self">self
@@ -1114,29 +1115,29 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; BuiltInBuilder&lt;<span class="lifetime">&#39;ctx</span>, OrdinaryObject&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>&gt; BuiltInBuilder&lt;<span class="lifetime">'ctx</span>, OrdinaryObject&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>callable(
-        realm: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span>Realm,
+        realm: <span class="kw-2">&amp;</span><span class="lifetime">'ctx </span>Realm,
         function: NativeFunctionPointer,
-    ) -&gt; BuiltInCallable&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+    ) -&gt; BuiltInCallable&lt;<span class="lifetime">'ctx</span>&gt; {
         BuiltInCallable {
             realm,
             function,
             length: <span class="number">0</span>,
-            name: <span class="macro">js_string!</span>(<span class="string">&quot;&quot;</span>),
+            name: <span class="macro">js_string!</span>(<span class="string">""</span>),
         }
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>callable_with_intrinsic&lt;I: IntrinsicObject&gt;(
-        realm: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span>Realm,
+        realm: <span class="kw-2">&amp;</span><span class="lifetime">'ctx </span>Realm,
         function: NativeFunctionPointer,
-    ) -&gt; BuiltInBuilder&lt;<span class="lifetime">&#39;ctx</span>, Callable&lt;OrdinaryFunction&gt;&gt; {
+    ) -&gt; BuiltInBuilder&lt;<span class="lifetime">'ctx</span>, Callable&lt;OrdinaryFunction&gt;&gt; {
         BuiltInBuilder {
             realm,
             object: I::get(realm.intrinsics()),
             kind: Callable {
                 function,
-                name: <span class="macro">js_string!</span>(<span class="string">&quot;&quot;</span>),
+                name: <span class="macro">js_string!</span>(<span class="string">""</span>),
                 length: <span class="number">0</span>,
                 kind: OrdinaryFunction,
                 realm: realm.clone(),
@@ -1146,16 +1147,16 @@
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>callable_with_object(
-        realm: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span>Realm,
+        realm: <span class="kw-2">&amp;</span><span class="lifetime">'ctx </span>Realm,
         object: JsObject,
         function: NativeFunctionPointer,
-    ) -&gt; BuiltInBuilder&lt;<span class="lifetime">&#39;ctx</span>, Callable&lt;OrdinaryFunction&gt;&gt; {
+    ) -&gt; BuiltInBuilder&lt;<span class="lifetime">'ctx</span>, Callable&lt;OrdinaryFunction&gt;&gt; {
         BuiltInBuilder {
             realm,
             object,
             kind: Callable {
                 function,
-                name: <span class="macro">js_string!</span>(<span class="string">&quot;&quot;</span>),
+                name: <span class="macro">js_string!</span>(<span class="string">""</span>),
                 length: <span class="number">0</span>,
                 kind: OrdinaryFunction,
                 realm: realm.clone(),
@@ -1165,10 +1166,10 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ctx</span>&gt; BuiltInBuilder&lt;<span class="lifetime">&#39;ctx</span>, Callable&lt;Constructor&gt;&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>&gt; BuiltInBuilder&lt;<span class="lifetime">'ctx</span>, Callable&lt;Constructor&gt;&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>from_standard_constructor&lt;SC: BuiltInConstructor&gt;(
-        realm: <span class="kw-2">&amp;</span><span class="lifetime">&#39;ctx </span>Realm,
-    ) -&gt; BuiltInConstructorWithPrototype&lt;<span class="lifetime">&#39;ctx</span>&gt; {
+        realm: <span class="kw-2">&amp;</span><span class="lifetime">'ctx </span>Realm,
+    ) -&gt; BuiltInConstructorWithPrototype&lt;<span class="lifetime">'ctx</span>&gt; {
         <span class="kw">let </span>constructor = SC::STANDARD_CONSTRUCTOR(realm.intrinsics().constructors());
         BuiltInConstructorWithPrototype {
             realm,
@@ -1188,7 +1189,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; BuiltInBuilder&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+<span class="kw">impl</span>&lt;T&gt; BuiltInBuilder&lt;<span class="lifetime">'_</span>, T&gt; {
     <span class="doccomment">/// Adds a new static method to the builtin object.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>static_method&lt;B&gt;(
         <span class="self">self</span>,
@@ -1240,7 +1241,7 @@
     </span>}
 }
 
-<span class="kw">impl</span>&lt;FnTyp&gt; BuiltInBuilder&lt;<span class="lifetime">&#39;_</span>, Callable&lt;FnTyp&gt;&gt; {
+<span class="kw">impl</span>&lt;FnTyp&gt; BuiltInBuilder&lt;<span class="lifetime">'_</span>, Callable&lt;FnTyp&gt;&gt; {
     <span class="doccomment">/// Specify how many arguments the constructor function takes.
     ///
     /// Default is `0`.
@@ -1252,14 +1253,14 @@
 
     <span class="doccomment">/// Specify the name of the constructor function.
     ///
-    /// Default is `&quot;&quot;`
+    /// Default is `""`
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>name(<span class="kw-2">mut </span><span class="self">self</span>, name: JsString) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.kind.name = name;
         <span class="self">self
     </span>}
 }
 
-<span class="kw">impl </span>BuiltInBuilder&lt;<span class="lifetime">&#39;_</span>, OrdinaryObject&gt; {
+<span class="kw">impl </span>BuiltInBuilder&lt;<span class="lifetime">'_</span>, OrdinaryObject&gt; {
     <span class="doccomment">/// Build the builtin object.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>build(<span class="self">self</span>) -&gt; JsObject {
         <span class="self">self</span>.kind.apply_to(<span class="kw-2">&amp;</span><span class="self">self</span>.object);
@@ -1270,7 +1271,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;FnTyp: ApplyToObject + IsConstructor&gt; BuiltInBuilder&lt;<span class="lifetime">&#39;_</span>, Callable&lt;FnTyp&gt;&gt; {
+<span class="kw">impl</span>&lt;FnTyp: ApplyToObject + IsConstructor&gt; BuiltInBuilder&lt;<span class="lifetime">'_</span>, Callable&lt;FnTyp&gt;&gt; {
     <span class="doccomment">/// Build the builtin callable.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>build(<span class="self">self</span>) -&gt; JsFunction {
         <span class="self">self</span>.kind.apply_to(<span class="kw-2">&amp;</span><span class="self">self</span>.object);

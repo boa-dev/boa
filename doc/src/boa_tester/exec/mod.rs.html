@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `tests/tester/src/exec/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="boa_tester" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../boa_tester/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_tester"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `tests/tester/src/exec/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="boa_tester" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../../boa_tester/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_tester"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -792,7 +793,7 @@
         console: bool,
     ) -&gt; SuiteResult {
         <span class="kw">if </span>verbose != <span class="number">0 </span>{
-            <span class="macro">println!</span>(<span class="string">&quot;Suite {}:&quot;</span>, <span class="self">self</span>.path.display());
+            <span class="macro">println!</span>(<span class="string">"Suite {}:"</span>, <span class="self">self</span>.path.display());
         }
 
         <span class="kw">let </span>suites: Vec&lt;<span class="kw">_</span>&gt; = <span class="kw">if </span>parallel {
@@ -889,7 +890,7 @@
 
         <span class="kw">if </span>verbose != <span class="number">0 </span>{
             <span class="macro">println!</span>(
-                <span class="string">&quot;Suite {} results: total: {}, passed: {}, ignored: {}, failed: {} {}, conformance: {:.2}%&quot;</span>,
+                <span class="string">"Suite {} results: total: {}, passed: {}, ignored: {}, failed: {} {}, conformance: {:.2}%"</span>,
                 <span class="self">self</span>.path.display(),
                 es_next.total,
                 es_next.passed.to_string().green(),
@@ -900,7 +901,7 @@
                 <span class="kw">if </span>es_next.panic == <span class="number">0 </span>{
                     String::new()
                 } <span class="kw">else </span>{
-                    <span class="macro">format!</span>(<span class="string">&quot;({})&quot;</span>, <span class="macro">format!</span>(<span class="string">&quot;{} panics&quot;</span>, es_next.panic).red())
+                    <span class="macro">format!</span>(<span class="string">"({})"</span>, <span class="macro">format!</span>(<span class="string">"{} panics"</span>, es_next.panic).red())
                 },
                 (es_next.passed <span class="kw">as </span>f64 / es_next.total <span class="kw">as </span>f64) * <span class="number">100.0
             </span>);
@@ -953,32 +954,32 @@
         <span class="kw">let </span><span class="prelude-val">Ok</span>(source) = Source::from_filepath(<span class="kw-2">&amp;</span><span class="self">self</span>.path) <span class="kw">else </span>{
             <span class="kw">if </span>verbose &gt; <span class="number">1 </span>{
                 <span class="macro">println!</span>(
-                    <span class="string">&quot;`{}`{}: {}&quot;</span>,
+                    <span class="string">"`{}`{}: {}"</span>,
                     <span class="self">self</span>.path.display(),
-                    <span class="kw">if </span>strict { <span class="string">&quot; (strict mode)&quot; </span>} <span class="kw">else </span>{ <span class="string">&quot;&quot; </span>},
-                    <span class="string">&quot;Invalid file&quot;</span>.red()
+                    <span class="kw">if </span>strict { <span class="string">" (strict mode)" </span>} <span class="kw">else </span>{ <span class="string">"" </span>},
+                    <span class="string">"Invalid file"</span>.red()
                 );
             } <span class="kw">else </span>{
-                <span class="macro">print!</span>(<span class="string">&quot;{}&quot;</span>, <span class="string">&quot;F&quot;</span>.red());
+                <span class="macro">print!</span>(<span class="string">"{}"</span>, <span class="string">"F"</span>.red());
             }
             <span class="kw">return </span>TestResult {
                 name: <span class="self">self</span>.name.clone(),
                 edition: <span class="self">self</span>.edition,
                 strict,
                 result: TestOutcomeResult::Failed,
-                result_text: Box::from(<span class="string">&quot;Could not read test file.&quot;</span>),
+                result_text: Box::from(<span class="string">"Could not read test file."</span>),
             };
         };
         <span class="kw">if </span><span class="self">self</span>.ignored {
             <span class="kw">if </span>verbose &gt; <span class="number">1 </span>{
                 <span class="macro">println!</span>(
-                    <span class="string">&quot;`{}`{}: {}&quot;</span>,
+                    <span class="string">"`{}`{}: {}"</span>,
                     <span class="self">self</span>.path.display(),
-                    <span class="kw">if </span>strict { <span class="string">&quot; (strict mode)&quot; </span>} <span class="kw">else </span>{ <span class="string">&quot;&quot; </span>},
-                    <span class="string">&quot;Ignored&quot;</span>.yellow()
+                    <span class="kw">if </span>strict { <span class="string">" (strict mode)" </span>} <span class="kw">else </span>{ <span class="string">"" </span>},
+                    <span class="string">"Ignored"</span>.yellow()
                 );
             } <span class="kw">else </span>{
-                <span class="macro">print!</span>(<span class="string">&quot;{}&quot;</span>, <span class="string">&quot;-&quot;</span>.yellow());
+                <span class="macro">print!</span>(<span class="string">"{}"</span>, <span class="string">"-"</span>.yellow());
             }
             <span class="kw">return </span>TestResult {
                 name: <span class="self">self</span>.name.clone(),
@@ -990,9 +991,9 @@
         }
         <span class="kw">if </span>verbose &gt; <span class="number">1 </span>{
             <span class="macro">println!</span>(
-                <span class="string">&quot;`{}`{}: starting&quot;</span>,
+                <span class="string">"`{}`{}: starting"</span>,
                 <span class="self">self</span>.path.display(),
-                <span class="kw">if </span>strict { <span class="string">&quot; (strict mode)&quot; </span>} <span class="kw">else </span>{ <span class="string">&quot;&quot; </span>}
+                <span class="kw">if </span>strict { <span class="string">" (strict mode)" </span>} <span class="kw">else </span>{ <span class="string">"" </span>}
             );
         }
 
@@ -1001,15 +1002,15 @@
                 <span class="kw">let </span>async_result = AsyncResult::default();
                 <span class="kw">let </span>loader = Rc::new(
                     SimpleModuleLoader::new(
-                        <span class="self">self</span>.path.parent().expect(<span class="string">&quot;test should have a parent dir&quot;</span>),
+                        <span class="self">self</span>.path.parent().expect(<span class="string">"test should have a parent dir"</span>),
                     )
-                    .expect(<span class="string">&quot;test path should be canonicalizable&quot;</span>),
+                    .expect(<span class="string">"test path should be canonicalizable"</span>),
                 );
                 <span class="kw">let </span>context = <span class="kw-2">&amp;mut </span>Context::builder()
                     .module_loader(loader.clone())
                     .can_block(!<span class="self">self</span>.flags.contains(TestFlags::CAN_BLOCK_IS_FALSE))
                     .build()
-                    .expect(<span class="string">&quot;cannot fail with default global object&quot;</span>);
+                    .expect(<span class="string">"cannot fail with default global object"</span>);
 
                 <span class="kw">let </span><span class="kw-2">mut </span>handles = WorkerHandles::new();
 
@@ -1029,13 +1030,13 @@
                 </span><span class="kw">let </span>value = <span class="kw">if </span><span class="self">self</span>.is_module() {
                     <span class="kw">let </span>module = <span class="kw">match </span>Module::parse(source, <span class="prelude-val">None</span>, context) {
                         <span class="prelude-val">Ok</span>(module) =&gt; module,
-                        <span class="prelude-val">Err</span>(err) =&gt; <span class="kw">return </span>(<span class="bool-val">false</span>, <span class="macro">format!</span>(<span class="string">&quot;Uncaught {err}&quot;</span>)),
+                        <span class="prelude-val">Err</span>(err) =&gt; <span class="kw">return </span>(<span class="bool-val">false</span>, <span class="macro">format!</span>(<span class="string">"Uncaught {err}"</span>)),
                     };
 
                     loader.insert(
                         <span class="self">self</span>.path
                             .canonicalize()
-                            .expect(<span class="string">&quot;test path should be canonicalizable&quot;</span>),
+                            .expect(<span class="string">"test path should be canonicalizable"</span>),
                         module.clone(),
                     );
 
@@ -1045,19 +1046,19 @@
 
                     <span class="kw">match </span>promise.state() {
                         PromiseState::Pending =&gt; {
-                            <span class="kw">return </span>(<span class="bool-val">false</span>, <span class="string">&quot;module should have been executed&quot;</span>.to_string())
+                            <span class="kw">return </span>(<span class="bool-val">false</span>, <span class="string">"module should have been executed"</span>.to_string())
                         }
                         PromiseState::Fulfilled(v) =&gt; v,
                         PromiseState::Rejected(err) =&gt; {
                             <span class="kw">let </span>output = JsError::from_opaque(err.clone())
                                 .try_native(context)
                                 .map_or_else(
-                                    |<span class="kw">_</span>| <span class="macro">format!</span>(<span class="string">&quot;Uncaught {}&quot;</span>, err.display()),
+                                    |<span class="kw">_</span>| <span class="macro">format!</span>(<span class="string">"Uncaught {}"</span>, err.display()),
                                     |err| {
                                         <span class="macro">format!</span>(
-                                            <span class="string">&quot;Uncaught {err}{}&quot;</span>,
+                                            <span class="string">"Uncaught {err}{}"</span>,
                                             err.cause().map_or_else(String::new, |cause| <span class="macro">format!</span>(
-                                                <span class="string">&quot;\n  caused by {cause}&quot;
+                                                <span class="string">"\n  caused by {cause}"
                                             </span>))
                                         )
                                     },
@@ -1070,18 +1071,18 @@
                     context.strict(strict);
                     <span class="kw">match </span>context.eval(source) {
                         <span class="prelude-val">Ok</span>(v) =&gt; v,
-                        <span class="prelude-val">Err</span>(err) =&gt; <span class="kw">return </span>(<span class="bool-val">false</span>, <span class="macro">format!</span>(<span class="string">&quot;Uncaught {err}&quot;</span>)),
+                        <span class="prelude-val">Err</span>(err) =&gt; <span class="kw">return </span>(<span class="bool-val">false</span>, <span class="macro">format!</span>(<span class="string">"Uncaught {err}"</span>)),
                     }
                 };
 
                 context.run_jobs();
 
                 <span class="kw">match </span><span class="kw-2">*</span>async_result.inner.borrow() {
-                    UninitResult::Err(<span class="kw-2">ref </span>e) =&gt; <span class="kw">return </span>(<span class="bool-val">false</span>, <span class="macro">format!</span>(<span class="string">&quot;Uncaught {e}&quot;</span>)),
+                    UninitResult::Err(<span class="kw-2">ref </span>e) =&gt; <span class="kw">return </span>(<span class="bool-val">false</span>, <span class="macro">format!</span>(<span class="string">"Uncaught {e}"</span>)),
                     UninitResult::Uninit <span class="kw">if </span><span class="self">self</span>.flags.contains(TestFlags::ASYNC) =&gt; {
                         <span class="kw">return </span>(
                             <span class="bool-val">false</span>,
-                            <span class="string">&quot;async test did not print \&quot;Test262:AsyncTestComplete\&quot;&quot;</span>.to_string(),
+                            <span class="string">"async test did not print \"Test262:AsyncTestComplete\""</span>.to_string(),
                         )
                     }
                     <span class="kw">_ </span>=&gt; {}
@@ -1092,7 +1093,7 @@
                 <span class="kw">for </span>result <span class="kw">in </span>results {
                     <span class="kw">match </span>result {
                         js262::WorkerResult::Err(msg) =&gt; <span class="kw">return </span>(<span class="bool-val">false</span>, msg),
-                        js262::WorkerResult::Panic(msg) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Worker thread panicked: {msg}&quot;</span>),
+                        js262::WorkerResult::Panic(msg) =&gt; <span class="macro">panic!</span>(<span class="string">"Worker thread panicked: {msg}"</span>),
                         js262::WorkerResult::Ok =&gt; {}
                     }
                 }
@@ -1106,7 +1107,7 @@
                 <span class="macro">assert_eq!</span>(
                     error_type,
                     ErrorType::SyntaxError,
-                    <span class="string">&quot;non-SyntaxError parsing/early error found in {}&quot;</span>,
+                    <span class="string">"non-SyntaxError parsing/early error found in {}"</span>,
                     <span class="self">self</span>.path.display()
                 );
 
@@ -1116,14 +1117,14 @@
 
                 <span class="kw">if </span><span class="self">self</span>.is_module() {
                     <span class="kw">match </span>Module::parse(source, <span class="prelude-val">None</span>, context) {
-                        <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; (<span class="bool-val">false</span>, <span class="string">&quot;ModuleItemList parsing should fail&quot;</span>.to_owned()),
-                        <span class="prelude-val">Err</span>(e) =&gt; (<span class="bool-val">true</span>, <span class="macro">format!</span>(<span class="string">&quot;Uncaught {e}&quot;</span>)),
+                        <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; (<span class="bool-val">false</span>, <span class="string">"ModuleItemList parsing should fail"</span>.to_owned()),
+                        <span class="prelude-val">Err</span>(e) =&gt; (<span class="bool-val">true</span>, <span class="macro">format!</span>(<span class="string">"Uncaught {e}"</span>)),
                     }
                 } <span class="kw">else </span>{
                     context.strict(strict);
                     <span class="kw">match </span>Script::parse(source, <span class="prelude-val">None</span>, context) {
-                        <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; (<span class="bool-val">false</span>, <span class="string">&quot;StatementList parsing should fail&quot;</span>.to_owned()),
-                        <span class="prelude-val">Err</span>(e) =&gt; (<span class="bool-val">true</span>, <span class="macro">format!</span>(<span class="string">&quot;Uncaught {e}&quot;</span>)),
+                        <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; (<span class="bool-val">false</span>, <span class="string">"StatementList parsing should fail"</span>.to_owned()),
+                        <span class="prelude-val">Err</span>(e) =&gt; (<span class="bool-val">true</span>, <span class="macro">format!</span>(<span class="string">"Uncaught {e}"</span>)),
                     }
                 }
             }
@@ -1133,24 +1134,24 @@
             } =&gt; {
                 <span class="kw">let </span>loader = Rc::new(
                     SimpleModuleLoader::new(
-                        <span class="self">self</span>.path.parent().expect(<span class="string">&quot;test should have a parent dir&quot;</span>),
+                        <span class="self">self</span>.path.parent().expect(<span class="string">"test should have a parent dir"</span>),
                     )
-                    .expect(<span class="string">&quot;test path should be canonicalizable&quot;</span>),
+                    .expect(<span class="string">"test path should be canonicalizable"</span>),
                 );
                 <span class="kw">let </span>context = <span class="kw-2">&amp;mut </span>Context::builder()
                     .module_loader(loader.clone())
                     .build()
-                    .expect(<span class="string">&quot;cannot fail with default global object&quot;</span>);
+                    .expect(<span class="string">"cannot fail with default global object"</span>);
 
                 <span class="kw">let </span>module = <span class="kw">match </span>Module::parse(source, <span class="prelude-val">None</span>, context) {
                     <span class="prelude-val">Ok</span>(module) =&gt; module,
-                    <span class="prelude-val">Err</span>(err) =&gt; <span class="kw">return </span>(<span class="bool-val">false</span>, <span class="macro">format!</span>(<span class="string">&quot;Uncaught {err}&quot;</span>)),
+                    <span class="prelude-val">Err</span>(err) =&gt; <span class="kw">return </span>(<span class="bool-val">false</span>, <span class="macro">format!</span>(<span class="string">"Uncaught {err}"</span>)),
                 };
 
                 loader.insert(
                     <span class="self">self</span>.path
                         .canonicalize()
-                        .expect(<span class="string">&quot;test path should be canonicalizable&quot;</span>),
+                        .expect(<span class="string">"test path should be canonicalizable"</span>),
                     module.clone(),
                 );
 
@@ -1160,7 +1161,7 @@
 
                 <span class="kw">match </span>promise.state() {
                     PromiseState::Pending =&gt; {
-                        <span class="kw">return </span>(<span class="bool-val">false</span>, <span class="string">&quot;module didn&#39;t try to load&quot;</span>.to_string())
+                        <span class="kw">return </span>(<span class="bool-val">false</span>, <span class="string">"module didn't try to load"</span>.to_string())
                     }
                     PromiseState::Fulfilled(<span class="kw">_</span>) =&gt; {
                         <span class="comment">// Try to link to see if the resolution error shows there.
@@ -1169,7 +1170,7 @@
                         <span class="kw">let </span>err = JsError::from_opaque(err);
                         <span class="kw">return </span>(
                             is_error_type(<span class="kw-2">&amp;</span>err, error_type, context),
-                            <span class="macro">format!</span>(<span class="string">&quot;Uncaught {err}&quot;</span>),
+                            <span class="macro">format!</span>(<span class="string">"Uncaught {err}"</span>),
                         );
                     }
                 }
@@ -1177,10 +1178,10 @@
                 <span class="kw">if let </span><span class="prelude-val">Err</span>(err) = module.link(context) {
                     (
                         is_error_type(<span class="kw-2">&amp;</span>err, error_type, context),
-                        <span class="macro">format!</span>(<span class="string">&quot;Uncaught {err}&quot;</span>),
+                        <span class="macro">format!</span>(<span class="string">"Uncaught {err}"</span>),
                     )
                 } <span class="kw">else </span>{
-                    (<span class="bool-val">false</span>, <span class="string">&quot;module resolution didn&#39;t fail&quot;</span>.to_string())
+                    (<span class="bool-val">false</span>, <span class="string">"module resolution didn't fail"</span>.to_string())
                 }
             }
             Outcome::Negative {
@@ -1189,15 +1190,15 @@
             } =&gt; {
                 <span class="kw">let </span>loader = Rc::new(
                     SimpleModuleLoader::new(
-                        <span class="self">self</span>.path.parent().expect(<span class="string">&quot;test should have a parent dir&quot;</span>),
+                        <span class="self">self</span>.path.parent().expect(<span class="string">"test should have a parent dir"</span>),
                     )
-                    .expect(<span class="string">&quot;test path should be canonicalizable&quot;</span>),
+                    .expect(<span class="string">"test path should be canonicalizable"</span>),
                 );
                 <span class="kw">let </span>context = <span class="kw-2">&amp;mut </span>Context::builder()
                     .module_loader(loader.clone())
                     .can_block(!<span class="self">self</span>.flags.contains(TestFlags::CAN_BLOCK_IS_FALSE))
                     .build()
-                    .expect(<span class="string">&quot;cannot fail with default global object&quot;</span>);
+                    .expect(<span class="string">"cannot fail with default global object"</span>);
                 context.strict(strict);
                 context.set_optimizer_options(optimizer_options);
 
@@ -1215,13 +1216,13 @@
                 <span class="kw">let </span>error = <span class="kw">if </span><span class="self">self</span>.is_module() {
                     <span class="kw">let </span>module = <span class="kw">match </span>Module::parse(source, <span class="prelude-val">None</span>, context) {
                         <span class="prelude-val">Ok</span>(module) =&gt; module,
-                        <span class="prelude-val">Err</span>(e) =&gt; <span class="kw">return </span>(<span class="bool-val">false</span>, <span class="macro">format!</span>(<span class="string">&quot;Uncaught {e}&quot;</span>)),
+                        <span class="prelude-val">Err</span>(e) =&gt; <span class="kw">return </span>(<span class="bool-val">false</span>, <span class="macro">format!</span>(<span class="string">"Uncaught {e}"</span>)),
                     };
 
                     loader.insert(
                         <span class="self">self</span>.path
                             .canonicalize()
-                            .expect(<span class="string">&quot;test path should be canonicalizable&quot;</span>),
+                            .expect(<span class="string">"test path should be canonicalizable"</span>),
                         module.clone(),
                     );
 
@@ -1231,16 +1232,16 @@
 
                     <span class="kw">match </span>promise.state() {
                         PromiseState::Pending =&gt; {
-                            <span class="kw">return </span>(<span class="bool-val">false</span>, <span class="string">&quot;module didn&#39;t try to load&quot;</span>.to_string())
+                            <span class="kw">return </span>(<span class="bool-val">false</span>, <span class="string">"module didn't try to load"</span>.to_string())
                         }
                         PromiseState::Fulfilled(<span class="kw">_</span>) =&gt; {}
                         PromiseState::Rejected(err) =&gt; {
-                            <span class="kw">return </span>(<span class="bool-val">false</span>, <span class="macro">format!</span>(<span class="string">&quot;Uncaught {}&quot;</span>, err.display()))
+                            <span class="kw">return </span>(<span class="bool-val">false</span>, <span class="macro">format!</span>(<span class="string">"Uncaught {}"</span>, err.display()))
                         }
                     }
 
                     <span class="kw">if let </span><span class="prelude-val">Err</span>(err) = module.link(context) {
-                        <span class="kw">return </span>(<span class="bool-val">false</span>, <span class="macro">format!</span>(<span class="string">&quot;Uncaught {err}&quot;</span>));
+                        <span class="kw">return </span>(<span class="bool-val">false</span>, <span class="macro">format!</span>(<span class="string">"Uncaught {err}"</span>));
                     }
 
                     <span class="kw">let </span>promise = module.evaluate(context);
@@ -1249,7 +1250,7 @@
 
                     <span class="kw">match </span>promise.state() {
                         PromiseState::Pending =&gt; {
-                            <span class="kw">return </span>(<span class="bool-val">false</span>, <span class="string">&quot;module didn&#39;t try to evaluate&quot;</span>.to_string())
+                            <span class="kw">return </span>(<span class="bool-val">false</span>, <span class="string">"module didn't try to evaluate"</span>.to_string())
                         }
                         PromiseState::Fulfilled(val) =&gt; <span class="kw">return </span>(<span class="bool-val">false</span>, val.display().to_string()),
                         PromiseState::Rejected(err) =&gt; JsError::from_opaque(err),
@@ -1258,11 +1259,11 @@
                     context.strict(strict);
                     <span class="kw">let </span>script = <span class="kw">match </span>Script::parse(source, <span class="prelude-val">None</span>, context) {
                         <span class="prelude-val">Ok</span>(code) =&gt; code,
-                        <span class="prelude-val">Err</span>(e) =&gt; <span class="kw">return </span>(<span class="bool-val">false</span>, <span class="macro">format!</span>(<span class="string">&quot;Uncaught {e}&quot;</span>)),
+                        <span class="prelude-val">Err</span>(e) =&gt; <span class="kw">return </span>(<span class="bool-val">false</span>, <span class="macro">format!</span>(<span class="string">"Uncaught {e}"</span>)),
                     };
 
                     <span class="kw">match </span>script.evaluate(context) {
-                        <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span>(<span class="bool-val">false</span>, <span class="string">&quot;Script execution should fail&quot;</span>.to_owned()),
+                        <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span>(<span class="bool-val">false</span>, <span class="string">"Script execution should fail"</span>.to_owned()),
                         <span class="prelude-val">Err</span>(e) =&gt; e,
                     }
                 };
@@ -1272,21 +1273,21 @@
                 <span class="kw">for </span>result <span class="kw">in </span>results {
                     <span class="kw">match </span>result {
                         js262::WorkerResult::Err(msg) =&gt; <span class="kw">return </span>(<span class="bool-val">false</span>, msg),
-                        js262::WorkerResult::Panic(msg) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Worker thread panicked: {msg}&quot;</span>),
+                        js262::WorkerResult::Panic(msg) =&gt; <span class="macro">panic!</span>(<span class="string">"Worker thread panicked: {msg}"</span>),
                         js262::WorkerResult::Ok =&gt; {}
                     }
                 }
 
                 (
                     is_error_type(<span class="kw-2">&amp;</span>error, error_type, context),
-                    <span class="macro">format!</span>(<span class="string">&quot;Uncaught {error}&quot;</span>),
+                    <span class="macro">format!</span>(<span class="string">"Uncaught {error}"</span>),
                 )
             }
         });
 
         <span class="kw">let </span>(result, result_text) = result.map_or_else(
             |<span class="kw">_</span>| {
-                <span class="macro">eprintln!</span>(<span class="string">&quot;last panic was on test \&quot;{}\&quot;&quot;</span>, <span class="self">self</span>.path.display());
+                <span class="macro">eprintln!</span>(<span class="string">"last panic was on test \"{}\""</span>, <span class="self">self</span>.path.display());
                 (TestOutcomeResult::Panic, String::new())
             },
             |(res, text)| {
@@ -1300,35 +1301,35 @@
 
         <span class="kw">if </span>verbose &gt; <span class="number">1 </span>{
             <span class="macro">println!</span>(
-                <span class="string">&quot;`{}`{}: {}&quot;</span>,
+                <span class="string">"`{}`{}: {}"</span>,
                 <span class="self">self</span>.path.display(),
-                <span class="kw">if </span>strict { <span class="string">&quot; (strict mode)&quot; </span>} <span class="kw">else </span>{ <span class="string">&quot;&quot; </span>},
+                <span class="kw">if </span>strict { <span class="string">" (strict mode)" </span>} <span class="kw">else </span>{ <span class="string">"" </span>},
                 <span class="kw">if </span>result == TestOutcomeResult::Passed {
-                    <span class="string">&quot;Passed&quot;</span>.green()
+                    <span class="string">"Passed"</span>.green()
                 } <span class="kw">else if </span>result == TestOutcomeResult::Failed {
-                    <span class="string">&quot;Failed&quot;</span>.red()
+                    <span class="string">"Failed"</span>.red()
                 } <span class="kw">else </span>{
-                    <span class="string">&quot;⚠ Panic ⚠&quot;</span>.red()
+                    <span class="string">"⚠ Panic ⚠"</span>.red()
                 }
             );
         } <span class="kw">else </span>{
             <span class="macro">print!</span>(
-                <span class="string">&quot;{}&quot;</span>,
+                <span class="string">"{}"</span>,
                 <span class="kw">if </span>result == TestOutcomeResult::Passed {
-                    <span class="string">&quot;.&quot;</span>.green()
+                    <span class="string">"."</span>.green()
                 } <span class="kw">else </span>{
-                    <span class="string">&quot;F&quot;</span>.red()
+                    <span class="string">"F"</span>.red()
                 }
             );
         }
 
         <span class="kw">if </span>verbose &gt; <span class="number">2 </span>{
             <span class="macro">println!</span>(
-                <span class="string">&quot;`{}`{}: result text&quot;</span>,
+                <span class="string">"`{}`{}: result text"</span>,
                 <span class="self">self</span>.path.display(),
-                <span class="kw">if </span>strict { <span class="string">&quot; (strict mode)&quot; </span>} <span class="kw">else </span>{ <span class="string">&quot;&quot; </span>},
+                <span class="kw">if </span>strict { <span class="string">" (strict mode)" </span>} <span class="kw">else </span>{ <span class="string">"" </span>},
             );
-            <span class="macro">println!</span>(<span class="string">&quot;{result_text}&quot;</span>);
+            <span class="macro">println!</span>(<span class="string">"{result_text}"</span>);
             <span class="macro">println!</span>();
         }
 
@@ -1364,7 +1365,7 @@
                     console,
                     Attribute::all(),
                 )
-                .expect(<span class="string">&quot;the console builtin shouldn&#39;t exist&quot;</span>);
+                .expect(<span class="string">"the console builtin shouldn't exist"</span>);
         }
 
         <span class="kw">if </span><span class="self">self</span>.flags.contains(TestFlags::RAW) {
@@ -1379,10 +1380,10 @@
 
         context
             .eval(assert)
-            .map_err(|e| <span class="macro">format!</span>(<span class="string">&quot;could not run assert.js:\n{e}&quot;</span>))<span class="question-mark">?</span>;
+            .map_err(|e| <span class="macro">format!</span>(<span class="string">"could not run assert.js:\n{e}"</span>))<span class="question-mark">?</span>;
         context
             .eval(sta)
-            .map_err(|e| <span class="macro">format!</span>(<span class="string">&quot;could not run sta.js:\n{e}&quot;</span>))<span class="question-mark">?</span>;
+            .map_err(|e| <span class="macro">format!</span>(<span class="string">"could not run sta.js:\n{e}"</span>))<span class="question-mark">?</span>;
 
         <span class="kw">if </span><span class="self">self</span>.flags.contains(TestFlags::ASYNC) {
             <span class="kw">let </span>dph = Source::from_reader(
@@ -1391,17 +1392,17 @@
             );
             context
                 .eval(dph)
-                .map_err(|e| <span class="macro">format!</span>(<span class="string">&quot;could not run doneprintHandle.js:\n{e}&quot;</span>))<span class="question-mark">?</span>;
+                .map_err(|e| <span class="macro">format!</span>(<span class="string">"could not run doneprintHandle.js:\n{e}"</span>))<span class="question-mark">?</span>;
         }
 
         <span class="kw">for </span>include_name <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.includes {
             <span class="kw">let </span>include = harness
                 .includes
                 .get(include_name)
-                .ok_or_else(|| <span class="macro">format!</span>(<span class="string">&quot;could not find the {include_name} include file.&quot;</span>))<span class="question-mark">?</span>;
+                .ok_or_else(|| <span class="macro">format!</span>(<span class="string">"could not find the {include_name} include file."</span>))<span class="question-mark">?</span>;
             <span class="kw">let </span>source = Source::from_reader(include.content.as_bytes(), <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>include.path));
             context.eval(source).map_err(|e| {
-                <span class="macro">format!</span>(<span class="string">&quot;could not run the harness `{include_name}`:\nUncaught {e}&quot;</span>,)
+                <span class="macro">format!</span>(<span class="string">"could not run the harness `{include_name}`:\nUncaught {e}"</span>,)
             })<span class="question-mark">?</span>;
         }
 
@@ -1423,12 +1424,12 @@
     </span>} <span class="kw">else </span>{
         <span class="kw">let </span>passed = error
             .as_opaque()
-            .expect(<span class="string">&quot;try_native cannot fail if e is not opaque&quot;</span>)
+            .expect(<span class="string">"try_native cannot fail if e is not opaque"</span>)
             .as_object()
-            .and_then(|o| o.get(<span class="macro">js_string!</span>(<span class="string">&quot;constructor&quot;</span>), context).ok())
+            .and_then(|o| o.get(<span class="macro">js_string!</span>(<span class="string">"constructor"</span>), context).ok())
             .as_ref()
             .and_then(JsValue::as_object)
-            .and_then(|o| o.get(<span class="macro">js_string!</span>(<span class="string">&quot;name&quot;</span>), context).ok())
+            .and_then(|o| o.get(<span class="macro">js_string!</span>(<span class="string">"name"</span>), context).ok())
             .as_ref()
             .and_then(JsValue::as_string)
             .map(|s| s == target_type.as_str())
@@ -1453,7 +1454,7 @@
 
                 <span class="kw">match </span><span class="kw-2">*</span>result {
                     UninitResult::Uninit | UninitResult::Ok(()) =&gt; {
-                        <span class="kw">if </span>message == <span class="string">&quot;Test262:AsyncTestComplete&quot; </span>{
+                        <span class="kw">if </span>message == <span class="string">"Test262:AsyncTestComplete" </span>{
                             <span class="kw-2">*</span>result = UninitResult::Ok(());
                         } <span class="kw">else </span>{
                             <span class="kw-2">*</span>result = UninitResult::Err(message);
@@ -1466,17 +1467,17 @@
             })
         },
     )
-    .name(<span class="string">&quot;print&quot;</span>)
+    .name(<span class="string">"print"</span>)
     .length(<span class="number">1</span>)
     .build();
 
     context
         .register_global_property(
-            <span class="macro">js_string!</span>(<span class="string">&quot;print&quot;</span>),
+            <span class="macro">js_string!</span>(<span class="string">"print"</span>),
             js_function,
             Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         )
-        .expect(<span class="string">&quot;shouldn&#39;t fail with the default global&quot;</span>);
+        .expect(<span class="string">"shouldn't fail with the default global"</span>);
 }
 
 <span class="doccomment">/// A `Result` value that is possibly uninitialized.

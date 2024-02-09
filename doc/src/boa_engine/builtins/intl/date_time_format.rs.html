@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/builtins/intl/date_time_format.rs`."><title>date_time_format.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/builtins/intl/date_time_format.rs`."><title>date_time_format.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -319,12 +320,12 @@
 <span class="kw">impl </span>OptionType <span class="kw">for </span>HourCycle {
     <span class="kw">fn </span>from_value(value: JsValue, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;<span class="self">Self</span>&gt; {
         <span class="kw">match </span>value.to_string(context)<span class="question-mark">?</span>.to_std_string_escaped().as_str() {
-            <span class="string">&quot;h11&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::H11),
-            <span class="string">&quot;h12&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::H12),
-            <span class="string">&quot;h23&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::H23),
-            <span class="string">&quot;h24&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::H24),
+            <span class="string">"h11" </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::H11),
+            <span class="string">"h12" </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::H12),
+            <span class="string">"h23" </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::H23),
+            <span class="string">"h24" </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>::H24),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(JsNativeError::range()
-                .with_message(<span class="string">&quot;provided string was not `h11`, `h12`, `h23` or `h24`&quot;</span>)
+                .with_message(<span class="string">"provided string was not `h11`, `h12`, `h23` or `h24`"</span>)
                 .into()),
         }
     }
@@ -356,7 +357,7 @@
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>DateTimeFormat {
     <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(std::any::type_name::&lt;<span class="self">Self</span>&gt;(), <span class="string">&quot;init&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(std::any::type_name::&lt;<span class="self">Self</span>&gt;(), <span class="string">"init"</span>);
 
         BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm).build();
     }
@@ -408,7 +409,7 @@
             StandardConstructors::date_time_format,
             context,
         )<span class="question-mark">?</span>;
-        <span class="comment">// 2. Let dateTimeFormat be ? OrdinaryCreateFromConstructor(newTarget, &quot;%DateTimeFormat.prototype%&quot;,
+        <span class="comment">// 2. Let dateTimeFormat be ? OrdinaryCreateFromConstructor(newTarget, "%DateTimeFormat.prototype%",
         // « [[InitializedDateTimeFormat]], [[Locale]], [[Calendar]], [[NumberingSystem]], [[TimeZone]], [[Weekday]],
         // [[Era]], [[Year]], [[Month]], [[Day]], [[DayPeriod]], [[Hour]], [[Minute]], [[Second]],
         // [[FractionalSecondDigits]], [[TimeZoneName]], [[HourCycle]], [[Pattern]], [[BoundFormat]] »).
@@ -417,24 +418,24 @@
             prototype,
             <span class="self">Self </span>{
                 initialized: <span class="bool-val">true</span>,
-                locale: <span class="macro">js_string!</span>(<span class="string">&quot;en-US&quot;</span>),
-                calendar: <span class="macro">js_string!</span>(<span class="string">&quot;gregory&quot;</span>),
-                numbering_system: <span class="macro">js_string!</span>(<span class="string">&quot;arab&quot;</span>),
-                time_zone: <span class="macro">js_string!</span>(<span class="string">&quot;UTC&quot;</span>),
-                weekday: <span class="macro">js_string!</span>(<span class="string">&quot;narrow&quot;</span>),
-                era: <span class="macro">js_string!</span>(<span class="string">&quot;narrow&quot;</span>),
-                year: <span class="macro">js_string!</span>(<span class="string">&quot;numeric&quot;</span>),
-                month: <span class="macro">js_string!</span>(<span class="string">&quot;narrow&quot;</span>),
-                day: <span class="macro">js_string!</span>(<span class="string">&quot;numeric&quot;</span>),
-                day_period: <span class="macro">js_string!</span>(<span class="string">&quot;narrow&quot;</span>),
-                hour: <span class="macro">js_string!</span>(<span class="string">&quot;numeric&quot;</span>),
-                minute: <span class="macro">js_string!</span>(<span class="string">&quot;numeric&quot;</span>),
-                second: <span class="macro">js_string!</span>(<span class="string">&quot;numeric&quot;</span>),
-                fractional_second_digits: <span class="macro">js_string!</span>(<span class="string">&quot;&quot;</span>),
-                time_zone_name: <span class="macro">js_string!</span>(<span class="string">&quot;&quot;</span>),
-                hour_cycle: <span class="macro">js_string!</span>(<span class="string">&quot;h24&quot;</span>),
-                pattern: <span class="macro">js_string!</span>(<span class="string">&quot;{hour}:{minute}&quot;</span>),
-                bound_format: <span class="macro">js_string!</span>(<span class="string">&quot;undefined&quot;</span>),
+                locale: <span class="macro">js_string!</span>(<span class="string">"en-US"</span>),
+                calendar: <span class="macro">js_string!</span>(<span class="string">"gregory"</span>),
+                numbering_system: <span class="macro">js_string!</span>(<span class="string">"arab"</span>),
+                time_zone: <span class="macro">js_string!</span>(<span class="string">"UTC"</span>),
+                weekday: <span class="macro">js_string!</span>(<span class="string">"narrow"</span>),
+                era: <span class="macro">js_string!</span>(<span class="string">"narrow"</span>),
+                year: <span class="macro">js_string!</span>(<span class="string">"numeric"</span>),
+                month: <span class="macro">js_string!</span>(<span class="string">"narrow"</span>),
+                day: <span class="macro">js_string!</span>(<span class="string">"numeric"</span>),
+                day_period: <span class="macro">js_string!</span>(<span class="string">"narrow"</span>),
+                hour: <span class="macro">js_string!</span>(<span class="string">"numeric"</span>),
+                minute: <span class="macro">js_string!</span>(<span class="string">"numeric"</span>),
+                second: <span class="macro">js_string!</span>(<span class="string">"numeric"</span>),
+                fractional_second_digits: <span class="macro">js_string!</span>(<span class="string">""</span>),
+                time_zone_name: <span class="macro">js_string!</span>(<span class="string">""</span>),
+                hour_cycle: <span class="macro">js_string!</span>(<span class="string">"h24"</span>),
+                pattern: <span class="macro">js_string!</span>(<span class="string">"{hour}:{minute}"</span>),
+                bound_format: <span class="macro">js_string!</span>(<span class="string">"undefined"</span>),
             },
         );
 
@@ -492,14 +493,14 @@
     <span class="comment">// 3. Let needDefaults be true.
     </span><span class="kw">let </span><span class="kw-2">mut </span>need_defaults = <span class="bool-val">true</span>;
 
-    <span class="comment">// 4. If required is &quot;date&quot; or &quot;any&quot;, then
+    <span class="comment">// 4. If required is "date" or "any", then
     </span><span class="kw">if </span>[DateTimeReqs::Date, DateTimeReqs::AnyAll].contains(required) {
-        <span class="comment">// a. For each property name prop of « &quot;weekday&quot;, &quot;year&quot;, &quot;month&quot;, &quot;day&quot; », do
+        <span class="comment">// a. For each property name prop of « "weekday", "year", "month", "day" », do
         </span><span class="kw">for </span>property <span class="kw">in </span>[
-            <span class="macro">utf16!</span>(<span class="string">&quot;weekday&quot;</span>),
-            <span class="macro">utf16!</span>(<span class="string">&quot;year&quot;</span>),
-            <span class="macro">utf16!</span>(<span class="string">&quot;month&quot;</span>),
-            <span class="macro">utf16!</span>(<span class="string">&quot;day&quot;</span>),
+            <span class="macro">utf16!</span>(<span class="string">"weekday"</span>),
+            <span class="macro">utf16!</span>(<span class="string">"year"</span>),
+            <span class="macro">utf16!</span>(<span class="string">"month"</span>),
+            <span class="macro">utf16!</span>(<span class="string">"day"</span>),
         ] {
             <span class="comment">// i. Let value be ? Get(options, prop).
             </span><span class="kw">let </span>value = options.get(property, context)<span class="question-mark">?</span>;
@@ -511,16 +512,16 @@
         }
     }
 
-    <span class="comment">// 5. If required is &quot;time&quot; or &quot;any&quot;, then
+    <span class="comment">// 5. If required is "time" or "any", then
     </span><span class="kw">if </span>[DateTimeReqs::Time, DateTimeReqs::AnyAll].contains(required) {
-        <span class="comment">// a. For each property name prop of « &quot;dayPeriod&quot;, &quot;hour&quot;, &quot;minute&quot;, &quot;second&quot;,
-        // &quot;fractionalSecondDigits&quot; », do
+        <span class="comment">// a. For each property name prop of « "dayPeriod", "hour", "minute", "second",
+        // "fractionalSecondDigits" », do
         </span><span class="kw">for </span>property <span class="kw">in </span>[
-            <span class="macro">utf16!</span>(<span class="string">&quot;dayPeriod&quot;</span>),
-            <span class="macro">utf16!</span>(<span class="string">&quot;hour&quot;</span>),
-            <span class="macro">utf16!</span>(<span class="string">&quot;minute&quot;</span>),
-            <span class="macro">utf16!</span>(<span class="string">&quot;second&quot;</span>),
-            <span class="macro">utf16!</span>(<span class="string">&quot;fractionalSecondDigits&quot;</span>),
+            <span class="macro">utf16!</span>(<span class="string">"dayPeriod"</span>),
+            <span class="macro">utf16!</span>(<span class="string">"hour"</span>),
+            <span class="macro">utf16!</span>(<span class="string">"minute"</span>),
+            <span class="macro">utf16!</span>(<span class="string">"second"</span>),
+            <span class="macro">utf16!</span>(<span class="string">"fractionalSecondDigits"</span>),
         ] {
             <span class="comment">// i. Let value be ? Get(options, prop).
             </span><span class="kw">let </span>value = options.get(property, context)<span class="question-mark">?</span>;
@@ -532,48 +533,48 @@
         }
     }
 
-    <span class="comment">// 6. Let dateStyle be ? Get(options, &quot;dateStyle&quot;).
-    </span><span class="kw">let </span>date_style = options.get(<span class="macro">utf16!</span>(<span class="string">&quot;dateStyle&quot;</span>), context)<span class="question-mark">?</span>;
+    <span class="comment">// 6. Let dateStyle be ? Get(options, "dateStyle").
+    </span><span class="kw">let </span>date_style = options.get(<span class="macro">utf16!</span>(<span class="string">"dateStyle"</span>), context)<span class="question-mark">?</span>;
 
-    <span class="comment">// 7. Let timeStyle be ? Get(options, &quot;timeStyle&quot;).
-    </span><span class="kw">let </span>time_style = options.get(<span class="macro">utf16!</span>(<span class="string">&quot;timeStyle&quot;</span>), context)<span class="question-mark">?</span>;
+    <span class="comment">// 7. Let timeStyle be ? Get(options, "timeStyle").
+    </span><span class="kw">let </span>time_style = options.get(<span class="macro">utf16!</span>(<span class="string">"timeStyle"</span>), context)<span class="question-mark">?</span>;
 
     <span class="comment">// 8. If dateStyle is not undefined or timeStyle is not undefined, let needDefaults be false.
     </span><span class="kw">if </span>!date_style.is_undefined() || !time_style.is_undefined() {
         need_defaults = <span class="bool-val">false</span>;
     }
 
-    <span class="comment">// 9. If required is &quot;date&quot; and timeStyle is not undefined, then
+    <span class="comment">// 9. If required is "date" and timeStyle is not undefined, then
     </span><span class="kw">if </span>required == <span class="kw-2">&amp;</span>DateTimeReqs::Date &amp;&amp; !time_style.is_undefined() {
         <span class="comment">// a. Throw a TypeError exception.
         </span><span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-            .with_message(<span class="string">&quot;&#39;date&#39; is required, but timeStyle was defined&quot;</span>)
+            .with_message(<span class="string">"'date' is required, but timeStyle was defined"</span>)
             .into());
     }
 
-    <span class="comment">// 10. If required is &quot;time&quot; and dateStyle is not undefined, then
+    <span class="comment">// 10. If required is "time" and dateStyle is not undefined, then
     </span><span class="kw">if </span>required == <span class="kw-2">&amp;</span>DateTimeReqs::Time &amp;&amp; !date_style.is_undefined() {
         <span class="comment">// a. Throw a TypeError exception.
         </span><span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-            .with_message(<span class="string">&quot;&#39;time&#39; is required, but dateStyle was defined&quot;</span>)
+            .with_message(<span class="string">"'time' is required, but dateStyle was defined"</span>)
             .into());
     }
 
-    <span class="comment">// 11. If needDefaults is true and defaults is either &quot;date&quot; or &quot;all&quot;, then
+    <span class="comment">// 11. If needDefaults is true and defaults is either "date" or "all", then
     </span><span class="kw">if </span>need_defaults &amp;&amp; [DateTimeReqs::Date, DateTimeReqs::AnyAll].contains(defaults) {
-        <span class="comment">// a. For each property name prop of « &quot;year&quot;, &quot;month&quot;, &quot;day&quot; », do
-        </span><span class="kw">for </span>property <span class="kw">in </span>[<span class="macro">utf16!</span>(<span class="string">&quot;year&quot;</span>), <span class="macro">utf16!</span>(<span class="string">&quot;month&quot;</span>), <span class="macro">utf16!</span>(<span class="string">&quot;day&quot;</span>)] {
-            <span class="comment">// i. Perform ? CreateDataPropertyOrThrow(options, prop, &quot;numeric&quot;).
-            </span>options.create_data_property_or_throw(property, <span class="macro">js_string!</span>(<span class="string">&quot;numeric&quot;</span>), context)<span class="question-mark">?</span>;
+        <span class="comment">// a. For each property name prop of « "year", "month", "day" », do
+        </span><span class="kw">for </span>property <span class="kw">in </span>[<span class="macro">utf16!</span>(<span class="string">"year"</span>), <span class="macro">utf16!</span>(<span class="string">"month"</span>), <span class="macro">utf16!</span>(<span class="string">"day"</span>)] {
+            <span class="comment">// i. Perform ? CreateDataPropertyOrThrow(options, prop, "numeric").
+            </span>options.create_data_property_or_throw(property, <span class="macro">js_string!</span>(<span class="string">"numeric"</span>), context)<span class="question-mark">?</span>;
         }
     }
 
-    <span class="comment">// 12. If needDefaults is true and defaults is either &quot;time&quot; or &quot;all&quot;, then
+    <span class="comment">// 12. If needDefaults is true and defaults is either "time" or "all", then
     </span><span class="kw">if </span>need_defaults &amp;&amp; [DateTimeReqs::Time, DateTimeReqs::AnyAll].contains(defaults) {
-        <span class="comment">// a. For each property name prop of « &quot;hour&quot;, &quot;minute&quot;, &quot;second&quot; », do
-        </span><span class="kw">for </span>property <span class="kw">in </span>[<span class="macro">utf16!</span>(<span class="string">&quot;hour&quot;</span>), <span class="macro">utf16!</span>(<span class="string">&quot;minute&quot;</span>), <span class="macro">utf16!</span>(<span class="string">&quot;second&quot;</span>)] {
-            <span class="comment">// i. Perform ? CreateDataPropertyOrThrow(options, prop, &quot;numeric&quot;).
-            </span>options.create_data_property_or_throw(property, <span class="macro">js_string!</span>(<span class="string">&quot;numeric&quot;</span>), context)<span class="question-mark">?</span>;
+        <span class="comment">// a. For each property name prop of « "hour", "minute", "second" », do
+        </span><span class="kw">for </span>property <span class="kw">in </span>[<span class="macro">utf16!</span>(<span class="string">"hour"</span>), <span class="macro">utf16!</span>(<span class="string">"minute"</span>), <span class="macro">utf16!</span>(<span class="string">"second"</span>)] {
+            <span class="comment">// i. Perform ? CreateDataPropertyOrThrow(options, prop, "numeric").
+            </span>options.create_data_property_or_throw(property, <span class="macro">js_string!</span>(<span class="string">"numeric"</span>), context)<span class="question-mark">?</span>;
         }
     }
 

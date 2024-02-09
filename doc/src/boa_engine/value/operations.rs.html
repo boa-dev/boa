@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/value/operations.rs`."><title>operations.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/value/operations.rs`."><title>operations.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -719,7 +720,7 @@
                     (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
                         <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
                             .with_message(
-                                <span class="string">&quot;cannot mix BigInt and other types, use explicit conversions&quot;</span>,
+                                <span class="string">"cannot mix BigInt and other types, use explicit conversions"</span>,
                             )
                             .into())
                     }
@@ -747,7 +748,7 @@
                 (Numeric::BigInt(<span class="kw-2">ref </span>x), Numeric::BigInt(<span class="kw-2">ref </span>y)) =&gt; <span class="self">Self</span>::new(JsBigInt::sub(x, y)),
                 (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                        .with_message(<span class="string">&quot;cannot mix BigInt and other types, use explicit conversions&quot;</span>)
+                        .with_message(<span class="string">"cannot mix BigInt and other types, use explicit conversions"</span>)
                         .into());
                 }
             },
@@ -773,7 +774,7 @@
                 (Numeric::BigInt(<span class="kw-2">ref </span>x), Numeric::BigInt(<span class="kw-2">ref </span>y)) =&gt; <span class="self">Self</span>::new(JsBigInt::mul(x, y)),
                 (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                        .with_message(<span class="string">&quot;cannot mix BigInt and other types, use explicit conversions&quot;</span>)
+                        .with_message(<span class="string">"cannot mix BigInt and other types, use explicit conversions"</span>)
                         .into());
                 }
             },
@@ -795,7 +796,7 @@
             (<span class="self">Self</span>::BigInt(<span class="kw-2">ref </span>x), <span class="self">Self</span>::BigInt(<span class="kw-2">ref </span>y)) =&gt; {
                 <span class="kw">if </span>y.is_zero() {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
-                        .with_message(<span class="string">&quot;BigInt division by zero&quot;</span>)
+                        .with_message(<span class="string">"BigInt division by zero"</span>)
                         .into());
                 }
                 <span class="self">Self</span>::new(JsBigInt::div(x, y))
@@ -807,14 +808,14 @@
                 (Numeric::BigInt(<span class="kw-2">ref </span>x), Numeric::BigInt(<span class="kw-2">ref </span>y)) =&gt; {
                     <span class="kw">if </span>y.is_zero() {
                         <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
-                            .with_message(<span class="string">&quot;BigInt division by zero&quot;</span>)
+                            .with_message(<span class="string">"BigInt division by zero"</span>)
                             .into());
                     }
                     <span class="self">Self</span>::new(JsBigInt::div(x, y))
                 }
                 (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                        .with_message(<span class="string">&quot;cannot mix BigInt and other types, use explicit conversions&quot;</span>)
+                        .with_message(<span class="string">"cannot mix BigInt and other types, use explicit conversions"</span>)
                         .into());
                 }
             },
@@ -846,7 +847,7 @@
             (<span class="self">Self</span>::BigInt(<span class="kw-2">ref </span>x), <span class="self">Self</span>::BigInt(<span class="kw-2">ref </span>y)) =&gt; {
                 <span class="kw">if </span>y.is_zero() {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
-                        .with_message(<span class="string">&quot;BigInt division by zero&quot;</span>)
+                        .with_message(<span class="string">"BigInt division by zero"</span>)
                         .into());
                 }
                 <span class="self">Self</span>::new(JsBigInt::rem(x, y))
@@ -858,14 +859,14 @@
                 (Numeric::BigInt(<span class="kw-2">ref </span>x), Numeric::BigInt(<span class="kw-2">ref </span>y)) =&gt; {
                     <span class="kw">if </span>y.is_zero() {
                         <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
-                            .with_message(<span class="string">&quot;BigInt division by zero&quot;</span>)
+                            .with_message(<span class="string">"BigInt division by zero"</span>)
                             .into());
                     }
                     <span class="self">Self</span>::new(JsBigInt::rem(x, y))
                 }
                 (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                        .with_message(<span class="string">&quot;cannot mix BigInt and other types, use explicit conversions&quot;</span>)
+                        .with_message(<span class="string">"cannot mix BigInt and other types, use explicit conversions"</span>)
                         .into());
                 }
             },
@@ -911,7 +912,7 @@
                 (Numeric::BigInt(<span class="kw-2">ref </span>a), Numeric::BigInt(<span class="kw-2">ref </span>b)) =&gt; <span class="self">Self</span>::new(JsBigInt::pow(a, b)<span class="question-mark">?</span>),
                 (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                        .with_message(<span class="string">&quot;cannot mix BigInt and other types, use explicit conversions&quot;</span>)
+                        .with_message(<span class="string">"cannot mix BigInt and other types, use explicit conversions"</span>)
                         .into());
                 }
             },
@@ -941,7 +942,7 @@
                 }
                 (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                        .with_message(<span class="string">&quot;cannot mix BigInt and other types, use explicit conversions&quot;</span>)
+                        .with_message(<span class="string">"cannot mix BigInt and other types, use explicit conversions"</span>)
                         .into());
                 }
             },
@@ -971,7 +972,7 @@
                 }
                 (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                        .with_message(<span class="string">&quot;cannot mix BigInt and other types, use explicit conversions&quot;</span>)
+                        .with_message(<span class="string">"cannot mix BigInt and other types, use explicit conversions"</span>)
                         .into());
                 }
             },
@@ -1001,7 +1002,7 @@
                 }
                 (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                        .with_message(<span class="string">&quot;cannot mix BigInt and other types, use explicit conversions&quot;</span>)
+                        .with_message(<span class="string">"cannot mix BigInt and other types, use explicit conversions"</span>)
                         .into());
                 }
             },
@@ -1033,7 +1034,7 @@
                 }
                 (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                        .with_message(<span class="string">&quot;cannot mix BigInt and other types, use explicit conversions&quot;</span>)
+                        .with_message(<span class="string">"cannot mix BigInt and other types, use explicit conversions"</span>)
                         .into());
                 }
             },
@@ -1065,7 +1066,7 @@
                 }
                 (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                        .with_message(<span class="string">&quot;cannot mix BigInt and other types, use explicit conversions&quot;</span>)
+                        .with_message(<span class="string">"cannot mix BigInt and other types, use explicit conversions"</span>)
                         .into());
                 }
             },
@@ -1094,12 +1095,12 @@
                 }
                 (Numeric::BigInt(<span class="kw">_</span>), Numeric::BigInt(<span class="kw">_</span>)) =&gt; {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                        .with_message(<span class="string">&quot;BigInts have no unsigned right shift, use &gt;&gt; instead&quot;</span>)
+                        .with_message(<span class="string">"BigInts have no unsigned right shift, use &gt;&gt; instead"</span>)
                         .into());
                 }
                 (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                        .with_message(<span class="string">&quot;cannot mix BigInt and other types, use explicit conversions&quot;</span>)
+                        .with_message(<span class="string">"cannot mix BigInt and other types, use explicit conversions"</span>)
                         .into());
                 }
             },
@@ -1117,7 +1118,7 @@
         </span><span class="kw">if </span>!target.is_object() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
                 .with_message(<span class="macro">format!</span>(
-                    <span class="string">&quot;right-hand side of &#39;instanceof&#39; should be an object, got `{}`&quot;</span>,
+                    <span class="string">"right-hand side of 'instanceof' should be an object, got `{}`"</span>,
                     target.type_of()
                 ))
                 .into());
@@ -1139,7 +1140,7 @@
             <span class="prelude-val">None </span>=&gt; {
                 <span class="comment">// 4. If IsCallable(target) is false, throw a TypeError exception.
                 </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                    .with_message(<span class="string">&quot;right-hand side of &#39;instanceof&#39; is not callable&quot;</span>)
+                    .with_message(<span class="string">"right-hand side of 'instanceof' is not callable"</span>)
                     .into())
             }
         }
@@ -1178,7 +1179,7 @@
     /// The flag is used to control the order in which operations with potentially visible side-effects
     /// are performed upon `x` and `y`. It is necessary because ECMAScript specifies left to right evaluation
     /// of expressions. The default value of `LeftFirst` is `true` and indicates that the `x` parameter
-    /// corresponds to an expression that occurs to the left of the `y` parameter&#39;s corresponding expression.
+    /// corresponds to an expression that occurs to the left of the `y` parameter's corresponding expression.
     ///
     /// If `LeftFirst` is `false`, the reverse is the case and operations must be performed upon `y` before `x`.
     ///

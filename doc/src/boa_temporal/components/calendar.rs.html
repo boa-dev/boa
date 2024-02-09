@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/temporal/src/components/calendar.rs`."><title>calendar.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="boa_temporal" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../boa_temporal/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_temporal"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/temporal/src/components/calendar.rs`."><title>calendar.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="boa_temporal" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../../boa_temporal/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_temporal"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1014,7 +1015,7 @@
 //! The goal of the calendar module of `boa_temporal` is to provide
 //! Temporal compatible calendar implementations.
 //!
-//! The implementation will only be of calendar&#39;s prexisting calendars. This library
+//! The implementation will only be of calendar's prexisting calendars. This library
 //! does not come with a pre-existing `CustomCalendar` (i.e., an object that implements
 //! the calendar protocol), but it does aim to provide the necessary tools and API for
 //! implementing one.
@@ -1037,27 +1038,27 @@
 
 <span class="doccomment">/// The ECMAScript defined protocol methods
 </span><span class="kw">pub const </span>CALENDAR_PROTOCOL_METHODS: [<span class="kw-2">&amp;</span>str; <span class="number">21</span>] = [
-    <span class="string">&quot;dateAdd&quot;</span>,
-    <span class="string">&quot;dateFromFields&quot;</span>,
-    <span class="string">&quot;dateUntil&quot;</span>,
-    <span class="string">&quot;day&quot;</span>,
-    <span class="string">&quot;dayOfWeek&quot;</span>,
-    <span class="string">&quot;dayOfYear&quot;</span>,
-    <span class="string">&quot;daysInMonth&quot;</span>,
-    <span class="string">&quot;daysInWeek&quot;</span>,
-    <span class="string">&quot;daysInYear&quot;</span>,
-    <span class="string">&quot;fields&quot;</span>,
-    <span class="string">&quot;id&quot;</span>,
-    <span class="string">&quot;inLeapYear&quot;</span>,
-    <span class="string">&quot;mergeFields&quot;</span>,
-    <span class="string">&quot;month&quot;</span>,
-    <span class="string">&quot;monthCode&quot;</span>,
-    <span class="string">&quot;monthDayFromFields&quot;</span>,
-    <span class="string">&quot;monthsInYear&quot;</span>,
-    <span class="string">&quot;weekOfYear&quot;</span>,
-    <span class="string">&quot;year&quot;</span>,
-    <span class="string">&quot;yearMonthFromFields&quot;</span>,
-    <span class="string">&quot;yearOfWeek&quot;</span>,
+    <span class="string">"dateAdd"</span>,
+    <span class="string">"dateFromFields"</span>,
+    <span class="string">"dateUntil"</span>,
+    <span class="string">"day"</span>,
+    <span class="string">"dayOfWeek"</span>,
+    <span class="string">"dayOfYear"</span>,
+    <span class="string">"daysInMonth"</span>,
+    <span class="string">"daysInWeek"</span>,
+    <span class="string">"daysInYear"</span>,
+    <span class="string">"fields"</span>,
+    <span class="string">"id"</span>,
+    <span class="string">"inLeapYear"</span>,
+    <span class="string">"mergeFields"</span>,
+    <span class="string">"month"</span>,
+    <span class="string">"monthCode"</span>,
+    <span class="string">"monthDayFromFields"</span>,
+    <span class="string">"monthsInYear"</span>,
+    <span class="string">"weekOfYear"</span>,
+    <span class="string">"year"</span>,
+    <span class="string">"yearMonthFromFields"</span>,
+    <span class="string">"yearOfWeek"</span>,
 ];
 
 <span class="doccomment">/// Designate the type of `CalendarFields` needed
@@ -1074,8 +1075,8 @@
 <span class="comment">// TODO: Optimize to TinyStr or &amp;str.
 </span><span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span>[String]&gt; <span class="kw">for </span>CalendarFieldsType {
     <span class="kw">fn </span>from(value: <span class="kw-2">&amp;</span>[String]) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>year_present = value.contains(<span class="kw-2">&amp;</span><span class="string">&quot;year&quot;</span>.to_owned());
-        <span class="kw">let </span>day_present = value.contains(<span class="kw-2">&amp;</span><span class="string">&quot;day&quot;</span>.to_owned());
+        <span class="kw">let </span>year_present = value.contains(<span class="kw-2">&amp;</span><span class="string">"year"</span>.to_owned());
+        <span class="kw">let </span>day_present = value.contains(<span class="kw-2">&amp;</span><span class="string">"day"</span>.to_owned());
 
         <span class="kw">if </span>year_present &amp;&amp; day_present {
             CalendarFieldsType::Date
@@ -1087,7 +1088,7 @@
     }
 }
 
-<span class="comment">// NOTE (nekevss): May be worth switching the below to &quot;Custom&quot; `DateLikes`, and
+<span class="comment">// NOTE (nekevss): May be worth switching the below to "Custom" `DateLikes`, and
 // allow the non-custom to be engine specific types.
 //
 // enum CalendarDateLike&lt;C: CalendarProtocol, D: DateTypes&lt;C&gt;&gt; {
@@ -1130,7 +1131,7 @@
 
 <span class="comment">// ==== CalendarProtocol trait ====
 
-</span><span class="doccomment">/// A trait for implementing a Builtin Calendar&#39;s Calendar Protocol in Rust.
+</span><span class="doccomment">/// A trait for implementing a Builtin Calendar's Calendar Protocol in Rust.
 </span><span class="kw">pub trait </span>CalendarProtocol: Clone {
     <span class="doccomment">/// A Custom `Date` Type for an associated `CalendarProtocol`. Default `Date&lt;C&gt;`
     </span><span class="kw">type </span>Date: IsoDateSlots + GetCalendarSlot&lt;<span class="self">Self</span>&gt; + Clone + core::fmt::Debug;
@@ -1295,7 +1296,7 @@
 }
 
 <span class="comment">// NOTE(nekevss): Builtin could be `Rc&lt;AnyCalendar&gt;`, but doing so may
-// have an effect on the pattern matching for `CalendarSlot`&#39;s methods.
+// have an effect on the pattern matching for `CalendarSlot`'s methods.
 </span><span class="doccomment">/// The `[[Calendar]]` field slot of a Temporal Object.
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub enum </span>CalendarSlot&lt;C: CalendarProtocol&gt; {
@@ -1329,7 +1330,7 @@
                     AnyCalendar::JapaneseExtended(c) =&gt; AnyCalendar::JapaneseExtended(c.clone()),
                     AnyCalendar::Persian(c) =&gt; AnyCalendar::Persian(<span class="kw-2">*</span>c),
                     AnyCalendar::Roc(c) =&gt; AnyCalendar::Roc(<span class="kw-2">*</span>c),
-                    <span class="kw">_ </span>=&gt; <span class="macro">unimplemented!</span>(<span class="string">&quot;There is a calendar that is missing a clone impl.&quot;</span>),
+                    <span class="kw">_ </span>=&gt; <span class="macro">unimplemented!</span>(<span class="string">"There is a calendar that is missing a clone impl."</span>),
                 };
                 <span class="self">Self</span>::Builtin(clone)
             }
@@ -1345,12 +1346,12 @@
 
     <span class="kw">fn </span>from_str(s: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Err&gt; {
         <span class="comment">// NOTE(nekesss): Catch the iso identifier here, as `iso8601` is not a valid ID below.
-        </span><span class="kw">if </span>s == <span class="string">&quot;iso8601&quot; </span>{
+        </span><span class="kw">if </span>s == <span class="string">"iso8601" </span>{
             <span class="kw">return </span><span class="prelude-val">Ok</span>(CalendarSlot::Builtin(AnyCalendar::Iso(Iso)));
         }
 
         <span class="kw">let </span><span class="prelude-val">Some</span>(cal) = AnyCalendarKind::get_for_bcp47_bytes(s.as_bytes()) <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">&quot;Not a builtin calendar.&quot;</span>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">"Not a builtin calendar."</span>));
         };
 
         <span class="kw">let </span>any_calendar = AnyCalendar::new(cal);
@@ -1442,7 +1443,7 @@
             CalendarSlot::Builtin(<span class="kw">_</span>) =&gt; {
                 <span class="comment">// TODO: This may get complicated...
                 // For reference: https://github.com/tc39/proposal-temporal/blob/main/polyfill/lib/calendar.mjs#L1275.
-                </span><span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">&quot;Not yet implemented/supported.&quot;</span>))
+                </span><span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">"Not yet implemented/supported."</span>))
             }
             CalendarSlot::Protocol(protocol) =&gt; {
                 protocol.month_day_from_fields(fields, overflow, context)
@@ -1501,7 +1502,7 @@
     ) -&gt; TemporalResult&lt;Date&lt;C&gt;&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             CalendarSlot::Builtin(<span class="kw">_</span>) =&gt; {
-                <span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">&quot;Not yet implemented.&quot;</span>))
+                <span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">"Not yet implemented."</span>))
             }
             CalendarSlot::Protocol(protocol) =&gt; {
                 protocol.date_add(date, duration, overflow, context)
@@ -1519,7 +1520,7 @@
     ) -&gt; TemporalResult&lt;Duration&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             CalendarSlot::Builtin(<span class="kw">_</span>) =&gt; {
-                <span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">&quot;Not yet implemented.&quot;</span>))
+                <span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">"Not yet implemented."</span>))
             }
             CalendarSlot::Protocol(protocol) =&gt; {
                 protocol.date_until(one, two, largest_unit, context)
@@ -1584,7 +1585,7 @@
         <span class="kw">match </span><span class="self">self </span>{
             CalendarSlot::Builtin(AnyCalendar::Iso(<span class="kw">_</span>)) =&gt; <span class="prelude-val">Ok</span>(date_like.as_iso_date().month),
             CalendarSlot::Builtin(<span class="kw">_</span>) =&gt; {
-                <span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">&quot;Not yet implemented.&quot;</span>))
+                <span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">"Not yet implemented."</span>))
             }
             CalendarSlot::Protocol(protocol) =&gt; protocol.month(date_like, context),
         }
@@ -1601,7 +1602,7 @@
                 <span class="prelude-val">Ok</span>(date_like.as_iso_date().as_icu4x()<span class="question-mark">?</span>.month().code.<span class="number">0</span>)
             }
             CalendarSlot::Builtin(<span class="kw">_</span>) =&gt; {
-                <span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">&quot;Not yet implemented.&quot;</span>))
+                <span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">"Not yet implemented."</span>))
             }
             CalendarSlot::Protocol(protocol) =&gt; protocol.month_code(date_like, context),
         }
@@ -1616,7 +1617,7 @@
         <span class="kw">match </span><span class="self">self </span>{
             CalendarSlot::Builtin(AnyCalendar::Iso(<span class="kw">_</span>)) =&gt; <span class="prelude-val">Ok</span>(date_like.as_iso_date().day),
             CalendarSlot::Builtin(<span class="kw">_</span>) =&gt; {
-                <span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">&quot;Not yet implemented.&quot;</span>))
+                <span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">"Not yet implemented."</span>))
             }
             CalendarSlot::Protocol(protocol) =&gt; protocol.day(date_like, context),
         }
@@ -1633,7 +1634,7 @@
                 <span class="prelude-val">Ok</span>(date_like.as_iso_date().as_icu4x()<span class="question-mark">?</span>.day_of_week() <span class="kw">as </span>u16)
             }
             CalendarSlot::Builtin(<span class="kw">_</span>) =&gt; {
-                <span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">&quot;Not yet implemented.&quot;</span>))
+                <span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">"Not yet implemented."</span>))
             }
             CalendarSlot::Protocol(protocol) =&gt; protocol.day_of_week(date_like, context),
         }
@@ -1652,7 +1653,7 @@
                 </span>.day_of_year_info()
                 .day_of_year),
             CalendarSlot::Builtin(<span class="kw">_</span>) =&gt; {
-                <span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">&quot;Not yet implemented.&quot;</span>))
+                <span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">"Not yet implemented."</span>))
             }
             CalendarSlot::Protocol(protocol) =&gt; protocol.day_of_year(date_like, context),
         }
@@ -1677,7 +1678,7 @@
                 <span class="prelude-val">Ok</span>(week_of.week)
             }
             CalendarSlot::Builtin(<span class="kw">_</span>) =&gt; {
-                <span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">&quot;Not yet implemented.&quot;</span>))
+                <span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">"Not yet implemented."</span>))
             }
             CalendarSlot::Protocol(protocol) =&gt; protocol.week_of_year(date_like, context),
         }
@@ -1706,7 +1707,7 @@
                 }
             }
             CalendarSlot::Builtin(<span class="kw">_</span>) =&gt; {
-                <span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">&quot;Not yet implemented.&quot;</span>))
+                <span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">"Not yet implemented."</span>))
             }
             CalendarSlot::Protocol(protocol) =&gt; protocol.year_of_week(date_like, context),
         }
@@ -1721,7 +1722,7 @@
         <span class="kw">match </span><span class="self">self </span>{
             CalendarSlot::Builtin(AnyCalendar::Iso(<span class="kw">_</span>)) =&gt; <span class="prelude-val">Ok</span>(<span class="number">7</span>),
             CalendarSlot::Builtin(<span class="kw">_</span>) =&gt; {
-                <span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">&quot;Not yet implemented.&quot;</span>))
+                <span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">"Not yet implemented."</span>))
             }
             CalendarSlot::Protocol(protocol) =&gt; protocol.days_in_week(date_like, context),
         }
@@ -1735,11 +1736,11 @@
     ) -&gt; TemporalResult&lt;u16&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             CalendarSlot::Builtin(AnyCalendar::Iso(<span class="kw">_</span>)) =&gt; {
-                <span class="comment">// NOTE: Cast shouldn&#39;t fail in this instance.
+                <span class="comment">// NOTE: Cast shouldn't fail in this instance.
                 </span><span class="prelude-val">Ok</span>(date_like.as_iso_date().as_icu4x()<span class="question-mark">?</span>.day_of_month().<span class="number">0 </span><span class="kw">as </span>u16)
             }
             CalendarSlot::Builtin(<span class="kw">_</span>) =&gt; {
-                <span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">&quot;Not yet implemented.&quot;</span>))
+                <span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">"Not yet implemented."</span>))
             }
             CalendarSlot::Protocol(protocol) =&gt; protocol.days_in_month(date_like, context),
         }
@@ -1756,7 +1757,7 @@
                 <span class="prelude-val">Ok</span>(date_like.as_iso_date().as_icu4x()<span class="question-mark">?</span>.days_in_year())
             }
             CalendarSlot::Builtin(<span class="kw">_</span>) =&gt; {
-                <span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">&quot;Not yet implemented.&quot;</span>))
+                <span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">"Not yet implemented."</span>))
             }
             CalendarSlot::Protocol(protocol) =&gt; protocol.days_in_year(date_like, context),
         }
@@ -1771,7 +1772,7 @@
         <span class="kw">match </span><span class="self">self </span>{
             CalendarSlot::Builtin(AnyCalendar::Iso(<span class="kw">_</span>)) =&gt; <span class="prelude-val">Ok</span>(<span class="number">12</span>),
             CalendarSlot::Builtin(<span class="kw">_</span>) =&gt; {
-                <span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">&quot;Not yet implemented.&quot;</span>))
+                <span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">"Not yet implemented."</span>))
             }
             CalendarSlot::Protocol(protocol) =&gt; protocol.months_in_year(date_like, context),
         }
@@ -1788,7 +1789,7 @@
                 <span class="prelude-val">Ok</span>(date_like.as_iso_date().as_icu4x()<span class="question-mark">?</span>.is_in_leap_year())
             }
             CalendarSlot::Builtin(<span class="kw">_</span>) =&gt; {
-                <span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">&quot;Not yet implemented.&quot;</span>))
+                <span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">"Not yet implemented."</span>))
             }
             CalendarSlot::Protocol(protocol) =&gt; protocol.in_leap_year(date_like, context),
         }
@@ -1803,7 +1804,7 @@
         <span class="kw">match </span><span class="self">self </span>{
             CalendarSlot::Builtin(AnyCalendar::Iso(<span class="kw">_</span>)) =&gt; <span class="prelude-val">Ok</span>(fields),
             CalendarSlot::Builtin(<span class="kw">_</span>) =&gt; {
-                <span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">&quot;Not yet implemented.&quot;</span>))
+                <span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">"Not yet implemented."</span>))
             }
             CalendarSlot::Protocol(protocol) =&gt; protocol.fields(fields, context),
         }
@@ -1827,7 +1828,7 @@
     <span class="doccomment">/// Returns the identifier of this calendar slot.
     </span><span class="kw">pub fn </span>identifier(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>C::Context) -&gt; TemporalResult&lt;String&gt; {
         <span class="kw">match </span><span class="self">self </span>{
-            CalendarSlot::Builtin(AnyCalendar::Iso(<span class="kw">_</span>)) =&gt; <span class="prelude-val">Ok</span>(String::from(<span class="string">&quot;iso8601&quot;</span>)),
+            CalendarSlot::Builtin(AnyCalendar::Iso(<span class="kw">_</span>)) =&gt; <span class="prelude-val">Ok</span>(String::from(<span class="string">"iso8601"</span>)),
             CalendarSlot::Builtin(builtin) =&gt; <span class="prelude-val">Ok</span>(String::from(builtin.debug_name())),
             CalendarSlot::Protocol(protocol) =&gt; protocol.identifier(context),
         }
@@ -1846,13 +1847,13 @@
         }
 
         <span class="comment">// TODO: Research and implement the appropriate descriptors for all `BuiltinCalendars.`
-        </span><span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">&quot;FieldDescriptors is not yet implemented.&quot;</span>))
+        </span><span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">"FieldDescriptors is not yet implemented."</span>))
     }
 
     <span class="doccomment">/// Provides field keys to be ignored depending on the calendar.
     </span><span class="kw">pub fn </span>field_keys_to_ignore(<span class="kw-2">&amp;</span><span class="self">self</span>, _keys: <span class="kw-2">&amp;</span>[String]) -&gt; TemporalResult&lt;Vec&lt;String&gt;&gt; {
         <span class="comment">// TODO: Research and implement the appropriate KeysToIgnore for all `BuiltinCalendars.`
-        </span><span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">&quot;FieldKeysToIgnore is not yet implemented.&quot;</span>))
+        </span><span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">"FieldKeysToIgnore is not yet implemented."</span>))
     }
 
     <span class="doccomment">/// `CalendarResolveFields`
@@ -1862,7 +1863,7 @@
         _typ: CalendarFieldsType,
     ) -&gt; TemporalResult&lt;()&gt; {
         <span class="comment">// TODO: Research and implement the appropriate ResolveFields for all `BuiltinCalendars.`
-        </span><span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">&quot;CalendarResolveFields is not yet implemented.&quot;</span>))
+        </span><span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">"CalendarResolveFields is not yet implemented."</span>))
     }
 }
 

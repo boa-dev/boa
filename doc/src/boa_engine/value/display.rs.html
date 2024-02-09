@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/value/display.rs`."><title>display.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/value/display.rs`."><title>display.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -356,12 +357,12 @@
 
 <span class="doccomment">/// This object is used for displaying a `Value`.
 </span><span class="attr">#[derive(Debug, Clone, Copy)]
-</span><span class="kw">pub struct </span>ValueDisplay&lt;<span class="lifetime">&#39;value</span>&gt; {
-    <span class="kw">pub</span>(<span class="kw">super</span>) value: <span class="kw-2">&amp;</span><span class="lifetime">&#39;value </span>JsValue,
+</span><span class="kw">pub struct </span>ValueDisplay&lt;<span class="lifetime">'value</span>&gt; {
+    <span class="kw">pub</span>(<span class="kw">super</span>) value: <span class="kw-2">&amp;</span><span class="lifetime">'value </span>JsValue,
     <span class="kw">pub</span>(<span class="kw">super</span>) internals: bool,
 }
 
-<span class="kw">impl </span>ValueDisplay&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>ValueDisplay&lt;<span class="lifetime">'_</span>&gt; {
     <span class="doccomment">/// Display internal information about value.
     ///
     /// By default this is `false`.
@@ -398,15 +399,15 @@
             <span class="kw">let </span>object = <span class="macro-nonterminal">$obj</span>.borrow();
             <span class="kw">if let </span><span class="prelude-val">Some</span>(object) = object.prototype() {
                 <span class="macro">vec!</span>[<span class="macro">format!</span>(
-                    <span class="string">&quot;{:&gt;width$}: {}&quot;</span>,
-                    <span class="string">&quot;__proto__&quot;</span>,
+                    <span class="string">"{:&gt;width$}: {}"</span>,
+                    <span class="string">"__proto__"</span>,
                     <span class="macro-nonterminal">$display_fn</span>(<span class="kw-2">&amp;</span>object.clone().into(), <span class="macro-nonterminal">$encounters</span>, <span class="macro-nonterminal">$indent</span>.wrapping_add(<span class="number">4</span>), <span class="bool-val">true</span>),
                     width = <span class="macro-nonterminal">$indent</span>,
                 )]
             } <span class="kw">else </span>{
                 <span class="macro">vec!</span>[<span class="macro">format!</span>(
-                    <span class="string">&quot;{:&gt;width$}: {}&quot;</span>,
-                    <span class="string">&quot;__proto__&quot;</span>,
+                    <span class="string">"{:&gt;width$}: {}"</span>,
+                    <span class="string">"__proto__"</span>,
                     JsValue::Null.display(),
                     width = <span class="macro-nonterminal">$indent</span>,
                 )]
@@ -418,23 +419,23 @@
         keys.extend(<span class="macro-nonterminal">$obj</span>.borrow().properties().shape.keys());
         <span class="kw">let </span><span class="kw-2">mut </span>result = Vec::default();
         <span class="kw">for </span>key <span class="kw">in </span>keys {
-            <span class="kw">let </span>val = <span class="macro-nonterminal">$obj</span>.borrow().properties().get(<span class="kw-2">&amp;</span>key).expect(<span class="string">&quot;There should be a value&quot;</span>);
+            <span class="kw">let </span>val = <span class="macro-nonterminal">$obj</span>.borrow().properties().get(<span class="kw-2">&amp;</span>key).expect(<span class="string">"There should be a value"</span>);
             <span class="kw">if </span>val.is_data_descriptor() {
                 <span class="kw">let </span>v = <span class="kw-2">&amp;</span>val.expect_value();
                 result.push(<span class="macro">format!</span>(
-                    <span class="string">&quot;{:&gt;width$}: {}&quot;</span>,
+                    <span class="string">"{:&gt;width$}: {}"</span>,
                     key,
                     <span class="macro-nonterminal">$display_fn</span>(v, <span class="macro-nonterminal">$encounters</span>, <span class="macro-nonterminal">$indent</span>.wrapping_add(<span class="number">4</span>), <span class="macro-nonterminal">$print_internals</span>),
                     width = <span class="macro-nonterminal">$indent</span>,
                 ));
             } <span class="kw">else </span>{
                <span class="kw">let </span>display = <span class="kw">match </span>(val.set().is_some(), val.get().is_some()) {
-                    (<span class="bool-val">true</span>, <span class="bool-val">true</span>) =&gt; <span class="string">&quot;Getter &amp; Setter&quot;</span>,
-                    (<span class="bool-val">true</span>, <span class="bool-val">false</span>) =&gt; <span class="string">&quot;Setter&quot;</span>,
-                    (<span class="bool-val">false</span>, <span class="bool-val">true</span>) =&gt; <span class="string">&quot;Getter&quot;</span>,
-                    <span class="kw">_ </span>=&gt; <span class="string">&quot;No Getter/Setter&quot;
+                    (<span class="bool-val">true</span>, <span class="bool-val">true</span>) =&gt; <span class="string">"Getter &amp; Setter"</span>,
+                    (<span class="bool-val">true</span>, <span class="bool-val">false</span>) =&gt; <span class="string">"Setter"</span>,
+                    (<span class="bool-val">false</span>, <span class="bool-val">true</span>) =&gt; <span class="string">"Getter"</span>,
+                    <span class="kw">_ </span>=&gt; <span class="string">"No Getter/Setter"
                 </span>};
-               result.push(<span class="macro">format!</span>(<span class="string">&quot;{:&gt;width$}: {}&quot;</span>, key, display, width = <span class="macro-nonterminal">$indent</span>));
+               result.push(<span class="macro">format!</span>(<span class="string">"{:&gt;width$}: {}"</span>, key, display, width = <span class="macro-nonterminal">$indent</span>));
             }
         }
         result}
@@ -443,27 +444,27 @@
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>log_string_from(x: <span class="kw-2">&amp;</span>JsValue, print_internals: bool, print_children: bool) -&gt; String {
     <span class="kw">match </span>x {
-        <span class="comment">// We don&#39;t want to print private (compiler) or prototype properties
+        <span class="comment">// We don't want to print private (compiler) or prototype properties
         </span>JsValue::Object(<span class="kw-2">ref </span>v) =&gt; {
-            <span class="comment">// Can use the private &quot;type&quot; field of an Object to match on
+            <span class="comment">// Can use the private "type" field of an Object to match on
             // which type of Object it represents for special printing
             </span><span class="kw">let </span>v_bor = v.borrow();
             <span class="kw">if let </span><span class="prelude-val">Some</span>(s) = v_bor.downcast_ref::&lt;JsString&gt;() {
-                <span class="macro">format!</span>(<span class="string">&quot;String {{ \&quot;{}\&quot; }}&quot;</span>, s.to_std_string_escaped())
+                <span class="macro">format!</span>(<span class="string">"String {{ \"{}\" }}"</span>, s.to_std_string_escaped())
             } <span class="kw">else if let </span><span class="prelude-val">Some</span>(b) = v_bor.downcast_ref::&lt;bool&gt;() {
-                <span class="macro">format!</span>(<span class="string">&quot;Boolean {{ {b} }}&quot;</span>)
+                <span class="macro">format!</span>(<span class="string">"Boolean {{ {b} }}"</span>)
             } <span class="kw">else if let </span><span class="prelude-val">Some</span>(r) = v_bor.downcast_ref::&lt;f64&gt;() {
                 <span class="kw">if </span>r.is_sign_negative() &amp;&amp; <span class="kw-2">*</span>r == <span class="number">0.0 </span>{
-                    <span class="string">&quot;Number { -0 }&quot;</span>.to_string()
+                    <span class="string">"Number { -0 }"</span>.to_string()
                 } <span class="kw">else </span>{
                     <span class="kw">let </span><span class="kw-2">mut </span>buffer = ryu_js::Buffer::new();
-                    <span class="macro">format!</span>(<span class="string">&quot;Number {{ {} }}&quot;</span>, buffer.format(<span class="kw-2">*</span>r))
+                    <span class="macro">format!</span>(<span class="string">"Number {{ {} }}"</span>, buffer.format(<span class="kw-2">*</span>r))
                 }
             } <span class="kw">else if </span>v_bor.is::&lt;Array&gt;() {
                 <span class="kw">let </span>len = v_bor
                     .properties()
-                    .get(<span class="kw-2">&amp;</span><span class="macro">utf16!</span>(<span class="string">&quot;length&quot;</span>).into())
-                    .expect(<span class="string">&quot;array object must have &#39;length&#39; property&quot;</span>)
+                    .get(<span class="kw-2">&amp;</span><span class="macro">utf16!</span>(<span class="string">"length"</span>).into())
+                    .expect(<span class="string">"array object must have 'length' property"</span>)
                     <span class="comment">// FIXME: handle accessor descriptors
                     </span>.expect_value()
                     .as_number()
@@ -472,7 +473,7 @@
 
                 <span class="kw">if </span>print_children {
                     <span class="kw">if </span>len == <span class="number">0 </span>{
-                        <span class="kw">return </span>String::from(<span class="string">&quot;[]&quot;</span>);
+                        <span class="kw">return </span>String::from(<span class="string">"[]"</span>);
                     }
 
                     <span class="kw">let </span>arr = (<span class="number">0</span>..len)
@@ -488,20 +489,20 @@
                             {
                                 log_string_from(<span class="kw-2">&amp;</span>value, print_internals, <span class="bool-val">false</span>)
                             } <span class="kw">else </span>{
-                                String::from(<span class="string">&quot;&lt;empty&gt;&quot;</span>)
+                                String::from(<span class="string">"&lt;empty&gt;"</span>)
                             }
                         })
                         .collect::&lt;Vec&lt;String&gt;&gt;()
-                        .join(<span class="string">&quot;, &quot;</span>);
+                        .join(<span class="string">", "</span>);
 
-                    <span class="macro">format!</span>(<span class="string">&quot;[ {arr} ]&quot;</span>)
+                    <span class="macro">format!</span>(<span class="string">"[ {arr} ]"</span>)
                 } <span class="kw">else </span>{
-                    <span class="macro">format!</span>(<span class="string">&quot;Array({len})&quot;</span>)
+                    <span class="macro">format!</span>(<span class="string">"Array({len})"</span>)
                 }
             } <span class="kw">else if let </span><span class="prelude-val">Some</span>(map) = v_bor.downcast_ref::&lt;OrderedMap&lt;JsValue&gt;&gt;() {
                 <span class="kw">let </span>size = map.len();
                 <span class="kw">if </span>size == <span class="number">0 </span>{
-                    <span class="kw">return </span>String::from(<span class="string">&quot;Map(0)&quot;</span>);
+                    <span class="kw">return </span>String::from(<span class="string">"Map(0)"</span>);
                 }
 
                 <span class="kw">if </span>print_children {
@@ -510,19 +511,19 @@
                         .map(|(key, value)| {
                             <span class="kw">let </span>key = log_string_from(key, print_internals, <span class="bool-val">false</span>);
                             <span class="kw">let </span>value = log_string_from(value, print_internals, <span class="bool-val">false</span>);
-                            <span class="macro">format!</span>(<span class="string">&quot;{key} → {value}&quot;</span>)
+                            <span class="macro">format!</span>(<span class="string">"{key} → {value}"</span>)
                         })
                         .collect::&lt;Vec&lt;String&gt;&gt;()
-                        .join(<span class="string">&quot;, &quot;</span>);
-                    <span class="macro">format!</span>(<span class="string">&quot;Map {{ {mappings} }}&quot;</span>)
+                        .join(<span class="string">", "</span>);
+                    <span class="macro">format!</span>(<span class="string">"Map {{ {mappings} }}"</span>)
                 } <span class="kw">else </span>{
-                    <span class="macro">format!</span>(<span class="string">&quot;Map({size})&quot;</span>)
+                    <span class="macro">format!</span>(<span class="string">"Map({size})"</span>)
                 }
             } <span class="kw">else if let </span><span class="prelude-val">Some</span>(set) = v_bor.downcast_ref::&lt;OrderedSet&gt;() {
                 <span class="kw">let </span>size = set.len();
 
                 <span class="kw">if </span>size == <span class="number">0 </span>{
-                    <span class="kw">return </span>String::from(<span class="string">&quot;Set(0)&quot;</span>);
+                    <span class="kw">return </span>String::from(<span class="string">"Set(0)"</span>);
                 }
 
                 <span class="kw">if </span>print_children {
@@ -530,19 +531,19 @@
                         .iter()
                         .map(|value| log_string_from(value, print_internals, <span class="bool-val">false</span>))
                         .collect::&lt;Vec&lt;String&gt;&gt;()
-                        .join(<span class="string">&quot;, &quot;</span>);
-                    <span class="macro">format!</span>(<span class="string">&quot;Set {{ {entries} }}&quot;</span>)
+                        .join(<span class="string">", "</span>);
+                    <span class="macro">format!</span>(<span class="string">"Set {{ {entries} }}"</span>)
                 } <span class="kw">else </span>{
-                    <span class="macro">format!</span>(<span class="string">&quot;Set({size})&quot;</span>)
+                    <span class="macro">format!</span>(<span class="string">"Set({size})"</span>)
                 }
             } <span class="kw">else if </span>v_bor.is::&lt;ErrorObject&gt;() {
                 drop(v_bor);
-                <span class="kw">let </span>name: Cow&lt;<span class="lifetime">&#39;static</span>, str&gt; = v
-                    .get_property(<span class="kw-2">&amp;</span><span class="macro">utf16!</span>(<span class="string">&quot;name&quot;</span>).into())
+                <span class="kw">let </span>name: Cow&lt;<span class="lifetime">'static</span>, str&gt; = v
+                    .get_property(<span class="kw-2">&amp;</span><span class="macro">utf16!</span>(<span class="string">"name"</span>).into())
                     .as_ref()
                     .and_then(PropertyDescriptor::value)
                     .map_or_else(
-                        || <span class="string">&quot;&lt;error&gt;&quot;</span>.into(),
+                        || <span class="string">"&lt;error&gt;"</span>.into(),
                         |v| {
                             v.as_string()
                                 .map_or_else(
@@ -553,7 +554,7 @@
                         },
                     );
                 <span class="kw">let </span>message = v
-                    .get_property(<span class="kw-2">&amp;</span><span class="macro">utf16!</span>(<span class="string">&quot;message&quot;</span>).into())
+                    .get_property(<span class="kw-2">&amp;</span><span class="macro">utf16!</span>(<span class="string">"message"</span>).into())
                     .as_ref()
                     .and_then(PropertyDescriptor::value)
                     .map(|v| {
@@ -568,16 +569,16 @@
                 } <span class="kw">else if </span>message.is_empty() {
                     name.to_string()
                 } <span class="kw">else </span>{
-                    <span class="macro">format!</span>(<span class="string">&quot;{name}: {message}&quot;</span>)
+                    <span class="macro">format!</span>(<span class="string">"{name}: {message}"</span>)
                 }
             } <span class="kw">else if let </span><span class="prelude-val">Some</span>(promise) = v_bor.downcast_ref::&lt;Promise&gt;() {
                 <span class="macro">format!</span>(
-                    <span class="string">&quot;Promise {{ {} }}&quot;</span>,
+                    <span class="string">"Promise {{ {} }}"</span>,
                     <span class="kw">match </span>promise.state() {
-                        PromiseState::Pending =&gt; Cow::Borrowed(<span class="string">&quot;&lt;pending&gt;&quot;</span>),
+                        PromiseState::Pending =&gt; Cow::Borrowed(<span class="string">"&lt;pending&gt;"</span>),
                         PromiseState::Fulfilled(val) =&gt; Cow::Owned(val.display().to_string()),
                         PromiseState::Rejected(reason) =&gt; Cow::Owned(<span class="macro">format!</span>(
-                            <span class="string">&quot;&lt;rejected&gt; {}&quot;</span>,
+                            <span class="string">"&lt;rejected&gt; {}"</span>,
                             JsError::from_opaque(reason.clone())
                         )),
                     }
@@ -614,27 +615,27 @@
                 <span class="comment">// We need not continue if this object has already been
                 // printed up the current chain
                 </span><span class="kw">if </span>encounters.contains(<span class="kw-2">&amp;</span>addr) {
-                    <span class="kw">return </span>String::from(<span class="string">&quot;[Cycle]&quot;</span>);
+                    <span class="kw">return </span>String::from(<span class="string">"[Cycle]"</span>);
                 }
 
                 <span class="comment">// Mark the current object as encountered
                 </span>encounters.insert(addr);
 
                 <span class="kw">let </span>result = <span class="kw">if </span>print_internals {
-                    <span class="macro">print_obj_value!</span>(all of v, display_obj_internal, indent, encounters).join(<span class="string">&quot;,\n&quot;</span>)
+                    <span class="macro">print_obj_value!</span>(all of v, display_obj_internal, indent, encounters).join(<span class="string">",\n"</span>)
                 } <span class="kw">else </span>{
                     <span class="macro">print_obj_value!</span>(props of v, display_obj_internal, indent, encounters, print_internals)
-                        .join(<span class="string">&quot;,\n&quot;</span>)
+                        .join(<span class="string">",\n"</span>)
                 };
 
                 <span class="comment">// If the current object is referenced in a different branch,
                 // it will not cause an infinite printing loop, so it is safe to be printed again
                 </span>encounters.remove(<span class="kw-2">&amp;</span>addr);
 
-                <span class="kw">let </span>closing_indent = String::from_utf8(<span class="macro">vec!</span>[<span class="string">b&#39; &#39;</span>; indent.wrapping_sub(<span class="number">4</span>)])
-                    .expect(<span class="string">&quot;Could not create the closing brace&#39;s indentation string&quot;</span>);
+                <span class="kw">let </span>closing_indent = String::from_utf8(<span class="macro">vec!</span>[<span class="string">b' '</span>; indent.wrapping_sub(<span class="number">4</span>)])
+                    .expect(<span class="string">"Could not create the closing brace's indentation string"</span>);
 
-                <span class="macro">format!</span>(<span class="string">&quot;{{\n{result}\n{closing_indent}}}&quot;</span>)
+                <span class="macro">format!</span>(<span class="string">"{{\n{result}\n{closing_indent}}}"</span>)
             } <span class="kw">else </span>{
                 <span class="comment">// Every other type of data is printed with the display method
                 </span>data.display().to_string()
@@ -649,22 +650,22 @@
     }
 }
 
-<span class="kw">impl </span>Display <span class="kw">for </span>ValueDisplay&lt;<span class="lifetime">&#39;_</span>&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+<span class="kw">impl </span>Display <span class="kw">for </span>ValueDisplay&lt;<span class="lifetime">'_</span>&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
         <span class="kw">match </span><span class="self">self</span>.value {
-            JsValue::Null =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;null&quot;</span>),
-            JsValue::Undefined =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;undefined&quot;</span>),
-            JsValue::Boolean(v) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;{v}&quot;</span>),
+            JsValue::Null =&gt; <span class="macro">write!</span>(f, <span class="string">"null"</span>),
+            JsValue::Undefined =&gt; <span class="macro">write!</span>(f, <span class="string">"undefined"</span>),
+            JsValue::Boolean(v) =&gt; <span class="macro">write!</span>(f, <span class="string">"{v}"</span>),
             JsValue::Symbol(<span class="kw-2">ref </span>symbol) =&gt; {
-                <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, symbol.descriptive_string().to_std_string_escaped())
+                <span class="macro">write!</span>(f, <span class="string">"{}"</span>, symbol.descriptive_string().to_std_string_escaped())
             }
-            JsValue::String(<span class="kw-2">ref </span>v) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;\&quot;{}\&quot;&quot;</span>, v.to_std_string_escaped()),
+            JsValue::String(<span class="kw-2">ref </span>v) =&gt; <span class="macro">write!</span>(f, <span class="string">"\"{}\""</span>, v.to_std_string_escaped()),
             JsValue::Rational(v) =&gt; format_rational(<span class="kw-2">*</span>v, f),
             JsValue::Object(<span class="kw">_</span>) =&gt; {
-                <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, log_string_from(<span class="self">self</span>.value, <span class="self">self</span>.internals, <span class="bool-val">true</span>))
+                <span class="macro">write!</span>(f, <span class="string">"{}"</span>, log_string_from(<span class="self">self</span>.value, <span class="self">self</span>.internals, <span class="bool-val">true</span>))
             }
-            JsValue::Integer(v) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;{v}&quot;</span>),
-            JsValue::BigInt(<span class="kw-2">ref </span>num) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;{num}n&quot;</span>),
+            JsValue::Integer(v) =&gt; <span class="macro">write!</span>(f, <span class="string">"{v}"</span>),
+            JsValue::BigInt(<span class="kw-2">ref </span>num) =&gt; <span class="macro">write!</span>(f, <span class="string">"{num}n"</span>),
         }
     }
 }
@@ -674,12 +675,12 @@
 /// This function prints `-0` as `-0` instead of positive `0` as the specification says.
 /// This is done to make it easer for the user of the REPL to identify what is a `-0` vs `0`,
 /// since the REPL is not bound to the ECMAScript specification we can do this.
-</span><span class="kw">fn </span>format_rational(v: f64, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+</span><span class="kw">fn </span>format_rational(v: f64, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
     <span class="kw">if </span>v.is_sign_negative() &amp;&amp; v == <span class="number">0.0 </span>{
-        f.write_str(<span class="string">&quot;-0&quot;</span>)
+        f.write_str(<span class="string">"-0"</span>)
     } <span class="kw">else </span>{
         <span class="kw">let </span><span class="kw-2">mut </span>buffer = ryu_js::Buffer::new();
-        <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, buffer.format(v))
+        <span class="macro">write!</span>(f, <span class="string">"{}"</span>, buffer.format(v))
     }
 }
 </code></pre></div></section></main></body></html>

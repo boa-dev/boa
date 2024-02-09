@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/object/builtins/jsmap.rs`."><title>jsmap.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/object/builtins/jsmap.rs`."><title>jsmap.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -450,7 +451,7 @@
 <a href="#450" id="450">450</a>
 <a href="#451" id="451">451</a>
 <a href="#452" id="452">452</a>
-</pre></div><pre class="rust"><code><span class="doccomment">//! A Rust API wrapper for Boa&#39;s `Map` Builtin ECMAScript Object
+</pre></div><pre class="rust"><code><span class="doccomment">//! A Rust API wrapper for Boa's `Map` Builtin ECMAScript Object
 </span><span class="kw">use crate</span>::{
     builtins::map::{add_entries_from_iterable, ordered_map::OrderedMap},
     builtins::Map,
@@ -464,7 +465,7 @@
 <span class="kw">use </span>boa_gc::{Finalize, Trace};
 <span class="kw">use </span>std::ops::Deref;
 
-<span class="doccomment">/// `JsMap` provides a wrapper for Boa&#39;s implementation of the ECMAScript `Map` object.
+<span class="doccomment">/// `JsMap` provides a wrapper for Boa's implementation of the ECMAScript `Map` object.
 ///
 /// # Examples
 ///
@@ -482,8 +483,8 @@
 /// let map = JsMap::new(context);
 ///
 /// // Set key-value pairs for the `JsMap`.
-/// map.set(js_string!(&quot;Key-1&quot;), js_string!(&quot;Value-1&quot;), context)?;
-/// map.set(js_string!(&quot;Key-2&quot;), 10, context)?;
+/// map.set(js_string!("Key-1"), js_string!("Value-1"), context)?;
+/// map.set(js_string!("Key-2"), 10, context)?;
 ///
 /// assert_eq!(map.get_size(context)?, 2.into());
 /// # Ok(())
@@ -505,19 +506,19 @@
 ///
 /// // Create a `[key, value]` pair of JsValues
 /// let vec_one: Vec&lt;JsValue&gt; = vec![
-///     js_string!(&quot;first-key&quot;).into(),
-///     js_string!(&quot;first-value&quot;).into()
+///     js_string!("first-key").into(),
+///     js_string!("first-value").into()
 /// ];
 ///
 /// // We create an push our `[key, value]` pair onto our array as a `JsArray`
 /// js_array.push(JsArray::from_iter(vec_one, context), context)?;
 ///
-/// // Create a `JsMap` from the `JsArray` using it&#39;s iterable property.
+/// // Create a `JsMap` from the `JsArray` using it's iterable property.
 /// let js_iterable_map = JsMap::from_js_iterable(&amp;js_array.into(), context)?;
 ///
 /// assert_eq!(
-///     js_iterable_map.get(js_string!(&quot;first-key&quot;), context)?,
-///     js_string!(&quot;first-value&quot;).into()
+///     js_iterable_map.get(js_string!("first-key"), context)?,
+///     js_string!("first-value").into()
 /// );
 ///
 /// # Ok(())
@@ -564,12 +565,12 @@
     ///
     /// // Create a `[key, value]` pair of JsValues and add it to the `JsArray` as a `JsArray`
     /// let vec_one: Vec&lt;JsValue&gt; = vec![
-    ///     js_string!(&quot;first-key&quot;).into(),
-    ///     js_string!(&quot;first-value&quot;).into()
+    ///     js_string!("first-key").into(),
+    ///     js_string!("first-value").into()
     /// ];
     /// js_array.push(JsArray::from_iter(vec_one, context), context)?;
     ///
-    /// // Create a `JsMap` from the `JsArray` using it&#39;s iterable property.
+    /// // Create a `JsMap` from the `JsArray` using it's iterable property.
     /// let js_iterable_map = JsMap::from_js_iterable(&amp;js_array.into(), context)?;
     ///
     /// # Ok(())
@@ -579,10 +580,10 @@
         <span class="comment">// Create a new map object.
         </span><span class="kw">let </span>map = <span class="self">Self</span>::create_map(context);
 
-        <span class="comment">// Let adder be Get(map, &quot;set&quot;) per spec. This action should not fail with default map.
+        <span class="comment">// Let adder be Get(map, "set") per spec. This action should not fail with default map.
         </span><span class="kw">let </span>adder = map
-            .get(<span class="macro">utf16!</span>(<span class="string">&quot;set&quot;</span>), context)
-            .expect(<span class="string">&quot;creating a map with the default prototype must not fail&quot;</span>);
+            .get(<span class="macro">utf16!</span>(<span class="string">"set"</span>), context)
+            .expect(<span class="string">"creating a map with the default prototype must not fail"</span>);
 
         <span class="kw">let </span>_completion_record = add_entries_from_iterable(<span class="kw-2">&amp;</span>map, iterable, <span class="kw-2">&amp;</span>adder, context)<span class="question-mark">?</span>;
 
@@ -614,7 +615,7 @@
     /// # }
     /// ```
     ///
-    /// ### Invalid Example - returns a `TypeError` with the message &quot;object is not a Map&quot;
+    /// ### Invalid Example - returns a `TypeError` with the message "object is not a Map"
     /// ```
     /// # use boa_engine::{
     /// #    object::{JsObject, builtins::{JsArray, JsMap}},
@@ -632,7 +633,7 @@
             <span class="prelude-val">Ok</span>(<span class="self">Self </span>{ inner: object })
         } <span class="kw">else </span>{
             <span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;object is not a Map&quot;</span>)
+                .with_message(<span class="string">"object is not a Map"</span>)
                 .into())
         }
     }
@@ -681,12 +682,12 @@
     /// # let context = &amp;mut Context::default();
     /// let js_map = JsMap::new(context);
     ///
-    /// js_map.set(js_string!(&quot;foo&quot;), js_string!(&quot;bar&quot;), context)?;
+    /// js_map.set(js_string!("foo"), js_string!("bar"), context)?;
     /// js_map.set(2, 4, context)?;
     ///
     /// assert_eq!(
-    ///     js_map.get(js_string!(&quot;foo&quot;), context)?,
-    ///     js_string!(&quot;bar&quot;).into()
+    ///     js_map.get(js_string!("foo"), context)?,
+    ///     js_string!("bar").into()
     /// );
     /// assert_eq!(js_map.get(2, context)?, 4.into());
     /// # Ok(())
@@ -717,7 +718,7 @@
     /// # let context = &amp;mut Context::default();
     /// let js_map = JsMap::new(context);
     ///
-    /// js_map.set(js_string!(&quot;foo&quot;), js_string!(&quot;bar&quot;), context)?;
+    /// js_map.set(js_string!("foo"), js_string!("bar"), context)?;
     ///
     /// let map_size = js_map.get_size(context)?;
     ///
@@ -742,14 +743,14 @@
     /// # fn main() -&gt; JsResult&lt;()&gt; {
     /// # let context = &amp;mut Context::default();
     /// let js_map = JsMap::new(context);
-    /// js_map.set(js_string!(&quot;foo&quot;), js_string!(&quot;bar&quot;), context)?;
-    /// js_map.set(js_string!(&quot;hello&quot;), js_string!(&quot;world&quot;), context)?;
+    /// js_map.set(js_string!("foo"), js_string!("bar"), context)?;
+    /// js_map.set(js_string!("hello"), js_string!("world"), context)?;
     ///
-    /// js_map.delete(js_string!(&quot;foo&quot;), context)?;
+    /// js_map.delete(js_string!("foo"), context)?;
     ///
     /// assert_eq!(js_map.get_size(context)?, 1.into());
     /// assert_eq!(
-    ///     js_map.get(js_string!(&quot;foo&quot;), context)?,
+    ///     js_map.get(js_string!("foo"), context)?,
     ///     JsValue::undefined()
     /// );
     /// # Ok(())
@@ -774,11 +775,11 @@
     /// # fn main() -&gt; JsResult&lt;()&gt; {
     /// # let context = &amp;mut Context::default();
     /// let js_map = JsMap::new(context);
-    /// js_map.set(js_string!(&quot;foo&quot;), js_string!(&quot;bar&quot;), context)?;
+    /// js_map.set(js_string!("foo"), js_string!("bar"), context)?;
     ///
-    /// let retrieved_value = js_map.get(js_string!(&quot;foo&quot;), context)?;
+    /// let retrieved_value = js_map.get(js_string!("foo"), context)?;
     ///
-    /// assert_eq!(retrieved_value, js_string!(&quot;bar&quot;).into());
+    /// assert_eq!(retrieved_value, js_string!("bar").into());
     /// # Ok(())
     /// # }
     /// ```
@@ -801,8 +802,8 @@
     /// # fn main() -&gt; JsResult&lt;()&gt; {
     /// # let context = &amp;mut Context::default();
     /// let js_map = JsMap::new(context);
-    /// js_map.set(js_string!(&quot;foo&quot;), js_string!(&quot;bar&quot;), context)?;
-    /// js_map.set(js_string!(&quot;hello&quot;), js_string!(&quot;world&quot;), context)?;
+    /// js_map.set(js_string!("foo"), js_string!("bar"), context)?;
+    /// js_map.set(js_string!("hello"), js_string!("world"), context)?;
     ///
     /// js_map.clear(context)?;
     ///
@@ -827,9 +828,9 @@
     /// # fn main() -&gt; JsResult&lt;()&gt; {
     /// # let context = &amp;mut Context::default();
     /// let js_map = JsMap::new(context);
-    /// js_map.set(js_string!(&quot;foo&quot;), js_string!(&quot;bar&quot;), context)?;
+    /// js_map.set(js_string!("foo"), js_string!("bar"), context)?;
     ///
-    /// let has_key = js_map.has(js_string!(&quot;foo&quot;), context)?;
+    /// let has_key = js_map.has(js_string!("foo"), context)?;
     ///
     /// assert_eq!(has_key, true.into());
     /// # Ok(())
@@ -897,7 +898,7 @@
         <span class="kw">match </span>value {
             JsValue::Object(o) =&gt; <span class="self">Self</span>::from_object(o.clone()),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;value is not a Map object&quot;</span>)
+                .with_message(<span class="string">"value is not a Map object"</span>)
                 .into()),
         }
     }

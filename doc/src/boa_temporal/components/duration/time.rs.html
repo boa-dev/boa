@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/temporal/src/components/duration/time.rs`."><title>time.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="boa_temporal" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../boa_temporal/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_temporal"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/temporal/src/components/duration/time.rs`."><title>time.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="boa_temporal" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../../../boa_temporal/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_temporal"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -594,7 +595,7 @@
 <a href="#594" id="594">594</a>
 <a href="#595" id="595">595</a>
 <a href="#596" id="596">596</a>
-</pre></div><pre class="rust"><code><span class="doccomment">//! An implementation of `TimeDuration` and it&#39;s methods.
+</pre></div><pre class="rust"><code><span class="doccomment">//! An implementation of `TimeDuration` and it's methods.
 
 </span><span class="kw">use crate</span>::{
     options::{TemporalRoundingMode, TemporalUnit},
@@ -694,7 +695,7 @@
         </span>nanoseconds = nanoseconds.abs();
 
         <span class="kw">match </span>largest_unit {
-            <span class="comment">// 9. If largestUnit is &quot;year&quot;, &quot;month&quot;, &quot;week&quot;, &quot;day&quot;, or &quot;hour&quot;, then
+            <span class="comment">// 9. If largestUnit is "year", "month", "week", "day", or "hour", then
             </span>TemporalUnit::Year
             | TemporalUnit::Month
             | TemporalUnit::Week
@@ -730,7 +731,7 @@
                 <span class="comment">// l. Set hours to hours modulo 24.
                 </span>hours %= <span class="number">24f64</span>;
             }
-            <span class="comment">// 10. Else if largestUnit is &quot;minute&quot;, then
+            <span class="comment">// 10. Else if largestUnit is "minute", then
             </span>TemporalUnit::Minute =&gt; {
                 <span class="comment">// a. Set microseconds to floor(nanoseconds / 1000).
                 // b. Set nanoseconds to nanoseconds modulo 1000.
@@ -752,7 +753,7 @@
                 </span>minutes = (seconds / <span class="number">60f64</span>).floor();
                 seconds %= <span class="number">60f64</span>;
             }
-            <span class="comment">// 11. Else if largestUnit is &quot;second&quot;, then
+            <span class="comment">// 11. Else if largestUnit is "second", then
             </span>TemporalUnit::Second =&gt; {
                 <span class="comment">// a. Set microseconds to floor(nanoseconds / 1000).
                 // b. Set nanoseconds to nanoseconds modulo 1000.
@@ -769,7 +770,7 @@
                 </span>seconds = (milliseconds / <span class="number">1000f64</span>).floor();
                 milliseconds %= <span class="number">1000f64</span>;
             }
-            <span class="comment">// 12. Else if largestUnit is &quot;millisecond&quot;, then
+            <span class="comment">// 12. Else if largestUnit is "millisecond", then
             </span>TemporalUnit::Millisecond =&gt; {
                 <span class="comment">// a. Set microseconds to floor(nanoseconds / 1000).
                 // b. Set nanoseconds to nanoseconds modulo 1000.
@@ -781,7 +782,7 @@
                 </span>milliseconds = (microseconds / <span class="number">1000f64</span>).floor();
                 microseconds %= <span class="number">1000f64</span>;
             }
-            <span class="comment">// 13. Else if largestUnit is &quot;microsecond&quot;, then
+            <span class="comment">// 13. Else if largestUnit is "microsecond", then
             </span>TemporalUnit::Microsecond =&gt; {
                 <span class="comment">// a. Set microseconds to floor(nanoseconds / 1000).
                 // b. Set nanoseconds to nanoseconds modulo 1000.
@@ -789,7 +790,7 @@
                 nanoseconds %= <span class="number">1000f64</span>;
             }
             <span class="comment">// 14. Else,
-            // a. Assert: largestUnit is &quot;nanosecond&quot;.
+            // a. Assert: largestUnit is "nanosecond".
             </span><span class="kw">_ </span>=&gt; <span class="macro">debug_assert!</span>(largest_unit == TemporalUnit::Nanosecond),
         }
 
@@ -833,7 +834,7 @@
     }
 }
 
-<span class="comment">// ==== TimeDuration&#39;s public API ====
+<span class="comment">// ==== TimeDuration's public API ====
 
 </span><span class="kw">impl </span>TimeDuration {
     <span class="doccomment">/// Creates a new validated `TimeDuration`.
@@ -855,7 +856,7 @@
         );
         <span class="kw">if </span>!is_valid_duration(<span class="kw-2">&amp;</span>result.into_iter().collect()) {
             <span class="kw">return </span><span class="prelude-val">Err</span>(
-                TemporalError::range().with_message(<span class="string">&quot;Attempted to create an invalid TimeDuration.&quot;</span>)
+                TemporalError::range().with_message(<span class="string">"Attempted to create an invalid TimeDuration."</span>)
             );
         }
         <span class="prelude-val">Ok</span>(result)
@@ -956,7 +957,7 @@
             largest_unit,
         )<span class="question-mark">?</span>;
         <span class="kw">let </span><span class="prelude-val">Some</span>(time_duration) = result.<span class="number">1 </span><span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">&quot;Invalid balance TimeDuration.&quot;</span>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">"Invalid balance TimeDuration."</span>));
         };
         <span class="prelude-val">Ok</span>((result.<span class="number">0</span>, time_duration))
     }
@@ -1009,9 +1010,9 @@
         <span class="self">self</span>.nanoseconds
     }
 
-    <span class="doccomment">/// Returns the `TimeDuration`&#39;s iterator.
+    <span class="doccomment">/// Returns the `TimeDuration`'s iterator.
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TimeIter&lt;<span class="lifetime">&#39;_</span>&gt; {
+    </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TimeIter&lt;<span class="lifetime">'_</span>&gt; {
         &lt;<span class="kw-2">&amp;</span><span class="self">Self </span><span class="kw">as </span>IntoIterator&gt;::into_iter(<span class="self">self</span>)
     }
 }
@@ -1035,7 +1036,7 @@
             | TemporalUnit::Day
             | TemporalUnit::Auto =&gt; {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::r#type()
-                    .with_message(<span class="string">&quot;Invalid unit provided to for TimeDuration to round.&quot;</span>))
+                    .with_message(<span class="string">"Invalid unit provided to for TimeDuration to round."</span>))
             }
             <span class="kw">_ </span>=&gt; <span class="self">self</span>.nanoseconds().mul_add(
                 <span class="number">1_000_000_000f64</span>,
@@ -1047,7 +1048,7 @@
         };
 
         <span class="kw">match </span>unit {
-            <span class="comment">// 12. Else if unit is &quot;hour&quot;, then
+            <span class="comment">// 12. Else if unit is "hour", then
             </span>TemporalUnit::Hour =&gt; {
                 <span class="comment">// a. Let fractionalHours be (fractionalSeconds / 60 + minutes) / 60 + hours.
                 </span><span class="kw">let </span>frac_hours = (fraction_seconds / <span class="number">60f64 </span>+ <span class="self">self</span>.minutes) / <span class="number">60f64 </span>+ <span class="self">self</span>.hours;
@@ -1059,7 +1060,7 @@
                 </span><span class="kw">let </span>result = <span class="self">Self</span>::new(rounded_hours, <span class="number">0f64</span>, <span class="number">0f64</span>, <span class="number">0f64</span>, <span class="number">0f64</span>, <span class="number">0f64</span>)<span class="question-mark">?</span>;
                 <span class="prelude-val">Ok</span>((result, frac_hours))
             }
-            <span class="comment">// 13. Else if unit is &quot;minute&quot;, then
+            <span class="comment">// 13. Else if unit is "minute", then
             </span>TemporalUnit::Minute =&gt; {
                 <span class="comment">// a. Let fractionalMinutes be fractionalSeconds / 60 + minutes.
                 </span><span class="kw">let </span>frac_minutes = fraction_seconds / <span class="number">60f64 </span>+ <span class="self">self</span>.minutes;
@@ -1072,7 +1073,7 @@
 
                 <span class="prelude-val">Ok</span>((result, frac_minutes))
             }
-            <span class="comment">// 14. Else if unit is &quot;second&quot;, then
+            <span class="comment">// 14. Else if unit is "second", then
             </span>TemporalUnit::Second =&gt; {
                 <span class="comment">// a. Set seconds to RoundNumberToIncrement(fractionalSeconds, increment, roundingMode).
                 </span><span class="kw">let </span>rounded_seconds =
@@ -1084,7 +1085,7 @@
 
                 <span class="prelude-val">Ok</span>((result, fraction_seconds))
             }
-            <span class="comment">// 15. Else if unit is &quot;millisecond&quot;, then
+            <span class="comment">// 15. Else if unit is "millisecond", then
             </span>TemporalUnit::Millisecond =&gt; {
                 <span class="comment">// a. Let fractionalMilliseconds be nanoseconds × 10-6 + microseconds × 10-3 + milliseconds.
                 </span><span class="kw">let </span>fraction_millis = <span class="self">self</span>.nanoseconds.mul_add(
@@ -1108,7 +1109,7 @@
                 )<span class="question-mark">?</span>;
                 <span class="prelude-val">Ok</span>((result, fraction_millis))
             }
-            <span class="comment">// 16. Else if unit is &quot;microsecond&quot;, then
+            <span class="comment">// 16. Else if unit is "microsecond", then
             </span>TemporalUnit::Microsecond =&gt; {
                 <span class="comment">// a. Let fractionalMicroseconds be nanoseconds × 10-3 + microseconds.
                 </span><span class="kw">let </span>frac_micros = <span class="self">self</span>.nanoseconds.mul_add(<span class="number">1_000f64</span>, <span class="self">self</span>.microseconds);
@@ -1131,7 +1132,7 @@
             }
             <span class="comment">// 17. Else,
             </span>TemporalUnit::Nanosecond =&gt; {
-                <span class="comment">// a. Assert: unit is &quot;nanosecond&quot;.
+                <span class="comment">// a. Assert: unit is "nanosecond".
                 // b. Set total to nanoseconds.
                 </span><span class="kw">let </span>total = <span class="self">self</span>.nanoseconds;
                 <span class="comment">// c. Set nanoseconds to RoundNumberToIncrement(nanoseconds, increment, roundingMode).
@@ -1149,14 +1150,14 @@
 
                 <span class="prelude-val">Ok</span>((result, total))
             }
-            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;All other units early return error.&quot;</span>),
+            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">"All other units early return error."</span>),
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; IntoIterator <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>TimeDuration {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; IntoIterator <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">'a </span>TimeDuration {
     <span class="kw">type </span>Item = f64;
-    <span class="kw">type </span>IntoIter = TimeIter&lt;<span class="lifetime">&#39;a</span>&gt;;
+    <span class="kw">type </span>IntoIter = TimeIter&lt;<span class="lifetime">'a</span>&gt;;
 
     <span class="kw">fn </span>into_iter(<span class="self">self</span>) -&gt; <span class="self">Self</span>::IntoIter {
         TimeIter {
@@ -1168,12 +1169,12 @@
 
 <span class="doccomment">/// An iterator over a `TimeDuration`.
 </span><span class="attr">#[derive(Debug, Clone)]
-</span><span class="kw">pub struct </span>TimeIter&lt;<span class="lifetime">&#39;a</span>&gt; {
-    time: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>TimeDuration,
+</span><span class="kw">pub struct </span>TimeIter&lt;<span class="lifetime">'a</span>&gt; {
+    time: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>TimeDuration,
     index: usize,
 }
 
-<span class="kw">impl </span>Iterator <span class="kw">for </span>TimeIter&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>Iterator <span class="kw">for </span>TimeIter&lt;<span class="lifetime">'_</span>&gt; {
     <span class="kw">type </span>Item = f64;
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {

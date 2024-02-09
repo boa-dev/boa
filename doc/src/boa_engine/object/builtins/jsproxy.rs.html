@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/object/builtins/jsproxy.rs`."><title>jsproxy.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/object/builtins/jsproxy.rs`."><title>jsproxy.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -566,7 +567,7 @@
 
 <span class="kw">use </span><span class="kw">super</span>::JsFunction;
 
-<span class="doccomment">/// `JsProxy` provides a wrapper for Boa&#39;s implementation of the ECMAScript `Proxy` object
+<span class="doccomment">/// `JsProxy` provides a wrapper for Boa's implementation of the ECMAScript `Proxy` object
 ///
 /// This is a wrapper type for the [`Proxy`][proxy] API that allows customizing
 /// essential behaviour for an object, like [property accesses][get] or the
@@ -597,7 +598,7 @@
             <span class="prelude-val">Ok</span>(<span class="self">Self </span>{ inner: object })
         } <span class="kw">else </span>{
             <span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;object is not a Proxy&quot;</span>)
+                .with_message(<span class="string">"object is not a Proxy"</span>)
                 .into())
         }
     }
@@ -633,7 +634,7 @@
         <span class="kw">match </span>value {
             JsValue::Object(o) =&gt; <span class="self">Self</span>::from_object(o.clone()),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;value is not a Proxy object&quot;</span>)
+                .with_message(<span class="string">"value is not a Proxy object"</span>)
                 .into()),
         }
     }
@@ -701,40 +702,40 @@
 }
 
 <span class="kw">impl </span>std::fmt::Debug <span class="kw">for </span>JsProxyBuilder {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
         <span class="attr">#[derive(Debug)]
         </span><span class="kw">struct </span>NativeFunction;
-        f.debug_struct(<span class="string">&quot;ProxyBuilder&quot;</span>)
-            .field(<span class="string">&quot;target&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.target)
-            .field(<span class="string">&quot;apply&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.apply.map(|<span class="kw">_</span>| NativeFunction))
-            .field(<span class="string">&quot;construct&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.construct.map(|<span class="kw">_</span>| NativeFunction))
+        f.debug_struct(<span class="string">"ProxyBuilder"</span>)
+            .field(<span class="string">"target"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.target)
+            .field(<span class="string">"apply"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.apply.map(|<span class="kw">_</span>| NativeFunction))
+            .field(<span class="string">"construct"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.construct.map(|<span class="kw">_</span>| NativeFunction))
             .field(
-                <span class="string">&quot;define_property&quot;</span>,
+                <span class="string">"define_property"</span>,
                 <span class="kw-2">&amp;</span><span class="self">self</span>.define_property.map(|<span class="kw">_</span>| NativeFunction),
             )
             .field(
-                <span class="string">&quot;delete_property&quot;</span>,
+                <span class="string">"delete_property"</span>,
                 <span class="kw-2">&amp;</span><span class="self">self</span>.delete_property.map(|<span class="kw">_</span>| NativeFunction),
             )
-            .field(<span class="string">&quot;get&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.get.map(|<span class="kw">_</span>| NativeFunction))
+            .field(<span class="string">"get"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.get.map(|<span class="kw">_</span>| NativeFunction))
             .field(
-                <span class="string">&quot;get_own_property_descriptor&quot;</span>,
+                <span class="string">"get_own_property_descriptor"</span>,
                 <span class="kw-2">&amp;</span><span class="self">self</span>.get_own_property_descriptor.map(|<span class="kw">_</span>| NativeFunction),
             )
             .field(
-                <span class="string">&quot;get_prototype_of&quot;</span>,
+                <span class="string">"get_prototype_of"</span>,
                 <span class="kw-2">&amp;</span><span class="self">self</span>.get_prototype_of.map(|<span class="kw">_</span>| NativeFunction),
             )
-            .field(<span class="string">&quot;has&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.has.map(|<span class="kw">_</span>| NativeFunction))
-            .field(<span class="string">&quot;is_extensible&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.is_extensible.map(|<span class="kw">_</span>| NativeFunction))
-            .field(<span class="string">&quot;own_keys&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.own_keys.map(|<span class="kw">_</span>| NativeFunction))
+            .field(<span class="string">"has"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.has.map(|<span class="kw">_</span>| NativeFunction))
+            .field(<span class="string">"is_extensible"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.is_extensible.map(|<span class="kw">_</span>| NativeFunction))
+            .field(<span class="string">"own_keys"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.own_keys.map(|<span class="kw">_</span>| NativeFunction))
             .field(
-                <span class="string">&quot;prevent_extensions&quot;</span>,
+                <span class="string">"prevent_extensions"</span>,
                 <span class="kw-2">&amp;</span><span class="self">self</span>.prevent_extensions.map(|<span class="kw">_</span>| NativeFunction),
             )
-            .field(<span class="string">&quot;set&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.set.map(|<span class="kw">_</span>| NativeFunction))
+            .field(<span class="string">"set"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.set.map(|<span class="kw">_</span>| NativeFunction))
             .field(
-                <span class="string">&quot;set_prototype_of&quot;</span>,
+                <span class="string">"set_prototype_of"</span>,
                 <span class="kw-2">&amp;</span><span class="self">self</span>.set_prototype_of.map(|<span class="kw">_</span>| NativeFunction),
             )
             .finish()
@@ -948,7 +949,7 @@
     <span class="doccomment">/// Build a [`JsObject`] of kind [`Proxy`].
     ///
     /// Equivalent to the `Proxy ( target, handler )` constructor, but returns a
-    /// [`JsObject`] in case there&#39;s a need to manipulate the returned object
+    /// [`JsObject`] in case there's a need to manipulate the returned object
     /// inside Rust code.
     </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>build(<span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsProxy {
@@ -959,8 +960,8 @@
                 .length(<span class="number">3</span>)
                 .build();
             handler
-                .create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;apply&quot;</span>), f, context)
-                .expect(<span class="string">&quot;new object should be writable&quot;</span>);
+                .create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">"apply"</span>), f, context)
+                .expect(<span class="string">"new object should be writable"</span>);
         }
         <span class="kw">if let </span><span class="prelude-val">Some</span>(construct) = <span class="self">self</span>.construct {
             <span class="kw">let </span>f =
@@ -968,8 +969,8 @@
                     .length(<span class="number">3</span>)
                     .build();
             handler
-                .create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;construct&quot;</span>), f, context)
-                .expect(<span class="string">&quot;new object should be writable&quot;</span>);
+                .create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">"construct"</span>), f, context)
+                .expect(<span class="string">"new object should be writable"</span>);
         }
         <span class="kw">if let </span><span class="prelude-val">Some</span>(define_property) = <span class="self">self</span>.define_property {
             <span class="kw">let </span>f = FunctionObjectBuilder::new(
@@ -979,8 +980,8 @@
             .length(<span class="number">3</span>)
             .build();
             handler
-                .create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;defineProperty&quot;</span>), f, context)
-                .expect(<span class="string">&quot;new object should be writable&quot;</span>);
+                .create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">"defineProperty"</span>), f, context)
+                .expect(<span class="string">"new object should be writable"</span>);
         }
         <span class="kw">if let </span><span class="prelude-val">Some</span>(delete_property) = <span class="self">self</span>.delete_property {
             <span class="kw">let </span>f = FunctionObjectBuilder::new(
@@ -990,16 +991,16 @@
             .length(<span class="number">2</span>)
             .build();
             handler
-                .create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;deleteProperty&quot;</span>), f, context)
-                .expect(<span class="string">&quot;new object should be writable&quot;</span>);
+                .create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">"deleteProperty"</span>), f, context)
+                .expect(<span class="string">"new object should be writable"</span>);
         }
         <span class="kw">if let </span><span class="prelude-val">Some</span>(get) = <span class="self">self</span>.get {
             <span class="kw">let </span>f = FunctionObjectBuilder::new(context.realm(), NativeFunction::from_fn_ptr(get))
                 .length(<span class="number">3</span>)
                 .build();
             handler
-                .create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;get&quot;</span>), f, context)
-                .expect(<span class="string">&quot;new object should be writable&quot;</span>);
+                .create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">"get"</span>), f, context)
+                .expect(<span class="string">"new object should be writable"</span>);
         }
         <span class="kw">if let </span><span class="prelude-val">Some</span>(get_own_property_descriptor) = <span class="self">self</span>.get_own_property_descriptor {
             <span class="kw">let </span>f = FunctionObjectBuilder::new(
@@ -1009,8 +1010,8 @@
             .length(<span class="number">2</span>)
             .build();
             handler
-                .create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;getOwnPropertyDescriptor&quot;</span>), f, context)
-                .expect(<span class="string">&quot;new object should be writable&quot;</span>);
+                .create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">"getOwnPropertyDescriptor"</span>), f, context)
+                .expect(<span class="string">"new object should be writable"</span>);
         }
         <span class="kw">if let </span><span class="prelude-val">Some</span>(get_prototype_of) = <span class="self">self</span>.get_prototype_of {
             <span class="kw">let </span>f = FunctionObjectBuilder::new(
@@ -1020,16 +1021,16 @@
             .length(<span class="number">1</span>)
             .build();
             handler
-                .create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;getPrototypeOf&quot;</span>), f, context)
-                .expect(<span class="string">&quot;new object should be writable&quot;</span>);
+                .create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">"getPrototypeOf"</span>), f, context)
+                .expect(<span class="string">"new object should be writable"</span>);
         }
         <span class="kw">if let </span><span class="prelude-val">Some</span>(has) = <span class="self">self</span>.has {
             <span class="kw">let </span>f = FunctionObjectBuilder::new(context.realm(), NativeFunction::from_fn_ptr(has))
                 .length(<span class="number">2</span>)
                 .build();
             handler
-                .create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;has&quot;</span>), f, context)
-                .expect(<span class="string">&quot;new object should be writable&quot;</span>);
+                .create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">"has"</span>), f, context)
+                .expect(<span class="string">"new object should be writable"</span>);
         }
         <span class="kw">if let </span><span class="prelude-val">Some</span>(is_extensible) = <span class="self">self</span>.is_extensible {
             <span class="kw">let </span>f = FunctionObjectBuilder::new(
@@ -1039,8 +1040,8 @@
             .length(<span class="number">1</span>)
             .build();
             handler
-                .create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;isExtensible&quot;</span>), f, context)
-                .expect(<span class="string">&quot;new object should be writable&quot;</span>);
+                .create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">"isExtensible"</span>), f, context)
+                .expect(<span class="string">"new object should be writable"</span>);
         }
         <span class="kw">if let </span><span class="prelude-val">Some</span>(own_keys) = <span class="self">self</span>.own_keys {
             <span class="kw">let </span>f =
@@ -1048,8 +1049,8 @@
                     .length(<span class="number">1</span>)
                     .build();
             handler
-                .create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;ownKeys&quot;</span>), f, context)
-                .expect(<span class="string">&quot;new object should be writable&quot;</span>);
+                .create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">"ownKeys"</span>), f, context)
+                .expect(<span class="string">"new object should be writable"</span>);
         }
         <span class="kw">if let </span><span class="prelude-val">Some</span>(prevent_extensions) = <span class="self">self</span>.prevent_extensions {
             <span class="kw">let </span>f = FunctionObjectBuilder::new(
@@ -1059,16 +1060,16 @@
             .length(<span class="number">1</span>)
             .build();
             handler
-                .create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;preventExtensions&quot;</span>), f, context)
-                .expect(<span class="string">&quot;new object should be writable&quot;</span>);
+                .create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">"preventExtensions"</span>), f, context)
+                .expect(<span class="string">"new object should be writable"</span>);
         }
         <span class="kw">if let </span><span class="prelude-val">Some</span>(set) = <span class="self">self</span>.set {
             <span class="kw">let </span>f = FunctionObjectBuilder::new(context.realm(), NativeFunction::from_fn_ptr(set))
                 .length(<span class="number">4</span>)
                 .build();
             handler
-                .create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;set&quot;</span>), f, context)
-                .expect(<span class="string">&quot;new object should be writable&quot;</span>);
+                .create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">"set"</span>), f, context)
+                .expect(<span class="string">"new object should be writable"</span>);
         }
         <span class="kw">if let </span><span class="prelude-val">Some</span>(set_prototype_of) = <span class="self">self</span>.set_prototype_of {
             <span class="kw">let </span>f = FunctionObjectBuilder::new(
@@ -1078,8 +1079,8 @@
             .length(<span class="number">2</span>)
             .build();
             handler
-                .create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;setPrototypeOf&quot;</span>), f, context)
-                .expect(<span class="string">&quot;new object should be writable&quot;</span>);
+                .create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">"setPrototypeOf"</span>), f, context)
+                .expect(<span class="string">"new object should be writable"</span>);
         }
 
         <span class="kw">let </span>proxy = JsObject::from_proto_and_data_with_shared_shape(
@@ -1096,7 +1097,7 @@
     ///
     /// Equivalent to the `Proxy.revocable ( target, handler )` static method,
     /// but returns a [`JsObject`] for the proxy and a [`JsFunction`] for the
-    /// revoker in case there&#39;s a need to manipulate the returned objects
+    /// revoker in case there's a need to manipulate the returned objects
     /// inside Rust code.
     </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>build_revocable(<span class="self">self</span>, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsRevocableProxy {

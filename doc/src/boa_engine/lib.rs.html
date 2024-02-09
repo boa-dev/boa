@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -421,7 +422,7 @@
 <a href="#421" id="421">421</a>
 <a href="#422" id="422">422</a>
 <a href="#423" id="423">423</a>
-</pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s **`boa_engine`** crate implements ECMAScript&#39;s standard library of builtin objects
+</pre></div><pre class="rust"><code><span class="doccomment">//! Boa's **`boa_engine`** crate implements ECMAScript's standard library of builtin objects
 //! and an ECMAScript context, bytecompiler, and virtual machine for code execution.
 //!
 //! # Example usage
@@ -434,12 +435,12 @@
 //! ```
 //! use boa_engine::{Context, Source};
 //!
-//! let js_code = r#&quot;
+//! let js_code = r#"
 //!     let two = 1 + 1;
-//!     let definitely_not_four = two + &quot;2&quot;;
+//!     let definitely_not_four = two + "2";
 //!
 //!     definitely_not_four
-//! &quot;#;
+//! "#;
 //!
 //! // Instantiate the execution context
 //! let mut context = Context::default();
@@ -448,14 +449,14 @@
 //! match context.eval(Source::from_bytes(js_code)) {
 //!     Ok(res) =&gt; {
 //!         println!(
-//!             &quot;{}&quot;,
+//!             "{}",
 //!             res.to_string(&amp;mut context).unwrap().to_std_string_escaped()
 //!         );
 //!     }
 //!     Err(e) =&gt; {
 //!         // Pretty print the error
-//!         eprintln!(&quot;Uncaught {e}&quot;);
-//!         # panic!(&quot;There was an error in boa_engine&#39;s introduction example.&quot;);
+//!         eprintln!("Uncaught {e}");
+//!         # panic!("There was an error in boa_engine's introduction example.");
 //!     }
 //! };
 //! ```
@@ -464,14 +465,14 @@
 //!
 //!  - **serde** - Enables serialization and deserialization of the AST (Abstract Syntax Tree).
 //!  - **profiler** - Enables profiling with measureme (this is mostly internal).
-//!  - **intl** - Enables `boa`&#39;s [ECMA-402 Internationalization API][ecma-402] (`Intl` object)
+//!  - **intl** - Enables `boa`'s [ECMA-402 Internationalization API][ecma-402] (`Intl` object)
 //!
 //! [ecma-402]: https://tc39.es/ecma402
 //! [examples]: https://github.com/boa-dev/boa/tree/main/boa_examples
-</span><span class="attr">#![doc = <span class="macro">include_str!</span>(<span class="string">&quot;../ABOUT.md&quot;</span>)]
+</span><span class="attr">#![doc = <span class="macro">include_str!</span>(<span class="string">"../ABOUT.md"</span>)]
 #![doc(
-    html_logo_url = <span class="string">&quot;https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg&quot;</span>,
-    html_favicon_url = <span class="string">&quot;https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg&quot;
+    html_logo_url = <span class="string">"https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"</span>,
+    html_favicon_url = <span class="string">"https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"
 </span>)]
 #![cfg_attr(test, allow(clippy::needless_raw_string_hashes))] </span><span class="comment">// Makes strings a bit more copy-pastable
 </span><span class="attr">#![cfg_attr(not(test), forbid(clippy::unwrap_used))]
@@ -496,8 +497,8 @@
     </span>clippy::missing_panics_doc,
 )]
 
-#[cfg(not(target_has_atomic = <span class="string">&quot;ptr&quot;</span>))]
-</span><span class="macro">compile_error!</span>(<span class="string">&quot;Boa requires a lock free `AtomicUsize` in order to work properly.&quot;</span>);
+#[cfg(not(target_has_atomic = <span class="string">"ptr"</span>))]
+</span><span class="macro">compile_error!</span>(<span class="string">"Boa requires a lock free `AtomicUsize` in order to work properly."</span>);
 
 <span class="kw">extern crate </span><span class="self">self </span><span class="kw">as </span>boa_engine;
 <span class="kw">extern crate </span>static_assertions <span class="kw">as </span>sa;
@@ -592,30 +593,30 @@
 </span><span class="kw">enum </span>Inner {
     RunHarness,
     Run {
-        source: Cow&lt;<span class="lifetime">&#39;static</span>, str&gt;,
+        source: Cow&lt;<span class="lifetime">'static</span>, str&gt;,
     },
     InspectContext {
         op: <span class="kw">fn</span>(<span class="kw-2">&amp;mut </span>Context),
     },
     Assert {
-        source: Cow&lt;<span class="lifetime">&#39;static</span>, str&gt;,
+        source: Cow&lt;<span class="lifetime">'static</span>, str&gt;,
     },
     AssertEq {
-        source: Cow&lt;<span class="lifetime">&#39;static</span>, str&gt;,
+        source: Cow&lt;<span class="lifetime">'static</span>, str&gt;,
         expected: JsValue,
     },
     AssertWithOp {
-        source: Cow&lt;<span class="lifetime">&#39;static</span>, str&gt;,
+        source: Cow&lt;<span class="lifetime">'static</span>, str&gt;,
         op: <span class="kw">fn</span>(JsValue, <span class="kw-2">&amp;mut </span>Context) -&gt; bool,
     },
     AssertOpaqueError {
-        source: Cow&lt;<span class="lifetime">&#39;static</span>, str&gt;,
+        source: Cow&lt;<span class="lifetime">'static</span>, str&gt;,
         expected: JsValue,
     },
     AssertNativeError {
-        source: Cow&lt;<span class="lifetime">&#39;static</span>, str&gt;,
+        source: Cow&lt;<span class="lifetime">'static</span>, str&gt;,
         kind: JsNativeErrorKind,
-        message: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        message: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
     },
     AssertContext {
         op: <span class="kw">fn</span>(<span class="kw-2">&amp;mut </span>Context) -&gt; bool,
@@ -630,7 +631,7 @@
     }
 
     <span class="doccomment">/// Runs `source`, panicking if the execution throws.
-    </span><span class="kw">fn </span>run(source: <span class="kw">impl </span>Into&lt;Cow&lt;<span class="lifetime">&#39;static</span>, str&gt;&gt;) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">fn </span>run(source: <span class="kw">impl </span>Into&lt;Cow&lt;<span class="lifetime">'static</span>, str&gt;&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>(Inner::Run {
             source: source.into(),
         })
@@ -644,14 +645,14 @@
     }
 
     <span class="doccomment">/// Asserts that evaluating `source` returns the `true` value.
-    </span><span class="kw">fn </span>assert(source: <span class="kw">impl </span>Into&lt;Cow&lt;<span class="lifetime">&#39;static</span>, str&gt;&gt;) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">fn </span>assert(source: <span class="kw">impl </span>Into&lt;Cow&lt;<span class="lifetime">'static</span>, str&gt;&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>(Inner::Assert {
             source: source.into(),
         })
     }
 
     <span class="doccomment">/// Asserts that the script returns `expected` when evaluating `source`.
-    </span><span class="kw">fn </span>assert_eq(source: <span class="kw">impl </span>Into&lt;Cow&lt;<span class="lifetime">&#39;static</span>, str&gt;&gt;, expected: <span class="kw">impl </span>Into&lt;JsValue&gt;) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">fn </span>assert_eq(source: <span class="kw">impl </span>Into&lt;Cow&lt;<span class="lifetime">'static</span>, str&gt;&gt;, expected: <span class="kw">impl </span>Into&lt;JsValue&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>(Inner::AssertEq {
             source: source.into(),
             expected: expected.into(),
@@ -662,7 +663,7 @@
     ///
     /// Useful to check properties of the obtained value that cannot be checked from JS code.
     </span><span class="kw">fn </span>assert_with_op(
-        source: <span class="kw">impl </span>Into&lt;Cow&lt;<span class="lifetime">&#39;static</span>, str&gt;&gt;,
+        source: <span class="kw">impl </span>Into&lt;Cow&lt;<span class="lifetime">'static</span>, str&gt;&gt;,
         op: <span class="kw">fn</span>(JsValue, <span class="kw-2">&amp;mut </span>Context) -&gt; bool,
     ) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>(Inner::AssertWithOp {
@@ -673,7 +674,7 @@
 
     <span class="doccomment">/// Asserts that evaluating `source` throws the opaque error `value`.
     </span><span class="kw">fn </span>assert_opaque_error(
-        source: <span class="kw">impl </span>Into&lt;Cow&lt;<span class="lifetime">&#39;static</span>, str&gt;&gt;,
+        source: <span class="kw">impl </span>Into&lt;Cow&lt;<span class="lifetime">'static</span>, str&gt;&gt;,
         value: <span class="kw">impl </span>Into&lt;JsValue&gt;,
     ) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>(Inner::AssertOpaqueError {
@@ -684,9 +685,9 @@
 
     <span class="doccomment">/// Asserts that evaluating `source` throws a native error of `kind` and `message`.
     </span><span class="kw">fn </span>assert_native_error(
-        source: <span class="kw">impl </span>Into&lt;Cow&lt;<span class="lifetime">&#39;static</span>, str&gt;&gt;,
+        source: <span class="kw">impl </span>Into&lt;Cow&lt;<span class="lifetime">'static</span>, str&gt;&gt;,
         kind: JsNativeErrorKind,
-        message: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        message: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
     ) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>(Inner::AssertNativeError {
             source: source.into(),
@@ -721,12 +722,12 @@
     <span class="attr">#[track_caller]
     </span><span class="kw">fn </span>fmt_test(source: <span class="kw-2">&amp;</span>str, test: usize) -&gt; String {
         <span class="macro">format!</span>(
-            <span class="string">&quot;\n\nTest case {test}: \n```\n{}\n```&quot;</span>,
-            textwrap::indent(source, <span class="string">&quot;    &quot;</span>)
+            <span class="string">"\n\nTest case {test}: \n```\n{}\n```"</span>,
+            textwrap::indent(source, <span class="string">"    "</span>)
         )
     }
 
-    <span class="comment">// Some unwrapping patterns look weird because they&#39;re replaceable
+    <span class="comment">// Some unwrapping patterns look weird because they're replaceable
     // by simpler patterns like `unwrap_or_else` or `unwrap_err
     </span><span class="kw">let </span><span class="kw-2">mut </span>i = <span class="number">1</span>;
     <span class="kw">for </span>action <span class="kw">in </span>actions.into_iter().map(|a| a.<span class="number">0</span>) {
@@ -736,7 +737,7 @@
                 // TODO: extract to a file
                 </span>forward_val(
                     context,
-                    <span class="string">r#&quot;
+                    <span class="string">r#"
                         function equals(a, b) {
                             if (Array.isArray(a) &amp;&amp; Array.isArray(b)) {
                                 return arrayEquals(a, b);
@@ -749,13 +750,13 @@
                                 a.length === b.length &amp;&amp;
                                 a.every((val, index) =&gt; equals(val, b[index]));
                         }
-                    &quot;#</span>,
+                    "#</span>,
                 )
-                .expect(<span class="string">&quot;failed to evaluate test harness&quot;</span>);
+                .expect(<span class="string">"failed to evaluate test harness"</span>);
             }
             Inner::Run { source } =&gt; {
                 <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = forward_val(context, <span class="kw-2">&amp;</span>source) {
-                    <span class="macro">panic!</span>(<span class="string">&quot;{}\nUncaught {e}&quot;</span>, fmt_test(<span class="kw-2">&amp;</span>source, i));
+                    <span class="macro">panic!</span>(<span class="string">"{}\nUncaught {e}"</span>, fmt_test(<span class="kw-2">&amp;</span>source, i));
                 }
             }
             Inner::InspectContext { op } =&gt; {
@@ -763,39 +764,39 @@
             }
             Inner::Assert { source } =&gt; {
                 <span class="kw">let </span>val = <span class="kw">match </span>forward_val(context, <span class="kw-2">&amp;</span>source) {
-                    <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;{}\nUncaught {e}&quot;</span>, fmt_test(<span class="kw-2">&amp;</span>source, i)),
+                    <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">panic!</span>(<span class="string">"{}\nUncaught {e}"</span>, fmt_test(<span class="kw-2">&amp;</span>source, i)),
                     <span class="prelude-val">Ok</span>(v) =&gt; v,
                 };
                 <span class="kw">let </span><span class="prelude-val">Some</span>(val) = val.as_boolean() <span class="kw">else </span>{
                     <span class="macro">panic!</span>(
-                        <span class="string">&quot;{}\nTried to assert with the non-boolean value `{}`&quot;</span>,
+                        <span class="string">"{}\nTried to assert with the non-boolean value `{}`"</span>,
                         fmt_test(<span class="kw-2">&amp;</span>source, i),
                         val.display()
                     )
                 };
-                <span class="macro">assert!</span>(val, <span class="string">&quot;{}&quot;</span>, fmt_test(<span class="kw-2">&amp;</span>source, i));
+                <span class="macro">assert!</span>(val, <span class="string">"{}"</span>, fmt_test(<span class="kw-2">&amp;</span>source, i));
                 i += <span class="number">1</span>;
             }
             Inner::AssertEq { source, expected } =&gt; {
                 <span class="kw">let </span>val = <span class="kw">match </span>forward_val(context, <span class="kw-2">&amp;</span>source) {
-                    <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;{}\nUncaught {e}&quot;</span>, fmt_test(<span class="kw-2">&amp;</span>source, i)),
+                    <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">panic!</span>(<span class="string">"{}\nUncaught {e}"</span>, fmt_test(<span class="kw-2">&amp;</span>source, i)),
                     <span class="prelude-val">Ok</span>(v) =&gt; v,
                 };
-                <span class="macro">assert_eq!</span>(val, expected, <span class="string">&quot;{}&quot;</span>, fmt_test(<span class="kw-2">&amp;</span>source, i));
+                <span class="macro">assert_eq!</span>(val, expected, <span class="string">"{}"</span>, fmt_test(<span class="kw-2">&amp;</span>source, i));
                 i += <span class="number">1</span>;
             }
             Inner::AssertWithOp { source, op } =&gt; {
                 <span class="kw">let </span>val = <span class="kw">match </span>forward_val(context, <span class="kw-2">&amp;</span>source) {
-                    <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;{}\nUncaught {e}&quot;</span>, fmt_test(<span class="kw-2">&amp;</span>source, i)),
+                    <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">panic!</span>(<span class="string">"{}\nUncaught {e}"</span>, fmt_test(<span class="kw-2">&amp;</span>source, i)),
                     <span class="prelude-val">Ok</span>(v) =&gt; v,
                 };
-                <span class="macro">assert!</span>(op(val, context), <span class="string">&quot;{}&quot;</span>, fmt_test(<span class="kw-2">&amp;</span>source, i));
+                <span class="macro">assert!</span>(op(val, context), <span class="string">"{}"</span>, fmt_test(<span class="kw-2">&amp;</span>source, i));
                 i += <span class="number">1</span>;
             }
             Inner::AssertOpaqueError { source, expected } =&gt; {
                 <span class="kw">let </span>err = <span class="kw">match </span>forward_val(context, <span class="kw-2">&amp;</span>source) {
                     <span class="prelude-val">Ok</span>(v) =&gt; <span class="macro">panic!</span>(
-                        <span class="string">&quot;{}\nExpected error, got value `{}`&quot;</span>,
+                        <span class="string">"{}\nExpected error, got value `{}`"</span>,
                         fmt_test(<span class="kw-2">&amp;</span>source, i),
                         v.display()
                     ),
@@ -803,13 +804,13 @@
                 };
                 <span class="kw">let </span><span class="prelude-val">Some</span>(err) = err.as_opaque() <span class="kw">else </span>{
                     <span class="macro">panic!</span>(
-                        <span class="string">&quot;{}\nExpected opaque error, got native error `{}`&quot;</span>,
+                        <span class="string">"{}\nExpected opaque error, got native error `{}`"</span>,
                         fmt_test(<span class="kw-2">&amp;</span>source, i),
                         err
                     )
                 };
 
-                <span class="macro">assert_eq!</span>(err, <span class="kw-2">&amp;</span>expected, <span class="string">&quot;{}&quot;</span>, fmt_test(<span class="kw-2">&amp;</span>source, i));
+                <span class="macro">assert_eq!</span>(err, <span class="kw-2">&amp;</span>expected, <span class="string">"{}"</span>, fmt_test(<span class="kw-2">&amp;</span>source, i));
                 i += <span class="number">1</span>;
             }
             Inner::AssertNativeError {
@@ -819,7 +820,7 @@
             } =&gt; {
                 <span class="kw">let </span>err = <span class="kw">match </span>forward_val(context, <span class="kw-2">&amp;</span>source) {
                     <span class="prelude-val">Ok</span>(v) =&gt; <span class="macro">panic!</span>(
-                        <span class="string">&quot;{}\nExpected error, got value `{}`&quot;</span>,
+                        <span class="string">"{}\nExpected error, got value `{}`"</span>,
                         fmt_test(<span class="kw-2">&amp;</span>source, i),
                         v.display()
                     ),
@@ -828,17 +829,17 @@
                 <span class="kw">let </span>native = <span class="kw">match </span>err.try_native(context) {
                     <span class="prelude-val">Ok</span>(err) =&gt; err,
                     <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">panic!</span>(
-                        <span class="string">&quot;{}\nCouldn&#39;t obtain a native error: {e}&quot;</span>,
+                        <span class="string">"{}\nCouldn't obtain a native error: {e}"</span>,
                         fmt_test(<span class="kw-2">&amp;</span>source, i)
                     ),
                 };
 
-                <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span>native.kind, <span class="kw-2">&amp;</span>kind, <span class="string">&quot;{}&quot;</span>, fmt_test(<span class="kw-2">&amp;</span>source, i));
-                <span class="macro">assert_eq!</span>(native.message(), message, <span class="string">&quot;{}&quot;</span>, fmt_test(<span class="kw-2">&amp;</span>source, i));
+                <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span>native.kind, <span class="kw-2">&amp;</span>kind, <span class="string">"{}"</span>, fmt_test(<span class="kw-2">&amp;</span>source, i));
+                <span class="macro">assert_eq!</span>(native.message(), message, <span class="string">"{}"</span>, fmt_test(<span class="kw-2">&amp;</span>source, i));
                 i += <span class="number">1</span>;
             }
             Inner::AssertContext { op } =&gt; {
-                <span class="macro">assert!</span>(op(context), <span class="string">&quot;Test case {i}&quot;</span>);
+                <span class="macro">assert!</span>(op(context), <span class="string">"Test case {i}"</span>);
                 i += <span class="number">1</span>;
             }
         }

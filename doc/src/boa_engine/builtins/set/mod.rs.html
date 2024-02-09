@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/builtins/set/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/builtins/set/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -530,7 +531,7 @@
 <a href="#530" id="530">530</a>
 <a href="#531" id="531">531</a>
 <a href="#532" id="532">532</a>
-</pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Set` object.
+</pre></div><pre class="rust"><code><span class="doccomment">//! Boa's implementation of ECMAScript's global `Set` object.
 //!
 //! The ECMAScript `Set` class is a global object that is used in the construction of sets; which
 //! are high-level, collections of values.
@@ -575,18 +576,18 @@
         <span class="self">Self</span>::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
     }
     <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(std::any::type_name::&lt;<span class="self">Self</span>&gt;(), <span class="string">&quot;init&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(std::any::type_name::&lt;<span class="self">Self</span>&gt;(), <span class="string">"init"</span>);
 
         <span class="kw">let </span>get_species = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_species)
-            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get [Symbol.species]&quot;</span>))
+            .name(<span class="macro">js_string!</span>(<span class="string">"get [Symbol.species]"</span>))
             .build();
 
         <span class="kw">let </span>size_getter = BuiltInBuilder::callable(realm, <span class="self">Self</span>::size_getter)
-            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get size&quot;</span>))
+            .name(<span class="macro">js_string!</span>(<span class="string">"get size"</span>))
             .build();
 
         <span class="kw">let </span>values_function = BuiltInBuilder::callable(realm, <span class="self">Self</span>::values)
-            .name(<span class="macro">js_string!</span>(<span class="string">&quot;values&quot;</span>))
+            .name(<span class="macro">js_string!</span>(<span class="string">"values"</span>))
             .build();
 
         BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
@@ -596,25 +597,25 @@
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE,
             )
-            .method(<span class="self">Self</span>::add, <span class="macro">js_string!</span>(<span class="string">&quot;add&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::clear, <span class="macro">js_string!</span>(<span class="string">&quot;clear&quot;</span>), <span class="number">0</span>)
-            .method(<span class="self">Self</span>::delete, <span class="macro">js_string!</span>(<span class="string">&quot;delete&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::entries, <span class="macro">js_string!</span>(<span class="string">&quot;entries&quot;</span>), <span class="number">0</span>)
-            .method(<span class="self">Self</span>::for_each, <span class="macro">js_string!</span>(<span class="string">&quot;forEach&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::has, <span class="macro">js_string!</span>(<span class="string">&quot;has&quot;</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::add, <span class="macro">js_string!</span>(<span class="string">"add"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::clear, <span class="macro">js_string!</span>(<span class="string">"clear"</span>), <span class="number">0</span>)
+            .method(<span class="self">Self</span>::delete, <span class="macro">js_string!</span>(<span class="string">"delete"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::entries, <span class="macro">js_string!</span>(<span class="string">"entries"</span>), <span class="number">0</span>)
+            .method(<span class="self">Self</span>::for_each, <span class="macro">js_string!</span>(<span class="string">"forEach"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::has, <span class="macro">js_string!</span>(<span class="string">"has"</span>), <span class="number">1</span>)
             .property(
-                <span class="macro">utf16!</span>(<span class="string">&quot;keys&quot;</span>),
+                <span class="macro">utf16!</span>(<span class="string">"keys"</span>),
                 values_function.clone(),
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .accessor(
-                <span class="macro">utf16!</span>(<span class="string">&quot;size&quot;</span>),
+                <span class="macro">utf16!</span>(<span class="string">"size"</span>),
                 <span class="prelude-val">Some</span>(size_getter),
                 <span class="prelude-val">None</span>,
                 Attribute::CONFIGURABLE,
             )
             .property(
-                <span class="macro">utf16!</span>(<span class="string">&quot;values&quot;</span>),
+                <span class="macro">utf16!</span>(<span class="string">"values"</span>),
                 values_function.clone(),
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
@@ -649,11 +650,11 @@
         <span class="comment">// 1. If NewTarget is undefined, throw a TypeError exception.
         </span><span class="kw">if </span>new_target.is_undefined() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;calling a builtin Set constructor without new is forbidden&quot;</span>)
+                .with_message(<span class="string">"calling a builtin Set constructor without new is forbidden"</span>)
                 .into());
         }
 
-        <span class="comment">// 2. Let set be ? OrdinaryCreateFromConstructor(NewTarget, &quot;%Set.prototype%&quot;, « [[SetData]] »).
+        <span class="comment">// 2. Let set be ? OrdinaryCreateFromConstructor(NewTarget, "%Set.prototype%", « [[SetData]] »).
         // 3. Set set.[[SetData]] to a new empty List.
         </span><span class="kw">let </span>prototype =
             get_prototype_from_constructor(new_target, StandardConstructors::set, context)<span class="question-mark">?</span>;
@@ -669,12 +670,12 @@
             <span class="kw">return </span><span class="prelude-val">Ok</span>(set.into());
         }
 
-        <span class="comment">// 5. Let adder be ? Get(set, &quot;add&quot;).
-        </span><span class="kw">let </span>adder = set.get(<span class="macro">utf16!</span>(<span class="string">&quot;add&quot;</span>), context)<span class="question-mark">?</span>;
+        <span class="comment">// 5. Let adder be ? Get(set, "add").
+        </span><span class="kw">let </span>adder = set.get(<span class="macro">utf16!</span>(<span class="string">"add"</span>), context)<span class="question-mark">?</span>;
 
         <span class="comment">// 6. If IsCallable(adder) is false, throw a TypeError exception.
         </span><span class="kw">let </span>adder = adder.as_callable().ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="string">&quot;&#39;add&#39; of &#39;newTarget&#39; is not a function&quot;</span>)
+            JsNativeError::typ().with_message(<span class="string">"'add' of 'newTarget' is not a function"</span>)
         })<span class="question-mark">?</span>;
 
         <span class="comment">// 7. Let iteratorRecord be ? GetIterator(iterable).
@@ -714,7 +715,7 @@
         )
     }
 
-    <span class="doccomment">/// Utility for constructing `Set` objects from an iterator of `JsValue`&#39;s.
+    <span class="doccomment">/// Utility for constructing `Set` objects from an iterator of `JsValue`'s.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_set_from_list&lt;I&gt;(elements: I, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsObject
     <span class="kw">where
         </span>I: IntoIterator&lt;Item = JsValue&gt;,
@@ -724,7 +725,7 @@
         <span class="comment">// For each element e of elements, do
         </span><span class="kw">for </span>elem <span class="kw">in </span>elements {
             <span class="self">Self</span>::add(<span class="kw-2">&amp;</span>set.clone().into(), <span class="kw-2">&amp;</span>[elem], context)
-                .expect(<span class="string">&quot;adding new element shouldn&#39;t error out&quot;</span>);
+                .expect(<span class="string">"adding new element shouldn't error out"</span>);
         }
 
         set
@@ -766,7 +767,7 @@
             .and_then(JsObject::downcast_mut::&lt;OrderedSet&gt;)
         <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;Method Set.prototype.add called on incompatible receiver&quot;</span>)
+                .with_message(<span class="string">"Method Set.prototype.add called on incompatible receiver"</span>)
                 .into());
         };
 
@@ -803,7 +804,7 @@
             .and_then(JsObject::downcast_mut::&lt;OrderedSet&gt;)
         <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;&#39;this&#39; is not a Set&quot;</span>)
+                .with_message(<span class="string">"'this' is not a Set"</span>)
                 .into());
         };
 
@@ -833,7 +834,7 @@
             .and_then(JsObject::downcast_mut::&lt;OrderedSet&gt;)
         <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;Method Set.prototype.delete called on incompatible receiver&quot;</span>)
+                .with_message(<span class="string">"Method Set.prototype.delete called on incompatible receiver"</span>)
                 .into());
         };
 
@@ -871,7 +872,7 @@
                 .map(|<span class="kw-2">mut </span>set| set.lock(o.clone()))
         }) <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;Method Set.prototype.entries called on incompatible receiver&quot;</span>)
+                .with_message(<span class="string">"Method Set.prototype.entries called on incompatible receiver"</span>)
                 .into());
         };
 
@@ -905,7 +906,7 @@
                 .map(|<span class="kw-2">mut </span>set| set.lock(o.clone()))
         }) <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;Method Set.prototype.forEach called on incompatible receiver&quot;</span>)
+                .with_message(<span class="string">"Method Set.prototype.forEach called on incompatible receiver"</span>)
                 .into());
         };
 
@@ -913,7 +914,7 @@
         </span><span class="kw">let </span><span class="prelude-val">Some</span>(callback_fn) = args.get_or_undefined(<span class="number">0</span>).as_callable() <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
                 .with_message(
-                    <span class="string">&quot;Method Set.prototype.forEach called with non-callable callback function&quot;</span>,
+                    <span class="string">"Method Set.prototype.forEach called with non-callable callback function"</span>,
                 )
                 .into());
         };
@@ -931,7 +932,7 @@
                 .and_then(JsObject::downcast_ref::&lt;OrderedSet&gt;)
             <span class="kw">else </span>{
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                    .with_message(<span class="string">&quot;Method Set.prototype.forEach called on incompatible receiver&quot;</span>)
+                    .with_message(<span class="string">"Method Set.prototype.forEach called on incompatible receiver"</span>)
                     .into());
             };
 
@@ -980,7 +981,7 @@
             .and_then(JsObject::downcast_ref::&lt;OrderedSet&gt;)
         <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;Method Set.prototype.has called on incompatible receiver&quot;</span>)
+                .with_message(<span class="string">"Method Set.prototype.has called on incompatible receiver"</span>)
                 .into());
         };
 
@@ -1016,7 +1017,7 @@
                 .map(|<span class="kw-2">mut </span>set| set.lock(o.clone()))
         }) <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;Method Set.prototype.values called on incompatible receiver&quot;</span>)
+                .with_message(<span class="string">"Method Set.prototype.values called on incompatible receiver"</span>)
                 .into());
         };
 
@@ -1042,7 +1043,7 @@
             })
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message(<span class="string">&quot;&#39;this&#39; is not a Set&quot;</span>)
+                    .with_message(<span class="string">"'this' is not a Set"</span>)
                     .into()
             })
     }
@@ -1057,7 +1058,7 @@
             })
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message(<span class="string">&quot;&#39;this&#39; is not a Set&quot;</span>)
+                    .with_message(<span class="string">"'this' is not a Set"</span>)
                     .into()
             })
     }

@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/builtins/intl/list_format/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/builtins/intl/list_format/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -563,22 +564,22 @@
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>ListFormat {
     <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(std::any::type_name::&lt;<span class="self">Self</span>&gt;(), <span class="string">&quot;init&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(std::any::type_name::&lt;<span class="self">Self</span>&gt;(), <span class="string">"init"</span>);
 
         BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
             .static_method(
                 <span class="self">Self</span>::supported_locales_of,
-                <span class="macro">js_string!</span>(<span class="string">&quot;supportedLocalesOf&quot;</span>),
+                <span class="macro">js_string!</span>(<span class="string">"supportedLocalesOf"</span>),
                 <span class="number">1</span>,
             )
             .property(
                 JsSymbol::to_string_tag(),
-                <span class="macro">js_string!</span>(<span class="string">&quot;Intl.ListFormat&quot;</span>),
+                <span class="macro">js_string!</span>(<span class="string">"Intl.ListFormat"</span>),
                 Attribute::CONFIGURABLE,
             )
-            .method(<span class="self">Self</span>::format, <span class="macro">js_string!</span>(<span class="string">&quot;format&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::format_to_parts, <span class="macro">js_string!</span>(<span class="string">&quot;formatToParts&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::resolved_options, <span class="macro">js_string!</span>(<span class="string">&quot;resolvedOptions&quot;</span>), <span class="number">0</span>)
+            .method(<span class="self">Self</span>::format, <span class="macro">js_string!</span>(<span class="string">"format"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::format_to_parts, <span class="macro">js_string!</span>(<span class="string">"formatToParts"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::resolved_options, <span class="macro">js_string!</span>(<span class="string">"resolvedOptions"</span>), <span class="number">0</span>)
             .build();
     }
 
@@ -614,7 +615,7 @@
         <span class="comment">// 1. If NewTarget is undefined, throw a TypeError exception.
         </span><span class="kw">if </span>new_target.is_undefined() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;cannot call `Intl.ListFormat` constructor without `new`&quot;</span>)
+                .with_message(<span class="string">"cannot call `Intl.ListFormat` constructor without `new`"</span>)
                 .into());
         }
 
@@ -628,8 +629,8 @@
         </span><span class="kw">let </span>options = get_options_object(options)<span class="question-mark">?</span>;
 
         <span class="comment">// 5. Let opt be a new Record.
-        // 6. Let matcher be ? GetOption(options, &quot;localeMatcher&quot;, string, « &quot;lookup&quot;, &quot;best fit&quot; », &quot;best fit&quot;).
-        </span><span class="kw">let </span>matcher = get_option(<span class="kw-2">&amp;</span>options, <span class="macro">utf16!</span>(<span class="string">&quot;localeMatcher&quot;</span>), context)<span class="question-mark">?</span>.unwrap_or_default();
+        // 6. Let matcher be ? GetOption(options, "localeMatcher", string, « "lookup", "best fit" », "best fit").
+        </span><span class="kw">let </span>matcher = get_option(<span class="kw-2">&amp;</span>options, <span class="macro">utf16!</span>(<span class="string">"localeMatcher"</span>), context)<span class="question-mark">?</span>.unwrap_or_default();
 
         <span class="comment">// 7. Set opt.[[localeMatcher]] to matcher.
         // 8. Let localeData be %ListFormat%.[[LocaleData]].
@@ -644,13 +645,13 @@
             context.intl_provider(),
         );
 
-        <span class="comment">// 11. Let type be ? GetOption(options, &quot;type&quot;, string, « &quot;conjunction&quot;, &quot;disjunction&quot;, &quot;unit&quot; », &quot;conjunction&quot;).
+        <span class="comment">// 11. Let type be ? GetOption(options, "type", string, « "conjunction", "disjunction", "unit" », "conjunction").
         // 12. Set listFormat.[[Type]] to type.
-        </span><span class="kw">let </span>typ = get_option(<span class="kw-2">&amp;</span>options, <span class="macro">utf16!</span>(<span class="string">&quot;type&quot;</span>), context)<span class="question-mark">?</span>.unwrap_or_default();
+        </span><span class="kw">let </span>typ = get_option(<span class="kw-2">&amp;</span>options, <span class="macro">utf16!</span>(<span class="string">"type"</span>), context)<span class="question-mark">?</span>.unwrap_or_default();
 
-        <span class="comment">// 13. Let style be ? GetOption(options, &quot;style&quot;, string, « &quot;long&quot;, &quot;short&quot;, &quot;narrow&quot; », &quot;long&quot;).
+        <span class="comment">// 13. Let style be ? GetOption(options, "style", string, « "long", "short", "narrow" », "long").
         // 14. Set listFormat.[[Style]] to style.
-        </span><span class="kw">let </span>style = get_option(<span class="kw-2">&amp;</span>options, <span class="macro">utf16!</span>(<span class="string">&quot;style&quot;</span>), context)<span class="question-mark">?</span>.unwrap_or(ListLength::Wide);
+        </span><span class="kw">let </span>style = get_option(<span class="kw-2">&amp;</span>options, <span class="macro">utf16!</span>(<span class="string">"style"</span>), context)<span class="question-mark">?</span>.unwrap_or(ListLength::Wide);
 
         <span class="comment">// 15. Let dataLocale be r.[[dataLocale]].
         // 16. Let dataLocaleData be localeData.[[&lt;dataLocale&gt;]].
@@ -676,7 +677,7 @@
         }
         .map_err(|e| JsNativeError::typ().with_message(e.to_string()))<span class="question-mark">?</span>;
 
-        <span class="comment">// 2. Let listFormat be ? OrdinaryCreateFromConstructor(NewTarget, &quot;%ListFormat.prototype%&quot;, « [[InitializedListFormat]], [[Locale]], [[Type]], [[Style]], [[Templates]] »).
+        <span class="comment">// 2. Let listFormat be ? OrdinaryCreateFromConstructor(NewTarget, "%ListFormat.prototype%", « [[InitializedListFormat]], [[Locale]], [[Type]], [[Style]], [[Templates]] »).
         </span><span class="kw">let </span>prototype =
             get_prototype_from_constructor(new_target, StandardConstructors::list_format, context)<span class="question-mark">?</span>;
         <span class="kw">let </span>list_format = JsObject::from_proto_and_data_with_shared_shape(
@@ -699,7 +700,7 @@
     <span class="doccomment">/// [`Intl.ListFormat.supportedLocalesOf ( locales [ , options ] )`][spec].
     ///
     /// Returns an array containing those of the provided locales that are supported in list
-    /// formatting without having to fall back to the runtime&#39;s default locale.
+    /// formatting without having to fall back to the runtime's default locale.
     ///
     /// More information:
     ///  - [MDN documentation][mdn]
@@ -737,11 +738,11 @@
         // 2. Perform ? RequireInternalSlot(lf, [[InitializedListFormat]]).
         </span><span class="kw">let </span>lf = this.as_object().map(JsObject::borrow).ok_or_else(|| {
             JsNativeError::typ()
-                .with_message(<span class="string">&quot;`format` can only be called on a `ListFormat` object&quot;</span>)
+                .with_message(<span class="string">"`format` can only be called on a `ListFormat` object"</span>)
         })<span class="question-mark">?</span>;
         <span class="kw">let </span>lf = lf.downcast_ref::&lt;<span class="self">Self</span>&gt;().ok_or_else(|| {
             JsNativeError::typ()
-                .with_message(<span class="string">&quot;`format` can only be called on a `ListFormat` object&quot;</span>)
+                .with_message(<span class="string">"`format` can only be called on a `ListFormat` object"</span>)
         })<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Let stringList be ? StringListFromIterable(list).
@@ -780,10 +781,10 @@
         }
 
         <span class="kw">impl </span>Part {
-            <span class="kw">const fn </span>typ(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
+            <span class="kw">const fn </span>typ(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str {
                 <span class="kw">match </span><span class="self">self </span>{
-                    <span class="self">Self</span>::Literal(<span class="kw">_</span>) =&gt; <span class="string">&quot;literal&quot;</span>,
-                    <span class="self">Self</span>::Element(<span class="kw">_</span>) =&gt; <span class="string">&quot;element&quot;</span>,
+                    <span class="self">Self</span>::Literal(<span class="kw">_</span>) =&gt; <span class="string">"literal"</span>,
+                    <span class="self">Self</span>::Element(<span class="kw">_</span>) =&gt; <span class="string">"element"</span>,
                 }
             }
 
@@ -837,13 +838,13 @@
                 part: writeable::Part,
                 <span class="kw-2">mut </span>f: <span class="kw">impl </span>FnMut(<span class="kw-2">&amp;mut </span><span class="self">Self</span>::SubPartsWrite) -&gt; core::fmt::Result,
             ) -&gt; core::fmt::Result {
-                <span class="macro">assert!</span>(part.category == <span class="string">&quot;list&quot;</span>);
+                <span class="macro">assert!</span>(part.category == <span class="string">"list"</span>);
                 <span class="kw">let </span><span class="kw-2">mut </span>string = WriteString(String::new());
                 f(<span class="kw-2">&amp;mut </span>string)<span class="question-mark">?</span>;
                 <span class="kw">if </span>!string.<span class="number">0</span>.is_empty() {
                     <span class="kw">match </span>part.value {
-                        <span class="string">&quot;element&quot; </span>=&gt; <span class="self">self</span>.<span class="number">0</span>.push(Part::Element(string.<span class="number">0</span>)),
-                        <span class="string">&quot;literal&quot; </span>=&gt; <span class="self">self</span>.<span class="number">0</span>.push(Part::Literal(string.<span class="number">0</span>)),
+                        <span class="string">"element" </span>=&gt; <span class="self">self</span>.<span class="number">0</span>.push(Part::Element(string.<span class="number">0</span>)),
+                        <span class="string">"literal" </span>=&gt; <span class="self">self</span>.<span class="number">0</span>.push(Part::Literal(string.<span class="number">0</span>)),
                         <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
                     };
                 }
@@ -855,11 +856,11 @@
         // 2. Perform ? RequireInternalSlot(lf, [[InitializedListFormat]]).
         </span><span class="kw">let </span>lf = this.as_object().map(JsObject::borrow).ok_or_else(|| {
             JsNativeError::typ()
-                .with_message(<span class="string">&quot;`formatToParts` can only be called on a `ListFormat` object&quot;</span>)
+                .with_message(<span class="string">"`formatToParts` can only be called on a `ListFormat` object"</span>)
         })<span class="question-mark">?</span>;
         <span class="kw">let </span>lf = lf.downcast_ref::&lt;<span class="self">Self</span>&gt;().ok_or_else(|| {
             JsNativeError::typ()
-                .with_message(<span class="string">&quot;`formatToParts` can only be called on a `ListFormat` object&quot;</span>)
+                .with_message(<span class="string">"`formatToParts` can only be called on a `ListFormat` object"</span>)
         })<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Let stringList be ? StringListFromIterable(list).
@@ -882,7 +883,7 @@
 
         <span class="comment">// 2. Let result be ! ArrayCreate(0).
         </span><span class="kw">let </span>result = Array::array_create(<span class="number">0</span>, <span class="prelude-val">None</span>, context)
-            .expect(<span class="string">&quot;creating an empty array with default proto must not fail&quot;</span>);
+            .expect(<span class="string">"creating an empty array with default proto must not fail"</span>);
 
         <span class="comment">// 3. Let n be 0.
         // 4. For each Record { [[Type]], [[Value]] } part in parts, do
@@ -894,18 +895,18 @@
                 .ordinary_object()
                 .create(OrdinaryObject, <span class="macro">vec!</span>[]);
 
-            <span class="comment">// b. Perform ! CreateDataPropertyOrThrow(O, &quot;type&quot;, part.[[Type]]).
-            </span>o.create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;type&quot;</span>), <span class="macro">js_string!</span>(part.typ()), context)
-                .expect(<span class="string">&quot;operation must not fail per the spec&quot;</span>);
+            <span class="comment">// b. Perform ! CreateDataPropertyOrThrow(O, "type", part.[[Type]]).
+            </span>o.create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">"type"</span>), <span class="macro">js_string!</span>(part.typ()), context)
+                .expect(<span class="string">"operation must not fail per the spec"</span>);
 
-            <span class="comment">// c. Perform ! CreateDataPropertyOrThrow(O, &quot;value&quot;, part.[[Value]]).
-            </span>o.create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">&quot;value&quot;</span>), <span class="macro">js_string!</span>(part.value()), context)
-                .expect(<span class="string">&quot;operation must not fail per the spec&quot;</span>);
+            <span class="comment">// c. Perform ! CreateDataPropertyOrThrow(O, "value", part.[[Value]]).
+            </span>o.create_data_property_or_throw(<span class="macro">utf16!</span>(<span class="string">"value"</span>), <span class="macro">js_string!</span>(part.value()), context)
+                .expect(<span class="string">"operation must not fail per the spec"</span>);
 
             <span class="comment">// d. Perform ! CreateDataPropertyOrThrow(result, ! ToString(n), O).
             </span>result
                 .create_data_property_or_throw(n, o, context)
-                .expect(<span class="string">&quot;operation must not fail per the spec&quot;</span>);
+                .expect(<span class="string">"operation must not fail per the spec"</span>);
 
             <span class="comment">// e. Increment n by 1.
         </span>}
@@ -929,11 +930,11 @@
         // 2. Perform ? RequireInternalSlot(lf, [[InitializedListFormat]]).
         </span><span class="kw">let </span>lf = this.as_object().map(JsObject::borrow).ok_or_else(|| {
             JsNativeError::typ()
-                .with_message(<span class="string">&quot;`resolvedOptions` can only be called on a `ListFormat` object&quot;</span>)
+                .with_message(<span class="string">"`resolvedOptions` can only be called on a `ListFormat` object"</span>)
         })<span class="question-mark">?</span>;
         <span class="kw">let </span>lf = lf.downcast_ref::&lt;<span class="self">Self</span>&gt;().ok_or_else(|| {
             JsNativeError::typ()
-                .with_message(<span class="string">&quot;`resolvedOptions` can only be called on a `ListFormat` object&quot;</span>)
+                .with_message(<span class="string">"`resolvedOptions` can only be called on a `ListFormat` object"</span>)
         })<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Let options be OrdinaryObjectCreate(%Object.prototype%).
@@ -945,39 +946,39 @@
 
         <span class="comment">// 4. For each row of Table 11, except the header row, in table order, do
         //     a. Let p be the Property value of the current row.
-        //     b. Let v be the value of lf&#39;s internal slot whose name is the Internal Slot value of the current row.
+        //     b. Let v be the value of lf's internal slot whose name is the Internal Slot value of the current row.
         //     c. Assert: v is not undefined.
         //     d. Perform ! CreateDataPropertyOrThrow(options, p, v).
         </span>options
             .create_data_property_or_throw(
-                <span class="macro">utf16!</span>(<span class="string">&quot;locale&quot;</span>),
+                <span class="macro">utf16!</span>(<span class="string">"locale"</span>),
                 <span class="macro">js_string!</span>(lf.locale.to_string()),
                 context,
             )
-            .expect(<span class="string">&quot;operation must not fail per the spec&quot;</span>);
+            .expect(<span class="string">"operation must not fail per the spec"</span>);
         options
             .create_data_property_or_throw(
-                <span class="macro">js_string!</span>(<span class="string">&quot;type&quot;</span>),
+                <span class="macro">js_string!</span>(<span class="string">"type"</span>),
                 <span class="kw">match </span>lf.typ {
-                    ListFormatType::Conjunction =&gt; <span class="macro">js_string!</span>(<span class="string">&quot;conjunction&quot;</span>),
-                    ListFormatType::Disjunction =&gt; <span class="macro">js_string!</span>(<span class="string">&quot;disjunction&quot;</span>),
-                    ListFormatType::Unit =&gt; <span class="macro">js_string!</span>(<span class="string">&quot;unit&quot;</span>),
+                    ListFormatType::Conjunction =&gt; <span class="macro">js_string!</span>(<span class="string">"conjunction"</span>),
+                    ListFormatType::Disjunction =&gt; <span class="macro">js_string!</span>(<span class="string">"disjunction"</span>),
+                    ListFormatType::Unit =&gt; <span class="macro">js_string!</span>(<span class="string">"unit"</span>),
                 },
                 context,
             )
-            .expect(<span class="string">&quot;operation must not fail per the spec&quot;</span>);
+            .expect(<span class="string">"operation must not fail per the spec"</span>);
         options
             .create_data_property_or_throw(
-                <span class="macro">js_string!</span>(<span class="string">&quot;style&quot;</span>),
+                <span class="macro">js_string!</span>(<span class="string">"style"</span>),
                 <span class="kw">match </span>lf.style {
-                    ListLength::Wide =&gt; <span class="macro">js_string!</span>(<span class="string">&quot;long&quot;</span>),
-                    ListLength::Short =&gt; <span class="macro">js_string!</span>(<span class="string">&quot;short&quot;</span>),
-                    ListLength::Narrow =&gt; <span class="macro">js_string!</span>(<span class="string">&quot;narrow&quot;</span>),
+                    ListLength::Wide =&gt; <span class="macro">js_string!</span>(<span class="string">"long"</span>),
+                    ListLength::Short =&gt; <span class="macro">js_string!</span>(<span class="string">"short"</span>),
+                    ListLength::Narrow =&gt; <span class="macro">js_string!</span>(<span class="string">"narrow"</span>),
                     <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
                 },
                 context,
             )
-            .expect(<span class="string">&quot;operation must not fail per the spec&quot;</span>);
+            .expect(<span class="string">"operation must not fail per the spec"</span>);
 
         <span class="comment">// 5. Return options.
         </span><span class="prelude-val">Ok</span>(options.into())
@@ -1014,11 +1015,11 @@
             </span><span class="kw">return </span><span class="prelude-val">Err</span>(iterator
                 .close(
                     <span class="prelude-val">Err</span>(JsNativeError::typ()
-                        .with_message(<span class="string">&quot;StringListFromIterable: can only format strings into a list&quot;</span>)
+                        .with_message(<span class="string">"StringListFromIterable: can only format strings into a list"</span>)
                         .into()),
                     context,
                 )
-                .expect_err(<span class="string">&quot;Should return the provided error&quot;</span>));
+                .expect_err(<span class="string">"Should return the provided error"</span>));
         };
 
         <span class="comment">//    iii. Append nextValue to the end of the List list.

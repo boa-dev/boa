@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/string/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/string/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1103,7 +1104,7 @@
 <span class="kw">use </span><span class="self">self</span>::common::StaticJsStrings;
 
 <span class="kw">fn </span>alloc_overflow() -&gt; ! {
-    <span class="macro">panic!</span>(<span class="string">&quot;detected overflow during string allocation&quot;</span>)
+    <span class="macro">panic!</span>(<span class="string">"detected overflow during string allocation"</span>)
 }
 
 <span class="doccomment">/// Utility macro to create a [`JsString`].
@@ -1127,8 +1128,8 @@
 /// ```
 /// # use boa_engine::js_string;
 /// # use boa_engine::string::utf16;
-/// let hw = js_string!(&quot;Hello, world!&quot;);
-/// assert_eq!(&amp;hw, utf16!(&quot;Hello, world!&quot;));
+/// let hw = js_string!("Hello, world!");
+/// assert_eq!(&amp;hw, utf16!("Hello, world!"));
 /// ```
 ///
 /// Any `&amp;[u16]` slice is a valid `JsString`, including unpaired surrogates:
@@ -1144,11 +1145,11 @@
 /// ```
 /// # use boa_engine::js_string;
 /// # use boa_engine::string::utf16;
-/// const NAME: &amp;[u16] = utf16!(&quot;human! &quot;);
-/// let greeting = js_string!(&quot;Hello, &quot;);
-/// let msg = js_string!(&amp;greeting, &amp;NAME, utf16!(&quot;Nice to meet you!&quot;));
+/// const NAME: &amp;[u16] = utf16!("human! ");
+/// let greeting = js_string!("Hello, ");
+/// let msg = js_string!(&amp;greeting, &amp;NAME, utf16!("Nice to meet you!"));
 ///
-/// assert_eq!(&amp;msg, utf16!(&quot;Hello, human! Nice to meet you!&quot;));
+/// assert_eq!(&amp;msg, utf16!("Hello, human! Nice to meet you!"));
 /// ```
 </span><span class="attr">#[macro_export]
 </span><span class="macro">macro_rules! </span>js_string {
@@ -1170,7 +1171,7 @@
 }
 
 <span class="doccomment">/// Represents a Unicode codepoint within a [`JsString`], which could be a valid
-/// &#39;[Unicode scalar value]&#39;, or an unpaired surrogate.
+/// '[Unicode scalar value]', or an unpaired surrogate.
 ///
 /// [Unicode scalar value]: https://www.unicode.org/glossary/#unicode_scalar_value
 </span><span class="attr">#[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -1201,7 +1202,7 @@
         }
     }
 
-    <span class="doccomment">/// If the code point represents a valid &#39;Unicode scalar value&#39;, returns its [`char`]
+    <span class="doccomment">/// If the code point represents a valid 'Unicode scalar value', returns its [`char`]
     /// representation, otherwise returns [`None`] on unpaired surrogates.
     </span><span class="attr">#[must_use]
     </span><span class="kw">pub const fn </span>as_char(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;char&gt; {
@@ -1252,13 +1253,13 @@
 /// length metadata associated with the `Rc` fat pointer. Instead, the length of every string is
 /// stored on the heap, along with its reference counter and its data.
 ///
-/// We define some commonly used string constants in an interner. For these strings, we don&#39;t allocate
+/// We define some commonly used string constants in an interner. For these strings, we don't allocate
 /// memory on the heap to reduce the overhead of memory allocation and reference counting.
 ///
 /// # Deref
 ///
 /// [`JsString`] implements &lt;code&gt;[Deref]&lt;Target = \[u16\]&gt;&lt;/code&gt;, inheriting all of
-/// &lt;code&gt;\[u16\]&lt;/code&gt;&#39;s methods.
+/// &lt;code&gt;\[u16\]&lt;/code&gt;'s methods.
 </span><span class="attr">#[derive(Trace, Finalize)]
 </span><span class="comment">// Safety: `JsString` does not contain any objects which needs to be traced, so this is safe.
 </span><span class="attr">#[boa_gc(unsafe_empty_trace)]
@@ -1302,7 +1303,7 @@
             <span class="kw">for </span>string <span class="kw">in </span>strings {
                 <span class="kw">let </span>count = string.len();
                 <span class="comment">// SAFETY:
-                // The sum of all `count` for each `string` equals `full_count`, and since we&#39;re
+                // The sum of all `count` for each `string` equals `full_count`, and since we're
                 // iteratively writing each of them to `data`, `copy_non_overlapping` always stays
                 // in-bounds for `count` reads of each string and `full_count` writes to `data`.
                 //
@@ -1317,7 +1318,7 @@
                 }
             }
             <span class="self">Self </span>{
-                <span class="comment">// Safety: We already know it&#39;s a valid heap pointer.
+                <span class="comment">// Safety: We already know it's a valid heap pointer.
                 </span>ptr: <span class="kw">unsafe </span>{ Tagged::from_ptr(ptr.as_ptr()) },
             }
         };
@@ -1340,7 +1341,7 @@
 
     <span class="doccomment">/// Decodes a [`JsString`] into an iterator of [`Result&lt;String, u16&gt;`], returning surrogates as
     /// errors.
-    </span><span class="kw">pub fn </span>to_std_string_with_surrogates(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="prelude-ty">Result</span>&lt;String, u16&gt;&gt; + <span class="lifetime">&#39;_ </span>{
+    </span><span class="kw">pub fn </span>to_std_string_with_surrogates(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="prelude-ty">Result</span>&lt;String, u16&gt;&gt; + <span class="lifetime">'_ </span>{
         <span class="kw">struct </span>WideStringDecoderIterator&lt;I: Iterator&gt; {
             codepoints: Peekable&lt;I&gt;,
         }
@@ -1380,7 +1381,7 @@
 
                     <span class="self">self</span>.codepoints
                         .next()
-                        .expect(<span class="string">&quot;should exist by the check above&quot;</span>);
+                        .expect(<span class="string">"should exist by the check above"</span>);
                 }
 
                 <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(string))
@@ -1409,7 +1410,7 @@
     }
 
     <span class="doccomment">/// Gets an iterator of all the Unicode codepoints of a [`JsString`].
-    </span><span class="kw">pub fn </span>code_points(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = CodePoint&gt; + Clone + <span class="lifetime">&#39;_ </span>{
+    </span><span class="kw">pub fn </span>code_points(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = CodePoint&gt; + Clone + <span class="lifetime">'_ </span>{
         char::decode_utf16(<span class="self">self</span>.iter().copied()).map(|res| <span class="kw">match </span>res {
             <span class="prelude-val">Ok</span>(c) =&gt; CodePoint::Unicode(c),
             <span class="prelude-val">Err</span>(e) =&gt; CodePoint::UnpairedSurrogate(e.unpaired_surrogate()),
@@ -1418,8 +1419,8 @@
 
     <span class="doccomment">/// Abstract operation `StringIndexOf ( string, searchValue, fromIndex )`
     ///
-    /// Note: Instead of returning an isize with `-1` as the &quot;not found&quot; value, we make use of the
-    /// type system and return &lt;code&gt;[Option]\&lt;usize\&gt;&lt;/code&gt; with [`None`] as the &quot;not found&quot; value.
+    /// Note: Instead of returning an isize with `-1` as the "not found" value, we make use of the
+    /// type system and return &lt;code&gt;[Option]\&lt;usize\&gt;&lt;/code&gt; with [`None`] as the "not found" value.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -1491,7 +1492,7 @@
 
         <span class="kw">match </span>char::decode_utf16(code_point.iter().copied())
             .next()
-            .expect(<span class="string">&quot;code_point always has a value&quot;</span>)
+            .expect(<span class="string">"code_point always has a value"</span>)
         {
             <span class="prelude-val">Ok</span>(c) =&gt; CodePoint::Unicode(c),
             <span class="prelude-val">Err</span>(e) =&gt; CodePoint::UnpairedSurrogate(e.unpaired_surrogate()),
@@ -1514,19 +1515,19 @@
         <span class="comment">// 4. Return StringNumericValue of literal.
         </span><span class="kw">let </span>string = string.trim_matches(is_trimmable_whitespace);
         <span class="kw">match </span>string {
-            <span class="string">&quot;&quot; </span>=&gt; <span class="kw">return </span><span class="number">0.0</span>,
-            <span class="string">&quot;-Infinity&quot; </span>=&gt; <span class="kw">return </span>f64::NEG_INFINITY,
-            <span class="string">&quot;Infinity&quot; </span>| <span class="string">&quot;+Infinity&quot; </span>=&gt; <span class="kw">return </span>f64::INFINITY,
+            <span class="string">"" </span>=&gt; <span class="kw">return </span><span class="number">0.0</span>,
+            <span class="string">"-Infinity" </span>=&gt; <span class="kw">return </span>f64::NEG_INFINITY,
+            <span class="string">"Infinity" </span>| <span class="string">"+Infinity" </span>=&gt; <span class="kw">return </span>f64::INFINITY,
             <span class="kw">_ </span>=&gt; {}
         }
 
         <span class="kw">let </span><span class="kw-2">mut </span>s = string.bytes();
         <span class="kw">let </span>base = <span class="kw">match </span>(s.next(), s.next()) {
-            (<span class="prelude-val">Some</span>(<span class="string">b&#39;0&#39;</span>), <span class="prelude-val">Some</span>(<span class="string">b&#39;b&#39; </span>| <span class="string">b&#39;B&#39;</span>)) =&gt; <span class="prelude-val">Some</span>(<span class="number">2</span>),
-            (<span class="prelude-val">Some</span>(<span class="string">b&#39;0&#39;</span>), <span class="prelude-val">Some</span>(<span class="string">b&#39;o&#39; </span>| <span class="string">b&#39;O&#39;</span>)) =&gt; <span class="prelude-val">Some</span>(<span class="number">8</span>),
-            (<span class="prelude-val">Some</span>(<span class="string">b&#39;0&#39;</span>), <span class="prelude-val">Some</span>(<span class="string">b&#39;x&#39; </span>| <span class="string">b&#39;X&#39;</span>)) =&gt; <span class="prelude-val">Some</span>(<span class="number">16</span>),
-            <span class="comment">// Make sure that no further variants of &quot;infinity&quot; are parsed.
-            </span>(<span class="prelude-val">Some</span>(<span class="string">b&#39;i&#39; </span>| <span class="string">b&#39;I&#39;</span>), <span class="kw">_</span>) =&gt; {
+            (<span class="prelude-val">Some</span>(<span class="string">b'0'</span>), <span class="prelude-val">Some</span>(<span class="string">b'b' </span>| <span class="string">b'B'</span>)) =&gt; <span class="prelude-val">Some</span>(<span class="number">2</span>),
+            (<span class="prelude-val">Some</span>(<span class="string">b'0'</span>), <span class="prelude-val">Some</span>(<span class="string">b'o' </span>| <span class="string">b'O'</span>)) =&gt; <span class="prelude-val">Some</span>(<span class="number">8</span>),
+            (<span class="prelude-val">Some</span>(<span class="string">b'0'</span>), <span class="prelude-val">Some</span>(<span class="string">b'x' </span>| <span class="string">b'X'</span>)) =&gt; <span class="prelude-val">Some</span>(<span class="number">16</span>),
+            <span class="comment">// Make sure that no further variants of "infinity" are parsed.
+            </span>(<span class="prelude-val">Some</span>(<span class="string">b'i' </span>| <span class="string">b'I'</span>), <span class="kw">_</span>) =&gt; {
                 <span class="kw">return </span>f64::NAN;
             }
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
@@ -1740,11 +1741,11 @@
 }
 
 <span class="kw">impl </span>std::fmt::Debug <span class="kw">for </span>JsString {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
         std::char::decode_utf16(<span class="self">self</span>.as_slice().to_owned())
             .map(|r| {
                 r.map_or_else(
-                    |err| <span class="macro">format!</span>(<span class="string">&quot;&lt;0x{:04x}&gt;&quot;</span>, err.unpaired_surrogate()),
+                    |err| <span class="macro">format!</span>(<span class="string">"&lt;0x{:04x}&gt;"</span>, err.unpaired_surrogate()),
                     String::from,
                 )
             })
@@ -1767,7 +1768,7 @@
                 //   should only generate valid reads.
                 //
                 // - The lifetime of `&amp;Self::Target` is shorter than the lifetime of `self`, as seen
-                //   by its signature, so this doesn&#39;t outlive `self`.
+                //   by its signature, so this doesn't outlive `self`.
                 </span><span class="kw">unsafe </span>{
                     <span class="kw">let </span>h = h.as_ptr();
                     std::slice::from_raw_parts(<span class="macro">addr_of!</span>((<span class="kw-2">*</span>h).data).cast(), (<span class="kw-2">*</span>h).len)
@@ -1958,7 +1959,7 @@
         char::decode_utf16(<span class="self">self</span>.iter().copied())
             .map(|r| <span class="kw">match </span>r {
                 <span class="prelude-val">Ok</span>(c) =&gt; String::from(c),
-                <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">format!</span>(<span class="string">&quot;\\u{:04X}&quot;</span>, e.unpaired_surrogate()),
+                <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">format!</span>(<span class="string">"\\u{:04X}"</span>, e.unpaired_surrogate()),
             })
             .collect()
     }
@@ -1989,12 +1990,12 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>empty() {
         <span class="kw">let </span>s = <span class="macro">js_string!</span>();
-        <span class="macro">assert_eq!</span>(<span class="kw-2">*</span>s, <span class="string">&quot;&quot;</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;());
+        <span class="macro">assert_eq!</span>(<span class="kw-2">*</span>s, <span class="string">""</span>.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;());
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>refcount() {
-        <span class="kw">let </span>x = <span class="macro">js_string!</span>(<span class="string">&quot;Hello world&quot;</span>);
+        <span class="kw">let </span>x = <span class="macro">js_string!</span>(<span class="string">"Hello world"</span>);
         <span class="macro">assert_eq!</span>(x.refcount(), <span class="prelude-val">Some</span>(<span class="number">1</span>));
 
         {
@@ -2032,14 +2033,14 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>ptr_eq() {
-        <span class="kw">let </span>x = <span class="macro">js_string!</span>(<span class="string">&quot;Hello&quot;</span>);
+        <span class="kw">let </span>x = <span class="macro">js_string!</span>(<span class="string">"Hello"</span>);
         <span class="kw">let </span>y = x.clone();
 
         <span class="macro">assert!</span>(!x.ptr.is_tagged());
 
         <span class="macro">assert_eq!</span>(x.ptr.addr(), y.ptr.addr());
 
-        <span class="kw">let </span>z = <span class="macro">js_string!</span>(<span class="string">&quot;Hello&quot;</span>);
+        <span class="kw">let </span>z = <span class="macro">js_string!</span>(<span class="string">"Hello"</span>);
         <span class="macro">assert_ne!</span>(x.ptr.addr(), z.ptr.addr());
         <span class="macro">assert_ne!</span>(y.ptr.addr(), z.ptr.addr());
     }
@@ -2060,7 +2061,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>as_str() {
-        <span class="kw">const </span>HELLO: <span class="kw-2">&amp;</span>str = <span class="string">&quot;Hello&quot;</span>;
+        <span class="kw">const </span>HELLO: <span class="kw-2">&amp;</span>str = <span class="string">"Hello"</span>;
         <span class="kw">let </span>x = <span class="macro">js_string!</span>(HELLO);
 
         <span class="macro">assert_eq!</span>(<span class="kw-2">*</span>x, HELLO.encode_utf16().collect::&lt;Vec&lt;u16&gt;&gt;());
@@ -2071,7 +2072,7 @@
         <span class="kw">use </span>std::collections::hash_map::DefaultHasher;
         <span class="kw">use </span>std::hash::{Hash, Hasher};
 
-        <span class="kw">const </span>HELLOWORLD: <span class="kw-2">&amp;</span>[u16] = <span class="macro">utf16!</span>(<span class="string">&quot;Hello World!&quot;</span>);
+        <span class="kw">const </span>HELLOWORLD: <span class="kw-2">&amp;</span>[u16] = <span class="macro">utf16!</span>(<span class="string">"Hello World!"</span>);
         <span class="kw">let </span>x = <span class="macro">js_string!</span>(HELLOWORLD);
 
         <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;*</span>x, HELLOWORLD);
@@ -2089,22 +2090,22 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>concat() {
-        <span class="kw">const </span>Y: <span class="kw-2">&amp;</span>[u16] = <span class="macro">utf16!</span>(<span class="string">&quot;, &quot;</span>);
-        <span class="kw">const </span>W: <span class="kw-2">&amp;</span>[u16] = <span class="macro">utf16!</span>(<span class="string">&quot;!&quot;</span>);
+        <span class="kw">const </span>Y: <span class="kw-2">&amp;</span>[u16] = <span class="macro">utf16!</span>(<span class="string">", "</span>);
+        <span class="kw">const </span>W: <span class="kw-2">&amp;</span>[u16] = <span class="macro">utf16!</span>(<span class="string">"!"</span>);
 
-        <span class="kw">let </span>x = <span class="macro">js_string!</span>(<span class="string">&quot;hello&quot;</span>);
-        <span class="kw">let </span>z = <span class="macro">js_string!</span>(<span class="string">&quot;world&quot;</span>);
+        <span class="kw">let </span>x = <span class="macro">js_string!</span>(<span class="string">"hello"</span>);
+        <span class="kw">let </span>z = <span class="macro">js_string!</span>(<span class="string">"world"</span>);
 
         <span class="kw">let </span>xy = <span class="macro">js_string!</span>(<span class="kw-2">&amp;</span>x, Y);
-        <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span>xy, <span class="macro">utf16!</span>(<span class="string">&quot;hello, &quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span>xy, <span class="macro">utf16!</span>(<span class="string">"hello, "</span>));
         <span class="macro">assert_eq!</span>(xy.refcount(), <span class="prelude-val">Some</span>(<span class="number">1</span>));
 
         <span class="kw">let </span>xyz = <span class="macro">js_string!</span>(<span class="kw-2">&amp;</span>xy, <span class="kw-2">&amp;</span>z);
-        <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span>xyz, <span class="macro">utf16!</span>(<span class="string">&quot;hello, world&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span>xyz, <span class="macro">utf16!</span>(<span class="string">"hello, world"</span>));
         <span class="macro">assert_eq!</span>(xyz.refcount(), <span class="prelude-val">Some</span>(<span class="number">1</span>));
 
         <span class="kw">let </span>xyzw = <span class="macro">js_string!</span>(<span class="kw-2">&amp;</span>xyz, W);
-        <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span>xyzw, <span class="macro">utf16!</span>(<span class="string">&quot;hello, world!&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span>xyzw, <span class="macro">utf16!</span>(<span class="string">"hello, world!"</span>));
         <span class="macro">assert_eq!</span>(xyzw.refcount(), <span class="prelude-val">Some</span>(<span class="number">1</span>));
     }
 }

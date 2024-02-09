@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/builtins/function/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/builtins/function/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1080,7 +1081,7 @@
 <a href="#1080" id="1080">1080</a>
 <a href="#1081" id="1081">1081</a>
 <a href="#1082" id="1082">1082</a>
-</pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `Function` object and Native Functions.
+</pre></div><pre class="rust"><code><span class="doccomment">//! Boa's implementation of ECMAScript's global `Function` object and Native Functions.
 //!
 //! Objects wrap `Function`s and expose them via call/construct slots.
 //!
@@ -1267,7 +1268,7 @@
 }
 
 <span class="kw">impl </span>JsData <span class="kw">for </span>OrdinaryFunction {
-    <span class="kw">fn </span>internal_methods(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>InternalObjectMethods {
+    <span class="kw">fn </span>internal_methods(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>InternalObjectMethods {
         <span class="kw">static </span>FUNCTION_METHODS: InternalObjectMethods = InternalObjectMethods {
             __call__: function_call,
             ..ORDINARY_INTERNAL_METHODS
@@ -1379,29 +1380,29 @@
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>BuiltInFunctionObject {
     <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(std::any::type_name::&lt;<span class="self">Self</span>&gt;(), <span class="string">&quot;init&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(std::any::type_name::&lt;<span class="self">Self</span>&gt;(), <span class="string">"init"</span>);
 
         <span class="kw">let </span>has_instance = BuiltInBuilder::callable(realm, <span class="self">Self</span>::has_instance)
-            .name(<span class="macro">js_string!</span>(<span class="string">&quot;[Symbol.hasInstance]&quot;</span>))
+            .name(<span class="macro">js_string!</span>(<span class="string">"[Symbol.hasInstance]"</span>))
             .length(<span class="number">1</span>)
             .build();
 
         <span class="kw">let </span>throw_type_error = realm.intrinsics().objects().throw_type_error();
 
         BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
-            .method(<span class="self">Self</span>::apply, <span class="macro">js_string!</span>(<span class="string">&quot;apply&quot;</span>), <span class="number">2</span>)
-            .method(<span class="self">Self</span>::bind, <span class="macro">js_string!</span>(<span class="string">&quot;bind&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::call, <span class="macro">js_string!</span>(<span class="string">&quot;call&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::to_string, <span class="macro">js_string!</span>(<span class="string">&quot;toString&quot;</span>), <span class="number">0</span>)
+            .method(<span class="self">Self</span>::apply, <span class="macro">js_string!</span>(<span class="string">"apply"</span>), <span class="number">2</span>)
+            .method(<span class="self">Self</span>::bind, <span class="macro">js_string!</span>(<span class="string">"bind"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::call, <span class="macro">js_string!</span>(<span class="string">"call"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::to_string, <span class="macro">js_string!</span>(<span class="string">"toString"</span>), <span class="number">0</span>)
             .property(JsSymbol::has_instance(), has_instance, Attribute::default())
             .accessor(
-                <span class="macro">utf16!</span>(<span class="string">&quot;caller&quot;</span>),
+                <span class="macro">utf16!</span>(<span class="string">"caller"</span>),
                 <span class="prelude-val">Some</span>(throw_type_error.clone()),
                 <span class="prelude-val">Some</span>(throw_type_error.clone()),
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                <span class="macro">utf16!</span>(<span class="string">&quot;arguments&quot;</span>),
+                <span class="macro">utf16!</span>(<span class="string">"arguments"</span>),
                 <span class="prelude-val">Some</span>(throw_type_error.clone()),
                 <span class="prelude-val">Some</span>(throw_type_error),
                 Attribute::CONFIGURABLE,
@@ -1435,7 +1436,7 @@
 
     <span class="doccomment">/// `Function ( p1, p2, … , pn, body )`
     ///
-    /// The apply() method invokes self with the first argument as the `this` value
+    /// The `apply()` method invokes self with the first argument as the `this` value
     /// and the rest of the arguments provided as an array (or an array-like object).
     ///
     /// More information:
@@ -1488,35 +1489,35 @@
         <span class="kw">let </span>default = <span class="kw">if </span>r#async &amp;&amp; generator {
             <span class="comment">// 7. Else,
             //     a. Assert: kind is asyncGenerator.
-            //     b. Let prefix be &quot;async function*&quot;.
+            //     b. Let prefix be "async function*".
             //     c. Let exprSym be the grammar symbol AsyncGeneratorExpression.
             //     d. Let bodySym be the grammar symbol AsyncGeneratorBody.
             //     e. Let parameterSym be the grammar symbol FormalParameters[+Yield, +Await].
-            //     f. Let fallbackProto be &quot;%AsyncGeneratorFunction.prototype%&quot;.
+            //     f. Let fallbackProto be "%AsyncGeneratorFunction.prototype%".
             </span>StandardConstructors::async_generator_function
         } <span class="kw">else if </span>r#async {
             <span class="comment">// 6. Else if kind is async, then
-            //     a. Let prefix be &quot;async function&quot;.
+            //     a. Let prefix be "async function".
             //     b. Let exprSym be the grammar symbol AsyncFunctionExpression.
             //     c. Let bodySym be the grammar symbol AsyncFunctionBody.
             //     d. Let parameterSym be the grammar symbol FormalParameters[~Yield, +Await].
-            //     e. Let fallbackProto be &quot;%AsyncFunction.prototype%&quot;.
+            //     e. Let fallbackProto be "%AsyncFunction.prototype%".
             </span>StandardConstructors::async_function
         } <span class="kw">else if </span>generator {
             <span class="comment">// 5. Else if kind is generator, then
-            //     a. Let prefix be &quot;function*&quot;.
+            //     a. Let prefix be "function*".
             //     b. Let exprSym be the grammar symbol GeneratorExpression.
             //     c. Let bodySym be the grammar symbol GeneratorBody.
             //     d. Let parameterSym be the grammar symbol FormalParameters[+Yield, ~Await].
-            //     e. Let fallbackProto be &quot;%GeneratorFunction.prototype%&quot;.
+            //     e. Let fallbackProto be "%GeneratorFunction.prototype%".
             </span>StandardConstructors::generator_function
         } <span class="kw">else </span>{
             <span class="comment">// 4. If kind is normal, then
-            //     a. Let prefix be &quot;function&quot;.
+            //     a. Let prefix be "function".
             //     b. Let exprSym be the grammar symbol FunctionExpression.
             //     c. Let bodySym be the grammar symbol FunctionBody[~Yield, ~Await].
             //     d. Let parameterSym be the grammar symbol FormalParameters[~Yield, ~Await].
-            //     e. Let fallbackProto be &quot;%Function.prototype%&quot;.
+            //     e. Let fallbackProto be "%Function.prototype%".
             </span>StandardConstructors::function
         };
 
@@ -1531,7 +1532,7 @@
                 <span class="kw">for </span>arg <span class="kw">in </span>args {
                     parameters.push(arg.to_string(context)<span class="question-mark">?</span>);
                 }
-                <span class="kw">let </span>parameters = parameters.join(<span class="macro">utf16!</span>(<span class="string">&quot;,&quot;</span>));
+                <span class="kw">let </span>parameters = parameters.join(<span class="macro">utf16!</span>(<span class="string">","</span>));
 
                 <span class="comment">// TODO: make parser generic to u32 iterators
                 </span><span class="kw">let </span>parameters = String::from_utf16_lossy(<span class="kw-2">&amp;</span>parameters);
@@ -1546,14 +1547,14 @@
                     <span class="prelude-val">Ok</span>(parameters) =&gt; parameters,
                     <span class="prelude-val">Err</span>(e) =&gt; {
                         <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::syntax()
-                            .with_message(<span class="macro">format!</span>(<span class="string">&quot;failed to parse function parameters: {e}&quot;</span>))
+                            .with_message(<span class="macro">format!</span>(<span class="string">"failed to parse function parameters: {e}"</span>))
                             .into())
                     }
                 };
 
                 <span class="kw">if </span>generator &amp;&amp; contains(<span class="kw-2">&amp;</span>parameters, ContainsSymbol::YieldExpression) {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::syntax().with_message(
-                            <span class="string">&quot;yield expression is not allowed in formal parameter list of generator function&quot;</span>,
+                            <span class="string">"yield expression is not allowed in formal parameter list of generator function"</span>,
                         ).into());
                 }
 
@@ -1563,20 +1564,20 @@
             <span class="comment">// It is a Syntax Error if FormalParameters Contains YieldExpression is true.
             </span><span class="kw">if </span>generator &amp;&amp; r#async &amp;&amp; contains(<span class="kw-2">&amp;</span>parameters, ContainsSymbol::YieldExpression) {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::syntax()
-                    .with_message(<span class="string">&quot;yield expression not allowed in async generator parameters&quot;</span>)
+                    .with_message(<span class="string">"yield expression not allowed in async generator parameters"</span>)
                     .into());
             }
 
             <span class="comment">// It is a Syntax Error if FormalParameters Contains AwaitExpression is true.
             </span><span class="kw">if </span>generator &amp;&amp; r#async &amp;&amp; contains(<span class="kw-2">&amp;</span>parameters, ContainsSymbol::AwaitExpression) {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::syntax()
-                    .with_message(<span class="string">&quot;await expression not allowed in async generator parameters&quot;</span>)
+                    .with_message(<span class="string">"await expression not allowed in async generator parameters"</span>)
                     .into());
             }
 
             <span class="comment">// 11. Let bodyString be the string-concatenation of 0x000A (LINE FEED), ? ToString(bodyArg), and 0x000A (LINE FEED).
             </span><span class="kw">let </span>body_arg = body_arg.to_string(context)<span class="question-mark">?</span>.to_std_string_escaped();
-            <span class="kw">let </span>body = <span class="string">b&quot;\n&quot;</span>.chain(body_arg.as_bytes()).chain(<span class="string">b&quot;\n&quot;</span>.as_slice());
+            <span class="kw">let </span>body = <span class="string">b"\n"</span>.chain(body_arg.as_bytes()).chain(<span class="string">b"\n"</span>.as_slice());
 
             <span class="comment">// TODO: make parser generic to u32 iterators
             </span><span class="kw">let </span><span class="kw-2">mut </span>parser = Parser::new(Source::from_reader(body, <span class="prelude-val">None</span>));
@@ -1587,18 +1588,18 @@
                 <span class="prelude-val">Ok</span>(statement_list) =&gt; statement_list,
                 <span class="prelude-val">Err</span>(e) =&gt; {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::syntax()
-                        .with_message(<span class="macro">format!</span>(<span class="string">&quot;failed to parse function body: {e}&quot;</span>))
+                        .with_message(<span class="macro">format!</span>(<span class="string">"failed to parse function body: {e}"</span>))
                         .into())
                 }
             };
 
             <span class="comment">// Early Error: If BindingIdentifier is present and the source text matched by BindingIdentifier is strict mode code,
-            // it is a Syntax Error if the StringValue of BindingIdentifier is &quot;eval&quot; or &quot;arguments&quot;.
+            // it is a Syntax Error if the StringValue of BindingIdentifier is "eval" or "arguments".
             </span><span class="kw">if </span>body.strict() {
                 <span class="kw">for </span>name <span class="kw">in </span>bound_names(<span class="kw-2">&amp;</span>parameters) {
                     <span class="kw">if </span>name == Sym::ARGUMENTS || name == Sym::EVAL {
                         <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::syntax()
-                            .with_message(<span class="string">&quot; Unexpected &#39;eval&#39; or &#39;arguments&#39; in strict mode&quot;</span>)
+                            .with_message(<span class="string">" Unexpected 'eval' or 'arguments' in strict mode"</span>)
                             .into());
                     }
                 }
@@ -1608,7 +1609,7 @@
             // the Early Error rules for UniqueFormalParameters : FormalParameters are applied.
             </span><span class="kw">if </span>(body.strict()) &amp;&amp; parameters.has_duplicates() {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::syntax()
-                    .with_message(<span class="string">&quot;Duplicate parameter name not allowed in this context&quot;</span>)
+                    .with_message(<span class="string">"Duplicate parameter name not allowed in this context"</span>)
                     .into());
             }
 
@@ -1617,7 +1618,7 @@
             </span><span class="kw">if </span>body.strict() &amp;&amp; !parameters.is_simple() {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::syntax()
                     .with_message(
-                        <span class="string">&quot;Illegal &#39;use strict&#39; directive in function with non-simple parameter list&quot;</span>,
+                        <span class="string">"Illegal 'use strict' directive in function with non-simple parameter list"</span>,
                     )
                     .into());
             }
@@ -1625,14 +1626,14 @@
             <span class="comment">// It is a Syntax Error if FunctionBody Contains SuperProperty is true.
             </span><span class="kw">if </span>contains(<span class="kw-2">&amp;</span>body, ContainsSymbol::SuperProperty) {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::syntax()
-                    .with_message(<span class="string">&quot;invalid `super` reference&quot;</span>)
+                    .with_message(<span class="string">"invalid `super` reference"</span>)
                     .into());
             }
 
             <span class="comment">// It is a Syntax Error if FunctionBody Contains SuperCall is true.
             </span><span class="kw">if </span>contains(<span class="kw-2">&amp;</span>body, ContainsSymbol::SuperCall) {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::syntax()
-                    .with_message(<span class="string">&quot;invalid `super` call&quot;</span>)
+                    .with_message(<span class="string">"invalid `super` call"</span>)
                     .into());
             }
 
@@ -1645,7 +1646,7 @@
                     <span class="kw">if </span>lexically_declared_names.contains(<span class="kw-2">&amp;</span>name) {
                         <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::syntax()
                             .with_message(<span class="macro">format!</span>(
-                                <span class="string">&quot;Redeclaration of formal parameter `{}`&quot;</span>,
+                                <span class="string">"Redeclaration of formal parameter `{}`"</span>,
                                 context.interner().resolve_expect(name.sym())
                             ))
                             .into());
@@ -1655,13 +1656,13 @@
 
             <span class="kw">if </span>!all_private_identifiers_valid(<span class="kw-2">&amp;</span>parameters, Vec::new()) {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::syntax()
-                    .with_message(<span class="string">&quot;invalid private identifier usage&quot;</span>)
+                    .with_message(<span class="string">"invalid private identifier usage"</span>)
                     .into());
             }
 
             <span class="kw">if </span>!all_private_identifiers_valid(<span class="kw-2">&amp;</span>body, Vec::new()) {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::syntax()
-                    .with_message(<span class="string">&quot;invalid private identifier usage&quot;</span>)
+                    .with_message(<span class="string">"invalid private identifier usage"</span>)
                     .into());
             }
 
@@ -1671,7 +1672,7 @@
         };
 
         <span class="kw">let </span>code = FunctionCompiler::new()
-            .name(<span class="macro">js_string!</span>(<span class="string">&quot;anonymous&quot;</span>))
+            .name(<span class="macro">js_string!</span>(<span class="string">"anonymous"</span>))
             .generator(generator)
             .r#async(r#async)
             .compile(
@@ -1691,7 +1692,7 @@
 
     <span class="doccomment">/// `Function.prototype.apply ( thisArg, argArray )`
     ///
-    /// The apply() method invokes self with the first argument as the `this` value
+    /// The `apply()` method invokes self with the first argument as the `this` value
     /// and the rest of the arguments provided as an array (or an array-like object).
     ///
     /// More information:
@@ -1704,7 +1705,7 @@
         <span class="comment">// 1. Let func be the this value.
         // 2. If IsCallable(func) is false, throw a TypeError exception.
         </span><span class="kw">let </span>func = this.as_callable().ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="macro">format!</span>(<span class="string">&quot;{} is not a function&quot;</span>, this.display()))
+            JsNativeError::typ().with_message(<span class="macro">format!</span>(<span class="string">"{} is not a function"</span>, this.display()))
         })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>this_arg = args.get_or_undefined(<span class="number">0</span>);
@@ -1730,7 +1731,7 @@
 
     <span class="doccomment">/// `Function.prototype.bind ( thisArg, ...args )`
     ///
-    /// The bind() method creates a new function that, when called, has its
+    /// The `bind()` method creates a new function that, when called, has its
     /// this keyword set to the provided value, with a given sequence of arguments
     /// preceding any provided when the new function is called.
     ///
@@ -1745,7 +1746,7 @@
         // 2. If IsCallable(Target) is false, throw a TypeError exception.
         </span><span class="kw">let </span>target = this.as_callable().ok_or_else(|| {
             JsNativeError::typ()
-                .with_message(<span class="string">&quot;cannot bind `this` without a `[[Call]]` internal method&quot;</span>)
+                .with_message(<span class="string">"cannot bind `this` without a `[[Call]]` internal method"</span>)
         })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>this_arg = args.get_or_undefined(<span class="number">0</span>).clone();
@@ -1758,17 +1759,17 @@
         <span class="comment">// 4. Let L be 0.
         </span><span class="kw">let </span><span class="kw-2">mut </span>l = JsValue::new(<span class="number">0</span>);
 
-        <span class="comment">// 5. Let targetHasLength be ? HasOwnProperty(Target, &quot;length&quot;).
+        <span class="comment">// 5. Let targetHasLength be ? HasOwnProperty(Target, "length").
         // 6. If targetHasLength is true, then
-        </span><span class="kw">if </span>target.has_own_property(<span class="macro">utf16!</span>(<span class="string">&quot;length&quot;</span>), context)<span class="question-mark">? </span>{
-            <span class="comment">// a. Let targetLen be ? Get(Target, &quot;length&quot;).
-            </span><span class="kw">let </span>target_len = target.get(<span class="macro">utf16!</span>(<span class="string">&quot;length&quot;</span>), context)<span class="question-mark">?</span>;
+        </span><span class="kw">if </span>target.has_own_property(<span class="macro">utf16!</span>(<span class="string">"length"</span>), context)<span class="question-mark">? </span>{
+            <span class="comment">// a. Let targetLen be ? Get(Target, "length").
+            </span><span class="kw">let </span>target_len = target.get(<span class="macro">utf16!</span>(<span class="string">"length"</span>), context)<span class="question-mark">?</span>;
             <span class="comment">// b. If Type(targetLen) is Number, then
             </span><span class="kw">if </span>target_len.is_number() {
                 <span class="comment">// 1. Let targetLenAsInt be ! ToIntegerOrInfinity(targetLen).
                 </span><span class="kw">match </span>target_len
                     .to_integer_or_infinity(context)
-                    .expect(<span class="string">&quot;to_integer_or_infinity cannot fail for a number&quot;</span>)
+                    .expect(<span class="string">"to_integer_or_infinity cannot fail for a number"</span>)
                 {
                     <span class="comment">// i. If targetLen is +∞𝔽, set L to +∞.
                     </span>IntegerOrInfinity::PositiveInfinity =&gt; l = f64::INFINITY.into(),
@@ -1787,7 +1788,7 @@
 
         <span class="comment">// 7. Perform ! SetFunctionLength(F, L).
         </span>f.define_property_or_throw(
-            <span class="macro">utf16!</span>(<span class="string">&quot;length&quot;</span>),
+            <span class="macro">utf16!</span>(<span class="string">"length"</span>),
             PropertyDescriptor::builder()
                 .value(l)
                 .writable(<span class="bool-val">false</span>)
@@ -1795,18 +1796,18 @@
                 .configurable(<span class="bool-val">true</span>),
             context,
         )
-        .expect(<span class="string">&quot;defining the `length` property for a new object should not fail&quot;</span>);
+        .expect(<span class="string">"defining the `length` property for a new object should not fail"</span>);
 
-        <span class="comment">// 8. Let targetName be ? Get(Target, &quot;name&quot;).
-        </span><span class="kw">let </span>target_name = target.get(<span class="macro">utf16!</span>(<span class="string">&quot;name&quot;</span>), context)<span class="question-mark">?</span>;
+        <span class="comment">// 8. Let targetName be ? Get(Target, "name").
+        </span><span class="kw">let </span>target_name = target.get(<span class="macro">utf16!</span>(<span class="string">"name"</span>), context)<span class="question-mark">?</span>;
 
         <span class="comment">// 9. If Type(targetName) is not String, set targetName to the empty String.
         </span><span class="kw">let </span>target_name = target_name
             .as_string()
             .map_or_else(JsString::default, Clone::clone);
 
-        <span class="comment">// 10. Perform SetFunctionName(F, targetName, &quot;bound&quot;).
-        </span>set_function_name(<span class="kw-2">&amp;</span>f, <span class="kw-2">&amp;</span>target_name.into(), <span class="prelude-val">Some</span>(<span class="macro">js_string!</span>(<span class="string">&quot;bound&quot;</span>)), context);
+        <span class="comment">// 10. Perform SetFunctionName(F, targetName, "bound").
+        </span>set_function_name(<span class="kw-2">&amp;</span>f, <span class="kw-2">&amp;</span>target_name.into(), <span class="prelude-val">Some</span>(<span class="macro">js_string!</span>(<span class="string">"bound"</span>)), context);
 
         <span class="comment">// 11. Return F.
         </span><span class="prelude-val">Ok</span>(f.into())
@@ -1814,7 +1815,7 @@
 
     <span class="doccomment">/// `Function.prototype.call ( thisArg, ...args )`
     ///
-    /// The call() method calls a function with a given this value and arguments provided individually.
+    /// The `call()` method calls a function with a given this value and arguments provided individually.
     ///
     /// More information:
     ///  - [MDN documentation][mdn]
@@ -1826,7 +1827,7 @@
         <span class="comment">// 1. Let func be the this value.
         // 2. If IsCallable(func) is false, throw a TypeError exception.
         </span><span class="kw">let </span>func = this.as_callable().ok_or_else(|| {
-            JsNativeError::typ().with_message(<span class="macro">format!</span>(<span class="string">&quot;{} is not a function&quot;</span>, this.display()))
+            JsNativeError::typ().with_message(<span class="macro">format!</span>(<span class="string">"{} is not a function"</span>, this.display()))
         })<span class="question-mark">?</span>;
         <span class="kw">let </span>this_arg = args.get_or_undefined(<span class="number">0</span>);
 
@@ -1863,7 +1864,7 @@
         //    The representation must have the syntax of a NativeFunction.
         // 5. Throw a TypeError exception.
         </span><span class="kw">let </span><span class="prelude-val">Some</span>(object) = func.as_callable() <span class="kw">else </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ().with_message(<span class="string">&quot;not a function&quot;</span>).into());
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ().with_message(<span class="string">"not a function"</span>).into());
         };
 
         <span class="kw">let </span>object_borrow = object.borrow();
@@ -1871,7 +1872,7 @@
             <span class="kw">let </span>name = {
                 <span class="comment">// Is there a case here where if there is no name field on a value
                 // name should default to None? Do all functions have names set?
-                </span><span class="kw">let </span>value = object.get(<span class="macro">utf16!</span>(<span class="string">&quot;name&quot;</span>), <span class="kw-2">&amp;mut *</span>context)<span class="question-mark">?</span>;
+                </span><span class="kw">let </span>value = object.get(<span class="macro">utf16!</span>(<span class="string">"name"</span>), <span class="kw-2">&amp;mut *</span>context)<span class="question-mark">?</span>;
                 <span class="kw">if </span>value.is_null_or_undefined() {
                     <span class="macro">js_string!</span>()
                 } <span class="kw">else </span>{
@@ -1879,22 +1880,22 @@
                 </span>}
             };
             <span class="kw">return </span><span class="prelude-val">Ok</span>(
-                <span class="macro">js_string!</span>(<span class="macro">utf16!</span>(<span class="string">&quot;function &quot;</span>), <span class="kw-2">&amp;</span>name, <span class="macro">utf16!</span>(<span class="string">&quot;() { [native code] }&quot;</span>)).into(),
+                <span class="macro">js_string!</span>(<span class="macro">utf16!</span>(<span class="string">"function "</span>), <span class="kw-2">&amp;</span>name, <span class="macro">utf16!</span>(<span class="string">"() { [native code] }"</span>)).into(),
             );
         } <span class="kw">else if </span>object_borrow.is::&lt;Proxy&gt;() || object_borrow.is::&lt;BoundFunction&gt;() {
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="macro">utf16!</span>(<span class="string">&quot;function () { [native code] }&quot;</span>)).into());
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="macro">utf16!</span>(<span class="string">"function () { [native code] }"</span>)).into());
         }
 
         <span class="kw">let </span>function = object_borrow
             .downcast_ref::&lt;OrdinaryFunction&gt;()
-            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;not a function&quot;</span>))<span class="question-mark">?</span>;
+            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">"not a function"</span>))<span class="question-mark">?</span>;
 
         <span class="kw">let </span>code = function.codeblock();
 
         <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(
-            <span class="macro">utf16!</span>(<span class="string">&quot;function &quot;</span>),
+            <span class="macro">utf16!</span>(<span class="string">"function "</span>),
             code.name(),
-            <span class="macro">utf16!</span>(<span class="string">&quot;() { [native code] }&quot;</span>)
+            <span class="macro">utf16!</span>(<span class="string">"() { [native code] }"</span>)
         )
         .into())
     }
@@ -1929,20 +1930,20 @@
     prefix: <span class="prelude-ty">Option</span>&lt;JsString&gt;,
     context: <span class="kw-2">&amp;mut </span>Context,
 ) {
-    <span class="comment">// 1. Assert: F is an extensible object that does not have a &quot;name&quot; own property.
+    <span class="comment">// 1. Assert: F is an extensible object that does not have a "name" own property.
     // 2. If Type(name) is Symbol, then
     </span><span class="kw">let </span><span class="kw-2">mut </span>name = <span class="kw">match </span>name {
         PropertyKey::Symbol(sym) =&gt; {
-            <span class="comment">// a. Let description be name&#39;s [[Description]] value.
+            <span class="comment">// a. Let description be name's [[Description]] value.
             // b. If description is undefined, set name to the empty String.
-            // c. Else, set name to the string-concatenation of &quot;[&quot;, description, and &quot;]&quot;.
+            // c. Else, set name to the string-concatenation of "[", description, and "]".
             </span>sym.description().map_or_else(
                 || <span class="macro">js_string!</span>(),
-                |desc| <span class="macro">js_string!</span>(<span class="macro">utf16!</span>(<span class="string">&quot;[&quot;</span>), <span class="kw-2">&amp;</span>desc, <span class="macro">utf16!</span>(<span class="string">&quot;]&quot;</span>)),
+                |desc| <span class="macro">js_string!</span>(<span class="macro">utf16!</span>(<span class="string">"["</span>), <span class="kw-2">&amp;</span>desc, <span class="macro">utf16!</span>(<span class="string">"]"</span>)),
             )
         }
         PropertyKey::String(string) =&gt; string.clone(),
-        PropertyKey::Index(index) =&gt; <span class="macro">js_string!</span>(<span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, index.get())),
+        PropertyKey::Index(index) =&gt; <span class="macro">js_string!</span>(<span class="macro">format!</span>(<span class="string">"{}"</span>, index.get())),
     };
 
     <span class="comment">// 3. Else if name is a Private Name, then
@@ -1955,17 +1956,17 @@
 
     // 5. If prefix is present, then
     </span><span class="kw">if let </span><span class="prelude-val">Some</span>(prefix) = prefix {
-        name = <span class="macro">js_string!</span>(<span class="kw-2">&amp;</span>prefix, <span class="macro">utf16!</span>(<span class="string">&quot; &quot;</span>), <span class="kw-2">&amp;</span>name);
+        name = <span class="macro">js_string!</span>(<span class="kw-2">&amp;</span>prefix, <span class="macro">utf16!</span>(<span class="string">" "</span>), <span class="kw-2">&amp;</span>name);
         <span class="comment">// b. If F has an [[InitialName]] internal slot, then
         // i. Optionally, set F.[[InitialName]] to name.
         // todo: implement [[InitialName]] for builtins
     </span>}
 
-    <span class="comment">// 6. Return ! DefinePropertyOrThrow(F, &quot;name&quot;, PropertyDescriptor { [[Value]]: name,
+    <span class="comment">// 6. Return ! DefinePropertyOrThrow(F, "name", PropertyDescriptor { [[Value]]: name,
     // [[Writable]]: false, [[Enumerable]]: false, [[Configurable]]: true }).
     </span>function
         .define_property_or_throw(
-            <span class="macro">utf16!</span>(<span class="string">&quot;name&quot;</span>),
+            <span class="macro">utf16!</span>(<span class="string">"name"</span>),
             PropertyDescriptor::builder()
                 .value(name)
                 .writable(<span class="bool-val">false</span>)
@@ -1973,7 +1974,7 @@
                 .configurable(<span class="bool-val">true</span>),
             context,
         )
-        .expect(<span class="string">&quot;defining the `name` property must not fail per the spec&quot;</span>);
+        .expect(<span class="string">"defining the `name` property must not fail per the spec"</span>);
 }
 
 <span class="doccomment">/// Call this object.
@@ -1992,16 +1993,16 @@
 
     <span class="kw">let </span>function = function_object
         .downcast_ref::&lt;OrdinaryFunction&gt;()
-        .expect(<span class="string">&quot;not a function&quot;</span>);
+        .expect(<span class="string">"not a function"</span>);
     <span class="kw">let </span>realm = function.realm().clone();
 
     <span class="kw">if </span>function.code.is_class_constructor() {
         <span class="macro">debug_assert!</span>(
             function.is_ordinary(),
-            <span class="string">&quot;only ordinary functions can be classes&quot;
+            <span class="string">"only ordinary functions can be classes"
         </span>);
         <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-            .with_message(<span class="string">&quot;class constructor cannot be invoked without &#39;new&#39;&quot;</span>)
+            .with_message(<span class="string">"class constructor cannot be invoked without 'new'"</span>)
             .with_realm(realm)
             .into());
     }
@@ -2033,7 +2034,7 @@
     } <span class="kw">else </span>{
         ThisBindingStatus::Initialized(
             this.to_object(context)
-                .expect(<span class="string">&quot;conversion cannot fail&quot;</span>)
+                .expect(<span class="string">"conversion cannot fail"</span>)
                 .into(),
         )
     };
@@ -2075,12 +2076,12 @@
 
     <span class="kw">let </span>function = this_function_object
         .downcast_ref::&lt;OrdinaryFunction&gt;()
-        .expect(<span class="string">&quot;not a function&quot;</span>);
+        .expect(<span class="string">"not a function"</span>);
     <span class="kw">let </span>realm = function.realm().clone();
 
     <span class="macro">debug_assert!</span>(
         function.is_ordinary(),
-        <span class="string">&quot;only ordinary functions can be constructed&quot;
+        <span class="string">"only ordinary functions can be constructed"
     </span>);
 
     <span class="kw">let </span>code = function.code.clone();
@@ -2148,7 +2149,7 @@
             <span class="prelude-val">Some</span>(
                 new_target
                     .as_object()
-                    .expect(<span class="string">&quot;new.target should be an object&quot;</span>)
+                    .expect(<span class="string">"new.target should be an object"</span>)
                     .clone(),
             ),
         ),

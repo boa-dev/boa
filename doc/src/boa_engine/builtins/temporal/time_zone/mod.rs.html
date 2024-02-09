@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/builtins/temporal/time_zone/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/builtins/temporal/time_zone/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -469,7 +470,7 @@
 <a href="#469" id="469">469</a>
 <a href="#470" id="470">470</a>
 <a href="#471" id="471">471</a>
-</pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implemetation of the `Temporal.TimeZone` builtin object.
+</pre></div><pre class="rust"><code><span class="doccomment">//! Boa's implemetation of the `Temporal.TimeZone` builtin object.
 </span><span class="attr">#![allow(dead_code)]
 
 </span><span class="kw">use crate</span>::{
@@ -516,46 +517,46 @@
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>TimeZone {
     <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(std::any::type_name::&lt;<span class="self">Self</span>&gt;(), <span class="string">&quot;init&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(std::any::type_name::&lt;<span class="self">Self</span>&gt;(), <span class="string">"init"</span>);
 
         <span class="kw">let </span>get_id = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_id)
-            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get Id&quot;</span>))
+            .name(<span class="macro">js_string!</span>(<span class="string">"get Id"</span>))
             .build();
 
         BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
             .method(
                 <span class="self">Self</span>::get_offset_nanoseconds_for,
-                <span class="macro">js_string!</span>(<span class="string">&quot;getOffsetNanosecondsFor&quot;</span>),
+                <span class="macro">js_string!</span>(<span class="string">"getOffsetNanosecondsFor"</span>),
                 <span class="number">1</span>,
             )
             .method(
                 <span class="self">Self</span>::get_offset_string_for,
-                <span class="macro">js_string!</span>(<span class="string">&quot;getOffsetStringFor&quot;</span>),
+                <span class="macro">js_string!</span>(<span class="string">"getOffsetStringFor"</span>),
                 <span class="number">1</span>,
             )
             .method(
                 <span class="self">Self</span>::get_plain_date_time_for,
-                <span class="macro">js_string!</span>(<span class="string">&quot;getPlainDateTimeFor&quot;</span>),
+                <span class="macro">js_string!</span>(<span class="string">"getPlainDateTimeFor"</span>),
                 <span class="number">2</span>,
             )
-            .method(<span class="self">Self</span>::get_instant_for, <span class="macro">js_string!</span>(<span class="string">&quot;getInstantFor&quot;</span>), <span class="number">2</span>)
+            .method(<span class="self">Self</span>::get_instant_for, <span class="macro">js_string!</span>(<span class="string">"getInstantFor"</span>), <span class="number">2</span>)
             .method(
                 <span class="self">Self</span>::get_possible_instants_for,
-                <span class="macro">js_string!</span>(<span class="string">&quot;getPossibleInstantFor&quot;</span>),
+                <span class="macro">js_string!</span>(<span class="string">"getPossibleInstantFor"</span>),
                 <span class="number">1</span>,
             )
             .method(
                 <span class="self">Self</span>::get_next_transition,
-                <span class="macro">js_string!</span>(<span class="string">&quot;getNextTransition&quot;</span>),
+                <span class="macro">js_string!</span>(<span class="string">"getNextTransition"</span>),
                 <span class="number">1</span>,
             )
             .method(
                 <span class="self">Self</span>::get_previous_transition,
-                <span class="macro">js_string!</span>(<span class="string">&quot;getPreviousTransition&quot;</span>),
+                <span class="macro">js_string!</span>(<span class="string">"getPreviousTransition"</span>),
                 <span class="number">1</span>,
             )
-            .method(<span class="self">Self</span>::to_string, <span class="macro">js_string!</span>(<span class="string">&quot;toString&quot;</span>), <span class="number">0</span>)
-            .method(<span class="self">Self</span>::to_string, <span class="macro">js_string!</span>(<span class="string">&quot;toJSON&quot;</span>), <span class="number">0</span>)
+            .method(<span class="self">Self</span>::to_string, <span class="macro">js_string!</span>(<span class="string">"toString"</span>), <span class="number">0</span>)
+            .method(<span class="self">Self</span>::to_string, <span class="macro">js_string!</span>(<span class="string">"toJSON"</span>), <span class="number">0</span>)
             .property(
                 JsSymbol::to_string_tag(),
                 <span class="self">Self</span>::NAME,
@@ -566,7 +567,7 @@
                 realm.intrinsics().constructors().time_zone().prototype(),
                 Attribute::default(),
             )
-            .accessor(<span class="macro">utf16!</span>(<span class="string">&quot;id&quot;</span>), <span class="prelude-val">Some</span>(get_id), <span class="prelude-val">None</span>, Attribute::default())
+            .accessor(<span class="macro">utf16!</span>(<span class="string">"id"</span>), <span class="prelude-val">Some</span>(get_id), <span class="prelude-val">None</span>, Attribute::default())
             .build();
     }
 
@@ -590,7 +591,7 @@
         // 1a. Throw a TypeError exception.
         </span><span class="kw">if </span>new_target.is_undefined() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;newTarget cannot be undefined for Temporal.TimeZone constructor&quot;</span>)
+                .with_message(<span class="string">"newTarget cannot be undefined for Temporal.TimeZone constructor"</span>)
                 .into());
         };
 
@@ -598,7 +599,7 @@
         </span><span class="kw">let </span>identifier = args.get_or_undefined(<span class="number">0</span>);
         <span class="kw">if </span>identifier.is_undefined() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
-                .with_message(<span class="string">&quot;Temporal.TimeZone must be called with a valid initializer&quot;</span>)
+                .with_message(<span class="string">"Temporal.TimeZone must be called with a valid initializer"</span>)
                 .into());
         }
 
@@ -626,7 +627,7 @@
             .as_object()
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message(<span class="string">&quot;this value must be a Temporal.TimeZone&quot;</span>)
+                JsNativeError::typ().with_message(<span class="string">"this value must be a Temporal.TimeZone"</span>)
             })<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(JsString::from(tz.slot.id(context)<span class="question-mark">?</span>).into())
     }
@@ -642,7 +643,7 @@
             .as_object()
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message(<span class="string">&quot;this value must be a Temporal.TimeZone&quot;</span>)
+                JsNativeError::typ().with_message(<span class="string">"this value must be a Temporal.TimeZone"</span>)
             })<span class="question-mark">?</span>;
         <span class="comment">// 3. Set instant to ? ToTemporalInstant(instant).
         </span><span class="kw">let </span>_i = args.get_or_undefined(<span class="number">0</span>);
@@ -650,7 +651,7 @@
         <span class="comment">// 4. If timeZone.[[OffsetNanoseconds]] is not undefined, return 𝔽(timeZone.[[OffsetNanoseconds]]).
         // 5. Return 𝔽(GetNamedTimeZoneOffsetNanoseconds(timeZone.[[Identifier]], instant.[[Nanoseconds]])).
         </span><span class="prelude-val">Err</span>(JsNativeError::error()
-            .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
+            .with_message(<span class="string">"not yet implemented."</span>)
             .into())
     }
 
@@ -665,14 +666,14 @@
             .as_object()
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message(<span class="string">&quot;this value must be a Temporal.TimeZone&quot;</span>)
+                JsNativeError::typ().with_message(<span class="string">"this value must be a Temporal.TimeZone"</span>)
             })<span class="question-mark">?</span>;
         <span class="comment">// 3. Set instant to ? ToTemporalInstant(instant).
         </span><span class="kw">let </span>_i = args.get_or_undefined(<span class="number">0</span>);
         <span class="comment">// TODO: to_temporal_instant is abstract operation for Temporal.Instant objects.
         // let instant = to_temporal_instant(i)?;
         </span><span class="prelude-val">Err</span>(JsNativeError::error()
-            .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
+            .with_message(<span class="string">"not yet implemented."</span>)
             .into())
 
         <span class="comment">// 4. Return ? GetOffsetStringFor(timeZone, instant).
@@ -684,7 +685,7 @@
         <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="prelude-val">Err</span>(JsNativeError::error()
-            .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
+            .with_message(<span class="string">"not yet implemented."</span>)
             .into())
     }
 
@@ -694,7 +695,7 @@
         <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="prelude-val">Err</span>(JsNativeError::error()
-            .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
+            .with_message(<span class="string">"not yet implemented."</span>)
             .into())
     }
 
@@ -704,7 +705,7 @@
         <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="prelude-val">Err</span>(JsNativeError::error()
-            .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
+            .with_message(<span class="string">"not yet implemented."</span>)
             .into())
     }
 
@@ -714,7 +715,7 @@
         <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="prelude-val">Err</span>(JsNativeError::error()
-            .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
+            .with_message(<span class="string">"not yet implemented."</span>)
             .into())
     }
 
@@ -724,7 +725,7 @@
         <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="prelude-val">Err</span>(JsNativeError::error()
-            .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
+            .with_message(<span class="string">"not yet implemented."</span>)
             .into())
     }
 
@@ -739,7 +740,7 @@
             .as_object()
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message(<span class="string">&quot;this value must be a Temporal.TimeZone&quot;</span>)
+                JsNativeError::typ().with_message(<span class="string">"this value must be a Temporal.TimeZone"</span>)
             })<span class="question-mark">?</span>;
         <span class="comment">// 3. Return timeZone.[[Identifier]].
         </span><span class="prelude-val">Ok</span>(JsString::from(tz.slot.id(context)<span class="question-mark">?</span>).into())
@@ -751,7 +752,7 @@
 </span><span class="doccomment">/// Abstract operation `DefaultTimeZone ( )`
 ///
 /// The abstract operation `DefaultTimeZone` takes no arguments. It returns a String value
-/// representing the host environment&#39;s current time zone, which is either a valid (11.1.1) and
+/// representing the host environment's current time zone, which is either a valid (11.1.1) and
 /// canonicalized (11.1.2) time zone name, or an offset conforming to the syntax of a
 /// `TimeZoneNumericUTCOffset`.
 ///
@@ -765,11 +766,11 @@
 </span><span class="attr">#[allow(unused)]
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>default_time_zone(context: <span class="kw-2">&amp;mut </span>Context) -&gt; String {
     <span class="comment">// The minimum implementation of DefaultTimeZone for ECMAScript implementations that do not
-    // include the ECMA-402 API, supporting only the &quot;UTC&quot; time zone, performs the following steps
+    // include the ECMA-402 API, supporting only the "UTC" time zone, performs the following steps
     // when called:
 
-    // 1. Return &quot;UTC&quot;.
-    </span><span class="string">&quot;UTC&quot;</span>.to_owned()
+    // 1. Return "UTC".
+    </span><span class="string">"UTC"</span>.to_owned()
 
     <span class="comment">// TO-DO: full, system-aware implementation (and intl feature)
 </span>}
@@ -797,13 +798,13 @@
             .into()
     });
 
-    <span class="comment">// 2. Let object be ? OrdinaryCreateFromConstructor(newTarget, &quot;%Temporal.TimeZone.prototype%&quot;, « [[InitializedTemporalTimeZone]], [[Identifier]], [[OffsetNanoseconds]] »).
+    <span class="comment">// 2. Let object be ? OrdinaryCreateFromConstructor(newTarget, "%Temporal.TimeZone.prototype%", « [[InitializedTemporalTimeZone]], [[Identifier]], [[OffsetNanoseconds]] »).
     </span><span class="kw">let </span>prototype =
         get_prototype_from_constructor(<span class="kw-2">&amp;</span>new_target, StandardConstructors::time_zone, context)<span class="question-mark">?</span>;
 
     <span class="comment">// TODO: Migrate ISO8601 parsing to `boa_temporal`
     </span><span class="prelude-val">Err</span>(JsNativeError::error()
-        .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
+        .with_message(<span class="string">"not yet implemented."</span>)
         .into())
 }
 
@@ -828,7 +829,7 @@
     // 3. Assert: parseResult contains a TemporalSign Parse Node.
     </span><span class="kw">let </span><span class="prelude-val">Some</span>(utc_offset) = parse_result.offset <span class="kw">else </span>{
         <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-            .with_message(<span class="string">&quot;Offset string was not a valid offset&quot;</span>)
+            .with_message(<span class="string">"Offset string was not a valid offset"</span>)
             .into());
     };
 
@@ -861,13 +862,13 @@
     // a. Let nanoseconds be 0.
     // 16. Else,
     // a. Let parsedFraction be the source text matched by the TemporalDecimalFraction Parse Node contained within parseResult.
-    // b. Let fraction be the string-concatenation of CodePointsToString(parsedFraction) and &quot;000000000&quot;.
+    // b. Let fraction be the string-concatenation of CodePointsToString(parsedFraction) and "000000000".
     // c. Let nanosecondsString be the substring of fraction from 1 to 10.
     // d. Let nanoseconds be ℝ(StringToNumber(nanosecondsString)).
     // 17. Return sign × (((hours × 60 + minutes) × 60 + seconds) × 10^9 + nanoseconds).
 
     </span><span class="prelude-val">Err</span>(JsNativeError::error()
-        .with_message(<span class="string">&quot;not yet implemented.&quot;</span>)
+        .with_message(<span class="string">"not yet implemented."</span>)
         .into())
 }
 
@@ -875,8 +876,8 @@
 </span><span class="kw">fn </span>format_time_zone_offset_string(offset_nanoseconds: i64) -&gt; String {
     <span class="comment">// 1. Assert: offsetNanoseconds is an integer.
 
-    // 2. If offsetNanoseconds ≥ 0, let sign be &quot;+&quot;; otherwise, let sign be &quot;-&quot;.
-    </span><span class="kw">let </span>sign = <span class="kw">if </span>offset_nanoseconds &gt;= <span class="number">0 </span>{ <span class="string">&quot;+&quot; </span>} <span class="kw">else </span>{ <span class="string">&quot;-&quot; </span>};
+    // 2. If offsetNanoseconds ≥ 0, let sign be "+"; otherwise, let sign be "-".
+    </span><span class="kw">let </span>sign = <span class="kw">if </span>offset_nanoseconds &gt;= <span class="number">0 </span>{ <span class="string">"+" </span>} <span class="kw">else </span>{ <span class="string">"-" </span>};
 
     <span class="comment">// 3. Let offsetNanoseconds be abs(offsetNanoseconds).
     </span><span class="kw">let </span>offset_nanoseconds = offset_nanoseconds.unsigned_abs();
@@ -908,14 +909,14 @@
         </span><span class="kw">let </span>fraction = to_zero_padded_decimal_string(nanoseconds, <span class="number">9</span>);
 
         <span class="comment">// b. Set fraction to the longest possible substring of fraction starting at position 0 and not ending with the code unit 0x0030 (DIGIT ZERO).
-        </span><span class="kw">let </span>fraction = fraction.trim_end_matches(<span class="string">&#39;0&#39;</span>);
+        </span><span class="kw">let </span>fraction = fraction.trim_end_matches(<span class="string">'0'</span>);
 
         <span class="comment">// c. Let post be the string-concatenation of the code unit 0x003A (COLON), s, the code unit 0x002E (FULL STOP), and fraction.
-        </span><span class="macro">format!</span>(<span class="string">&quot;:{s}.{fraction}&quot;</span>)
+        </span><span class="macro">format!</span>(<span class="string">":{s}.{fraction}"</span>)
     } <span class="kw">else if </span>seconds != <span class="number">0 </span>{
         <span class="comment">// 12. Else if seconds ≠ 0, then
         // a. Let post be the string-concatenation of the code unit 0x003A (COLON) and s.
-        </span><span class="macro">format!</span>(<span class="string">&quot;:{s}&quot;</span>)
+        </span><span class="macro">format!</span>(<span class="string">":{s}"</span>)
     } <span class="kw">else </span>{
         <span class="comment">// 13. Else,
         // a. Let post be the empty String.
@@ -923,7 +924,7 @@
     };
 
     <span class="comment">// 14. Return the string-concatenation of sign, h, the code unit 0x003A (COLON), m, and post.
-    </span><span class="macro">format!</span>(<span class="string">&quot;{sign}{h}:{m}{post}&quot;</span>)
+    </span><span class="macro">format!</span>(<span class="string">"{sign}{h}:{m}{post}"</span>)
 }
 
 <span class="doccomment">/// Abstract operation `CanonicalizeTimeZoneName ( timeZone )`
@@ -935,9 +936,9 @@
     <span class="comment">// The minimum implementation of CanonicalizeTimeZoneName for ECMAScript implementations that
     // do not include local political rules for any time zones performs the following steps when
     // called:
-    // 1. Assert: timeZone is an ASCII-case-insensitive match for &quot;UTC&quot;.
-    </span><span class="macro">assert!</span>(time_zone.to_ascii_uppercase() == <span class="string">&quot;UTC&quot;</span>);
-    <span class="comment">// 2. Return &quot;UTC&quot;.
-    </span><span class="string">&quot;UTC&quot;</span>.to_owned()
+    // 1. Assert: timeZone is an ASCII-case-insensitive match for "UTC".
+    </span><span class="macro">assert!</span>(time_zone.to_ascii_uppercase() == <span class="string">"UTC"</span>);
+    <span class="comment">// 2. Return "UTC".
+    </span><span class="string">"UTC"</span>.to_owned()
 }
 </code></pre></div></section></main></body></html>

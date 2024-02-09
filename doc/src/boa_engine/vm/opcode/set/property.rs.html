@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/vm/opcode/set/property.rs`."><title>property.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/vm/opcode/set/property.rs`."><title>property.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -484,7 +485,7 @@
 
             <span class="kw">if </span>slot.attributes.is_accessor_descriptor() {
                 <span class="kw">let </span>result = <span class="kw">if </span>slot.attributes.contains(SlotAttributes::PROTOTYPE) {
-                    <span class="kw">let </span>prototype = shape.prototype().expect(<span class="string">&quot;prototype should have value&quot;</span>);
+                    <span class="kw">let </span>prototype = shape.prototype().expect(<span class="string">"prototype should have value"</span>);
                     <span class="kw">let </span>prototype = prototype.borrow();
 
                     prototype.properties().storage[slot_index + <span class="number">1</span>].clone()
@@ -494,14 +495,14 @@
 
                 drop(object_borrowed);
                 <span class="kw">if </span>slot.attributes.has_set() &amp;&amp; result.is_object() {
-                    result.as_object().expect(<span class="string">&quot;should contain getter&quot;</span>).call(
+                    result.as_object().expect(<span class="string">"should contain getter"</span>).call(
                         <span class="kw-2">&amp;</span>receiver,
                         <span class="kw-2">&amp;</span>[value.clone()],
                         context,
                     )<span class="question-mark">?</span>;
                 }
             } <span class="kw">else if </span>slot.attributes.contains(SlotAttributes::PROTOTYPE) {
-                <span class="kw">let </span>prototype = shape.prototype().expect(<span class="string">&quot;prototype should have value&quot;</span>);
+                <span class="kw">let </span>prototype = shape.prototype().expect(<span class="string">"prototype should have value"</span>);
                 <span class="kw">let </span><span class="kw-2">mut </span>prototype = prototype.borrow_mut();
 
                 prototype.properties_mut().storage[slot_index] = value.clone();
@@ -521,7 +522,7 @@
         <span class="kw">let </span>succeeded = object.__set__(name.clone(), value.clone(), receiver, context)<span class="question-mark">?</span>;
         <span class="kw">if </span>!succeeded &amp;&amp; context.vm.frame().code_block.strict() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="macro">format!</span>(<span class="string">&quot;cannot set non-writable property: {name}&quot;</span>))
+                .with_message(<span class="macro">format!</span>(<span class="string">"cannot set non-writable property: {name}"</span>))
                 .into());
         }
 
@@ -539,8 +540,8 @@
 }
 
 <span class="kw">impl </span>Operation <span class="kw">for </span>SetPropertyByName {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;SetPropertyByName&quot;</span>;
-    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - SetPropertyByName&quot;</span>;
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str = <span class="string">"SetPropertyByName"</span>;
+    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str = <span class="string">"INST - SetPropertyByName"</span>;
     <span class="kw">const </span>COST: u8 = <span class="number">4</span>;
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
@@ -567,8 +568,8 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>SetPropertyByValue;
 
 <span class="kw">impl </span>Operation <span class="kw">for </span>SetPropertyByValue {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;SetPropertyByValue&quot;</span>;
-    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - SetPropertyByValue&quot;</span>;
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str = <span class="string">"SetPropertyByValue"</span>;
+    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str = <span class="string">"INST - SetPropertyByValue"</span>;
     <span class="kw">const </span>COST: u8 = <span class="number">4</span>;
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
@@ -585,14 +586,14 @@
         <span class="kw">let </span>key = key.to_property_key(context)<span class="question-mark">?</span>;
 
         <span class="comment">// Fast Path:
-        </span><span class="lifetime">&#39;fast_path</span>: {
+        </span><span class="lifetime">'fast_path</span>: {
             <span class="kw">if </span>object.is_array() {
                 <span class="kw">if let </span>PropertyKey::Index(index) = <span class="kw-2">&amp;</span>key {
                     <span class="kw">let </span><span class="kw-2">mut </span>object_borrowed = object.borrow_mut();
 
                     <span class="comment">// Cannot modify if not extensible.
                     </span><span class="kw">if </span>!object_borrowed.extensible {
-                        <span class="kw">break </span><span class="lifetime">&#39;fast_path</span>;
+                        <span class="kw">break </span><span class="lifetime">'fast_path</span>;
                     }
 
                     <span class="kw">let </span>shape = object_borrowed.shape().clone();
@@ -612,18 +613,18 @@
                             // and proxy objects can override [[set]].
                             </span><span class="kw">let </span>prototype = shape.prototype();
                             <span class="kw">if </span>prototype.map_or(<span class="bool-val">false</span>, |x| x.is::&lt;Proxy&gt;()) {
-                                <span class="kw">break </span><span class="lifetime">&#39;fast_path</span>;
+                                <span class="kw">break </span><span class="lifetime">'fast_path</span>;
                             }
 
                             dense_elements.push(value.clone());
                             context.vm.push(value);
 
                             <span class="kw">let </span>len = dense_elements.len() <span class="kw">as </span>u32;
-                            <span class="kw">let </span>length_key = PropertyKey::from(<span class="macro">utf16!</span>(<span class="string">&quot;length&quot;</span>));
+                            <span class="kw">let </span>length_key = PropertyKey::from(<span class="macro">utf16!</span>(<span class="string">"length"</span>));
                             <span class="kw">let </span>length = object_borrowed
                                 .properties_mut()
                                 .get(<span class="kw-2">&amp;</span>length_key)
-                                .expect(<span class="string">&quot;Arrays must have length property&quot;</span>);
+                                .expect(<span class="string">"Arrays must have length property"</span>);
 
                             <span class="kw">if </span>length.expect_writable() {
                                 <span class="comment">// We have to get the max of previous length and len(dense_elements) + 1,
@@ -631,7 +632,7 @@
                                 </span><span class="kw">let </span>len = length
                                     .expect_value()
                                     .to_u32(context)
-                                    .expect(<span class="string">&quot;length should have a u32 value&quot;</span>)
+                                    .expect(<span class="string">"length should have a u32 value"</span>)
                                     .max(len);
                                 object_borrowed.insert(
                                     length_key,
@@ -643,7 +644,7 @@
                                         .build(),
                                 );
                             } <span class="kw">else if </span>context.vm.frame().code_block.strict() {
-                                <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ().with_message(<span class="string">&quot;TypeError: Cannot assign to read only property &#39;length&#39; of array object&quot;</span>).into());
+                                <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ().with_message(<span class="string">"TypeError: Cannot assign to read only property 'length' of array object"</span>).into());
                             }
                             <span class="kw">return </span><span class="prelude-val">Ok</span>(CompletionType::Normal);
                         }
@@ -657,7 +658,7 @@
             object.__set__(key.clone(), value.clone(), receiver, <span class="kw-2">&amp;mut </span>context.into())<span class="question-mark">?</span>;
         <span class="kw">if </span>!succeeded &amp;&amp; context.vm.frame().code_block.strict() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="macro">format!</span>(<span class="string">&quot;cannot set non-writable property: {key}&quot;</span>))
+                .with_message(<span class="macro">format!</span>(<span class="string">"cannot set non-writable property: {key}"</span>))
                 .into());
         }
         context.vm.stack.push(value);
@@ -703,8 +704,8 @@
 }
 
 <span class="kw">impl </span>Operation <span class="kw">for </span>SetPropertyGetterByName {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;SetPropertyGetterByName&quot;</span>;
-    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - SetPropertyGetterByName&quot;</span>;
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str = <span class="string">"SetPropertyGetterByName"</span>;
+    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str = <span class="string">"INST - SetPropertyGetterByName"</span>;
     <span class="kw">const </span>COST: u8 = <span class="number">4</span>;
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
@@ -731,8 +732,8 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>SetPropertyGetterByValue;
 
 <span class="kw">impl </span>Operation <span class="kw">for </span>SetPropertyGetterByValue {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;SetPropertyGetterByValue&quot;</span>;
-    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - SetPropertyGetterByValue&quot;</span>;
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str = <span class="string">"SetPropertyGetterByValue"</span>;
+    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str = <span class="string">"INST - SetPropertyGetterByValue"</span>;
     <span class="kw">const </span>COST: u8 = <span class="number">4</span>;
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
@@ -800,8 +801,8 @@
 }
 
 <span class="kw">impl </span>Operation <span class="kw">for </span>SetPropertySetterByName {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;SetPropertySetterByName&quot;</span>;
-    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - SetPropertySetterByName&quot;</span>;
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str = <span class="string">"SetPropertySetterByName"</span>;
+    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str = <span class="string">"INST - SetPropertySetterByName"</span>;
     <span class="kw">const </span>COST: u8 = <span class="number">4</span>;
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
@@ -828,8 +829,8 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>SetPropertySetterByValue;
 
 <span class="kw">impl </span>Operation <span class="kw">for </span>SetPropertySetterByValue {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;SetPropertySetterByValue&quot;</span>;
-    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - SetPropertySetterByValue&quot;</span>;
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str = <span class="string">"SetPropertySetterByValue"</span>;
+    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str = <span class="string">"INST - SetPropertySetterByValue"</span>;
     <span class="kw">const </span>COST: u8 = <span class="number">4</span>;
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
@@ -866,8 +867,8 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>SetFunctionName;
 
 <span class="kw">impl </span>Operation <span class="kw">for </span>SetFunctionName {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;SetFunctionName&quot;</span>;
-    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;INST - SetFunctionName&quot;</span>;
+    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str = <span class="string">"SetFunctionName"</span>;
+    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str = <span class="string">"INST - SetFunctionName"</span>;
     <span class="kw">const </span>COST: u8 = <span class="number">4</span>;
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
@@ -882,13 +883,13 @@
         };
 
         <span class="kw">let </span>prefix = <span class="kw">match </span>prefix {
-            <span class="number">1 </span>=&gt; <span class="prelude-val">Some</span>(JsString::from(<span class="string">&quot;get&quot;</span>)),
-            <span class="number">2 </span>=&gt; <span class="prelude-val">Some</span>(JsString::from(<span class="string">&quot;set&quot;</span>)),
+            <span class="number">1 </span>=&gt; <span class="prelude-val">Some</span>(JsString::from(<span class="string">"get"</span>)),
+            <span class="number">2 </span>=&gt; <span class="prelude-val">Some</span>(JsString::from(<span class="string">"set"</span>)),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         };
 
         set_function_name(
-            function.as_object().expect(<span class="string">&quot;function is not an object&quot;</span>),
+            function.as_object().expect(<span class="string">"function is not an object"</span>),
             <span class="kw-2">&amp;</span>name,
             prefix,
             context,

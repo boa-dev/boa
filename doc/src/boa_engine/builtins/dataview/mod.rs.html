@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/builtins/dataview/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/builtins/dataview/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1065,7 +1066,7 @@
 <a href="#1065" id="1065">1065</a>
 <a href="#1066" id="1066">1066</a>
 <a href="#1067" id="1067">1067</a>
-</pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s implementation of ECMAScript&#39;s global `DataView` object.
+</pre></div><pre class="rust"><code><span class="doccomment">//! Boa's implementation of ECMAScript's global `DataView` object.
 //!
 //! More information:
 //!  - [ECMAScript reference][spec]
@@ -1165,56 +1166,56 @@
         <span class="kw">let </span>flag_attributes = Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE;
 
         <span class="kw">let </span>get_buffer = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_buffer)
-            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get buffer&quot;</span>))
+            .name(<span class="macro">js_string!</span>(<span class="string">"get buffer"</span>))
             .build();
 
         <span class="kw">let </span>get_byte_length = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_byte_length)
-            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get byteLength&quot;</span>))
+            .name(<span class="macro">js_string!</span>(<span class="string">"get byteLength"</span>))
             .build();
 
         <span class="kw">let </span>get_byte_offset = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_byte_offset)
-            .name(<span class="macro">js_string!</span>(<span class="string">&quot;get byteOffset&quot;</span>))
+            .name(<span class="macro">js_string!</span>(<span class="string">"get byteOffset"</span>))
             .build();
 
         BuiltInBuilder::from_standard_constructor::&lt;<span class="self">Self</span>&gt;(realm)
             .accessor(
-                <span class="macro">js_string!</span>(<span class="string">&quot;buffer&quot;</span>),
+                <span class="macro">js_string!</span>(<span class="string">"buffer"</span>),
                 <span class="prelude-val">Some</span>(get_buffer),
                 <span class="prelude-val">None</span>,
                 flag_attributes,
             )
             .accessor(
-                <span class="macro">js_string!</span>(<span class="string">&quot;byteLength&quot;</span>),
+                <span class="macro">js_string!</span>(<span class="string">"byteLength"</span>),
                 <span class="prelude-val">Some</span>(get_byte_length),
                 <span class="prelude-val">None</span>,
                 flag_attributes,
             )
             .accessor(
-                <span class="macro">js_string!</span>(<span class="string">&quot;byteOffset&quot;</span>),
+                <span class="macro">js_string!</span>(<span class="string">"byteOffset"</span>),
                 <span class="prelude-val">Some</span>(get_byte_offset),
                 <span class="prelude-val">None</span>,
                 flag_attributes,
             )
-            .method(<span class="self">Self</span>::get_big_int64, <span class="macro">js_string!</span>(<span class="string">&quot;getBigInt64&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::get_big_uint64, <span class="macro">js_string!</span>(<span class="string">&quot;getBigUint64&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::get_float32, <span class="macro">js_string!</span>(<span class="string">&quot;getFloat32&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::get_float64, <span class="macro">js_string!</span>(<span class="string">&quot;getFloat64&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::get_int8, <span class="macro">js_string!</span>(<span class="string">&quot;getInt8&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::get_int16, <span class="macro">js_string!</span>(<span class="string">&quot;getInt16&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::get_int32, <span class="macro">js_string!</span>(<span class="string">&quot;getInt32&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::get_uint8, <span class="macro">js_string!</span>(<span class="string">&quot;getUint8&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::get_uint16, <span class="macro">js_string!</span>(<span class="string">&quot;getUint16&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::get_uint32, <span class="macro">js_string!</span>(<span class="string">&quot;getUint32&quot;</span>), <span class="number">1</span>)
-            .method(<span class="self">Self</span>::set_big_int64, <span class="macro">js_string!</span>(<span class="string">&quot;setBigInt64&quot;</span>), <span class="number">2</span>)
-            .method(<span class="self">Self</span>::set_big_uint64, <span class="macro">js_string!</span>(<span class="string">&quot;setBigUint64&quot;</span>), <span class="number">2</span>)
-            .method(<span class="self">Self</span>::set_float32, <span class="macro">js_string!</span>(<span class="string">&quot;setFloat32&quot;</span>), <span class="number">2</span>)
-            .method(<span class="self">Self</span>::set_float64, <span class="macro">js_string!</span>(<span class="string">&quot;setFloat64&quot;</span>), <span class="number">2</span>)
-            .method(<span class="self">Self</span>::set_int8, <span class="macro">js_string!</span>(<span class="string">&quot;setInt8&quot;</span>), <span class="number">2</span>)
-            .method(<span class="self">Self</span>::set_int16, <span class="macro">js_string!</span>(<span class="string">&quot;setInt16&quot;</span>), <span class="number">2</span>)
-            .method(<span class="self">Self</span>::set_int32, <span class="macro">js_string!</span>(<span class="string">&quot;setInt32&quot;</span>), <span class="number">2</span>)
-            .method(<span class="self">Self</span>::set_uint8, <span class="macro">js_string!</span>(<span class="string">&quot;setUint8&quot;</span>), <span class="number">2</span>)
-            .method(<span class="self">Self</span>::set_uint16, <span class="macro">js_string!</span>(<span class="string">&quot;setUint16&quot;</span>), <span class="number">2</span>)
-            .method(<span class="self">Self</span>::set_uint32, <span class="macro">js_string!</span>(<span class="string">&quot;setUint32&quot;</span>), <span class="number">2</span>)
+            .method(<span class="self">Self</span>::get_big_int64, <span class="macro">js_string!</span>(<span class="string">"getBigInt64"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::get_big_uint64, <span class="macro">js_string!</span>(<span class="string">"getBigUint64"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::get_float32, <span class="macro">js_string!</span>(<span class="string">"getFloat32"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::get_float64, <span class="macro">js_string!</span>(<span class="string">"getFloat64"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::get_int8, <span class="macro">js_string!</span>(<span class="string">"getInt8"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::get_int16, <span class="macro">js_string!</span>(<span class="string">"getInt16"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::get_int32, <span class="macro">js_string!</span>(<span class="string">"getInt32"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::get_uint8, <span class="macro">js_string!</span>(<span class="string">"getUint8"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::get_uint16, <span class="macro">js_string!</span>(<span class="string">"getUint16"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::get_uint32, <span class="macro">js_string!</span>(<span class="string">"getUint32"</span>), <span class="number">1</span>)
+            .method(<span class="self">Self</span>::set_big_int64, <span class="macro">js_string!</span>(<span class="string">"setBigInt64"</span>), <span class="number">2</span>)
+            .method(<span class="self">Self</span>::set_big_uint64, <span class="macro">js_string!</span>(<span class="string">"setBigUint64"</span>), <span class="number">2</span>)
+            .method(<span class="self">Self</span>::set_float32, <span class="macro">js_string!</span>(<span class="string">"setFloat32"</span>), <span class="number">2</span>)
+            .method(<span class="self">Self</span>::set_float64, <span class="macro">js_string!</span>(<span class="string">"setFloat64"</span>), <span class="number">2</span>)
+            .method(<span class="self">Self</span>::set_int8, <span class="macro">js_string!</span>(<span class="string">"setInt8"</span>), <span class="number">2</span>)
+            .method(<span class="self">Self</span>::set_int16, <span class="macro">js_string!</span>(<span class="string">"setInt16"</span>), <span class="number">2</span>)
+            .method(<span class="self">Self</span>::set_int32, <span class="macro">js_string!</span>(<span class="string">"setInt32"</span>), <span class="number">2</span>)
+            .method(<span class="self">Self</span>::set_uint8, <span class="macro">js_string!</span>(<span class="string">"setUint8"</span>), <span class="number">2</span>)
+            .method(<span class="self">Self</span>::set_uint16, <span class="macro">js_string!</span>(<span class="string">"setUint16"</span>), <span class="number">2</span>)
+            .method(<span class="self">Self</span>::set_uint32, <span class="macro">js_string!</span>(<span class="string">"setUint32"</span>), <span class="number">2</span>)
             .property(
                 JsSymbol::to_string_tag(),
                 <span class="self">Self</span>::NAME,
@@ -1241,7 +1242,7 @@
     <span class="doccomment">/// `DataView ( buffer [ , byteOffset [ , byteLength ] ] )`
     ///
     /// The `DataView` view provides a low-level interface for reading and writing multiple number
-    /// types in a binary `ArrayBuffer`, without having to care about the platform&#39;s endianness.
+    /// types in a binary `ArrayBuffer`, without having to care about the platform's endianness.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -1257,7 +1258,7 @@
         <span class="comment">// 1. If NewTarget is undefined, throw a TypeError exception.
         </span><span class="kw">if </span>new_target.is_undefined() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;cannot call `DataView` constructor without `new`&quot;</span>)
+                .with_message(<span class="string">"cannot call `DataView` constructor without `new`"</span>)
                 .into());
         }
         <span class="kw">let </span>byte_len = args.get_or_undefined(<span class="number">2</span>);
@@ -1267,7 +1268,7 @@
             .get_or_undefined(<span class="number">0</span>)
             .as_object()
             .and_then(|o| o.clone().into_buffer_object().ok())
-            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;buffer must be an ArrayBuffer&quot;</span>))<span class="question-mark">?</span>;
+            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">"buffer must be an ArrayBuffer"</span>))<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Let offset be ? ToIndex(byteOffset).
         </span><span class="kw">let </span>offset = args.get_or_undefined(<span class="number">1</span>).to_index(context)<span class="question-mark">?</span>;
@@ -1278,7 +1279,7 @@
             <span class="comment">// 4. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.
             </span><span class="kw">let </span><span class="prelude-val">Some</span>(slice) = buffer.bytes(Ordering::SeqCst) <span class="kw">else </span>{
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                    .with_message(<span class="string">&quot;ArrayBuffer is detached&quot;</span>)
+                    .with_message(<span class="string">"ArrayBuffer is detached"</span>)
                     .into());
             };
 
@@ -1288,7 +1289,7 @@
             <span class="comment">// 6. If offset &gt; bufferByteLength, throw a RangeError exception.
             </span><span class="kw">if </span>offset &gt; buf_len {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
-                    .with_message(<span class="string">&quot;Start offset is outside the bounds of the buffer&quot;</span>)
+                    .with_message(<span class="string">"Start offset is outside the bounds of the buffer"</span>)
                     .into());
             }
 
@@ -1312,13 +1313,13 @@
             <span class="comment">//     b. If offset + viewByteLength &gt; bufferByteLength, throw a RangeError exception.
             </span><span class="kw">if </span>offset + byte_len &gt; buf_byte_len {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
-                    .with_message(<span class="string">&quot;Invalid data view length&quot;</span>)
+                    .with_message(<span class="string">"Invalid data view length"</span>)
                     .into());
             }
             <span class="prelude-val">Some</span>(byte_len)
         };
 
-        <span class="comment">// 10. Let O be ? OrdinaryCreateFromConstructor(NewTarget, &quot;%DataView.prototype%&quot;,
+        <span class="comment">// 10. Let O be ? OrdinaryCreateFromConstructor(NewTarget, "%DataView.prototype%",
         //     « [[DataView]], [[ViewedArrayBuffer]], [[ByteLength]], [[ByteOffset]] »).
         </span><span class="kw">let </span>prototype =
             get_prototype_from_constructor(new_target, StandardConstructors::data_view, context)<span class="question-mark">?</span>;
@@ -1331,14 +1332,14 @@
             .map(|s| s.len() <span class="kw">as </span>u64)
         <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;ArrayBuffer can&#39;t be detached&quot;</span>)
+                .with_message(<span class="string">"ArrayBuffer can't be detached"</span>)
                 .into());
         };
 
         <span class="comment">// 13. If offset &gt; bufferByteLength, throw a RangeError exception.
         </span><span class="kw">if </span>offset &gt; buf_byte_len {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
-                .with_message(<span class="string">&quot;DataView offset outside of buffer array bounds&quot;</span>)
+                .with_message(<span class="string">"DataView offset outside of buffer array bounds"</span>)
                 .into());
         }
 
@@ -1347,7 +1348,7 @@
             <span class="comment">// a. If offset + viewByteLength &gt; bufferByteLength, throw a RangeError exception.
             </span><span class="kw">if </span>offset + view_byte_len &gt; buf_byte_len {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
-                    .with_message(<span class="string">&quot;DataView offset outside of buffer array bounds&quot;</span>)
+                    .with_message(<span class="string">"DataView offset outside of buffer array bounds"</span>)
                     .into());
             }
         }
@@ -1392,7 +1393,7 @@
         </span><span class="kw">let </span>view = this
             .as_object()
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
-            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;`this` is not a DataView&quot;</span>))<span class="question-mark">?</span>;
+            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">"`this` is not a DataView"</span>))<span class="question-mark">?</span>;
         <span class="comment">// 3. Assert: O has a [[ViewedArrayBuffer]] internal slot.
         // 4. Let buffer be O.[[ViewedArrayBuffer]].
         </span><span class="kw">let </span>buffer = view.viewed_array_buffer.clone();
@@ -1421,7 +1422,7 @@
         </span><span class="kw">let </span>view = this
             .as_object()
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
-            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;`this` is not a DataView&quot;</span>))<span class="question-mark">?</span>;
+            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">"`this` is not a DataView"</span>))<span class="question-mark">?</span>;
 
         <span class="comment">// 4. Let viewRecord be MakeDataViewWithBufferWitnessRecord(O, seq-cst).
         // 5. If IsViewOutOfBounds(viewRecord) is true, throw a TypeError exception.
@@ -1431,7 +1432,7 @@
             .filter(|s| !view.is_out_of_bounds(s.len()))
         <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;view out of bounds for its inner buffer&quot;</span>)
+                .with_message(<span class="string">"view out of bounds for its inner buffer"</span>)
                 .into());
         };
 
@@ -1463,7 +1464,7 @@
         </span><span class="kw">let </span>view = this
             .as_object()
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
-            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;`this` is not a DataView&quot;</span>))<span class="question-mark">?</span>;
+            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">"`this` is not a DataView"</span>))<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Assert: O has a [[ViewedArrayBuffer]] internal slot.
         </span><span class="kw">let </span>buffer = view.viewed_array_buffer.as_buffer();
@@ -1475,7 +1476,7 @@
             .is_none()
         {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;data view is outside the bounds of its inner buffer&quot;</span>)
+                .with_message(<span class="string">"data view is outside the bounds of its inner buffer"</span>)
                 .into());
         }
 
@@ -1489,7 +1490,7 @@
     ///
     /// The abstract operation `GetViewValue` takes arguments view, requestIndex, `isLittleEndian`,
     /// and type. It is used by functions on `DataView` instances to retrieve values from the
-    /// view&#39;s buffer.
+    /// view's buffer.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -1506,7 +1507,7 @@
         </span><span class="kw">let </span>view = view
             .as_object()
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
-            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;`this` is not a DataView&quot;</span>))<span class="question-mark">?</span>;
+            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">"`this` is not a DataView"</span>))<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Let getIndex be ? ToIndex(requestIndex).
         </span><span class="kw">let </span>get_index = request_index.to_index(context)<span class="question-mark">?</span>;
@@ -1515,7 +1516,7 @@
         </span><span class="kw">let </span>is_little_endian = is_little_endian.to_boolean();
 
         <span class="comment">// 6. Let viewRecord be MakeDataViewWithBufferWitnessRecord(view, unordered).
-        // 7. NOTE: Bounds checking is not a synchronizing operation when view&#39;s backing buffer is a growable SharedArrayBuffer.
+        // 7. NOTE: Bounds checking is not a synchronizing operation when view's backing buffer is a growable SharedArrayBuffer.
         // 8. If IsViewOutOfBounds(viewRecord) is true, throw a TypeError exception.
         </span><span class="kw">let </span>buffer = view.viewed_array_buffer.as_buffer();
         <span class="kw">let </span><span class="prelude-val">Some</span>(data) = buffer
@@ -1523,7 +1524,7 @@
             .filter(|buf| !view.is_out_of_bounds(buf.len()))
         <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;view out of bounds for its inner buffer&quot;</span>)
+                .with_message(<span class="string">"view out of bounds for its inner buffer"</span>)
                 .into());
         };
 
@@ -1539,7 +1540,7 @@
         <span class="comment">// 11. If getIndex + elementSize &gt; viewSize, throw a RangeError exception.
         </span><span class="kw">if </span>get_index + element_size &gt; view_size {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
-                .with_message(<span class="string">&quot;Offset is outside the bounds of the DataView&quot;</span>)
+                .with_message(<span class="string">"Offset is outside the bounds of the DataView"</span>)
                 .into());
         }
 
@@ -1805,7 +1806,7 @@
     ///
     /// The abstract operation `SetViewValue` takes arguments view, requestIndex, `isLittleEndian`,
     /// type, and value. It is used by functions on `DataView` instances to store values into the
-    /// view&#39;s buffer.
+    /// view's buffer.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -1823,7 +1824,7 @@
         </span><span class="kw">let </span>view = view
             .as_object()
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
-            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">&quot;`this` is not a DataView&quot;</span>))<span class="question-mark">?</span>;
+            .ok_or_else(|| JsNativeError::typ().with_message(<span class="string">"`this` is not a DataView"</span>))<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Let getIndex be ? ToIndex(requestIndex).
         </span><span class="kw">let </span>get_index = request_index.to_index(context)<span class="question-mark">?</span>;
@@ -1836,7 +1837,7 @@
         </span><span class="kw">let </span>is_little_endian = is_little_endian.to_boolean();
 
         <span class="comment">// 8. Let viewRecord be MakeDataViewWithBufferWitnessRecord(view, unordered).
-        // 9. NOTE: Bounds checking is not a synchronizing operation when view&#39;s backing buffer is a growable SharedArrayBuffer.
+        // 9. NOTE: Bounds checking is not a synchronizing operation when view's backing buffer is a growable SharedArrayBuffer.
         // 10. If IsViewOutOfBounds(viewRecord) is true, throw a TypeError exception.
         </span><span class="kw">let </span><span class="kw-2">mut </span>buffer = view.viewed_array_buffer.as_buffer_mut();
 
@@ -1845,7 +1846,7 @@
             .filter(|buf| !view.is_out_of_bounds(buf.len()))
         <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;view out of bounds for its inner buffer&quot;</span>)
+                .with_message(<span class="string">"view out of bounds for its inner buffer"</span>)
                 .into());
         };
 
@@ -1861,7 +1862,7 @@
         <span class="comment">// 13. If getIndex + elementSize &gt; viewSize, throw a RangeError exception.
         </span><span class="kw">if </span>get_index + elem_size <span class="kw">as </span>u64 &gt; view_size {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
-                .with_message(<span class="string">&quot;Offset is outside the bounds of DataView&quot;</span>)
+                .with_message(<span class="string">"Offset is outside the bounds of DataView"</span>)
                 .into());
         }
 

@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/temporal/src/iso.rs`."><title>iso.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="boa_temporal" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../boa_temporal/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_temporal"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/temporal/src/iso.rs`."><title>iso.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="boa_temporal" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../boa_temporal/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_temporal"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -693,7 +694,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(date: IsoDate, time: IsoTime) -&gt; TemporalResult&lt;<span class="self">Self</span>&gt; {
         <span class="kw">if </span>!iso_dt_within_valid_limits(date, <span class="kw-2">&amp;</span>time) {
             <span class="kw">return </span><span class="prelude-val">Err</span>(
-                TemporalError::range().with_message(<span class="string">&quot;IsoDateTime not within a valid range.&quot;</span>)
+                TemporalError::range().with_message(<span class="string">"IsoDateTime not within a valid range."</span>)
             );
         }
         <span class="prelude-val">Ok</span>(<span class="self">Self</span>::new_unchecked(date, time))
@@ -706,7 +707,7 @@
         // TODO: Determine whether value needs to be validated as integral.
         // Get the component ISO parts
         </span><span class="kw">let </span>mathematical_nanos = nanos.to_f64().ok_or_else(|| {
-            TemporalError::range().with_message(<span class="string">&quot;nanos was not within a valid range.&quot;</span>)
+            TemporalError::range().with_message(<span class="string">"nanos was not within a valid range."</span>)
         })<span class="question-mark">?</span>;
 
         <span class="comment">// 2. Let remainderNs be epochNanoseconds modulo 10^6.
@@ -786,7 +787,7 @@
 
 </span><span class="doccomment">/// A trait for accessing the `IsoDate` across the various Temporal objects
 </span><span class="kw">pub trait </span>IsoDateSlots {
-    <span class="doccomment">/// Returns the target&#39;s internal `IsoDate`.
+    <span class="doccomment">/// Returns the target's internal `IsoDate`.
     </span><span class="kw">fn </span>iso_date(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; IsoDate;
 }
 
@@ -824,7 +825,7 @@
             }
             ArithmeticOverflow::Reject =&gt; {
                 <span class="kw">if </span>!is_valid_date(year, month, day) {
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">&quot;not a valid ISO date.&quot;</span>));
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">"not a valid ISO date."</span>));
                 }
                 <span class="comment">// NOTE: Values have been verified to be in a u8 range.
                 </span><span class="prelude-val">Ok</span>(<span class="self">Self</span>::new_unchecked(year, month <span class="kw">as </span>u8, day <span class="kw">as </span>u8))
@@ -845,7 +846,7 @@
         )
     }
 
-    <span class="doccomment">/// Functionally the same as Date&#39;s abstract operation `MakeDay`
+    <span class="doccomment">/// Functionally the same as Date's abstract operation `MakeDay`
     ///
     /// Equivalent to `IsoDateToEpochDays`
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_epoch_days(<span class="self">self</span>) -&gt; i32 {
@@ -864,7 +865,7 @@
         overflow: ArithmeticOverflow,
     ) -&gt; TemporalResult&lt;<span class="self">Self</span>&gt; {
         <span class="comment">// 1. Assert: year, month, day, years, months, weeks, and days are integers.
-        // 2. Assert: overflow is either &quot;constrain&quot; or &quot;reject&quot;.
+        // 2. Assert: overflow is either "constrain" or "reject".
         // 3. Let intermediate be ! BalanceISOYearMonth(year + years, month + months).
         </span><span class="kw">let </span><span class="kw-2">mut </span>intermediate_year = <span class="self">self</span>.year + duration.years() <span class="kw">as </span>i32;
         <span class="kw">let </span><span class="kw-2">mut </span>intermediate_month = i32::from(<span class="self">self</span>.month) + duration.months() <span class="kw">as </span>i32;
@@ -895,7 +896,7 @@
 }
 
 <span class="kw">impl </span>IsoDate {
-    <span class="doccomment">/// Creates `[[ISOYear]]`, `[[isoMonth]]`, `[[isoDay]]` fields from `ICU4X`&#39;s `Date&lt;Iso&gt;` struct.
+    <span class="doccomment">/// Creates `[[ISOYear]]`, `[[isoMonth]]`, `[[isoDay]]` fields from `ICU4X`'s `Date&lt;Iso&gt;` struct.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>as_icu4x(<span class="self">self</span>) -&gt; TemporalResult&lt;IcuDate&lt;Iso&gt;&gt; {
         IcuDate::try_new_iso_date(<span class="self">self</span>.year, <span class="self">self</span>.month, <span class="self">self</span>.day)
             .map_err(|e| TemporalError::range().with_message(e.to_string()))
@@ -904,7 +905,7 @@
 
 <span class="comment">// ==== `IsoTime` section ====
 
-</span><span class="doccomment">/// An `IsoTime` record that contains `Temporal`&#39;s
+</span><span class="doccomment">/// An `IsoTime` record that contains `Temporal`'s
 /// time slots.
 </span><span class="attr">#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 </span><span class="kw">pub struct </span>IsoTime {
@@ -958,7 +959,7 @@
             }
             ArithmeticOverflow::Reject =&gt; {
                 <span class="kw">if </span>!is_valid_time(hour, minute, second, millisecond, microsecond, nanosecond) {
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">&quot;IsoTime is not valid&quot;</span>));
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">"IsoTime is not valid"</span>));
                 };
                 <span class="prelude-val">Ok</span>(<span class="self">Self</span>::new_unchecked(
                     hour <span class="kw">as </span>u8,
@@ -1071,10 +1072,10 @@
         <span class="comment">// 1. Let fractionalSecond be nanosecond × 10-9 + microsecond × 10-6 + millisecond × 10-3 + second.
 
         </span><span class="kw">let </span>quantity = <span class="kw">match </span>unit {
-            <span class="comment">// 2. If unit is &quot;day&quot;, then
+            <span class="comment">// 2. If unit is "day", then
             // a. If dayLengthNs is not present, set dayLengthNs to nsPerDay.
             // b. Let quantity be (((((hour × 60 + minute) × 60 + second) × 1000 + millisecond) × 1000 + microsecond) × 1000 + nanosecond) / dayLengthNs.
-            // 3. Else if unit is &quot;hour&quot;, then
+            // 3. Else if unit is "hour", then
             // a. Let quantity be (fractionalSecond / 60 + minute) / 60 + hour.
             </span>TemporalUnit::Hour | TemporalUnit::Day =&gt; {
                 u64::from(<span class="self">self</span>.nanosecond)
@@ -1084,7 +1085,7 @@
                     </span>+ u64::from(<span class="self">self</span>.minute) * <span class="number">60 </span>* <span class="number">1_000_000_000
                     </span>+ u64::from(<span class="self">self</span>.hour) * <span class="number">60 </span>* <span class="number">60 </span>* <span class="number">1_000_000_000
             </span>}
-            <span class="comment">// 4. Else if unit is &quot;minute&quot;, then
+            <span class="comment">// 4. Else if unit is "minute", then
             // a. Let quantity be fractionalSecond / 60 + minute.
             </span>TemporalUnit::Minute =&gt; {
                 u64::from(<span class="self">self</span>.nanosecond)
@@ -1093,7 +1094,7 @@
                     </span>+ u64::from(<span class="self">self</span>.second) * <span class="number">1_000_000_000
                     </span>+ u64::from(<span class="self">self</span>.minute) * <span class="number">60
             </span>}
-            <span class="comment">// 5. Else if unit is &quot;second&quot;, then
+            <span class="comment">// 5. Else if unit is "second", then
             // a. Let quantity be fractionalSecond.
             </span>TemporalUnit::Second =&gt; {
                 u64::from(<span class="self">self</span>.nanosecond)
@@ -1101,32 +1102,32 @@
                     </span>+ u64::from(<span class="self">self</span>.millisecond) * <span class="number">1_000_000
                     </span>+ u64::from(<span class="self">self</span>.second) * <span class="number">1_000_000_000
             </span>}
-            <span class="comment">// 6. Else if unit is &quot;millisecond&quot;, then
+            <span class="comment">// 6. Else if unit is "millisecond", then
             // a. Let quantity be nanosecond × 10-6 + microsecond × 10-3 + millisecond.
             </span>TemporalUnit::Millisecond =&gt; {
                 u64::from(<span class="self">self</span>.nanosecond)
                     + u64::from(<span class="self">self</span>.microsecond) * <span class="number">1_000
                     </span>+ u64::from(<span class="self">self</span>.millisecond) * <span class="number">1_000_000
             </span>}
-            <span class="comment">// 7. Else if unit is &quot;microsecond&quot;, then
+            <span class="comment">// 7. Else if unit is "microsecond", then
             // a. Let quantity be nanosecond × 10-3 + microsecond.
             </span>TemporalUnit::Microsecond =&gt; {
                 u64::from(<span class="self">self</span>.nanosecond) + <span class="number">1_000 </span>* u64::from(<span class="self">self</span>.microsecond)
             }
             <span class="comment">// 8. Else,
-            // a. Assert: unit is &quot;nanosecond&quot;.
+            // a. Assert: unit is "nanosecond".
             // b. Let quantity be nanosecond.
             </span>TemporalUnit::Nanosecond =&gt; u64::from(<span class="self">self</span>.nanosecond),
             <span class="kw">_ </span>=&gt; {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::range()
-                    .with_message(<span class="string">&quot;Invalid temporal unit provided to Time.round.&quot;</span>))
+                    .with_message(<span class="string">"Invalid temporal unit provided to Time.round."</span>))
             }
         };
 
         <span class="kw">let </span>ns_per_unit = <span class="kw">if </span>unit == TemporalUnit::Day {
             day_length_ns.unwrap_or(NS_PER_DAY) <span class="kw">as </span>f64
         } <span class="kw">else </span>{
-            unit.as_nanoseconds().expect(<span class="string">&quot;Only valid time values are &quot;</span>)
+            unit.as_nanoseconds().expect(<span class="string">"Only valid time values are "</span>)
         };
 
         <span class="comment">// TODO: Verify validity of cast or handle better.
@@ -1136,18 +1137,18 @@
                 / ns_per_unit;
 
         <span class="kw">let </span>result = <span class="kw">match </span>unit {
-            <span class="comment">// 10. If unit is &quot;day&quot;, then
+            <span class="comment">// 10. If unit is "day", then
             // a. Return the Record { [[Days]]: result, [[Hour]]: 0, [[Minute]]: 0, [[Second]]: 0, [[Millisecond]]: 0, [[Microsecond]]: 0, [[Nanosecond]]: 0 }.
             </span>TemporalUnit::Day =&gt; (result <span class="kw">as </span>i32, IsoTime::default()),
-            <span class="comment">// 11. If unit is &quot;hour&quot;, then
+            <span class="comment">// 11. If unit is "hour", then
             // a. Return BalanceTime(result, 0, 0, 0, 0, 0).
             </span>TemporalUnit::Hour =&gt; IsoTime::balance(result, <span class="number">0.0</span>, <span class="number">0.0</span>, <span class="number">0.0</span>, <span class="number">0.0</span>, <span class="number">0.0</span>),
-            <span class="comment">// 12. If unit is &quot;minute&quot;, then
+            <span class="comment">// 12. If unit is "minute", then
             // a. Return BalanceTime(hour, result, 0, 0, 0, 0).
             </span>TemporalUnit::Minute =&gt; {
                 IsoTime::balance(f64::from(<span class="self">self</span>.hour), result, <span class="number">0.0</span>, <span class="number">0.0</span>, <span class="number">0.0</span>, <span class="number">0.0</span>)
             }
-            <span class="comment">// 13. If unit is &quot;second&quot;, then
+            <span class="comment">// 13. If unit is "second", then
             // a. Return BalanceTime(hour, minute, result, 0, 0, 0).
             </span>TemporalUnit::Second =&gt; IsoTime::balance(
                 f64::from(<span class="self">self</span>.hour),
@@ -1157,7 +1158,7 @@
                 <span class="number">0.0</span>,
                 <span class="number">0.0</span>,
             ),
-            <span class="comment">// 14. If unit is &quot;millisecond&quot;, then
+            <span class="comment">// 14. If unit is "millisecond", then
             // a. Return BalanceTime(hour, minute, second, result, 0, 0).
             </span>TemporalUnit::Millisecond =&gt; IsoTime::balance(
                 f64::from(<span class="self">self</span>.hour),
@@ -1167,7 +1168,7 @@
                 <span class="number">0.0</span>,
                 <span class="number">0.0</span>,
             ),
-            <span class="comment">// 15. If unit is &quot;microsecond&quot;, then
+            <span class="comment">// 15. If unit is "microsecond", then
             // a. Return BalanceTime(hour, minute, second, millisecond, result, 0).
             </span>TemporalUnit::Microsecond =&gt; IsoTime::balance(
                 f64::from(<span class="self">self</span>.hour),
@@ -1177,7 +1178,7 @@
                 result,
                 <span class="number">0.0</span>,
             ),
-            <span class="comment">// 16. Assert: unit is &quot;nanosecond&quot;.
+            <span class="comment">// 16. Assert: unit is "nanosecond".
             // 17. Return BalanceTime(hour, minute, second, millisecond, microsecond, result).
             </span>TemporalUnit::Nanosecond =&gt; IsoTime::balance(
                 f64::from(<span class="self">self</span>.hour),
@@ -1187,7 +1188,7 @@
                 f64::from(<span class="self">self</span>.microsecond),
                 result,
             ),
-            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;Error is thrown in previous match.&quot;</span>),
+            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">"Error is thrown in previous match."</span>),
         };
 
         <span class="prelude-val">Ok</span>(result)
@@ -1214,7 +1215,7 @@
     ///
     /// Note: This method is library specific and not in spec
     ///
-    /// Functionally the same as Date&#39;s `MakeTime`
+    /// Functionally the same as Date's `MakeTime`
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_epoch_ms(<span class="self">self</span>) -&gt; f64 {
         ((f64::from(<span class="self">self</span>.hour) * utils::MS_PER_HOUR
             + f64::from(<span class="self">self</span>.minute) * utils::MS_PER_MINUTE)
@@ -1226,7 +1227,7 @@
 <span class="comment">// ==== `IsoDateTime` specific utility functions ====
 
 </span><span class="attr">#[inline]
-</span><span class="doccomment">/// Utility function to determine if a `DateTime`&#39;s components create a `DateTime` within valid limits
+</span><span class="doccomment">/// Utility function to determine if a `DateTime`'s components create a `DateTime` within valid limits
 </span><span class="kw">fn </span>iso_dt_within_valid_limits(date: IsoDate, time: <span class="kw-2">&amp;</span>IsoTime) -&gt; bool {
     <span class="kw">if </span>iso_date_to_epoch_days(date.year, (date.month).into(), date.day.into()).abs() &gt; <span class="number">100_000_001 </span>{
         <span class="kw">return </span><span class="bool-val">false</span>;

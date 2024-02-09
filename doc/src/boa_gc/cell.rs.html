@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/gc/src/cell.rs`."><title>cell.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="boa_gc" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../boa_gc/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_gc"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/gc/src/cell.rs`."><title>cell.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="boa_gc" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../boa_gc/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_gc"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -604,7 +605,7 @@
         }
     }
 
-    <span class="doccomment">/// Set the `BorrowFlag`&#39;s state to writing.
+    <span class="doccomment">/// Set the `BorrowFlag`'s state to writing.
     </span><span class="kw">const fn </span>set_writing(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>(<span class="self">self</span>.<span class="number">0 </span>| WRITING)
     }
@@ -618,8 +619,8 @@
         <span class="macro">assert!</span>(<span class="self">self</span>.borrowed() != BorrowState::Writing);
         <span class="kw">let </span>flags = <span class="self">Self</span>(<span class="self">self</span>.<span class="number">0 </span>+ <span class="number">1</span>);
 
-        <span class="comment">// This will fail if the borrow count overflows, which shouldn&#39;t happen,
-        // but let&#39;s be safe
+        <span class="comment">// This will fail if the borrow count overflows, which shouldn't happen,
+        // but let's be safe
         </span>{
             <span class="macro">assert!</span>(flags.borrowed() == BorrowState::Reading);
         }
@@ -637,9 +638,9 @@
 }
 
 <span class="kw">impl </span>Debug <span class="kw">for </span>BorrowFlag {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        f.debug_struct(<span class="string">&quot;BorrowFlag&quot;</span>)
-            .field(<span class="string">&quot;State&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.borrowed())
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">"BorrowFlag"</span>)
+            .field(<span class="string">"State"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.borrowed())
             .finish()
     }
 }
@@ -648,7 +649,7 @@
 /// that can be used inside of a garbage-collected pointer.
 ///
 /// This object is a `RefCell` that can be used inside of a `Gc&lt;T&gt;`.
-</span><span class="kw">pub struct </span>GcRefCell&lt;T: <span class="question-mark">?</span>Sized + <span class="lifetime">&#39;static</span>&gt; {
+</span><span class="kw">pub struct </span>GcRefCell&lt;T: <span class="question-mark">?</span>Sized + <span class="lifetime">'static</span>&gt; {
     flags: Cell&lt;BorrowFlag&gt;,
     cell: UnsafeCell&lt;T&gt;,
 }
@@ -677,10 +678,10 @@
     /// # Panics
     ///
     /// Panics if the value is currently mutably borrowed.
-    </span><span class="kw">pub fn </span>borrow(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; GcRef&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+    </span><span class="kw">pub fn </span>borrow(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; GcRef&lt;<span class="lifetime">'_</span>, T&gt; {
         <span class="kw">match </span><span class="self">self</span>.try_borrow() {
             <span class="prelude-val">Ok</span>(value) =&gt; value,
-            <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;{}&quot;</span>, e),
+            <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">panic!</span>(<span class="string">"{}"</span>, e),
         }
     }
 
@@ -693,10 +694,10 @@
     ///
     /// Panics if the value is currently borrowed.
     </span><span class="attr">#[track_caller]
-    </span><span class="kw">pub fn </span>borrow_mut(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; GcRefMut&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+    </span><span class="kw">pub fn </span>borrow_mut(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; GcRefMut&lt;<span class="lifetime">'_</span>, T&gt; {
         <span class="kw">match </span><span class="self">self</span>.try_borrow_mut() {
             <span class="prelude-val">Ok</span>(value) =&gt; value,
-            <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;{}&quot;</span>, e),
+            <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">panic!</span>(<span class="string">"{}"</span>, e),
         }
     }
 
@@ -711,7 +712,7 @@
     /// # Errors
     ///
     /// Returns an `Err` if the value is currently mutably borrowed.
-    </span><span class="kw">pub fn </span>try_borrow(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;GcRef&lt;<span class="lifetime">&#39;_</span>, T&gt;, BorrowError&gt; {
+    </span><span class="kw">pub fn </span>try_borrow(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;GcRef&lt;<span class="lifetime">'_</span>, T&gt;, BorrowError&gt; {
         <span class="kw">if </span><span class="self">self</span>.flags.get().borrowed() == BorrowState::Writing {
             <span class="kw">return </span><span class="prelude-val">Err</span>(BorrowError);
         }
@@ -736,7 +737,7 @@
     /// # Errors
     ///
     /// Returns an `Err` if the value is currently borrowed.
-    </span><span class="kw">pub fn </span>try_borrow_mut(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;GcRefMut&lt;<span class="lifetime">&#39;_</span>, T&gt;, BorrowMutError&gt; {
+    </span><span class="kw">pub fn </span>try_borrow_mut(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;GcRefMut&lt;<span class="lifetime">'_</span>, T&gt;, BorrowMutError&gt; {
         <span class="kw">if </span><span class="self">self</span>.flags.get().borrowed() != BorrowState::Unused {
             <span class="kw">return </span><span class="prelude-val">Err</span>(BorrowMutError);
         }
@@ -758,8 +759,8 @@
 </span><span class="kw">pub struct </span>BorrowError;
 
 <span class="kw">impl </span>Display <span class="kw">for </span>BorrowError {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
-        Display::fmt(<span class="string">&quot;GcCell&lt;T&gt; already mutably borrowed&quot;</span>, f)
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
+        Display::fmt(<span class="string">"GcCell&lt;T&gt; already mutably borrowed"</span>, f)
     }
 }
 
@@ -768,22 +769,22 @@
 </span><span class="kw">pub struct </span>BorrowMutError;
 
 <span class="kw">impl </span>Display <span class="kw">for </span>BorrowMutError {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
-        Display::fmt(<span class="string">&quot;GcCell&lt;T&gt; already borrowed&quot;</span>, f)
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
+        Display::fmt(<span class="string">"GcCell&lt;T&gt; already borrowed"</span>, f)
     }
 }
 
 <span class="kw">impl</span>&lt;T: Trace + <span class="question-mark">?</span>Sized&gt; Finalize <span class="kw">for </span>GcRefCell&lt;T&gt; {}
 
-<span class="comment">// SAFETY: GcCell maintains it&#39;s own BorrowState and rootedness. GcCell&#39;s implementation
+<span class="comment">// SAFETY: GcCell maintains it's own BorrowState and rootedness. GcCell's implementation
 // focuses on only continuing Trace based methods while the cell state is not written.
 // Implementing a Trace while the cell is being written to or incorrectly implementing Trace
-// on GcCell&#39;s value may cause Undefined Behavior
+// on GcCell's value may cause Undefined Behavior
 </span><span class="kw">unsafe impl</span>&lt;T: Trace + <span class="question-mark">?</span>Sized&gt; Trace <span class="kw">for </span>GcRefCell&lt;T&gt; {
     <span class="kw">unsafe fn </span>trace(<span class="kw-2">&amp;</span><span class="self">self</span>, tracer: <span class="kw-2">&amp;mut </span>Tracer) {
         <span class="kw">match </span><span class="self">self</span>.flags.get().borrowed() {
             BorrowState::Writing =&gt; (),
-            <span class="comment">// SAFETY: Please see GcCell&#39;s Trace impl Safety note.
+            <span class="comment">// SAFETY: Please see GcCell's Trace impl Safety note.
             </span><span class="kw">_ </span>=&gt; <span class="kw">unsafe </span>{ (<span class="kw-2">*</span><span class="self">self</span>.cell.get()).trace(tracer) },
         }
     }
@@ -791,7 +792,7 @@
     <span class="kw">unsafe fn </span>trace_non_roots(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="kw">match </span><span class="self">self</span>.flags.get().borrowed() {
             BorrowState::Writing =&gt; (),
-            <span class="comment">// SAFETY: Please see GcCell&#39;s Trace impl Safety note.
+            <span class="comment">// SAFETY: Please see GcCell's Trace impl Safety note.
             </span><span class="kw">_ </span>=&gt; <span class="kw">unsafe </span>{ (<span class="kw-2">*</span><span class="self">self</span>.cell.get()).trace_non_roots() },
         }
     }
@@ -800,19 +801,19 @@
         Finalize::finalize(<span class="self">self</span>);
         <span class="kw">match </span><span class="self">self</span>.flags.get().borrowed() {
             BorrowState::Writing =&gt; (),
-            <span class="comment">// SAFETY: Please see GcCell&#39;s Trace impl Safety note.
+            <span class="comment">// SAFETY: Please see GcCell's Trace impl Safety note.
             </span><span class="kw">_ </span>=&gt; <span class="kw">unsafe </span>{ (<span class="kw-2">*</span><span class="self">self</span>.cell.get()).run_finalizer() },
         }
     }
 }
 
 <span class="doccomment">/// A wrapper type for an immutably borrowed value from a `GcCell&lt;T&gt;`.
-</span><span class="kw">pub struct </span>GcRef&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized + <span class="lifetime">&#39;static</span>&gt; {
-    flags: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Cell&lt;BorrowFlag&gt;,
-    value: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T,
+</span><span class="kw">pub struct </span>GcRef&lt;<span class="lifetime">'a</span>, T: <span class="question-mark">?</span>Sized + <span class="lifetime">'static</span>&gt; {
+    flags: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Cell&lt;BorrowFlag&gt;,
+    value: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>T,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized&gt; GcRef&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T: <span class="question-mark">?</span>Sized&gt; GcRef&lt;<span class="lifetime">'a</span>, T&gt; {
     <span class="doccomment">/// Copies a `GcCellRef`.
     ///
     /// The `GcCell` is already immutably borrowed, so this cannot fail.
@@ -823,7 +824,7 @@
     /// the contents of a `GcCell`.
     </span><span class="attr">#[allow(clippy::should_implement_trait)]
     #[must_use]
-    </span><span class="kw">pub fn </span>clone(orig: <span class="kw-2">&amp;</span>GcRef&lt;<span class="lifetime">&#39;a</span>, T&gt;) -&gt; GcRef&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+    </span><span class="kw">pub fn </span>clone(orig: <span class="kw-2">&amp;</span>GcRef&lt;<span class="lifetime">'a</span>, T&gt;) -&gt; GcRef&lt;<span class="lifetime">'a</span>, T&gt; {
         orig.flags.set(orig.flags.get().add_reading());
         GcRef {
             flags: orig.flags,
@@ -839,7 +840,7 @@
     /// This is an associated function that needs to be used as `GcCellRef::try_map(...)`.
     /// A method would interfere with methods of the same name on the contents
     /// of a `GcCellRef` used through `Deref`.
-    </span><span class="kw">pub fn </span>try_map&lt;U, F&gt;(orig: <span class="self">Self</span>, f: F) -&gt; <span class="prelude-ty">Option</span>&lt;GcRef&lt;<span class="lifetime">&#39;a</span>, U&gt;&gt;
+    </span><span class="kw">pub fn </span>try_map&lt;U, F&gt;(orig: <span class="self">Self</span>, f: F) -&gt; <span class="prelude-ty">Option</span>&lt;GcRef&lt;<span class="lifetime">'a</span>, U&gt;&gt;
     <span class="kw">where
         </span>U: <span class="question-mark">?</span>Sized,
         F: FnOnce(<span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>U&gt;,
@@ -863,7 +864,7 @@
     /// This is an associated function that needs to be used as `GcCellRef::map(...)`.
     /// A method would interfere with methods of the same name on the contents
     /// of a `GcCellRef` used through `Deref`.
-    </span><span class="kw">pub fn </span>map&lt;U, F&gt;(orig: <span class="self">Self</span>, f: F) -&gt; GcRef&lt;<span class="lifetime">&#39;a</span>, U&gt;
+    </span><span class="kw">pub fn </span>map&lt;U, F&gt;(orig: <span class="self">Self</span>, f: F) -&gt; GcRef&lt;<span class="lifetime">'a</span>, U&gt;
     <span class="kw">where
         </span>U: <span class="question-mark">?</span>Sized,
         F: FnOnce(<span class="kw-2">&amp;</span>T) -&gt; <span class="kw-2">&amp;</span>U,
@@ -886,7 +887,7 @@
     ///
     /// This is an associated function that needs to be used as `GcCellRef::map_split(...)`.
     /// A method would interfere with methods of the same name on the contents of a `GcCellRef` used through `Deref`.
-    </span><span class="kw">pub fn </span>map_split&lt;U, V, F&gt;(orig: <span class="self">Self</span>, f: F) -&gt; (GcRef&lt;<span class="lifetime">&#39;a</span>, U&gt;, GcRef&lt;<span class="lifetime">&#39;a</span>, V&gt;)
+    </span><span class="kw">pub fn </span>map_split&lt;U, V, F&gt;(orig: <span class="self">Self</span>, f: F) -&gt; (GcRef&lt;<span class="lifetime">'a</span>, U&gt;, GcRef&lt;<span class="lifetime">'a</span>, V&gt;)
     <span class="kw">where
         </span>U: <span class="question-mark">?</span>Sized,
         V: <span class="question-mark">?</span>Sized,
@@ -915,7 +916,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; Deref <span class="kw">for </span>GcRef&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; Deref <span class="kw">for </span>GcRef&lt;<span class="lifetime">'_</span>, T&gt; {
     <span class="kw">type </span>Target = T;
 
     <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
@@ -923,32 +924,32 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; Drop <span class="kw">for </span>GcRef&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized&gt; Drop <span class="kw">for </span>GcRef&lt;<span class="lifetime">'_</span>, T&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="macro">debug_assert!</span>(<span class="self">self</span>.flags.get().borrowed() == BorrowState::Reading);
         <span class="self">self</span>.flags.set(<span class="self">self</span>.flags.get().sub_reading());
     }
 }
 
-<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized + Debug&gt; Debug <span class="kw">for </span>GcRef&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized + Debug&gt; Debug <span class="kw">for </span>GcRef&lt;<span class="lifetime">'_</span>, T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
         Debug::fmt(<span class="kw-2">&amp;**</span><span class="self">self</span>, f)
     }
 }
 
-<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized + Display&gt; Display <span class="kw">for </span>GcRef&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized + Display&gt; Display <span class="kw">for </span>GcRef&lt;<span class="lifetime">'_</span>, T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
         Display::fmt(<span class="kw-2">&amp;**</span><span class="self">self</span>, f)
     }
 }
 
 <span class="doccomment">/// A wrapper type for a mutably borrowed value from a `GcCell&lt;T&gt;`.
-</span><span class="kw">pub struct </span>GcRefMut&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized + <span class="lifetime">&#39;static</span>, U: <span class="question-mark">?</span>Sized = T&gt; {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) gc_cell: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>GcRefCell&lt;T&gt;,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) value: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>U,
+</span><span class="kw">pub struct </span>GcRefMut&lt;<span class="lifetime">'a</span>, T: <span class="question-mark">?</span>Sized + <span class="lifetime">'static</span>, U: <span class="question-mark">?</span>Sized = T&gt; {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) gc_cell: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>GcRefCell&lt;T&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) value: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>U,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: <span class="question-mark">?</span>Sized, U: <span class="question-mark">?</span>Sized&gt; GcRefMut&lt;<span class="lifetime">&#39;a</span>, T, U&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T: <span class="question-mark">?</span>Sized, U: <span class="question-mark">?</span>Sized&gt; GcRefMut&lt;<span class="lifetime">'a</span>, T, U&gt; {
     <span class="doccomment">/// Tries to make a new `GcCellRefMut` for a component of the borrowed data, returning `None`
     /// if the mapping function returns `None`.
     ///
@@ -957,7 +958,7 @@
     /// This is an associated function that needs to be used as
     /// `GcCellRefMut::map(...)`. A method would interfere with methods of the same
     /// name on the contents of a `GcCell` used through `Deref`.
-    </span><span class="kw">pub fn </span>try_map&lt;V, F&gt;(orig: <span class="self">Self</span>, f: F) -&gt; <span class="prelude-ty">Option</span>&lt;GcRefMut&lt;<span class="lifetime">&#39;a</span>, T, V&gt;&gt;
+    </span><span class="kw">pub fn </span>try_map&lt;V, F&gt;(orig: <span class="self">Self</span>, f: F) -&gt; <span class="prelude-ty">Option</span>&lt;GcRefMut&lt;<span class="lifetime">'a</span>, T, V&gt;&gt;
     <span class="kw">where
         </span>V: <span class="question-mark">?</span>Sized,
         F: FnOnce(<span class="kw-2">&amp;mut </span>U) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>V&gt;,
@@ -986,7 +987,7 @@
     /// This is an associated function that needs to be used as
     /// `GcCellRefMut::map(...)`. A method would interfere with methods of the same
     /// name on the contents of a `GcCell` used through `Deref`.
-    </span><span class="kw">pub fn </span>map&lt;V, F&gt;(orig: <span class="self">Self</span>, f: F) -&gt; GcRefMut&lt;<span class="lifetime">&#39;a</span>, T, V&gt;
+    </span><span class="kw">pub fn </span>map&lt;V, F&gt;(orig: <span class="self">Self</span>, f: F) -&gt; GcRefMut&lt;<span class="lifetime">'a</span>, T, V&gt;
     <span class="kw">where
         </span>V: <span class="question-mark">?</span>Sized,
         F: FnOnce(<span class="kw-2">&amp;mut </span>U) -&gt; <span class="kw-2">&amp;mut </span>V,
@@ -1008,7 +1009,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T: Trace + <span class="question-mark">?</span>Sized, U: <span class="question-mark">?</span>Sized&gt; Deref <span class="kw">for </span>GcRefMut&lt;<span class="lifetime">&#39;_</span>, T, U&gt; {
+<span class="kw">impl</span>&lt;T: Trace + <span class="question-mark">?</span>Sized, U: <span class="question-mark">?</span>Sized&gt; Deref <span class="kw">for </span>GcRefMut&lt;<span class="lifetime">'_</span>, T, U&gt; {
     <span class="kw">type </span>Target = U;
 
     <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>U {
@@ -1016,32 +1017,32 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T: Trace + <span class="question-mark">?</span>Sized, U: <span class="question-mark">?</span>Sized&gt; DerefMut <span class="kw">for </span>GcRefMut&lt;<span class="lifetime">&#39;_</span>, T, U&gt; {
+<span class="kw">impl</span>&lt;T: Trace + <span class="question-mark">?</span>Sized, U: <span class="question-mark">?</span>Sized&gt; DerefMut <span class="kw">for </span>GcRefMut&lt;<span class="lifetime">'_</span>, T, U&gt; {
     <span class="kw">fn </span>deref_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>U {
         <span class="self">self</span>.value
     }
 }
 
-<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized, U: <span class="question-mark">?</span>Sized&gt; Drop <span class="kw">for </span>GcRefMut&lt;<span class="lifetime">&#39;_</span>, T, U&gt; {
+<span class="kw">impl</span>&lt;T: <span class="question-mark">?</span>Sized, U: <span class="question-mark">?</span>Sized&gt; Drop <span class="kw">for </span>GcRefMut&lt;<span class="lifetime">'_</span>, T, U&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="macro">debug_assert!</span>(<span class="self">self</span>.gc_cell.flags.get().borrowed() == BorrowState::Writing);
         <span class="self">self</span>.gc_cell.flags.set(BorrowFlag(UNUSED));
     }
 }
 
-<span class="kw">impl</span>&lt;T: Trace + <span class="question-mark">?</span>Sized, U: Debug + <span class="question-mark">?</span>Sized&gt; Debug <span class="kw">for </span>GcRefMut&lt;<span class="lifetime">&#39;_</span>, T, U&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+<span class="kw">impl</span>&lt;T: Trace + <span class="question-mark">?</span>Sized, U: Debug + <span class="question-mark">?</span>Sized&gt; Debug <span class="kw">for </span>GcRefMut&lt;<span class="lifetime">'_</span>, T, U&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
         Debug::fmt(<span class="kw-2">&amp;**</span><span class="self">self</span>, f)
     }
 }
 
-<span class="kw">impl</span>&lt;T: Trace + <span class="question-mark">?</span>Sized, U: Display + <span class="question-mark">?</span>Sized&gt; Display <span class="kw">for </span>GcRefMut&lt;<span class="lifetime">&#39;_</span>, T, U&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+<span class="kw">impl</span>&lt;T: Trace + <span class="question-mark">?</span>Sized, U: Display + <span class="question-mark">?</span>Sized&gt; Display <span class="kw">for </span>GcRefMut&lt;<span class="lifetime">'_</span>, T, U&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
         Display::fmt(<span class="kw-2">&amp;**</span><span class="self">self</span>, f)
     }
 }
 
-<span class="comment">// SAFETY: GcCell&lt;T&gt; tracks it&#39;s `BorrowState` is `Writing`
+<span class="comment">// SAFETY: GcCell&lt;T&gt; tracks it's `BorrowState` is `Writing`
 </span><span class="kw">unsafe impl</span>&lt;T: <span class="question-mark">?</span>Sized + Send&gt; Send <span class="kw">for </span>GcRefCell&lt;T&gt; {}
 
 <span class="kw">impl</span>&lt;T: Trace + Clone&gt; Clone <span class="kw">for </span>GcRefCell&lt;T&gt; {
@@ -1101,17 +1102,17 @@
 }
 
 <span class="kw">impl</span>&lt;T: Trace + <span class="question-mark">?</span>Sized + Debug&gt; Debug <span class="kw">for </span>GcRefCell&lt;T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
         <span class="kw">match </span><span class="self">self</span>.flags.get().borrowed() {
             BorrowState::Unused | BorrowState::Reading =&gt; f
-                .debug_struct(<span class="string">&quot;GcCell&quot;</span>)
-                .field(<span class="string">&quot;flags&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.flags.get())
-                .field(<span class="string">&quot;value&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.borrow())
+                .debug_struct(<span class="string">"GcCell"</span>)
+                .field(<span class="string">"flags"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.flags.get())
+                .field(<span class="string">"value"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.borrow())
                 .finish_non_exhaustive(),
             BorrowState::Writing =&gt; f
-                .debug_struct(<span class="string">&quot;GcCell&quot;</span>)
-                .field(<span class="string">&quot;flags&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.flags.get())
-                .field(<span class="string">&quot;value&quot;</span>, <span class="kw-2">&amp;</span><span class="string">&quot;&lt;borrowed&gt;&quot;</span>)
+                .debug_struct(<span class="string">"GcCell"</span>)
+                .field(<span class="string">"flags"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.flags.get())
+                .field(<span class="string">"value"</span>, <span class="kw-2">&amp;</span><span class="string">"&lt;borrowed&gt;"</span>)
                 .finish_non_exhaustive(),
         }
     }

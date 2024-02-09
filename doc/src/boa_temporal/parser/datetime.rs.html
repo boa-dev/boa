@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/temporal/src/parser/datetime.rs`."><title>datetime.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="boa_temporal" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../boa_temporal/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_temporal"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/temporal/src/parser/datetime.rs`."><title>datetime.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="boa_temporal" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../../boa_temporal/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_temporal"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -309,7 +310,7 @@
 <a href="#309" id="309">309</a>
 <a href="#310" id="310">310</a>
 <a href="#311" id="311">311</a>
-</pre></div><pre class="rust"><code><span class="doccomment">//! Parsing for Temporal&#39;s ISO8601 `Date` and `DateTime`.
+</pre></div><pre class="rust"><code><span class="doccomment">//! Parsing for Temporal's ISO8601 `Date` and `DateTime`.
 
 </span><span class="kw">use crate</span>::{
     assert_syntax,
@@ -382,7 +383,7 @@
     </span><span class="kw">if </span>!cursor.check_or(<span class="bool-val">false</span>, is_annotation_open) {
         <span class="kw">if </span>flags.contains(DateTimeFlags::ZONED) {
             <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::syntax()
-                .with_message(<span class="string">&quot;ZonedDateTime must have a TimeZoneAnnotation.&quot;</span>));
+                .with_message(<span class="string">"ZonedDateTime must have a TimeZoneAnnotation."</span>));
         }
 
         cursor.close()<span class="question-mark">?</span>;
@@ -435,7 +436,7 @@
     <span class="comment">// If there is no `DateTimeSeparator`, return date early.
     </span><span class="kw">if </span>!cursor.check_or(<span class="bool-val">false</span>, is_date_time_separator) {
         <span class="kw">if </span>time_required {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::syntax().with_message(<span class="string">&quot;Missing a required Time target.&quot;</span>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::syntax().with_message(<span class="string">"Missing a required Time target."</span>));
         }
 
         <span class="kw">return </span><span class="prelude-val">Ok</span>(DateTimeRecord {
@@ -453,7 +454,7 @@
         <span class="prelude-val">Some</span>(time_zone::parse_date_time_utc(cursor)<span class="question-mark">?</span>)
     } <span class="kw">else </span>{
         <span class="kw">if </span>utc_required {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::syntax().with_message(<span class="string">&quot;DateTimeUTCOffset is required.&quot;</span>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::syntax().with_message(<span class="string">"DateTimeUTCOffset is required."</span>));
         }
         <span class="prelude-val">None
     </span>};
@@ -477,7 +478,7 @@
     <span class="kw">let </span>month = parse_date_month(cursor)<span class="question-mark">?</span>;
 
     <span class="kw">if </span>hyphenated {
-        <span class="macro">assert_syntax!</span>(cursor.check_or(<span class="bool-val">false</span>, is_hyphen), <span class="string">&quot;Invalid hyphen usage.&quot;</span>);
+        <span class="macro">assert_syntax!</span>(cursor.check_or(<span class="bool-val">false</span>, is_hyphen), <span class="string">"Invalid hyphen usage."</span>);
     }
     cursor.advance_if(cursor.check_or(<span class="bool-val">false</span>, is_hyphen));
 
@@ -498,7 +499,7 @@
 
     <span class="macro">assert_syntax!</span>(
         cursor.check_or(<span class="bool-val">true</span>, is_annotation_open),
-        <span class="string">&quot;Expected an end or AnnotationOpen&quot;
+        <span class="string">"Expected an end or AnnotationOpen"
     </span>);
 
     <span class="prelude-val">Ok</span>((year, month))
@@ -517,7 +518,7 @@
     <span class="kw">if </span>dash_two &amp;&amp; dash_one {
         cursor.advance_n(<span class="number">2</span>);
     } <span class="kw">else if </span>dash_two &amp;&amp; !dash_one {
-        <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::syntax().with_message(<span class="string">&quot;MonthDay requires two dashes&quot;</span>));
+        <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::syntax().with_message(<span class="string">"MonthDay requires two dashes"</span>));
     }
 
     <span class="kw">let </span>month = parse_date_month(cursor)<span class="question-mark">?</span>;
@@ -528,7 +529,7 @@
 
     <span class="macro">assert_syntax!</span>(
         cursor.check_or(<span class="bool-val">true</span>, is_annotation_open),
-        <span class="string">&quot;Expected an end or AnnotationOpen&quot;
+        <span class="string">"Expected an end or AnnotationOpen"
     </span>);
 
     <span class="prelude-val">Ok</span>((month, day))
@@ -538,14 +539,14 @@
 
 </span><span class="kw">fn </span>parse_date_year(cursor: <span class="kw-2">&amp;mut </span>Cursor) -&gt; TemporalResult&lt;i32&gt; {
     <span class="kw">if </span>cursor.check_or(<span class="bool-val">false</span>, is_sign) {
-        <span class="kw">let </span>sign = <span class="kw">if </span>cursor.expect_next() == <span class="string">&#39;+&#39; </span>{ <span class="number">1 </span>} <span class="kw">else </span>{ -<span class="number">1 </span>};
+        <span class="kw">let </span>sign = <span class="kw">if </span>cursor.expect_next() == <span class="string">'+' </span>{ <span class="number">1 </span>} <span class="kw">else </span>{ -<span class="number">1 </span>};
         <span class="kw">let </span>year_start = cursor.pos();
 
         <span class="kw">for _ in </span><span class="number">0</span>..<span class="number">6 </span>{
             <span class="kw">let </span>year_digit = cursor.abrupt_next()<span class="question-mark">?</span>;
             <span class="macro">assert_syntax!</span>(
                 year_digit.is_ascii_digit(),
-                <span class="string">&quot;Year must be made up of digits.&quot;
+                <span class="string">"Year must be made up of digits."
             </span>);
         }
 
@@ -556,16 +557,16 @@
 
         <span class="comment">// 13.30.1 Static Semantics: Early Errors
         //
-        // It is a Syntax Error if DateYear is &quot;-000000&quot; or &quot;−000000&quot; (U+2212 MINUS SIGN followed by 000000).
+        // It is a Syntax Error if DateYear is "-000000" or "−000000" (U+2212 MINUS SIGN followed by 000000).
         </span><span class="kw">if </span>sign == -<span class="number">1 </span>&amp;&amp; year_value == <span class="number">0 </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::syntax().with_message(<span class="string">&quot;Cannot have negative 0 years.&quot;</span>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::syntax().with_message(<span class="string">"Cannot have negative 0 years."</span>));
         }
 
         <span class="kw">let </span>year = sign * year_value;
 
         <span class="kw">if </span>!(-<span class="number">271_820</span>..=<span class="number">275_760</span>).contains(<span class="kw-2">&amp;</span>year) {
             <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::range()
-                .with_message(<span class="string">&quot;Year is outside of the minimum supported range.&quot;</span>));
+                .with_message(<span class="string">"Year is outside of the minimum supported range."</span>));
         }
 
         <span class="kw">return </span><span class="prelude-val">Ok</span>(year);
@@ -577,7 +578,7 @@
         <span class="kw">let </span>year_digit = cursor.abrupt_next()<span class="question-mark">?</span>;
         <span class="macro">assert_syntax!</span>(
             year_digit.is_ascii_digit(),
-            <span class="string">&quot;Year must be made up of digits.&quot;
+            <span class="string">"Year must be made up of digits."
         </span>);
     }
 
@@ -593,14 +594,14 @@
     <span class="kw">let </span>start = cursor.pos();
     <span class="kw">for _ in </span><span class="number">0</span>..<span class="number">2 </span>{
         <span class="kw">let </span>digit = cursor.abrupt_next()<span class="question-mark">?</span>;
-        <span class="macro">assert_syntax!</span>(digit.is_ascii_digit(), <span class="string">&quot;Month must be a digit&quot;</span>);
+        <span class="macro">assert_syntax!</span>(digit.is_ascii_digit(), <span class="string">"Month must be a digit"</span>);
     }
     <span class="kw">let </span>month_value = cursor
         .slice(start, cursor.pos())
         .parse::&lt;i32&gt;()
         .map_err(|e| TemporalError::syntax().with_message(e.to_string()))<span class="question-mark">?</span>;
     <span class="kw">if </span>!(<span class="number">1</span>..=<span class="number">12</span>).contains(<span class="kw-2">&amp;</span>month_value) {
-        <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::syntax().with_message(<span class="string">&quot;DateMonth must be in a range of 1-12&quot;</span>));
+        <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::syntax().with_message(<span class="string">"DateMonth must be in a range of 1-12"</span>));
     }
     <span class="prelude-val">Ok</span>(month_value)
 }
@@ -609,14 +610,14 @@
     <span class="kw">let </span>start = cursor.pos();
     <span class="kw">for _ in </span><span class="number">0</span>..<span class="number">2 </span>{
         <span class="kw">let </span>digit = cursor.abrupt_next()<span class="question-mark">?</span>;
-        <span class="macro">assert_syntax!</span>(digit.is_ascii_digit(), <span class="string">&quot;Date must be a digit&quot;</span>);
+        <span class="macro">assert_syntax!</span>(digit.is_ascii_digit(), <span class="string">"Date must be a digit"</span>);
     }
     <span class="kw">let </span>day_value = cursor
         .slice(start, cursor.pos())
         .parse::&lt;i32&gt;()
         .map_err(|e| TemporalError::syntax().with_message(e.to_string()))<span class="question-mark">?</span>;
     <span class="kw">if </span>!(<span class="number">1</span>..=<span class="number">31</span>).contains(<span class="kw-2">&amp;</span>day_value) {
-        <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::syntax().with_message(<span class="string">&quot;DateDay must be in a range of 1-31&quot;</span>));
+        <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::syntax().with_message(<span class="string">"DateDay must be in a range of 1-31"</span>));
     }
     <span class="prelude-val">Ok</span>(day_value)
 }

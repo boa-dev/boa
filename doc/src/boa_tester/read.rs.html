@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `tests/tester/src/read.rs`."><title>read.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="boa_tester" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../boa_tester/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_tester"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `tests/tester/src/read.rs`."><title>read.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="boa_tester" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../boa_tester/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_tester"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -296,7 +297,7 @@
 </span><span class="attr">#[derive(Debug, Clone, Deserialize)]
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>Negative {
     <span class="kw">pub</span>(<span class="kw">super</span>) phase: Phase,
-    <span class="attr">#[serde(rename = <span class="string">&quot;type&quot;</span>)]
+    <span class="attr">#[serde(rename = <span class="string">"type"</span>)]
     </span><span class="kw">pub</span>(<span class="kw">super</span>) error_type: ErrorType,
 }
 
@@ -312,20 +313,20 @@
 }
 
 <span class="kw">impl </span>ErrorType {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">const fn </span>as_str(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">const fn </span>as_str(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str {
         <span class="kw">match </span><span class="self">self </span>{
-            <span class="self">Self</span>::Test262Error =&gt; <span class="string">&quot;Test262Error&quot;</span>,
-            <span class="self">Self</span>::SyntaxError =&gt; <span class="string">&quot;SyntaxError&quot;</span>,
-            <span class="self">Self</span>::ReferenceError =&gt; <span class="string">&quot;ReferenceError&quot;</span>,
-            <span class="self">Self</span>::RangeError =&gt; <span class="string">&quot;RangeError&quot;</span>,
-            <span class="self">Self</span>::TypeError =&gt; <span class="string">&quot;TypeError&quot;</span>,
+            <span class="self">Self</span>::Test262Error =&gt; <span class="string">"Test262Error"</span>,
+            <span class="self">Self</span>::SyntaxError =&gt; <span class="string">"SyntaxError"</span>,
+            <span class="self">Self</span>::ReferenceError =&gt; <span class="string">"ReferenceError"</span>,
+            <span class="self">Self</span>::RangeError =&gt; <span class="string">"RangeError"</span>,
+            <span class="self">Self</span>::TypeError =&gt; <span class="string">"TypeError"</span>,
         }
     }
 }
 
 <span class="doccomment">/// Individual test flag.
 </span><span class="attr">#[derive(Debug, Clone, Copy, Eq, PartialEq, Deserialize)]
-#[serde(rename_all = <span class="string">&quot;camelCase&quot;</span>)]
+#[serde(rename_all = <span class="string">"camelCase"</span>)]
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">enum </span>TestFlag {
     OnlyStrict,
     NoStrict,
@@ -333,11 +334,11 @@
     Raw,
     Async,
     Generated,
-    <span class="attr">#[serde(rename = <span class="string">&quot;CanBlockIsFalse&quot;</span>)]
+    <span class="attr">#[serde(rename = <span class="string">"CanBlockIsFalse"</span>)]
     </span>CanBlockIsFalse,
-    <span class="attr">#[serde(rename = <span class="string">&quot;CanBlockIsTrue&quot;</span>)]
+    <span class="attr">#[serde(rename = <span class="string">"CanBlockIsTrue"</span>)]
     </span>CanBlockIsTrue,
-    <span class="attr">#[serde(rename = <span class="string">&quot;non-deterministic&quot;</span>)]
+    <span class="attr">#[serde(rename = <span class="string">"non-deterministic"</span>)]
     </span>NonDeterministic,
 }
 
@@ -345,7 +346,7 @@
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>read_harness(test262_path: <span class="kw-2">&amp;</span>Path) -&gt; <span class="prelude-ty">Result</span>&lt;Harness&gt; {
     <span class="kw">fn </span>read_harness_file(path: PathBuf) -&gt; <span class="prelude-ty">Result</span>&lt;HarnessFile&gt; {
         <span class="kw">let </span>content = fs::read_to_string(path.as_path())
-            .wrap_err_with(|| <span class="macro">format!</span>(<span class="string">&quot;error reading the harness file `{}`&quot;</span>, path.display()))<span class="question-mark">?</span>;
+            .wrap_err_with(|| <span class="macro">format!</span>(<span class="string">"error reading the harness file `{}`"</span>, path.display()))<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(HarnessFile {
             content: content.into_boxed_str(),
@@ -354,14 +355,14 @@
     }
     <span class="kw">let </span><span class="kw-2">mut </span>includes = FxHashMap::default();
 
-    <span class="kw">for </span>entry <span class="kw">in </span>fs::read_dir(test262_path.join(<span class="string">&quot;harness&quot;</span>))
-        .wrap_err(<span class="string">&quot;error reading the harness directory&quot;</span>)<span class="question-mark">?
+    <span class="kw">for </span>entry <span class="kw">in </span>fs::read_dir(test262_path.join(<span class="string">"harness"</span>))
+        .wrap_err(<span class="string">"error reading the harness directory"</span>)<span class="question-mark">?
     </span>{
         <span class="kw">let </span>entry = entry<span class="question-mark">?</span>;
         <span class="kw">let </span>file_name = entry.file_name();
         <span class="kw">let </span>file_name = file_name.to_string_lossy();
 
-        <span class="kw">if </span>file_name == <span class="string">&quot;assert.js&quot; </span>|| file_name == <span class="string">&quot;sta.js&quot; </span>|| file_name == <span class="string">&quot;doneprintHandle.js&quot; </span>{
+        <span class="kw">if </span>file_name == <span class="string">"assert.js" </span>|| file_name == <span class="string">"sta.js" </span>|| file_name == <span class="string">"doneprintHandle.js" </span>{
             <span class="kw">continue</span>;
         }
 
@@ -370,9 +371,9 @@
             read_harness_file(entry.path())<span class="question-mark">?</span>,
         );
     }
-    <span class="kw">let </span>assert = read_harness_file(test262_path.join(<span class="string">&quot;harness/assert.js&quot;</span>))<span class="question-mark">?</span>;
-    <span class="kw">let </span>sta = read_harness_file(test262_path.join(<span class="string">&quot;harness/sta.js&quot;</span>))<span class="question-mark">?</span>;
-    <span class="kw">let </span>doneprint_handle = read_harness_file(test262_path.join(<span class="string">&quot;harness/doneprintHandle.js&quot;</span>))<span class="question-mark">?</span>;
+    <span class="kw">let </span>assert = read_harness_file(test262_path.join(<span class="string">"harness/assert.js"</span>))<span class="question-mark">?</span>;
+    <span class="kw">let </span>sta = read_harness_file(test262_path.join(<span class="string">"harness/sta.js"</span>))<span class="question-mark">?</span>;
+    <span class="kw">let </span>doneprint_handle = read_harness_file(test262_path.join(<span class="string">"harness/doneprintHandle.js"</span>))<span class="question-mark">?</span>;
 
     <span class="prelude-val">Ok</span>(Harness {
         assert,
@@ -390,9 +391,9 @@
 ) -&gt; <span class="prelude-ty">Result</span>&lt;TestSuite&gt; {
     <span class="kw">let </span>name = path
         .file_name()
-        .ok_or_else(|| <span class="macro">eyre!</span>(<span class="macro">format!</span>(<span class="string">&quot;test suite with no name found: {}&quot;</span>, path.display())))<span class="question-mark">?
+        .ok_or_else(|| <span class="macro">eyre!</span>(<span class="macro">format!</span>(<span class="string">"test suite with no name found: {}"</span>, path.display())))<span class="question-mark">?
         </span>.to_str()
-        .ok_or_else(|| <span class="macro">eyre!</span>(<span class="macro">format!</span>(<span class="string">&quot;non-UTF-8 suite name found: {}&quot;</span>, path.display())))<span class="question-mark">?</span>;
+        .ok_or_else(|| <span class="macro">eyre!</span>(<span class="macro">format!</span>(<span class="string">"non-UTF-8 suite name found: {}"</span>, path.display())))<span class="question-mark">?</span>;
 
     ignore_suite |= ignored.contains_test(name);
 
@@ -400,16 +401,16 @@
     <span class="kw">let </span><span class="kw-2">mut </span>tests = Vec::new();
 
     <span class="comment">// TODO: iterate in parallel
-    </span><span class="kw">for </span>entry <span class="kw">in </span>path.read_dir().wrap_err(<span class="string">&quot;could not retrieve entry&quot;</span>)<span class="question-mark">? </span>{
+    </span><span class="kw">for </span>entry <span class="kw">in </span>path.read_dir().wrap_err(<span class="string">"could not retrieve entry"</span>)<span class="question-mark">? </span>{
         <span class="kw">let </span>entry = entry<span class="question-mark">?</span>;
-        <span class="kw">let </span>filetype = entry.file_type().wrap_err(<span class="string">&quot;could not retrieve file type&quot;</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span>filetype = entry.file_type().wrap_err(<span class="string">"could not retrieve file type"</span>)<span class="question-mark">?</span>;
 
         <span class="kw">if </span>filetype.is_dir() {
             suites.push(
                 read_suite(entry.path().as_path(), ignored, ignore_suite).wrap_err_with(|| {
                     <span class="kw">let </span>path = entry.path();
                     <span class="kw">let </span>suite = path.display();
-                    <span class="macro">format!</span>(<span class="string">&quot;error reading sub-suite {suite}&quot;</span>)
+                    <span class="macro">format!</span>(<span class="string">"error reading sub-suite {suite}"</span>)
                 })<span class="question-mark">?</span>,
             );
             <span class="kw">continue</span>;
@@ -417,14 +418,14 @@
 
         <span class="kw">let </span>path = entry.path();
 
-        <span class="kw">if </span>path.extension() != <span class="prelude-val">Some</span>(OsStr::new(<span class="string">&quot;js&quot;</span>)) {
-            <span class="comment">// Ignore files that aren&#39;t executable.
+        <span class="kw">if </span>path.extension() != <span class="prelude-val">Some</span>(OsStr::new(<span class="string">"js"</span>)) {
+            <span class="comment">// Ignore files that aren't executable.
             </span><span class="kw">continue</span>;
         }
 
         <span class="kw">if </span>path
             .file_stem()
-            .is_some_and(|stem| stem.as_encoded_bytes().ends_with(<span class="string">b&quot;FIXTURE&quot;</span>))
+            .is_some_and(|stem| stem.as_encoded_bytes().ends_with(<span class="string">b"FIXTURE"</span>))
         {
             <span class="comment">// Ignore files that are fixtures.
             </span><span class="kw">continue</span>;
@@ -433,7 +434,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>test = read_test(<span class="kw-2">&amp;</span>path).wrap_err_with(|| {
             <span class="kw">let </span>path = entry.path();
             <span class="kw">let </span>suite = path.display();
-            <span class="macro">format!</span>(<span class="string">&quot;error reading test {suite}&quot;</span>)
+            <span class="macro">format!</span>(<span class="string">"error reading test {suite}"</span>)
         })<span class="question-mark">?</span>;
 
         <span class="kw">if </span>ignore_suite
@@ -461,11 +462,11 @@
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>read_test(path: <span class="kw-2">&amp;</span>Path) -&gt; <span class="prelude-ty">Result</span>&lt;Test&gt; {
     <span class="kw">let </span>name = path
         .file_stem()
-        .ok_or_else(|| <span class="macro">eyre!</span>(<span class="string">&quot;path for test `{}` has no file name&quot;</span>, path.display()))<span class="question-mark">?
+        .ok_or_else(|| <span class="macro">eyre!</span>(<span class="string">"path for test `{}` has no file name"</span>, path.display()))<span class="question-mark">?
         </span>.to_str()
         .ok_or_else(|| {
             <span class="macro">eyre!</span>(
-                <span class="string">&quot;path for test `{}` is not a valid UTF-8 string&quot;</span>,
+                <span class="string">"path for test `{}` is not a valid UTF-8 string"</span>,
                 path.display()
             )
         })<span class="question-mark">?</span>;
@@ -482,8 +483,8 @@
 
     <span class="doccomment">/// Regular expression to retrieve the metadata of a test.
     </span><span class="kw">static </span>META_REGEX: Lazy&lt;Regex&gt; = Lazy::new(|| {
-        Regex::new(<span class="string">r&quot;/\*\-{3}((?:.|\n)*)\-{3}\*/&quot;</span>)
-            .expect(<span class="string">&quot;could not compile metadata regular expression&quot;</span>)
+        Regex::new(<span class="string">r"/\*\-{3}((?:.|\n)*)\-{3}\*/"</span>)
+            .expect(<span class="string">"could not compile metadata regular expression"</span>)
     });
 
     <span class="kw">let </span>code = fs::read(test)<span class="question-mark">?</span>;
@@ -493,7 +494,7 @@
         .ok_or_else(|| {
             io::Error::new(
                 io::ErrorKind::InvalidData,
-                <span class="macro">format!</span>(<span class="string">&quot;no metadata found for test {}&quot;</span>, test.display()),
+                <span class="macro">format!</span>(<span class="string">"no metadata found for test {}"</span>, test.display()),
             )
         })<span class="question-mark">?
         </span>.get(<span class="number">1</span>)
@@ -501,10 +502,10 @@
         .ok_or_else(|| {
             io::Error::new(
                 io::ErrorKind::InvalidData,
-                <span class="macro">format!</span>(<span class="string">&quot;no metadata found for test {}&quot;</span>, test.display()),
+                <span class="macro">format!</span>(<span class="string">"no metadata found for test {}"</span>, test.display()),
             )
         })<span class="question-mark">?
-        </span>.replace(<span class="string">&#39;\r&#39;</span>, <span class="string">&quot;\n&quot;</span>);
+        </span>.replace(<span class="string">'\r'</span>, <span class="string">"\n"</span>);
 
     serde_yaml::from_str(<span class="kw-2">&amp;</span>yaml).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }

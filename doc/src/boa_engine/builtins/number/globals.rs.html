@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/builtins/number/globals.rs`."><title>globals.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/builtins/number/globals.rs`."><title>globals.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -317,7 +318,7 @@
 
 <span class="kw">use </span>num_traits::Num;
 
-<span class="doccomment">/// Builtin javascript &#39;isFinite(number)&#39; function.
+<span class="doccomment">/// Builtin javascript 'isFinite(number)' function.
 ///
 /// Converts the argument to a number, throwing a type error if the conversion is invalid.
 ///
@@ -359,7 +360,7 @@
     <span class="kw">const </span>NAME: JsString = StaticJsStrings::IS_FINITE;
 }
 
-<span class="doccomment">/// Builtin javascript &#39;isNaN(number)&#39; function.
+<span class="doccomment">/// Builtin javascript 'isNaN(number)' function.
 ///
 /// Converts the argument to a number, throwing a type error if the conversion is invalid.
 ///
@@ -401,7 +402,7 @@
     <span class="kw">const </span>NAME: JsString = StaticJsStrings::IS_NAN;
 }
 
-<span class="doccomment">/// Builtin javascript &#39;parseInt(str, radix)&#39; function.
+<span class="doccomment">/// Builtin javascript 'parseInt(str, radix)' function.
 ///
 /// Parses the given string as an integer using the given radix as a base.
 ///
@@ -426,7 +427,7 @@
         <span class="comment">// 3. Let sign be 1.
         // 4. If S is not empty and the first code unit of S is the code unit 0x002D (HYPHEN-MINUS),
         //    set sign to -1.
-        </span><span class="kw">let </span>sign = <span class="kw">if </span>!var_s.is_empty() &amp;&amp; var_s.starts_with(<span class="macro">utf16!</span>(<span class="string">&quot;-&quot;</span>)) {
+        </span><span class="kw">let </span>sign = <span class="kw">if </span>!var_s.is_empty() &amp;&amp; var_s.starts_with(<span class="macro">utf16!</span>(<span class="string">"-"</span>)) {
             -<span class="number">1
         </span>} <span class="kw">else </span>{
             <span class="number">1
@@ -434,7 +435,7 @@
 
         <span class="comment">// 5. If S is not empty and the first code unit of S is the code unit 0x002B (PLUS SIGN) or
         //    the code unit 0x002D (HYPHEN-MINUS), remove the first code unit from S.
-        </span><span class="kw">if </span>!var_s.is_empty() &amp;&amp; (var_s.starts_with(<span class="macro">utf16!</span>(<span class="string">&quot;+&quot;</span>)) || var_s.starts_with(<span class="macro">utf16!</span>(<span class="string">&quot;-&quot;</span>))) {
+        </span><span class="kw">if </span>!var_s.is_empty() &amp;&amp; (var_s.starts_with(<span class="macro">utf16!</span>(<span class="string">"+"</span>)) || var_s.starts_with(<span class="macro">utf16!</span>(<span class="string">"-"</span>))) {
             var_s = <span class="kw-2">&amp;</span>var_s[<span class="number">1</span>..];
         }
 
@@ -463,12 +464,12 @@
         }
 
         <span class="comment">// 10. If stripPrefix is true, then
-        //     a. If the length of S is at least 2 and the first two code units of S are either &quot;0x&quot; or &quot;0X&quot;, then
+        //     a. If the length of S is at least 2 and the first two code units of S are either "0x" or "0X", then
         //         i. Remove the first two code units from S.
         //         ii. Set R to 16.
         </span><span class="kw">if </span>strip_prefix
             &amp;&amp; var_s.len() &gt;= <span class="number">2
-            </span>&amp;&amp; (var_s.starts_with(<span class="macro">utf16!</span>(<span class="string">&quot;0x&quot;</span>)) || var_s.starts_with(<span class="macro">utf16!</span>(<span class="string">&quot;0X&quot;</span>)))
+            </span>&amp;&amp; (var_s.starts_with(<span class="macro">utf16!</span>(<span class="string">"0x"</span>)) || var_s.starts_with(<span class="macro">utf16!</span>(<span class="string">"0X"</span>)))
         {
             var_s = <span class="kw-2">&amp;</span>var_s[<span class="number">2</span>..];
 
@@ -496,7 +497,7 @@
         //     mathInt may be an implementation-approximated value representing the integer value that is
         //     represented by Z in radix-R notation.)
         </span><span class="kw">let </span>math_int = u64::from_str_radix(<span class="kw-2">&amp;</span>var_z, var_r <span class="kw">as </span>u32).map_or_else(
-            |<span class="kw">_</span>| f64::from_str_radix(<span class="kw-2">&amp;</span>var_z, var_r <span class="kw">as </span>u32).expect(<span class="string">&quot;invalid_float_conversion&quot;</span>),
+            |<span class="kw">_</span>| f64::from_str_radix(<span class="kw-2">&amp;</span>var_z, var_r <span class="kw">as </span>u32).expect(<span class="string">"invalid_float_conversion"</span>),
             |i| i <span class="kw">as </span>f64,
         );
 
@@ -538,7 +539,7 @@
     <span class="kw">const </span>NAME: JsString = StaticJsStrings::PARSE_INT;
 }
 
-<span class="doccomment">/// Builtin javascript &#39;parseFloat(str)&#39; function.
+<span class="doccomment">/// Builtin javascript 'parseFloat(str)' function.
 ///
 /// Parses the given string as a floating point value.
 ///
@@ -565,15 +566,15 @@
         <span class="kw">let </span>s_prefix_lower = s.chars().take(<span class="number">4</span>).collect::&lt;String&gt;().to_ascii_lowercase();
 
         <span class="comment">// TODO: write our own lexer to match syntax StrDecimalLiteral
-        </span><span class="kw">if </span>s.starts_with(<span class="string">&quot;Infinity&quot;</span>) || s.starts_with(<span class="string">&quot;+Infinity&quot;</span>) {
+        </span><span class="kw">if </span>s.starts_with(<span class="string">"Infinity"</span>) || s.starts_with(<span class="string">"+Infinity"</span>) {
             <span class="prelude-val">Ok</span>(JsValue::new(f64::INFINITY))
-        } <span class="kw">else if </span>s.starts_with(<span class="string">&quot;-Infinity&quot;</span>) {
+        } <span class="kw">else if </span>s.starts_with(<span class="string">"-Infinity"</span>) {
             <span class="prelude-val">Ok</span>(JsValue::new(f64::NEG_INFINITY))
-        } <span class="kw">else if </span>s_prefix_lower.starts_with(<span class="string">&quot;inf&quot;</span>)
-            || s_prefix_lower.starts_with(<span class="string">&quot;+inf&quot;</span>)
-            || s_prefix_lower.starts_with(<span class="string">&quot;-inf&quot;</span>)
+        } <span class="kw">else if </span>s_prefix_lower.starts_with(<span class="string">"inf"</span>)
+            || s_prefix_lower.starts_with(<span class="string">"+inf"</span>)
+            || s_prefix_lower.starts_with(<span class="string">"-inf"</span>)
         {
-            <span class="comment">// Prevent fast_float from parsing &quot;inf&quot;, &quot;+inf&quot; as Infinity and &quot;-inf&quot; as -Infinity
+            <span class="comment">// Prevent fast_float from parsing "inf", "+inf" as Infinity and "-inf" as -Infinity
             </span><span class="prelude-val">Ok</span>(JsValue::nan())
         } <span class="kw">else </span>{
             <span class="prelude-val">Ok</span>(fast_float::parse_partial::&lt;f64, <span class="kw">_</span>&gt;(s).map_or_else(

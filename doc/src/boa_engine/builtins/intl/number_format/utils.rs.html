@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/builtins/intl/number_format/utils.rs`."><title>utils.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/builtins/intl/number_format/utils.rs`."><title>utils.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -596,7 +597,7 @@
                 BaseMultiple::MultiplesOf5 =&gt; <span class="number">5</span>,
                 BaseMultiple::MultiplesOf25 =&gt; <span class="number">25</span>,
                 <span class="kw">_ </span>=&gt; {
-                    <span class="macro">debug_assert!</span>(<span class="bool-val">false</span>, <span class="string">&quot;base multiples can only be 1, 2, 5, or 25&quot;</span>);
+                    <span class="macro">debug_assert!</span>(<span class="bool-val">false</span>, <span class="string">"base multiples can only be 1, 2, 5, or 25"</span>);
                     <span class="number">1
                 </span>}
             }
@@ -621,37 +622,37 @@
     notation: Notation,
     context: <span class="kw-2">&amp;mut </span>Context,
 ) -&gt; JsResult&lt;DigitFormatOptions&gt; {
-    <span class="comment">// 1. Let mnid be ? GetNumberOption(options, &quot;minimumIntegerDigits,&quot;, 1, 21, 1).
+    <span class="comment">// 1. Let mnid be ? GetNumberOption(options, "minimumIntegerDigits,", 1, 21, 1).
     </span><span class="kw">let </span>minimum_integer_digits =
-        get_number_option(options, <span class="macro">utf16!</span>(<span class="string">&quot;minimumIntegerDigits&quot;</span>), <span class="number">1</span>, <span class="number">21</span>, context)<span class="question-mark">?</span>.unwrap_or(<span class="number">1</span>);
-    <span class="comment">// 2. Let mnfd be ? Get(options, &quot;minimumFractionDigits&quot;).
-    </span><span class="kw">let </span>min_float_digits = options.get(<span class="macro">utf16!</span>(<span class="string">&quot;minimumFractionDigits&quot;</span>), context)<span class="question-mark">?</span>;
-    <span class="comment">// 3. Let mxfd be ? Get(options, &quot;maximumFractionDigits&quot;).
-    </span><span class="kw">let </span>max_float_digits = options.get(<span class="macro">utf16!</span>(<span class="string">&quot;maximumFractionDigits&quot;</span>), context)<span class="question-mark">?</span>;
-    <span class="comment">// 4. Let mnsd be ? Get(options, &quot;minimumSignificantDigits&quot;).
-    </span><span class="kw">let </span>min_sig_digits = options.get(<span class="macro">utf16!</span>(<span class="string">&quot;minimumSignificantDigits&quot;</span>), context)<span class="question-mark">?</span>;
-    <span class="comment">// 5. Let mxsd be ? Get(options, &quot;maximumSignificantDigits&quot;).
-    </span><span class="kw">let </span>max_sig_digits = options.get(<span class="macro">utf16!</span>(<span class="string">&quot;maximumSignificantDigits&quot;</span>), context)<span class="question-mark">?</span>;
+        get_number_option(options, <span class="macro">utf16!</span>(<span class="string">"minimumIntegerDigits"</span>), <span class="number">1</span>, <span class="number">21</span>, context)<span class="question-mark">?</span>.unwrap_or(<span class="number">1</span>);
+    <span class="comment">// 2. Let mnfd be ? Get(options, "minimumFractionDigits").
+    </span><span class="kw">let </span>min_float_digits = options.get(<span class="macro">utf16!</span>(<span class="string">"minimumFractionDigits"</span>), context)<span class="question-mark">?</span>;
+    <span class="comment">// 3. Let mxfd be ? Get(options, "maximumFractionDigits").
+    </span><span class="kw">let </span>max_float_digits = options.get(<span class="macro">utf16!</span>(<span class="string">"maximumFractionDigits"</span>), context)<span class="question-mark">?</span>;
+    <span class="comment">// 4. Let mnsd be ? Get(options, "minimumSignificantDigits").
+    </span><span class="kw">let </span>min_sig_digits = options.get(<span class="macro">utf16!</span>(<span class="string">"minimumSignificantDigits"</span>), context)<span class="question-mark">?</span>;
+    <span class="comment">// 5. Let mxsd be ? Get(options, "maximumSignificantDigits").
+    </span><span class="kw">let </span>max_sig_digits = options.get(<span class="macro">utf16!</span>(<span class="string">"maximumSignificantDigits"</span>), context)<span class="question-mark">?</span>;
 
-    <span class="comment">// 7. Let roundingPriority be ? GetOption(options, &quot;roundingPriority&quot;, string, « &quot;auto&quot;, &quot;morePrecision&quot;, &quot;lessPrecision&quot; », &quot;auto&quot;).
+    <span class="comment">// 7. Let roundingPriority be ? GetOption(options, "roundingPriority", string, « "auto", "morePrecision", "lessPrecision" », "auto").
     </span><span class="kw">let </span><span class="kw-2">mut </span>rounding_priority =
-        get_option(options, <span class="macro">utf16!</span>(<span class="string">&quot;roundingPriority&quot;</span>), context)<span class="question-mark">?</span>.unwrap_or_default();
+        get_option(options, <span class="macro">utf16!</span>(<span class="string">"roundingPriority"</span>), context)<span class="question-mark">?</span>.unwrap_or_default();
 
-    <span class="comment">// 8. Let roundingIncrement be ? GetNumberOption(options, &quot;roundingIncrement&quot;, 1, 5000, 1).
+    <span class="comment">// 8. Let roundingIncrement be ? GetNumberOption(options, "roundingIncrement", 1, 5000, 1).
     // 9. If roundingIncrement is not in « 1, 2, 5, 10, 20, 25, 50, 100, 200, 250, 500, 1000, 2000, 2500, 5000 », throw a RangeError exception.
     </span><span class="kw">let </span>rounding_increment =
-        get_number_option(options, <span class="macro">utf16!</span>(<span class="string">&quot;roundingIncrement&quot;</span>), <span class="number">1</span>, <span class="number">5000</span>, context)<span class="question-mark">?</span>.unwrap_or(<span class="number">1</span>);
+        get_number_option(options, <span class="macro">utf16!</span>(<span class="string">"roundingIncrement"</span>), <span class="number">1</span>, <span class="number">5000</span>, context)<span class="question-mark">?</span>.unwrap_or(<span class="number">1</span>);
 
     <span class="kw">let </span>rounding_increment = RoundingIncrement::from_u16(rounding_increment).ok_or_else(|| {
-        JsNativeError::range().with_message(<span class="string">&quot;invalid value for option `roundingIncrement`&quot;</span>)
+        JsNativeError::range().with_message(<span class="string">"invalid value for option `roundingIncrement`"</span>)
     })<span class="question-mark">?</span>;
 
-    <span class="comment">// 10. Let roundingMode be ? GetOption(options, &quot;roundingMode&quot;, string, « &quot;ceil&quot;, &quot;floor&quot;, &quot;expand&quot;, &quot;trunc&quot;, &quot;halfCeil&quot;, &quot;halfFloor&quot;, &quot;halfExpand&quot;, &quot;halfTrunc&quot;, &quot;halfEven&quot; », &quot;halfExpand&quot;).
-    </span><span class="kw">let </span>rounding_mode = get_option(options, <span class="macro">utf16!</span>(<span class="string">&quot;roundingMode&quot;</span>), context)<span class="question-mark">?</span>.unwrap_or_default();
+    <span class="comment">// 10. Let roundingMode be ? GetOption(options, "roundingMode", string, « "ceil", "floor", "expand", "trunc", "halfCeil", "halfFloor", "halfExpand", "halfTrunc", "halfEven" », "halfExpand").
+    </span><span class="kw">let </span>rounding_mode = get_option(options, <span class="macro">utf16!</span>(<span class="string">"roundingMode"</span>), context)<span class="question-mark">?</span>.unwrap_or_default();
 
-    <span class="comment">// 11. Let trailingZeroDisplay be ? GetOption(options, &quot;trailingZeroDisplay&quot;, string, « &quot;auto&quot;, &quot;stripIfInteger&quot; », &quot;auto&quot;).
+    <span class="comment">// 11. Let trailingZeroDisplay be ? GetOption(options, "trailingZeroDisplay", string, « "auto", "stripIfInteger" », "auto").
     </span><span class="kw">let </span>trailing_zero_display =
-        get_option(options, <span class="macro">utf16!</span>(<span class="string">&quot;trailingZeroDisplay&quot;</span>), context)<span class="question-mark">?</span>.unwrap_or_default();
+        get_option(options, <span class="macro">utf16!</span>(<span class="string">"trailingZeroDisplay"</span>), context)<span class="question-mark">?</span>.unwrap_or_default();
 
     <span class="comment">// 12. NOTE: All fields required by SetNumberFormatDigitOptions have now been read from options. The remainder of this AO interprets the options and may throw exceptions.
 
@@ -675,9 +676,9 @@
     <span class="comment">// 21. Let needSd be true.
     // 22. Let needFd be true.
     </span><span class="kw">let </span>(need_sig_limits, need_frac_limits) = <span class="kw">if </span>rounding_priority == RoundingPriority::Auto {
-        <span class="comment">// 23. If roundingPriority is &quot;auto&quot;, then
+        <span class="comment">// 23. If roundingPriority is "auto", then
         //     a. Set needSd to hasSd.
-        //     b. If needSd is true, or hasFd is false and notation is &quot;compact&quot;, then
+        //     b. If needSd is true, or hasFd is false and notation is "compact", then
         //         i. Set needFd to false.
         </span>(
             has_sig_limits,
@@ -730,7 +731,7 @@
                     <span class="comment">// v. Else if mnfd is greater than mxfd, throw a RangeError exception.
                     </span><span class="kw">if </span>min_float_digits &gt; max_float_digits {
                         <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range().with_message(
-                            <span class="string">&quot;`minimumFractionDigits` cannot be bigger than `maximumFractionDigits`&quot;</span>,
+                            <span class="string">"`minimumFractionDigits` cannot be bigger than `maximumFractionDigits`"</span>,
                         ).into());
                     }
                     (min_float_digits, max_float_digits)
@@ -746,7 +747,7 @@
                     max_float_digits,
                 ),
                 (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>) =&gt; {
-                    <span class="macro">unreachable!</span>(<span class="string">&quot;`has_fd` can only be true if `mnfd` or `mxfd` is not undefined&quot;</span>)
+                    <span class="macro">unreachable!</span>(<span class="string">"`has_fd` can only be true if `mnfd` or `mxfd` is not undefined"</span>)
                 }
             };
 
@@ -774,7 +775,7 @@
     <span class="kw">let </span>rounding_type = <span class="kw">match </span>(sig_digits, fractional_digits) {
         <span class="comment">// 26. If needSd is false and needFd is false, then
         </span>(<span class="prelude-val">None</span>, <span class="prelude-val">None</span>) =&gt; {
-            <span class="comment">// f. Set intlObj.[[ComputedRoundingPriority]] to &quot;morePrecision&quot;.
+            <span class="comment">// f. Set intlObj.[[ComputedRoundingPriority]] to "morePrecision".
             </span>rounding_priority = RoundingPriority::MorePrecision;
             <span class="comment">// e. Set intlObj.[[RoundingType]] to morePrecision.
             </span>RoundingType::MorePrecision {
@@ -802,7 +803,7 @@
                 fraction_digits,
             },
             RoundingPriority::Auto =&gt; {
-                <span class="macro">unreachable!</span>(<span class="string">&quot;Cannot have both roundings when the priority is `Auto`&quot;</span>)
+                <span class="macro">unreachable!</span>(<span class="string">"Cannot have both roundings when the priority is `Auto`"</span>)
             }
         },
         (<span class="prelude-val">Some</span>(sig), <span class="prelude-val">None</span>) =&gt; RoundingType::SignificantDigits(sig),
@@ -812,13 +813,13 @@
     <span class="kw">if </span>rounding_increment.to_u16() != <span class="number">1 </span>{
         <span class="kw">let </span>RoundingType::FractionDigits(range) = rounding_type <span class="kw">else </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
-                .with_message(<span class="string">&quot;option `roundingIncrement` invalid for the current set of options&quot;</span>)
+                .with_message(<span class="string">"option `roundingIncrement` invalid for the current set of options"</span>)
                 .into());
         };
 
         <span class="kw">if </span>range.minimum != range.maximum {
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
-                .with_message(<span class="string">&quot;option `roundingIncrement` invalid for the current set of options&quot;</span>)
+                .with_message(<span class="string">"option `roundingIncrement` invalid for the current set of options"</span>)
                 .into());
         }
     }
@@ -909,10 +910,10 @@
     // We can skip these steps, because `FixedDecimal` already provides support for
     // negative zeroes.
     </span><span class="kw">let </span><span class="kw-2">mut </span>number = FixedDecimal::try_from_f64(number, FloatPrecision::Floating)
-        .expect(<span class="string">&quot;`number` must be finite&quot;</span>);
+        .expect(<span class="string">"`number` must be finite"</span>);
 
     <span class="comment">// 3. Let unsignedRoundingMode be GetUnsignedRoundingMode(intlObject.[[RoundingMode]], isNegative).
-    // Skipping because `FixedDecimal`&#39;s API already provides methods equivalent to `RoundingMode`s.
+    // Skipping because `FixedDecimal`'s API already provides methods equivalent to `RoundingMode`s.
 
     </span><span class="kw">match </span>options.rounding_type {
         <span class="comment">// 4. If intlObject.[[RoundingType]] is significantDigits, then
@@ -980,11 +981,11 @@
 
     <span class="comment">// 7. Set x to result.[[RoundedNumber]].
     // 8. Let string be result.[[FormattedString]].
-    // 9. If intlObject.[[TrailingZeroDisplay]] is &quot;stripIfInteger&quot; and x modulo 1 = 0, then
+    // 9. If intlObject.[[TrailingZeroDisplay]] is "stripIfInteger" and x modulo 1 = 0, then
     </span><span class="kw">if </span>options.trailing_zero_display == TrailingZeroDisplay::StripIfInteger
         &amp;&amp; number.nonzero_magnitude_end() &gt;= <span class="number">0
     </span>{
-        <span class="comment">// a. Let i be StringIndexOf(string, &quot;.&quot;, 0).
+        <span class="comment">// a. Let i be StringIndexOf(string, ".", 0).
         // b. If i ≠ -1, set string to the substring of string from 0 to i.
         </span>number.trim_end();
     }

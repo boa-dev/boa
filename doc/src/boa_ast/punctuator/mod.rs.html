@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/ast/src/punctuator/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="boa_ast" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../boa_ast/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_ast"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/ast/src/punctuator/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="boa_ast" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../../boa_ast/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_ast"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -320,7 +321,7 @@
 ///  - [ECMAScript Reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-Punctuator
-</span><span class="attr">#[cfg_attr(feature = <span class="string">&quot;serde&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
+</span><span class="attr">#[cfg_attr(feature = <span class="string">"serde"</span>, derive(serde::Serialize, serde::Deserialize))]
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]
 </span><span class="kw">pub enum </span>Punctuator {
     <span class="doccomment">/// `+`
@@ -502,65 +503,65 @@
 
     <span class="doccomment">/// Retrieves the punctuator as a static string.
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub const fn </span>as_str(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
+    </span><span class="kw">pub const fn </span>as_str(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str {
         <span class="kw">match </span><span class="self">self </span>{
-            <span class="self">Self</span>::Add =&gt; <span class="string">&quot;+&quot;</span>,
-            <span class="self">Self</span>::And =&gt; <span class="string">&quot;&amp;&quot;</span>,
-            <span class="self">Self</span>::Arrow =&gt; <span class="string">&quot;=&gt;&quot;</span>,
-            <span class="self">Self</span>::Assign =&gt; <span class="string">&quot;=&quot;</span>,
-            <span class="self">Self</span>::AssignAdd =&gt; <span class="string">&quot;+=&quot;</span>,
-            <span class="self">Self</span>::AssignAnd =&gt; <span class="string">&quot;&amp;=&quot;</span>,
-            <span class="self">Self</span>::AssignBoolAnd =&gt; <span class="string">&quot;&amp;&amp;=&quot;</span>,
-            <span class="self">Self</span>::AssignBoolOr =&gt; <span class="string">&quot;||=&quot;</span>,
-            <span class="self">Self</span>::AssignCoalesce =&gt; <span class="string">&quot;??=&quot;</span>,
-            <span class="self">Self</span>::AssignDiv =&gt; <span class="string">&quot;/=&quot;</span>,
-            <span class="self">Self</span>::AssignLeftSh =&gt; <span class="string">&quot;&lt;&lt;=&quot;</span>,
-            <span class="self">Self</span>::AssignMod =&gt; <span class="string">&quot;%=&quot;</span>,
-            <span class="self">Self</span>::AssignMul =&gt; <span class="string">&quot;*=&quot;</span>,
-            <span class="self">Self</span>::AssignOr =&gt; <span class="string">&quot;|=&quot;</span>,
-            <span class="self">Self</span>::AssignPow =&gt; <span class="string">&quot;**=&quot;</span>,
-            <span class="self">Self</span>::AssignRightSh =&gt; <span class="string">&quot;&gt;&gt;=&quot;</span>,
-            <span class="self">Self</span>::AssignSub =&gt; <span class="string">&quot;-=&quot;</span>,
-            <span class="self">Self</span>::AssignURightSh =&gt; <span class="string">&quot;&gt;&gt;&gt;=&quot;</span>,
-            <span class="self">Self</span>::AssignXor =&gt; <span class="string">&quot;^=&quot;</span>,
-            <span class="self">Self</span>::BoolAnd =&gt; <span class="string">&quot;&amp;&amp;&quot;</span>,
-            <span class="self">Self</span>::BoolOr =&gt; <span class="string">&quot;||&quot;</span>,
-            <span class="self">Self</span>::Coalesce =&gt; <span class="string">&quot;??&quot;</span>,
-            <span class="self">Self</span>::CloseBlock =&gt; <span class="string">&quot;}&quot;</span>,
-            <span class="self">Self</span>::CloseBracket =&gt; <span class="string">&quot;]&quot;</span>,
-            <span class="self">Self</span>::CloseParen =&gt; <span class="string">&quot;)&quot;</span>,
-            <span class="self">Self</span>::Colon =&gt; <span class="string">&quot;:&quot;</span>,
-            <span class="self">Self</span>::Comma =&gt; <span class="string">&quot;,&quot;</span>,
-            <span class="self">Self</span>::Dec =&gt; <span class="string">&quot;--&quot;</span>,
-            <span class="self">Self</span>::Div =&gt; <span class="string">&quot;/&quot;</span>,
-            <span class="self">Self</span>::Dot =&gt; <span class="string">&quot;.&quot;</span>,
-            <span class="self">Self</span>::Eq =&gt; <span class="string">&quot;==&quot;</span>,
-            <span class="self">Self</span>::GreaterThan =&gt; <span class="string">&quot;&gt;&quot;</span>,
-            <span class="self">Self</span>::GreaterThanOrEq =&gt; <span class="string">&quot;&gt;=&quot;</span>,
-            <span class="self">Self</span>::Inc =&gt; <span class="string">&quot;++&quot;</span>,
-            <span class="self">Self</span>::LeftSh =&gt; <span class="string">&quot;&lt;&lt;&quot;</span>,
-            <span class="self">Self</span>::LessThan =&gt; <span class="string">&quot;&lt;&quot;</span>,
-            <span class="self">Self</span>::LessThanOrEq =&gt; <span class="string">&quot;&lt;=&quot;</span>,
-            <span class="self">Self</span>::Mod =&gt; <span class="string">&quot;%&quot;</span>,
-            <span class="self">Self</span>::Mul =&gt; <span class="string">&quot;*&quot;</span>,
-            <span class="self">Self</span>::Neg =&gt; <span class="string">&quot;~&quot;</span>,
-            <span class="self">Self</span>::Not =&gt; <span class="string">&quot;!&quot;</span>,
-            <span class="self">Self</span>::NotEq =&gt; <span class="string">&quot;!=&quot;</span>,
-            <span class="self">Self</span>::OpenBlock =&gt; <span class="string">&quot;{&quot;</span>,
-            <span class="self">Self</span>::OpenBracket =&gt; <span class="string">&quot;[&quot;</span>,
-            <span class="self">Self</span>::OpenParen =&gt; <span class="string">&quot;(&quot;</span>,
-            <span class="self">Self</span>::Optional =&gt; <span class="string">&quot;?.&quot;</span>,
-            <span class="self">Self</span>::Or =&gt; <span class="string">&quot;|&quot;</span>,
-            <span class="self">Self</span>::Exp =&gt; <span class="string">&quot;**&quot;</span>,
-            <span class="self">Self</span>::Question =&gt; <span class="string">&quot;?&quot;</span>,
-            <span class="self">Self</span>::RightSh =&gt; <span class="string">&quot;&gt;&gt;&quot;</span>,
-            <span class="self">Self</span>::Semicolon =&gt; <span class="string">&quot;;&quot;</span>,
-            <span class="self">Self</span>::Spread =&gt; <span class="string">&quot;...&quot;</span>,
-            <span class="self">Self</span>::StrictEq =&gt; <span class="string">&quot;===&quot;</span>,
-            <span class="self">Self</span>::StrictNotEq =&gt; <span class="string">&quot;!==&quot;</span>,
-            <span class="self">Self</span>::Sub =&gt; <span class="string">&quot;-&quot;</span>,
-            <span class="self">Self</span>::URightSh =&gt; <span class="string">&quot;&gt;&gt;&gt;&quot;</span>,
-            <span class="self">Self</span>::Xor =&gt; <span class="string">&quot;^&quot;</span>,
+            <span class="self">Self</span>::Add =&gt; <span class="string">"+"</span>,
+            <span class="self">Self</span>::And =&gt; <span class="string">"&amp;"</span>,
+            <span class="self">Self</span>::Arrow =&gt; <span class="string">"=&gt;"</span>,
+            <span class="self">Self</span>::Assign =&gt; <span class="string">"="</span>,
+            <span class="self">Self</span>::AssignAdd =&gt; <span class="string">"+="</span>,
+            <span class="self">Self</span>::AssignAnd =&gt; <span class="string">"&amp;="</span>,
+            <span class="self">Self</span>::AssignBoolAnd =&gt; <span class="string">"&amp;&amp;="</span>,
+            <span class="self">Self</span>::AssignBoolOr =&gt; <span class="string">"||="</span>,
+            <span class="self">Self</span>::AssignCoalesce =&gt; <span class="string">"??="</span>,
+            <span class="self">Self</span>::AssignDiv =&gt; <span class="string">"/="</span>,
+            <span class="self">Self</span>::AssignLeftSh =&gt; <span class="string">"&lt;&lt;="</span>,
+            <span class="self">Self</span>::AssignMod =&gt; <span class="string">"%="</span>,
+            <span class="self">Self</span>::AssignMul =&gt; <span class="string">"*="</span>,
+            <span class="self">Self</span>::AssignOr =&gt; <span class="string">"|="</span>,
+            <span class="self">Self</span>::AssignPow =&gt; <span class="string">"**="</span>,
+            <span class="self">Self</span>::AssignRightSh =&gt; <span class="string">"&gt;&gt;="</span>,
+            <span class="self">Self</span>::AssignSub =&gt; <span class="string">"-="</span>,
+            <span class="self">Self</span>::AssignURightSh =&gt; <span class="string">"&gt;&gt;&gt;="</span>,
+            <span class="self">Self</span>::AssignXor =&gt; <span class="string">"^="</span>,
+            <span class="self">Self</span>::BoolAnd =&gt; <span class="string">"&amp;&amp;"</span>,
+            <span class="self">Self</span>::BoolOr =&gt; <span class="string">"||"</span>,
+            <span class="self">Self</span>::Coalesce =&gt; <span class="string">"??"</span>,
+            <span class="self">Self</span>::CloseBlock =&gt; <span class="string">"}"</span>,
+            <span class="self">Self</span>::CloseBracket =&gt; <span class="string">"]"</span>,
+            <span class="self">Self</span>::CloseParen =&gt; <span class="string">")"</span>,
+            <span class="self">Self</span>::Colon =&gt; <span class="string">":"</span>,
+            <span class="self">Self</span>::Comma =&gt; <span class="string">","</span>,
+            <span class="self">Self</span>::Dec =&gt; <span class="string">"--"</span>,
+            <span class="self">Self</span>::Div =&gt; <span class="string">"/"</span>,
+            <span class="self">Self</span>::Dot =&gt; <span class="string">"."</span>,
+            <span class="self">Self</span>::Eq =&gt; <span class="string">"=="</span>,
+            <span class="self">Self</span>::GreaterThan =&gt; <span class="string">"&gt;"</span>,
+            <span class="self">Self</span>::GreaterThanOrEq =&gt; <span class="string">"&gt;="</span>,
+            <span class="self">Self</span>::Inc =&gt; <span class="string">"++"</span>,
+            <span class="self">Self</span>::LeftSh =&gt; <span class="string">"&lt;&lt;"</span>,
+            <span class="self">Self</span>::LessThan =&gt; <span class="string">"&lt;"</span>,
+            <span class="self">Self</span>::LessThanOrEq =&gt; <span class="string">"&lt;="</span>,
+            <span class="self">Self</span>::Mod =&gt; <span class="string">"%"</span>,
+            <span class="self">Self</span>::Mul =&gt; <span class="string">"*"</span>,
+            <span class="self">Self</span>::Neg =&gt; <span class="string">"~"</span>,
+            <span class="self">Self</span>::Not =&gt; <span class="string">"!"</span>,
+            <span class="self">Self</span>::NotEq =&gt; <span class="string">"!="</span>,
+            <span class="self">Self</span>::OpenBlock =&gt; <span class="string">"{"</span>,
+            <span class="self">Self</span>::OpenBracket =&gt; <span class="string">"["</span>,
+            <span class="self">Self</span>::OpenParen =&gt; <span class="string">"("</span>,
+            <span class="self">Self</span>::Optional =&gt; <span class="string">"?."</span>,
+            <span class="self">Self</span>::Or =&gt; <span class="string">"|"</span>,
+            <span class="self">Self</span>::Exp =&gt; <span class="string">"**"</span>,
+            <span class="self">Self</span>::Question =&gt; <span class="string">"?"</span>,
+            <span class="self">Self</span>::RightSh =&gt; <span class="string">"&gt;&gt;"</span>,
+            <span class="self">Self</span>::Semicolon =&gt; <span class="string">";"</span>,
+            <span class="self">Self</span>::Spread =&gt; <span class="string">"..."</span>,
+            <span class="self">Self</span>::StrictEq =&gt; <span class="string">"==="</span>,
+            <span class="self">Self</span>::StrictNotEq =&gt; <span class="string">"!=="</span>,
+            <span class="self">Self</span>::Sub =&gt; <span class="string">"-"</span>,
+            <span class="self">Self</span>::URightSh =&gt; <span class="string">"&gt;&gt;&gt;"</span>,
+            <span class="self">Self</span>::Xor =&gt; <span class="string">"^"</span>,
         }
     }
 }
@@ -572,7 +573,7 @@
     <span class="kw">fn </span>try_from(punct: Punctuator) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Error&gt; {
         punct
             .as_assign_op()
-            .ok_or_else(|| <span class="macro">format!</span>(<span class="string">&quot;No assignment operator for {punct}&quot;</span>))
+            .ok_or_else(|| <span class="macro">format!</span>(<span class="string">"No assignment operator for {punct}"</span>))
     }
 }
 
@@ -583,12 +584,12 @@
     <span class="kw">fn </span>try_from(punct: Punctuator) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Error&gt; {
         punct
             .as_binary_op()
-            .ok_or_else(|| <span class="macro">format!</span>(<span class="string">&quot;No binary operator for {punct}&quot;</span>))
+            .ok_or_else(|| <span class="macro">format!</span>(<span class="string">"No binary operator for {punct}"</span>))
     }
 }
 
 <span class="kw">impl </span>Display <span class="kw">for </span>Punctuator {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         f.write_str(<span class="self">self</span>.as_str())
     }
 }

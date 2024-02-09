@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/builtins/iterable/async_from_sync_iterator.rs`."><title>async_from_sync_iterator.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/engine/src/builtins/iterable/async_from_sync_iterator.rs`."><title>async_from_sync_iterator.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="boa_engine" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../../../boa_engine/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_engine"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -451,7 +452,7 @@
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>AsyncFromSyncIterator {
     <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(std::any::type_name::&lt;<span class="self">Self</span>&gt;(), <span class="string">&quot;init&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(std::any::type_name::&lt;<span class="self">Self</span>&gt;(), <span class="string">"init"</span>);
 
         BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(realm)
             .prototype(
@@ -461,9 +462,9 @@
                     .iterator_prototypes()
                     .async_iterator(),
             )
-            .static_method(<span class="self">Self</span>::next, <span class="macro">js_string!</span>(<span class="string">&quot;next&quot;</span>), <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::r#return, <span class="macro">js_string!</span>(<span class="string">&quot;return&quot;</span>), <span class="number">1</span>)
-            .static_method(<span class="self">Self</span>::throw, <span class="macro">js_string!</span>(<span class="string">&quot;throw&quot;</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::next, <span class="macro">js_string!</span>(<span class="string">"next"</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::r#return, <span class="macro">js_string!</span>(<span class="string">"return"</span>), <span class="number">1</span>)
+            .static_method(<span class="self">Self</span>::throw, <span class="macro">js_string!</span>(<span class="string">"throw"</span>), <span class="number">1</span>)
             .build();
     }
 
@@ -500,10 +501,10 @@
             },
         );
 
-        <span class="comment">// 3. Let nextMethod be ! Get(asyncIterator, &quot;next&quot;).
+        <span class="comment">// 3. Let nextMethod be ! Get(asyncIterator, "next").
         </span><span class="kw">let </span>next_method = async_iterator
-            .get(<span class="macro">utf16!</span>(<span class="string">&quot;next&quot;</span>), context)
-            .expect(<span class="string">&quot;async from sync iterator prototype must have next method&quot;</span>);
+            .get(<span class="macro">utf16!</span>(<span class="string">"next"</span>), context)
+            .expect(<span class="string">"async from sync iterator prototype must have next method"</span>);
 
         <span class="comment">// 4. Let iteratorRecord be the Iterator Record { [[Iterator]]: asyncIterator, [[NextMethod]]: nextMethod, [[Done]]: false }.
         // 5. Return iteratorRecord.
@@ -523,7 +524,7 @@
         </span><span class="kw">let </span>sync_iterator_record = this
             .as_object()
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
-            .expect(<span class="string">&quot;async from sync iterator prototype must be object&quot;</span>)
+            .expect(<span class="string">"async from sync iterator prototype must be object"</span>)
             .sync_iterator_record
             .clone();
 
@@ -532,7 +533,7 @@
             <span class="kw-2">&amp;</span>context.intrinsics().constructors().promise().constructor(),
             context,
         )
-        .expect(<span class="string">&quot;cannot fail with promise constructor&quot;</span>);
+        .expect(<span class="string">"cannot fail with promise constructor"</span>);
 
         <span class="comment">// 5. If value is present, then
         // a. Let result be Completion(IteratorNext(syncIteratorRecord, value)).
@@ -574,7 +575,7 @@
         </span><span class="kw">let </span>sync_iterator_record = this
             .as_object()
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
-            .expect(<span class="string">&quot;async from sync iterator prototype must be object&quot;</span>)
+            .expect(<span class="string">"async from sync iterator prototype must be object"</span>)
             .sync_iterator_record
             .clone();
         <span class="comment">// 5. Let syncIterator be syncIteratorRecord.[[Iterator]].
@@ -585,10 +586,10 @@
             <span class="kw-2">&amp;</span>context.intrinsics().constructors().promise().constructor(),
             context,
         )
-        .expect(<span class="string">&quot;cannot fail with promise constructor&quot;</span>);
+        .expect(<span class="string">"cannot fail with promise constructor"</span>);
 
-        <span class="comment">// 6. Let return be Completion(GetMethod(syncIterator, &quot;return&quot;)).
-        </span><span class="kw">let </span>r#return = sync_iterator.get_method(<span class="macro">utf16!</span>(<span class="string">&quot;return&quot;</span>), context);
+        <span class="comment">// 6. Let return be Completion(GetMethod(syncIterator, "return")).
+        </span><span class="kw">let </span>r#return = sync_iterator.get_method(<span class="macro">utf16!</span>(<span class="string">"return"</span>), context);
 
         <span class="comment">// 7. IfAbruptRejectPromise(return, promiseCapability).
         </span><span class="kw">let </span>r#return = <span class="macro">if_abrupt_reject_promise!</span>(r#return, promise_capability, context);
@@ -604,7 +605,7 @@
                 </span>promise_capability
                     .resolve()
                     .call(<span class="kw-2">&amp;</span>JsValue::Undefined, <span class="kw-2">&amp;</span>[iter_result], context)
-                    .expect(<span class="string">&quot;cannot fail according to spec&quot;</span>);
+                    .expect(<span class="string">"cannot fail according to spec"</span>);
 
                 <span class="comment">// c. Return promiseCapability.[[Promise]].
                 </span><span class="kw">return </span><span class="prelude-val">Ok</span>(promise_capability.promise().clone().into());
@@ -651,7 +652,7 @@
         </span><span class="kw">let </span>sync_iterator_record = this
             .as_object()
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
-            .expect(<span class="string">&quot;async from sync iterator prototype must be object&quot;</span>)
+            .expect(<span class="string">"async from sync iterator prototype must be object"</span>)
             .sync_iterator_record
             .clone();
         <span class="comment">// 5. Let syncIterator be syncIteratorRecord.[[Iterator]].
@@ -662,10 +663,10 @@
             <span class="kw-2">&amp;</span>context.intrinsics().constructors().promise().constructor(),
             context,
         )
-        .expect(<span class="string">&quot;cannot fail with promise constructor&quot;</span>);
+        .expect(<span class="string">"cannot fail with promise constructor"</span>);
 
-        <span class="comment">// 6. Let throw be Completion(GetMethod(syncIterator, &quot;throw&quot;)).
-        </span><span class="kw">let </span>throw = sync_iterator.get_method(<span class="macro">utf16!</span>(<span class="string">&quot;throw&quot;</span>), context);
+        <span class="comment">// 6. Let throw be Completion(GetMethod(syncIterator, "throw")).
+        </span><span class="kw">let </span>throw = sync_iterator.get_method(<span class="macro">utf16!</span>(<span class="string">"throw"</span>), context);
 
         <span class="comment">// 7. IfAbruptRejectPromise(throw, promiseCapability).
         </span><span class="kw">let </span>throw = <span class="macro">if_abrupt_reject_promise!</span>(throw, promise_capability, context);
@@ -688,12 +689,12 @@
                     .call(
                         <span class="kw-2">&amp;</span>JsValue::undefined(),
                         <span class="kw-2">&amp;</span>[JsNativeError::typ()
-                            .with_message(<span class="string">&quot;sync iterator does not have a throw method&quot;</span>)
+                            .with_message(<span class="string">"sync iterator does not have a throw method"</span>)
                             .to_opaque(context)
                             .into()],
                         context,
                     )
-                    .expect(<span class="string">&quot;cannot fail according to spec&quot;</span>);
+                    .expect(<span class="string">"cannot fail according to spec"</span>);
 
                 <span class="comment">// h. Return promiseCapability.[[Promise]].
                 </span><span class="kw">return </span><span class="prelude-val">Ok</span>(promise_capability.promise().clone().into());
@@ -767,7 +768,7 @@
             </span><span class="prelude-val">Err</span>(e) <span class="kw">if </span>!done &amp;&amp; close_on_rejection =&gt; {
                 <span class="comment">// a. Set valueWrapper to Completion(IteratorClose(syncIteratorRecord, valueWrapper)).
                 </span><span class="prelude-val">Err</span>(sync_iterator_record.close(<span class="prelude-val">Err</span>(e), context).expect_err(
-                    <span class="string">&quot;closing an iterator with an error must always return an error back&quot;</span>,
+                    <span class="string">"closing an iterator with an error must always return an error back"</span>,
                 ))
             }
             other =&gt; other,
@@ -778,7 +779,7 @@
 
         <span class="comment">// 9. Let unwrap be a new Abstract Closure with parameters (value)
         // that captures done and performs the following steps when called:
-        // 10. Let onFulfilled be CreateBuiltinFunction(unwrap, 1, &quot;&quot;, « »).
+        // 10. Let onFulfilled be CreateBuiltinFunction(unwrap, 1, "", « »).
         </span><span class="kw">let </span>on_fulfilled = FunctionObjectBuilder::new(
             context.realm(),
             NativeFunction::from_copy_closure(<span class="kw">move </span>|_this, args, context| {
@@ -790,13 +791,13 @@
                 ))
             }),
         )
-        .name(<span class="string">&quot;&quot;</span>)
+        .name(<span class="string">""</span>)
         .length(<span class="number">1</span>)
         .build();
 
-        <span class="comment">// 11. NOTE: onFulfilled is used when processing the &quot;value&quot; property of an
+        <span class="comment">// 11. NOTE: onFulfilled is used when processing the "value" property of an
         // IteratorResult object in order to wait for its value if it is a promise and
-        // re-package the result in a new &quot;unwrapped&quot; IteratorResult object.
+        // re-package the result in a new "unwrapped" IteratorResult object.
 
         // 12. If done is true, or if closeOnRejection is false, then
         </span><span class="kw">let </span>on_rejected = <span class="kw">if </span>done || !close_on_rejection {
@@ -806,8 +807,8 @@
             <span class="comment">// 13. Else,
             //     a. Let closeIterator be a new Abstract Closure with parameters (error) that
             //        captures syncIteratorRecord and performs the following steps when called:
-            //     b. Let onRejected be CreateBuiltinFunction(closeIterator, 1, &quot;&quot;, « »).
-            //     c. NOTE: onRejected is used to close the Iterator when the &quot;value&quot; property of an
+            //     b. Let onRejected be CreateBuiltinFunction(closeIterator, 1, "", « »).
+            //     c. NOTE: onRejected is used to close the Iterator when the "value" property of an
             //        IteratorResult object it yields is a rejected promise.
             </span><span class="prelude-val">Some</span>(
                 FunctionObjectBuilder::new(
@@ -823,7 +824,7 @@
                         sync_iterator_record,
                     ),
                 )
-                .name(<span class="string">&quot;&quot;</span>)
+                .name(<span class="string">""</span>)
                 .length(<span class="number">1</span>)
                 .build(),
             )

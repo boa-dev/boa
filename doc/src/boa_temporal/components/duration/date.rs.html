@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/temporal/src/components/duration/date.rs`."><title>date.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="boa_temporal" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../boa_temporal/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_temporal"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/temporal/src/components/duration/date.rs`."><title>date.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="boa_temporal" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../../../boa_temporal/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_temporal"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -528,7 +529,7 @@
     </span><span class="kw">pub fn </span>new(years: f64, months: f64, weeks: f64, days: f64) -&gt; TemporalResult&lt;<span class="self">Self</span>&gt; {
         <span class="kw">let </span>result = <span class="self">Self</span>::new_unchecked(years, months, weeks, days);
         <span class="kw">if </span>!<span class="kw">super</span>::is_valid_duration(<span class="kw-2">&amp;</span>result.into_iter().collect()) {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">&quot;Invalid DateDuration.&quot;</span>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">"Invalid DateDuration."</span>));
         }
         <span class="prelude-val">Ok</span>(result)
     }
@@ -609,7 +610,7 @@
 
     <span class="doccomment">/// Returns the iterator for `DateDuration`
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; DateIter&lt;<span class="lifetime">&#39;_</span>&gt; {
+    </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; DateIter&lt;<span class="lifetime">'_</span>&gt; {
         &lt;<span class="kw-2">&amp;</span><span class="self">Self </span><span class="kw">as </span>IntoIterator&gt;::into_iter(<span class="self">self</span>)
     }
 }
@@ -641,15 +642,15 @@
         </span><span class="kw">let _ </span>= relative_targets.<span class="number">2</span>;
 
         <span class="kw">let </span><span class="kw-2">mut </span>fractional_days = <span class="kw">match </span>unit {
-            <span class="comment">// 4. If unit is &quot;year&quot;, &quot;month&quot;, or &quot;week&quot;, and plainRelativeTo is undefined, then
+            <span class="comment">// 4. If unit is "year", "month", or "week", and plainRelativeTo is undefined, then
             </span>TemporalUnit::Year | TemporalUnit::Month | TemporalUnit::Week
                 <span class="kw">if </span>plain_relative_to.is_none() =&gt;
             {
                 <span class="comment">// a. Throw a RangeError exception.
                 </span><span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::range()
-                    .with_message(<span class="string">&quot;plainRelativeTo canot be undefined with given TemporalUnit&quot;</span>));
+                    .with_message(<span class="string">"plainRelativeTo canot be undefined with given TemporalUnit"</span>));
             }
-            <span class="comment">// 5. If unit is one of &quot;year&quot;, &quot;month&quot;, &quot;week&quot;, or &quot;day&quot;, then
+            <span class="comment">// 5. If unit is one of "year", "month", "week", or "day", then
             </span>TemporalUnit::Year | TemporalUnit::Month | TemporalUnit::Week | TemporalUnit::Day =&gt; {
                 <span class="comment">// a. Let nanoseconds be TotalDurationNanoseconds(hours, minutes, seconds, milliseconds, microseconds, nanoseconds).
                 </span><span class="kw">let </span>nanoseconds = additional_time.unwrap_or_default().as_nanos();
@@ -666,21 +667,21 @@
                     <span class="self">self</span>.days + nanoseconds / NS_PER_DAY <span class="kw">as </span>f64
                 } <span class="kw">else </span>{
                     <span class="comment">// implementation of b: i-iii needed.
-                    </span><span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">&quot;Not yet implemented.&quot;</span>));
+                    </span><span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::range().with_message(<span class="string">"Not yet implemented."</span>));
                 }
             }
             <span class="kw">_ </span>=&gt; {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(TemporalError::range()
-                    .with_message(<span class="string">&quot;Invalid TemporalUnit provided to DateDuration.round&quot;</span>))
+                    .with_message(<span class="string">"Invalid TemporalUnit provided to DateDuration.round"</span>))
             }
         };
 
         <span class="comment">// 7. let total be unset.
         // We begin matching against unit and return the remainder value.
         </span><span class="kw">match </span>unit {
-            <span class="comment">// 8. If unit is &quot;year&quot;, then
+            <span class="comment">// 8. If unit is "year", then
             </span>TemporalUnit::Year =&gt; {
-                <span class="kw">let </span>plain_relative_to = plain_relative_to.expect(<span class="string">&quot;this must exist.&quot;</span>);
+                <span class="kw">let </span>plain_relative_to = plain_relative_to.expect(<span class="string">"this must exist."</span>);
                 <span class="comment">// a. Let calendar be plainRelativeTo.[[Calendar]].
                 </span><span class="kw">let </span>calendar = plain_relative_to.calendar();
 
@@ -689,7 +690,7 @@
                 <span class="kw">let </span>years_duration = Duration::new_unchecked(years, TimeDuration::default());
 
                 <span class="comment">// c. If calendar is an Object, then
-                // i. Let dateAdd be ? GetMethod(calendar, &quot;dateAdd&quot;).
+                // i. Let dateAdd be ? GetMethod(calendar, "dateAdd").
                 // d. Else,
                 // i. Let dateAdd be unused.
 
@@ -722,7 +723,7 @@
                 <span class="comment">// j. Set fractionalDays to fractionalDays + monthsWeeksInDays.
                 </span>fractional_days += f64::from(months_weeks_in_days);
 
-                <span class="comment">// k. Let isoResult be ! AddISODate(plainRelativeTo.[[ISOYear]]. plainRelativeTo.[[ISOMonth]], plainRelativeTo.[[ISODay]], 0, 0, 0, truncate(fractionalDays), &quot;constrain&quot;).
+                <span class="comment">// k. Let isoResult be ! AddISODate(plainRelativeTo.[[ISOYear]]. plainRelativeTo.[[ISOMonth]], plainRelativeTo.[[ISODay]], 0, 0, 0, truncate(fractionalDays), "constrain").
                 </span><span class="kw">let </span>iso_result = plain_relative_to.iso().add_iso_date(
                     <span class="kw-2">&amp;</span>DateDuration::new_unchecked(<span class="number">0.0</span>, <span class="number">0.0</span>, <span class="number">0.0</span>, fractional_days.trunc()),
                     ArithmeticOverflow::Constrain,
@@ -732,7 +733,7 @@
                 </span><span class="kw">let </span>whole_days_later = Date::new_unchecked(iso_result, calendar.clone());
 
                 <span class="comment">// m. Let untilOptions be OrdinaryObjectCreate(null).
-                // n. Perform ! CreateDataPropertyOrThrow(untilOptions, &quot;largestUnit&quot;, &quot;year&quot;).
+                // n. Perform ! CreateDataPropertyOrThrow(untilOptions, "largestUnit", "year").
                 // o. Let timePassed be ? DifferenceDate(calendar, plainRelativeTo, wholeDaysLater, untilOptions).
                 </span><span class="kw">let </span>time_passed = plain_relative_to.contextual_difference_date(
                     <span class="kw-2">&amp;</span>whole_days_later,
@@ -781,10 +782,10 @@
                 </span><span class="kw">let </span>result = <span class="self">Self</span>::new(rounded_years, <span class="number">0f64</span>, <span class="number">0f64</span>, <span class="number">0f64</span>)<span class="question-mark">?</span>;
                 <span class="prelude-val">Ok</span>((result, frac_years))
             }
-            <span class="comment">// 9. Else if unit is &quot;month&quot;, then
+            <span class="comment">// 9. Else if unit is "month", then
             </span>TemporalUnit::Month =&gt; {
                 <span class="comment">// a. Let calendar be plainRelativeTo.[[Calendar]].
-                </span><span class="kw">let </span>plain_relative_to = plain_relative_to.expect(<span class="string">&quot;this must exist.&quot;</span>);
+                </span><span class="kw">let </span>plain_relative_to = plain_relative_to.expect(<span class="string">"this must exist."</span>);
 
                 <span class="comment">// b. Let yearsMonths be ! CreateTemporalDuration(years, months, 0, 0, 0, 0, 0, 0, 0, 0).
                 </span><span class="kw">let </span>years_months = Duration::from_date_duration(DateDuration::new_unchecked(
@@ -795,7 +796,7 @@
                 ));
 
                 <span class="comment">// c. If calendar is an Object, then
-                // i. Let dateAdd be ? GetMethod(calendar, &quot;dateAdd&quot;).
+                // i. Let dateAdd be ? GetMethod(calendar, "dateAdd").
                 // d. Else,
                 // i. Let dateAdd be unused.
 
@@ -872,10 +873,10 @@
                 </span><span class="kw">let </span>result = <span class="self">Self</span>::new(<span class="self">self</span>.years, rounded_months, <span class="number">0f64</span>, <span class="number">0f64</span>)<span class="question-mark">?</span>;
                 <span class="prelude-val">Ok</span>((result, frac_months))
             }
-            <span class="comment">// 10. Else if unit is &quot;week&quot;, then
+            <span class="comment">// 10. Else if unit is "week", then
             </span>TemporalUnit::Week =&gt; {
                 <span class="comment">// a. Let calendar be plainRelativeTo.[[Calendar]].
-                </span><span class="kw">let </span>plain_relative_to = plain_relative_to.expect(<span class="string">&quot;date must exist given Week&quot;</span>);
+                </span><span class="kw">let </span>plain_relative_to = plain_relative_to.expect(<span class="string">"date must exist given Week"</span>);
 
                 <span class="comment">// b. If fractionalDays &lt; 0, let sign be -1; else, let sign be 1.
                 </span><span class="kw">let </span>sign = <span class="kw">if </span>fractional_days &lt; <span class="number">0.0 </span>{ -<span class="number">1f64 </span>} <span class="kw">else </span>{ <span class="number">1f64 </span>};
@@ -884,7 +885,7 @@
                 </span><span class="kw">let </span>one_week = Duration::one_week(sign);
 
                 <span class="comment">// d. If calendar is an Object, then
-                // i. Let dateAdd be ? GetMethod(calendar, &quot;dateAdd&quot;).
+                // i. Let dateAdd be ? GetMethod(calendar, "dateAdd").
                 // e. Else,
                 // i. Let dateAdd be unused.
 
@@ -922,7 +923,7 @@
                 </span><span class="kw">let </span>result = <span class="self">Self</span>::new(<span class="self">self</span>.years, <span class="self">self</span>.months, rounded_weeks, <span class="number">0f64</span>)<span class="question-mark">?</span>;
                 <span class="prelude-val">Ok</span>((result, frac_weeks))
             }
-            <span class="comment">// 11. Else if unit is &quot;day&quot;, then
+            <span class="comment">// 11. Else if unit is "day", then
             </span>TemporalUnit::Day =&gt; {
                 <span class="comment">// a. Set days to RoundNumberToIncrement(fractionalDays, increment, roundingMode).
                 </span><span class="kw">let </span>rounded_days =
@@ -931,14 +932,14 @@
                 </span><span class="kw">let </span>result = <span class="self">Self</span>::new(<span class="self">self</span>.years, <span class="self">self</span>.months, <span class="self">self</span>.weeks, rounded_days)<span class="question-mark">?</span>;
                 <span class="prelude-val">Ok</span>((result, fractional_days))
             }
-            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;All other TemporalUnits were returned early as invalid.&quot;</span>),
+            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">"All other TemporalUnits were returned early as invalid."</span>),
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; IntoIterator <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>DateDuration {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; IntoIterator <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">'a </span>DateDuration {
     <span class="kw">type </span>Item = f64;
-    <span class="kw">type </span>IntoIter = DateIter&lt;<span class="lifetime">&#39;a</span>&gt;;
+    <span class="kw">type </span>IntoIter = DateIter&lt;<span class="lifetime">'a</span>&gt;;
 
     <span class="kw">fn </span>into_iter(<span class="self">self</span>) -&gt; <span class="self">Self</span>::IntoIter {
         DateIter {
@@ -950,12 +951,12 @@
 
 <span class="doccomment">/// An iterator over the `DateDuration`
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>DateIter&lt;<span class="lifetime">&#39;a</span>&gt; {
-    date: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>DateDuration,
+</span><span class="kw">pub struct </span>DateIter&lt;<span class="lifetime">'a</span>&gt; {
+    date: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>DateDuration,
     index: usize,
 }
 
-<span class="kw">impl </span>Iterator <span class="kw">for </span>DateIter&lt;<span class="lifetime">&#39;_</span>&gt; {
+<span class="kw">impl </span>Iterator <span class="kw">for </span>DateIter&lt;<span class="lifetime">'_</span>&gt; {
     <span class="kw">type </span>Item = f64;
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {

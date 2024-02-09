@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/parser/src/lexer/template.rs`."><title>template.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9ee3a5e31a2afa3e.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="boa_parser" data-themes="" data-resource-suffix="" data-rustdoc-version="1.75.0 (82e1608df 2023-12-21)" data-channel="1.75.0" data-search-js="search-8fbf244ebcf71464.js" data-settings-js="settings-74424d7eec62a23e.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-9dd44ab47b99a0fb.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../boa_parser/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_parser"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/parser/src/lexer/template.rs`."><title>template.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="boa_parser" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../../boa_parser/index.html"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="boa_parser"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -255,7 +256,7 @@
 <a href="#255" id="255">255</a>
 <a href="#256" id="256">256</a>
 <a href="#257" id="257">257</a>
-</pre></div><pre class="rust"><code><span class="doccomment">//! Boa&#39;s lexing for ECMAScript template literals.
+</pre></div><pre class="rust"><code><span class="doccomment">//! Boa's lexing for ECMAScript template literals.
 
 </span><span class="kw">use crate</span>::{
     lexer::{string::UTF16CodeUnitsBuffer, Cursor, Error, Token, TokenKind, Tokenizer},
@@ -266,7 +267,7 @@
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>std::io::{<span class="self">self</span>, ErrorKind};
 
-<span class="attr">#[cfg_attr(feature = <span class="string">&quot;deser&quot;</span>, derive(serde::Serialize, serde::Deserialize))]
+<span class="attr">#[cfg_attr(feature = <span class="string">"deser"</span>, derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 </span><span class="kw">pub struct </span>TemplateString {
     <span class="doccomment">/// The raw template string.
@@ -353,8 +354,8 @@
                         <span class="prelude-val">Some</span>(<span class="number">0x76 </span><span class="comment">/* v */</span>) =&gt; <span class="number">0x0B </span><span class="comment">/* &lt;VT&gt; */</span>,
                         <span class="prelude-val">Some</span>(<span class="number">0x66 </span><span class="comment">/* f */</span>) =&gt; <span class="number">0x0C </span><span class="comment">/* &lt;FF&gt; */</span>,
                         <span class="prelude-val">Some</span>(<span class="number">0x72 </span><span class="comment">/* r */</span>) =&gt; <span class="number">0x0D </span><span class="comment">/* &lt;CR&gt; */</span>,
-                        <span class="prelude-val">Some</span>(<span class="number">0x22 </span><span class="comment">/* &quot; */</span>) =&gt; <span class="number">0x22 </span><span class="comment">/* &quot; */</span>,
-                        <span class="prelude-val">Some</span>(<span class="number">0x27 </span><span class="comment">/* &#39; */</span>) =&gt; <span class="number">0x27 </span><span class="comment">/* &#39; */</span>,
+                        <span class="prelude-val">Some</span>(<span class="number">0x22 </span><span class="comment">/* " */</span>) =&gt; <span class="number">0x22 </span><span class="comment">/* " */</span>,
+                        <span class="prelude-val">Some</span>(<span class="number">0x27 </span><span class="comment">/* ' */</span>) =&gt; <span class="number">0x27 </span><span class="comment">/* ' */</span>,
                         <span class="prelude-val">Some</span>(<span class="number">0x5C </span><span class="comment">/* \ */</span>) =&gt; <span class="number">0x5C </span><span class="comment">/* \ */</span>,
                         <span class="prelude-val">Some</span>(<span class="number">0x30 </span><span class="comment">/* 0 */</span>) <span class="kw">if </span>iter
                             .peek()
@@ -398,7 +399,7 @@
                             <span class="kw">return </span><span class="prelude-val">None</span>;
                         }
                         <span class="comment">// LegacyOctalEscapeSequence
-                        </span><span class="prelude-val">Some</span>(ch) <span class="kw">if </span>(<span class="number">0x30</span>..=<span class="number">0x37 </span><span class="comment">/* &#39;0&#39;..=&#39;7&#39; */</span>).contains(ch) =&gt; {
+                        </span><span class="prelude-val">Some</span>(ch) <span class="kw">if </span>(<span class="number">0x30</span>..=<span class="number">0x37 </span><span class="comment">/* '0'..='7' */</span>).contains(ch) =&gt; {
                             <span class="kw">return </span><span class="prelude-val">None</span>;
                         }
                         <span class="comment">// Line Terminator
@@ -449,14 +450,14 @@
     <span class="kw">where
         </span>R: ReadChar,
     {
-        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">&quot;TemplateLiteral&quot;</span>, <span class="string">&quot;Lexing&quot;</span>);
+        <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">"TemplateLiteral"</span>, <span class="string">"Lexing"</span>);
 
         <span class="kw">let </span><span class="kw-2">mut </span>buf = Vec::new();
         <span class="kw">loop </span>{
             <span class="kw">let </span>ch = cursor.next_char()<span class="question-mark">?</span>.ok_or_else(|| {
                 Error::from(io::Error::new(
                     ErrorKind::UnexpectedEof,
-                    <span class="string">&quot;unterminated template literal&quot;</span>,
+                    <span class="string">"unterminated template literal"</span>,
                 ))
             })<span class="question-mark">?</span>;
 
@@ -486,11 +487,11 @@
                     <span class="kw">let </span>escape_ch = cursor.peek_char()<span class="question-mark">?</span>.ok_or_else(|| {
                         Error::from(io::Error::new(
                             ErrorKind::UnexpectedEof,
-                            <span class="string">&quot;unterminated escape sequence in literal&quot;</span>,
+                            <span class="string">"unterminated escape sequence in literal"</span>,
                         ))
                     })<span class="question-mark">?</span>;
 
-                    buf.push(u16::from(<span class="string">b&#39;\\&#39;</span>));
+                    buf.push(u16::from(<span class="string">b'\\'</span>));
                     <span class="kw">let </span>escape_ch = <span class="kw">match </span>escape_ch {
                         <span class="comment">// `
                         </span><span class="number">0x0060 </span>=&gt; <span class="prelude-val">Some</span>(<span class="number">0x0060</span>),
@@ -501,7 +502,7 @@
                         <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
                     };
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(ch) = escape_ch {
-                        <span class="kw">let _ </span>= cursor.next_char()<span class="question-mark">?</span>.expect(<span class="string">&quot;already checked next character&quot;</span>);
+                        <span class="kw">let _ </span>= cursor.next_char()<span class="question-mark">?</span>.expect(<span class="string">"already checked next character"</span>);
                         buf.push(ch);
                     }
                 }
