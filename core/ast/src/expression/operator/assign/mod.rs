@@ -1,3 +1,5 @@
+#![allow(clippy::doc_link_with_quotes)]
+
 //! Assignment expression nodes, as defined by the [spec].
 //!
 //! An [assignment operator][mdn] assigns a value to its left operand based on the value of its right

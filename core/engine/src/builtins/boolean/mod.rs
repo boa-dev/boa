@@ -113,7 +113,7 @@ impl Boolean {
         Ok(JsValue::new(js_string!(boolean.to_string())))
     }
 
-    /// The valueOf() method returns the primitive value of a `Boolean` object.
+    /// The `valueOf()` method returns the primitive value of a `Boolean` object.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]

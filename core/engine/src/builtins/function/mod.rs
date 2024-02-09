@@ -353,7 +353,7 @@ impl BuiltInConstructor for BuiltInFunctionObject {
 
     /// `Function ( p1, p2, … , pn, body )`
     ///
-    /// The apply() method invokes self with the first argument as the `this` value
+    /// The `apply()` method invokes self with the first argument as the `this` value
     /// and the rest of the arguments provided as an array (or an array-like object).
     ///
     /// More information:
@@ -609,7 +609,7 @@ impl BuiltInFunctionObject {
 
     /// `Function.prototype.apply ( thisArg, argArray )`
     ///
-    /// The apply() method invokes self with the first argument as the `this` value
+    /// The `apply()` method invokes self with the first argument as the `this` value
     /// and the rest of the arguments provided as an array (or an array-like object).
     ///
     /// More information:
@@ -648,7 +648,7 @@ impl BuiltInFunctionObject {
 
     /// `Function.prototype.bind ( thisArg, ...args )`
     ///
-    /// The bind() method creates a new function that, when called, has its
+    /// The `bind()` method creates a new function that, when called, has its
     /// this keyword set to the provided value, with a given sequence of arguments
     /// preceding any provided when the new function is called.
     ///
@@ -732,7 +732,7 @@ impl BuiltInFunctionObject {
 
     /// `Function.prototype.call ( thisArg, ...args )`
     ///
-    /// The call() method calls a function with a given this value and arguments provided individually.
+    /// The `call()` method calls a function with a given this value and arguments provided individually.
     ///
     /// More information:
     ///  - [MDN documentation][mdn]

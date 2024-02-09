@@ -780,7 +780,7 @@ impl RegExp {
 
     /// `RegExp.prototype.exec( string )`
     ///
-    /// The exec() method executes a search for a match in a specified string.
+    /// The `exec()` method executes a search for a match in a specified string.
     ///
     /// Returns a result array, or `null`.
     ///

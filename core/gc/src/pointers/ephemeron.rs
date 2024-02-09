@@ -1,3 +1,5 @@
+#![allow(clippy::doc_link_with_quotes)]
+
 use crate::{
     finalizer_safe,
     internals::EphemeronBox,

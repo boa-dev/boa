@@ -163,7 +163,7 @@ impl VisitWith for SuperCall {
     }
 }
 
-/// The import() syntax, commonly called dynamic import, is a function-like expression that allows
+/// The `import()` syntax, commonly called dynamic import, is a function-like expression that allows
 /// loading an ECMAScript module asynchronously and dynamically into a potentially non-module
 /// environment.
 ///

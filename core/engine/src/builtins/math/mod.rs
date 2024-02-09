@@ -407,7 +407,7 @@ impl Math {
             .into())
     }
 
-    /// The Math.expm1() function returns e^x - 1, where x is the argument, and e the base of
+    /// The `Math.expm1()` function returns e^x - 1, where x is the argument, and e the base of
     /// the natural logarithms. The result is computed in a way that is accurate even when the
     /// value of x is close 0
     ///

@@ -127,7 +127,7 @@ impl BuiltInConstructor for WeakSet {
 impl WeakSet {
     /// `WeakSet.prototype.add( value )`
     ///
-    /// The add() method appends a new object to the end of a `WeakSet` object.
+    /// The `add()` method appends a new object to the end of a `WeakSet` object.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -176,7 +176,7 @@ impl WeakSet {
 
     /// `WeakSet.prototype.delete( value )`
     ///
-    /// The delete() method removes the specified element from a `WeakSet` object.  
+    /// The `delete()` method removes the specified element from a `WeakSet` object.  
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -215,7 +215,7 @@ impl WeakSet {
 
     /// `WeakSet.prototype.has( value )`
     ///
-    /// The has() method returns a boolean indicating whether an object exists in a `WeakSet` or not.
+    /// The `has()` method returns a boolean indicating whether an object exists in a `WeakSet` or not.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
