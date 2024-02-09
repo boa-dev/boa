@@ -88,7 +88,7 @@ itertools = { version = "0.12.1", default-features = false }
 icu_normalizer.workspace = true
 paste = "1.0"
 portable-atomic = "1.6.0"
-bytemuck = { version = "1.14.2", features = ["derive"] }
+bytemuck = { version = "1.14.3", features = ["derive"] }
 arrayvec = "0.7.4"
 intrusive-collections = "0.9.6"
 cfg-if = "1.0.0"
