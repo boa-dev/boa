@@ -128,7 +128,7 @@ impl OrderedSet {
     }
 
     /// Get a key-value pair by index
-    /// Valid indices are 0 <= index < self.len()
+    /// Valid indices are 0 <= `index` < `self.len()`
     /// Computes in O(1) time.
     #[must_use]
     pub fn get_index(&self, index: usize) -> Option<&JsValue> {

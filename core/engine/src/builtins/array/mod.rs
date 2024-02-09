@@ -511,7 +511,7 @@ impl Array {
 
     /// `Array.from(arrayLike)`
     ///
-    /// The Array.from() static method creates a new,
+    /// The `Array.from()` static method creates a new,
     /// shallow-copied Array instance from an array-like or iterable object.
     ///
     /// More information:
@@ -723,7 +723,7 @@ impl Array {
 
     ///'Array.prototype.at(index)'
     ///
-    /// The at() method takes an integer value and returns the item at that
+    /// The `at()` method takes an integer value and returns the item at that
     /// index, allowing for positive and negative integers. Negative integers
     /// count back from the last item in the array.
     ///
@@ -2981,7 +2981,7 @@ impl Array {
 
     /// `Array.prototype.copyWithin ( target, start [ , end ] )`
     ///
-    /// The copyWithin() method shallow copies part of an array to another location
+    /// The `copyWithin()` method shallow copies part of an array to another location
     /// in the same array and returns it without modifying its length.
     ///
     /// More information:

@@ -225,7 +225,7 @@ impl Error {
 
     /// `Error.prototype.toString()`
     ///
-    /// The toString() method returns a string representing the specified Error object.
+    /// The `toString()` method returns a string representing the specified Error object.
     ///
     /// More information:
     ///  - [MDN documentation][mdn]

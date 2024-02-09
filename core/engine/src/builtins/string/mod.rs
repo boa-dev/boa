@@ -520,7 +520,7 @@ impl String {
 
     /// `String.prototype.at ( index )`
     ///
-    /// This String object's at() method returns a String consisting of the single UTF-16 code unit located at the specified position.
+    /// This String object's `at()` method returns a String consisting of the single UTF-16 code unit located at the specified position.
     /// Returns undefined if the given index cannot be found.
     ///
     /// More information:
@@ -1086,7 +1086,7 @@ impl String {
 
     /// `22.1.3.18 String.prototype.replaceAll ( searchValue, replaceValue )`
     ///
-    /// The replaceAll() method returns a new string with all matches of a pattern replaced by a
+    /// The `replaceAll()` method returns a new string with all matches of a pattern replaced by a
     /// replacement.
     ///
     /// The pattern can be a string or a `RegExp`, and the replacement can be a string or a
@@ -1610,7 +1610,7 @@ impl String {
         Self::string_pad(this, max_length, fill_string, Placement::Start, context)
     }
 
-    /// String.prototype.trim()
+    /// `String.prototype.trim()`
     ///
     /// The `trim()` method removes whitespace from both ends of a string.
     ///
@@ -1654,7 +1654,7 @@ impl String {
         Ok(js_string!(string.trim_start()).into())
     }
 
-    /// String.prototype.trimEnd()
+    /// `String.prototype.trimEnd()`
     ///
     /// The `trimEnd()` method removes whitespace from the end of a string.
     ///
@@ -1881,7 +1881,7 @@ impl String {
 
     /// `String.prototype.split ( separator, limit )`
     ///
-    /// The split() method divides a String into an ordered list of substrings, puts these substrings into an array, and returns the array.
+    /// The `split()` method divides a String into an ordered list of substrings, puts these substrings into an array, and returns the array.
     /// The division is done by searching for a pattern; where the pattern is provided as the first parameter in the method's call.
     ///
     /// More information:
@@ -1999,7 +1999,7 @@ impl String {
         )
     }
 
-    /// String.prototype.valueOf()
+    /// `String.prototype.valueOf()`
     ///
     /// The `valueOf()` method returns the primitive value of a `String` object.
     ///
@@ -2079,7 +2079,7 @@ impl String {
 
     /// `String.prototype.normalize( [ form ] )`
     ///
-    /// The normalize() method normalizes a string into a form specified in the Unicode® Standard Annex #15
+    /// The `normalize()` method normalizes a string into a form specified in the Unicode® Standard Annex #15
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -2160,7 +2160,7 @@ impl String {
 
     /// `String.prototype.search( regexp )`
     ///
-    /// The search() method executes a search for a match between a regular expression and this String object.
+    /// The `search()` method executes a search for a match between a regular expression and this String object.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
