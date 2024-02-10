@@ -2,7 +2,7 @@
 
 use std::{fmt, str::FromStr};
 
-use crate::{js_string, object::JsObject, Context, JsNativeError, JsResult, JsString, JsValue};
+use crate::{object::JsObject, Context, JsNativeError, JsResult, JsString, JsValue};
 
 /// A type used as an option parameter for [`get_option`].
 pub(crate) trait OptionType: Sized {
@@ -139,7 +139,9 @@ pub(crate) enum RoundingMode {
 }
 
 impl RoundingMode {
+    #[cfg(feature = "intl")]
     pub(crate) fn to_js_string(self) -> JsString {
+        use crate::js_string;
         match self {
             Self::Ceil => js_string!("ceil"),
             Self::Floor => js_string!("floor"),

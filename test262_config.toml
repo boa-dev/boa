@@ -10,7 +10,6 @@ features = [
     "FinalizationRegistry",
     "IsHTMLDDA",
     "symbols-as-weakmap-keys",
-    "intl-normative-optional",
     "Intl.DisplayNames",
     "Intl.RelativeTimeFormat",
     "Intl-enumeration",
