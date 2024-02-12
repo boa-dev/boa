@@ -33,6 +33,12 @@ pub struct Intrinsics {
 
 impl Intrinsics {
     /// Creates a new set of uninitialized intrinsics.
+    ///
+    /// Creates all the required empty objects for every intrinsic in this realm.
+    ///
+    /// To initialize all the intrinsics with their spec properties, see [`Realm::initialize`].
+    ///
+    /// [`Realm::initialize`]: crate::realm::Realm::initialize
     pub(crate) fn uninit(root_shape: &RootShape) -> Option<Self> {
         let constructors = StandardConstructors::default();
         let templates = ObjectTemplates::new(root_shape, &constructors);
@@ -1106,6 +1112,12 @@ pub struct IntrinsicObjects {
 
 impl IntrinsicObjects {
     /// Creates a new set of uninitialized intrinsic objects.
+    ///
+    /// Creates all the required empty objects for every intrinsic object in this realm.
+    ///
+    /// To initialize all the intrinsic objects with their spec properties, see [`Realm::initialize`].
+    ///
+    /// [`Realm::initialize`]: crate::realm::Realm::initialize
     #[allow(clippy::unnecessary_wraps)]
     pub(crate) fn uninit() -> Option<Self> {
         Some(Self {

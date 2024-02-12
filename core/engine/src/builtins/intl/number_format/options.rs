@@ -906,11 +906,24 @@ impl DigitFormatOptions {
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub(crate) struct RoundingIncrement {
     multiple: BaseMultiple,
-    // INVARIANT: can only be 0, 1, 2, or 3
     magnitude_offset: u8,
 }
 
 impl RoundingIncrement {
+    /// Creates a `RoundingIncrement` from its base multiple (1, 2, 5, or 25) and its
+    /// exponent (1, 10, 100, or 1000).
+    #[cfg(test)]
+    pub(crate) const fn from_parts(multiple: BaseMultiple, exponent: u8) -> Option<Self> {
+        if exponent > 3 {
+            return None;
+        }
+
+        Some(Self {
+            multiple,
+            magnitude_offset: exponent,
+        })
+    }
+
     /// Creates a `RoundingIncrement` from the numeric value of the increment.
     pub(crate) fn from_u16(increment: u16) -> Option<Self> {
         let mut offset = 0u8;
@@ -1205,51 +1218,6 @@ impl RoundingType {
             }
             | Self::FractionDigits(fraction_digits) => Some(fraction_digits),
             Self::SignificantDigits(_) => None,
-        }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::builtins::intl::number_format::RoundingIncrement;
-    use fixed_decimal::RoundingIncrement::*;
-
-    #[test]
-    fn u16_to_rounding_increment_sunny_day() {
-        #[rustfmt::skip]
-        const VALID_CASES: [(u16, RoundingIncrement); 15] = [
-            // Singles
-            (1, RoundingIncrement { multiple: MultiplesOf1, magnitude_offset: 0 }),
-            (2, RoundingIncrement { multiple: MultiplesOf2, magnitude_offset: 0 }),
-            (5, RoundingIncrement { multiple: MultiplesOf5, magnitude_offset: 0 }),
-            // Tens
-            (10, RoundingIncrement { multiple: MultiplesOf1, magnitude_offset: 1 }),
-            (20, RoundingIncrement { multiple: MultiplesOf2, magnitude_offset: 1 }),
-            (25, RoundingIncrement { multiple: MultiplesOf25, magnitude_offset: 0 }),
-            (50, RoundingIncrement { multiple: MultiplesOf5, magnitude_offset: 1 }),
-            // Hundreds
-            (100, RoundingIncrement { multiple: MultiplesOf1, magnitude_offset: 2 }),
-            (200, RoundingIncrement { multiple: MultiplesOf2, magnitude_offset: 2 }),
-            (250, RoundingIncrement { multiple: MultiplesOf25, magnitude_offset: 1 }),
-            (500, RoundingIncrement { multiple: MultiplesOf5, magnitude_offset: 2 }),
-            // Thousands
-            (1000, RoundingIncrement { multiple: MultiplesOf1, magnitude_offset: 3 }),
-            (2000, RoundingIncrement { multiple: MultiplesOf2, magnitude_offset: 3 }),
-            (2500, RoundingIncrement { multiple: MultiplesOf25, magnitude_offset: 2 }),
-            (5000, RoundingIncrement { multiple: MultiplesOf5, magnitude_offset: 3 }),
-        ];
-
-        for (num, increment) in VALID_CASES {
-            assert_eq!(RoundingIncrement::from_u16(num), Some(increment));
-        }
-    }
-
-    #[test]
-    fn u16_to_rounding_increment_rainy_day() {
-        const INVALID_CASES: [u16; 9] = [0, 4, 6, 24, 10000, 65535, 7373, 140, 1500];
-
-        for num in INVALID_CASES {
-            assert!(RoundingIncrement::from_u16(num).is_none());
         }
     }
 }

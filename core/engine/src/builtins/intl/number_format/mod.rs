@@ -44,6 +44,9 @@ use super::{
     Service,
 };
 
+#[cfg(test)]
+mod tests;
+
 #[derive(Debug, Trace, Finalize, JsData)]
 // Safety: `NumberFormat` only contains non-traceable types.
 #[boa_gc(unsafe_empty_trace)]
@@ -79,7 +82,7 @@ impl NumberFormat {
 }
 
 #[derive(Debug, Clone)]
-pub(in crate::builtins::intl) struct NumberFormatLocaleOptions {
+pub(super) struct NumberFormatLocaleOptions {
     numbering_system: Option<Value>,
 }
 
