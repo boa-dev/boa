@@ -1336,10 +1336,6 @@
 <a href="#1335" id="1335">1335</a>
 <a href="#1336" id="1336">1336</a>
 <a href="#1337" id="1337">1337</a>
-<a href="#1338" id="1338">1338</a>
-<a href="#1339" id="1339">1339</a>
-<a href="#1340" id="1340">1340</a>
-<a href="#1341" id="1341">1341</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::{
         function::{BoundFunction, ClassFieldDefinition, OrdinaryFunction},
@@ -2644,11 +2640,7 @@
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(bound_function) = function.downcast_ref::&lt;BoundFunction&gt;() {
             <span class="comment">// a. Let BC be C.[[BoundTargetFunction]].
             // b. Return ? InstanceofOperator(O, BC).
-            </span><span class="kw">return </span><span class="self">Self</span>::instance_of(
-                object,
-                <span class="kw-2">&amp;</span>bound_function.target_function().clone().into(),
-                context,
-            );
+            </span><span class="kw">return </span>object.instance_of(<span class="kw-2">&amp;</span>bound_function.target_function().clone().into(), context);
         }
 
         <span class="kw">let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>object) = object.as_object().cloned() <span class="kw">else </span>{

@@ -240,6 +240,7 @@
 <a href="#239" id="239">239</a>
 <a href="#240" id="240">240</a>
 <a href="#241" id="241">241</a>
+<a href="#242" id="242">242</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Utilities to parse, validate and get options in builtins.
 
 </span><span class="kw">use </span>std::{fmt, str::FromStr};
@@ -380,6 +381,24 @@
     HalfEven,
 }
 
+<span class="kw">impl </span>RoundingMode {
+    <span class="attr">#[cfg(feature = <span class="string">"intl"</span>)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_js_string(<span class="self">self</span>) -&gt; JsString {
+        <span class="kw">use </span><span class="kw">crate</span>::js_string;
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::Ceil =&gt; <span class="macro">js_string!</span>(<span class="string">"ceil"</span>),
+            <span class="self">Self</span>::Floor =&gt; <span class="macro">js_string!</span>(<span class="string">"floor"</span>),
+            <span class="self">Self</span>::Expand =&gt; <span class="macro">js_string!</span>(<span class="string">"expand"</span>),
+            <span class="self">Self</span>::Trunc =&gt; <span class="macro">js_string!</span>(<span class="string">"trunc"</span>),
+            <span class="self">Self</span>::HalfCeil =&gt; <span class="macro">js_string!</span>(<span class="string">"halfCeil"</span>),
+            <span class="self">Self</span>::HalfFloor =&gt; <span class="macro">js_string!</span>(<span class="string">"halfFloor"</span>),
+            <span class="self">Self</span>::HalfExpand =&gt; <span class="macro">js_string!</span>(<span class="string">"halfExpand"</span>),
+            <span class="self">Self</span>::HalfTrunc =&gt; <span class="macro">js_string!</span>(<span class="string">"halfTrunc"</span>),
+            <span class="self">Self</span>::HalfEven =&gt; <span class="macro">js_string!</span>(<span class="string">"halfEven"</span>),
+        }
+    }
+}
+
 <span class="attr">#[derive(Debug)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>ParseRoundingModeError;
 
@@ -409,23 +428,6 @@
 }
 
 <span class="kw">impl </span>ParsableOptionType <span class="kw">for </span>RoundingMode {}
-
-<span class="kw">impl </span>fmt::Display <span class="kw">for </span>RoundingMode {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
-        <span class="kw">match </span><span class="self">self </span>{
-            <span class="self">Self</span>::Ceil =&gt; <span class="string">"ceil"</span>,
-            <span class="self">Self</span>::Floor =&gt; <span class="string">"floor"</span>,
-            <span class="self">Self</span>::Expand =&gt; <span class="string">"expand"</span>,
-            <span class="self">Self</span>::Trunc =&gt; <span class="string">"trunc"</span>,
-            <span class="self">Self</span>::HalfCeil =&gt; <span class="string">"halfCeil"</span>,
-            <span class="self">Self</span>::HalfFloor =&gt; <span class="string">"halfFloor"</span>,
-            <span class="self">Self</span>::HalfExpand =&gt; <span class="string">"halfExpand"</span>,
-            <span class="self">Self</span>::HalfTrunc =&gt; <span class="string">"halfTrunc"</span>,
-            <span class="self">Self</span>::HalfEven =&gt; <span class="string">"halfEven"</span>,
-        }
-        .fmt(f)
-    }
-}
 
 <span class="comment">// TODO: remove once confirmed.
 </span><span class="attr">#[cfg(feature = <span class="string">"temporal"</span>)]

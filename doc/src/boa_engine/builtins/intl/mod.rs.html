@@ -177,6 +177,32 @@
 <a href="#176" id="176">176</a>
 <a href="#177" id="177">177</a>
 <a href="#178" id="178">178</a>
+<a href="#179" id="179">179</a>
+<a href="#180" id="180">180</a>
+<a href="#181" id="181">181</a>
+<a href="#182" id="182">182</a>
+<a href="#183" id="183">183</a>
+<a href="#184" id="184">184</a>
+<a href="#185" id="185">185</a>
+<a href="#186" id="186">186</a>
+<a href="#187" id="187">187</a>
+<a href="#188" id="188">188</a>
+<a href="#189" id="189">189</a>
+<a href="#190" id="190">190</a>
+<a href="#191" id="191">191</a>
+<a href="#192" id="192">192</a>
+<a href="#193" id="193">193</a>
+<a href="#194" id="194">194</a>
+<a href="#195" id="195">195</a>
+<a href="#196" id="196">196</a>
+<a href="#197" id="197">197</a>
+<a href="#198" id="198">198</a>
+<a href="#199" id="199">199</a>
+<a href="#200" id="200">200</a>
+<a href="#201" id="201">201</a>
+<a href="#202" id="202">202</a>
+<a href="#203" id="203">203</a>
+<a href="#204" id="204">204</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa's implementation of ECMAScript's global `Intl` object.
 //!
 //! The `Intl` namespace object contains several constructors as well as functionality common to the
@@ -201,9 +227,10 @@
     realm::Realm,
     string::common::StaticJsStrings,
     symbol::JsSymbol,
-    Context, JsArgs, JsResult, JsString, JsValue,
+    Context, JsArgs, JsData, JsResult, JsString, JsValue,
 };
 
+<span class="kw">use </span>boa_gc::{Finalize, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
 <span class="kw">use </span>icu_provider::KeyedDataMarker;
 
@@ -217,14 +244,30 @@
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><span class="self">self</span>::{
     collator::Collator, date_time_format::DateTimeFormat, list_format::ListFormat, locale::Locale,
-    plural_rules::PluralRules, segmenter::Segmenter,
+    number_format::NumberFormat, plural_rules::PluralRules, segmenter::Segmenter,
 };
 
 <span class="kw">mod </span>options;
 
 <span class="doccomment">/// JavaScript `Intl` object.
-</span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Intl;
+</span><span class="attr">#[derive(Debug, Clone, Trace, Finalize, JsData)]
+#[boa_gc(unsafe_empty_trace)]
+</span><span class="kw">pub struct </span>Intl {
+    fallback_symbol: JsSymbol,
+}
+
+<span class="kw">impl </span>Intl {
+    <span class="doccomment">/// Gets this realm's `Intl` object's `[[FallbackSymbol]]` slot.
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub fn </span>fallback_symbol(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsSymbol {
+        <span class="self">self</span>.fallback_symbol.clone()
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new() -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">let </span>fallback_symbol = JsSymbol::new(<span class="prelude-val">Some</span>(<span class="macro">js_string!</span>(<span class="string">"IntlLegacyConstructedSymbol"</span>)))<span class="question-mark">?</span>;
+        <span class="prelude-val">Some</span>(<span class="self">Self </span>{ fallback_symbol })
+    }
+}
 
 <span class="kw">impl </span>IntrinsicObject <span class="kw">for </span>Intl {
     <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
@@ -278,6 +321,15 @@
                     .constructor(),
                 DateTimeFormat::ATTRIBUTE,
             )
+            .static_property(
+                NumberFormat::NAME,
+                realm
+                    .intrinsics()
+                    .constructors()
+                    .number_format()
+                    .constructor(),
+                NumberFormat::ATTRIBUTE,
+            )
             .static_method(
                 <span class="self">Self</span>::get_canonical_locales,
                 <span class="macro">js_string!</span>(<span class="string">"getCanonicalLocales"</span>),
@@ -287,7 +339,7 @@
     }
 
     <span class="kw">fn </span>get(intrinsics: <span class="kw-2">&amp;</span>Intrinsics) -&gt; JsObject {
-        intrinsics.objects().intl()
+        intrinsics.objects().intl().upcast()
     }
 }
 

@@ -1740,6 +1740,39 @@
 <a href="#1739" id="1739">1739</a>
 <a href="#1740" id="1740">1740</a>
 <a href="#1741" id="1741">1741</a>
+<a href="#1742" id="1742">1742</a>
+<a href="#1743" id="1743">1743</a>
+<a href="#1744" id="1744">1744</a>
+<a href="#1745" id="1745">1745</a>
+<a href="#1746" id="1746">1746</a>
+<a href="#1747" id="1747">1747</a>
+<a href="#1748" id="1748">1748</a>
+<a href="#1749" id="1749">1749</a>
+<a href="#1750" id="1750">1750</a>
+<a href="#1751" id="1751">1751</a>
+<a href="#1752" id="1752">1752</a>
+<a href="#1753" id="1753">1753</a>
+<a href="#1754" id="1754">1754</a>
+<a href="#1755" id="1755">1755</a>
+<a href="#1756" id="1756">1756</a>
+<a href="#1757" id="1757">1757</a>
+<a href="#1758" id="1758">1758</a>
+<a href="#1759" id="1759">1759</a>
+<a href="#1760" id="1760">1760</a>
+<a href="#1761" id="1761">1761</a>
+<a href="#1762" id="1762">1762</a>
+<a href="#1763" id="1763">1763</a>
+<a href="#1764" id="1764">1764</a>
+<a href="#1765" id="1765">1765</a>
+<a href="#1766" id="1766">1766</a>
+<a href="#1767" id="1767">1767</a>
+<a href="#1768" id="1768">1768</a>
+<a href="#1769" id="1769">1769</a>
+<a href="#1770" id="1770">1770</a>
+<a href="#1771" id="1771">1771</a>
+<a href="#1772" id="1772">1772</a>
+<a href="#1773" id="1773">1773</a>
+<a href="#1774" id="1774">1774</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Data structures that contain intrinsic objects and constructors.
 
 </span><span class="kw">use </span>boa_gc::{Finalize, Trace};
@@ -1756,6 +1789,9 @@
     JsSymbol,
 };
 
+<span class="attr">#[cfg(feature = <span class="string">"intl"</span>)]
+</span><span class="kw">use </span><span class="kw">crate</span>::builtins::intl::Intl;
+
 <span class="doccomment">/// The intrinsic objects and constructors.
 ///
 /// `Intrinsics` is internally stored using a `Gc`, which makes it cheapily clonable
@@ -1771,15 +1807,22 @@
 }
 
 <span class="kw">impl </span>Intrinsics {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(root_shape: <span class="kw-2">&amp;</span>RootShape) -&gt; <span class="self">Self </span>{
+    <span class="doccomment">/// Creates a new set of uninitialized intrinsics.
+    ///
+    /// Creates all the required empty objects for every intrinsic in this realm.
+    ///
+    /// To initialize all the intrinsics with their spec properties, see [`Realm::initialize`].
+    ///
+    /// [`Realm::initialize`]: crate::realm::Realm::initialize
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>uninit(root_shape: <span class="kw-2">&amp;</span>RootShape) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
         <span class="kw">let </span>constructors = StandardConstructors::default();
         <span class="kw">let </span>templates = ObjectTemplates::new(root_shape, <span class="kw-2">&amp;</span>constructors);
 
-        <span class="self">Self </span>{
+        <span class="prelude-val">Some</span>(<span class="self">Self </span>{
             constructors,
-            objects: IntrinsicObjects::default(),
+            objects: IntrinsicObjects::uninit()<span class="question-mark">?</span>,
             templates,
-        }
+        })
     }
 
     <span class="doccomment">/// Return the cached intrinsic objects.
@@ -1910,6 +1953,8 @@
     </span>segmenter: StandardConstructor,
     <span class="attr">#[cfg(feature = <span class="string">"intl"</span>)]
     </span>plural_rules: StandardConstructor,
+    <span class="attr">#[cfg(feature = <span class="string">"intl"</span>)]
+    </span>number_format: StandardConstructor,
     <span class="attr">#[cfg(feature = <span class="string">"temporal"</span>)]
     </span>instant: StandardConstructor,
     <span class="attr">#[cfg(feature = <span class="string">"temporal"</span>)]
@@ -2000,6 +2045,8 @@
             </span>segmenter: StandardConstructor::default(),
             <span class="attr">#[cfg(feature = <span class="string">"intl"</span>)]
             </span>plural_rules: StandardConstructor::default(),
+            <span class="attr">#[cfg(feature = <span class="string">"intl"</span>)]
+            </span>number_format: StandardConstructor::default(),
             <span class="attr">#[cfg(feature = <span class="string">"temporal"</span>)]
             </span>instant: StandardConstructor::default(),
             <span class="attr">#[cfg(feature = <span class="string">"temporal"</span>)]
@@ -2618,6 +2665,19 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>.plural_rules
     }
 
+    <span class="doccomment">/// Returns the `Intl.NumberFormat` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma402/#sec-intl.numberformat
+    </span><span class="attr">#[inline]
+    #[must_use]
+    #[cfg(feature = <span class="string">"intl"</span>)]
+    </span><span class="kw">pub const fn </span>number_format(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>StandardConstructor {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.number_format
+    }
+
     <span class="doccomment">/// Returns the `Temporal.Instant` constructor.
     ///
     /// More information:
@@ -2810,7 +2870,7 @@
 
     <span class="doccomment">/// [`%Intl%`](https://tc39.es/ecma402/#intl-object)
     </span><span class="attr">#[cfg(feature = <span class="string">"intl"</span>)]
-    </span>intl: JsObject,
+    </span>intl: JsObject&lt;Intl&gt;,
 
     <span class="doccomment">/// [`%SegmentsPrototype%`](https://tc39.es/ecma402/#sec-%segmentsprototype%-object)
     </span><span class="attr">#[cfg(feature = <span class="string">"intl"</span>)]
@@ -2825,9 +2885,17 @@
     </span>now: JsObject,
 }
 
-<span class="kw">impl </span>Default <span class="kw">for </span>IntrinsicObjects {
-    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{
+<span class="kw">impl </span>IntrinsicObjects {
+    <span class="doccomment">/// Creates a new set of uninitialized intrinsic objects.
+    ///
+    /// Creates all the required empty objects for every intrinsic object in this realm.
+    ///
+    /// To initialize all the intrinsic objects with their spec properties, see [`Realm::initialize`].
+    ///
+    /// [`Realm::initialize`]: crate::realm::Realm::initialize
+    </span><span class="attr">#[allow(clippy::unnecessary_wraps)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>uninit() -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        <span class="prelude-val">Some</span>(<span class="self">Self </span>{
             reflect: JsObject::default(),
             math: JsObject::default(),
             json: JsObject::default(),
@@ -2849,18 +2917,16 @@
             <span class="attr">#[cfg(feature = <span class="string">"annex-b"</span>)]
             </span>unescape: JsFunction::empty_intrinsic_function(<span class="bool-val">false</span>),
             <span class="attr">#[cfg(feature = <span class="string">"intl"</span>)]
-            </span>intl: JsObject::default(),
+            </span>intl: JsObject::new_unique(<span class="prelude-val">None</span>, Intl::new()<span class="question-mark">?</span>),
             <span class="attr">#[cfg(feature = <span class="string">"intl"</span>)]
             </span>segments_prototype: JsObject::default(),
             <span class="attr">#[cfg(feature = <span class="string">"temporal"</span>)]
             </span>temporal: JsObject::default(),
             <span class="attr">#[cfg(feature = <span class="string">"temporal"</span>)]
             </span>now: JsObject::default(),
-        }
+        })
     }
-}
 
-<span class="kw">impl </span>IntrinsicObjects {
     <span class="doccomment">/// Gets the [`%ThrowTypeError%`][spec] intrinsic function.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%throwtypeerror%
@@ -3027,7 +3093,7 @@
     </span><span class="attr">#[must_use]
     #[cfg(feature = <span class="string">"intl"</span>)]
     #[inline]
-    </span><span class="kw">pub fn </span>intl(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject {
+    </span><span class="kw">pub fn </span>intl(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; JsObject&lt;Intl&gt; {
         <span class="self">self</span>.intl.clone()
     }
 

@@ -491,8 +491,6 @@
 <a href="#490" id="490">490</a>
 <a href="#491" id="491">491</a>
 <a href="#492" id="492">492</a>
-<a href="#493" id="493">493</a>
-<a href="#494" id="494">494</a>
 </pre></div><pre class="rust"><code><span class="kw">mod </span>options;
 
 <span class="kw">use </span>boa_gc::{Finalize, Trace};
@@ -522,10 +520,7 @@
 
 <span class="kw">use super</span>::{
     locale::{canonicalize_locale_list, resolve_locale, supported_locales},
-    number_format::{
-        f64_to_formatted_fixed_decimal, get_digit_format_options, DigitFormatOptions, Extrema,
-        Notation,
-    },
+    number_format::{DigitFormatOptions, Extrema, NotationKind},
     options::{coerce_options_to_object, IntlOptions},
     Service,
 };
@@ -627,7 +622,8 @@
             get_option(<span class="kw-2">&amp;</span>options, <span class="macro">utf16!</span>(<span class="string">"type"</span>), context)<span class="question-mark">?</span>.unwrap_or(PluralRuleType::Cardinal);
 
         <span class="comment">// 8. Perform ? SetNumberFormatDigitOptions(pluralRules, options, +0𝔽, 3𝔽, "standard").
-        </span><span class="kw">let </span>format_options = get_digit_format_options(<span class="kw-2">&amp;</span>options, <span class="number">0</span>, <span class="number">3</span>, Notation::Standard, context)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>format_options =
+            DigitFormatOptions::from_options(<span class="kw-2">&amp;</span>options, <span class="number">0</span>, <span class="number">3</span>, NotationKind::Standard, context)<span class="question-mark">?</span>;
 
         <span class="comment">// 9. Let localeData be %PluralRules%.[[LocaleData]].
         // 10. Let r be ResolveLocale(%PluralRules%.[[AvailableLocales]], requestedLocales, opt, %PluralRules%.[[RelevantExtensionKeys]], localeData).
@@ -883,7 +879,7 @@
         options
             .property(
                 <span class="macro">js_string!</span>(<span class="string">"roundingMode"</span>),
-                <span class="macro">js_string!</span>(plural_rules.format_options.rounding_mode.to_string()),
+                <span class="macro">js_string!</span>(plural_rules.format_options.rounding_mode.to_js_string()),
                 Attribute::all(),
             )
             .property(
@@ -893,10 +889,10 @@
             )
             .property(
                 <span class="macro">js_string!</span>(<span class="string">"trailingZeroDisplay"</span>),
-                <span class="macro">js_string!</span>(plural_rules
+                plural_rules
                     .format_options
                     .trailing_zero_display
-                    .to_string()),
+                    .to_js_string(),
                 Attribute::all(),
             );
 
@@ -926,7 +922,7 @@
         //     a. Perform ! CreateDataPropertyOrThrow(options, "roundingPriority", "auto").
         </span>options.property(
             <span class="macro">js_string!</span>(<span class="string">"roundingPriority"</span>),
-            <span class="macro">js_string!</span>(plural_rules.format_options.rounding_priority.to_string()),
+            <span class="macro">js_string!</span>(plural_rules.format_options.rounding_priority.to_js_string()),
             Attribute::all(),
         );
 
@@ -963,7 +959,7 @@
     <span class="comment">// 5. Let locale be pluralRules.[[Locale]].
     // 6. Let type be pluralRules.[[Type]].
     // 7. Let res be ! FormatNumericToString(pluralRules, n).
-    </span><span class="kw">let </span>fixed = f64_to_formatted_fixed_decimal(n, <span class="kw-2">&amp;</span>plural_rules.format_options);
+    </span><span class="kw">let </span>fixed = plural_rules.format_options.format_f64(n);
 
     <span class="comment">// 8. Let s be res.[[FormattedString]].
     // 9. Let operands be ! GetOperands(s).

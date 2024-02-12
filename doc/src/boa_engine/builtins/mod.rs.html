@@ -405,6 +405,7 @@
 <a href="#404" id="404">404</a>
 <a href="#405" id="405">405</a>
 <a href="#406" id="406">406</a>
+<a href="#407" id="407">407</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa's ECMAScript built-in object implementations, e.g. Object, String, Math, Array, etc.
 
 </span><span class="kw">pub mod </span>array;
@@ -686,6 +687,7 @@
             intl::segmenter::Segments::init(<span class="self">self</span>);
             intl::segmenter::SegmentIterator::init(<span class="self">self</span>);
             intl::PluralRules::init(<span class="self">self</span>);
+            intl::NumberFormat::init(<span class="self">self</span>);
         }
 
         <span class="attr">#[cfg(feature = <span class="string">"temporal"</span>)]

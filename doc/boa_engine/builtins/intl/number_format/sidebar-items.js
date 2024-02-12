@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["options","utils"]};
+window.SIDEBAR_ITEMS = {"fn":["js_string_to_fixed_decimal","to_intl_mathematical_value","unwrap_number_format"],"mod":["options"],"struct":["NumberFormat","NumberFormatLocaleOptions"]};

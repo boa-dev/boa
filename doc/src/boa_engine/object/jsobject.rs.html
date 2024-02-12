@@ -949,6 +949,28 @@
 <a href="#948" id="948">948</a>
 <a href="#949" id="949">949</a>
 <a href="#950" id="950">950</a>
+<a href="#951" id="951">951</a>
+<a href="#952" id="952">952</a>
+<a href="#953" id="953">953</a>
+<a href="#954" id="954">954</a>
+<a href="#955" id="955">955</a>
+<a href="#956" id="956">956</a>
+<a href="#957" id="957">957</a>
+<a href="#958" id="958">958</a>
+<a href="#959" id="959">959</a>
+<a href="#960" id="960">960</a>
+<a href="#961" id="961">961</a>
+<a href="#962" id="962">962</a>
+<a href="#963" id="963">963</a>
+<a href="#964" id="964">964</a>
+<a href="#965" id="965">965</a>
+<a href="#966" id="966">966</a>
+<a href="#967" id="967">967</a>
+<a href="#968" id="968">968</a>
+<a href="#969" id="969">969</a>
+<a href="#970" id="970">970</a>
+<a href="#971" id="971">971</a>
+<a href="#972" id="972">972</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! This module implements the `JsObject` structure.
 //!
 //! The `JsObject` is a garbage collected Object.
@@ -1539,6 +1561,28 @@ Cannot both specify accessors and a value or writable attribute"</span>,
                     root_shape,
                     prototype.into(),
                 ),
+                extensible: <span class="bool-val">true</span>,
+                private_elements: ThinVec::new(),
+            }),
+            vtable: internal_methods,
+        });
+
+        <span class="self">Self </span>{ inner }
+    }
+
+    <span class="doccomment">/// Creates a new `JsObject` from prototype, and data.
+    ///
+    /// Note that the returned object will not be erased to be convertible to a
+    /// `JsValue`. To erase the pointer, call [`JsObject::upcast`].
+    </span><span class="kw">pub fn </span>new_unique&lt;O: Into&lt;<span class="prelude-ty">Option</span>&lt;JsObject&gt;&gt;&gt;(prototype: O, data: T) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>T: Sized,
+    {
+        <span class="kw">let </span>internal_methods = data.internal_methods();
+        <span class="kw">let </span>inner = Gc::new(VTableObject {
+            object: GcRefCell::new(Object {
+                data,
+                properties: PropertyMap::from_prototype_unique_shape(prototype.into()),
                 extensible: <span class="bool-val">true</span>,
                 private_elements: ThinVec::new(),
             }),

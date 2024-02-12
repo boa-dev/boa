@@ -1657,7 +1657,7 @@
 
     <span class="doccomment">/// Create a new Realm with the default global bindings.
     </span><span class="kw">pub fn </span>create_realm(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; JsResult&lt;Realm&gt; {
-        <span class="kw">let </span>realm = Realm::create(<span class="self">self</span>.host_hooks, <span class="kw-2">&amp;</span><span class="self">self</span>.root_shape);
+        <span class="kw">let </span>realm = Realm::create(<span class="self">self</span>.host_hooks, <span class="kw-2">&amp;</span><span class="self">self</span>.root_shape)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>old_realm = <span class="self">self</span>.enter_realm(realm);
 
@@ -2158,7 +2158,7 @@
         <span class="kw">let </span>root_shape = RootShape::default();
 
         <span class="kw">let </span>host_hooks = <span class="self">self</span>.host_hooks.unwrap_or(<span class="kw-2">&amp;</span>DefaultHooks);
-        <span class="kw">let </span>realm = Realm::create(host_hooks, <span class="kw-2">&amp;</span>root_shape);
+        <span class="kw">let </span>realm = Realm::create(host_hooks, <span class="kw-2">&amp;</span>root_shape)<span class="question-mark">?</span>;
         <span class="kw">let </span>vm = Vm::new(realm);
 
         <span class="kw">let </span>module_loader: Rc&lt;<span class="kw">dyn </span>ModuleLoader&gt; = <span class="kw">if let </span><span class="prelude-val">Some</span>(loader) = <span class="self">self</span>.module_loader {
