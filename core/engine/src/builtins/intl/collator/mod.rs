@@ -69,7 +69,7 @@ impl Collator {
 }
 
 #[derive(Debug, Clone)]
-pub(in crate::builtins::intl) struct CollatorLocaleOptions {
+pub(super) struct CollatorLocaleOptions {
     collation: Option<Value>,
     numeric: Option<bool>,
     case_first: Option<CaseFirst>,

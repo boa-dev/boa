@@ -27,10 +27,7 @@ use crate::{
 
 use super::{
     locale::{canonicalize_locale_list, resolve_locale, supported_locales},
-    number_format::{
-        f64_to_formatted_fixed_decimal, get_digit_format_options, DigitFormatOptions, Extrema,
-        Notation,
-    },
+    number_format::{DigitFormatOptions, Extrema, NotationKind},
     options::{coerce_options_to_object, IntlOptions},
     Service,
 };
@@ -132,7 +129,8 @@ impl BuiltInConstructor for PluralRules {
             get_option(&options, utf16!("type"), context)?.unwrap_or(PluralRuleType::Cardinal);
 
         // 8. Perform ? SetNumberFormatDigitOptions(pluralRules, options, +0𝔽, 3𝔽, "standard").
-        let format_options = get_digit_format_options(&options, 0, 3, Notation::Standard, context)?;
+        let format_options =
+            DigitFormatOptions::from_options(&options, 0, 3, NotationKind::Standard, context)?;
 
         // 9. Let localeData be %PluralRules%.[[LocaleData]].
         // 10. Let r be ResolveLocale(%PluralRules%.[[AvailableLocales]], requestedLocales, opt, %PluralRules%.[[RelevantExtensionKeys]], localeData).
@@ -388,7 +386,7 @@ impl PluralRules {
         options
             .property(
                 js_string!("roundingMode"),
-                js_string!(plural_rules.format_options.rounding_mode.to_string()),
+                js_string!(plural_rules.format_options.rounding_mode.to_js_string()),
                 Attribute::all(),
             )
             .property(
@@ -398,10 +396,10 @@ impl PluralRules {
             )
             .property(
                 js_string!("trailingZeroDisplay"),
-                js_string!(plural_rules
+                plural_rules
                     .format_options
                     .trailing_zero_display
-                    .to_string()),
+                    .to_js_string(),
                 Attribute::all(),
             );
 
@@ -431,7 +429,7 @@ impl PluralRules {
         //     a. Perform ! CreateDataPropertyOrThrow(options, "roundingPriority", "auto").
         options.property(
             js_string!("roundingPriority"),
-            js_string!(plural_rules.format_options.rounding_priority.to_string()),
+            js_string!(plural_rules.format_options.rounding_priority.to_js_string()),
             Attribute::all(),
         );
 
@@ -468,7 +466,7 @@ fn resolve_plural(plural_rules: &PluralRules, n: f64) -> ResolvedPlural {
     // 5. Let locale be pluralRules.[[Locale]].
     // 6. Let type be pluralRules.[[Type]].
     // 7. Let res be ! FormatNumericToString(pluralRules, n).
-    let fixed = f64_to_formatted_fixed_decimal(n, &plural_rules.format_options);
+    let fixed = plural_rules.format_options.format_f64(n);
 
     // 8. Let s be res.[[FormattedString]].
     // 9. Let operands be ! GetOperands(s).

@@ -1,4 +1,4 @@
-commit = "584048ed081d85f5eed6e884a7b40b6f4bcd67d7"
+commit = "f742eb092df835fd07769bbb3537232d3efb61ed"
 
 [ignored]
 # Not implemented yet:
@@ -10,11 +10,9 @@ features = [
     "FinalizationRegistry",
     "IsHTMLDDA",
     "symbols-as-weakmap-keys",
-    "intl-normative-optional",
     "Intl.DisplayNames",
     "Intl.RelativeTimeFormat",
     "Intl-enumeration",
-    "Intl.NumberFormat-v3",
     "regexp-v-flag",
 
     ### Pending proposals
@@ -64,4 +62,4 @@ features = [
     "caller",
 ]
 
-tests = ["NumberFormat"]
+tests = []

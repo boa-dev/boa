@@ -1302,11 +1302,7 @@ impl JsValue {
         if let Some(bound_function) = function.downcast_ref::<BoundFunction>() {
             // a. Let BC be C.[[BoundTargetFunction]].
             // b. Return ? InstanceofOperator(O, BC).
-            return Self::instance_of(
-                object,
-                &bound_function.target_function().clone().into(),
-                context,
-            );
+            return object.instance_of(&bound_function.target_function().clone().into(), context);
         }
 
         let Some(mut object) = object.as_object().cloned() else {

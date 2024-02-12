@@ -28,11 +28,13 @@ intl = [
     "dep:icu_casemap",
     "dep:icu_list",
     "dep:icu_segmenter",
+    "dep:icu_decimal",
     "dep:writeable",
     "dep:sys-locale",
     "dep:yoke",
     "dep:zerofrom",
     "dep:fixed_decimal",
+    "dep:tinystr",
 ]
 
 fuzz = ["boa_ast/arbitrary", "boa_interner/arbitrary"]
@@ -93,6 +95,7 @@ arrayvec = "0.7.4"
 intrusive-collections = "0.9.6"
 cfg-if = "1.0.0"
 time.workspace = true
+hashbrown.workspace = true
 
 # intl deps
 boa_icu_provider = {workspace = true, features = ["std"], optional = true }
@@ -107,11 +110,13 @@ icu_plurals = { workspace = true, default-features = false, features = ["serde",
 icu_list = { workspace = true, default-features = false, features = ["serde"], optional = true }
 icu_casemap = { workspace = true, default-features = false, features = ["serde"], optional = true}
 icu_segmenter = { workspace = true, default-features = false, features = ["auto", "serde"], optional = true }
+icu_decimal = { workspace = true, default-features = false, features = ["serde"], optional = true }
 writeable = { workspace = true, optional = true }
 yoke = { workspace = true, optional = true }
 zerofrom = { workspace = true, optional = true }
-fixed_decimal = { workspace = true, features = ["ryu", "experimental"], optional = true}
-hashbrown.workspace = true
+fixed_decimal = { workspace = true, features = ["ryu", "experimental"], optional = true }
+tinystr = { workspace = true, optional = true }
+
 
 [target.'cfg(all(target_family = "wasm", not(any(target_os = "emscripten", target_os = "wasi"))))'.dependencies]
 web-time = { version = "1.0.0", optional = true }

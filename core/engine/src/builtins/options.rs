@@ -138,6 +138,24 @@ pub(crate) enum RoundingMode {
     HalfEven,
 }
 
+impl RoundingMode {
+    #[cfg(feature = "intl")]
+    pub(crate) fn to_js_string(self) -> JsString {
+        use crate::js_string;
+        match self {
+            Self::Ceil => js_string!("ceil"),
+            Self::Floor => js_string!("floor"),
+            Self::Expand => js_string!("expand"),
+            Self::Trunc => js_string!("trunc"),
+            Self::HalfCeil => js_string!("halfCeil"),
+            Self::HalfFloor => js_string!("halfFloor"),
+            Self::HalfExpand => js_string!("halfExpand"),
+            Self::HalfTrunc => js_string!("halfTrunc"),
+            Self::HalfEven => js_string!("halfEven"),
+        }
+    }
+}
+
 #[derive(Debug)]
 pub(crate) struct ParseRoundingModeError;
 
@@ -167,23 +185,6 @@ impl FromStr for RoundingMode {
 }
 
 impl ParsableOptionType for RoundingMode {}
-
-impl fmt::Display for RoundingMode {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Ceil => "ceil",
-            Self::Floor => "floor",
-            Self::Expand => "expand",
-            Self::Trunc => "trunc",
-            Self::HalfCeil => "halfCeil",
-            Self::HalfFloor => "halfFloor",
-            Self::HalfExpand => "halfExpand",
-            Self::HalfTrunc => "halfTrunc",
-            Self::HalfEven => "halfEven",
-        }
-        .fmt(f)
-    }
-}
 
 // TODO: remove once confirmed.
 #[cfg(feature = "temporal")]

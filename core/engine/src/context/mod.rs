@@ -529,7 +529,7 @@ impl Context {
 
     /// Create a new Realm with the default global bindings.
     pub fn create_realm(&mut self) -> JsResult<Realm> {
-        let realm = Realm::create(self.host_hooks, &self.root_shape);
+        let realm = Realm::create(self.host_hooks, &self.root_shape)?;
 
         let old_realm = self.enter_realm(realm);
 
@@ -1030,7 +1030,7 @@ impl ContextBuilder {
         let root_shape = RootShape::default();
 
         let host_hooks = self.host_hooks.unwrap_or(&DefaultHooks);
-        let realm = Realm::create(host_hooks, &root_shape);
+        let realm = Realm::create(host_hooks, &root_shape)?;
         let vm = Vm::new(realm);
 
         let module_loader: Rc<dyn ModuleLoader> = if let Some(loader) = self.module_loader {
