@@ -20,7 +20,7 @@
     "terser-webpack-plugin": "^5.3.10",
     "webpack": "^5.90.1",
     "webpack-cli": "^5.1.4",
-    "webpack-dev-server": "^4.15.1"
+    "webpack-dev-server": "^5.0.1"
   },
   "dependencies": {
     "mime-types": "^2.1.35",
