@@ -765,8 +765,6 @@ struct TestResult {
     name: Box<str>,
     #[serde(rename = "v", default)]
     edition: SpecEdition,
-    #[serde(rename = "s", default)]
-    strict: bool,
     #[serde(skip)]
     result_text: Box<str>,
     #[serde(rename = "r")]
