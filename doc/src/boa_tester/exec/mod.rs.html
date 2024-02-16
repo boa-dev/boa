@@ -755,6 +755,11 @@
 <a href="#754" id="754">754</a>
 <a href="#755" id="755">755</a>
 <a href="#756" id="756">756</a>
+<a href="#757" id="757">757</a>
+<a href="#758" id="758">758</a>
+<a href="#759" id="759">759</a>
+<a href="#760" id="760">760</a>
+<a href="#761" id="761">761</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Execution module for the test runner.
 
 </span><span class="kw">mod </span>js262;
@@ -830,13 +835,13 @@
             <span class="self">self</span>.tests
                 .par_iter()
                 .filter(|test| test.edition &lt;= max_edition)
-                .flat_map(|test| test.run(harness, verbose, optimizer_options, console))
+                .map(|test| test.run(harness, verbose, optimizer_options, console))
                 .collect()
         } <span class="kw">else </span>{
             <span class="self">self</span>.tests
                 .iter()
                 .filter(|test| test.edition &lt;= max_edition)
-                .flat_map(|test| test.run(harness, verbose, optimizer_options, console))
+                .map(|test| test.run(harness, verbose, optimizer_options, console))
                 .collect()
         };
 
@@ -925,21 +930,29 @@
         verbose: u8,
         optimizer_options: OptimizerOptions,
         console: bool,
-    ) -&gt; Vec&lt;TestResult&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>results = Vec::new();
-        <span class="kw">if </span><span class="self">self</span>.flags.contains(TestFlags::MODULE) {
-            results.push(<span class="self">self</span>.run_once(harness, <span class="bool-val">false</span>, verbose, optimizer_options, console));
-        } <span class="kw">else </span>{
-            <span class="kw">if </span><span class="self">self</span>.flags.contains(TestFlags::STRICT) &amp;&amp; !<span class="self">self</span>.flags.contains(TestFlags::RAW) {
-                results.push(<span class="self">self</span>.run_once(harness, <span class="bool-val">true</span>, verbose, optimizer_options, console));
-            }
-
-            <span class="kw">if </span><span class="self">self</span>.flags.contains(TestFlags::NO_STRICT) || <span class="self">self</span>.flags.contains(TestFlags::RAW) {
-                results.push(<span class="self">self</span>.run_once(harness, <span class="bool-val">false</span>, verbose, optimizer_options, console));
-            }
+    ) -&gt; TestResult {
+        <span class="kw">if </span><span class="self">self</span>.flags.contains(TestFlags::MODULE) || <span class="self">self</span>.flags.contains(TestFlags::RAW) {
+            <span class="kw">return </span><span class="self">self</span>.run_once(harness, <span class="bool-val">false</span>, verbose, optimizer_options, console);
         }
 
-        results
+        <span class="kw">if </span><span class="self">self
+            </span>.flags
+            .contains(TestFlags::STRICT | TestFlags::NO_STRICT)
+        {
+            <span class="kw">let </span>r = <span class="self">self</span>.run_once(harness, <span class="bool-val">false</span>, verbose, optimizer_options, console);
+            <span class="kw">if </span>r.result != TestOutcomeResult::Passed {
+                <span class="kw">return </span>r;
+            }
+            <span class="self">self</span>.run_once(harness, <span class="bool-val">true</span>, verbose, optimizer_options, console)
+        } <span class="kw">else </span>{
+            <span class="self">self</span>.run_once(
+                harness,
+                <span class="self">self</span>.flags.contains(TestFlags::STRICT),
+                verbose,
+                optimizer_options,
+                console,
+            )
+        }
     }
 
     <span class="doccomment">/// Runs the test once, in strict or non-strict mode
@@ -965,7 +978,6 @@
             <span class="kw">return </span>TestResult {
                 name: <span class="self">self</span>.name.clone(),
                 edition: <span class="self">self</span>.edition,
-                strict,
                 result: TestOutcomeResult::Failed,
                 result_text: Box::from(<span class="string">"Could not read test file."</span>),
             };
@@ -984,7 +996,6 @@
             <span class="kw">return </span>TestResult {
                 name: <span class="self">self</span>.name.clone(),
                 edition: <span class="self">self</span>.edition,
-                strict,
                 result: TestOutcomeResult::Ignored,
                 result_text: Box::default(),
             };
@@ -1336,7 +1347,6 @@
         TestResult {
             name: <span class="self">self</span>.name.clone(),
             edition: <span class="self">self</span>.edition,
-            strict,
             result,
             result_text: result_text.into_boxed_str(),
         }
