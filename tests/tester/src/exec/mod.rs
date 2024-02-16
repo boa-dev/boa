@@ -73,13 +73,13 @@ impl TestSuite {
             self.tests
                 .par_iter()
                 .filter(|test| test.edition <= max_edition)
-                .flat_map(|test| test.run(harness, verbose, optimizer_options, console))
+                .map(|test| test.run(harness, verbose, optimizer_options, console))
                 .collect()
         } else {
             self.tests
                 .iter()
                 .filter(|test| test.edition <= max_edition)
-                .flat_map(|test| test.run(harness, verbose, optimizer_options, console))
+                .map(|test| test.run(harness, verbose, optimizer_options, console))
                 .collect()
         };
 
@@ -168,21 +168,29 @@ impl Test {
         verbose: u8,
         optimizer_options: OptimizerOptions,
         console: bool,
-    ) -> Vec<TestResult> {
-        let mut results = Vec::new();
-        if self.flags.contains(TestFlags::MODULE) {
-            results.push(self.run_once(harness, false, verbose, optimizer_options, console));
-        } else {
-            if self.flags.contains(TestFlags::STRICT) && !self.flags.contains(TestFlags::RAW) {
-                results.push(self.run_once(harness, true, verbose, optimizer_options, console));
-            }
-
-            if self.flags.contains(TestFlags::NO_STRICT) || self.flags.contains(TestFlags::RAW) {
-                results.push(self.run_once(harness, false, verbose, optimizer_options, console));
-            }
+    ) -> TestResult {
+        if self.flags.contains(TestFlags::MODULE) || self.flags.contains(TestFlags::RAW) {
+            return self.run_once(harness, false, verbose, optimizer_options, console);
         }
 
-        results
+        if self
+            .flags
+            .contains(TestFlags::STRICT | TestFlags::NO_STRICT)
+        {
+            let r = self.run_once(harness, false, verbose, optimizer_options, console);
+            if r.result != TestOutcomeResult::Passed {
+                return r;
+            }
+            self.run_once(harness, true, verbose, optimizer_options, console)
+        } else {
+            self.run_once(
+                harness,
+                self.flags.contains(TestFlags::STRICT),
+                verbose,
+                optimizer_options,
+                console,
+            )
+        }
     }
 
     /// Runs the test once, in strict or non-strict mode
@@ -208,7 +216,6 @@ impl Test {
             return TestResult {
                 name: self.name.clone(),
                 edition: self.edition,
-                strict,
                 result: TestOutcomeResult::Failed,
                 result_text: Box::from("Could not read test file."),
             };
@@ -227,7 +234,6 @@ impl Test {
             return TestResult {
                 name: self.name.clone(),
                 edition: self.edition,
-                strict,
                 result: TestOutcomeResult::Ignored,
                 result_text: Box::default(),
             };
@@ -579,7 +585,6 @@ impl Test {
         TestResult {
             name: self.name.clone(),
             edition: self.edition,
-            strict,
             result,
             result_text: result_text.into_boxed_str(),
         }
