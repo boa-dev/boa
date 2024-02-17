@@ -96,9 +96,9 @@ impl ModuleLoader for HttpModuleLoader {
 fn main() -> JsResult<()> {
     // A simple snippet that imports modules from the web instead of the file system.
     const SRC: &str = r#"
-        import YAML from 'https://esm.run/yaml@2.3.1';
+        import YAML from 'https://esm.run/yaml@2.3.4';
         import fromAsync from 'https://esm.run/array-from-async@3.0.0';
-        import { Base64 } from 'https://esm.run/js-base64@3.7.5';
+        import { Base64 } from 'https://esm.run/js-base64@3.7.6';
 
         const data = `
             object:
@@ -151,8 +151,8 @@ fn main() -> JsResult<()> {
 
     let default = module
         .namespace(context)
-        .get(js_string!("default"), context)
-        .unwrap();
+        .get(js_string!("default"), context)?;
+
     // `default` should contain the result of our calculations.
     let default = default
         .as_object()
