@@ -5,12 +5,20 @@ use std::{
 };
 
 use boa_engine::{
-    builtins::promise::PromiseState, job::{FutureJob, JobQueue, NativeJob}, js_string, module::ModuleLoader, string::utf16, Context, JsNativeError, JsResult, JsString, JsValue, Module
+    builtins::promise::PromiseState,
+    job::{FutureJob, JobQueue, NativeJob},
+    js_string,
+    module::ModuleLoader,
+    string::utf16,
+    Context, JsNativeError, JsResult, JsString, JsValue, Module,
 };
 use boa_parser::Source;
 use futures_util::{stream::FuturesUnordered, StreamExt};
+use isahc::{
+    config::{Configurable, RedirectPolicy},
+    AsyncReadResponseExt, Request, RequestExt,
+};
 use smol::{future, LocalExecutor};
-use surf::{middleware::Redirect, Client};
 
 // Most of the boilerplate is taken from the `futures.rs` example.
 // This file only explains what is exclusive of async module loading.
@@ -29,15 +37,21 @@ impl ModuleLoader for HttpModuleLoader {
         let url = specifier.to_std_string_escaped();
 
         let fetch = async move {
-            // `surf` requires to manually specify following redirects.
-            let client = Client::default().with(Redirect::default());
-
             // Adding some prints to show the non-deterministic nature of the async fetches.
             // Try to run the example several times to see how sometimes the fetches start in order
             // but finish in disorder.
             println!("Fetching `{url}`...");
             // This could also retry fetching in case there's an error while requesting the module.
-            let body = client.get(&url).recv_string().await;
+            let body: Result<_, isahc::Error> = async {
+                let mut response = Request::get(&url)
+                    .redirect_policy(RedirectPolicy::Limit(5))
+                    .body(())?
+                    .send_async()
+                    .await?;
+
+                Ok(response.text().await?)
+            }
+            .await;
             println!("Finished fetching `{url}`");
 
             // Since the async context cannot take the `context` by ref, we have to continue
@@ -135,7 +149,10 @@ fn main() -> JsResult<()> {
         }
     }
 
-    let default = module.namespace(context).get(js_string!("default"), context).unwrap();
+    let default = module
+        .namespace(context)
+        .get(js_string!("default"), context)
+        .unwrap();
     // `default` should contain the result of our calculations.
     let default = default
         .as_object()
