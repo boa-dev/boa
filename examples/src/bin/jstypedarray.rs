@@ -7,7 +7,7 @@ use boa_engine::{
         builtins::{JsArray, JsArrayBuffer, JsUint8Array},
         FunctionObjectBuilder,
     },
-    property::Attribute,
+    property::{Attribute, PropertyKey},
     Context, JsNativeError, JsResult, JsValue,
 };
 use boa_gc::{Gc, GcRefCell};
@@ -163,7 +163,10 @@ fn main() -> JsResult<()> {
     let array_buffer8 = JsArrayBuffer::new(8, context)?;
     let array = JsUint8Array::from_array_buffer(array_buffer8, context)?;
 
-    assert!(array.buffer(context)?.as_object().unwrap().is_buffer());
+    assert_eq!(
+        array.buffer(context)?.as_object().unwrap().get(PropertyKey::String(js_string!("byteLength")), context).unwrap(), 
+        JsValue::new(8)
+    );
 
     // constructor
     assert_eq!(

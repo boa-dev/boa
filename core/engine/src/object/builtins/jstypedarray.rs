@@ -61,7 +61,27 @@ impl JsTypedArray {
         BuiltinTypedArray::at(&self.inner.clone().into(), &[index.into().into()], context)
     }
 
+
+    /// Returns the `ArrayBuffer` referenced by this typed array at construction time.
+    /// 
     /// Calls `TypedArray.prototype.buffer()`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use boa_engine::{js_string, JsResult, object::{builtins::{JsUint8Array, JsArrayBuffer}}, property::{PropertyKey}, JsValue, Context};
+    /// # fn main() -> JsResult<()> {
+    ///
+    /// let context = &mut Context::default();
+    /// let array_buffer8 = JsArrayBuffer::new(8, context)?;
+    /// let array = JsUint8Array::from_array_buffer(array_buffer8, context)?;
+    /// assert_eq!(
+    ///     array.buffer(context)?.as_object().unwrap().get(PropertyKey::String(js_string!("byteLength")), context).unwrap(), 
+    ///     JsValue::new(8)
+    /// );
+    /// # Ok(())
+    /// # }
+    /// ```
     #[inline]
     pub fn buffer(&self, context: &mut Context) -> JsResult<JsValue> {
         BuiltinTypedArray::buffer(&self.inner.clone().into(), &[], context)
