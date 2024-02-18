@@ -120,7 +120,7 @@ impl IntrinsicObject for BuiltinTypedArray {
             .method(Self::find_index, js_string!("findIndex"), 1)
             .method(Self::find_last, js_string!("findLast"), 1)
             .method(Self::find_last_index, js_string!("findLastIndex"), 1)
-            .method(Self::foreach, js_string!("forEach"), 1)
+            .method(Self::for_each, js_string!("forEach"), 1)
             .method(Self::includes, js_string!("includes"), 1)
             .method(Self::index_of, js_string!("indexOf"), 1)
             .method(Self::join, js_string!("join"), 1)
@@ -998,7 +998,7 @@ impl BuiltinTypedArray {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%typedarray%.prototype.foreach
-    pub(crate) fn foreach(
+    pub(crate) fn for_each(
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,

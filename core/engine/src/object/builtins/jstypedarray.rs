@@ -695,7 +695,7 @@ impl JsTypedArray {
         this_arg: Option<JsValue>,
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        BuiltinTypedArray::foreach(
+        BuiltinTypedArray::for_each(
             &self.inner.clone().into(),
             &[callback.into(), this_arg.into_or_undefined()],
             context,
