@@ -104,7 +104,7 @@ jobs:
           os: windows-2019
           rust: stable
           target: x86_64-pc-windows-msvc
-          asset_name: boa-windows-amd64
+          asset_name: boa-windows-amd64.exe
           binary_name: boa.exe
     runs-on: ${{ matrix.os }}
     steps:
