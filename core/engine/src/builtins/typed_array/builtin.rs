@@ -2467,13 +2467,13 @@ impl BuiltinTypedArray {
         };
 
         let separator = {
-            #[cfg(feature = "intl")]
+            #[cfg(feature = "intl_core")]
             {
                 // TODO: this should eventually return a locale-sensitive separator.
                 utf16!(", ")
             }
 
-            #[cfg(not(feature = "intl"))]
+            #[cfg(not(feature = "intl_core"))]
             {
                 utf16!(", ")
             }

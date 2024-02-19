@@ -139,7 +139,7 @@ pub(crate) enum RoundingMode {
 }
 
 impl RoundingMode {
-    #[cfg(feature = "intl")]
+    #[cfg(feature = "intl_core")]
     pub(crate) fn to_js_string(self) -> JsString {
         use crate::js_string;
         match self {

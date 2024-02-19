@@ -1406,7 +1406,7 @@ impl String {
         let that_value = args.get_or_undefined(0).to_string(context)?;
 
         let cmp = {
-            #[cfg(feature = "intl")]
+            #[cfg(feature = "intl_core")]
             {
                 use crate::builtins::intl::Collator;
 
@@ -1435,7 +1435,7 @@ impl String {
             }
 
             // Default to common comparison if the user doesn't have `Intl` enabled.
-            #[cfg(not(feature = "intl"))]
+            #[cfg(not(feature = "intl_core"))]
             {
                 s.cmp(&that_value) as i8
             }
@@ -1727,7 +1727,7 @@ impl String {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        #[cfg(feature = "intl")]
+        #[cfg(feature = "intl_core")]
         {
             use super::intl::locale::{
                 best_available_locale, canonicalize_locale_list, default_locale,
@@ -1783,7 +1783,7 @@ impl String {
             Ok(result.into())
         }
 
-        #[cfg(not(feature = "intl"))]
+        #[cfg(not(feature = "intl_core"))]
         {
             Self::to_case::<UPPER>(this, args, context)
         }
@@ -2131,7 +2131,7 @@ impl String {
         };
 
         let normalizers = {
-            #[cfg(not(feature = "intl"))]
+            #[cfg(not(feature = "intl_core"))]
             {
                 const NORMALIZERS: StringNormalizers = StringNormalizers {
                     nfc: ComposingNormalizer::new_nfc(),
@@ -2141,7 +2141,7 @@ impl String {
                 };
                 &NORMALIZERS
             }
-            #[cfg(feature = "intl")]
+            #[cfg(feature = "intl_core")]
             {
                 context.intl_provider().string_normalizers()
             }

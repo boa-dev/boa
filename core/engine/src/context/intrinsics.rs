@@ -14,7 +14,7 @@ use crate::{
     JsSymbol,
 };
 
-#[cfg(feature = "intl")]
+#[cfg(feature = "intl_core")]
 use crate::builtins::intl::Intl;
 
 /// The intrinsic objects and constructors.
@@ -168,17 +168,17 @@ pub struct StandardConstructors {
     weak_ref: StandardConstructor,
     weak_map: StandardConstructor,
     weak_set: StandardConstructor,
-    #[cfg(feature = "intl")]
+    #[cfg(feature = "intl_core")]
     collator: StandardConstructor,
-    #[cfg(feature = "intl")]
+    #[cfg(feature = "intl_core")]
     list_format: StandardConstructor,
-    #[cfg(feature = "intl")]
+    #[cfg(feature = "intl_core")]
     locale: StandardConstructor,
-    #[cfg(feature = "intl")]
+    #[cfg(feature = "intl_core")]
     segmenter: StandardConstructor,
-    #[cfg(feature = "intl")]
+    #[cfg(feature = "intl_core")]
     plural_rules: StandardConstructor,
-    #[cfg(feature = "intl")]
+    #[cfg(feature = "intl_core")]
     number_format: StandardConstructor,
     #[cfg(feature = "temporal")]
     instant: StandardConstructor,
@@ -260,17 +260,17 @@ impl Default for StandardConstructors {
             weak_ref: StandardConstructor::default(),
             weak_map: StandardConstructor::default(),
             weak_set: StandardConstructor::default(),
-            #[cfg(feature = "intl")]
+            #[cfg(feature = "intl_core")]
             collator: StandardConstructor::default(),
-            #[cfg(feature = "intl")]
+            #[cfg(feature = "intl_core")]
             list_format: StandardConstructor::default(),
-            #[cfg(feature = "intl")]
+            #[cfg(feature = "intl_core")]
             locale: StandardConstructor::default(),
-            #[cfg(feature = "intl")]
+            #[cfg(feature = "intl_core")]
             segmenter: StandardConstructor::default(),
-            #[cfg(feature = "intl")]
+            #[cfg(feature = "intl_core")]
             plural_rules: StandardConstructor::default(),
-            #[cfg(feature = "intl")]
+            #[cfg(feature = "intl_core")]
             number_format: StandardConstructor::default(),
             #[cfg(feature = "temporal")]
             instant: StandardConstructor::default(),
@@ -833,7 +833,7 @@ impl StandardConstructors {
     /// [spec]: https://tc39.es/ecma402/#sec-intl.collator
     #[inline]
     #[must_use]
-    #[cfg(feature = "intl")]
+    #[cfg(feature = "intl_core")]
     pub const fn collator(&self) -> &StandardConstructor {
         &self.collator
     }
@@ -846,7 +846,7 @@ impl StandardConstructors {
     /// [spec]: https://tc39.es/ecma402/#sec-Intl.ListFormat
     #[inline]
     #[must_use]
-    #[cfg(feature = "intl")]
+    #[cfg(feature = "intl_core")]
     pub const fn list_format(&self) -> &StandardConstructor {
         &self.list_format
     }
@@ -859,7 +859,7 @@ impl StandardConstructors {
     /// [spec]: https://tc39.es/ecma402/#sec-Intl.Locale
     #[inline]
     #[must_use]
-    #[cfg(feature = "intl")]
+    #[cfg(feature = "intl_core")]
     pub const fn locale(&self) -> &StandardConstructor {
         &self.locale
     }
@@ -872,7 +872,7 @@ impl StandardConstructors {
     /// [spec]: https://tc39.es/ecma402/#sec-intl.segmenter
     #[inline]
     #[must_use]
-    #[cfg(feature = "intl")]
+    #[cfg(feature = "intl_core")]
     pub const fn segmenter(&self) -> &StandardConstructor {
         &self.segmenter
     }
@@ -885,7 +885,7 @@ impl StandardConstructors {
     /// [spec]: https://tc39.es/ecma402/#sec-intl.pluralrules
     #[inline]
     #[must_use]
-    #[cfg(feature = "intl")]
+    #[cfg(feature = "intl_core")]
     pub const fn plural_rules(&self) -> &StandardConstructor {
         &self.plural_rules
     }
@@ -898,7 +898,7 @@ impl StandardConstructors {
     /// [spec]: https://tc39.es/ecma402/#sec-intl.numberformat
     #[inline]
     #[must_use]
-    #[cfg(feature = "intl")]
+    #[cfg(feature = "intl_core")]
     pub const fn number_format(&self) -> &StandardConstructor {
         &self.number_format
     }
@@ -1094,11 +1094,11 @@ pub struct IntrinsicObjects {
     unescape: JsFunction,
 
     /// [`%Intl%`](https://tc39.es/ecma402/#intl-object)
-    #[cfg(feature = "intl")]
+    #[cfg(feature = "intl_core")]
     intl: JsObject<Intl>,
 
     /// [`%SegmentsPrototype%`](https://tc39.es/ecma402/#sec-%segmentsprototype%-object)
-    #[cfg(feature = "intl")]
+    #[cfg(feature = "intl_core")]
     segments_prototype: JsObject,
 
     /// [`%Temporal%`](https://tc39.es/proposal-temporal/#sec-temporal-objects)
@@ -1141,9 +1141,9 @@ impl IntrinsicObjects {
             escape: JsFunction::empty_intrinsic_function(false),
             #[cfg(feature = "annex-b")]
             unescape: JsFunction::empty_intrinsic_function(false),
-            #[cfg(feature = "intl")]
+            #[cfg(feature = "intl_core")]
             intl: JsObject::new_unique(None, Intl::new()?),
-            #[cfg(feature = "intl")]
+            #[cfg(feature = "intl_core")]
             segments_prototype: JsObject::default(),
             #[cfg(feature = "temporal")]
             temporal: JsObject::default(),
@@ -1316,7 +1316,7 @@ impl IntrinsicObjects {
     ///
     /// [spec]: https://tc39.es/ecma402/#intl-object
     #[must_use]
-    #[cfg(feature = "intl")]
+    #[cfg(feature = "intl_core")]
     #[inline]
     pub fn intl(&self) -> JsObject<Intl> {
         self.intl.clone()
@@ -1326,7 +1326,7 @@ impl IntrinsicObjects {
     ///
     /// [spec]: https://tc39.es/ecma402/#sec-%segmentsprototype%-object
     #[must_use]
-    #[cfg(feature = "intl")]
+    #[cfg(feature = "intl_core")]
     pub fn segments_prototype(&self) -> JsObject {
         self.segments_prototype.clone()
     }

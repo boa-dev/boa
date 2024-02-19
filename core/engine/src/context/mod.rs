@@ -1,20 +1,18 @@
 //! The ECMAScript context.
 
 mod hooks;
-#[cfg(feature = "intl")]
+#[cfg(feature = "intl_core")]
 pub(crate) mod icu;
 pub mod intrinsics;
 
 use boa_parser::source::ReadChar;
 pub use hooks::{DefaultHooks, HostHooks};
 
-#[cfg(feature = "intl")]
+#[cfg(feature = "intl_core")]
 pub use icu::IcuError;
 
 use intrinsics::Intrinsics;
 
-#[cfg(not(feature = "intl"))]
-pub use std::marker::PhantomData;
 use std::{cell::Cell, path::Path, rc::Rc};
 
 use crate::{
@@ -106,7 +104,7 @@ pub struct Context {
     can_block: bool,
 
     /// Intl data provider.
-    #[cfg(feature = "intl")]
+    #[cfg(feature = "intl_core")]
     intl_provider: icu::IntlProvider,
 
     host_hooks: &'static dyn HostHooks,
@@ -136,7 +134,7 @@ impl std::fmt::Debug for Context {
             .field("module_loader", &"ModuleLoader")
             .field("optimizer_options", &self.optimizer_options);
 
-        #[cfg(feature = "intl")]
+        #[cfg(feature = "intl_core")]
         debug.field("intl_provider", &self.intl_provider);
 
         debug.finish_non_exhaustive()
@@ -841,7 +839,7 @@ impl Context {
     }
 
     /// Get the Intl data provider.
-    #[cfg(feature = "intl")]
+    #[cfg(feature = "intl_core")]
     pub(crate) const fn intl_provider(&self) -> &icu::IntlProvider {
         &self.intl_provider
     }
@@ -858,7 +856,7 @@ pub struct ContextBuilder {
     job_queue: Option<Rc<dyn JobQueue>>,
     module_loader: Option<Rc<dyn ModuleLoader>>,
     can_block: bool,
-    #[cfg(feature = "intl")]
+    #[cfg(feature = "intl_core")]
     icu: Option<icu::IntlProvider>,
     #[cfg(feature = "fuzz")]
     instructions_remaining: usize,
@@ -884,7 +882,7 @@ impl std::fmt::Debug for ContextBuilder {
             )
             .field("can_block", &self.can_block);
 
-        #[cfg(feature = "intl")]
+        #[cfg(feature = "intl_core")]
         out.field("icu", &self.icu);
 
         #[cfg(feature = "fuzz")]
@@ -927,7 +925,7 @@ impl ContextBuilder {
     /// [`LocaleCanonicalizer`]: icu_locid_transform::LocaleCanonicalizer
     /// [`LocaleExpander`]: icu_locid_transform::LocaleExpander
     /// [`BufferProvider`]: icu_provider::BufferProvider
-    #[cfg(feature = "intl")]
+    #[cfg(feature = "intl_core")]
     pub fn icu_buffer_provider<T: icu_provider::BufferProvider + 'static>(
         mut self,
         provider: T,
@@ -950,7 +948,7 @@ impl ContextBuilder {
     /// [`LocaleCanonicalizer`]: icu_locid_transform::LocaleCanonicalizer
     /// [`LocaleExpander`]: icu_locid_transform::LocaleExpander
     /// [`AnyProvider`]: icu_provider::AnyProvider
-    #[cfg(feature = "intl")]
+    #[cfg(feature = "intl_core")]
     pub fn icu_any_provider<T: icu_provider::AnyProvider + 'static>(
         mut self,
         provider: T,
@@ -1049,11 +1047,22 @@ impl ContextBuilder {
             interner: self.interner.unwrap_or_default(),
             vm,
             strict: false,
-            #[cfg(feature = "intl")]
-            intl_provider: self.icu.unwrap_or_else(|| {
-                icu::IntlProvider::try_new_with_buffer_provider(boa_icu_provider::buffer())
-                    .expect("Failed to initialize default icu data.")
-            }),
+            #[cfg(feature = "intl_core")]
+            intl_provider: if let Some(icu) = self.icu {
+                icu
+            } else {
+                cfg_if::cfg_if! {
+                    if #[cfg(feature = "intl")] {
+                        icu::IntlProvider::try_new_with_buffer_provider(boa_icu_provider::buffer())
+                            .expect("Failed to initialize default icu data.")
+                    } else {
+                        return Err(JsNativeError::typ()
+                            .with_message("missing Intl provider for context")
+                            .into()
+                        );
+                    }
+                }
+            },
             #[cfg(feature = "fuzz")]
             instructions_remaining: self.instructions_remaining,
             kept_alive: Vec::new(),
