@@ -17,7 +17,7 @@ boa_runtime.workspace = true
 boa_gc.workspace = true
 clap = { workspace = true, features = ["derive"] }
 serde = { workspace = true, features = ["derive"] }
-serde_yaml = "0.9.31"
+serde_yaml = "0.9.32"
 serde_json.workspace = true
 bitflags.workspace = true
 regex.workspace = true
