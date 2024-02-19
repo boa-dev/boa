@@ -1563,6 +1563,7 @@ dependencies = [
  "icu_casemap",
  "icu_collator",
  "icu_datagen",
+ "icu_datetime",
  "icu_decimal",
  "icu_list",
  "icu_locid_transform",

@@ -78,9 +78,10 @@ impl IterableDynamicDataProvider<ExportMarker> for PluralRangesFallbackHack {
 /// List of keys used by `Intl` components.
 ///
 /// This must be kept in sync with the list of implemented components of `Intl`.
-const KEYS: [&[DataKey]; 8] = [
+const KEYS: [&[DataKey]; 9] = [
     icu_casemap::provider::KEYS,
     icu_collator::provider::KEYS,
+    icu_datetime::provider::KEYS,
     icu_decimal::provider::KEYS,
     icu_list::provider::KEYS,
     icu_locid_transform::provider::KEYS,
@@ -102,10 +103,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let _unused = std::fs::remove_dir_all(path);
     std::fs::create_dir_all(path)?;
 
-    log::info!(
-        "Generating ICU4X data for keys: {:?}",
-        KEYS.into_iter().flatten().copied()
-    );
+    log::info!("Generating ICU4X data for keys: {:?}", KEYS);
 
     let provider = DatagenProvider::new_latest_tested();
 
@@ -116,7 +114,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         .with_recommended_segmenter_models()
         .export(
             &PluralRangesFallbackHack(provider),
-            BlobExporter::new_v2_with_sink(Box::new(File::create(path.join("icudata.postcard"))?)),
+            BlobExporter::new_with_sink(Box::new(File::create(path.join("icudata.postcard"))?)),
         )?;
 
     Ok(())
