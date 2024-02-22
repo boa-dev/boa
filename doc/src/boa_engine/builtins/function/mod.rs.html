@@ -1081,6 +1081,30 @@
 <a href="#1080" id="1080">1080</a>
 <a href="#1081" id="1081">1081</a>
 <a href="#1082" id="1082">1082</a>
+<a href="#1083" id="1083">1083</a>
+<a href="#1084" id="1084">1084</a>
+<a href="#1085" id="1085">1085</a>
+<a href="#1086" id="1086">1086</a>
+<a href="#1087" id="1087">1087</a>
+<a href="#1088" id="1088">1088</a>
+<a href="#1089" id="1089">1089</a>
+<a href="#1090" id="1090">1090</a>
+<a href="#1091" id="1091">1091</a>
+<a href="#1092" id="1092">1092</a>
+<a href="#1093" id="1093">1093</a>
+<a href="#1094" id="1094">1094</a>
+<a href="#1095" id="1095">1095</a>
+<a href="#1096" id="1096">1096</a>
+<a href="#1097" id="1097">1097</a>
+<a href="#1098" id="1098">1098</a>
+<a href="#1099" id="1099">1099</a>
+<a href="#1100" id="1100">1100</a>
+<a href="#1101" id="1101">1101</a>
+<a href="#1102" id="1102">1102</a>
+<a href="#1103" id="1103">1103</a>
+<a href="#1104" id="1104">1104</a>
+<a href="#1105" id="1105">1105</a>
+<a href="#1106" id="1106">1106</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa's implementation of ECMAScript's global `Function` object and Native Functions.
 //!
 //! Objects wrap `Function`s and expose them via call/construct slots.
@@ -1128,7 +1152,6 @@
 <span class="kw">use </span>boa_interner::Sym;
 <span class="kw">use </span>boa_parser::{Parser, Source};
 <span class="kw">use </span>boa_profiler::Profiler;
-<span class="kw">use </span>std::io::Read;
 <span class="kw">use </span>thin_vec::ThinVec;
 
 <span class="kw">use </span><span class="kw">super</span>::Proxy;
@@ -1473,13 +1496,7 @@
         generator: bool,
         context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsObject&gt; {
-        <span class="comment">// 1. Let currentRealm be the current Realm Record.
-        // 2. Perform ? HostEnsureCanCompileStrings(currentRealm).
-        </span>context
-            .host_hooks()
-            .ensure_can_compile_strings(context.realm().clone(), context)<span class="question-mark">?</span>;
-
-        <span class="comment">// 3. If newTarget is undefined, set newTarget to constructor.
+        <span class="comment">// 1. If newTarget is undefined, set newTarget to constructor.
         </span><span class="kw">let </span>new_target = <span class="kw">if </span>new_target.is_undefined() {
             constructor.into()
         } <span class="kw">else </span>{
@@ -1487,8 +1504,8 @@
         };
 
         <span class="kw">let </span>default = <span class="kw">if </span>r#async &amp;&amp; generator {
-            <span class="comment">// 7. Else,
-            //     a. Assert: kind is asyncGenerator.
+            <span class="comment">// 5. Else,
+            //     a. Assert: kind is async-generator.
             //     b. Let prefix be "async function*".
             //     c. Let exprSym be the grammar symbol AsyncGeneratorExpression.
             //     d. Let bodySym be the grammar symbol AsyncGeneratorBody.
@@ -1496,7 +1513,7 @@
             //     f. Let fallbackProto be "%AsyncGeneratorFunction.prototype%".
             </span>StandardConstructors::async_generator_function
         } <span class="kw">else if </span>r#async {
-            <span class="comment">// 6. Else if kind is async, then
+            <span class="comment">// 4. Else if kind is async, then
             //     a. Let prefix be "async function".
             //     b. Let exprSym be the grammar symbol AsyncFunctionExpression.
             //     c. Let bodySym be the grammar symbol AsyncFunctionBody.
@@ -1504,7 +1521,7 @@
             //     e. Let fallbackProto be "%AsyncFunction.prototype%".
             </span>StandardConstructors::async_function
         } <span class="kw">else if </span>generator {
-            <span class="comment">// 5. Else if kind is generator, then
+            <span class="comment">// 3. Else if kind is generator, then
             //     a. Let prefix be "function*".
             //     b. Let exprSym be the grammar symbol GeneratorExpression.
             //     c. Let bodySym be the grammar symbol GeneratorBody.
@@ -1512,7 +1529,7 @@
             //     e. Let fallbackProto be "%GeneratorFunction.prototype%".
             </span>StandardConstructors::generator_function
         } <span class="kw">else </span>{
-            <span class="comment">// 4. If kind is normal, then
+            <span class="comment">// 2. If kind is normal, then
             //     a. Let prefix be "function".
             //     b. Let exprSym be the grammar symbol FunctionExpression.
             //     c. Let bodySym be the grammar symbol FunctionBody[~Yield, ~Await].
@@ -1524,82 +1541,127 @@
         <span class="comment">// 22. Let proto be ? GetPrototypeFromConstructor(newTarget, fallbackProto).
         </span><span class="kw">let </span>prototype = get_prototype_from_constructor(<span class="kw-2">&amp;</span>new_target, default, context)<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>(parameters, body) = <span class="kw">if let </span><span class="prelude-val">Some</span>((body_arg, args)) = args.split_last() {
-            <span class="kw">let </span>parameters = <span class="kw">if </span>args.is_empty() {
-                FormalParameterList::default()
-            } <span class="kw">else </span>{
-                <span class="kw">let </span><span class="kw-2">mut </span>parameters = Vec::with_capacity(args.len());
-                <span class="kw">for </span>arg <span class="kw">in </span>args {
-                    parameters.push(arg.to_string(context)<span class="question-mark">?</span>);
-                }
-                <span class="kw">let </span>parameters = parameters.join(<span class="macro">utf16!</span>(<span class="string">","</span>));
+        <span class="comment">// 6. Let argCount be the number of elements in parameterArgs.
+        </span><span class="kw">let </span>(body, param_list) = <span class="kw">if let </span><span class="prelude-val">Some</span>((body, params)) = args.split_last() {
+            <span class="comment">// 7. Let bodyString be ? ToString(bodyArg).
+            </span><span class="kw">let </span>body = body.to_string(context)<span class="question-mark">?</span>;
+            <span class="comment">// 8. Let parameterStrings be a new empty List.
+            </span><span class="kw">let </span><span class="kw-2">mut </span>parameters = Vec::with_capacity(args.len());
+            <span class="comment">// 9. For each element arg of parameterArgs, do
+            </span><span class="kw">for </span>param <span class="kw">in </span>params {
+                <span class="comment">//     a. Append ? ToString(arg) to parameterStrings.
+                </span>parameters.push(param.to_string(context)<span class="question-mark">?</span>);
+            }
+            (body, parameters)
+        } <span class="kw">else </span>{
+            (<span class="macro">js_string!</span>(), Vec::new())
+        };
+        <span class="kw">let </span>current_realm = context.realm().clone();
 
-                <span class="comment">// TODO: make parser generic to u32 iterators
-                </span><span class="kw">let </span>parameters = String::from_utf16_lossy(<span class="kw-2">&amp;</span>parameters);
-                <span class="kw">let </span><span class="kw-2">mut </span>parser = Parser::new(Source::from_bytes(<span class="kw-2">&amp;</span>parameters));
-                parser.set_identifier(context.next_parser_identifier());
+        context.host_hooks().ensure_can_compile_strings(
+            current_realm,
+            <span class="kw-2">&amp;</span>param_list,
+            <span class="kw-2">&amp;</span>body,
+            <span class="bool-val">false</span>,
+            context,
+        )<span class="question-mark">?</span>;
 
-                <span class="kw">let </span>parameters = <span class="kw">match </span>parser.parse_formal_parameters(
-                    context.interner_mut(),
-                    generator,
-                    r#async,
-                ) {
-                    <span class="prelude-val">Ok</span>(parameters) =&gt; parameters,
-                    <span class="prelude-val">Err</span>(e) =&gt; {
-                        <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::syntax()
-                            .with_message(<span class="macro">format!</span>(<span class="string">"failed to parse function parameters: {e}"</span>))
-                            .into())
-                    }
-                };
+        <span class="kw">let </span>parameters = <span class="kw">if </span>param_list.is_empty() {
+            FormalParameterList::default()
+        } <span class="kw">else </span>{
+            <span class="comment">// 12. Let P be the empty String.
+            // 13. If argCount &gt; 0, then
+            //     a. Set P to parameterStrings[0].
+            //     b. Let k be 1.
+            //     c. Repeat, while k &lt; argCount,
+            //         i. Let nextArgString be parameterStrings[k].
+            //         ii. Set P to the string-concatenation of P, "," (a comma), and nextArgString.
+            //         iii. Set k to k + 1.
+            </span><span class="kw">let </span>parameters = param_list.join(<span class="macro">utf16!</span>(<span class="string">","</span>));
+            <span class="kw">let </span><span class="kw-2">mut </span>parser = Parser::new(Source::from_utf16(<span class="kw-2">&amp;</span>parameters));
+            parser.set_identifier(context.next_parser_identifier());
 
-                <span class="kw">if </span>generator &amp;&amp; contains(<span class="kw-2">&amp;</span>parameters, ContainsSymbol::YieldExpression) {
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::syntax().with_message(
-                            <span class="string">"yield expression is not allowed in formal parameter list of generator function"</span>,
-                        ).into());
-                }
-
-                parameters
-            };
+            <span class="comment">// 17. Let parameters be ParseText(StringToCodePoints(P), parameterSym).
+            // 18. If parameters is a List of errors, throw a SyntaxError exception.
+            </span><span class="kw">let </span>parameters = parser
+                .parse_formal_parameters(context.interner_mut(), generator, r#async)
+                .map_err(|e| {
+                    JsNativeError::syntax()
+                        .with_message(<span class="macro">format!</span>(<span class="string">"failed to parse function parameters: {e}"</span>))
+                })<span class="question-mark">?</span>;
 
             <span class="comment">// It is a Syntax Error if FormalParameters Contains YieldExpression is true.
-            </span><span class="kw">if </span>generator &amp;&amp; r#async &amp;&amp; contains(<span class="kw-2">&amp;</span>parameters, ContainsSymbol::YieldExpression) {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::syntax()
-                    .with_message(<span class="string">"yield expression not allowed in async generator parameters"</span>)
-                    .into());
+            </span><span class="kw">if </span>generator &amp;&amp; contains(<span class="kw-2">&amp;</span>parameters, ContainsSymbol::YieldExpression) {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::syntax().with_message(
+                        <span class="kw">if </span>r#async {
+                            <span class="string">"yield expression is not allowed in formal parameter list of async generator"
+                        </span>} <span class="kw">else </span>{
+                            <span class="string">"yield expression is not allowed in formal parameter list of generator"
+                        </span>}
+                    ).into());
             }
 
             <span class="comment">// It is a Syntax Error if FormalParameters Contains AwaitExpression is true.
-            </span><span class="kw">if </span>generator &amp;&amp; r#async &amp;&amp; contains(<span class="kw-2">&amp;</span>parameters, ContainsSymbol::AwaitExpression) {
+            </span><span class="kw">if </span>r#async &amp;&amp; contains(<span class="kw-2">&amp;</span>parameters, ContainsSymbol::AwaitExpression) {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::syntax()
-                    .with_message(<span class="string">"await expression not allowed in async generator parameters"</span>)
+                    .with_message(
+                        <span class="kw">if </span>generator {
+                            <span class="string">"await expression is not allowed in formal parameter list of async function"
+                        </span>} <span class="kw">else </span>{
+                            <span class="string">"await expression is not allowed in formal parameter list of async generator"
+                        </span>})
                     .into());
             }
 
-            <span class="comment">// 11. Let bodyString be the string-concatenation of 0x000A (LINE FEED), ? ToString(bodyArg), and 0x000A (LINE FEED).
-            </span><span class="kw">let </span>body_arg = body_arg.to_string(context)<span class="question-mark">?</span>.to_std_string_escaped();
-            <span class="kw">let </span>body = <span class="string">b"\n"</span>.chain(body_arg.as_bytes()).chain(<span class="string">b"\n"</span>.as_slice());
+            parameters
+        };
 
-            <span class="comment">// TODO: make parser generic to u32 iterators
-            </span><span class="kw">let </span><span class="kw-2">mut </span>parser = Parser::new(Source::from_reader(body, <span class="prelude-val">None</span>));
+        <span class="kw">let </span>body = <span class="kw">if </span>body.is_empty() {
+            FunctionBody::default()
+        } <span class="kw">else </span>{
+            <span class="comment">// 14. Let bodyParseString be the string-concatenation of 0x000A (LINE FEED), bodyString, and 0x000A (LINE FEED).
+            </span><span class="kw">let </span><span class="kw-2">mut </span>body_parse = Vec::with_capacity(body.len());
+            body_parse.push(u16::from(<span class="string">b'\n'</span>));
+            body_parse.extend_from_slice(<span class="kw-2">&amp;</span>body);
+            body_parse.push(u16::from(<span class="string">b'\n'</span>));
+
+            <span class="comment">// 19. Let body be ParseText(StringToCodePoints(bodyParseString), bodySym).
+            // 20. If body is a List of errors, throw a SyntaxError exception.
+            </span><span class="kw">let </span><span class="kw-2">mut </span>parser = Parser::new(Source::from_utf16(<span class="kw-2">&amp;</span>body_parse));
             parser.set_identifier(context.next_parser_identifier());
 
-            <span class="kw">let </span>body = <span class="kw">match </span>parser.parse_function_body(context.interner_mut(), generator, r#async)
-            {
-                <span class="prelude-val">Ok</span>(statement_list) =&gt; statement_list,
-                <span class="prelude-val">Err</span>(e) =&gt; {
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::syntax()
+            <span class="comment">// 19. Let body be ParseText(StringToCodePoints(bodyParseString), bodySym).
+            // 20. If body is a List of errors, throw a SyntaxError exception.
+            </span><span class="kw">let </span>body = parser
+                .parse_function_body(context.interner_mut(), generator, r#async)
+                .map_err(|e| {
+                    JsNativeError::syntax()
                         .with_message(<span class="macro">format!</span>(<span class="string">"failed to parse function body: {e}"</span>))
-                        .into())
-                }
-            };
+                })<span class="question-mark">?</span>;
 
-            <span class="comment">// Early Error: If BindingIdentifier is present and the source text matched by BindingIdentifier is strict mode code,
+            <span class="comment">// It is a Syntax Error if AllPrivateIdentifiersValid of StatementList with argument « »
+            // is false unless the source text containing ScriptBody is eval code that is being
+            // processed by a direct eval.
+            // https://tc39.es/ecma262/#sec-scripts-static-semantics-early-errors
+            </span><span class="kw">if </span>!all_private_identifiers_valid(<span class="kw-2">&amp;</span>body, Vec::new()) {
+                <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::syntax()
+                    .with_message(<span class="string">"invalid private identifier usage"</span>)
+                    .into());
+            }
+
+            <span class="comment">// 21. NOTE: The parameters and body are parsed separately to ensure that each is valid alone. For example, new Function("/*", "*/ ) {") does not evaluate to a function.
+            // 22. NOTE: If this step is reached, sourceText must have the syntax of exprSym (although the reverse implication does not hold). The purpose of the next two steps is to enforce any Early Error rules which apply to exprSym directly.
+            // 23. Let expr be ParseText(sourceText, exprSym).
+            // 24. If expr is a List of errors, throw a SyntaxError exception.
+            // Check for errors that apply for the combination of body and parameters.
+
+            // Early Error: If BindingIdentifier is present and the source text matched by BindingIdentifier is strict mode code,
             // it is a Syntax Error if the StringValue of BindingIdentifier is "eval" or "arguments".
             </span><span class="kw">if </span>body.strict() {
                 <span class="kw">for </span>name <span class="kw">in </span>bound_names(<span class="kw-2">&amp;</span>parameters) {
                     <span class="kw">if </span>name == Sym::ARGUMENTS || name == Sym::EVAL {
                         <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::syntax()
-                            .with_message(<span class="string">" Unexpected 'eval' or 'arguments' in strict mode"</span>)
+                            .with_message(<span class="string">"Unexpected 'eval' or 'arguments' in strict mode"</span>)
                             .into());
                     }
                 }
@@ -1654,21 +1716,7 @@
                 }
             }
 
-            <span class="kw">if </span>!all_private_identifiers_valid(<span class="kw-2">&amp;</span>parameters, Vec::new()) {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::syntax()
-                    .with_message(<span class="string">"invalid private identifier usage"</span>)
-                    .into());
-            }
-
-            <span class="kw">if </span>!all_private_identifiers_valid(<span class="kw-2">&amp;</span>body, Vec::new()) {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::syntax()
-                    .with_message(<span class="string">"invalid private identifier usage"</span>)
-                    .into());
-            }
-
-            (parameters, body)
-        } <span class="kw">else </span>{
-            (FormalParameterList::default(), FunctionBody::default())
+            body
         };
 
         <span class="kw">let </span>code = FunctionCompiler::new()

@@ -222,13 +222,22 @@
 <a href="#221" id="221">221</a>
 <a href="#222" id="222">222</a>
 <a href="#223" id="223">223</a>
+<a href="#224" id="224">224</a>
+<a href="#225" id="225">225</a>
+<a href="#226" id="226">226</a>
+<a href="#227" id="227">227</a>
+<a href="#228" id="228">228</a>
+<a href="#229" id="229">229</a>
+<a href="#230" id="230">230</a>
+<a href="#231" id="231">231</a>
+<a href="#232" id="232">232</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::promise::OperationType,
     context::intrinsics::Intrinsics,
     job::JobCallback,
     object::{JsFunction, JsObject},
     realm::Realm,
-    Context, JsResult, JsValue,
+    Context, JsResult, JsString, JsValue,
 };
 <span class="kw">use </span>time::{OffsetDateTime, UtcOffset};
 
@@ -249,7 +258,7 @@
 /// use boa_engine::{
 ///     context::{Context, ContextBuilder, HostHooks},
 ///     realm::Realm,
-///     JsNativeError, JsResult, Source,
+///     JsNativeError, JsResult, JsString, Source,
 /// };
 ///
 /// struct Hooks;
@@ -258,7 +267,10 @@
 ///     fn ensure_can_compile_strings(
 ///         &amp;self,
 ///         _realm: Realm,
-///         context: &amp;mut Context,
+///         _parameters: &amp;[JsString],
+///         _body: &amp;JsString,
+///         _direct: bool,
+///         _context: &amp;mut Context,
 ///     ) -&gt; JsResult&lt;()&gt; {
 ///         Err(JsNativeError::typ()
 ///             .with_message("eval calls not available")
@@ -330,7 +342,7 @@
         <span class="comment">// The default implementation of HostPromiseRejectionTracker is to return unused.
     </span>}
 
-    <span class="doccomment">/// [`HostEnsureCanCompileStrings ( calleeRealm )`][spec]
+    <span class="doccomment">/// [`HostEnsureCanCompileStrings ( calleeRealm, parameterStrings, bodyString, direct )`][spec]
     ///
     /// # Requirements
     ///
@@ -338,8 +350,14 @@
     /// containing unused. This is already ensured by the return type.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-hostensurecancompilestrings
-    </span><span class="comment">// TODO: Track https://github.com/tc39/ecma262/issues/938
-    </span><span class="kw">fn </span>ensure_can_compile_strings(<span class="kw-2">&amp;</span><span class="self">self</span>, _realm: Realm, _context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;()&gt; {
+    </span><span class="kw">fn </span>ensure_can_compile_strings(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        _realm: Realm,
+        _parameters: <span class="kw-2">&amp;</span>[JsString],
+        _body: <span class="kw-2">&amp;</span>JsString,
+        _direct: bool,
+        _context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;()&gt; {
         <span class="comment">// The default implementation of HostEnsureCanCompileStrings is to return NormalCompletion(unused).
         </span><span class="prelude-val">Ok</span>(())
     }

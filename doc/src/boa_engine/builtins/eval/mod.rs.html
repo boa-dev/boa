@@ -275,6 +275,8 @@
 <a href="#274" id="274">274</a>
 <a href="#275" id="275">275</a>
 <a href="#276" id="276">276</a>
+<a href="#277" id="277">277</a>
+<a href="#278" id="278">278</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa's implementation of ECMAScript's global `eval` function.
 //!
 //! The `eval()` function evaluates ECMAScript code represented as a string.
@@ -385,10 +387,12 @@
         // 3. Let evalRealm be the current Realm Record.
         // 4. NOTE: In the case of a direct eval, evalRealm is the realm of both the caller of eval
         // and of the eval function itself.
-        // 5. Perform ? HostEnsureCanCompileStrings(evalRealm).
+        </span><span class="kw">let </span>eval_realm = context.realm().clone();
+
+        <span class="comment">// 5. Perform ? HostEnsureCanCompileStrings(evalRealm, « », x, direct).
         </span>context
             .host_hooks()
-            .ensure_can_compile_strings(context.realm().clone(), context)<span class="question-mark">?</span>;
+            .ensure_can_compile_strings(eval_realm, <span class="kw-2">&amp;</span>[], x, direct, context)<span class="question-mark">?</span>;
 
         <span class="comment">// 11. Perform the following substeps in an implementation-defined order, possibly interleaving parsing and error detection:
         //     a. Let script be ParseText(StringToCodePoints(x), Script).
