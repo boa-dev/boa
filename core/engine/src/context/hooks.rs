@@ -4,7 +4,7 @@ use crate::{
     job::JobCallback,
     object::{JsFunction, JsObject},
     realm::Realm,
-    Context, JsResult, JsValue,
+    Context, JsResult, JsString, JsValue,
 };
 use time::{OffsetDateTime, UtcOffset};
 
@@ -106,7 +106,7 @@ pub trait HostHooks {
         // The default implementation of HostPromiseRejectionTracker is to return unused.
     }
 
-    /// [`HostEnsureCanCompileStrings ( calleeRealm )`][spec]
+    /// [`HostEnsureCanCompileStrings ( calleeRealm, parameterStrings, bodyString, direct )`][spec]
     ///
     /// # Requirements
     ///
@@ -114,8 +114,14 @@ pub trait HostHooks {
     /// containing unused. This is already ensured by the return type.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-hostensurecancompilestrings
-    // TODO: Track https://github.com/tc39/ecma262/issues/938
-    fn ensure_can_compile_strings(&self, _realm: Realm, _context: &mut Context) -> JsResult<()> {
+    fn ensure_can_compile_strings(
+        &self,
+        _realm: Realm,
+        _parameters: &[JsString],
+        _body: &JsString,
+        _direct: bool,
+        _context: &mut Context,
+    ) -> JsResult<()> {
         // The default implementation of HostEnsureCanCompileStrings is to return NormalCompletion(unused).
         Ok(())
     }
