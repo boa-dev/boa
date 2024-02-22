@@ -15,11 +15,15 @@ rust-version.workspace = true
 profiler = ["boa_profiler/profiler"]
 deser = ["boa_interner/serde", "boa_ast/serde"]
 
-# Enables the `Intl` builtin object and bundles a default ICU4X data.
-intl = ["intl_core", "dep:boa_icu_provider"]
+# Enables the `Intl` builtin object and bundles a default ICU4X data provider.
+# Prefer this over `intl` if you just want to enable `Intl` without dealing with the
+# generation of ICU4X data.
+intl_bundled = ["intl", "dep:boa_icu_provider"]
 
-# Enables only the `Intl` builtin implementation without any bundled ICU4X data provider.
-intl_core = [
+# Enables Boa's `Intl` builtin implementation.
+# Prefer this over `intl_bundled` if you want to reduce the size of the final binary
+# by providing a smaller ICU4X data provider.
+intl = [
     "boa_gc/icu",
     "icu_normalizer/serde",
     "icu_normalizer/std",

@@ -36,7 +36,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: tarpaulin
-          args: --workspace --features annex-b,intl,experimental --ignore-tests --engine llvm --out xml
+          args: --workspace --features annex-b,intl_bundled,experimental --ignore-tests --engine llvm --out xml
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v4
 
@@ -61,13 +61,13 @@ jobs:
         run: cargo test --no-run --profile ci
       # this order is faster according to rust-analyzer
       - name: Build
-        run: cargo build --all-targets --quiet --profile ci --features annex-b,intl,experimental
+        run: cargo build --all-targets --quiet --profile ci --features annex-b,intl_bundled,experimental
       - name: Install latest nextest
         uses: taiki-e/install-action@nextest
       - name: Test with nextest
-        run: cargo nextest run --profile ci --cargo-profile ci --features annex-b,intl,experimental
+        run: cargo nextest run --profile ci --cargo-profile ci --features annex-b,intl_bundled,experimental
       - name: Test docs
-        run: cargo test --doc --profile ci --features annex-b,intl,experimental
+        run: cargo test --doc --profile ci --features annex-b,intl_bundled,experimental
 
   msrv:
     name: MSRV
