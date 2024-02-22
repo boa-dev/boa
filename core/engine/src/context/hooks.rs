@@ -25,7 +25,7 @@ use time::util::local_offset;
 /// use boa_engine::{
 ///     context::{Context, ContextBuilder, HostHooks},
 ///     realm::Realm,
-///     JsNativeError, JsResult, Source,
+///     JsNativeError, JsResult, JsString, Source,
 /// };
 ///
 /// struct Hooks;
@@ -34,7 +34,10 @@ use time::util::local_offset;
 ///     fn ensure_can_compile_strings(
 ///         &self,
 ///         _realm: Realm,
-///         context: &mut Context,
+///         _parameters: &[JsString],
+///         _body: &JsString,
+///         _direct: bool,
+///         _context: &mut Context,
 ///     ) -> JsResult<()> {
 ///         Err(JsNativeError::typ()
 ///             .with_message("eval calls not available")

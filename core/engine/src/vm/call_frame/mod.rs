@@ -40,7 +40,6 @@ pub struct CallFrame {
     pub(crate) code_block: Gc<CodeBlock>,
     pub(crate) pc: u32,
     /// The register pointer, points to the first register in the stack.
-    ///
     // TODO: Check if storing the frame pointer instead of argument count and computing the
     //       argument count based on the pointers would be better for accessing the arguments
     //       and the elements before the register pointer.
@@ -124,13 +123,11 @@ impl CallFrame {
     /// │                             callee frame pointer
     /// │
     /// └─────  caller frame pointer
-    ///
     /// ```
     ///
     /// Some questions:
     ///
     /// - Who is responsible for cleaning up the stack after a call? The rust caller.
-    ///
     pub(crate) const FUNCTION_PROLOGUE: u32 = 2;
     pub(crate) const THIS_POSITION: u32 = 2;
     pub(crate) const FUNCTION_POSITION: u32 = 1;
