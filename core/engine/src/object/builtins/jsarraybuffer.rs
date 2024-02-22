@@ -230,7 +230,10 @@ impl JsArrayBuffer {
     /// // Get a reference to the data.
     /// let internal_buffer = array_buffer.data();
     ///
-    /// assert_eq!(internal_buffer.as_deref(), Some((0..5).collect::<Vec<u8>>().as_slice()));
+    /// assert_eq!(
+    ///     internal_buffer.as_deref(),
+    ///     Some((0..5).collect::<Vec<u8>>().as_slice())
+    /// );
     /// # Ok(())
     /// # }
     /// ```

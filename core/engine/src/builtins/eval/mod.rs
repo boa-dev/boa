@@ -108,10 +108,12 @@ impl Eval {
         // 3. Let evalRealm be the current Realm Record.
         // 4. NOTE: In the case of a direct eval, evalRealm is the realm of both the caller of eval
         // and of the eval function itself.
-        // 5. Perform ? HostEnsureCanCompileStrings(evalRealm).
+        let eval_realm = context.realm().clone();
+
+        // 5. Perform ? HostEnsureCanCompileStrings(evalRealm, « », x, direct).
         context
             .host_hooks()
-            .ensure_can_compile_strings(context.realm().clone(), context)?;
+            .ensure_can_compile_strings(eval_realm, &[], x, direct, context)?;
 
         // 11. Perform the following substeps in an implementation-defined order, possibly interleaving parsing and error detection:
         //     a. Let script be ParseText(StringToCodePoints(x), Script).

@@ -45,7 +45,6 @@ use boa_gc::{self, custom_trace, Finalize, Gc, Trace};
 use boa_interner::Sym;
 use boa_parser::{Parser, Source};
 use boa_profiler::Profiler;
-use std::io::Read;
 use thin_vec::ThinVec;
 
 use super::Proxy;
@@ -390,13 +389,7 @@ impl BuiltInFunctionObject {
         generator: bool,
         context: &mut Context,
     ) -> JsResult<JsObject> {
-        // 1. Let currentRealm be the current Realm Record.
-        // 2. Perform ? HostEnsureCanCompileStrings(currentRealm).
-        context
-            .host_hooks()
-            .ensure_can_compile_strings(context.realm().clone(), context)?;
-
-        // 3. If newTarget is undefined, set newTarget to constructor.
+        // 1. If newTarget is undefined, set newTarget to constructor.
         let new_target = if new_target.is_undefined() {
             constructor.into()
         } else {
@@ -404,8 +397,8 @@ impl BuiltInFunctionObject {
         };
 
         let default = if r#async && generator {
-            // 7. Else,
-            //     a. Assert: kind is asyncGenerator.
+            // 5. Else,
+            //     a. Assert: kind is async-generator.
             //     b. Let prefix be "async function*".
             //     c. Let exprSym be the grammar symbol AsyncGeneratorExpression.
             //     d. Let bodySym be the grammar symbol AsyncGeneratorBody.
@@ -413,7 +406,7 @@ impl BuiltInFunctionObject {
             //     f. Let fallbackProto be "%AsyncGeneratorFunction.prototype%".
             StandardConstructors::async_generator_function
         } else if r#async {
-            // 6. Else if kind is async, then
+            // 4. Else if kind is async, then
             //     a. Let prefix be "async function".
             //     b. Let exprSym be the grammar symbol AsyncFunctionExpression.
             //     c. Let bodySym be the grammar symbol AsyncFunctionBody.
@@ -421,7 +414,7 @@ impl BuiltInFunctionObject {
             //     e. Let fallbackProto be "%AsyncFunction.prototype%".
             StandardConstructors::async_function
         } else if generator {
-            // 5. Else if kind is generator, then
+            // 3. Else if kind is generator, then
             //     a. Let prefix be "function*".
             //     b. Let exprSym be the grammar symbol GeneratorExpression.
             //     c. Let bodySym be the grammar symbol GeneratorBody.
@@ -429,7 +422,7 @@ impl BuiltInFunctionObject {
             //     e. Let fallbackProto be "%GeneratorFunction.prototype%".
             StandardConstructors::generator_function
         } else {
-            // 4. If kind is normal, then
+            // 2. If kind is normal, then
             //     a. Let prefix be "function".
             //     b. Let exprSym be the grammar symbol FunctionExpression.
             //     c. Let bodySym be the grammar symbol FunctionBody[~Yield, ~Await].
@@ -441,74 +434,119 @@ impl BuiltInFunctionObject {
         // 22. Let proto be ? GetPrototypeFromConstructor(newTarget, fallbackProto).
         let prototype = get_prototype_from_constructor(&new_target, default, context)?;
 
-        let (parameters, body) = if let Some((body_arg, args)) = args.split_last() {
-            let parameters = if args.is_empty() {
-                FormalParameterList::default()
-            } else {
-                let mut parameters = Vec::with_capacity(args.len());
-                for arg in args {
-                    parameters.push(arg.to_string(context)?);
-                }
-                let parameters = parameters.join(utf16!(","));
+        // 6. Let argCount be the number of elements in parameterArgs.
+        let (body, param_list) = if let Some((body, params)) = args.split_last() {
+            // 7. Let bodyString be ? ToString(bodyArg).
+            let body = body.to_string(context)?;
+            // 8. Let parameterStrings be a new empty List.
+            let mut parameters = Vec::with_capacity(args.len());
+            // 9. For each element arg of parameterArgs, do
+            for param in params {
+                //     a. Append ? ToString(arg) to parameterStrings.
+                parameters.push(param.to_string(context)?);
+            }
+            (body, parameters)
+        } else {
+            (js_string!(), Vec::new())
+        };
+        let current_realm = context.realm().clone();
 
-                // TODO: make parser generic to u32 iterators
-                let parameters = String::from_utf16_lossy(&parameters);
-                let mut parser = Parser::new(Source::from_bytes(&parameters));
-                parser.set_identifier(context.next_parser_identifier());
+        context.host_hooks().ensure_can_compile_strings(
+            current_realm,
+            &param_list,
+            &body,
+            false,
+            context,
+        )?;
 
-                let parameters = match parser.parse_formal_parameters(
-                    context.interner_mut(),
-                    generator,
-                    r#async,
-                ) {
-                    Ok(parameters) => parameters,
-                    Err(e) => {
-                        return Err(JsNativeError::syntax()
-                            .with_message(format!("failed to parse function parameters: {e}"))
-                            .into())
-                    }
-                };
+        let parameters = if param_list.is_empty() {
+            FormalParameterList::default()
+        } else {
+            // 12. Let P be the empty String.
+            // 13. If argCount > 0, then
+            //     a. Set P to parameterStrings[0].
+            //     b. Let k be 1.
+            //     c. Repeat, while k < argCount,
+            //         i. Let nextArgString be parameterStrings[k].
+            //         ii. Set P to the string-concatenation of P, "," (a comma), and nextArgString.
+            //         iii. Set k to k + 1.
+            let parameters = param_list.join(utf16!(","));
+            let mut parser = Parser::new(Source::from_utf16(&parameters));
+            parser.set_identifier(context.next_parser_identifier());
 
-                if generator && contains(&parameters, ContainsSymbol::YieldExpression) {
-                    return Err(JsNativeError::syntax().with_message(
-                            "yield expression is not allowed in formal parameter list of generator function",
-                        ).into());
-                }
-
-                parameters
-            };
+            // 17. Let parameters be ParseText(StringToCodePoints(P), parameterSym).
+            // 18. If parameters is a List of errors, throw a SyntaxError exception.
+            let parameters = parser
+                .parse_formal_parameters(context.interner_mut(), generator, r#async)
+                .map_err(|e| {
+                    JsNativeError::syntax()
+                        .with_message(format!("failed to parse function parameters: {e}"))
+                })?;
 
             // It is a Syntax Error if FormalParameters Contains YieldExpression is true.
-            if generator && r#async && contains(&parameters, ContainsSymbol::YieldExpression) {
-                return Err(JsNativeError::syntax()
-                    .with_message("yield expression not allowed in async generator parameters")
-                    .into());
+            if generator && contains(&parameters, ContainsSymbol::YieldExpression) {
+                return Err(JsNativeError::syntax().with_message(
+                        if r#async {
+                            "yield expression is not allowed in formal parameter list of async generator"
+                        } else {
+                            "yield expression is not allowed in formal parameter list of generator"
+                        }
+                    ).into());
             }
 
             // It is a Syntax Error if FormalParameters Contains AwaitExpression is true.
-            if generator && r#async && contains(&parameters, ContainsSymbol::AwaitExpression) {
+            if r#async && contains(&parameters, ContainsSymbol::AwaitExpression) {
                 return Err(JsNativeError::syntax()
-                    .with_message("await expression not allowed in async generator parameters")
+                    .with_message(
+                        if generator {
+                            "await expression is not allowed in formal parameter list of async function"
+                        } else {
+                            "await expression is not allowed in formal parameter list of async generator"
+                        })
                     .into());
             }
 
-            // 11. Let bodyString be the string-concatenation of 0x000A (LINE FEED), ? ToString(bodyArg), and 0x000A (LINE FEED).
-            let body_arg = body_arg.to_string(context)?.to_std_string_escaped();
-            let body = b"\n".chain(body_arg.as_bytes()).chain(b"\n".as_slice());
+            parameters
+        };
 
-            // TODO: make parser generic to u32 iterators
-            let mut parser = Parser::new(Source::from_reader(body, None));
+        let body = if body.is_empty() {
+            FunctionBody::default()
+        } else {
+            // 14. Let bodyParseString be the string-concatenation of 0x000A (LINE FEED), bodyString, and 0x000A (LINE FEED).
+            let mut body_parse = Vec::with_capacity(body.len());
+            body_parse.push(u16::from(b'\n'));
+            body_parse.extend_from_slice(&body);
+            body_parse.push(u16::from(b'\n'));
+
+            // 19. Let body be ParseText(StringToCodePoints(bodyParseString), bodySym).
+            // 20. If body is a List of errors, throw a SyntaxError exception.
+            let mut parser = Parser::new(Source::from_utf16(&body_parse));
             parser.set_identifier(context.next_parser_identifier());
 
-            let body = match parser.parse_function_body(context.interner_mut(), generator, r#async)
-            {
-                Ok(statement_list) => statement_list,
-                Err(e) => {
-                    return Err(JsNativeError::syntax()
+            // 19. Let body be ParseText(StringToCodePoints(bodyParseString), bodySym).
+            // 20. If body is a List of errors, throw a SyntaxError exception.
+            let body = parser
+                .parse_function_body(context.interner_mut(), generator, r#async)
+                .map_err(|e| {
+                    JsNativeError::syntax()
                         .with_message(format!("failed to parse function body: {e}"))
-                        .into())
-                }
-            };
+                })?;
+
+            // It is a Syntax Error if AllPrivateIdentifiersValid of StatementList with argument « »
+            // is false unless the source text containing ScriptBody is eval code that is being
+            // processed by a direct eval.
+            // https://tc39.es/ecma262/#sec-scripts-static-semantics-early-errors
+            if !all_private_identifiers_valid(&body, Vec::new()) {
+                return Err(JsNativeError::syntax()
+                    .with_message("invalid private identifier usage")
+                    .into());
+            }
+
+            // 21. NOTE: The parameters and body are parsed separately to ensure that each is valid alone. For example, new Function("/*", "*/ ) {") does not evaluate to a function.
+            // 22. NOTE: If this step is reached, sourceText must have the syntax of exprSym (although the reverse implication does not hold). The purpose of the next two steps is to enforce any Early Error rules which apply to exprSym directly.
+            // 23. Let expr be ParseText(sourceText, exprSym).
+            // 24. If expr is a List of errors, throw a SyntaxError exception.
+            // Check for errors that apply for the combination of body and parameters.
 
             // Early Error: If BindingIdentifier is present and the source text matched by BindingIdentifier is strict mode code,
             // it is a Syntax Error if the StringValue of BindingIdentifier is "eval" or "arguments".
@@ -516,7 +554,7 @@ impl BuiltInFunctionObject {
                 for name in bound_names(&parameters) {
                     if name == Sym::ARGUMENTS || name == Sym::EVAL {
                         return Err(JsNativeError::syntax()
-                            .with_message(" Unexpected 'eval' or 'arguments' in strict mode")
+                            .with_message("Unexpected 'eval' or 'arguments' in strict mode")
                             .into());
                     }
                 }
@@ -571,21 +609,7 @@ impl BuiltInFunctionObject {
                 }
             }
 
-            if !all_private_identifiers_valid(&parameters, Vec::new()) {
-                return Err(JsNativeError::syntax()
-                    .with_message("invalid private identifier usage")
-                    .into());
-            }
-
-            if !all_private_identifiers_valid(&body, Vec::new()) {
-                return Err(JsNativeError::syntax()
-                    .with_message("invalid private identifier usage")
-                    .into());
-            }
-
-            (parameters, body)
-        } else {
-            (FormalParameterList::default(), FunctionBody::default())
+            body
         };
 
         let code = FunctionCompiler::new()
