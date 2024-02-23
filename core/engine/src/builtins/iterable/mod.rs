@@ -72,7 +72,7 @@ pub struct IteratorPrototypes {
     for_in: JsObject,
 
     /// The `%SegmentIteratorPrototype%` prototype object.
-    #[cfg(feature = "intl_core")]
+    #[cfg(feature = "intl")]
     segment: JsObject,
 }
 
@@ -143,7 +143,7 @@ impl IteratorPrototypes {
     /// Returns the `%SegmentIteratorPrototype%` object.
     #[inline]
     #[must_use]
-    #[cfg(feature = "intl_core")]
+    #[cfg(feature = "intl")]
     pub fn segment(&self) -> JsObject {
         self.segment.clone()
     }

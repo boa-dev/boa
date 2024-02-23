@@ -41,11 +41,11 @@ use builder::BuiltInBuilder;
 #[cfg(feature = "annex-b")]
 pub mod escape;
 
-#[cfg(feature = "intl_core")]
+#[cfg(feature = "intl")]
 pub mod intl;
 
 // TODO: remove `cfg` when `Temporal` gets to stage 4.
-#[cfg(any(feature = "intl_core", feature = "temporal"))]
+#[cfg(any(feature = "intl", feature = "temporal"))]
 pub(crate) mod options;
 
 #[cfg(feature = "temporal")]
@@ -268,7 +268,7 @@ impl Realm {
             escape::Unescape::init(self);
         }
 
-        #[cfg(feature = "intl_core")]
+        #[cfg(feature = "intl")]
         {
             intl::Intl::init(self);
             intl::Collator::init(self);
@@ -395,7 +395,7 @@ pub(crate) fn set_default_global_bindings(context: &mut Context) -> JsResult<()>
         global_binding::<escape::Unescape>(context)?;
     }
 
-    #[cfg(feature = "intl_core")]
+    #[cfg(feature = "intl")]
     global_binding::<intl::Intl>(context)?;
 
     #[cfg(feature = "temporal")]

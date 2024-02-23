@@ -2175,13 +2175,13 @@ impl Array {
 
         // 3. Let separator be the implementation-defined list-separator String value appropriate for the host environment's current locale (such as ", ").
         let separator = {
-            #[cfg(feature = "intl_core")]
+            #[cfg(feature = "intl")]
             {
                 // TODO: this should eventually return a locale-sensitive separator.
                 utf16!(", ")
             }
 
-            #[cfg(not(feature = "intl_core"))]
+            #[cfg(not(feature = "intl"))]
             {
                 utf16!(", ")
             }

@@ -198,7 +198,7 @@ impl<T: ToOwned + ?Sized> JsData for Cow<'static, T> {}
 
 impl<T> JsData for Cell<Option<T>> {}
 
-#[cfg(feature = "intl_core")]
+#[cfg(feature = "intl")]
 default_impls!(icu_locid::Locale);
 
 impl<T: Trace + ?Sized> JsData for Gc<T> {}
