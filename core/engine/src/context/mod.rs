@@ -1052,7 +1052,7 @@ impl ContextBuilder {
                 icu
             } else {
                 cfg_if::cfg_if! {
-                    if #[cfg(feature = "intl")] {
+                    if #[cfg(feature = "intl_bundled")] {
                         icu::IntlProvider::try_new_with_buffer_provider(boa_icu_provider::buffer())
                             .expect("Failed to initialize default icu data.")
                     } else {
