@@ -19,7 +19,7 @@ use boa_engine::{
 };
 use colored::Colorize;
 use rayon::prelude::*;
-use rustc_hash::FxHashSet;
+use rustc_hash::FxHashMap;
 use std::{cell::RefCell, eprintln, rc::Rc};
 
 use self::js262::WorkerHandles;
@@ -34,12 +34,12 @@ impl TestSuite {
         max_edition: SpecEdition,
         optimizer_options: OptimizerOptions,
         console: bool,
-    ) -> SuiteResult {
+    ) -> (Box<str>, SuiteResult) {
         if verbose != 0 {
             println!("Suite {}:", self.path.display());
         }
 
-        let suites: Vec<_> = if parallel {
+        let suites: FxHashMap<_, _> = if parallel {
             self.suites
                 .par_iter()
                 .map(|suite| {
@@ -69,7 +69,7 @@ impl TestSuite {
                 .collect()
         };
 
-        let tests: Vec<_> = if parallel {
+        let tests: FxHashMap<_, _> = if parallel {
             self.tests
                 .par_iter()
                 .filter(|test| test.edition <= max_edition)
@@ -82,11 +82,6 @@ impl TestSuite {
                 .map(|test| test.run(harness, verbose, optimizer_options, console))
                 .collect()
         };
-
-        let mut features = FxHashSet::default();
-        for test_iter in &*self.tests {
-            features.extend(test_iter.features.iter().map(ToString::to_string));
-        }
 
         if verbose != 0 {
             println!();
@@ -96,27 +91,29 @@ impl TestSuite {
         let mut versioned_stats = VersionedStats::default();
         let mut es_next = Statistics::default();
 
-        for test in &tests {
-            match test.result {
-                TestOutcomeResult::Passed => {
+        for test in tests.values() {
+            match (test.strict, test.no_strict) {
+                (Some(TestOutcomeResult::Passed), None | Some(TestOutcomeResult::Passed))
+                | (None, Some(TestOutcomeResult::Passed)) => {
                     versioned_stats.apply(test.edition, |stats| {
                         stats.passed += 1;
                     });
                     es_next.passed += 1;
                 }
-                TestOutcomeResult::Ignored => {
+                (Some(TestOutcomeResult::Ignored), _) | (_, Some(TestOutcomeResult::Ignored)) => {
                     versioned_stats.apply(test.edition, |stats| {
                         stats.ignored += 1;
                     });
                     es_next.ignored += 1;
                 }
-                TestOutcomeResult::Panic => {
+                (Some(TestOutcomeResult::Panic), _) | (_, Some(TestOutcomeResult::Panic)) => {
                     versioned_stats.apply(test.edition, |stats| {
                         stats.panic += 1;
                     });
                     es_next.panic += 1;
                 }
-                TestOutcomeResult::Failed => {}
+                (Some(TestOutcomeResult::Failed), _) | (_, Some(TestOutcomeResult::Failed)) => {}
+                (None, None) => unreachable!("test should have at least one result"),
             }
             versioned_stats.apply(test.edition, |stats| {
                 stats.total += 1;
@@ -125,10 +122,9 @@ impl TestSuite {
         }
 
         // Count total tests
-        for suite in &suites {
+        for suite in suites.values() {
             versioned_stats += suite.versioned_stats;
             es_next += suite.stats;
-            features.extend(suite.features.iter().cloned());
         }
 
         if verbose != 0 {
@@ -149,48 +145,51 @@ impl TestSuite {
                 (es_next.passed as f64 / es_next.total as f64) * 100.0
             );
         }
-        SuiteResult {
-            name: self.name.clone(),
-            stats: es_next,
-            versioned_stats,
-            suites,
-            tests,
-            features,
-        }
+        (
+            self.name.clone(),
+            SuiteResult {
+                stats: es_next,
+                versioned_stats,
+                suites,
+                tests,
+            },
+        )
     }
 }
 
 impl Test {
     /// Runs the test.
+    ///
+    /// Returns the test name and the result of the test.
     pub(crate) fn run(
         &self,
         harness: &Harness,
         verbose: u8,
         optimizer_options: OptimizerOptions,
         console: bool,
-    ) -> TestResult {
+    ) -> (Box<str>, TestResult) {
+        let mut result = TestResult {
+            edition: self.edition,
+            strict: None,
+            no_strict: None,
+        };
+
         if self.flags.contains(TestFlags::MODULE) || self.flags.contains(TestFlags::RAW) {
-            return self.run_once(harness, false, verbose, optimizer_options, console);
+            result.no_strict =
+                Some(self.run_once(harness, false, verbose, optimizer_options, console));
+        } else {
+            if self.flags.contains(TestFlags::STRICT) && !self.flags.contains(TestFlags::RAW) {
+                result.strict =
+                    Some(self.run_once(harness, true, verbose, optimizer_options, console));
+            }
+
+            if self.flags.contains(TestFlags::NO_STRICT) || self.flags.contains(TestFlags::RAW) {
+                result.no_strict =
+                    Some(self.run_once(harness, false, verbose, optimizer_options, console));
+            }
         }
 
-        if self
-            .flags
-            .contains(TestFlags::STRICT | TestFlags::NO_STRICT)
-        {
-            let r = self.run_once(harness, false, verbose, optimizer_options, console);
-            if r.result != TestOutcomeResult::Passed {
-                return r;
-            }
-            self.run_once(harness, true, verbose, optimizer_options, console)
-        } else {
-            self.run_once(
-                harness,
-                self.flags.contains(TestFlags::STRICT),
-                verbose,
-                optimizer_options,
-                console,
-            )
-        }
+        (self.name.clone(), result)
     }
 
     /// Runs the test once, in strict or non-strict mode
@@ -201,7 +200,7 @@ impl Test {
         verbose: u8,
         optimizer_options: OptimizerOptions,
         console: bool,
-    ) -> TestResult {
+    ) -> TestOutcomeResult {
         let Ok(source) = Source::from_filepath(&self.path) else {
             if verbose > 1 {
                 println!(
@@ -213,12 +212,7 @@ impl Test {
             } else {
                 print!("{}", "F".red());
             }
-            return TestResult {
-                name: self.name.clone(),
-                edition: self.edition,
-                result: TestOutcomeResult::Failed,
-                result_text: Box::from("Could not read test file."),
-            };
+            return TestOutcomeResult::Failed;
         };
         if self.ignored {
             if verbose > 1 {
@@ -231,12 +225,7 @@ impl Test {
             } else {
                 print!("{}", "-".yellow());
             }
-            return TestResult {
-                name: self.name.clone(),
-                edition: self.edition,
-                result: TestOutcomeResult::Ignored,
-                result_text: Box::default(),
-            };
+            return TestOutcomeResult::Ignored;
         }
         if verbose > 1 {
             println!(
@@ -582,12 +571,7 @@ impl Test {
             println!();
         }
 
-        TestResult {
-            name: self.name.clone(),
-            edition: self.edition,
-            result,
-            result_text: result_text.into_boxed_str(),
-        }
+        result
     }
 
     /// Sets the environment up to run the test.

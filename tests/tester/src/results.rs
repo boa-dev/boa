@@ -1,8 +1,8 @@
-use crate::{Statistics, VersionedStats};
+use crate::{Statistics, TestOutcomeResult, VersionedStats};
 
 use super::SuiteResult;
 use color_eyre::{eyre::WrapErr, Result};
-use rustc_hash::FxHashSet;
+use rustc_hash::FxHashMap;
 use serde::{Deserialize, Serialize};
 use std::{
     env, fs,
@@ -17,8 +17,12 @@ struct ResultInfo {
     commit: Box<str>,
     #[serde(rename = "u")]
     test262_commit: Box<str>,
+    #[serde(rename = "a")]
+    stats: Statistics,
+    #[serde(rename = "v")]
+    versioned_results: VersionedStats,
     #[serde(rename = "r")]
-    results: SuiteResult,
+    results: FxHashMap<Box<str>, SuiteResult>,
 }
 
 /// Structure to store full result information.
@@ -30,8 +34,6 @@ struct ReducedResultInfo {
     test262_commit: Box<str>,
     #[serde(rename = "a")]
     stats: Statistics,
-    #[serde(rename = "av", default)]
-    versioned_stats: VersionedStats,
 }
 
 impl From<ResultInfo> for ReducedResultInfo {
@@ -40,31 +42,7 @@ impl From<ResultInfo> for ReducedResultInfo {
         Self {
             commit: info.commit,
             test262_commit: info.test262_commit,
-            stats: info.results.stats,
-            versioned_stats: info.results.versioned_stats,
-        }
-    }
-}
-
-#[derive(Debug, Clone, Deserialize, Serialize)]
-struct FeaturesInfo {
-    #[serde(rename = "c")]
-    commit: Box<str>,
-    #[serde(rename = "u")]
-    test262_commit: Box<str>,
-    #[serde(rename = "n")]
-    suite_name: Box<str>,
-    #[serde(rename = "f")]
-    features: FxHashSet<String>,
-}
-
-impl From<ResultInfo> for FeaturesInfo {
-    fn from(info: ResultInfo) -> Self {
-        Self {
-            commit: info.commit,
-            test262_commit: info.test262_commit,
-            suite_name: info.results.name,
-            features: info.results.features,
+            stats: info.stats,
         }
     }
 }
@@ -74,9 +52,6 @@ const LATEST_FILE_NAME: &str = "latest.json";
 
 /// File name of the "all results" JSON file.
 const RESULTS_FILE_NAME: &str = "results.json";
-
-/// File name of the "features" JSON file.
-const FEATURES_FILE_NAME: &str = "features.json";
 
 /// Writes the results of running the test suite to the given JSON output file.
 ///
@@ -95,13 +70,13 @@ pub(crate) fn write_json(
     let output_dir = if branch.is_empty() {
         output_dir.to_path_buf()
     } else {
-        let folder = output_dir.join(branch);
+        let folder = output_dir.join(&branch);
         fs::create_dir_all(&folder)?;
         folder
     };
 
     // We make sure we are using the latest commit information in GitHub pages:
-    update_gh_pages_repo(output_dir.as_path(), verbose);
+    update_gh_pages_repo(output_dir.as_path(), &branch, verbose);
 
     if verbose != 0 {
         println!("Writing the results to {}...", output_dir.display());
@@ -113,49 +88,35 @@ pub(crate) fn write_json(
 
     let new_results = ResultInfo {
         commit: env::var("GITHUB_SHA").unwrap_or_default().into_boxed_str(),
-        test262_commit: get_test262_commit(test262_path)?,
-        results,
+        test262_commit: get_test262_commit(test262_path)
+            .context("could not get the test262 commit")?,
+        stats: results.stats,
+        versioned_results: results.versioned_stats,
+        results: results.suites,
     };
 
     let latest = BufWriter::new(fs::File::create(latest)?);
     serde_json::to_writer(latest, &new_results)?;
 
-    // Write the full list of results, retrieving the existing ones first.
+    // Write the full result history for "main"
+    if branch == "main" {
+        let all_path = output_dir.join(RESULTS_FILE_NAME);
 
-    let all_path = output_dir.join(RESULTS_FILE_NAME);
+        // We only keep history for the main branch
+        let mut all_results: Vec<ReducedResultInfo> = if all_path.is_file() {
+            serde_json::from_reader(BufReader::new(fs::File::open(&all_path)?))?
+        } else {
+            Vec::new()
+        };
 
-    let mut all_results: Vec<ReducedResultInfo> = if all_path.exists() {
-        serde_json::from_reader(BufReader::new(fs::File::open(&all_path)?))?
-    } else {
-        Vec::new()
-    };
+        all_results.push(new_results.into());
 
-    all_results.push(new_results.clone().into());
-
-    let output = BufWriter::new(fs::File::create(&all_path)?);
-    serde_json::to_writer(output, &all_results)?;
+        let output = BufWriter::new(fs::File::create(&all_path)?);
+        serde_json::to_writer(output, &all_results)?;
+    }
 
     if verbose != 0 {
         println!("Results written correctly");
-    }
-
-    // Write the full list of features, existing features go first.
-
-    let features = output_dir.join(FEATURES_FILE_NAME);
-
-    let mut all_features: Vec<FeaturesInfo> = if features.exists() {
-        serde_json::from_reader(BufReader::new(fs::File::open(&features)?))?
-    } else {
-        Vec::new()
-    };
-
-    all_features.push(new_results.into());
-
-    let features = BufWriter::new(fs::File::create(&features)?);
-    serde_json::to_writer(features, &all_features)?;
-
-    if verbose != 0 {
-        println!("Features written correctly");
     }
 
     Ok(())
@@ -171,17 +132,20 @@ fn get_test262_commit(test262_path: &Path) -> Result<Box<str>> {
 }
 
 /// Updates the GitHub pages repository by pulling latest changes before writing the new things.
-fn update_gh_pages_repo(path: &Path, verbose: u8) {
-    if env::var("GITHUB_REF").is_ok() {
-        use std::process::Command;
+fn update_gh_pages_repo(path: &Path, branch: &str, verbose: u8) {
+    use std::process::Command;
 
-        // We run the command to pull the gh-pages branch: git -C ../gh-pages/ pull origin
-        Command::new("git")
-            .args(["-C", "../gh-pages", "pull", "--ff-only"])
-            .output()
-            .expect("could not update GitHub Pages");
+    // We run the command to pull the gh-pages branch: git -C ../gh-pages/ pull --ff-only
+    if verbose != 0 {
+        println!("Cloning the Github Pages branch in ../gh-pages/...");
+    }
+    Command::new("git")
+        .args(["-C", "../gh-pages", "pull", "--ff-only"])
+        .output()
+        .expect("could not update GitHub Pages");
 
-        // Copy the full results file
+    if branch == "main" {
+        // Copy the full results file if in the main branch
         let from = Path::new("../gh-pages/test262/refs/heads/main/").join(RESULTS_FILE_NAME);
         let to = path.join(RESULTS_FILE_NAME);
 
@@ -210,31 +174,41 @@ pub(crate) fn compare_results(base: &Path, new: &Path, markdown: bool) -> Result
     ))
     .wrap_err("could not read the new results")?;
 
-    let base_total = base_results.results.stats.total as isize;
-    let new_total = new_results.results.stats.total as isize;
+    let base_total = base_results.stats.total as isize;
+    let new_total = new_results.stats.total as isize;
     let total_diff = new_total - base_total;
 
-    let base_passed = base_results.results.stats.passed as isize;
-    let new_passed = new_results.results.stats.passed as isize;
+    let base_passed = base_results.stats.passed as isize;
+    let new_passed = new_results.stats.passed as isize;
     let passed_diff = new_passed - base_passed;
 
-    let base_ignored = base_results.results.stats.ignored as isize;
-    let new_ignored = new_results.results.stats.ignored as isize;
+    let base_ignored = base_results.stats.ignored as isize;
+    let new_ignored = new_results.stats.ignored as isize;
     let ignored_diff = new_ignored - base_ignored;
 
     let base_failed = base_total - base_passed - base_ignored;
     let new_failed = new_total - new_passed - new_ignored;
     let failed_diff = new_failed - base_failed;
 
-    let base_panics = base_results.results.stats.panic as isize;
-    let new_panics = new_results.results.stats.panic as isize;
+    let base_panics = base_results.stats.panic as isize;
+    let new_panics = new_results.stats.panic as isize;
     let panic_diff = new_panics - base_panics;
 
     let base_conformance = (base_passed as f64 / base_total as f64) * 100_f64;
     let new_conformance = (new_passed as f64 / new_total as f64) * 100_f64;
     let conformance_diff = new_conformance - base_conformance;
 
-    let test_diff = compute_result_diff(Path::new(""), &base_results.results, &new_results.results);
+    let test_diff = std::iter::zip(base_results.results, new_results.results).fold(
+        ResultDiff::default(),
+        |mut diff, ((base_name, base_suite), (_new_name, new_suite))| {
+            diff.extend(compute_result_diff(
+                Path::new(base_name.as_ref()),
+                &base_suite,
+                &new_suite,
+            ));
+            diff
+        },
+    );
 
     if markdown {
         /// Simple function to add commas as thousands separator for integers.
@@ -453,45 +427,37 @@ fn compute_result_diff(
     base_result: &SuiteResult,
     new_result: &SuiteResult,
 ) -> ResultDiff {
-    use super::TestOutcomeResult;
-
     let mut final_diff = ResultDiff::default();
 
-    for base_test in &base_result.tests {
-        if let Some(new_test) = new_result
+    for (base_name, base_test) in &base_result.tests {
+        if let Some((new_name, new_test)) = new_result
             .tests
             .iter()
-            .find(|new_test| new_test.name == base_test.name)
+            .find(|(new_name, _new_test)| new_name == &base_name)
         {
-            let test_name = format!(
-                "test/{}/{}.js (previously {:?})",
-                base.display(),
-                new_test.name,
-                base_test.result
-            )
-            .into_boxed_str();
+            let test_name = format!("test/{}/{}.js", base.display(), new_name);
 
-            match (base_test.result, new_test.result) {
-                (a, b) if a == b => {}
-                (TestOutcomeResult::Ignored, TestOutcomeResult::Failed) => {}
+            if let (Some(base_result), Some(new_result)) = (base_test.strict, new_test.strict) {
+                let test_name = format!("{test_name} [strict mode] (previously {base_result:?})");
 
-                (_, TestOutcomeResult::Passed) => final_diff.fixed.push(test_name),
-                (TestOutcomeResult::Panic, _) => final_diff.panic_fixes.push(test_name),
-                (_, TestOutcomeResult::Failed) => final_diff.broken.push(test_name),
-                (_, TestOutcomeResult::Panic) => final_diff.new_panics.push(test_name),
+                add_results(&mut final_diff, test_name, base_result, new_result);
+            }
 
-                _ => {}
+            if let (Some(base_result), Some(new_result)) = (base_test.strict, new_test.strict) {
+                let test_name = format!("{test_name} (previously {base_result:?})");
+
+                add_results(&mut final_diff, test_name, base_result, new_result);
             }
         }
     }
 
-    for base_suite in &base_result.suites {
-        if let Some(new_suite) = new_result
+    for (base_name, base_suite) in &base_result.suites {
+        if let Some((new_name, new_suite)) = new_result
             .suites
             .iter()
-            .find(|new_suite| new_suite.name == base_suite.name)
+            .find(|(new_name, _new_suite)| new_name == &base_name)
         {
-            let new_base = base.join(new_suite.name.as_ref());
+            let new_base = base.join(new_name.as_ref());
             let diff = compute_result_diff(new_base.as_path(), base_suite, new_suite);
 
             final_diff.extend(diff);
@@ -499,4 +465,28 @@ fn compute_result_diff(
     }
 
     final_diff
+}
+
+/// Adds the results to the final diff.
+fn add_results<N>(
+    final_diff: &mut ResultDiff,
+    test_name: N,
+    base_result: TestOutcomeResult,
+    new_result: TestOutcomeResult,
+) where
+    N: Into<Box<str>>,
+{
+    let test_name = test_name.into();
+
+    match (base_result, new_result) {
+        (a, b) if a == b => {}
+        (TestOutcomeResult::Ignored, TestOutcomeResult::Failed) => {}
+
+        (_, TestOutcomeResult::Passed) => final_diff.fixed.push(test_name),
+        (TestOutcomeResult::Panic, _) => final_diff.panic_fixes.push(test_name),
+        (_, TestOutcomeResult::Failed) => final_diff.broken.push(test_name),
+        (_, TestOutcomeResult::Panic) => final_diff.new_panics.push(test_name),
+
+        _ => {}
+    }
 }
