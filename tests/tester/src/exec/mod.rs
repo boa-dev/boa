@@ -178,12 +178,12 @@ impl Test {
             result.no_strict =
                 Some(self.run_once(harness, false, verbose, optimizer_options, console));
         } else {
-            if self.flags.contains(TestFlags::STRICT) && !self.flags.contains(TestFlags::RAW) {
+            if self.flags.contains(TestFlags::STRICT) {
                 result.strict =
                     Some(self.run_once(harness, true, verbose, optimizer_options, console));
             }
 
-            if self.flags.contains(TestFlags::NO_STRICT) || self.flags.contains(TestFlags::RAW) {
+            if self.flags.contains(TestFlags::NO_STRICT) {
                 result.no_strict =
                     Some(self.run_once(harness, false, verbose, optimizer_options, console));
             }
