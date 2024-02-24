@@ -164,7 +164,12 @@ fn main() -> JsResult<()> {
     let array = JsUint8Array::from_array_buffer(array_buffer8, context)?;
 
     assert_eq!(
-        array.buffer(context)?.as_object().unwrap().get(PropertyKey::String(js_string!("byteLength")), context).unwrap(), 
+        array
+            .buffer(context)?
+            .as_object()
+            .unwrap()
+            .get(PropertyKey::String(js_string!("byteLength")), context)
+            .unwrap(),
         JsValue::new(8)
     );
 

@@ -61,9 +61,8 @@ impl JsTypedArray {
         BuiltinTypedArray::at(&self.inner.clone().into(), &[index.into().into()], context)
     }
 
-
     /// Returns the `ArrayBuffer` referenced by this typed array at construction time.
-    /// 
+    ///
     /// Calls `TypedArray.prototype.buffer()`.
     ///
     /// # Examples
@@ -76,7 +75,7 @@ impl JsTypedArray {
     /// let array_buffer8 = JsArrayBuffer::new(8, context)?;
     /// let array = JsUint8Array::from_array_buffer(array_buffer8, context)?;
     /// assert_eq!(
-    ///     array.buffer(context)?.as_object().unwrap().get(PropertyKey::String(js_string!("byteLength")), context).unwrap(), 
+    ///     array.buffer(context)?.as_object().unwrap().get(PropertyKey::String(js_string!("byteLength")), context).unwrap(),
     ///     JsValue::new(8)
     /// );
     /// # Ok(())
@@ -109,7 +108,7 @@ impl JsTypedArray {
         )
     }
 
-    /// Function that created the instance object. It is the hidden `TypedArray` constructor function, 
+    /// Function that created the instance object. It is the hidden `TypedArray` constructor function,
     /// but each typed array subclass also defines its own constructor property.
     ///
     /// Returns `TypedArray.prototype.constructor`.
@@ -137,9 +136,9 @@ impl JsTypedArray {
         BuiltinTypedArray::constructor(&self.inner.clone().into(), &[], context)
     }
 
-    /// Shallow copies part of this typed array to another location in the same typed 
+    /// Shallow copies part of this typed array to another location in the same typed
     /// array and returns this typed array without modifying its length.
-    /// 
+    ///
     /// Returns `TypedArray.prototype.copyWithin()`.
     ///
     /// # Examples
@@ -260,9 +259,9 @@ impl JsTypedArray {
         Ok(self.clone())
     }
 
-    /// Returns a new typed array on the same `ArrayBuffer` store and with the same element 
-    /// types as for this typed array. 
-    /// The begin offset is inclusive and the end offset is exclusive. 
+    /// Returns a new typed array on the same `ArrayBuffer` store and with the same element
+    /// types as for this typed array.
+    /// The begin offset is inclusive and the end offset is exclusive.
     ///
     /// Calls `TypedArray.prototype.subarray()`.
     ///
@@ -400,8 +399,8 @@ impl JsTypedArray {
         Ok(self.clone())
     }
 
-    /// Stores multiple values in the typed array, reading input values from a specified array. 
-    /// 
+    /// Stores multiple values in the typed array, reading input values from a specified array.
+    ///
     /// Returns `TypedArray.prototype.set()`.
     ///
     ///
@@ -483,7 +482,7 @@ impl JsTypedArray {
         )
     }
 
-    /// Returns the index of the first element in an array that satisfies the 
+    /// Returns the index of the first element in an array that satisfies the
     /// provided testing function.
     /// If no elements satisfy the testing function, `JsResult::Ok(None)` is returned.
     ///
@@ -541,10 +540,10 @@ impl JsTypedArray {
         }
     }
 
-    /// Iterates the typed array in reverse order and returns the value of 
-    /// the first element that satisfies the provided testing function. 
+    /// Iterates the typed array in reverse order and returns the value of
+    /// the first element that satisfies the provided testing function.
     /// If no elements satisfy the testing function, `JsResult::Ok(None)` is returned.  
-    /// 
+    ///
     /// Calls `TypedArray.prototype.findLast()`.
     ///
     /// # Examples
@@ -591,10 +590,10 @@ impl JsTypedArray {
         )
     }
 
-    /// Iterates the typed array in reverse order and returns the index of 
-    /// the first element that satisfies the provided testing function. 
+    /// Iterates the typed array in reverse order and returns the index of
+    /// the first element that satisfies the provided testing function.
     /// If no elements satisfy the testing function, `JsResult::OK(None)` is returned.
-    /// 
+    ///
     /// Calls `TypedArray.prototype.findLastIndex()`.
     ///
     /// # Examples
@@ -649,8 +648,8 @@ impl JsTypedArray {
         }
     }
 
-    /// Executes a provided function once for each typed array element. 
-    /// 
+    /// Executes a provided function once for each typed array element.
+    ///
     /// Calls `TypedArray.prototype.forEach()`.
     ///
     /// # Examples
@@ -702,9 +701,9 @@ impl JsTypedArray {
         )
     }
 
-    /// Determines whether a typed array includes a certain value among its entries, 
+    /// Determines whether a typed array includes a certain value among its entries,
     /// returning true or false as appropriate.
-    /// 
+    ///
     /// Calls `TypedArray.prototype.includes()`.
     ///
     /// # Examples
@@ -863,9 +862,9 @@ impl JsTypedArray {
         })
     }
 
-    /// It is a getter that returns the same string as the typed array constructor's name. 
+    /// It is a getter that returns the same string as the typed array constructor's name.
     /// It returns `Ok(JsValue::Undefined)` if the this value is not one of the typed array subclasses.
-    /// 
+    ///
     /// Returns `TypedArray.prototype.toStringTag()`.
     ///
     /// # Examples
