@@ -3,7 +3,7 @@ const ignored = ["v0.17.1", "v0.17.2"];
 const formatter = new Intl.NumberFormat("en-GB");
 const esVersionPicker = document.getElementById("info-options-es-version");
 const hidePassingSwitch = document.getElementById(
-  "info-options-hide-passing-switch"
+  "info-options-hide-passing-switch",
 );
 
 let hidePassingSuites = false;
@@ -29,7 +29,7 @@ loadMainData();
 loadMainResults();
 
 const response = await fetch(
-  "https://api.github.com/repos/boa-dev/boa/releases"
+  "https://api.github.com/repos/boa-dev/boa/releases",
 );
 const releases = await response.json();
 releases.sort((a, b) => compareVersions(a.tag_name, b.tag_name) * -1);
@@ -72,25 +72,25 @@ const versionListHTMLItems = await Promise.all(
         <span class="text-warning">${formatter.format(stats.i)}</span>
         /
         <span class="text-danger">${formatter.format(
-          stats.t - stats.o - stats.i
+          stats.t - stats.o - stats.i,
         )}
         ${
           stats.p !== 0
             ? ` (${formatter.format(
-                stats.p
+                stats.p,
               )} <i class="bi-exclamation-triangle"></i>)`
             : ""
         }</span>
         /
         <b>${formatter.format(
-          Math.round((10000 * stats.o) / stats.t) / 100
+          Math.round((10000 * stats.o) / stats.t) / 100,
         )}%</b>
       </div>
       <button type="button" class="btn btn-outline-primary" id="old-version-${tag}">
         Test Results
       </button>
     </li>`;
-  })
+  }),
 );
 
 document.getElementById("old-versions-list").innerHTML =
@@ -225,22 +225,22 @@ function createInfoFromResults(resultsData, nodeID) {
     </li>
     <li class="list-group-item">
       Passed tests: <span class="text-success">${formatter.format(
-        stats.o
+        stats.o,
       )}</span>
     </li>
     <li class="list-group-item">
       Ignored tests: <span class="text-warning">${formatter.format(
-        stats.i
+        stats.i,
       )}</span>
     </li>
     <li class="list-group-item">
       Failed tests: <span class="text-danger">${formatter.format(
-        stats.t - stats.o - stats.i
+        stats.t - stats.o - stats.i,
       )}
       ${
         stats.p !== 0
           ? ` (${formatter.format(
-              stats.p
+              stats.p,
             )} <i class="bi-exclamation-triangle"></i>)`
           : ""
       }</span>
@@ -248,7 +248,7 @@ function createInfoFromResults(resultsData, nodeID) {
     <li class="list-group-item">
       Conformance: <b>${Math.round((10000 * stats.o) / stats.t) / 100}%</b>
     </li>
-  `
+  `,
   );
 }
 
@@ -389,12 +389,12 @@ function addSuite(suiteName, suite, parentID, namespace, upstream) {
           <span class="text-warning">${formatter.format(stats.i)}</span>
           /
           <span class="text-danger">${formatter.format(
-            stats.t - stats.o - stats.i
+            stats.t - stats.o - stats.i,
           )}
           ${
             stats.p !== 0
               ? ` (${formatter.format(
-                  stats.p
+                  stats.p,
                 )} <i class="bi-exclamation-triangle"></i>)`
               : ""
           }</span>
@@ -436,8 +436,8 @@ function addSuite(suiteName, suite, parentID, namespace, upstream) {
         return `<a
             title="${testName}"
             class="card test embed-responsive ${style}${
-          panics ? "" : " embed-responsive-1by1"
-        }"
+              panics ? "" : " embed-responsive-1by1"
+            }"
             target="_blank"
             href="https://github.com/tc39/test262/blob/${upstream}/${namespace}/${testName}.js"
           >${panics ? '<i class="bi-exclamation-triangle"></i>' : ""}</a>`;
@@ -458,7 +458,7 @@ function addSuite(suiteName, suite, parentID, namespace, upstream) {
         subSuites[innerSuite],
         newInnerID,
         namespace + "/" + innerSuite,
-        upstream
+        upstream,
       );
     }
   });
