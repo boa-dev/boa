@@ -61,6 +61,31 @@ impl JsTypedArray {
         BuiltinTypedArray::at(&self.inner.clone().into(), &[index.into().into()], context)
     }
 
+    /// Returns the `ArrayBuffer` referenced by this typed array at construction time.
+    ///
+    /// Calls `TypedArray.prototype.buffer()`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use boa_engine::{js_string, JsResult, object::{builtins::{JsUint8Array, JsArrayBuffer}}, property::{PropertyKey}, JsValue, Context};
+    /// # fn main() -> JsResult<()> {
+    ///
+    /// let context = &mut Context::default();
+    /// let array_buffer8 = JsArrayBuffer::new(8, context)?;
+    /// let array = JsUint8Array::from_array_buffer(array_buffer8, context)?;
+    /// assert_eq!(
+    ///     array.buffer(context)?.as_object().unwrap().get(PropertyKey::String(js_string!("byteLength")), context).unwrap(),
+    ///     JsValue::new(8)
+    /// );
+    /// # Ok(())
+    /// # }
+    /// ```
+    #[inline]
+    pub fn buffer(&self, context: &mut Context) -> JsResult<JsValue> {
+        BuiltinTypedArray::buffer(&self.inner.clone().into(), &[], context)
+    }
+
     /// Returns `TypedArray.prototype.byteLength`.
     #[inline]
     pub fn byte_length(&self, context: &mut Context) -> JsResult<usize> {
@@ -81,6 +106,85 @@ impl JsTypedArray {
                 .map(|x| x as usize)
                 .expect("byteLength should return a number"),
         )
+    }
+
+    /// Function that created the instance object. It is the hidden `TypedArray` constructor function,
+    /// but each typed array subclass also defines its own constructor property.
+    ///
+    /// Returns `TypedArray.prototype.constructor`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use boa_engine::{JsResult, object::{builtins::JsUint8Array}, JsNativeError, Context};
+    /// # fn main() -> JsResult<()> {
+    ///
+    /// let context = &mut Context::default();
+    /// let array = JsUint8Array::from_iter(vec![1, 2, 3, 4, 5], context)?;
+    /// assert_eq!(
+    ///     Err(JsNativeError::typ()
+    ///         .with_message("the TypedArray constructor should never be called directly")
+    ///         .into()),
+    ///     array.constructor(context)
+    /// );
+    ///
+    /// # Ok(())
+    /// # }
+    /// ```
+    #[inline]
+    pub fn constructor(&self, context: &mut Context) -> JsResult<JsValue> {
+        BuiltinTypedArray::constructor(&self.inner.clone().into(), &[], context)
+    }
+
+    /// Shallow copies part of this typed array to another location in the same typed
+    /// array and returns this typed array without modifying its length.
+    ///
+    /// Returns `TypedArray.prototype.copyWithin()`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use boa_engine::{JsResult, JsValue, object::{builtins::{JsUint8Array}}, Context};
+    /// # fn main() -> JsResult<()> {
+    ///
+    /// let context = &mut Context::default();
+    /// let array = JsUint8Array::from_iter(vec![1u8, 2u8, 3u8, 4u8, 5u8, 6u8, 7u8, 8u8], context)?;
+    /// array.copy_within(3, 1, Some(3), context)?;
+    /// assert_eq!(array.get(0, context)?, JsValue::new(1.0));
+    /// assert_eq!(array.get(1, context)?, JsValue::new(2.0));
+    /// assert_eq!(array.get(2, context)?, JsValue::new(3.0));
+    /// assert_eq!(array.get(3, context)?, JsValue::new(2.0));
+    /// assert_eq!(array.get(4, context)?, JsValue::new(3.0));
+    /// assert_eq!(array.get(5, context)?, JsValue::new(6.0));
+    /// assert_eq!(array.get(6, context)?, JsValue::new(7.0));
+    /// assert_eq!(array.get(7, context)?, JsValue::new(8.0));
+    ///
+    /// # Ok(())
+    /// # }
+    /// ```
+    #[inline]
+    pub fn copy_within<T>(
+        &self,
+        target: T,
+        start: u64,
+        end: Option<u64>,
+        context: &mut Context,
+    ) -> JsResult<Self>
+    where
+        T: Into<JsValue>,
+    {
+        let object = BuiltinTypedArray::copy_within(
+            &self.inner.clone().into(),
+            &[target.into(), start.into(), end.into_or_undefined()],
+            context,
+        )?;
+
+        Ok(Self {
+            inner: object
+                .as_object()
+                .cloned()
+                .expect("`copyWithin` must always return a `TypedArray` on success"),
+        })
     }
 
     /// Calls `TypedArray.prototype.fill()`.
@@ -153,6 +257,65 @@ impl JsTypedArray {
         )?;
 
         Ok(self.clone())
+    }
+
+    /// Returns a new typed array on the same `ArrayBuffer` store and with the same element
+    /// types as for this typed array.
+    /// The begin offset is inclusive and the end offset is exclusive.
+    ///
+    /// Calls `TypedArray.prototype.subarray()`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use boa_engine::{JsResult, object::{builtins::JsUint8Array}, JsValue, Context};
+    /// # fn main() -> JsResult<()> {
+    ///
+    /// let context = &mut Context::default();
+    /// let array = JsUint8Array::from_iter(vec![1u8, 2u8, 3u8, 4u8, 5u8, 6u8, 7u8, 8u8], context)?;
+    /// let subarray2_6 = array.subarray(2, 6, context)?;
+    /// assert_eq!(subarray2_6.length(context)?, 4);
+    /// assert_eq!(subarray2_6.get(0, context)?, JsValue::new(3.0));
+    /// assert_eq!(subarray2_6.get(1, context)?, JsValue::new(4.0));
+    /// assert_eq!(subarray2_6.get(2, context)?, JsValue::new(5.0));
+    /// assert_eq!(subarray2_6.get(3, context)?, JsValue::new(6.0));
+    /// let subarray4_6 = array.subarray(-4, 6, context)?;
+    /// assert_eq!(subarray4_6.length(context)?, 2);
+    /// assert_eq!(subarray4_6.get(0, context)?, JsValue::new(5.0));
+    /// assert_eq!(subarray4_6.get(1, context)?, JsValue::new(6.0));
+    ///
+    /// # Ok(())
+    /// # }
+    /// ```
+    #[inline]
+    pub fn subarray(&self, begin: i64, end: i64, context: &mut Context) -> JsResult<Self> {
+        let subarray = BuiltinTypedArray::subarray(
+            &self.inner.clone().into(),
+            &[begin.into(), end.into()],
+            context,
+        )?;
+
+        Ok(Self {
+            inner: subarray
+                .as_object()
+                .cloned()
+                .expect("`subarray` must always return a `TypedArray` on success"),
+        })
+    }
+
+    /// Calls `TypedArray.prototype.toLocaleString()`
+    #[inline]
+    pub fn to_locale_string(
+        &self,
+        reserved1: Option<JsValue>,
+        reserved2: Option<JsValue>,
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        BuiltinTypedArray::to_locale_string(
+            &self.inner.clone().into(),
+            &[reserved1.into_or_undefined(), reserved2.into_or_undefined()],
+            context,
+        )
     }
 
     /// Calls `TypedArray.prototype.filter()`.
@@ -236,6 +399,52 @@ impl JsTypedArray {
         Ok(self.clone())
     }
 
+    /// Stores multiple values in the typed array, reading input values from a specified array.
+    ///
+    /// Returns `TypedArray.prototype.set()`.
+    ///
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use boa_engine::{JsResult, object::{builtins::{JsUint8Array, JsArray, JsArrayBuffer}}, JsValue, Context};
+    /// # fn main() -> JsResult<()> {
+    ///
+    /// let context = &mut Context::default();
+    /// let array_buffer8 = JsArrayBuffer::new(8, context)?;
+    /// let initialized8_array = JsUint8Array::from_array_buffer(array_buffer8, context)?;
+    /// initialized8_array.set_values(
+    ///   JsArray::from_iter(vec![JsValue::new(1), JsValue::new(2)], context).into(),
+    ///   Some(3),
+    ///   context,
+    /// )?;
+    /// assert_eq!(initialized8_array.get(0, context)?, JsValue::new(0));
+    /// assert_eq!(initialized8_array.get(1, context)?, JsValue::new(0));
+    /// assert_eq!(initialized8_array.get(2, context)?, JsValue::new(0));
+    /// assert_eq!(initialized8_array.get(3, context)?, JsValue::new(1.0));
+    /// assert_eq!(initialized8_array.get(4, context)?, JsValue::new(2.0));
+    /// assert_eq!(initialized8_array.get(5, context)?, JsValue::new(0));
+    /// assert_eq!(initialized8_array.get(6, context)?, JsValue::new(0));
+    /// assert_eq!(initialized8_array.get(7, context)?, JsValue::new(0));
+    /// assert_eq!(initialized8_array.get(8, context)?, JsValue::Undefined);
+    ///
+    /// # Ok(())
+    /// # }
+    /// ```
+    #[inline]
+    pub fn set_values(
+        &self,
+        source: JsValue,
+        offset: Option<u64>,
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        BuiltinTypedArray::set(
+            &self.inner.clone().into(),
+            &[source, offset.into_or_undefined()],
+            context,
+        )
+    }
+
     /// Calls `TypedArray.prototype.slice()`.
     #[inline]
     pub fn slice(
@@ -271,6 +480,271 @@ impl JsTypedArray {
             &[predicate.into(), this_arg.into_or_undefined()],
             context,
         )
+    }
+
+    /// Returns the index of the first element in an array that satisfies the
+    /// provided testing function.
+    /// If no elements satisfy the testing function, `JsResult::Ok(None)` is returned.
+    ///
+    /// Calls `TypedArray.prototype.findIndex()`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use boa_engine::{JsResult, object::{builtins::JsUint8Array, FunctionObjectBuilder}, NativeFunction, JsValue, Context};
+    /// # fn main() -> JsResult<()> {
+    /// let context = &mut Context::default();
+    /// let data: Vec<u8> = (0..=255).collect();
+    /// let array = JsUint8Array::from_iter(data, context)?;
+    ///
+    /// let greter_than_10_predicate = FunctionObjectBuilder::new(
+    ///     context.realm(),
+    ///     NativeFunction::from_fn_ptr(|_this, args, _context| {
+    ///         let element = args
+    ///             .first()
+    ///             .cloned()
+    ///             .unwrap_or_default()
+    ///             .as_number()
+    ///             .expect("error at number conversion");
+    ///         Ok(JsValue::Boolean(element > 10.0))
+    ///     }),
+    /// )
+    /// .build();
+    /// assert_eq!(
+    ///     array.find_index(greter_than_10_predicate, None, context),
+    ///     Ok(Some(11))
+    /// );
+    ///
+    /// # Ok(())
+    /// # }
+    /// ```
+    #[inline]
+    pub fn find_index(
+        &self,
+        predicate: JsFunction,
+        this_arg: Option<JsValue>,
+        context: &mut Context,
+    ) -> JsResult<Option<u64>> {
+        let index = BuiltinTypedArray::find_index(
+            &self.inner.clone().into(),
+            &[predicate.into(), this_arg.into_or_undefined()],
+            context,
+        )?
+        .as_number()
+        .expect("TypedArray.prototype.findIndex() should always return number");
+
+        if index >= 0.0 {
+            Ok(Some(index as u64))
+        } else {
+            Ok(None)
+        }
+    }
+
+    /// Iterates the typed array in reverse order and returns the value of
+    /// the first element that satisfies the provided testing function.
+    /// If no elements satisfy the testing function, `JsResult::Ok(None)` is returned.  
+    ///
+    /// Calls `TypedArray.prototype.findLast()`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use boa_engine::{JsResult, object::{builtins::JsUint8Array, FunctionObjectBuilder}, NativeFunction, JsValue, Context};
+    /// # fn main() -> JsResult<()> {
+    /// let context = &mut Context::default();
+    /// let data: Vec<u8> = (0..=255).collect();
+    /// let array = JsUint8Array::from_iter(data, context)?;
+    ///
+    /// let lower_than_200_predicate = FunctionObjectBuilder::new(
+    ///     context.realm(),
+    ///     NativeFunction::from_fn_ptr(|_this, args, _context| {
+    ///         let element = args
+    ///             .first()
+    ///             .cloned()
+    ///             .unwrap_or_default()
+    ///             .as_number()
+    ///             .expect("error at number conversion");
+    ///         Ok(JsValue::Boolean(element < 200.0))
+    ///     }),
+    /// )
+    /// .build();
+    /// assert_eq!(
+    ///     array.find_last(lower_than_200_predicate.clone(), None, context),
+    ///     Ok(JsValue::Integer(199))
+    /// );
+    ///
+    /// # Ok(())
+    /// # }
+    /// ```
+    #[inline]
+    pub fn find_last(
+        &self,
+        predicate: JsFunction,
+        this_arg: Option<JsValue>,
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        BuiltinTypedArray::find_last(
+            &self.inner.clone().into(),
+            &[predicate.into(), this_arg.into_or_undefined()],
+            context,
+        )
+    }
+
+    /// Iterates the typed array in reverse order and returns the index of
+    /// the first element that satisfies the provided testing function.
+    /// If no elements satisfy the testing function, `JsResult::OK(None)` is returned.
+    ///
+    /// Calls `TypedArray.prototype.findLastIndex()`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use boa_engine::{JsResult, object::{builtins::JsUint8Array, FunctionObjectBuilder}, NativeFunction, JsValue, Context};
+    /// # fn main() -> JsResult<()> {
+    /// let context = &mut Context::default();
+    /// let data: Vec<u8> = (0..=255).collect();
+    /// let array = JsUint8Array::from_iter(data, context)?;
+    ///
+    /// let lower_than_200_predicate = FunctionObjectBuilder::new(
+    ///     context.realm(),
+    ///     NativeFunction::from_fn_ptr(|_this, args, _context| {
+    ///         let element = args
+    ///             .first()
+    ///             .cloned()
+    ///             .unwrap_or_default()
+    ///             .as_number()
+    ///             .expect("error at number conversion");
+    ///         Ok(JsValue::Boolean(element < 200.0))
+    ///     }),
+    /// )
+    /// .build();
+    /// assert_eq!(
+    ///     array.find_last(lower_than_200_predicate.clone(), None, context),
+    ///     Ok(JsValue::Integer(199))
+    /// );
+    ///
+    /// # Ok(())
+    /// # }
+    /// ```
+    #[inline]
+    pub fn find_last_index(
+        &self,
+        predicate: JsFunction,
+        this_arg: Option<JsValue>,
+        context: &mut Context,
+    ) -> JsResult<Option<u64>> {
+        let index = BuiltinTypedArray::find_last_index(
+            &self.inner.clone().into(),
+            &[predicate.into(), this_arg.into_or_undefined()],
+            context,
+        )?
+        .as_number()
+        .expect("TypedArray.prototype.findLastIndex() should always return number");
+
+        if index >= 0.0 {
+            Ok(Some(index as u64))
+        } else {
+            Ok(None)
+        }
+    }
+
+    /// Executes a provided function once for each typed array element.
+    ///
+    /// Calls `TypedArray.prototype.forEach()`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use boa_gc::{Gc, GcRefCell};
+    /// # use boa_engine::{JsResult, object::{builtins::JsUint8Array, FunctionObjectBuilder}, NativeFunction, JsValue, Context};
+    /// # fn main() -> JsResult<()> {
+    /// let context = &mut Context::default();
+    /// let array = JsUint8Array::from_iter(vec![1, 2, 3, 4, 5], context)?;
+    /// let num_to_modify = Gc::new(GcRefCell::new(0u8));
+    ///
+    /// let js_function = FunctionObjectBuilder::new(
+    ///     context.realm(),
+    ///     NativeFunction::from_copy_closure_with_captures(
+    ///         |_, args, captures, inner_context| {
+    ///             let element = args
+    ///                 .first()
+    ///                 .cloned()
+    ///                 .unwrap_or_default()
+    ///                 .to_uint8(inner_context)
+    ///                 .expect("error at number conversion");
+    ///             *captures.borrow_mut() += element;
+    ///             Ok(JsValue::Undefined)
+    ///         },
+    ///         Gc::clone(&num_to_modify),
+    ///     ),
+    /// )
+    /// .build();
+    ///
+    /// array.for_each(js_function, None, context);
+    /// let borrow = *num_to_modify.borrow();
+    /// assert_eq!(borrow, 15u8);
+    ///
+    /// # Ok(())
+    /// # }
+    /// ```
+    #[inline]
+    pub fn for_each(
+        &self,
+        callback: JsFunction,
+        this_arg: Option<JsValue>,
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        BuiltinTypedArray::for_each(
+            &self.inner.clone().into(),
+            &[callback.into(), this_arg.into_or_undefined()],
+            context,
+        )
+    }
+
+    /// Determines whether a typed array includes a certain value among its entries,
+    /// returning true or false as appropriate.
+    ///
+    /// Calls `TypedArray.prototype.includes()`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use boa_engine::{JsResult, object::{builtins::JsUint8Array}, JsValue, Context};
+    /// # fn main() -> JsResult<()> {
+    ///
+    /// let context = &mut Context::default();
+    /// let data: Vec<u8> = (0..=255).collect();
+    /// let array = JsUint8Array::from_iter(data, context)?;
+    ///
+    /// assert_eq!(array.includes(JsValue::new(2), None, context), Ok(true));
+    /// let empty_array = JsUint8Array::from_iter(vec![], context)?;
+    /// assert_eq!(
+    ///     empty_array.includes(JsValue::new(2), None, context),
+    ///     Ok(false)
+    /// );
+    ///
+    /// # Ok(())
+    /// # }
+    /// ```
+    #[inline]
+    pub fn includes<T>(
+        &self,
+        search_element: T,
+        from_index: Option<u64>,
+        context: &mut Context,
+    ) -> JsResult<bool>
+    where
+        T: Into<JsValue>,
+    {
+        let result = BuiltinTypedArray::includes(
+            &self.inner.clone().into(),
+            &[search_element.into(), from_index.into_or_undefined()],
+            context,
+        )?
+        .as_boolean()
+        .expect("TypedArray.prototype.includes should always return boolean");
+
+        Ok(result)
     }
 
     /// Calls `TypedArray.prototype.indexOf()`.
@@ -386,6 +860,30 @@ impl JsTypedArray {
                 .cloned()
                 .expect("`with` must always return a `TypedArray` on success"),
         })
+    }
+
+    /// It is a getter that returns the same string as the typed array constructor's name.
+    /// It returns `Ok(JsValue::Undefined)` if the this value is not one of the typed array subclasses.
+    ///
+    /// Returns `TypedArray.prototype.toStringTag()`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use boa_engine::{JsResult, js_string, object::{builtins::{JsUint8Array}}, Context};
+    /// # fn main() -> JsResult<()> {
+    ///
+    /// let context = &mut Context::default();
+    /// let array = JsUint8Array::from_iter(vec![1u8, 2u8, 3u8, 4u8, 5u8, 6u8, 7u8, 8u8], context)?;
+    /// let tag = array.to_string_tag(context)?.to_string(context)?;
+    /// assert_eq!(tag, js_string!("Uint8Array"));
+    ///
+    /// # Ok(())
+    /// # }
+    /// ```
+    #[inline]
+    pub fn to_string_tag(&self, context: &mut Context) -> JsResult<JsValue> {
+        BuiltinTypedArray::to_string_tag(&self.inner.clone().into(), &[], context)
     }
 }
 

@@ -120,7 +120,7 @@ impl IntrinsicObject for BuiltinTypedArray {
             .method(Self::find_index, js_string!("findIndex"), 1)
             .method(Self::find_last, js_string!("findLast"), 1)
             .method(Self::find_last_index, js_string!("findLastIndex"), 1)
-            .method(Self::foreach, js_string!("forEach"), 1)
+            .method(Self::for_each, js_string!("forEach"), 1)
             .method(Self::includes, js_string!("includes"), 1)
             .method(Self::index_of, js_string!("indexOf"), 1)
             .method(Self::join, js_string!("join"), 1)
@@ -402,7 +402,7 @@ impl BuiltinTypedArray {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-get-%typedarray%.prototype.buffer
-    fn buffer(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn buffer(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[TypedArrayName]]).
         // 3. Assert: O has a [[ViewedArrayBuffer]] internal slot.
@@ -488,7 +488,11 @@ impl BuiltinTypedArray {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%typedarray%.prototype.copywithin
-    fn copy_within(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn copy_within(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Let taRecord be ? ValidateTypedArray(O, seq-cst).
         let (ta, buf_len) = TypedArray::validate(this, Ordering::SeqCst)?;
@@ -994,7 +998,7 @@ impl BuiltinTypedArray {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%typedarray%.prototype.foreach
-    pub(crate) fn foreach(
+    pub(crate) fn for_each(
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
@@ -2432,7 +2436,7 @@ impl BuiltinTypedArray {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%typedarray%.prototype.tolocalestring
     /// [spec-402]: https://402.ecma-international.org/10.0/#sup-array.prototype.tolocalestring
-    fn to_locale_string(
+    pub(crate) fn to_locale_string(
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
@@ -2604,7 +2608,11 @@ impl BuiltinTypedArray {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-get-%typedarray%.prototype-@@tostringtag
     #[allow(clippy::unnecessary_wraps)]
-    fn to_string_tag(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn to_string_tag(
+        this: &JsValue,
+        _: &[JsValue],
+        _: &mut Context,
+    ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. If Type(O) is not Object, return undefined.
         // 3. If O does not have a [[TypedArrayName]] internal slot, return undefined.
