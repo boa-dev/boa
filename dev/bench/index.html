@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
   <head>
     <meta charset="UTF-8" />
@@ -8,9 +8,20 @@
     />
     <style>
       html {
-        font-family: BlinkMacSystemFont, -apple-system, "Segoe UI", Roboto,
-          Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue",
-          Helvetica, Arial, sans-serif;
+        font-family:
+          BlinkMacSystemFont,
+          -apple-system,
+          "Segoe UI",
+          Roboto,
+          Oxygen,
+          Ubuntu,
+          Cantarell,
+          "Fira Sans",
+          "Droid Sans",
+          "Helvetica Neue",
+          Helvetica,
+          Arial,
+          sans-serif;
         -webkit-font-smoothing: antialiased;
         font-size: 16px;
       }
@@ -286,7 +297,7 @@
               .sort(
                 (a, b) =>
                   arr.filter((v) => v === a).length -
-                  arr.filter((v) => v === b).length
+                  arr.filter((v) => v === b).length,
               )
               .pop();
           }
@@ -335,7 +346,7 @@
 
           // Render header
           document.getElementById("last-update").textContent = new Date(
-            data.lastUpdate
+            data.lastUpdate,
           ).toString();
           const repoLink = document.getElementById("repository-link");
           repoLink.href = data.repoUrl;
@@ -470,7 +481,7 @@
             for (const [benchName, benches] of benchSet.entries()) {
               const benchUnit = unit.get(benchName);
               charts.push(
-                renderGraph(graphsElem, benchName, benchUnit, benches)
+                renderGraph(graphsElem, benchName, benchUnit, benches),
               );
             }
             return charts;
@@ -483,10 +494,10 @@
           }
 
           const darkModeCheckbox = document.querySelector(
-            ".dark-mode-toggle input[type=checkbox]"
+            ".dark-mode-toggle input[type=checkbox]",
           );
           const darkModeHandle = document.querySelector(
-            ".dark-mode-toggle .handle"
+            ".dark-mode-toggle .handle",
           );
           darkModeCheckbox.addEventListener("change", async (e) => {
             document.body.classList.toggle("dark");
