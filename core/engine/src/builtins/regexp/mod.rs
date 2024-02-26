@@ -75,6 +75,9 @@ impl IntrinsicObject for RegExp {
         let get_unicode = BuiltInBuilder::callable(realm, Self::get_unicode)
             .name(js_string!("get unicode"))
             .build();
+        let get_unicode_sets = BuiltInBuilder::callable(realm, Self::get_unicode_sets)
+            .name(js_string!("get unicodeSets"))
+            .build();
         let get_sticky = BuiltInBuilder::callable(realm, Self::get_sticky)
             .name(js_string!("get sticky"))
             .build();
@@ -133,6 +136,12 @@ impl IntrinsicObject for RegExp {
             .accessor(
                 js_string!("unicode"),
                 Some(get_unicode),
+                None,
+                flag_attributes,
+            )
+            .accessor(
+                js_string!("unicodeSets"),
+                Some(get_unicode_sets),
                 None,
                 flag_attributes,
             )
@@ -427,6 +436,7 @@ impl RegExp {
                     b's' => regexp.flags.contains(RegExpFlags::DOT_ALL),
                     b'i' => regexp.flags.contains(RegExpFlags::IGNORE_CASE),
                     b'u' => regexp.flags.contains(RegExpFlags::UNICODE),
+                    b'v' => regexp.flags.contains(RegExpFlags::UNICODE_SETS),
                     b'y' => regexp.flags.contains(RegExpFlags::STICKY),
                     _ => unreachable!(),
                 }));
@@ -447,6 +457,7 @@ impl RegExp {
             b's' => "dotAll",
             b'i' => "ignoreCase",
             b'u' => "unicode",
+            b'v' => "unicodeSets",
             b'y' => "sticky",
             _ => unreachable!(),
         };
@@ -565,6 +576,22 @@ impl RegExp {
         Self::regexp_has_flag(this, b'u', context)
     }
 
+    /// `get RegExp.prototype.unicodeSets`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.unicodesets
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/unicodeSets
+    pub(crate) fn get_unicode_sets(
+        this: &JsValue,
+        _: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        Self::regexp_has_flag(this, b'v', context)
+    }
+
     /// `get RegExp.prototype.sticky`
     ///
     /// This flag indicates that it matches only from the index indicated by the `lastIndex` property
@@ -601,58 +628,67 @@ impl RegExp {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let R be the this value.
-        // 2. If Type(R) is not Object, throw a TypeError exception.
-        if let Some(object) = this.as_object() {
-            // 3. Let result be the empty String.
-            let mut result = String::new();
+        // 2. If R is not an Object, throw a TypeError exception.
+        let Some(object) = this.as_object() else {
+            return Err(JsNativeError::typ()
+                .with_message("RegExp.prototype.flags getter called on non-object")
+                .into());
+        };
 
-            // 4. Let hasIndices be ToBoolean(? Get(R, "hasIndices")).
-            // 5. If hasIndices is true, append the code unit 0x0064 (LATIN SMALL LETTER D) as the last code unit of result.
-            if object.get(utf16!("hasIndices"), context)?.to_boolean() {
-                result.push('d');
-            }
+        // 3. Let codeUnits be a new empty List.
+        let mut code_units = Vec::new();
 
-            // 6. Let global be ! ToBoolean(? Get(R, "global")).
-            // 7. If global is true, append the code unit 0x0067 (LATIN SMALL LETTER G) as the last code unit of result.
-            if object.get(utf16!("global"), context)?.to_boolean() {
-                result.push('g');
-            }
-            // 8. Let ignoreCase be ! ToBoolean(? Get(R, "ignoreCase")).
-            // 9. If ignoreCase is true, append the code unit 0x0069 (LATIN SMALL LETTER I) as the last code unit of result.
-            if object.get(utf16!("ignoreCase"), context)?.to_boolean() {
-                result.push('i');
-            }
-
-            // 10. Let multiline be ! ToBoolean(? Get(R, "multiline")).
-            // 11. If multiline is true, append the code unit 0x006D (LATIN SMALL LETTER M) as the last code unit of result.
-            if object.get(utf16!("multiline"), context)?.to_boolean() {
-                result.push('m');
-            }
-
-            // 12. Let dotAll be ! ToBoolean(? Get(R, "dotAll")).
-            // 13. If dotAll is true, append the code unit 0x0073 (LATIN SMALL LETTER S) as the last code unit of result.
-            if object.get(utf16!("dotAll"), context)?.to_boolean() {
-                result.push('s');
-            }
-            // 14. Let unicode be ! ToBoolean(? Get(R, "unicode")).
-            // 15. If unicode is true, append the code unit 0x0075 (LATIN SMALL LETTER U) as the last code unit of result.
-            if object.get(utf16!("unicode"), context)?.to_boolean() {
-                result.push('u');
-            }
-
-            // 16. Let sticky be ! ToBoolean(? Get(R, "sticky")).
-            // 17. If sticky is true, append the code unit 0x0079 (LATIN SMALL LETTER Y) as the last code unit of result.
-            if object.get(utf16!("sticky"), context)?.to_boolean() {
-                result.push('y');
-            }
-
-            // 18. Return result.
-            return Ok(js_string!(result).into());
+        // 4. Let hasIndices be ToBoolean(? Get(R, "hasIndices")).
+        // 5. If hasIndices is true, append the code unit 0x0064 (LATIN SMALL LETTER D) to codeUnits.
+        if object.get(utf16!("hasIndices"), context)?.to_boolean() {
+            code_units.extend_from_slice(utf16!("d"));
         }
 
-        Err(JsNativeError::typ()
-            .with_message("RegExp.prototype.flags getter called on non-object")
-            .into())
+        // 6. Let global be ToBoolean(? Get(R, "global")).
+        // 7. If global is true, append the code unit 0x0067 (LATIN SMALL LETTER G) to codeUnits.
+        if object.get(utf16!("global"), context)?.to_boolean() {
+            code_units.extend_from_slice(utf16!("g"));
+        }
+
+        // 8. Let ignoreCase be ToBoolean(? Get(R, "ignoreCase")).
+        // 9. If ignoreCase is true, append the code unit 0x0069 (LATIN SMALL LETTER I) to codeUnits.
+        if object.get(utf16!("ignoreCase"), context)?.to_boolean() {
+            code_units.extend_from_slice(utf16!("i"));
+        }
+
+        // 10. Let multiline be ToBoolean(? Get(R, "multiline")).
+        // 11. If multiline is true, append the code unit 0x006D (LATIN SMALL LETTER M) to codeUnits.
+        if object.get(utf16!("multiline"), context)?.to_boolean() {
+            code_units.extend_from_slice(utf16!("m"));
+        }
+
+        // 12. Let dotAll be ToBoolean(? Get(R, "dotAll")).
+        // 13. If dotAll is true, append the code unit 0x0073 (LATIN SMALL LETTER S) to codeUnits.
+        if object.get(utf16!("dotAll"), context)?.to_boolean() {
+            code_units.extend_from_slice(utf16!("s"));
+        }
+
+        // 14. Let unicode be ToBoolean(? Get(R, "unicode")).
+        // 15. If unicode is true, append the code unit 0x0075 (LATIN SMALL LETTER U) to codeUnits.
+        if object.get(utf16!("unicode"), context)?.to_boolean() {
+            code_units.extend_from_slice(utf16!("u"));
+        }
+
+        // 16. Let unicodeSets be ToBoolean(? Get(R, "unicodeSets")).
+        // 17. If unicodeSets is true, append the code unit 0x0076 (LATIN SMALL LETTER V) to codeUnits.
+        if object.get(utf16!("unicodeSets"), context)?.to_boolean() {
+            code_units.extend_from_slice(utf16!("v"));
+        }
+
+        // 18. Let sticky be ToBoolean(? Get(R, "sticky")).
+        // 19. If sticky is true, append the code unit 0x0079 (LATIN SMALL LETTER Y) to codeUnits.
+        if object.get(utf16!("sticky"), context)?.to_boolean() {
+            code_units.extend_from_slice(utf16!("y"));
+        }
+
+        // 20. Return the String value whose code units are the elements of the List codeUnits.
+        //     If codeUnits has no elements, the empty String is returned.
+        Ok(JsString::from(code_units).into())
     }
 
     /// `get RegExp.prototype.source`
