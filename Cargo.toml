@@ -41,7 +41,6 @@ boa_macros = { version = "~0.17.0", path = "core/macros" }
 boa_parser = { version = "~0.17.0", path = "core/parser" }
 boa_profiler = { version = "~0.17.0", path = "core/profiler" }
 boa_runtime = { version = "~0.17.0", path = "core/runtime" }
-boa_temporal = { version = "~0.17.0", path = "core/temporal" }
 
 # Shared deps
 arbitrary = "1"

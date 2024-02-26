@@ -12,7 +12,7 @@ use crate::{
     builtins::options::{get_option, ParsableOptionType},
     js_string, Context, JsNativeError, JsObject, JsResult,
 };
-use boa_temporal::options::{
+use temporal_rs::options::{
     ArithmeticOverflow, DurationOverflow, InstantDisambiguation, OffsetDisambiguation,
     TemporalRoundingMode, TemporalUnit,
 };

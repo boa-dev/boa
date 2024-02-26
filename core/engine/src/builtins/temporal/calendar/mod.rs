@@ -23,7 +23,7 @@ use crate::{
 };
 use boa_gc::{custom_trace, Finalize, Trace};
 use boa_profiler::Profiler;
-use boa_temporal::{
+use temporal_rs::{
     components::calendar::{
         CalendarDateLike, CalendarFieldsType, CalendarProtocol, CalendarSlot,
         CALENDAR_PROTOCOL_METHODS,
@@ -442,9 +442,8 @@ impl Calendar {
         let overflow = get_option(&options_obj, utf16!("overflow"), context)?
             .unwrap_or(ArithmeticOverflow::Constrain);
 
-        // 8. Let balanceResult be ? BalanceTimeDuration(duration.[[Days]], duration.[[Hours]], duration.[[Minutes]], duration.[[Seconds]], duration.[[Milliseconds]], duration.[[Microseconds]], duration.[[Nanoseconds]], "day").
-        duration.balance_time_duration(TemporalUnit::Day)?;
-
+        // 8. Let balanceResult be ? BalanceTimeDuration(duration.[[Days]], duration.[[Hours]], duration.[[Minutes]],
+        // duration.[[Seconds]], duration.[[Milliseconds]], duration.[[Microseconds]], duration.[[Nanoseconds]], "day").
         let result = calendar
             .slot
             .date_add(&date.inner, &duration, overflow, context)?;

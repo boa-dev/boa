@@ -2,11 +2,11 @@
 use crate::{property::PropertyKey, string::utf16, Context, JsObject, JsValue};
 
 use boa_gc::{Finalize, Trace};
-use boa_temporal::{
+use num_bigint::BigInt;
+use temporal_rs::{
     components::{tz::TzProtocol, Instant},
     TemporalError, TemporalResult,
 };
-use num_bigint::BigInt;
 
 #[derive(Debug, Clone, Trace, Finalize)]
 pub(crate) struct JsCustomTimeZone {

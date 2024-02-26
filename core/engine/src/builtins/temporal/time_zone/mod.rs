@@ -16,7 +16,7 @@ use crate::{
 };
 use boa_gc::{custom_trace, Finalize, Trace};
 use boa_profiler::Profiler;
-use boa_temporal::components::tz::TimeZoneSlot;
+use temporal_rs::components::tz::TimeZoneSlot;
 
 mod custom;
 
@@ -348,7 +348,7 @@ pub(super) fn create_temporal_time_zone(
 /// [spec]: https://tc39.es/ecma262/#sec-parsetimezoneoffsetstring
 #[allow(clippy::unnecessary_wraps, unused)]
 fn parse_timezone_offset_string(offset_string: &str, context: &mut Context) -> JsResult<i64> {
-    use boa_temporal::parser::{Cursor, TemporalTimeZoneString};
+    use temporal_rs::parser::{Cursor, TemporalTimeZoneString};
 
     // 1. Let parseResult be ParseText(StringToCodePoints(offsetString), UTCOffset).
     let parse_result = TemporalTimeZoneString::parse(&mut Cursor::new(offset_string))?;

@@ -9,7 +9,7 @@ use crate::{
 
 use rustc_hash::FxHashSet;
 
-use boa_temporal::fields::{FieldConversion, FieldValue, TemporalFields};
+use temporal_rs::fields::{FieldConversion, FieldValue, TemporalFields};
 
 use super::{to_integer_with_truncation, to_positive_integer_with_trunc};
 

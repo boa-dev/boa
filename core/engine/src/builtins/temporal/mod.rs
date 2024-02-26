@@ -38,14 +38,14 @@ use crate::{
     Context, JsBigInt, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 use boa_profiler::Profiler;
-use boa_temporal::NS_PER_DAY;
+use temporal_rs::NS_PER_DAY;
 
-// TODO: Remove in favor of `boa_temporal`
+// TODO: Remove in favor of `temporal_rs`
 pub(crate) fn ns_max_instant() -> JsBigInt {
     JsBigInt::from(i128::from(NS_PER_DAY) * 100_000_000_i128)
 }
 
-// TODO: Remove in favor of `boa_temporal`
+// TODO: Remove in favor of `temporal_rs`
 pub(crate) fn ns_min_instant() -> JsBigInt {
     JsBigInt::from(i128::from(NS_PER_DAY) * -100_000_000_i128)
 }
@@ -211,11 +211,8 @@ pub(crate) fn _iterator_to_list_of_types(
     Ok(values)
 }
 
-/// 13.2 `ISODateToEpochDays ( year, month, date )`
-// Note: implemented on IsoDateRecord.
-
 // Abstract Operation 13.3 `EpochDaysToEpochMs`
-// Migrated to `boa_temporal`
+// Migrated to `temporal_rs`
 
 // 13.4 Date Equations
 // implemented in temporal/date_equations.rs
@@ -238,41 +235,8 @@ pub(crate) fn _iterator_to_list_of_types(
 // 13.16 `ToTemporalRoundingIncrement ( normalizedOptions )`
 // Now implemented in temporal/options.rs
 
-/// 13.17 `ValidateTemporalRoundingIncrement ( increment, dividend, inclusive )`
-#[inline]
-pub(crate) fn validate_temporal_rounding_increment(
-    increment: u64,
-    dividend: u64,
-    inclusive: bool,
-) -> JsResult<()> {
-    // 1. If inclusive is true, then
-    let maximum = if inclusive {
-        // a. Let maximum be dividend.
-        dividend
-    // 2. Else,
-    } else {
-        // a. Assert: dividend > 1.
-        assert!(dividend > 1);
-        // b. Let maximum be dividend - 1.
-        dividend - 1
-    };
-
-    // 3. If increment > maximum, throw a RangeError exception.
-    if increment > maximum {
-        return Err(JsNativeError::range()
-            .with_message("increment is exceeds the range of the allowed maximum.")
-            .into());
-    }
-    // 4. If dividend modulo increment ≠ 0, then
-    if dividend % increment != 0 {
-        // a. Throw a RangeError exception.
-        return Err(JsNativeError::range()
-            .with_message("Temporal rounding increment is not valid.")
-            .into());
-    }
-    // 5. Return unused.
-    Ok(())
-}
+// 13.17 `ValidateTemporalRoundingIncrement ( increment, dividend, inclusive )`
+// Moved to temporal_rs
 
 /// 13.21 `ToRelativeTemporalObject ( options )`
 pub(crate) fn to_relative_temporal_object(
@@ -294,13 +258,13 @@ pub(crate) fn to_relative_temporal_object(
 // Implemented on RoundingMode in builtins/options.rs
 
 // 13.27 `ApplyUnsignedRoundingMode ( x, r1, r2, unsignedRoundingMode )`
-// Migrated to `boa_temporal`
+// Migrated to `temporal_rs`
 
 // 13.28 `RoundNumberToIncrement ( x, increment, roundingMode )`
-// Migrated to `boa_temporal`
+// Migrated to `temporal_rs`
 
 // 13.29 `RoundNumberToIncrementAsIfPositive ( x, increment, roundingMode )`
-// Migrated to `boa_temporal`
+// Migrated to `temporal_rs`
 
 /// 13.43 `ToPositiveIntegerWithTruncation ( argument )`
 #[inline]
@@ -355,12 +319,12 @@ pub(crate) fn to_integer_if_integral(arg: &JsValue, context: &mut Context) -> Js
 
 // NOTE: op -> true == until | false == since
 // 13.47 `GetDifferenceSettings ( operation, options, unitGroup, disallowedUnits, fallbackSmallestUnit, smallestLargestDefaultUnit )`
-// Migrated to `boa_temporal`
+// Migrated to `temporal_rs`
 
 // NOTE: used for MergeFields methods. Potentially can be omitted in favor of `TemporalFields`.
 // 14.6 `CopyDataProperties ( target, source, excludedKeys [ , excludedValues ] )`
-// Migrated or repurposed to `boa_temporal`/`fields.rs`
+// Migrated or repurposed to `temporal_rs`/`fields.rs`
 
 // Note: Deviates from Proposal spec -> proto appears to be always null across the specification.
 // 14.7 `SnapshotOwnProperties ( source, proto [ , excludedKeys [ , excludedValues ] ] )`
-// Migrated or repurposed to `boa_temporal`/`fields.rs`
+// Migrated or repurposed to `temporal_rs`/`fields.rs`

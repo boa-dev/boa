@@ -16,7 +16,7 @@ use crate::{
 use boa_gc::{Finalize, Trace};
 use boa_macros::utf16;
 use boa_profiler::Profiler;
-use boa_temporal::{
+use temporal_rs::{
     components::Time,
     options::{ArithmeticOverflow, TemporalRoundingMode},
 };
