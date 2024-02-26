@@ -20,8 +20,8 @@ once_cell = { workspace = true, default-features = false, features = ["critical-
 
 icu_datagen = { workspace = true, optional = true, features = ["networking", "use_wasm"] }
 icu_plurals = { workspace = true, optional = true, features = ["datagen", "experimental"] }
-log = { version = "0.4.20", optional = true }
-simple_logger = { version = "4.3.3", optional = true }
+log = { workspace = true, optional = true }
+simple_logger = { workspace = true, optional = true }
 
 [features]
 default = ["std"]
