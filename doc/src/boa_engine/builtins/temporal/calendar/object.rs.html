@@ -875,7 +875,12 @@
 };
 
 <span class="kw">use </span>boa_macros::utf16;
-<span class="kw">use </span>boa_temporal::{
+<span class="kw">use </span>num_traits::ToPrimitive;
+<span class="kw">use </span>plain_date::PlainDate;
+<span class="kw">use </span>plain_date_time::PlainDateTime;
+<span class="kw">use </span>plain_month_day::PlainMonthDay;
+<span class="kw">use </span>plain_year_month::PlainYearMonth;
+<span class="kw">use </span>temporal_rs::{
     components::{
         calendar::{CalendarDateLike, CalendarProtocol},
         Date, Duration, MonthDay, YearMonth,
@@ -883,11 +888,6 @@
     options::ArithmeticOverflow,
     TemporalError, TemporalFields, TemporalResult, TinyAsciiStr,
 };
-<span class="kw">use </span>num_traits::ToPrimitive;
-<span class="kw">use </span>plain_date::PlainDate;
-<span class="kw">use </span>plain_date_time::PlainDateTime;
-<span class="kw">use </span>plain_month_day::PlainMonthDay;
-<span class="kw">use </span>plain_year_month::PlainYearMonth;
 
 <span class="kw">impl </span>CalendarProtocol <span class="kw">for </span>JsObject {
     <span class="kw">type </span>Date = JsObject&lt;PlainDate&gt;;
@@ -1055,7 +1055,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         _one: <span class="kw-2">&amp;</span>Date&lt;JsObject&gt;,
         _two: <span class="kw-2">&amp;</span>Date&lt;JsObject&gt;,
-        _largest_unit: boa_temporal::options::TemporalUnit,
+        _largest_unit: temporal_rs::options::TemporalUnit,
         _context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; TemporalResult&lt;Duration&gt; {
         <span class="comment">// TODO

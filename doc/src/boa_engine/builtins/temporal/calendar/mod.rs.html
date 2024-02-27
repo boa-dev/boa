@@ -1128,14 +1128,20 @@
 <a href="#1127" id="1127">1127</a>
 <a href="#1128" id="1128">1128</a>
 <a href="#1129" id="1129">1129</a>
+<a href="#1130" id="1130">1130</a>
+<a href="#1131" id="1131">1131</a>
+<a href="#1132" id="1132">1132</a>
+<a href="#1133" id="1133">1133</a>
+<a href="#1134" id="1134">1134</a>
+<a href="#1135" id="1135">1135</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! An implementation of the `Temporal` proposal's Calendar builtin.
 
 </span><span class="kw">use </span>std::str::FromStr;
 
 <span class="kw">use super</span>::{
-    create_temporal_date, create_temporal_duration, create_temporal_month_day,
-    create_temporal_year_month, fields, options::TemporalUnitGroup, PlainDate, PlainDateTime,
-    PlainMonthDay, PlainYearMonth, ZonedDateTime,
+    create_temporal_date, create_temporal_month_day, create_temporal_year_month, fields,
+    options::TemporalUnitGroup, PlainDate, PlainDateTime, PlainMonthDay, PlainYearMonth,
+    ZonedDateTime,
 };
 <span class="kw">use crate</span>::{
     builtins::{
@@ -1153,7 +1159,7 @@
 };
 <span class="kw">use </span>boa_gc::{custom_trace, Finalize, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
-<span class="kw">use </span>boa_temporal::{
+<span class="kw">use </span>temporal_rs::{
     components::calendar::{
         CalendarDateLike, CalendarFieldsType, CalendarProtocol, CalendarSlot,
         CALENDAR_PROTOCOL_METHODS,
@@ -1572,10 +1578,9 @@
         </span><span class="kw">let </span>overflow = get_option(<span class="kw-2">&amp;</span>options_obj, <span class="macro">utf16!</span>(<span class="string">"overflow"</span>), context)<span class="question-mark">?
             </span>.unwrap_or(ArithmeticOverflow::Constrain);
 
-        <span class="comment">// 8. Let balanceResult be ? BalanceTimeDuration(duration.[[Days]], duration.[[Hours]], duration.[[Minutes]], duration.[[Seconds]], duration.[[Milliseconds]], duration.[[Microseconds]], duration.[[Nanoseconds]], "day").
-        </span>duration.balance_time_duration(TemporalUnit::Day)<span class="question-mark">?</span>;
-
-        <span class="kw">let </span>result = calendar
+        <span class="comment">// 8. Let balanceResult be ? BalanceTimeDuration(duration.[[Days]], duration.[[Hours]], duration.[[Minutes]],
+        // duration.[[Seconds]], duration.[[Milliseconds]], duration.[[Microseconds]], duration.[[Nanoseconds]], "day").
+        </span><span class="kw">let </span>result = calendar
             .slot
             .date_add(<span class="kw-2">&amp;</span>date.inner, <span class="kw-2">&amp;</span>duration, overflow, context)<span class="question-mark">?</span>;
 
@@ -1587,7 +1592,7 @@
         <span class="comment">// 1. Let calendar be the this value.
         // 2. Perform ? RequireInternalSlot(calendar, [[InitializedTemporalCalendar]]).
         // 3. Assert: calendar.[[Identifier]] is "iso8601".
-        </span><span class="kw">let </span>calendar = this
+        </span><span class="kw">let </span>_calendar = this
             .as_object()
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
@@ -1596,16 +1601,16 @@
             })<span class="question-mark">?</span>;
 
         <span class="comment">// 4. Set one to ? ToTemporalDate(one).
-        </span><span class="kw">let </span>one = temporal::plain_date::to_temporal_date(args.get_or_undefined(<span class="number">0</span>), <span class="prelude-val">None</span>, context)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>_one = temporal::plain_date::to_temporal_date(args.get_or_undefined(<span class="number">0</span>), <span class="prelude-val">None</span>, context)<span class="question-mark">?</span>;
         <span class="comment">// 5. Set two to ? ToTemporalDate(two).
-        </span><span class="kw">let </span>two = temporal::plain_date::to_temporal_date(args.get_or_undefined(<span class="number">1</span>), <span class="prelude-val">None</span>, context)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>_two = temporal::plain_date::to_temporal_date(args.get_or_undefined(<span class="number">1</span>), <span class="prelude-val">None</span>, context)<span class="question-mark">?</span>;
 
         <span class="comment">// 6. Set options to ? GetOptionsObject(options).
         </span><span class="kw">let </span>options = get_options_object(args.get_or_undefined(<span class="number">2</span>))<span class="question-mark">?</span>;
 
         <span class="comment">// 7. Let largestUnit be ? GetTemporalUnit(options, "largestUnit", date, "auto").
         // 8. If largestUnit is "auto", set largestUnit to "day".
-        </span><span class="kw">let </span>largest_unit = <span class="kw">super</span>::options::get_temporal_unit(
+        </span><span class="kw">let </span>_largest_unit = <span class="kw">super</span>::options::get_temporal_unit(
             <span class="kw-2">&amp;</span>options,
             <span class="macro">utf16!</span>(<span class="string">"largestUnit"</span>),
             TemporalUnitGroup::Date,
@@ -1614,11 +1619,18 @@
         )<span class="question-mark">?
         </span>.unwrap_or(TemporalUnit::Day);
 
-        <span class="kw">let </span>result = calendar
+        <span class="comment">// TODO: Fix temporal_rs `dateUntil` loop
+        /*
+        let result = calendar
             .slot
-            .date_until(<span class="kw-2">&amp;</span>one.inner, <span class="kw-2">&amp;</span>two.inner, largest_unit, context)<span class="question-mark">?</span>;
+            .date_until(&amp;one.inner, &amp;two.inner, largest_unit, context)?;
 
-        create_temporal_duration(result, <span class="prelude-val">None</span>, context).map(Into::into)
+        create_temporal_duration(result, None, context).map(Into::into)
+        */
+
+        </span><span class="prelude-val">Err</span>(JsNativeError::range()
+            .with_message(<span class="string">"dateUntil not yet implemented."</span>)
+            .into())
     }
 
     <span class="doccomment">/// 15.8.2.6 `Temporal.Calendar.prototype.era ( temporalDateLike )`

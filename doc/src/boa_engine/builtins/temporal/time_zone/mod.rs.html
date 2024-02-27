@@ -488,7 +488,7 @@
 };
 <span class="kw">use </span>boa_gc::{custom_trace, Finalize, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
-<span class="kw">use </span>boa_temporal::components::tz::TimeZoneSlot;
+<span class="kw">use </span>temporal_rs::components::tz::TimeZoneSlot;
 
 <span class="kw">mod </span>custom;
 
@@ -820,7 +820,7 @@
 /// [spec]: https://tc39.es/ecma262/#sec-parsetimezoneoffsetstring
 </span><span class="attr">#[allow(clippy::unnecessary_wraps, unused)]
 </span><span class="kw">fn </span>parse_timezone_offset_string(offset_string: <span class="kw-2">&amp;</span>str, context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;i64&gt; {
-    <span class="kw">use </span>boa_temporal::parser::{Cursor, TemporalTimeZoneString};
+    <span class="kw">use </span>temporal_rs::parser::{Cursor, TemporalTimeZoneString};
 
     <span class="comment">// 1. Let parseResult be ParseText(StringToCodePoints(offsetString), UTCOffset).
     </span><span class="kw">let </span>parse_result = TemporalTimeZoneString::parse(<span class="kw-2">&amp;mut </span>Cursor::new(offset_string))<span class="question-mark">?</span>;

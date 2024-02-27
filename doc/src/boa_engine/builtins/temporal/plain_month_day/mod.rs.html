@@ -143,7 +143,7 @@
 <span class="kw">use </span>boa_gc::{Finalize, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
 
-<span class="kw">use </span>boa_temporal::{
+<span class="kw">use </span>temporal_rs::{
     components::{
         calendar::{CalendarSlot, GetCalendarSlot},
         DateTime, MonthDay <span class="kw">as </span>InnerMonthDay,
@@ -165,7 +165,7 @@
 }
 
 <span class="kw">impl </span>IsoDateSlots <span class="kw">for </span>JsObject&lt;PlainMonthDay&gt; {
-    <span class="kw">fn </span>iso_date(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; boa_temporal::iso::IsoDate {
+    <span class="kw">fn </span>iso_date(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; temporal_rs::iso::IsoDate {
         <span class="self">self</span>.borrow().data().inner.iso_date()
     }
 }

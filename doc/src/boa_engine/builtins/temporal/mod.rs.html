@@ -329,42 +329,6 @@
 <a href="#328" id="328">328</a>
 <a href="#329" id="329">329</a>
 <a href="#330" id="330">330</a>
-<a href="#331" id="331">331</a>
-<a href="#332" id="332">332</a>
-<a href="#333" id="333">333</a>
-<a href="#334" id="334">334</a>
-<a href="#335" id="335">335</a>
-<a href="#336" id="336">336</a>
-<a href="#337" id="337">337</a>
-<a href="#338" id="338">338</a>
-<a href="#339" id="339">339</a>
-<a href="#340" id="340">340</a>
-<a href="#341" id="341">341</a>
-<a href="#342" id="342">342</a>
-<a href="#343" id="343">343</a>
-<a href="#344" id="344">344</a>
-<a href="#345" id="345">345</a>
-<a href="#346" id="346">346</a>
-<a href="#347" id="347">347</a>
-<a href="#348" id="348">348</a>
-<a href="#349" id="349">349</a>
-<a href="#350" id="350">350</a>
-<a href="#351" id="351">351</a>
-<a href="#352" id="352">352</a>
-<a href="#353" id="353">353</a>
-<a href="#354" id="354">354</a>
-<a href="#355" id="355">355</a>
-<a href="#356" id="356">356</a>
-<a href="#357" id="357">357</a>
-<a href="#358" id="358">358</a>
-<a href="#359" id="359">359</a>
-<a href="#360" id="360">360</a>
-<a href="#361" id="361">361</a>
-<a href="#362" id="362">362</a>
-<a href="#363" id="363">363</a>
-<a href="#364" id="364">364</a>
-<a href="#365" id="365">365</a>
-<a href="#366" id="366">366</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! The ECMAScript `Temporal` stage 3 built-in implementation.
 //!
 //! More information:
@@ -405,14 +369,14 @@
     Context, JsBigInt, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 <span class="kw">use </span>boa_profiler::Profiler;
-<span class="kw">use </span>boa_temporal::NS_PER_DAY;
+<span class="kw">use </span>temporal_rs::NS_PER_DAY;
 
-<span class="comment">// TODO: Remove in favor of `boa_temporal`
+<span class="comment">// TODO: Remove in favor of `temporal_rs`
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>ns_max_instant() -&gt; JsBigInt {
     JsBigInt::from(i128::from(NS_PER_DAY) * <span class="number">100_000_000_i128</span>)
 }
 
-<span class="comment">// TODO: Remove in favor of `boa_temporal`
+<span class="comment">// TODO: Remove in favor of `temporal_rs`
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>ns_min_instant() -&gt; JsBigInt {
     JsBigInt::from(i128::from(NS_PER_DAY) * -<span class="number">100_000_000_i128</span>)
 }
@@ -578,11 +542,8 @@
     </span><span class="prelude-val">Ok</span>(values)
 }
 
-<span class="doccomment">/// 13.2 `ISODateToEpochDays ( year, month, date )`
-</span><span class="comment">// Note: implemented on IsoDateRecord.
-
-// Abstract Operation 13.3 `EpochDaysToEpochMs`
-// Migrated to `boa_temporal`
+<span class="comment">// Abstract Operation 13.3 `EpochDaysToEpochMs`
+// Migrated to `temporal_rs`
 
 // 13.4 Date Equations
 // implemented in temporal/date_equations.rs
@@ -605,43 +566,10 @@
 // 13.16 `ToTemporalRoundingIncrement ( normalizedOptions )`
 // Now implemented in temporal/options.rs
 
-</span><span class="doccomment">/// 13.17 `ValidateTemporalRoundingIncrement ( increment, dividend, inclusive )`
-</span><span class="attr">#[inline]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>validate_temporal_rounding_increment(
-    increment: u64,
-    dividend: u64,
-    inclusive: bool,
-) -&gt; JsResult&lt;()&gt; {
-    <span class="comment">// 1. If inclusive is true, then
-    </span><span class="kw">let </span>maximum = <span class="kw">if </span>inclusive {
-        <span class="comment">// a. Let maximum be dividend.
-        </span>dividend
-    <span class="comment">// 2. Else,
-    </span>} <span class="kw">else </span>{
-        <span class="comment">// a. Assert: dividend &gt; 1.
-        </span><span class="macro">assert!</span>(dividend &gt; <span class="number">1</span>);
-        <span class="comment">// b. Let maximum be dividend - 1.
-        </span>dividend - <span class="number">1
-    </span>};
+// 13.17 `ValidateTemporalRoundingIncrement ( increment, dividend, inclusive )`
+// Moved to temporal_rs
 
-    <span class="comment">// 3. If increment &gt; maximum, throw a RangeError exception.
-    </span><span class="kw">if </span>increment &gt; maximum {
-        <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
-            .with_message(<span class="string">"increment is exceeds the range of the allowed maximum."</span>)
-            .into());
-    }
-    <span class="comment">// 4. If dividend modulo increment ≠ 0, then
-    </span><span class="kw">if </span>dividend % increment != <span class="number">0 </span>{
-        <span class="comment">// a. Throw a RangeError exception.
-        </span><span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
-            .with_message(<span class="string">"Temporal rounding increment is not valid."</span>)
-            .into());
-    }
-    <span class="comment">// 5. Return unused.
-    </span><span class="prelude-val">Ok</span>(())
-}
-
-<span class="doccomment">/// 13.21 `ToRelativeTemporalObject ( options )`
+</span><span class="doccomment">/// 13.21 `ToRelativeTemporalObject ( options )`
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_relative_temporal_object(
     _options: <span class="kw-2">&amp;</span>JsObject,
     _context: <span class="kw-2">&amp;mut </span>Context,
@@ -661,13 +589,13 @@
 // Implemented on RoundingMode in builtins/options.rs
 
 // 13.27 `ApplyUnsignedRoundingMode ( x, r1, r2, unsignedRoundingMode )`
-// Migrated to `boa_temporal`
+// Migrated to `temporal_rs`
 
 // 13.28 `RoundNumberToIncrement ( x, increment, roundingMode )`
-// Migrated to `boa_temporal`
+// Migrated to `temporal_rs`
 
 // 13.29 `RoundNumberToIncrementAsIfPositive ( x, increment, roundingMode )`
-// Migrated to `boa_temporal`
+// Migrated to `temporal_rs`
 
 </span><span class="doccomment">/// 13.43 `ToPositiveIntegerWithTruncation ( argument )`
 </span><span class="attr">#[inline]
@@ -722,13 +650,13 @@
 
 // NOTE: op -&gt; true == until | false == since
 // 13.47 `GetDifferenceSettings ( operation, options, unitGroup, disallowedUnits, fallbackSmallestUnit, smallestLargestDefaultUnit )`
-// Migrated to `boa_temporal`
+// Migrated to `temporal_rs`
 
 // NOTE: used for MergeFields methods. Potentially can be omitted in favor of `TemporalFields`.
 // 14.6 `CopyDataProperties ( target, source, excludedKeys [ , excludedValues ] )`
-// Migrated or repurposed to `boa_temporal`/`fields.rs`
+// Migrated or repurposed to `temporal_rs`/`fields.rs`
 
 // Note: Deviates from Proposal spec -&gt; proto appears to be always null across the specification.
 // 14.7 `SnapshotOwnProperties ( source, proto [ , excludedKeys [ , excludedValues ] ] )`
-// Migrated or repurposed to `boa_temporal`/`fields.rs`
+// Migrated or repurposed to `temporal_rs`/`fields.rs`
 </span></code></pre></div></section></main></body></html>

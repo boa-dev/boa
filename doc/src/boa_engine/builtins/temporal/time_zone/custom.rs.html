@@ -65,11 +65,11 @@
 </span><span class="kw">use crate</span>::{property::PropertyKey, string::utf16, Context, JsObject, JsValue};
 
 <span class="kw">use </span>boa_gc::{Finalize, Trace};
-<span class="kw">use </span>boa_temporal::{
+<span class="kw">use </span>num_bigint::BigInt;
+<span class="kw">use </span>temporal_rs::{
     components::{tz::TzProtocol, Instant},
     TemporalError, TemporalResult,
 };
-<span class="kw">use </span>num_bigint::BigInt;
 
 <span class="attr">#[derive(Debug, Clone, Trace, Finalize)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>JsCustomTimeZone {
