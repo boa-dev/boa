@@ -13,8 +13,6 @@ pub use icu::IcuError;
 
 use intrinsics::Intrinsics;
 
-#[cfg(not(feature = "intl"))]
-pub use std::marker::PhantomData;
 use std::{cell::Cell, path::Path, rc::Rc};
 
 use crate::{
@@ -1050,10 +1048,21 @@ impl ContextBuilder {
             vm,
             strict: false,
             #[cfg(feature = "intl")]
-            intl_provider: self.icu.unwrap_or_else(|| {
-                icu::IntlProvider::try_new_with_buffer_provider(boa_icu_provider::buffer())
-                    .expect("Failed to initialize default icu data.")
-            }),
+            intl_provider: if let Some(icu) = self.icu {
+                icu
+            } else {
+                cfg_if::cfg_if! {
+                    if #[cfg(feature = "intl_bundled")] {
+                        icu::IntlProvider::try_new_with_buffer_provider(boa_icu_provider::buffer())
+                            .expect("Failed to initialize default icu data.")
+                    } else {
+                        return Err(JsNativeError::typ()
+                            .with_message("missing Intl provider for context")
+                            .into()
+                        );
+                    }
+                }
+            },
             #[cfg(feature = "fuzz")]
             instructions_remaining: self.instructions_remaining,
             kept_alive: Vec::new(),

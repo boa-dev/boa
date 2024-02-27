@@ -19,26 +19,17 @@
     html_logo_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg",
     html_favicon_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"
 )]
-#![cfg_attr(not(feature = "bin"), no_std)]
-#![allow(unused_crate_dependencies)]
+#![cfg_attr(not(feature = "std"), no_std)]
 
-/// Gets the path to the directory where the generated data is stored.
-#[cfg(feature = "bin")]
-#[must_use]
-#[doc(hidden)]
-pub fn data_root() -> std::path::PathBuf {
-    std::path::PathBuf::from(std::env!("CARGO_MANIFEST_DIR")).join("data")
-}
+use icu_provider_adapters::fallback::LocaleFallbackProvider;
+use icu_provider_blob::BlobDataProvider;
+use once_cell::sync::Lazy;
 
 /// Gets the default data provider stored as a [`BufferProvider`].
 ///
 /// [`BufferProvider`]: icu_provider::BufferProvider
 #[must_use]
 pub fn buffer() -> &'static impl icu_provider::BufferProvider {
-    use icu_provider_adapters::fallback::LocaleFallbackProvider;
-    use icu_provider_blob::BlobDataProvider;
-    use once_cell::sync::Lazy;
-
     static PROVIDER: Lazy<LocaleFallbackProvider<BlobDataProvider>> = Lazy::new(|| {
         let blob = BlobDataProvider::try_new_from_static_blob(include_bytes!(concat!(
             env!("CARGO_MANIFEST_DIR"),

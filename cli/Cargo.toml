@@ -26,7 +26,7 @@ pollster.workspace = true
 dhat = { version = "0.3.3", optional = true }
 
 [features]
-default = ["boa_engine/annex-b", "boa_engine/experimental", "boa_engine/intl"]
+default = ["boa_engine/annex-b", "boa_engine/experimental", "boa_engine/intl_bundled"]
 dhat = ["dep:dhat"]
 
 [target.x86_64-unknown-linux-gnu.dependencies]

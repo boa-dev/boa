@@ -10,28 +10,15 @@ license.workspace = true
 repository.workspace = true
 rust-version.workspace = true
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
-icu_provider = { workspace = true, features = ["serde", "sync", "datagen"] }
-icu_provider_blob = { workspace = true, features = ["export"] }
+icu_provider = { workspace = true, features = ["sync"] }
+icu_provider_blob.workspace = true
 icu_provider_adapters = { workspace = true, features = ["serde"] }
 once_cell = { workspace = true, default-features = false, features = ["critical-section"] }
-
-icu_datagen = { workspace = true, optional = true, features = ["networking", "use_wasm"] }
-icu_plurals = { workspace = true, optional = true, features = ["datagen", "experimental"] }
-log = { workspace = true, optional = true }
-simple_logger = { workspace = true, optional = true }
 
 [features]
 default = ["std"]
 std = ["once_cell/std"]
-bin = ["dep:icu_datagen", "dep:simple_logger", "dep:log", "dep:icu_plurals"]
-
-[[bin]]
-name = "boa_datagen"
-path = "src/bin/datagen.rs"
-required-features = ["bin"]
 
 [lints]
 workspace = true

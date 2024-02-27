@@ -14,10 +14,19 @@ rust-version.workspace = true
 [features]
 profiler = ["boa_profiler/profiler"]
 deser = ["boa_interner/serde", "boa_ast/serde"]
+
+# Enables the `Intl` builtin object and bundles a default ICU4X data provider.
+# Prefer this over `intl` if you just want to enable `Intl` without dealing with the
+# generation of ICU4X data.
+intl_bundled = ["intl", "dep:boa_icu_provider"]
+
+# Enables Boa's `Intl` builtin implementation.
+# Prefer this over `intl_bundled` if you want to reduce the size of the final binary
+# by providing a smaller ICU4X data provider.
 intl = [
+    "boa_gc/icu",
     "icu_normalizer/serde",
     "icu_normalizer/std",
-    "dep:boa_icu_provider",
     "dep:icu_locid_transform",
     "dep:icu_locid",
     "dep:icu_datetime",
@@ -48,7 +57,7 @@ trace = ["js"]
 # Enable Boa's additional ECMAScript features for web browsers.
 annex-b = ["boa_parser/annex-b"]
 
-# Stage 3 proposals
+# Enable Boa's Temporal proposal implementation
 temporal = ["dep:icu_calendar"]
 
 # Enable experimental features, like Stage 3 proposals.
@@ -59,7 +68,7 @@ js = ["dep:web-time"]
 
 [dependencies]
 boa_interner.workspace = true
-boa_gc = { workspace = true, features = [ "thin-vec", "icu" ] }
+boa_gc = { workspace = true, features = [ "thin-vec" ] }
 boa_profiler.workspace = true
 boa_macros.workspace = true
 boa_ast.workspace = true
@@ -86,7 +95,7 @@ num_enum = "0.7.2"
 pollster.workspace = true
 thin-vec.workspace = true
 itertools = { version = "0.12.1", default-features = false }
-icu_normalizer.workspace = true
+icu_normalizer = { workspace = true, features = ["compiled_data"] }
 paste = "1.0"
 portable-atomic = "1.6.0"
 bytemuck = { version = "1.14.3", features = ["derive"] }
