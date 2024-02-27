@@ -1126,6 +1126,15 @@
 <a href="#1125" id="1125">1125</a>
 <a href="#1126" id="1126">1126</a>
 <a href="#1127" id="1127">1127</a>
+<a href="#1128" id="1128">1128</a>
+<a href="#1129" id="1129">1129</a>
+<a href="#1130" id="1130">1130</a>
+<a href="#1131" id="1131">1131</a>
+<a href="#1132" id="1132">1132</a>
+<a href="#1133" id="1133">1133</a>
+<a href="#1134" id="1134">1134</a>
+<a href="#1135" id="1135">1135</a>
+<a href="#1136" id="1136">1136</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! The ECMAScript context.
 
 </span><span class="kw">mod </span>hooks;
@@ -1141,8 +1150,6 @@
 
 <span class="kw">use </span>intrinsics::Intrinsics;
 
-<span class="attr">#[cfg(not(feature = <span class="string">"intl"</span>))]
-</span><span class="kw">pub use </span>std::marker::PhantomData;
 <span class="kw">use </span>std::{cell::Cell, path::Path, rc::Rc};
 
 <span class="kw">use crate</span>::{
@@ -2178,10 +2185,21 @@
             vm,
             strict: <span class="bool-val">false</span>,
             <span class="attr">#[cfg(feature = <span class="string">"intl"</span>)]
-            </span>intl_provider: <span class="self">self</span>.icu.unwrap_or_else(|| {
-                icu::IntlProvider::try_new_with_buffer_provider(boa_icu_provider::buffer())
-                    .expect(<span class="string">"Failed to initialize default icu data."</span>)
-            }),
+            </span>intl_provider: <span class="kw">if let </span><span class="prelude-val">Some</span>(icu) = <span class="self">self</span>.icu {
+                icu
+            } <span class="kw">else </span>{
+                <span class="macro">cfg_if::cfg_if! </span>{
+                    <span class="kw">if </span><span class="attr">#[cfg(feature = <span class="string">"intl_bundled"</span>)] </span>{
+                        icu::IntlProvider::try_new_with_buffer_provider(boa_icu_provider::buffer())
+                            .expect(<span class="string">"Failed to initialize default icu data."</span>)
+                    } <span class="kw">else </span>{
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                            .with_message(<span class="string">"missing Intl provider for context"</span>)
+                            .into()
+                        );
+                    }
+                }
+            },
             <span class="attr">#[cfg(feature = <span class="string">"fuzz"</span>)]
             </span>instructions_remaining: <span class="self">self</span>.instructions_remaining,
             kept_alive: Vec::new(),

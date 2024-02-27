@@ -1,3 +1,3 @@
 (function() {var implementors = {
-"boa_datagen":[["impl IterableDynamicDataProvider&lt;ExportMarker&gt; for <a class=\"struct\" href=\"boa_datagen/struct.PluralRangesFallbackHack.html\" title=\"struct boa_datagen::PluralRangesFallbackHack\">PluralRangesFallbackHack</a>"]]
+"gen_icu4x_data":[["impl IterableDynamicDataProvider&lt;ExportMarker&gt; for <a class=\"struct\" href=\"gen_icu4x_data/struct.PluralRangesFallbackHack.html\" title=\"struct gen_icu4x_data::PluralRangesFallbackHack\">PluralRangesFallbackHack</a>"]]
 };if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

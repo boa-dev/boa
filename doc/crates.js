@@ -1,1 +1,1 @@
-window.ALL_CRATES = ["boa_ast","boa_datagen","boa_engine","boa_gc","boa_icu_provider","boa_interner","boa_macros","boa_parser","boa_profiler","boa_runtime","boa_tester","boa_wasm","regenerate_about"];
+window.ALL_CRATES = ["boa_ast","boa_engine","boa_gc","boa_icu_provider","boa_interner","boa_macros","boa_parser","boa_profiler","boa_runtime","boa_tester","boa_wasm","gen_icu4x_data","regenerate_about"];
