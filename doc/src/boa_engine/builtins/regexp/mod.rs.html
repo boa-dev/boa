@@ -1898,6 +1898,42 @@
 <a href="#1897" id="1897">1897</a>
 <a href="#1898" id="1898">1898</a>
 <a href="#1899" id="1899">1899</a>
+<a href="#1900" id="1900">1900</a>
+<a href="#1901" id="1901">1901</a>
+<a href="#1902" id="1902">1902</a>
+<a href="#1903" id="1903">1903</a>
+<a href="#1904" id="1904">1904</a>
+<a href="#1905" id="1905">1905</a>
+<a href="#1906" id="1906">1906</a>
+<a href="#1907" id="1907">1907</a>
+<a href="#1908" id="1908">1908</a>
+<a href="#1909" id="1909">1909</a>
+<a href="#1910" id="1910">1910</a>
+<a href="#1911" id="1911">1911</a>
+<a href="#1912" id="1912">1912</a>
+<a href="#1913" id="1913">1913</a>
+<a href="#1914" id="1914">1914</a>
+<a href="#1915" id="1915">1915</a>
+<a href="#1916" id="1916">1916</a>
+<a href="#1917" id="1917">1917</a>
+<a href="#1918" id="1918">1918</a>
+<a href="#1919" id="1919">1919</a>
+<a href="#1920" id="1920">1920</a>
+<a href="#1921" id="1921">1921</a>
+<a href="#1922" id="1922">1922</a>
+<a href="#1923" id="1923">1923</a>
+<a href="#1924" id="1924">1924</a>
+<a href="#1925" id="1925">1925</a>
+<a href="#1926" id="1926">1926</a>
+<a href="#1927" id="1927">1927</a>
+<a href="#1928" id="1928">1928</a>
+<a href="#1929" id="1929">1929</a>
+<a href="#1930" id="1930">1930</a>
+<a href="#1931" id="1931">1931</a>
+<a href="#1932" id="1932">1932</a>
+<a href="#1933" id="1933">1933</a>
+<a href="#1934" id="1934">1934</a>
+<a href="#1935" id="1935">1935</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa's implementation of ECMAScript's global `RegExp` object.
 //!
 //! The `RegExp` object is used for matching text with a pattern.
@@ -1975,6 +2011,9 @@
         <span class="kw">let </span>get_unicode = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_unicode)
             .name(<span class="macro">js_string!</span>(<span class="string">"get unicode"</span>))
             .build();
+        <span class="kw">let </span>get_unicode_sets = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_unicode_sets)
+            .name(<span class="macro">js_string!</span>(<span class="string">"get unicodeSets"</span>))
+            .build();
         <span class="kw">let </span>get_sticky = BuiltInBuilder::callable(realm, <span class="self">Self</span>::get_sticky)
             .name(<span class="macro">js_string!</span>(<span class="string">"get sticky"</span>))
             .build();
@@ -2033,6 +2072,12 @@
             .accessor(
                 <span class="macro">js_string!</span>(<span class="string">"unicode"</span>),
                 <span class="prelude-val">Some</span>(get_unicode),
+                <span class="prelude-val">None</span>,
+                flag_attributes,
+            )
+            .accessor(
+                <span class="macro">js_string!</span>(<span class="string">"unicodeSets"</span>),
+                <span class="prelude-val">Some</span>(get_unicode_sets),
                 <span class="prelude-val">None</span>,
                 flag_attributes,
             )
@@ -2327,6 +2372,7 @@
                     <span class="string">b's' </span>=&gt; regexp.flags.contains(RegExpFlags::DOT_ALL),
                     <span class="string">b'i' </span>=&gt; regexp.flags.contains(RegExpFlags::IGNORE_CASE),
                     <span class="string">b'u' </span>=&gt; regexp.flags.contains(RegExpFlags::UNICODE),
+                    <span class="string">b'v' </span>=&gt; regexp.flags.contains(RegExpFlags::UNICODE_SETS),
                     <span class="string">b'y' </span>=&gt; regexp.flags.contains(RegExpFlags::STICKY),
                     <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
                 }));
@@ -2347,6 +2393,7 @@
             <span class="string">b's' </span>=&gt; <span class="string">"dotAll"</span>,
             <span class="string">b'i' </span>=&gt; <span class="string">"ignoreCase"</span>,
             <span class="string">b'u' </span>=&gt; <span class="string">"unicode"</span>,
+            <span class="string">b'v' </span>=&gt; <span class="string">"unicodeSets"</span>,
             <span class="string">b'y' </span>=&gt; <span class="string">"sticky"</span>,
             <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
         };
@@ -2465,6 +2512,22 @@
         <span class="self">Self</span>::regexp_has_flag(this, <span class="string">b'u'</span>, context)
     }
 
+    <span class="doccomment">/// `get RegExp.prototype.unicodeSets`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.unicodesets
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/unicodeSets
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_unicode_sets(
+        this: <span class="kw-2">&amp;</span>JsValue,
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span>[JsValue],
+        context: <span class="kw-2">&amp;mut </span>Context,
+    ) -&gt; JsResult&lt;JsValue&gt; {
+        <span class="self">Self</span>::regexp_has_flag(this, <span class="string">b'v'</span>, context)
+    }
+
     <span class="doccomment">/// `get RegExp.prototype.sticky`
     ///
     /// This flag indicates that it matches only from the index indicated by the `lastIndex` property
@@ -2501,58 +2564,67 @@
         context: <span class="kw-2">&amp;mut </span>Context,
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let R be the this value.
-        // 2. If Type(R) is not Object, throw a TypeError exception.
-        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(object) = this.as_object() {
-            <span class="comment">// 3. Let result be the empty String.
-            </span><span class="kw">let </span><span class="kw-2">mut </span>result = String::new();
+        // 2. If R is not an Object, throw a TypeError exception.
+        </span><span class="kw">let </span><span class="prelude-val">Some</span>(object) = this.as_object() <span class="kw">else </span>{
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::typ()
+                .with_message(<span class="string">"RegExp.prototype.flags getter called on non-object"</span>)
+                .into());
+        };
 
-            <span class="comment">// 4. Let hasIndices be ToBoolean(? Get(R, "hasIndices")).
-            // 5. If hasIndices is true, append the code unit 0x0064 (LATIN SMALL LETTER D) as the last code unit of result.
-            </span><span class="kw">if </span>object.get(<span class="macro">utf16!</span>(<span class="string">"hasIndices"</span>), context)<span class="question-mark">?</span>.to_boolean() {
-                result.push(<span class="string">'d'</span>);
-            }
+        <span class="comment">// 3. Let codeUnits be a new empty List.
+        </span><span class="kw">let </span><span class="kw-2">mut </span>code_units = Vec::new();
 
-            <span class="comment">// 6. Let global be ! ToBoolean(? Get(R, "global")).
-            // 7. If global is true, append the code unit 0x0067 (LATIN SMALL LETTER G) as the last code unit of result.
-            </span><span class="kw">if </span>object.get(<span class="macro">utf16!</span>(<span class="string">"global"</span>), context)<span class="question-mark">?</span>.to_boolean() {
-                result.push(<span class="string">'g'</span>);
-            }
-            <span class="comment">// 8. Let ignoreCase be ! ToBoolean(? Get(R, "ignoreCase")).
-            // 9. If ignoreCase is true, append the code unit 0x0069 (LATIN SMALL LETTER I) as the last code unit of result.
-            </span><span class="kw">if </span>object.get(<span class="macro">utf16!</span>(<span class="string">"ignoreCase"</span>), context)<span class="question-mark">?</span>.to_boolean() {
-                result.push(<span class="string">'i'</span>);
-            }
-
-            <span class="comment">// 10. Let multiline be ! ToBoolean(? Get(R, "multiline")).
-            // 11. If multiline is true, append the code unit 0x006D (LATIN SMALL LETTER M) as the last code unit of result.
-            </span><span class="kw">if </span>object.get(<span class="macro">utf16!</span>(<span class="string">"multiline"</span>), context)<span class="question-mark">?</span>.to_boolean() {
-                result.push(<span class="string">'m'</span>);
-            }
-
-            <span class="comment">// 12. Let dotAll be ! ToBoolean(? Get(R, "dotAll")).
-            // 13. If dotAll is true, append the code unit 0x0073 (LATIN SMALL LETTER S) as the last code unit of result.
-            </span><span class="kw">if </span>object.get(<span class="macro">utf16!</span>(<span class="string">"dotAll"</span>), context)<span class="question-mark">?</span>.to_boolean() {
-                result.push(<span class="string">'s'</span>);
-            }
-            <span class="comment">// 14. Let unicode be ! ToBoolean(? Get(R, "unicode")).
-            // 15. If unicode is true, append the code unit 0x0075 (LATIN SMALL LETTER U) as the last code unit of result.
-            </span><span class="kw">if </span>object.get(<span class="macro">utf16!</span>(<span class="string">"unicode"</span>), context)<span class="question-mark">?</span>.to_boolean() {
-                result.push(<span class="string">'u'</span>);
-            }
-
-            <span class="comment">// 16. Let sticky be ! ToBoolean(? Get(R, "sticky")).
-            // 17. If sticky is true, append the code unit 0x0079 (LATIN SMALL LETTER Y) as the last code unit of result.
-            </span><span class="kw">if </span>object.get(<span class="macro">utf16!</span>(<span class="string">"sticky"</span>), context)<span class="question-mark">?</span>.to_boolean() {
-                result.push(<span class="string">'y'</span>);
-            }
-
-            <span class="comment">// 18. Return result.
-            </span><span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(result).into());
+        <span class="comment">// 4. Let hasIndices be ToBoolean(? Get(R, "hasIndices")).
+        // 5. If hasIndices is true, append the code unit 0x0064 (LATIN SMALL LETTER D) to codeUnits.
+        </span><span class="kw">if </span>object.get(<span class="macro">utf16!</span>(<span class="string">"hasIndices"</span>), context)<span class="question-mark">?</span>.to_boolean() {
+            code_units.extend_from_slice(<span class="macro">utf16!</span>(<span class="string">"d"</span>));
         }
 
-        <span class="prelude-val">Err</span>(JsNativeError::typ()
-            .with_message(<span class="string">"RegExp.prototype.flags getter called on non-object"</span>)
-            .into())
+        <span class="comment">// 6. Let global be ToBoolean(? Get(R, "global")).
+        // 7. If global is true, append the code unit 0x0067 (LATIN SMALL LETTER G) to codeUnits.
+        </span><span class="kw">if </span>object.get(<span class="macro">utf16!</span>(<span class="string">"global"</span>), context)<span class="question-mark">?</span>.to_boolean() {
+            code_units.extend_from_slice(<span class="macro">utf16!</span>(<span class="string">"g"</span>));
+        }
+
+        <span class="comment">// 8. Let ignoreCase be ToBoolean(? Get(R, "ignoreCase")).
+        // 9. If ignoreCase is true, append the code unit 0x0069 (LATIN SMALL LETTER I) to codeUnits.
+        </span><span class="kw">if </span>object.get(<span class="macro">utf16!</span>(<span class="string">"ignoreCase"</span>), context)<span class="question-mark">?</span>.to_boolean() {
+            code_units.extend_from_slice(<span class="macro">utf16!</span>(<span class="string">"i"</span>));
+        }
+
+        <span class="comment">// 10. Let multiline be ToBoolean(? Get(R, "multiline")).
+        // 11. If multiline is true, append the code unit 0x006D (LATIN SMALL LETTER M) to codeUnits.
+        </span><span class="kw">if </span>object.get(<span class="macro">utf16!</span>(<span class="string">"multiline"</span>), context)<span class="question-mark">?</span>.to_boolean() {
+            code_units.extend_from_slice(<span class="macro">utf16!</span>(<span class="string">"m"</span>));
+        }
+
+        <span class="comment">// 12. Let dotAll be ToBoolean(? Get(R, "dotAll")).
+        // 13. If dotAll is true, append the code unit 0x0073 (LATIN SMALL LETTER S) to codeUnits.
+        </span><span class="kw">if </span>object.get(<span class="macro">utf16!</span>(<span class="string">"dotAll"</span>), context)<span class="question-mark">?</span>.to_boolean() {
+            code_units.extend_from_slice(<span class="macro">utf16!</span>(<span class="string">"s"</span>));
+        }
+
+        <span class="comment">// 14. Let unicode be ToBoolean(? Get(R, "unicode")).
+        // 15. If unicode is true, append the code unit 0x0075 (LATIN SMALL LETTER U) to codeUnits.
+        </span><span class="kw">if </span>object.get(<span class="macro">utf16!</span>(<span class="string">"unicode"</span>), context)<span class="question-mark">?</span>.to_boolean() {
+            code_units.extend_from_slice(<span class="macro">utf16!</span>(<span class="string">"u"</span>));
+        }
+
+        <span class="comment">// 16. Let unicodeSets be ToBoolean(? Get(R, "unicodeSets")).
+        // 17. If unicodeSets is true, append the code unit 0x0076 (LATIN SMALL LETTER V) to codeUnits.
+        </span><span class="kw">if </span>object.get(<span class="macro">utf16!</span>(<span class="string">"unicodeSets"</span>), context)<span class="question-mark">?</span>.to_boolean() {
+            code_units.extend_from_slice(<span class="macro">utf16!</span>(<span class="string">"v"</span>));
+        }
+
+        <span class="comment">// 18. Let sticky be ToBoolean(? Get(R, "sticky")).
+        // 19. If sticky is true, append the code unit 0x0079 (LATIN SMALL LETTER Y) to codeUnits.
+        </span><span class="kw">if </span>object.get(<span class="macro">utf16!</span>(<span class="string">"sticky"</span>), context)<span class="question-mark">?</span>.to_boolean() {
+            code_units.extend_from_slice(<span class="macro">utf16!</span>(<span class="string">"y"</span>));
+        }
+
+        <span class="comment">// 20. Return the String value whose code units are the elements of the List codeUnits.
+        //     If codeUnits has no elements, the empty String is returned.
+        </span><span class="prelude-val">Ok</span>(JsString::from(code_units).into())
     }
 
     <span class="doccomment">/// `get RegExp.prototype.source`
