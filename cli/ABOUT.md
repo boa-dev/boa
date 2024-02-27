@@ -8,11 +8,10 @@ website][boa-web].
 Try out the most recent release with Boa's live demo
 [playground][boa-playground].
 
-# Boa Crates
+## Boa Crates
 
 - [**`boa_ast`**][ast] - Boa's ECMAScript Abstract Syntax Tree.
-- [**`boa_engine`**][engine] - Boa's implementation of ECMAScript builtin objects and
-  execution.
+- [**`boa_engine`**][engine] - Boa's implementation of ECMAScript builtin objects and execution.
 - [**`boa_gc`**][gc] - Boa's garbage collector.
 - [**`boa_interner`**][interner] - Boa's string interner.
 - [**`boa_parser`**][parser] - Boa's lexer and parser.

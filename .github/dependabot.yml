@@ -76,3 +76,8 @@ updates:
     directory: /ffi/wasm/
     schedule:
       interval: daily
+  # TOOLS
+  - package-ecosystem: cargo
+    directory: /tools/
+    schedule:
+      interval: daily
