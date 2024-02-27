@@ -169,6 +169,9 @@ bitflags! {
         /// Whether the regular expression result exposes the start and end indices of
         /// captured substrings.
         const HAS_INDICES = 0b0100_0000;
+
+        /// Whether or not UnicodeSets features are enabled.
+        const UNICODE_SETS = 0b1000_0000;
     }
 }
 
@@ -186,6 +189,7 @@ impl FromStr for RegExpFlags {
                 b'u' => Self::UNICODE,
                 b'y' => Self::STICKY,
                 b'd' => Self::HAS_INDICES,
+                b'v' => Self::UNICODE_SETS,
                 _ => return Err(format!("invalid regular expression flag {}", char::from(c))),
             };
 
@@ -196,6 +200,10 @@ impl FromStr for RegExpFlags {
                 ));
             }
             flags.insert(new_flag);
+        }
+
+        if flags.contains(Self::UNICODE) && flags.contains(Self::UNICODE_SETS) {
+            return Err("cannot use both 'u' and 'v' flags".into());
         }
 
         Ok(flags)
@@ -233,6 +241,9 @@ impl ToString for RegExpFlags {
         if self.contains(Self::STICKY) {
             s.push('y');
         }
+        if self.contains(Self::UNICODE_SETS) {
+            s.push('v');
+        }
         s
     }
 }
@@ -244,6 +255,7 @@ impl From<RegExpFlags> for Flags {
             multiline: value.contains(RegExpFlags::MULTILINE),
             dot_all: value.contains(RegExpFlags::DOT_ALL),
             unicode: value.contains(RegExpFlags::UNICODE),
+            unicode_sets: value.contains(RegExpFlags::UNICODE_SETS),
             ..Self::default()
         }
     }
