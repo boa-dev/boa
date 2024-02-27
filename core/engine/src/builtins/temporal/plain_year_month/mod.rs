@@ -15,7 +15,7 @@ use boa_profiler::Profiler;
 
 use super::calendar::to_temporal_calendar_slot_value;
 
-use boa_temporal::{
+use temporal_rs::{
     iso::IsoDateSlots,
     {
         components::{
@@ -40,7 +40,7 @@ impl PlainYearMonth {
 }
 
 impl IsoDateSlots for JsObject<PlainYearMonth> {
-    fn iso_date(&self) -> boa_temporal::iso::IsoDate {
+    fn iso_date(&self) -> temporal_rs::iso::IsoDate {
         self.borrow().data().inner.iso_date()
     }
 }

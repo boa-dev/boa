@@ -14,7 +14,12 @@ use crate::{
 };
 
 use boa_macros::utf16;
-use boa_temporal::{
+use num_traits::ToPrimitive;
+use plain_date::PlainDate;
+use plain_date_time::PlainDateTime;
+use plain_month_day::PlainMonthDay;
+use plain_year_month::PlainYearMonth;
+use temporal_rs::{
     components::{
         calendar::{CalendarDateLike, CalendarProtocol},
         Date, Duration, MonthDay, YearMonth,
@@ -22,11 +27,6 @@ use boa_temporal::{
     options::ArithmeticOverflow,
     TemporalError, TemporalFields, TemporalResult, TinyAsciiStr,
 };
-use num_traits::ToPrimitive;
-use plain_date::PlainDate;
-use plain_date_time::PlainDateTime;
-use plain_month_day::PlainMonthDay;
-use plain_year_month::PlainYearMonth;
 
 impl CalendarProtocol for JsObject {
     type Date = JsObject<PlainDate>;
@@ -194,7 +194,7 @@ impl CalendarProtocol for JsObject {
         &self,
         _one: &Date<JsObject>,
         _two: &Date<JsObject>,
-        _largest_unit: boa_temporal::options::TemporalUnit,
+        _largest_unit: temporal_rs::options::TemporalUnit,
         _context: &mut Context,
     ) -> TemporalResult<Duration> {
         // TODO

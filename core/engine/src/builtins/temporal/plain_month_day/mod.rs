@@ -12,7 +12,7 @@ use crate::{
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
 
-use boa_temporal::{
+use temporal_rs::{
     components::{
         calendar::{CalendarSlot, GetCalendarSlot},
         DateTime, MonthDay as InnerMonthDay,
@@ -34,7 +34,7 @@ impl PlainMonthDay {
 }
 
 impl IsoDateSlots for JsObject<PlainMonthDay> {
-    fn iso_date(&self) -> boa_temporal::iso::IsoDate {
+    fn iso_date(&self) -> temporal_rs::iso::IsoDate {
         self.borrow().data().inner.iso_date()
     }
 }

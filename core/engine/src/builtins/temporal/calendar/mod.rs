@@ -3,9 +3,9 @@
 use std::str::FromStr;
 
 use super::{
-    create_temporal_date, create_temporal_duration, create_temporal_month_day,
-    create_temporal_year_month, fields, options::TemporalUnitGroup, PlainDate, PlainDateTime,
-    PlainMonthDay, PlainYearMonth, ZonedDateTime,
+    create_temporal_date, create_temporal_month_day, create_temporal_year_month, fields,
+    options::TemporalUnitGroup, PlainDate, PlainDateTime, PlainMonthDay, PlainYearMonth,
+    ZonedDateTime,
 };
 use crate::{
     builtins::{
@@ -23,7 +23,7 @@ use crate::{
 };
 use boa_gc::{custom_trace, Finalize, Trace};
 use boa_profiler::Profiler;
-use boa_temporal::{
+use temporal_rs::{
     components::calendar::{
         CalendarDateLike, CalendarFieldsType, CalendarProtocol, CalendarSlot,
         CALENDAR_PROTOCOL_METHODS,
@@ -442,9 +442,8 @@ impl Calendar {
         let overflow = get_option(&options_obj, utf16!("overflow"), context)?
             .unwrap_or(ArithmeticOverflow::Constrain);
 
-        // 8. Let balanceResult be ? BalanceTimeDuration(duration.[[Days]], duration.[[Hours]], duration.[[Minutes]], duration.[[Seconds]], duration.[[Milliseconds]], duration.[[Microseconds]], duration.[[Nanoseconds]], "day").
-        duration.balance_time_duration(TemporalUnit::Day)?;
-
+        // 8. Let balanceResult be ? BalanceTimeDuration(duration.[[Days]], duration.[[Hours]], duration.[[Minutes]],
+        // duration.[[Seconds]], duration.[[Milliseconds]], duration.[[Microseconds]], duration.[[Nanoseconds]], "day").
         let result = calendar
             .slot
             .date_add(&date.inner, &duration, overflow, context)?;
@@ -457,7 +456,7 @@ impl Calendar {
         // 1. Let calendar be the this value.
         // 2. Perform ? RequireInternalSlot(calendar, [[InitializedTemporalCalendar]]).
         // 3. Assert: calendar.[[Identifier]] is "iso8601".
-        let calendar = this
+        let _calendar = this
             .as_object()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
@@ -466,16 +465,16 @@ impl Calendar {
             })?;
 
         // 4. Set one to ? ToTemporalDate(one).
-        let one = temporal::plain_date::to_temporal_date(args.get_or_undefined(0), None, context)?;
+        let _one = temporal::plain_date::to_temporal_date(args.get_or_undefined(0), None, context)?;
         // 5. Set two to ? ToTemporalDate(two).
-        let two = temporal::plain_date::to_temporal_date(args.get_or_undefined(1), None, context)?;
+        let _two = temporal::plain_date::to_temporal_date(args.get_or_undefined(1), None, context)?;
 
         // 6. Set options to ? GetOptionsObject(options).
         let options = get_options_object(args.get_or_undefined(2))?;
 
         // 7. Let largestUnit be ? GetTemporalUnit(options, "largestUnit", date, "auto").
         // 8. If largestUnit is "auto", set largestUnit to "day".
-        let largest_unit = super::options::get_temporal_unit(
+        let _largest_unit = super::options::get_temporal_unit(
             &options,
             utf16!("largestUnit"),
             TemporalUnitGroup::Date,
@@ -484,11 +483,18 @@ impl Calendar {
         )?
         .unwrap_or(TemporalUnit::Day);
 
+        // TODO: Fix temporal_rs `dateUntil` loop
+        /*
         let result = calendar
             .slot
             .date_until(&one.inner, &two.inner, largest_unit, context)?;
 
         create_temporal_duration(result, None, context).map(Into::into)
+        */
+
+        Err(JsNativeError::range()
+            .with_message("dateUntil not yet implemented.")
+            .into())
     }
 
     /// 15.8.2.6 `Temporal.Calendar.prototype.era ( temporalDateLike )`

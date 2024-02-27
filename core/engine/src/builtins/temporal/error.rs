@@ -1,4 +1,4 @@
-use boa_temporal::error::{ErrorKind, TemporalError};
+use temporal_rs::error::{ErrorKind, TemporalError};
 
 use crate::{JsError, JsNativeError};
 

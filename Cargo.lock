@@ -402,7 +402,6 @@ dependencies = [
  "boa_macros",
  "boa_parser",
  "boa_profiler",
- "boa_temporal",
  "bytemuck",
  "cfg-if",
  "criterion",
@@ -447,6 +446,7 @@ dependencies = [
  "static_assertions",
  "sys-locale",
  "tap",
+ "temporal_rs",
  "textwrap",
  "thin-vec",
  "thiserror",
@@ -569,18 +569,6 @@ dependencies = [
  "indoc",
  "rustc-hash",
  "textwrap",
-]
-
-[[package]]
-name = "boa_temporal"
-version = "0.17.0"
-dependencies = [
- "bitflags 2.4.2",
- "icu_calendar",
- "num-bigint",
- "num-traits",
- "rustc-hash",
- "tinystr",
 ]
 
 [[package]]
@@ -3639,6 +3627,20 @@ dependencies = [
  "fastrand 2.0.1",
  "rustix",
  "windows-sys 0.52.0",
+]
+
+[[package]]
+name = "temporal_rs"
+version = "0.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6e0437239e22d804a1ea7a83e001ae86812afbfc77a5dc12a9dfc579bfa0d9bc"
+dependencies = [
+ "bitflags 2.4.2",
+ "icu_calendar",
+ "num-bigint",
+ "num-traits",
+ "rustc-hash",
+ "tinystr",
 ]
 
 [[package]]

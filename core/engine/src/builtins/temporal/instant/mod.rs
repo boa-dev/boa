@@ -20,7 +20,7 @@ use crate::{
 };
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
-use boa_temporal::{
+use temporal_rs::{
     components::Instant as InnerInstant,
     options::{TemporalRoundingMode, TemporalUnit},
 };

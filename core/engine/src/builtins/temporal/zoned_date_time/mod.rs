@@ -9,7 +9,7 @@ use crate::{
 };
 use boa_gc::{custom_trace, Finalize, Trace};
 use boa_profiler::Profiler;
-use boa_temporal::components::{
+use temporal_rs::components::{
     calendar::CalendarSlot, tz::TimeZoneSlot, Duration as TemporalDuration,
     ZonedDateTime as InnerZdt,
 };

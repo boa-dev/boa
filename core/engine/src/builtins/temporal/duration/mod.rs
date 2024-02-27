@@ -3,7 +3,6 @@
 use crate::{
     builtins::{
         options::{get_option, get_options_object, RoundingMode},
-        temporal::validate_temporal_rounding_increment,
         BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
@@ -16,12 +15,11 @@ use crate::{
 };
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
-use boa_temporal::{components::Duration as InnerDuration, options::TemporalUnit};
+use temporal_rs::{components::Duration as InnerDuration, options::TemporalUnit};
 
 use super::{
     options::{get_temporal_rounding_increment, get_temporal_unit, TemporalUnitGroup},
-    plain_date::PlainDate,
-    to_integer_if_integral, DateTimeValues, PlainDateTime,
+    to_integer_if_integral, DateTimeValues,
 };
 
 #[cfg(test)]
@@ -307,16 +305,16 @@ impl Duration {
         let inner = &duration.inner;
 
         match field {
-            DateTimeValues::Year => Ok(JsValue::Rational(inner.date().years())),
-            DateTimeValues::Month => Ok(JsValue::Rational(inner.date().months())),
-            DateTimeValues::Week => Ok(JsValue::Rational(inner.date().weeks())),
-            DateTimeValues::Day => Ok(JsValue::Rational(inner.date().days())),
-            DateTimeValues::Hour => Ok(JsValue::Rational(inner.time().hours())),
-            DateTimeValues::Minute => Ok(JsValue::Rational(inner.time().minutes())),
-            DateTimeValues::Second => Ok(JsValue::Rational(inner.time().seconds())),
-            DateTimeValues::Millisecond => Ok(JsValue::Rational(inner.time().milliseconds())),
-            DateTimeValues::Microsecond => Ok(JsValue::Rational(inner.time().microseconds())),
-            DateTimeValues::Nanosecond => Ok(JsValue::Rational(inner.time().nanoseconds())),
+            DateTimeValues::Year => Ok(JsValue::Rational(inner.years())),
+            DateTimeValues::Month => Ok(JsValue::Rational(inner.months())),
+            DateTimeValues::Week => Ok(JsValue::Rational(inner.weeks())),
+            DateTimeValues::Day => Ok(JsValue::Rational(inner.days())),
+            DateTimeValues::Hour => Ok(JsValue::Rational(inner.hours())),
+            DateTimeValues::Minute => Ok(JsValue::Rational(inner.minutes())),
+            DateTimeValues::Second => Ok(JsValue::Rational(inner.seconds())),
+            DateTimeValues::Millisecond => Ok(JsValue::Rational(inner.milliseconds())),
+            DateTimeValues::Microsecond => Ok(JsValue::Rational(inner.microseconds())),
+            DateTimeValues::Nanosecond => Ok(JsValue::Rational(inner.nanoseconds())),
             DateTimeValues::MonthCode => unreachable!(
                 "Any other DateTimeValue fields on Duration would be an implementation error."
             ),
@@ -387,7 +385,7 @@ impl Duration {
         // 3. Return 𝔽(! DurationSign(duration.[[Years]], duration.[[Months]], duration.[[Weeks]],
         // duration.[[Days]], duration.[[Hours]], duration.[[Minutes]], duration.[[Seconds]],
         // duration.[[Milliseconds]], duration.[[Microseconds]], duration.[[Nanoseconds]])).
-        Ok(duration.inner.duration_sign().into())
+        Ok(duration.inner.sign().into())
     }
 
     /// 7.3.14 get Temporal.Duration.prototype.blank
@@ -404,14 +402,9 @@ impl Duration {
         // 3. Let sign be ! DurationSign(duration.[[Years]], duration.[[Months]], duration.[[Weeks]],
         // duration.[[Days]], duration.[[Hours]], duration.[[Minutes]], duration.[[Seconds]],
         // duration.[[Milliseconds]], duration.[[Microseconds]], duration.[[Nanoseconds]]).
-        let sign = duration.inner.duration_sign();
-
         // 4. If sign = 0, return true.
         // 5. Return false.
-        match sign {
-            0 => Ok(true.into()),
-            _ => Ok(false.into()),
-        }
+        Ok(duration.inner.is_zero().into())
     }
 }
 
@@ -441,100 +434,100 @@ impl Duration {
         // a. Let years be temporalDurationLike.[[Years]].
         // 5. Else,
         // a. Let years be duration.[[Years]].
-        let years = if temporal_duration_like.date().years().is_nan() {
-            duration.inner.date().years()
+        let years = if temporal_duration_like.years().is_nan() {
+            duration.inner.years()
         } else {
-            temporal_duration_like.date().years()
+            temporal_duration_like.years()
         };
 
         // 6. If temporalDurationLike.[[Months]] is not undefined, then
         // a. Let months be temporalDurationLike.[[Months]].
         // 7. Else,
         // a. Let months be duration.[[Months]].
-        let months = if temporal_duration_like.date().months().is_nan() {
-            duration.inner.date().months()
+        let months = if temporal_duration_like.months().is_nan() {
+            duration.inner.months()
         } else {
-            temporal_duration_like.date().months()
+            temporal_duration_like.months()
         };
 
         // 8. If temporalDurationLike.[[Weeks]] is not undefined, then
         // a. Let weeks be temporalDurationLike.[[Weeks]].
         // 9. Else,
         // a. Let weeks be duration.[[Weeks]].
-        let weeks = if temporal_duration_like.date().weeks().is_nan() {
-            duration.inner.date().weeks()
+        let weeks = if temporal_duration_like.weeks().is_nan() {
+            duration.inner.weeks()
         } else {
-            temporal_duration_like.date().weeks()
+            temporal_duration_like.weeks()
         };
 
         // 10. If temporalDurationLike.[[Days]] is not undefined, then
         // a. Let days be temporalDurationLike.[[Days]].
         // 11. Else,
         // a. Let days be duration.[[Days]].
-        let days = if temporal_duration_like.date().days().is_nan() {
-            duration.inner.date().days()
+        let days = if temporal_duration_like.days().is_nan() {
+            duration.inner.days()
         } else {
-            temporal_duration_like.date().days()
+            temporal_duration_like.days()
         };
 
         // 12. If temporalDurationLike.[[Hours]] is not undefined, then
         // a. Let hours be temporalDurationLike.[[Hours]].
         // 13. Else,
         // a. Let hours be duration.[[Hours]].
-        let hours = if temporal_duration_like.time().hours().is_nan() {
-            duration.inner.time().hours()
+        let hours = if temporal_duration_like.hours().is_nan() {
+            duration.inner.hours()
         } else {
-            temporal_duration_like.time().hours()
+            temporal_duration_like.hours()
         };
 
         // 14. If temporalDurationLike.[[Minutes]] is not undefined, then
         // a. Let minutes be temporalDurationLike.[[Minutes]].
         // 15. Else,
         // a. Let minutes be duration.[[Minutes]].
-        let minutes = if temporal_duration_like.time().minutes().is_nan() {
-            duration.inner.time().minutes()
+        let minutes = if temporal_duration_like.minutes().is_nan() {
+            duration.inner.minutes()
         } else {
-            temporal_duration_like.time().minutes()
+            temporal_duration_like.minutes()
         };
 
         // 16. If temporalDurationLike.[[Seconds]] is not undefined, then
         // a. Let seconds be temporalDurationLike.[[Seconds]].
         // 17. Else,
         // a. Let seconds be duration.[[Seconds]].
-        let seconds = if temporal_duration_like.time().seconds().is_nan() {
-            duration.inner.time().seconds()
+        let seconds = if temporal_duration_like.seconds().is_nan() {
+            duration.inner.seconds()
         } else {
-            temporal_duration_like.time().seconds()
+            temporal_duration_like.seconds()
         };
 
         // 18. If temporalDurationLike.[[Milliseconds]] is not undefined, then
         // a. Let milliseconds be temporalDurationLike.[[Milliseconds]].
         // 19. Else,
         // a. Let milliseconds be duration.[[Milliseconds]].
-        let milliseconds = if temporal_duration_like.time().milliseconds().is_nan() {
-            duration.inner.time().milliseconds()
+        let milliseconds = if temporal_duration_like.milliseconds().is_nan() {
+            duration.inner.milliseconds()
         } else {
-            temporal_duration_like.time().milliseconds()
+            temporal_duration_like.milliseconds()
         };
 
         // 20. If temporalDurationLike.[[Microseconds]] is not undefined, then
         // a. Let microseconds be temporalDurationLike.[[Microseconds]].
         // 21. Else,
         // a. Let microseconds be duration.[[Microseconds]].
-        let microseconds = if temporal_duration_like.time().microseconds().is_nan() {
-            duration.inner.time().microseconds()
+        let microseconds = if temporal_duration_like.microseconds().is_nan() {
+            duration.inner.microseconds()
         } else {
-            temporal_duration_like.time().microseconds()
+            temporal_duration_like.microseconds()
         };
 
         // 22. If temporalDurationLike.[[Nanoseconds]] is not undefined, then
         // a. Let nanoseconds be temporalDurationLike.[[Nanoseconds]].
         // 23. Else,
         // a. Let nanoseconds be duration.[[Nanoseconds]].
-        let nanoseconds = if temporal_duration_like.time().nanoseconds().is_nan() {
-            duration.inner.time().nanoseconds()
+        let nanoseconds = if temporal_duration_like.nanoseconds().is_nan() {
+            duration.inner.nanoseconds()
         } else {
-            temporal_duration_like.time().nanoseconds()
+            temporal_duration_like.nanoseconds()
         };
 
         // 24. Return ? CreateTemporalDuration(years, months, weeks, days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds).
@@ -598,7 +591,7 @@ impl Duration {
             .into())
     }
 
-    // TODO: Update needed.
+    // TODO: Migrate to `temporal_rs's Duration::round`
     /// 7.3.20 `Temporal.Duration.prototype.round ( roundTo )`
     pub(crate) fn round(
         this: &JsValue,
@@ -607,7 +600,7 @@ impl Duration {
     ) -> JsResult<JsValue> {
         // 1. Let duration be the this value.
         // 2. Perform ? RequireInternalSlot(duration, [[InitializedTemporalDuration]]).
-        let duration = this
+        let _duration = this
             .as_object()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
@@ -659,11 +652,11 @@ impl Duration {
         // 10. Let relativeToRecord be ? ToRelativeTemporalObject(roundTo).
         // 11. Let zonedRelativeTo be relativeToRecord.[[ZonedRelativeTo]].
         // 12. Let plainRelativeTo be relativeToRecord.[[PlainRelativeTo]].
-        let (plain_relative_to, zoned_relative_to) =
+        let (_plain_relative_to, _zoned_relative_to) =
             super::to_relative_temporal_object(&round_to, context)?;
 
         // 13. Let roundingIncrement be ? ToTemporalRoundingIncrement(roundTo).
-        let rounding_increment = get_temporal_rounding_increment(&round_to, context)?;
+        let _rounding_increment = get_temporal_rounding_increment(&round_to, context)?;
 
         // 14. Let roundingMode be ? ToTemporalRoundingMode(roundTo, "halfExpand").
         let _rounding_mode = get_option(&round_to, utf16!("roundingMode"), context)?
@@ -687,133 +680,7 @@ impl Duration {
                 .into());
         }
 
-        // 16. If smallestUnit is undefined, then
-        let smallest_unit = if let Some(unit) = smallest_unit {
-            unit
-        } else {
-            // a. Set smallestUnitPresent to false.
-            // b. Set smallestUnit to "nanosecond".
-            TemporalUnit::Nanosecond
-        };
-
-        // 17. Let existingLargestUnit be ! DefaultTemporalLargestUnit(duration.[[Years]], duration.[[Months]], duration.[[Weeks]], duration.[[Days]], duration.[[Hours]], duration.[[Minutes]], duration.[[Seconds]], duration.[[Milliseconds]], duration.[[Microseconds]]).
-        let existing_largest_unit = duration.inner.default_temporal_largest_unit();
-
-        // 18. Set defaultLargestUnit to ! LargerOfTwoTemporalUnits(defaultLargestUnit, smallestUnit).
-        let default_largest_unit = core::cmp::max(existing_largest_unit, smallest_unit);
-
-        // 19. If largestUnit is undefined, then
-        let largest_unit = match largest_unit {
-            // 20. Else if largestUnit is "auto", then
-            // a. Set largestUnit to defaultLargestUnit.
-            Some(TemporalUnit::Auto) => default_largest_unit,
-            Some(u) => u,
-            None => {
-                // a. Set largestUnitPresent to false.
-                // b. Set largestUnit to defaultLargestUnit.
-                default_largest_unit
-            }
-        };
-
-        // 22. If LargerOfTwoTemporalUnits(largestUnit, smallestUnit) is not largestUnit, throw a RangeError exception.
-        if core::cmp::max(largest_unit, smallest_unit) != largest_unit {
-            return Err(JsNativeError::range()
-                .with_message("largestUnit must be larger than smallestUnit")
-                .into());
-        }
-
-        // 23. Let maximum be ! MaximumTemporalDurationRoundingIncrement(smallestUnit).
-        let maximum = smallest_unit.to_maximum_rounding_increment();
-
-        // 24. If maximum is not undefined, perform ? ValidateTemporalRoundingIncrement(roundingIncrement, maximum, false).
-        if let Some(max) = maximum {
-            validate_temporal_rounding_increment(rounding_increment.into(), max.into(), false)?;
-        }
-
-        // 25. Let hoursToDaysConversionMayOccur be false.
-        // 26. If duration.[[Days]] ≠ 0 and zonedRelativeTo is not undefined, set hoursToDaysConversionMayOccur to true.
-        // 27. Else if abs(duration.[[Hours]]) ≥ 24, set hoursToDaysConversionMayOccur to true.
-        let conversion_may_occur =
-            if duration.inner.date().days() != 0.0 && zoned_relative_to.is_some() {
-                true
-            } else {
-                24f64 <= duration.inner.time().hours().abs()
-            };
-
-        // 28. If smallestUnit is "nanosecond" and roundingIncrement = 1, let roundingGranularityIsNoop be true; else let roundingGranularityIsNoop be false.
-        let is_noop = smallest_unit == TemporalUnit::Nanosecond && rounding_increment == 1;
-
-        // 29. If duration.[[Years]] = 0 and duration.[[Months]] = 0 and duration.[[Weeks]] = 0, let calendarUnitsPresent be false; else let calendarUnitsPresent be true.
-        let calendar_units_present = !(duration.inner.date().years() == 0f64
-            || duration.inner.date().months() == 0f64
-            || duration.inner.date().weeks() == 0f64);
-
-        // 30. If roundingGranularityIsNoop is true, and largestUnit is existingLargestUnit,
-        // and calendarUnitsPresent is false, and hoursToDaysConversionMayOccur is false,
-        // and abs(duration.[[Minutes]]) < 60, and abs(duration.[[Seconds]]) < 60,
-        // and abs(duration.[[Milliseconds]]) < 1000, and abs(duration.[[Microseconds]]) < 1000,
-        // and abs(duration.[[Nanoseconds]]) < 1000, then
-        if is_noop
-            && largest_unit == existing_largest_unit
-            && !calendar_units_present
-            && !conversion_may_occur
-            && duration.inner.is_time_within_range()
-        {
-            // a. NOTE: The above conditions mean that the operation will have no effect: the smallest unit and
-            // rounding increment will leave the total duration unchanged, and it can be determined without
-            // calling a calendar or time zone method that no balancing will take place.
-            // b. Return ! CreateTemporalDuration(duration.[[Years]], duration.[[Months]], duration.[[Weeks]], duration.[[Days]], duration.[[Hours]], duration.[[Minutes]], duration.[[Seconds]], duration.[[Milliseconds]], duration.[[Microseconds]], duration.[[Nanoseconds]]).
-        }
-
-        // 31. Let precalculatedPlainDateTime be undefined.
-        // let mut precalc_datetime = None;
-
-        // 32. If roundingGranularityIsNoop is false, or largestUnit is "year", or largestUnit is "month",
-        // or largestUnit is "week", or largestUnit is "day", or calendarUnitsPresent is true, or duration.[[Days]] ≠ 0,
-        // let plainDateTimeOrRelativeToWillBeUsed be true; else let plainDateTimeOrRelativeToWillBeUsed be false.
-        let pdt_or_rel_will_be_used = !is_noop
-            || largest_unit == TemporalUnit::Year
-            || largest_unit == TemporalUnit::Month
-            || largest_unit == TemporalUnit::Week
-            || largest_unit == TemporalUnit::Day
-            || calendar_units_present
-            || duration.inner.date().days() != 0f64;
-
-        // 33. If zonedRelativeTo is not undefined and plainDateTimeOrRelativeToWillBeUsed is true, then
-        let (_plain_relative_to, _precalc_pdt) = if zoned_relative_to.is_some()
-            && pdt_or_rel_will_be_used
-        {
-            // TODO(TimeZone): Implement GetPlainDateTimeFor
-            // TODO(ZonedDateTime): Implement ZonedDateTime related methods.
-            return Err(JsNativeError::range()
-                .with_message("not yet implemented.")
-                .into());
-
-            // a. NOTE: The above conditions mean that the corresponding Temporal.PlainDateTime or Temporal.PlainDate for zonedRelativeTo will be used in one of the operations below.
-            // b. Let instant be ! CreateTemporalInstant(zonedRelativeTo.[[Nanoseconds]]).
-            // c. Set precalculatedPlainDateTime to ? GetPlainDateTimeFor(zonedRelativeTo.[[TimeZone]], instant, zonedRelativeTo.[[Calendar]]).
-            // d. Set plainRelativeTo to ! CreateTemporalDate(precalculatedPlainDateTime.[[ISOYear]], precalculatedPlainDateTime.[[ISOMonth]], precalculatedPlainDateTime.[[ISODay]], zonedRelativeTo.[[Calendar]]).
-        } else {
-            // TODO: remove after ZonedDateTime is implemented
-            let non_zoned: (Option<PlainDate>, Option<PlainDateTime>) = (plain_relative_to, None);
-            non_zoned
-        };
-
-        // 34. Let unbalanceResult be ? UnbalanceDateDurationRelative(duration.[[Years]], duration.[[Months]], duration.[[Weeks]], duration.[[Days]], largestUnit, plainRelativeTo).
-        // 35. Let roundRecord be ? RoundDuration(unbalanceResult.[[Years]], unbalanceResult.[[Months]],
-        // unbalanceResult.[[Weeks]], unbalanceResult.[[Days]], duration.[[Hours]], duration.[[Minutes]],
-        // duration.[[Seconds]], duration.[[Milliseconds]], duration.[[Microseconds]], duration.[[Nanoseconds]],
-        // roundingIncrement, smallestUnit, roundingMode, plainRelativeTo, zonedRelativeTo, precalculatedPlainDateTime).
-        // 36. Let roundResult be roundRecord.[[DurationRecord]].
-        // 37. If zonedRelativeTo is not undefined, then
-        // a. Set roundResult to ? AdjustRoundedDurationDays(roundResult.[[Years]], roundResult.[[Months]], roundResult.[[Weeks]], roundResult.[[Days]], roundResult.[[Hours]], roundResult.[[Minutes]], roundResult.[[Seconds]], roundResult.[[Milliseconds]], roundResult.[[Microseconds]], roundResult.[[Nanoseconds]], roundingIncrement, smallestUnit, roundingMode, zonedRelativeTo, precalculatedPlainDateTime).
-        // b. Let balanceResult be ? BalanceTimeDurationRelative(roundResult.[[Days]], roundResult.[[Hours]], roundResult.[[Minutes]], roundResult.[[Seconds]], roundResult.[[Milliseconds]], roundResult.[[Microseconds]], roundResult.[[Nanoseconds]], largestUnit, zonedRelativeTo, precalculatedPlainDateTime).
-        // 38. Else,
-        // a. Let balanceResult be ? BalanceTimeDuration(roundResult.[[Days]], roundResult.[[Hours]], roundResult.[[Minutes]], roundResult.[[Seconds]], roundResult.[[Milliseconds]], roundResult.[[Microseconds]], roundResult.[[Nanoseconds]], largestUnit).
-        // 39. Let result be ? BalanceDateDurationRelative(roundResult.[[Years]], roundResult.[[Months]], roundResult.[[Weeks]], balanceResult.[[Days]], largestUnit, plainRelativeTo).
-        // 40. Return ! CreateTemporalDuration(result.[[Years]], result.[[Months]], result.[[Weeks]], result.[[Days]], balanceResult.[[Hours]], balanceResult.[[Minutes]], balanceResult.[[Seconds]], balanceResult.[[Milliseconds]], balanceResult.[[Microseconds]], balanceResult.[[Nanoseconds]]).
-
-        // NOTE: Below is currently incorrect: Handling of zonedRelativeTo and precalculatedPlainDateTime is needed.
+        // NOTE:
         Err(JsNativeError::range()
             .with_message("not yet implemented.")
             .into())
@@ -1099,10 +966,23 @@ pub(crate) fn to_temporal_partial_duration(
         result.set_days(f64::from(to_integer_if_integral(&years, context)?));
     }
 
-    // 24. If years is undefined, and months is undefined, and weeks is undefined, and days is undefined, and hours is undefined, and minutes is undefined, and seconds is undefined, and milliseconds is undefined, and microseconds is undefined, and nanoseconds is undefined, throw a TypeError exception.
-    if result.into_iter().all(f64::is_nan) {
+    // TODO: Implement this functionality better in `temporal_rs`.
+    // 24. If years is undefined, and months is undefined, and weeks is undefined, and days
+    // is undefined, and hours is undefined, and minutes is undefined, and seconds is
+    // undefined, and milliseconds is undefined, and microseconds is undefined, and
+    // nanoseconds is undefined, throw a TypeError exception.
+    if result.years().is_nan()
+        && result.months().is_nan()
+        && result.weeks().is_nan()
+        && result.days().is_nan()
+        && result.minutes().is_nan()
+        && result.seconds().is_nan()
+        && result.milliseconds().is_nan()
+        && result.microseconds().is_nan()
+        && result.nanoseconds().is_nan()
+    {
         return Err(JsNativeError::typ()
-            .with_message("no valid Duration fields on temporalDurationLike.")
+            .with_message("PartialDurationRecord must have a defined field.")
             .into());
     }
 

@@ -20,7 +20,7 @@ use boa_profiler::Profiler;
 #[cfg(test)]
 mod tests;
 
-use boa_temporal::{
+use temporal_rs::{
     components::{
         calendar::{CalendarSlot, GetCalendarSlot},
         DateTime as InnerDateTime,
