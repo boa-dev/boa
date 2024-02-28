@@ -14,3 +14,7 @@ changelog:
     - title: Internal Improvements
       labels:
         - Internal
+        - memory
+    - title: Other Changes
+      labels:
+        - "*"
