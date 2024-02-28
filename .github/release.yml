@@ -14,3 +14,6 @@ changelog:
     - title: Internal Improvements
       labels:
         - Internal
+    - title: Other Changes
+      labels:
+        - "*"
