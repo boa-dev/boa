@@ -5,6 +5,7 @@
 # [0.18.0 (2024-02-29)](https://github.com/boa-dev/boa/compare/v0.17...v0.18)
 
 ### Feature Enhancements
+* Implement JS Typed Array methods by @AngeloChecked in https://github.com/boa-dev/boa/pull/3481
 * Format let-else expressions by @jedel1043 in https://github.com/boa-dev/boa/pull/3102
 * Add regexp indices (`d` flag) support by @dirkdev98 in https://github.com/boa-dev/boa/pull/3094
 * Add missing 'unscopables' to `Array.prototype[@@unscopables]` by @dirkdev98 in https://github.com/boa-dev/boa/pull/3111
@@ -139,6 +140,7 @@
 * @johnyob made their first contribution in https://github.com/boa-dev/boa/pull/3369
 * @ahaoboy made their first contribution in https://github.com/boa-dev/boa/pull/3406
 * @tj825 made their first contribution in https://github.com/boa-dev/boa/pull/3465
+* @AngeloChecked made their first contribution in https://github.com/boa-dev/boa/pull/3481
 
 # [0.17.0 (2023-07-05)](https://github.com/boa-dev/boa/compare/v0.16...v0.17)
 
