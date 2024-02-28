@@ -58,7 +58,7 @@ trace = ["js"]
 annex-b = ["boa_parser/annex-b"]
 
 # Enable Boa's Temporal proposal implementation
-temporal = ["dep:icu_calendar"]
+temporal = ["dep:icu_calendar", "temporal_rs"]
 
 # Enable experimental features, like Stage 3 proposals.
 experimental = ["temporal"]
@@ -126,7 +126,7 @@ fixed_decimal = { workspace = true, features = ["ryu", "experimental"], optional
 tinystr = { workspace = true, optional = true }
 
 # temporal deps
-temporal_rs = "0.0.1"
+temporal_rs = { version = "0.0.1", optional = true }
 
 [target.'cfg(all(target_family = "wasm", not(any(target_os = "emscripten", target_os = "wasi"))))'.dependencies]
 web-time = { version = "1.0.0", optional = true }
