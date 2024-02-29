@@ -58,7 +58,7 @@ trace = ["js"]
 annex-b = ["boa_parser/annex-b"]
 
 # Enable Boa's Temporal proposal implementation
-temporal = ["dep:icu_calendar", "temporal_rs"]
+temporal = ["dep:icu_calendar", "dep:temporal_rs"]
 
 # Enable experimental features, like Stage 3 proposals.
 experimental = ["temporal"]
