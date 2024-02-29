@@ -73,7 +73,7 @@ textwrap = "0.16.0"
 thin-vec = "0.2.13"
 time = {version = "0.3.34", no-default-features = true, features = ["local-offset", "large-dates", "wasm-bindgen", "parsing", "formatting", "macros"]}
 tinystr = "0.7.5"
-log = "0.4.20"
+log = "0.4.21"
 simple_logger = "4.3.3"
 
 # ICU4X
