@@ -3,8 +3,7 @@
 mod js262;
 
 use crate::{
-    read::ErrorType, Harness, Outcome, Phase, SpecEdition, Statistics, SuiteResult, Test,
-    TestFlags, TestOutcomeResult, TestResult, TestSuite, VersionedStats,
+    test252_parser::{ErrorType, Harness, Outcome, Phase, SpecEdition, Test, TestSuite}, Statistics, SuiteResult, TestFlags, TestOutcomeResult, TestResult, VersionedStats
 };
 use boa_engine::{
     builtins::promise::PromiseState,
