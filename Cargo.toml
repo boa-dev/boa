@@ -55,7 +55,7 @@ clap = "4.5.0"
 colored = "2.1.0"
 fast-float = "0.2.0"
 hashbrown = { version = "0.14.3", default-features = false }
-indexmap = { version = "2.2.3", default-features = false }
+indexmap = { version = "2.2.4", default-features = false }
 indoc = "2.0.4"
 jemallocator = "0.5.4"
 num-bigint = "0.4.4"
