@@ -83,7 +83,7 @@ num-bigint = { workspace = true, features = ["serde"] }
 num-integer = "0.1.46"
 bitflags.workspace = true
 indexmap = { workspace = true, features = ["std"] }
-ryu-js = "1.0.0"
+ryu-js = "1.0.1"
 fast-float.workspace = true
 once_cell = { workspace = true, features = ["std"] }
 tap = "1.0.1"
