@@ -28,7 +28,7 @@ exclude = [
 
 [workspace.package]
 edition = "2021"
-version = "0.17.0"
+version = "0.18.0"
 rust-version = "1.74.0"
 authors = ["boa-dev"]
 repository = "https://github.com/boa-dev/boa"
@@ -38,15 +38,15 @@ description = "Boa is a Javascript lexer, parser and compiler written in Rust. C
 [workspace.dependencies]
 
 # Repo Crates
-boa_ast = { version = "~0.17.0", path = "core/ast" }
-boa_engine = { version = "~0.17.0", path = "core/engine" }
-boa_gc = { version = "~0.17.0", path = "core/gc" }
-boa_icu_provider = { version = "~0.17.0", path = "core/icu_provider" }
-boa_interner = { version = "~0.17.0", path = "core/interner" }
-boa_macros = { version = "~0.17.0", path = "core/macros" }
-boa_parser = { version = "~0.17.0", path = "core/parser" }
-boa_profiler = { version = "~0.17.0", path = "core/profiler" }
-boa_runtime = { version = "~0.17.0", path = "core/runtime" }
+boa_ast = { version = "~0.18.0", path = "core/ast" }
+boa_engine = { version = "~0.18.0", path = "core/engine" }
+boa_gc = { version = "~0.18.0", path = "core/gc" }
+boa_icu_provider = { version = "~0.18.0", path = "core/icu_provider" }
+boa_interner = { version = "~0.18.0", path = "core/interner" }
+boa_macros = { version = "~0.18.0", path = "core/macros" }
+boa_parser = { version = "~0.18.0", path = "core/parser" }
+boa_profiler = { version = "~0.18.0", path = "core/profiler" }
+boa_runtime = { version = "~0.18.0", path = "core/runtime" }
 
 # Shared deps
 arbitrary = "1"
