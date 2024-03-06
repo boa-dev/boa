@@ -2,11 +2,11 @@
 
 <p align="center">
   <a href="https://boajs.dev/">
-    <img
-      alt="Boa Logo"
-      src="./assets/logo.svg"
-      width="30%"
-    />
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="./assets/logo_yellow.svg">
+      <source media="(prefers-color-scheme: light)" srcset="./assets/logo_black.svg">
+      <img alt="Boa logo" src="./assets/logo.png">
+    </picture>
     </a>
 </p>
 
