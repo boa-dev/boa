@@ -17,19 +17,15 @@ boa_runtime.workspace = true
 boa_gc.workspace = true
 clap = { workspace = true, features = ["derive"] }
 serde = { workspace = true, features = ["derive"] }
-serde_yaml = "0.9.32"
+tc39-test262 = { path = "../../tools/tc39-test262"}
 serde_json.workspace = true
-bitflags.workspace = true
-regex.workspace = true
 once_cell.workspace = true
 colored.workspace = true
 rustc-hash = { workspace = true, features = ["std"] }
 rayon = "1.8.1"
 toml = "0.8.10"
 color-eyre = "0.6.2"
-phf = { workspace = true, features = ["macros"] }
 comfy-table = "7.1.0"
-serde_repr = "0.1.18"
 bus = "2.4.1"
 time.workspace = true
 

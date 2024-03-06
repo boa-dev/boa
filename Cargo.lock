@@ -571,7 +571,6 @@ dependencies = [
 name = "boa_tester"
 version = "0.17.0"
 dependencies = [
- "bitflags 2.4.2",
  "boa_engine",
  "boa_gc",
  "boa_runtime",
@@ -581,14 +580,11 @@ dependencies = [
  "colored",
  "comfy-table",
  "once_cell",
- "phf",
  "rayon",
- "regex",
  "rustc-hash",
  "serde",
  "serde_json",
- "serde_repr",
- "serde_yaml",
+ "tc39-test262",
  "time 0.3.34",
  "toml 0.8.10",
 ]
@@ -3682,6 +3678,22 @@ name = "target-lexicon"
 version = "0.12.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "69758bda2e78f098e4ccb393021a0963bb3442eac05f135c30f61b7370bbafae"
+
+[[package]]
+name = "tc39-test262"
+version = "0.17.0"
+dependencies = [
+ "bitflags 2.4.2",
+ "clap",
+ "color-eyre",
+ "once_cell",
+ "phf",
+ "regex",
+ "rustc-hash",
+ "serde",
+ "serde_repr",
+ "serde_yaml",
+]
 
 [[package]]
 name = "tempfile"

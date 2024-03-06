@@ -10,11 +10,11 @@
 )]
 
 mod exec;
-mod git;
-mod test252_parser;
 mod results;
 
-use test252_parser::{TestFlags, SpecEdition, Ignored, read_harness, read_suite, read_test};
+use exec::{RunTestSuite, RunTest};
+use tc39_test262::{read, Ignored, SpecEdition, TestFlags};
+
 use self::results::{compare_results, write_json};
 
 use boa_engine::optimizer::OptimizerOptions;
@@ -26,9 +26,7 @@ use color_eyre::{
 use colored::Colorize;
 use once_cell::sync::Lazy;
 use rustc_hash::FxHashSet;
-use serde::{
-    Deserialize, Deserializer, Serialize,
-};
+use serde::{Deserialize, Deserializer, Serialize};
 use std::{
     ops::{Add, AddAssign},
     path::{Path, PathBuf},
@@ -128,8 +126,6 @@ enum Cli {
     },
 }
 
-const DEFAULT_TEST262_DIRECTORY: &str = "test262";
-
 /// Program entry point.
 fn main() -> Result<()> {
     // Safety: This is needed because we run tests in multiple threads.
@@ -168,9 +164,8 @@ fn main() -> Result<()> {
             let test262_path = if let Some(path) = test262_path.as_deref() {
                 path
             } else {
-                clone_test262(test262_commit, verbose)?;
-
-                Path::new(DEFAULT_TEST262_DIRECTORY)
+                tc39_test262::clone_test262(test262_commit, verbose)?;
+                Path::new(tc39_test262::TEST262_DIRECTORY)
             };
 
             run_test_suite(
@@ -196,17 +191,6 @@ fn main() -> Result<()> {
             markdown,
         } => compare_results(base.as_path(), new.as_path(), markdown),
     }
-}
-
-fn clone_test262(commit: Option<&str>, verbose: u8) -> Result<()> {
-    const TEST262_REPOSITORY: &str = "https://github.com/tc39/test262";
-    git::clone(
-        DEFAULT_TEST262_DIRECTORY,
-        TEST262_REPOSITORY,
-        &"origin/main",
-        commit,
-        verbose,
-    )
 }
 
 /// Runs the full test suite.
@@ -236,10 +220,10 @@ fn run_test_suite(
     if verbose != 0 {
         println!("Loading the test suite...");
     }
-    let harness = read_harness(test262_path).wrap_err("could not read harness")?;
+    let harness = read::read_harness(test262_path).wrap_err("could not read harness")?;
 
     if suite.to_string_lossy().ends_with(".js") {
-        let test = read_test(&test262_path.join(suite)).wrap_err_with(|| {
+        let test = read::read_test(&test262_path.join(suite)).wrap_err_with(|| {
             let suite = suite.display();
             format!("could not read the test {suite}")
         })?;
@@ -257,8 +241,8 @@ fn run_test_suite(
 
         println!();
     } else {
-        let suite =
-            read_suite(&test262_path.join(suite), config.ignored(), false).wrap_err_with(|| {
+        let suite = read::read_suite(&test262_path.join(suite), config.ignored(), false)
+            .wrap_err_with(|| {
                 let suite = suite.display();
                 format!("could not read the suite {suite}")
             })?;
@@ -572,14 +556,4 @@ enum TestOutcomeResult {
     Failed,
     #[serde(rename = "P")]
     Panic,
-}
-
-#[cfg(test)]
-mod tests {
-
-    #[test]
-    #[ignore = "manual testing"]
-    fn should_clone_test262() {
-        super::clone_test262(None, 0).unwrap();
-    }
 }

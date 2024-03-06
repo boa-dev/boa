@@ -1,3 +1,5 @@
+//! Git common
+
 use color_eyre::{eyre::bail, Result};
 use std::{path::Path, process::Command};
 
@@ -52,7 +54,8 @@ fn reset_commit(directory: &str, commit: &str, verbose: u8) -> Result<()> {
     Ok(())
 }
 
-pub(super) fn clone(
+/// Clone repository
+pub fn clone(
     directory: &str,
     repor_url: &str, // "https://github.com/tc39/test262"
     baranch: &str, // "origin/main"

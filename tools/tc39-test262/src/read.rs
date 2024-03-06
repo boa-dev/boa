@@ -1,6 +1,5 @@
 //! Module to read the list of test suites from disk.
-
-use super::structs::{Harness, HarnessFile, MetaData, Ignored, Test, TestSuite};
+use super::test_files::{Harness, HarnessFile, MetaData, Test, TestSuite};
 
 use color_eyre::{
     eyre::{eyre, WrapErr},
@@ -12,7 +11,6 @@ use std::{
     fs, io,
     path::{Path, PathBuf},
 };
-
 
 /// Reads the Test262 defined bindings.
 pub fn read_harness(test262_path: &Path) -> Result<Harness> {
@@ -58,7 +56,7 @@ pub fn read_harness(test262_path: &Path) -> Result<Harness> {
 /// Reads a test suite in the given path.
 pub fn read_suite(
     path: &Path,
-    ignored: &Ignored,
+    ignored: &crate::structs::Ignored,
     mut ignore_suite: bool,
 ) -> Result<TestSuite> {
     let name = path
@@ -149,7 +147,7 @@ pub fn read_test(path: &Path) -> Result<Test> {
 }
 
 /// Reads the metadata from the input test code.
-fn read_metadata(test: &Path) -> io::Result<MetaData> {
+pub fn read_metadata(test: &Path) -> io::Result<MetaData> {
     use once_cell::sync::Lazy;
     use regex::bytes::Regex;
 

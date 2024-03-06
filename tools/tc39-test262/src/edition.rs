@@ -3,11 +3,9 @@
 //! This module contains the [`SpecEdition`] struct, which is used in the tester to
 //! classify all tests per minimum required ECMAScript edition.
 
-use std::fmt::Display;
-
+use crate::{test_flags::TestFlag, MetaData};
 use serde_repr::{Deserialize_repr, Serialize_repr};
-
-use super::structs::{MetaData, TestFlag};
+use std::fmt::Display;
 
 /// Minimum edition required by a specific feature in the `test262` repository.
 static FEATURE_EDITION: phf::Map<&'static str, SpecEdition> = phf::phf_map! {
@@ -351,7 +349,7 @@ impl SpecEdition {
     }
 
     /// Gets an iterator of all currently available editions.
-    pub(crate) fn all_editions() -> impl Iterator<Item = Self> {
+    pub fn all_editions() -> impl Iterator<Item = Self> {
         [
             Self::ES5,
             Self::ES6,

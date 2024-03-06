@@ -2,9 +2,7 @@
 
 mod js262;
 
-use crate::{
-    test252_parser::{ErrorType, Harness, Outcome, Phase, SpecEdition, Test, TestSuite}, Statistics, SuiteResult, TestFlags, TestOutcomeResult, TestResult, VersionedStats
-};
+use crate::{Statistics, SuiteResult, TestFlags, TestOutcomeResult, TestResult, VersionedStats};
 use boa_engine::{
     builtins::promise::PromiseState,
     js_string,
@@ -20,12 +18,41 @@ use colored::Colorize;
 use rayon::prelude::*;
 use rustc_hash::FxHashSet;
 use std::{cell::RefCell, eprintln, rc::Rc};
+use tc39_test262::{ErrorType, Harness, Outcome, Phase, SpecEdition, Test, TestSuite};
 
 use self::js262::WorkerHandles;
 
-impl TestSuite {
+pub(crate) trait RunTest<TO, TR> {
+    /// Runs the test.
+    fn run(&self, harness: &Harness, verbose: u8, optimizer_options: TO, console: bool) -> TR;
+
+    /// Runs the test once, in strict or non-strict mode
+    fn run_once(
+        &self,
+        harness: &Harness,
+        strict: bool,
+        verbose: u8,
+        optimizer_options: OptimizerOptions,
+        console: bool,
+    ) -> TestResult;
+}
+
+pub(crate) trait RunTestSuite<TO, TR> {
     /// Runs the test suite.
-    pub(crate) fn run(
+    fn run(
+        &self,
+        harness: &Harness,
+        verbose: u8,
+        parallel: bool,
+        max_edition: SpecEdition,
+        optimizer_options: OptimizerOptions,
+        console: bool,
+    ) -> SuiteResult;
+}
+
+impl RunTestSuite<OptimizerOptions, SuiteResult> for TestSuite {
+    /// Runs the test suite.
+    fn run(
         &self,
         harness: &Harness,
         verbose: u8,
@@ -159,9 +186,9 @@ impl TestSuite {
     }
 }
 
-impl Test {
+impl RunTest<OptimizerOptions, TestResult> for Test {
     /// Runs the test.
-    pub(crate) fn run(
+    fn run(
         &self,
         harness: &Harness,
         verbose: u8,
@@ -262,7 +289,8 @@ impl Test {
 
                 let mut handles = WorkerHandles::new();
 
-                if let Err(e) = self.set_up_env(
+                if let Err(e) = set_up_env(
+                    &self,
                     harness,
                     context,
                     async_result.clone(),
@@ -452,7 +480,8 @@ impl Test {
 
                 let mut handles = WorkerHandles::new();
 
-                if let Err(e) = self.set_up_env(
+                if let Err(e) = set_up_env(
+                    &self,
                     harness,
                     context,
                     AsyncResult::default(),
@@ -588,73 +617,73 @@ impl Test {
             result_text: result_text.into_boxed_str(),
         }
     }
+}
 
-    /// Sets the environment up to run the test.
-    fn set_up_env(
-        &self,
-        harness: &Harness,
-        context: &mut Context,
-        async_result: AsyncResult,
-        handles: WorkerHandles,
-        console: bool,
-    ) -> Result<(), String> {
-        // Register the print() function.
-        register_print_fn(context, async_result);
+/// Sets the environment up to run the test.
+fn set_up_env(
+    test: &Test,
+    harness: &Harness,
+    context: &mut Context,
+    async_result: AsyncResult,
+    handles: WorkerHandles,
+    console: bool,
+) -> Result<(), String> {
+    // Register the print() function.
+    register_print_fn(context, async_result);
 
-        // add the $262 object.
-        let _js262 = js262::register_js262(handles, context);
+    // add the $262 object.
+    let _js262 = js262::register_js262(handles, context);
 
-        if console {
-            let console = boa_runtime::Console::init(context);
-            context
-                .register_global_property(
-                    js_string!(boa_runtime::Console::NAME),
-                    console,
-                    Attribute::all(),
-                )
-                .expect("the console builtin shouldn't exist");
-        }
-
-        if self.flags.contains(TestFlags::RAW) {
-            return Ok(());
-        }
-
-        let assert = Source::from_reader(
-            harness.assert.content.as_bytes(),
-            Some(&harness.assert.path),
-        );
-        let sta = Source::from_reader(harness.sta.content.as_bytes(), Some(&harness.sta.path));
-
+    if console {
+        let console = boa_runtime::Console::init(context);
         context
-            .eval(assert)
-            .map_err(|e| format!("could not run assert.js:\n{e}"))?;
-        context
-            .eval(sta)
-            .map_err(|e| format!("could not run sta.js:\n{e}"))?;
-
-        if self.flags.contains(TestFlags::ASYNC) {
-            let dph = Source::from_reader(
-                harness.doneprint_handle.content.as_bytes(),
-                Some(&harness.doneprint_handle.path),
-            );
-            context
-                .eval(dph)
-                .map_err(|e| format!("could not run doneprintHandle.js:\n{e}"))?;
-        }
-
-        for include_name in &self.includes {
-            let include = harness
-                .includes
-                .get(include_name)
-                .ok_or_else(|| format!("could not find the {include_name} include file."))?;
-            let source = Source::from_reader(include.content.as_bytes(), Some(&include.path));
-            context.eval(source).map_err(|e| {
-                format!("could not run the harness `{include_name}`:\nUncaught {e}",)
-            })?;
-        }
-
-        Ok(())
+            .register_global_property(
+                js_string!(boa_runtime::Console::NAME),
+                console,
+                Attribute::all(),
+            )
+            .expect("the console builtin shouldn't exist");
     }
+
+    if test.flags.contains(TestFlags::RAW) {
+        return Ok(());
+    }
+
+    let assert = Source::from_reader(
+        harness.assert.content.as_bytes(),
+        Some(&harness.assert.path),
+    );
+    let sta = Source::from_reader(harness.sta.content.as_bytes(), Some(&harness.sta.path));
+
+    context
+        .eval(assert)
+        .map_err(|e| format!("could not run assert.js:\n{e}"))?;
+    context
+        .eval(sta)
+        .map_err(|e| format!("could not run sta.js:\n{e}"))?;
+
+    if test.flags.contains(TestFlags::ASYNC) {
+        let dph = Source::from_reader(
+            harness.doneprint_handle.content.as_bytes(),
+            Some(&harness.doneprint_handle.path),
+        );
+        context
+            .eval(dph)
+            .map_err(|e| format!("could not run doneprintHandle.js:\n{e}"))?;
+    }
+
+    for include_name in &test.includes {
+        let include = harness
+            .includes
+            .get(include_name)
+            .ok_or_else(|| format!("could not find the {include_name} include file."))?;
+        let source = Source::from_reader(include.content.as_bytes(), Some(&include.path));
+        context
+            .eval(source)
+            .map_err(|e| format!("could not run the harness `{include_name}`:\nUncaught {e}",))?;
+    }
+
+    Ok(())
 }
 
 /// Returns `true` if `error` is a `target_type` error.
