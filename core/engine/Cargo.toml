@@ -2,7 +2,7 @@
 name = "boa_engine"
 keywords = ["javascript", "js", "compiler", "lexer", "parser"]
 categories = ["parser-implementations", "compilers"]
-readme = "../README.md"
+readme = "../../README.md"
 description.workspace = true
 version.workspace = true
 edition.workspace = true
