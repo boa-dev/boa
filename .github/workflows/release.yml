@@ -40,6 +40,42 @@ jobs:
             --no-git-commit \
             skip
 
+  npm_publish:
+    name: Publish crates
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: wasm32-unknown-unknown
+          profile: minimal
+          override: true
+
+      - name: Install wasm-pack
+        uses: jetli/wasm-pack-action@v0.4.0
+        with:
+          version: 'latest'
+      
+      - name: Build boa_wasm
+        run: wasm-pack build --scope boa-dev ./ffi/wasm
+
+      - name: Set-up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Set-up npm config for publishing
+        run: npm config set -- '//registry.npmjs.org/:_authToken' "${{ secrets.NPM_TOKEN }}"
+
+      - name: Publish to npm
+        run: npm publish ./ffi/wasm/pkg --access=public
+
+
   doc-publish:
     name: Publish documentation
     needs: publish
