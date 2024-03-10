@@ -989,7 +989,6 @@
 <a href="#988" id="988">988</a>
 <a href="#989" id="989">989</a>
 <a href="#990" id="990">990</a>
-<a href="#991" id="991">991</a>
 </pre></div><pre class="rust"><code><span class="comment">// Boa's implementation of the `Temporal.Duration` Builtin Object.
 
 </span><span class="kw">use crate</span>::{
@@ -1260,7 +1259,7 @@
 
         <span class="comment">// 11. If nanoseconds is undefined, let ns be 0; else let ns be ? ToIntegerIfIntegral(nanoseconds).
         </span><span class="kw">let </span>nanoseconds = f64::from(
-            args.get(<span class="number">8</span>)
+            args.get(<span class="number">9</span>)
                 .map_or(<span class="prelude-val">Ok</span>(<span class="number">0</span>), |ns| to_integer_if_integral(ns, context))<span class="question-mark">?</span>,
         );
 
@@ -1535,7 +1534,6 @@
             microseconds,
             nanoseconds,
         )<span class="question-mark">?</span>;
-
         create_temporal_duration(new_duration, <span class="prelude-val">None</span>, context).map(Into::into)
     }
 
@@ -1899,63 +1897,63 @@
     </span><span class="kw">let </span>hours = unknown_object.get(<span class="macro">utf16!</span>(<span class="string">"hours"</span>), context)<span class="question-mark">?</span>;
     <span class="comment">// 7. If hours is not undefined, set result.[[Hours]] to ? ToIntegerIfIntegral(hours).
     </span><span class="kw">if </span>!hours.is_undefined() {
-        result.set_days(f64::from(to_integer_if_integral(<span class="kw-2">&amp;</span>hours, context)<span class="question-mark">?</span>));
+        result.set_hours(f64::from(to_integer_if_integral(<span class="kw-2">&amp;</span>hours, context)<span class="question-mark">?</span>));
     }
 
     <span class="comment">// 8. Let microseconds be ? Get(temporalDurationLike, "microseconds").
     </span><span class="kw">let </span>microseconds = unknown_object.get(<span class="macro">utf16!</span>(<span class="string">"microseconds"</span>), context)<span class="question-mark">?</span>;
     <span class="comment">// 9. If microseconds is not undefined, set result.[[Microseconds]] to ? ToIntegerIfIntegral(microseconds).
     </span><span class="kw">if </span>!microseconds.is_undefined() {
-        result.set_days(f64::from(to_integer_if_integral(<span class="kw-2">&amp;</span>microseconds, context)<span class="question-mark">?</span>));
+        result.set_microseconds(f64::from(to_integer_if_integral(<span class="kw-2">&amp;</span>microseconds, context)<span class="question-mark">?</span>));
     }
 
     <span class="comment">// 10. Let milliseconds be ? Get(temporalDurationLike, "milliseconds").
     </span><span class="kw">let </span>milliseconds = unknown_object.get(<span class="macro">utf16!</span>(<span class="string">"milliseconds"</span>), context)<span class="question-mark">?</span>;
     <span class="comment">// 11. If milliseconds is not undefined, set result.[[Milliseconds]] to ? ToIntegerIfIntegral(milliseconds).
     </span><span class="kw">if </span>!milliseconds.is_undefined() {
-        result.set_days(f64::from(to_integer_if_integral(<span class="kw-2">&amp;</span>milliseconds, context)<span class="question-mark">?</span>));
+        result.set_milliseconds(f64::from(to_integer_if_integral(<span class="kw-2">&amp;</span>milliseconds, context)<span class="question-mark">?</span>));
     }
 
     <span class="comment">// 12. Let minutes be ? Get(temporalDurationLike, "minutes").
     </span><span class="kw">let </span>minutes = unknown_object.get(<span class="macro">utf16!</span>(<span class="string">"minutes"</span>), context)<span class="question-mark">?</span>;
     <span class="comment">// 13. If minutes is not undefined, set result.[[Minutes]] to ? ToIntegerIfIntegral(minutes).
     </span><span class="kw">if </span>!minutes.is_undefined() {
-        result.set_days(f64::from(to_integer_if_integral(<span class="kw-2">&amp;</span>minutes, context)<span class="question-mark">?</span>));
+        result.set_minutes(f64::from(to_integer_if_integral(<span class="kw-2">&amp;</span>minutes, context)<span class="question-mark">?</span>));
     }
 
     <span class="comment">// 14. Let months be ? Get(temporalDurationLike, "months").
     </span><span class="kw">let </span>months = unknown_object.get(<span class="macro">utf16!</span>(<span class="string">"months"</span>), context)<span class="question-mark">?</span>;
     <span class="comment">// 15. If months is not undefined, set result.[[Months]] to ? ToIntegerIfIntegral(months).
     </span><span class="kw">if </span>!months.is_undefined() {
-        result.set_days(f64::from(to_integer_if_integral(<span class="kw-2">&amp;</span>months, context)<span class="question-mark">?</span>));
+        result.set_months(f64::from(to_integer_if_integral(<span class="kw-2">&amp;</span>months, context)<span class="question-mark">?</span>));
     }
 
     <span class="comment">// 16. Let nanoseconds be ? Get(temporalDurationLike, "nanoseconds").
     </span><span class="kw">let </span>nanoseconds = unknown_object.get(<span class="macro">utf16!</span>(<span class="string">"nanoseconds"</span>), context)<span class="question-mark">?</span>;
     <span class="comment">// 17. If nanoseconds is not undefined, set result.[[Nanoseconds]] to ? ToIntegerIfIntegral(nanoseconds).
     </span><span class="kw">if </span>!nanoseconds.is_undefined() {
-        result.set_days(f64::from(to_integer_if_integral(<span class="kw-2">&amp;</span>nanoseconds, context)<span class="question-mark">?</span>));
+        result.set_nanoseconds(f64::from(to_integer_if_integral(<span class="kw-2">&amp;</span>nanoseconds, context)<span class="question-mark">?</span>));
     }
 
     <span class="comment">// 18. Let seconds be ? Get(temporalDurationLike, "seconds").
     </span><span class="kw">let </span>seconds = unknown_object.get(<span class="macro">utf16!</span>(<span class="string">"seconds"</span>), context)<span class="question-mark">?</span>;
     <span class="comment">// 19. If seconds is not undefined, set result.[[Seconds]] to ? ToIntegerIfIntegral(seconds).
     </span><span class="kw">if </span>!seconds.is_undefined() {
-        result.set_days(f64::from(to_integer_if_integral(<span class="kw-2">&amp;</span>seconds, context)<span class="question-mark">?</span>));
+        result.set_seconds(f64::from(to_integer_if_integral(<span class="kw-2">&amp;</span>seconds, context)<span class="question-mark">?</span>));
     }
 
     <span class="comment">// 20. Let weeks be ? Get(temporalDurationLike, "weeks").
     </span><span class="kw">let </span>weeks = unknown_object.get(<span class="macro">utf16!</span>(<span class="string">"weeks"</span>), context)<span class="question-mark">?</span>;
     <span class="comment">// 21. If weeks is not undefined, set result.[[Weeks]] to ? ToIntegerIfIntegral(weeks).
     </span><span class="kw">if </span>!weeks.is_undefined() {
-        result.set_days(f64::from(to_integer_if_integral(<span class="kw-2">&amp;</span>weeks, context)<span class="question-mark">?</span>));
+        result.set_weeks(f64::from(to_integer_if_integral(<span class="kw-2">&amp;</span>weeks, context)<span class="question-mark">?</span>));
     }
 
     <span class="comment">// 22. Let years be ? Get(temporalDurationLike, "years").
     </span><span class="kw">let </span>years = unknown_object.get(<span class="macro">utf16!</span>(<span class="string">"years"</span>), context)<span class="question-mark">?</span>;
     <span class="comment">// 23. If years is not undefined, set result.[[Years]] to ? ToIntegerIfIntegral(years).
     </span><span class="kw">if </span>!years.is_undefined() {
-        result.set_days(f64::from(to_integer_if_integral(<span class="kw-2">&amp;</span>years, context)<span class="question-mark">?</span>));
+        result.set_years(f64::from(to_integer_if_integral(<span class="kw-2">&amp;</span>years, context)<span class="question-mark">?</span>));
     }
 
     <span class="comment">// TODO: Implement this functionality better in `temporal_rs`.
