@@ -661,20 +661,8 @@ impl Duration {
         let rounding_increment = get_temporal_rounding_increment(&round_to, context)?;
 
         // 14. Let roundingMode be ? ToTemporalRoundingMode(roundTo, "halfExpand").
-        let rounding_mode =
-            get_option(&round_to, utf16!("roundingMode"), context)?.map(|rounding_mode| {
-                match rounding_mode {
-                    RoundingMode::Ceil => TemporalRoundingMode::Ceil,
-                    RoundingMode::Floor => TemporalRoundingMode::Floor,
-                    RoundingMode::Expand => TemporalRoundingMode::Expand,
-                    RoundingMode::Trunc => TemporalRoundingMode::Trunc,
-                    RoundingMode::HalfCeil => TemporalRoundingMode::HalfCeil,
-                    RoundingMode::HalfFloor => TemporalRoundingMode::HalfFloor,
-                    RoundingMode::HalfExpand => TemporalRoundingMode::HalfExpand,
-                    RoundingMode::HalfTrunc => TemporalRoundingMode::HalfTrunc,
-                    RoundingMode::HalfEven => TemporalRoundingMode::HalfEven,
-                }
-            });
+        let rounding_mode: Option<TemporalRoundingMode> =
+            get_option::<RoundingMode>(&round_to, utf16!("roundingMode"), context)?.map(Into::into);
 
         // 15. Let smallestUnit be ? GetTemporalUnit(roundTo, "smallestUnit", datetime, undefined).
         let smallest_unit = get_temporal_unit(
@@ -705,23 +693,7 @@ impl Duration {
             },
             context,
         )?;
-        create_temporal_duration(
-            InnerDuration::new(
-                rounded_duration.years(),
-                rounded_duration.months(),
-                rounded_duration.weeks(),
-                rounded_duration.days(),
-                rounded_duration.hours(),
-                rounded_duration.minutes(),
-                rounded_duration.seconds(),
-                rounded_duration.milliseconds(),
-                rounded_duration.microseconds(),
-                rounded_duration.nanoseconds(),
-            )?,
-            None,
-            context,
-        )
-        .map(Into::into)
+        create_temporal_duration(rounded_duration, None, context).map(Into::into)
     }
 
     /// 7.3.21 `Temporal.Duration.prototype.total ( totalOf )`

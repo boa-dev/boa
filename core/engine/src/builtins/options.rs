@@ -2,6 +2,8 @@
 
 use std::{fmt, str::FromStr};
 
+use temporal_rs::options::TemporalRoundingMode;
+
 use crate::{object::JsObject, Context, JsNativeError, JsResult, JsString, JsValue};
 
 /// A type used as an option parameter for [`get_option`].
@@ -136,6 +138,22 @@ pub(crate) enum RoundingMode {
     HalfExpand,
     HalfTrunc,
     HalfEven,
+}
+
+impl From<RoundingMode> for TemporalRoundingMode {
+    fn from(rounding_mode: RoundingMode) -> Self {
+        match rounding_mode {
+            RoundingMode::Ceil => TemporalRoundingMode::Ceil,
+            RoundingMode::Floor => TemporalRoundingMode::Floor,
+            RoundingMode::Expand => TemporalRoundingMode::Expand,
+            RoundingMode::Trunc => TemporalRoundingMode::Trunc,
+            RoundingMode::HalfCeil => TemporalRoundingMode::HalfCeil,
+            RoundingMode::HalfFloor => TemporalRoundingMode::HalfFloor,
+            RoundingMode::HalfExpand => TemporalRoundingMode::HalfExpand,
+            RoundingMode::HalfTrunc => TemporalRoundingMode::HalfTrunc,
+            RoundingMode::HalfEven => TemporalRoundingMode::HalfEven,
+        }
+    }
 }
 
 impl RoundingMode {
