@@ -15,7 +15,10 @@ use crate::{
 };
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
-use temporal_rs::{components::Duration as InnerDuration, options::TemporalUnit};
+use temporal_rs::{
+    components::Duration as InnerDuration,
+    options::{RelativeTo, TemporalRoundingMode, TemporalUnit},
+};
 
 use super::{
     options::{get_temporal_rounding_increment, get_temporal_unit, TemporalUnitGroup},
@@ -591,7 +594,6 @@ impl Duration {
             .into())
     }
 
-    // TODO: Migrate to `temporal_rs's Duration::round`
     /// 7.3.20 `Temporal.Duration.prototype.round ( roundTo )`
     pub(crate) fn round(
         this: &JsValue,
@@ -652,15 +654,27 @@ impl Duration {
         // 10. Let relativeToRecord be ? ToRelativeTemporalObject(roundTo).
         // 11. Let zonedRelativeTo be relativeToRecord.[[ZonedRelativeTo]].
         // 12. Let plainRelativeTo be relativeToRecord.[[PlainRelativeTo]].
-        let (_plain_relative_to, _zoned_relative_to) =
+        let (plain_relative_to, zoned_relative_to) =
             super::to_relative_temporal_object(&round_to, context)?;
 
         // 13. Let roundingIncrement be ? ToTemporalRoundingIncrement(roundTo).
-        let _rounding_increment = get_temporal_rounding_increment(&round_to, context)?;
+        let rounding_increment = get_temporal_rounding_increment(&round_to, context)?;
 
         // 14. Let roundingMode be ? ToTemporalRoundingMode(roundTo, "halfExpand").
-        let _rounding_mode = get_option(&round_to, utf16!("roundingMode"), context)?
-            .unwrap_or(RoundingMode::HalfExpand);
+        let rounding_mode =
+            get_option(&round_to, utf16!("roundingMode"), context)?.map(|rounding_mode| {
+                match rounding_mode {
+                    RoundingMode::Ceil => TemporalRoundingMode::Ceil,
+                    RoundingMode::Floor => TemporalRoundingMode::Floor,
+                    RoundingMode::Expand => TemporalRoundingMode::Expand,
+                    RoundingMode::Trunc => TemporalRoundingMode::Trunc,
+                    RoundingMode::HalfCeil => TemporalRoundingMode::HalfCeil,
+                    RoundingMode::HalfFloor => TemporalRoundingMode::HalfFloor,
+                    RoundingMode::HalfExpand => TemporalRoundingMode::HalfExpand,
+                    RoundingMode::HalfTrunc => TemporalRoundingMode::HalfTrunc,
+                    RoundingMode::HalfEven => TemporalRoundingMode::HalfEven,
+                }
+            });
 
         // 15. Let smallestUnit be ? GetTemporalUnit(roundTo, "smallestUnit", datetime, undefined).
         let smallest_unit = get_temporal_unit(
@@ -679,11 +693,35 @@ impl Duration {
                 .with_message("smallestUnit or largestUnit must be present.")
                 .into());
         }
-
-        // NOTE:
-        Err(JsNativeError::range()
-            .with_message("not yet implemented.")
-            .into())
+        let duration = to_temporal_duration(this, context)?;
+        let rounded_duration = duration.round(
+            rounding_increment,
+            smallest_unit,
+            largest_unit,
+            rounding_mode,
+            &RelativeTo {
+                date: plain_relative_to.as_ref(),
+                zdt: zoned_relative_to.as_ref(),
+            },
+            context,
+        )?;
+        create_temporal_duration(
+            InnerDuration::new(
+                rounded_duration.years(),
+                rounded_duration.months(),
+                rounded_duration.weeks(),
+                rounded_duration.days(),
+                rounded_duration.hours(),
+                rounded_duration.minutes(),
+                rounded_duration.seconds(),
+                rounded_duration.milliseconds(),
+                rounded_duration.microseconds(),
+                rounded_duration.nanoseconds(),
+            )?,
+            None,
+            context,
+        )
+        .map(Into::into)
     }
 
     /// 7.3.21 `Temporal.Duration.prototype.total ( totalOf )`
