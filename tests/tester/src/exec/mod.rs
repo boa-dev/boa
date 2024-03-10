@@ -13,14 +13,15 @@ use boa_engine::{
     native_function::NativeFunction,
     object::FunctionObjectBuilder,
     optimizer::OptimizerOptions,
+    parser::source::ReadChar,
     property::Attribute,
     script::Script,
-    Context, JsArgs, JsError, JsNativeErrorKind, JsValue, Source,
+    Context, JsArgs, JsError, JsNativeErrorKind, JsResult, JsValue, Source,
 };
 use colored::Colorize;
 use rayon::prelude::*;
 use rustc_hash::FxHashSet;
-use std::{cell::RefCell, eprintln, rc::Rc};
+use std::{cell::RefCell, eprintln, path::Path, rc::Rc};
 
 use self::js262::WorkerHandles;
 
@@ -193,52 +194,79 @@ impl Test {
         }
     }
 
+    /// Creates the test result from the outcome and message.
+    fn create_result<S: Into<Box<str>>>(
+        &self,
+        outcome: TestOutcomeResult,
+        text: S,
+        strict: bool,
+        verbosity: u8,
+    ) -> TestResult {
+        let result_text = text.into();
+
+        if verbosity > 1 {
+            println!(
+                "`{}`{}: {}",
+                self.path.display(),
+                if strict { " (strict)" } else { "" },
+                match outcome {
+                    TestOutcomeResult::Passed => "Passed".green(),
+                    TestOutcomeResult::Ignored => "Ignored".yellow(),
+                    TestOutcomeResult::Failed => "Failed".red(),
+                    TestOutcomeResult::Panic => "⚠ Panic ⚠".red(),
+                }
+            );
+        } else {
+            let symbol = match outcome {
+                TestOutcomeResult::Passed => ".".green(),
+                TestOutcomeResult::Ignored => "-".yellow(),
+                TestOutcomeResult::Failed | TestOutcomeResult::Panic => "F".red(),
+            };
+
+            print!("{symbol}");
+        }
+
+        if verbosity > 2 {
+            println!(
+                "`{}`{}: result text",
+                self.path.display(),
+                if strict { " (strict)" } else { "" },
+            );
+            println!("{}", result_text);
+            println!();
+        }
+
+        TestResult {
+            name: self.name.clone(),
+            edition: self.edition,
+            result_text,
+            result: outcome,
+        }
+    }
+
     /// Runs the test once, in strict or non-strict mode
     fn run_once(
         &self,
         harness: &Harness,
         strict: bool,
-        verbose: u8,
+        verbosity: u8,
         optimizer_options: OptimizerOptions,
         console: bool,
     ) -> TestResult {
         let Ok(source) = Source::from_filepath(&self.path) else {
-            if verbose > 1 {
-                println!(
-                    "`{}`{}: {}",
-                    self.path.display(),
-                    if strict { " (strict mode)" } else { "" },
-                    "Invalid file".red()
-                );
-            } else {
-                print!("{}", "F".red());
-            }
-            return TestResult {
-                name: self.name.clone(),
-                edition: self.edition,
-                result: TestOutcomeResult::Failed,
-                result_text: Box::from("Could not read test file."),
-            };
+            return self.create_result(
+                TestOutcomeResult::Failed,
+                "Could not read test file",
+                strict,
+                verbosity,
+            );
         };
+
         if self.ignored {
-            if verbose > 1 {
-                println!(
-                    "`{}`{}: {}",
-                    self.path.display(),
-                    if strict { " (strict mode)" } else { "" },
-                    "Ignored".yellow()
-                );
-            } else {
-                print!("{}", "-".yellow());
-            }
-            return TestResult {
-                name: self.name.clone(),
-                edition: self.edition,
-                result: TestOutcomeResult::Ignored,
-                result_text: Box::default(),
-            };
+            return self.create_result(TestOutcomeResult::Ignored, "", strict, verbosity);
         }
-        if verbose > 1 {
+
+        if verbosity > 1 {
             println!(
                 "`{}`{}: starting",
                 self.path.display(),
@@ -248,46 +276,18 @@ impl Test {
 
         let result = std::panic::catch_unwind(|| match self.expected_outcome {
             Outcome::Positive => {
-                let async_result = AsyncResult::default();
-                let loader = Rc::new(
-                    SimpleModuleLoader::new(
-                        self.path.parent().expect("test should have a parent dir"),
-                    )
-                    .expect("test path should be canonicalizable"),
-                );
-                let context = &mut Context::builder()
-                    .module_loader(loader.clone())
-                    .can_block(!self.flags.contains(TestFlags::CAN_BLOCK_IS_FALSE))
-                    .build()
-                    .expect("cannot fail with default global object");
-
-                let mut handles = WorkerHandles::new();
-
-                if let Err(e) = self.set_up_env(
-                    harness,
-                    context,
-                    async_result.clone(),
-                    handles.clone(),
-                    console,
-                ) {
-                    return (false, e);
-                }
-
-                context.set_optimizer_options(optimizer_options);
+                let (ref mut context, async_result, mut handles) =
+                    match self.create_context(harness, optimizer_options, console) {
+                        Ok(r) => r,
+                        Err(e) => return (false, e),
+                    };
 
                 // TODO: timeout
                 let value = if self.is_module() {
-                    let module = match Module::parse(source, None, context) {
+                    let module = match parse_module_and_register(source, &self.path, context) {
                         Ok(module) => module,
                         Err(err) => return (false, format!("Uncaught {err}")),
                     };
-
-                    loader.insert(
-                        self.path
-                            .canonicalize()
-                            .expect("test path should be canonicalizable"),
-                        module.clone(),
-                    );
 
                     let promise = module.load_link_evaluate(context);
 
@@ -337,9 +337,7 @@ impl Test {
                     _ => {}
                 }
 
-                let results = handles.join_all();
-
-                for result in results {
+                for result in handles.join_all() {
                     match result {
                         js262::WorkerResult::Err(msg) => return (false, msg),
                         js262::WorkerResult::Panic(msg) => panic!("Worker thread panicked: {msg}"),
@@ -362,8 +360,6 @@ impl Test {
 
                 let context = &mut Context::default();
 
-                context.set_optimizer_options(OptimizerOptions::OPTIMIZE_ALL);
-
                 if self.is_module() {
                     match Module::parse(source, None, context) {
                         Ok(_) => (false, "ModuleItemList parsing should fail".to_owned()),
@@ -381,28 +377,17 @@ impl Test {
                 phase: Phase::Resolution,
                 error_type,
             } => {
-                let loader = Rc::new(
-                    SimpleModuleLoader::new(
-                        self.path.parent().expect("test should have a parent dir"),
-                    )
-                    .expect("test path should be canonicalizable"),
-                );
-                let context = &mut Context::builder()
-                    .module_loader(loader.clone())
-                    .build()
-                    .expect("cannot fail with default global object");
+                let ref mut context =
+                    match self.create_context(harness, optimizer_options, console) {
+                        Ok(r) => r,
+                        Err(e) => return (false, e),
+                    }
+                    .0;
 
-                let module = match Module::parse(source, None, context) {
+                let module = match parse_module_and_register(source, &self.path, context) {
                     Ok(module) => module,
                     Err(err) => return (false, format!("Uncaught {err}")),
                 };
-
-                loader.insert(
-                    self.path
-                        .canonicalize()
-                        .expect("test path should be canonicalizable"),
-                    module.clone(),
-                );
 
                 let promise = module.load(context);
 
@@ -437,43 +422,17 @@ impl Test {
                 phase: Phase::Runtime,
                 error_type,
             } => {
-                let loader = Rc::new(
-                    SimpleModuleLoader::new(
-                        self.path.parent().expect("test should have a parent dir"),
-                    )
-                    .expect("test path should be canonicalizable"),
-                );
-                let context = &mut Context::builder()
-                    .module_loader(loader.clone())
-                    .can_block(!self.flags.contains(TestFlags::CAN_BLOCK_IS_FALSE))
-                    .build()
-                    .expect("cannot fail with default global object");
-                context.strict(strict);
-                context.set_optimizer_options(optimizer_options);
-
-                let mut handles = WorkerHandles::new();
-
-                if let Err(e) = self.set_up_env(
-                    harness,
-                    context,
-                    AsyncResult::default(),
-                    handles.clone(),
-                    console,
-                ) {
-                    return (false, e);
-                }
-                let error = if self.is_module() {
-                    let module = match Module::parse(source, None, context) {
-                        Ok(module) => module,
-                        Err(e) => return (false, format!("Uncaught {e}")),
+                let (ref mut context, _async_result, mut handles) =
+                    match self.create_context(harness, optimizer_options, console) {
+                        Ok(r) => r,
+                        Err(e) => return (false, e),
                     };
 
-                    loader.insert(
-                        self.path
-                            .canonicalize()
-                            .expect("test path should be canonicalizable"),
-                        module.clone(),
-                    );
+                let error = if self.is_module() {
+                    let module = match parse_module_and_register(source, &self.path, context) {
+                        Ok(module) => module,
+                        Err(err) => return (false, format!("Uncaught {err}")),
+                    };
 
                     let promise = module.load(context);
 
@@ -517,9 +476,7 @@ impl Test {
                     }
                 };
 
-                let results = handles.join_all();
-
-                for result in results {
+                for result in handles.join_all() {
                     match result {
                         js262::WorkerResult::Err(msg) => return (false, msg),
                         js262::WorkerResult::Panic(msg) => panic!("Worker thread panicked: {msg}"),
@@ -548,65 +505,38 @@ impl Test {
             },
         );
 
-        if verbose > 1 {
-            println!(
-                "`{}`{}: {}",
-                self.path.display(),
-                if strict { " (strict mode)" } else { "" },
-                if result == TestOutcomeResult::Passed {
-                    "Passed".green()
-                } else if result == TestOutcomeResult::Failed {
-                    "Failed".red()
-                } else {
-                    "⚠ Panic ⚠".red()
-                }
-            );
-        } else {
-            print!(
-                "{}",
-                if result == TestOutcomeResult::Passed {
-                    ".".green()
-                } else {
-                    "F".red()
-                }
-            );
-        }
-
-        if verbose > 2 {
-            println!(
-                "`{}`{}: result text",
-                self.path.display(),
-                if strict { " (strict mode)" } else { "" },
-            );
-            println!("{result_text}");
-            println!();
-        }
-
-        TestResult {
-            name: self.name.clone(),
-            edition: self.edition,
-            result,
-            result_text: result_text.into_boxed_str(),
-        }
+        self.create_result(result, result_text, strict, verbosity)
     }
 
-    /// Sets the environment up to run the test.
-    fn set_up_env(
+    /// Creates the context to run the test.
+    fn create_context(
         &self,
         harness: &Harness,
-        context: &mut Context,
-        async_result: AsyncResult,
-        handles: WorkerHandles,
+        optimizer_options: OptimizerOptions,
         console: bool,
-    ) -> Result<(), String> {
+    ) -> Result<(Context, AsyncResult, WorkerHandles), String> {
+        let async_result = AsyncResult::default();
+        let handles = WorkerHandles::new();
+        let loader = Rc::new(
+            SimpleModuleLoader::new(self.path.parent().expect("test should have a parent dir"))
+                .expect("test path should be canonicalizable"),
+        );
+        let mut context = Context::builder()
+            .module_loader(loader.clone())
+            .can_block(!self.flags.contains(TestFlags::CAN_BLOCK_IS_FALSE))
+            .build()
+            .expect("cannot fail with default global object");
+
+        context.set_optimizer_options(optimizer_options);
+
         // Register the print() function.
-        register_print_fn(context, async_result);
+        register_print_fn(&mut context, async_result.clone());
 
         // add the $262 object.
-        let _js262 = js262::register_js262(handles, context);
+        let _js262 = js262::register_js262(handles.clone(), &mut context);
 
         if console {
-            let console = boa_runtime::Console::init(context);
+            let console = boa_runtime::Console::init(&mut context);
             context
                 .register_global_property(
                     js_string!(boa_runtime::Console::NAME),
@@ -617,7 +547,7 @@ impl Test {
         }
 
         if self.flags.contains(TestFlags::RAW) {
-            return Ok(());
+            return Ok((context, async_result, handles));
         }
 
         let assert = Source::from_reader(
@@ -654,7 +584,7 @@ impl Test {
             })?;
         }
 
-        Ok(())
+        Ok((context, async_result, handles))
     }
 }
 
@@ -727,11 +657,31 @@ fn register_print_fn(context: &mut Context, async_result: AsyncResult) {
         .expect("shouldn't fail with the default global");
 }
 
+/// Parses a module and registers it into the `ModuleLoader` of the context.
+fn parse_module_and_register(
+    source: Source<'_, impl ReadChar>,
+    path: &Path,
+    context: &mut Context,
+) -> JsResult<Module> {
+    let module = Module::parse(source, None, context)?;
+
+    let path = js_string!(&*path
+        .canonicalize()
+        .expect("test path should be canonicalizable")
+        .to_string_lossy());
+
+    context
+        .module_loader()
+        .register_module(path, module.clone());
+
+    Ok(module)
+}
+
 /// A `Result` value that is possibly uninitialized.
 ///
 /// This is mainly used to check if an async test did call `print` to signal the termination of
 /// a test. Otherwise, all async tests that result in `UninitResult::Uninit` are considered
-/// as failed.
+/// failures.
 ///
 /// The Test262 [interpreting guide][guide] contains more information about how to run async tests.
 ///
