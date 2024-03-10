@@ -17,7 +17,7 @@ use boa_parser::{source::ReadChar, Parser, Source};
 use boa_profiler::Profiler;
 
 use crate::{
-    bytecompiler::ByteCompiler,
+    bytecompiler::{global_declaration_instantiation_annex_b, ByteCompiler},
     js_string,
     realm::Realm,
     vm::{ActiveRunnable, CallFrame, CallFrameFlags, CodeBlock},
@@ -119,6 +119,17 @@ impl Script {
 
         let _timer = Profiler::global().start_event("Script compilation", "Main");
 
+        #[cfg(feature = "annex-b")]
+        let mut annex_b_function_names = Vec::new();
+
+        #[cfg(feature = "annex-b")]
+        global_declaration_instantiation_annex_b(
+            &mut annex_b_function_names,
+            &self.inner.source,
+            &self.inner.realm.environment().compile_env(),
+            context,
+        )?;
+
         let mut compiler = ByteCompiler::new(
             js_string!("<main>"),
             self.inner.source.strict(),
@@ -127,6 +138,12 @@ impl Script {
             self.inner.realm.environment().compile_env(),
             context,
         );
+
+        #[cfg(feature = "annex-b")]
+        {
+            compiler.annex_b_function_names = annex_b_function_names;
+        }
+
         // TODO: move to `Script::evaluate` to make this operation infallible.
         compiler.global_declaration_instantiation(
             &self.inner.source,

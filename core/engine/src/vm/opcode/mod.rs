@@ -17,6 +17,7 @@ mod dup;
 mod environment;
 mod generator;
 mod get;
+mod global;
 mod iteration;
 mod meta;
 mod modifier;
@@ -59,6 +60,8 @@ pub(crate) use environment::*;
 pub(crate) use generator::*;
 #[doc(inline)]
 pub(crate) use get::*;
+#[doc(inline)]
+pub(crate) use global::*;
 #[doc(inline)]
 pub(crate) use iteration::*;
 #[doc(inline)]
@@ -1590,6 +1593,34 @@ generate_opcodes! {
     /// Stack: **=>**
     ThrowNewTypeError { message: VaryingOperand },
 
+    /// Throw a new `SyntaxError` exception
+    ///
+    /// Operands: message: u32
+    ///
+    /// Stack: **=>**
+    ThrowNewSyntaxError { message: VaryingOperand },
+
+    /// TODO: doc
+    ///
+    /// Operands: name_index: u32
+    ///
+    /// Stack: **=>**
+    HasRestrictedGlobalProperty { index: VaryingOperand },
+
+    /// TODO: doc
+    ///
+    /// Operands: name_index: u32
+    ///
+    /// Stack: **=>**
+    CanDeclareGlobalFunction { index: VaryingOperand },
+
+    /// TODO: doc
+    ///
+    /// Operands: name_index: u32
+    ///
+    /// Stack: **=>**
+    CanDeclareGlobalVar { index: VaryingOperand },
+
     /// Pops value converts it to boolean and pushes it back.
     ///
     /// Operands:
@@ -2210,14 +2241,6 @@ generate_opcodes! {
     Reserved54 => Reserved,
     /// Reserved [`Opcode`].
     Reserved55 => Reserved,
-    /// Reserved [`Opcode`].
-    Reserved56 => Reserved,
-    /// Reserved [`Opcode`].
-    Reserved57 => Reserved,
-    /// Reserved [`Opcode`].
-    Reserved58 => Reserved,
-    /// Reserved [`Opcode`].
-    Reserved59 => Reserved,
 }
 
 /// Specific opcodes for bindings.

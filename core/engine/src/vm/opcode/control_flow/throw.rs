@@ -151,3 +151,41 @@ impl Operation for ThrowNewTypeError {
         Self::operation(context, index)
     }
 }
+
+/// `ThrowNewSyntaxError` implements the Opcode Operation for `Opcode::ThrowNewSyntaxError`
+///
+/// Operation:
+///  - Throws a `SyntaxError` exception.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct ThrowNewSyntaxError;
+
+impl ThrowNewSyntaxError {
+    fn operation(context: &mut Context, index: usize) -> JsResult<CompletionType> {
+        let msg = context.vm.frame().code_block().constant_string(index);
+        let msg = msg
+            .to_std_string()
+            .expect("throw message must be an ASCII string");
+        Err(JsNativeError::syntax().with_message(msg).into())
+    }
+}
+
+impl Operation for ThrowNewSyntaxError {
+    const NAME: &'static str = "ThrowNewSyntaxError";
+    const INSTRUCTION: &'static str = "INST - ThrowNewSyntaxError";
+    const COST: u8 = 2;
+
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u8>() as usize;
+        Self::operation(context, index)
+    }
+
+    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u16>() as usize;
+        Self::operation(context, index)
+    }
+
+    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u32>() as usize;
+        Self::operation(context, index)
+    }
+}
