@@ -4,15 +4,16 @@ use crate::{HarnessFile, Ignored};
 
 use super::{Harness, Locale, Phase, Test, TestSuite};
 use color_eyre::{
-    eyre::{eyre, WrapErr},
+    eyre::{OptionExt, WrapErr},
     Result,
 };
 use rustc_hash::FxHashMap;
 use serde::Deserialize;
 use std::{
     ffi::OsStr,
-    fs, io,
+    fs,
     path::{Path, PathBuf},
+    sync::OnceLock,
 };
 
 /// Representation of the YAML metadata in Test262 tests.
@@ -135,9 +136,8 @@ pub(super) fn read_suite(
 ) -> Result<TestSuite> {
     let name = path
         .file_name()
-        .ok_or_else(|| eyre!(format!("test suite with no name found: {}", path.display())))?
-        .to_str()
-        .ok_or_else(|| eyre!(format!("non-UTF-8 suite name found: {}", path.display())))?;
+        .and_then(OsStr::to_str)
+        .ok_or_eyre("invalid path for test suite")?;
 
     ignore_suite |= ignored.contains_test(name);
 
@@ -206,14 +206,8 @@ pub(super) fn read_suite(
 pub(super) fn read_test(path: &Path) -> Result<Test> {
     let name = path
         .file_stem()
-        .ok_or_else(|| eyre!("path for test `{}` has no file name", path.display()))?
-        .to_str()
-        .ok_or_else(|| {
-            eyre!(
-                "path for test `{}` is not a valid UTF-8 string",
-                path.display()
-            )
-        })?;
+        .and_then(OsStr::to_str)
+        .ok_or_eyre("invalid path for test")?;
 
     let metadata = read_metadata(path)?;
 
@@ -221,35 +215,25 @@ pub(super) fn read_test(path: &Path) -> Result<Test> {
 }
 
 /// Reads the metadata from the input test code.
-fn read_metadata(test: &Path) -> io::Result<MetaData> {
-    use once_cell::sync::Lazy;
+fn read_metadata(test: &Path) -> Result<MetaData> {
     use regex::bytes::Regex;
 
     /// Regular expression to retrieve the metadata of a test.
-    static META_REGEX: Lazy<Regex> = Lazy::new(|| {
-        Regex::new(r"/\*\-{3}((?:.|\n)*)\-{3}\*/")
-            .expect("could not compile metadata regular expression")
-    });
+    static META_REGEX: OnceLock<Regex> = OnceLock::new();
 
-    let code = fs::read(test)?;
+    let code = fs::read_to_string(test)?;
 
     let yaml = META_REGEX
+        .get_or_init(|| {
+            Regex::new(r"/\*\-{3}((?:.|\n)*)\-{3}\*/")
+                .expect("could not compile metadata regular expression")
+        })
         .captures(&code)
-        .ok_or_else(|| {
-            io::Error::new(
-                io::ErrorKind::InvalidData,
-                format!("no metadata found for test {}", test.display()),
-            )
-        })?
+        .ok_or_eyre("missing metadata for test")?
         .get(1)
         .map(|m| String::from_utf8_lossy(m.as_bytes()))
-        .ok_or_else(|| {
-            io::Error::new(
-                io::ErrorKind::InvalidData,
-                format!("no metadata found for test {}", test.display()),
-            )
-        })?
+        .ok_or_eyre("invalid metadata for test")?
         .replace('\r', "\n");
 
-    serde_yaml::from_str(&yaml).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    serde_yaml::from_str(&yaml).map_err(Into::into)
 }

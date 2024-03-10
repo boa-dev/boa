@@ -732,7 +732,7 @@ fn register_print_fn(context: &mut Context, async_result: AsyncResult) {
 ///
 /// This is mainly used to check if an async test did call `print` to signal the termination of
 /// a test. Otherwise, all async tests that result in `UninitResult::Uninit` are considered
-/// as failed.
+/// failures.
 ///
 /// The Test262 [interpreting guide][guide] contains more information about how to run async tests.
 ///

@@ -580,7 +580,6 @@ dependencies = [
  "color-eyre",
  "colored",
  "comfy-table",
- "once_cell",
  "phf",
  "rayon",
  "regex",

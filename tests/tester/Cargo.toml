@@ -21,7 +21,6 @@ serde_yaml = "0.9.32"
 serde_json.workspace = true
 bitflags.workspace = true
 regex.workspace = true
-once_cell.workspace = true
 colored.workspace = true
 rustc-hash = { workspace = true, features = ["std"] }
 rayon = "1.9.0"
