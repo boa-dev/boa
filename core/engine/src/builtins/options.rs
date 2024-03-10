@@ -140,6 +140,7 @@ pub(crate) enum RoundingMode {
     HalfEven,
 }
 
+#[cfg(feature = "temporal")]
 impl From<RoundingMode> for TemporalRoundingMode {
     fn from(rounding_mode: RoundingMode) -> Self {
         match rounding_mode {
