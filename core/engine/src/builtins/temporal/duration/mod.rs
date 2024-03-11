@@ -2,7 +2,7 @@
 
 use crate::{
     builtins::{
-        options::{get_option, get_options_object, RoundingMode},
+        options::{get_option, get_options_object},
         BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
@@ -602,7 +602,7 @@ impl Duration {
     ) -> JsResult<JsValue> {
         // 1. Let duration be the this value.
         // 2. Perform ? RequireInternalSlot(duration, [[InitializedTemporalDuration]]).
-        let _duration = this
+        let duration = this
             .as_object()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
@@ -661,8 +661,8 @@ impl Duration {
         let rounding_increment = get_temporal_rounding_increment(&round_to, context)?;
 
         // 14. Let roundingMode be ? ToTemporalRoundingMode(roundTo, "halfExpand").
-        let rounding_mode: Option<TemporalRoundingMode> =
-            get_option::<RoundingMode>(&round_to, utf16!("roundingMode"), context)?.map(Into::into);
+        let rounding_mode =
+            get_option::<TemporalRoundingMode>(&round_to, utf16!("roundingMode"), context)?;
 
         // 15. Let smallestUnit be ? GetTemporalUnit(roundTo, "smallestUnit", datetime, undefined).
         let smallest_unit = get_temporal_unit(
@@ -681,8 +681,8 @@ impl Duration {
                 .with_message("smallestUnit or largestUnit must be present.")
                 .into());
         }
-        let duration = to_temporal_duration(this, context)?;
-        let rounded_duration = duration.round(
+        // let duration = to_temporal_duration(this, context)?;
+        let rounded_duration = duration.inner.round(
             rounding_increment,
             smallest_unit,
             largest_unit,

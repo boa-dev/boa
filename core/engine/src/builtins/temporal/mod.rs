@@ -253,7 +253,7 @@ pub(crate) fn to_relative_temporal_object(
     context: &mut Context,
 ) -> RelativeTemporalObjectResult {
     let relative_to = options.get(PropertyKey::from(utf16!("relativeTo")), context)?;
-    let plane_date = match relative_to {
+    let plain_date = match relative_to {
         JsValue::String(relative_to_str) => Some(relative_to_str.into()),
         JsValue::Object(relative_to_obj) => Some(relative_to_obj.into()),
         _ => None,
@@ -262,7 +262,7 @@ pub(crate) fn to_relative_temporal_object(
     .transpose()?;
 
     // TODO: Implement TemporalZonedDateTime conversion when ZonedDateTime is implemented
-    Ok((plane_date, None))
+    Ok((plain_date, None))
 }
 
 // 13.22 `LargerOfTwoTemporalUnits ( u1, u2 )`

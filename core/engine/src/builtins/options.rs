@@ -138,25 +138,6 @@ pub(crate) enum RoundingMode {
     HalfEven,
 }
 
-#[cfg(feature = "temporal")]
-use temporal_rs::options::TemporalRoundingMode;
-#[cfg(feature = "temporal")]
-impl From<RoundingMode> for TemporalRoundingMode {
-    fn from(rounding_mode: RoundingMode) -> Self {
-        match rounding_mode {
-            RoundingMode::Ceil => TemporalRoundingMode::Ceil,
-            RoundingMode::Floor => TemporalRoundingMode::Floor,
-            RoundingMode::Expand => TemporalRoundingMode::Expand,
-            RoundingMode::Trunc => TemporalRoundingMode::Trunc,
-            RoundingMode::HalfCeil => TemporalRoundingMode::HalfCeil,
-            RoundingMode::HalfFloor => TemporalRoundingMode::HalfFloor,
-            RoundingMode::HalfExpand => TemporalRoundingMode::HalfExpand,
-            RoundingMode::HalfTrunc => TemporalRoundingMode::HalfTrunc,
-            RoundingMode::HalfEven => TemporalRoundingMode::HalfEven,
-        }
-    }
-}
-
 impl RoundingMode {
     #[cfg(feature = "intl")]
     pub(crate) fn to_js_string(self) -> JsString {
