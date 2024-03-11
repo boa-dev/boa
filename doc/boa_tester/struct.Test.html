@@ -17,7 +17,7 @@
     &amp;self,
     harness: &amp;<a class="struct" href="struct.Harness.html" title="struct boa_tester::Harness">Harness</a>,
     verbose: <a class="primitive" href="https://doc.rust-lang.org/1.76.0/std/primitive.u8.html">u8</a>,
-    optimizer_options: OptimizerOptions,
+    optimizer_options: <a class="struct" href="../boa_engine/optimizer/struct.OptimizerOptions.html" title="struct boa_engine::optimizer::OptimizerOptions">OptimizerOptions</a>,
     console: <a class="primitive" href="https://doc.rust-lang.org/1.76.0/std/primitive.bool.html">bool</a>
 ) -&gt; <a class="struct" href="struct.TestResult.html" title="struct boa_tester::TestResult">TestResult</a></h4></section></summary><div class="docblock"><p>Runs the test.</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.run_once" class="method"><a class="src rightside" href="../src/boa_tester/exec/mod.rs.html#197-591">source</a><h4 class="code-header">fn <a href="#method.run_once" class="fn">run_once</a>(
@@ -25,13 +25,13 @@
     harness: &amp;<a class="struct" href="struct.Harness.html" title="struct boa_tester::Harness">Harness</a>,
     strict: <a class="primitive" href="https://doc.rust-lang.org/1.76.0/std/primitive.bool.html">bool</a>,
     verbose: <a class="primitive" href="https://doc.rust-lang.org/1.76.0/std/primitive.u8.html">u8</a>,
-    optimizer_options: OptimizerOptions,
+    optimizer_options: <a class="struct" href="../boa_engine/optimizer/struct.OptimizerOptions.html" title="struct boa_engine::optimizer::OptimizerOptions">OptimizerOptions</a>,
     console: <a class="primitive" href="https://doc.rust-lang.org/1.76.0/std/primitive.bool.html">bool</a>
 ) -&gt; <a class="struct" href="struct.TestResult.html" title="struct boa_tester::TestResult">TestResult</a></h4></section></summary><div class="docblock"><p>Runs the test once, in strict or non-strict mode</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.set_up_env" class="method"><a class="src rightside" href="../src/boa_tester/exec/mod.rs.html#594-658">source</a><h4 class="code-header">fn <a href="#method.set_up_env" class="fn">set_up_env</a>(
     &amp;self,
     harness: &amp;<a class="struct" href="struct.Harness.html" title="struct boa_tester::Harness">Harness</a>,
-    context: &amp;mut Context,
+    context: &amp;mut <a class="struct" href="../boa_engine/context/struct.Context.html" title="struct boa_engine::context::Context">Context</a>,
     async_result: <a class="struct" href="exec/struct.AsyncResult.html" title="struct boa_tester::exec::AsyncResult">AsyncResult</a>,
     handles: <a class="struct" href="exec/js262/struct.WorkerHandles.html" title="struct boa_tester::exec::js262::WorkerHandles">WorkerHandles</a>,
     console: <a class="primitive" href="https://doc.rust-lang.org/1.76.0/std/primitive.bool.html">bool</a>
