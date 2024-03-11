@@ -681,7 +681,6 @@ impl Duration {
                 .with_message("smallestUnit or largestUnit must be present.")
                 .into());
         }
-        // let duration = to_temporal_duration(this, context)?;
         let rounded_duration = duration.inner.round(
             rounding_increment,
             smallest_unit,
