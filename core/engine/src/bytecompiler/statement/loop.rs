@@ -312,7 +312,8 @@ impl ByteCompiler<'_> {
             self.emit_with_varying_operand(Opcode::PushDeclarativeEnvironment, env_index);
         };
 
-        let mut handler_index = None;
+        let handler_index = self.push_handler();
+
         match for_of_loop.initializer() {
             IterableLoopInitializer::Identifier(ref ident) => {
                 let ident = ident.to_js_string(self.interner());
@@ -331,7 +332,6 @@ impl ByteCompiler<'_> {
                 }
             }
             IterableLoopInitializer::Access(access) => {
-                handler_index = Some(self.push_handler());
                 self.access_set(
                     Access::Property { access },
                     false,
@@ -384,15 +384,13 @@ impl ByteCompiler<'_> {
                 }
             },
             IterableLoopInitializer::Pattern(pattern) => {
-                handler_index = Some(self.push_handler());
                 self.compile_declaration_pattern(pattern, BindingOpcode::SetName);
             }
         }
 
-        // If the left-hand side is not a lexical binding and the assignment produces
-        // an error, the iterator should be closed and the error forwarded to the
-        // runtime.
-        if let Some(handler_index) = handler_index {
+        self.compile_stmt(for_of_loop.body(), use_expr, true);
+
+        {
             let exit = self.jump();
             self.patch_handler(handler_index);
 
@@ -410,8 +408,6 @@ impl ByteCompiler<'_> {
             self.emit_opcode(Opcode::Throw);
             self.patch_jump(exit);
         }
-
-        self.compile_stmt(for_of_loop.body(), use_expr, true);
 
         if let Some(old_lex_env) = old_lex_env {
             self.pop_compile_environment();

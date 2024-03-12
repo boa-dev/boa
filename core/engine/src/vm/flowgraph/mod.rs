@@ -409,7 +409,6 @@ impl CodeBlock {
                 | Instruction::IteratorResult
                 | Instruction::IteratorDone
                 | Instruction::IteratorToArray
-                | Instruction::IteratorPop
                 | Instruction::IteratorReturn
                 | Instruction::IteratorStackEmpty
                 | Instruction::RequireObjectCoercible
@@ -516,7 +515,8 @@ impl CodeBlock {
                 | Instruction::Reserved55
                 | Instruction::Reserved56
                 | Instruction::Reserved57
-                | Instruction::Reserved58 => unreachable!("Reserved opcodes are unrechable"),
+                | Instruction::Reserved58
+                | Instruction::Reserved59 => unreachable!("Reserved opcodes are unrechable"),
             }
         }
 

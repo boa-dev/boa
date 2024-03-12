@@ -17,14 +17,9 @@ impl ByteCompiler<'_> {
     /// [iter]: https://tc39.es/ecma262/#sec-iteratorclose
     /// [async]: https://tc39.es/ecma262/#sec-asynciteratorclose
     pub(super) fn iterator_close(&mut self, async_: bool) {
-        self.emit_opcode(Opcode::IteratorDone);
-
-        let skip_return = self.jump_if_true();
-
-        // iterator didn't finish iterating.
         self.emit_opcode(Opcode::IteratorReturn);
 
-        // `iterator` didn't have a `return` method, so we can early exit.
+        // `iterator` didn't have a `return` method, is already done or is not on the iterator stack.
         let early_exit = self.jump_if_false();
         if async_ {
             self.emit_opcode(Opcode::Await);
@@ -37,9 +32,6 @@ impl ByteCompiler<'_> {
             "inner result was not an object"
         )));
         self.emit_with_varying_operand(Opcode::ThrowNewTypeError, error_msg);
-
-        self.patch_jump(skip_return);
-        self.emit_opcode(Opcode::IteratorPop);
 
         self.patch_jump(skip_throw);
         self.patch_jump(early_exit);
