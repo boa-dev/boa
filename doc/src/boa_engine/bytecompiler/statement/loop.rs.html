@@ -472,10 +472,6 @@
 <a href="#471" id="471">471</a>
 <a href="#472" id="472">472</a>
 <a href="#473" id="473">473</a>
-<a href="#474" id="474">474</a>
-<a href="#475" id="475">475</a>
-<a href="#476" id="476">476</a>
-<a href="#477" id="477">477</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>boa_ast::{
     declaration::Binding,
     operations::bound_names,
@@ -790,7 +786,8 @@
             <span class="self">self</span>.emit_with_varying_operand(Opcode::PushDeclarativeEnvironment, env_index);
         };
 
-        <span class="kw">let </span><span class="kw-2">mut </span>handler_index = <span class="prelude-val">None</span>;
+        <span class="kw">let </span>handler_index = <span class="self">self</span>.push_handler();
+
         <span class="kw">match </span>for_of_loop.initializer() {
             IterableLoopInitializer::Identifier(<span class="kw-2">ref </span>ident) =&gt; {
                 <span class="kw">let </span>ident = ident.to_js_string(<span class="self">self</span>.interner());
@@ -809,7 +806,6 @@
                 }
             }
             IterableLoopInitializer::Access(access) =&gt; {
-                handler_index = <span class="prelude-val">Some</span>(<span class="self">self</span>.push_handler());
                 <span class="self">self</span>.access_set(
                     Access::Property { access },
                     <span class="bool-val">false</span>,
@@ -862,15 +858,13 @@
                 }
             },
             IterableLoopInitializer::Pattern(pattern) =&gt; {
-                handler_index = <span class="prelude-val">Some</span>(<span class="self">self</span>.push_handler());
                 <span class="self">self</span>.compile_declaration_pattern(pattern, BindingOpcode::SetName);
             }
         }
 
-        <span class="comment">// If the left-hand side is not a lexical binding and the assignment produces
-        // an error, the iterator should be closed and the error forwarded to the
-        // runtime.
-        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(handler_index) = handler_index {
+        <span class="self">self</span>.compile_stmt(for_of_loop.body(), use_expr, <span class="bool-val">true</span>);
+
+        {
             <span class="kw">let </span>exit = <span class="self">self</span>.jump();
             <span class="self">self</span>.patch_handler(handler_index);
 
@@ -888,8 +882,6 @@
             <span class="self">self</span>.emit_opcode(Opcode::Throw);
             <span class="self">self</span>.patch_jump(exit);
         }
-
-        <span class="self">self</span>.compile_stmt(for_of_loop.body(), use_expr, <span class="bool-val">true</span>);
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(old_lex_env) = old_lex_env {
             <span class="self">self</span>.pop_compile_environment();

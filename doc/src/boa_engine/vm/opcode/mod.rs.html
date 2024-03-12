@@ -2295,10 +2295,6 @@
 <a href="#2294" id="2294">2294</a>
 <a href="#2295" id="2295">2295</a>
 <a href="#2296" id="2296">2296</a>
-<a href="#2297" id="2297">2297</a>
-<a href="#2298" id="2298">2298</a>
-<a href="#2299" id="2299">2299</a>
-<a href="#2300" id="2300">2300</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::iter::FusedIterator;
 
 <span class="doccomment">/// The opcodes of the vm.
@@ -4180,12 +4176,6 @@
     /// Iterator Stack: `iterator` **=&gt;** `iterator`
     </span>IteratorToArray,
 
-    <span class="doccomment">/// Pop an iterator from the call frame close iterator stack.
-    ///
-    /// Iterator Stack:
-    /// - `iterator` **=&gt;**
-    </span>IteratorPop,
-
     <span class="doccomment">/// Pushes `true` to the stack if the iterator stack is empty.
     ///
     /// Stack:
@@ -4523,6 +4513,8 @@
     </span>Reserved57 =&gt; Reserved,
     <span class="doccomment">/// Reserved [`Opcode`].
     </span>Reserved58 =&gt; Reserved,
+    <span class="doccomment">/// Reserved [`Opcode`].
+    </span>Reserved59 =&gt; Reserved,
 }
 
 <span class="doccomment">/// Specific opcodes for bindings.

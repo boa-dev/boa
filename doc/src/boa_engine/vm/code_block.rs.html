@@ -1608,7 +1608,6 @@
             | Instruction::IteratorResult
             | Instruction::IteratorDone
             | Instruction::IteratorToArray
-            | Instruction::IteratorPop
             | Instruction::IteratorReturn
             | Instruction::IteratorStackEmpty
             | Instruction::RequireObjectCoercible
@@ -1703,7 +1702,8 @@
             | Instruction::Reserved55
             | Instruction::Reserved56
             | Instruction::Reserved57
-            | Instruction::Reserved58 =&gt; <span class="macro">unreachable!</span>(<span class="string">"Reserved opcodes are unrechable"</span>),
+            | Instruction::Reserved58
+            | Instruction::Reserved59 =&gt; <span class="macro">unreachable!</span>(<span class="string">"Reserved opcodes are unrechable"</span>),
         }
     }
 }

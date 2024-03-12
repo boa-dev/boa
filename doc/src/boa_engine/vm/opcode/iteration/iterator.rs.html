@@ -363,21 +363,6 @@
 <a href="#362" id="362">362</a>
 <a href="#363" id="363">363</a>
 <a href="#364" id="364">364</a>
-<a href="#365" id="365">365</a>
-<a href="#366" id="366">366</a>
-<a href="#367" id="367">367</a>
-<a href="#368" id="368">368</a>
-<a href="#369" id="369">369</a>
-<a href="#370" id="370">370</a>
-<a href="#371" id="371">371</a>
-<a href="#372" id="372">372</a>
-<a href="#373" id="373">373</a>
-<a href="#374" id="374">374</a>
-<a href="#375" id="375">375</a>
-<a href="#376" id="376">376</a>
-<a href="#377" id="377">377</a>
-<a href="#378" id="378">378</a>
-<a href="#379" id="379">379</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::matches;
 
 <span class="kw">use crate</span>::{
@@ -615,12 +600,15 @@
     <span class="kw">const </span>COST: u8 = <span class="number">8</span>;
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
-        <span class="kw">let </span>record = context
-            .vm
-            .frame_mut()
-            .iterators
-            .pop()
-            .expect(<span class="string">"iterator on the call frame must exist"</span>);
+        <span class="kw">let </span><span class="prelude-val">Some</span>(record) = context.vm.frame_mut().iterators.pop() <span class="kw">else </span>{
+            context.vm.push(<span class="bool-val">false</span>);
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(CompletionType::Normal);
+        };
+
+        <span class="kw">if </span>record.done() {
+            context.vm.push(<span class="bool-val">false</span>);
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(CompletionType::Normal);
+        }
 
         <span class="kw">let </span><span class="prelude-val">Some</span>(ret) = record
             .iterator()
@@ -693,24 +681,6 @@
 
         context.vm.push(array);
 
-        <span class="prelude-val">Ok</span>(CompletionType::Normal)
-    }
-}
-
-<span class="doccomment">/// `IteratorPop` implements the Opcode Operation for `Opcode::IteratorPop`
-///
-/// Operation:
-///  - Pop an iterator from the call frame close iterator stack.
-</span><span class="attr">#[derive(Debug, Clone, Copy)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>IteratorPop;
-
-<span class="kw">impl </span>Operation <span class="kw">for </span>IteratorPop {
-    <span class="kw">const </span>NAME: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str = <span class="string">"IteratorPop"</span>;
-    <span class="kw">const </span>INSTRUCTION: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str = <span class="string">"INST - IteratorPop"</span>;
-    <span class="kw">const </span>COST: u8 = <span class="number">1</span>;
-
-    <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
-        context.vm.frame_mut().iterators.pop();
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }
 }

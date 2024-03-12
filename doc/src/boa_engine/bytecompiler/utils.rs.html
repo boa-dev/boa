@@ -111,14 +111,6 @@
 <a href="#110" id="110">110</a>
 <a href="#111" id="111">111</a>
 <a href="#112" id="112">112</a>
-<a href="#113" id="113">113</a>
-<a href="#114" id="114">114</a>
-<a href="#115" id="115">115</a>
-<a href="#116" id="116">116</a>
-<a href="#117" id="117">117</a>
-<a href="#118" id="118">118</a>
-<a href="#119" id="119">119</a>
-<a href="#120" id="120">120</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     js_string,
     vm::{GeneratorResumeKind, Opcode},
@@ -138,14 +130,9 @@
     /// [iter]: https://tc39.es/ecma262/#sec-iteratorclose
     /// [async]: https://tc39.es/ecma262/#sec-asynciteratorclose
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>iterator_close(<span class="kw-2">&amp;mut </span><span class="self">self</span>, async_: bool) {
-        <span class="self">self</span>.emit_opcode(Opcode::IteratorDone);
+        <span class="self">self</span>.emit_opcode(Opcode::IteratorReturn);
 
-        <span class="kw">let </span>skip_return = <span class="self">self</span>.jump_if_true();
-
-        <span class="comment">// iterator didn't finish iterating.
-        </span><span class="self">self</span>.emit_opcode(Opcode::IteratorReturn);
-
-        <span class="comment">// `iterator` didn't have a `return` method, so we can early exit.
+        <span class="comment">// `iterator` didn't have a `return` method, is already done or is not on the iterator stack.
         </span><span class="kw">let </span>early_exit = <span class="self">self</span>.jump_if_false();
         <span class="kw">if </span>async_ {
             <span class="self">self</span>.emit_opcode(Opcode::Await);
@@ -158,9 +145,6 @@
             <span class="string">"inner result was not an object"
         </span>)));
         <span class="self">self</span>.emit_with_varying_operand(Opcode::ThrowNewTypeError, error_msg);
-
-        <span class="self">self</span>.patch_jump(skip_return);
-        <span class="self">self</span>.emit_opcode(Opcode::IteratorPop);
 
         <span class="self">self</span>.patch_jump(skip_throw);
         <span class="self">self</span>.patch_jump(early_exit);
