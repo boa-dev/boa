@@ -281,6 +281,15 @@
 <a href="#280" id="280">280</a>
 <a href="#281" id="281">281</a>
 <a href="#282" id="282">282</a>
+<a href="#283" id="283">283</a>
+<a href="#284" id="284">284</a>
+<a href="#285" id="285">285</a>
+<a href="#286" id="286">286</a>
+<a href="#287" id="287">287</a>
+<a href="#288" id="288">288</a>
+<a href="#289" id="289">289</a>
+<a href="#290" id="290">290</a>
+<a href="#291" id="291">291</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     bytecompiler::{Access, ByteCompiler, Literal, Operand, ToJsString},
     vm::{BindingOpcode, Opcode},
@@ -523,10 +532,19 @@
                 }
                 <span class="self">self</span>.emit_binding(def, ident.to_js_string(<span class="self">self</span>.interner()));
             }
-            PropertyAccess { access } =&gt; {
+            PropertyAccess {
+                access,
+                default_init,
+            } =&gt; {
                 <span class="self">self</span>.access_set(Access::Property { access }, <span class="bool-val">false</span>, |compiler, _level| {
                     compiler.emit_opcode(Opcode::IteratorNextWithoutPop);
                     compiler.emit_opcode(Opcode::IteratorValueWithoutPop);
+
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(init) = default_init {
+                        <span class="kw">let </span>skip = compiler.emit_opcode_with_operand(Opcode::JumpIfNotUndefined);
+                        compiler.compile_expr(init, <span class="bool-val">true</span>);
+                        compiler.patch_jump(skip);
+                    }
                 });
             }
             <span class="comment">// BindingElement : BindingPattern Initializer[opt]
