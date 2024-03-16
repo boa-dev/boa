@@ -6,7 +6,7 @@
     "build:prod": "webpack --mode=production"
   },
   "devDependencies": {
-    "@playwright/test": "^1.41.2",
+    "@playwright/test": "^1.42.1",
     "@wasm-tool/wasm-pack-plugin": "^1.7.0",
     "bootstrap": "^5.3.3",
     "clean-webpack-plugin": "^4.0.0",
@@ -20,10 +20,10 @@
     "terser-webpack-plugin": "^5.3.10",
     "webpack": "^5.90.3",
     "webpack-cli": "^5.1.4",
-    "webpack-dev-server": "^5.0.2"
+    "webpack-dev-server": "^5.0.3"
   },
   "dependencies": {
     "mime-types": "^2.1.35",
-    "monaco-editor": "^0.46.0"
+    "monaco-editor": "^0.47.0"
   }
 }

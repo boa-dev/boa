@@ -240,10 +240,19 @@ impl ByteCompiler<'_> {
                 }
                 self.emit_binding(def, ident.to_js_string(self.interner()));
             }
-            PropertyAccess { access } => {
+            PropertyAccess {
+                access,
+                default_init,
+            } => {
                 self.access_set(Access::Property { access }, false, |compiler, _level| {
                     compiler.emit_opcode(Opcode::IteratorNextWithoutPop);
                     compiler.emit_opcode(Opcode::IteratorValueWithoutPop);
+
+                    if let Some(init) = default_init {
+                        let skip = compiler.emit_opcode_with_operand(Opcode::JumpIfNotUndefined);
+                        compiler.compile_expr(init, true);
+                        compiler.patch_jump(skip);
+                    }
                 });
             }
             // BindingElement : BindingPattern Initializer[opt]

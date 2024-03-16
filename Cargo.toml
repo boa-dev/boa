@@ -28,7 +28,7 @@ exclude = [
 
 [workspace.package]
 edition = "2021"
-version = "0.17.0"
+version = "0.18.0"
 rust-version = "1.74.0"
 authors = ["boa-dev"]
 repository = "https://github.com/boa-dev/boa"
@@ -38,24 +38,24 @@ description = "Boa is a Javascript lexer, parser and compiler written in Rust. C
 [workspace.dependencies]
 
 # Repo Crates
-boa_ast = { version = "~0.17.0", path = "core/ast" }
-boa_engine = { version = "~0.17.0", path = "core/engine" }
-boa_gc = { version = "~0.17.0", path = "core/gc" }
-boa_icu_provider = { version = "~0.17.0", path = "core/icu_provider" }
-boa_interner = { version = "~0.17.0", path = "core/interner" }
-boa_macros = { version = "~0.17.0", path = "core/macros" }
-boa_parser = { version = "~0.17.0", path = "core/parser" }
-boa_profiler = { version = "~0.17.0", path = "core/profiler" }
-boa_runtime = { version = "~0.17.0", path = "core/runtime" }
+boa_ast = { version = "~0.18.0", path = "core/ast" }
+boa_engine = { version = "~0.18.0", path = "core/engine" }
+boa_gc = { version = "~0.18.0", path = "core/gc" }
+boa_icu_provider = { version = "~0.18.0", path = "core/icu_provider" }
+boa_interner = { version = "~0.18.0", path = "core/interner" }
+boa_macros = { version = "~0.18.0", path = "core/macros" }
+boa_parser = { version = "~0.18.0", path = "core/parser" }
+boa_profiler = { version = "~0.18.0", path = "core/profiler" }
+boa_runtime = { version = "~0.18.0", path = "core/runtime" }
 
 # Shared deps
 arbitrary = "1"
 bitflags = "2.4.2"
-clap = "4.5.0"
+clap = "4.5.2"
 colored = "2.1.0"
 fast-float = "0.2.0"
 hashbrown = { version = "0.14.3", default-features = false }
-indexmap = { version = "2.2.3", default-features = false }
+indexmap = { version = "2.2.5", default-features = false }
 indoc = "2.0.4"
 jemallocator = "0.5.4"
 num-bigint = "0.4.4"
@@ -73,7 +73,7 @@ textwrap = "0.16.0"
 thin-vec = "0.2.13"
 time = {version = "0.3.34", no-default-features = true, features = ["local-offset", "large-dates", "wasm-bindgen", "parsing", "formatting", "macros"]}
 tinystr = "0.7.5"
-log = "0.4.20"
+log = "0.4.21"
 simple_logger = "4.3.3"
 
 # ICU4X
@@ -114,10 +114,13 @@ incremental = false
 lto = "fat"
 # Makes sure that all code is compiled together, for LTO
 codegen-units = 1
+# Strips debug information and symbols from the binary, reducing its size
+strip = "symbols"
 
 [profile.release-dbg]
 inherits = "release"
 debug = true
+strip = "none"
 
 # The test profile, used for `cargo test`.
 [profile.test]

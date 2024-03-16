@@ -361,7 +361,7 @@ fn main() -> Result<(), io::Error> {
 
     if args.files.is_empty() {
         let config = Config::builder()
-            .keyseq_timeout(1)
+            .keyseq_timeout(Some(1))
             .edit_mode(if args.vi_mode {
                 EditMode::Vi
             } else {

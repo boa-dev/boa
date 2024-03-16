@@ -22,9 +22,9 @@ serde_json.workspace = true
 once_cell.workspace = true
 colored.workspace = true
 rustc-hash = { workspace = true, features = ["std"] }
-rayon = "1.8.1"
-toml = "0.8.10"
-color-eyre = "0.6.2"
+rayon = "1.9.0"
+toml = "0.8.11"
+color-eyre = "0.6.3"
 comfy-table = "7.1.0"
 bus = "2.4.1"
 time.workspace = true

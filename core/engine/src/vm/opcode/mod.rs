@@ -1879,12 +1879,6 @@ generate_opcodes! {
     /// Iterator Stack: `iterator` **=>** `iterator`
     IteratorToArray,
 
-    /// Pop an iterator from the call frame close iterator stack.
-    ///
-    /// Iterator Stack:
-    /// - `iterator` **=>**
-    IteratorPop,
-
     /// Pushes `true` to the stack if the iterator stack is empty.
     ///
     /// Stack:
@@ -2222,6 +2216,8 @@ generate_opcodes! {
     Reserved57 => Reserved,
     /// Reserved [`Opcode`].
     Reserved58 => Reserved,
+    /// Reserved [`Opcode`].
+    Reserved59 => Reserved,
 }
 
 /// Specific opcodes for bindings.

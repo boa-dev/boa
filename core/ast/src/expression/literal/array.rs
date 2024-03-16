@@ -109,6 +109,7 @@ impl ArrayLiteral {
                     AssignTarget::Access(access) => {
                         bindings.push(ArrayPatternElement::PropertyAccess {
                             access: access.clone(),
+                            default_init: Some(assign.rhs().clone()),
                         });
                     }
                     AssignTarget::Pattern(pattern) => match pattern {
@@ -143,6 +144,7 @@ impl ArrayLiteral {
                 Expression::PropertyAccess(access) => {
                     bindings.push(ArrayPatternElement::PropertyAccess {
                         access: access.clone(),
+                        default_init: None,
                     });
                 }
                 _ => return None,

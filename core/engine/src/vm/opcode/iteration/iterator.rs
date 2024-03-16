@@ -235,12 +235,15 @@ impl Operation for IteratorReturn {
     const COST: u8 = 8;
 
     fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let record = context
-            .vm
-            .frame_mut()
-            .iterators
-            .pop()
-            .expect("iterator on the call frame must exist");
+        let Some(record) = context.vm.frame_mut().iterators.pop() else {
+            context.vm.push(false);
+            return Ok(CompletionType::Normal);
+        };
+
+        if record.done() {
+            context.vm.push(false);
+            return Ok(CompletionType::Normal);
+        }
 
         let Some(ret) = record
             .iterator()
@@ -313,24 +316,6 @@ impl Operation for IteratorToArray {
 
         context.vm.push(array);
 
-        Ok(CompletionType::Normal)
-    }
-}
-
-/// `IteratorPop` implements the Opcode Operation for `Opcode::IteratorPop`
-///
-/// Operation:
-///  - Pop an iterator from the call frame close iterator stack.
-#[derive(Debug, Clone, Copy)]
-pub(crate) struct IteratorPop;
-
-impl Operation for IteratorPop {
-    const NAME: &'static str = "IteratorPop";
-    const INSTRUCTION: &'static str = "INST - IteratorPop";
-    const COST: u8 = 1;
-
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        context.vm.frame_mut().iterators.pop();
         Ok(CompletionType::Normal)
     }
 }

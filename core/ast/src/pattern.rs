@@ -612,6 +612,8 @@ pub enum ArrayPatternElement {
     PropertyAccess {
         /// The property access where the index element will be stored.
         access: PropertyAccess,
+        /// An optional default value for the variable, in case the index element doesn't exist.
+        default_init: Option<Expression>,
     },
 
     /// Pattern represents a `Pattern` in an `Element` of an array pattern.
@@ -680,8 +682,15 @@ impl ToInternedString for ArrayPatternElement {
                 }
                 buf
             }
-            Self::PropertyAccess { access } => {
-                format!(" {}", access.to_interned_string(interner))
+            Self::PropertyAccess {
+                access,
+                default_init,
+            } => {
+                let mut buf = format!(" {}", access.to_interned_string(interner));
+                if let Some(init) = default_init {
+                    buf.push_str(&format!(" = {}", init.to_interned_string(interner)));
+                }
+                buf
             }
             Self::Pattern {
                 pattern,
@@ -723,9 +732,18 @@ impl VisitWith for ArrayPatternElement {
                     ControlFlow::Continue(())
                 }
             }
-            Self::PropertyAccess { access } | Self::PropertyAccessRest { access } => {
-                visitor.visit_property_access(access)
+            Self::PropertyAccess {
+                access,
+                default_init,
+            } => {
+                try_break!(visitor.visit_property_access(access));
+                if let Some(expr) = default_init {
+                    visitor.visit_expression(expr)
+                } else {
+                    ControlFlow::Continue(())
+                }
             }
+            Self::PropertyAccessRest { access } => visitor.visit_property_access(access),
             Self::Pattern {
                 pattern,
                 default_init,
@@ -762,9 +780,18 @@ impl VisitWith for ArrayPatternElement {
                     ControlFlow::Continue(())
                 }
             }
-            Self::PropertyAccess { access } | Self::PropertyAccessRest { access } => {
-                visitor.visit_property_access_mut(access)
+            Self::PropertyAccess {
+                access,
+                default_init,
+            } => {
+                try_break!(visitor.visit_property_access_mut(access));
+                if let Some(expr) = default_init {
+                    visitor.visit_expression_mut(expr)
+                } else {
+                    ControlFlow::Continue(())
+                }
             }
+            Self::PropertyAccessRest { access } => visitor.visit_property_access_mut(access),
             Self::Pattern {
                 pattern,
                 default_init,
