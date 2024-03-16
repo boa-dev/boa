@@ -12,7 +12,7 @@
 mod exec;
 mod results;
 
-use exec::{RunTestSuite, RunTest};
+use exec::{RunTest, RunTestSuite};
 use tc39_test262::{read, Ignored, SpecEdition, TestFlags};
 
 use self::results::{compare_results, write_json};
@@ -556,4 +556,32 @@ enum TestOutcomeResult {
     Failed,
     #[serde(rename = "P")]
     Panic,
+}
+
+#[cfg(test)]
+mod tests {
+    use assert_cmd::Command;
+
+    fn cmd() -> Command {
+        let mut cmd: Command = assert_cmd::Command::cargo_bin("boa_tester").unwrap();
+        cmd.current_dir("../../");
+        cmd
+    }
+
+    #[test]
+    #[ignore = "manual"]
+    fn test_help() {
+        let output =  cmd().output().unwrap();
+        let err = String::from_utf8(output.stderr).unwrap();
+        assert!(err.contains("boa_tester <COMMAND>"));
+
+        cmd().arg("run").arg("--help").assert().success();
+        cmd().arg("compare").arg("--help").assert().success();
+    }
+
+    #[test]
+    #[ignore = "manual"]
+    fn test() {
+        cmd().arg("run").arg("--edition es5").arg("-O").assert().success();
+    }
 }

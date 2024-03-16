@@ -30,10 +30,29 @@ pub fn clone_test262(commit: Option<&str>, verbose: u8) -> color_eyre::Result<()
 
 #[cfg(test)]
 mod tests {
+    use std::path::Path;
+    use crate::{Ignored, TEST262_DIRECTORY};
 
     #[test]
-    #[ignore = "manual testing"]
+    #[ignore = "manual"]
     fn should_clone_test262() {
         super::clone_test262(None, 0).unwrap();
+    }
+
+    #[test]
+    #[ignore = "manual"]
+    fn should_read_harness() {
+        let harness = super::read::read_harness(Path::new(TEST262_DIRECTORY)).unwrap();
+        assert!(harness.assert.path.is_file());
+        assert!(harness.sta.path.is_file());
+        assert!(harness.doneprint_handle.path.is_file());
+    }
+
+    #[test]
+    #[ignore = "manual"]
+    fn should_read_test_suite() {
+        let path = Path::new(TEST262_DIRECTORY).join("test").join("language");
+        let test_suite = super::read::read_suite(&path, &Ignored::default(), false).unwrap();
+        assert!(!test_suite.name.is_empty());
     }
 }

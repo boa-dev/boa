@@ -29,6 +29,9 @@ comfy-table = "7.1.0"
 bus = "2.4.1"
 time.workspace = true
 
+[dev-dependencies]
+assert_cmd = "2.0.14"
+
 [features]
 default = ["boa_engine/intl_bundled", "boa_engine/experimental", "boa_engine/annex-b"]
 

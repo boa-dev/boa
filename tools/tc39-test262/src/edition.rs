@@ -79,6 +79,10 @@ static FEATURE_EDITION: phf::Map<&'static str, SpecEdition> = phf::phf_map! {
     // https://github.com/tc39/proposal-set-methods
     "set-methods" => SpecEdition::ESNext,
 
+    // Regular Expression Pattern Modifiers
+    // https://github.com/tc39/proposal-regexp-modifiers
+    "regexp-modifiers" => SpecEdition::ESNext,
+
     // Part of the next ES15 edition
     "Atomics.waitAsync"  => SpecEdition::ESNext,
     "regexp-v-flag" => SpecEdition::ESNext,
