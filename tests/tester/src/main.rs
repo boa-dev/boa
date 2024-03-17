@@ -9,35 +9,27 @@
     clippy::cast_precision_loss
 )]
 
-mod edition;
 mod exec;
-mod read;
 mod results;
 
-use self::{
-    read::{read_harness, read_suite, read_test, MetaData, Negative, TestFlag},
-    results::{compare_results, write_json},
-};
-use bitflags::bitflags;
+use exec::{RunTest, RunTestSuite};
+use tc39_test262::{read, Ignored, SpecEdition, TestFlags};
+
+use self::results::{compare_results, write_json};
+
 use boa_engine::optimizer::OptimizerOptions;
 use clap::{ArgAction, Parser, ValueHint};
 use color_eyre::{
-    eyre::{bail, eyre, WrapErr},
+    eyre::{bail, WrapErr},
     Result,
 };
 use colored::Colorize;
-use edition::SpecEdition;
 use once_cell::sync::Lazy;
-use read::ErrorType;
-use rustc_hash::{FxHashMap, FxHashSet};
-use serde::{
-    de::{Unexpected, Visitor},
-    Deserialize, Deserializer, Serialize,
-};
+use rustc_hash::FxHashSet;
+use serde::{Deserialize, Deserializer, Serialize};
 use std::{
     ops::{Add, AddAssign},
     path::{Path, PathBuf},
-    process::Command,
     time::Instant,
 };
 
@@ -61,55 +53,6 @@ impl Config {
     /// Get [`Ignored`] `Test262` tests and features.
     pub(crate) const fn ignored(&self) -> &Ignored {
         &self.ignored
-    }
-}
-
-/// Structure to allow defining ignored tests, features and files that should
-/// be ignored even when reading.
-#[derive(Debug, Deserialize)]
-struct Ignored {
-    #[serde(default)]
-    tests: FxHashSet<Box<str>>,
-    #[serde(default)]
-    features: FxHashSet<Box<str>>,
-    #[serde(default = "TestFlags::empty")]
-    flags: TestFlags,
-}
-
-impl Ignored {
-    /// Checks if the ignore list contains the given test name in the list of
-    /// tests to ignore.
-    pub(crate) fn contains_test(&self, test: &str) -> bool {
-        self.tests.contains(test)
-    }
-
-    /// Checks if the ignore list contains the given feature name in the list
-    /// of features to ignore.
-    pub(crate) fn contains_feature(&self, feature: &str) -> bool {
-        if self.features.contains(feature) {
-            return true;
-        }
-        // Some features are an accessor instead of a simple feature name e.g. `Intl.DurationFormat`.
-        // This ensures those are also ignored.
-        feature
-            .split('.')
-            .next()
-            .map(|feat| self.features.contains(feat))
-            .unwrap_or_default()
-    }
-
-    pub(crate) const fn contains_any_flag(&self, flags: TestFlags) -> bool {
-        flags.intersects(self.flags)
-    }
-}
-
-impl Default for Ignored {
-    fn default() -> Self {
-        Self {
-            tests: FxHashSet::default(),
-            features: FxHashSet::default(),
-            flags: TestFlags::empty(),
-        }
     }
 }
 
@@ -183,8 +126,6 @@ enum Cli {
     },
 }
 
-const DEFAULT_TEST262_DIRECTORY: &str = "test262";
-
 /// Program entry point.
 fn main() -> Result<()> {
     // Safety: This is needed because we run tests in multiple threads.
@@ -223,9 +164,8 @@ fn main() -> Result<()> {
             let test262_path = if let Some(path) = test262_path.as_deref() {
                 path
             } else {
-                clone_test262(test262_commit, verbose)?;
-
-                Path::new(DEFAULT_TEST262_DIRECTORY)
+                tc39_test262::clone_test262(test262_commit, verbose)?;
+                Path::new(tc39_test262::TEST262_DIRECTORY)
             };
 
             run_test_suite(
@@ -251,142 +191,6 @@ fn main() -> Result<()> {
             markdown,
         } => compare_results(base.as_path(), new.as_path(), markdown),
     }
-}
-
-/// Returns the commit hash and commit message of the provided branch name.
-fn get_last_branch_commit(branch: &str, verbose: u8) -> Result<(String, String)> {
-    if verbose > 1 {
-        println!("Getting last commit on '{branch}' branch");
-    }
-    let result = Command::new("git")
-        .arg("log")
-        .args(["-n", "1"])
-        .arg("--pretty=format:%H %s")
-        .arg(branch)
-        .current_dir(DEFAULT_TEST262_DIRECTORY)
-        .output()?;
-
-    if !result.status.success() {
-        bail!(
-            "test262 getting commit hash and message failed with return code {:?}",
-            result.status.code()
-        );
-    }
-
-    let output = std::str::from_utf8(&result.stdout)?.trim();
-
-    let (hash, message) = output
-        .split_once(' ')
-        .expect("git log output to contain hash and message");
-
-    Ok((hash.into(), message.into()))
-}
-
-fn reset_test262_commit(commit: &str, verbose: u8) -> Result<()> {
-    if verbose != 0 {
-        println!("Reset test262 to commit: {commit}...");
-    }
-
-    let result = Command::new("git")
-        .arg("reset")
-        .arg("--hard")
-        .arg(commit)
-        .current_dir(DEFAULT_TEST262_DIRECTORY)
-        .status()?;
-
-    if !result.success() {
-        bail!(
-            "test262 commit {commit} checkout failed with return code: {:?}",
-            result.code()
-        );
-    }
-
-    Ok(())
-}
-
-fn clone_test262(commit: Option<&str>, verbose: u8) -> Result<()> {
-    const TEST262_REPOSITORY: &str = "https://github.com/tc39/test262";
-
-    let update = commit.is_none();
-
-    if Path::new(DEFAULT_TEST262_DIRECTORY).is_dir() {
-        let (current_commit_hash, current_commit_message) =
-            get_last_branch_commit("HEAD", verbose)?;
-
-        if let Some(commit) = commit {
-            if current_commit_hash == commit {
-                return Ok(());
-            }
-        }
-
-        if verbose != 0 {
-            println!("Fetching latest test262 commits...");
-        }
-        let result = Command::new("git")
-            .arg("fetch")
-            .current_dir(DEFAULT_TEST262_DIRECTORY)
-            .status()?;
-
-        if !result.success() {
-            bail!(
-                "Test262 fetching latest failed with return code {:?}",
-                result.code()
-            );
-        }
-
-        if let Some(commit) = commit {
-            println!("Test262 switching to commit {commit}...");
-            reset_test262_commit(commit, verbose)?;
-            return Ok(());
-        }
-
-        if verbose != 0 {
-            println!("Checking latest Test262 with current HEAD...");
-        }
-        let (latest_commit_hash, latest_commit_message) =
-            get_last_branch_commit("origin/main", verbose)?;
-
-        if current_commit_hash != latest_commit_hash {
-            if update {
-                println!("Updating Test262 repository:");
-            } else {
-                println!("Warning Test262 repository is not in sync, use '--test262-commit latest' to automatically update it:");
-            }
-
-            println!("    Current commit: {current_commit_hash} {current_commit_message}");
-            println!("    Latest commit:  {latest_commit_hash} {latest_commit_message}");
-
-            if update {
-                reset_test262_commit(&latest_commit_hash, verbose)?;
-            }
-        }
-
-        return Ok(());
-    }
-
-    println!("Cloning test262...");
-    let result = Command::new("git")
-        .arg("clone")
-        .arg(TEST262_REPOSITORY)
-        .arg(DEFAULT_TEST262_DIRECTORY)
-        .status()?;
-
-    if !result.success() {
-        bail!(
-            "Cloning Test262 repository failed with return code {:?}",
-            result.code()
-        );
-    }
-
-    if let Some(commit) = commit {
-        if verbose != 0 {
-            println!("Reset Test262 to commit: {commit}...");
-        }
-
-        reset_test262_commit(commit, verbose)?;
-    }
-
-    Ok(())
 }
 
 /// Runs the full test suite.
@@ -416,10 +220,10 @@ fn run_test_suite(
     if verbose != 0 {
         println!("Loading the test suite...");
     }
-    let harness = read_harness(test262_path).wrap_err("could not read harness")?;
+    let harness = read::read_harness(test262_path).wrap_err("could not read harness")?;
 
     if suite.to_string_lossy().ends_with(".js") {
-        let test = read_test(&test262_path.join(suite)).wrap_err_with(|| {
+        let test = read::read_test(&test262_path.join(suite)).wrap_err_with(|| {
             let suite = suite.display();
             format!("could not read the test {suite}")
         })?;
@@ -437,8 +241,8 @@ fn run_test_suite(
 
         println!();
     } else {
-        let suite =
-            read_suite(&test262_path.join(suite), config.ignored(), false).wrap_err_with(|| {
+        let suite = read::read_suite(&test262_path.join(suite), config.ignored(), false)
+            .wrap_err_with(|| {
                 let suite = suite.display();
                 format!("could not read the suite {suite}")
             })?;
@@ -521,30 +325,6 @@ fn run_test_suite(
     }
 
     Ok(())
-}
-
-/// All the harness include files.
-#[derive(Debug, Clone)]
-struct Harness {
-    assert: HarnessFile,
-    sta: HarnessFile,
-    doneprint_handle: HarnessFile,
-    includes: FxHashMap<Box<str>, HarnessFile>,
-}
-
-#[derive(Debug, Clone)]
-struct HarnessFile {
-    content: Box<str>,
-    path: Box<Path>,
-}
-
-/// Represents a test suite.
-#[derive(Debug, Clone)]
-struct TestSuite {
-    name: Box<str>,
-    path: Box<Path>,
-    suites: Box<[TestSuite]>,
-    tests: Box<[Test]>,
 }
 
 /// Represents a tests statistic
@@ -778,212 +558,30 @@ enum TestOutcomeResult {
     Panic,
 }
 
-/// Represents a test.
-#[derive(Debug, Clone)]
-#[allow(dead_code)]
-struct Test {
-    name: Box<str>,
-    path: Box<Path>,
-    description: Box<str>,
-    esid: Option<Box<str>>,
-    edition: SpecEdition,
-    flags: TestFlags,
-    information: Box<str>,
-    expected_outcome: Outcome,
-    features: FxHashSet<Box<str>>,
-    includes: FxHashSet<Box<str>>,
-    locale: Locale,
-    ignored: bool,
-}
+#[cfg(test)]
+mod tests {
+    use assert_cmd::Command;
 
-impl Test {
-    /// Creates a new test.
-    fn new<N, C>(name: N, path: C, metadata: MetaData) -> Result<Self>
-    where
-        N: Into<Box<str>>,
-        C: Into<Box<Path>>,
-    {
-        let edition = SpecEdition::from_test_metadata(&metadata)
-            .map_err(|feats| eyre!("test metadata contained unknown features: {feats:?}"))?;
-
-        Ok(Self {
-            edition,
-            name: name.into(),
-            description: metadata.description,
-            esid: metadata.esid,
-            flags: metadata.flags.into(),
-            information: metadata.info,
-            features: metadata.features.into_vec().into_iter().collect(),
-            expected_outcome: Outcome::from(metadata.negative),
-            includes: metadata.includes.into_vec().into_iter().collect(),
-            locale: metadata.locale,
-            path: path.into(),
-            ignored: false,
-        })
+    fn cmd() -> Command {
+        let mut cmd: Command = assert_cmd::Command::cargo_bin("boa_tester").unwrap();
+        cmd.current_dir("../../");
+        cmd
     }
 
-    /// Sets the test as ignored.
-    #[inline]
-    fn set_ignored(&mut self) {
-        self.ignored = true;
+    #[test]
+    #[ignore = "manual"]
+    fn test_help() {
+        let output =  cmd().output().unwrap();
+        let err = String::from_utf8(output.stderr).unwrap();
+        assert!(err.contains("boa_tester <COMMAND>"));
+
+        cmd().arg("run").arg("--help").assert().success();
+        cmd().arg("compare").arg("--help").assert().success();
     }
 
-    /// Checks if this is a module test.
-    #[inline]
-    const fn is_module(&self) -> bool {
-        self.flags.contains(TestFlags::MODULE)
+    #[test]
+    #[ignore = "manual"]
+    fn test() {
+        cmd().arg("run").arg("--edition es5").arg("-O").assert().success();
     }
-}
-
-/// An outcome for a test.
-#[derive(Debug, Clone)]
-enum Outcome {
-    Positive,
-    Negative { phase: Phase, error_type: ErrorType },
-}
-
-impl Default for Outcome {
-    fn default() -> Self {
-        Self::Positive
-    }
-}
-
-impl From<Option<Negative>> for Outcome {
-    fn from(neg: Option<Negative>) -> Self {
-        neg.map(|neg| Self::Negative {
-            phase: neg.phase,
-            error_type: neg.error_type,
-        })
-        .unwrap_or_default()
-    }
-}
-
-bitflags! {
-    #[derive(Debug, Clone, Copy)]
-    struct TestFlags: u16 {
-        const STRICT = 0b0_0000_0001;
-        const NO_STRICT = 0b0_0000_0010;
-        const MODULE = 0b0_0000_0100;
-        const RAW = 0b0_0000_1000;
-        const ASYNC = 0b0_0001_0000;
-        const GENERATED = 0b0_0010_0000;
-        const CAN_BLOCK_IS_FALSE = 0b0_0100_0000;
-        const CAN_BLOCK_IS_TRUE = 0b0_1000_0000;
-        const NON_DETERMINISTIC = 0b1_0000_0000;
-    }
-}
-
-impl Default for TestFlags {
-    fn default() -> Self {
-        Self::STRICT | Self::NO_STRICT
-    }
-}
-
-impl From<TestFlag> for TestFlags {
-    fn from(flag: TestFlag) -> Self {
-        match flag {
-            TestFlag::OnlyStrict => Self::STRICT,
-            TestFlag::NoStrict => Self::NO_STRICT,
-            TestFlag::Module => Self::MODULE,
-            TestFlag::Raw => Self::RAW,
-            TestFlag::Async => Self::ASYNC,
-            TestFlag::Generated => Self::GENERATED,
-            TestFlag::CanBlockIsFalse => Self::CAN_BLOCK_IS_FALSE,
-            TestFlag::CanBlockIsTrue => Self::CAN_BLOCK_IS_TRUE,
-            TestFlag::NonDeterministic => Self::NON_DETERMINISTIC,
-        }
-    }
-}
-
-impl<T> From<T> for TestFlags
-where
-    T: AsRef<[TestFlag]>,
-{
-    fn from(flags: T) -> Self {
-        let flags = flags.as_ref();
-        if flags.is_empty() {
-            Self::default()
-        } else {
-            let mut result = Self::empty();
-            for flag in flags {
-                result |= Self::from(*flag);
-            }
-
-            if !result.intersects(Self::default()) {
-                result |= Self::default();
-            }
-
-            result
-        }
-    }
-}
-
-impl<'de> Deserialize<'de> for TestFlags {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        struct FlagsVisitor;
-
-        impl<'de> Visitor<'de> for FlagsVisitor {
-            type Value = TestFlags;
-
-            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                write!(formatter, "a sequence of flags")
-            }
-
-            fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
-            where
-                A: serde::de::SeqAccess<'de>,
-            {
-                let mut flags = TestFlags::empty();
-                while let Some(elem) = seq.next_element::<TestFlag>()? {
-                    flags |= elem.into();
-                }
-                Ok(flags)
-            }
-        }
-
-        struct RawFlagsVisitor;
-
-        impl Visitor<'_> for RawFlagsVisitor {
-            type Value = TestFlags;
-
-            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                write!(formatter, "a flags number")
-            }
-
-            fn visit_u16<E>(self, v: u16) -> Result<Self::Value, E>
-            where
-                E: serde::de::Error,
-            {
-                TestFlags::from_bits(v).ok_or_else(|| {
-                    E::invalid_value(Unexpected::Unsigned(v.into()), &"a valid flag number")
-                })
-            }
-        }
-
-        if deserializer.is_human_readable() {
-            deserializer.deserialize_seq(FlagsVisitor)
-        } else {
-            deserializer.deserialize_u16(RawFlagsVisitor)
-        }
-    }
-}
-
-/// Phase for an error.
-#[derive(Debug, Clone, Copy, Deserialize)]
-#[serde(rename_all = "lowercase")]
-enum Phase {
-    Parse,
-    Resolution,
-    Runtime,
-}
-
-/// Locale information structure.
-#[derive(Debug, Default, Clone, Deserialize)]
-#[serde(transparent)]
-#[allow(dead_code)]
-struct Locale {
-    locale: Box<[Box<str>]>,
 }
