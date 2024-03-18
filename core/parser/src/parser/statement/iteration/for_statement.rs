@@ -11,8 +11,11 @@ use crate::{
     lexer::{Error as LexError, TokenKind},
     parser::{
         expression::{AssignmentExpression, Expression},
-        statement::declaration::LexicalDeclaration,
-        statement::{variable::VariableDeclarationList, Statement},
+        statement::{
+            declaration::{allowed_token_after_let, LexicalDeclaration},
+            variable::VariableDeclarationList,
+            Statement,
+        },
         AllowAwait, AllowReturn, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
     },
     source::ReadChar,
@@ -20,6 +23,7 @@ use crate::{
 };
 use ast::{
     declaration::Binding,
+    expression::Identifier,
     operations::{bound_names, var_declared_names},
 };
 use boa_ast::{
@@ -107,7 +111,7 @@ where
             }
         };
 
-        let init = match cursor.peek(0, interner).or_abrupt()?.kind() {
+        let init = match cursor.peek(0, interner).or_abrupt()?.kind().clone() {
             TokenKind::Keyword((Keyword::Var, _)) => {
                 cursor.advance(interner);
                 Some(
@@ -116,20 +120,15 @@ where
                         .into(),
                 )
             }
-            TokenKind::Keyword((Keyword::Let, _)) => Some('exit: {
-                if !cursor.strict() {
-                    if let Some(token) = cursor.peek(1, interner)? {
-                        if token.kind() == &TokenKind::Keyword((Keyword::In, false)) {
-                            cursor.advance(interner);
-                            break 'exit boa_ast::Expression::Identifier(Sym::LET.into()).into();
-                        }
-                    }
-                }
-
-                LexicalDeclaration::new(false, self.allow_yield, self.allow_await, true)
-                    .parse(cursor, interner)?
-                    .into()
-            }),
+            TokenKind::Keyword((Keyword::Let, false))
+                if allowed_token_after_let(cursor.peek(1, interner)?) =>
+            {
+                Some(
+                    LexicalDeclaration::new(false, self.allow_yield, self.allow_await, true)
+                        .parse(cursor, interner)?
+                        .into(),
+                )
+            }
             TokenKind::Keyword((Keyword::Const, _)) => Some(
                 LexicalDeclaration::new(false, self.allow_yield, self.allow_await, true)
                     .parse(cursor, interner)?
@@ -174,6 +173,15 @@ where
                 ));
             }
             (Some(init), TokenKind::Keyword((kw @ (Keyword::In | Keyword::Of), false))) => {
+                if kw == &Keyword::Of
+                    && init
+                        == ForLoopInitializer::Expression(ast::Expression::Identifier(
+                            Identifier::new(Sym::LET),
+                        ))
+                {
+                    return Err(Error::general("unexpected token", position));
+                }
+
                 let in_loop = kw == &Keyword::In;
                 let init = initializer_to_iterable_loop_initializer(
                     init,

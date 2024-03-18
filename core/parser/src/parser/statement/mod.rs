@@ -26,7 +26,7 @@ use self::{
     block::BlockStatement,
     break_stm::BreakStatement,
     continue_stm::ContinueStatement,
-    declaration::{Declaration, ExportDeclaration, ImportDeclaration},
+    declaration::{allowed_token_after_let, Declaration, ExportDeclaration, ImportDeclaration},
     expression::ExpressionStatement,
     if_stm::IfStatement,
     iteration::{DoWhileStatement, ForStatement, WhileStatement},
@@ -412,12 +412,19 @@ where
         let _timer = Profiler::global().start_event("StatementListItem", "Parsing");
         let tok = cursor.peek(0, interner).or_abrupt()?;
 
-        match *tok.kind() {
-            TokenKind::Keyword(
-                (Keyword::Function | Keyword::Class | Keyword::Const, _) | (Keyword::Let, false),
-            ) => Declaration::new(self.allow_yield, self.allow_await)
-                .parse(cursor, interner)
-                .map(ast::StatementListItem::from),
+        match tok.kind().clone() {
+            TokenKind::Keyword((Keyword::Function | Keyword::Class | Keyword::Const, _)) => {
+                Declaration::new(self.allow_yield, self.allow_await)
+                    .parse(cursor, interner)
+                    .map(ast::StatementListItem::from)
+            }
+            TokenKind::Keyword((Keyword::Let, false))
+                if allowed_token_after_let(cursor.peek(1, interner)?) =>
+            {
+                Declaration::new(self.allow_yield, self.allow_await)
+                    .parse(cursor, interner)
+                    .map(ast::StatementListItem::from)
+            }
             TokenKind::Keyword((Keyword::Async, false)) => {
                 let skip_n = if cursor.peek_is_line_terminator(0, interner).or_abrupt()? {
                     2

@@ -8,7 +8,7 @@
 //! [spec]: https://tc39.es/ecma262/#sec-let-and-const-declarations
 
 use crate::{
-    lexer::{Error as LexError, TokenKind},
+    lexer::{Error as LexError, Token, TokenKind},
     parser::{
         cursor::{Cursor, SemicolonResult},
         expression::Initializer,
@@ -121,6 +121,21 @@ where
 
         Ok(lexical_declaration)
     }
+}
+
+/// Check if the given token is valid after the `let` keyword of a lexical declaration.
+pub(crate) fn allowed_token_after_let(token: Option<&Token>) -> bool {
+    matches!(
+        token.map(Token::kind),
+        Some(
+            TokenKind::IdentifierName(_)
+                | TokenKind::Keyword((
+                    Keyword::Await | Keyword::Yield | Keyword::Let | Keyword::Async,
+                    _
+                ))
+                | TokenKind::Punctuator(Punctuator::OpenBlock | Punctuator::OpenBracket),
+        )
+    )
 }
 
 /// Parses a binding list.
