@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["BindingList","LexicalBinding","LexicalDeclaration"]};
+window.SIDEBAR_ITEMS = {"fn":["allowed_token_after_let"],"struct":["BindingList","LexicalBinding","LexicalDeclaration"]};

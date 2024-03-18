@@ -984,6 +984,13 @@
 <a href="#983" id="983">983</a>
 <a href="#984" id="984">984</a>
 <a href="#985" id="985">985</a>
+<a href="#986" id="986">986</a>
+<a href="#987" id="987">987</a>
+<a href="#988" id="988">988</a>
+<a href="#989" id="989">989</a>
+<a href="#990" id="990">990</a>
+<a href="#991" id="991">991</a>
+<a href="#992" id="992">992</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Statement and declaration parsing.
 //!
 //! More information:
@@ -1012,7 +1019,7 @@
     block::BlockStatement,
     break_stm::BreakStatement,
     continue_stm::ContinueStatement,
-    declaration::{Declaration, ExportDeclaration, ImportDeclaration},
+    declaration::{allowed_token_after_let, Declaration, ExportDeclaration, ImportDeclaration},
     expression::ExpressionStatement,
     if_stm::IfStatement,
     iteration::{DoWhileStatement, ForStatement, WhileStatement},
@@ -1398,12 +1405,19 @@
         <span class="kw">let </span>_timer = Profiler::global().start_event(<span class="string">"StatementListItem"</span>, <span class="string">"Parsing"</span>);
         <span class="kw">let </span>tok = cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>;
 
-        <span class="kw">match </span><span class="kw-2">*</span>tok.kind() {
-            TokenKind::Keyword(
-                (Keyword::Function | Keyword::Class | Keyword::Const, <span class="kw">_</span>) | (Keyword::Let, <span class="bool-val">false</span>),
-            ) =&gt; Declaration::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
-                .parse(cursor, interner)
-                .map(ast::StatementListItem::from),
+        <span class="kw">match </span>tok.kind().clone() {
+            TokenKind::Keyword((Keyword::Function | Keyword::Class | Keyword::Const, <span class="kw">_</span>)) =&gt; {
+                Declaration::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
+                    .parse(cursor, interner)
+                    .map(ast::StatementListItem::from)
+            }
+            TokenKind::Keyword((Keyword::Let, <span class="bool-val">false</span>))
+                <span class="kw">if </span>allowed_token_after_let(cursor.peek(<span class="number">1</span>, interner)<span class="question-mark">?</span>) =&gt;
+            {
+                Declaration::new(<span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
+                    .parse(cursor, interner)
+                    .map(ast::StatementListItem::from)
+            }
             TokenKind::Keyword((Keyword::Async, <span class="bool-val">false</span>)) =&gt; {
                 <span class="kw">let </span>skip_n = <span class="kw">if </span>cursor.peek_is_line_terminator(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">? </span>{
                     <span class="number">2
