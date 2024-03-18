@@ -111,6 +111,7 @@ where
             }
         };
 
+        let mut init_is_async_of = false;
         let init = match cursor.peek(0, interner).or_abrupt()?.kind().clone() {
             TokenKind::Keyword((Keyword::Var, _)) => {
                 cursor.advance(interner);
@@ -135,19 +136,18 @@ where
                     .into(),
             ),
             TokenKind::Keyword((Keyword::Async, false)) if !r#await => {
-                match cursor.peek(1, interner).or_abrupt()?.kind() {
-                    TokenKind::Keyword((Keyword::Of, _)) => {
-                        return Err(Error::lex(LexError::Syntax(
-                            "invalid left-hand side expression 'async' of a for-of loop".into(),
-                            init_position,
-                        )));
-                    }
-                    _ => Some(
-                        Expression::new(None, false, self.allow_yield, self.allow_await)
-                            .parse(cursor, interner)?
-                            .into(),
-                    ),
+                if matches!(
+                    cursor.peek(1, interner).or_abrupt()?.kind(),
+                    TokenKind::Keyword((Keyword::Of, false))
+                ) {
+                    init_is_async_of = true;
                 }
+
+                Some(
+                    Expression::new(None, false, self.allow_yield, self.allow_await)
+                        .parse(cursor, interner)?
+                        .into(),
+                )
             }
             TokenKind::Punctuator(Punctuator::Semicolon) => None,
             _ => Some(
@@ -180,6 +180,17 @@ where
                         ))
                 {
                     return Err(Error::general("unexpected token", position));
+                }
+                if init_is_async_of
+                    && init
+                        == ForLoopInitializer::Expression(ast::Expression::Identifier(
+                            Identifier::new(Sym::ASYNC),
+                        ))
+                {
+                    return Err(Error::lex(LexError::Syntax(
+                        "invalid left-hand side expression 'async' of a for-of loop".into(),
+                        init_position,
+                    )));
                 }
 
                 let in_loop = kw == &Keyword::In;

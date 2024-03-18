@@ -141,15 +141,22 @@ where
                     1
                 };
 
+                let peek_1 = cursor.peek(1, interner).or_abrupt()?.kind().clone();
                 if !cursor
                     .peek_is_line_terminator(skip_n, interner)
                     .or_abrupt()?
-                    && matches!(
-                        cursor.peek(1, interner).or_abrupt()?.kind(),
-                        TokenKind::IdentifierName(_)
-                            | TokenKind::Keyword((Keyword::Yield | Keyword::Await, _))
-                            | TokenKind::Punctuator(Punctuator::OpenParen)
-                    )
+                    && (matches!(peek_1, TokenKind::Punctuator(Punctuator::OpenParen))
+                        || (matches!(
+                            peek_1,
+                            TokenKind::IdentifierName(_)
+                                | TokenKind::Keyword((
+                                    Keyword::Yield | Keyword::Await | Keyword::Of,
+                                    _
+                                ))
+                        ) && matches!(
+                            cursor.peek(2, interner).or_abrupt()?.kind(),
+                            TokenKind::Punctuator(Punctuator::Arrow)
+                        )))
                 {
                     return Ok(
                         AsyncArrowFunction::new(self.name, self.allow_in, self.allow_yield)
