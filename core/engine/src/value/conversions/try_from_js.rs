@@ -1,7 +1,8 @@
 //! This module contains the [`TryFromJs`] trait, and conversions to basic Rust types.
 
-use crate::{Context, JsBigInt, JsNativeError, JsResult, JsValue};
 use num_bigint::BigInt;
+
+use crate::{Context, js_string, JsBigInt, JsNativeError, JsResult, JsValue};
 
 /// This trait adds a fallible and efficient conversions from a [`JsValue`] to Rust types.
 pub trait TryFromJs: Sized {
@@ -55,6 +56,33 @@ where
             JsValue::Null | JsValue::Undefined => Ok(None),
             value => Ok(Some(T::try_from_js(value, context)?)),
         }
+    }
+}
+
+impl<T> TryFromJs for Vec<T>
+where
+    T: TryFromJs,
+{
+    fn try_from_js(value: &JsValue, context: &mut Context) -> JsResult<Self> {
+        let object = match value {
+            JsValue::Object(o) => o,
+            _ => {
+                return Err(JsNativeError::typ()
+                    .with_message("cannot convert value to a Vec")
+                    .into())
+            }
+        };
+
+        let length = object
+            .get(js_string!("length"), context)?
+            .to_length(context)?;
+        let mut vec = Vec::with_capacity(length as usize);
+        for i in 0..length {
+            let value = object.get(i, context)?;
+            vec.push(T::try_from_js(&value, context)?);
+        }
+
+        Ok(vec)
     }
 }
 
@@ -249,4 +277,43 @@ impl TryFromJs for u128 {
                 .into()),
         }
     }
+}
+
+#[test]
+fn value_into_vec() {
+    use boa_engine::{run_test_actions, TestAction};
+    use indoc::indoc;
+
+    #[derive(Debug, PartialEq, Eq, boa_macros::TryFromJs)]
+    struct TestStruct {
+        inner: bool,
+        my_int: i16,
+        my_vec: Vec<String>,
+    }
+
+    run_test_actions([TestAction::assert_with_op(
+        indoc! {r#"
+            let value = {
+                inner: true,
+                my_int: 11,
+                my_vec: ["a", "b", "c"]
+            };
+            value
+        "#},
+        |value, context| {
+            let value = TestStruct::try_from_js(&value, context);
+            eprintln!("{:?}", value);
+            match value {
+                Ok(value) => {
+                    value
+                        == TestStruct {
+                            inner: true,
+                            my_int: 11,
+                            my_vec: vec!["a".to_string(), "b".to_string(), "c".to_string()],
+                        }
+                }
+                _ => false,
+            }
+        },
+    )]);
 }
