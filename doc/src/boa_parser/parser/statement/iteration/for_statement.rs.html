@@ -427,6 +427,17 @@
 <a href="#426" id="426">426</a>
 <a href="#427" id="427">427</a>
 <a href="#428" id="428">428</a>
+<a href="#429" id="429">429</a>
+<a href="#430" id="430">430</a>
+<a href="#431" id="431">431</a>
+<a href="#432" id="432">432</a>
+<a href="#433" id="433">433</a>
+<a href="#434" id="434">434</a>
+<a href="#435" id="435">435</a>
+<a href="#436" id="436">436</a>
+<a href="#437" id="437">437</a>
+<a href="#438" id="438">438</a>
+<a href="#439" id="439">439</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! For statement parsing.
 //!
 //! More information:
@@ -540,6 +551,7 @@
             }
         };
 
+        <span class="kw">let </span><span class="kw-2">mut </span>init_is_async_of = <span class="bool-val">false</span>;
         <span class="kw">let </span>init = <span class="kw">match </span>cursor.peek(<span class="number">0</span>, interner).or_abrupt()<span class="question-mark">?</span>.kind().clone() {
             TokenKind::Keyword((Keyword::Var, <span class="kw">_</span>)) =&gt; {
                 cursor.advance(interner);
@@ -564,19 +576,18 @@
                     </span>.into(),
             ),
             TokenKind::Keyword((Keyword::Async, <span class="bool-val">false</span>)) <span class="kw">if </span>!r#await =&gt; {
-                <span class="kw">match </span>cursor.peek(<span class="number">1</span>, interner).or_abrupt()<span class="question-mark">?</span>.kind() {
-                    TokenKind::Keyword((Keyword::Of, <span class="kw">_</span>)) =&gt; {
-                        <span class="kw">return </span><span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
-                            <span class="string">"invalid left-hand side expression 'async' of a for-of loop"</span>.into(),
-                            init_position,
-                        )));
-                    }
-                    <span class="kw">_ </span>=&gt; <span class="prelude-val">Some</span>(
-                        Expression::new(<span class="prelude-val">None</span>, <span class="bool-val">false</span>, <span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
-                            .parse(cursor, interner)<span class="question-mark">?
-                            </span>.into(),
-                    ),
+                <span class="kw">if </span><span class="macro">matches!</span>(
+                    cursor.peek(<span class="number">1</span>, interner).or_abrupt()<span class="question-mark">?</span>.kind(),
+                    TokenKind::Keyword((Keyword::Of, <span class="bool-val">false</span>))
+                ) {
+                    init_is_async_of = <span class="bool-val">true</span>;
                 }
+
+                <span class="prelude-val">Some</span>(
+                    Expression::new(<span class="prelude-val">None</span>, <span class="bool-val">false</span>, <span class="self">self</span>.allow_yield, <span class="self">self</span>.allow_await)
+                        .parse(cursor, interner)<span class="question-mark">?
+                        </span>.into(),
+                )
             }
             TokenKind::Punctuator(Punctuator::Semicolon) =&gt; <span class="prelude-val">None</span>,
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Some</span>(
@@ -609,6 +620,17 @@
                         ))
                 {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(Error::general(<span class="string">"unexpected token"</span>, position));
+                }
+                <span class="kw">if </span>init_is_async_of
+                    &amp;&amp; init
+                        == ForLoopInitializer::Expression(ast::Expression::Identifier(
+                            Identifier::new(Sym::ASYNC),
+                        ))
+                {
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(Error::lex(LexError::Syntax(
+                        <span class="string">"invalid left-hand side expression 'async' of a for-of loop"</span>.into(),
+                        init_position,
+                    )));
                 }
 
                 <span class="kw">let </span>in_loop = kw == <span class="kw-2">&amp;</span>Keyword::In;
