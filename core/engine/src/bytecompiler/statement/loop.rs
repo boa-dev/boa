@@ -59,6 +59,20 @@ impl ByteCompiler<'_> {
         }
 
         self.push_empty_loop_jump_control(use_expr);
+
+        if let Some((let_binding_indices, env_index)) = &let_binding_indices {
+            for index in let_binding_indices {
+                self.emit_with_varying_operand(Opcode::GetName, *index);
+            }
+
+            self.emit_opcode(Opcode::PopEnvironment);
+            self.emit_with_varying_operand(Opcode::PushDeclarativeEnvironment, *env_index);
+
+            for index in let_binding_indices.iter().rev() {
+                self.emit_with_varying_operand(Opcode::PutLexicalValue, *index);
+            }
+        }
+
         let initial_jump = self.jump();
         let start_address = self.next_opcode_location();
 
