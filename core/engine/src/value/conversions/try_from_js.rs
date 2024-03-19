@@ -76,7 +76,12 @@ where
         let length = object
             .get(js_string!("length"), context)?
             .to_length(context)?;
-        let mut vec = Vec::with_capacity(length as usize);
+        let length = usize::try_from(length).map_err(|e| {
+            JsNativeError::typ()
+                .with_message(format!("could not convert length to usize: {e}"))
+                .into()
+        })?;
+        let mut vec = Vec::with_capacity(length);
         for i in 0..length {
             let value = object.get(i, context)?;
             vec.push(T::try_from_js(&value, context)?);
