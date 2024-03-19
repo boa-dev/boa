@@ -50,7 +50,7 @@ boa_runtime = { version = "~0.18.0", path = "core/runtime" }
 
 # Shared deps
 arbitrary = "1"
-bitflags = "2.4.2"
+bitflags = "2.5.0"
 clap = "4.5.3"
 colored = "2.1.0"
 fast-float = "0.2.0"
