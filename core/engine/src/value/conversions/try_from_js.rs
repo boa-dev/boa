@@ -76,11 +76,14 @@ where
         let length = object
             .get(js_string!("length"), context)?
             .to_length(context)?;
-        let length = usize::try_from(length).map_err(|e| {
-            JsNativeError::typ()
-                .with_message(format!("could not convert length to usize: {e}"))
-                .into()
-        })?;
+        let length = match usize::try_from(length) {
+            Ok(length) => length,
+            Err(e) => {
+                return Err(JsNativeError::typ()
+                    .with_message(format!("could not convert length to usize: {e}"))
+                    .into());
+            }
+        };
         let mut vec = Vec::with_capacity(length);
         for i in 0..length {
             let value = object.get(i, context)?;
