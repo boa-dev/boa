@@ -307,7 +307,7 @@ fn value_into_vec() {
         "#},
         |value, context| {
             let value = TestStruct::try_from_js(&value, context);
-            eprintln!("{:?}", value);
+
             match value {
                 Ok(value) => {
                     value
