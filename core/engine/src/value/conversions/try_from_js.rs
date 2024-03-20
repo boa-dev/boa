@@ -2,7 +2,7 @@
 
 use num_bigint::BigInt;
 
-use crate::{Context, js_string, JsBigInt, JsNativeError, JsResult, JsValue};
+use crate::{js_string, Context, JsBigInt, JsNativeError, JsResult, JsValue};
 
 /// This trait adds a fallible and efficient conversions from a [`JsValue`] to Rust types.
 pub trait TryFromJs: Sized {
@@ -64,13 +64,10 @@ where
     T: TryFromJs,
 {
     fn try_from_js(value: &JsValue, context: &mut Context) -> JsResult<Self> {
-        let object = match value {
-            JsValue::Object(o) => o,
-            _ => {
-                return Err(JsNativeError::typ()
-                    .with_message("cannot convert value to a Vec")
-                    .into())
-            }
+        let JsValue::Object(object) = value else {
+            return Err(JsNativeError::typ()
+                .with_message("cannot convert value to a Vec")
+                .into());
         };
 
         let length = object
