@@ -305,7 +305,7 @@ pub(crate) fn to_integer_if_integral(arg: &JsValue, context: &mut Context) -> Js
     // 1. Let number be ? ToNumber(argument).
     // 2. If IsIntegralNumber(number) is false, throw a RangeError exception.
     // 3. Return ℝ(number).
-    if !arg.is_integer() {
+    if !arg.is_integral_number() {
         return Err(JsNativeError::range()
             .with_message("value to convert is not an integral number.")
             .into());

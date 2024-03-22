@@ -15,9 +15,10 @@ use boa_profiler::Profiler;
 use thin_vec::ThinVec;
 
 use crate::{
-    builtins::iterable::{if_abrupt_close_iterator, IteratorHint},
-    builtins::BuiltInObject,
-    builtins::Number,
+    builtins::{
+        iterable::{if_abrupt_close_iterator, IteratorHint},
+        BuiltInObject, Number,
+    },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
@@ -27,7 +28,7 @@ use crate::{
             ordinary_get_own_property, InternalMethodContext, InternalObjectMethods,
             ORDINARY_INTERNAL_METHODS,
         },
-        JsData, JsObject, CONSTRUCTOR,
+        IndexedProperties, JsData, JsObject, CONSTRUCTOR,
     },
     property::{Attribute, PropertyDescriptor, PropertyKey, PropertyNameKind},
     realm::Realm,
@@ -403,7 +404,11 @@ impl Array {
             .intrinsics()
             .templates()
             .array()
-            .create_with_indexed_properties(Array, vec![JsValue::new(length)], elements)
+            .create_with_indexed_properties(
+                Array,
+                vec![JsValue::new(length)],
+                IndexedProperties::from_dense_js_value(elements),
+            )
     }
 
     /// Utility function for concatenating array objects.
@@ -1210,6 +1215,16 @@ impl Array {
         // slot-based dense property maps.
         if o.is_array() {
             let mut o_borrow = o.borrow_mut();
+            if let IndexedProperties::DenseI32(dense) =
+                &mut o_borrow.properties_mut().indexed_properties
+            {
+                if len <= dense.len() as u64 {
+                    let v = dense.remove(0);
+                    drop(o_borrow);
+                    Self::set_length(&o, len - 1, context)?;
+                    return Ok(v.into());
+                }
+            }
             if let Some(dense) = o_borrow.properties_mut().dense_indexed_properties_mut() {
                 if len <= dense.len() as u64 {
                     let v = dense.remove(0);

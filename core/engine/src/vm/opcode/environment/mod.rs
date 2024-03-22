@@ -181,9 +181,8 @@ impl Operation for SuperCallSpread {
         let arguments = arguments_array_object
             .borrow()
             .properties()
-            .dense_indexed_properties()
-            .expect("arguments array in call spread function must be dense")
-            .clone();
+            .to_dense_indexed_properties()
+            .expect("arguments array in call spread function must be dense");
 
         let super_constructor = context.vm.pop();
 

@@ -241,10 +241,15 @@ impl JsValue {
         matches!(self, Self::Rational(_))
     }
 
-    /// Returns true if the value is integer.
+    /// Determines if argument is a finite integral Number value.
+    ///
+    /// More information:
+    /// - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-isintegralnumber
     #[must_use]
     #[allow(clippy::float_cmp)]
-    pub fn is_integer(&self) -> bool {
+    pub fn is_integral_number(&self) -> bool {
         // If it can fit in a i32 and the truncated version is
         // equal to the original then it is an integer.
         let is_rational_integer = |n: f64| n == f64::from(n as i32);
@@ -253,6 +258,37 @@ impl JsValue {
             Self::Integer(_) => true,
             Self::Rational(n) if is_rational_integer(n) => true,
             _ => false,
+        }
+    }
+
+    /// Returns true if the value can be reprented as an integer.
+    ///
+    /// Similar to [`JsValue::is_integral_number()`] except that it returns `false` for `-0`.
+    #[must_use]
+    #[allow(clippy::float_cmp)]
+    pub fn is_integer(&self) -> bool {
+        // If it can fit in a i32 and the truncated version is
+        // equal to the original then it is an integer.
+        let is_rational_integer = |n: f64| n.to_bits() == f64::from(n as i32).to_bits();
+
+        match *self {
+            Self::Integer(_) => true,
+            Self::Rational(n) if is_rational_integer(n) => true,
+            _ => false,
+        }
+    }
+
+    #[must_use]
+    #[allow(clippy::float_cmp)]
+    pub(crate) fn as_integer(&self) -> Option<i32> {
+        // If it can fit in a i32 and the truncated version is
+        // equal to the original then it is an integer.
+        let is_rational_integer = |n: f64| n.to_bits() == f64::from(n as i32).to_bits();
+
+        match *self {
+            Self::Integer(n) => Some(n),
+            Self::Rational(n) if is_rational_integer(n) => Some(n as i32),
+            _ => None,
         }
     }
 
