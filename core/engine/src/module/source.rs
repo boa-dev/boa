@@ -1001,7 +1001,7 @@ impl SourceTextModule {
         /// Returns an error if there's no more available indices.
         fn get_async_eval_index() -> JsResult<usize> {
             thread_local! {
-                static ASYNC_EVAL_QUEUE_INDEX: Cell<usize> = Cell::new(0);
+                static ASYNC_EVAL_QUEUE_INDEX: Cell<usize> = const { Cell::new(0) };
             }
 
             ASYNC_EVAL_QUEUE_INDEX

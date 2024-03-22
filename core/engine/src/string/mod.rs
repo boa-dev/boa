@@ -870,8 +870,7 @@ impl Utf16Trim for [u16] {
     fn trim_start(&self) -> &Self {
         if let Some(left) = self.iter().copied().position(|r| {
             !char::from_u32(u32::from(r))
-                .map(is_trimmable_whitespace)
-                .unwrap_or_default()
+                .is_some_and(is_trimmable_whitespace)
         }) {
             &self[left..]
         } else {
@@ -881,8 +880,7 @@ impl Utf16Trim for [u16] {
     fn trim_end(&self) -> &Self {
         if let Some(right) = self.iter().copied().rposition(|r| {
             !char::from_u32(u32::from(r))
-                .map(is_trimmable_whitespace)
-                .unwrap_or_default()
+                .is_some_and(is_trimmable_whitespace)
         }) {
             &self[..=right]
         } else {

@@ -172,7 +172,7 @@ pub(crate) fn parse_int(_: &JsValue, args: &[JsValue], context: &mut Context) ->
         // 11. If S contains a code unit that is not a radix-R digit, let end be the index within S of the
         //     first such code unit; otherwise, let end be the length of S.
         let end = char::decode_utf16(var_s.iter().copied())
-            .position(|code| !code.map(|c| c.is_digit(var_r as u32)).unwrap_or_default())
+            .position(|code| !code.is_ok_and(|c| c.is_digit(var_r as u32)))
             .unwrap_or(var_s.len());
 
         // 12. Let Z be the substring of S from 0 to end.

@@ -39,7 +39,7 @@ use crate::vm::RuntimeLimits;
 use self::intrinsics::StandardConstructor;
 
 thread_local! {
-    static CANNOT_BLOCK_COUNTER: Cell<u64> = Cell::new(0);
+    static CANNOT_BLOCK_COUNTER: Cell<u64> = const { Cell::new(0) };
 }
 
 /// ECMAScript context. It is the primary way to interact with the runtime.
