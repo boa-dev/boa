@@ -943,6 +943,7 @@ impl FusedIterator for IndexPropertyKeys<'_> {}
 
 /// An iterator over the index values (`Property`) of an `Object`.
 #[derive(Debug, Clone)]
+#[allow(variant_size_differences)]
 pub enum IndexPropertyValues<'a> {
     /// An iterator over dense, Vec backed indexed property entries of an `Object`.
     DenseI32(std::slice::Iter<'a, i32>),

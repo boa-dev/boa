@@ -163,6 +163,30 @@ $boa.object.id(o)    // '0x7F5B3251B718'
 $boa.object.id($boa) // '0x7F5B3251B5D8'
 ```
 
+## Function `$boa.object.indexedStorageType(object)`
+
+This function returns indexed storage type.
+
+Example:
+
+```JavaScript
+let a = [1, 2]
+
+$boa.object.indexedStorageType(a) // 'DenseI32'
+
+a.push(0xdeadbeef)
+$boa.object.indexedStorageType(a) // 'DenseI32'
+
+a.push(0.5)
+$boa.object.indexedStorageType(a) // 'DenseF64'
+
+a.push("Hello")
+$boa.object.indexedStorageType(a) // 'DenseElement'
+
+a[100] = 100 // Make a hole
+$boa.object.indexedStorageType(a) // 'SparseElement'
+```
+
 ## Module `$boa.optimizer`
 
 This modules contains getters and setters for enabling and disabling optimizations.
