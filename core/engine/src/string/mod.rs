@@ -868,20 +868,22 @@ pub(crate) trait Utf16Trim {
 
 impl Utf16Trim for [u16] {
     fn trim_start(&self) -> &Self {
-        if let Some(left) = self.iter().copied().position(|r| {
-            !char::from_u32(u32::from(r))
-                .is_some_and(is_trimmable_whitespace)
-        }) {
+        if let Some(left) = self
+            .iter()
+            .copied()
+            .position(|r| !char::from_u32(u32::from(r)).is_some_and(is_trimmable_whitespace))
+        {
             &self[left..]
         } else {
             &[]
         }
     }
     fn trim_end(&self) -> &Self {
-        if let Some(right) = self.iter().copied().rposition(|r| {
-            !char::from_u32(u32::from(r))
-                .is_some_and(is_trimmable_whitespace)
-        }) {
+        if let Some(right) = self
+            .iter()
+            .copied()
+            .rposition(|r| !char::from_u32(u32::from(r)).is_some_and(is_trimmable_whitespace))
+        {
             &self[..=right]
         } else {
             &[]
