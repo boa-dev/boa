@@ -412,7 +412,7 @@ pub(crate) fn ordinary_get_prototype_of(
     let _timer = Profiler::global().start_event("Object::ordinary_get_prototype_of", "object");
 
     // 1. Return O.[[Prototype]].
-    Ok(obj.prototype().as_ref().cloned())
+    Ok(obj.prototype().clone())
 }
 
 /// Abstract operation `OrdinarySetPrototypeOf`.

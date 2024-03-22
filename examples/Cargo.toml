@@ -47,7 +47,6 @@ unsafe_op_in_unsafe_fn = "warn"
 unused_import_braces = "warn"
 unused_lifetimes = "warn"
 unused_qualifications = "warn"
-unused_tuple_struct_fields = "warn"
 variant_size_differences = "warn"
 
 [lints.clippy]

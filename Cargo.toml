@@ -163,7 +163,6 @@ unused_crate_dependencies = "warn"
 unused_import_braces = "warn"
 unused_lifetimes = "warn"
 unused_qualifications = "warn"
-unused_tuple_struct_fields = "warn"
 variant_size_differences = "warn"
 
 [workspace.lints.rustdoc]

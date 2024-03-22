@@ -579,12 +579,9 @@ fn typed_array_get_element(obj: &JsObject, index: f64) -> Option<JsValue> {
     let buffer = buffer.as_buffer();
 
     // 1. If IsValidIntegerIndex(O, index) is false, return undefined.
-    let Some(buffer) = buffer.bytes(Ordering::Relaxed) else {
-        return None;
-    };
-    let Some(index) = inner.validate_index(index, buffer.len()) else {
-        return None;
-    };
+    let buffer = buffer.bytes(Ordering::Relaxed)?;
+
+    let index = inner.validate_index(index, buffer.len())?;
 
     // 2. Let offset be O.[[ByteOffset]].
     let offset = inner.byte_offset();

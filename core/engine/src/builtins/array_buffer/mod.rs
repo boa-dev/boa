@@ -425,8 +425,7 @@ impl ArrayBuffer {
         Ok(args
             .get_or_undefined(0)
             .as_object()
-            .map(|obj| obj.is::<TypedArray>() || obj.is::<DataView>())
-            .unwrap_or_default()
+            .is_some_and(|obj| obj.is::<TypedArray>() || obj.is::<DataView>())
             .into())
     }
 

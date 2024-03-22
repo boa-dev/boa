@@ -94,8 +94,7 @@ impl Ignored {
         feature
             .split('.')
             .next()
-            .map(|feat| self.features.contains(feat))
-            .unwrap_or_default()
+            .is_some_and(|feat| self.features.contains(feat))
     }
 
     pub(crate) const fn contains_any_flag(&self, flags: TestFlags) -> bool {

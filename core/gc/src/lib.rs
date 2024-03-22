@@ -42,7 +42,7 @@ type GcErasedPointer = NonNull<GcBox<NonTraceable>>;
 type EphemeronPointer = NonNull<dyn ErasedEphemeronBox>;
 type ErasedWeakMapBoxPointer = NonNull<dyn ErasedWeakMapBox>;
 
-thread_local!(static GC_DROPPING: Cell<bool> = Cell::new(false));
+thread_local!(static GC_DROPPING: Cell<bool> = const { Cell::new(false) });
 thread_local!(static BOA_GC: RefCell<BoaGc> = RefCell::new( BoaGc {
     config: GcConfig::default(),
     runtime: GcRuntimeData::default(),

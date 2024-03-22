@@ -680,8 +680,7 @@ fn is_error_type(error: &JsError, target_type: ErrorType, context: &mut Context)
             .and_then(|o| o.get(js_string!("name"), context).ok())
             .as_ref()
             .and_then(JsValue::as_string)
-            .map(|s| s == target_type.as_str())
-            .unwrap_or_default();
+            .is_some_and(|s| s == target_type.as_str());
         passed
     }
 }
