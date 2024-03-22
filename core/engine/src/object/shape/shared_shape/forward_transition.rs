@@ -80,18 +80,14 @@ impl ForwardTransition {
     /// Get a property transition, return [`None`] otherwise.
     pub(super) fn get_property(&self, key: &TransitionKey) -> Option<WeakGc<SharedShapeInner>> {
         let this = self.inner.borrow();
-        let Some(transitions) = this.properties.as_ref() else {
-            return None;
-        };
+        let transitions = this.properties.as_ref()?;
         transitions.map.get(key).cloned()
     }
 
     /// Get a prototype transition, return [`None`] otherwise.
     pub(super) fn get_prototype(&self, key: &JsPrototype) -> Option<WeakGc<SharedShapeInner>> {
         let this = self.inner.borrow();
-        let Some(transitions) = this.prototypes.as_ref() else {
-            return None;
-        };
+        let transitions = this.prototypes.as_ref()?;
         transitions.map.get(key).cloned()
     }
 
