@@ -1225,6 +1225,16 @@ impl Array {
                     return Ok(v.into());
                 }
             }
+            if let IndexedProperties::DenseF64(dense) =
+                &mut o_borrow.properties_mut().indexed_properties
+            {
+                if len <= dense.len() as u64 {
+                    let v = dense.remove(0);
+                    drop(o_borrow);
+                    Self::set_length(&o, len - 1, context)?;
+                    return Ok(v.into());
+                }
+            }
             if let Some(dense) = o_borrow.properties_mut().dense_indexed_properties_mut() {
                 if len <= dense.len() as u64 {
                     let v = dense.remove(0);

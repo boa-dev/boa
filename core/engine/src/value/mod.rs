@@ -278,20 +278,6 @@ impl JsValue {
         }
     }
 
-    #[must_use]
-    #[allow(clippy::float_cmp)]
-    pub(crate) fn as_integer(&self) -> Option<i32> {
-        // If it can fit in a i32 and the truncated version is
-        // equal to the original then it is an integer.
-        let is_rational_integer = |n: f64| n.to_bits() == f64::from(n as i32).to_bits();
-
-        match *self {
-            Self::Integer(n) => Some(n),
-            Self::Rational(n) if is_rational_integer(n) => Some(n as i32),
-            _ => None,
-        }
-    }
-
     /// Returns true if the value is a number.
     #[inline]
     #[must_use]
