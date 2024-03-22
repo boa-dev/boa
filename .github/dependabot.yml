@@ -3,81 +3,81 @@ updates:
   - package-ecosystem: npm
     directory: /
     schedule:
-      interval: daily
+      interval: weekly
   - package-ecosystem: github-actions
     directory: /
     schedule:
-      interval: daily
+      interval: weekly
   - package-ecosystem: cargo
     directory: /
     schedule:
-      interval: daily
+      interval: weekly
   # CLI
   - package-ecosystem: cargo
     directory: /cli/
     schedule:
-      interval: daily
+      interval: weekly
   # CORE
   - package-ecosystem: cargo
     directory: /core/ast/
     schedule:
-      interval: daily
+      interval: weekly
   - package-ecosystem: cargo
     directory: /core/engine/
     schedule:
-      interval: daily
+      interval: weekly
   - package-ecosystem: cargo
     directory: /core/gc/
     schedule:
-      interval: daily
+      interval: weekly
   - package-ecosystem: cargo
     directory: /core/icu_provider/
     schedule:
-      interval: daily
+      interval: weekly
   - package-ecosystem: cargo
     directory: /core/interner/
     schedule:
-      interval: daily
+      interval: weekly
   - package-ecosystem: cargo
     directory: /core/macros/
     schedule:
-      interval: daily
+      interval: weekly
   - package-ecosystem: cargo
     directory: /core/parser/
     schedule:
-      interval: daily
+      interval: weekly
   - package-ecosystem: cargo
     directory: /core/profiler/
     schedule:
-      interval: daily
+      interval: weekly
   - package-ecosystem: cargo
     directory: /core/runtime/
     schedule:
-      interval: daily
+      interval: weekly
   - package-ecosystem: cargo
     directory: /core/temporal/
     schedule:
-      interval: daily
+      interval: weekly
   # TESTS
   - package-ecosystem: cargo
     directory: /tests/tester/
     schedule:
-      interval: daily
+      interval: weekly
   - package-ecosystem: cargo
     directory: /tests/macros/
     schedule:
-      interval: daily
+      interval: weekly
   - package-ecosystem: cargo
     directory: /tests/fuzz/
     schedule:
-      interval: daily
+      interval: weekly
   # FFI
   - package-ecosystem: cargo
     directory: /ffi/wasm/
     schedule:
-      interval: daily
+      interval: weekly
   # TOOLS
   - package-ecosystem: cargo
     directory: /tools/
     schedule:
-      interval: daily
+      interval: weekly
