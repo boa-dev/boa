@@ -1,6 +1,5 @@
 #![deny(unsafe_op_in_unsafe_fn)]
 #![allow(clippy::cast_ptr_alignment)] // Invariants are checked by the caller.
-#![allow(unused_tuple_struct_fields)] // Weird false-positive with `boa_macros_tests`
 
 mod atomic;
 
