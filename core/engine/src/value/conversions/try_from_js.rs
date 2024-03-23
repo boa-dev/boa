@@ -296,8 +296,9 @@ fn value_into_vec() {
         my_vec: Vec<String>,
     }
 
-    run_test_actions([TestAction::assert_with_op(
-        indoc! {r#"
+    run_test_actions([
+        TestAction::assert_with_op(
+            indoc! {r#"
             let value = {
                 inner: true,
                 my_int: 11,
@@ -305,20 +306,39 @@ fn value_into_vec() {
             };
             value
         "#},
-        |value, context| {
-            let value = TestStruct::try_from_js(&value, context);
+            |value, context| {
+                let value = TestStruct::try_from_js(&value, context);
 
-            match value {
-                Ok(value) => {
-                    value
-                        == TestStruct {
-                            inner: true,
-                            my_int: 11,
-                            my_vec: vec!["a".to_string(), "b".to_string(), "c".to_string()],
-                        }
+                match value {
+                    Ok(value) => {
+                        value
+                            == TestStruct {
+                                inner: true,
+                                my_int: 11,
+                                my_vec: vec!["a".to_string(), "b".to_string(), "c".to_string()],
+                            }
+                    }
+                    _ => false,
                 }
-                _ => false,
-            }
-        },
-    )]);
+            },
+        ),
+        TestAction::assert_with_op(
+            indoc!(
+                r#"
+            let wrong = {
+                inner: false,
+                my_int: 22,
+                my_vec: [{}, "e", "f"]
+            };
+            wrong"#
+            ),
+            |value, context| {
+                let Err(value) = TestStruct::try_from_js(&value, context) else {
+                    return false;
+                };
+                assert!(value.to_string().contains("TypeError"));
+                true
+            },
+        ),
+    ]);
 }
