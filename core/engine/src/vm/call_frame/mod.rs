@@ -31,6 +31,9 @@ bitflags::bitflags! {
 
         /// Does this [`CallFrame`] need to push registers on [`Vm::push_frame()`].
         const REGISTERS_ALREADY_PUSHED = 0b0000_0100;
+
+        /// If the `this` value has been cached.
+        const THIS_VALUE_CACHED = 0b0000_1000;
     }
 }
 
@@ -322,6 +325,12 @@ impl CallFrame {
     pub(crate) fn registers_already_pushed(&self) -> bool {
         self.flags
             .contains(CallFrameFlags::REGISTERS_ALREADY_PUSHED)
+    }
+    /// Does this [`CallFrame`] have a cached `this` value.
+    ///
+    /// The cached value is placed in the [`CallFrame::THIS_POSITION`] position.
+    pub(crate) fn has_this_value_cached(&self) -> bool {
+        self.flags.contains(CallFrameFlags::THIS_VALUE_CACHED)
     }
 }
 
