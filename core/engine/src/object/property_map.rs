@@ -272,75 +272,45 @@ impl IndexedProperties {
         }
     }
 
-    /// Removes a property descriptor with the specified key.
-    fn remove(&mut self, key: u32) -> bool {
+    fn convert_to_sparse_and_remove(&mut self, key: u32) -> bool {
         let mut map = match self {
-            Self::DenseI32(vec) => {
-                // Fast Path: contiguous storage.
-
-                // If out of range, nothing to delete!
-                if key as usize >= vec.len() {
-                    return false;
-                }
-
-                // If the key is pointing at the last element, then we pop it.
-                //
-                // It does not make the storage sparse.
-                if key as usize == vec.len().wrapping_sub(1) {
-                    vec.pop().expect("Already checked if it is out of bounds");
-                    return true;
-                }
-
-                // Slow Path: conversion to sparse storage.
-                Self::convert_dense_to_sparse(vec)
-            }
-            Self::DenseF64(vec) => {
-                // Fast Path: contiguous storage.
-
-                // If out of range, nothing to delete!
-                if key as usize >= vec.len() {
-                    return false;
-                }
-
-                // If the key is pointing at the last element, then we pop it.
-                //
-                // It does not make the storage sparse.
-                if key as usize == vec.len().wrapping_sub(1) {
-                    vec.pop().expect("Already checked if it is out of bounds");
-                    return true;
-                }
-
-                // Slow Path: conversion to sparse storage.
-                Self::convert_dense_to_sparse(vec)
-            }
-            Self::DenseElement(vec) => {
-                // Fast Path: contiguous storage.
-
-                // If out of range, nothing to delete!
-                if key as usize >= vec.len() {
-                    return false;
-                }
-
-                // If the key is pointing at the last element, then we pop it.
-                //
-                // It does not make the storage sparse.
-                if key as usize == vec.len().wrapping_sub(1) {
-                    vec.pop().expect("Already checked if it is out of bounds");
-                    return true;
-                }
-
-                // Slow Path: conversion to sparse storage.
-                Self::convert_dense_to_sparse(vec)
-            }
-            Self::Sparse(map) => {
-                return map.remove(&key).is_some();
-            }
+            IndexedProperties::DenseI32(vec) => Self::convert_dense_to_sparse(vec),
+            IndexedProperties::DenseF64(vec) => Self::convert_dense_to_sparse(vec),
+            IndexedProperties::DenseElement(vec) => Self::convert_dense_to_sparse(vec),
+            IndexedProperties::Sparse(map) => return map.remove(&key).is_some(),
         };
 
         let removed = map.remove(&key).is_some();
         *self = Self::Sparse(Box::new(map));
-
         removed
+    }
+
+    /// Removes a property descriptor with the specified key.
+    fn remove(&mut self, key: u32) -> bool {
+        match self {
+            // Fast Paths: contiguous storage.
+            //
+            // If the key is pointing at the last element, then we pop it.
+            Self::DenseI32(vec) if (key + 1) == vec.len() as u32 => {
+                vec.pop();
+                true
+            }
+            // If the key is out of range then don't do anything.
+            Self::DenseI32(vec) if key >= vec.len() as u32 => false,
+            Self::DenseF64(vec) if (key + 1) == vec.len() as u32 => {
+                vec.pop();
+                true
+            }
+            Self::DenseF64(vec) if key >= vec.len() as u32 => false,
+            Self::DenseElement(vec) if (key + 1) == vec.len() as u32 => {
+                vec.pop();
+                true
+            }
+            Self::DenseElement(vec) if key >= vec.len() as u32 => false,
+            // Slow Paths: non-contiguous storage.
+            Self::Sparse(map) => map.remove(&key).is_some(),
+            _ => self.convert_to_sparse_and_remove(key),
+        }
     }
 
     /// Check if we contain the key to a property descriptor.
