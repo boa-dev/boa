@@ -144,11 +144,15 @@
 <a href="#142" id="142">142</a>
 <a href="#143" id="143">143</a>
 <a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>boa_gc::{Finalize, Trace};
 <span class="kw">use </span>thin_vec::ThinVec;
 
 <span class="kw">use crate</span>::{
-    object::{shape::slot::SlotAttributes, JsObject, NativeObject, Object, PropertyMap},
+    object::{
+        shape::slot::SlotAttributes, IndexedProperties, JsObject, NativeObject, Object, PropertyMap,
+    },
     property::{Attribute, PropertyKey},
     JsValue,
 };
@@ -256,7 +260,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>object = Object {
             data,
             extensible: <span class="bool-val">true</span>,
-            properties: PropertyMap::new(<span class="self">self</span>.shape.clone().into(), ThinVec::default()),
+            properties: PropertyMap::new(<span class="self">self</span>.shape.clone().into(), IndexedProperties::default()),
             private_elements: ThinVec::new(),
         };
 
@@ -273,13 +277,13 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         data: T,
         storage: Vec&lt;JsValue&gt;,
-        elements: ThinVec&lt;JsValue&gt;,
+        indexed_properties: IndexedProperties,
     ) -&gt; JsObject {
         <span class="kw">let </span>internal_methods = data.internal_methods();
         <span class="kw">let </span><span class="kw-2">mut </span>object = Object {
             data,
             extensible: <span class="bool-val">true</span>,
-            properties: PropertyMap::new(<span class="self">self</span>.shape.clone().into(), elements),
+            properties: PropertyMap::new(<span class="self">self</span>.shape.clone().into(), indexed_properties),
             private_elements: ThinVec::new(),
         };
 

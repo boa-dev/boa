@@ -178,12 +178,6 @@
 <a href="#176" id="176">176</a>
 <a href="#177" id="177">177</a>
 <a href="#178" id="178">178</a>
-<a href="#179" id="179">179</a>
-<a href="#180" id="180">180</a>
-<a href="#181" id="181">181</a>
-<a href="#182" id="182">182</a>
-<a href="#183" id="183">183</a>
-<a href="#184" id="184">184</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     object::{internal_methods::InternalMethodContext, shape::slot::SlotAttributes},
     property::PropertyKey,
@@ -301,12 +295,9 @@
         </span><span class="kw">if </span>object.is_array() {
             <span class="kw">if let </span>PropertyKey::Index(index) = <span class="kw-2">&amp;</span>key {
                 <span class="kw">let </span>object_borrowed = object.borrow();
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(element) = object_borrowed
-                    .properties()
-                    .dense_indexed_properties()
-                    .and_then(|vec| vec.get(index.get() <span class="kw">as </span>usize))
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(element) = object_borrowed.properties().get_dense_property(index.get())
                 {
-                    context.vm.push(element.clone());
+                    context.vm.push(element);
                     <span class="kw">return </span><span class="prelude-val">Ok</span>(CompletionType::Normal);
                 }
             }
@@ -348,13 +339,10 @@
         </span><span class="kw">if </span>object.is_array() {
             <span class="kw">if let </span>PropertyKey::Index(index) = <span class="kw-2">&amp;</span>key {
                 <span class="kw">let </span>object_borrowed = object.borrow();
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(element) = object_borrowed
-                    .properties()
-                    .dense_indexed_properties()
-                    .and_then(|vec| vec.get(index.get() <span class="kw">as </span>usize))
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(element) = object_borrowed.properties().get_dense_property(index.get())
                 {
                     context.vm.push(key);
-                    context.vm.push(element.clone());
+                    context.vm.push(element);
                     <span class="kw">return </span><span class="prelude-val">Ok</span>(CompletionType::Normal);
                 }
             }

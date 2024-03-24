@@ -637,7 +637,7 @@
     <span class="comment">// 1. Let number be ? ToNumber(argument).
     // 2. If IsIntegralNumber(number) is false, throw a RangeError exception.
     // 3. Return ℝ(number).
-    </span><span class="kw">if </span>!arg.is_integer() {
+    </span><span class="kw">if </span>!arg.is_integral_number() {
         <span class="kw">return </span><span class="prelude-val">Err</span>(JsNativeError::range()
             .with_message(<span class="string">"value to convert is not an integral number."</span>)
             .into());

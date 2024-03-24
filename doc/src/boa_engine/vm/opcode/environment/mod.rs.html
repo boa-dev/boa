@@ -320,7 +320,6 @@
 <a href="#318" id="318">318</a>
 <a href="#319" id="319">319</a>
 <a href="#320" id="320">320</a>
-<a href="#321" id="321">321</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::function::OrdinaryFunction,
     error::JsNativeError,
@@ -504,9 +503,8 @@
         <span class="kw">let </span>arguments = arguments_array_object
             .borrow()
             .properties()
-            .dense_indexed_properties()
-            .expect(<span class="string">"arguments array in call spread function must be dense"</span>)
-            .clone();
+            .to_dense_indexed_properties()
+            .expect(<span class="string">"arguments array in call spread function must be dense"</span>);
 
         <span class="kw">let </span>super_constructor = context.vm.pop();
 

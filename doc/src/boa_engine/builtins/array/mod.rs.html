@@ -3659,6 +3659,31 @@
 <a href="#3657" id="3657">3657</a>
 <a href="#3658" id="3658">3658</a>
 <a href="#3659" id="3659">3659</a>
+<a href="#3660" id="3660">3660</a>
+<a href="#3661" id="3661">3661</a>
+<a href="#3662" id="3662">3662</a>
+<a href="#3663" id="3663">3663</a>
+<a href="#3664" id="3664">3664</a>
+<a href="#3665" id="3665">3665</a>
+<a href="#3666" id="3666">3666</a>
+<a href="#3667" id="3667">3667</a>
+<a href="#3668" id="3668">3668</a>
+<a href="#3669" id="3669">3669</a>
+<a href="#3670" id="3670">3670</a>
+<a href="#3671" id="3671">3671</a>
+<a href="#3672" id="3672">3672</a>
+<a href="#3673" id="3673">3673</a>
+<a href="#3674" id="3674">3674</a>
+<a href="#3675" id="3675">3675</a>
+<a href="#3676" id="3676">3676</a>
+<a href="#3677" id="3677">3677</a>
+<a href="#3678" id="3678">3678</a>
+<a href="#3679" id="3679">3679</a>
+<a href="#3680" id="3680">3680</a>
+<a href="#3681" id="3681">3681</a>
+<a href="#3682" id="3682">3682</a>
+<a href="#3683" id="3683">3683</a>
+<a href="#3684" id="3684">3684</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa's implementation of ECMAScript's global `Array` object.
 //!
 //! The ECMAScript `Array` class is a global object that is used in the construction of arrays; which are high-level, list-like objects.
@@ -3676,9 +3701,10 @@
 <span class="kw">use </span>thin_vec::ThinVec;
 
 <span class="kw">use crate</span>::{
-    builtins::iterable::{if_abrupt_close_iterator, IteratorHint},
-    builtins::BuiltInObject,
-    builtins::Number,
+    builtins::{
+        iterable::{if_abrupt_close_iterator, IteratorHint},
+        BuiltInObject, Number,
+    },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
@@ -3688,7 +3714,7 @@
             ordinary_get_own_property, InternalMethodContext, InternalObjectMethods,
             ORDINARY_INTERNAL_METHODS,
         },
-        JsData, JsObject, CONSTRUCTOR,
+        IndexedProperties, JsData, JsObject, CONSTRUCTOR,
     },
     property::{Attribute, PropertyDescriptor, PropertyKey, PropertyNameKind},
     realm::Realm,
@@ -4064,7 +4090,11 @@
             .intrinsics()
             .templates()
             .array()
-            .create_with_indexed_properties(Array, <span class="macro">vec!</span>[JsValue::new(length)], elements)
+            .create_with_indexed_properties(
+                Array,
+                <span class="macro">vec!</span>[JsValue::new(length)],
+                IndexedProperties::from_dense_js_value(elements),
+            )
     }
 
     <span class="doccomment">/// Utility function for concatenating array objects.
@@ -4871,6 +4901,26 @@
         // slot-based dense property maps.
         </span><span class="kw">if </span>o.is_array() {
             <span class="kw">let </span><span class="kw-2">mut </span>o_borrow = o.borrow_mut();
+            <span class="kw">if let </span>IndexedProperties::DenseI32(dense) =
+                <span class="kw-2">&amp;mut </span>o_borrow.properties_mut().indexed_properties
+            {
+                <span class="kw">if </span>len &lt;= dense.len() <span class="kw">as </span>u64 {
+                    <span class="kw">let </span>v = dense.remove(<span class="number">0</span>);
+                    drop(o_borrow);
+                    <span class="self">Self</span>::set_length(<span class="kw-2">&amp;</span>o, len - <span class="number">1</span>, context)<span class="question-mark">?</span>;
+                    <span class="kw">return </span><span class="prelude-val">Ok</span>(v.into());
+                }
+            }
+            <span class="kw">if let </span>IndexedProperties::DenseF64(dense) =
+                <span class="kw-2">&amp;mut </span>o_borrow.properties_mut().indexed_properties
+            {
+                <span class="kw">if </span>len &lt;= dense.len() <span class="kw">as </span>u64 {
+                    <span class="kw">let </span>v = dense.remove(<span class="number">0</span>);
+                    drop(o_borrow);
+                    <span class="self">Self</span>::set_length(<span class="kw-2">&amp;</span>o, len - <span class="number">1</span>, context)<span class="question-mark">?</span>;
+                    <span class="kw">return </span><span class="prelude-val">Ok</span>(v.into());
+                }
+            }
             <span class="kw">if let </span><span class="prelude-val">Some</span>(dense) = o_borrow.properties_mut().dense_indexed_properties_mut() {
                 <span class="kw">if </span>len &lt;= dense.len() <span class="kw">as </span>u64 {
                     <span class="kw">let </span>v = dense.remove(<span class="number">0</span>);

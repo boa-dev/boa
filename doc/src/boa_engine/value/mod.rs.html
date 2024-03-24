@@ -1115,6 +1115,28 @@
 <a href="#1113" id="1113">1113</a>
 <a href="#1114" id="1114">1114</a>
 <a href="#1115" id="1115">1115</a>
+<a href="#1116" id="1116">1116</a>
+<a href="#1117" id="1117">1117</a>
+<a href="#1118" id="1118">1118</a>
+<a href="#1119" id="1119">1119</a>
+<a href="#1120" id="1120">1120</a>
+<a href="#1121" id="1121">1121</a>
+<a href="#1122" id="1122">1122</a>
+<a href="#1123" id="1123">1123</a>
+<a href="#1124" id="1124">1124</a>
+<a href="#1125" id="1125">1125</a>
+<a href="#1126" id="1126">1126</a>
+<a href="#1127" id="1127">1127</a>
+<a href="#1128" id="1128">1128</a>
+<a href="#1129" id="1129">1129</a>
+<a href="#1130" id="1130">1130</a>
+<a href="#1131" id="1131">1131</a>
+<a href="#1132" id="1132">1132</a>
+<a href="#1133" id="1133">1133</a>
+<a href="#1134" id="1134">1134</a>
+<a href="#1135" id="1135">1135</a>
+<a href="#1136" id="1136">1136</a>
+<a href="#1137" id="1137">1137</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa's ECMAScript Value implementation.
 //!
 //! Javascript values, utility methods and conversion between Javascript values and Rust values.
@@ -1358,13 +1380,35 @@
         <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::Rational(<span class="kw">_</span>))
     }
 
-    <span class="doccomment">/// Returns true if the value is integer.
+    <span class="doccomment">/// Determines if argument is a finite integral Number value.
+    ///
+    /// More information:
+    /// - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-isintegralnumber
+    </span><span class="attr">#[must_use]
+    #[allow(clippy::float_cmp)]
+    </span><span class="kw">pub fn </span>is_integral_number(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="comment">// If it can fit in a i32 and the truncated version is
+        // equal to the original then it is an integer.
+        </span><span class="kw">let </span>is_rational_integer = |n: f64| n == f64::from(n <span class="kw">as </span>i32);
+
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            <span class="self">Self</span>::Integer(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+            <span class="self">Self</span>::Rational(n) <span class="kw">if </span>is_rational_integer(n) =&gt; <span class="bool-val">true</span>,
+            <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
+        }
+    }
+
+    <span class="doccomment">/// Returns true if the value can be reprented as an integer.
+    ///
+    /// Similar to [`JsValue::is_integral_number()`] except that it returns `false` for `-0`.
     </span><span class="attr">#[must_use]
     #[allow(clippy::float_cmp)]
     </span><span class="kw">pub fn </span>is_integer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="comment">// If it can fit in a i32 and the truncated version is
         // equal to the original then it is an integer.
-        </span><span class="kw">let </span>is_rational_integer = |n: f64| n == f64::from(n <span class="kw">as </span>i32);
+        </span><span class="kw">let </span>is_rational_integer = |n: f64| n.to_bits() == f64::from(n <span class="kw">as </span>i32).to_bits();
 
         <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
             <span class="self">Self</span>::Integer(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
