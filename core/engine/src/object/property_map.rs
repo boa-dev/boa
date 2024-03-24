@@ -124,115 +124,63 @@ impl IndexedProperties {
             .collect()
     }
 
+    fn convert_to_sparse_and_insert(&mut self, key: u32, property: PropertyDescriptor) -> bool {
+        let mut map = match self {
+            Self::DenseI32(vec) => Self::convert_dense_to_sparse(vec),
+            Self::DenseF64(vec) => Self::convert_dense_to_sparse(vec),
+            Self::DenseElement(vec) => Self::convert_dense_to_sparse(vec),
+            Self::Sparse(map) => {
+                return map.insert(key, property).is_some();
+            }
+        };
+
+        map.insert(key, property);
+        *self = Self::Sparse(Box::new(map));
+        false
+    }
+
     /// Inserts a property descriptor with the specified key.
     fn insert(&mut self, key: u32, property: PropertyDescriptor) -> bool {
-        let mut map =
-            match self {
-                Self::DenseI32(vec) => {
-                    let len = vec.len() as u32;
-                    if key <= len
-                        && property.value().is_some()
-                        && property.writable().unwrap_or(false)
-                        && property.enumerable().unwrap_or(false)
-                        && property.configurable().unwrap_or(false)
-                    {
-                        // Fast Path: continues array access.
-                        let value = property.value().cloned().expect(
-                            "already checked that the property descriptor has a value field",
-                        );
+        if !property.writable().unwrap_or(false)
+            || !property.enumerable().unwrap_or(false)
+            || !property.configurable().unwrap_or(false)
+        {
+            return self.convert_to_sparse_and_insert(key, property);
+        }
+        let Some(value) = property.value().cloned() else {
+            return self.convert_to_sparse_and_insert(key, property);
+        };
 
-                        // If it can fit in a i32 and the truncated version is
-                        // equal to the original then it is an integer.
-                        let is_rational_integer =
-                            |n: f64| n.to_bits() == f64::from(n as i32).to_bits();
+        match self {
+            // Fast Path: continues array access.
+            Self::DenseI32(vec) if key <= vec.len() as u32 => {
+                let len = vec.len() as u32;
 
-                        let value = match value {
-                            JsValue::Integer(n) => n,
-                            JsValue::Rational(n) if is_rational_integer(n) => n as i32,
-                            JsValue::Rational(value) => {
-                                let mut vec =
-                                    vec.iter().copied().map(f64::from).collect::<ThinVec<_>>();
+                // If it can fit in a i32 and the truncated version is
+                // equal to the original then it is an integer.
+                let is_rational_integer = |n: f64| n.to_bits() == f64::from(n as i32).to_bits();
 
-                                // If the key is pointing one past the last element, we push it!
-                                //
-                                // Since the previous key is the current key - 1. Meaning that the elements are continuos.
-                                if key == len {
-                                    vec.push(value);
-                                    *self = Self::DenseF64(vec);
-                                    return false;
-                                }
-
-                                // If it the key points in at a already taken index, set it.
-                                vec[key as usize] = value;
-                                *self = Self::DenseF64(vec);
-                                return true;
-                            }
-                            value => {
-                                let mut vec = vec
-                                    .iter()
-                                    .copied()
-                                    .map(JsValue::from)
-                                    .collect::<ThinVec<JsValue>>();
-
-                                // If the key is pointing one past the last element, we push it!
-                                //
-                                // Since the previous key is the current key - 1. Meaning that the elements are continuos.
-                                if key == len {
-                                    vec.push(value);
-                                    *self = Self::DenseElement(vec);
-                                    return false;
-                                }
-
-                                // If it the key points in at a already taken index, set it.
-                                vec[key as usize] = value;
-                                *self = Self::DenseElement(vec);
-                                return true;
-                            }
-                        };
+                let value = match value {
+                    JsValue::Integer(n) => n,
+                    JsValue::Rational(n) if is_rational_integer(n) => n as i32,
+                    JsValue::Rational(value) => {
+                        let mut vec = vec.iter().copied().map(f64::from).collect::<ThinVec<_>>();
 
                         // If the key is pointing one past the last element, we push it!
                         //
                         // Since the previous key is the current key - 1. Meaning that the elements are continuos.
                         if key == len {
                             vec.push(value);
+                            *self = Self::DenseF64(vec);
                             return false;
                         }
 
-                        // If it the key points in at a already taken index, swap and return it.
+                        // If it the key points in at a already taken index, set it.
                         vec[key as usize] = value;
+                        *self = Self::DenseF64(vec);
                         return true;
                     }
-
-                    // Slow path: converting to sparse storage.
-                    Self::convert_dense_to_sparse(vec)
-                }
-                Self::DenseF64(vec) => {
-                    let len = vec.len() as u32;
-                    if key <= len
-                        && property.value().is_some()
-                        && property.writable().unwrap_or(false)
-                        && property.enumerable().unwrap_or(false)
-                        && property.configurable().unwrap_or(false)
-                    {
-                        // Fast Path: continues array access.
-                        let value = property.value().cloned().expect(
-                            "already checked that the property descriptor has a value field",
-                        );
-
-                        if let Some(value) = value.as_number() {
-                            // If the key is pointing one past the last element, we push it!
-                            //
-                            // Since the previous key is the current key - 1. Meaning that the elements are continuos.
-                            if key == len {
-                                vec.push(value);
-                                return false;
-                            }
-
-                            // If it the key points in at a already taken index, swap and return it.
-                            vec[key as usize] = value;
-                            return true;
-                        }
-
+                    value => {
                         let mut vec = vec
                             .iter()
                             .copied()
@@ -253,47 +201,75 @@ impl IndexedProperties {
                         *self = Self::DenseElement(vec);
                         return true;
                     }
+                };
 
-                    // Slow path: converting to sparse storage.
-                    Self::convert_dense_to_sparse(vec)
+                // If the key is pointing one past the last element, we push it!
+                //
+                // Since the previous key is the current key - 1. Meaning that the elements are continuos.
+                if key == len {
+                    vec.push(value);
+                    return false;
                 }
-                Self::DenseElement(vec) => {
-                    let len = vec.len() as u32;
-                    if key <= len
-                        && property.value().is_some()
-                        && property.writable().unwrap_or(false)
-                        && property.enumerable().unwrap_or(false)
-                        && property.configurable().unwrap_or(false)
-                    {
-                        // Fast Path: continues array access.
-                        let value = property.value().cloned().expect(
-                            "already checked that the property descriptor has a value field",
-                        );
 
-                        // If the key is pointing one past the last element, we push it!
-                        //
-                        // Since the previous key is the current key - 1. Meaning that the elements are continuos.
-                        if key == len {
-                            vec.push(value);
-                            return false;
-                        }
+                // If it the key points in at a already taken index, swap and return it.
+                vec[key as usize] = value;
+                true
+            }
+            Self::DenseF64(vec) if key <= vec.len() as u32 => {
+                let len = vec.len() as u32;
 
-                        // If it the key points in at a already taken index, set it.
-                        vec[key as usize] = value;
-                        return true;
+                if let Some(value) = value.as_number() {
+                    // If the key is pointing one past the last element, we push it!
+                    //
+                    // Since the previous key is the current key - 1. Meaning that the elements are continuos.
+                    if key == len {
+                        vec.push(value);
+                        return false;
                     }
 
-                    // Slow path: converting to sparse storage.
-                    Self::convert_dense_to_sparse(vec)
+                    // If it the key points in at a already taken index, swap and return it.
+                    vec[key as usize] = value;
+                    return true;
                 }
-                Self::Sparse(map) => return map.insert(key, property).is_some(),
-            };
 
-        // Slow path: converting to sparse storage.
-        let replaced = map.insert(key, property).is_some();
-        *self = Self::Sparse(Box::new(map));
+                let mut vec = vec
+                    .iter()
+                    .copied()
+                    .map(JsValue::from)
+                    .collect::<ThinVec<JsValue>>();
 
-        replaced
+                // If the key is pointing one past the last element, we push it!
+                //
+                // Since the previous key is the current key - 1. Meaning that the elements are continuos.
+                if key == len {
+                    vec.push(value);
+                    *self = Self::DenseElement(vec);
+                    return false;
+                }
+
+                // If it the key points in at a already taken index, set it.
+                vec[key as usize] = value;
+                *self = Self::DenseElement(vec);
+                true
+            }
+            Self::DenseElement(vec) if key <= vec.len() as u32 => {
+                let len = vec.len() as u32;
+
+                // If the key is pointing one past the last element, we push it!
+                //
+                // Since the previous key is the current key - 1. Meaning that the elements are continuos.
+                if key == len {
+                    vec.push(value);
+                    return false;
+                }
+
+                // If it the key points in at a already taken index, set it.
+                vec[key as usize] = value;
+                true
+            }
+            Self::Sparse(map) => map.insert(key, property).is_some(),
+            _ => self.convert_to_sparse_and_insert(key, property),
+        }
     }
 
     /// Removes a property descriptor with the specified key.
