@@ -106,9 +106,8 @@ impl Operation for CallEvalSpread {
         let arguments = arguments_array_object
             .borrow()
             .properties()
-            .dense_indexed_properties()
-            .expect("arguments array in call spread function must be dense")
-            .clone();
+            .to_dense_indexed_properties()
+            .expect("arguments array in call spread function must be dense");
 
         let at = context.vm.stack.len();
         let func = context.vm.stack[at - 1].clone();
@@ -217,9 +216,8 @@ impl Operation for CallSpread {
         let arguments = arguments_array_object
             .borrow()
             .properties()
-            .dense_indexed_properties()
-            .expect("arguments array in call spread function must be dense")
-            .clone();
+            .to_dense_indexed_properties()
+            .expect("arguments array in call spread function must be dense");
 
         let argument_count = arguments.len();
         context.vm.push_values(&arguments);
