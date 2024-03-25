@@ -31,14 +31,18 @@ use crate::{
     builtins::{iterable::IteratorRecord, BuiltInBuilder, BuiltInObject, IntrinsicObject},
     context::intrinsics::Intrinsics,
     js_string,
-    property::Attribute,
+    property::{Attribute, PropertyKey},
     realm::Realm,
     string::common::StaticJsStrings,
     value::Type,
-    Context, JsBigInt, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
+    Context, JsBigInt, JsError, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
+use boa_macros::utf16;
 use boa_profiler::Profiler;
-use temporal_rs::NS_PER_DAY;
+use temporal_rs::{
+    components::{Date as TemporalDate, ZonedDateTime as TemporalZonedDateTime},
+    NS_PER_DAY,
+};
 
 // TODO: Remove in favor of `temporal_rs`
 pub(crate) fn ns_max_instant() -> JsBigInt {
@@ -238,14 +242,27 @@ pub(crate) fn _iterator_to_list_of_types(
 // 13.17 `ValidateTemporalRoundingIncrement ( increment, dividend, inclusive )`
 // Moved to temporal_rs
 
+type RelativeTemporalObjectResult = JsResult<(
+    Option<TemporalDate<JsObject>>,
+    Option<TemporalZonedDateTime<JsObject, JsCustomTimeZone>>,
+)>;
+
 /// 13.21 `ToRelativeTemporalObject ( options )`
 pub(crate) fn to_relative_temporal_object(
-    _options: &JsObject,
-    _context: &mut Context,
-) -> JsResult<(Option<PlainDate>, Option<ZonedDateTime>)> {
-    Err(JsNativeError::range()
-        .with_message("not yet implemented.")
-        .into())
+    options: &JsObject,
+    context: &mut Context,
+) -> RelativeTemporalObjectResult {
+    let relative_to = options.get(PropertyKey::from(utf16!("relativeTo")), context)?;
+    let plain_date = match relative_to {
+        JsValue::String(relative_to_str) => Some(relative_to_str.into()),
+        JsValue::Object(relative_to_obj) => Some(relative_to_obj.into()),
+        _ => None,
+    }
+    .map(|plane_date| Ok::<_, JsError>(to_temporal_date(&plane_date, None, context)?.inner))
+    .transpose()?;
+
+    // TODO: Implement TemporalZonedDateTime conversion when ZonedDateTime is implemented
+    Ok((plain_date, None))
 }
 
 // 13.22 `LargerOfTwoTemporalUnits ( u1, u2 )`

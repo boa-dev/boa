@@ -24,15 +24,14 @@ use temporal_rs::options::{
 pub(crate) fn get_temporal_rounding_increment(
     options: &JsObject,
     context: &mut Context,
-) -> JsResult<u32> {
+) -> JsResult<Option<f64>> {
     // 1. Let increment be ? GetOption(normalizedOptions, "roundingIncrement", "number", undefined, 1𝔽).
     let value = options.get(js_string!("roundingIncrement"), context)?;
 
-    let increment = if value.is_undefined() {
-        1.0
-    } else {
-        value.to_number(context)?
-    };
+    if value.is_undefined() {
+        return Ok(None);
+    }
+    let increment = value.to_number(context)?;
 
     // 2. If increment is not finite, throw a RangeError exception.
     if !increment.is_finite() {
@@ -52,7 +51,7 @@ pub(crate) fn get_temporal_rounding_increment(
     }
 
     // 5. Return integerIncrement.
-    Ok(integer_increment as u32)
+    Ok(Some(integer_increment))
 }
 
 /// Gets the `TemporalUnit` from an options object.
