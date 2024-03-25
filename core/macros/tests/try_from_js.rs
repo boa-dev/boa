@@ -1,5 +1,5 @@
-use boa_engine::Source;
 use boa_engine::value::TryFromJs;
+use boa_engine::Source;
 
 #[derive(PartialEq, Eq, boa_macros::TryFromJs)]
 struct Deserialize {
