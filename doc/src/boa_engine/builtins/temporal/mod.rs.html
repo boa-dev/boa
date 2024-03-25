@@ -330,6 +330,23 @@
 <a href="#328" id="328">328</a>
 <a href="#329" id="329">329</a>
 <a href="#330" id="330">330</a>
+<a href="#331" id="331">331</a>
+<a href="#332" id="332">332</a>
+<a href="#333" id="333">333</a>
+<a href="#334" id="334">334</a>
+<a href="#335" id="335">335</a>
+<a href="#336" id="336">336</a>
+<a href="#337" id="337">337</a>
+<a href="#338" id="338">338</a>
+<a href="#339" id="339">339</a>
+<a href="#340" id="340">340</a>
+<a href="#341" id="341">341</a>
+<a href="#342" id="342">342</a>
+<a href="#343" id="343">343</a>
+<a href="#344" id="344">344</a>
+<a href="#345" id="345">345</a>
+<a href="#346" id="346">346</a>
+<a href="#347" id="347">347</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! The ECMAScript `Temporal` stage 3 built-in implementation.
 //!
 //! More information:
@@ -363,14 +380,18 @@
     builtins::{iterable::IteratorRecord, BuiltInBuilder, BuiltInObject, IntrinsicObject},
     context::intrinsics::Intrinsics,
     js_string,
-    property::Attribute,
+    property::{Attribute, PropertyKey},
     realm::Realm,
     string::common::StaticJsStrings,
     value::Type,
-    Context, JsBigInt, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
+    Context, JsBigInt, JsError, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
+<span class="kw">use </span>boa_macros::utf16;
 <span class="kw">use </span>boa_profiler::Profiler;
-<span class="kw">use </span>temporal_rs::NS_PER_DAY;
+<span class="kw">use </span>temporal_rs::{
+    components::{Date <span class="kw">as </span>TemporalDate, ZonedDateTime <span class="kw">as </span>TemporalZonedDateTime},
+    NS_PER_DAY,
+};
 
 <span class="comment">// TODO: Remove in favor of `temporal_rs`
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>ns_max_instant() -&gt; JsBigInt {
@@ -570,14 +591,27 @@
 // 13.17 `ValidateTemporalRoundingIncrement ( increment, dividend, inclusive )`
 // Moved to temporal_rs
 
-</span><span class="doccomment">/// 13.21 `ToRelativeTemporalObject ( options )`
+</span><span class="kw">type </span>RelativeTemporalObjectResult = JsResult&lt;(
+    <span class="prelude-ty">Option</span>&lt;TemporalDate&lt;JsObject&gt;&gt;,
+    <span class="prelude-ty">Option</span>&lt;TemporalZonedDateTime&lt;JsObject, JsCustomTimeZone&gt;&gt;,
+)&gt;;
+
+<span class="doccomment">/// 13.21 `ToRelativeTemporalObject ( options )`
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_relative_temporal_object(
-    _options: <span class="kw-2">&amp;</span>JsObject,
-    _context: <span class="kw-2">&amp;mut </span>Context,
-) -&gt; JsResult&lt;(<span class="prelude-ty">Option</span>&lt;PlainDate&gt;, <span class="prelude-ty">Option</span>&lt;ZonedDateTime&gt;)&gt; {
-    <span class="prelude-val">Err</span>(JsNativeError::range()
-        .with_message(<span class="string">"not yet implemented."</span>)
-        .into())
+    options: <span class="kw-2">&amp;</span>JsObject,
+    context: <span class="kw-2">&amp;mut </span>Context,
+) -&gt; RelativeTemporalObjectResult {
+    <span class="kw">let </span>relative_to = options.get(PropertyKey::from(<span class="macro">utf16!</span>(<span class="string">"relativeTo"</span>)), context)<span class="question-mark">?</span>;
+    <span class="kw">let </span>plain_date = <span class="kw">match </span>relative_to {
+        JsValue::String(relative_to_str) =&gt; <span class="prelude-val">Some</span>(relative_to_str.into()),
+        JsValue::Object(relative_to_obj) =&gt; <span class="prelude-val">Some</span>(relative_to_obj.into()),
+        <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+    }
+    .map(|plane_date| <span class="prelude-val">Ok</span>::&lt;<span class="kw">_</span>, JsError&gt;(to_temporal_date(<span class="kw-2">&amp;</span>plane_date, <span class="prelude-val">None</span>, context)<span class="question-mark">?</span>.inner))
+    .transpose()<span class="question-mark">?</span>;
+
+    <span class="comment">// TODO: Implement TemporalZonedDateTime conversion when ZonedDateTime is implemented
+    </span><span class="prelude-val">Ok</span>((plain_date, <span class="prelude-val">None</span>))
 }
 
 <span class="comment">// 13.22 `LargerOfTwoTemporalUnits ( u1, u2 )`

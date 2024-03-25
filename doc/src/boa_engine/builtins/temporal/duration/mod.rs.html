@@ -990,11 +990,20 @@
 <a href="#988" id="988">988</a>
 <a href="#989" id="989">989</a>
 <a href="#990" id="990">990</a>
+<a href="#991" id="991">991</a>
+<a href="#992" id="992">992</a>
+<a href="#993" id="993">993</a>
+<a href="#994" id="994">994</a>
+<a href="#995" id="995">995</a>
+<a href="#996" id="996">996</a>
+<a href="#997" id="997">997</a>
+<a href="#998" id="998">998</a>
+<a href="#999" id="999">999</a>
 </pre></div><pre class="rust"><code><span class="comment">// Boa's implementation of the `Temporal.Duration` Builtin Object.
 
 </span><span class="kw">use crate</span>::{
     builtins::{
-        options::{get_option, get_options_object, RoundingMode},
+        options::{get_option, get_options_object},
         BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
@@ -1007,7 +1016,10 @@
 };
 <span class="kw">use </span>boa_gc::{Finalize, Trace};
 <span class="kw">use </span>boa_profiler::Profiler;
-<span class="kw">use </span>temporal_rs::{components::Duration <span class="kw">as </span>InnerDuration, options::TemporalUnit};
+<span class="kw">use </span>temporal_rs::{
+    components::Duration <span class="kw">as </span>InnerDuration,
+    options::{RelativeTo, TemporalRoundingMode, TemporalUnit},
+};
 
 <span class="kw">use super</span>::{
     options::{get_temporal_rounding_increment, get_temporal_unit, TemporalUnitGroup},
@@ -1582,8 +1594,7 @@
             .into())
     }
 
-    <span class="comment">// TODO: Migrate to `temporal_rs's Duration::round`
-    </span><span class="doccomment">/// 7.3.20 `Temporal.Duration.prototype.round ( roundTo )`
+    <span class="doccomment">/// 7.3.20 `Temporal.Duration.prototype.round ( roundTo )`
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>round(
         this: <span class="kw-2">&amp;</span>JsValue,
         args: <span class="kw-2">&amp;</span>[JsValue],
@@ -1591,7 +1602,7 @@
     ) -&gt; JsResult&lt;JsValue&gt; {
         <span class="comment">// 1. Let duration be the this value.
         // 2. Perform ? RequireInternalSlot(duration, [[InitializedTemporalDuration]]).
-        </span><span class="kw">let </span>_duration = this
+        </span><span class="kw">let </span>duration = this
             .as_object()
             .and_then(JsObject::downcast_ref::&lt;<span class="self">Self</span>&gt;)
             .ok_or_else(|| {
@@ -1643,15 +1654,15 @@
         <span class="comment">// 10. Let relativeToRecord be ? ToRelativeTemporalObject(roundTo).
         // 11. Let zonedRelativeTo be relativeToRecord.[[ZonedRelativeTo]].
         // 12. Let plainRelativeTo be relativeToRecord.[[PlainRelativeTo]].
-        </span><span class="kw">let </span>(_plain_relative_to, _zoned_relative_to) =
+        </span><span class="kw">let </span>(plain_relative_to, zoned_relative_to) =
             <span class="kw">super</span>::to_relative_temporal_object(<span class="kw-2">&amp;</span>round_to, context)<span class="question-mark">?</span>;
 
         <span class="comment">// 13. Let roundingIncrement be ? ToTemporalRoundingIncrement(roundTo).
-        </span><span class="kw">let </span>_rounding_increment = get_temporal_rounding_increment(<span class="kw-2">&amp;</span>round_to, context)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>rounding_increment = get_temporal_rounding_increment(<span class="kw-2">&amp;</span>round_to, context)<span class="question-mark">?</span>;
 
         <span class="comment">// 14. Let roundingMode be ? ToTemporalRoundingMode(roundTo, "halfExpand").
-        </span><span class="kw">let </span>_rounding_mode = get_option(<span class="kw-2">&amp;</span>round_to, <span class="macro">utf16!</span>(<span class="string">"roundingMode"</span>), context)<span class="question-mark">?
-            </span>.unwrap_or(RoundingMode::HalfExpand);
+        </span><span class="kw">let </span>rounding_mode =
+            get_option::&lt;TemporalRoundingMode&gt;(<span class="kw-2">&amp;</span>round_to, <span class="macro">utf16!</span>(<span class="string">"roundingMode"</span>), context)<span class="question-mark">?</span>;
 
         <span class="comment">// 15. Let smallestUnit be ? GetTemporalUnit(roundTo, "smallestUnit", datetime, undefined).
         </span><span class="kw">let </span>smallest_unit = get_temporal_unit(
@@ -1670,11 +1681,18 @@
                 .with_message(<span class="string">"smallestUnit or largestUnit must be present."</span>)
                 .into());
         }
-
-        <span class="comment">// NOTE:
-        </span><span class="prelude-val">Err</span>(JsNativeError::range()
-            .with_message(<span class="string">"not yet implemented."</span>)
-            .into())
+        <span class="kw">let </span>rounded_duration = duration.inner.round(
+            rounding_increment,
+            smallest_unit,
+            largest_unit,
+            rounding_mode,
+            <span class="kw-2">&amp;</span>RelativeTo {
+                date: plain_relative_to.as_ref(),
+                zdt: zoned_relative_to.as_ref(),
+            },
+            context,
+        )<span class="question-mark">?</span>;
+        create_temporal_duration(rounded_duration, <span class="prelude-val">None</span>, context).map(Into::into)
     }
 
     <span class="doccomment">/// 7.3.21 `Temporal.Duration.prototype.total ( totalOf )`
