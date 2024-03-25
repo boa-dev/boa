@@ -1,3 +1,5 @@
+#![allow(unused_crate_dependencies)]
+
 use boa_engine::value::TryFromJs;
 use boa_engine::Source;
 
@@ -51,10 +53,10 @@ fn required_missing_try_from_js() {
     let mut context = boa_engine::Context::default();
     let value = context
         .eval(Source::from_bytes(
-            r#"
+            r"
             let value = {};
             value
-        "#,
+        ",
         ))
         .unwrap();
 
