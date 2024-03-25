@@ -24,7 +24,7 @@ regex.workspace = true
 once_cell.workspace = true
 colored.workspace = true
 rustc-hash = { workspace = true, features = ["std"] }
-rayon = "1.9.0"
+rayon = "1.10.0"
 toml = "0.8.12"
 color-eyre = "0.6.3"
 phf = { workspace = true, features = ["macros"] }
