@@ -17,5 +17,8 @@ syn = { version = "2.0.53", features = ["full"] }
 proc-macro2 = "1.0"
 synstructure = "0.13"
 
+[dev-dependencies]
+boa_engine = { path = "../engine" }
+
 [lints]
 workspace = true
