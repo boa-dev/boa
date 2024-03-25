@@ -56,7 +56,7 @@ colored = "2.1.0"
 fast-float = "0.2.0"
 hashbrown = { version = "0.14.3", default-features = false }
 indexmap = { version = "2.2.5", default-features = false }
-indoc = "2.0.4"
+indoc = "2.0.5"
 jemallocator = "0.5.4"
 num-bigint = "0.4.4"
 num-traits = "0.2.18"
