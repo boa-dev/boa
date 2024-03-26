@@ -80,6 +80,7 @@ impl StaticJsStrings {
     // Some consts are only used on certain features, which triggers the unused lint.
     well_known_statics! {
         (EMPTY_STRING, ""),
+        (LENGTH, "length"),
         // Symbols
         (SYMBOL_ASYNC_ITERATOR, "Symbol.asyncIterator"),
         (SYMBOL_HAS_INSTANCE, "Symbol.hasInstance"),

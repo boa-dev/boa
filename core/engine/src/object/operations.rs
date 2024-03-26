@@ -9,7 +9,7 @@ use crate::{
     object::{JsObject, PrivateElement, PrivateName, CONSTRUCTOR, PROTOTYPE},
     property::{PropertyDescriptor, PropertyDescriptorBuilder, PropertyKey, PropertyNameKind},
     realm::Realm,
-    string::utf16,
+    string::common::StaticJsStrings,
     value::Type,
     Context, JsResult, JsSymbol, JsValue,
 };
@@ -578,7 +578,8 @@ impl JsObject {
         }
 
         // 2. Return ℝ(? ToLength(? Get(obj, "length"))).
-        self.get(utf16!("length"), context)?.to_length(context)
+        self.get(StaticJsStrings::LENGTH, context)?
+            .to_length(context)
     }
 
     /// `7.3.22 SpeciesConstructor ( O, defaultConstructor )`

@@ -22,7 +22,7 @@ use crate::{
     native_function::{NativeFunction, NativeFunctionObject},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
-    string::utf16,
+    string::{common::StaticJsStrings, utf16},
     Context, JsString, JsSymbol, JsValue,
 };
 
@@ -1016,7 +1016,7 @@ impl<'ctx> ConstructorBuilder<'ctx> {
                 },
             };
 
-            constructor.insert(utf16!("length"), length);
+            constructor.insert(StaticJsStrings::LENGTH, length);
             constructor.insert(utf16!("name"), name);
 
             if let Some(proto) = self.custom_prototype.take() {

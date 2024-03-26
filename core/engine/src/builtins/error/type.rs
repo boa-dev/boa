@@ -118,7 +118,7 @@ impl IntrinsicObject for ThrowTypeError {
     fn init(realm: &Realm) {
         let obj = BuiltInBuilder::with_intrinsic::<Self>(realm)
             .prototype(realm.intrinsics().constructors().function().prototype())
-            .static_property(utf16!("length"), 0, Attribute::empty())
+            .static_property(StaticJsStrings::LENGTH, 0, Attribute::empty())
             .static_property(utf16!("name"), js_string!(), Attribute::empty())
             .build();
 
