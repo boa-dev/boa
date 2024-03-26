@@ -641,6 +641,7 @@
 <a href="#639" id="639">639</a>
 <a href="#640" id="640">640</a>
 <a href="#641" id="641">641</a>
+<a href="#642" id="642">642</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>boa_macros::utf16;
 
 <span class="kw">use crate</span>::{
@@ -652,6 +653,7 @@
     },
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
+    string::common::StaticJsStrings,
     JsObject, JsString, JsValue, NativeFunction,
 };
 
@@ -749,7 +751,7 @@
             function.realm = <span class="prelude-val">Some</span>(<span class="self">self</span>.realm);
         }
         object.insert(
-            <span class="macro">utf16!</span>(<span class="string">"length"</span>),
+            StaticJsStrings::LENGTH,
             PropertyDescriptor::builder()
                 .value(<span class="self">self</span>.length)
                 .writable(<span class="bool-val">false</span>)

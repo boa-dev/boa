@@ -1087,7 +1087,7 @@
     native_function::{NativeFunction, NativeFunctionObject},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
-    string::utf16,
+    string::{common::StaticJsStrings, utf16},
     Context, JsString, JsSymbol, JsValue,
 };
 
@@ -2081,7 +2081,7 @@
                 },
             };
 
-            constructor.insert(<span class="macro">utf16!</span>(<span class="string">"length"</span>), length);
+            constructor.insert(StaticJsStrings::LENGTH, length);
             constructor.insert(<span class="macro">utf16!</span>(<span class="string">"name"</span>), name);
 
             <span class="kw">if let </span><span class="prelude-val">Some</span>(proto) = <span class="self">self</span>.custom_prototype.take() {

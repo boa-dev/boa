@@ -1337,6 +1337,7 @@
 <a href="#1335" id="1335">1335</a>
 <a href="#1336" id="1336">1336</a>
 <a href="#1337" id="1337">1337</a>
+<a href="#1338" id="1338">1338</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::{
         function::{BoundFunction, ClassFieldDefinition, OrdinaryFunction},
@@ -1348,7 +1349,7 @@
     object::{JsObject, PrivateElement, PrivateName, CONSTRUCTOR, PROTOTYPE},
     property::{PropertyDescriptor, PropertyDescriptorBuilder, PropertyKey, PropertyNameKind},
     realm::Realm,
-    string::utf16,
+    string::common::StaticJsStrings,
     value::Type,
     Context, JsResult, JsSymbol, JsValue,
 };
@@ -1917,7 +1918,8 @@
         }
 
         <span class="comment">// 2. Return ℝ(? ToLength(? Get(obj, "length"))).
-        </span><span class="self">self</span>.get(<span class="macro">utf16!</span>(<span class="string">"length"</span>), context)<span class="question-mark">?</span>.to_length(context)
+        </span><span class="self">self</span>.get(StaticJsStrings::LENGTH, context)<span class="question-mark">?
+            </span>.to_length(context)
     }
 
     <span class="doccomment">/// `7.3.22 SpeciesConstructor ( O, defaultConstructor )`

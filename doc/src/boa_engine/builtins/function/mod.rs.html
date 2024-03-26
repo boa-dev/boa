@@ -1810,9 +1810,9 @@
 
         <span class="comment">// 5. Let targetHasLength be ? HasOwnProperty(Target, "length").
         // 6. If targetHasLength is true, then
-        </span><span class="kw">if </span>target.has_own_property(<span class="macro">utf16!</span>(<span class="string">"length"</span>), context)<span class="question-mark">? </span>{
+        </span><span class="kw">if </span>target.has_own_property(StaticJsStrings::LENGTH, context)<span class="question-mark">? </span>{
             <span class="comment">// a. Let targetLen be ? Get(Target, "length").
-            </span><span class="kw">let </span>target_len = target.get(<span class="macro">utf16!</span>(<span class="string">"length"</span>), context)<span class="question-mark">?</span>;
+            </span><span class="kw">let </span>target_len = target.get(StaticJsStrings::LENGTH, context)<span class="question-mark">?</span>;
             <span class="comment">// b. If Type(targetLen) is Number, then
             </span><span class="kw">if </span>target_len.is_number() {
                 <span class="comment">// 1. Let targetLenAsInt be ! ToIntegerOrInfinity(targetLen).
@@ -1837,7 +1837,7 @@
 
         <span class="comment">// 7. Perform ! SetFunctionLength(F, L).
         </span>f.define_property_or_throw(
-            <span class="macro">utf16!</span>(<span class="string">"length"</span>),
+            StaticJsStrings::LENGTH,
             PropertyDescriptor::builder()
                 .value(l)
                 .writable(<span class="bool-val">false</span>)

@@ -267,7 +267,7 @@
     <span class="kw">fn </span>init(realm: <span class="kw-2">&amp;</span>Realm) {
         <span class="kw">let </span>obj = BuiltInBuilder::with_intrinsic::&lt;<span class="self">Self</span>&gt;(realm)
             .prototype(realm.intrinsics().constructors().function().prototype())
-            .static_property(<span class="macro">utf16!</span>(<span class="string">"length"</span>), <span class="number">0</span>, Attribute::empty())
+            .static_property(StaticJsStrings::LENGTH, <span class="number">0</span>, Attribute::empty())
             .static_property(<span class="macro">utf16!</span>(<span class="string">"name"</span>), <span class="macro">js_string!</span>(), Attribute::empty())
             .build();
 

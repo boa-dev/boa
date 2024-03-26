@@ -114,7 +114,7 @@
 <a href="#112" id="112">112</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::Array,
-    string::utf16,
+    string::common::StaticJsStrings,
     vm::{opcode::Operation, CompletionType},
     Context, JsResult, JsValue,
 };
@@ -188,7 +188,7 @@
             .length_of_array_like(context)
             .expect(<span class="string">"arrays should always have a 'length' property"</span>);
 
-        o.set(<span class="macro">utf16!</span>(<span class="string">"length"</span>), len + <span class="number">1</span>, <span class="bool-val">true</span>, context)<span class="question-mark">?</span>;
+        o.set(StaticJsStrings::LENGTH, len + <span class="number">1</span>, <span class="bool-val">true</span>, context)<span class="question-mark">?</span>;
         context.vm.push(array);
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }

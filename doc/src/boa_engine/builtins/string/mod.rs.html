@@ -3039,7 +3039,7 @@
         <span class="comment">// 8. Perform ! DefinePropertyOrThrow(S, "length", PropertyDescriptor { [[Value]]: 𝔽(length),
         // [[Writable]]: false, [[Enumerable]]: false, [[Configurable]]: false }).
         </span>s.define_property_or_throw(
-            <span class="macro">utf16!</span>(<span class="string">"length"</span>),
+            StaticJsStrings::LENGTH,
             PropertyDescriptor::builder()
                 .value(len)
                 .writable(<span class="bool-val">false</span>)
