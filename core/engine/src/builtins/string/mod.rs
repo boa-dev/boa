@@ -265,7 +265,7 @@ impl String {
         // 8. Perform ! DefinePropertyOrThrow(S, "length", PropertyDescriptor { [[Value]]: 𝔽(length),
         // [[Writable]]: false, [[Enumerable]]: false, [[Configurable]]: false }).
         s.define_property_or_throw(
-            utf16!("length"),
+            StaticJsStrings::LENGTH,
             PropertyDescriptor::builder()
                 .value(len)
                 .writable(false)

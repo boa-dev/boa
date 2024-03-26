@@ -97,7 +97,7 @@ impl IntrinsicObject for BuiltinTypedArray {
                 Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
             )
             .accessor(
-                utf16!("length"),
+                StaticJsStrings::LENGTH,
                 Some(get_length),
                 None,
                 Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,

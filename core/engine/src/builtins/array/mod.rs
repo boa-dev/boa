@@ -120,7 +120,7 @@ impl IntrinsicObject for Array {
                 Attribute::CONFIGURABLE,
             )
             .property(
-                utf16!("length"),
+                StaticJsStrings::LENGTH,
                 0,
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
             )
@@ -258,7 +258,7 @@ impl BuiltInConstructor for Array {
             };
             // e. Perform ! Set(array, "length", intLen, true).
             array
-                .set(utf16!("length"), int_len, true, context)
+                .set(StaticJsStrings::LENGTH, int_len, true, context)
                 .expect("this Set call must not fail");
             // f. Return array.
             Ok(array.into())
@@ -307,7 +307,7 @@ impl Array {
             }
         }
 
-        o.set(utf16!("length"), len, true, context)?;
+        o.set(StaticJsStrings::LENGTH, len, true, context)?;
         Ok(())
     }
 
@@ -366,7 +366,7 @@ impl Array {
         // 6. Perform ! OrdinaryDefineOwnProperty(A, "length", PropertyDescriptor { [[Value]]: 𝔽(length), [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: false }).
         ordinary_define_own_property(
             &array,
-            &utf16!("length").into(),
+            &StaticJsStrings::LENGTH.into(),
             PropertyDescriptor::builder()
                 .value(length)
                 .writable(true)
@@ -593,7 +593,7 @@ impl Array {
             }
 
             // 13. Perform ? Set(A, "length", 𝔽(len), true).
-            a.set(utf16!("length"), len, true, context)?;
+            a.set(StaticJsStrings::LENGTH, len, true, context)?;
 
             // 14. Return A.
             return Ok(a.into());
@@ -623,7 +623,7 @@ impl Array {
             // iii. Let next be ? IteratorStep(iteratorRecord).
             if iterator_record.step(context)? {
                 // 1. Perform ? Set(A, "length", 𝔽(k), true).
-                a.set(utf16!("length"), k, true, context)?;
+                a.set(StaticJsStrings::LENGTH, k, true, context)?;
                 // 2. Return A.
                 return Ok(a.into());
             }
@@ -3461,7 +3461,7 @@ fn array_exotic_define_own_property(
     // 1. Assert: IsPropertyKey(P) is true.
     match key {
         // 2. If P is "length", then
-        PropertyKey::String(ref s) if s == utf16!("length") => {
+        PropertyKey::String(ref s) if s == &StaticJsStrings::LENGTH => {
             // a. Return ? ArraySetLength(A, Desc).
 
             array_set_length(obj, desc, context)
@@ -3471,8 +3471,9 @@ fn array_exotic_define_own_property(
             let index = index.get();
 
             // a. Let oldLenDesc be OrdinaryGetOwnProperty(A, "length").
-            let old_len_desc = ordinary_get_own_property(obj, &utf16!("length").into(), context)?
-                .expect("the property descriptor must exist");
+            let old_len_desc =
+                ordinary_get_own_property(obj, &StaticJsStrings::LENGTH.into(), context)?
+                    .expect("the property descriptor must exist");
 
             // b. Assert: ! IsDataDescriptor(oldLenDesc) is true.
             debug_assert!(old_len_desc.is_data_descriptor());
@@ -3507,7 +3508,7 @@ fn array_exotic_define_own_property(
                     // ii. Set succeeded to OrdinaryDefineOwnProperty(A, "length", oldLenDesc).
                     let succeeded = ordinary_define_own_property(
                         obj,
-                        &utf16!("length").into(),
+                        &StaticJsStrings::LENGTH.into(),
                         old_len_desc.into(),
                         context,
                     )?;
@@ -3542,7 +3543,7 @@ fn array_set_length(
     // 1. If Desc.[[Value]] is absent, then
     let Some(new_len_val) = desc.value() else {
         // a. Return OrdinaryDefineOwnProperty(A, "length", Desc).
-        return ordinary_define_own_property(obj, &utf16!("length").into(), desc, context);
+        return ordinary_define_own_property(obj, &StaticJsStrings::LENGTH.into(), desc, context);
     };
 
     // 3. Let newLen be ? ToUint32(Desc.[[Value]]).
@@ -3568,7 +3569,7 @@ fn array_set_length(
         .maybe_configurable(desc.configurable());
 
     // 7. Let oldLenDesc be OrdinaryGetOwnProperty(A, "length").
-    let old_len_desc = ordinary_get_own_property(obj, &utf16!("length").into(), context)?
+    let old_len_desc = ordinary_get_own_property(obj, &StaticJsStrings::LENGTH.into(), context)?
         .expect("the property descriptor must exist");
 
     // 8. Assert: ! IsDataDescriptor(oldLenDesc) is true.
@@ -3585,7 +3586,7 @@ fn array_set_length(
         // a. Return OrdinaryDefineOwnProperty(A, "length", newLenDesc).
         return ordinary_define_own_property(
             obj,
-            &utf16!("length").into(),
+            &StaticJsStrings::LENGTH.into(),
             new_len_desc.build(),
             context,
         );
@@ -3615,7 +3616,7 @@ fn array_set_length(
     // 16. If succeeded is false, return false.
     if !ordinary_define_own_property(
         obj,
-        &utf16!("length").into(),
+        &StaticJsStrings::LENGTH.into(),
         new_len_desc.clone().build(),
         context,
     )
@@ -3652,7 +3653,7 @@ fn array_set_length(
             // iii. Perform ! OrdinaryDefineOwnProperty(A, "length", newLenDesc).
             ordinary_define_own_property(
                 obj,
-                &utf16!("length").into(),
+                &StaticJsStrings::LENGTH.into(),
                 new_len_desc.build(),
                 context,
             )
@@ -3669,7 +3670,7 @@ fn array_set_length(
         // PropertyDescriptor { [[Writable]]: false }).
         let succeeded = ordinary_define_own_property(
             obj,
-            &utf16!("length").into(),
+            &StaticJsStrings::LENGTH.into(),
             PropertyDescriptor::builder().writable(false).build(),
             context,
         )

@@ -9,6 +9,7 @@ use crate::{
     },
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
+    string::common::StaticJsStrings,
     JsObject, JsString, JsValue, NativeFunction,
 };
 
@@ -106,7 +107,7 @@ impl<S: ApplyToObject + IsConstructor> ApplyToObject for Callable<S> {
             function.realm = Some(self.realm);
         }
         object.insert(
-            utf16!("length"),
+            StaticJsStrings::LENGTH,
             PropertyDescriptor::builder()
                 .value(self.length)
                 .writable(false)

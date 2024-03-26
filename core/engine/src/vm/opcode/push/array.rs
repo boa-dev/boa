@@ -1,6 +1,6 @@
 use crate::{
     builtins::Array,
-    string::utf16,
+    string::common::StaticJsStrings,
     vm::{opcode::Operation, CompletionType},
     Context, JsResult, JsValue,
 };
@@ -74,7 +74,7 @@ impl Operation for PushElisionToArray {
             .length_of_array_like(context)
             .expect("arrays should always have a 'length' property");
 
-        o.set(utf16!("length"), len + 1, true, context)?;
+        o.set(StaticJsStrings::LENGTH, len + 1, true, context)?;
         context.vm.push(array);
         Ok(CompletionType::Normal)
     }

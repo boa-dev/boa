@@ -702,9 +702,9 @@ impl BuiltInFunctionObject {
 
         // 5. Let targetHasLength be ? HasOwnProperty(Target, "length").
         // 6. If targetHasLength is true, then
-        if target.has_own_property(utf16!("length"), context)? {
+        if target.has_own_property(StaticJsStrings::LENGTH, context)? {
             // a. Let targetLen be ? Get(Target, "length").
-            let target_len = target.get(utf16!("length"), context)?;
+            let target_len = target.get(StaticJsStrings::LENGTH, context)?;
             // b. If Type(targetLen) is Number, then
             if target_len.is_number() {
                 // 1. Let targetLenAsInt be ! ToIntegerOrInfinity(targetLen).
@@ -729,7 +729,7 @@ impl BuiltInFunctionObject {
 
         // 7. Perform ! SetFunctionLength(F, L).
         f.define_property_or_throw(
-            utf16!("length"),
+            StaticJsStrings::LENGTH,
             PropertyDescriptor::builder()
                 .value(l)
                 .writable(false)
