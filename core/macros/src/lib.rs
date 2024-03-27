@@ -5,7 +5,6 @@
     html_favicon_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"
 )]
 #![cfg_attr(not(test), forbid(clippy::unwrap_used))]
-#![cfg_attr(test, allow(unused_crate_dependencies))]
 
 use proc_macro::TokenStream;
 use quote::{quote, ToTokens};

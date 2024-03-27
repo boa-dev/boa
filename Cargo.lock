@@ -506,7 +506,6 @@ dependencies = [
 name = "boa_macros"
 version = "0.18.0"
 dependencies = [
- "boa_engine",
  "proc-macro2",
  "quote",
  "syn 2.0.53",
@@ -518,7 +517,6 @@ name = "boa_macros_tests"
 version = "0.18.0"
 dependencies = [
  "boa_engine",
- "boa_macros",
  "trybuild",
 ]
 
