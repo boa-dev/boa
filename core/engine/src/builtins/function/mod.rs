@@ -1054,10 +1054,16 @@ fn function_construct(
         Some(this)
     };
 
-    let frame = CallFrame::new(code.clone(), script_or_module, environments, realm)
+    let mut frame = CallFrame::new(code.clone(), script_or_module, environments, realm)
         .with_argument_count(argument_count as u32)
         .with_env_fp(env_fp)
         .with_flags(CallFrameFlags::CONSTRUCT);
+
+    // We push the `this` below so we can mark this function as having the this value
+    // cached if it's initialized.
+    frame
+        .flags
+        .set(CallFrameFlags::THIS_VALUE_CACHED, this.is_some());
 
     let len = context.vm.stack.len();
 

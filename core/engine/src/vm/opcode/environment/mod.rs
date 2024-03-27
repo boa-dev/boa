@@ -2,7 +2,7 @@ use crate::{
     builtins::function::OrdinaryFunction,
     error::JsNativeError,
     object::internal_methods::InternalMethodContext,
-    vm::{opcode::Operation, CompletionType},
+    vm::{opcode::Operation, CallFrameFlags, CompletionType},
     Context, JsResult, JsValue,
 };
 
@@ -19,7 +19,17 @@ impl Operation for This {
     const COST: u8 = 1;
 
     fn execute(context: &mut Context) -> JsResult<CompletionType> {
+        let frame = context.vm.frame_mut();
+        let this_index = frame.fp();
+        if frame.has_this_value_cached() {
+            let this = context.vm.stack[this_index as usize].clone();
+            context.vm.push(this);
+            return Ok(CompletionType::Normal);
+        }
+
         let this = context.vm.environments.get_this_binding()?;
+        context.vm.frame_mut().flags |= CallFrameFlags::THIS_VALUE_CACHED;
+        context.vm.stack[this_index as usize] = this.clone();
         context.vm.push(this);
         Ok(CompletionType::Normal)
     }
