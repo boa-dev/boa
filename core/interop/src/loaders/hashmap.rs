@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
-use boa_engine::{Context, JsNativeError, JsResult, JsString, Module};
 use boa_engine::module::{ModuleLoader, Referrer};
+use boa_engine::{Context, JsNativeError, JsResult, JsString, Module};
 use boa_gc::GcRefCell;
 
 /// A ModuleLoader that loads modules from a HashMap based on the name.

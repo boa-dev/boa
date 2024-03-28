@@ -1,8 +1,8 @@
 use std::cell::RefCell;
 
-use boa_engine::{Context, JsString, JsValue, Module, NativeFunction, Source};
 use boa_engine::builtins::promise::PromiseState;
 use boa_engine::module::SyntheticModuleInitializer;
+use boa_engine::{Context, JsString, JsValue, Module, NativeFunction, Source};
 
 pub mod loaders;
 
