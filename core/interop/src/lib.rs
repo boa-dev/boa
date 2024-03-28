@@ -1,12 +1,14 @@
+//! Interop utilities between Boa and its host.
 use std::cell::RefCell;
 
-use boa_engine::builtins::promise::PromiseState;
 use boa_engine::module::SyntheticModuleInitializer;
-use boa_engine::{Context, JsString, JsValue, Module, NativeFunction, Source};
+use boa_engine::{Context, JsString, JsValue, Module, NativeFunction};
 
 pub mod loaders;
 
+/// A trait to convert a type into a JS module.
 pub trait IntoJsModule {
+    /// Converts the type into a JS module.
     fn into_js_module(self, context: &mut Context) -> Module;
 }
 
@@ -32,11 +34,13 @@ impl<T: IntoIterator<Item = (JsString, NativeFunction)> + Clone> IntoJsModule fo
     }
 }
 
+/// A trait to convert a type into a JS function.
 pub trait IntoJsFunction {
+    /// Converts the type into a JS function.
     fn into_js_function(self, context: &mut Context) -> NativeFunction;
 }
 
-impl<T: FnMut() -> () + 'static> IntoJsFunction for T {
+impl<T: FnMut() + 'static> IntoJsFunction for T {
     fn into_js_function(self, _context: &mut Context) -> NativeFunction {
         let s = RefCell::new(self);
 
@@ -50,8 +54,10 @@ impl<T: FnMut() -> () + 'static> IntoJsFunction for T {
 }
 
 #[test]
+#[allow(clippy::missing_panics_doc)]
 pub fn into_js_module() {
-    use boa_engine::{js_string, JsValue};
+    use boa_engine::builtins::promise::PromiseState;
+    use boa_engine::{js_string, JsValue, Source};
     use std::rc::Rc;
 
     let loader = Rc::new(loaders::HashMapModuleLoader::new());

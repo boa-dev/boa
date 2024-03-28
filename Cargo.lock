@@ -508,10 +508,7 @@ version = "0.18.0"
 dependencies = [
  "boa_engine",
  "boa_gc",
- "proc-macro2",
- "quote",
- "syn 2.0.55",
- "synstructure",
+ "rustc-hash",
 ]
 
 [[package]]
