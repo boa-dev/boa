@@ -421,7 +421,7 @@ fn generate_conversion(fields: FieldsNamed) -> Result<proc_macro2::TokenStream, 
         final_fields.push(quote! {
             let #name = match props.get(&::boa_engine::js_string!(#name_str).into()) {
                 Some(pd) => pd.value().ok_or_else(|| ::boa_engine::JsError::from(
-                        boa_engine::JsNativeError::typ().with_message(#error_str)
+                        ::boa_engine::JsNativeError::typ().with_message(#error_str)
                     ))?.clone().try_js_into(context)?,
                 None => ::boa_engine::JsValue::undefined().try_js_into(context)?,
             };
