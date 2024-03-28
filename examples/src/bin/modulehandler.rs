@@ -2,7 +2,7 @@
 // the require/module.exports pattern
 
 use boa_engine::{
-    js_string, native_function::NativeFunction, prelude::JsObject, property::Attribute, Context,
+    js_str, native_function::NativeFunction, prelude::JsObject, property::Attribute, Context,
     JsArgs, JsNativeError, JsResult, JsValue, Source,
 };
 use boa_runtime::Console;
@@ -13,7 +13,7 @@ fn add_runtime(context: &mut Context) {
     // We first add the `console` object, to be able to call `console.log()`.
     let console = Console::init(context);
     context
-        .register_global_property(js_string!(Console::NAME), console, Attribute::all())
+        .register_global_property(Console::NAME, console, Attribute::all())
         .expect("the console builtin shouldn't exist");
 }
 
@@ -28,23 +28,19 @@ fn main() -> Result<(), Box<dyn Error>> {
     add_runtime(&mut ctx);
 
     // Adding custom implementation that mimics 'require'
-    ctx.register_global_callable(
-        js_string!("require"),
-        0,
-        NativeFunction::from_fn_ptr(require),
-    )?;
+    ctx.register_global_callable("require".into(), 0, NativeFunction::from_fn_ptr(require))?;
 
     // Adding custom object that mimics 'module.exports'
     let moduleobj = JsObject::default();
     moduleobj.set(
-        js_string!("exports"),
-        JsValue::from(js_string!(" ")),
+        js_str!("exports"),
+        JsValue::from(js_str!(" ")),
         false,
         &mut ctx,
     )?;
 
     ctx.register_global_property(
-        js_string!("module"),
+        js_str!("module"),
         JsValue::from(moduleobj),
         Attribute::default(),
     )?;
@@ -72,9 +68,9 @@ fn require(_: &JsValue, args: &[JsValue], ctx: &mut Context) -> JsResult<JsValue
 
     // Access module.exports and return as ResultValue
     let global_obj = ctx.global_object();
-    let module = global_obj.get(js_string!("module"), ctx)?;
+    let module = global_obj.get(js_str!("module"), ctx)?;
     module
         .as_object()
         .ok_or_else(|| JsNativeError::typ().with_message("`exports` property was not an object"))?
-        .get(js_string!("exports"), ctx)
+        .get(js_str!("exports"), ctx)
 }

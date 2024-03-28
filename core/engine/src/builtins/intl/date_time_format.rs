@@ -17,11 +17,12 @@ use crate::{
     js_string,
     object::{internal_methods::get_prototype_from_constructor, JsObject},
     realm::Realm,
-    string::{common::StaticJsStrings, utf16},
+    string::common::StaticJsStrings,
     Context, JsData, JsResult, JsString, JsValue,
 };
 
 use boa_gc::{Finalize, Trace};
+use boa_macros::js_str;
 use boa_profiler::Profiler;
 use icu_datetime::options::preferences::HourCycle;
 
@@ -205,10 +206,10 @@ pub(crate) fn to_date_time_options(
     if [DateTimeReqs::Date, DateTimeReqs::AnyAll].contains(required) {
         // a. For each property name prop of « "weekday", "year", "month", "day" », do
         for property in [
-            utf16!("weekday"),
-            utf16!("year"),
-            utf16!("month"),
-            utf16!("day"),
+            js_str!("weekday"),
+            js_str!("year"),
+            js_str!("month"),
+            js_str!("day"),
         ] {
             // i. Let value be ? Get(options, prop).
             let value = options.get(property, context)?;
@@ -225,11 +226,11 @@ pub(crate) fn to_date_time_options(
         // a. For each property name prop of « "dayPeriod", "hour", "minute", "second",
         // "fractionalSecondDigits" », do
         for property in [
-            utf16!("dayPeriod"),
-            utf16!("hour"),
-            utf16!("minute"),
-            utf16!("second"),
-            utf16!("fractionalSecondDigits"),
+            js_str!("dayPeriod"),
+            js_str!("hour"),
+            js_str!("minute"),
+            js_str!("second"),
+            js_str!("fractionalSecondDigits"),
         ] {
             // i. Let value be ? Get(options, prop).
             let value = options.get(property, context)?;
@@ -242,10 +243,10 @@ pub(crate) fn to_date_time_options(
     }
 
     // 6. Let dateStyle be ? Get(options, "dateStyle").
-    let date_style = options.get(utf16!("dateStyle"), context)?;
+    let date_style = options.get(js_str!("dateStyle"), context)?;
 
     // 7. Let timeStyle be ? Get(options, "timeStyle").
-    let time_style = options.get(utf16!("timeStyle"), context)?;
+    let time_style = options.get(js_str!("timeStyle"), context)?;
 
     // 8. If dateStyle is not undefined or timeStyle is not undefined, let needDefaults be false.
     if !date_style.is_undefined() || !time_style.is_undefined() {
@@ -271,18 +272,18 @@ pub(crate) fn to_date_time_options(
     // 11. If needDefaults is true and defaults is either "date" or "all", then
     if need_defaults && [DateTimeReqs::Date, DateTimeReqs::AnyAll].contains(defaults) {
         // a. For each property name prop of « "year", "month", "day" », do
-        for property in [utf16!("year"), utf16!("month"), utf16!("day")] {
+        for property in [js_str!("year"), js_str!("month"), js_str!("day")] {
             // i. Perform ? CreateDataPropertyOrThrow(options, prop, "numeric").
-            options.create_data_property_or_throw(property, js_string!("numeric"), context)?;
+            options.create_data_property_or_throw(property, js_str!("numeric"), context)?;
         }
     }
 
     // 12. If needDefaults is true and defaults is either "time" or "all", then
     if need_defaults && [DateTimeReqs::Time, DateTimeReqs::AnyAll].contains(defaults) {
         // a. For each property name prop of « "hour", "minute", "second" », do
-        for property in [utf16!("hour"), utf16!("minute"), utf16!("second")] {
+        for property in [js_str!("hour"), js_str!("minute"), js_str!("second")] {
             // i. Perform ? CreateDataPropertyOrThrow(options, prop, "numeric").
-            options.create_data_property_or_throw(property, js_string!("numeric"), context)?;
+            options.create_data_property_or_throw(property, js_str!("numeric"), context)?;
         }
     }
 

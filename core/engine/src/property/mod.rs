@@ -18,9 +18,11 @@
 mod attribute;
 mod nonmaxu32;
 
-use crate::{js_string, object::shape::slot::SlotAttributes, JsString, JsSymbol, JsValue};
+use crate::{
+    js_string, object::shape::slot::SlotAttributes, string::JsStr, JsString, JsSymbol, JsValue,
+};
 use boa_gc::{Finalize, Trace};
-use std::{fmt, iter::FusedIterator};
+use std::fmt;
 
 pub use {attribute::Attribute, nonmaxu32::NonMaxU32};
 
@@ -603,11 +605,7 @@ pub enum PropertyKey {
 }
 
 /// Utility function for parsing [`PropertyKey`].
-fn parse_u32_index<I, T>(mut input: I) -> Option<NonMaxU32>
-where
-    I: Iterator<Item = T> + ExactSizeIterator + FusedIterator,
-    T: Into<u16>,
-{
+fn parse_u32_index(input: &[u8]) -> Option<NonMaxU32> {
     // min: 0             --> 1  char
     // max: 4_294_967_296 --> 10 chars
     //
@@ -631,6 +629,8 @@ where
             None
         }
     };
+
+    let mut input = input.iter().copied();
 
     let byte = input.next()?.into();
     if byte == CHAR_ZERO {
@@ -664,15 +664,12 @@ where
     }
 }
 
-impl From<&[u16]> for PropertyKey {
+impl From<JsStr<'_>> for PropertyKey {
     #[inline]
-    fn from(string: &[u16]) -> Self {
-        debug_assert!(parse_u32_index(
-            String::from_utf16(string)
-                .expect("should be ascii string")
-                .bytes()
-        )
-        .is_none());
+    fn from(string: JsStr<'_>) -> Self {
+        if let Some(ascii) = string.as_ascii() {
+            return parse_u32_index(ascii).map_or(Self::String(string.into()), Self::Index);
+        }
         Self::String(string.into())
     }
 }
@@ -680,7 +677,10 @@ impl From<&[u16]> for PropertyKey {
 impl From<JsString> for PropertyKey {
     #[inline]
     fn from(string: JsString) -> Self {
-        parse_u32_index(string.as_slice().iter().copied()).map_or(Self::String(string), Self::Index)
+        if let Some(ascii) = string.as_str().as_ascii() {
+            return parse_u32_index(ascii).map_or(Self::String(string), Self::Index);
+        }
+        Self::String(string)
     }
 }
 

@@ -1,10 +1,10 @@
 use boa_gc::{Finalize, Trace, WeakGc};
+use boa_macros::js_str;
 use boa_profiler::Profiler;
 
 use crate::{
     builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
-    js_string,
     object::{internal_methods::get_prototype_from_constructor, ErasedVTableObject, JsObject},
     property::Attribute,
     realm::Realm,
@@ -36,10 +36,10 @@ impl IntrinsicObject for WeakRef {
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .property(
                 JsSymbol::to_string_tag(),
-                js_string!("WeakRef"),
+                js_str!("WeakRef"),
                 Attribute::CONFIGURABLE,
             )
-            .method(Self::deref, js_string!("deref"), 0)
+            .method(Self::deref, js_str!("deref"), 0)
             .build();
     }
 }

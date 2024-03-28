@@ -13,7 +13,7 @@ use crate::{
     Context, JsObject, JsString, JsValue,
 };
 
-use boa_macros::utf16;
+use boa_macros::js_str;
 use num_traits::ToPrimitive;
 use plain_date::PlainDate;
 use plain_date_time::PlainDateTime;
@@ -41,7 +41,7 @@ impl CalendarProtocol for JsObject {
         context: &mut Context,
     ) -> TemporalResult<Date<Self>> {
         let method = self
-            .get(utf16!("dateFromFields"), context)
+            .get(js_str!("dateFromFields"), context)
             .expect("method must exist on a object that implements the CalendarProtocol.");
 
         let fields = JsObject::from_temporal_fields(fields, context)
@@ -51,7 +51,7 @@ impl CalendarProtocol for JsObject {
 
         overflow_obj
             .create_data_property_or_throw(
-                utf16!("overflow"),
+                js_str!("overflow"),
                 JsString::from(overflow.to_string()),
                 context,
             )
@@ -88,7 +88,7 @@ impl CalendarProtocol for JsObject {
         context: &mut Context,
     ) -> TemporalResult<YearMonth<JsObject>> {
         let method = self
-            .get(utf16!("yearMonthFromFields"), context)
+            .get(js_str!("yearMonthFromFields"), context)
             .expect("method must exist on a object that implements the CalendarProtocol.");
 
         let fields = JsObject::from_temporal_fields(fields, context)
@@ -98,7 +98,7 @@ impl CalendarProtocol for JsObject {
 
         overflow_obj
             .create_data_property_or_throw(
-                utf16!("overflow"),
+                js_str!("overflow"),
                 JsString::from(overflow.to_string()),
                 context,
             )
@@ -137,7 +137,7 @@ impl CalendarProtocol for JsObject {
         context: &mut Context,
     ) -> TemporalResult<MonthDay<JsObject>> {
         let method = self
-            .get(utf16!("yearMonthFromFields"), context)
+            .get(js_str!("yearMonthFromFields"), context)
             .expect("method must exist on a object that implements the CalendarProtocol.");
 
         let fields = JsObject::from_temporal_fields(fields, context)
@@ -147,7 +147,7 @@ impl CalendarProtocol for JsObject {
 
         overflow_obj
             .create_data_property_or_throw(
-                utf16!("overflow"),
+                js_str!("overflow"),
                 JsString::from(overflow.to_string()),
                 context,
             )
@@ -227,7 +227,7 @@ impl CalendarProtocol for JsObject {
         let date_like = date_like_to_object(date_like, context)?;
 
         let method = self
-            .get(PropertyKey::from(utf16!("year")), context)
+            .get(PropertyKey::from(js_str!("year")), context)
             .expect("method must exist on a object that implements the CalendarProtocol.");
 
         let val = method
@@ -269,7 +269,7 @@ impl CalendarProtocol for JsObject {
         let date_like = date_like_to_object(date_like, context)?;
 
         let method = self
-            .get(PropertyKey::from(utf16!("month")), context)
+            .get(PropertyKey::from(js_str!("month")), context)
             .expect("method must exist on a object that implements the CalendarProtocol.");
 
         let val = method
@@ -311,7 +311,7 @@ impl CalendarProtocol for JsObject {
         let date_like = date_like_to_object(date_like, context)?;
 
         let method = self
-            .get(PropertyKey::from(utf16!("monthCode")), context)
+            .get(PropertyKey::from(js_str!("monthCode")), context)
             .expect("method must exist on a object that implements the CalendarProtocol.");
 
         let val = method
@@ -338,7 +338,7 @@ impl CalendarProtocol for JsObject {
         let date_like = date_like_to_object(date_like, context)?;
 
         let method = self
-            .get(PropertyKey::from(utf16!("day")), context)
+            .get(PropertyKey::from(js_str!("day")), context)
             .expect("method must exist on a object that implements the CalendarProtocol.");
 
         let val = method
@@ -380,7 +380,7 @@ impl CalendarProtocol for JsObject {
         let date_like = date_like_to_object(date_like, context)?;
 
         let method = self
-            .get(PropertyKey::from(utf16!("dayOfWeek")), context)
+            .get(PropertyKey::from(js_str!("dayOfWeek")), context)
             .expect("method must exist on a object that implements the CalendarProtocol.");
 
         let val = method
@@ -424,7 +424,7 @@ impl CalendarProtocol for JsObject {
         let date_like = date_like_to_object(date_like, context)?;
 
         let method = self
-            .get(PropertyKey::from(utf16!("dayOfYear")), context)
+            .get(PropertyKey::from(js_str!("dayOfYear")), context)
             .expect("method must exist on a object that implements the CalendarProtocol.");
 
         let val = method
@@ -468,7 +468,7 @@ impl CalendarProtocol for JsObject {
         let date_like = date_like_to_object(date_like, context)?;
 
         let method = self
-            .get(PropertyKey::from(utf16!("weekOfYear")), context)
+            .get(PropertyKey::from(js_str!("weekOfYear")), context)
             .expect("method must exist on a object that implements the CalendarProtocol.");
 
         let val = method
@@ -512,7 +512,7 @@ impl CalendarProtocol for JsObject {
         let date_like = date_like_to_object(date_like, context)?;
 
         let method = self
-            .get(PropertyKey::from(utf16!("yearOfWeek")), context)
+            .get(PropertyKey::from(js_str!("yearOfWeek")), context)
             .expect("method must exist on a object that implements the CalendarProtocol.");
 
         let val = method
@@ -549,7 +549,7 @@ impl CalendarProtocol for JsObject {
         let date_like = date_like_to_object(date_like, context)?;
 
         let method = self
-            .get(PropertyKey::from(utf16!("daysInWeek")), context)
+            .get(PropertyKey::from(js_str!("daysInWeek")), context)
             .expect("method must exist on a object that implements the CalendarProtocol.");
 
         let val = method
@@ -593,7 +593,7 @@ impl CalendarProtocol for JsObject {
         let date_like = date_like_to_object(date_like, context)?;
 
         let method = self
-            .get(PropertyKey::from(utf16!("daysInMonth")), context)
+            .get(PropertyKey::from(js_str!("daysInMonth")), context)
             .expect("method must exist on a object that implements the CalendarProtocol.");
         let val = method
             .as_callable()
@@ -638,7 +638,7 @@ impl CalendarProtocol for JsObject {
         let date_like = date_like_to_object(date_like, context)?;
 
         let method = self
-            .get(PropertyKey::from(utf16!("daysInYear")), context)
+            .get(PropertyKey::from(js_str!("daysInYear")), context)
             .expect("method must exist on a object that implements the CalendarProtocol.");
 
         let val = method
@@ -682,7 +682,7 @@ impl CalendarProtocol for JsObject {
         let date_like = date_like_to_object(date_like, context)?;
 
         let method = self
-            .get(PropertyKey::from(utf16!("monthsInYear")), context)
+            .get(PropertyKey::from(js_str!("monthsInYear")), context)
             .expect("method must exist on a object that implements the CalendarProtocol.");
 
         let val = method
@@ -728,7 +728,7 @@ impl CalendarProtocol for JsObject {
         let date_like = date_like_to_object(date_like, context)?;
 
         let method = self
-            .get(PropertyKey::from(utf16!("inLeapYear")), context)
+            .get(PropertyKey::from(js_str!("inLeapYear")), context)
             .expect("method must exist on a object that implements the CalendarProtocol.");
 
         let val = method
@@ -753,7 +753,7 @@ impl CalendarProtocol for JsObject {
         );
 
         let method = self
-            .get(PropertyKey::from(utf16!("fields")), context)
+            .get(PropertyKey::from(js_str!("fields")), context)
             .expect("method must exist on an object that implements the CalendarProtocol.");
 
         let result = method
@@ -799,7 +799,7 @@ impl CalendarProtocol for JsObject {
             .map_err(|e| TemporalError::general(e.to_string()))?;
 
         let method = self
-            .get(PropertyKey::from(utf16!("mergeFields")), context)
+            .get(PropertyKey::from(js_str!("mergeFields")), context)
             .expect("method must exist on an object that implements the CalendarProtocol.");
 
         let value = method
@@ -824,7 +824,7 @@ impl CalendarProtocol for JsObject {
     fn identifier(&self, context: &mut Context) -> TemporalResult<String> {
         let identifier = self
             .__get__(
-                &PropertyKey::from(utf16!("id")),
+                &PropertyKey::from(js_str!("id")),
                 self.clone().into(),
                 &mut context.into(),
             )

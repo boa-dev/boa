@@ -15,15 +15,13 @@
 mod tests;
 
 use boa_engine::{
-    js_string,
+    js_str, js_string,
     native_function::NativeFunction,
     object::{JsObject, ObjectInitializer},
-    string::utf16,
     value::{JsValue, Numeric},
-    Context, JsArgs, JsData, JsResult, JsString,
+    Context, JsArgs, JsData, JsResult, JsStr, JsString,
 };
 use boa_gc::{Finalize, Trace};
-// use boa_profiler::Profiler;
 use rustc_hash::FxHashMap;
 use std::{cell::RefCell, rc::Rc, time::SystemTime};
 
@@ -132,7 +130,7 @@ pub struct Console {
 
 impl Console {
     /// Name of the built-in `console` property.
-    pub const NAME: &'static str = "console";
+    pub const NAME: JsStr<'static> = js_str!("console");
 
     /// Initializes the `console` built-in object.
     #[allow(clippy::too_many_lines)]
@@ -280,8 +278,8 @@ impl Console {
             } else if !args[0].is_string() {
                 args.insert(0, JsValue::new(message));
             } else {
-                let value: Vec<u16> = args[0].display().to_string().encode_utf16().collect();
-                let concat = js_string!(&message, utf16!(": "), &value);
+                let value = JsString::from(args[0].display().to_string());
+                let concat = js_string!(message.as_str(), js_str!(": "), &value);
                 args[0] = JsValue::new(concat);
             }
 

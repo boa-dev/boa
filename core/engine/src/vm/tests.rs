@@ -2,6 +2,7 @@ use crate::{
     js_string, property::Attribute, run_test_actions, Context, JsNativeErrorKind, JsValue,
     TestAction,
 };
+use boa_macros::js_str;
 use boa_parser::Source;
 use indoc::indoc;
 
@@ -12,7 +13,7 @@ fn typeof_string() {
             const a = "hello";
             typeof a;
         "#},
-        js_string!("string"),
+        js_str!("string"),
     )]);
 }
 
@@ -23,7 +24,7 @@ fn typeof_number() {
             let a = 1234;
             typeof a;
         "#},
-        js_string!("number"),
+        js_str!("number"),
     )]);
 }
 
@@ -54,7 +55,7 @@ fn try_catch_finally_from_init() {
             } finally {
             }
         "#},
-        js_string!("h"),
+        js_str!("h"),
     )]);
 }
 
@@ -89,7 +90,7 @@ fn use_last_expr_try_block() {
                 "Bye!"
             }
         "#},
-        js_string!("Hello!"),
+        js_str!("Hello!"),
     )]);
 }
 
@@ -106,7 +107,7 @@ fn use_last_expr_catch_block() {
                 "Hello!";
             }
         "#},
-        js_string!("Hello!"),
+        js_str!("Hello!"),
     )]);
 }
 
@@ -137,7 +138,7 @@ fn finally_block_binding_env() {
             }
             buf
         "#},
-        js_string!("Hey hey people"),
+        js_str!("Hey hey people"),
     )]);
 }
 
@@ -154,7 +155,7 @@ fn run_super_method_in_object() {
             Object.setPrototypeOf(obj, proto);
             obj.v();
         "#},
-        js_string!("super"),
+        js_str!("super"),
     )]);
 }
 
@@ -178,7 +179,7 @@ fn get_reference_by_super() {
             obj.method();
             fromA + fromB
         "#},
-        js_string!("ab"),
+        js_str!("ab"),
     )]);
 }
 
@@ -238,7 +239,7 @@ fn order_of_execution_in_assigment_with_comma_expressions() {
             (f(1), a)[(f(2), 0)][(f(3), 0)] = (f(4), 123);
             result
         "#},
-        js_string!("1234"),
+        js_str!("1234"),
     )]);
 }
 
@@ -325,7 +326,7 @@ fn arguments_object_constructor_valid_index() {
             new F();
             typeof args
         "#},
-        js_string!("object"),
+        js_str!("object"),
     )]);
 }
 
@@ -387,8 +388,8 @@ fn super_construction_with_paramater_expression() {
                 }
             }
         "#}),
-        TestAction::assert_eq("new Student().name", js_string!("unknown")),
-        TestAction::assert_eq("new Student('Jack').name", js_string!("Jack")),
+        TestAction::assert_eq("new Student().name", js_str!("unknown")),
+        TestAction::assert_eq("new Student('Jack').name", js_str!("Jack")),
     ]);
 }
 

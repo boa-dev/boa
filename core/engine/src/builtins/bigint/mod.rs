@@ -25,6 +25,7 @@ use crate::{
     value::{IntegerOrInfinity, PreferredType},
     Context, JsArgs, JsBigInt, JsResult, JsString, JsValue,
 };
+use boa_macros::js_str;
 use boa_profiler::Profiler;
 use num_bigint::ToBigInt;
 
@@ -42,10 +43,10 @@ impl IntrinsicObject for BigInt {
         let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
-            .method(Self::to_string, js_string!("toString"), 0)
-            .method(Self::value_of, js_string!("valueOf"), 0)
-            .static_method(Self::as_int_n, js_string!("asIntN"), 2)
-            .static_method(Self::as_uint_n, js_string!("asUintN"), 2)
+            .method(Self::to_string, js_str!("toString"), 0)
+            .method(Self::value_of, js_str!("valueOf"), 0)
+            .static_method(Self::as_int_n, js_str!("asIntN"), 2)
+            .static_method(Self::as_uint_n, js_str!("asUintN"), 2)
             .property(
                 JsSymbol::to_string_tag(),
                 Self::NAME,

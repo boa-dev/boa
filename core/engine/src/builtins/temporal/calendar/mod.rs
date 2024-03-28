@@ -18,10 +18,11 @@ use crate::{
     object::internal_methods::get_prototype_from_constructor,
     property::Attribute,
     realm::Realm,
-    string::{common::StaticJsStrings, utf16},
+    string::common::StaticJsStrings,
     Context, JsArgs, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 use boa_gc::{custom_trace, Finalize, Trace};
+use boa_macros::js_str;
 use boa_profiler::Profiler;
 use temporal_rs::{
     components::calendar::{
@@ -75,40 +76,40 @@ impl IntrinsicObject for Calendar {
                 Self::NAME,
                 Attribute::CONFIGURABLE,
             )
-            .accessor(utf16!("id"), Some(get_id), None, Attribute::CONFIGURABLE)
-            .static_method(Self::from, js_string!("from"), 1)
-            .method(Self::date_from_fields, js_string!("dateFromFields"), 2)
+            .accessor(js_str!("id"), Some(get_id), None, Attribute::CONFIGURABLE)
+            .static_method(Self::from, js_str!("from"), 1)
+            .method(Self::date_from_fields, js_str!("dateFromFields"), 2)
             .method(
                 Self::year_month_from_fields,
-                js_string!("yearMonthFromFields"),
+                js_str!("yearMonthFromFields"),
                 2,
             )
             .method(
                 Self::month_day_from_fields,
-                js_string!("monthDayFromFields"),
+                js_str!("monthDayFromFields"),
                 2,
             )
-            .method(Self::date_add, js_string!("dateAdd"), 3)
-            .method(Self::date_until, js_string!("dateUntil"), 3)
-            .method(Self::era, js_string!("era"), 1)
-            .method(Self::era_year, js_string!("eraYear"), 1)
-            .method(Self::year, js_string!("year"), 1)
-            .method(Self::month, js_string!("month"), 1)
-            .method(Self::month_code, js_string!("monthCode"), 1)
-            .method(Self::day, js_string!("day"), 1)
-            .method(Self::day_of_week, js_string!("dayOfWeek"), 1)
-            .method(Self::day_of_year, js_string!("dayOfYear"), 1)
-            .method(Self::week_of_year, js_string!("weekOfYear"), 1)
-            .method(Self::year_of_week, js_string!("yearOfWeek"), 1)
-            .method(Self::days_in_week, js_string!("daysInWeek"), 1)
-            .method(Self::days_in_month, js_string!("daysInMonth"), 1)
-            .method(Self::days_in_year, js_string!("daysInYear"), 1)
-            .method(Self::months_in_year, js_string!("monthsInYear"), 1)
-            .method(Self::in_leap_year, js_string!("inLeapYear"), 1)
-            .method(Self::fields, js_string!("fields"), 1)
-            .method(Self::merge_fields, js_string!("mergeFields"), 2)
-            .method(Self::get_id, js_string!("toString"), 0)
-            .method(Self::get_id, js_string!("toJSON"), 0)
+            .method(Self::date_add, js_str!("dateAdd"), 3)
+            .method(Self::date_until, js_str!("dateUntil"), 3)
+            .method(Self::era, js_str!("era"), 1)
+            .method(Self::era_year, js_str!("eraYear"), 1)
+            .method(Self::year, js_str!("year"), 1)
+            .method(Self::month, js_str!("month"), 1)
+            .method(Self::month_code, js_str!("monthCode"), 1)
+            .method(Self::day, js_str!("day"), 1)
+            .method(Self::day_of_week, js_str!("dayOfWeek"), 1)
+            .method(Self::day_of_year, js_str!("dayOfYear"), 1)
+            .method(Self::week_of_year, js_str!("weekOfYear"), 1)
+            .method(Self::year_of_week, js_str!("yearOfWeek"), 1)
+            .method(Self::days_in_week, js_str!("daysInWeek"), 1)
+            .method(Self::days_in_month, js_str!("daysInMonth"), 1)
+            .method(Self::days_in_year, js_str!("daysInYear"), 1)
+            .method(Self::months_in_year, js_str!("monthsInYear"), 1)
+            .method(Self::in_leap_year, js_str!("inLeapYear"), 1)
+            .method(Self::fields, js_str!("fields"), 1)
+            .method(Self::merge_fields, js_str!("mergeFields"), 2)
+            .method(Self::get_id, js_str!("toString"), 0)
+            .method(Self::get_id, js_str!("toJSON"), 0)
             .build();
     }
 
@@ -244,7 +245,7 @@ impl Calendar {
         };
 
         // 8. Let overflow be ? ToTemporalOverflow(options).
-        let overflow = get_option(&options, utf16!("overflow"), context)?
+        let overflow = get_option(&options, js_str!("overflow"), context)?
             .unwrap_or(ArithmeticOverflow::Constrain);
 
         // NOTE: implement the below on the calenar itself
@@ -327,7 +328,7 @@ impl Calendar {
         };
 
         // 7. Let overflow be ? ToTemporalOverflow(options).
-        let overflow = get_option::<ArithmeticOverflow>(&options, utf16!("overflow"), context)?
+        let overflow = get_option::<ArithmeticOverflow>(&options, js_str!("overflow"), context)?
             .unwrap_or(ArithmeticOverflow::Constrain);
 
         let result = calendar
@@ -403,7 +404,7 @@ impl Calendar {
         };
 
         // 8. Let overflow be ? ToTemporalOverflow(options).
-        let overflow = get_option(&options, utf16!("overflow"), context)?
+        let overflow = get_option(&options, js_str!("overflow"), context)?
             .unwrap_or(ArithmeticOverflow::Constrain);
 
         let result = calendar
@@ -439,7 +440,7 @@ impl Calendar {
         let options_obj = get_options_object(options)?;
 
         // 7. Let overflow be ? ToTemporalOverflow(options).
-        let overflow = get_option(&options_obj, utf16!("overflow"), context)?
+        let overflow = get_option(&options_obj, js_str!("overflow"), context)?
             .unwrap_or(ArithmeticOverflow::Constrain);
 
         // 8. Let balanceResult be ? BalanceTimeDuration(duration.[[Days]], duration.[[Hours]], duration.[[Minutes]],
@@ -476,7 +477,7 @@ impl Calendar {
         // 8. If largestUnit is "auto", set largestUnit to "day".
         let largest_unit = super::options::get_temporal_unit(
             &options,
-            utf16!("largestUnit"),
+            js_str!("largestUnit"),
             TemporalUnitGroup::Date,
             None,
             context,
@@ -1033,7 +1034,7 @@ pub(crate) fn get_temporal_calendar_slot_value_with_default(
     }
 
     // 2. Let calendarLike be ? Get(item, "calendar").
-    let calendar_like = item.get(utf16!("calendar"), context)?;
+    let calendar_like = item.get(js_str!("calendar"), context)?;
 
     // 3. Return ? ToTemporalCalendarSlotValue(calendarLike, "iso8601").
     to_temporal_calendar_slot_value(&calendar_like, context)

@@ -14,15 +14,14 @@ use crate::{
     builtins::{iterable::create_iter_result_object, regexp, BuiltInBuilder, IntrinsicObject},
     context::intrinsics::Intrinsics,
     error::JsNativeError,
-    js_string,
     object::JsObject,
     property::Attribute,
     realm::Realm,
-    string::utf16,
     symbol::JsSymbol,
     Context, JsData, JsResult, JsString, JsValue,
 };
 use boa_gc::{Finalize, Trace};
+use boa_macros::js_str;
 use boa_profiler::Profiler;
 use regexp::{advance_string_index, RegExp};
 
@@ -53,10 +52,10 @@ impl IntrinsicObject for RegExpStringIterator {
                     .iterator_prototypes()
                     .iterator(),
             )
-            .static_method(Self::next, js_string!("next"), 0)
+            .static_method(Self::next, js_str!("next"), 0)
             .static_property(
                 JsSymbol::to_string_tag(),
-                js_string!("RegExp String Iterator"),
+                js_str!("RegExp String Iterator"),
                 Attribute::CONFIGURABLE,
             )
             .build();
@@ -160,7 +159,7 @@ impl RegExpStringIterator {
                 // 1. Let thisIndex be ℝ(? ToLength(? Get(R, "lastIndex"))).
                 let this_index = iterator
                     .matcher
-                    .get(utf16!("lastIndex"), context)?
+                    .get(js_str!("lastIndex"), context)?
                     .to_length(context)?;
 
                 // 2. Let nextIndex be ! AdvanceStringIndex(S, thisIndex, fullUnicode).
@@ -170,7 +169,7 @@ impl RegExpStringIterator {
                 // 3. Perform ? Set(R, "lastIndex", 𝔽(nextIndex), true).
                 iterator
                     .matcher
-                    .set(utf16!("lastIndex"), next_index, true, context)?;
+                    .set(js_str!("lastIndex"), next_index, true, context)?;
             }
 
             // vi. Perform ? Yield(match).

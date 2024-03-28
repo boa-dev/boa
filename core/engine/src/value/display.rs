@@ -1,16 +1,14 @@
-use std::borrow::Cow;
-
+use super::{fmt, Display, HashSet, JsValue};
 use crate::{
     builtins::{
         error::ErrorObject, map::ordered_map::OrderedMap, promise::PromiseState,
         set::ordered_set::OrderedSet, Array, Promise,
     },
+    js_str,
     property::PropertyDescriptor,
-    string::utf16,
     JsError, JsString,
 };
-
-use super::{fmt, Display, HashSet, JsValue};
+use std::borrow::Cow;
 
 /// This object is used for displaying a `Value`.
 #[derive(Debug, Clone, Copy)]
@@ -120,7 +118,7 @@ pub(crate) fn log_string_from(x: &JsValue, print_internals: bool, print_children
             } else if v_bor.is::<Array>() {
                 let len = v_bor
                     .properties()
-                    .get(&utf16!("length").into())
+                    .get(&js_str!("length").into())
                     .expect("array object must have 'length' property")
                     // FIXME: handle accessor descriptors
                     .expect_value()
@@ -196,7 +194,7 @@ pub(crate) fn log_string_from(x: &JsValue, print_internals: bool, print_children
             } else if v_bor.is::<ErrorObject>() {
                 drop(v_bor);
                 let name: Cow<'static, str> = v
-                    .get_property(&utf16!("name").into())
+                    .get_property(&js_str!("name").into())
                     .as_ref()
                     .and_then(PropertyDescriptor::value)
                     .map_or_else(
@@ -211,7 +209,7 @@ pub(crate) fn log_string_from(x: &JsValue, print_internals: bool, print_children
                         },
                     );
                 let message = v
-                    .get_property(&utf16!("message").into())
+                    .get_property(&js_str!("message").into())
                     .as_ref()
                     .and_then(PropertyDescriptor::value)
                     .map(|v| {

@@ -1,3 +1,4 @@
+use boa_macros::js_str;
 use indoc::indoc;
 
 use crate::{js_string, run_test_actions, JsNativeErrorKind, JsValue, TestAction};
@@ -5,7 +6,7 @@ use crate::{js_string, run_test_actions, JsNativeErrorKind, JsValue, TestAction}
 #[test]
 fn json_sanity() {
     run_test_actions([
-        TestAction::assert_eq(r#"JSON.parse('{"aaa":"bbb"}').aaa"#, js_string!("bbb")),
+        TestAction::assert_eq(r#"JSON.parse('{"aaa":"bbb"}').aaa"#, js_str!("bbb")),
         TestAction::assert_eq(
             r#"JSON.stringify({aaa: 'bbb'})"#,
             js_string!(r#"{"aaa":"bbb"}"#),
@@ -89,7 +90,7 @@ fn json_stringify_object_array() {
 fn json_stringify_array_converts_undefined_to_null() {
     run_test_actions([TestAction::assert_eq(
         "JSON.stringify([undefined])",
-        js_string!("[null]"),
+        js_str!("[null]"),
     )]);
 }
 
@@ -97,7 +98,7 @@ fn json_stringify_array_converts_undefined_to_null() {
 fn json_stringify_array_converts_function_to_null() {
     run_test_actions([TestAction::assert_eq(
         "JSON.stringify([() => {}])",
-        js_string!("[null]"),
+        js_str!("[null]"),
     )]);
 }
 
@@ -105,7 +106,7 @@ fn json_stringify_array_converts_function_to_null() {
 fn json_stringify_array_converts_symbol_to_null() {
     run_test_actions([TestAction::assert_eq(
         "JSON.stringify([Symbol()])",
-        js_string!("[null]"),
+        js_str!("[null]"),
     )]);
 }
 #[test]
@@ -150,10 +151,7 @@ fn json_stringify_no_args() {
 
 #[test]
 fn json_stringify_fractional_numbers() {
-    run_test_actions([TestAction::assert_eq(
-        "JSON.stringify(1.2)",
-        js_string!("1.2"),
-    )]);
+    run_test_actions([TestAction::assert_eq("JSON.stringify(1.2)", js_str!("1.2"))]);
 }
 
 #[test]
@@ -278,8 +276,8 @@ fn json_parse_object_with_reviver() {
 
                 var jsonObj = JSON.parse(jsonString, dataReviver);
             "#}),
-        TestAction::assert_eq("jsonObj.firstname", js_string!("boa")),
-        TestAction::assert_eq("jsonObj.lastname", js_string!("interpreter")),
+        TestAction::assert_eq("jsonObj.firstname", js_str!("boa")),
+        TestAction::assert_eq("jsonObj.lastname", js_str!("interpreter")),
     ]);
 }
 

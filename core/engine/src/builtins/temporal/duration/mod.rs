@@ -10,10 +10,11 @@ use crate::{
     object::internal_methods::get_prototype_from_constructor,
     property::Attribute,
     realm::Realm,
-    string::{common::StaticJsStrings, utf16},
+    string::common::StaticJsStrings,
     Context, JsArgs, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 use boa_gc::{Finalize, Trace};
+use boa_macros::js_str;
 use boa_profiler::Profiler;
 use temporal_rs::{
     components::Duration as InnerDuration,
@@ -108,86 +109,86 @@ impl IntrinsicObject for Duration {
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("years"),
+                js_str!("years"),
                 Some(get_years),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("months"),
+                js_str!("months"),
                 Some(get_months),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("weeks"),
+                js_str!("weeks"),
                 Some(get_weeks),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("days"),
+                js_str!("days"),
                 Some(get_days),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("hours"),
+                js_str!("hours"),
                 Some(get_hours),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("minutes"),
+                js_str!("minutes"),
                 Some(get_minutes),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("seconds"),
+                js_str!("seconds"),
                 Some(get_seconds),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("milliseconds"),
+                js_str!("milliseconds"),
                 Some(get_milliseconds),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("microseconds"),
+                js_str!("microseconds"),
                 Some(get_microseconds),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("nanoseconds"),
+                js_str!("nanoseconds"),
                 Some(get_nanoseconds),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("sign"),
+                js_str!("sign"),
                 Some(get_sign),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("blank"),
+                js_str!("blank"),
                 Some(is_blank),
                 None,
                 Attribute::CONFIGURABLE,
             )
-            .method(Self::with, js_string!("with"), 1)
-            .method(Self::negated, js_string!("negated"), 0)
-            .method(Self::abs, js_string!("abs"), 0)
-            .method(Self::add, js_string!("add"), 2)
-            .method(Self::subtract, js_string!("subtract"), 2)
-            .method(Self::round, js_string!("round"), 1)
-            .method(Self::total, js_string!("total"), 1)
-            .method(Self::to_string, js_string!("toString"), 1)
-            .method(Self::to_json, js_string!("toJSON"), 0)
+            .method(Self::with, js_str!("with"), 1)
+            .method(Self::negated, js_str!("negated"), 0)
+            .method(Self::abs, js_str!("abs"), 0)
+            .method(Self::add, js_str!("add"), 2)
+            .method(Self::subtract, js_str!("subtract"), 2)
+            .method(Self::round, js_str!("round"), 1)
+            .method(Self::total, js_str!("total"), 1)
+            .method(Self::to_string, js_str!("toString"), 1)
+            .method(Self::to_json, js_str!("toJSON"), 0)
             .build();
     }
 
@@ -623,7 +624,7 @@ impl Duration {
                 let new_round_to = JsObject::with_null_proto();
                 // c. Perform ! CreateDataPropertyOrThrow(roundTo, "smallestUnit", paramString).
                 new_round_to.create_data_property_or_throw(
-                    utf16!("smallestUnit"),
+                    js_str!("smallestUnit"),
                     param_string,
                     context,
                 )?;
@@ -644,7 +645,7 @@ impl Duration {
         // 9. Let largestUnit be ? GetTemporalUnit(roundTo, "largestUnit", datetime, undefined, « "auto" »).
         let largest_unit = get_temporal_unit(
             &round_to,
-            utf16!("largestUnit"),
+            js_str!("largestUnit"),
             TemporalUnitGroup::DateTime,
             Some([TemporalUnit::Auto].into()),
             context,
@@ -661,12 +662,12 @@ impl Duration {
 
         // 14. Let roundingMode be ? ToTemporalRoundingMode(roundTo, "halfExpand").
         let rounding_mode =
-            get_option::<TemporalRoundingMode>(&round_to, utf16!("roundingMode"), context)?;
+            get_option::<TemporalRoundingMode>(&round_to, js_str!("roundingMode"), context)?;
 
         // 15. Let smallestUnit be ? GetTemporalUnit(roundTo, "smallestUnit", datetime, undefined).
         let smallest_unit = get_temporal_unit(
             &round_to,
-            utf16!("smallestUnit"),
+            js_str!("smallestUnit"),
             TemporalUnitGroup::DateTime,
             None,
             context,
@@ -725,7 +726,7 @@ impl Duration {
                 let total_of = JsObject::with_null_proto();
                 // c. Perform ! CreateDataPropertyOrThrow(totalOf, "unit", paramString).
                 total_of.create_data_property_or_throw(
-                    utf16!("unit"),
+                    js_str!("unit"),
                     param_string.clone(),
                     context,
                 )?;
@@ -748,7 +749,7 @@ impl Duration {
         // 10. Let unit be ? GetTemporalUnit(totalOf, "unit", datetime, required).
         let _unit = get_temporal_unit(
             &total_of,
-            utf16!("unit"),
+            js_str!("unit"),
             TemporalUnitGroup::DateTime,
             None,
             context,
@@ -905,70 +906,70 @@ pub(crate) fn to_temporal_partial_duration(
 
     // 3. NOTE: The following steps read properties and perform independent validation in alphabetical order.
     // 4. Let days be ? Get(temporalDurationLike, "days").
-    let days = unknown_object.get(utf16!("days"), context)?;
+    let days = unknown_object.get(js_str!("days"), context)?;
     if !days.is_undefined() {
         // 5. If days is not undefined, set result.[[Days]] to ? ToIntegerIfIntegral(days).
         result.set_days(f64::from(to_integer_if_integral(&days, context)?));
     }
 
     // 6. Let hours be ? Get(temporalDurationLike, "hours").
-    let hours = unknown_object.get(utf16!("hours"), context)?;
+    let hours = unknown_object.get(js_str!("hours"), context)?;
     // 7. If hours is not undefined, set result.[[Hours]] to ? ToIntegerIfIntegral(hours).
     if !hours.is_undefined() {
         result.set_hours(f64::from(to_integer_if_integral(&hours, context)?));
     }
 
     // 8. Let microseconds be ? Get(temporalDurationLike, "microseconds").
-    let microseconds = unknown_object.get(utf16!("microseconds"), context)?;
+    let microseconds = unknown_object.get(js_str!("microseconds"), context)?;
     // 9. If microseconds is not undefined, set result.[[Microseconds]] to ? ToIntegerIfIntegral(microseconds).
     if !microseconds.is_undefined() {
         result.set_microseconds(f64::from(to_integer_if_integral(&microseconds, context)?));
     }
 
     // 10. Let milliseconds be ? Get(temporalDurationLike, "milliseconds").
-    let milliseconds = unknown_object.get(utf16!("milliseconds"), context)?;
+    let milliseconds = unknown_object.get(js_str!("milliseconds"), context)?;
     // 11. If milliseconds is not undefined, set result.[[Milliseconds]] to ? ToIntegerIfIntegral(milliseconds).
     if !milliseconds.is_undefined() {
         result.set_milliseconds(f64::from(to_integer_if_integral(&milliseconds, context)?));
     }
 
     // 12. Let minutes be ? Get(temporalDurationLike, "minutes").
-    let minutes = unknown_object.get(utf16!("minutes"), context)?;
+    let minutes = unknown_object.get(js_str!("minutes"), context)?;
     // 13. If minutes is not undefined, set result.[[Minutes]] to ? ToIntegerIfIntegral(minutes).
     if !minutes.is_undefined() {
         result.set_minutes(f64::from(to_integer_if_integral(&minutes, context)?));
     }
 
     // 14. Let months be ? Get(temporalDurationLike, "months").
-    let months = unknown_object.get(utf16!("months"), context)?;
+    let months = unknown_object.get(js_str!("months"), context)?;
     // 15. If months is not undefined, set result.[[Months]] to ? ToIntegerIfIntegral(months).
     if !months.is_undefined() {
         result.set_months(f64::from(to_integer_if_integral(&months, context)?));
     }
 
     // 16. Let nanoseconds be ? Get(temporalDurationLike, "nanoseconds").
-    let nanoseconds = unknown_object.get(utf16!("nanoseconds"), context)?;
+    let nanoseconds = unknown_object.get(js_str!("nanoseconds"), context)?;
     // 17. If nanoseconds is not undefined, set result.[[Nanoseconds]] to ? ToIntegerIfIntegral(nanoseconds).
     if !nanoseconds.is_undefined() {
         result.set_nanoseconds(f64::from(to_integer_if_integral(&nanoseconds, context)?));
     }
 
     // 18. Let seconds be ? Get(temporalDurationLike, "seconds").
-    let seconds = unknown_object.get(utf16!("seconds"), context)?;
+    let seconds = unknown_object.get(js_str!("seconds"), context)?;
     // 19. If seconds is not undefined, set result.[[Seconds]] to ? ToIntegerIfIntegral(seconds).
     if !seconds.is_undefined() {
         result.set_seconds(f64::from(to_integer_if_integral(&seconds, context)?));
     }
 
     // 20. Let weeks be ? Get(temporalDurationLike, "weeks").
-    let weeks = unknown_object.get(utf16!("weeks"), context)?;
+    let weeks = unknown_object.get(js_str!("weeks"), context)?;
     // 21. If weeks is not undefined, set result.[[Weeks]] to ? ToIntegerIfIntegral(weeks).
     if !weeks.is_undefined() {
         result.set_weeks(f64::from(to_integer_if_integral(&weeks, context)?));
     }
 
     // 22. Let years be ? Get(temporalDurationLike, "years").
-    let years = unknown_object.get(utf16!("years"), context)?;
+    let years = unknown_object.get(js_str!("years"), context)?;
     // 23. If years is not undefined, set result.[[Years]] to ? ToIntegerIfIntegral(years).
     if !years.is_undefined() {
         result.set_years(f64::from(to_integer_if_integral(&years, context)?));

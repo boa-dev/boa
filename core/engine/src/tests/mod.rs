@@ -1,3 +1,4 @@
+use boa_macros::js_str;
 use indoc::indoc;
 
 mod control_flow;
@@ -8,7 +9,7 @@ mod operators;
 mod promise;
 mod spread;
 
-use crate::{js_string, run_test_actions, JsNativeErrorKind, JsValue, TestAction};
+use crate::{run_test_actions, JsNativeErrorKind, JsValue, TestAction};
 
 #[test]
 fn length_correct_value_on_string_literal() {
@@ -355,7 +356,7 @@ fn multiline_str_concat() {
                     'world';
             a
         "#},
-        js_string!("hello world"),
+        js_str!("hello world"),
     )]);
 }
 
@@ -479,7 +480,7 @@ fn template_literal() {
             let a = 10;
             `result: ${a} and ${a+10}`;
         "#},
-        js_string!("result: 10 and 20"),
+        js_str!("result: 10 and 20"),
     )]);
 }
 

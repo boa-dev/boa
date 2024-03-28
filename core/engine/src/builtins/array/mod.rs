@@ -10,7 +10,7 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array
 
 use boa_gc::{Finalize, Trace};
-use boa_macros::utf16;
+use boa_macros::js_str;
 use boa_profiler::Profiler;
 use thin_vec::ThinVec;
 
@@ -110,9 +110,9 @@ impl IntrinsicObject for Array {
 
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
             // Static Methods
-            .static_method(Self::from, js_string!("from"), 1)
-            .static_method(Self::is_array, js_string!("isArray"), 1)
-            .static_method(Self::of, js_string!("of"), 0)
+            .static_method(Self::from, js_str!("from"), 1)
+            .static_method(Self::is_array, js_str!("isArray"), 1)
+            .static_method(Self::of, js_str!("of"), 0)
             .static_accessor(
                 JsSymbol::species(),
                 Some(get_species),
@@ -124,49 +124,49 @@ impl IntrinsicObject for Array {
                 0,
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
             )
-            .method(Self::at, js_string!("at"), 1)
-            .method(Self::concat, js_string!("concat"), 1)
-            .method(Self::copy_within, js_string!("copyWithin"), 2)
-            .method(Self::entries, js_string!("entries"), 0)
-            .method(Self::every, js_string!("every"), 1)
-            .method(Self::fill, js_string!("fill"), 1)
-            .method(Self::filter, js_string!("filter"), 1)
-            .method(Self::find, js_string!("find"), 1)
-            .method(Self::find_index, js_string!("findIndex"), 1)
-            .method(Self::find_last, js_string!("findLast"), 1)
-            .method(Self::find_last_index, js_string!("findLastIndex"), 1)
-            .method(Self::flat, js_string!("flat"), 0)
-            .method(Self::flat_map, js_string!("flatMap"), 1)
-            .method(Self::for_each, js_string!("forEach"), 1)
-            .method(Self::includes_value, js_string!("includes"), 1)
-            .method(Self::index_of, js_string!("indexOf"), 1)
-            .method(Self::join, js_string!("join"), 1)
-            .method(Self::keys, js_string!("keys"), 0)
-            .method(Self::last_index_of, js_string!("lastIndexOf"), 1)
-            .method(Self::map, js_string!("map"), 1)
-            .method(Self::pop, js_string!("pop"), 0)
-            .method(Self::push, js_string!("push"), 1)
-            .method(Self::reduce, js_string!("reduce"), 1)
-            .method(Self::reduce_right, js_string!("reduceRight"), 1)
-            .method(Self::reverse, js_string!("reverse"), 0)
-            .method(Self::shift, js_string!("shift"), 0)
-            .method(Self::slice, js_string!("slice"), 2)
-            .method(Self::some, js_string!("some"), 1)
-            .method(Self::sort, js_string!("sort"), 1)
-            .method(Self::splice, js_string!("splice"), 2)
-            .method(Self::to_locale_string, js_string!("toLocaleString"), 0)
-            .method(Self::to_reversed, js_string!("toReversed"), 0)
-            .method(Self::to_sorted, js_string!("toSorted"), 1)
-            .method(Self::to_spliced, js_string!("toSpliced"), 2)
-            .method(Self::unshift, js_string!("unshift"), 1)
-            .method(Self::with, js_string!("with"), 2)
+            .method(Self::at, js_str!("at"), 1)
+            .method(Self::concat, js_str!("concat"), 1)
+            .method(Self::copy_within, js_str!("copyWithin"), 2)
+            .method(Self::entries, js_str!("entries"), 0)
+            .method(Self::every, js_str!("every"), 1)
+            .method(Self::fill, js_str!("fill"), 1)
+            .method(Self::filter, js_str!("filter"), 1)
+            .method(Self::find, js_str!("find"), 1)
+            .method(Self::find_index, js_str!("findIndex"), 1)
+            .method(Self::find_last, js_str!("findLast"), 1)
+            .method(Self::find_last_index, js_str!("findLastIndex"), 1)
+            .method(Self::flat, js_str!("flat"), 0)
+            .method(Self::flat_map, js_str!("flatMap"), 1)
+            .method(Self::for_each, js_str!("forEach"), 1)
+            .method(Self::includes_value, js_str!("includes"), 1)
+            .method(Self::index_of, js_str!("indexOf"), 1)
+            .method(Self::join, js_str!("join"), 1)
+            .method(Self::keys, js_str!("keys"), 0)
+            .method(Self::last_index_of, js_str!("lastIndexOf"), 1)
+            .method(Self::map, js_str!("map"), 1)
+            .method(Self::pop, js_str!("pop"), 0)
+            .method(Self::push, js_str!("push"), 1)
+            .method(Self::reduce, js_str!("reduce"), 1)
+            .method(Self::reduce_right, js_str!("reduceRight"), 1)
+            .method(Self::reverse, js_str!("reverse"), 0)
+            .method(Self::shift, js_str!("shift"), 0)
+            .method(Self::slice, js_str!("slice"), 2)
+            .method(Self::some, js_str!("some"), 1)
+            .method(Self::sort, js_str!("sort"), 1)
+            .method(Self::splice, js_str!("splice"), 2)
+            .method(Self::to_locale_string, js_str!("toLocaleString"), 0)
+            .method(Self::to_reversed, js_str!("toReversed"), 0)
+            .method(Self::to_sorted, js_str!("toSorted"), 1)
+            .method(Self::to_spliced, js_str!("toSpliced"), 2)
+            .method(Self::unshift, js_str!("unshift"), 1)
+            .method(Self::with, js_str!("with"), 2)
             .property(
-                utf16!("toString"),
+                js_str!("toString"),
                 to_string_function,
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .property(
-                utf16!("values"),
+                js_str!("values"),
                 values_function.clone(),
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
@@ -1012,7 +1012,7 @@ impl Array {
         for k in 0..len {
             // a. If k > 0, set R to the string-concatenation of R and sep.
             if k > 0 {
-                r.extend_from_slice(&separator);
+                r.push(separator.clone());
             }
             // b. Let element be ? Get(O, ! ToString(𝔽(k))).
             let element = o.get(k, context)?;
@@ -1023,7 +1023,7 @@ impl Array {
                 element.to_string(context)?
             };
             // d. Set R to the string-concatenation of R and next.
-            r.extend_from_slice(&next);
+            r.push(next.clone());
             // e. Set k to k + 1.
         }
         // 8. Return R.
@@ -1051,7 +1051,7 @@ impl Array {
         // 1. Let array be ? ToObject(this value).
         let array = this.to_object(context)?;
         // 2. Let func be ? Get(array, "join").
-        let func = array.get(utf16!("join"), context)?;
+        let func = array.get(js_str!("join"), context)?;
         // 3. If IsCallable(func) is false, set func to the intrinsic function %Object.prototype.toString%.
         // 4. Return ? Call(func, array).
         if let Some(func) = func.as_callable() {
@@ -2203,12 +2203,12 @@ impl Array {
             #[cfg(feature = "intl")]
             {
                 // TODO: this should eventually return a locale-sensitive separator.
-                utf16!(", ")
+                js_str!(", ")
             }
 
             #[cfg(not(feature = "intl"))]
             {
-                utf16!(", ")
+                js_str!(", ")
             }
         };
 
@@ -2221,7 +2221,7 @@ impl Array {
             // a. If k > 0, then
             if k > 0 {
                 // i. Set R to the string-concatenation of R and separator.
-                r.extend_from_slice(separator);
+                r.extend(separator.iter());
             }
 
             // b. Let nextElement be ? Get(array, ! ToString(k)).
@@ -2231,16 +2231,16 @@ impl Array {
             if !next.is_null_or_undefined() {
                 // i. Let S be ? ToString(? Invoke(nextElement, "toLocaleString", « locales, options »)).
                 let s = next
-                    .invoke(utf16!("toLocaleString"), args, context)?
+                    .invoke(js_str!("toLocaleString"), args, context)?
                     .to_string(context)?;
 
                 // ii. Set R to the string-concatenation of R and S.
-                r.extend_from_slice(&s);
+                r.extend(s.iter());
             }
             //     d. Increase k by 1.
         }
         // 7. Return R.
-        Ok(js_string!(r).into())
+        Ok(js_string!(&r[..]).into())
     }
 
     /// Gets the delete count of a splice operation.
@@ -3304,37 +3304,37 @@ impl Array {
         {
             let mut obj = unscopable_list.borrow_mut();
             // 2. Perform ! CreateDataPropertyOrThrow(unscopableList, "at", true).
-            obj.insert(utf16!("at"), true_prop.clone());
+            obj.insert(js_str!("at"), true_prop.clone());
             // 3. Perform ! CreateDataPropertyOrThrow(unscopableList, "copyWithin", true).
-            obj.insert(utf16!("copyWithin"), true_prop.clone());
+            obj.insert(js_str!("copyWithin"), true_prop.clone());
             // 4. Perform ! CreateDataPropertyOrThrow(unscopableList, "entries", true).
-            obj.insert(utf16!("entries"), true_prop.clone());
+            obj.insert(js_str!("entries"), true_prop.clone());
             // 5. Perform ! CreateDataPropertyOrThrow(unscopableList, "fill", true).
-            obj.insert(utf16!("fill"), true_prop.clone());
+            obj.insert(js_str!("fill"), true_prop.clone());
             // 6. Perform ! CreateDataPropertyOrThrow(unscopableList, "find", true).
-            obj.insert(utf16!("find"), true_prop.clone());
+            obj.insert(js_str!("find"), true_prop.clone());
             // 7. Perform ! CreateDataPropertyOrThrow(unscopableList, "findIndex", true).
-            obj.insert(utf16!("findIndex"), true_prop.clone());
+            obj.insert(js_str!("findIndex"), true_prop.clone());
             // 8. Perform ! CreateDataPropertyOrThrow(unscopableList, "findLast", true).
-            obj.insert(utf16!("findLast"), true_prop.clone());
+            obj.insert(js_str!("findLast"), true_prop.clone());
             // 9. Perform ! CreateDataPropertyOrThrow(unscopableList, "findLastIndex", true).
-            obj.insert(utf16!("findLastIndex"), true_prop.clone());
+            obj.insert(js_str!("findLastIndex"), true_prop.clone());
             // 10. Perform ! CreateDataPropertyOrThrow(unscopableList, "flat", true).
-            obj.insert(utf16!("flat"), true_prop.clone());
+            obj.insert(js_str!("flat"), true_prop.clone());
             // 11. Perform ! CreateDataPropertyOrThrow(unscopableList, "flatMap", true).
-            obj.insert(utf16!("flatMap"), true_prop.clone());
+            obj.insert(js_str!("flatMap"), true_prop.clone());
             // 12. Perform ! CreateDataPropertyOrThrow(unscopableList, "includes", true).
-            obj.insert(utf16!("includes"), true_prop.clone());
+            obj.insert(js_str!("includes"), true_prop.clone());
             // 13. Perform ! CreateDataPropertyOrThrow(unscopableList, "keys", true).
-            obj.insert(utf16!("keys"), true_prop.clone());
+            obj.insert(js_str!("keys"), true_prop.clone());
             // 14. Perform ! CreateDataPropertyOrThrow(unscopableList, "toReversed", true).
-            obj.insert(utf16!("toReversed"), true_prop.clone());
+            obj.insert(js_str!("toReversed"), true_prop.clone());
             // 15. Perform ! CreateDataPropertyOrThrow(unscopableList, "toSorted", true).
-            obj.insert(utf16!("toSorted"), true_prop.clone());
+            obj.insert(js_str!("toSorted"), true_prop.clone());
             // 16. Perform ! CreateDataPropertyOrThrow(unscopableList, "toSpliced", true).
-            obj.insert(utf16!("toSpliced"), true_prop.clone());
+            obj.insert(js_str!("toSpliced"), true_prop.clone());
             // 17. Perform ! CreateDataPropertyOrThrow(unscopableList, "values", true).
-            obj.insert(utf16!("values"), true_prop);
+            obj.insert(js_str!("values"), true_prop);
         }
 
         // 13. Return unscopableList.

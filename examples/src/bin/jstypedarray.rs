@@ -1,13 +1,13 @@
 // This example shows how to manipulate a Javascript array using Rust code.
 
 use boa_engine::{
-    js_string,
+    js_str,
     native_function::NativeFunction,
     object::{
         builtins::{JsArray, JsArrayBuffer, JsUint8Array},
         FunctionObjectBuilder,
     },
-    property::{Attribute, PropertyKey},
+    property::Attribute,
     Context, JsNativeError, JsResult, JsValue,
 };
 use boa_gc::{Gc, GcRefCell};
@@ -168,7 +168,7 @@ fn main() -> JsResult<()> {
             .buffer(context)?
             .as_object()
             .unwrap()
-            .get(PropertyKey::String(js_string!("byteLength")), context)
+            .get(js_str!("byteLength"), context)
             .unwrap(),
         JsValue::new(8)
     );
@@ -195,23 +195,23 @@ fn main() -> JsResult<()> {
 
     // toLocaleString
     // let array = JsUint32Array::from_iter(vec![500, 8123, 12], context)?;
-    // let locales: Option<JsValue> = Some(js_string!("de-DE").into());
+    // let locales: Option<JsValue> = Some(js_str!("de-DE").into());
     // let options = Some(context.eval(Source::from_bytes(
     //     r##"let options = { style: "currency", currency: "EUR" }; options;"##,
     // ))?);
     // assert_eq!(
     //     array.to_locale_string(locales, options, context)?,
-    //     js_string!("500,00 €,8.123,00 €,12,00 €").into()
+    //     js_str!("500,00 €,8.123,00 €,12,00 €").into()
     // );
 
     // toStringTag
     let array = JsUint8Array::from_iter(vec![1u8, 2u8, 3u8, 4u8, 5u8, 6u8, 7u8, 8u8], context)?;
     let tag = array.to_string_tag(context)?.to_string(context)?;
-    assert_eq!(tag, js_string!("Uint8Array"));
+    assert_eq!(tag, js_str!("Uint8Array"));
 
     context
         .register_global_property(
-            js_string!("myUint8Array"),
+            js_str!("myUint8Array"),
             array,
             Attribute::WRITABLE | Attribute::ENUMERABLE | Attribute::CONFIGURABLE,
         )

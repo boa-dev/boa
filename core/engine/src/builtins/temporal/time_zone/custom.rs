@@ -1,7 +1,8 @@
 //! A custom `TimeZone` object.
-use crate::{property::PropertyKey, string::utf16, Context, JsObject, JsValue};
+use crate::{property::PropertyKey, Context, JsObject, JsValue};
 
 use boa_gc::{Finalize, Trace};
+use boa_macros::js_str;
 use num_bigint::BigInt;
 use temporal_rs::{
     components::{tz::TzProtocol, Instant},
@@ -18,7 +19,7 @@ impl TzProtocol for JsCustomTimeZone {
     fn get_offset_nanos_for(&self, context: &mut Context) -> TemporalResult<BigInt> {
         let method = self
             .tz
-            .get(utf16!("getOffsetNanosFor"), context)
+            .get(js_str!("getOffsetNanosFor"), context)
             .expect("Method must exist for the custom calendar to be valid.");
 
         let result = method
@@ -45,7 +46,7 @@ impl TzProtocol for JsCustomTimeZone {
         let ident = self
             .tz
             .__get__(
-                &PropertyKey::from(utf16!("id")),
+                &PropertyKey::from(js_str!("id")),
                 JsValue::undefined(),
                 &mut context.into(),
             )
