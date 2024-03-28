@@ -1,0 +1,22 @@
+[package]
+name = "boa_interop"
+description = "Interop utilities for integrating boa with a Rust host."
+keywords = ["javascript", "js", "interop"]
+categories = ["api-bindings"]
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+boa_engine.workspace = true
+boa_gc.workspace = true
+quote = "1.0.34"
+syn = { version = "2.0.55", features = ["full"] }
+proc-macro2 = "1.0"
+synstructure = "0.13"
+
+[lints]
+workspace = true
