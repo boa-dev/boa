@@ -517,7 +517,6 @@ name = "boa_macros_tests"
 version = "0.18.0"
 dependencies = [
  "boa_engine",
- "boa_macros",
  "trybuild",
 ]
 

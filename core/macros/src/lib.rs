@@ -418,30 +418,19 @@ fn generate_conversion(fields: FieldsNamed) -> Result<proc_macro2::TokenStream, 
             .map_err(|err| vec![err])?;
         }
 
+        final_fields.push(quote! {
+            let #name = match props.get(&::boa_engine::js_string!(#name_str).into()) {
+                Some(pd) => pd.value().ok_or_else(|| ::boa_engine::JsError::from(
+                        ::boa_engine::JsNativeError::typ().with_message(#error_str)
+                    ))?.clone().try_js_into(context)?,
+                None => ::boa_engine::JsValue::undefined().try_js_into(context)?,
+            };
+        });
+
         if let Some(method) = from_js_with {
             let ident = Ident::new(&method.value(), method.span());
             final_fields.push(quote! {
-                let #name = #ident(props.get(&::boa_engine::js_string!(#name_str).into()).ok_or_else(|| {
-                    ::boa_engine::JsError::from(
-                        boa_engine::JsNativeError::typ().with_message(#error_str)
-                    )
-                })?.value().ok_or_else(|| {
-                    ::boa_engine::JsError::from(
-                        boa_engine::JsNativeError::typ().with_message(#error_str)
-                    )
-                })?, context)?;
-            });
-        } else {
-            final_fields.push(quote! {
-                let #name = props.get(&::boa_engine::js_string!(#name_str).into()).ok_or_else(|| {
-                    ::boa_engine::JsError::from(
-                        boa_engine::JsNativeError::typ().with_message(#error_str)
-                    )
-                })?.value().ok_or_else(|| {
-                    ::boa_engine::JsError::from(
-                        boa_engine::JsNativeError::typ().with_message(#error_str)
-                    )
-                })?.clone().try_js_into(context)?;
+                let #name = #ident(&#name, context)?;
             });
         }
     }
