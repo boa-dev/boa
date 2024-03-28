@@ -2,6 +2,8 @@
 
 ![Example](img/profiler.png)
 
+*For profiling on Windows take a look at [Profiling With Windows Performance Analyzer](./profiling_with_wpa.md)*
+
 It's possible to get a full profile of Boa in action.  
 Sometimes this is needed to figure out where it is spending most of it's time.
 
