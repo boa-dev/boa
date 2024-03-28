@@ -88,7 +88,6 @@ pub fn into_js_module() {
             ),
         ),
     ]
-    .into_iter()
     .into_js_module(&mut context);
 
     loader.register(js_string!("test"), module);
