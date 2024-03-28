@@ -1106,6 +1106,12 @@
 <a href="#1104" id="1104">1104</a>
 <a href="#1105" id="1105">1105</a>
 <a href="#1106" id="1106">1106</a>
+<a href="#1107" id="1107">1107</a>
+<a href="#1108" id="1108">1108</a>
+<a href="#1109" id="1109">1109</a>
+<a href="#1110" id="1110">1110</a>
+<a href="#1111" id="1111">1111</a>
+<a href="#1112" id="1112">1112</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Boa's implementation of ECMAScript's global `Function` object and Native Functions.
 //!
 //! Objects wrap `Function`s and expose them via call/construct slots.
@@ -2162,10 +2168,16 @@
         <span class="prelude-val">Some</span>(this)
     };
 
-    <span class="kw">let </span>frame = CallFrame::new(code.clone(), script_or_module, environments, realm)
+    <span class="kw">let </span><span class="kw-2">mut </span>frame = CallFrame::new(code.clone(), script_or_module, environments, realm)
         .with_argument_count(argument_count <span class="kw">as </span>u32)
         .with_env_fp(env_fp)
         .with_flags(CallFrameFlags::CONSTRUCT);
+
+    <span class="comment">// We push the `this` below so we can mark this function as having the this value
+    // cached if it's initialized.
+    </span>frame
+        .flags
+        .set(CallFrameFlags::THIS_VALUE_CACHED, this.is_some());
 
     <span class="kw">let </span>len = context.vm.stack.len();
 

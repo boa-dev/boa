@@ -111,6 +111,11 @@
 <a href="#109" id="109">109</a>
 <a href="#110" id="110">110</a>
 <a href="#111" id="111">111</a>
+<a href="#112" id="112">112</a>
+<a href="#113" id="113">113</a>
+<a href="#114" id="114">114</a>
+<a href="#115" id="115">115</a>
+<a href="#116" id="116">116</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     vm::{opcode::Operation, CompletionType},
     Context, JsNativeError, JsResult,
@@ -167,16 +172,21 @@
             );
             <span class="kw">return </span><span class="prelude-val">Ok</span>(CompletionType::Throw);
         } <span class="kw">else </span>{
-            <span class="kw">let </span>realm = context.vm.frame().realm.clone();
-            <span class="kw">let </span>this = context.vm.environments.get_this_binding();
+            <span class="kw">let </span>frame = context.vm.frame();
+            <span class="kw">if </span>frame.has_this_value_cached() {
+                this
+            } <span class="kw">else </span>{
+                <span class="kw">let </span>realm = frame.realm.clone();
+                <span class="kw">let </span>this = context.vm.environments.get_this_binding();
 
-            <span class="kw">match </span>this {
-                <span class="prelude-val">Err</span>(err) =&gt; {
-                    <span class="kw">let </span>err = err.inject_realm(realm);
-                    context.vm.pending_exception = <span class="prelude-val">Some</span>(err);
-                    <span class="kw">return </span><span class="prelude-val">Ok</span>(CompletionType::Throw);
+                <span class="kw">match </span>this {
+                    <span class="prelude-val">Err</span>(err) =&gt; {
+                        <span class="kw">let </span>err = err.inject_realm(realm);
+                        context.vm.pending_exception = <span class="prelude-val">Some</span>(err);
+                        <span class="kw">return </span><span class="prelude-val">Ok</span>(CompletionType::Throw);
+                    }
+                    <span class="prelude-val">Ok</span>(this) =&gt; this,
                 }
-                <span class="prelude-val">Ok</span>(this) =&gt; this,
             }
         };
 

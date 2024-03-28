@@ -320,11 +320,21 @@
 <a href="#318" id="318">318</a>
 <a href="#319" id="319">319</a>
 <a href="#320" id="320">320</a>
+<a href="#321" id="321">321</a>
+<a href="#322" id="322">322</a>
+<a href="#323" id="323">323</a>
+<a href="#324" id="324">324</a>
+<a href="#325" id="325">325</a>
+<a href="#326" id="326">326</a>
+<a href="#327" id="327">327</a>
+<a href="#328" id="328">328</a>
+<a href="#329" id="329">329</a>
+<a href="#330" id="330">330</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     builtins::function::OrdinaryFunction,
     error::JsNativeError,
     object::internal_methods::InternalMethodContext,
-    vm::{opcode::Operation, CompletionType},
+    vm::{opcode::Operation, CallFrameFlags, CompletionType},
     Context, JsResult, JsValue,
 };
 
@@ -341,7 +351,17 @@
     <span class="kw">const </span>COST: u8 = <span class="number">1</span>;
 
     <span class="kw">fn </span>execute(context: <span class="kw-2">&amp;mut </span>Context) -&gt; JsResult&lt;CompletionType&gt; {
+        <span class="kw">let </span>frame = context.vm.frame_mut();
+        <span class="kw">let </span>this_index = frame.fp();
+        <span class="kw">if </span>frame.has_this_value_cached() {
+            <span class="kw">let </span>this = context.vm.stack[this_index <span class="kw">as </span>usize].clone();
+            context.vm.push(this);
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(CompletionType::Normal);
+        }
+
         <span class="kw">let </span>this = context.vm.environments.get_this_binding()<span class="question-mark">?</span>;
+        context.vm.frame_mut().flags |= CallFrameFlags::THIS_VALUE_CACHED;
+        context.vm.stack[this_index <span class="kw">as </span>usize] = this.clone();
         context.vm.push(this);
         <span class="prelude-val">Ok</span>(CompletionType::Normal)
     }

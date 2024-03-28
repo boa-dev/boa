@@ -371,6 +371,15 @@
 <a href="#369" id="369">369</a>
 <a href="#370" id="370">370</a>
 <a href="#371" id="371">371</a>
+<a href="#372" id="372">372</a>
+<a href="#373" id="373">373</a>
+<a href="#374" id="374">374</a>
+<a href="#375" id="375">375</a>
+<a href="#376" id="376">376</a>
+<a href="#377" id="377">377</a>
+<a href="#378" id="378">378</a>
+<a href="#379" id="379">379</a>
+<a href="#380" id="380">380</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! `CallFrame`
 //!
 //! This module will provides everything needed to implement the `CallFrame`
@@ -404,6 +413,9 @@
 
         <span class="doccomment">/// Does this [`CallFrame`] need to push registers on [`Vm::push_frame()`].
         </span><span class="kw">const </span>REGISTERS_ALREADY_PUSHED = <span class="number">0b0000_0100</span>;
+
+        <span class="doccomment">/// If the `this` value has been cached.
+        </span><span class="kw">const </span>THIS_VALUE_CACHED = <span class="number">0b0000_1000</span>;
     }
 }
 
@@ -695,6 +707,12 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>registers_already_pushed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.flags
             .contains(CallFrameFlags::REGISTERS_ALREADY_PUSHED)
+    }
+    <span class="doccomment">/// Does this [`CallFrame`] have a cached `this` value.
+    ///
+    /// The cached value is placed in the [`CallFrame::THIS_POSITION`] position.
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>has_this_value_cached(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.flags.contains(CallFrameFlags::THIS_VALUE_CACHED)
     }
 }
 
