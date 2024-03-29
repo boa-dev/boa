@@ -129,7 +129,7 @@ impl<T: TryFromJs> TryFromJsArgument for T {
 }
 
 /// An argument that when used in a JS function will empty the list
-/// of JS arguments as JsValues. This can be used for having the
+/// of JS arguments as `JsValue`s. This can be used for having the
 /// rest of the arguments in a function.
 #[derive(Debug, Clone)]
 pub struct JsRest(pub Vec<JsValue>);
@@ -296,12 +296,11 @@ pub fn into_js_module() {
     context.run_jobs();
 
     // Checking if the final promise didn't return an error.
-    if promise_result.state().as_fulfilled().is_none() {
-        panic!(
-            "module didn't execute successfully! Promise: {:?}",
-            promise_result.state()
-        );
-    };
+    assert!(
+        promise_result.state().as_fulfilled().is_some(),
+        "module didn't execute successfully! Promise: {:?}",
+        promise_result.state()
+    );
 
     assert_eq!(*foo_count.borrow(), 2);
     assert_eq!(*bar_count.borrow(), 15);
