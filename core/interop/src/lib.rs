@@ -1,4 +1,5 @@
 //! Interop utilities between Boa and its host.
+
 use std::cell::RefCell;
 
 use boa_engine::module::SyntheticModuleInitializer;
@@ -35,18 +36,27 @@ impl<T: IntoIterator<Item = (JsString, NativeFunction)> + Clone> IntoJsModule fo
 }
 
 /// A trait to convert a type into a JS function.
-pub trait IntoJsFunction {
+/// This trait does not require the implementing type to be `Copy`, which
+/// can lead to undefined behaviour if it contains Garbage Collected objects.
+///
+/// # Safety
+/// For this trait to be implemented safely, the implementing type must not contain any
+/// garbage collected objects (from [`boa_gc`]).
+pub unsafe trait IntoJsFunctionUnsafe {
     /// Converts the type into a JS function.
-    fn into_js_function(self, context: &mut Context) -> NativeFunction;
+    ///
+    /// # Safety
+    /// This function is unsafe to ensure the callee knows the risks of using this trait.
+    /// The implementing type must not contain any garbage collected objects.
+    unsafe fn into_js_function(self, context: &mut Context) -> NativeFunction;
 }
 
-impl<T: FnMut() + 'static> IntoJsFunction for T {
-    fn into_js_function(self, _context: &mut Context) -> NativeFunction {
-        let s = RefCell::new(self);
-
+unsafe impl<T: FnMut() + 'static> IntoJsFunctionUnsafe for T {
+    unsafe fn into_js_function(self, _context: &mut Context) -> NativeFunction {
+        let cell = RefCell::new(self);
         unsafe {
             NativeFunction::from_closure(move |_, _, _| {
-                s.borrow_mut()();
+                cell.borrow_mut()();
                 Ok(JsValue::undefined())
             })
         }
@@ -59,6 +69,7 @@ pub fn into_js_module() {
     use boa_engine::builtins::promise::PromiseState;
     use boa_engine::{js_string, JsValue, Source};
     use std::rc::Rc;
+    use std::sync::atomic::{AtomicU32, Ordering};
 
     let loader = Rc::new(loaders::HashMapModuleLoader::new());
     let mut context = Context::builder()
@@ -66,34 +77,36 @@ pub fn into_js_module() {
         .build()
         .unwrap();
 
-    let foo_count = Rc::new(RefCell::new(0));
-    let bar_count = Rc::new(RefCell::new(0));
-    let module = vec![
-        (
-            js_string!("foo"),
-            IntoJsFunction::into_js_function(
-                {
-                    let foo_count = foo_count.clone();
-                    move || {
-                        *foo_count.borrow_mut() += 1;
-                    }
-                },
-                &mut context,
+    let foo_count = Rc::new(AtomicU32::new(0));
+    let bar_count = Rc::new(AtomicU32::new(0));
+    let module = unsafe {
+        vec![
+            (
+                js_string!("foo"),
+                IntoJsFunctionUnsafe::into_js_function(
+                    {
+                        let counter = foo_count.clone();
+                        move || {
+                            counter.fetch_add(1, Ordering::Relaxed);
+                        }
+                    },
+                    &mut context,
+                ),
             ),
-        ),
-        (
-            js_string!("bar"),
-            IntoJsFunction::into_js_function(
-                {
-                    let bar_count = bar_count.clone();
-                    move || {
-                        *bar_count.borrow_mut() += 1;
-                    }
-                },
-                &mut context,
+            (
+                js_string!("bar"),
+                IntoJsFunctionUnsafe::into_js_function(
+                    {
+                        let counter = bar_count.clone();
+                        move || {
+                            counter.fetch_add(1, Ordering::Relaxed);
+                        }
+                    },
+                    &mut context,
+                ),
             ),
-        ),
-    ]
+        ]
+    }
     .into_js_module(&mut context);
 
     loader.register(js_string!("test"), module);
@@ -119,7 +132,7 @@ pub fn into_js_module() {
         panic!("module didn't execute successfully!")
     };
 
-    assert_eq!(*foo_count.borrow(), 1);
-    assert_eq!(*bar_count.borrow(), 10);
+    assert_eq!(foo_count.load(Ordering::Relaxed), 1);
+    assert_eq!(bar_count.load(Ordering::Relaxed), 10);
     assert_eq!(v, JsValue::undefined());
 }
