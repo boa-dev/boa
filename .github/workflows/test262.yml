@@ -1,10 +1,5 @@
 name: EcmaScript official test suite (test262)
 on:
-  push:
-    branches:
-      - main
-    tags:
-      - v*
   pull_request:
     branches:
       - main
@@ -37,12 +32,6 @@ jobs:
             ~/.cargo/registry
           key: ${{ runner.os }}-cargo-test262-${{ hashFiles('**/Cargo.lock') }}
 
-      - name: Checkout GitHub pages
-        uses: actions/checkout@v4
-        with:
-          ref: gh-pages
-          path: gh-pages
-
       # Run the test suite.
       - name: Run the test262 test suite
         run: |
@@ -53,7 +42,6 @@ jobs:
 
       # Run the results comparison
       - name: Compare results
-        if: github.event_name == 'pull_request'
         id: compare
         shell: bash
         run: |
@@ -64,12 +52,10 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Get the PR number
-        if: github.event_name == 'pull_request'
         id: pr-number
         uses: kkak10/pr-number-action@v1.3
 
       - name: Find Previous Comment
-        if: github.event_name == 'pull_request'
         uses: peter-evans/find-comment@v3
         id: previous-comment
         with:
@@ -77,7 +63,7 @@ jobs:
           body-includes: Test262 conformance changes
 
       - name: Update comment
-        if: github.event_name == 'pull_request' && steps.previous-comment.outputs.comment-id
+        if: steps.previous-comment.outputs.comment-id
         uses: peter-evans/create-or-update-comment@v4
         continue-on-error: true
         with:
@@ -89,7 +75,7 @@ jobs:
           edit-mode: replace
 
       - name: Write a new comment
-        if: github.event_name == 'pull_request' && !steps.previous-comment.outputs.comment-id
+        if: !steps.previous-comment.outputs.comment-id
         uses: peter-evans/create-or-update-comment@v4
         continue-on-error: true
         with:
@@ -99,27 +85,3 @@ jobs:
 
             ${{ steps.compare.outputs.comment }}
 
-      # Commit changes to GitHub pages.
-      - name: Checkout GitHub pages
-        if: github.event_name == 'push'
-        uses: actions/checkout@v4
-        with:
-          ref: gh-pages
-          path: gh-pages
-      - name: Commit files
-        if: github.event_name == 'push'
-        run: |
-          cp -r ./results/test262/* ./gh-pages/test262/
-          cd gh-pages
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add test262
-          git commit -m "Add new test262 results" -a
-          cd ..
-      - name: Upload results
-        if: github.event_name == 'push'
-        uses: ad-m/github-push-action@v0.8.0
-        with:
-          directory: gh-pages
-          branch: gh-pages
-          github_token: ${{ secrets.GITHUB_TOKEN }}
