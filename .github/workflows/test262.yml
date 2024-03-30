@@ -50,6 +50,7 @@ jobs:
         id: compare
         shell: bash
         run: |
+          tree -L 5
           cd boa
           comment="$(./target/release/boa_tester compare ../data/test262/refs/heads/main/latest.json ../results/test262/pull/latest.json -m)"
           echo "comment<<EOF" >> $GITHUB_OUTPUT
