@@ -1,10 +1,5 @@
 name: EcmaScript official test suite (test262)
 on:
-  push:
-    branches:
-      - main
-    tags:
-      - v*
   pull_request:
     branches:
       - main
@@ -37,13 +32,12 @@ jobs:
             ~/.cargo/registry
           key: ${{ runner.os }}-cargo-test262-${{ hashFiles('**/Cargo.lock') }}
 
-      - name: Checkout GitHub pages
+      - name: Checkout the data repo
         uses: actions/checkout@v4
         with:
-          ref: gh-pages
-          path: gh-pages
-
-      # Run the test suite.
+          repository: boa-dev/data
+          path: data
+          # Run the test suite.
       - name: Run the test262 test suite
         run: |
           cd boa
@@ -58,7 +52,7 @@ jobs:
         shell: bash
         run: |
           cd boa
-          comment="$(./target/release/boa_tester compare ../gh-pages/test262/refs/heads/main/latest.json ../results/test262/pull/latest.json -m)"
+          comment="$(./target/release/boa_tester compare ../data/test262/refs/heads/main/latest.json ../results/test262/pull/latest.json -m)"
           echo "comment<<EOF" >> $GITHUB_OUTPUT
           echo "$comment" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
@@ -99,27 +93,3 @@ jobs:
 
             ${{ steps.compare.outputs.comment }}
 
-      # Commit changes to GitHub pages.
-      - name: Checkout GitHub pages
-        if: github.event_name == 'push'
-        uses: actions/checkout@v4
-        with:
-          ref: gh-pages
-          path: gh-pages
-      - name: Commit files
-        if: github.event_name == 'push'
-        run: |
-          cp -r ./results/test262/* ./gh-pages/test262/
-          cd gh-pages
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add test262
-          git commit -m "Add new test262 results" -a
-          cd ..
-      - name: Upload results
-        if: github.event_name == 'push'
-        uses: ad-m/github-push-action@v0.8.0
-        with:
-          directory: gh-pages
-          branch: gh-pages
-          github_token: ${{ secrets.GITHUB_TOKEN }}
