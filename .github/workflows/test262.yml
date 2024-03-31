@@ -47,10 +47,10 @@ jobs:
 
       # Run the results comparison
       - name: Compare results
+        if: github.event_name == 'pull_request'
         id: compare
         shell: bash
         run: |
-          tree -L 5
           cd boa
           comment="$(./target/release/boa_tester compare ../data/test262/refs/heads/main/latest.json ../results/test262/pull/latest.json -m)"
           echo "comment<<EOF" >> $GITHUB_OUTPUT
@@ -58,10 +58,12 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Get the PR number
+        if: github.event_name == 'pull_request'
         id: pr-number
         uses: kkak10/pr-number-action@v1.3
 
       - name: Find Previous Comment
+        if: github.event_name == 'pull_request'
         uses: peter-evans/find-comment@v3
         id: previous-comment
         with:
@@ -69,7 +71,7 @@ jobs:
           body-includes: Test262 conformance changes
 
       - name: Update comment
-        if: steps.previous-comment.outputs.comment-id
+        if: github.event_name == 'pull_request' && steps.previous-comment.outputs.comment-id
         uses: peter-evans/create-or-update-comment@v4
         continue-on-error: true
         with:
@@ -81,7 +83,7 @@ jobs:
           edit-mode: replace
 
       - name: Write a new comment
-        if: ${{ !steps.previous-comment.outputs.comment-id }}
+        if: github.event_name == 'pull_request' && !steps.previous-comment.outputs.comment-id
         uses: peter-evans/create-or-update-comment@v4
         continue-on-error: true
         with:
