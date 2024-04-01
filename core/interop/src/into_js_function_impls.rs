@@ -1,8 +1,10 @@
 //! Implementations of the `IntoJsFunction` trait for various function signatures.
 
-use crate::{IntoJsFunction, TryFromJsArgument};
-use boa_engine::{Context, JsValue, NativeFunction};
 use std::cell::RefCell;
+
+use boa_engine::{Context, JsValue, NativeFunction};
+
+use crate::{IntoJsFunction, IntoJsFunctionUnsafe, TryFromJsArgument};
 
 /// A token to represent the context argument in the function signature.
 /// This should not be used directly and has no external meaning.
@@ -11,14 +13,14 @@ pub struct ContextArgToken();
 
 macro_rules! impl_into_js_function {
     ($($id: ident: $t: ident),*) => {
-        impl<$($t,)* R, T> IntoJsFunction<($($t,)*), R> for T
+        unsafe impl<$($t,)* R, T> IntoJsFunctionUnsafe<($($t,)*), R> for T
         where
             $($t: TryFromJsArgument + 'static,)*
             R: Into<JsValue>,
             T: FnMut($($t,)*) -> R + 'static,
         {
             #[allow(unused_variables)]
-            fn into_js_function(self, _context: &mut Context) -> NativeFunction {
+            unsafe fn into_js_function_unsafe(self, _context: &mut Context) -> NativeFunction {
                 let s = RefCell::new(self);
                 unsafe {
                     NativeFunction::from_closure(move |this, args, ctx| {
@@ -33,14 +35,14 @@ macro_rules! impl_into_js_function {
             }
         }
 
-        impl<$($t,)* R, T> IntoJsFunction<($($t,)* ContextArgToken), R> for T
+        unsafe impl<$($t,)* R, T> IntoJsFunctionUnsafe<($($t,)* ContextArgToken), R> for T
         where
             $($t: TryFromJsArgument + 'static,)*
             R: Into<JsValue>,
             T: FnMut($($t,)* &mut Context) -> R + 'static,
         {
             #[allow(unused_variables)]
-            fn into_js_function(self, _context: &mut Context) -> NativeFunction {
+            unsafe fn into_js_function_unsafe(self, _context: &mut Context) -> NativeFunction {
                 let s = RefCell::new(self);
                 unsafe {
                     NativeFunction::from_closure(move |this, args, ctx| {
@@ -54,19 +56,80 @@ macro_rules! impl_into_js_function {
                 }
             }
         }
+
+        // Safe versions for `Fn(..) -> ...`.
+        impl<$($t,)* R, T> IntoJsFunction<($($t,)*), R> for T
+        where
+            $($t: TryFromJsArgument + 'static,)*
+            R: Into<JsValue>,
+            T: Fn($($t,)*) -> R + 'static + Copy,
+        {
+            #[allow(unused_variables)]
+            fn into_js_function(self, _context: &mut Context) -> NativeFunction {
+                let s = self;
+                unsafe {
+                    NativeFunction::from_closure(move |this, args, ctx| {
+                        let rest = args;
+                        $(
+                            let ($id, rest) = $t::try_from_js_argument(this, rest, ctx)?;
+                        )*
+                        let r = s( $($id),* );
+                        Ok(r.into())
+                    })
+                }
+            }
+        }
+
+        impl<$($t,)* R, T> IntoJsFunction<($($t,)* ContextArgToken), R> for T
+        where
+            $($t: TryFromJsArgument + 'static,)*
+            R: Into<JsValue>,
+            T: Fn($($t,)* &mut Context) -> R + 'static + Copy,
+        {
+            #[allow(unused_variables)]
+            fn into_js_function(self, _context: &mut Context) -> NativeFunction {
+                let s = self;
+                unsafe {
+                    NativeFunction::from_closure(move |this, args, ctx| {
+                        let rest = args;
+                        $(
+                            let ($id, rest) = $t::try_from_js_argument(this, rest, ctx)?;
+                        )*
+                        let r = s( $($id,)* ctx);
+                        Ok(r.into())
+                    })
+                }
+            }
+        }
     };
+}
+
+unsafe impl<R, T> IntoJsFunctionUnsafe<(), R> for T
+where
+    R: Into<JsValue>,
+    T: FnMut() -> R + 'static,
+{
+    unsafe fn into_js_function_unsafe(self, _context: &mut Context) -> NativeFunction {
+        let s = RefCell::new(self);
+        unsafe {
+            NativeFunction::from_closure(move |_this, _args, _ctx| {
+                let r = s.borrow_mut()();
+                Ok(r.into())
+            })
+        }
+    }
 }
 
 impl<R, T> IntoJsFunction<(), R> for T
 where
     R: Into<JsValue>,
-    T: FnMut() -> R + 'static,
+    T: Fn() -> R + 'static + Copy,
 {
     fn into_js_function(self, _context: &mut Context) -> NativeFunction {
-        let s = RefCell::new(self);
+        let s = self;
         unsafe {
             NativeFunction::from_closure(move |_this, _args, _ctx| {
-                let r = s.borrow_mut()();
+                let r = s();
                 Ok(r.into())
             })
         }

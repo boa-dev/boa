@@ -1,7 +1,5 @@
 //! Interop utilities between Boa and its host.
 
-use std::cell::RefCell;
-
 use boa_engine::module::SyntheticModuleInitializer;
 use boa_engine::value::TryFromJs;
 use boa_engine::{Context, JsResult, JsString, JsValue, Module, NativeFunction};
@@ -48,12 +46,12 @@ impl<T: IntoIterator<Item = (JsString, NativeFunction)> + Clone> IntoJsModule fo
 /// # use boa_interop::IntoJsFunctionUnsafe;
 /// # let mut context = Context::default();
 /// let f = |a: i32, b: i32| a + b;
-/// let f = unsafe { f.into_js_function(&mut context) };
+/// let f = unsafe { f.into_js_function_unsafe(&mut context) };
 /// let result = f.call(&JsValue::undefined(), &[JsValue::from(1), JsValue::from(2)], &mut context).unwrap();
 /// assert_eq!(result, JsValue::new(3));
 /// ```
 ///
-/// Since the `IntoJsFunction` trait is implemented for `FnMut`, you can
+/// Since the `IntoJsFunctionUnsafe` trait is implemented for `FnMut`, you can
 /// also use closures directly:
 /// ```
 /// # use boa_engine::{Context, JsValue, NativeFunction};
@@ -69,7 +67,7 @@ impl<T: IntoIterator<Item = (JsString, NativeFunction)> + Clone> IntoJsModule fo
 ///     let x = x.clone();
 ///     move |a: i32| *x.borrow_mut() += a
 /// };
-/// let f = f.into_js_function(&mut context);
+/// let f = unsafe { f.into_js_function_unsafe(&mut context) };
 /// f.call(&JsValue::undefined(), &[JsValue::from(1)], &mut context).unwrap();
 /// f.call(&JsValue::undefined(), &[JsValue::from(4)], &mut context).unwrap();
 /// assert_eq!(*x.borrow(), 5);
@@ -78,25 +76,32 @@ impl<T: IntoIterator<Item = (JsString, NativeFunction)> + Clone> IntoJsModule fo
 /// # Safety
 /// For this trait to be implemented safely, the implementing type must not contain any
 /// garbage collected objects (from [`boa_gc`]).
-pub unsafe trait IntoJsFunctionUnsafe {
+pub unsafe trait IntoJsFunctionUnsafe<Args, Ret> {
     /// Converts the type into a JS function.
     ///
     /// # Safety
     /// This function is unsafe to ensure the callee knows the risks of using this trait.
     /// The implementing type must not contain any garbage collected objects.
-    unsafe fn into_js_function(self, context: &mut Context) -> NativeFunction;
+    unsafe fn into_js_function_unsafe(self, context: &mut Context) -> NativeFunction;
 }
 
-unsafe impl<T: FnMut() + 'static> IntoJsFunctionUnsafe for T {
-    unsafe fn into_js_function(self, _context: &mut Context) -> NativeFunction {
-        let cell = RefCell::new(self);
-        unsafe {
-            NativeFunction::from_closure(move |_, _, _| {
-                cell.borrow_mut()();
-                Ok(JsValue::undefined())
-            })
-        }
-    }
+/// The safe equivalent of the [`IntoJsFunctionUnsafe`] trait.
+/// This can only be used on closures that have the `Copy` trait.
+///
+/// Since this function is implemented for `Fn(...)` closures, we can use
+/// it directly when defining a function:
+/// ```
+/// # use boa_engine::{Context, JsValue, NativeFunction};
+/// # use boa_interop::IntoJsFunction;
+/// # let mut context = Context::default();
+/// let f = |a: i32, b: i32| a + b;
+/// let f = f.into_js_function(&mut context);
+/// let result = f.call(&JsValue::undefined(), &[JsValue::from(1), JsValue::from(2)], &mut context).unwrap();
+/// assert_eq!(result, JsValue::new(3));
+/// ```
+pub trait IntoJsFunction<Args, Ret>: Copy {
+    /// Converts the type into a JS function.
+    fn into_js_function(self, context: &mut Context) -> NativeFunction;
 }
 
 /// Create a Rust value from a JS argument. This trait is used to
@@ -230,11 +235,11 @@ pub fn into_js_module() {
                         result
                     }
                 }
-                .into_js_function(&mut context),
+                .into_js_function_unsafe(&mut context),
             ),
             (
                 js_string!("bar"),
-                IntoJsFunctionUnsafe::into_js_function(
+                IntoJsFunctionUnsafe::into_js_function_unsafe(
                     {
                         let counter = bar_count.clone();
                         move |i: i32| {
@@ -246,20 +251,22 @@ pub fn into_js_module() {
             ),
             (
                 js_string!("dad"),
-                {
-                    let counter = dad_count.clone();
-                    move |args: JsRest, context: &mut Context| {
-                        *counter.borrow_mut() += args
-                            .into_iter()
-                            .map(|i| i.try_js_into::<i32>(context).unwrap())
-                            .sum::<i32>();
-                    }
-                }
-                .into_js_function(&mut context),
+                IntoJsFunctionUnsafe::into_js_function_unsafe(
+                    {
+                        let counter = dad_count.clone();
+                        move |args: JsRest, context: &mut Context| {
+                            *counter.borrow_mut() += args
+                                .into_iter()
+                                .map(|i| i.try_js_into::<i32>(context).unwrap())
+                                .sum::<i32>();
+                        }
+                    },
+                    &mut context,
+                ),
             ),
             (
                 js_string!("send"),
-                IntoJsFunctionUnsafe::into_js_function(
+                IntoJsFunctionUnsafe::into_js_function_unsafe(
                     {
                         let result = result.clone();
                         move |value: JsValue| {
