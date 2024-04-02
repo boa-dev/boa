@@ -944,10 +944,6 @@ impl RegExp {
         // 12. NOTE: Each element of input is considered to be a character.
 
         // TODO: Comment spec deviation
-        // TODO: It would be better to put this in an enum.
-        //       enum Matches { Utf16(..), Ucs2(..) }
-        let mut utf16_matches = matcher.find_from_utf16(input, last_index as usize);
-        let mut ucs2_matches = matcher.find_from_ucs2(input, last_index as usize);
 
         // 10. Let matchSucceeded be false.
         // 13. Repeat, while matchSucceeded is false,
@@ -963,41 +959,32 @@ impl RegExp {
             return Ok(None);
         }
 
-        //    b. Let inputIndex be the index into input of the character that was obtained from element lastIndex of S.
-        //    c. Let r be matcher(input, inputIndex).
+        // b. Let inputIndex be the index into input of the character that was obtained from element lastIndex of S.
+        // c. Let r be matcher(input, inputIndex).
         let r: Option<regress::Match> = if full_unicode {
-            utf16_matches.next()
+            matcher.find_from_utf16(input, last_index as usize).next()
         } else {
-            ucs2_matches.next()
+            matcher.find_from_ucs2(input, last_index as usize).next()
         };
 
-        let match_value = match r {
+        let Some(match_value) = r else {
             // d. If r is failure, then
-            None => {
-                // i. If global is true or sticky is true, then
-                if global || sticky {
-                    // 1. Perform ? Set(R, "lastIndex", +0𝔽, true).
-                    this.set(utf16!("lastIndex"), 0, true, context)?;
-                }
-
-                return Ok(None);
+            // i. If global is true or sticky is true, then
+            if global || sticky {
+                // 1. Perform ? Set(R, "lastIndex", +0𝔽, true).
+                this.set(utf16!("lastIndex"), 0, true, context)?;
             }
-            // i. Assert: r is a State.
-            Some(m) => {
-                if sticky && m.start() != last_index as usize {
-                    // 1. Perform ? Set(R, "lastIndex", +0𝔽, true).
-                    this.set(utf16!("lastIndex"), 0, true, context)?;
 
-                    // 2. Return null.
-                    return Ok(None);
-                }
-
-                // FIXME: Fix unicode regex
-
-                // ii. Set matchSucceeded to true.
-                m
-            }
+            return Ok(None);
         };
+
+        if sticky && match_value.start() != last_index as usize {
+            // 1. Perform ? Set(R, "lastIndex", +0𝔽, true).
+            this.set(utf16!("lastIndex"), 0, true, context)?;
+
+            // 2. Return null.
+            return Ok(None);
+        }
 
         // 14. Let e be r's endIndex value.
         let e = match_value.end();
