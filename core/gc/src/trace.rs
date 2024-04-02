@@ -271,7 +271,6 @@ macro_rules! type_arg_tuple_based_finalize_trace_impls {
     ($(($($args:ident),*);)*) => {
         $(
             fn_finalize_trace_group!($($args),*);
-            // closure_finalize_trace_group!($($args),*);
             tuple_finalize_trace!($($args),*);
         )*
     }
