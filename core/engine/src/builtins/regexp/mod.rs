@@ -940,14 +940,14 @@ impl RegExp {
         // 9. If flags contains "u" or flags contains "v", let fullUnicode be true; else let fullUnicode be false.
         let full_unicode = flags.contains(&('u' as u16)) || flags.contains(&('v' as u16));
 
-        // 11. If fullUnicode is true, let input be StringToCodePoints(S). Otherwise, let input be a List whose elements are the code units that are the elements of S.
-        // 12. NOTE: Each element of input is considered to be a character.
+        // NOTE: The following steps are take care of by regress:
+        //
+        // SKIP: 10. Let matchSucceeded be false.
+        // SKIP: 11. If fullUnicode is true, let input be StringToCodePoints(S). Otherwise, let input be a List whose elements are the code units that are the elements of S.
+        // SKIP: 12. NOTE: Each element of input is considered to be a character.
+        // SKIP: 13. Repeat, while matchSucceeded is false,
 
-        // TODO: Comment spec deviation
-
-        // 10. Let matchSucceeded be false.
-        // 13. Repeat, while matchSucceeded is false,
-        //    a. If lastIndex > length, then
+        // 13.a. If lastIndex > length, then
         if last_index > length {
             // i. If global is true or sticky is true, then
             if global || sticky {
@@ -959,8 +959,8 @@ impl RegExp {
             return Ok(None);
         }
 
-        // b. Let inputIndex be the index into input of the character that was obtained from element lastIndex of S.
-        // c. Let r be matcher(input, inputIndex).
+        // 13.b. Let inputIndex be the index into input of the character that was obtained from element lastIndex of S.
+        // 13.c. Let r be matcher(input, inputIndex).
         let r: Option<regress::Match> = if full_unicode {
             matcher.find_from_utf16(input, last_index as usize).next()
         } else {
@@ -969,15 +969,29 @@ impl RegExp {
 
         let Some(match_value) = r else {
             // d. If r is failure, then
-            // i. If global is true or sticky is true, then
+            //
+            // NOTE: Merged the following steps (since we no longer have a loop):
+            //       13.d.i. If sticky is true, then
+            //       13.a.i. If global is true or sticky is true, then
             if global || sticky {
                 // 1. Perform ? Set(R, "lastIndex", +0𝔽, true).
                 this.set(utf16!("lastIndex"), 0, true, context)?;
             }
 
+            // MOVE: ii. Set lastIndex to AdvanceStringIndex(S, lastIndex, fullUnicode).
+            // NOTE: Handled within the regress matches iterator, see below for last_index assignment.
+
+            // NOTE: Merged  and  steps:
+            //       13.a.ii.  Return null.
+            //       13.d.i.2. Return null.
             return Ok(None);
         };
 
+        // e. Else
+        // SKIP: i. Assert: r is a MatchState.
+        // SKIP: ii. Set matchSucceeded to true.
+
+        // NOTE: regress currently doesn't support the sticky flag so we have to emulate it.
         if sticky && match_value.start() != last_index as usize {
             // 1. Perform ? Set(R, "lastIndex", +0𝔽, true).
             this.set(utf16!("lastIndex"), 0, true, context)?;
@@ -986,16 +1000,14 @@ impl RegExp {
             return Ok(None);
         }
 
-        // 14. Let e be r's endIndex value.
-        let e = match_value.end();
+        // 13.d.ii. Set lastIndex to AdvanceStringIndex(S, lastIndex, fullUnicode).
+        // NOTE: Calculation of last_index is done in regress.
         last_index = match_value.start() as u64;
 
-        // Note: This is already taken care of be regress.
+        // 14. Let e be r's endIndex value.
         // 15. If fullUnicode is true, set e to GetStringIndex(S, e).
-        // e is an index into the Input character list, derived from S, matched by matcher.
-        // Let eUTF be the smallest index into S that corresponds to the character at element e of Input.
-        // If e is greater than or equal to the number of elements in Input, then eUTF is the number of code units in S.
-        // b. Set e to eUTF.
+        // NOTE: Step 15 is already taken care of by regress.
+        let e = match_value.end();
 
         // 16. If global is true or sticky is true, then
         if global || sticky {
