@@ -5,11 +5,11 @@ use rustc_hash::FxHashMap;
 use boa_gc::GcRefCell;
 use boa_parser::Source;
 
-use crate::script::Script;
 use crate::{
-    js_string, object::JsObject, realm::Realm, vm::ActiveRunnable, Context, JsError, JsNativeError,
-    JsResult, JsString,
+    Context, js_string, JsError, JsNativeError, JsResult, JsString, object::JsObject,
+    realm::Realm, vm::ActiveRunnable,
 };
+use crate::script::Script;
 
 use super::Module;
 
@@ -22,6 +22,17 @@ pub enum Referrer {
     Realm(Realm),
     /// A [**Script Record**](https://tc39.es/ecma262/#sec-script-records)
     Script(Script),
+}
+
+impl Referrer {
+    /// Gets the path of the referrer, if it has one.
+    pub fn path(&self) -> Option<&Path> {
+        match self {
+            Self::Module(module) => module.path(),
+            Self::Realm(_) => None,
+            Self::Script(_script) => None,
+        }
+    }
 }
 
 impl From<ActiveRunnable> for Referrer {
@@ -176,17 +187,40 @@ impl SimpleModuleLoader {
 impl ModuleLoader for SimpleModuleLoader {
     fn load_imported_module(
         &self,
-        _referrer: Referrer,
+        referrer: Referrer,
         specifier: JsString,
         finish_load: Box<dyn FnOnce(JsResult<Module>, &mut Context)>,
         context: &mut Context,
     ) {
         let result = (|| {
+            // If the referrer has a path, we use it as the base for the specifier.
             let path = specifier
                 .to_std_string()
                 .map_err(|err| JsNativeError::typ().with_message(err.to_string()))?;
+
             let short_path = Path::new(&path);
-            let path = self.root.join(short_path);
+
+            let path = if let Some(p) = referrer.path().and_then(|p| p.parent()) {
+                let root = if p.is_absolute() {
+                    p.to_path_buf()
+                } else {
+                    self.root.join(p)
+                };
+                root.join(short_path)
+            } else {
+                self.root.join(short_path)
+            };
+
+            // Make sure we don't exit the root.
+            if !path.starts_with(&self.root) {
+                return Err(JsNativeError::typ()
+                    .with_message(format!(
+                        "path `{}` is outside the module root",
+                        path.display()
+                    ))
+                    .into());
+            }
+
             let path = path.canonicalize().map_err(|err| {
                 JsNativeError::typ()
                     .with_message(format!(

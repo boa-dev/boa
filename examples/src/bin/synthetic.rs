@@ -175,6 +175,7 @@ fn create_operations_module(context: &mut Context) -> Module {
             (sum, sub, mult, div, sqrt),
         ),
         None,
+        None,
         context,
     )
 }

@@ -3,9 +3,9 @@
 use std::path::PathBuf;
 use std::rc::Rc;
 
+use boa_engine::{Context, js_string, JsValue, Source};
 use boa_engine::builtins::promise::PromiseState;
 use boa_engine::module::SimpleModuleLoader;
-use boa_engine::{js_string, Context, JsValue, Source};
 
 /// Test that relative imports work with the simple module loader.
 #[test]
@@ -19,7 +19,7 @@ fn subdirectories() {
         .build()
         .unwrap();
 
-    let source = Source::from_bytes(b"import { file1 } from './file1.js'; file1()");
+    let source = Source::from_bytes(b"export { file1 } from './file1.js';");
     let module = boa_engine::Module::parse(source, None, &mut context).unwrap();
     let result = module.load_link_evaluate(&mut context);
 
@@ -27,6 +27,17 @@ fn subdirectories() {
     match result.state() {
         PromiseState::Pending => {}
         PromiseState::Fulfilled(v) => {
+            assert!(v.is_undefined());
+
+            let foo = module
+                .namespace(&mut context)
+                .get(js_string!("file1"), &mut context)
+                .unwrap();
+            let v = foo
+                .as_callable()
+                .unwrap()
+                .call(&JsValue::undefined(), &[], &mut context)
+                .unwrap();
             assert_eq!(v, JsValue::String(js_string!("file1..file1_1.file1_2")));
         }
         PromiseState::Rejected(reason) => {

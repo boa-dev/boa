@@ -21,27 +21,23 @@
 //! [spec]: https://tc39.es/ecma262/#sec-modules
 //! [module]: https://tc39.es/ecma262/#sec-abstract-module-records
 
-mod loader;
-mod namespace;
-mod source;
-mod synthetic;
-use boa_parser::source::ReadChar;
-pub use loader::*;
-pub use namespace::ModuleNamespace;
-use source::SourceTextModule;
-pub use synthetic::{SyntheticModule, SyntheticModuleInitializer};
-
 use std::cell::{Cell, RefCell};
 use std::collections::HashSet;
 use std::hash::Hash;
+use std::path::{Path, PathBuf};
 use std::rc::Rc;
 
 use rustc_hash::FxHashSet;
 
 use boa_gc::{Finalize, Gc, GcRefCell, Trace};
 use boa_interner::Interner;
+use boa_parser::source::ReadChar;
 use boa_parser::{Parser, Source};
 use boa_profiler::Profiler;
+pub use loader::*;
+pub use namespace::ModuleNamespace;
+use source::SourceTextModule;
+pub use synthetic::{SyntheticModule, SyntheticModuleInitializer};
 
 use crate::{
     builtins::promise::{PromiseCapability, PromiseState},
@@ -50,6 +46,11 @@ use crate::{
     realm::Realm,
     Context, HostDefined, JsError, JsResult, JsString, JsValue, NativeFunction,
 };
+
+mod loader;
+mod namespace;
+mod source;
+mod synthetic;
 
 /// ECMAScript's [**Abstract module record**][spec].
 ///
@@ -75,6 +76,7 @@ struct ModuleRepr {
     namespace: GcRefCell<Option<JsObject>>,
     kind: ModuleKind,
     host_defined: HostDefined,
+    path: Option<PathBuf>,
 }
 
 /// The kind of a [`Module`].
@@ -155,6 +157,7 @@ impl Module {
         context: &mut Context,
     ) -> JsResult<Self> {
         let _timer = Profiler::global().start_event("Module parsing", "Main");
+        let path = src.path().map(|p| p.to_path_buf());
         let mut parser = Parser::new(src);
         parser.set_identifier(context.next_parser_identifier());
         let module = parser.parse_module(context.interner_mut())?;
@@ -167,6 +170,7 @@ impl Module {
                 namespace: GcRefCell::default(),
                 kind: ModuleKind::SourceText(src),
                 host_defined: HostDefined::default(),
+                path,
             }),
         })
     }
@@ -181,6 +185,7 @@ impl Module {
     pub fn synthetic(
         export_names: &[JsString],
         evaluation_steps: SyntheticModuleInitializer,
+        path: Option<PathBuf>,
         realm: Option<Realm>,
         context: &mut Context,
     ) -> Self {
@@ -194,6 +199,7 @@ impl Module {
                 namespace: GcRefCell::default(),
                 kind: ModuleKind::Synthetic(synth),
                 host_defined: HostDefined::default(),
+                path,
             }),
         }
     }
@@ -563,6 +569,11 @@ impl Module {
                 ModuleNamespace::create(self.clone(), unambiguous_names, context)
             })
             .clone()
+    }
+
+    /// Returns the path of the module, if it was created from a file or assigned.
+    pub fn path(&self) -> Option<&Path> {
+        self.inner.path.as_deref()
     }
 }
 
