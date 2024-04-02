@@ -508,6 +508,7 @@ version = "0.18.0"
 dependencies = [
  "boa_engine",
  "boa_gc",
+ "boa_macros",
  "rustc-hash",
 ]
 

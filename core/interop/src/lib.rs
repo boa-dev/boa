@@ -4,6 +4,7 @@ use std::cell::RefCell;
 
 use boa_engine::module::SyntheticModuleInitializer;
 use boa_engine::{Context, JsString, JsValue, Module, NativeFunction};
+pub use boa_macros;
 
 pub mod loaders;
 
