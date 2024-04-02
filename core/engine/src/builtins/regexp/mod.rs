@@ -943,9 +943,14 @@ impl RegExp {
         // 11. If fullUnicode is true, let input be StringToCodePoints(S). Otherwise, let input be a List whose elements are the code units that are the elements of S.
         // 12. NOTE: Each element of input is considered to be a character.
 
+        // TODO: It would be better to put this in an enum.
+        //       enum Matches { Utf16(..), Ucs2(..) }
+        let mut x = matcher.find_from_utf16(input, last_index as usize);
+        let mut y = matcher.find_from_ucs2(input, last_index as usize);
+
         // 10. Let matchSucceeded be false.
         // 13. Repeat, while matchSucceeded is false,
-        let match_value = loop {
+        let match_value = {
             // a. If lastIndex > length, then
             if last_index > length {
                 // i. If global is true or sticky is true, then
@@ -960,12 +965,8 @@ impl RegExp {
 
             // b. Let inputIndex be the index into input of the character that was obtained from element lastIndex of S.
             // c. Let r be matcher(input, inputIndex).
-            let r: Option<regress::Match> = if full_unicode {
-                matcher.find_from_utf16(input, last_index as usize).next()
-            } else {
-                matcher.find_from_ucs2(input, last_index as usize).next()
-            };
-
+            let r: Option<regress::Match> = if full_unicode { x.next() } else { y.next() };
+            // x.
             match r {
                 // d. If r is failure, then
                 None => {
@@ -978,14 +979,19 @@ impl RegExp {
                         return Ok(None);
                     }
 
-                    // ii. Set lastIndex to AdvanceStringIndex(S, lastIndex, fullUnicode).
-                    last_index = advance_string_index(input, last_index, full_unicode);
+                    // i. If global is true or sticky is true, then
+                    if global || sticky {
+                        // 1. Perform ? Set(R, "lastIndex", +0𝔽, true).
+                        this.set(utf16!("lastIndex"), 0, true, context)?;
+                    }
+                    return Ok(None);
                 }
 
                 Some(m) => {
+                    // FIXME: Fix unicode regex
+
                     // d. If r is failure, then
-                    #[allow(clippy::if_not_else)]
-                    if m.start() as u64 != last_index {
+                    if full_unicode && m.start() != last_index as usize {
                         // i. If sticky is true, then
                         if sticky {
                             // 1. Perform ? Set(R, "lastIndex", +0𝔽, true).
@@ -995,20 +1001,24 @@ impl RegExp {
                             return Ok(None);
                         }
 
-                        // ii. Set lastIndex to AdvanceStringIndex(S, lastIndex, fullUnicode).
-                        last_index = advance_string_index(input, last_index, full_unicode);
-                        // e. Else,
-                    } else {
-                        // i. Assert: r is a State.
-                        // ii. Set matchSucceeded to true.
-                        break m;
+                        // i. If global is true or sticky is true, then
+                        // if global || sticky {
+                        //     // 1. Perform ? Set(R, "lastIndex", +0𝔽, true).
+                        //     this.set(utf16!("lastIndex"), 0, true, context)?;
+                        // }
+                        return Ok(None);
                     }
+
+                    // i. Assert: r is a State.
+                    // ii. Set matchSucceeded to true.
+                    m
                 }
             }
         };
 
         // 14. Let e be r's endIndex value.
         let e = match_value.end();
+        last_index = match_value.start() as u64;
 
         // Note: This is already taken care of be regress.
         // 15. If fullUnicode is true, set e to GetStringIndex(S, e).
