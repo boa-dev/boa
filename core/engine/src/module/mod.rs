@@ -157,7 +157,7 @@ impl Module {
         context: &mut Context,
     ) -> JsResult<Self> {
         let _timer = Profiler::global().start_event("Module parsing", "Main");
-        let path = src.path().map(|p| p.to_path_buf());
+        let path = src.path().map(std::path::Path::to_path_buf);
         let mut parser = Parser::new(src);
         parser.set_identifier(context.next_parser_identifier());
         let module = parser.parse_module(context.interner_mut())?;
@@ -572,6 +572,7 @@ impl Module {
     }
 
     /// Returns the path of the module, if it was created from a file or assigned.
+    #[must_use]
     pub fn path(&self) -> Option<&Path> {
         self.inner.path.as_deref()
     }

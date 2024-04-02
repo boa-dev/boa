@@ -5,11 +5,11 @@ use rustc_hash::FxHashMap;
 use boa_gc::GcRefCell;
 use boa_parser::Source;
 
-use crate::{
-    Context, js_string, JsError, JsNativeError, JsResult, JsString, object::JsObject,
-    realm::Realm, vm::ActiveRunnable,
-};
 use crate::script::Script;
+use crate::{
+    js_string, object::JsObject, realm::Realm, vm::ActiveRunnable, Context, JsError, JsNativeError,
+    JsResult, JsString,
+};
 
 use super::Module;
 
@@ -26,6 +26,7 @@ pub enum Referrer {
 
 impl Referrer {
     /// Gets the path of the referrer, if it has one.
+    #[must_use]
     pub fn path(&self) -> Option<&Path> {
         match self {
             Self::Module(module) => module.path(),
