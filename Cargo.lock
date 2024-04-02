@@ -503,6 +503,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "boa_interop"
+version = "0.18.0"
+dependencies = [
+ "boa_engine",
+ "boa_gc",
+ "rustc-hash",
+]
+
+[[package]]
 name = "boa_macros"
 version = "0.18.0"
 dependencies = [
