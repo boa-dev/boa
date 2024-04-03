@@ -5,12 +5,16 @@
 //! Any errors from the first loader will be ignored, and the second loader
 //! will be used.
 
+use std::rc::Rc;
+
 use boa_engine::{Context, JsResult, JsString, Module};
 use boa_engine::module::{ModuleLoader, Referrer};
 
+#[derive(Debug)]
 pub struct MergeModuleLoader<First, Second> {
     first: First,
-    second: Second,
+    // When resolving modules we need to clone the second loader.
+    second: Rc<Second>,
 }
 
 impl<First: ModuleLoader, Second: ModuleLoader> From<(First, Second)>
@@ -24,14 +28,17 @@ impl<First: ModuleLoader, Second: ModuleLoader> From<(First, Second)>
 impl<First, Second> MergeModuleLoader<First, Second> {
     /// Create a new `MergeModuleLoader` from two module loaders.
     pub fn new(first: First, second: Second) -> Self {
-        Self { first, second }
+        Self {
+            first,
+            second: Rc::new(second),
+        }
     }
 }
 
 impl<First, Second> ModuleLoader for MergeModuleLoader<First, Second>
 where
     First: ModuleLoader,
-    Second: ModuleLoader,
+    Second: ModuleLoader + 'static,
 {
     fn load_imported_module(
         &self,
@@ -40,13 +47,13 @@ where
         finish_load: Box<dyn FnOnce(JsResult<Module>, &mut Context)>,
         context: &mut Context,
     ) {
+        let second = self.second.clone();
         self.first.load_imported_module(
             referrer.clone(),
             specifier.clone(),
             Box::new(move |result, context| {
                 if result.is_err() {
-                    self.second
-                        .load_imported_module(referrer, specifier, finish_load, context);
+                    second.load_imported_module(referrer, specifier, finish_load, context);
                 } else {
                     finish_load(result, context);
                 }
