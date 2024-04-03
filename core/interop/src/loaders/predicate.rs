@@ -1,4 +1,5 @@
 //! A [`ModuleLoader`] that uses a predicate to modify the module specifier to load.
+#![allow(clippy::module_name_repetitions)]
 
 use std::fmt::Debug;
 use std::path::Path;
@@ -33,6 +34,7 @@ impl<P, Inner> PredicateModuleLoader<P, Inner>
 where
     P: Fn(Option<&Path>, JsString) -> JsResult<JsString>,
 {
+    /// Create a new module loader.
     pub fn new(predicate: P, inner: Inner) -> Self {
         Self { predicate, inner }
     }
@@ -53,13 +55,14 @@ where
         match (self.predicate)(referrer.path(), specifier) {
             Ok(specifier) => {
                 self.inner
-                    .load_imported_module(referrer, specifier, finish_load, context)
+                    .load_imported_module(referrer, specifier, finish_load, context);
             }
             Err(err) => finish_load(Err(err), context),
         }
     }
 }
 
+/// A collection of predicate functions to use with the [`PredicateModuleLoader`].
 pub mod predicates {
     use std::path::{Component, Path, PathBuf};
 
@@ -67,25 +70,34 @@ pub mod predicates {
 
     /// A predicate that only allows loading absolute modules. Will refuse to load
     /// any specifier that starts with `./` or `../`.
+    ///
+    /// # Errors
+    /// This predicate will return an error if the specifier is a relative path (starts with
+    /// `./` or `../`).
     #[inline]
+    #[allow(clippy::needless_pass_by_value)]
     pub fn absolute_only(_: Option<&Path>, specifier: JsString) -> JsResult<JsString> {
         let specifier = specifier.to_std_string_escaped();
         let short_path = Path::new(&specifier);
 
-        if short_path.starts_with(".") {
+        if short_path.starts_with(".") || short_path.starts_with("..") {
             Err(JsError::from_opaque(js_string!("relative path").into()))
         } else {
             Ok(JsString::from(specifier))
         }
     }
 
-    /// A Predicate that can be used with the PrediceModuleLoader that resolves paths
+    /// A Predicate that can be used with the `PrediceModuleLoader` that resolves paths
     /// from the referrer and the specifier, normalize the paths and ensure the path
     /// is within a base.
     ///
     /// If the base is empty, that last verification will be skipped. This can be used
     /// for module loaders that don't have an actual filesystem as their backend
     /// (such as [`crate::loaders::HashMapModuleLoader`]).
+    ///
+    /// # Errors
+    /// This predicate will return an error if the specifier is relative but the referrer
+    /// does not have a path, or if the resolved path is outside `base`.
     #[inline]
     pub fn path_resolver(base: PathBuf) -> impl Fn(Option<&Path>, JsString) -> JsResult<JsString> {
         move |resolver, specifier| {
@@ -142,7 +154,7 @@ pub mod predicates {
 }
 
 #[test]
-fn path_resolver_predicate() -> Result<(), Box<dyn std::error::Error>> {
+fn path_resolver_predicate() {
     use std::path::PathBuf;
 
     let base = PathBuf::from("/base");
@@ -162,12 +174,10 @@ fn path_resolver_predicate() -> Result<(), Box<dyn std::error::Error>> {
         (None, "other/../../hello.js", Err(())),
     ];
 
-    for (referrer, specifier, expected) in cases.into_iter() {
+    for (referrer, specifier, expected) in cases {
         assert_eq!(
             p(referrer.map(Path::new), JsString::from(specifier)).map_err(|_| ()),
             expected.map(JsString::from)
         );
     }
-
-    Ok(())
 }

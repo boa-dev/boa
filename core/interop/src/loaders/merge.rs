@@ -1,3 +1,4 @@
+#![allow(clippy::module_name_repetitions)]
 //! A [`ModuleLoader`] that "merges" two module loaders into one. It will
 //! try to resolve using the first loader, and if it fails, it will try the
 //! second.
@@ -7,9 +8,12 @@
 
 use std::rc::Rc;
 
-use boa_engine::{Context, JsResult, JsString, Module};
 use boa_engine::module::{ModuleLoader, Referrer};
+use boa_engine::{Context, JsResult, JsString, Module};
 
+/// A [`ModuleLoader`] that "merges" two module loaders into one. It will
+/// try to resolve using the first loader, and if it fails, it will try the
+/// second.
 #[derive(Debug)]
 pub struct MergeModuleLoader<First, Second> {
     first: First,
