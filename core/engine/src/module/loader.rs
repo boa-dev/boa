@@ -5,11 +5,11 @@ use rustc_hash::FxHashMap;
 use boa_gc::GcRefCell;
 use boa_parser::Source;
 
-use crate::script::Script;
 use crate::{
-    js_string, object::JsObject, realm::Realm, vm::ActiveRunnable, Context, JsError, JsNativeError,
-    JsResult, JsString,
+    Context, js_string, JsError, JsNativeError, JsResult, JsString, object::JsObject,
+    realm::Realm, vm::ActiveRunnable,
 };
+use crate::script::Script;
 
 use super::Module;
 
