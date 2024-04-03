@@ -3,8 +3,8 @@
 use std::fmt::Debug;
 use std::path::Path;
 
-use boa_engine::{Context, JsResult, JsString, Module};
 use boa_engine::module::{ModuleLoader, Referrer};
+use boa_engine::{Context, JsResult, JsString, Module};
 
 /// A [`ModuleLoader`] that uses a predicate to modify the module specifier to load,
 /// before passing it to the inner module loader.

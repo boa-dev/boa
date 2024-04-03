@@ -32,8 +32,8 @@ use rustc_hash::FxHashSet;
 use boa_engine::js_string;
 use boa_gc::{Finalize, Gc, GcRefCell, Trace};
 use boa_interner::Interner;
-use boa_parser::{Parser, Source};
 use boa_parser::source::ReadChar;
+use boa_parser::{Parser, Source};
 use boa_profiler::Profiler;
 pub use loader::*;
 pub use namespace::ModuleNamespace;
@@ -43,10 +43,10 @@ pub use synthetic::{SyntheticModule, SyntheticModuleInitializer};
 use crate::{
     builtins,
     builtins::promise::{PromiseCapability, PromiseState},
-    Context,
     environments::DeclarativeEnvironment,
-    HostDefined,
-    JsError, JsResult, JsString, JsValue, NativeFunction, object::{JsObject, JsPromise}, realm::Realm,
+    object::{JsObject, JsPromise},
+    realm::Realm,
+    Context, HostDefined, JsError, JsResult, JsString, JsValue, NativeFunction,
 };
 
 mod loader;
