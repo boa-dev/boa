@@ -104,6 +104,18 @@ pub trait IntoJsFunction<Args, Ret>: Copy {
     fn into_js_function(self, context: &mut Context) -> NativeFunction;
 }
 
+/// Create a [`JsResult`] from a Rust value. This trait is used to
+/// convert Rust types to JS types, including [`JsResult`] of
+/// Rust values and [`JsValue`]s. It is used to convert the
+/// return value of a function in [`IntoJsFunctionUnsafe`] and
+/// [`IntoJsFunction`].
+pub trait TryIntoJsResult {
+    /// Try to convert a Rust value into a `JsResult<JsValue>`.
+    fn try_into_js_result(self, context: &mut Context) -> JsResult<JsValue>;
+}
+
+mod try_into_js_result_impls;
+
 /// Create a Rust value from a JS argument. This trait is used to
 /// convert arguments from JS to Rust types. It allows support
 /// for optional arguments or rest arguments.
