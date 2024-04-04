@@ -96,8 +96,18 @@ cargo run --release --bin boa_tester -- run -vv -d -s test/language/types/number
 
 ## Documentation
 
-We have specific documentation for development, updated on each commit to the `main` branch, with all the private
-methods visible here: <https://boajs.dev/boa/doc/>
+To build the development documentation, run:
+
+```shell
+cargo doc --all-features --document-private-items --workspace
+```
+
+This will also document all the dependencies on the workspace, which could be heavier in size.
+To only generate documentation for the workspace members, just add the `--no-deps` flag:
+
+```shell
+cargo doc --all-features --document-private-items --workspace --no-deps
+```
 
 ## Communication
 

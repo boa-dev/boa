@@ -19,14 +19,14 @@ Try out the most recent release with Boa's live demo
 - [**`boa_icu_provider`**][icu] - Boa's ICU4X data provider.
 - [**`boa_runtime`**][runtime] - Boa's WebAPI features.
 
-[boa-conformance]: https://boajs.dev/boa/test262/
+[boa-conformance]: https://boajs.dev/conformance
 [boa-web]: https://boajs.dev/
-[boa-playground]: https://boajs.dev/boa/playground/
-[ast]: https://boajs.dev/boa/doc/boa_ast/index.html
-[engine]: https://boajs.dev/boa/doc/boa_engine/index.html
-[gc]: https://boajs.dev/boa/doc/boa_gc/index.html
-[interner]: https://boajs.dev/boa/doc/boa_interner/index.html
-[parser]: https://boajs.dev/boa/doc/boa_parser/index.html
-[profiler]: https://boajs.dev/boa/doc/boa_profiler/index.html
-[icu]: https://boajs.dev/boa/doc/boa_icu_provider/index.html
-[runtime]: https://boajs.dev/boa/doc/boa_runtime/index.html
+[boa-playground]: https://boajs.dev/playground
+[ast]: https://docs.rs/boa_ast/latest/boa_ast/index.html
+[engine]: https://docs.rs/boa_engine/latest/boa_engine/index.html
+[gc]: https://docs.rs/boa_gc/latest/boa_gc/index.html
+[interner]: https://docs.rs/boa_interner/latest/boa_interner/index.html
+[parser]: https://docs.rs/boa_parser/latest/boa_parser/index.html
+[profiler]: https://docs.rs/boa_profiler/latest/boa_profiler/index.html
+[icu]: https://docs.rs/boa_icu_provider/latest/boa_icu_provider/index.html
+[runtime]: https://docs.rs/boa_runtime/latest/boa_runtime/index.html
