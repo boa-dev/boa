@@ -1,12 +1,13 @@
 //! An ECMAScript WASM implementation based on `boa_engine`.
 #![cfg_attr(not(test), forbid(clippy::unwrap_used))]
+#![allow(unused_crate_dependencies)]
 
 use boa_engine::{Context, Source};
 use getrandom as _;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen(start)]
-fn main() {
+fn main_js() {
     console_error_panic_hook::set_once();
 }
 
