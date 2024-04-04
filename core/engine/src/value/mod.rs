@@ -45,6 +45,9 @@ pub use self::{
 #[doc(inline)]
 pub use boa_macros::TryFromJs;
 
+#[doc(inline)]
+pub use conversions::coerce::Coerce;
+
 pub(crate) use self::conversions::IntoOrUndefined;
 
 static TWO_E_64: Lazy<BigInt> = Lazy::new(|| {
