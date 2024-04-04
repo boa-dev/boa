@@ -8,10 +8,13 @@
 //! [spec]: https://tc39.es/ecma262/#sec-scripts
 //! [script]: https://tc39.es/ecma262/#sec-script-records
 
+use std::path::{Path, PathBuf};
+
+use rustc_hash::FxHashMap;
+
 use boa_gc::{Finalize, Gc, GcRefCell, Trace};
 use boa_parser::{source::ReadChar, Parser, Source};
 use boa_profiler::Profiler;
-use rustc_hash::FxHashMap;
 
 use crate::{
     bytecompiler::ByteCompiler,
@@ -47,6 +50,7 @@ struct Inner {
     codeblock: GcRefCell<Option<Gc<CodeBlock>>>,
     loaded_modules: GcRefCell<FxHashMap<JsString, Module>>,
     host_defined: HostDefined,
+    path: Option<PathBuf>,
 }
 
 impl Script {
@@ -80,6 +84,7 @@ impl Script {
         context: &mut Context,
     ) -> JsResult<Self> {
         let _timer = Profiler::global().start_event("Script parsing", "Main");
+        let path = src.path().map(std::path::Path::to_path_buf);
         let mut parser = Parser::new(src);
         parser.set_identifier(context.next_parser_identifier());
         if context.is_strict() {
@@ -97,6 +102,7 @@ impl Script {
                 codeblock: GcRefCell::default(),
                 loaded_modules: GcRefCell::default(),
                 host_defined: HostDefined::default(),
+                path,
             }),
         })
     }
@@ -211,5 +217,9 @@ impl Script {
         self.realm().resize_global_env();
 
         Ok(())
+    }
+
+    pub(super) fn path(&self) -> Option<&Path> {
+        self.inner.path.as_deref()
     }
 }

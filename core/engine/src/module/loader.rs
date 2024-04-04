@@ -1,4 +1,4 @@
-use std::path::{Path, PathBuf};
+use std::path::{Component, Path, PathBuf};
 
 use rustc_hash::FxHashMap;
 
@@ -12,6 +12,83 @@ use crate::{
 };
 
 use super::Module;
+
+/// Resolves paths from the referrer and the specifier, normalize the paths and ensure the path
+/// is within a base. If the base is empty, that last verification will be skipped.
+///
+/// The returned specifier is a resolved absolute path that is guaranteed to be
+/// a descendant of `base`. All path component that are either empty or `.` and
+/// `..` have been resolved.
+///
+/// # Errors
+/// This predicate will return an error if the specifier is relative but the referrer
+/// does not have a path, or if the resolved path is outside `base`.
+///
+/// # Examples
+/// ```
+///
+/// ```
+pub fn resolve_module_specifier(
+    base: Option<&Path>,
+    specifier: &JsString,
+    referrer: Option<&Path>,
+    _context: &mut Context,
+) -> JsResult<PathBuf> {
+    let base = base.map_or_else(|| PathBuf::from(""), PathBuf::from);
+    let referrer_dir = referrer.and_then(|p| p.parent());
+
+    let specifier = specifier.to_std_string_escaped();
+    let short_path = Path::new(&specifier);
+
+    // In ECMAScript, a path is considered relative if it starts with
+    // `./` or `../`. In Rust it's any path that start with `/`.
+    let is_relative = short_path.starts_with(".") || short_path.starts_with("..");
+
+    let long_path = if is_relative {
+        if let Some(r_path) = referrer_dir {
+            base.join(r_path).join(short_path)
+        } else {
+            return Err(JsError::from_opaque(
+                js_string!("relative path without referrer").into(),
+            ));
+        }
+    } else {
+        base.join(&specifier)
+    };
+
+    if long_path.is_relative() {
+        return Err(JsError::from_opaque(
+            js_string!("resolved path is relative").into(),
+        ));
+    }
+
+    // Normalize the path. We cannot use `canonicalize` here because it will fail
+    // if the path doesn't exist.
+    let path = long_path
+        .components()
+        .filter(|c| c != &Component::CurDir || c == &Component::Normal("".as_ref()))
+        .try_fold(PathBuf::new(), |mut acc, c| {
+            if c == Component::ParentDir {
+                if acc.as_os_str().is_empty() {
+                    return Err(JsError::from_opaque(
+                        js_string!("path is outside the module root").into(),
+                    ));
+                }
+                acc.pop();
+            } else {
+                acc.push(c);
+            }
+            Ok(acc)
+        })?;
+
+    if path.starts_with(&base) {
+        Ok(path)
+    } else {
+        Err(JsError::from_opaque(
+            js_string!("path is outside the module root").into(),
+        ))
+    }
+}
 
 /// The referrer from which a load request of a module originates.
 #[derive(Debug, Clone)]
@@ -31,7 +108,7 @@ impl Referrer {
         match self {
             Self::Module(module) => module.path(),
             Self::Realm(_) => None,
-            Self::Script(_script) => None,
+            Self::Script(script) => script.path(),
         }
     }
 }
@@ -194,53 +271,21 @@ impl ModuleLoader for SimpleModuleLoader {
         context: &mut Context,
     ) {
         let result = (|| {
-            // If the referrer has a path, we use it as the base for the specifier.
-            let path = specifier
-                .to_std_string()
-                .map_err(|err| JsNativeError::typ().with_message(err.to_string()))?;
-
-            let short_path = Path::new(&path);
-
-            let path = if let Some(p) = referrer.path().and_then(|p| p.parent()) {
-                let root = if p.is_absolute() {
-                    p.to_path_buf()
-                } else {
-                    self.root.join(p)
-                };
-                root.join(short_path)
-            } else {
-                self.root.join(short_path)
-            };
-
-            // Make sure we don't exit the root.
-            if !path.starts_with(&self.root) {
-                return Err(JsNativeError::typ()
-                    .with_message(format!(
-                        "path `{}` is outside the module root",
-                        path.display()
-                    ))
-                    .into());
-            }
-
-            let path = path.canonicalize().map_err(|err| {
-                JsNativeError::typ()
-                    .with_message(format!(
-                        "could not canonicalize path `{}`",
-                        short_path.display()
-                    ))
-                    .with_cause(JsError::from_opaque(js_string!(err.to_string()).into()))
-            })?;
+            let short_path = specifier.to_std_string_escaped();
+            let path =
+                resolve_module_specifier(Some(&self.root), &specifier, referrer.path(), context)?;
             if let Some(module) = self.get(&path) {
                 return Ok(module);
             }
+
             let source = Source::from_filepath(&path).map_err(|err| {
                 JsNativeError::typ()
-                    .with_message(format!("could not open file `{}`", short_path.display()))
+                    .with_message(format!("could not open file `{short_path}`"))
                     .with_cause(JsError::from_opaque(js_string!(err.to_string()).into()))
             })?;
             let module = Module::parse(source, None, context).map_err(|err| {
                 JsNativeError::syntax()
-                    .with_message(format!("could not parse module `{}`", short_path.display()))
+                    .with_message(format!("could not parse module `{short_path}`"))
                     .with_cause(err)
             })?;
             self.insert(path, module.clone());
@@ -248,5 +293,47 @@ impl ModuleLoader for SimpleModuleLoader {
         })();
 
         finish_load(result, context);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::path::PathBuf;
+
+    use test_case::test_case;
+
+    use super::*;
+
+    #[rustfmt::skip]
+    #[test_case(Some("/hello/ref.js"),      "a.js",             Ok("/base/a.js"))]
+    #[test_case(Some("/base/ref.js"),       "./b.js",           Ok("/base/b.js"))]
+    #[test_case(Some("/base/other/ref.js"), "./c.js",           Ok("/base/other/c.js"))]
+    #[test_case(Some("/base/other/ref.js"), "../d.js",          Ok("/base/d.js"))]
+    #[test_case(Some("/base/ref.js"),        "e.js",            Ok("/base/e.js"))]
+    #[test_case(Some("/base/ref.js"),        "./f.js",          Ok("/base/f.js"))]
+    #[test_case(Some("./ref.js"),           "./g.js",           Ok("/base/g.js"))]
+    #[test_case(Some("./other/ref.js"),     "./other/h.js",     Ok("/base/other/other/h.js"))]
+    #[test_case(Some("./other/ref.js"),     "./other/../h1.js", Ok("/base/other/h1.js"))]
+    #[test_case(Some("./other/ref.js"),     "./../h2.js",       Ok("/base/h2.js"))]
+    #[test_case(None,                       "./i.js",           Err(()))]
+    #[test_case(None,                       "j.js",             Ok("/base/j.js"))]
+    #[test_case(None,                       "other/k.js",       Ok("/base/other/k.js"))]
+    #[test_case(None,                       "other/../../l.js", Err(()))]
+    #[test_case(Some("/base/ref.js"),       "other/../../m.js", Err(()))]
+    #[test_case(None,                       "../n.js",          Err(()))]
+    fn resolve_test(ref_path: Option<&str>, spec: &str, expected: Result<&str, ()>) {
+        let base = PathBuf::from("/base");
+
+        let mut context = Context::default();
+        let spec = js_string!(spec);
+        let ref_path = ref_path.map(PathBuf::from);
+
+        let actual = resolve_module_specifier(
+            Some(&base),
+            &spec,
+            ref_path.as_deref(),
+            &mut context,
+        );
+        assert_eq!(actual.map_err(|_| ()), expected.map(PathBuf::from));
     }
 }

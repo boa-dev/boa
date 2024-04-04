@@ -68,7 +68,7 @@ js = ["dep:web-time"]
 
 [dependencies]
 boa_interner.workspace = true
-boa_gc = { workspace = true, features = [ "thin-vec" ] }
+boa_gc = { workspace = true, features = ["thin-vec"] }
 boa_profiler.workspace = true
 boa_macros.workspace = true
 boa_ast.workspace = true
@@ -106,7 +106,7 @@ time.workspace = true
 hashbrown.workspace = true
 
 # intl deps
-boa_icu_provider = {workspace = true, features = ["std"], optional = true }
+boa_icu_provider = { workspace = true, features = ["std"], optional = true }
 sys-locale = { version = "0.3.1", optional = true }
 icu_provider = { workspace = true, optional = true }
 icu_locid = { workspace = true, features = ["serde"], optional = true }
@@ -116,7 +116,7 @@ icu_calendar = { workspace = true, default-features = false, optional = true }
 icu_collator = { workspace = true, default-features = false, features = ["serde"], optional = true }
 icu_plurals = { workspace = true, default-features = false, features = ["serde", "experimental"], optional = true }
 icu_list = { workspace = true, default-features = false, features = ["serde"], optional = true }
-icu_casemap = { workspace = true, default-features = false, features = ["serde"], optional = true}
+icu_casemap = { workspace = true, default-features = false, features = ["serde"], optional = true }
 icu_segmenter = { workspace = true, default-features = false, features = ["auto", "serde"], optional = true }
 icu_decimal = { workspace = true, default-features = false, features = ["serde"], optional = true }
 writeable = { workspace = true, optional = true }
@@ -137,6 +137,7 @@ float-cmp = "0.9.0"
 indoc.workspace = true
 textwrap.workspace = true
 futures-lite = "2.3.0"
+test-case = "3.3.1"
 
 [target.x86_64-unknown-linux-gnu.dev-dependencies]
 jemallocator = "0.5.4"
