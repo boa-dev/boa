@@ -26,7 +26,18 @@ use super::Module;
 ///
 /// # Examples
 /// ```
-///
+/// # use std::path::Path;
+/// # use boa_engine::{Context, js_string};
+/// # use boa_engine::module::resolve_module_specifier;
+/// assert_eq!(
+///     resolve_module_specifier(
+///         Some(Path::new("/base")),
+///         &js_string!("../a.js"),
+///         Some(Path::new("/base/hello/ref.js")),
+///         &mut Context::default()
+///     ),
+///     Ok("/base/a.js".into())
+/// );
 /// ```
 pub fn resolve_module_specifier(
     base: Option<&Path>,
