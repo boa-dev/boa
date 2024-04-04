@@ -2,7 +2,7 @@
 //! converting.
 
 use crate::value::TryFromJs;
-use crate::{Context, JsResult, JsValue};
+use crate::{Context, JsResult, JsString, JsValue};
 use boa_engine::JsNativeError;
 
 /// A wrapper type that allows coercing a `JsValue` to a specific type.
@@ -103,7 +103,7 @@ impl TryFromJs for Coerce<JsString> {
 }
 
 impl TryFromJs for Coerce<bool> {
-    fn try_from_js(value: &JsValue, context: &mut Context) -> JsResult<Self> {
+    fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {
         Ok(Self(value.to_boolean()))
     }
 }
