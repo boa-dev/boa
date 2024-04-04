@@ -330,3 +330,47 @@ pub fn into_js_module() {
     assert_eq!(*dad_count.borrow(), 24);
     assert_eq!(result.borrow().clone().try_js_into(&mut context), Ok(1u32));
 }
+
+#[test]
+fn can_throw_exception() {
+    use boa_engine::{js_string, JsError, JsValue, Source};
+    use std::rc::Rc;
+
+    let loader = Rc::new(loaders::HashMapModuleLoader::new());
+    let mut context = Context::builder()
+        .module_loader(loader.clone())
+        .build()
+        .unwrap();
+
+    let module = vec![(
+        js_string!("doTheThrow"),
+        IntoJsFunction::into_js_function(
+            |message: JsValue| -> JsResult<()> { JsResult::Err(JsError::from_opaque(message)) },
+            &mut context,
+        ),
+    )]
+    .into_js_module(&mut context);
+
+    loader.register(js_string!("test"), module);
+
+    let source = Source::from_bytes(
+        r"
+            import * as test from 'test';
+            try {
+                test.doTheThrow('javascript');
+            } catch(e) {
+                throw 'from ' + e;
+            }
+        ",
+    );
+    let root_module = Module::parse(source, None, &mut context).unwrap();
+
+    let promise_result = root_module.load_link_evaluate(&mut context);
+    context.run_jobs();
+
+    // Checking if the final promise didn't return an error.
+    assert_eq!(
+        promise_result.state().as_rejected(),
+        Some(&JsString::from("from javascript").into())
+    );
+}
