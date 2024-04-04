@@ -111,6 +111,10 @@ pub trait IntoJsFunction<Args, Ret>: Copy {
 /// [`IntoJsFunction`].
 pub trait TryIntoJsResult {
     /// Try to convert a Rust value into a `JsResult<JsValue>`.
+    ///
+    /// # Errors
+    /// Any parsing errors that may occur during the conversion, or any
+    /// error that happened during the call to a function.
     fn try_into_js_result(self, context: &mut Context) -> JsResult<JsValue>;
 }
 
