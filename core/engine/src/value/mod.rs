@@ -2,16 +2,23 @@
 //!
 //! Javascript values, utility methods and conversion between Javascript values and Rust values.
 
-mod conversions;
-pub(crate) mod display;
-mod equality;
-mod hash;
-mod integer;
-mod operations;
-mod r#type;
+use std::{
+    collections::HashSet,
+    fmt::{self, Display},
+    ops::Sub,
+};
 
-#[cfg(test)]
-mod tests;
+use num_bigint::BigInt;
+use num_integer::Integer;
+use num_traits::{ToPrimitive, Zero};
+use once_cell::sync::Lazy;
+
+use boa_gc::{custom_trace, Finalize, Trace};
+#[doc(inline)]
+pub use boa_macros::TryFromJs;
+use boa_profiler::Profiler;
+#[doc(inline)]
+pub use conversions::coerce::Convert;
 
 use crate::{
     builtins::{
@@ -25,30 +32,24 @@ use crate::{
     symbol::JsSymbol,
     Context, JsBigInt, JsResult, JsString,
 };
-use boa_gc::{custom_trace, Finalize, Trace};
-use boa_profiler::Profiler;
-use num_bigint::BigInt;
-use num_integer::Integer;
-use num_traits::{ToPrimitive, Zero};
-use once_cell::sync::Lazy;
-use std::{
-    collections::HashSet,
-    fmt::{self, Display},
-    ops::Sub,
-};
 
+pub(crate) use self::conversions::IntoOrUndefined;
 #[doc(inline)]
 pub use self::{
     conversions::try_from_js::TryFromJs, display::ValueDisplay, integer::IntegerOrInfinity,
     operations::*, r#type::Type,
 };
-#[doc(inline)]
-pub use boa_macros::TryFromJs;
 
-#[doc(inline)]
-pub use conversions::coerce::Coerce;
+mod conversions;
+pub(crate) mod display;
+mod equality;
+mod hash;
+mod integer;
+mod operations;
+mod r#type;
 
-pub(crate) use self::conversions::IntoOrUndefined;
+#[cfg(test)]
+mod tests;
 
 static TWO_E_64: Lazy<BigInt> = Lazy::new(|| {
     const TWO_E_64: u128 = 2u128.pow(64);
