@@ -228,12 +228,10 @@ impl Test {
 
         if verbosity > 2 {
             println!(
-                "`{}`{}: result text",
+                "`{}`{}: result text\n{result_text}\n",
                 self.path.display(),
                 if strict { " (strict)" } else { "" },
             );
-            println!("{}", result_text);
-            println!();
         }
 
         TestResult {
@@ -377,12 +375,11 @@ impl Test {
                 phase: Phase::Resolution,
                 error_type,
             } => {
-                let ref mut context =
-                    match self.create_context(harness, optimizer_options, console) {
-                        Ok(r) => r,
-                        Err(e) => return (false, e),
-                    }
-                    .0;
+                let context = &mut match self.create_context(harness, optimizer_options, console) {
+                    Ok(r) => r,
+                    Err(e) => return (false, e),
+                }
+                .0;
 
                 let module = match parse_module_and_register(source, &self.path, context) {
                     Ok(module) => module,

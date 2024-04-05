@@ -189,7 +189,9 @@ fn sleep(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsVal
 /// The `$262.agent.monotonicNow()` function.
 #[allow(clippy::unnecessary_wraps)]
 fn monotonic_now(_: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-    let clock = START.get().ok_or_else(|| JsNativeError::typ().with_message("could not get the monotonic clock"))?;
+    let clock = START
+        .get()
+        .ok_or_else(|| JsNativeError::typ().with_message("could not get the monotonic clock"))?;
     Ok(JsValue::from(clock.elapsed().as_millis() as f64))
 }
 
