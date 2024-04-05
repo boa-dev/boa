@@ -26,6 +26,7 @@ use super::Module;
 ///
 /// # Examples
 /// ```
+/// #![cfg(target_family = "unix")]
 /// # use std::path::Path;
 /// # use boa_engine::{Context, js_string};
 /// # use boa_engine::module::resolve_module_specifier;
