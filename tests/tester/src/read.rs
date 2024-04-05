@@ -1,19 +1,21 @@
 //! Module to read the list of test suites from disk.
 
-use crate::{HarnessFile, Ignored};
+use std::{
+    ffi::OsStr,
+    fs, io,
+    path::{Path, PathBuf},
+};
 
-use super::{Harness, Locale, Phase, Test, TestSuite};
 use color_eyre::{
     eyre::{eyre, WrapErr},
     Result,
 };
 use rustc_hash::FxHashMap;
 use serde::Deserialize;
-use std::{
-    ffi::OsStr,
-    fs, io,
-    path::{Path, PathBuf},
-};
+
+use crate::{HarnessFile, Ignored};
+
+use super::{Harness, Locale, Phase, Test, TestSuite};
 
 /// Representation of the YAML metadata in Test262 tests.
 #[derive(Debug, Clone, Deserialize)]

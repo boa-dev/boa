@@ -1,20 +1,17 @@
 //! The ECMAScript context.
 
-mod hooks;
-#[cfg(feature = "intl")]
-pub(crate) mod icu;
-pub mod intrinsics;
-
-use boa_parser::source::ReadChar;
-pub use hooks::{DefaultHooks, HostHooks};
-
-#[cfg(feature = "intl")]
-pub use icu::IcuError;
-
-use intrinsics::Intrinsics;
-
 use std::{cell::Cell, path::Path, rc::Rc};
 
+use boa_ast::StatementList;
+use boa_interner::Interner;
+use boa_parser::source::ReadChar;
+use boa_profiler::Profiler;
+pub use hooks::{DefaultHooks, HostHooks};
+#[cfg(feature = "intl")]
+pub use icu::IcuError;
+use intrinsics::Intrinsics;
+
+use crate::vm::RuntimeLimits;
 use crate::{
     builtins,
     class::{Class, ClassBuilder},
@@ -30,13 +27,13 @@ use crate::{
     vm::{ActiveRunnable, CallFrame, Vm},
     JsNativeError, JsResult, JsString, JsValue, Source,
 };
-use boa_ast::StatementList;
-use boa_interner::Interner;
-use boa_profiler::Profiler;
-
-use crate::vm::RuntimeLimits;
 
 use self::intrinsics::StandardConstructor;
+
+mod hooks;
+#[cfg(feature = "intl")]
+pub(crate) mod icu;
+pub mod intrinsics;
 
 thread_local! {
     static CANNOT_BLOCK_COUNTER: Cell<u64> = const { Cell::new(0) };

@@ -19,7 +19,7 @@ fn subdirectories() {
         .build()
         .unwrap();
 
-    let source = Source::from_bytes(b"export { file1 } from './file1.js';");
+    let source = Source::from_bytes(b"export { file1 } from 'file1.js';");
     let module = boa_engine::Module::parse(source, None, &mut context).unwrap();
     let result = module.load_link_evaluate(&mut context);
 

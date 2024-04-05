@@ -9,37 +9,40 @@
     clippy::cast_precision_loss
 )]
 
-mod edition;
-mod exec;
-mod read;
-mod results;
-
-use self::{
-    read::{read_harness, read_suite, read_test, MetaData, Negative, TestFlag},
-    results::{compare_results, write_json},
-};
-use bitflags::bitflags;
-use boa_engine::optimizer::OptimizerOptions;
-use clap::{ArgAction, Parser, ValueHint};
-use color_eyre::{
-    eyre::{bail, eyre, WrapErr},
-    Result,
-};
-use colored::Colorize;
-use edition::SpecEdition;
-use once_cell::sync::Lazy;
-use read::ErrorType;
-use rustc_hash::{FxHashMap, FxHashSet};
-use serde::{
-    de::{Unexpected, Visitor},
-    Deserialize, Deserializer, Serialize,
-};
 use std::{
     ops::{Add, AddAssign},
     path::{Path, PathBuf},
     process::Command,
     time::Instant,
 };
+
+use bitflags::bitflags;
+use clap::{ArgAction, Parser, ValueHint};
+use color_eyre::{
+    eyre::{bail, eyre, WrapErr},
+    Result,
+};
+use colored::Colorize;
+use once_cell::sync::Lazy;
+use rustc_hash::{FxHashMap, FxHashSet};
+use serde::{
+    de::{Unexpected, Visitor},
+    Deserialize, Deserializer, Serialize,
+};
+
+use boa_engine::optimizer::OptimizerOptions;
+use edition::SpecEdition;
+use read::ErrorType;
+
+use self::{
+    read::{read_harness, read_suite, read_test, MetaData, Negative, TestFlag},
+    results::{compare_results, write_json},
+};
+
+mod edition;
+mod exec;
+mod read;
+mod results;
 
 static START: Lazy<Instant> = Lazy::new(Instant::now);
 
@@ -225,7 +228,9 @@ fn main() -> Result<()> {
                 clone_test262(test262_commit, verbose)?;
 
                 Path::new(DEFAULT_TEST262_DIRECTORY)
-            };
+            }
+            .canonicalize();
+            let test262_path = &test262_path.wrap_err("could not get the Test262 path")?;
 
             run_test_suite(
                 &config,
