@@ -5,11 +5,11 @@ use rustc_hash::FxHashMap;
 use boa_gc::GcRefCell;
 use boa_parser::Source;
 
-use crate::script::Script;
 use crate::{
-    js_string, object::JsObject, realm::Realm, vm::ActiveRunnable, Context, JsError, JsNativeError,
-    JsResult, JsString,
+    Context, js_string, JsError, JsNativeError, JsResult, JsString, object::JsObject,
+    realm::Realm, vm::ActiveRunnable,
 };
+use crate::script::Script;
 
 use super::Module;
 
@@ -353,12 +353,12 @@ mod tests {
 
     #[rustfmt::skip]
     #[cfg(target_family = "windows")]
-    #[test_case(Some("d:\\hello\\ref.js"),       "a.js",                Ok("a:\\base\\a.js"))]
-    #[test_case(Some("d:\\base\\ref.js"),        ".\\b.js",             Ok("a:\\base\\b.js"))]
-    #[test_case(Some("d:\\base\\other\\ref.js"), ".\\c.js",             Ok("a:\\base\\other\\c.js"))]
-    #[test_case(Some("d:\\base\\other\\ref.js"), "..\\d.js",            Ok("a:\\base\\d.js"))]
-    #[test_case(Some("d:\\base\\ref.js"),        "e.js",                Ok("a:\\base\\e.js"))]
-    #[test_case(Some("d:\\base\\ref.js"),        ".\\f.js",             Ok("a:\\base\\f.js"))]
+    #[test_case(Some("a:\\hello\\ref.js"),       "a.js",                Ok("a:\\base\\a.js"))]
+    #[test_case(Some("a:\\base\\ref.js"),        ".\\b.js",             Ok("a:\\base\\b.js"))]
+    #[test_case(Some("a:\\base\\other\\ref.js"), ".\\c.js",             Ok("a:\\base\\other\\c.js"))]
+    #[test_case(Some("a:\\base\\other\\ref.js"), "..\\d.js",            Ok("a:\\base\\d.js"))]
+    #[test_case(Some("a:\\base\\ref.js"),        "e.js",                Ok("a:\\base\\e.js"))]
+    #[test_case(Some("a:\\base\\ref.js"),        ".\\f.js",             Ok("a:\\base\\f.js"))]
     #[test_case(Some(".\\ref.js"),               ".\\g.js",             Ok("a:\\base\\g.js"))]
     #[test_case(Some(".\\other\\ref.js"),        ".\\other\\h.js",      Ok("a:\\base\\other\\other\\h.js"))]
     #[test_case(Some(".\\other\\ref.js"),        ".\\other\\..\\h1.js", Ok("a:\\base\\other\\h1.js"))]
