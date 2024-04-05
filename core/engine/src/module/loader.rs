@@ -308,6 +308,18 @@ impl ModuleLoader for SimpleModuleLoader {
 
         finish_load(result, context);
     }
+
+    fn register_module(&self, specifier: JsString, module: Module) {
+        let path = PathBuf::from(specifier.to_std_string_escaped());
+
+        self.insert(path, module);
+    }
+
+    fn get_module(&self, specifier: JsString) -> Option<Module> {
+        let path = specifier.to_std_string_escaped();
+
+        self.get(Path::new(&path))
+    }
 }
 
 #[cfg(test)]

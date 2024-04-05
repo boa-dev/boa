@@ -17,11 +17,9 @@ boa_runtime.workspace = true
 boa_gc.workspace = true
 clap = { workspace = true, features = ["derive"] }
 serde = { workspace = true, features = ["derive"] }
-serde_yaml = "0.9.33"
+serde_yaml = "0.9.34" # TODO: Track https://github.com/saphyr-rs/saphyr.
 serde_json.workspace = true
 bitflags.workspace = true
-regex.workspace = true
-once_cell.workspace = true
 colored.workspace = true
 rustc-hash = { workspace = true, features = ["std"] }
 rayon = "1.10.0"
