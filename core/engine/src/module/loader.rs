@@ -315,7 +315,10 @@ mod tests {
 
     use super::*;
 
+    // Tests on Windows and Linux are different because of the path separator and the definition
+    // of absolute paths.
     #[rustfmt::skip]
+    #[cfg(target_family = "unix")]
     #[test_case(Some("/hello/ref.js"),      "a.js",             Ok("/base/a.js"))]
     #[test_case(Some("/base/ref.js"),       "./b.js",           Ok("/base/b.js"))]
     #[test_case(Some("/base/other/ref.js"), "./c.js",           Ok("/base/other/c.js"))]
@@ -334,6 +337,40 @@ mod tests {
     #[test_case(None,                       "../n.js",          Err(()))]
     fn resolve_test(ref_path: Option<&str>, spec: &str, expected: Result<&str, ()>) {
         let base = PathBuf::from("/base");
+
+        let mut context = Context::default();
+        let spec = js_string!(spec);
+        let ref_path = ref_path.map(PathBuf::from);
+
+        let actual = resolve_module_specifier(
+            Some(&base),
+            &spec,
+            ref_path.as_deref(),
+            &mut context,
+        );
+        assert_eq!(actual.map_err(|_| ()), expected.map(PathBuf::from));
+    }
+
+    #[rustfmt::skip]
+    #[cfg(target_family = "windows")]
+    #[test_case(Some("d:\\hello\\ref.js"),       "a.js",                Ok("a:\\base\\a.js"))]
+    #[test_case(Some("d:\\base\\ref.js"),        ".\\b.js",             Ok("a:\\base\\b.js"))]
+    #[test_case(Some("d:\\base\\other\\ref.js"), ".\\c.js",             Ok("a:\\base\\other\\c.js"))]
+    #[test_case(Some("d:\\base\\other\\ref.js"), "..\\d.js",            Ok("a:\\base\\d.js"))]
+    #[test_case(Some("d:\\base\\ref.js"),        "e.js",                Ok("a:\\base\\e.js"))]
+    #[test_case(Some("d:\\base\\ref.js"),        ".\\f.js",             Ok("a:\\base\\f.js"))]
+    #[test_case(Some(".\\ref.js"),               ".\\g.js",             Ok("a:\\base\\g.js"))]
+    #[test_case(Some(".\\other\\ref.js"),        ".\\other\\h.js",      Ok("a:\\base\\other\\other\\h.js"))]
+    #[test_case(Some(".\\other\\ref.js"),        ".\\other\\..\\h1.js", Ok("a:\\base\\other\\h1.js"))]
+    #[test_case(Some(".\\other\\ref.js"),        ".\\..\\h2.js",        Ok("a:\\base\\h2.js"))]
+    #[test_case(None,                            ".\\i.js",             Err(()))]
+    #[test_case(None,                            "j.js",                Ok("a:\\base\\j.js"))]
+    #[test_case(None,                            "other\\k.js",         Ok("a:\\base\\other\\k.js"))]
+    #[test_case(None,                            "other\\..\\..\\l.js", Err(()))]
+    #[test_case(Some("\\base\\ref.js"),          "other\\..\\..\\m.js", Err(()))]
+    #[test_case(None,                            "..\\n.js",            Err(()))]
+    fn resolve_test(ref_path: Option<&str>, spec: &str, expected: Result<&str, ()>) {
+        let base = PathBuf::from("a:\\base");
 
         let mut context = Context::default();
         let spec = js_string!(spec);
