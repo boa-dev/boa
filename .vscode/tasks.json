@@ -25,6 +25,16 @@
     },
     {
       "type": "process",
+      "label": "Cargo Build boa_tester",
+      "command": "cargo",
+      "args": ["build", "-p", "boa_tester"],
+      "group": "build",
+      "presentation": {
+        "clear": true
+      }
+    },
+    {
+      "type": "process",
       "label": "Run JS file",
       "command": "cargo",
       "args": ["run", "--bin", "boa", "${file}"],
