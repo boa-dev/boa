@@ -5,11 +5,11 @@ use rustc_hash::FxHashMap;
 use boa_gc::GcRefCell;
 use boa_parser::Source;
 
-use crate::script::Script;
 use crate::{
-    js_string, object::JsObject, realm::Realm, vm::ActiveRunnable, Context, JsError, JsNativeError,
-    JsResult, JsString,
+    Context, js_string, JsError, JsNativeError, JsResult, JsString, object::JsObject,
+    realm::Realm, vm::ActiveRunnable,
 };
+use crate::script::Script;
 
 use super::Module;
 
@@ -26,7 +26,8 @@ use super::Module;
 ///
 /// # Examples
 /// ```
-/// #![cfg(target_family = "unix")]
+/// #[cfg(target_family = "unix")]
+/// # {
 /// # use std::path::Path;
 /// # use boa_engine::{Context, js_string};
 /// # use boa_engine::module::resolve_module_specifier;
@@ -39,6 +40,7 @@ use super::Module;
 ///     ),
 ///     Ok("/base/a.js".into())
 /// );
+/// # }
 /// ```
 pub fn resolve_module_specifier(
     base: Option<&Path>,
