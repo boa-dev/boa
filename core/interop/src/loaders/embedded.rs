@@ -8,6 +8,7 @@ use std::path::Path;
 use boa_engine::module::{ModuleLoader, Referrer};
 use boa_engine::{Context, JsError, JsNativeError, JsResult, JsString, Module, Source};
 
+/// Normalize a specifier to remove `.` and `..` components.
 fn normalize_specifier(specifier: &JsString) -> JsResult<JsString> {
     let specifier = specifier.to_std_string_escaped();
     let components = specifier.split('/').collect::<Vec<_>>();
