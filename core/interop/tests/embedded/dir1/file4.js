@@ -1,3 +1,3 @@
 export function foo() {
-    return 3;
+  return 3;
 }

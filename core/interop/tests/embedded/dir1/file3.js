@@ -2,5 +2,5 @@
 // export { foo } from "./file4.js";
 
 export function foo() {
-    return 3;
+  return 3;
 }
