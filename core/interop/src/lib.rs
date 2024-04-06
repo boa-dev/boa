@@ -96,14 +96,14 @@ pub trait IntoJsFunctionUnsafe<Args, Ret>: private::IntoJsFunctionSealed<Args, R
 /// it directly when defining a function:
 /// ```
 /// # use boa_engine::{Context, JsValue, NativeFunction};
-/// # use boa_interop::IntoJsFunction;
+/// # use boa_interop::IntoJsFunctionCopied;
 /// # let mut context = Context::default();
 /// let f = |a: i32, b: i32| a + b;
 /// let f = f.into_js_function(&mut context);
 /// let result = f.call(&JsValue::undefined(), &[JsValue::from(1), JsValue::from(2)], &mut context).unwrap();
 /// assert_eq!(result, JsValue::new(3));
 /// ```
-pub trait IntoJsFunction<Args, Ret>: private::IntoJsFunctionSealed<Args, Ret> + Copy {
+pub trait IntoJsFunctionCopied<Args, Ret>: private::IntoJsFunctionSealed<Args, Ret> + Copy {
     /// Converts the type into a JS function.
     fn into_js_function(self, context: &mut Context) -> NativeFunction;
 }
@@ -112,7 +112,7 @@ pub trait IntoJsFunction<Args, Ret>: private::IntoJsFunctionSealed<Args, Ret> + 
 /// convert Rust types to JS types, including [`JsResult`] of
 /// Rust values and [`JsValue`]s. It is used to convert the
 /// return value of a function in [`IntoJsFunctionUnsafe`] and
-/// [`IntoJsFunction`].
+/// [`IntoJsFunctionCopied`].
 pub trait TryIntoJsResult {
     /// Try to convert a Rust value into a `JsResult<JsValue>`.
     ///
@@ -348,7 +348,7 @@ fn can_throw_exception() {
 
     let module = vec![(
         js_string!("doTheThrow"),
-        IntoJsFunction::into_js_function(
+        IntoJsFunctionCopied::into_js_function(
             |message: JsValue| -> JsResult<()> { JsResult::Err(JsError::from_opaque(message)) },
             &mut context,
         ),

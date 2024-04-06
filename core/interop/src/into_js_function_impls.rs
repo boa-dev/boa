@@ -2,10 +2,10 @@
 
 use std::cell::RefCell;
 
-use boa_engine::{Context, NativeFunction};
+use boa_engine::{js_string, Context, JsError, NativeFunction};
 
 use crate::private::IntoJsFunctionSealed;
-use crate::{IntoJsFunction, IntoJsFunctionUnsafe, TryFromJsArgument, TryIntoJsResult};
+use crate::{IntoJsFunctionCopied, IntoJsFunctionUnsafe, TryFromJsArgument, TryIntoJsResult};
 
 /// A token to represent the context argument in the function signature.
 /// This should not be used directly and has no external meaning.
@@ -43,8 +43,12 @@ macro_rules! impl_into_js_function {
                         $(
                             let ($id, rest) = $t::try_from_js_argument(this, rest, ctx)?;
                         )*
-                        let r = s.borrow_mut()( $($id),* );
-                        r.try_into_js_result(ctx)
+                        match s.try_borrow_mut() {
+                            Ok(mut r) => r( $($id),* ).try_into_js_result(ctx),
+                            Err(_) => {
+                                Err(JsError::from_opaque(js_string!("recursive calls to this function not supported").into()))
+                            }
+                        }
                     })
                 }
             }
@@ -73,7 +77,7 @@ macro_rules! impl_into_js_function {
         }
 
         // Safe versions for `Fn(..) -> ...`.
-        impl<$($t,)* R, T> IntoJsFunction<($($t,)*), R> for T
+        impl<$($t,)* R, T> IntoJsFunctionCopied<($($t,)*), R> for T
         where
             $($t: TryFromJsArgument + 'static,)*
             R: TryIntoJsResult,
@@ -95,7 +99,7 @@ macro_rules! impl_into_js_function {
             }
         }
 
-        impl<$($t,)* R, T> IntoJsFunction<($($t,)* ContextArgToken), R> for T
+        impl<$($t,)* R, T> IntoJsFunctionCopied<($($t,)* ContextArgToken), R> for T
         where
             $($t: TryFromJsArgument + 'static,)*
             R: TryIntoJsResult,
@@ -142,7 +146,7 @@ where
     }
 }
 
-impl<R, T> IntoJsFunction<(), R> for T
+impl<R, T> IntoJsFunctionCopied<(), R> for T
 where
     R: TryIntoJsResult,
     T: Fn() -> R + 'static + Copy,
