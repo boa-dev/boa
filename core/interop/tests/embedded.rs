@@ -1,4 +1,3 @@
-#![cfg(target_family = "unix")]
 #![allow(unused_crate_dependencies)]
 
 use std::rc::Rc;
@@ -10,7 +9,11 @@ use boa_interop::embed_module;
 
 #[test]
 fn simple() {
+    #[cfg(target_family = "unix")]
     let module_loader = Rc::new(embed_module!("tests/embedded/"));
+    #[cfg(target_family = "windows")]
+    let module_loader = Rc::new(embed_module!("tests\\embedded\\"));
+
     let mut context = Context::builder()
         .module_loader(module_loader.clone())
         .build()
