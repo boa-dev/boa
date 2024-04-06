@@ -6,6 +6,13 @@ use boa_engine::{Context, JsResult, JsString, JsValue, Module, NativeFunction};
 
 pub mod loaders;
 
+/// Internal module only.
+pub(crate) mod private {
+    /// A sealed trait to prevent users from implementing the `IntoJsModuleFunction`
+    /// and `IntoJsFunctionUnsafe` traits to their own types.
+    pub trait IntoJsFunctionSealed<A, R> {}
+}
+
 /// A trait to convert a type into a JS module.
 pub trait IntoJsModule {
     /// Converts the type into a JS module.
@@ -73,11 +80,7 @@ impl<T: IntoIterator<Item = (JsString, NativeFunction)> + Clone> IntoJsModule fo
 /// f.call(&JsValue::undefined(), &[JsValue::from(4)], &mut context).unwrap();
 /// assert_eq!(*x.borrow(), 5);
 /// ```
-///
-/// # Safety
-/// For this trait to be implemented safely, the implementing type must not contain any
-/// garbage collected objects (from [`boa_gc`]).
-pub unsafe trait IntoJsFunctionUnsafe<Args, Ret> {
+pub trait IntoJsFunctionUnsafe<Args, Ret>: private::IntoJsFunctionSealed<Args, Ret> {
     /// Converts the type into a JS function.
     ///
     /// # Safety
@@ -100,7 +103,7 @@ pub unsafe trait IntoJsFunctionUnsafe<Args, Ret> {
 /// let result = f.call(&JsValue::undefined(), &[JsValue::from(1), JsValue::from(2)], &mut context).unwrap();
 /// assert_eq!(result, JsValue::new(3));
 /// ```
-pub trait IntoJsFunction<Args, Ret>: Copy {
+pub trait IntoJsFunction<Args, Ret>: private::IntoJsFunctionSealed<Args, Ret> + Copy {
     /// Converts the type into a JS function.
     fn into_js_function(self, context: &mut Context) -> NativeFunction;
 }

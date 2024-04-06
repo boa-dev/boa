@@ -4,6 +4,7 @@ use std::cell::RefCell;
 
 use boa_engine::{Context, NativeFunction};
 
+use crate::private::IntoJsFunctionSealed;
 use crate::{IntoJsFunction, IntoJsFunctionUnsafe, TryFromJsArgument, TryIntoJsResult};
 
 /// A token to represent the context argument in the function signature.
@@ -13,7 +14,21 @@ pub struct ContextArgToken;
 
 macro_rules! impl_into_js_function {
     ($($id: ident: $t: ident),*) => {
-        unsafe impl<$($t,)* R, T> IntoJsFunctionUnsafe<($($t,)*), R> for T
+        impl<$($t,)* R, T> IntoJsFunctionSealed<($($t,)*), R> for T
+        where
+            $($t: TryFromJsArgument + 'static,)*
+            R: TryIntoJsResult,
+            T: FnMut($($t,)*) -> R + 'static
+        {}
+
+        impl<$($t,)* R, T> IntoJsFunctionSealed<($($t,)* ContextArgToken), R> for T
+        where
+            $($t: TryFromJsArgument + 'static,)*
+            R: TryIntoJsResult,
+            T: FnMut($($t,)* &mut Context) -> R + 'static
+        {}
+
+        impl<$($t,)* R, T> IntoJsFunctionUnsafe<($($t,)*), R> for T
         where
             $($t: TryFromJsArgument + 'static,)*
             R: TryIntoJsResult,
@@ -35,7 +50,7 @@ macro_rules! impl_into_js_function {
             }
         }
 
-        unsafe impl<$($t,)* R, T> IntoJsFunctionUnsafe<($($t,)* ContextArgToken), R> for T
+        impl<$($t,)* R, T> IntoJsFunctionUnsafe<($($t,)* ContextArgToken), R> for T
         where
             $($t: TryFromJsArgument + 'static,)*
             R: TryIntoJsResult,
@@ -104,7 +119,14 @@ macro_rules! impl_into_js_function {
     };
 }
 
-unsafe impl<R, T> IntoJsFunctionUnsafe<(), R> for T
+impl<R, T> IntoJsFunctionSealed<(), R> for T
+where
+    R: TryIntoJsResult,
+    T: FnMut() -> R + 'static,
+{
+}
+
+impl<R, T> IntoJsFunctionUnsafe<(), R> for T
 where
     R: TryIntoJsResult,
     T: FnMut() -> R + 'static,
