@@ -174,6 +174,12 @@ impl Vm {
             );
         }
 
+        // Keep carrying the last active runnable in case the current callframe
+        // yields.
+        if frame.active_runnable.is_none() {
+            frame.active_runnable = self.frames.last().and_then(|fr| fr.active_runnable.clone());
+        }
+
         self.frames.push(frame);
     }
 

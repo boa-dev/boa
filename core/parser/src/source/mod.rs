@@ -1,8 +1,5 @@
 //! Boa parser input source types.
 
-mod utf16;
-mod utf8;
-
 use std::{
     fs::File,
     io::{self, BufReader, Read},
@@ -11,6 +8,9 @@ use std::{
 
 pub use utf16::UTF16Input;
 pub use utf8::UTF8Input;
+
+mod utf16;
+mod utf8;
 
 /// A source of ECMAScript code.
 ///
@@ -119,6 +119,13 @@ impl<'path, R: Read> Source<'path, UTF8Input<R>> {
     }
 }
 
+impl<'path, R> Source<'path, R> {
+    /// Returns the path (if any) of this source file.
+    pub fn path(&self) -> Option<&'path Path> {
+        self.path
+    }
+}
+
 /// This trait is used to abstract over the different types of input readers.
 pub trait ReadChar {
     /// Retrieves the next unicode code point. Returns `None` if the end of the input is reached.
@@ -131,8 +138,9 @@ pub trait ReadChar {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use std::io::Cursor;
+
+    use super::*;
 
     #[test]
     fn from_bytes() {

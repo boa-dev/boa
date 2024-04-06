@@ -90,9 +90,7 @@ Congrats! You've executed your first `JavaScript` using `Boa`!
 
 For more information on `Boa`'s API. Feel free to check out our documentation.
 
-[**Release Documentation**](https://docs.rs/boa_engine/latest/boa_engine/)
-
-[**Dev `main` Documentation**](https://boajs.dev/boa/doc/boa_engine/index.html)
+[**API Documentation**](https://docs.rs/boa_engine/latest/boa_engine/)
 
 ## Conformance
 

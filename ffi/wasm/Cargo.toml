@@ -17,6 +17,9 @@ wasm-bindgen = { version = "0.2.91", default-features = false }
 getrandom = { version = "0.2.12", features = ["js"] }
 console_error_panic_hook = "0.1.7"
 
+[dev-dependencies]
+wasm-bindgen-test = "0.3.42"
+
 [features]
 default = ["boa_engine/annex-b", "boa_engine/intl_bundled", "boa_engine/experimental"]
 

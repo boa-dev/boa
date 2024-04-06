@@ -33,6 +33,18 @@
       ],
       "sourceLanguages": ["rust"],
       "preLaunchTask": "Cargo Build boa_cli"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug Boa (Tester)",
+      "windows": {
+        "program": "${workspaceFolder}/target/debug/boa_tester.exe"
+      },
+      "program": "${workspaceFolder}/target/debug/boa_tester",
+      "args": ["run", "-s", "${input:testPath}", "-vvv"],
+      "sourceLanguages": ["rust"],
+      "preLaunchTask": "Cargo Build boa_tester"
     }
   ],
   "inputs": [
@@ -46,6 +58,11 @@
       "id": "modulePath",
       "description": "Relative path to the module root directory",
       "default": "debug",
+      "type": "promptString"
+    },
+    {
+      "id": "testPath",
+      "description": "Relative path to the test from the test262 directory",
       "type": "promptString"
     }
   ]
