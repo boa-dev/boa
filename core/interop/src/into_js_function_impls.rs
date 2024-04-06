@@ -5,7 +5,7 @@ use std::cell::RefCell;
 use boa_engine::{js_string, Context, JsError, NativeFunction};
 
 use crate::private::IntoJsFunctionSealed;
-use crate::{IntoJsFunctionCopied, IntoJsFunctionUnsafe, TryFromJsArgument, TryIntoJsResult};
+use crate::{IntoJsFunctionCopied, TryFromJsArgument, TryIntoJsResult, UnsafeIntoJsFunction};
 
 /// A token to represent the context argument in the function signature.
 /// This should not be used directly and has no external meaning.
@@ -28,7 +28,7 @@ macro_rules! impl_into_js_function {
             T: FnMut($($t,)* &mut Context) -> R + 'static
         {}
 
-        impl<$($t,)* R, T> IntoJsFunctionUnsafe<($($t,)*), R> for T
+        impl<$($t,)* R, T> UnsafeIntoJsFunction<($($t,)*), R> for T
         where
             $($t: TryFromJsArgument + 'static,)*
             R: TryIntoJsResult,
@@ -54,7 +54,7 @@ macro_rules! impl_into_js_function {
             }
         }
 
-        impl<$($t,)* R, T> IntoJsFunctionUnsafe<($($t,)* ContextArgToken), R> for T
+        impl<$($t,)* R, T> UnsafeIntoJsFunction<($($t,)* ContextArgToken), R> for T
         where
             $($t: TryFromJsArgument + 'static,)*
             R: TryIntoJsResult,
@@ -130,7 +130,7 @@ where
 {
 }
 
-impl<R, T> IntoJsFunctionUnsafe<(), R> for T
+impl<R, T> UnsafeIntoJsFunction<(), R> for T
 where
     R: TryIntoJsResult,
     T: FnMut() -> R + 'static,

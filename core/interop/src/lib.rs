@@ -51,7 +51,7 @@ impl<T: IntoIterator<Item = (JsString, NativeFunction)> + Clone> IntoJsModule fo
 /// For example:
 /// ```
 /// # use boa_engine::{Context, JsValue, NativeFunction};
-/// # use boa_interop::IntoJsFunctionUnsafe;
+/// # use boa_interop::UnsafeIntoJsFunction;
 /// # let mut context = Context::default();
 /// let f = |a: i32, b: i32| a + b;
 /// let f = unsafe { f.into_js_function_unsafe(&mut context) };
@@ -63,7 +63,7 @@ impl<T: IntoIterator<Item = (JsString, NativeFunction)> + Clone> IntoJsModule fo
 /// also use closures directly:
 /// ```
 /// # use boa_engine::{Context, JsValue, NativeFunction};
-/// # use boa_interop::IntoJsFunctionUnsafe;
+/// # use boa_interop::UnsafeIntoJsFunction;
 /// # use std::cell::RefCell;
 /// # use std::rc::Rc;
 /// # let mut context = Context::default();
@@ -80,7 +80,7 @@ impl<T: IntoIterator<Item = (JsString, NativeFunction)> + Clone> IntoJsModule fo
 /// f.call(&JsValue::undefined(), &[JsValue::from(4)], &mut context).unwrap();
 /// assert_eq!(*x.borrow(), 5);
 /// ```
-pub trait IntoJsFunctionUnsafe<Args, Ret>: private::IntoJsFunctionSealed<Args, Ret> {
+pub trait UnsafeIntoJsFunction<Args, Ret>: private::IntoJsFunctionSealed<Args, Ret> {
     /// Converts the type into a JS function.
     ///
     /// # Safety
@@ -89,7 +89,7 @@ pub trait IntoJsFunctionUnsafe<Args, Ret>: private::IntoJsFunctionSealed<Args, R
     unsafe fn into_js_function_unsafe(self, context: &mut Context) -> NativeFunction;
 }
 
-/// The safe equivalent of the [`IntoJsFunctionUnsafe`] trait.
+/// The safe equivalent of the [`UnsafeIntoJsFunction`] trait.
 /// This can only be used on closures that have the `Copy` trait.
 ///
 /// Since this function is implemented for `Fn(...)` closures, we can use
@@ -111,7 +111,7 @@ pub trait IntoJsFunctionCopied<Args, Ret>: private::IntoJsFunctionSealed<Args, R
 /// Create a [`JsResult`] from a Rust value. This trait is used to
 /// convert Rust types to JS types, including [`JsResult`] of
 /// Rust values and [`JsValue`]s. It is used to convert the
-/// return value of a function in [`IntoJsFunctionUnsafe`] and
+/// return value of a function in [`UnsafeIntoJsFunction`] and
 /// [`IntoJsFunctionCopied`].
 pub trait TryIntoJsResult {
     /// Try to convert a Rust value into a `JsResult<JsValue>`.
@@ -259,7 +259,7 @@ pub fn into_js_module() {
             ),
             (
                 js_string!("bar"),
-                IntoJsFunctionUnsafe::into_js_function_unsafe(
+                UnsafeIntoJsFunction::into_js_function_unsafe(
                     {
                         let counter = bar_count.clone();
                         move |i: i32| {
@@ -271,7 +271,7 @@ pub fn into_js_module() {
             ),
             (
                 js_string!("dad"),
-                IntoJsFunctionUnsafe::into_js_function_unsafe(
+                UnsafeIntoJsFunction::into_js_function_unsafe(
                     {
                         let counter = dad_count.clone();
                         move |args: JsRest, context: &mut Context| {
@@ -286,7 +286,7 @@ pub fn into_js_module() {
             ),
             (
                 js_string!("send"),
-                IntoJsFunctionUnsafe::into_js_function_unsafe(
+                UnsafeIntoJsFunction::into_js_function_unsafe(
                     {
                         let result = result.clone();
                         move |value: JsValue| {
