@@ -29,6 +29,7 @@ impl<T: IntoIterator<Item = (JsString, NativeFunction)> + Clone> IntoJsModule fo
                 })
             },
             None,
+            None,
             context,
         )
     }

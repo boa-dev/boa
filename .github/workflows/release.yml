@@ -60,7 +60,7 @@ jobs:
         uses: jetli/wasm-pack-action@v0.4.0
         with:
           version: 'latest'
-      
+
       - name: Build boa_wasm
         run: wasm-pack build --scope boa-dev ./ffi/wasm
 
@@ -74,47 +74,6 @@ jobs:
 
       - name: Publish to npm
         run: npm publish ./ffi/wasm/pkg --access=public
-
-
-  doc-publish:
-    name: Publish documentation
-    needs: publish
-    runs-on: ubuntu-latest
-    timeout-minutes: 60
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install Rust toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          profile: minimal
-          override: true
-      - name: Install wasm-pack
-        uses: baptiste0928/cargo-install@v3.0.1
-        with:
-          crate: wasm-pack
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-      - run: npm ci
-      - name: Cache npm build
-        uses: actions/cache@v4
-        with:
-          path: |
-            node_modules
-            target
-            ffi/wasm/pkg
-            ~/.cargo/git
-            ~/.cargo/registry
-          key: ${{ runner.os }}-npm-build-target-${{ hashFiles('**/package-lock.json') }}
-      - run: wasm-pack build ./ffi/wasm
-      - run: npm run build:prod
-      - name: Deploy
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          publish_dir: ./dist
-          destination_dir: playground
-          github_token: ${{ secrets.GITHUB_TOKEN }}
 
   release-binaries:
     name: Publish binaries

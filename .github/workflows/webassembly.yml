@@ -36,25 +36,13 @@ jobs:
           override: true
           profile: minimal
       - uses: Swatinem/rust-cache@v2
-      - name: Cache npm build
-        uses: actions/cache@v4
-        with:
-          path: |
-            node_modules
-          key: ${{ runner.os }}-npm-build-target-${{ hashFiles('**/package-lock.json') }}
       - name: Install wasm-pack
         uses: baptiste0928/cargo-install@v3.0.1
         with:
           crate: wasm-pack
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "16"
-      - run: npm ci
       - name: Build Playground
-        run: |
-          wasm-pack build ./ffi/wasm --verbose
-          npm run build
-      - name: Install Playwright Browsers
-        run: npx playwright install --with-deps
-      - name: Run Playwright test
-        run: npm run e2e
+        run: wasm-pack build ./ffi/wasm --verbose
+      - name: Test (Chrome)
+        run: wasm-pack test --headless --chrome ./ffi/wasm --verbose
+      - name: Test (Firefox)
+        run: wasm-pack test --headless --firefox ./ffi/wasm --verbose

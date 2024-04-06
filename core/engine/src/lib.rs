@@ -79,6 +79,11 @@ compile_error!("Boa requires a lock free `AtomicUsize` in order to work properly
 extern crate self as boa_engine;
 extern crate static_assertions as sa;
 
+pub use boa_ast as ast;
+pub use boa_gc as gc;
+pub use boa_interner as interner;
+pub use boa_parser as parser;
+
 pub mod bigint;
 pub mod builtins;
 pub mod bytecompiler;

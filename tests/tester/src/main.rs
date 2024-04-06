@@ -9,39 +9,42 @@
     clippy::cast_precision_loss
 )]
 
-mod edition;
-mod exec;
-mod read;
-mod results;
-
-use self::{
-    read::{read_harness, read_suite, read_test, MetaData, Negative, TestFlag},
-    results::{compare_results, write_json},
+use std::{
+    ops::{Add, AddAssign},
+    path::{Path, PathBuf},
+    process::Command,
+    sync::OnceLock,
+    time::Instant,
 };
+
 use bitflags::bitflags;
-use boa_engine::optimizer::OptimizerOptions;
 use clap::{ArgAction, Parser, ValueHint};
 use color_eyre::{
     eyre::{bail, eyre, WrapErr},
     Result,
 };
 use colored::Colorize;
-use edition::SpecEdition;
-use once_cell::sync::Lazy;
-use read::ErrorType;
 use rustc_hash::{FxHashMap, FxHashSet};
 use serde::{
     de::{Unexpected, Visitor},
     Deserialize, Deserializer, Serialize,
 };
-use std::{
-    ops::{Add, AddAssign},
-    path::{Path, PathBuf},
-    process::Command,
-    time::Instant,
+
+use boa_engine::optimizer::OptimizerOptions;
+use edition::SpecEdition;
+use read::ErrorType;
+
+use self::{
+    read::{read_harness, read_suite, read_test, MetaData, Negative, TestFlag},
+    results::{compare_results, write_json},
 };
 
-static START: Lazy<Instant> = Lazy::new(Instant::now);
+mod edition;
+mod exec;
+mod read;
+mod results;
+
+static START: OnceLock<Instant> = OnceLock::new();
 
 /// Structure that contains the configuration of the tester.
 #[derive(Debug, Deserialize)]
@@ -186,6 +189,8 @@ const DEFAULT_TEST262_DIRECTORY: &str = "test262";
 
 /// Program entry point.
 fn main() -> Result<()> {
+    color_eyre::install()?;
+
     // Safety: This is needed because we run tests in multiple threads.
     // It is safe because tests do not modify the environment.
     unsafe {
@@ -193,8 +198,10 @@ fn main() -> Result<()> {
     }
 
     // initializes the monotonic clock.
-    Lazy::force(&START);
-    color_eyre::install()?;
+    START
+        .set(Instant::now())
+        .map_err(|_| eyre!("could not initialize the monotonic clock"))?;
+
     match Cli::parse() {
         Cli::Run {
             verbose,
@@ -210,8 +217,11 @@ fn main() -> Result<()> {
             console,
         } => {
             let config: Config = {
-                let input = std::fs::read_to_string(config_path)?;
-                toml::from_str(&input).wrap_err("could not decode tester config file")?
+                let input = std::fs::read_to_string(&config_path).wrap_err_with(|| {
+                    eyre!("could not read config file `{}`", config_path.display())
+                })?;
+                toml::from_str(&input)
+                    .wrap_err_with(|| eyre!("invalid config file `{}`", config_path.display()))?
             };
 
             let test262_commit = test262_commit
@@ -225,7 +235,9 @@ fn main() -> Result<()> {
                 clone_test262(test262_commit, verbose)?;
 
                 Path::new(DEFAULT_TEST262_DIRECTORY)
-            };
+            }
+            .canonicalize();
+            let test262_path = &test262_path.wrap_err("could not get the Test262 path")?;
 
             run_test_suite(
                 &config,
