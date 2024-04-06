@@ -28,3 +28,6 @@ hashbrown = { workspace = true, default-features = false, features = ["inline-mo
 
 [lints]
 workspace = true
+
+[package.metadata.docs.rs]
+all-features = true
