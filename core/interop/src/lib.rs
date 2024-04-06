@@ -99,13 +99,13 @@ pub trait UnsafeIntoJsFunction<Args, Ret>: private::IntoJsFunctionSealed<Args, R
 /// # use boa_interop::IntoJsFunctionCopied;
 /// # let mut context = Context::default();
 /// let f = |a: i32, b: i32| a + b;
-/// let f = f.into_js_function(&mut context);
+/// let f = f.into_js_function_copied(&mut context);
 /// let result = f.call(&JsValue::undefined(), &[JsValue::from(1), JsValue::from(2)], &mut context).unwrap();
 /// assert_eq!(result, JsValue::new(3));
 /// ```
 pub trait IntoJsFunctionCopied<Args, Ret>: private::IntoJsFunctionSealed<Args, Ret> + Copy {
     /// Converts the type into a JS function.
-    fn into_js_function(self, context: &mut Context) -> NativeFunction;
+    fn into_js_function_copied(self, context: &mut Context) -> NativeFunction;
 }
 
 /// Create a [`JsResult`] from a Rust value. This trait is used to
@@ -348,7 +348,7 @@ fn can_throw_exception() {
 
     let module = vec![(
         js_string!("doTheThrow"),
-        IntoJsFunctionCopied::into_js_function(
+        IntoJsFunctionCopied::into_js_function_copied(
             |message: JsValue| -> JsResult<()> { JsResult::Err(JsError::from_opaque(message)) },
             &mut context,
         ),

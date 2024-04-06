@@ -84,7 +84,7 @@ macro_rules! impl_into_js_function {
             T: Fn($($t,)*) -> R + 'static + Copy,
         {
             #[allow(unused_variables)]
-            fn into_js_function(self, _context: &mut Context) -> NativeFunction {
+            fn into_js_function_copied(self, _context: &mut Context) -> NativeFunction {
                 let s = self;
                 unsafe {
                     NativeFunction::from_closure(move |this, args, ctx| {
@@ -106,7 +106,7 @@ macro_rules! impl_into_js_function {
             T: Fn($($t,)* &mut Context) -> R + 'static + Copy,
         {
             #[allow(unused_variables)]
-            fn into_js_function(self, _context: &mut Context) -> NativeFunction {
+            fn into_js_function_copied(self, _context: &mut Context) -> NativeFunction {
                 let s = self;
                 unsafe {
                     NativeFunction::from_closure(move |this, args, ctx| {
@@ -151,7 +151,7 @@ where
     R: TryIntoJsResult,
     T: Fn() -> R + 'static + Copy,
 {
-    fn into_js_function(self, _context: &mut Context) -> NativeFunction {
+    fn into_js_function_copied(self, _context: &mut Context) -> NativeFunction {
         let s = self;
         unsafe {
             NativeFunction::from_closure(move |_this, _args, ctx| {
