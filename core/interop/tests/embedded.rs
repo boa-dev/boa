@@ -7,6 +7,7 @@ use boa_engine::module::ModuleLoader;
 use boa_engine::{js_string, Context, JsString, JsValue, Module, Source};
 use boa_interop::embed_module;
 
+#[cfg(target_family = "unix")]
 #[test]
 fn simple() {
     let module_loader = Rc::new(embed_module!("tests/embedded/"));
