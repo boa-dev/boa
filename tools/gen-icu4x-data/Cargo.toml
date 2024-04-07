@@ -30,3 +30,6 @@ icu_segmenter = { workspace = true, features = ["datagen"] }
 
 [lints]
 workspace = true
+
+[package.metadata.docs.rs]
+all-features = true

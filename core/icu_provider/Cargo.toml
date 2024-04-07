@@ -22,3 +22,6 @@ std = ["once_cell/std"]
 
 [lints]
 workspace = true
+
+[package.metadata.docs.rs]
+all-features = true
