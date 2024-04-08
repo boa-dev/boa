@@ -100,7 +100,11 @@ pub trait UnsafeIntoJsFunction<Args, Ret>: private::IntoJsFunctionSealed<Args, R
 /// # let mut context = Context::default();
 /// let f = |a: i32, b: i32| a + b;
 /// let f = f.into_js_function_copied(&mut context);
-/// let result = f.call(&JsValue::undefined(), &[JsValue::from(1), JsValue::from(2)], &mut context).unwrap();
+/// let result = f.call(
+///     &JsValue::undefined(),
+///     &[JsValue::from(1), JsValue::from(2)],
+///     &mut context
+/// ).unwrap();
 /// assert_eq!(result, JsValue::new(3));
 /// ```
 pub trait IntoJsFunctionCopied<Args, Ret>: private::IntoJsFunctionSealed<Args, Ret> + Copy {
@@ -139,35 +143,62 @@ impl<T: TryFromJs> TryFromJsArgument for T {
 
 /// An argument that when used in a JS function will empty the list
 /// of JS arguments as `JsValue`s. This can be used for having the
-/// rest of the arguments in a function.
+/// rest of the arguments in a function. It should be the last
+/// argument of your function, before the `Context` argument if any.
+///
+/// For example,
+/// ```
+/// # use boa_engine::{Context, JsValue};
+/// # use boa_interop::{IntoJsFunctionCopied, JsRest};
+/// # let mut context = Context::default();
+/// let sums = (|args: JsRest, context: &mut Context| -> i32 {
+///    args.iter().map(|i| i.try_js_into::<i32>(context).unwrap()).sum::<i32>()
+/// }).into_js_function_copied(&mut context);
+///
+/// let result = sums.call(
+///     &JsValue::undefined(),
+///     &[JsValue::from(1), JsValue::from(2), JsValue::from(3)],
+///     &mut context
+/// ).unwrap();
+/// assert_eq!(result, JsValue::new(6));
+/// ```
 #[derive(Debug, Clone)]
 pub struct JsRest(pub Vec<JsValue>);
 
 #[allow(unused)]
 impl JsRest {
     /// Consumes the `JsRest` and returns the inner list of `JsValue`.
-    fn into_inner(self) -> Vec<JsValue> {
+    #[must_use]
+    pub fn into_inner(self) -> Vec<JsValue> {
         self.0
     }
 
     /// Returns an iterator over the inner list of `JsValue`.
-    fn iter(&self) -> impl Iterator<Item = &JsValue> {
+    pub fn iter(&self) -> impl Iterator<Item = &JsValue> {
         self.0.iter()
     }
 
     /// Returns a mutable iterator over the inner list of `JsValue`.
-    fn iter_mut(&mut self) -> impl Iterator<Item = &mut JsValue> {
+    pub fn iter_mut(&mut self) -> impl Iterator<Item = &mut JsValue> {
         self.0.iter_mut()
     }
 
     /// Returns the length of the inner list of `JsValue`.
-    fn len(&self) -> usize {
+    #[must_use]
+    pub fn len(&self) -> usize {
         self.0.len()
     }
 
     /// Returns `true` if the inner list of `JsValue` is empty.
-    fn is_empty(&self) -> bool {
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
         self.0.is_empty()
+    }
+}
+
+impl From<&[JsValue]> for JsRest {
+    fn from(values: &[JsValue]) -> Self {
+        Self(values.to_vec())
     }
 }
 
@@ -180,13 +211,77 @@ impl IntoIterator for JsRest {
     }
 }
 
-impl TryFromJsArgument for JsRest {
+/// An argument that when used in a JS function will capture all
+/// the arguments that can be converted to `T`. The first argument
+/// that cannot be converted to `T` will stop the conversion.
+///
+/// For example,
+/// ```
+/// # use boa_engine::{Context, JsValue};
+/// # use boa_interop::{IntoJsFunctionCopied, JsAll};
+/// # let mut context = Context::default();
+/// let sums = (|args: JsAll<i32>, context: &mut Context| -> i32 {
+///    args.iter().sum()
+/// }).into_js_function_copied(&mut context);
+///
+/// let result = sums.call(
+///     &JsValue::undefined(),
+///     &[JsValue::from(1), JsValue::from(2), JsValue::from(3), JsValue::Boolean(true), JsValue::from(4)],
+///     &mut context
+/// ).unwrap();
+/// assert_eq!(result, JsValue::new(6));
+/// ```
+#[derive(Debug, Clone)]
+pub struct JsAll<T: TryFromJs>(pub Vec<T>);
+
+impl<T: TryFromJs> JsAll<T> {
+    /// Consumes the `JsAll` and returns the inner list of `T`.
+    #[must_use]
+    pub fn into_inner(self) -> Vec<T> {
+        self.0
+    }
+
+    /// Returns an iterator over the inner list of `T`.
+    pub fn iter(&self) -> impl Iterator<Item = &T> {
+        self.0.iter()
+    }
+
+    /// Returns a mutable iterator over the inner list of `T`.
+    pub fn iter_mut(&mut self) -> impl Iterator<Item = &mut T> {
+        self.0.iter_mut()
+    }
+
+    /// Returns the length of the inner list of `T`.
+    #[must_use]
+    pub fn len(&self) -> usize {
+        self.0.len()
+    }
+
+    /// Returns `true` if the inner list of `T` is empty.
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+}
+
+impl<T: TryFromJs> TryFromJsArgument for JsAll<T> {
     fn try_from_js_argument<'a>(
-        _: &'a JsValue,
-        rest: &'a [JsValue],
-        _context: &mut Context,
+        _this: &'a JsValue,
+        mut rest: &'a [JsValue],
+        context: &mut Context,
     ) -> JsResult<(Self, &'a [JsValue])> {
-        Ok((JsRest(rest.to_vec()), &[]))
+        let mut values = Vec::new();
+
+        while !rest.is_empty() {
+            match rest[0].try_js_into(context) {
+                Ok(value) => {
+                    values.push(value);
+                    rest = &rest[1..];
+                }
+                Err(_) => break,
+            }
+        }
+        Ok((JsAll(values), rest))
     }
 }
 
