@@ -2,10 +2,10 @@
 
 use std::cell::RefCell;
 
-use boa_engine::{js_string, Context, JsError, NativeFunction};
+use boa_engine::{js_string, Context, JsError, NativeFunction, TryIntoJsResult};
 
 use crate::private::IntoJsFunctionSealed;
-use crate::{IntoJsFunctionCopied, TryFromJsArgument, TryIntoJsResult, UnsafeIntoJsFunction};
+use crate::{IntoJsFunctionCopied, TryFromJsArgument, UnsafeIntoJsFunction};
 
 /// A token to represent the context argument in the function signature.
 /// This should not be used directly and has no external meaning.
