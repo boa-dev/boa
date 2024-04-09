@@ -1,8 +1,10 @@
 //! Interop utilities between Boa and its host.
 
+use boa_engine::{
+    Context, js_string, JsError, JsResult, JsString, JsValue, Module, NativeFunction, NativeObject,
+};
 use boa_engine::module::SyntheticModuleInitializer;
 use boa_engine::value::TryFromJs;
-use boa_engine::{Context, JsResult, JsString, JsValue, Module, NativeFunction};
 
 pub mod loaders;
 
@@ -298,6 +300,46 @@ impl<T: TryFromJs> TryFromJsArgument for JsThis<T> {
         context: &mut Context,
     ) -> JsResult<(Self, &'a [JsValue])> {
         Ok((JsThis(this.try_js_into(context)?), rest))
+    }
+}
+
+/// Captures the host_defined value as a JS function argument, based on
+/// its type. This will clone the HostDefined value.
+///
+/// For example,
+/// ```
+/// # use boa_engine::{Context, Finalize, JsData, JsValue, Trace};
+/// use boa_interop::{IntoJsFunctionCopied, HostDefined};
+///
+/// #[derive(Clone, Debug, Finalize, JsData, Trace)]
+/// struct CustomHostDefinedStruct {
+///    #[unsafe_ignore_trace]
+///    pub counter: usize,
+/// }
+/// let mut context = Context::default();
+/// context.realm().host_defined_mut().insert(CustomHostDefinedStruct { counter: 123 });
+/// let f = (|HostDefined(host): HostDefined<CustomHostDefinedStruct>| {
+///   host.counter + 1
+/// }).into_js_function_copied(&mut context);
+///
+/// assert_eq!(f.call(&JsValue::undefined(), &[], &mut context), Ok(JsValue::new(124)));
+///
+/// ```
+#[derive(Debug, Clone)]
+pub struct HostDefined<T>(pub T);
+
+impl<T: NativeObject + Clone> TryFromJsArgument for HostDefined<T> {
+    fn try_from_js_argument<'a>(
+        _this: &'a JsValue,
+        rest: &'a [JsValue],
+        context: &mut Context,
+    ) -> JsResult<(Self, &'a [JsValue])> {
+        match context.realm().host_defined().get::<T>() {
+            Some(value) => Ok((HostDefined(value.clone()), rest)),
+            None => Err(JsError::from_opaque(
+                js_string!("Host defined value not found").into(),
+            )),
+        }
     }
 }
 
