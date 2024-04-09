@@ -306,6 +306,9 @@ impl<T: TryFromJs> TryFromJsArgument for JsThis<T> {
 /// Captures the `host_defined` value as a JS function argument, based on
 /// its type. This will clone the `HostDefined` value.
 ///
+/// The host defined type must implement [`Clone`], otherwise the borrow
+/// checker would not be able to ensure the safety of the operation.
+///
 /// For example,
 /// ```
 /// # use boa_engine::{Context, Finalize, JsData, JsValue, Trace};
