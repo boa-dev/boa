@@ -117,21 +117,21 @@ pub trait IntoJsFunctionCopied<Args, Ret>: private::IntoJsFunctionSealed<Args, R
 /// Create a Rust value from a JS argument. This trait is used to
 /// convert arguments from JS to Rust types. It allows support
 /// for optional arguments or rest arguments.
-pub trait TryFromJsArgument: Sized {
+pub trait TryFromJsArgument<'a>: Sized {
     /// Try to convert a JS argument into a Rust value, returning the
     /// value and the rest of the arguments to be parsed.
     ///
     /// # Errors
     /// Any parsing errors that may occur during the conversion.
-    fn try_from_js_argument<'a>(
+    fn try_from_js_argument(
         this: &'a JsValue,
         rest: &'a [JsValue],
         context: &mut Context,
     ) -> JsResult<(Self, &'a [JsValue])>;
 }
 
-impl<T: TryFromJs> TryFromJsArgument for T {
-    fn try_from_js_argument<'a>(
+impl<'a, T: TryFromJs> TryFromJsArgument<'a> for T {
+    fn try_from_js_argument(
         _: &'a JsValue,
         rest: &'a [JsValue],
         context: &mut Context,
@@ -165,24 +165,25 @@ impl<T: TryFromJs> TryFromJsArgument for T {
 /// assert_eq!(result, JsValue::new(6));
 /// ```
 #[derive(Debug, Clone)]
-pub struct JsRest(pub Vec<JsValue>);
+pub struct JsRest<'a>(pub &'a [JsValue]);
 
 #[allow(unused)]
-impl JsRest {
+impl<'a> JsRest<'a> {
     /// Consumes the `JsRest` and returns the inner list of `JsValue`.
     #[must_use]
-    pub fn into_inner(self) -> Vec<JsValue> {
+    pub fn into_inner(self) -> &'a [JsValue] {
         self.0
+    }
+
+    /// Transforms the `JsRest` into a `Vec<JsValue>`.
+    #[must_use]
+    pub fn to_vec(self) -> Vec<JsValue> {
+        self.0.to_vec()
     }
 
     /// Returns an iterator over the inner list of `JsValue`.
     pub fn iter(&self) -> impl Iterator<Item = &JsValue> {
         self.0.iter()
-    }
-
-    /// Returns a mutable iterator over the inner list of `JsValue`.
-    pub fn iter_mut(&mut self) -> impl Iterator<Item = &mut JsValue> {
-        self.0.iter_mut()
     }
 
     /// Returns the length of the inner list of `JsValue`.
@@ -198,18 +199,18 @@ impl JsRest {
     }
 }
 
-impl From<&[JsValue]> for JsRest {
-    fn from(values: &[JsValue]) -> Self {
-        Self(values.to_vec())
+impl<'a> From<&'a [JsValue]> for JsRest<'a> {
+    fn from(values: &'a [JsValue]) -> Self {
+        Self(values)
     }
 }
 
-impl IntoIterator for JsRest {
-    type Item = JsValue;
-    type IntoIter = std::vec::IntoIter<JsValue>;
+impl<'a> IntoIterator for JsRest<'a> {
+    type Item = &'a JsValue;
+    type IntoIter = std::slice::Iter<'a, JsValue>;
 
     fn into_iter(self) -> Self::IntoIter {
-        self.into_inner().into_iter()
+        self.into_inner().iter()
     }
 }
 
@@ -266,8 +267,8 @@ impl<T: TryFromJs> JsAll<T> {
     }
 }
 
-impl<T: TryFromJs> TryFromJsArgument for JsAll<T> {
-    fn try_from_js_argument<'a>(
+impl<'a, T: TryFromJs> TryFromJsArgument<'a> for JsAll<T> {
+    fn try_from_js_argument(
         _this: &'a JsValue,
         mut rest: &'a [JsValue],
         context: &mut Context,
@@ -293,8 +294,8 @@ impl<T: TryFromJs> TryFromJsArgument for JsAll<T> {
 #[derive(Debug, Clone)]
 pub struct JsThis<T: TryFromJs>(pub T);
 
-impl<T: TryFromJs> TryFromJsArgument for JsThis<T> {
-    fn try_from_js_argument<'a>(
+impl<'a, T: TryFromJs> TryFromJsArgument<'a> for JsThis<T> {
+    fn try_from_js_argument(
         this: &'a JsValue,
         rest: &'a [JsValue],
         context: &mut Context,
@@ -331,8 +332,8 @@ impl<T: TryFromJs> TryFromJsArgument for JsThis<T> {
 #[derive(Debug, Clone)]
 pub struct HostDefined<T>(pub T);
 
-impl<T: NativeObject + Clone> TryFromJsArgument for HostDefined<T> {
-    fn try_from_js_argument<'a>(
+impl<'a, T: NativeObject + Clone> TryFromJsArgument<'a> for HostDefined<T> {
+    fn try_from_js_argument(
         _this: &'a JsValue,
         rest: &'a [JsValue],
         context: &mut Context,
@@ -398,7 +399,7 @@ pub fn into_js_module() {
                 UnsafeIntoJsFunction::into_js_function_unsafe(
                     {
                         let counter = dad_count.clone();
-                        move |args: JsRest, context: &mut Context| {
+                        move |args: JsRest<'_>, context: &mut Context| {
                             *counter.borrow_mut() += args
                                 .into_iter()
                                 .map(|i| i.try_js_into::<i32>(context).unwrap())
