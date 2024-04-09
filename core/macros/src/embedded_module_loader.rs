@@ -4,10 +4,6 @@
 use proc_macro::TokenStream;
 use std::path::PathBuf;
 
-use proc_macro::TokenStream;
-use quote::quote;
-use std::path::PathBuf;
-
 use quote::quote;
 use syn::{parse::Parse, LitInt, LitStr, Token};
 
