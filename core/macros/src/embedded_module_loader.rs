@@ -5,6 +5,10 @@ use proc_macro::TokenStream;
 use std::path::PathBuf;
 
 use quote::quote;
+use proc_macro::TokenStream;
+use std::path::PathBuf;
+
+use quote::quote;
 use syn::{parse::Parse, LitInt, LitStr, Token};
 
 struct EmbedModuleMacroInput {
@@ -79,6 +83,10 @@ pub(crate) fn embed_module_impl(input: TokenStream) -> TokenStream {
                 "Path has non-Unicode characters",
             ));
         };
+
+        // Replace component separators by `/`. JavaScript always use `/` as path separator,
+        // regardless of the platform.
+        let relative_path = relative_path.replace(std::path::MAIN_SEPARATOR, "/");
 
         // Check the size.
         let size = std::fs::metadata(&path)
