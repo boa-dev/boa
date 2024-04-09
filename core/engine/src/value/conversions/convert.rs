@@ -1,13 +1,18 @@
-//! Types and functions for applying Coercing rules to [`JsValue`] when
-//! converting.
+//! Types and functions for applying JavaScript Convert rules to [`JsValue`] when
+//! converting. See https://262.ecma-international.org/5.1/#sec-9 (Section 9) for
+//! conversion rules of JavaScript types.
+//!
+//! Some conversions are not specified in the spec (e.g. integer conversions),
+//! and we apply rules that make sense (e.g. converting to Number and rounding
+//! if necessary).
 
 use boa_engine::JsNativeError;
 
-use crate::value::TryFromJs;
 use crate::{Context, JsResult, JsString, JsValue};
+use crate::value::TryFromJs;
 
-/// A wrapper type that allows coercing a `JsValue` to a specific type.
-/// This is useful when you want to coerce a `JsValue` to a Rust type.
+/// A wrapper type that allows converting a `JsValue` to a specific type.
+/// This is useful when you want to convert a `JsValue` to a Rust type.
 ///
 /// # Example
 /// Convert a string to number.
@@ -16,9 +21,9 @@ use crate::{Context, JsResult, JsString, JsValue};
 /// # use boa_engine::value::{Convert, TryFromJs};
 /// # let mut context = Context::default();
 /// let value = JsValue::from(js_string!("42"));
-/// let Convert(coerced): Convert<i32> = Convert::try_from_js(&value, &mut context).unwrap();
+/// let Convert(converted): Convert<i32> = Convert::try_from_js(&value, &mut context).unwrap();
 ///
-/// assert_eq!(coerced, 42);
+/// assert_eq!(converted, 42);
 /// ```
 ///
 /// Convert a number to a bool.
@@ -26,16 +31,13 @@ use crate::{Context, JsResult, JsString, JsValue};
 /// # use boa_engine::{Context, js_string, JsValue};
 /// # use boa_engine::value::{Convert, TryFromJs};
 /// # let mut context = Context::default();
-/// let value0 = JsValue::Integer(0);
-/// let value1 = JsValue::Integer(1);
-/// let value_nan = JsValue::Rational(f64::NAN);
-/// let Convert(coerced0): Convert<bool> = Convert::try_from_js(&value0, &mut context).unwrap();
-/// let Convert(coerced1): Convert<bool> = Convert::try_from_js(&value1, &mut context).unwrap();
-/// let Convert(coerced_nan): Convert<bool> = Convert::try_from_js(&value_nan, &mut context).unwrap();
+/// let Convert(conv0): Convert<bool> = Convert::try_from_js(&JsValue::Integer(0), &mut context).unwrap();
+/// let Convert(conv5): Convert<bool> = Convert::try_from_js(&JsValue::Integer(5), &mut context).unwrap();
+/// let Convert(conv_nan): Convert<bool> = Convert::try_from_js(&JsValue::Rational(f64::NAN), &mut context).unwrap();
 ///
-/// assert_eq!(coerced0, false);
-/// assert_eq!(coerced1, true);
-/// assert_eq!(coerced_nan, false);
+/// assert_eq!(conv0, false);
+/// assert_eq!(conv5, true);
+/// assert_eq!(conv_nan, false);
 /// ```
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Convert<T: TryFromJs>(pub T);
@@ -46,7 +48,7 @@ impl<T: TryFromJs> From<T> for Convert<T> {
     }
 }
 
-macro_rules! decl_coerce_to_int {
+macro_rules! decl_convert_to_int {
     ($($ty:ty),*) => {
         $(
             impl TryFromJs for Convert<$ty> {
@@ -55,11 +57,11 @@ macro_rules! decl_coerce_to_int {
                         if num.is_finite() {
                             if num >= f64::from(<$ty>::MAX) {
                                 Err(JsNativeError::typ()
-                                    .with_message("cannot coerce value to integer, it is too large")
+                                    .with_message("cannot convert value to integer, it is too large")
                                     .into())
                             } else if num <= f64::from(<$ty>::MIN) {
                                 Err(JsNativeError::typ()
-                                    .with_message("cannot coerce value to integer, it is too small")
+                                    .with_message("cannot convert value to integer, it is too small")
                                     .into())
                                 // Only round if it differs from the next integer by an epsilon
                             } else if num.abs().fract() >= (1.0 - f64::EPSILON) {
@@ -69,15 +71,15 @@ macro_rules! decl_coerce_to_int {
                             }
                         } else if num.is_nan() {
                             Err(JsNativeError::typ()
-                                .with_message("cannot coerce NaN to integer")
+                                .with_message("cannot convert NaN to integer")
                                 .into())
                         } else if num.is_infinite() {
                             Err(JsNativeError::typ()
-                                .with_message("cannot coerce Infinity to integer")
+                                .with_message("cannot convert Infinity to integer")
                                 .into())
                         } else {
                             Err(JsNativeError::typ()
-                                .with_message("cannot coerce non-finite number to integer")
+                                .with_message("cannot convert non-finite number to integer")
                                 .into())
                         }
                     })
@@ -87,16 +89,16 @@ macro_rules! decl_coerce_to_int {
     };
 }
 
-decl_coerce_to_int!(i8, i16, i32, u8, u16, u32);
+decl_convert_to_int!(i8, i16, i32, u8, u16, u32);
 
-macro_rules! decl_coerce_to_float {
+macro_rules! decl_convert_to_float {
     ($($ty:ty),*) => {
         $(
             impl TryFromJs for Convert<$ty> {
                 fn try_from_js(value: &JsValue, context: &mut Context) -> JsResult<Self> {
                     value.to_numeric_number(context).and_then(|num| Ok(Convert(<$ty>::try_from(num).map_err(|_| {
                         JsNativeError::typ()
-                            .with_message("cannot coerce value to float")
+                            .with_message("cannot convert value to float")
                     })?)))
                 }
             }
@@ -104,7 +106,7 @@ macro_rules! decl_coerce_to_float {
     };
 }
 
-decl_coerce_to_float!(f64);
+decl_convert_to_float!(f64);
 
 impl TryFromJs for Convert<String> {
     fn try_from_js(value: &JsValue, context: &mut Context) -> JsResult<Self> {

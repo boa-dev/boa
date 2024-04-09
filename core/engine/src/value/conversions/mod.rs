@@ -7,7 +7,7 @@ use super::{JsBigInt, JsObject, JsString, JsSymbol, JsValue, Profiler};
 mod serde_json;
 pub(super) mod try_from_js;
 
-pub(super) mod coerce;
+pub(super) mod convert;
 
 impl From<JsString> for JsValue {
     fn from(value: JsString) -> Self {
