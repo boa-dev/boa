@@ -148,16 +148,14 @@ macro_rules! impl_into_js_function {
             #[allow(unused_variables)]
             fn into_js_function_copied(self, _context: &mut Context) -> NativeFunction {
                 let s = self;
-                unsafe {
-                    NativeFunction::from_closure(move |this, args, ctx| {
-                        let rest = args;
-                        $(
-                            let ($id, rest) = $t::try_from_js_argument(this, rest, ctx)?;
-                        )*
-                        let r = s( $($id,)* );
-                        r.try_into_js_result(ctx)
-                    })
-                }
+                NativeFunction::from_copy_closure(move |this, args, ctx| {
+                    let rest = args;
+                    $(
+                        let ($id, rest) = $t::try_from_js_argument(this, rest, ctx)?;
+                    )*
+                    let r = s( $($id,)* );
+                    r.try_into_js_result(ctx)
+                })
             }
         }
 
@@ -170,16 +168,14 @@ macro_rules! impl_into_js_function {
             #[allow(unused_variables)]
             fn into_js_function_copied(self, _context: &mut Context) -> NativeFunction {
                 let s = self;
-                unsafe {
-                    NativeFunction::from_closure(move |this, args, ctx| {
-                        let rest = args;
-                        $(
-                            let ($id, rest) = $t::try_from_js_argument(this, rest, ctx)?;
-                        )*
-                        let r = s( $($id,)* rest.into() );
-                        r.try_into_js_result(ctx)
-                    })
-                }
+                NativeFunction::from_copy_closure(move |this, args, ctx| {
+                    let rest = args;
+                    $(
+                        let ($id, rest) = $t::try_from_js_argument(this, rest, ctx)?;
+                    )*
+                    let r = s( $($id,)* rest.into() );
+                    r.try_into_js_result(ctx)
+                })
             }
         }
 
@@ -192,16 +188,14 @@ macro_rules! impl_into_js_function {
             #[allow(unused_variables)]
             fn into_js_function_copied(self, _context: &mut Context) -> NativeFunction {
                 let s = self;
-                unsafe {
-                    NativeFunction::from_closure(move |this, args, ctx| {
-                        let rest = args;
-                        $(
-                            let ($id, rest) = $t::try_from_js_argument(this, rest, ctx)?;
-                        )*
-                        let r = s( $($id,)* ctx);
-                        r.try_into_js_result(ctx)
-                    })
-                }
+                NativeFunction::from_copy_closure(move |this, args, ctx| {
+                    let rest = args;
+                    $(
+                        let ($id, rest) = $t::try_from_js_argument(this, rest, ctx)?;
+                    )*
+                    let r = s( $($id,)* ctx);
+                    r.try_into_js_result(ctx)
+                })
             }
         }
 
@@ -214,16 +208,14 @@ macro_rules! impl_into_js_function {
             #[allow(unused_variables)]
             fn into_js_function_copied(self, _context: &mut Context) -> NativeFunction {
                 let s = self;
-                unsafe {
-                    NativeFunction::from_closure(move |this, args, ctx| {
-                        let rest = args;
-                        $(
-                            let ($id, rest) = $t::try_from_js_argument(this, rest, ctx)?;
-                        )*
-                        let r = s( $($id,)* rest.into(), ctx);
-                        r.try_into_js_result(ctx)
-                    })
-                }
+                NativeFunction::from_copy_closure(move |this, args, ctx| {
+                    let rest = args;
+                    $(
+                        let ($id, rest) = $t::try_from_js_argument(this, rest, ctx)?;
+                    )*
+                    let r = s( $($id,)* rest.into(), ctx);
+                    r.try_into_js_result(ctx)
+                })
             }
         }
     };
