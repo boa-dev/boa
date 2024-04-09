@@ -24,7 +24,7 @@ Currently, it has support for some of the language.
 
 ## Live Demo (WASM)
 
-Try out the engine now at the live WASM playground [here](https://boajs.dev/boa/playground/)!
+Try out the engine now at the live WASM playground [here](https://boajs.dev/playground)!
 
 Prefer a CLI? Feel free to try out `boa_cli`!
 
@@ -95,7 +95,7 @@ For more information on `Boa`'s API. Feel free to check out our documentation.
 ## Conformance
 
 To know how much of the _ECMAScript_ specification does Boa cover, you can check out results
-running the _ECMASCript Test262_ test suite [here](https://boajs.dev/boa/test262/).
+running the _ECMASCript Test262_ test suite [here](https://boajs.dev/conformance).
 
 ## Contributing
 
@@ -165,7 +165,7 @@ See [Milestones](https://github.com/boa-dev/boa/milestones).
 
 ## Benchmarks
 
-See [Benchmarks](https://boajs.dev/boa/dev/bench/).
+See [Benchmarks](https://boajs.dev/benchmarks).
 
 ## Profiling
 

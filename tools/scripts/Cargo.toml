@@ -12,3 +12,6 @@ simple_logger.workspace = true
 
 [lints]
 workspace = true
+
+[package.metadata.docs.rs]
+all-features = true

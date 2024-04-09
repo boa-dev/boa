@@ -52,6 +52,11 @@ pub fn resolve_module_specifier(
     let referrer_dir = referrer.and_then(|p| p.parent());
 
     let specifier = specifier.to_std_string_escaped();
+
+    // On Windows, also replace `/` with `\`. JavaScript imports use `/` as path separator.
+    #[cfg(target_family = "windows")]
+    let specifier = specifier.replace("/", "\\");
+
     let short_path = Path::new(&specifier);
 
     // In ECMAScript, a path is considered relative if it starts with
@@ -369,21 +374,21 @@ mod tests {
     #[rustfmt::skip]
     #[cfg(target_family = "windows")]
     #[test_case(Some("a:\\hello\\ref.js"),       "a.js",                Ok("a:\\base\\a.js"))]
-    #[test_case(Some("a:\\base\\ref.js"),        ".\\b.js",             Ok("a:\\base\\b.js"))]
-    #[test_case(Some("a:\\base\\other\\ref.js"), ".\\c.js",             Ok("a:\\base\\other\\c.js"))]
-    #[test_case(Some("a:\\base\\other\\ref.js"), "..\\d.js",            Ok("a:\\base\\d.js"))]
+    #[test_case(Some("a:\\base\\ref.js"),        "./b.js",              Ok("a:\\base\\b.js"))]
+    #[test_case(Some("a:\\base\\other\\ref.js"), "./c.js",              Ok("a:\\base\\other\\c.js"))]
+    #[test_case(Some("a:\\base\\other\\ref.js"), "../d.js",             Ok("a:\\base\\d.js"))]
     #[test_case(Some("a:\\base\\ref.js"),        "e.js",                Ok("a:\\base\\e.js"))]
-    #[test_case(Some("a:\\base\\ref.js"),        ".\\f.js",             Ok("a:\\base\\f.js"))]
-    #[test_case(Some(".\\ref.js"),               ".\\g.js",             Ok("a:\\base\\g.js"))]
-    #[test_case(Some(".\\other\\ref.js"),        ".\\other\\h.js",      Ok("a:\\base\\other\\other\\h.js"))]
-    #[test_case(Some(".\\other\\ref.js"),        ".\\other\\..\\h1.js", Ok("a:\\base\\other\\h1.js"))]
-    #[test_case(Some(".\\other\\ref.js"),        ".\\..\\h2.js",        Ok("a:\\base\\h2.js"))]
-    #[test_case(None,                            ".\\i.js",             Err(()))]
+    #[test_case(Some("a:\\base\\ref.js"),        "./f.js",              Ok("a:\\base\\f.js"))]
+    #[test_case(Some(".\\ref.js"),               "./g.js",              Ok("a:\\base\\g.js"))]
+    #[test_case(Some(".\\other\\ref.js"),        "./other/h.js",        Ok("a:\\base\\other\\other\\h.js"))]
+    #[test_case(Some(".\\other\\ref.js"),        "./other/../h1.js",    Ok("a:\\base\\other\\h1.js"))]
+    #[test_case(Some(".\\other\\ref.js"),        "./../h2.js",          Ok("a:\\base\\h2.js"))]
+    #[test_case(None,                            "./i.js",              Err(()))]
     #[test_case(None,                            "j.js",                Ok("a:\\base\\j.js"))]
-    #[test_case(None,                            "other\\k.js",         Ok("a:\\base\\other\\k.js"))]
-    #[test_case(None,                            "other\\..\\..\\l.js", Err(()))]
-    #[test_case(Some("\\base\\ref.js"),          "other\\..\\..\\m.js", Err(()))]
-    #[test_case(None,                            "..\\n.js",            Err(()))]
+    #[test_case(None,                            "other/k.js",          Ok("a:\\base\\other\\k.js"))]
+    #[test_case(None,                            "other/../../l.js",    Err(()))]
+    #[test_case(Some("\\base\\ref.js"),          "other/../../m.js",    Err(()))]
+    #[test_case(None,                            "../n.js",             Err(()))]
     fn resolve_test(ref_path: Option<&str>, spec: &str, expected: Result<&str, ()>) {
         let base = PathBuf::from("a:\\base");
 
