@@ -1,5 +1,5 @@
 //! Types and functions for applying JavaScript Convert rules to [`JsValue`] when
-//! converting. See https://262.ecma-international.org/5.1/#sec-9 (Section 9) for
+//! converting. See <https://262.ecma-international.org/5.1/#sec-9> (Section 9) for
 //! conversion rules of JavaScript types.
 //!
 //! Some conversions are not specified in the spec (e.g. integer conversions),
@@ -8,8 +8,8 @@
 
 use boa_engine::JsNativeError;
 
-use crate::{Context, JsResult, JsString, JsValue};
 use crate::value::TryFromJs;
+use crate::{Context, JsResult, JsString, JsValue};
 
 /// A wrapper type that allows converting a `JsValue` to a specific type.
 /// This is useful when you want to convert a `JsValue` to a Rust type.

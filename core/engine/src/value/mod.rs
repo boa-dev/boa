@@ -25,20 +25,20 @@ use crate::{
         number::{f64_to_int32, f64_to_uint32},
         Number, Promise,
     },
-    Context,
     error::JsNativeError,
     js_string,
-    JsBigInt,
-    JsResult,
-    JsString, object::JsObject, property::{PropertyDescriptor, PropertyKey}, symbol::JsSymbol,
+    object::JsObject,
+    property::{PropertyDescriptor, PropertyKey},
+    symbol::JsSymbol,
+    Context, JsBigInt, JsResult, JsString,
 };
 
+pub(crate) use self::conversions::IntoOrUndefined;
 #[doc(inline)]
 pub use self::{
     conversions::try_from_js::TryFromJs, display::ValueDisplay, integer::IntegerOrInfinity,
     operations::*, r#type::Type,
 };
-pub(crate) use self::conversions::IntoOrUndefined;
 
 mod conversions;
 pub(crate) mod display;
