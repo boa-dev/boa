@@ -1,10 +1,10 @@
 //! Interop utilities between Boa and its host.
 
-use boa_engine::{
-    Context, js_string, JsError, JsResult, JsString, JsValue, Module, NativeFunction, NativeObject,
-};
 use boa_engine::module::SyntheticModuleInitializer;
 use boa_engine::value::TryFromJs;
+use boa_engine::{
+    js_string, Context, JsError, JsResult, JsString, JsValue, Module, NativeFunction, NativeObject,
+};
 
 pub mod loaders;
 
@@ -303,8 +303,8 @@ impl<T: TryFromJs> TryFromJsArgument for JsThis<T> {
     }
 }
 
-/// Captures the host_defined value as a JS function argument, based on
-/// its type. This will clone the HostDefined value.
+/// Captures the `host_defined` value as a JS function argument, based on
+/// its type. This will clone the `HostDefined` value.
 ///
 /// For example,
 /// ```
