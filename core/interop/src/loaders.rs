@@ -3,4 +3,6 @@
 
 pub use hashmap::HashMapModuleLoader;
 
+pub mod json;
+
 pub mod hashmap;
