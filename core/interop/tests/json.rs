@@ -1,3 +1,4 @@
+#![allow(unused_crate_dependencies, missing_docs)]
 #![cfg(feature = "json")]
 use boa_engine::builtins::promise::PromiseState;
 use boa_engine::{js_string, Module, Source};

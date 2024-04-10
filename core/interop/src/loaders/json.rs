@@ -1,5 +1,6 @@
 //! A [`ModuleLoader`] implementation that loads JSON file and expose the JSON
 //! as JavaScript objects.
+#![allow(clippy::module_name_repetitions)]
 #![cfg(feature = "json")]
 
 use std::collections::HashMap;
@@ -10,6 +11,12 @@ use boa_engine::module::{
 };
 use boa_engine::{js_string, Context, JsError, JsResult, JsString, JsValue, Module};
 
+/// A [`ModuleLoader`] implementation that loads JSON file and expose the JSON
+/// as JavaScript objects. The JSON file should be a valid JSON file or an
+/// error will be thrown on import. The JSON object is exposed as the default
+/// export of the module.
+///
+/// Only `.json` files are supported.
 #[derive(Debug, Clone)]
 pub struct JsonModuleLoader {
     root: PathBuf,
@@ -17,10 +24,12 @@ pub struct JsonModuleLoader {
 }
 
 impl JsonModuleLoader {
+    /// Create a new JSON module loader with the given root path.
+    #[must_use]
     pub fn new(root: PathBuf) -> Self {
         Self {
             root,
-            cache: Default::default(),
+            cache: HashMap::default(),
         }
     }
 }
