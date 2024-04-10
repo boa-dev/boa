@@ -2,25 +2,7 @@
 //! as the default export.
 #![allow(clippy::module_name_repetitions)]
 
-use boa_engine::module::SyntheticModuleInitializer;
 use boa_engine::{js_string, Context, JsValue, Module};
-
-/// Create a module that exports a single JSON value as the default export.
-pub fn json_module(value: JsValue, context: &mut Context) -> Module {
-    Module::synthetic(
-        &[js_string!("default")],
-        SyntheticModuleInitializer::from_copy_closure_with_captures(
-            move |m, s, _ctx| {
-                m.set_export(&js_string!("default"), s.clone())?;
-                Ok(())
-            },
-            value,
-        ),
-        None,
-        None,
-        context,
-    )
-}
 
 /// Create a module that exports a single JSON value as the default export, from its
 /// JSON string. This required the `json` feature to be enabled.
@@ -33,7 +15,7 @@ pub fn json_string_module(json: &str, context: &mut Context) -> boa_engine::JsRe
         boa_engine::JsError::from_opaque(js_string!(format!("Failed to parse JSON: {}", e)).into())
     })?;
     let value: JsValue = JsValue::from_json(&json_value, context)?;
-    Ok(json_module(value, context))
+    Ok(Module::from_value_as_default(value, context))
 }
 
 #[cfg(feature = "json")]

@@ -27,6 +27,7 @@ use std::hash::Hash;
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
 
+use boa_engine::js_string;
 use rustc_hash::FxHashSet;
 
 use boa_gc::{Finalize, Gc, GcRefCell, Trace};
@@ -202,6 +203,24 @@ impl Module {
                 path,
             }),
         }
+    }
+
+    /// Create a [`Module`] from a `JsValue`, exporting that value as the default export.
+    /// This will clone the module everytime it is initialized.
+    pub fn from_value_as_default(value: JsValue, context: &mut Context) -> Self {
+        Module::synthetic(
+            &[js_string!("default")],
+            SyntheticModuleInitializer::from_copy_closure_with_captures(
+                move |m, value, _ctx| {
+                    m.set_export(&js_string!("default"), value.clone())?;
+                    Ok(())
+                },
+                value,
+            ),
+            None,
+            None,
+            context,
+        )
     }
 
     /// Gets the realm of this `Module`.
