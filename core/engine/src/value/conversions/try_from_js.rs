@@ -2,7 +2,7 @@
 
 use num_bigint::BigInt;
 
-use crate::{js_string, Context, JsBigInt, JsNativeError, JsResult, JsValue};
+use crate::{js_string, Context, JsBigInt, JsNativeError, JsObject, JsResult, JsString, JsValue};
 
 /// This trait adds a fallible and efficient conversions from a [`JsValue`] to Rust types.
 pub trait TryFromJs: Sized {
@@ -40,6 +40,17 @@ impl TryFromJs for String {
                     .with_message(format!("could not convert JsString to Rust string: {e}"))
                     .into()
             }),
+            _ => Err(JsNativeError::typ()
+                .with_message("cannot convert value to a String")
+                .into()),
+        }
+    }
+}
+
+impl TryFromJs for JsString {
+    fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {
+        match value {
+            JsValue::String(s) => Ok(s.clone()),
             _ => Err(JsNativeError::typ()
                 .with_message("cannot convert value to a String")
                 .into()),
@@ -88,6 +99,17 @@ where
         }
 
         Ok(vec)
+    }
+}
+
+impl TryFromJs for JsObject {
+    fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {
+        match value {
+            JsValue::Object(o) => Ok(o.clone()),
+            _ => Err(JsNativeError::typ()
+                .with_message("cannot convert value to a Object")
+                .into()),
+        }
     }
 }
 
