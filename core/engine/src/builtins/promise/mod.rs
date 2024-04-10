@@ -347,6 +347,7 @@ impl IntrinsicObject for Promise {
             .static_method(Self::race, js_string!("race"), 1)
             .static_method(Self::reject, js_string!("reject"), 1)
             .static_method(Self::resolve, js_string!("resolve"), 1)
+            .static_method(Self::r#try, js_string!("try"), 1)
             .static_method(Self::with_resolvers, js_string!("withResolvers"), 0)
             .static_accessor(
                 JsSymbol::species(),
@@ -462,6 +463,59 @@ impl Promise {
         &self.state
     }
 
+    /// [`Promise.try ( callbackfn, ...args )`][spec]
+    ///
+    /// Calls the given function and returns a new promise that is resolved if the function
+    /// completes normally and rejected if it throws.
+    ///
+    /// [spec]: https://tc39.es/proposal-promise-try/#sec-promise.try
+    pub(crate) fn r#try(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        let callback = args.get_or_undefined(0);
+        let callback_args = args.get(1..).unwrap_or(&[]);
+
+        // 1. Let C be the this value.
+        // 2. If C is not an Object, throw a TypeError exception.
+        let c = this.as_object().ok_or_else(|| {
+            JsNativeError::typ().with_message("Promise.try() called on a non-object")
+        })?;
+
+        // 3. Let promiseCapability be ? NewPromiseCapability(C).
+        let promise_capability = PromiseCapability::new(c, context)?;
+
+        // 4. Let status be Completion(Call(callbackfn, undefined, args)).
+        let status = callback.call(&JsValue::undefined(), callback_args, context);
+
+        match status {
+            // 5. If status is an abrupt completion, then
+            Err(err) => {
+                let value = err.to_opaque(context);
+
+                // a. Perform ? Call(promiseCapability.[[Reject]], undefined, « status.[[Value]] »).
+                promise_capability.functions.reject.call(
+                    &JsValue::undefined(),
+                    &[value],
+                    context,
+                )?;
+            }
+            // 6. Else,
+            Ok(value) => {
+                // a. Perform ? Call(promiseCapability.[[Resolve]], undefined, « status.[[Value]] »).
+                promise_capability.functions.resolve.call(
+                    &JsValue::undefined(),
+                    &[value],
+                    context,
+                )?;
+            }
+        }
+
+        // 7. Return promiseCapability.[[Promise]].
+        Ok(promise_capability.promise.clone().into())
+    }
+
     /// [`Promise.withResolvers ( )`][spec]
     ///
     /// Creates a new promise that is pending, and returns that promise plus the resolve and reject
@@ -477,7 +531,7 @@ impl Promise {
 
         use super::OrdinaryObject;
         let c = this.as_object().ok_or_else(|| {
-            JsNativeError::typ().with_message("Promise.all() called on a non-object")
+            JsNativeError::typ().with_message("Promise.withResolvers() called on a non-object")
         })?;
 
         // 2. Let promiseCapability be ? NewPromiseCapability(C).
