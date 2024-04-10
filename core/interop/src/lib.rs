@@ -304,16 +304,18 @@ impl<'a, T: TryFromJs> TryFromJsArgument<'a> for JsThis<T> {
     }
 }
 
-/// Captures the `host_defined` value as a JS function argument, based on
-/// its type. This will clone the `HostDefined` value.
+/// Captures a [`ContextData`] data from the [`Context`] as a JS function argument,
+/// based on its type.
 ///
 /// The host defined type must implement [`Clone`], otherwise the borrow
-/// checker would not be able to ensure the safety of the operation.
+/// checker would not be able to ensure the safety of the context while
+/// making the function call. Because of this, it is recommended to use
+/// types that are cheap to clone.
 ///
 /// For example,
 /// ```
 /// # use boa_engine::{Context, Finalize, JsData, JsValue, Trace};
-/// use boa_interop::{IntoJsFunctionCopied, HostDefined};
+/// use boa_interop::{IntoJsFunctionCopied, ContextData};
 ///
 /// #[derive(Clone, Debug, Finalize, JsData, Trace)]
 /// struct CustomHostDefinedStruct {
@@ -321,25 +323,24 @@ impl<'a, T: TryFromJs> TryFromJsArgument<'a> for JsThis<T> {
 ///    pub counter: usize,
 /// }
 /// let mut context = Context::default();
-/// context.realm().host_defined_mut().insert(CustomHostDefinedStruct { counter: 123 });
-/// let f = (|HostDefined(host): HostDefined<CustomHostDefinedStruct>| {
+/// context.insert_data(CustomHostDefinedStruct { counter: 123 });
+/// let f = (|ContextData(host): ContextData<CustomHostDefinedStruct>| {
 ///   host.counter + 1
 /// }).into_js_function_copied(&mut context);
 ///
 /// assert_eq!(f.call(&JsValue::undefined(), &[], &mut context), Ok(JsValue::new(124)));
-///
 /// ```
 #[derive(Debug, Clone)]
-pub struct HostDefined<T>(pub T);
+pub struct ContextData<T: Clone>(pub T);
 
-impl<'a, T: NativeObject + Clone> TryFromJsArgument<'a> for HostDefined<T> {
+impl<'a, T: NativeObject + Clone> TryFromJsArgument<'a> for ContextData<T> {
     fn try_from_js_argument(
         _this: &'a JsValue,
         rest: &'a [JsValue],
         context: &mut Context,
     ) -> JsResult<(Self, &'a [JsValue])> {
-        match context.realm().host_defined().get::<T>() {
-            Some(value) => Ok((HostDefined(value.clone()), rest)),
+        match context.get_data::<T>() {
+            Some(value) => Ok((ContextData(value.clone()), rest)),
             None => Err(JsError::from_opaque(
                 js_string!("Host defined value not found").into(),
             )),
@@ -355,8 +356,11 @@ mod into_js_function_impls;
 #[allow(clippy::missing_panics_doc)]
 pub fn into_js_module() {
     use boa_engine::{js_string, JsValue, Source};
+    use boa_gc::{Gc, GcRefCell};
     use std::cell::RefCell;
     use std::rc::Rc;
+
+    type ResultType = Gc<GcRefCell<JsValue>>;
 
     let loader = Rc::new(loaders::HashMapModuleLoader::new());
     let mut context = Context::builder()
@@ -367,7 +371,9 @@ pub fn into_js_module() {
     let foo_count = Rc::new(RefCell::new(0));
     let bar_count = Rc::new(RefCell::new(0));
     let dad_count = Rc::new(RefCell::new(0));
-    let result = Rc::new(RefCell::new(JsValue::undefined()));
+
+    context.insert_data(Gc::new(GcRefCell::new(JsValue::undefined())));
+
     let module = unsafe {
         vec![
             (
@@ -411,15 +417,10 @@ pub fn into_js_module() {
             ),
             (
                 js_string!("send"),
-                UnsafeIntoJsFunction::into_js_function_unsafe(
-                    {
-                        let result = result.clone();
-                        move |value: JsValue| {
-                            *result.borrow_mut() = value;
-                        }
-                    },
-                    &mut context,
-                ),
+                (move |value: JsValue, ContextData(result): ContextData<ResultType>| {
+                    *result.borrow_mut() = value;
+                })
+                .into_js_function_copied(&mut context),
             ),
         ]
     }
@@ -454,10 +455,12 @@ pub fn into_js_module() {
         promise_result.state()
     );
 
+    let result = context.get_data::<ResultType>().unwrap().borrow().clone();
+
     assert_eq!(*foo_count.borrow(), 2);
     assert_eq!(*bar_count.borrow(), 15);
     assert_eq!(*dad_count.borrow(), 24);
-    assert_eq!(result.borrow().clone().try_js_into(&mut context), Ok(1u32));
+    assert_eq!(result.try_js_into(&mut context), Ok(1u32));
 }
 
 #[test]
