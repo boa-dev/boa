@@ -56,3 +56,6 @@ suspicious = "warn"
 style = "warn"
 complexity = "warn"
 perf = "warn"
+
+[package.metadata.docs.rs]
+all-features = true
