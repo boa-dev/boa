@@ -3,7 +3,7 @@
 use boa_engine::module::SyntheticModuleInitializer;
 use boa_engine::value::TryFromJs;
 use boa_engine::{
-    js_string, Context, JsError, JsNativeError, JsResult, JsString, JsValue, Module,
+    Context, JsNativeError, JsResult, JsString, JsValue, Module,
     NativeFunction, NativeObject,
 };
 
@@ -344,8 +344,7 @@ impl<'a, T: NativeObject + Clone> TryFromJsArgument<'a> for ContextData<T> {
             Some(value) => Ok((ContextData(value.clone()), rest)),
             None => Err(JsNativeError::typ()
                 .with_message("Context data not found")
-                .into(),
-            ),
+                .into()),
         }
     }
 }
