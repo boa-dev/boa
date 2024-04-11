@@ -342,9 +342,10 @@ impl<'a, T: NativeObject + Clone> TryFromJsArgument<'a> for ContextData<T> {
     ) -> JsResult<(Self, &'a [JsValue])> {
         match context.get_data::<T>() {
             Some(value) => Ok((ContextData(value.clone()), rest)),
-            None => Err(JsError::from_native(
-                JsNativeError::typ().with_cause("Context data not found"),
-            )),
+            None => Err(JsNativeError::typ()
+                .with_message("Context data not found")
+                .into(),
+            ),
         }
     }
 }
