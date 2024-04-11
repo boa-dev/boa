@@ -3,8 +3,7 @@
 use boa_engine::module::SyntheticModuleInitializer;
 use boa_engine::value::TryFromJs;
 use boa_engine::{
-    Context, JsNativeError, JsResult, JsString, JsValue, Module,
-    NativeFunction, NativeObject,
+    Context, JsNativeError, JsResult, JsString, JsValue, Module, NativeFunction, NativeObject,
 };
 
 pub mod loaders;
