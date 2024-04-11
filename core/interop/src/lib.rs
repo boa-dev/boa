@@ -5,7 +5,6 @@ use boa_engine::value::TryFromJs;
 use boa_engine::{Context, JsResult, JsString, JsValue, Module, NativeFunction};
 
 pub mod loaders;
-pub mod modules;
 
 /// Internal module only.
 pub(crate) mod private {

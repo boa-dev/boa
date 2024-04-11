@@ -14,13 +14,9 @@ rust-version.workspace = true
 boa_engine.workspace = true
 boa_gc.workspace = true
 rustc-hash = { workspace = true, features = ["std"] }
-serde_json = { workspace = true, optional = true }
 
 [lints]
 workspace = true
 
 [package.metadata.docs.rs]
 all-features = true
-
-[features]
-json = ["dep:serde_json"]

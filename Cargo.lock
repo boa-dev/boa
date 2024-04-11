@@ -512,7 +512,6 @@ dependencies = [
  "boa_engine",
  "boa_gc",
  "rustc-hash",
- "serde_json",
 ]
 
 [[package]]

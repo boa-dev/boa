@@ -223,6 +223,19 @@ impl Module {
         )
     }
 
+    /// Create a module that exports a single JSON value as the default export, from its
+    /// JSON string. This required the `json` feature to be enabled.
+    ///
+    /// # Errors
+    /// This will return an error if the JSON string is invalid or cannot be converted.
+    pub fn from_json_as_default(json: &str, context: &mut Context) -> JsResult<Self> {
+        let json_value = serde_json::from_str::<serde_json::Value>(json).map_err(|e| {
+            JsError::from_opaque(js_string!(format!("Failed to parse JSON: {}", e)).into())
+        })?;
+        let value: JsValue = JsValue::from_json(&json_value, context)?;
+        Ok(Self::from_value_as_default(value, context))
+    }
+
     /// Gets the realm of this `Module`.
     #[inline]
     #[must_use]
