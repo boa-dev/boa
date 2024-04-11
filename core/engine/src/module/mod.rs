@@ -27,9 +27,9 @@ use std::hash::Hash;
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
 
-use boa_engine::js_string;
 use rustc_hash::FxHashSet;
 
+use boa_engine::js_string;
 use boa_gc::{Finalize, Gc, GcRefCell, Trace};
 use boa_interner::Interner;
 use boa_parser::source::ReadChar;
@@ -41,6 +41,7 @@ use source::SourceTextModule;
 pub use synthetic::{SyntheticModule, SyntheticModuleInitializer};
 
 use crate::{
+    builtins,
     builtins::promise::{PromiseCapability, PromiseState},
     environments::DeclarativeEnvironment,
     object::{JsObject, JsPromise},
@@ -224,15 +225,19 @@ impl Module {
     }
 
     /// Create a module that exports a single JSON value as the default export, from its
-    /// JSON string. This required the `json` feature to be enabled.
+    /// JSON string.
+    ///
+    /// # Specification
+    /// This is a custom extension to the ECMAScript specification. The current proposal
+    /// for JSON modules is being considered in <https://github.com/tc39/proposal-json-modules>
+    /// and might differ from this implementation.
+    ///
+    /// This method is provided as a convenience for hosts to create JSON modules.
     ///
     /// # Errors
     /// This will return an error if the JSON string is invalid or cannot be converted.
-    pub fn from_json_as_default(json: &str, context: &mut Context) -> JsResult<Self> {
-        let json_value = serde_json::from_str::<serde_json::Value>(json).map_err(|e| {
-            JsError::from_opaque(js_string!(format!("Failed to parse JSON: {}", e)).into())
-        })?;
-        let value: JsValue = JsValue::from_json(&json_value, context)?;
+    pub fn parse_json(json: JsString, context: &mut Context) -> JsResult<Self> {
+        let value = builtins::Json::parse(&JsValue::undefined(), &[json.into()], context)?;
         Ok(Self::from_value_as_default(value, context))
     }
 

@@ -1,13 +1,14 @@
 #![allow(unused_crate_dependencies, missing_docs)]
 
+use std::rc::Rc;
+
 use boa_engine::builtins::promise::PromiseState;
 use boa_engine::module::{ModuleLoader, Referrer};
 use boa_engine::{js_string, Context, JsResult, JsString, Module, Source};
-use std::rc::Rc;
 
 #[test]
 fn test_json_module_from_str() {
-    struct TestModuleLoader(&'static str);
+    struct TestModuleLoader(JsString);
     impl ModuleLoader for TestModuleLoader {
         fn load_imported_module(
             &self,
@@ -19,15 +20,15 @@ fn test_json_module_from_str() {
             assert_eq!(specifier.to_std_string_escaped(), "basic");
 
             finish_load(
-                Ok(Module::from_json_as_default(self.0, context).unwrap()),
+                Ok(Module::parse_json(self.0.clone(), context).unwrap()),
                 context,
             );
         }
     }
 
-    let json_string = r#"{"key":"value","other":123}"#;
+    let json_string = js_string!(r#"{"key":"value","other":123}"#);
     let mut context = Context::builder()
-        .module_loader(Rc::new(TestModuleLoader(json_string)))
+        .module_loader(Rc::new(TestModuleLoader(json_string.clone())))
         .build()
         .unwrap();
 
@@ -57,5 +58,8 @@ fn test_json_module_from_str() {
         .get(js_string!("json"), &mut context)
         .unwrap();
 
-    assert_eq!(json.to_json(&mut context).unwrap().to_string(), json_string);
+    assert_eq!(
+        JsString::from(json.to_json(&mut context).unwrap().to_string()),
+        json_string
+    );
 }
