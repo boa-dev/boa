@@ -3,7 +3,8 @@
 use boa_engine::module::SyntheticModuleInitializer;
 use boa_engine::value::TryFromJs;
 use boa_engine::{
-    js_string, Context, JsError, JsResult, JsString, JsValue, Module, NativeFunction, NativeObject,
+    js_string, Context, JsError, JsNativeError, JsResult, JsString, JsValue, Module,
+    NativeFunction, NativeObject,
 };
 
 pub mod loaders;
@@ -341,8 +342,8 @@ impl<'a, T: NativeObject + Clone> TryFromJsArgument<'a> for ContextData<T> {
     ) -> JsResult<(Self, &'a [JsValue])> {
         match context.get_data::<T>() {
             Some(value) => Ok((ContextData(value.clone()), rest)),
-            None => Err(JsError::from_opaque(
-                js_string!("Host defined value not found").into(),
+            None => Err(JsError::from_native(
+                JsNativeError::typ().with_cause("Context data not found"),
             )),
         }
     }
