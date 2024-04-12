@@ -29,6 +29,7 @@ use std::rc::Rc;
 
 use rustc_hash::FxHashSet;
 
+use boa_engine::js_string;
 use boa_gc::{Finalize, Gc, GcRefCell, Trace};
 use boa_interner::Interner;
 use boa_parser::source::ReadChar;
@@ -40,6 +41,7 @@ use source::SourceTextModule;
 pub use synthetic::{SyntheticModule, SyntheticModuleInitializer};
 
 use crate::{
+    builtins,
     builtins::promise::{PromiseCapability, PromiseState},
     environments::DeclarativeEnvironment,
     object::{JsObject, JsPromise},
@@ -202,6 +204,41 @@ impl Module {
                 path,
             }),
         }
+    }
+
+    /// Create a [`Module`] from a `JsValue`, exporting that value as the default export.
+    /// This will clone the module everytime it is initialized.
+    pub fn from_value_as_default(value: JsValue, context: &mut Context) -> Self {
+        Module::synthetic(
+            &[js_string!("default")],
+            SyntheticModuleInitializer::from_copy_closure_with_captures(
+                move |m, value, _ctx| {
+                    m.set_export(&js_string!("default"), value.clone())?;
+                    Ok(())
+                },
+                value,
+            ),
+            None,
+            None,
+            context,
+        )
+    }
+
+    /// Create a module that exports a single JSON value as the default export, from its
+    /// JSON string.
+    ///
+    /// # Specification
+    /// This is a custom extension to the ECMAScript specification. The current proposal
+    /// for JSON modules is being considered in <https://github.com/tc39/proposal-json-modules>
+    /// and might differ from this implementation.
+    ///
+    /// This method is provided as a convenience for hosts to create JSON modules.
+    ///
+    /// # Errors
+    /// This will return an error if the JSON string is invalid or cannot be converted.
+    pub fn parse_json(json: JsString, context: &mut Context) -> JsResult<Self> {
+        let value = builtins::Json::parse(&JsValue::undefined(), &[json.into()], context)?;
+        Ok(Self::from_value_as_default(value, context))
     }
 
     /// Gets the realm of this `Module`.
