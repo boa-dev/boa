@@ -1,0 +1,31 @@
+name: Build Artifacts
+
+on:
+  push:
+    branches:
+      - main
+
+jobs: 
+  build_cli_tape:
+    name: Generate boa_cli GIF
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo install --path ./cli
+      # Below is from vhs-actions examples
+      # https://github.com/charmbracelet/vhs-action/blob/main/examples/auto-commit.yml
+      - uses: charmbracelet/vhs-action@v1
+        with:
+          path: './.github/tapes/boa_cli.tape'
+      - uses: stefanzweifel/git-auto-commit-action@v4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          commit_message: Update generated VHS GIF
+          branch: main
+          commit_user_name: vhs-action 📼
+          commit_user_email: actions@github.com
+          commit_author: vhs-action 📼 <actions@github.com>
+          file_pattern: '*.gif'
