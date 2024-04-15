@@ -71,7 +71,7 @@ serde = "1.0.197"
 static_assertions = "1.1.0"
 textwrap = "0.16.0"
 thin-vec = "0.2.13"
-time = {version = "0.3.34", default-features = false, features = ["local-offset", "large-dates", "wasm-bindgen", "parsing", "formatting", "macros"]}
+time = {version = "0.3.36", default-features = false, features = ["local-offset", "large-dates", "wasm-bindgen", "parsing", "formatting", "macros"]}
 tinystr = "0.7.5"
 log = "0.4.21"
 simple_logger = "4.3.3"
