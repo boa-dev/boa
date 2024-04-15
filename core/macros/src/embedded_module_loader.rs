@@ -78,7 +78,7 @@ pub(crate) fn embed_module_impl(input: TokenStream) -> TokenStream {
                 "Path has non-Unicode characters",
             ));
         };
-        let relative_path = format!("/{}", relative_path.replace(std::path::MAIN_SEPARATOR, "/"));
+        let relative_path = format!("{}{}", std::path::MAIN_SEPARATOR, relative_path);
 
         // Check the size.
         let size = std::fs::metadata(&path)
