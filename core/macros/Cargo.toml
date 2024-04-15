@@ -12,8 +12,8 @@ rust-version.workspace = true
 proc-macro = true
 
 [dependencies]
-quote = "1.0.34"
-syn = { version = "2.0.58", features = ["full"] }
+quote = "1.0.36"
+syn = { version = "2.0.59", features = ["full"] }
 proc-macro2 = "1.0"
 synstructure = "0.13"
 
