@@ -5,7 +5,7 @@ use proc_macro::TokenStream;
 use std::path::PathBuf;
 
 use quote::quote;
-use syn::{LitInt, LitStr, parse::Parse, Token};
+use syn::{parse::Parse, LitInt, LitStr, Token};
 
 struct EmbedModuleMacroInput {
     path: LitStr,
