@@ -20,14 +20,14 @@ fn simple() {
         .unwrap();
 
     // Resolving modules that exist but haven't been cached yet should return None.
-    assert_eq!(module_loader.get_module(JsString::from("file1.js")), None);
+    assert_eq!(module_loader.get_module(JsString::from("/file1.js")), None);
     assert_eq!(
-        module_loader.get_module(JsString::from("non-existent.js")),
+        module_loader.get_module(JsString::from("/non-existent.js")),
         None
     );
 
     let module = Module::parse(
-        Source::from_bytes(b"export { bar } from 'file1.js';"),
+        Source::from_bytes(b"export { bar } from '/file1.js';"),
         None,
         &mut context,
     )

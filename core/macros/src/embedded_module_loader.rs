@@ -5,7 +5,7 @@ use proc_macro::TokenStream;
 use std::path::PathBuf;
 
 use quote::quote;
-use syn::{parse::Parse, LitInt, LitStr, Token};
+use syn::{LitInt, LitStr, parse::Parse, Token};
 
 struct EmbedModuleMacroInput {
     path: LitStr,
@@ -71,7 +71,6 @@ pub(crate) fn embed_module_impl(input: TokenStream) -> TokenStream {
 
     let inner = match files.into_iter().try_fold(quote! {}, |acc, relative_path| {
         let path = root.join(&relative_path);
-        let ext = path.extension().unwrap_or_default();
         let absolute_path = manifest_dir.join(&path).to_string_lossy().to_string();
         let Some(relative_path) = relative_path.to_str() else {
             return Err(syn::Error::new_spanned(
@@ -79,10 +78,7 @@ pub(crate) fn embed_module_impl(input: TokenStream) -> TokenStream {
                 "Path has non-Unicode characters",
             ));
         };
-
-        // Replace component separators by `/`. JavaScript always use `/` as path separator,
-        // regardless of the platform.
-        let relative_path = relative_path.replace(std::path::MAIN_SEPARATOR, "/");
+        let relative_path = format!("/{}", relative_path.replace(std::path::MAIN_SEPARATOR, "/"));
 
         // Check the size.
         let size = std::fs::metadata(&path)
@@ -99,18 +95,14 @@ pub(crate) fn embed_module_impl(input: TokenStream) -> TokenStream {
             ));
         }
 
-        if ext == "js" || ext == "mjs" || ext == "cjs" {
-            Ok(quote! {
-                #acc
+        Ok(quote! {
+            #acc
 
-                (
-                    ::boa_engine::js_string!(#relative_path),
-                    include_bytes!(#absolute_path).as_ref(),
-                ),
-            })
-        } else {
-            Ok(acc)
-        }
+            (
+                #relative_path,
+                include_bytes!(#absolute_path).as_ref(),
+            ),
+        })
     }) {
         Ok(inner) => inner,
         Err(e) => return e.to_compile_error().into(),

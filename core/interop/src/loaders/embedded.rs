@@ -8,38 +8,6 @@ use std::path::Path;
 use boa_engine::module::{ModuleLoader, Referrer};
 use boa_engine::{Context, JsError, JsNativeError, JsResult, JsString, Module, Source};
 
-/// Normalize a specifier to remove `.` and `..` components.
-fn normalize_specifier(specifier: &JsString) -> JsResult<JsString> {
-    let specifier = specifier.to_std_string_escaped();
-    let components = specifier.split('/').collect::<Vec<_>>();
-    let specifier = components
-        .into_iter()
-        .try_fold(String::new(), |mut acc, component| {
-            if component == "." {
-                return Ok(acc);
-            }
-
-            if component == ".." {
-                if acc.is_empty() {
-                    return Err(JsError::from_native(
-                        JsNativeError::typ().with_message("invalid specifier".to_string()),
-                    ));
-                }
-
-                acc.pop();
-                return Ok(acc);
-            }
-
-            if !acc.is_empty() {
-                acc.push('/');
-            }
-            acc.push_str(component);
-            Ok(acc)
-        })?;
-
-    Ok(specifier.into())
-}
-
 /// Create a module loader that embeds files from the filesystem at build
 /// time. This is useful for bundling assets with the binary.
 ///
@@ -109,15 +77,16 @@ pub struct EmbeddedModuleLoader {
     map: HashMap<JsString, RefCell<EmbeddedModuleEntry>>,
 }
 
-impl FromIterator<(JsString, &'static [u8])> for EmbeddedModuleLoader {
-    fn from_iter<T: IntoIterator<Item = (JsString, &'static [u8])>>(iter: T) -> Self {
+impl FromIterator<(&'static str, &'static [u8])> for EmbeddedModuleLoader {
+    fn from_iter<T: IntoIterator<Item = (&'static str, &'static [u8])>>(iter: T) -> Self {
         Self {
             map: iter
                 .into_iter()
                 .map(|(path, source)| {
+                    let p = JsString::from(path);
                     (
-                        path.clone(),
-                        RefCell::new(EmbeddedModuleEntry::from_source(path, source)),
+                        p.clone(),
+                        RefCell::new(EmbeddedModuleEntry::from_source(p, source)),
                     )
                 })
                 .collect(),
@@ -128,20 +97,29 @@ impl FromIterator<(JsString, &'static [u8])> for EmbeddedModuleLoader {
 impl ModuleLoader for EmbeddedModuleLoader {
     fn load_imported_module(
         &self,
-        _referrer: Referrer,
+        referrer: Referrer,
         specifier: JsString,
         finish_load: Box<dyn FnOnce(JsResult<Module>, &mut Context)>,
         context: &mut Context,
     ) {
-        let specifier = match normalize_specifier(&specifier) {
-            Ok(specifier) => specifier,
-            Err(err) => {
-                finish_load(Err(err), context);
-                return;
-            }
+        let Ok(specifier_path) = boa_engine::module::resolve_module_specifier(
+            None,
+            &specifier,
+            referrer.path(),
+            context,
+        ) else {
+            let err = JsNativeError::typ().with_message(format!(
+                "could not resolve module specifier `{}`",
+                specifier.to_std_string_escaped()
+            ));
+            finish_load(Err(err.into()), context);
+            return;
         };
 
-        if let Some(module) = self.map.get(&specifier) {
+        if let Some(module) = self
+            .map
+            .get(&JsString::from(specifier_path.to_string_lossy().as_ref()))
+        {
             let mut embedded = module.borrow_mut();
             let module = embedded.cache(context);
 
