@@ -6,7 +6,7 @@ use std::collections::HashMap;
 use std::path::Path;
 
 use boa_engine::module::{ModuleLoader, Referrer};
-use boa_engine::{Context, JsError, JsNativeError, JsResult, JsString, Module, Source};
+use boa_engine::{Context, JsNativeError, JsResult, JsString, Module, Source};
 
 /// Create a module loader that embeds files from the filesystem at build
 /// time. This is useful for bundling assets with the binary.
@@ -32,7 +32,6 @@ macro_rules! embed_module {
 enum EmbeddedModuleEntry {
     Source(JsString, &'static [u8]),
     Module(Module),
-    Error(JsError),
 }
 
 impl EmbeddedModuleEntry {
@@ -50,14 +49,13 @@ impl EmbeddedModuleEntry {
                     *self = Self::Module(module);
                 }
                 Err(err) => {
-                    *self = Self::Error(err);
+                    return Err(err);
                 }
             }
         };
 
         match self {
             Self::Module(module) => Ok(module),
-            Self::Error(err) => Err(err.clone()),
             EmbeddedModuleEntry::Source(_, _) => unreachable!(),
         }
     }
