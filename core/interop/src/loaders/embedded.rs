@@ -63,7 +63,7 @@ impl EmbeddedModuleEntry {
     fn as_module(&self) -> Option<&Module> {
         match self {
             Self::Module(module) => Some(module),
-            _ => None,
+            Self::Source(_, _) => None,
         }
     }
 }
