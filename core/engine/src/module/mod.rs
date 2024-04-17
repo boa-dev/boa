@@ -38,6 +38,7 @@ use boa_profiler::Profiler;
 pub use loader::*;
 pub use namespace::ModuleNamespace;
 use source::SourceTextModule;
+pub use specifier::{OwnedSpecifier, Specifier};
 pub use synthetic::{SyntheticModule, SyntheticModuleInitializer};
 
 use crate::{
@@ -52,6 +53,7 @@ use crate::{
 mod loader;
 mod namespace;
 mod source;
+pub mod specifier;
 mod synthetic;
 
 /// ECMAScript's [**Abstract module record**][spec].
