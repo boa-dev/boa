@@ -436,15 +436,18 @@ impl BuiltInFunctionObject {
 
         // 6. Let argCount be the number of elements in parameterArgs.
         let (body, param_list) = if let Some((body, params)) = args.split_last() {
-            // 7. Let bodyString be ? ToString(bodyArg).
-            let body = body.to_string(context)?;
-            // 8. Let parameterStrings be a new empty List.
+            // 7. Let parameterStrings be a new empty List.
             let mut parameters = Vec::with_capacity(args.len());
-            // 9. For each element arg of parameterArgs, do
+
+            // 8. For each element arg of parameterArgs, do
             for param in params {
-                //     a. Append ? ToString(arg) to parameterStrings.
+                // a. Append ? ToString(arg) to parameterStrings.
                 parameters.push(param.to_string(context)?);
             }
+
+            // 9. Let bodyString be ? ToString(bodyArg).
+            let body = body.to_string(context)?;
+
             (body, parameters)
         } else {
             (js_string!(), Vec::new())
