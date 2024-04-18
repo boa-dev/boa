@@ -10,7 +10,7 @@
 //! #    property::Attribute,
 //! #    class::{Class, ClassBuilder},
 //! #    Context, JsResult, JsValue,
-//! #    JsArgs, Source, JsObject, js_str,
+//! #    JsArgs, Source, JsObject, js_str, js_string,
 //! #    JsNativeError, JsData,
 //! # };
 //! # use boa_gc::{Finalize, Trace};
@@ -64,7 +64,7 @@
 //!     /// This is where the class object is initialized.
 //!     fn init(class: &mut ClassBuilder) -> JsResult<()> {
 //!         class.method(
-//!             js_str!("speak"),
+//!             js_string!("speak"),
 //!             0,
 //!             NativeFunction::from_fn_ptr(|this, _args, _ctx| {
 //!                 if let Some(object) = this.as_object() {

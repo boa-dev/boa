@@ -116,89 +116,89 @@ impl IntrinsicObject for String {
 
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
         let builder = BuiltInBuilder::from_standard_constructor::<Self>(realm)
-            .property(js_str!("length"), 0, attribute)
+            .property(js_string!("length"), 0, attribute)
             .property(
-                js_str!("trimStart"),
+                js_string!("trimStart"),
                 trim_start,
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .property(
-                js_str!("trimEnd"),
+                js_string!("trimEnd"),
                 trim_end,
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
-            .static_method(Self::raw, js_str!("raw"), 1)
-            .static_method(Self::from_char_code, js_str!("fromCharCode"), 1)
-            .static_method(Self::from_code_point, js_str!("fromCodePoint"), 1)
-            .method(Self::char_at, js_str!("charAt"), 1)
-            .method(Self::char_code_at, js_str!("charCodeAt"), 1)
-            .method(Self::code_point_at, js_str!("codePointAt"), 1)
-            .method(Self::to_string, js_str!("toString"), 0)
-            .method(Self::concat, js_str!("concat"), 1)
-            .method(Self::repeat, js_str!("repeat"), 1)
-            .method(Self::slice, js_str!("slice"), 2)
-            .method(Self::starts_with, js_str!("startsWith"), 1)
-            .method(Self::ends_with, js_str!("endsWith"), 1)
-            .method(Self::includes, js_str!("includes"), 1)
-            .method(Self::index_of, js_str!("indexOf"), 1)
-            .method(Self::is_well_formed, js_str!("isWellFormed"), 0)
-            .method(Self::last_index_of, js_str!("lastIndexOf"), 1)
-            .method(Self::locale_compare, js_str!("localeCompare"), 1)
-            .method(Self::r#match, js_str!("match"), 1)
-            .method(Self::normalize, js_str!("normalize"), 0)
-            .method(Self::pad_end, js_str!("padEnd"), 1)
-            .method(Self::pad_start, js_str!("padStart"), 1)
-            .method(Self::trim, js_str!("trim"), 0)
-            .method(Self::to_case::<false>, js_str!("toLowerCase"), 0)
-            .method(Self::to_case::<true>, js_str!("toUpperCase"), 0)
-            .method(Self::to_well_formed, js_str!("toWellFormed"), 0)
+            .static_method(Self::raw, js_string!("raw"), 1)
+            .static_method(Self::from_char_code, js_string!("fromCharCode"), 1)
+            .static_method(Self::from_code_point, js_string!("fromCodePoint"), 1)
+            .method(Self::char_at, js_string!("charAt"), 1)
+            .method(Self::char_code_at, js_string!("charCodeAt"), 1)
+            .method(Self::code_point_at, js_string!("codePointAt"), 1)
+            .method(Self::to_string, js_string!("toString"), 0)
+            .method(Self::concat, js_string!("concat"), 1)
+            .method(Self::repeat, js_string!("repeat"), 1)
+            .method(Self::slice, js_string!("slice"), 2)
+            .method(Self::starts_with, js_string!("startsWith"), 1)
+            .method(Self::ends_with, js_string!("endsWith"), 1)
+            .method(Self::includes, js_string!("includes"), 1)
+            .method(Self::index_of, js_string!("indexOf"), 1)
+            .method(Self::is_well_formed, js_string!("isWellFormed"), 0)
+            .method(Self::last_index_of, js_string!("lastIndexOf"), 1)
+            .method(Self::locale_compare, js_string!("localeCompare"), 1)
+            .method(Self::r#match, js_string!("match"), 1)
+            .method(Self::normalize, js_string!("normalize"), 0)
+            .method(Self::pad_end, js_string!("padEnd"), 1)
+            .method(Self::pad_start, js_string!("padStart"), 1)
+            .method(Self::trim, js_string!("trim"), 0)
+            .method(Self::to_case::<false>, js_string!("toLowerCase"), 0)
+            .method(Self::to_case::<true>, js_string!("toUpperCase"), 0)
+            .method(Self::to_well_formed, js_string!("toWellFormed"), 0)
             .method(
                 Self::to_locale_case::<false>,
-                js_str!("toLocaleLowerCase"),
+                js_string!("toLocaleLowerCase"),
                 0,
             )
             .method(
                 Self::to_locale_case::<true>,
-                js_str!("toLocaleUpperCase"),
+                js_string!("toLocaleUpperCase"),
                 0,
             )
-            .method(Self::substring, js_str!("substring"), 2)
-            .method(Self::split, js_str!("split"), 2)
-            .method(Self::value_of, js_str!("valueOf"), 0)
-            .method(Self::match_all, js_str!("matchAll"), 1)
-            .method(Self::replace, js_str!("replace"), 2)
-            .method(Self::replace_all, js_str!("replaceAll"), 2)
+            .method(Self::substring, js_string!("substring"), 2)
+            .method(Self::split, js_string!("split"), 2)
+            .method(Self::value_of, js_string!("valueOf"), 0)
+            .method(Self::match_all, js_string!("matchAll"), 1)
+            .method(Self::replace, js_string!("replace"), 2)
+            .method(Self::replace_all, js_string!("replaceAll"), 2)
             .method(Self::iterator, JsSymbol::iterator(), 0)
-            .method(Self::search, js_str!("search"), 1)
-            .method(Self::at, js_str!("at"), 1);
+            .method(Self::search, js_string!("search"), 1)
+            .method(Self::at, js_string!("at"), 1);
 
         #[cfg(feature = "annex-b")]
         let builder = {
             builder
                 .property(
-                    js_str!("trimLeft"),
+                    js_string!("trimLeft"),
                     trim_left,
                     Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
                 )
                 .property(
-                    js_str!("trimRight"),
+                    js_string!("trimRight"),
                     trim_right,
                     Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
                 )
-                .method(Self::substr, js_str!("substr"), 2)
-                .method(Self::anchor, js_str!("anchor"), 1)
-                .method(Self::big, js_str!("big"), 0)
-                .method(Self::blink, js_str!("blink"), 0)
-                .method(Self::bold, js_str!("bold"), 0)
-                .method(Self::fixed, js_str!("fixed"), 0)
-                .method(Self::fontcolor, js_str!("fontcolor"), 1)
-                .method(Self::fontsize, js_str!("fontsize"), 1)
-                .method(Self::italics, js_str!("italics"), 0)
-                .method(Self::link, js_str!("link"), 1)
-                .method(Self::small, js_str!("small"), 0)
-                .method(Self::strike, js_str!("strike"), 0)
-                .method(Self::sub, js_str!("sub"), 0)
-                .method(Self::sup, js_str!("sup"), 0)
+                .method(Self::substr, js_string!("substr"), 2)
+                .method(Self::anchor, js_string!("anchor"), 1)
+                .method(Self::big, js_string!("big"), 0)
+                .method(Self::blink, js_string!("blink"), 0)
+                .method(Self::bold, js_string!("bold"), 0)
+                .method(Self::fixed, js_string!("fixed"), 0)
+                .method(Self::fontcolor, js_string!("fontcolor"), 1)
+                .method(Self::fontsize, js_string!("fontsize"), 1)
+                .method(Self::italics, js_string!("italics"), 0)
+                .method(Self::link, js_string!("link"), 1)
+                .method(Self::small, js_string!("small"), 0)
+                .method(Self::strike, js_string!("strike"), 0)
+                .method(Self::sub, js_string!("sub"), 0)
+                .method(Self::sup, js_string!("sup"), 0)
         };
 
         builder.build();

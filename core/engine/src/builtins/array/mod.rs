@@ -110,9 +110,9 @@ impl IntrinsicObject for Array {
 
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
             // Static Methods
-            .static_method(Self::from, js_str!("from"), 1)
-            .static_method(Self::is_array, js_str!("isArray"), 1)
-            .static_method(Self::of, js_str!("of"), 0)
+            .static_method(Self::from, js_string!("from"), 1)
+            .static_method(Self::is_array, js_string!("isArray"), 1)
+            .static_method(Self::of, js_string!("of"), 0)
             .static_accessor(
                 JsSymbol::species(),
                 Some(get_species),
@@ -124,49 +124,49 @@ impl IntrinsicObject for Array {
                 0,
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
             )
-            .method(Self::at, js_str!("at"), 1)
-            .method(Self::concat, js_str!("concat"), 1)
-            .method(Self::copy_within, js_str!("copyWithin"), 2)
-            .method(Self::entries, js_str!("entries"), 0)
-            .method(Self::every, js_str!("every"), 1)
-            .method(Self::fill, js_str!("fill"), 1)
-            .method(Self::filter, js_str!("filter"), 1)
-            .method(Self::find, js_str!("find"), 1)
-            .method(Self::find_index, js_str!("findIndex"), 1)
-            .method(Self::find_last, js_str!("findLast"), 1)
-            .method(Self::find_last_index, js_str!("findLastIndex"), 1)
-            .method(Self::flat, js_str!("flat"), 0)
-            .method(Self::flat_map, js_str!("flatMap"), 1)
-            .method(Self::for_each, js_str!("forEach"), 1)
-            .method(Self::includes_value, js_str!("includes"), 1)
-            .method(Self::index_of, js_str!("indexOf"), 1)
-            .method(Self::join, js_str!("join"), 1)
-            .method(Self::keys, js_str!("keys"), 0)
-            .method(Self::last_index_of, js_str!("lastIndexOf"), 1)
-            .method(Self::map, js_str!("map"), 1)
-            .method(Self::pop, js_str!("pop"), 0)
-            .method(Self::push, js_str!("push"), 1)
-            .method(Self::reduce, js_str!("reduce"), 1)
-            .method(Self::reduce_right, js_str!("reduceRight"), 1)
-            .method(Self::reverse, js_str!("reverse"), 0)
-            .method(Self::shift, js_str!("shift"), 0)
-            .method(Self::slice, js_str!("slice"), 2)
-            .method(Self::some, js_str!("some"), 1)
-            .method(Self::sort, js_str!("sort"), 1)
-            .method(Self::splice, js_str!("splice"), 2)
-            .method(Self::to_locale_string, js_str!("toLocaleString"), 0)
-            .method(Self::to_reversed, js_str!("toReversed"), 0)
-            .method(Self::to_sorted, js_str!("toSorted"), 1)
-            .method(Self::to_spliced, js_str!("toSpliced"), 2)
-            .method(Self::unshift, js_str!("unshift"), 1)
-            .method(Self::with, js_str!("with"), 2)
+            .method(Self::at, js_string!("at"), 1)
+            .method(Self::concat, js_string!("concat"), 1)
+            .method(Self::copy_within, js_string!("copyWithin"), 2)
+            .method(Self::entries, js_string!("entries"), 0)
+            .method(Self::every, js_string!("every"), 1)
+            .method(Self::fill, js_string!("fill"), 1)
+            .method(Self::filter, js_string!("filter"), 1)
+            .method(Self::find, js_string!("find"), 1)
+            .method(Self::find_index, js_string!("findIndex"), 1)
+            .method(Self::find_last, js_string!("findLast"), 1)
+            .method(Self::find_last_index, js_string!("findLastIndex"), 1)
+            .method(Self::flat, js_string!("flat"), 0)
+            .method(Self::flat_map, js_string!("flatMap"), 1)
+            .method(Self::for_each, js_string!("forEach"), 1)
+            .method(Self::includes_value, js_string!("includes"), 1)
+            .method(Self::index_of, js_string!("indexOf"), 1)
+            .method(Self::join, js_string!("join"), 1)
+            .method(Self::keys, js_string!("keys"), 0)
+            .method(Self::last_index_of, js_string!("lastIndexOf"), 1)
+            .method(Self::map, js_string!("map"), 1)
+            .method(Self::pop, js_string!("pop"), 0)
+            .method(Self::push, js_string!("push"), 1)
+            .method(Self::reduce, js_string!("reduce"), 1)
+            .method(Self::reduce_right, js_string!("reduceRight"), 1)
+            .method(Self::reverse, js_string!("reverse"), 0)
+            .method(Self::shift, js_string!("shift"), 0)
+            .method(Self::slice, js_string!("slice"), 2)
+            .method(Self::some, js_string!("some"), 1)
+            .method(Self::sort, js_string!("sort"), 1)
+            .method(Self::splice, js_string!("splice"), 2)
+            .method(Self::to_locale_string, js_string!("toLocaleString"), 0)
+            .method(Self::to_reversed, js_string!("toReversed"), 0)
+            .method(Self::to_sorted, js_string!("toSorted"), 1)
+            .method(Self::to_spliced, js_string!("toSpliced"), 2)
+            .method(Self::unshift, js_string!("unshift"), 1)
+            .method(Self::with, js_string!("with"), 2)
             .property(
-                js_str!("toString"),
+                js_string!("toString"),
                 to_string_function,
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .property(
-                js_str!("values"),
+                js_string!("values"),
                 values_function.clone(),
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
@@ -1051,7 +1051,7 @@ impl Array {
         // 1. Let array be ? ToObject(this value).
         let array = this.to_object(context)?;
         // 2. Let func be ? Get(array, "join").
-        let func = array.get(js_str!("join"), context)?;
+        let func = array.get(js_string!("join"), context)?;
         // 3. If IsCallable(func) is false, set func to the intrinsic function %Object.prototype.toString%.
         // 4. Return ? Call(func, array).
         if let Some(func) = func.as_callable() {

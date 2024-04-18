@@ -309,19 +309,19 @@ impl IntrinsicObject for BuiltInFunctionObject {
         let throw_type_error = realm.intrinsics().objects().throw_type_error();
 
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
-            .method(Self::apply, js_str!("apply"), 2)
-            .method(Self::bind, js_str!("bind"), 1)
-            .method(Self::call, js_str!("call"), 1)
-            .method(Self::to_string, js_str!("toString"), 0)
+            .method(Self::apply, js_string!("apply"), 2)
+            .method(Self::bind, js_string!("bind"), 1)
+            .method(Self::call, js_string!("call"), 1)
+            .method(Self::to_string, js_string!("toString"), 0)
             .property(JsSymbol::has_instance(), has_instance, Attribute::default())
             .accessor(
-                js_str!("caller"),
+                js_string!("caller"),
                 Some(throw_type_error.clone()),
                 Some(throw_type_error.clone()),
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_str!("arguments"),
+                js_string!("arguments"),
                 Some(throw_type_error.clone()),
                 Some(throw_type_error),
                 Attribute::CONFIGURABLE,

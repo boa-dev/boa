@@ -465,17 +465,6 @@ pub struct FunctionBinding {
     pub(crate) name: JsString,
 }
 
-impl From<JsStr<'_>> for FunctionBinding {
-    #[inline]
-    fn from(name: JsStr<'_>) -> Self {
-        let name: JsString = name.into();
-        Self {
-            binding: name.clone().into(),
-            name: name.clone(),
-        }
-    }
-}
-
 impl From<JsString> for FunctionBinding {
     #[inline]
     fn from(name: JsString) -> Self {

@@ -1,5 +1,4 @@
 use boa_gc::{Finalize, Trace};
-use boa_macros::js_str;
 use boa_profiler::Profiler;
 use icu_segmenter::{
     GraphemeClusterBreakIteratorLatin1, GraphemeClusterBreakIteratorUtf16,
@@ -10,6 +9,7 @@ use icu_segmenter::{
 use crate::{
     builtins::{iterable::create_iter_result_object, BuiltInBuilder, IntrinsicObject},
     context::intrinsics::Intrinsics,
+    js_string,
     property::Attribute,
     realm::Realm,
     Context, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
@@ -67,10 +67,10 @@ impl IntrinsicObject for SegmentIterator {
         BuiltInBuilder::with_intrinsic::<Self>(realm)
             .static_property(
                 JsSymbol::to_string_tag(),
-                js_str!("Segmenter String Iterator"),
+                js_string!("Segmenter String Iterator"),
                 Attribute::CONFIGURABLE,
             )
-            .static_method(Self::next, js_str!("next"), 0)
+            .static_method(Self::next, js_string!("next"), 0)
             .build();
     }
 

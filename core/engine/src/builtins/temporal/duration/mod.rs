@@ -109,86 +109,86 @@ impl IntrinsicObject for Duration {
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_str!("years"),
+                js_string!("years"),
                 Some(get_years),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_str!("months"),
+                js_string!("months"),
                 Some(get_months),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_str!("weeks"),
+                js_string!("weeks"),
                 Some(get_weeks),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_str!("days"),
+                js_string!("days"),
                 Some(get_days),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_str!("hours"),
+                js_string!("hours"),
                 Some(get_hours),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_str!("minutes"),
+                js_string!("minutes"),
                 Some(get_minutes),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_str!("seconds"),
+                js_string!("seconds"),
                 Some(get_seconds),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_str!("milliseconds"),
+                js_string!("milliseconds"),
                 Some(get_milliseconds),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_str!("microseconds"),
+                js_string!("microseconds"),
                 Some(get_microseconds),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_str!("nanoseconds"),
+                js_string!("nanoseconds"),
                 Some(get_nanoseconds),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_str!("sign"),
+                js_string!("sign"),
                 Some(get_sign),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_str!("blank"),
+                js_string!("blank"),
                 Some(is_blank),
                 None,
                 Attribute::CONFIGURABLE,
             )
-            .method(Self::with, js_str!("with"), 1)
-            .method(Self::negated, js_str!("negated"), 0)
-            .method(Self::abs, js_str!("abs"), 0)
-            .method(Self::add, js_str!("add"), 2)
-            .method(Self::subtract, js_str!("subtract"), 2)
-            .method(Self::round, js_str!("round"), 1)
-            .method(Self::total, js_str!("total"), 1)
-            .method(Self::to_string, js_str!("toString"), 1)
-            .method(Self::to_json, js_str!("toJSON"), 0)
+            .method(Self::with, js_string!("with"), 1)
+            .method(Self::negated, js_string!("negated"), 0)
+            .method(Self::abs, js_string!("abs"), 0)
+            .method(Self::add, js_string!("add"), 2)
+            .method(Self::subtract, js_string!("subtract"), 2)
+            .method(Self::round, js_string!("round"), 1)
+            .method(Self::total, js_string!("total"), 1)
+            .method(Self::to_string, js_string!("toString"), 1)
+            .method(Self::to_json, js_string!("toJSON"), 0)
             .build();
     }
 

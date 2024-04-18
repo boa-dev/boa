@@ -13,6 +13,7 @@ use crate::{
     builtins::iterable::create_iter_result_object,
     context::intrinsics::Intrinsics,
     error::JsNativeError,
+    js_string,
     object::{JsObject, CONSTRUCTOR},
     property::Attribute,
     realm::Realm,
@@ -23,7 +24,6 @@ use crate::{
     Context, JsArgs, JsData, JsError, JsResult, JsString,
 };
 use boa_gc::{custom_trace, Finalize, Trace};
-use boa_macros::js_str;
 use boa_profiler::Profiler;
 
 use super::{BuiltInBuilder, IntrinsicObject};
@@ -139,9 +139,9 @@ impl IntrinsicObject for Generator {
                     .iterator_prototypes()
                     .iterator(),
             )
-            .static_method(Self::next, js_str!("next"), 1)
-            .static_method(Self::r#return, js_str!("return"), 1)
-            .static_method(Self::throw, js_str!("throw"), 1)
+            .static_method(Self::next, js_string!("next"), 1)
+            .static_method(Self::r#return, js_string!("return"), 1)
+            .static_method(Self::throw, js_string!("throw"), 1)
             .static_property(
                 JsSymbol::to_string_tag(),
                 Self::NAME,

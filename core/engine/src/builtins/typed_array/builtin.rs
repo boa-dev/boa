@@ -79,19 +79,19 @@ impl IntrinsicObject for BuiltinTypedArray {
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_str!("buffer"),
+                js_string!("buffer"),
                 Some(get_buffer),
                 None,
                 Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
             )
             .accessor(
-                js_str!("byteLength"),
+                js_string!("byteLength"),
                 Some(get_byte_length),
                 None,
                 Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
             )
             .accessor(
-                js_str!("byteOffset"),
+                js_string!("byteOffset"),
                 Some(get_byte_offset),
                 None,
                 Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
@@ -108,47 +108,47 @@ impl IntrinsicObject for BuiltinTypedArray {
                 None,
                 Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
             )
-            .static_method(Self::from, js_str!("from"), 1)
-            .static_method(Self::of, js_str!("of"), 0)
-            .method(Self::at, js_str!("at"), 1)
-            .method(Self::copy_within, js_str!("copyWithin"), 2)
-            .method(Self::entries, js_str!("entries"), 0)
-            .method(Self::every, js_str!("every"), 1)
-            .method(Self::fill, js_str!("fill"), 1)
-            .method(Self::filter, js_str!("filter"), 1)
-            .method(Self::find, js_str!("find"), 1)
-            .method(Self::find_index, js_str!("findIndex"), 1)
-            .method(Self::find_last, js_str!("findLast"), 1)
-            .method(Self::find_last_index, js_str!("findLastIndex"), 1)
-            .method(Self::for_each, js_str!("forEach"), 1)
-            .method(Self::includes, js_str!("includes"), 1)
-            .method(Self::index_of, js_str!("indexOf"), 1)
-            .method(Self::join, js_str!("join"), 1)
-            .method(Self::keys, js_str!("keys"), 0)
-            .method(Self::last_index_of, js_str!("lastIndexOf"), 1)
-            .method(Self::map, js_str!("map"), 1)
-            .method(Self::reduce, js_str!("reduce"), 1)
-            .method(Self::reduceright, js_str!("reduceRight"), 1)
-            .method(Self::reverse, js_str!("reverse"), 0)
-            .method(Self::set, js_str!("set"), 1)
-            .method(Self::slice, js_str!("slice"), 2)
-            .method(Self::some, js_str!("some"), 1)
-            .method(Self::sort, js_str!("sort"), 1)
-            .method(Self::subarray, js_str!("subarray"), 2)
-            .method(Self::to_locale_string, js_str!("toLocaleString"), 0)
-            .method(Self::to_reversed, js_str!("toReversed"), 0)
-            .method(Self::to_sorted, js_str!("toSorted"), 1)
-            .method(Self::with, js_str!("with"), 2)
+            .static_method(Self::from, js_string!("from"), 1)
+            .static_method(Self::of, js_string!("of"), 0)
+            .method(Self::at, js_string!("at"), 1)
+            .method(Self::copy_within, js_string!("copyWithin"), 2)
+            .method(Self::entries, js_string!("entries"), 0)
+            .method(Self::every, js_string!("every"), 1)
+            .method(Self::fill, js_string!("fill"), 1)
+            .method(Self::filter, js_string!("filter"), 1)
+            .method(Self::find, js_string!("find"), 1)
+            .method(Self::find_index, js_string!("findIndex"), 1)
+            .method(Self::find_last, js_string!("findLast"), 1)
+            .method(Self::find_last_index, js_string!("findLastIndex"), 1)
+            .method(Self::for_each, js_string!("forEach"), 1)
+            .method(Self::includes, js_string!("includes"), 1)
+            .method(Self::index_of, js_string!("indexOf"), 1)
+            .method(Self::join, js_string!("join"), 1)
+            .method(Self::keys, js_string!("keys"), 0)
+            .method(Self::last_index_of, js_string!("lastIndexOf"), 1)
+            .method(Self::map, js_string!("map"), 1)
+            .method(Self::reduce, js_string!("reduce"), 1)
+            .method(Self::reduceright, js_string!("reduceRight"), 1)
+            .method(Self::reverse, js_string!("reverse"), 0)
+            .method(Self::set, js_string!("set"), 1)
+            .method(Self::slice, js_string!("slice"), 2)
+            .method(Self::some, js_string!("some"), 1)
+            .method(Self::sort, js_string!("sort"), 1)
+            .method(Self::subarray, js_string!("subarray"), 2)
+            .method(Self::to_locale_string, js_string!("toLocaleString"), 0)
+            .method(Self::to_reversed, js_string!("toReversed"), 0)
+            .method(Self::to_sorted, js_string!("toSorted"), 1)
+            .method(Self::with, js_string!("with"), 2)
             // 23.2.3.29 %TypedArray%.prototype.toString ( )
             // The initial value of the %TypedArray%.prototype.toString data property is the same
             // built-in function object as the Array.prototype.toString method defined in 23.1.3.30.
             .property(
-                js_str!("toString"),
+                js_string!("toString"),
                 realm.intrinsics().objects().array_prototype_to_string(),
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .property(
-                js_str!("values"),
+                js_string!("values"),
                 values_function,
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )

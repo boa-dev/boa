@@ -71,42 +71,47 @@ impl IntrinsicObject for PlainTime {
                 Self::NAME,
                 Attribute::CONFIGURABLE,
             )
-            .accessor(js_str!("hour"), Some(get_hour), None, Attribute::default())
             .accessor(
-                js_str!("minute"),
+                js_string!("hour"),
+                Some(get_hour),
+                None,
+                Attribute::default(),
+            )
+            .accessor(
+                js_string!("minute"),
                 Some(get_minute),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_str!("second"),
+                js_string!("second"),
                 Some(get_second),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_str!("millisecond"),
+                js_string!("millisecond"),
                 Some(get_millisecond),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_str!("microsecond"),
+                js_string!("microsecond"),
                 Some(get_microsecond),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_str!("nanosecond"),
+                js_string!("nanosecond"),
                 Some(get_nanosecond),
                 None,
                 Attribute::CONFIGURABLE,
             )
-            .method(Self::add, js_str!("add"), 1)
-            .method(Self::subtract, js_str!("subtract"), 1)
-            .method(Self::round, js_str!("round"), 1)
-            .method(Self::get_iso_fields, js_str!("getISOFields"), 0)
-            .method(Self::value_of, js_str!("valueOf"), 0)
+            .method(Self::add, js_string!("add"), 1)
+            .method(Self::subtract, js_string!("subtract"), 1)
+            .method(Self::round, js_string!("round"), 1)
+            .method(Self::get_iso_fields, js_string!("getISOFields"), 0)
+            .method(Self::value_of, js_string!("valueOf"), 0)
             .build();
     }
 

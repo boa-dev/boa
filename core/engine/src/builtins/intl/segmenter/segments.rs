@@ -1,11 +1,11 @@
 use boa_gc::{Finalize, Trace};
-use boa_macros::js_str;
 use boa_profiler::Profiler;
 use itertools::Itertools;
 
 use crate::{
     builtins::{BuiltInBuilder, IntrinsicObject},
     context::intrinsics::Intrinsics,
+    js_string,
     realm::Realm,
     Context, JsArgs, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
@@ -23,7 +23,7 @@ impl IntrinsicObject for Segments {
         let _timer = Profiler::global().start_event("%SegmentsPrototype%", "init");
 
         BuiltInBuilder::with_intrinsic::<Self>(realm)
-            .static_method(Self::containing, js_str!("containing"), 1)
+            .static_method(Self::containing, js_string!("containing"), 1)
             .static_method(Self::iterator, JsSymbol::iterator(), 0)
             .build();
     }

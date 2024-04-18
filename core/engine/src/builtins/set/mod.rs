@@ -65,25 +65,25 @@ impl IntrinsicObject for Set {
                 None,
                 Attribute::CONFIGURABLE,
             )
-            .method(Self::add, js_str!("add"), 1)
-            .method(Self::clear, js_str!("clear"), 0)
-            .method(Self::delete, js_str!("delete"), 1)
-            .method(Self::entries, js_str!("entries"), 0)
-            .method(Self::for_each, js_str!("forEach"), 1)
-            .method(Self::has, js_str!("has"), 1)
+            .method(Self::add, js_string!("add"), 1)
+            .method(Self::clear, js_string!("clear"), 0)
+            .method(Self::delete, js_string!("delete"), 1)
+            .method(Self::entries, js_string!("entries"), 0)
+            .method(Self::for_each, js_string!("forEach"), 1)
+            .method(Self::has, js_string!("has"), 1)
             .property(
-                js_str!("keys"),
+                js_string!("keys"),
                 values_function.clone(),
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_str!("size"),
+                js_string!("size"),
                 Some(size_getter),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .property(
-                js_str!("values"),
+                js_string!("values"),
                 values_function.clone(),
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )

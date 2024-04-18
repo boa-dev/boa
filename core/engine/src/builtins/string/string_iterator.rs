@@ -17,7 +17,6 @@ use crate::{
     Context, JsData, JsResult, JsString, JsValue,
 };
 use boa_gc::{Finalize, Trace};
-use boa_macros::js_str;
 use boa_profiler::Profiler;
 
 /// The `StringIterator` object represents an iteration over a string. It implements the iterator protocol.
@@ -44,10 +43,10 @@ impl IntrinsicObject for StringIterator {
                     .iterator_prototypes()
                     .iterator(),
             )
-            .static_method(Self::next, js_str!("next"), 0)
+            .static_method(Self::next, js_string!("next"), 0)
             .static_property(
                 JsSymbol::to_string_tag(),
-                js_str!("String Iterator"),
+                js_string!("String Iterator"),
                 Attribute::CONFIGURABLE,
             )
             .build();

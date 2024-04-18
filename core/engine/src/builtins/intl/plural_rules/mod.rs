@@ -53,15 +53,19 @@ impl IntrinsicObject for PluralRules {
         let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
-            .static_method(Self::supported_locales_of, js_str!("supportedLocalesOf"), 1)
+            .static_method(
+                Self::supported_locales_of,
+                js_string!("supportedLocalesOf"),
+                1,
+            )
             .property(
                 JsSymbol::to_string_tag(),
-                js_str!("Intl.PluralRules"),
+                js_string!("Intl.PluralRules"),
                 Attribute::CONFIGURABLE,
             )
-            .method(Self::resolved_options, js_str!("resolvedOptions"), 0)
-            .method(Self::select, js_str!("select"), 1)
-            .method(Self::select_range, js_str!("selectRange"), 2)
+            .method(Self::resolved_options, js_string!("resolvedOptions"), 0)
+            .method(Self::select, js_string!("select"), 1)
+            .method(Self::select_range, js_string!("selectRange"), 2)
             .build();
     }
 

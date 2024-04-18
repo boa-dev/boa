@@ -77,68 +77,68 @@ impl IntrinsicObject for Locale {
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .property(
                 JsSymbol::to_string_tag(),
-                js_str!("Intl.Locale"),
+                js_string!("Intl.Locale"),
                 Attribute::CONFIGURABLE,
             )
-            .method(Self::maximize, js_str!("maximize"), 0)
-            .method(Self::minimize, js_str!("minimize"), 0)
-            .method(Self::to_string, js_str!("toString"), 0)
+            .method(Self::maximize, js_string!("maximize"), 0)
+            .method(Self::minimize, js_string!("minimize"), 0)
+            .method(Self::to_string, js_string!("toString"), 0)
             .accessor(
-                js_str!("baseName"),
+                js_string!("baseName"),
                 Some(base_name),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_str!("calendar"),
+                js_string!("calendar"),
                 Some(calendar),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_str!("caseFirst"),
+                js_string!("caseFirst"),
                 Some(case_first),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_str!("collation"),
+                js_string!("collation"),
                 Some(collation),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_str!("hourCycle"),
+                js_string!("hourCycle"),
                 Some(hour_cycle),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_str!("numeric"),
+                js_string!("numeric"),
                 Some(numeric),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_str!("numberingSystem"),
+                js_string!("numberingSystem"),
                 Some(numbering_system),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_str!("language"),
+                js_string!("language"),
                 Some(language),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_str!("script"),
+                js_string!("script"),
                 Some(script),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_str!("region"),
+                js_string!("region"),
                 Some(region),
                 None,
                 Attribute::CONFIGURABLE,

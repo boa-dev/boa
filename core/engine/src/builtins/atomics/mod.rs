@@ -15,7 +15,7 @@ mod futex;
 use std::sync::atomic::Ordering;
 
 use crate::{
-    builtins::BuiltInObject, context::intrinsics::Intrinsics, object::JsObject,
+    builtins::BuiltInObject, context::intrinsics::Intrinsics, js_string, object::JsObject,
     property::Attribute, realm::Realm, string::common::StaticJsStrings, symbol::JsSymbol,
     sys::time::Duration, value::IntegerOrInfinity, Context, JsArgs, JsNativeError, JsResult,
     JsString, JsValue,
@@ -44,18 +44,18 @@ impl IntrinsicObject for Atomics {
                 Self::NAME,
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
-            .static_method(Atomics::add, js_str!("add"), 3)
-            .static_method(Atomics::bit_and, js_str!("and"), 3)
-            .static_method(Atomics::compare_exchange, js_str!("compareExchange"), 4)
-            .static_method(Atomics::swap, js_str!("exchange"), 3)
-            .static_method(Atomics::is_lock_free, js_str!("isLockFree"), 1)
-            .static_method(Atomics::load, js_str!("load"), 2)
-            .static_method(Atomics::bit_or, js_str!("or"), 3)
-            .static_method(Atomics::store, js_str!("store"), 3)
-            .static_method(Atomics::sub, js_str!("sub"), 3)
-            .static_method(Atomics::wait, js_str!("wait"), 4)
-            .static_method(Atomics::notify, js_str!("notify"), 3)
-            .static_method(Atomics::bit_xor, js_str!("xor"), 3)
+            .static_method(Atomics::add, js_string!("add"), 3)
+            .static_method(Atomics::bit_and, js_string!("and"), 3)
+            .static_method(Atomics::compare_exchange, js_string!("compareExchange"), 4)
+            .static_method(Atomics::swap, js_string!("exchange"), 3)
+            .static_method(Atomics::is_lock_free, js_string!("isLockFree"), 1)
+            .static_method(Atomics::load, js_string!("load"), 2)
+            .static_method(Atomics::bit_or, js_string!("or"), 3)
+            .static_method(Atomics::store, js_string!("store"), 3)
+            .static_method(Atomics::sub, js_string!("sub"), 3)
+            .static_method(Atomics::wait, js_string!("wait"), 4)
+            .static_method(Atomics::notify, js_string!("notify"), 3)
+            .static_method(Atomics::bit_xor, js_string!("xor"), 3)
             .build();
     }
 

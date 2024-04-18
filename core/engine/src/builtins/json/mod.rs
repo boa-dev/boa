@@ -54,8 +54,8 @@ impl IntrinsicObject for Json {
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
 
         BuiltInBuilder::with_intrinsic::<Self>(realm)
-            .static_method(Self::parse, js_str!("parse"), 2)
-            .static_method(Self::stringify, js_str!("stringify"), 3)
+            .static_method(Self::parse, js_string!("parse"), 2)
+            .static_method(Self::stringify, js_string!("stringify"), 3)
             .static_property(to_string_tag, Self::NAME, attribute)
             .build();
     }

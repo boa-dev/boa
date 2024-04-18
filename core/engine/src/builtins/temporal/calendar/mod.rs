@@ -76,40 +76,45 @@ impl IntrinsicObject for Calendar {
                 Self::NAME,
                 Attribute::CONFIGURABLE,
             )
-            .accessor(js_str!("id"), Some(get_id), None, Attribute::CONFIGURABLE)
-            .static_method(Self::from, js_str!("from"), 1)
-            .method(Self::date_from_fields, js_str!("dateFromFields"), 2)
+            .accessor(
+                js_string!("id"),
+                Some(get_id),
+                None,
+                Attribute::CONFIGURABLE,
+            )
+            .static_method(Self::from, js_string!("from"), 1)
+            .method(Self::date_from_fields, js_string!("dateFromFields"), 2)
             .method(
                 Self::year_month_from_fields,
-                js_str!("yearMonthFromFields"),
+                js_string!("yearMonthFromFields"),
                 2,
             )
             .method(
                 Self::month_day_from_fields,
-                js_str!("monthDayFromFields"),
+                js_string!("monthDayFromFields"),
                 2,
             )
-            .method(Self::date_add, js_str!("dateAdd"), 3)
-            .method(Self::date_until, js_str!("dateUntil"), 3)
-            .method(Self::era, js_str!("era"), 1)
-            .method(Self::era_year, js_str!("eraYear"), 1)
-            .method(Self::year, js_str!("year"), 1)
-            .method(Self::month, js_str!("month"), 1)
-            .method(Self::month_code, js_str!("monthCode"), 1)
-            .method(Self::day, js_str!("day"), 1)
-            .method(Self::day_of_week, js_str!("dayOfWeek"), 1)
-            .method(Self::day_of_year, js_str!("dayOfYear"), 1)
-            .method(Self::week_of_year, js_str!("weekOfYear"), 1)
-            .method(Self::year_of_week, js_str!("yearOfWeek"), 1)
-            .method(Self::days_in_week, js_str!("daysInWeek"), 1)
-            .method(Self::days_in_month, js_str!("daysInMonth"), 1)
-            .method(Self::days_in_year, js_str!("daysInYear"), 1)
-            .method(Self::months_in_year, js_str!("monthsInYear"), 1)
-            .method(Self::in_leap_year, js_str!("inLeapYear"), 1)
-            .method(Self::fields, js_str!("fields"), 1)
-            .method(Self::merge_fields, js_str!("mergeFields"), 2)
-            .method(Self::get_id, js_str!("toString"), 0)
-            .method(Self::get_id, js_str!("toJSON"), 0)
+            .method(Self::date_add, js_string!("dateAdd"), 3)
+            .method(Self::date_until, js_string!("dateUntil"), 3)
+            .method(Self::era, js_string!("era"), 1)
+            .method(Self::era_year, js_string!("eraYear"), 1)
+            .method(Self::year, js_string!("year"), 1)
+            .method(Self::month, js_string!("month"), 1)
+            .method(Self::month_code, js_string!("monthCode"), 1)
+            .method(Self::day, js_string!("day"), 1)
+            .method(Self::day_of_week, js_string!("dayOfWeek"), 1)
+            .method(Self::day_of_year, js_string!("dayOfYear"), 1)
+            .method(Self::week_of_year, js_string!("weekOfYear"), 1)
+            .method(Self::year_of_week, js_string!("yearOfWeek"), 1)
+            .method(Self::days_in_week, js_string!("daysInWeek"), 1)
+            .method(Self::days_in_month, js_string!("daysInMonth"), 1)
+            .method(Self::days_in_year, js_string!("daysInYear"), 1)
+            .method(Self::months_in_year, js_string!("monthsInYear"), 1)
+            .method(Self::in_leap_year, js_string!("inLeapYear"), 1)
+            .method(Self::fields, js_string!("fields"), 1)
+            .method(Self::merge_fields, js_string!("mergeFields"), 2)
+            .method(Self::get_id, js_string!("toString"), 0)
+            .method(Self::get_id, js_string!("toJSON"), 0)
             .build();
     }
 

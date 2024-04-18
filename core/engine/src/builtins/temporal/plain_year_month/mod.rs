@@ -11,7 +11,6 @@ use crate::{
     Context, JsArgs, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 use boa_gc::{Finalize, Trace};
-use boa_macros::js_str;
 use boa_profiler::Profiler;
 
 use super::calendar::to_temporal_calendar_slot_value;
@@ -99,59 +98,59 @@ impl IntrinsicObject for PlainYearMonth {
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_str!("calendarId"),
+                js_string!("calendarId"),
                 Some(get_calendar_id),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_str!("year"),
+                js_string!("year"),
                 Some(get_year),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_str!("month"),
+                js_string!("month"),
                 Some(get_month),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_str!("monthCode"),
+                js_string!("monthCode"),
                 Some(get_month_code),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_str!("daysInMonth"),
+                js_string!("daysInMonth"),
                 Some(get_days_in_month),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_str!("daysInYear"),
+                js_string!("daysInYear"),
                 Some(get_days_in_year),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_str!("monthsInYear"),
+                js_string!("monthsInYear"),
                 Some(get_months_in_year),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_str!("inLeapYear"),
+                js_string!("inLeapYear"),
                 Some(get_in_leap_year),
                 None,
                 Attribute::CONFIGURABLE,
             )
-            .method(Self::with, js_str!("with"), 2)
-            .method(Self::add, js_str!("add"), 2)
-            .method(Self::subtract, js_str!("subtract"), 2)
-            .method(Self::until, js_str!("until"), 2)
-            .method(Self::since, js_str!("since"), 2)
-            .method(Self::equals, js_str!("equals"), 1)
+            .method(Self::with, js_string!("with"), 2)
+            .method(Self::add, js_string!("add"), 2)
+            .method(Self::subtract, js_string!("subtract"), 2)
+            .method(Self::until, js_string!("until"), 2)
+            .method(Self::since, js_string!("since"), 2)
+            .method(Self::equals, js_string!("equals"), 1)
             .build();
     }
 

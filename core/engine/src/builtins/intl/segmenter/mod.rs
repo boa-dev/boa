@@ -89,14 +89,18 @@ impl IntrinsicObject for Segmenter {
         let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
-            .static_method(Self::supported_locales_of, js_str!("supportedLocalesOf"), 1)
+            .static_method(
+                Self::supported_locales_of,
+                js_string!("supportedLocalesOf"),
+                1,
+            )
             .property(
                 JsSymbol::to_string_tag(),
-                js_str!("Intl.Segmenter"),
+                js_string!("Intl.Segmenter"),
                 Attribute::CONFIGURABLE,
             )
-            .method(Self::resolved_options, js_str!("resolvedOptions"), 0)
-            .method(Self::segment, js_str!("segment"), 1)
+            .method(Self::resolved_options, js_string!("resolvedOptions"), 0)
+            .method(Self::segment, js_string!("segment"), 1)
             .build();
     }
 

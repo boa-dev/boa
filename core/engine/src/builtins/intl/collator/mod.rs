@@ -158,19 +158,23 @@ impl IntrinsicObject for Collator {
             .build();
 
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
-            .static_method(Self::supported_locales_of, js_str!("supportedLocalesOf"), 1)
+            .static_method(
+                Self::supported_locales_of,
+                js_string!("supportedLocalesOf"),
+                1,
+            )
             .property(
                 JsSymbol::to_string_tag(),
-                js_str!("Intl.Collator"),
+                js_string!("Intl.Collator"),
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_str!("compare"),
+                js_string!("compare"),
                 Some(compare),
                 None,
                 Attribute::CONFIGURABLE,
             )
-            .method(Self::resolved_options, js_str!("resolvedOptions"), 0)
+            .method(Self::resolved_options, js_string!("resolvedOptions"), 0)
             .build();
     }
 

@@ -62,64 +62,80 @@ impl IntrinsicObject for OrdinaryObject {
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .inherits(None)
             .accessor(
-                js_str!("__proto__"),
+                js_string!("__proto__"),
                 Some(legacy_proto_getter),
                 Some(legacy_setter_proto),
                 Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
-            .method(Self::has_own_property, js_str!("hasOwnProperty"), 1)
+            .method(Self::has_own_property, js_string!("hasOwnProperty"), 1)
             .method(
                 Self::property_is_enumerable,
-                js_str!("propertyIsEnumerable"),
+                js_string!("propertyIsEnumerable"),
                 1,
             )
-            .method(Self::to_string, js_str!("toString"), 0)
-            .method(Self::to_locale_string, js_str!("toLocaleString"), 0)
-            .method(Self::value_of, js_str!("valueOf"), 0)
-            .method(Self::is_prototype_of, js_str!("isPrototypeOf"), 1)
-            .method(Self::legacy_define_getter, js_str!("__defineGetter__"), 2)
-            .method(Self::legacy_define_setter, js_str!("__defineSetter__"), 2)
-            .method(Self::legacy_lookup_getter, js_str!("__lookupGetter__"), 1)
-            .method(Self::legacy_lookup_setter, js_str!("__lookupSetter__"), 1)
-            .static_method(Self::create, js_str!("create"), 2)
-            .static_method(Self::set_prototype_of, js_str!("setPrototypeOf"), 2)
-            .static_method(Self::get_prototype_of, js_str!("getPrototypeOf"), 1)
-            .static_method(Self::define_property, js_str!("defineProperty"), 3)
-            .static_method(Self::define_properties, js_str!("defineProperties"), 2)
-            .static_method(Self::assign, js_str!("assign"), 2)
-            .static_method(Self::is, js_str!("is"), 2)
-            .static_method(Self::keys, js_str!("keys"), 1)
-            .static_method(Self::values, js_str!("values"), 1)
-            .static_method(Self::entries, js_str!("entries"), 1)
-            .static_method(Self::seal, js_str!("seal"), 1)
-            .static_method(Self::is_sealed, js_str!("isSealed"), 1)
-            .static_method(Self::freeze, js_str!("freeze"), 1)
-            .static_method(Self::is_frozen, js_str!("isFrozen"), 1)
-            .static_method(Self::prevent_extensions, js_str!("preventExtensions"), 1)
-            .static_method(Self::is_extensible, js_str!("isExtensible"), 1)
+            .method(Self::to_string, js_string!("toString"), 0)
+            .method(Self::to_locale_string, js_string!("toLocaleString"), 0)
+            .method(Self::value_of, js_string!("valueOf"), 0)
+            .method(Self::is_prototype_of, js_string!("isPrototypeOf"), 1)
+            .method(
+                Self::legacy_define_getter,
+                js_string!("__defineGetter__"),
+                2,
+            )
+            .method(
+                Self::legacy_define_setter,
+                js_string!("__defineSetter__"),
+                2,
+            )
+            .method(
+                Self::legacy_lookup_getter,
+                js_string!("__lookupGetter__"),
+                1,
+            )
+            .method(
+                Self::legacy_lookup_setter,
+                js_string!("__lookupSetter__"),
+                1,
+            )
+            .static_method(Self::create, js_string!("create"), 2)
+            .static_method(Self::set_prototype_of, js_string!("setPrototypeOf"), 2)
+            .static_method(Self::get_prototype_of, js_string!("getPrototypeOf"), 1)
+            .static_method(Self::define_property, js_string!("defineProperty"), 3)
+            .static_method(Self::define_properties, js_string!("defineProperties"), 2)
+            .static_method(Self::assign, js_string!("assign"), 2)
+            .static_method(Self::is, js_string!("is"), 2)
+            .static_method(Self::keys, js_string!("keys"), 1)
+            .static_method(Self::values, js_string!("values"), 1)
+            .static_method(Self::entries, js_string!("entries"), 1)
+            .static_method(Self::seal, js_string!("seal"), 1)
+            .static_method(Self::is_sealed, js_string!("isSealed"), 1)
+            .static_method(Self::freeze, js_string!("freeze"), 1)
+            .static_method(Self::is_frozen, js_string!("isFrozen"), 1)
+            .static_method(Self::prevent_extensions, js_string!("preventExtensions"), 1)
+            .static_method(Self::is_extensible, js_string!("isExtensible"), 1)
             .static_method(
                 Self::get_own_property_descriptor,
-                js_str!("getOwnPropertyDescriptor"),
+                js_string!("getOwnPropertyDescriptor"),
                 2,
             )
             .static_method(
                 Self::get_own_property_descriptors,
-                js_str!("getOwnPropertyDescriptors"),
+                js_string!("getOwnPropertyDescriptors"),
                 1,
             )
             .static_method(
                 Self::get_own_property_names,
-                js_str!("getOwnPropertyNames"),
+                js_string!("getOwnPropertyNames"),
                 1,
             )
             .static_method(
                 Self::get_own_property_symbols,
-                js_str!("getOwnPropertySymbols"),
+                js_string!("getOwnPropertySymbols"),
                 1,
             )
-            .static_method(Self::has_own, js_str!("hasOwn"), 2)
-            .static_method(Self::from_entries, js_str!("fromEntries"), 1)
-            .static_method(Self::group_by, js_str!("groupBy"), 2)
+            .static_method(Self::has_own, js_string!("hasOwn"), 2)
+            .static_method(Self::from_entries, js_string!("fromEntries"), 1)
+            .static_method(Self::group_by, js_string!("groupBy"), 2)
             .build();
     }
 

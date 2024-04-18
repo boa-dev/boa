@@ -54,42 +54,46 @@ impl IntrinsicObject for Number {
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
 
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
-            .static_property(js_str!("EPSILON"), f64::EPSILON, attribute)
+            .static_property(js_string!("EPSILON"), f64::EPSILON, attribute)
             .static_property(
-                js_str!("MAX_SAFE_INTEGER"),
+                js_string!("MAX_SAFE_INTEGER"),
                 Self::MAX_SAFE_INTEGER,
                 attribute,
             )
             .static_property(
-                js_str!("MIN_SAFE_INTEGER"),
+                js_string!("MIN_SAFE_INTEGER"),
                 Self::MIN_SAFE_INTEGER,
                 attribute,
             )
-            .static_property(js_str!("MAX_VALUE"), Self::MAX_VALUE, attribute)
-            .static_property(js_str!("MIN_VALUE"), Self::MIN_VALUE, attribute)
-            .static_property(js_str!("NEGATIVE_INFINITY"), f64::NEG_INFINITY, attribute)
-            .static_property(js_str!("POSITIVE_INFINITY"), f64::INFINITY, attribute)
-            .static_property(js_str!("NaN"), f64::NAN, attribute)
+            .static_property(js_string!("MAX_VALUE"), Self::MAX_VALUE, attribute)
+            .static_property(js_string!("MIN_VALUE"), Self::MIN_VALUE, attribute)
             .static_property(
-                js_str!("parseInt"),
+                js_string!("NEGATIVE_INFINITY"),
+                f64::NEG_INFINITY,
+                attribute,
+            )
+            .static_property(js_string!("POSITIVE_INFINITY"), f64::INFINITY, attribute)
+            .static_property(js_string!("NaN"), f64::NAN, attribute)
+            .static_property(
+                js_string!("parseInt"),
                 realm.intrinsics().objects().parse_int(),
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .static_property(
-                js_str!("parseFloat"),
+                js_string!("parseFloat"),
                 realm.intrinsics().objects().parse_float(),
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
-            .static_method(Self::number_is_finite, js_str!("isFinite"), 1)
-            .static_method(Self::number_is_nan, js_str!("isNaN"), 1)
-            .static_method(Self::is_safe_integer, js_str!("isSafeInteger"), 1)
-            .static_method(Self::number_is_integer, js_str!("isInteger"), 1)
-            .method(Self::to_exponential, js_str!("toExponential"), 1)
-            .method(Self::to_fixed, js_str!("toFixed"), 1)
-            .method(Self::to_locale_string, js_str!("toLocaleString"), 0)
-            .method(Self::to_precision, js_str!("toPrecision"), 1)
-            .method(Self::to_string, js_str!("toString"), 1)
-            .method(Self::value_of, js_str!("valueOf"), 0)
+            .static_method(Self::number_is_finite, js_string!("isFinite"), 1)
+            .static_method(Self::number_is_nan, js_string!("isNaN"), 1)
+            .static_method(Self::is_safe_integer, js_string!("isSafeInteger"), 1)
+            .static_method(Self::number_is_integer, js_string!("isInteger"), 1)
+            .method(Self::to_exponential, js_string!("toExponential"), 1)
+            .method(Self::to_fixed, js_string!("toFixed"), 1)
+            .method(Self::to_locale_string, js_string!("toLocaleString"), 0)
+            .method(Self::to_precision, js_string!("toPrecision"), 1)
+            .method(Self::to_string, js_string!("toString"), 1)
+            .method(Self::value_of, js_string!("valueOf"), 0)
             .build();
     }
 

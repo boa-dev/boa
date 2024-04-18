@@ -10,6 +10,7 @@
 use crate::{
     builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
+    js_string,
     object::{internal_methods::get_prototype_from_constructor, ErasedVTableObject, JsObject},
     property::Attribute,
     realm::Realm,
@@ -39,9 +40,9 @@ impl IntrinsicObject for WeakSet {
                 Self::NAME,
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
-            .method(Self::add, js_str!("add"), 1)
-            .method(Self::delete, js_str!("delete"), 1)
-            .method(Self::has, js_str!("has"), 1)
+            .method(Self::add, js_string!("add"), 1)
+            .method(Self::delete, js_string!("delete"), 1)
+            .method(Self::has, js_string!("has"), 1)
             .build();
     }
 }

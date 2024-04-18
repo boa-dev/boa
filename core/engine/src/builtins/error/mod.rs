@@ -137,9 +137,9 @@ impl IntrinsicObject for Error {
 
         let attribute = Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
-            .property(js_str!("name"), Self::NAME, attribute)
-            .property(js_str!("message"), js_string!(), attribute)
-            .method(Self::to_string, js_str!("toString"), 0)
+            .property(js_string!("name"), Self::NAME, attribute)
+            .property(js_string!("message"), js_string!(), attribute)
+            .method(Self::to_string, js_string!("toString"), 0)
             .build();
     }
 
@@ -192,7 +192,7 @@ impl BuiltInConstructor for Error {
             let msg = message.to_string(context)?;
 
             // b. Perform CreateNonEnumerableDataPropertyOrThrow(O, "message", msg).
-            o.create_non_enumerable_data_property_or_throw(js_str!("message"), msg, context);
+            o.create_non_enumerable_data_property_or_throw(js_string!("message"), msg, context);
         }
 
         // 4. Perform ? InstallErrorCause(O, options).

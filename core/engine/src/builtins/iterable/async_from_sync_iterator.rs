@@ -5,6 +5,7 @@ use crate::{
         BuiltInBuilder, IntrinsicObject, Promise,
     },
     context::intrinsics::Intrinsics,
+    js_string,
     native_function::NativeFunction,
     object::{FunctionObjectBuilder, JsObject},
     realm::Realm,
@@ -38,9 +39,9 @@ impl IntrinsicObject for AsyncFromSyncIterator {
                     .iterator_prototypes()
                     .async_iterator(),
             )
-            .static_method(Self::next, js_str!("next"), 1)
-            .static_method(Self::r#return, js_str!("return"), 1)
-            .static_method(Self::throw, js_str!("throw"), 1)
+            .static_method(Self::next, js_string!("next"), 1)
+            .static_method(Self::r#return, js_string!("return"), 1)
+            .static_method(Self::throw, js_string!("throw"), 1)
             .build();
     }
 

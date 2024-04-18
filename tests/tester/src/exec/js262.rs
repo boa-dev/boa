@@ -8,7 +8,7 @@ use std::{
 
 use boa_engine::{
     builtins::array_buffer::{ArrayBuffer, SharedArrayBuffer},
-    js_str, js_string,
+    js_string,
     native_function::NativeFunction,
     object::{builtins::JsSharedArrayBuffer, JsObject, ObjectInitializer},
     property::Attribute,
@@ -77,27 +77,27 @@ pub(super) fn register_js262(handles: WorkerHandles, context: &mut Context) -> J
     let js262 = ObjectInitializer::new(context)
         .function(
             NativeFunction::from_fn_ptr(create_realm),
-            js_str!("createRealm"),
+            js_string!("createRealm"),
             0,
         )
         .function(
             NativeFunction::from_fn_ptr(detach_array_buffer),
-            js_str!("detachArrayBuffer"),
+            js_string!("detachArrayBuffer"),
             2,
         )
         .function(
             NativeFunction::from_fn_ptr(eval_script),
-            js_str!("evalScript"),
+            js_string!("evalScript"),
             1,
         )
-        .function(NativeFunction::from_fn_ptr(gc), js_str!("gc"), 0)
+        .function(NativeFunction::from_fn_ptr(gc), js_string!("gc"), 0)
         .property(
-            js_str!("global"),
+            js_string!("global"),
             global_obj,
             Attribute::WRITABLE | Attribute::CONFIGURABLE,
         )
         .property(
-            js_str!("agent"),
+            js_string!("agent"),
             agent,
             Attribute::WRITABLE | Attribute::CONFIGURABLE,
         )
@@ -105,7 +105,7 @@ pub(super) fn register_js262(handles: WorkerHandles, context: &mut Context) -> J
 
     context
         .register_global_property(
-            js_str!("$262"),
+            js_string!("$262"),
             js262.clone(),
             Attribute::WRITABLE | Attribute::CONFIGURABLE,
         )
@@ -261,13 +261,13 @@ fn agent_obj(handles: WorkerHandles, context: &mut Context) -> JsObject {
     };
 
     ObjectInitializer::new(context)
-        .function(start, js_str!("start"), 1)
-        .function(broadcast, js_str!("broadcast"), 2)
-        .function(get_report, js_str!("getReport"), 0)
-        .function(NativeFunction::from_fn_ptr(sleep), js_str!("sleep"), 1)
+        .function(start, js_string!("start"), 1)
+        .function(broadcast, js_string!("broadcast"), 2)
+        .function(get_report, js_string!("getReport"), 0)
+        .function(NativeFunction::from_fn_ptr(sleep), js_string!("sleep"), 1)
         .function(
             NativeFunction::from_fn_ptr(monotonic_now),
-            js_str!("monotonicNow"),
+            js_string!("monotonicNow"),
             0,
         )
         .build()
@@ -307,26 +307,26 @@ fn register_js262_worker(
     };
 
     let agent = ObjectInitializer::new(context)
-        .function(receive_broadcast, js_str!("receiveBroadcast"), 1)
-        .function(report, js_str!("report"), 1)
-        .function(NativeFunction::from_fn_ptr(sleep), js_str!("sleep"), 1)
+        .function(receive_broadcast, js_string!("receiveBroadcast"), 1)
+        .function(report, js_string!("report"), 1)
+        .function(NativeFunction::from_fn_ptr(sleep), js_string!("sleep"), 1)
         // Don't need to signal leaving, the main thread will join with the worker
         // threads anyways.
         .function(
             NativeFunction::from_fn_ptr(|_, _, _| Ok(JsValue::undefined())),
-            js_str!("leaving"),
+            js_string!("leaving"),
             0,
         )
         .function(
             NativeFunction::from_fn_ptr(monotonic_now),
-            js_str!("monotonicNow"),
+            js_string!("monotonicNow"),
             0,
         )
         .build();
 
     let js262 = ObjectInitializer::new(context)
         .property(
-            js_str!("agent"),
+            js_string!("agent"),
             agent,
             Attribute::WRITABLE | Attribute::CONFIGURABLE,
         )
@@ -334,7 +334,7 @@ fn register_js262_worker(
 
     context
         .register_global_property(
-            js_str!("$262"),
+            js_string!("$262"),
             js262,
             Attribute::WRITABLE | Attribute::CONFIGURABLE,
         )

@@ -355,9 +355,9 @@ impl IntrinsicObject for Promise {
                 None,
                 Attribute::CONFIGURABLE,
             )
-            .method(Self::then, js_str!("then"), 2)
-            .method(Self::catch, js_str!("catch"), 1)
-            .method(Self::finally, js_str!("finally"), 1)
+            .method(Self::then, js_string!("then"), 2)
+            .method(Self::catch, js_string!("catch"), 1)
+            .method(Self::finally, js_string!("finally"), 1)
             // <https://tc39.es/ecma262/#sec-promise.prototype-@@tostringtag>
             .property(
                 JsSymbol::to_string_tag(),

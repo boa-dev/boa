@@ -2,7 +2,7 @@
 use boa_engine::{
     class::{Class, ClassBuilder},
     error::JsNativeError,
-    js_str,
+    js_str, js_string,
     native_function::NativeFunction,
     property::Attribute,
     Context, JsArgs, JsData, JsResult, JsString, JsValue, Source,
@@ -93,7 +93,7 @@ impl Class for Person {
         //
         // This function is added to the `Person` prototype.
         class.method(
-            js_str!("sayHello"),
+            js_string!("sayHello"),
             0,
             NativeFunction::from_fn_ptr(Self::say_hello),
         );
@@ -103,7 +103,7 @@ impl Class for Person {
         //
         // This function is added to the `Person` class.
         class.static_method(
-            js_str!("is"),
+            js_string!("is"),
             1,
             NativeFunction::from_fn_ptr(|_this, args, _ctx| {
                 if let Some(arg) = args.first() {

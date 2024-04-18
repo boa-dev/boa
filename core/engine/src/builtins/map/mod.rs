@@ -56,7 +56,7 @@ impl IntrinsicObject for Map {
             .build();
 
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
-            .static_method(Self::group_by, js_str!("groupBy"), 2)
+            .static_method(Self::group_by, js_string!("groupBy"), 2)
             .static_accessor(
                 JsSymbol::species(),
                 Some(get_species),
@@ -64,7 +64,7 @@ impl IntrinsicObject for Map {
                 Attribute::CONFIGURABLE,
             )
             .property(
-                js_str!("entries"),
+                js_string!("entries"),
                 entries_function.clone(),
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
@@ -78,16 +78,16 @@ impl IntrinsicObject for Map {
                 Self::NAME,
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
-            .method(Self::clear, js_str!("clear"), 0)
-            .method(Self::delete, js_str!("delete"), 1)
-            .method(Self::for_each, js_str!("forEach"), 1)
-            .method(Self::get, js_str!("get"), 1)
-            .method(Self::has, js_str!("has"), 1)
-            .method(Self::keys, js_str!("keys"), 0)
-            .method(Self::set, js_str!("set"), 2)
-            .method(Self::values, js_str!("values"), 0)
+            .method(Self::clear, js_string!("clear"), 0)
+            .method(Self::delete, js_string!("delete"), 1)
+            .method(Self::for_each, js_string!("forEach"), 1)
+            .method(Self::get, js_string!("get"), 1)
+            .method(Self::has, js_string!("has"), 1)
+            .method(Self::keys, js_string!("keys"), 0)
+            .method(Self::set, js_string!("set"), 2)
+            .method(Self::values, js_string!("values"), 0)
             .accessor(
-                js_str!("size"),
+                js_string!("size"),
                 Some(get_size),
                 None,
                 Attribute::CONFIGURABLE,

@@ -126,95 +126,100 @@ impl IntrinsicObject for PlainDate {
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_str!("calendarId"),
+                js_string!("calendarId"),
                 Some(get_calendar_id),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_str!("year"),
+                js_string!("year"),
                 Some(get_year),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_str!("month"),
+                js_string!("month"),
                 Some(get_month),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_str!("monthCode"),
+                js_string!("monthCode"),
                 Some(get_month_code),
                 None,
                 Attribute::CONFIGURABLE,
             )
-            .accessor(js_str!("day"), Some(get_day), None, Attribute::CONFIGURABLE)
             .accessor(
-                js_str!("dayOfWeek"),
+                js_string!("day"),
+                Some(get_day),
+                None,
+                Attribute::CONFIGURABLE,
+            )
+            .accessor(
+                js_string!("dayOfWeek"),
                 Some(get_day_of_week),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_str!("dayOfYear"),
+                js_string!("dayOfYear"),
                 Some(get_day_of_year),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_str!("weekOfYear"),
+                js_string!("weekOfYear"),
                 Some(get_week_of_year),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_str!("yearOfWeek"),
+                js_string!("yearOfWeek"),
                 Some(get_year_of_week),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_str!("daysInWeek"),
+                js_string!("daysInWeek"),
                 Some(get_days_in_week),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_str!("daysInMonth"),
+                js_string!("daysInMonth"),
                 Some(get_days_in_month),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_str!("daysInYear"),
+                js_string!("daysInYear"),
                 Some(get_days_in_year),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_str!("monthsInYear"),
+                js_string!("monthsInYear"),
                 Some(get_months_in_year),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_str!("inLeapYear"),
+                js_string!("inLeapYear"),
                 Some(get_in_leap_year),
                 None,
                 Attribute::CONFIGURABLE,
             )
-            .method(Self::to_plain_year_month, js_str!("toPlainYearMonth"), 0)
-            .method(Self::to_plain_month_day, js_str!("toPlainMonthDay"), 0)
-            .method(Self::get_iso_fields, js_str!("getISOFields"), 0)
-            .method(Self::get_calendar, js_str!("getCalendar"), 0)
-            .method(Self::add, js_str!("add"), 2)
-            .method(Self::subtract, js_str!("subtract"), 2)
-            .method(Self::with, js_str!("with"), 2)
-            .method(Self::with_calendar, js_str!("withCalendar"), 1)
-            .method(Self::until, js_str!("until"), 2)
-            .method(Self::since, js_str!("since"), 2)
-            .method(Self::equals, js_str!("equals"), 1)
+            .method(Self::to_plain_year_month, js_string!("toPlainYearMonth"), 0)
+            .method(Self::to_plain_month_day, js_string!("toPlainMonthDay"), 0)
+            .method(Self::get_iso_fields, js_string!("getISOFields"), 0)
+            .method(Self::get_calendar, js_string!("getCalendar"), 0)
+            .method(Self::add, js_string!("add"), 2)
+            .method(Self::subtract, js_string!("subtract"), 2)
+            .method(Self::with, js_string!("with"), 2)
+            .method(Self::with_calendar, js_string!("withCalendar"), 1)
+            .method(Self::until, js_string!("until"), 2)
+            .method(Self::since, js_string!("since"), 2)
+            .method(Self::equals, js_string!("equals"), 1)
             .build();
     }
 

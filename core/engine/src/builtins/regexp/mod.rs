@@ -95,48 +95,73 @@ impl IntrinsicObject for RegExp {
                 None,
                 Attribute::CONFIGURABLE,
             )
-            .property(js_str!("lastIndex"), 0, Attribute::all())
-            .method(Self::test, js_str!("test"), 1)
-            .method(Self::exec, js_str!("exec"), 1)
-            .method(Self::to_string, js_str!("toString"), 0)
+            .property(js_string!("lastIndex"), 0, Attribute::all())
+            .method(Self::test, js_string!("test"), 1)
+            .method(Self::exec, js_string!("exec"), 1)
+            .method(Self::to_string, js_string!("toString"), 0)
             .method(Self::r#match, JsSymbol::r#match(), 1)
             .method(Self::match_all, JsSymbol::match_all(), 1)
             .method(Self::replace, JsSymbol::replace(), 2)
             .method(Self::search, JsSymbol::search(), 1)
             .method(Self::split, JsSymbol::split(), 2)
             .accessor(
-                js_str!("hasIndices"),
+                js_string!("hasIndices"),
                 Some(get_has_indices),
                 None,
                 flag_attributes,
             )
-            .accessor(js_str!("global"), Some(get_global), None, flag_attributes)
             .accessor(
-                js_str!("ignoreCase"),
+                js_string!("global"),
+                Some(get_global),
+                None,
+                flag_attributes,
+            )
+            .accessor(
+                js_string!("ignoreCase"),
                 Some(get_ignore_case),
                 None,
                 flag_attributes,
             )
             .accessor(
-                js_str!("multiline"),
+                js_string!("multiline"),
                 Some(get_multiline),
                 None,
                 flag_attributes,
             )
-            .accessor(js_str!("dotAll"), Some(get_dot_all), None, flag_attributes)
-            .accessor(js_str!("unicode"), Some(get_unicode), None, flag_attributes)
             .accessor(
-                js_str!("unicodeSets"),
+                js_string!("dotAll"),
+                Some(get_dot_all),
+                None,
+                flag_attributes,
+            )
+            .accessor(
+                js_string!("unicode"),
+                Some(get_unicode),
+                None,
+                flag_attributes,
+            )
+            .accessor(
+                js_string!("unicodeSets"),
                 Some(get_unicode_sets),
                 None,
                 flag_attributes,
             )
-            .accessor(js_str!("sticky"), Some(get_sticky), None, flag_attributes)
-            .accessor(js_str!("flags"), Some(get_flags), None, flag_attributes)
-            .accessor(js_str!("source"), Some(get_source), None, flag_attributes);
+            .accessor(
+                js_string!("sticky"),
+                Some(get_sticky),
+                None,
+                flag_attributes,
+            )
+            .accessor(js_string!("flags"), Some(get_flags), None, flag_attributes)
+            .accessor(
+                js_string!("source"),
+                Some(get_source),
+                None,
+                flag_attributes,
+            );
 
         #[cfg(feature = "annex-b")]
-        let regexp = regexp.method(Self::compile, js_str!("compile"), 2);
+        let regexp = regexp.method(Self::compile, js_string!("compile"), 2);
 
         regexp.build();
     }
