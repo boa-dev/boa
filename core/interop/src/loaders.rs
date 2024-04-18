@@ -3,4 +3,5 @@
 
 pub use hashmap::HashMapModuleLoader;
 
+pub mod embedded;
 pub mod hashmap;

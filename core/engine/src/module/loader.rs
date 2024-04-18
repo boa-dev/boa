@@ -48,7 +48,7 @@ pub fn resolve_module_specifier(
     referrer: Option<&Path>,
     _context: &mut Context,
 ) -> JsResult<PathBuf> {
-    let base = base.map_or_else(|| PathBuf::from(""), PathBuf::from);
+    let base_path = base.map_or_else(|| PathBuf::from(""), PathBuf::from);
     let referrer_dir = referrer.and_then(|p| p.parent());
 
     let specifier = specifier.to_std_string_escaped();
@@ -65,17 +65,17 @@ pub fn resolve_module_specifier(
 
     let long_path = if is_relative {
         if let Some(r_path) = referrer_dir {
-            base.join(r_path).join(short_path)
+            base_path.join(r_path).join(short_path)
         } else {
             return Err(JsError::from_opaque(
                 js_string!("relative path without referrer").into(),
             ));
         }
     } else {
-        base.join(&specifier)
+        base_path.join(&specifier)
     };
 
-    if long_path.is_relative() {
+    if long_path.is_relative() && base.is_some() {
         return Err(JsError::from_opaque(
             js_string!("resolved path is relative").into(),
         ));
@@ -100,7 +100,7 @@ pub fn resolve_module_specifier(
             Ok(acc)
         })?;
 
-    if path.starts_with(&base) {
+    if path.starts_with(&base_path) {
         Ok(path)
     } else {
         Err(JsError::from_opaque(
@@ -364,6 +364,39 @@ mod tests {
 
         let actual = resolve_module_specifier(
             Some(&base),
+            &spec,
+            ref_path.as_deref(),
+            &mut context,
+        );
+        assert_eq!(actual.map_err(|_| ()), expected.map(PathBuf::from));
+    }
+
+    // This tests the same cases as the previous test, but without a base path.
+    #[rustfmt::skip]
+    #[cfg(target_family = "unix")]
+    #[test_case(Some("hello/ref.js"),       "a.js",             Ok("a.js"))]
+    #[test_case(Some("base/ref.js"),        "./b.js",           Ok("base/b.js"))]
+    #[test_case(Some("base/other/ref.js"),  "./c.js",           Ok("base/other/c.js"))]
+    #[test_case(Some("base/other/ref.js"),  "../d.js",          Ok("base/d.js"))]
+    #[test_case(Some("base/ref.js"),        "e.js",             Ok("e.js"))]
+    #[test_case(Some("base/ref.js"),        "./f.js",           Ok("base/f.js"))]
+    #[test_case(Some("./ref.js"),           "./g.js",           Ok("g.js"))]
+    #[test_case(Some("./other/ref.js"),     "./other/h.js",     Ok("other/other/h.js"))]
+    #[test_case(Some("./other/ref.js"),     "./other/../h1.js", Ok("other/h1.js"))]
+    #[test_case(Some("./other/ref.js"),     "./../h2.js",       Ok("h2.js"))]
+    #[test_case(None,                       "./i.js",           Err(()))]
+    #[test_case(None,                       "j.js",             Ok("j.js"))]
+    #[test_case(None,                       "other/k.js",       Ok("other/k.js"))]
+    #[test_case(None,                       "other/../../l.js", Err(()))]
+    #[test_case(Some("/base/ref.js"),       "other/../../m.js", Err(()))]
+    #[test_case(None,                       "../n.js",          Err(()))]
+    fn resolve_test_no_base(ref_path: Option<&str>, spec: &str, expected: Result<&str, ()>) {
+        let mut context = Context::default();
+        let spec = js_string!(spec);
+        let ref_path = ref_path.map(PathBuf::from);
+
+        let actual = resolve_module_specifier(
+            None,
             &spec,
             ref_path.as_deref(),
             &mut context,
