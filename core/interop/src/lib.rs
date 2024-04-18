@@ -5,6 +5,7 @@ use boa_engine::value::TryFromJs;
 use boa_engine::{
     Context, JsNativeError, JsResult, JsString, JsValue, Module, NativeFunction, NativeObject,
 };
+pub use boa_macros;
 
 pub mod loaders;
 
