@@ -25,7 +25,7 @@ use crate::{
     realm::Realm,
     script::Script,
     vm::{ActiveRunnable, CallFrame, Vm},
-    JsNativeError, JsResult, JsString, JsValue, Source,
+    HostDefined, JsNativeError, JsResult, JsString, JsValue, NativeObject, Source,
 };
 
 use self::intrinsics::StandardConstructor;
@@ -115,6 +115,8 @@ pub struct Context {
 
     /// Unique identifier for each parser instance used during the context lifetime.
     parser_identifier: u32,
+
+    data: HostDefined,
 }
 
 impl std::fmt::Debug for Context {
@@ -584,6 +586,32 @@ impl Context {
     #[must_use]
     pub fn can_block(&self) -> bool {
         self.can_block
+    }
+
+    /// Insert a type into the context-specific [`HostDefined`] field.
+    #[inline]
+    pub fn insert_data<T: NativeObject>(&mut self, value: T) -> Option<Box<T>> {
+        self.data.insert(value)
+    }
+
+    /// Check if the context-specific [`HostDefined`] has type T.
+    #[inline]
+    #[must_use]
+    pub fn has_data<T: NativeObject>(&self) -> bool {
+        self.data.has::<T>()
+    }
+
+    /// Remove type T from the context-specific [`HostDefined`], if it exists.
+    #[inline]
+    pub fn remove_data<T: NativeObject>(&mut self) -> Option<Box<T>> {
+        self.data.remove::<T>()
+    }
+
+    /// Get type T from the context-specific [`HostDefined`], if it exists.
+    #[inline]
+    #[must_use]
+    pub fn get_data<T: NativeObject>(&self) -> Option<&T> {
+        self.data.get::<T>()
     }
 }
 
@@ -1070,6 +1098,7 @@ impl ContextBuilder {
             root_shape,
             parser_identifier: 0,
             can_block: self.can_block,
+            data: HostDefined::default(),
         };
 
         builtins::set_default_global_bindings(&mut context)?;

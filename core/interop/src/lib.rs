@@ -2,7 +2,9 @@
 
 use boa_engine::module::SyntheticModuleInitializer;
 use boa_engine::value::TryFromJs;
-use boa_engine::{Context, JsResult, JsString, JsValue, Module, NativeFunction};
+use boa_engine::{
+    Context, JsNativeError, JsResult, JsString, JsValue, Module, NativeFunction, NativeObject,
+};
 pub use boa_macros;
 
 pub mod loaders;
@@ -116,21 +118,21 @@ pub trait IntoJsFunctionCopied<Args, Ret>: private::IntoJsFunctionSealed<Args, R
 /// Create a Rust value from a JS argument. This trait is used to
 /// convert arguments from JS to Rust types. It allows support
 /// for optional arguments or rest arguments.
-pub trait TryFromJsArgument: Sized {
+pub trait TryFromJsArgument<'a>: Sized {
     /// Try to convert a JS argument into a Rust value, returning the
     /// value and the rest of the arguments to be parsed.
     ///
     /// # Errors
     /// Any parsing errors that may occur during the conversion.
-    fn try_from_js_argument<'a>(
+    fn try_from_js_argument(
         this: &'a JsValue,
         rest: &'a [JsValue],
         context: &mut Context,
     ) -> JsResult<(Self, &'a [JsValue])>;
 }
 
-impl<T: TryFromJs> TryFromJsArgument for T {
-    fn try_from_js_argument<'a>(
+impl<'a, T: TryFromJs> TryFromJsArgument<'a> for T {
+    fn try_from_js_argument(
         _: &'a JsValue,
         rest: &'a [JsValue],
         context: &mut Context,
@@ -164,24 +166,25 @@ impl<T: TryFromJs> TryFromJsArgument for T {
 /// assert_eq!(result, JsValue::new(6));
 /// ```
 #[derive(Debug, Clone)]
-pub struct JsRest(pub Vec<JsValue>);
+pub struct JsRest<'a>(pub &'a [JsValue]);
 
 #[allow(unused)]
-impl JsRest {
+impl<'a> JsRest<'a> {
     /// Consumes the `JsRest` and returns the inner list of `JsValue`.
     #[must_use]
-    pub fn into_inner(self) -> Vec<JsValue> {
+    pub fn into_inner(self) -> &'a [JsValue] {
         self.0
+    }
+
+    /// Transforms the `JsRest` into a `Vec<JsValue>`.
+    #[must_use]
+    pub fn to_vec(self) -> Vec<JsValue> {
+        self.0.to_vec()
     }
 
     /// Returns an iterator over the inner list of `JsValue`.
     pub fn iter(&self) -> impl Iterator<Item = &JsValue> {
         self.0.iter()
-    }
-
-    /// Returns a mutable iterator over the inner list of `JsValue`.
-    pub fn iter_mut(&mut self) -> impl Iterator<Item = &mut JsValue> {
-        self.0.iter_mut()
     }
 
     /// Returns the length of the inner list of `JsValue`.
@@ -197,18 +200,18 @@ impl JsRest {
     }
 }
 
-impl From<&[JsValue]> for JsRest {
-    fn from(values: &[JsValue]) -> Self {
-        Self(values.to_vec())
+impl<'a> From<&'a [JsValue]> for JsRest<'a> {
+    fn from(values: &'a [JsValue]) -> Self {
+        Self(values)
     }
 }
 
-impl IntoIterator for JsRest {
-    type Item = JsValue;
-    type IntoIter = std::vec::IntoIter<JsValue>;
+impl<'a> IntoIterator for JsRest<'a> {
+    type Item = &'a JsValue;
+    type IntoIter = std::slice::Iter<'a, JsValue>;
 
     fn into_iter(self) -> Self::IntoIter {
-        self.into_inner().into_iter()
+        self.into_inner().iter()
     }
 }
 
@@ -265,8 +268,8 @@ impl<T: TryFromJs> JsAll<T> {
     }
 }
 
-impl<T: TryFromJs> TryFromJsArgument for JsAll<T> {
-    fn try_from_js_argument<'a>(
+impl<'a, T: TryFromJs> TryFromJsArgument<'a> for JsAll<T> {
+    fn try_from_js_argument(
         _this: &'a JsValue,
         mut rest: &'a [JsValue],
         context: &mut Context,
@@ -292,13 +295,57 @@ impl<T: TryFromJs> TryFromJsArgument for JsAll<T> {
 #[derive(Debug, Clone)]
 pub struct JsThis<T: TryFromJs>(pub T);
 
-impl<T: TryFromJs> TryFromJsArgument for JsThis<T> {
-    fn try_from_js_argument<'a>(
+impl<'a, T: TryFromJs> TryFromJsArgument<'a> for JsThis<T> {
+    fn try_from_js_argument(
         this: &'a JsValue,
         rest: &'a [JsValue],
         context: &mut Context,
     ) -> JsResult<(Self, &'a [JsValue])> {
         Ok((JsThis(this.try_js_into(context)?), rest))
+    }
+}
+
+/// Captures a [`ContextData`] data from the [`Context`] as a JS function argument,
+/// based on its type.
+///
+/// The host defined type must implement [`Clone`], otherwise the borrow
+/// checker would not be able to ensure the safety of the context while
+/// making the function call. Because of this, it is recommended to use
+/// types that are cheap to clone.
+///
+/// For example,
+/// ```
+/// # use boa_engine::{Context, Finalize, JsData, JsValue, Trace};
+/// use boa_interop::{IntoJsFunctionCopied, ContextData};
+///
+/// #[derive(Clone, Debug, Finalize, JsData, Trace)]
+/// struct CustomHostDefinedStruct {
+///    #[unsafe_ignore_trace]
+///    pub counter: usize,
+/// }
+/// let mut context = Context::default();
+/// context.insert_data(CustomHostDefinedStruct { counter: 123 });
+/// let f = (|ContextData(host): ContextData<CustomHostDefinedStruct>| {
+///   host.counter + 1
+/// }).into_js_function_copied(&mut context);
+///
+/// assert_eq!(f.call(&JsValue::undefined(), &[], &mut context), Ok(JsValue::new(124)));
+/// ```
+#[derive(Debug, Clone)]
+pub struct ContextData<T: Clone>(pub T);
+
+impl<'a, T: NativeObject + Clone> TryFromJsArgument<'a> for ContextData<T> {
+    fn try_from_js_argument(
+        _this: &'a JsValue,
+        rest: &'a [JsValue],
+        context: &mut Context,
+    ) -> JsResult<(Self, &'a [JsValue])> {
+        match context.get_data::<T>() {
+            Some(value) => Ok((ContextData(value.clone()), rest)),
+            None => Err(JsNativeError::typ()
+                .with_message("Context data not found")
+                .into()),
+        }
     }
 }
 
@@ -310,8 +357,11 @@ mod into_js_function_impls;
 #[allow(clippy::missing_panics_doc)]
 pub fn into_js_module() {
     use boa_engine::{js_string, JsValue, Source};
+    use boa_gc::{Gc, GcRefCell};
     use std::cell::RefCell;
     use std::rc::Rc;
+
+    type ResultType = Gc<GcRefCell<JsValue>>;
 
     let loader = Rc::new(loaders::HashMapModuleLoader::new());
     let mut context = Context::builder()
@@ -322,7 +372,9 @@ pub fn into_js_module() {
     let foo_count = Rc::new(RefCell::new(0));
     let bar_count = Rc::new(RefCell::new(0));
     let dad_count = Rc::new(RefCell::new(0));
-    let result = Rc::new(RefCell::new(JsValue::undefined()));
+
+    context.insert_data(Gc::new(GcRefCell::new(JsValue::undefined())));
+
     let module = unsafe {
         vec![
             (
@@ -354,7 +406,7 @@ pub fn into_js_module() {
                 UnsafeIntoJsFunction::into_js_function_unsafe(
                     {
                         let counter = dad_count.clone();
-                        move |args: JsRest, context: &mut Context| {
+                        move |args: JsRest<'_>, context: &mut Context| {
                             *counter.borrow_mut() += args
                                 .into_iter()
                                 .map(|i| i.try_js_into::<i32>(context).unwrap())
@@ -366,15 +418,10 @@ pub fn into_js_module() {
             ),
             (
                 js_string!("send"),
-                UnsafeIntoJsFunction::into_js_function_unsafe(
-                    {
-                        let result = result.clone();
-                        move |value: JsValue| {
-                            *result.borrow_mut() = value;
-                        }
-                    },
-                    &mut context,
-                ),
+                (move |value: JsValue, ContextData(result): ContextData<ResultType>| {
+                    *result.borrow_mut() = value;
+                })
+                .into_js_function_copied(&mut context),
             ),
         ]
     }
@@ -409,10 +456,12 @@ pub fn into_js_module() {
         promise_result.state()
     );
 
+    let result = context.get_data::<ResultType>().unwrap().borrow().clone();
+
     assert_eq!(*foo_count.borrow(), 2);
     assert_eq!(*bar_count.borrow(), 15);
     assert_eq!(*dad_count.borrow(), 24);
-    assert_eq!(result.borrow().clone().try_js_into(&mut context), Ok(1u32));
+    assert_eq!(result.try_js_into(&mut context), Ok(1u32));
 }
 
 #[test]

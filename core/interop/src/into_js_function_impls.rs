@@ -16,35 +16,35 @@ macro_rules! impl_into_js_function {
     ($($id: ident: $t: ident),*) => {
         impl<$($t,)* R, T> IntoJsFunctionSealed<($($t,)*), R> for T
         where
-            $($t: TryFromJsArgument + 'static,)*
+            $($t: for<'a> TryFromJsArgument<'a> + 'static,)*
             R: TryIntoJsResult,
             T: FnMut($($t,)*) -> R + 'static
         {}
 
         impl<$($t,)* R, T> IntoJsFunctionSealed<($($t,)* ContextArgToken,), R> for T
         where
-            $($t: TryFromJsArgument + 'static,)*
+            $($t: for<'a> TryFromJsArgument<'a> + 'static,)*
             R: TryIntoJsResult,
             T: FnMut($($t,)* &mut Context) -> R + 'static
         {}
 
-        impl<$($t,)* R, T> IntoJsFunctionSealed<($($t,)* JsRest,), R> for T
+        impl<$($t,)* R, T> IntoJsFunctionSealed<($($t,)* JsRest<'_>,), R> for T
         where
-            $($t: TryFromJsArgument + 'static,)*
+            $($t: for<'a> TryFromJsArgument<'a> + 'static,)*
             R: TryIntoJsResult,
-            T: FnMut($($t,)* JsRest) -> R + 'static
+            T: FnMut($($t,)* JsRest<'_>) -> R + 'static
         {}
 
-        impl<$($t,)* R, T> IntoJsFunctionSealed<($($t,)* JsRest, ContextArgToken), R> for T
+        impl<$($t,)* R, T> IntoJsFunctionSealed<($($t,)* JsRest<'_>, ContextArgToken), R> for T
         where
-            $($t: TryFromJsArgument + 'static,)*
+            $($t: for<'a> TryFromJsArgument<'a> + 'static,)*
             R: TryIntoJsResult,
-            T: FnMut($($t,)* JsRest, &mut Context) -> R + 'static
+            T: FnMut($($t,)* JsRest<'_>, &mut Context) -> R + 'static
         {}
 
         impl<$($t,)* R, T> UnsafeIntoJsFunction<($($t,)*), R> for T
         where
-            $($t: TryFromJsArgument + 'static,)*
+            $($t: for<'a> TryFromJsArgument<'a> + 'static,)*
             R: TryIntoJsResult,
             T: FnMut($($t,)*) -> R + 'static,
         {
@@ -68,11 +68,11 @@ macro_rules! impl_into_js_function {
             }
         }
 
-        impl<$($t,)* R, T> UnsafeIntoJsFunction<($($t,)* JsRest,), R> for T
+        impl<$($t,)* R, T> UnsafeIntoJsFunction<($($t,)* JsRest<'_>,), R> for T
         where
-            $($t: TryFromJsArgument + 'static,)*
+            $($t: for<'a> TryFromJsArgument<'a> + 'static,)*
             R: TryIntoJsResult,
-            T: FnMut($($t,)* JsRest) -> R + 'static,
+            T: FnMut($($t,)* JsRest<'_>) -> R + 'static,
         {
             #[allow(unused_variables)]
             unsafe fn into_js_function_unsafe(self, _context: &mut Context) -> NativeFunction {
@@ -96,7 +96,7 @@ macro_rules! impl_into_js_function {
 
         impl<$($t,)* R, T> UnsafeIntoJsFunction<($($t,)* ContextArgToken,), R> for T
         where
-            $($t: TryFromJsArgument + 'static,)*
+            $($t: for<'a> TryFromJsArgument<'a> + 'static,)*
             R: TryIntoJsResult,
             T: FnMut($($t,)* &mut Context) -> R + 'static,
         {
@@ -116,11 +116,11 @@ macro_rules! impl_into_js_function {
             }
         }
 
-        impl<$($t,)* R, T> UnsafeIntoJsFunction<($($t,)* JsRest, ContextArgToken), R> for T
+        impl<$($t,)* R, T> UnsafeIntoJsFunction<($($t,)* JsRest<'_>, ContextArgToken), R> for T
         where
-            $($t: TryFromJsArgument + 'static,)*
+            $($t: for<'a> TryFromJsArgument<'a> + 'static,)*
             R: TryIntoJsResult,
-            T: FnMut($($t,)* JsRest, &mut Context) -> R + 'static,
+            T: FnMut($($t,)* JsRest<'_>, &mut Context) -> R + 'static,
         {
             #[allow(unused_variables)]
             unsafe fn into_js_function_unsafe(self, _context: &mut Context) -> NativeFunction {
@@ -141,7 +141,7 @@ macro_rules! impl_into_js_function {
         // Safe versions for `Fn(..) -> ...`.
         impl<$($t,)* R, T> IntoJsFunctionCopied<($($t,)*), R> for T
         where
-            $($t: TryFromJsArgument + 'static,)*
+            $($t: for<'a> TryFromJsArgument<'a> + 'static,)*
             R: TryIntoJsResult,
             T: Fn($($t,)*) -> R + 'static + Copy,
         {
@@ -159,11 +159,11 @@ macro_rules! impl_into_js_function {
             }
         }
 
-        impl<$($t,)* R, T> IntoJsFunctionCopied<($($t,)* JsRest,), R> for T
+        impl<$($t,)* R, T> IntoJsFunctionCopied<($($t,)* JsRest<'_>,), R> for T
         where
-            $($t: TryFromJsArgument + 'static,)*
+            $($t: for<'a> TryFromJsArgument<'a> + 'static,)*
             R: TryIntoJsResult,
-            T: Fn($($t,)* JsRest) -> R + 'static + Copy,
+            T: Fn($($t,)* JsRest<'_>) -> R + 'static + Copy,
         {
             #[allow(unused_variables)]
             fn into_js_function_copied(self, _context: &mut Context) -> NativeFunction {
@@ -181,7 +181,7 @@ macro_rules! impl_into_js_function {
 
         impl<$($t,)* R, T> IntoJsFunctionCopied<($($t,)* ContextArgToken,), R> for T
         where
-            $($t: TryFromJsArgument + 'static,)*
+            $($t: for<'a> TryFromJsArgument<'a> + 'static,)*
             R: TryIntoJsResult,
             T: Fn($($t,)* &mut Context) -> R + 'static + Copy,
         {
@@ -199,11 +199,11 @@ macro_rules! impl_into_js_function {
             }
         }
 
-        impl<$($t,)* R, T> IntoJsFunctionCopied<($($t,)* JsRest, ContextArgToken), R> for T
+        impl<$($t,)* R, T> IntoJsFunctionCopied<($($t,)* JsRest<'_>, ContextArgToken), R> for T
         where
-            $($t: TryFromJsArgument + 'static,)*
+            $($t: for<'a> TryFromJsArgument<'a> + 'static,)*
             R: TryIntoJsResult,
-            T: Fn($($t,)* JsRest, &mut Context) -> R + 'static + Copy,
+            T: Fn($($t,)* JsRest<'_>, &mut Context) -> R + 'static + Copy,
         {
             #[allow(unused_variables)]
             fn into_js_function_copied(self, _context: &mut Context) -> NativeFunction {
