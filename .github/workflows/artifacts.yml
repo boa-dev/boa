@@ -1,7 +1,7 @@
 name: Build Artifacts
 
 on:
-  push:
+  pull_request:
     branches:
       - main
 
@@ -18,14 +18,11 @@ jobs:
       # https://github.com/charmbracelet/vhs-action/blob/main/examples/auto-commit.yml
       - uses: charmbracelet/vhs-action@v1
         with:
-          path: './.github/tapes/boa_cli.tape'
-      - uses: stefanzweifel/git-auto-commit-action@v4
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          version: v0.7.1
+          path: './.github/tapes/ci_cli_intro.tape'
+      - uses: mfinelli/setup-imagemagick@v5
         with:
-          commit_message: Update generated VHS GIF
-          branch: main
-          commit_user_name: vhs-action 📼
-          commit_user_email: actions@github.com
-          commit_author: vhs-action 📼 <actions@github.com>
-          file_pattern: '*.gif'
+          cache: true
+      - run: magick compare -verbose ./tmp/boa_cli.gif ./cli/assets/boa_cli.gif
+      # Clean up tmp directory created by ci_cli_intro.tape
+      - run: rm -rf ./tmp
