@@ -12,6 +12,10 @@ pub trait Tracer: fmt::Debug {
     /// Whether the current call frame should trace.
     fn should_trace(&self, frame: &CallFrame) -> TraceAction {
         if frame.code_block.name().to_std_string_escaped().as_str() == "<main>" {
+            if frame.code_block().was_traced() {
+                return TraceAction::Block;
+            }
+            frame.code_block().set_frame_traced(true);
             return TraceAction::BlockWithFullBytecode;
         }
         TraceAction::Block
@@ -35,7 +39,7 @@ pub enum TraceAction {
     Block,
     /// Partial codeblock with bytecode
     BlockWithBytecode,
-    /// Full trace with bytecode
+    /// Full trace with the compiled bytecode
     BlockWithFullBytecode,
 }
 
@@ -63,12 +67,7 @@ impl Tracer for ActiveTracer {
 /// `VmTrace` is a boa spcific structure for running Boa's Virtual Machine trace.
 ///
 /// It holds registered `Tracer` implementations and actions messages depending on
-/// those implementations.
-///
-/// About the actions
-///
-/// After the Global callframe is initially provided. It searches
-/// for all possible compiled output
+/// the `should_trace` method of the `Tracers`.
 #[derive(Default)]
 pub struct VmTrace {
     tracers: Vec<Box<dyn Tracer>>,
@@ -95,7 +94,7 @@ impl VmTrace {
             .fold(TraceAction::None, |a, b| a.max(b.should_trace(frame)))
     }
 
-    /// Sets the current `Tracer` of `VmTrace`.
+    /// Adds Boa's default implementation of `Tracer` onto `VmTrace`'s current traces.
     pub fn activate_trace(&mut self) {
         self.tracers.push(Box::new(ActiveTracer));
     }
@@ -162,7 +161,7 @@ impl VmTrace {
         }
     }
 
-    /// Searches traces all of the current `CallFrame`'s available `CodeBlock`s.
+    /// Searches all of the current `CallFrame`'s available `CodeBlock`s.
     pub(crate) fn trace_compiled_bytecode(&self, vm: &Vm) {
         let mut queue = VecDeque::new();
         queue.push_back(vm.frame().code_block.clone());

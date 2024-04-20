@@ -71,7 +71,7 @@ bitflags! {
         #[cfg(feature = "trace")]
         const TRACEABLE = 0b0100_0000_0000_0000;
 
-        /// Stores whether the `CodeBlock` been traced.
+        /// Stores whether the `CodeBlock` has been traced.
         #[cfg(feature = "trace")]
         const WAS_TRACED = 0b1000_0000_0000_0000;
     }

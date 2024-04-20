@@ -459,7 +459,6 @@ impl Context {
     #[cfg(feature = "trace")]
     /// Sets custom handling of trace messages.
     pub fn set_tracer_implementation(&mut self, tracer: Box<dyn trace::Tracer>) {
-        // self.init_trace();
         self.vm.trace.set_tracer(tracer);
     }
 
