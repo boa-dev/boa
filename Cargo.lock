@@ -399,6 +399,7 @@ dependencies = [
  "cfg-if",
  "criterion",
  "dashmap",
+ "either",
  "fast-float",
  "fixed_decimal",
  "float-cmp",
