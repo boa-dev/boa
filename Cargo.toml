@@ -66,7 +66,7 @@ pollster = "0.3.0"
 regex = "1.10.4"
 regress = { version="0.9.1", features = ["utf16"]}
 rustc-hash = { version = "1.1.0", default-features = false }
-serde_json = "1.0.115"
+serde_json = "1.0.116"
 serde = "1.0.198"
 static_assertions = "1.1.0"
 textwrap = "0.16.0"
