@@ -453,6 +453,7 @@ impl CodeBlock {
                 | Instruction::CreateMappedArgumentsObject
                 | Instruction::CreateUnmappedArgumentsObject
                 | Instruction::CreateGlobalFunctionBinding { .. }
+                | Instruction::CreateGlobalVarBinding { .. }
                 | Instruction::Nop => {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
@@ -515,8 +516,7 @@ impl CodeBlock {
                 | Instruction::Reserved51
                 | Instruction::Reserved52
                 | Instruction::Reserved53
-                | Instruction::Reserved54
-                | Instruction::Reserved55 => unreachable!("Reserved opcodes are unrechable"),
+                | Instruction::Reserved54 => unreachable!("Reserved opcodes are unrechable"),
             }
         }
 

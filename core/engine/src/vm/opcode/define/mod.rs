@@ -190,3 +190,50 @@ impl Operation for CreateGlobalFunctionBinding {
         Self::operation(context, index, configurable)
     }
 }
+
+/// `CreateGlobalVarBinding` implements the Opcode Operation for `Opcode::CreateGlobalVarBinding`
+///
+/// Operation:
+/// - Performs [`CreateGlobalVarBinding ( N, V, D )`][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-createglobalvarbinding
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct CreateGlobalVarBinding;
+
+impl CreateGlobalVarBinding {
+    #[allow(clippy::unnecessary_wraps)]
+    fn operation(
+        context: &mut Context,
+        index: usize,
+        configurable: bool,
+    ) -> JsResult<CompletionType> {
+        let name = context.vm.frame().code_block().constant_string(index);
+        context.create_global_var_binding(name, configurable)?;
+
+        Ok(CompletionType::Normal)
+    }
+}
+
+impl Operation for CreateGlobalVarBinding {
+    const NAME: &'static str = "CreateGlobalVarBinding";
+    const INSTRUCTION: &'static str = "INST - CreateGlobalVarBinding";
+    const COST: u8 = 2;
+
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
+        let configurable = context.vm.read::<u8>() != 0;
+        let index = context.vm.read::<u8>() as usize;
+        Self::operation(context, index, configurable)
+    }
+
+    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
+        let configurable = context.vm.read::<u8>() != 0;
+        let index = context.vm.read::<u16>() as usize;
+        Self::operation(context, index, configurable)
+    }
+
+    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
+        let configurable = context.vm.read::<u8>() != 0;
+        let index = context.vm.read::<u32>() as usize;
+        Self::operation(context, index, configurable)
+    }
+}

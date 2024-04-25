@@ -148,7 +148,7 @@ impl Script {
         compiler.global_declaration_instantiation(
             &self.inner.source,
             &self.inner.realm.environment().compile_env(),
-        )?;
+        );
         compiler.compile_statement_list(self.inner.source.statements(), true, false);
 
         let cb = Gc::new(compiler.finish());

@@ -43,7 +43,9 @@ use boa_interner::{Interner, Sym};
 use rustc_hash::FxHashMap;
 use thin_vec::ThinVec;
 
-pub(crate) use declarations::global_declaration_instantiation_annex_b;
+pub(crate) use declarations::{
+    eval_declaration_instantiation_context, global_declaration_instantiation_annex_b,
+};
 pub(crate) use function::FunctionCompiler;
 pub(crate) use jump_control::JumpControlInfo;
 

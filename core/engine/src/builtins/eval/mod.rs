@@ -11,7 +11,7 @@
 
 use crate::{
     builtins::{function::OrdinaryFunction, BuiltInObject},
-    bytecompiler::ByteCompiler,
+    bytecompiler::{eval_declaration_instantiation_context, ByteCompiler},
     context::intrinsics::Intrinsics,
     environments::Environment,
     error::JsNativeError,
@@ -246,7 +246,23 @@ impl Eval {
             compiler.variable_environment = lex_env.clone();
         }
 
-        compiler.eval_declaration_instantiation(&body, strict, &var_env, &lex_env)?;
+        let mut annex_b_function_names = Vec::new();
+
+        eval_declaration_instantiation_context(
+            &mut annex_b_function_names,
+            &body,
+            strict,
+            &var_env,
+            &lex_env,
+            compiler.context,
+        )?;
+
+        #[cfg(feature = "annex-b")]
+        {
+            compiler.annex_b_function_names = annex_b_function_names;
+        }
+
+        compiler.eval_declaration_instantiation(&body, strict, &var_env, &lex_env);
         compiler.compile_statement_list(body.statements(), true, false);
 
         let code_block = Gc::new(compiler.finish());

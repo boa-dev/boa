@@ -532,6 +532,10 @@ impl CodeBlock {
             Instruction::CreateGlobalFunctionBinding {
                 name_index,
                 configurable,
+            }
+            | Instruction::CreateGlobalVarBinding {
+                name_index,
+                configurable,
             } => {
                 let name = self
                     .constant_string(name_index.value() as usize)
@@ -716,8 +720,7 @@ impl CodeBlock {
             | Instruction::Reserved51
             | Instruction::Reserved52
             | Instruction::Reserved53
-            | Instruction::Reserved54
-            | Instruction::Reserved55 => unreachable!("Reserved opcodes are unrechable"),
+            | Instruction::Reserved54 => unreachable!("Reserved opcodes are unrechable"),
         }
     }
 }

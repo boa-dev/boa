@@ -2110,6 +2110,15 @@ generate_opcodes! {
     /// [spec]: https://tc39.es/ecma262/#sec-createglobalfunctionbinding
     CreateGlobalFunctionBinding { configurable: bool, name_index: VaryingOperand },
 
+    /// Performs [`CreateGlobalVarBinding ( N, V, D )`][spec]
+    ///
+    /// Operands: configurable: `bool`, `name_index`: `VaryingOperand`
+    ///
+    /// Stack: `value` **=>**
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-createglobalvarbinding
+    CreateGlobalVarBinding { configurable: bool, name_index: VaryingOperand },
+
     /// No-operation instruction, does nothing.
     ///
     /// Operands:
@@ -2239,8 +2248,6 @@ generate_opcodes! {
     Reserved53 => Reserved,
     /// Reserved [`Opcode`].
     Reserved54 => Reserved,
-    /// Reserved [`Opcode`].
-    Reserved55 => Reserved,
 }
 
 /// Specific opcodes for bindings.
