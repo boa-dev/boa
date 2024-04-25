@@ -530,15 +530,15 @@ impl CodeBlock {
                 format!("done: {done}")
             }
             Instruction::CreateGlobalFunctionBinding {
-                name_index,
+                index,
                 configurable,
             }
             | Instruction::CreateGlobalVarBinding {
-                name_index,
+                index,
                 configurable,
             } => {
                 let name = self
-                    .constant_string(name_index.value() as usize)
+                    .constant_string(index.value() as usize)
                     .to_std_string_escaped();
                 format!("name: {name}, configurable: {configurable}")
             }

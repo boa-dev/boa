@@ -118,7 +118,7 @@ impl Json {
                 true,
                 context.realm().environment().compile_env(),
                 context.realm().environment().compile_env(),
-                context,
+                context.interner_mut(),
             );
             compiler.compile_statement_list(script.statements(), true, false);
             Gc::new(compiler.finish())

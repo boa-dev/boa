@@ -1600,27 +1600,6 @@ generate_opcodes! {
     /// Stack: **=>**
     ThrowNewSyntaxError { message: VaryingOperand },
 
-    /// TODO: doc
-    ///
-    /// Operands: name_index: u32
-    ///
-    /// Stack: **=>**
-    HasRestrictedGlobalProperty { index: VaryingOperand },
-
-    /// TODO: doc
-    ///
-    /// Operands: name_index: u32
-    ///
-    /// Stack: **=>**
-    CanDeclareGlobalFunction { index: VaryingOperand },
-
-    /// TODO: doc
-    ///
-    /// Operands: name_index: u32
-    ///
-    /// Stack: **=>**
-    CanDeclareGlobalVar { index: VaryingOperand },
-
     /// Pops value converts it to boolean and pushes it back.
     ///
     /// Operands:
@@ -2101,23 +2080,50 @@ generate_opcodes! {
     /// Stack: **=>** `arguments`
     CreateUnmappedArgumentsObject,
 
+    /// Performs [`HasRestrictedGlobalProperty ( N )`][spec]
+    ///
+    /// Operands: `index`: u32
+    ///
+    /// Stack: **=>**
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-hasrestrictedglobalproperty
+    HasRestrictedGlobalProperty { index: VaryingOperand },
+
+    /// Performs [`CanDeclareGlobalFunction ( N )`][spec]
+    ///
+    /// Operands: `index`: u32
+    ///
+    /// Stack: **=>**
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-candeclareglobalfunction
+    CanDeclareGlobalFunction { index: VaryingOperand },
+
+    /// Performs [`CanDeclareGlobalVar ( N )`][spec]
+    ///
+    /// Operands: `index`: u32
+    ///
+    /// Stack: **=>**
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-candeclareglobalvar
+    CanDeclareGlobalVar { index: VaryingOperand },
+
     /// Performs [`CreateGlobalFunctionBinding ( N, V, D )`][spec]
     ///
-    /// Operands: configurable: `bool`, `name_index`: `VaryingOperand`
+    /// Operands: configurable: `bool`, `index`: `VaryingOperand`
     ///
-    /// Stack: `value` **=>**
+    /// Stack: `function` **=>**
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-createglobalfunctionbinding
-    CreateGlobalFunctionBinding { configurable: bool, name_index: VaryingOperand },
+    CreateGlobalFunctionBinding { configurable: bool, index: VaryingOperand },
 
     /// Performs [`CreateGlobalVarBinding ( N, V, D )`][spec]
     ///
-    /// Operands: configurable: `bool`, `name_index`: `VaryingOperand`
+    /// Operands: configurable: `bool`, `index`: `VaryingOperand`
     ///
-    /// Stack: `value` **=>**
+    /// Stack: **=>**
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-createglobalvarbinding
-    CreateGlobalVarBinding { configurable: bool, name_index: VaryingOperand },
+    CreateGlobalVarBinding { configurable: bool, index: VaryingOperand },
 
     /// No-operation instruction, does nothing.
     ///

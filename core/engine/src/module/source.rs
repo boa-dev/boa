@@ -1432,7 +1432,7 @@ impl SourceTextModule {
             false,
             env.clone(),
             env.clone(),
-            context,
+            context.interner_mut(),
         );
 
         compiler.code_block_flags |= CodeBlockFlags::IS_ASYNC;

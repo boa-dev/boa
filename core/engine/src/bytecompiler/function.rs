@@ -6,10 +6,11 @@ use crate::{
     environments::CompileTimeEnvironment,
     js_string,
     vm::{CodeBlock, CodeBlockFlags, Opcode},
-    Context, JsString,
+    JsString,
 };
 use boa_ast::function::{FormalParameterList, FunctionBody};
 use boa_gc::Gc;
+use boa_interner::Interner;
 
 /// `FunctionCompiler` is used to compile AST functions to bytecode.
 #[derive(Debug, Clone)]
@@ -91,7 +92,7 @@ impl FunctionCompiler {
         body: &FunctionBody,
         variable_environment: Rc<CompileTimeEnvironment>,
         lexical_environment: Rc<CompileTimeEnvironment>,
-        context: &mut Context,
+        interner: &mut Interner,
     ) -> Gc<CodeBlock> {
         self.strict = self.strict || body.strict();
 
@@ -103,7 +104,7 @@ impl FunctionCompiler {
             false,
             variable_environment,
             lexical_environment,
-            context,
+            interner,
         );
         compiler.length = length;
         compiler
