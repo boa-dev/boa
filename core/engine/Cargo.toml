@@ -14,6 +14,7 @@ rust-version.workspace = true
 [features]
 profiler = ["boa_profiler/profiler"]
 deser = ["boa_interner/serde", "boa_ast/serde"]
+either = ["dep:either"]
 
 # Enables the `Intl` builtin object and bundles a default ICU4X data provider.
 # Prefer this over `intl` if you just want to enable `Intl` without dealing with the
