@@ -4,6 +4,7 @@ use crate::js_string;
 
 use super::{JsBigInt, JsObject, JsString, JsSymbol, JsValue, Profiler};
 
+mod either;
 mod serde_json;
 pub(super) mod try_from_js;
 
