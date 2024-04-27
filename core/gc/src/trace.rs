@@ -521,3 +521,15 @@ mod icu {
         empty_trace!();
     }
 }
+
+#[cfg(feature = "boa_string")]
+mod boa_string_trace {
+    use crate::{Finalize, Trace};
+
+    // SAFETY: `boa_string::JsString` doesn't have any traceable data.
+    unsafe impl Trace for boa_string::JsString {
+        empty_trace!();
+    }
+
+    impl Finalize for boa_string::JsString {}
+}

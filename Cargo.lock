@@ -395,6 +395,7 @@ dependencies = [
  "boa_macros",
  "boa_parser",
  "boa_profiler",
+ "boa_string",
  "bytemuck",
  "cfg-if",
  "criterion",
@@ -427,7 +428,6 @@ dependencies = [
  "num-traits",
  "num_enum",
  "once_cell",
- "paste",
  "pollster",
  "portable-atomic",
  "rand",
@@ -437,7 +437,6 @@ dependencies = [
  "serde",
  "serde_json",
  "sptr",
- "static_assertions",
  "sys-locale",
  "tap",
  "temporal_rs",
@@ -475,6 +474,7 @@ version = "0.18.0"
 dependencies = [
  "boa_macros",
  "boa_profiler",
+ "boa_string",
  "hashbrown 0.14.5",
  "icu_locid",
  "thin-vec",
@@ -569,6 +569,18 @@ dependencies = [
  "indoc",
  "rustc-hash",
  "textwrap",
+]
+
+[[package]]
+name = "boa_string"
+version = "0.18.0"
+dependencies = [
+ "boa_macros",
+ "fast-float",
+ "paste",
+ "rustc-hash",
+ "sptr",
+ "static_assertions",
 ]
 
 [[package]]

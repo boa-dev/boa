@@ -1,7 +1,4 @@
-use crate::{
-    builtins::string::{is_trimmable_whitespace, is_trimmable_whitespace_latin1},
-    string::Iter,
-};
+use crate::{is_trimmable_whitespace, is_trimmable_whitespace_latin1, Iter};
 use std::{
     hash::{Hash, Hasher},
     slice::SliceIndex,
@@ -195,6 +192,8 @@ impl<'a> JsStr<'a> {
     }
 
     /// Convert the [`JsStr`] into a [`Vec<U16>`].
+    #[inline]
+    #[must_use]
     pub fn to_vec(&self) -> Vec<u16> {
         match self.variant() {
             JsStrVariant::Latin1(v) => v.iter().copied().map(u16::from).collect(),
@@ -203,13 +202,19 @@ impl<'a> JsStr<'a> {
     }
 
     /// Returns true if needle is a prefix of the [`JsStr`].
+    #[inline]
     #[must_use]
+    // We check the size, so this should never panic.
+    #[allow(clippy::missing_panics_doc)]
     pub fn starts_with(&self, needle: JsStr<'_>) -> bool {
         let n = needle.len();
         self.len() >= n && needle == self.get(..n).expect("already checked size")
     }
     /// Returns `true` if `needle` is a suffix of the [`JsStr`].
+    #[inline]
     #[must_use]
+    // We check the size, so this should never panic.
+    #[allow(clippy::missing_panics_doc)]
     pub fn ends_with(&self, needle: JsStr<'_>) -> bool {
         let (m, n) = (self.len(), needle.len());
         m >= n && needle == self.get(m - n..).expect("already checked size")
@@ -217,6 +222,7 @@ impl<'a> JsStr<'a> {
 }
 
 impl Hash for JsStr<'_> {
+    #[inline]
     fn hash<H: Hasher>(&self, state: &mut H) {
         // NOTE: The hash function has been inlined to ensure that a hash of latin1 and U16
         // encoded strings remains the same if they have the same characters
@@ -238,6 +244,7 @@ impl Hash for JsStr<'_> {
 }
 
 impl Ord for JsStr<'_> {
+    #[inline]
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         match (self.variant(), other.variant()) {
             (JsStrVariant::Latin1(x), JsStrVariant::Latin1(y)) => x.cmp(y),
@@ -250,6 +257,7 @@ impl Ord for JsStr<'_> {
 impl Eq for JsStr<'_> {}
 
 impl PartialEq for JsStr<'_> {
+    #[inline]
     fn eq(&self, other: &Self) -> bool {
         match (self.variant(), other.variant()) {
             (JsStrVariant::Latin1(lhs), JsStrVariant::Latin1(rhs)) => return lhs == rhs,
@@ -269,6 +277,7 @@ impl PartialEq for JsStr<'_> {
 }
 
 impl<'a> PartialEq<JsStr<'a>> for [u16] {
+    #[inline]
     fn eq(&self, other: &JsStr<'a>) -> bool {
         if self.len() != other.len() {
             return false;

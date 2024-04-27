@@ -23,7 +23,7 @@
 
 use crate::{
     js_string,
-    string::{common::StaticJsStrings, JsString},
+    string::{JsString, StaticJsStrings},
     tagged::{Tagged, UnwrappedTagged},
 };
 use boa_gc::{Finalize, Trace};
