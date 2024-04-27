@@ -4,7 +4,7 @@ use crate::{
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     property::Attribute,
     realm::Realm,
-    string::common::StaticJsStrings,
+    string::StaticJsStrings,
     Context, JsBigInt, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 use boa_gc::{custom_trace, Finalize, Trace};

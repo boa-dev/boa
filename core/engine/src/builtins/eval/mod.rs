@@ -18,7 +18,7 @@ use crate::{
     js_string,
     object::JsObject,
     realm::Realm,
-    string::common::StaticJsStrings,
+    string::StaticJsStrings,
     vm::{CallFrame, CallFrameFlags, Opcode},
     Context, JsArgs, JsResult, JsString, JsValue,
 };

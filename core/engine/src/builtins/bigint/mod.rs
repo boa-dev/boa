@@ -20,7 +20,7 @@ use crate::{
     object::JsObject,
     property::Attribute,
     realm::Realm,
-    string::common::StaticJsStrings,
+    string::StaticJsStrings,
     symbol::JsSymbol,
     value::{IntegerOrInfinity, PreferredType},
     Context, JsArgs, JsBigInt, JsResult, JsString, JsValue,

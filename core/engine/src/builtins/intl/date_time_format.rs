@@ -17,7 +17,7 @@ use crate::{
     js_string,
     object::{internal_methods::get_prototype_from_constructor, JsObject},
     realm::Realm,
-    string::common::StaticJsStrings,
+    string::StaticJsStrings,
     Context, JsData, JsResult, JsString, JsValue,
 };
 

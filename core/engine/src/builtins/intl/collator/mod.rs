@@ -29,7 +29,7 @@ use crate::{
     },
     property::Attribute,
     realm::Realm,
-    string::common::StaticJsStrings,
+    string::StaticJsStrings,
     symbol::JsSymbol,
     Context, JsArgs, JsData, JsNativeError, JsResult, JsString, JsValue,
 };

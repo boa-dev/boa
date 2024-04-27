@@ -32,7 +32,7 @@ use crate::{
     },
     property::{Attribute, PropertyDescriptor, PropertyKey, PropertyNameKind},
     realm::Realm,
-    string::common::StaticJsStrings,
+    string::StaticJsStrings,
     symbol::JsSymbol,
     value::{IntegerOrInfinity, JsValue},
     Context, JsArgs, JsResult, JsString,

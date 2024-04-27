@@ -9,7 +9,7 @@ use crate::{
     },
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
-    string::common::StaticJsStrings,
+    string::StaticJsStrings,
     JsObject, JsString, JsValue, NativeFunction,
 };
 

@@ -33,7 +33,7 @@ use crate::{
     js_string,
     property::{Attribute, PropertyKey},
     realm::Realm,
-    string::common::StaticJsStrings,
+    string::StaticJsStrings,
     value::Type,
     Context, JsBigInt, JsError, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };

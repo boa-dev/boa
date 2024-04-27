@@ -19,7 +19,7 @@ use crate::{
     object::{internal_methods::InternalMethodContext, JsObject},
     property::Attribute,
     realm::Realm,
-    string::common::StaticJsStrings,
+    string::StaticJsStrings,
     symbol::JsSymbol,
     Context, JsArgs, JsResult, JsString, JsValue,
 };

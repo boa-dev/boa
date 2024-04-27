@@ -68,11 +68,12 @@ js = ["dep:web-time"]
 
 [dependencies]
 boa_interner.workspace = true
-boa_gc = { workspace = true, features = ["thin-vec"] }
+boa_gc = { workspace = true, features = ["thin-vec", "boa_string"] }
 boa_profiler.workspace = true
 boa_macros.workspace = true
 boa_ast.workspace = true
 boa_parser.workspace = true
+boa_string.workspace = true
 serde = { workspace = true, features = ["derive", "rc"] }
 serde_json.workspace = true
 rand = "0.8.5"
@@ -88,7 +89,6 @@ fast-float.workspace = true
 once_cell = { workspace = true, features = ["std"] }
 tap = "1.0.1"
 sptr = "0.3.2"
-static_assertions.workspace = true
 thiserror = "1.0.59"
 dashmap = "5.5.3"
 num_enum = "0.7.2"
@@ -96,7 +96,6 @@ pollster.workspace = true
 thin-vec.workspace = true
 itertools = { version = "0.12.1", default-features = false }
 icu_normalizer = { workspace = true, features = ["compiled_data"] }
-paste = "1.0"
 portable-atomic = "1.6.0"
 bytemuck = { version = "1.15.0", features = ["derive"] }
 arrayvec = "0.7.4"

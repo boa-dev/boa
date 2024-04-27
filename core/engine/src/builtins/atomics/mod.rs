@@ -16,7 +16,7 @@ use std::sync::atomic::Ordering;
 
 use crate::{
     builtins::BuiltInObject, context::intrinsics::Intrinsics, js_string, object::JsObject,
-    property::Attribute, realm::Realm, string::common::StaticJsStrings, symbol::JsSymbol,
+    property::Attribute, realm::Realm, string::StaticJsStrings, symbol::JsSymbol,
     sys::time::Duration, value::IntegerOrInfinity, Context, JsArgs, JsNativeError, JsResult,
     JsString, JsValue,
 };

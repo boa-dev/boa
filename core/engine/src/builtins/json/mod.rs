@@ -27,7 +27,7 @@ use crate::{
     object::{internal_methods::InternalMethodContext, JsObject},
     property::{Attribute, PropertyNameKind},
     realm::Realm,
-    string::{common::StaticJsStrings, CodePoint},
+    string::{CodePoint, StaticJsStrings},
     symbol::JsSymbol,
     value::IntegerOrInfinity,
     vm::{CallFrame, CallFrameFlags},
