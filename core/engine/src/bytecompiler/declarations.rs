@@ -28,7 +28,7 @@ use super::{Operand, ToJsString};
 /// `GlobalDeclarationInstantiation ( script, env )`
 ///
 /// This diverges from the specification by separating the context from the compilation process.
-/// Many steps are skiped that are done during bytecode compilation.
+/// Many steps are skipped that are done during bytecode compilation.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
@@ -49,7 +49,7 @@ pub(crate) fn global_declaration_instantiation_context(
 /// `GlobalDeclarationInstantiation ( script, env )`
 ///
 /// This diverges from the specification by separating the context from the compilation process.
-/// Many steps are skiped that are done during bytecode compilation.
+/// Many steps are skipped that are done during bytecode compilation.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
@@ -196,7 +196,7 @@ pub(crate) fn global_declaration_instantiation_context(
 /// `EvalDeclarationInstantiation ( body, varEnv, lexEnv, privateEnv, strict )`
 ///
 /// This diverges from the specification by separating the context from the compilation process.
-/// Many steps are skiped that are done during bytecode compilation.
+/// Many steps are skipped that are done during bytecode compilation.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
