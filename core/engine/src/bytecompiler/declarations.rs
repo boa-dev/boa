@@ -870,7 +870,6 @@ impl ByteCompiler<'_> {
                     // a. If varEnv is a Global Environment Record, then
                     if var_env.is_global() {
                         let index = self.get_or_insert_name(name);
-                        // let name = name.to_js_string(self.interner());
 
                         // i. Let vnDefinable be ? varEnv.CanDeclareGlobalVar(vn).
                         self.emit_with_varying_operand(Opcode::CanDeclareGlobalVar, index);
