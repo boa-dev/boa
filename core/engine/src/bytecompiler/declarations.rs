@@ -3,11 +3,12 @@ use std::rc::Rc;
 use crate::{
     bytecompiler::{ByteCompiler, FunctionCompiler, FunctionSpec, NodeKind},
     environments::CompileTimeEnvironment,
-    vm::{create_function_object_fast, BindingOpcode, Opcode},
-    JsNativeError, JsResult,
+    vm::{BindingOpcode, Opcode},
+    Context, JsNativeError, JsResult,
 };
 use boa_ast::{
     declaration::{Binding, LexicalDeclaration, VariableList},
+    expression::Identifier,
     function::{FormalParameterList, FunctionBody},
     operations::{
         all_private_identifiers_valid, bound_names, lexically_declared_names,
@@ -24,6 +25,361 @@ use boa_ast::operations::annex_b_function_declarations_names;
 
 use super::{Operand, ToJsString};
 
+/// `GlobalDeclarationInstantiation ( script, env )`
+///
+/// This diverges from the specification by separating the context from the compilation process.
+/// Many steps are skipped that are done during bytecode compilation.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-globaldeclarationinstantiation
+#[cfg(not(feature = "annex-b"))]
+#[allow(clippy::unnecessary_wraps)]
+#[allow(clippy::ptr_arg)]
+pub(crate) fn global_declaration_instantiation_context(
+    _annex_b_function_names: &mut Vec<Identifier>,
+    _script: &Script,
+    _env: &Rc<CompileTimeEnvironment>,
+    _context: &mut Context,
+) -> JsResult<()> {
+    Ok(())
+}
+
+/// `GlobalDeclarationInstantiation ( script, env )`
+///
+/// This diverges from the specification by separating the context from the compilation process.
+/// Many steps are skipped that are done during bytecode compilation.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-globaldeclarationinstantiation
+#[cfg(feature = "annex-b")]
+pub(crate) fn global_declaration_instantiation_context(
+    annex_b_function_names: &mut Vec<Identifier>,
+    script: &Script,
+    env: &Rc<CompileTimeEnvironment>,
+    context: &mut Context,
+) -> JsResult<()> {
+    // SKIP: 1. Let lexNames be the LexicallyDeclaredNames of script.
+    // SKIP: 2. Let varNames be the VarDeclaredNames of script.
+    // SKIP: 3. For each element name of lexNames, do
+    // SKIP: 4. For each element name of varNames, do
+
+    // 5. Let varDeclarations be the VarScopedDeclarations of script.
+    // Note: VarScopedDeclarations for a Script node is TopLevelVarScopedDeclarations.
+    let var_declarations = var_scoped_declarations(script);
+
+    // SKIP: 6. Let functionsToInitialize be a new empty List.
+
+    // 7. Let declaredFunctionNames be a new empty List.
+    let mut declared_function_names = Vec::new();
+
+    // 8. For each element d of varDeclarations, in reverse List order, do
+    for declaration in var_declarations.iter().rev() {
+        // a. If d is not either a VariableDeclaration, a ForBinding, or a BindingIdentifier, then
+        // a.i. Assert: d is either a FunctionDeclaration, a GeneratorDeclaration, an AsyncFunctionDeclaration, or an AsyncGeneratorDeclaration.
+        // a.ii. NOTE: If there are multiple function declarations for the same name, the last declaration is used.
+        let name = match declaration {
+            VarScopedDeclaration::Function(f) => f.name(),
+            VarScopedDeclaration::Generator(f) => f.name(),
+            VarScopedDeclaration::AsyncFunction(f) => f.name(),
+            VarScopedDeclaration::AsyncGenerator(f) => f.name(),
+            VarScopedDeclaration::VariableDeclaration(_) => {
+                continue;
+            }
+        };
+
+        // a.iii. Let fn be the sole element of the BoundNames of d.
+        let name = name.expect("function declaration must have a name");
+
+        // a.iv. If declaredFunctionNames does not contain fn, then
+        if !declared_function_names.contains(&name) {
+            // SKIP: 1. Let fnDefinable be ? env.CanDeclareGlobalFunction(fn).
+            // SKIP: 2. If fnDefinable is false, throw a TypeError exception.
+            // 3. Append fn to declaredFunctionNames.
+            declared_function_names.push(name);
+
+            // SKIP: 4. Insert d as the first element of functionsToInitialize.
+        }
+    }
+
+    // // 9. Let declaredVarNames be a new empty List.
+    let mut declared_var_names = Vec::new();
+
+    // 10. For each element d of varDeclarations, do
+    //     a. If d is either a VariableDeclaration, a ForBinding, or a BindingIdentifier, then
+    for declaration in var_declarations {
+        let VarScopedDeclaration::VariableDeclaration(declaration) = declaration else {
+            continue;
+        };
+
+        // i. For each String vn of the BoundNames of d, do
+        for name in bound_names(&declaration) {
+            // 1. If declaredFunctionNames does not contain vn, then
+            if !declared_function_names.contains(&name) {
+                // SKIP: a. Let vnDefinable be ? env.CanDeclareGlobalVar(vn).
+                // SKIP: b. If vnDefinable is false, throw a TypeError exception.
+                // c. If declaredVarNames does not contain vn, then
+                if !declared_var_names.contains(&name) {
+                    // i. Append vn to declaredVarNames.
+                    declared_var_names.push(name);
+                }
+            }
+        }
+    }
+
+    // 11. NOTE: No abnormal terminations occur after this algorithm step if the global object is an ordinary object.
+    //     However, if the global object is a Proxy exotic object it may exhibit behaviours
+    //     that cause abnormal terminations in some of the following steps.
+
+    // 12. NOTE: Annex B.3.2.2 adds additional steps at this point.
+    // 12. Perform the following steps:
+    // a. Let strict be IsStrict of script.
+    // b. If strict is false, then
+    if !script.strict() {
+        let lex_names = lexically_declared_names(script);
+
+        // i. Let declaredFunctionOrVarNames be the list-concatenation of declaredFunctionNames and declaredVarNames.
+        // ii. For each FunctionDeclaration f that is directly contained in the StatementList of a Block, CaseClause,
+        //     or DefaultClause Contained within script, do
+        for f in annex_b_function_declarations_names(script) {
+            // 1. Let F be StringValue of the BindingIdentifier of f.
+            // 2. If replacing the FunctionDeclaration f with a VariableStatement that has F as a BindingIdentifier
+            //    would not produce any Early Errors for script, then
+            if !lex_names.contains(&f) {
+                let f_string = f.to_js_string(context.interner());
+
+                // a. If env.HasLexicalDeclaration(F) is false, then
+                if !env.has_lex_binding(&f_string) {
+                    // i. Let fnDefinable be ? env.CanDeclareGlobalVar(F).
+                    let fn_definable = context.can_declare_global_function(&f_string)?;
+
+                    // ii. If fnDefinable is true, then
+                    if fn_definable {
+                        // i. NOTE: A var binding for F is only instantiated here if it is neither
+                        //          a VarDeclaredName nor the name of another FunctionDeclaration.
+                        // ii. If declaredFunctionOrVarNames does not contain F, then
+                        if !declared_function_names.contains(&f) && !declared_var_names.contains(&f)
+                        {
+                            // i. Perform ? env.CreateGlobalVarBinding(F, false).
+                            context.create_global_var_binding(f_string, false)?;
+
+                            // ii. Append F to declaredFunctionOrVarNames.
+                            declared_function_names.push(f);
+                        }
+                        // iii. When the FunctionDeclaration f is evaluated, perform the following
+                        //      steps in place of the FunctionDeclaration Evaluation algorithm provided in 15.2.6:
+                        //     i. Let genv be the running execution context's VariableEnvironment.
+                        //     ii. Let benv be the running execution context's LexicalEnvironment.
+                        //     iii. Let fobj be ! benv.GetBindingValue(F, false).
+                        //     iv. Perform ? genv.SetMutableBinding(F, fobj, false).
+                        //     v. Return unused.
+                        annex_b_function_names.push(f);
+                    }
+                }
+            }
+        }
+    }
+
+    // SKIP: 13. Let lexDeclarations be the LexicallyScopedDeclarations of script.
+    // SKIP: 14. Let privateEnv be null.
+    // SKIP: 15. For each element d of lexDeclarations, do
+    // SKIP: 16. For each Parse Node f of functionsToInitialize, do
+    // SKIP: 17. For each String vn of declaredVarNames, do
+
+    // 18. Return unused.
+    Ok(())
+}
+
+/// `EvalDeclarationInstantiation ( body, varEnv, lexEnv, privateEnv, strict )`
+///
+/// This diverges from the specification by separating the context from the compilation process.
+/// Many steps are skipped that are done during bytecode compilation.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-evaldeclarationinstantiation
+pub(crate) fn eval_declaration_instantiation_context(
+    #[allow(unused, clippy::ptr_arg)] annex_b_function_names: &mut Vec<Identifier>,
+    body: &Script,
+    #[allow(unused)] strict: bool,
+    #[allow(unused)] var_env: &Rc<CompileTimeEnvironment>,
+    #[allow(unused)] lex_env: &Rc<CompileTimeEnvironment>,
+    context: &mut Context,
+) -> JsResult<()> {
+    // SKIP: 3. If strict is false, then
+
+    // 4. Let privateIdentifiers be a new empty List.
+    // 5. Let pointer be privateEnv.
+    // 6. Repeat, while pointer is not null,
+    //     a. For each Private Name binding of pointer.[[Names]], do
+    //         i. If privateIdentifiers does not contain binding.[[Description]],
+    //            append binding.[[Description]] to privateIdentifiers.
+    //     b. Set pointer to pointer.[[OuterPrivateEnvironment]].
+    let private_identifiers = context.vm.environments.private_name_descriptions();
+    let private_identifiers = private_identifiers
+        .into_iter()
+        .map(|ident| {
+            context
+                .interner()
+                .get(ident.as_slice())
+                .expect("string should be in interner")
+        })
+        .collect();
+
+    // 7. If AllPrivateIdentifiersValid of body with argument privateIdentifiers is false, throw a SyntaxError exception.
+    if !all_private_identifiers_valid(body, private_identifiers) {
+        return Err(JsNativeError::syntax()
+            .with_message("invalid private identifier")
+            .into());
+    }
+
+    // 2. Let varDeclarations be the VarScopedDeclarations of body.
+    #[cfg(feature = "annex-b")]
+    let var_declarations = var_scoped_declarations(body);
+
+    // SKIP: 8. Let functionsToInitialize be a new empty List.
+
+    // 9. Let declaredFunctionNames be a new empty List.
+    #[cfg(feature = "annex-b")]
+    let mut declared_function_names = Vec::new();
+
+    // 10. For each element d of varDeclarations, in reverse List order, do
+    #[cfg(feature = "annex-b")]
+    for declaration in var_declarations.iter().rev() {
+        // a. If d is not either a VariableDeclaration, a ForBinding, or a BindingIdentifier, then
+        // a.i. Assert: d is either a FunctionDeclaration, a GeneratorDeclaration, an AsyncFunctionDeclaration, or an AsyncGeneratorDeclaration.
+        // a.ii. NOTE: If there are multiple function declarations for the same name, the last declaration is used.
+        let name = match &declaration {
+            VarScopedDeclaration::Function(f) => f.name(),
+            VarScopedDeclaration::Generator(f) => f.name(),
+            VarScopedDeclaration::AsyncFunction(f) => f.name(),
+            VarScopedDeclaration::AsyncGenerator(f) => f.name(),
+            VarScopedDeclaration::VariableDeclaration(_) => {
+                continue;
+            }
+        };
+
+        // a.iii. Let fn be the sole element of the BoundNames of d.
+        let name = name.expect("function declaration must have a name");
+
+        // a.iv. If declaredFunctionNames does not contain fn, then
+        if !declared_function_names.contains(&name) {
+            // SKIP: 1. If varEnv is a Global Environment Record, then
+
+            // 2. Append fn to declaredFunctionNames.
+            declared_function_names.push(name);
+
+            // SKIP: 3. Insert d as the first element of functionsToInitialize.
+        }
+    }
+
+    // 11. NOTE: Annex B.3.2.3 adds additional steps at this point.
+    // 11. If strict is false, then
+    #[cfg(feature = "annex-b")]
+    if !strict {
+        let lexically_declared_names = lexically_declared_names(body);
+
+        // a. Let declaredFunctionOrVarNames be the list-concatenation of declaredFunctionNames and declaredVarNames.
+        // b. For each FunctionDeclaration f that is directly contained in the StatementList
+        //    of a Block, CaseClause, or DefaultClause Contained within body, do
+        for f in annex_b_function_declarations_names(body) {
+            // i. Let F be StringValue of the BindingIdentifier of f.
+            // ii. If replacing the FunctionDeclaration f with a VariableStatement that has F
+            //     as a BindingIdentifier would not produce any Early Errors for body, then
+            if !lexically_declared_names.contains(&f) {
+                // 1. Let bindingExists be false.
+                let mut binding_exists = false;
+
+                // 2. Let thisEnv be lexEnv.
+                let mut this_env = lex_env.clone();
+
+                // 3. Assert: The following loop will terminate.
+                // 4. Repeat, while thisEnv is not varEnv,
+                while this_env.environment_index() != lex_env.environment_index() {
+                    let f = f.to_js_string(context.interner());
+
+                    // a. If thisEnv is not an Object Environment Record, then
+                    // i. If ! thisEnv.HasBinding(F) is true, then
+                    if this_env.has_binding(&f) {
+                        // i. Let bindingExists be true.
+                        binding_exists = true;
+                        break;
+                    }
+
+                    // b. Set thisEnv to thisEnv.[[OuterEnv]].
+                    if let Some(outer) = this_env.outer() {
+                        this_env = outer;
+                    } else {
+                        break;
+                    }
+                }
+
+                // 5. If bindingExists is false and varEnv is a Global Environment Record, then
+                let fn_definable = if !binding_exists && var_env.is_global() {
+                    let f = f.to_js_string(context.interner());
+
+                    // a. If varEnv.HasLexicalDeclaration(F) is false, then
+                    // b. Else,
+                    if var_env.has_lex_binding(&f) {
+                        // i. Let fnDefinable be false.
+                        false
+                    } else {
+                        // i. Let fnDefinable be ? varEnv.CanDeclareGlobalVar(F).
+                        context.can_declare_global_var(&f)?
+                    }
+                }
+                // 6. Else,
+                else {
+                    // a. Let fnDefinable be true.
+                    true
+                };
+
+                // 7. If bindingExists is false and fnDefinable is true, then
+                if !binding_exists && fn_definable {
+                    // a. If declaredFunctionOrVarNames does not contain F, then
+                    if !declared_function_names.contains(&f) {
+                        // i. If varEnv is a Global Environment Record, then
+                        if var_env.is_global() {
+                            let f = f.to_js_string(context.interner());
+
+                            // i. Perform ? varEnv.CreateGlobalVarBinding(F, true).
+                            context.create_global_var_binding(f, true)?;
+                        }
+
+                        // SKIP: ii. Else,
+                        // SKIP: iii. Append F to declaredFunctionOrVarNames.
+                    }
+
+                    // b. When the FunctionDeclaration f is evaluated, perform the following steps
+                    //    in place of the FunctionDeclaration Evaluation algorithm provided in 15.2.6:
+                    //     i. Let genv be the running execution context's VariableEnvironment.
+                    //     ii. Let benv be the running execution context's LexicalEnvironment.
+                    //     iii. Let fobj be ! benv.GetBindingValue(F, false).
+                    //     iv. Perform ? genv.SetMutableBinding(F, fobj, false).
+                    //     v. Return unused.
+                    annex_b_function_names.push(f);
+                }
+            }
+        }
+    }
+
+    // SKIP: 12. Let declaredVarNames be a new empty List.
+    // SKIP: 13. For each element d of varDeclarations, do
+    // SKIP: 14. NOTE: No abnormal terminations occur after this algorithm step unless varEnv is a
+    //           Global Environment Record and the global object is a Proxy exotic object.
+    // SKIP: 15. Let lexDeclarations be the LexicallyScopedDeclarations of body.
+    // SKIP: 16. For each element d of lexDeclarations, do
+    // SKIP: 17. For each Parse Node f of functionsToInitialize, do
+    // SKIP: 18. For each String vn of declaredVarNames, do
+
+    // 19. Return unused.
+    Ok(())
+}
+
 impl ByteCompiler<'_> {
     /// `GlobalDeclarationInstantiation ( script, env )`
     ///
@@ -35,7 +391,7 @@ impl ByteCompiler<'_> {
         &mut self,
         script: &Script,
         env: &Rc<CompileTimeEnvironment>,
-    ) -> JsResult<()> {
+    ) {
         // 1. Let lexNames be the LexicallyDeclaredNames of script.
         let lex_names = lexically_declared_names(script);
 
@@ -44,47 +400,34 @@ impl ByteCompiler<'_> {
 
         // 3. For each element name of lexNames, do
         for name in lex_names {
-            let name = self
-                .context
-                .interner()
-                .resolve_expect(name.sym())
-                .utf16()
-                .into();
+            let name = name.to_js_string(self.interner());
 
             // Note: Our implementation differs from the spec here.
             // a. If env.HasVarDeclaration(name) is true, throw a SyntaxError exception.
             // b. If env.HasLexicalDeclaration(name) is true, throw a SyntaxError exception.
             if env.has_binding(&name) {
-                return Err(JsNativeError::syntax()
-                    .with_message("duplicate lexical declaration")
-                    .into());
+                self.emit_syntax_error("duplicate lexical declaration");
+                return;
             }
 
             // c. Let hasRestrictedGlobal be ? env.HasRestrictedGlobalProperty(name).
-            let has_restricted_global = self.context.has_restricted_global_property(&name)?;
+            let index = self.get_or_insert_string(name);
+            self.emit_with_varying_operand(Opcode::HasRestrictedGlobalProperty, index);
 
             // d. If hasRestrictedGlobal is true, throw a SyntaxError exception.
-            if has_restricted_global {
-                return Err(JsNativeError::syntax()
-                    .with_message("cannot redefine non-configurable global property")
-                    .into());
-            }
+            let exit = self.jump_if_false();
+            self.emit_syntax_error("cannot redefine non-configurable global property");
+            self.patch_jump(exit);
         }
 
         // 4. For each element name of varNames, do
         for name in var_names {
-            let name = self
-                .context
-                .interner()
-                .resolve_expect(name.sym())
-                .utf16()
-                .into();
+            let name = name.to_js_string(self.interner());
 
             // a. If env.HasLexicalDeclaration(name) is true, throw a SyntaxError exception.
             if env.has_lex_binding(&name) {
-                return Err(JsNativeError::syntax()
-                    .with_message("duplicate lexical declaration")
-                    .into());
+                self.emit_syntax_error("duplicate lexical declaration");
+                return;
             }
         }
 
@@ -119,16 +462,13 @@ impl ByteCompiler<'_> {
             // a.iv. If declaredFunctionNames does not contain fn, then
             if !declared_function_names.contains(&name) {
                 // 1. Let fnDefinable be ? env.CanDeclareGlobalFunction(fn).
-                let fn_definable = self
-                    .context
-                    .can_declare_global_function(&name.to_js_string(self.interner()))?;
+                let index = self.get_or_insert_name(name);
+                self.emit_with_varying_operand(Opcode::CanDeclareGlobalFunction, index);
 
                 // 2. If fnDefinable is false, throw a TypeError exception.
-                if !fn_definable {
-                    return Err(JsNativeError::typ()
-                        .with_message("cannot declare global function")
-                        .into());
-                }
+                let exit = self.jump_if_true();
+                self.emit_type_error("cannot declare global function");
+                self.patch_jump(exit);
 
                 // 3. Append fn to declaredFunctionNames.
                 declared_function_names.push(name);
@@ -155,16 +495,13 @@ impl ByteCompiler<'_> {
                 // 1. If declaredFunctionNames does not contain vn, then
                 if !declared_function_names.contains(&name) {
                     // a. Let vnDefinable be ? env.CanDeclareGlobalVar(vn).
-                    let definable = self
-                        .context
-                        .can_declare_global_var(&name.to_js_string(self.interner()))?;
+                    let index = self.get_or_insert_name(name);
+                    self.emit_with_varying_operand(Opcode::CanDeclareGlobalVar, index);
 
                     // b. If vnDefinable is false, throw a TypeError exception.
-                    if !definable {
-                        return Err(JsNativeError::typ()
-                            .with_message("cannot declare global variable")
-                            .into());
-                    }
+                    let exit = self.jump_if_true();
+                    self.emit_type_error("cannot declare global variable");
+                    self.patch_jump(exit);
 
                     // c. If declaredVarNames does not contain vn, then
                     if !declared_var_names.contains(&name) {
@@ -175,60 +512,15 @@ impl ByteCompiler<'_> {
             }
         }
 
-        // 11. NOTE: No abnormal terminations occur after this algorithm step if the global object is an ordinary object.
+        // NOTE: These steps depend on the global object are done before bytecode compilation.
+        //
+        // SKIP: 11. NOTE: No abnormal terminations occur after this algorithm step if the global object is an ordinary object.
         //     However, if the global object is a Proxy exotic object it may exhibit behaviours
         //     that cause abnormal terminations in some of the following steps.
-
-        // 12. NOTE: Annex B.3.2.2 adds additional steps at this point.
-        // 12. Perform the following steps:
-        // a. Let strict be IsStrict of script.
-        // b. If strict is false, then
-        #[cfg(feature = "annex-b")]
-        if !script.strict() {
-            let lex_names = lexically_declared_names(script);
-
-            // i. Let declaredFunctionOrVarNames be the list-concatenation of declaredFunctionNames and declaredVarNames.
-            // ii. For each FunctionDeclaration f that is directly contained in the StatementList of a Block, CaseClause,
-            //     or DefaultClause Contained within script, do
-            for f in annex_b_function_declarations_names(script) {
-                // 1. Let F be StringValue of the BindingIdentifier of f.
-                // 2. If replacing the FunctionDeclaration f with a VariableStatement that has F as a BindingIdentifier
-                //    would not produce any Early Errors for script, then
-                if !lex_names.contains(&f) {
-                    let f_string = self.resolve_identifier_expect(f);
-
-                    // a. If env.HasLexicalDeclaration(F) is false, then
-                    if !env.has_lex_binding(&f_string) {
-                        // i. Let fnDefinable be ? env.CanDeclareGlobalVar(F).
-                        let fn_definable = self.context.can_declare_global_function(&f_string)?;
-
-                        // ii. If fnDefinable is true, then
-                        if fn_definable {
-                            // i. NOTE: A var binding for F is only instantiated here if it is neither
-                            //          a VarDeclaredName nor the name of another FunctionDeclaration.
-                            // ii. If declaredFunctionOrVarNames does not contain F, then
-                            if !declared_function_names.contains(&f)
-                                && !declared_var_names.contains(&f)
-                            {
-                                // i. Perform ? env.CreateGlobalVarBinding(F, false).
-                                self.context.create_global_var_binding(f_string, false)?;
-
-                                // ii. Append F to declaredFunctionOrVarNames.
-                                declared_function_names.push(f);
-                            }
-                            // iii. When the FunctionDeclaration f is evaluated, perform the following
-                            //      steps in place of the FunctionDeclaration Evaluation algorithm provided in 15.2.6:
-                            //     i. Let genv be the running execution context's VariableEnvironment.
-                            //     ii. Let benv be the running execution context's LexicalEnvironment.
-                            //     iii. Let fobj be ! benv.GetBindingValue(F, false).
-                            //     iv. Perform ? genv.SetMutableBinding(F, fobj, false).
-                            //     v. Return unused.
-                            self.annex_b_function_names.push(f);
-                        }
-                    }
-                }
-            }
-        }
+        // SKIP: 12. NOTE: Annex B.3.2.2 adds additional steps at this point.
+        // SKIP: 12. Perform the following steps:
+        // SKIP: a. Let strict be IsStrict of script.
+        // SKIP: b. If strict is false, then
 
         // 13. Let lexDeclarations be the LexicallyScopedDeclarations of script.
         // 14. Let privateEnv be null.
@@ -298,30 +590,34 @@ impl ByteCompiler<'_> {
                     body,
                     self.variable_environment.clone(),
                     self.lexical_environment.clone(),
-                    self.context,
+                    self.interner,
                 );
 
             // Ensures global functions are printed when generating the global flowgraph.
-            let _ = self.push_function_to_constants(code.clone());
+            let function_index = self.push_function_to_constants(code.clone());
 
             // b. Let fo be InstantiateFunctionObject of f with arguments env and privateEnv.
-            let function = create_function_object_fast(code, self.context);
+            self.emit_with_varying_operand(Opcode::GetFunction, function_index);
 
             // c. Perform ? env.CreateGlobalFunctionBinding(fn, fo, false).
-            let name = name.to_js_string(self.interner());
-            self.context
-                .create_global_function_binding(name, function, false)?;
+            let name_index = self.get_or_insert_name(name);
+            self.emit(
+                Opcode::CreateGlobalFunctionBinding,
+                &[Operand::Bool(false), Operand::Varying(name_index)],
+            );
         }
 
         // 17. For each String vn of declaredVarNames, do
         for var in declared_var_names {
             // a. Perform ? env.CreateGlobalVarBinding(vn, false).
-            let var = var.to_js_string(self.interner());
-            self.context.create_global_var_binding(var, false)?;
+            let index = self.get_or_insert_name(var);
+            self.emit(
+                Opcode::CreateGlobalVarBinding,
+                &[Operand::Bool(false), Operand::Varying(index)],
+            );
         }
 
         // 18. Return unused.
-        Ok(())
     }
 
     /// `BlockDeclarationInstantiation ( code, env )`
@@ -416,7 +712,7 @@ impl ByteCompiler<'_> {
         strict: bool,
         var_env: &Rc<CompileTimeEnvironment>,
         lex_env: &Rc<CompileTimeEnvironment>,
-    ) -> JsResult<()> {
+    ) {
         // 2. Let varDeclarations be the VarScopedDeclarations of body.
         let var_declarations = var_scoped_declarations(body);
 
@@ -434,9 +730,8 @@ impl ByteCompiler<'_> {
                     // 1. If varEnv.HasLexicalDeclaration(name) is true, throw a SyntaxError exception.
                     // 2. NOTE: eval will not create a global var declaration that would be shadowed by a global lexical declaration.
                     if var_env.has_lex_binding(&name) {
-                        return Err(JsNativeError::syntax()
-                            .with_message("duplicate lexical declaration")
-                            .into());
+                        self.emit_syntax_error("duplicate lexical declaration");
+                        return;
                     }
                 }
             }
@@ -452,19 +747,15 @@ impl ByteCompiler<'_> {
                 //    declaration so it doesn't need to be checked for var/let hoisting conflicts.
                 // 2. For each element name of varNames, do
                 for name in &var_names {
-                    let name = self
-                        .context
-                        .interner()
-                        .resolve_expect(name.sym())
-                        .utf16()
-                        .into();
+                    let name = self.interner().resolve_expect(name.sym()).utf16().into();
 
                     // a. If ! thisEnv.HasBinding(name) is true, then
                     if this_env.has_binding(&name) {
                         // i. Throw a SyntaxError exception.
                         // ii. NOTE: Annex B.3.4 defines alternate semantics for the above step.
                         let msg = format!("variable declaration {} in eval function already exists as a lexical variable", name.to_std_string_escaped());
-                        return Err(JsNativeError::syntax().with_message(msg).into());
+                        self.emit_syntax_error(&msg);
+                        return;
                     }
                     // b. NOTE: A direct eval will not hoist var declaration over a like-named lexical declaration.
                 }
@@ -478,30 +769,17 @@ impl ByteCompiler<'_> {
             }
         }
 
-        // 4. Let privateIdentifiers be a new empty List.
-        // 5. Let pointer be privateEnv.
-        // 6. Repeat, while pointer is not null,
-        //     a. For each Private Name binding of pointer.[[Names]], do
-        //         i. If privateIdentifiers does not contain binding.[[Description]],
-        //            append binding.[[Description]] to privateIdentifiers.
-        //     b. Set pointer to pointer.[[OuterPrivateEnvironment]].
-        let private_identifiers = self.context.vm.environments.private_name_descriptions();
-        let private_identifiers = private_identifiers
-            .into_iter()
-            .map(|ident| {
-                self.context
-                    .interner()
-                    .get(ident.as_slice())
-                    .expect("string should be in interner")
-            })
-            .collect();
-
-        // 7. If AllPrivateIdentifiersValid of body with argument privateIdentifiers is false, throw a SyntaxError exception.
-        if !all_private_identifiers_valid(body, private_identifiers) {
-            return Err(JsNativeError::syntax()
-                .with_message("invalid private identifier")
-                .into());
-        }
+        // NOTE: These steps depend on the current environment state are done before bytecode compilation,
+        //       in `eval_declaration_instantiation_context`.
+        //
+        // SKIP: 4. Let privateIdentifiers be a new empty List.
+        // SKIP: 5. Let pointer be privateEnv.
+        // SKIP: 6. Repeat, while pointer is not null,
+        //           a. For each Private Name binding of pointer.[[Names]], do
+        //               i. If privateIdentifiers does not contain binding.[[Description]],
+        //                  append binding.[[Description]] to privateIdentifiers.
+        //           b. Set pointer to pointer.[[OuterPrivateEnvironment]].
+        // SKIP: 7. If AllPrivateIdentifiersValid of body with argument privateIdentifiers is false, throw a SyntaxError exception.
 
         // 8. Let functionsToInitialize be a new empty List.
         let mut functions_to_initialize = Vec::new();
@@ -531,17 +809,15 @@ impl ByteCompiler<'_> {
             if !declared_function_names.contains(&name) {
                 // 1. If varEnv is a Global Environment Record, then
                 if var_env.is_global() {
-                    let name = name.to_js_string(self.interner());
+                    let index = self.get_or_insert_name(name);
 
                     // a. Let fnDefinable be ? varEnv.CanDeclareGlobalFunction(fn).
-                    let fn_definable = self.context.can_declare_global_function(&name)?;
+                    self.emit_with_varying_operand(Opcode::CanDeclareGlobalFunction, index);
 
                     // b. If fnDefinable is false, throw a TypeError exception.
-                    if !fn_definable {
-                        return Err(JsNativeError::typ()
-                            .with_message("cannot declare global function")
-                            .into());
-                    }
+                    let exit = self.jump_if_true();
+                    self.emit_type_error("cannot declare global function");
+                    self.patch_jump(exit);
                 }
 
                 // 2. Append fn to declaredFunctionNames.
@@ -558,105 +834,20 @@ impl ByteCompiler<'_> {
         // 11. If strict is false, then
         #[cfg(feature = "annex-b")]
         if !strict {
-            let lexically_declared_names = lexically_declared_names(body);
-
-            // a. Let declaredFunctionOrVarNames be the list-concatenation of declaredFunctionNames and declaredVarNames.
-            // b. For each FunctionDeclaration f that is directly contained in the StatementList
-            //    of a Block, CaseClause, or DefaultClause Contained within body, do
-            for f in annex_b_function_declarations_names(body) {
-                // i. Let F be StringValue of the BindingIdentifier of f.
-                // ii. If replacing the FunctionDeclaration f with a VariableStatement that has F
-                //     as a BindingIdentifier would not produce any Early Errors for body, then
-                if !lexically_declared_names.contains(&f) {
-                    // 1. Let bindingExists be false.
-                    let mut binding_exists = false;
-
-                    // 2. Let thisEnv be lexEnv.
-                    let mut this_env = lex_env.clone();
-
-                    // 3. Assert: The following loop will terminate.
-                    // 4. Repeat, while thisEnv is not varEnv,
-                    while this_env.environment_index() != lex_env.environment_index() {
-                        let f = f.to_js_string(self.interner());
-
-                        // a. If thisEnv is not an Object Environment Record, then
-                        // i. If ! thisEnv.HasBinding(F) is true, then
-                        if this_env.has_binding(&f) {
-                            // i. Let bindingExists be true.
-                            binding_exists = true;
-                            break;
-                        }
-
-                        // b. Set thisEnv to thisEnv.[[OuterEnv]].
-                        if let Some(outer) = this_env.outer() {
-                            this_env = outer;
-                        } else {
-                            break;
-                        }
-                    }
-
-                    // 5. If bindingExists is false and varEnv is a Global Environment Record, then
-                    let fn_definable = if !binding_exists && var_env.is_global() {
-                        let f = f.to_js_string(self.interner());
-
-                        // a. If varEnv.HasLexicalDeclaration(F) is false, then
-                        // b. Else,
-                        if self.variable_environment.has_lex_binding(&f) {
-                            // i. Let fnDefinable be false.
-                            false
-                        } else {
-                            // i. Let fnDefinable be ? varEnv.CanDeclareGlobalVar(F).
-                            self.context.can_declare_global_var(&f)?
-                        }
-                    }
-                    // 6. Else,
-                    else {
-                        // a. Let fnDefinable be true.
-                        true
-                    };
-
-                    // 7. If bindingExists is false and fnDefinable is true, then
-                    if !binding_exists && fn_definable {
-                        let mut function_names = Vec::new();
-
-                        // a. If declaredFunctionOrVarNames does not contain F, then
-                        if !declared_function_names.contains(&f)
-                            //&& !var_names.contains(&f)
-                            && !function_names.contains(&f)
-                        {
-                            // i. If varEnv is a Global Environment Record, then
-                            if var_env.is_global() {
-                                let f = f.to_js_string(self.interner());
-                                // i. Perform ? varEnv.CreateGlobalVarBinding(F, true).
-                                self.context.create_global_var_binding(f, true)?;
-                            }
-                            // ii. Else,
-                            else {
-                                let f = f.to_js_string(self.interner());
-                                // i. Let bindingExists be ! varEnv.HasBinding(F).
-                                // ii. If bindingExists is false, then
-                                if !var_env.has_binding(&f) {
-                                    // i. Perform ! varEnv.CreateMutableBinding(F, true).
-                                    // ii. Perform ! varEnv.InitializeBinding(F, undefined).
-                                    let binding = var_env.create_mutable_binding(f, true);
-                                    let index = self.get_or_insert_binding(binding);
-                                    self.emit_opcode(Opcode::PushUndefined);
-                                    self.emit_with_varying_operand(Opcode::DefInitVar, index);
-                                }
-                            }
-
-                            // iii. Append F to declaredFunctionOrVarNames.
-                            function_names.push(f);
-                        }
-
-                        // b. When the FunctionDeclaration f is evaluated, perform the following steps
-                        //    in place of the FunctionDeclaration Evaluation algorithm provided in 15.2.6:
-                        //     i. Let genv be the running execution context's VariableEnvironment.
-                        //     ii. Let benv be the running execution context's LexicalEnvironment.
-                        //     iii. Let fobj be ! benv.GetBindingValue(F, false).
-                        //     iv. Perform ? genv.SetMutableBinding(F, fobj, false).
-                        //     v. Return unused.
-                        self.annex_b_function_names.push(f);
+            // NOTE: This diviates from the specification, we split the first part of defining the annex-b names
+            //       in `eval_declaration_instantiation_context`, because it depends on the context.
+            if !var_env.is_global() {
+                for name in self.annex_b_function_names.clone() {
+                    let f = name.to_js_string(self.interner());
+                    // i. Let bindingExists be ! varEnv.HasBinding(F).
+                    // ii. If bindingExists is false, then
+                    if !var_env.has_binding(&f) {
+                        // i. Perform ! varEnv.CreateMutableBinding(F, true).
+                        // ii. Perform ! varEnv.InitializeBinding(F, undefined).
+                        let binding = var_env.create_mutable_binding(f, true);
+                        let index = self.get_or_insert_binding(binding);
+                        self.emit_opcode(Opcode::PushUndefined);
+                        self.emit_with_varying_operand(Opcode::DefInitVar, index);
                     }
                 }
             }
@@ -678,17 +869,15 @@ impl ByteCompiler<'_> {
                 if !declared_function_names.contains(&name) {
                     // a. If varEnv is a Global Environment Record, then
                     if var_env.is_global() {
-                        let name = name.to_js_string(self.interner());
+                        let index = self.get_or_insert_name(name);
 
                         // i. Let vnDefinable be ? varEnv.CanDeclareGlobalVar(vn).
-                        let vn_definable = self.context.can_declare_global_var(&name)?;
+                        self.emit_with_varying_operand(Opcode::CanDeclareGlobalVar, index);
 
                         // ii. If vnDefinable is false, throw a TypeError exception.
-                        if !vn_definable {
-                            return Err(JsNativeError::typ()
-                                .with_message("cannot declare global variable")
-                                .into());
-                        }
+                        let exit = self.jump_if_true();
+                        self.emit_type_error("cannot declare global function");
+                        self.patch_jump(exit);
                     }
 
                     // b. If declaredVarNames does not contain vn, then
@@ -769,7 +958,7 @@ impl ByteCompiler<'_> {
                     body,
                     self.variable_environment.clone(),
                     self.lexical_environment.clone(),
-                    self.context,
+                    self.interner,
                 );
 
             // c. If varEnv is a Global Environment Record, then
@@ -818,15 +1007,20 @@ impl ByteCompiler<'_> {
 
         // 18. For each String vn of declaredVarNames, do
         for name in declared_var_names {
-            let name = name.to_js_string(self.interner());
-
             // a. If varEnv is a Global Environment Record, then
             if var_env.is_global() {
+                let index = self.get_or_insert_name(name);
+
                 // i. Perform ? varEnv.CreateGlobalVarBinding(vn, true).
-                self.context.create_global_var_binding(name, true)?;
+                self.emit(
+                    Opcode::CreateGlobalVarBinding,
+                    &[Operand::Bool(true), Operand::Varying(index)],
+                );
             }
             // b. Else,
             else {
+                let name = name.to_js_string(self.interner());
+
                 // i. Let bindingExists be ! varEnv.HasBinding(vn).
                 let binding_exists = var_env.has_binding(&name);
 
@@ -844,7 +1038,6 @@ impl ByteCompiler<'_> {
         }
 
         // 19. Return unused.
-        Ok(())
     }
 
     /// `FunctionDeclarationInstantiation ( func, argumentsList )`

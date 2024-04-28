@@ -21,7 +21,7 @@ use crate::{
         BindingOpcode, CodeBlock, CodeBlockFlags, Constant, GeneratorResumeKind, Handler,
         InlineCache, Opcode, VaryingOperandKind,
     },
-    Context, JsBigInt, JsString,
+    JsBigInt, JsString,
 };
 use boa_ast::{
     declaration::{Binding, LexicalDeclaration, VarDeclaration},
@@ -41,10 +41,13 @@ use boa_ast::{
 use boa_gc::Gc;
 use boa_interner::{Interner, Sym};
 use rustc_hash::FxHashMap;
+use thin_vec::ThinVec;
 
+pub(crate) use declarations::{
+    eval_declaration_instantiation_context, global_declaration_instantiation_context,
+};
 pub(crate) use function::FunctionCompiler;
 pub(crate) use jump_control::JumpControlInfo;
-use thin_vec::ThinVec;
 
 pub(crate) trait ToJsString {
     fn to_js_string(&self, interner: &Interner) -> JsString;
@@ -277,7 +280,7 @@ pub struct ByteCompiler<'ctx> {
     /// The current lexical environment.
     pub(crate) lexical_environment: Rc<CompileTimeEnvironment>,
 
-    current_open_environments_count: u32,
+    pub(crate) current_open_environments_count: u32,
     current_stack_value_count: u32,
     pub(crate) code_block_flags: CodeBlockFlags,
     handlers: ThinVec<Handler>,
@@ -293,11 +296,10 @@ pub struct ByteCompiler<'ctx> {
     pub(crate) async_handler: Option<u32>,
     json_parse: bool,
 
-    // TODO: remove when we separate scripts from the context
-    pub(crate) context: &'ctx mut Context,
+    pub(crate) interner: &'ctx mut Interner,
 
     #[cfg(feature = "annex-b")]
-    annex_b_function_names: Vec<Identifier>,
+    pub(crate) annex_b_function_names: Vec<Identifier>,
 }
 
 impl<'ctx> ByteCompiler<'ctx> {
@@ -313,8 +315,7 @@ impl<'ctx> ByteCompiler<'ctx> {
         json_parse: bool,
         variable_environment: Rc<CompileTimeEnvironment>,
         lexical_environment: Rc<CompileTimeEnvironment>,
-        // TODO: remove when we separate scripts from the context
-        context: &'ctx mut Context,
+        interner: &'ctx mut Interner,
     ) -> ByteCompiler<'ctx> {
         let mut code_block_flags = CodeBlockFlags::empty();
         code_block_flags.set(CodeBlockFlags::STRICT, strict);
@@ -343,7 +344,7 @@ impl<'ctx> ByteCompiler<'ctx> {
             json_parse,
             variable_environment,
             lexical_environment,
-            context,
+            interner,
 
             #[cfg(feature = "annex-b")]
             annex_b_function_names: Vec::new(),
@@ -367,7 +368,7 @@ impl<'ctx> ByteCompiler<'ctx> {
     }
 
     pub(crate) fn interner(&self) -> &Interner {
-        self.context.interner()
+        self.interner
     }
 
     fn get_or_insert_literal(&mut self, literal: Literal) -> u32 {
@@ -566,6 +567,15 @@ impl<'ctx> ByteCompiler<'ctx> {
         self.ic.push(InlineCache::new(name.clone()));
 
         self.emit_with_varying_operand(Opcode::SetPropertyByName, ic_index);
+    }
+
+    fn emit_type_error(&mut self, message: &str) {
+        let error_msg = self.get_or_insert_literal(Literal::String(js_string!(message)));
+        self.emit_with_varying_operand(Opcode::ThrowNewTypeError, error_msg);
+    }
+    fn emit_syntax_error(&mut self, message: &str) {
+        let error_msg = self.get_or_insert_literal(Literal::String(js_string!(message)));
+        self.emit_with_varying_operand(Opcode::ThrowNewSyntaxError, error_msg);
     }
 
     fn emit_u64(&mut self, value: u64) {
@@ -1308,7 +1318,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                 body,
                 self.variable_environment.clone(),
                 self.lexical_environment.clone(),
-                self.context,
+                self.interner,
             );
 
         self.push_function_to_constants(code)
@@ -1383,7 +1393,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                 body,
                 self.variable_environment.clone(),
                 self.lexical_environment.clone(),
-                self.context,
+                self.interner,
             );
 
         let index = self.push_function_to_constants(code);
@@ -1430,7 +1440,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                 body,
                 self.variable_environment.clone(),
                 self.lexical_environment.clone(),
-                self.context,
+                self.interner,
             );
 
         let index = self.push_function_to_constants(code);

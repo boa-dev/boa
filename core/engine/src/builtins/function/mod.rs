@@ -624,7 +624,7 @@ impl BuiltInFunctionObject {
                 &body,
                 context.realm().environment().compile_env(),
                 context.realm().environment().compile_env(),
-                context,
+                context.interner_mut(),
             );
 
         let environments = context.vm.environments.pop_to_global();

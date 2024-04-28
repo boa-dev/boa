@@ -385,7 +385,11 @@ impl CodeBlock {
             Instruction::PushFloat { value } => ryu_js::Buffer::new().format(*value).to_string(),
             Instruction::PushDouble { value } => ryu_js::Buffer::new().format(*value).to_string(),
             Instruction::PushLiteral { index }
-            | Instruction::ThrowNewTypeError { message: index } => index.value().to_string(),
+            | Instruction::ThrowNewTypeError { message: index }
+            | Instruction::ThrowNewSyntaxError { message: index }
+            | Instruction::HasRestrictedGlobalProperty { index }
+            | Instruction::CanDeclareGlobalFunction { index }
+            | Instruction::CanDeclareGlobalVar { index } => index.value().to_string(),
             Instruction::PushRegExp {
                 pattern_index: source_index,
                 flags_index: flag_index,
@@ -526,11 +530,15 @@ impl CodeBlock {
                 format!("done: {done}")
             }
             Instruction::CreateGlobalFunctionBinding {
-                name_index,
+                index,
+                configurable,
+            }
+            | Instruction::CreateGlobalVarBinding {
+                index,
                 configurable,
             } => {
                 let name = self
-                    .constant_string(name_index.value() as usize)
+                    .constant_string(index.value() as usize)
                     .to_std_string_escaped();
                 format!("name: {name}, configurable: {configurable}")
             }
@@ -712,12 +720,7 @@ impl CodeBlock {
             | Instruction::Reserved51
             | Instruction::Reserved52
             | Instruction::Reserved53
-            | Instruction::Reserved54
-            | Instruction::Reserved55
-            | Instruction::Reserved56
-            | Instruction::Reserved57
-            | Instruction::Reserved58
-            | Instruction::Reserved59 => unreachable!("Reserved opcodes are unrechable"),
+            | Instruction::Reserved54 => unreachable!("Reserved opcodes are unrechable"),
         }
     }
 }

@@ -72,7 +72,11 @@ impl CodeBlock {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
                 }
-                Instruction::PushLiteral { .. } | Instruction::PushRegExp { .. } => {
+                Instruction::PushLiteral { .. }
+                | Instruction::PushRegExp { .. }
+                | Instruction::HasRestrictedGlobalProperty { .. }
+                | Instruction::CanDeclareGlobalFunction { .. }
+                | Instruction::CanDeclareGlobalVar { .. } => {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
                 }
@@ -281,7 +285,7 @@ impl CodeBlock {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
                 }
-                Instruction::ThrowNewTypeError { .. } => {
+                Instruction::ThrowNewTypeError { .. } | Instruction::ThrowNewSyntaxError { .. } => {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     if let Some((i, handler)) = self.find_handler(previous_pc as u32) {
                         graph.add_edge(
@@ -449,6 +453,7 @@ impl CodeBlock {
                 | Instruction::CreateMappedArgumentsObject
                 | Instruction::CreateUnmappedArgumentsObject
                 | Instruction::CreateGlobalFunctionBinding { .. }
+                | Instruction::CreateGlobalVarBinding { .. }
                 | Instruction::Nop => {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
@@ -511,12 +516,7 @@ impl CodeBlock {
                 | Instruction::Reserved51
                 | Instruction::Reserved52
                 | Instruction::Reserved53
-                | Instruction::Reserved54
-                | Instruction::Reserved55
-                | Instruction::Reserved56
-                | Instruction::Reserved57
-                | Instruction::Reserved58
-                | Instruction::Reserved59 => unreachable!("Reserved opcodes are unrechable"),
+                | Instruction::Reserved54 => unreachable!("Reserved opcodes are unrechable"),
             }
         }
 

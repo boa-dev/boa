@@ -9,11 +9,13 @@
 //! [spec]: https://tc39.es/ecma262/#sec-eval-x
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/eval
 
+use std::rc::Rc;
+
 use crate::{
     builtins::{function::OrdinaryFunction, BuiltInObject},
-    bytecompiler::ByteCompiler,
+    bytecompiler::{eval_declaration_instantiation_context, ByteCompiler},
     context::intrinsics::Intrinsics,
-    environments::Environment,
+    environments::{CompileTimeEnvironment, Environment},
     error::JsNativeError,
     js_string,
     object::JsObject,
@@ -229,24 +231,48 @@ impl Eval {
         let var_environment = context.vm.environments.outer_function_environment();
         let mut var_env = var_environment.compile_env();
 
+        let lex_env = context.vm.environments.current_compile_environment();
+        let lex_env = Rc::new(CompileTimeEnvironment::new(lex_env, strict));
+
+        let mut annex_b_function_names = Vec::new();
+
+        eval_declaration_instantiation_context(
+            &mut annex_b_function_names,
+            &body,
+            strict,
+            if strict { &lex_env } else { &var_env },
+            &lex_env,
+            context,
+        )?;
+
         let mut compiler = ByteCompiler::new(
             js_string!("<main>"),
             body.strict(),
             false,
             var_env.clone(),
-            context.vm.environments.current_compile_environment(),
-            context,
+            lex_env.clone(),
+            context.interner_mut(),
         );
 
-        let env_index = compiler.push_compile_environment(strict);
+        compiler.current_open_environments_count += 1;
+
+        let env_index = compiler.constants.len() as u32;
+        compiler
+            .constants
+            .push(crate::vm::Constant::CompileTimeEnvironment(lex_env.clone()));
+
         compiler.emit_with_varying_operand(Opcode::PushDeclarativeEnvironment, env_index);
-        let lex_env = compiler.lexical_environment.clone();
         if strict {
             var_env = lex_env.clone();
             compiler.variable_environment = lex_env.clone();
         }
 
-        compiler.eval_declaration_instantiation(&body, strict, &var_env, &lex_env)?;
+        #[cfg(feature = "annex-b")]
+        {
+            compiler.annex_b_function_names = annex_b_function_names;
+        }
+
+        compiler.eval_declaration_instantiation(&body, strict, &var_env, &lex_env);
         compiler.compile_statement_list(body.statements(), true, false);
 
         let code_block = Gc::new(compiler.finish());

@@ -286,7 +286,7 @@ impl SyntheticModule {
             false,
             module_compile_env.clone(),
             module_compile_env.clone(),
-            context,
+            context.interner_mut(),
         );
 
         // 4. For each String exportName in module.[[ExportNames]], do
