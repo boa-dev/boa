@@ -54,7 +54,7 @@ bitflags = "2.5.0"
 clap = "4.5.4"
 colored = "2.1.0"
 fast-float = "0.2.0"
-hashbrown = { version = "0.14.3", default-features = false }
+hashbrown = { version = "0.14.5", default-features = false }
 indexmap = { version = "2.2.6", default-features = false }
 indoc = "2.0.5"
 jemallocator = "0.5.4"
