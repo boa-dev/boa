@@ -343,6 +343,16 @@ impl JsObject {
         Ok(desc.is_some())
     }
 
+    /// Get all the keys of the properties of this object.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-ownpropertykeys
+    pub fn own_property_keys(&self, context: &mut Context) -> JsResult<Vec<PropertyKey>> {
+        self.__own_property_keys__(context)
+    }
+
     /// `Call ( F, V [ , argumentsList ] )`
     ///
     /// # Panics
