@@ -2,7 +2,7 @@
 // the require/module.exports pattern
 
 use boa_engine::{
-    js_str, native_function::NativeFunction, prelude::JsObject, property::Attribute, Context,
+    js_string, native_function::NativeFunction, prelude::JsObject, property::Attribute, Context,
     JsArgs, JsNativeError, JsResult, JsValue, Source,
 };
 use boa_runtime::Console;
@@ -33,14 +33,14 @@ fn main() -> Result<(), Box<dyn Error>> {
     // Adding custom object that mimics 'module.exports'
     let moduleobj = JsObject::default();
     moduleobj.set(
-        js_str!("exports"),
-        JsValue::from(js_str!(" ")),
+        js_string!("exports"),
+        JsValue::from(js_string!(" ")),
         false,
         &mut ctx,
     )?;
 
     ctx.register_global_property(
-        js_str!("module"),
+        js_string!("module"),
         JsValue::from(moduleobj),
         Attribute::default(),
     )?;
@@ -68,9 +68,9 @@ fn require(_: &JsValue, args: &[JsValue], ctx: &mut Context) -> JsResult<JsValue
 
     // Access module.exports and return as ResultValue
     let global_obj = ctx.global_object();
-    let module = global_obj.get(js_str!("module"), ctx)?;
+    let module = global_obj.get(js_string!("module"), ctx)?;
     module
         .as_object()
         .ok_or_else(|| JsNativeError::typ().with_message("`exports` property was not an object"))?
-        .get(js_str!("exports"), ctx)
+        .get(js_string!("exports"), ctx)
 }
