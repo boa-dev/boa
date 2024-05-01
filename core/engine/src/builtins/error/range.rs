@@ -16,9 +16,10 @@ use crate::{
     object::{internal_methods::get_prototype_from_constructor, JsObject},
     property::Attribute,
     realm::Realm,
-    string::{common::StaticJsStrings, utf16},
+    string::common::StaticJsStrings,
     Context, JsArgs, JsResult, JsString, JsValue,
 };
+use boa_macros::js_str;
 use boa_profiler::Profiler;
 
 use super::{Error, ErrorObject};
@@ -35,8 +36,8 @@ impl IntrinsicObject for RangeError {
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .prototype(realm.intrinsics().constructors().error().constructor())
             .inherits(Some(realm.intrinsics().constructors().error().prototype()))
-            .property(utf16!("name"), Self::NAME, attribute)
-            .property(utf16!("message"), js_string!(), attribute)
+            .property(js_str!("name"), Self::NAME, attribute)
+            .property(js_str!("message"), js_string!(), attribute)
             .build();
     }
 
@@ -92,7 +93,7 @@ impl BuiltInConstructor for RangeError {
             let msg = message.to_string(context)?;
 
             // b. Perform CreateNonEnumerableDataPropertyOrThrow(O, "message", msg).
-            o.create_non_enumerable_data_property_or_throw(utf16!("message"), msg, context);
+            o.create_non_enumerable_data_property_or_throw(js_str!("message"), msg, context);
         }
 
         // 4. Perform ? InstallErrorCause(O, options).

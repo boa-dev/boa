@@ -1,5 +1,6 @@
 use crate::{
-    builtins::Number, optimizer::PassAction, value::Numeric, Context, JsBigInt, JsString, JsValue,
+    builtins::Number, bytecompiler::ToJsString, optimizer::PassAction, value::Numeric, Context,
+    JsBigInt, JsValue,
 };
 use boa_ast::{
     expression::{
@@ -12,12 +13,11 @@ use boa_ast::{
     },
     Expression,
 };
+use boa_interner::JStrRef;
 
 fn literal_to_js_value(literal: &Literal, context: &mut Context) -> JsValue {
     match literal {
-        Literal::String(v) => JsValue::new(JsString::from(
-            context.interner().resolve_expect(*v).utf16(),
-        )),
+        Literal::String(v) => JsValue::new(v.to_js_string(context.interner())),
         Literal::Num(v) => JsValue::new(*v),
         Literal::Int(v) => JsValue::new(*v),
         Literal::BigInt(v) => JsValue::new(JsBigInt::new(v.clone())),
@@ -32,7 +32,11 @@ fn js_value_to_literal(value: JsValue, context: &mut Context) -> Literal {
         JsValue::Null => Literal::Null,
         JsValue::Undefined => Literal::Undefined,
         JsValue::Boolean(v) => Literal::Bool(v),
-        JsValue::String(v) => Literal::String(context.interner_mut().get_or_intern(v.as_ref())),
+        JsValue::String(v) => {
+            // TODO: Replace JStrRef with JsStr this would eliminate the to_vec call.
+            let v = v.to_vec();
+            Literal::String(context.interner_mut().get_or_intern(JStrRef::Utf16(&v)))
+        }
         JsValue::Rational(v) => Literal::Num(v),
         JsValue::Integer(v) => Literal::Int(v),
         JsValue::BigInt(v) => Literal::BigInt(Box::new(v.as_inner().clone())),

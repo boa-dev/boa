@@ -8,7 +8,7 @@ use crate::{
 };
 use boa_engine::{
     builtins::promise::PromiseState,
-    js_string,
+    js_str, js_string,
     module::{Module, SimpleModuleLoader},
     native_function::NativeFunction,
     object::FunctionObjectBuilder,
@@ -535,11 +535,7 @@ impl Test {
         if console {
             let console = boa_runtime::Console::init(&mut context);
             context
-                .register_global_property(
-                    js_string!(boa_runtime::Console::NAME),
-                    console,
-                    Attribute::all(),
-                )
+                .register_global_property(boa_runtime::Console::NAME, console, Attribute::all())
                 .expect("the console builtin shouldn't exist");
         }
 
@@ -601,10 +597,10 @@ fn is_error_type(error: &JsError, target_type: ErrorType, context: &mut Context)
             .as_opaque()
             .expect("try_native cannot fail if e is not opaque")
             .as_object()
-            .and_then(|o| o.get(js_string!("constructor"), context).ok())
+            .and_then(|o| o.get(js_str!("constructor"), context).ok())
             .as_ref()
             .and_then(JsValue::as_object)
-            .and_then(|o| o.get(js_string!("name"), context).ok())
+            .and_then(|o| o.get(js_str!("name"), context).ok())
             .as_ref()
             .and_then(JsValue::as_string)
             .is_some_and(|s| s == target_type.as_str());
@@ -647,7 +643,7 @@ fn register_print_fn(context: &mut Context, async_result: AsyncResult) {
 
     context
         .register_global_property(
-            js_string!("print"),
+            js_str!("print"),
             js_function,
             Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         )

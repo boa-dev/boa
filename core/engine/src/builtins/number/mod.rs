@@ -25,6 +25,7 @@ use crate::{
     value::{AbstractRelation, IntegerOrInfinity, JsValue},
     Context, JsArgs, JsResult, JsString,
 };
+use boa_macros::js_str;
 use boa_profiler::Profiler;
 use num_traits::float::FloatCore;
 
@@ -690,13 +691,13 @@ impl Number {
         }
 
         if x == -0. {
-            return Ok(JsValue::new(js_string!("0")));
+            return Ok(JsValue::new(js_str!("0")));
         } else if x.is_nan() {
-            return Ok(JsValue::new(js_string!("NaN")));
+            return Ok(JsValue::new(js_str!("NaN")));
         } else if x.is_infinite() && x.is_sign_positive() {
-            return Ok(JsValue::new(js_string!("Infinity")));
+            return Ok(JsValue::new(js_str!("Infinity")));
         } else if x.is_infinite() && x.is_sign_negative() {
-            return Ok(JsValue::new(js_string!("-Infinity")));
+            return Ok(JsValue::new(js_str!("-Infinity")));
         }
 
         // This is a Optimization from the v8 source code to print values that can fit in a single character

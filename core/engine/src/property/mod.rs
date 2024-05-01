@@ -18,7 +18,9 @@
 mod attribute;
 mod nonmaxu32;
 
-use crate::{js_string, object::shape::slot::SlotAttributes, JsString, JsSymbol, JsValue};
+use crate::{
+    js_string, object::shape::slot::SlotAttributes, string::JsStr, JsString, JsSymbol, JsValue,
+};
 use boa_gc::{Finalize, Trace};
 use std::{fmt, iter::FusedIterator};
 
@@ -664,23 +666,18 @@ where
     }
 }
 
-impl From<&[u16]> for PropertyKey {
+impl From<JsStr<'_>> for PropertyKey {
     #[inline]
-    fn from(string: &[u16]) -> Self {
-        debug_assert!(parse_u32_index(
-            String::from_utf16(string)
-                .expect("should be ascii string")
-                .bytes()
-        )
-        .is_none());
-        Self::String(string.into())
+    fn from(string: JsStr<'_>) -> Self {
+        return parse_u32_index(string.iter())
+            .map_or_else(|| Self::String(string.into()), Self::Index);
     }
 }
 
 impl From<JsString> for PropertyKey {
     #[inline]
     fn from(string: JsString) -> Self {
-        parse_u32_index(string.as_slice().iter().copied()).map_or(Self::String(string), Self::Index)
+        return parse_u32_index(string.as_str().iter()).map_or(Self::String(string), Self::Index);
     }
 }
 

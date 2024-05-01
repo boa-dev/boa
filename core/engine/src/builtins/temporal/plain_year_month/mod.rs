@@ -7,7 +7,7 @@ use crate::{
     object::internal_methods::get_prototype_from_constructor,
     property::Attribute,
     realm::Realm,
-    string::{common::StaticJsStrings, utf16},
+    string::common::StaticJsStrings,
     Context, JsArgs, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 use boa_gc::{Finalize, Trace};
@@ -98,49 +98,49 @@ impl IntrinsicObject for PlainYearMonth {
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("calendarId"),
+                js_string!("calendarId"),
                 Some(get_calendar_id),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("year"),
+                js_string!("year"),
                 Some(get_year),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("month"),
+                js_string!("month"),
                 Some(get_month),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("monthCode"),
+                js_string!("monthCode"),
                 Some(get_month_code),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("daysInMonth"),
+                js_string!("daysInMonth"),
                 Some(get_days_in_month),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("daysInYear"),
+                js_string!("daysInYear"),
                 Some(get_days_in_year),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("monthsInYear"),
+                js_string!("monthsInYear"),
                 Some(get_months_in_year),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("inLeapYear"),
+                js_string!("inLeapYear"),
                 Some(get_in_leap_year),
                 None,
                 Attribute::CONFIGURABLE,

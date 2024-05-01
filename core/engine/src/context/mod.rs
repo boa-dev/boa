@@ -51,7 +51,7 @@ thread_local! {
 ///
 /// ```rust
 /// use boa_engine::{
-///     js_string,
+///     js_str,
 ///     object::ObjectInitializer,
 ///     property::{Attribute, PropertyDescriptor},
 ///     Context, Source,
@@ -73,10 +73,10 @@ thread_local! {
 ///
 /// // Create an object that can be used in eval calls.
 /// let arg = ObjectInitializer::new(&mut context)
-///     .property(js_string!("x"), 12, Attribute::READONLY)
+///     .property(js_str!("x"), 12, Attribute::READONLY)
 ///     .build();
 /// context
-///     .register_global_property(js_string!("arg"), arg, Attribute::all())
+///     .register_global_property(js_str!("arg"), arg, Attribute::all())
 ///     .expect("property shouldn't exist");
 ///
 /// let value = context.eval(Source::from_bytes("test(arg)")).unwrap();
@@ -211,7 +211,7 @@ impl Context {
     /// # Example
     /// ```
     /// use boa_engine::{
-    ///     js_string,
+    ///     js_str,
     ///     object::ObjectInitializer,
     ///     property::{Attribute, PropertyDescriptor},
     ///     Context,
@@ -221,19 +221,19 @@ impl Context {
     ///
     /// context
     ///     .register_global_property(
-    ///         js_string!("myPrimitiveProperty"),
+    ///         js_str!("myPrimitiveProperty"),
     ///         10,
     ///         Attribute::all(),
     ///     )
     ///     .expect("property shouldn't exist");
     ///
     /// let object = ObjectInitializer::new(&mut context)
-    ///     .property(js_string!("x"), 0, Attribute::all())
-    ///     .property(js_string!("y"), 1, Attribute::all())
+    ///     .property(js_str!("x"), 0, Attribute::all())
+    ///     .property(js_str!("y"), 1, Attribute::all())
     ///     .build();
     /// context
     ///     .register_global_property(
-    ///         js_string!("myObjectProperty"),
+    ///         js_str!("myObjectProperty"),
     ///         object,
     ///         Attribute::all(),
     ///     )

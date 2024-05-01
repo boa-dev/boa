@@ -7,8 +7,10 @@
 
 use crate::{
     builtins::{
-        generator::GeneratorContext, iterable::create_iter_result_object,
-        promise::if_abrupt_reject_promise, promise::PromiseCapability, Promise,
+        generator::GeneratorContext,
+        iterable::create_iter_result_object,
+        promise::{if_abrupt_reject_promise, PromiseCapability},
+        Promise,
     },
     context::intrinsics::Intrinsics,
     error::JsNativeError,
@@ -576,7 +578,7 @@ impl AsyncGenerator {
                 generator.clone(),
             ),
         )
-        .name("")
+        .name(js_string!(""))
         .length(1)
         .build();
 
@@ -611,7 +613,7 @@ impl AsyncGenerator {
                 generator,
             ),
         )
-        .name("")
+        .name(js_string!(""))
         .length(1)
         .build();
 

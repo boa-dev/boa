@@ -8,6 +8,7 @@ use std::{
     ops::Sub,
 };
 
+use boa_macros::js_str;
 use num_bigint::BigInt;
 use num_integer::Integer;
 use num_traits::{ToPrimitive, Zero};
@@ -393,9 +394,9 @@ impl JsValue {
                 //     1. Assert: preferredType is number.
                 //     2. Let hint be "number".
                 let hint = match preferred_type {
-                    PreferredType::Default => js_string!("default"),
-                    PreferredType::String => js_string!("string"),
-                    PreferredType::Number => js_string!("number"),
+                    PreferredType::Default => js_str!("default"),
+                    PreferredType::String => js_str!("string"),
+                    PreferredType::Number => js_str!("number"),
                 }
                 .into();
 
@@ -440,7 +441,7 @@ impl JsValue {
             Self::Undefined => Err(JsNativeError::typ()
                 .with_message("cannot convert undefined to a BigInt")
                 .into()),
-            Self::String(ref string) => string.to_big_int().map_or_else(
+            Self::String(ref string) => JsBigInt::from_js_string(string).map_or_else(
                 || {
                     Err(JsNativeError::syntax()
                         .with_message(format!(
@@ -495,8 +496,8 @@ impl JsValue {
     /// This function is equivalent to `String(value)` in JavaScript.
     pub fn to_string(&self, context: &mut Context) -> JsResult<JsString> {
         match self {
-            Self::Null => Ok("null".into()),
-            Self::Undefined => Ok("undefined".into()),
+            Self::Null => Ok(js_string!("null")),
+            Self::Undefined => Ok(js_string!("undefined")),
             Self::Boolean(boolean) => Ok(boolean.to_string().into()),
             Self::Rational(rational) => Ok(Number::to_js_string(*rational)),
             Self::Integer(integer) => Ok(integer.to_string().into()),
@@ -518,7 +519,6 @@ impl JsValue {
     ///
     /// See: <https://tc39.es/ecma262/#sec-toobject>
     pub fn to_object(&self, context: &mut Context) -> JsResult<JsObject> {
-        // TODO: add fast paths with object template
         match self {
             Self::Undefined | Self::Null => Err(JsNativeError::typ()
                 .with_message("cannot convert 'null' or 'undefined' to object")
@@ -991,21 +991,22 @@ impl JsValue {
     #[must_use]
     pub fn js_type_of(&self) -> JsString {
         match *self {
-            Self::Rational(_) | Self::Integer(_) => js_string!("number"),
-            Self::String(_) => js_string!("string"),
-            Self::Boolean(_) => js_string!("boolean"),
-            Self::Symbol(_) => js_string!("symbol"),
-            Self::Null => js_string!("object"),
-            Self::Undefined => js_string!("undefined"),
-            Self::BigInt(_) => js_string!("bigint"),
+            Self::Rational(_) | Self::Integer(_) => js_str!("number"),
+            Self::String(_) => js_str!("string"),
+            Self::Boolean(_) => js_str!("boolean"),
+            Self::Symbol(_) => js_str!("symbol"),
+            Self::Null => js_str!("object"),
+            Self::Undefined => js_str!("undefined"),
+            Self::BigInt(_) => js_str!("bigint"),
             Self::Object(ref object) => {
                 if object.is_callable() {
-                    js_string!("function")
+                    js_str!("function")
                 } else {
-                    js_string!("object")
+                    js_str!("object")
                 }
             }
         }
+        .into()
     }
 
     /// Abstract operation `IsArray ( argument )`

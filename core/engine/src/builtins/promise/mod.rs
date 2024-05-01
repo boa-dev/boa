@@ -17,13 +17,13 @@ use crate::{
     },
     property::Attribute,
     realm::Realm,
-    string::{common::StaticJsStrings, utf16},
+    string::common::StaticJsStrings,
     symbol::JsSymbol,
     value::JsValue,
     Context, JsArgs, JsError, JsResult, JsString,
 };
 use boa_gc::{custom_trace, Finalize, Gc, GcRefCell, Trace};
-use boa_macros::JsData;
+use boa_macros::{js_str, JsData};
 use boa_profiler::Profiler;
 use std::{cell::Cell, rc::Rc};
 use tap::{Conv, Pipe};
@@ -768,7 +768,7 @@ impl Promise {
 
             // s. Perform ? Invoke(nextPromise, "then", « onFulfilled, resultCapability.[[Reject]] »).
             next_promise.invoke(
-                utf16!("then"),
+                js_str!("then"),
                 &[
                     on_fulfilled.into(),
                     result_capability.functions.reject.clone().into(),
@@ -957,15 +957,15 @@ impl Promise {
 
                         // 10. Perform ! CreateDataPropertyOrThrow(obj, "status", "fulfilled").
                         obj.create_data_property_or_throw(
-                            utf16!("status"),
-                            js_string!("fulfilled"),
+                            js_str!("status"),
+                            js_str!("fulfilled"),
                             context,
                         )
                         .expect("cannot fail per spec");
 
                         // 11. Perform ! CreateDataPropertyOrThrow(obj, "value", x).
                         obj.create_data_property_or_throw(
-                            utf16!("value"),
+                            js_str!("value"),
                             args.get_or_undefined(0).clone(),
                             context,
                         )
@@ -1047,15 +1047,15 @@ impl Promise {
 
                         // 10. Perform ! CreateDataPropertyOrThrow(obj, "status", "rejected").
                         obj.create_data_property_or_throw(
-                            utf16!("status"),
-                            js_string!("rejected"),
+                            js_str!("status"),
+                            js_str!("rejected"),
                             context,
                         )
                         .expect("cannot fail per spec");
 
                         // 11. Perform ! CreateDataPropertyOrThrow(obj, "reason", x).
                         obj.create_data_property_or_throw(
-                            utf16!("reason"),
+                            js_str!("reason"),
                             args.get_or_undefined(0).clone(),
                             context,
                         )
@@ -1107,7 +1107,7 @@ impl Promise {
 
             // ab. Perform ? Invoke(nextPromise, "then", « onFulfilled, onRejected »).
             next_promise.invoke(
-                utf16!("then"),
+                js_str!("then"),
                 &[on_fulfilled.into(), on_rejected.into()],
                 context,
             )?;
@@ -1343,7 +1343,7 @@ impl Promise {
 
             // s. Perform ? Invoke(nextPromise, "then", « resultCapability.[[Resolve]], onRejected »).
             next_promise.invoke(
-                utf16!("then"),
+                js_str!("then"),
                 &[
                     result_capability.functions.resolve.clone().into(),
                     on_rejected.into(),
@@ -1466,7 +1466,7 @@ impl Promise {
 
             // i. Perform ? Invoke(nextPromise, "then", « resultCapability.[[Resolve]], resultCapability.[[Reject]] »).
             next_promise.invoke(
-                utf16!("then"),
+                js_str!("then"),
                 &[
                     result_capability.functions.resolve.clone().into(),
                     result_capability.functions.reject.clone().into(),
@@ -1621,7 +1621,7 @@ impl Promise {
         let promise = this;
         // 2. Return ? Invoke(promise, "then", « undefined, onRejected »).
         promise.invoke(
-            utf16!("then"),
+            js_str!("then"),
             &[JsValue::undefined(), on_rejected.clone()],
             context,
         )
@@ -1667,7 +1667,7 @@ impl Promise {
             //    a. Let thenFinally be onFinally.
             //    b. Let catchFinally be onFinally.
             // 7. Return ? Invoke(promise, "then", « thenFinally, catchFinally »).
-            let then = promise.get(utf16!("then"), context)?;
+            let then = promise.get(js_str!("then"), context)?;
             return then.call(this, &[on_finally.clone(), on_finally.clone()], context);
         };
 
@@ -1675,7 +1675,7 @@ impl Promise {
             Self::then_catch_finally_closures(c, on_finally, context);
 
         // 7. Return ? Invoke(promise, "then", « thenFinally, catchFinally »).
-        let then = promise.get(utf16!("then"), context)?;
+        let then = promise.get(js_str!("then"), context)?;
         then.call(this, &[then_finally.into(), catch_finally.into()], context)
     }
 
@@ -1730,7 +1730,7 @@ impl Promise {
                     let value_thunk = return_value.length(0).name("").build();
 
                     // v. Return ? Invoke(promise, "then", « valueThunk »).
-                    promise.invoke(utf16!("then"), &[value_thunk.into()], context)
+                    promise.invoke(js_str!("then"), &[value_thunk.into()], context)
                 },
                 FinallyCaptures {
                     on_finally: on_finally.clone(),
@@ -1781,7 +1781,7 @@ impl Promise {
                     let thrower = throw_reason.length(0).name("").build();
 
                     // v. Return ? Invoke(promise, "then", « thrower »).
-                    promise.invoke(utf16!("then"), &[thrower.into()], context)
+                    promise.invoke(js_str!("then"), &[thrower.into()], context)
                 },
                 FinallyCaptures { on_finally, c },
             ),
@@ -1986,7 +1986,7 @@ impl Promise {
         context: &mut Context,
     ) -> JsResult<JsObject> {
         // 1. Let promiseResolve be ? Get(promiseConstructor, "resolve").
-        let promise_resolve = promise_constructor.get(utf16!("resolve"), context)?;
+        let promise_resolve = promise_constructor.get(js_str!("resolve"), context)?;
 
         // 2. If IsCallable(promiseResolve) is false, throw a TypeError exception.
         promise_resolve.as_callable().cloned().ok_or_else(|| {
@@ -2184,7 +2184,7 @@ impl Promise {
                     };
 
                     // 9. Let then be Completion(Get(resolution, "then")).
-                    let then_action = match then.get(utf16!("then"), context) {
+                    let then_action = match then.get(js_str!("then"), context) {
                         // 10. If then is an abrupt completion, then
                         Err(e) => {
                             //   a. Perform RejectPromise(promise, then.[[Value]]).

@@ -13,8 +13,6 @@
 //! [spec]: https://tc39.es/ecma262/#sec-objects
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object
 
-use std::ops::Deref;
-
 use super::{
     error::ErrorObject, Array, BuiltInBuilder, BuiltInConstructor, Date, IntrinsicObject, RegExp,
 };
@@ -30,12 +28,13 @@ use crate::{
     },
     property::{Attribute, PropertyDescriptor, PropertyKey, PropertyNameKind},
     realm::Realm,
-    string::{common::StaticJsStrings, utf16},
+    string::common::StaticJsStrings,
     symbol::JsSymbol,
     value::JsValue,
     Context, JsArgs, JsData, JsResult, JsString,
 };
 use boa_gc::{Finalize, Trace};
+use boa_macros::js_str;
 use boa_profiler::Profiler;
 use tap::{Conv, Pipe};
 
@@ -63,7 +62,7 @@ impl IntrinsicObject for OrdinaryObject {
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .inherits(None)
             .accessor(
-                utf16!("__proto__"),
+                js_string!("__proto__"),
                 Some(legacy_proto_getter),
                 Some(legacy_setter_proto),
                 Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
@@ -574,42 +573,42 @@ impl OrdinaryObject {
         // 4. If Desc has a [[Value]] field, then
         if let Some(value) = desc.value() {
             // a. Perform ! CreateDataPropertyOrThrow(obj, "value", Desc.[[Value]]).
-            obj.create_data_property_or_throw(utf16!("value"), value.clone(), context)
+            obj.create_data_property_or_throw(js_str!("value"), value.clone(), context)
                 .expect("CreateDataPropertyOrThrow cannot fail here");
         }
 
         // 5. If Desc has a [[Writable]] field, then
         if let Some(writable) = desc.writable() {
             // a. Perform ! CreateDataPropertyOrThrow(obj, "writable", Desc.[[Writable]]).
-            obj.create_data_property_or_throw(utf16!("writable"), writable, context)
+            obj.create_data_property_or_throw(js_str!("writable"), writable, context)
                 .expect("CreateDataPropertyOrThrow cannot fail here");
         }
 
         // 6. If Desc has a [[Get]] field, then
         if let Some(get) = desc.get() {
             // a. Perform ! CreateDataPropertyOrThrow(obj, "get", Desc.[[Get]]).
-            obj.create_data_property_or_throw(utf16!("get"), get.clone(), context)
+            obj.create_data_property_or_throw(js_str!("get"), get.clone(), context)
                 .expect("CreateDataPropertyOrThrow cannot fail here");
         }
 
         // 7. If Desc has a [[Set]] field, then
         if let Some(set) = desc.set() {
             // a. Perform ! CreateDataPropertyOrThrow(obj, "set", Desc.[[Set]]).
-            obj.create_data_property_or_throw(utf16!("set"), set.clone(), context)
+            obj.create_data_property_or_throw(js_str!("set"), set.clone(), context)
                 .expect("CreateDataPropertyOrThrow cannot fail here");
         }
 
         // 8. If Desc has an [[Enumerable]] field, then
         if let Some(enumerable) = desc.enumerable() {
             // a. Perform ! CreateDataPropertyOrThrow(obj, "enumerable", Desc.[[Enumerable]]).
-            obj.create_data_property_or_throw(utf16!("enumerable"), enumerable, context)
+            obj.create_data_property_or_throw(js_str!("enumerable"), enumerable, context)
                 .expect("CreateDataPropertyOrThrow cannot fail here");
         }
 
         // 9. If Desc has a [[Configurable]] field, then
         if let Some(configurable) = desc.configurable() {
             // a. Perform ! CreateDataPropertyOrThrow(obj, "configurable", Desc.[[Configurable]]).
-            obj.create_data_property_or_throw(utf16!("configurable"), configurable, context)
+            obj.create_data_property_or_throw(js_str!("configurable"), configurable, context)
                 .expect("CreateDataPropertyOrThrow cannot fail here");
         }
 
@@ -825,11 +824,11 @@ impl OrdinaryObject {
     pub fn to_string(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. If the this value is undefined, return "[object Undefined]".
         if this.is_undefined() {
-            return Ok(js_string!("[object Undefined]").into());
+            return Ok(js_str!("[object Undefined]").into());
         }
         // 2. If the this value is null, return "[object Null]".
         if this.is_null() {
-            return Ok(js_string!("[object Null]").into());
+            return Ok(js_str!("[object Null]").into());
         }
         // 3. Let O be ! ToObject(this value).
         let o = this.to_object(context).expect("toObject cannot fail here");
@@ -837,37 +836,37 @@ impl OrdinaryObject {
         //  4. Let isArray be ? IsArray(O).
         //  5. If isArray is true, let builtinTag be "Array".
         let builtin_tag = if o.is_array_abstract()? {
-            utf16!("Array")
+            js_str!("Array")
         } else {
             let o_borrow = o.borrow();
 
             if o_borrow.is_arguments() {
                 // 6. Else if O has a [[ParameterMap]] internal slot, let builtinTag be "Arguments".
-                utf16!("Arguments")
+                js_str!("Arguments")
             } else if o.is_callable() {
                 // 7. Else if O has a [[Call]] internal method, let builtinTag be "Function".
-                utf16!("Function")
+                js_str!("Function")
             } else if o.is::<ErrorObject>() {
                 // 8. Else if O has an [[ErrorData]] internal slot, let builtinTag be "Error".
-                utf16!("Error")
+                js_str!("Error")
             } else if o.is::<bool>() {
                 // 9. Else if O has a [[BooleanData]] internal slot, let builtinTag be "Boolean".
-                utf16!("Boolean")
+                js_str!("Boolean")
             } else if o.is::<f64>() {
                 // 10. Else if O has a [[NumberData]] internal slot, let builtinTag be "Number".
-                utf16!("Number")
+                js_str!("Number")
             } else if o.is::<JsString>() {
                 // 11. Else if O has a [[StringData]] internal slot, let builtinTag be "String".
-                utf16!("String")
+                js_str!("String")
             } else if o.is::<Date>() {
                 // 12. Else if O has a [[DateValue]] internal slot, let builtinTag be "Date".
-                utf16!("Date")
+                js_str!("Date")
             } else if o.is::<RegExp>() {
                 // 13. Else if O has a [[RegExpMatcher]] internal slot, let builtinTag be "RegExp".
-                utf16!("RegExp")
+                js_str!("RegExp")
             } else {
                 // 14. Else, let builtinTag be "Object".
-                utf16!("Object")
+                js_str!("Object")
             }
         };
 
@@ -875,10 +874,10 @@ impl OrdinaryObject {
         let tag = o.get(JsSymbol::to_string_tag(), context)?;
 
         // 16. If Type(tag) is not String, set tag to builtinTag.
-        let tag_str = tag.as_string().map_or(builtin_tag, JsString::deref);
+        let tag_str = tag.as_string().map_or(builtin_tag, JsString::as_str);
 
         // 17. Return the string-concatenation of "[object ", tag, and "]".
-        Ok(js_string!(utf16!("[object "), tag_str, utf16!("]")).into())
+        Ok(js_string!(js_str!("[object "), tag_str, js_str!("]")).into())
     }
 
     /// `Object.prototype.toLocaleString( [ reserved1 [ , reserved2 ] ] )`
@@ -897,7 +896,7 @@ impl OrdinaryObject {
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Return ? Invoke(O, "toString").
-        this.invoke(utf16!("toString"), &[], context)
+        this.invoke(js_str!("toString"), &[], context)
     }
 
     /// `Object.prototype.hasOwnProperty( property )`

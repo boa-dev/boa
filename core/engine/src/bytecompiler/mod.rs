@@ -21,7 +21,7 @@ use crate::{
         BindingOpcode, CodeBlock, CodeBlockFlags, Constant, GeneratorResumeKind, Handler,
         InlineCache, Opcode, VaryingOperandKind,
     },
-    JsBigInt, JsString,
+    JsBigInt, JsStr, JsString,
 };
 use boa_ast::{
     declaration::{Binding, LexicalDeclaration, VarDeclaration},
@@ -55,7 +55,15 @@ pub(crate) trait ToJsString {
 
 impl ToJsString for Sym {
     fn to_js_string(&self, interner: &Interner) -> JsString {
-        js_string!(interner.resolve_expect(*self).utf16())
+        // TODO: Identify latin1 encodeable strings during parsing to avoid this check.
+        let string = interner.resolve_expect(*self).utf16();
+        for c in string {
+            if u8::try_from(*c).is_err() {
+                return js_string!(string);
+            }
+        }
+        let string = string.iter().map(|c| *c as u8).collect::<Vec<_>>();
+        js_string!(JsStr::latin1(&string))
     }
 }
 
@@ -392,9 +400,9 @@ impl<'ctx> ByteCompiler<'ctx> {
             return *index;
         }
 
-        let string = self.interner().resolve_expect(name.sym()).utf16();
         let index = self.constants.len() as u32;
-        self.constants.push(Constant::String(js_string!(string)));
+        let string = name.to_js_string(self.interner());
+        self.constants.push(Constant::String(string));
         self.names_map.insert(name, index);
         index
     }
@@ -744,7 +752,7 @@ impl<'ctx> ByteCompiler<'ctx> {
     }
 
     fn resolve_identifier_expect(&self, identifier: Identifier) -> JsString {
-        js_string!(self.interner().resolve_expect(identifier.sym()).utf16())
+        identifier.to_js_string(self.interner())
     }
 
     fn access_get(&mut self, access: Access<'_>, use_expr: bool) {

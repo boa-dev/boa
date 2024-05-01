@@ -89,7 +89,7 @@ impl Segments {
         // 8. Let startIndex be ! FindBoundary(segmenter, string, n, before).
         // 9. Let endIndex be ! FindBoundary(segmenter, string, n, after).
         let (range, is_word_like) = {
-            let mut segments = segmenter.native.segment(&segments.string);
+            let mut segments = segmenter.native.segment(segments.string.as_str());
             std::iter::from_fn(|| segments.next().map(|i| (i, segments.is_word_like())))
                 .tuple_windows()
                 .find(|((i, _), (j, _))| (*i..*j).contains(&n))

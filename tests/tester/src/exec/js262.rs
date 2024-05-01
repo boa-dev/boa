@@ -256,7 +256,7 @@ fn agent_obj(handles: WorkerHandles, context: &mut Context) -> JsObject {
                 return Ok(JsValue::null());
             };
 
-            Ok(js_string!(msg).into())
+            Ok(js_string!(&msg[..]).into())
         })
     };
 
