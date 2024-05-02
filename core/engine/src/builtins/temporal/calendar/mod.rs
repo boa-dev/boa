@@ -915,11 +915,10 @@ impl Calendar {
         let additional_fields = args.get_or_undefined(1).to_object(context)?;
 
         // 3. Let fieldsCopy be ? SnapshotOwnProperties(? ToObject(fields), null, « », « undefined »).
-        let fields_copy = temporal::fields::object_to_temporal_fields(&fields, context)?;
+        let fields_copy = fields::object_to_temporal_fields(&fields, context)?;
 
         // 4. Let additionalFieldsCopy be ? SnapshotOwnProperties(? ToObject(additionalFields), null, « », « undefined »).
-        let additional_copy =
-            temporal::fields::object_to_temporal_fields(&additional_fields, context)?;
+        let additional_copy = fields::object_to_temporal_fields(&additional_fields, context)?;
 
         // Custom Calendars override the `fields` method.
         if let CalendarSlot::Protocol(proto) = &calendar.slot {

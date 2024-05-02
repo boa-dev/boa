@@ -25,7 +25,7 @@ use super::ModuleSpecifier;
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum ImportKind {
-    /// Default (`import defaultName from "module-name"`) or unnamed (`import "module-name").
+    /// Default (`import defaultName from "module-name"`) or unnamed (`import "module-name"`).
     DefaultOrUnnamed,
     /// Namespaced import (`import * as name from "module-name"`).
     Namespaced {

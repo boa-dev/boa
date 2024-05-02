@@ -50,8 +50,6 @@ pub(crate) use builtins::*;
 pub use datatypes::JsData;
 pub use jsobject::*;
 
-pub(crate) trait JsObjectType: Into<JsValue> + Into<JsObject> {}
-
 /// Const `constructor`, usually set on prototypes as a key to point to their respective constructor object.
 pub const CONSTRUCTOR: JsStr<'_> = js_str!("constructor");
 
@@ -317,10 +315,10 @@ impl<T: ?Sized> Object<T> {
                     } = value
                     {
                         if existing_getter.is_none() {
-                            *existing_getter = getter.clone();
+                            existing_getter.clone_from(getter);
                         }
                         if existing_setter.is_none() {
-                            *existing_setter = setter.clone();
+                            existing_setter.clone_from(setter);
                         }
                         return;
                     }

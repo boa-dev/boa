@@ -210,11 +210,10 @@ impl BuiltInConstructorWithPrototype<'_> {
             .length(length)
             .build();
 
-        debug_assert!(self
+        debug_assert!(!self
             .object_property_table
             .map
-            .get(&binding.binding)
-            .is_none());
+            .contains_key(&binding.binding));
         self.object_property_table.insert(
             binding.binding,
             SlotAttributes::WRITABLE | SlotAttributes::CONFIGURABLE,
@@ -231,7 +230,7 @@ impl BuiltInConstructorWithPrototype<'_> {
     {
         let key = key.into();
 
-        debug_assert!(self.object_property_table.map.get(&key).is_none());
+        debug_assert!(!self.object_property_table.map.contains_key(&key));
         self.object_property_table
             .insert(key, SlotAttributes::from_bits_truncate(attribute.bits()));
         self.object_storage.push(value.into());
@@ -256,7 +255,7 @@ impl BuiltInConstructorWithPrototype<'_> {
 
         let key = key.into();
 
-        debug_assert!(self.object_property_table.map.get(&key).is_none());
+        debug_assert!(!self.object_property_table.map.contains_key(&key));
         self.object_property_table.insert(key, attributes);
         self.object_storage.extend([
             get.map(JsValue::new).unwrap_or_default(),
@@ -289,11 +288,10 @@ impl BuiltInConstructorWithPrototype<'_> {
             .length(length)
             .build();
 
-        debug_assert!(self
+        debug_assert!(!self
             .prototype_property_table
             .map
-            .get(&binding.binding)
-            .is_none());
+            .contains_key(&binding.binding));
         self.prototype_property_table.insert(
             binding.binding,
             SlotAttributes::WRITABLE | SlotAttributes::CONFIGURABLE,
@@ -310,7 +308,7 @@ impl BuiltInConstructorWithPrototype<'_> {
     {
         let key = key.into();
 
-        debug_assert!(self.prototype_property_table.map.get(&key).is_none());
+        debug_assert!(!self.prototype_property_table.map.contains_key(&key));
         self.prototype_property_table
             .insert(key, SlotAttributes::from_bits_truncate(attribute.bits()));
         self.prototype_storage.push(value.into());
@@ -335,7 +333,7 @@ impl BuiltInConstructorWithPrototype<'_> {
 
         let key = key.into();
 
-        debug_assert!(self.prototype_property_table.map.get(&key).is_none());
+        debug_assert!(!self.prototype_property_table.map.contains_key(&key));
         self.prototype_property_table.insert(key, attributes);
         self.prototype_storage.extend([
             get.map(JsValue::new).unwrap_or_default(),

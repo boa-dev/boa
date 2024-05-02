@@ -37,7 +37,7 @@ impl Style {
 pub(crate) struct ParseStyleError;
 
 impl fmt::Display for ParseStyleError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("provided string was not a valid style option")
     }
 }
@@ -82,7 +82,7 @@ impl CurrencyDisplay {
 pub(crate) struct ParseCurrencyDisplayError;
 
 impl fmt::Display for ParseCurrencyDisplayError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("provided string was not a valid currencyDisplay option")
     }
 }
@@ -123,7 +123,7 @@ impl CurrencySign {
 pub(crate) struct ParseCurrencySignError;
 
 impl fmt::Display for ParseCurrencySignError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("provided string was not a valid currencySign option")
     }
 }
@@ -164,7 +164,7 @@ impl UnitDisplay {
 pub(crate) struct ParseUnitDisplayError;
 
 impl fmt::Display for ParseUnitDisplayError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("provided string was not a valid unitDisplay option")
     }
 }
@@ -205,7 +205,7 @@ impl Currency {
 pub(crate) struct ParseCurrencyError;
 
 impl fmt::Display for ParseCurrencyError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("provided string was not a valid currency")
     }
 }
@@ -267,7 +267,7 @@ impl Unit {
 pub(crate) struct ParseUnitError;
 
 impl fmt::Display for ParseUnitError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("provided string was not a valid unit")
     }
 }
@@ -995,7 +995,7 @@ impl CompactDisplay {
 pub(crate) struct ParseCompactDisplayError;
 
 impl fmt::Display for ParseCompactDisplayError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("provided string was not a valid compactDisplay option")
     }
 }
@@ -1038,7 +1038,7 @@ impl NotationKind {
 pub(crate) struct ParseNotationKindError;
 
 impl fmt::Display for ParseNotationKindError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("provided string was not a valid notation option")
     }
 }
@@ -1100,7 +1100,7 @@ impl RoundingPriority {
 pub(crate) struct ParseRoundingPriorityError;
 
 impl fmt::Display for ParseRoundingPriorityError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("provided string was not a valid rounding priority")
     }
 }
@@ -1140,7 +1140,7 @@ impl TrailingZeroDisplay {
 pub(crate) struct ParseTrailingZeroDisplayError;
 
 impl fmt::Display for ParseTrailingZeroDisplayError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("provided string was not a valid trailing zero display option")
     }
 }

@@ -16,6 +16,7 @@ pub(crate) trait ErrorContext {
     fn set_context(self, context: &'static str) -> Self;
 
     /// Gets the context of the error, if any.
+    #[allow(dead_code)]
     fn context(&self) -> Option<&'static str>;
 }
 

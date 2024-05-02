@@ -1051,7 +1051,7 @@ pub enum PreferredType {
 pub enum Numeric {
     /// Double precision floating point number.
     Number(f64),
-    /// BigInt an integer of arbitrary size.
+    /// `BigInt` an integer of arbitrary size.
     BigInt(JsBigInt),
 }
 

@@ -3,7 +3,7 @@ use crate::{
     builtins::typed_array::BuiltinTypedArray,
     builtins::{typed_array::TypedArray, BuiltInConstructor},
     error::JsNativeError,
-    object::{JsArrayBuffer, JsFunction, JsObject, JsObjectType},
+    object::{JsArrayBuffer, JsFunction, JsObject},
     value::{IntoOrUndefined, TryFromJs},
     Context, JsResult, JsString, JsValue,
 };
@@ -909,8 +909,6 @@ impl Deref for JsTypedArray {
         &self.inner
     }
 }
-
-impl JsObjectType for JsTypedArray {}
 
 impl TryFromJs for JsTypedArray {
     fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {

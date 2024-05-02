@@ -163,7 +163,7 @@ impl Operation for CreatePromiseCapability {
             return Ok(CompletionType::Normal);
         }
 
-        let promise_capability = crate::builtins::promise::PromiseCapability::new(
+        let promise_capability = PromiseCapability::new(
             &context.intrinsics().constructors().promise().constructor(),
             context,
         )

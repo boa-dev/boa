@@ -534,6 +534,8 @@ Cannot both specify accessors and a value or writable attribute",
         Ok(())
     }
 
+    // Allow lint, false positive.
+    #[allow(clippy::assigning_clones)]
     pub(crate) fn get_property(&self, key: &PropertyKey) -> Option<PropertyDescriptor> {
         let mut obj = Some(self.clone());
 
@@ -842,7 +844,7 @@ impl Error for BorrowMutError {}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 enum RecursionValueState {
-    /// This value is "live": there's an active RecursionLimiter that hasn't been dropped.
+    /// This value is "live": there's an active `RecursionLimiter` that hasn't been dropped.
     Live,
     /// This value has been seen before, but the recursion limiter has been dropped.
     /// For example:
@@ -863,11 +865,11 @@ enum RecursionValueState {
 pub struct RecursionLimiter {
     /// If this was the first `JsObject` in the tree.
     top_level: bool,
-    /// The ptr being kept in the HashSet, so we can delete it when we drop.
+    /// The ptr being kept in the `HashSet`, so we can delete it when we drop.
     ptr: usize,
-    /// If this JsObject has been visited before in the graph, but not in the current branch.
+    /// If this `JsObject` has been visited before in the graph, but not in the current branch.
     pub visited: bool,
-    /// If this JsObject has been visited in the current branch of the graph.
+    /// If this `JsObject` has been visited in the current branch of the graph.
     pub live: bool,
 }
 
@@ -923,7 +925,7 @@ impl RecursionLimiter {
 }
 
 impl<T: NativeObject + ?Sized> Debug for JsObject<T> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let limiter = RecursionLimiter::new(self.as_ref());
 
         // Typically, using `!limiter.live` would be good enough here.

@@ -664,10 +664,8 @@ impl Promise {
                 // iii. If remainingElementsCount.[[Value]] is 0, then
                 if remaining_elements_count.get() == 0 {
                     // 1. Let valuesArray be CreateArrayFromList(values).
-                    let values_array = crate::builtins::Array::create_array_from_list(
-                        values.borrow().iter().cloned(),
-                        context,
-                    );
+                    let values_array =
+                        Array::create_array_from_list(values.borrow().iter().cloned(), context);
 
                     // 2. Perform ? Call(resultCapability.[[Resolve]], undefined, « valuesArray »).
                     result_capability.functions.resolve.call(
@@ -733,7 +731,7 @@ impl Promise {
                         // 10. If remainingElementsCount.[[Value]] is 0, then
                         if captures.remaining_elements_count.get() == 0 {
                             // a. Let valuesArray be CreateArrayFromList(values).
-                            let values_array = crate::builtins::Array::create_array_from_list(
+                            let values_array = Array::create_array_from_list(
                                 captures.values.borrow().as_slice().iter().cloned(),
                                 context,
                             );
@@ -892,7 +890,7 @@ impl Promise {
                 // iii. If remainingElementsCount.[[Value]] is 0, then
                 if remaining_elements_count.get() == 0 {
                     // 1. Let valuesArray be CreateArrayFromList(values).
-                    let values_array = crate::builtins::Array::create_array_from_list(
+                    let values_array = Array::create_array_from_list(
                         values.borrow().as_slice().iter().cloned(),
                         context,
                     );

@@ -1,6 +1,6 @@
 use std::{
     cmp::{self, min},
-    sync::atomic::{self, Ordering},
+    sync::atomic::Ordering,
 };
 
 use boa_macros::{js_str, utf16};
@@ -1896,7 +1896,7 @@ impl BuiltinTypedArray {
                 let value = unsafe {
                     src_buffer
                         .subslice(src_byte_index..)
-                        .get_value(src_type, atomic::Ordering::Relaxed)
+                        .get_value(src_type, Ordering::Relaxed)
                 };
 
                 let value = JsValue::from(value);
@@ -1910,7 +1910,7 @@ impl BuiltinTypedArray {
                 unsafe {
                     target_buffer
                         .subslice_mut(target_byte_index..)
-                        .set_value(value, atomic::Ordering::Relaxed);
+                        .set_value(value, Ordering::Relaxed);
                 }
 
                 // iii. Set srcByteIndex to srcByteIndex + srcElementSize.
@@ -2913,7 +2913,7 @@ impl BuiltinTypedArray {
                     let value = unsafe {
                         src_data
                             .subslice(src_byte_index..)
-                            .get_value(src_type, atomic::Ordering::Relaxed)
+                            .get_value(src_type, Ordering::Relaxed)
                     };
 
                     let value = JsValue::from(value);
@@ -2928,7 +2928,7 @@ impl BuiltinTypedArray {
                     // bytes available, which makes `target_byte_index` always in-bounds.
                     unsafe {
                         data.subslice_mut(target_byte_index..)
-                            .set_value(value, atomic::Ordering::Relaxed);
+                            .set_value(value, Ordering::Relaxed);
                     }
 
                     // iii. Set srcByteIndex to srcByteIndex + srcElementSize.

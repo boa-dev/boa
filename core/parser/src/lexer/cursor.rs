@@ -141,7 +141,7 @@ impl<R: ReadChar> Cursor<R> {
             } else if let Some(c) = self.next_char()? {
                 buf.push(c);
             } else {
-                return Err(io::Error::new(
+                return Err(Error::new(
                     ErrorKind::UnexpectedEof,
                     format!("Unexpected end of file when looking for character {stop}"),
                 ));

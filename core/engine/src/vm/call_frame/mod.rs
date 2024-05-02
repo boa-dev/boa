@@ -59,7 +59,7 @@ pub struct CallFrame {
     /// How many iterations a loop has done.
     pub(crate) loop_iteration_count: u64,
 
-    /// \[\[ScriptOrModule\]\]
+    /// `[[ScriptOrModule]]`
     pub(crate) active_runnable: Option<ActiveRunnable>,
 
     /// \[\[Environment\]\]

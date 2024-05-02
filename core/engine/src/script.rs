@@ -84,7 +84,7 @@ impl Script {
         context: &mut Context,
     ) -> JsResult<Self> {
         let _timer = Profiler::global().start_event("Script parsing", "Main");
-        let path = src.path().map(std::path::Path::to_path_buf);
+        let path = src.path().map(Path::to_path_buf);
         let mut parser = Parser::new(src);
         parser.set_identifier(context.next_parser_identifier());
         if context.is_strict() {
