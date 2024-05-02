@@ -4,11 +4,8 @@ use std::ops::Deref;
 use boa_gc::{Finalize, Trace};
 
 use crate::{
-    builtins::set::SetIterator,
-    error::JsNativeError,
-    object::{JsObject, JsObjectType},
-    value::TryFromJs,
-    Context, JsResult, JsValue,
+    builtins::set::SetIterator, error::JsNativeError, object::JsObject, value::TryFromJs, Context,
+    JsResult, JsValue,
 };
 
 /// `JsSetIterator` provides a wrapper for Boa's implementation of the ECMAScript `SetIterator` object
@@ -57,8 +54,6 @@ impl Deref for JsSetIterator {
         &self.inner
     }
 }
-
-impl JsObjectType for JsSetIterator {}
 
 impl TryFromJs for JsSetIterator {
     fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {

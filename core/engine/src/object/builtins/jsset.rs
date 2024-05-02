@@ -6,7 +6,7 @@ use boa_gc::{Finalize, Trace};
 use crate::{
     builtins::{set::ordered_set::OrderedSet, Set},
     error::JsNativeError,
-    object::{JsFunction, JsObject, JsObjectType, JsSetIterator},
+    object::{JsFunction, JsObject, JsSetIterator},
     value::TryFromJs,
     Context, JsResult, JsValue,
 };
@@ -184,8 +184,6 @@ impl Deref for JsSet {
         &self.inner
     }
 }
-
-impl JsObjectType for JsSet {}
 
 impl TryFromJs for JsSet {
     fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {

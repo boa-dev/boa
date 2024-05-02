@@ -790,7 +790,7 @@ pub enum IndexProperties<'a> {
     /// An iterator over dense, Vec backed indexed property entries of an `Object`.
     DenseElement(std::iter::Enumerate<std::slice::Iter<'a, JsValue>>),
 
-    /// An iterator over sparse, HashMap backed indexed property entries of an `Object`.
+    /// An iterator over sparse, `HashMap` backed indexed property entries of an `Object`.
     Sparse(hash_map::Iter<'a, u32, PropertyDescriptor>),
 }
 
@@ -851,7 +851,7 @@ pub enum IndexPropertyKeys<'a> {
     /// An iterator over dense, Vec backed indexed property entries of an `Object`.
     Dense(std::ops::Range<u32>),
 
-    /// An iterator over sparse, HashMap backed indexed property entries of an `Object`.
+    /// An iterator over sparse, `HashMap` backed indexed property entries of an `Object`.
     Sparse(hash_map::Keys<'a, u32, PropertyDescriptor>),
 }
 
@@ -900,7 +900,7 @@ pub enum IndexPropertyValues<'a> {
     /// An iterator over dense, Vec backed indexed property entries of an `Object`.
     DenseElement(std::slice::Iter<'a, JsValue>),
 
-    /// An iterator over sparse, HashMap backed indexed property entries of an `Object`.
+    /// An iterator over sparse, `HashMap` backed indexed property entries of an `Object`.
     Sparse(hash_map::Values<'a, u32, PropertyDescriptor>),
 }
 

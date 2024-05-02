@@ -3,7 +3,7 @@ use crate::{
     builtins::map::{add_entries_from_iterable, ordered_map::OrderedMap},
     builtins::Map,
     error::JsNativeError,
-    object::{JsFunction, JsMapIterator, JsObject, JsObjectType},
+    object::{JsFunction, JsMapIterator, JsObject},
     value::TryFromJs,
     Context, JsResult, JsValue,
 };
@@ -437,8 +437,6 @@ impl Deref for JsMap {
         &self.inner
     }
 }
-
-impl JsObjectType for JsMap {}
 
 impl TryFromJs for JsMap {
     fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {

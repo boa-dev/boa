@@ -1,7 +1,7 @@
 //! A Rust API wrapper for Boa's `RegExp` Builtin ECMAScript Object
 use crate::{
     builtins::RegExp,
-    object::{JsArray, JsObject, JsObjectType},
+    object::{JsArray, JsObject},
     value::TryFromJs,
     Context, JsNativeError, JsResult, JsValue,
 };
@@ -269,8 +269,6 @@ impl Deref for JsRegExp {
         &self.inner
     }
 }
-
-impl JsObjectType for JsRegExp {}
 
 impl TryFromJs for JsRegExp {
     fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {

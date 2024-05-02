@@ -23,7 +23,7 @@ use boa_engine::{
 };
 use boa_gc::{Finalize, Trace};
 use rustc_hash::FxHashMap;
-use std::{cell::RefCell, rc::Rc, time::SystemTime};
+use std::{cell::RefCell, collections::hash_map::Entry, rc::Rc, time::SystemTime};
 
 /// This represents the different types of log messages.
 #[derive(Debug)]
@@ -527,7 +527,10 @@ impl Console {
             None => "default".into(),
         };
 
-        if console.timer_map.get(&label).is_some() {
+        if let Entry::Vacant(e) = console.timer_map.entry(label.clone()) {
+            let time = Self::system_time_in_ms();
+            e.insert(time);
+        } else {
             logger(
                 LogMessage::Warn(format!(
                     "Timer '{}' already exist",
@@ -535,9 +538,6 @@ impl Console {
                 )),
                 console,
             );
-        } else {
-            let time = Self::system_time_in_ms();
-            console.timer_map.insert(label, time);
         }
 
         Ok(JsValue::undefined())

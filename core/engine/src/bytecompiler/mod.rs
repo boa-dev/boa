@@ -268,7 +268,7 @@ pub struct ByteCompiler<'ctx> {
 
     pub(crate) register_count: u32,
 
-    /// \[\[ThisMode\]\]
+    /// `[[ThisMode]]`
     pub(crate) this_mode: ThisMode,
 
     /// Parameters passed to this function.

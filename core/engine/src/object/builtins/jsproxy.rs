@@ -4,7 +4,7 @@ use crate::{
     builtins::Proxy,
     js_str,
     native_function::{NativeFunction, NativeFunctionPointer},
-    object::{FunctionObjectBuilder, JsObject, JsObjectType},
+    object::{FunctionObjectBuilder, JsObject},
     value::TryFromJs,
     Context, JsNativeError, JsResult, JsValue,
 };
@@ -69,8 +69,6 @@ impl std::ops::Deref for JsProxy {
         &self.inner
     }
 }
-
-impl JsObjectType for JsProxy {}
 
 impl TryFromJs for JsProxy {
     fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {

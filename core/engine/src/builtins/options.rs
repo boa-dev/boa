@@ -160,7 +160,7 @@ impl RoundingMode {
 pub(crate) struct ParseRoundingModeError;
 
 impl fmt::Display for ParseRoundingModeError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("provided string was not a valid rounding mode")
     }
 }

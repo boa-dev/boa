@@ -57,7 +57,7 @@ pub enum ContainsSymbol {
     This,
     /// A method definition.
     MethodDefinition,
-    /// The BindingIdentifier "eval" or "arguments".
+    /// The `BindingIdentifier` "eval" or "arguments".
     EvalOrArguments,
 }
 
@@ -1328,9 +1328,10 @@ where
 
         fn visit_module_item(&mut self, node: &'ast ModuleItem) -> ControlFlow<Self::BreakTy> {
             match node {
-                crate::ModuleItem::ImportDeclaration(_)
-                | crate::ModuleItem::ExportDeclaration(_) => ControlFlow::Continue(()),
-                crate::ModuleItem::StatementListItem(node) => self.visit_statement_list_item(node),
+                ModuleItem::ImportDeclaration(_) | ModuleItem::ExportDeclaration(_) => {
+                    ControlFlow::Continue(())
+                }
+                ModuleItem::StatementListItem(node) => self.visit_statement_list_item(node),
             }
         }
     }

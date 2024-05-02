@@ -1,10 +1,7 @@
 //! A Rust API wrapper for Boa's `MapIterator` Builtin ECMAScript Object
 use crate::{
-    builtins::map::MapIterator,
-    error::JsNativeError,
-    object::{JsObject, JsObjectType},
-    value::TryFromJs,
-    Context, JsResult, JsValue,
+    builtins::map::MapIterator, error::JsNativeError, object::JsObject, value::TryFromJs, Context,
+    JsResult, JsValue,
 };
 
 use boa_gc::{Finalize, Trace};
@@ -57,8 +54,6 @@ impl Deref for JsMapIterator {
         &self.inner
     }
 }
-
-impl JsObjectType for JsMapIterator {}
 
 impl TryFromJs for JsMapIterator {
     fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {

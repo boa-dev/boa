@@ -3,7 +3,7 @@ use crate::{
     builtins::array_buffer::ArrayBuffer,
     context::intrinsics::StandardConstructors,
     error::JsNativeError,
-    object::{internal_methods::get_prototype_from_constructor, JsObject, JsObjectType, Object},
+    object::{internal_methods::get_prototype_from_constructor, JsObject, Object},
     value::TryFromJs,
     Context, JsResult, JsValue,
 };
@@ -299,8 +299,6 @@ impl Deref for JsArrayBuffer {
         &self.inner
     }
 }
-
-impl JsObjectType for JsArrayBuffer {}
 
 impl TryFromJs for JsArrayBuffer {
     fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {

@@ -9,7 +9,7 @@ use crate::{
         Promise,
     },
     job::NativeJob,
-    object::{JsObject, JsObjectType},
+    object::JsObject,
     value::TryFromJs,
     Context, JsArgs, JsError, JsNativeError, JsResult, JsValue, NativeFunction,
 };
@@ -1087,8 +1087,6 @@ impl std::ops::Deref for JsPromise {
         &self.inner
     }
 }
-
-impl JsObjectType for JsPromise {}
 
 impl TryFromJs for JsPromise {
     fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {

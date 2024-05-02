@@ -74,7 +74,7 @@ pub enum Literal {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#Numeric_literals
     Int(i32),
 
-    /// BigInt provides a way to represent whole numbers larger than the largest number ECMAScript
+    /// `BigInt` provides a way to represent whole numbers larger than the largest number ECMAScript
     /// can reliably represent with the `Number` primitive.
     ///
     /// More information:

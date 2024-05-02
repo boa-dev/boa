@@ -451,7 +451,7 @@ pub struct TryFromF64Error;
 
 impl Display for TryFromF64Error {
     #[inline]
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "Could not convert f64 value to a BigInt type")
     }
 }

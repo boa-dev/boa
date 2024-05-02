@@ -1,9 +1,7 @@
 //! A Rust API wrapper for Boa's `Generator` Builtin ECMAScript Object
 use crate::{
-    builtins::generator::Generator,
-    object::{JsObject, JsObjectType},
-    value::TryFromJs,
-    Context, JsNativeError, JsResult, JsValue,
+    builtins::generator::Generator, object::JsObject, value::TryFromJs, Context, JsNativeError,
+    JsResult, JsValue,
 };
 
 use boa_gc::{Finalize, Trace};
@@ -82,8 +80,6 @@ impl Deref for JsGenerator {
         &self.inner
     }
 }
-
-impl JsObjectType for JsGenerator {}
 
 impl TryFromJs for JsGenerator {
     fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {

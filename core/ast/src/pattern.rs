@@ -276,7 +276,7 @@ impl VisitWith for ArrayPattern {
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub enum ObjectPatternElement {
-    /// SingleName represents one of the following properties:
+    /// `SingleName` represents one of the following properties:
     ///
     /// - `SingleName` with an identifier and an optional default initializer.
     /// - `BindingProperty` with an property name and a `SingleNameBinding` as  the `BindingElement`.
@@ -296,7 +296,7 @@ pub enum ObjectPatternElement {
         default_init: Option<Expression>,
     },
 
-    /// RestProperty represents a `BindingRestProperty` with an identifier.
+    /// `RestProperty` represents a `BindingRestProperty` with an identifier.
     ///
     /// It also includes a list of the property keys that should be excluded from the rest,
     /// because they where already assigned.
@@ -312,10 +312,10 @@ pub enum ObjectPatternElement {
         excluded_keys: Vec<Identifier>,
     },
 
-    /// AssignmentGetField represents an AssignmentProperty with an expression field member expression AssignmentElement.
+    /// `AssignmentGetField` represents an `AssignmentProperty` with an expression field member expression `AssignmentElement`.
     ///
-    /// Note: According to the spec this is not part of an ObjectBindingPattern.
-    /// This is only used when a object literal is used to cover an AssignmentPattern.
+    /// Note: According to the spec this is not part of an `ObjectBindingPattern`.
+    /// This is only used when a object literal is used to cover an `AssignmentPattern`.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -330,10 +330,10 @@ pub enum ObjectPatternElement {
         default_init: Option<Expression>,
     },
 
-    /// AssignmentRestProperty represents a rest property with a DestructuringAssignmentTarget.
+    /// `AssignmentRestProperty` represents a rest property with a `DestructuringAssignmentTarget`.
     ///
-    /// Note: According to the spec this is not part of an ObjectBindingPattern.
-    /// This is only used when a object literal is used to cover an AssignmentPattern.
+    /// Note: According to the spec this is not part of an `ObjectBindingPattern`.
+    /// This is only used when a object literal is used to cover an `AssignmentPattern`.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -587,7 +587,7 @@ pub enum ArrayPatternElement {
     /// [spec1]: https://tc39.es/ecma262/#prod-Elision
     Elision,
 
-    /// SingleName represents a `SingleName` with an identifier and an optional default initializer.
+    /// `SingleName` represents a `SingleName` with an identifier and an optional default initializer.
     ///
     /// More information:
     ///  - [ECMAScript reference: 14.3.3 Destructuring Binding Patterns - SingleNameBinding][spec1]
@@ -600,9 +600,9 @@ pub enum ArrayPatternElement {
         default_init: Option<Expression>,
     },
 
-    /// PropertyAccess represents a binding with a property accessor.
+    /// `PropertyAccess` represents a binding with a property accessor.
     ///
-    /// Note: According to the spec this is not part of an ArrayBindingPattern.
+    /// Note: According to the spec this is not part of an `ArrayBindingPattern`.
     /// This is only used when a array literal is used as the left-hand-side of an assignment expression.
     ///
     /// More information:
@@ -618,7 +618,7 @@ pub enum ArrayPatternElement {
 
     /// Pattern represents a `Pattern` in an `Element` of an array pattern.
     ///
-    /// The pattern and the optional default initializer are both stored in the DeclarationPattern.
+    /// The pattern and the optional default initializer are both stored in the `DeclarationPattern`.
     ///
     /// More information:
     ///  - [ECMAScript reference: 14.3.3 Destructuring Binding Patterns - BindingElement][spec1]
@@ -631,7 +631,7 @@ pub enum ArrayPatternElement {
         default_init: Option<Expression>,
     },
 
-    /// SingleNameRest represents a `BindingIdentifier` in a `BindingRestElement` of an array pattern.
+    /// `SingleNameRest` represents a `BindingIdentifier` in a `BindingRestElement` of an array pattern.
     ///
     /// More information:
     ///  - [ECMAScript reference: 14.3.3 Destructuring Binding Patterns - BindingRestElement][spec1]
@@ -642,9 +642,9 @@ pub enum ArrayPatternElement {
         ident: Identifier,
     },
 
-    /// PropertyAccess represents a rest (spread operator) with a property accessor.
+    /// `PropertyAccess` represents a rest (spread operator) with a property accessor.
     ///
-    /// Note: According to the spec this is not part of an ArrayBindingPattern.
+    /// Note: According to the spec this is not part of an `ArrayBindingPattern`.
     /// This is only used when a array literal is used as the left-hand-side of an assignment expression.
     ///
     /// More information:
@@ -656,7 +656,7 @@ pub enum ArrayPatternElement {
         access: PropertyAccess,
     },
 
-    /// PatternRest represents a `Pattern` in a `RestElement` of an array pattern.
+    /// `PatternRest` represents a `Pattern` in a `RestElement` of an array pattern.
     ///
     /// More information:
     ///  - [ECMAScript reference: 14.3.3 Destructuring Binding Patterns - BindingRestElement][spec1]

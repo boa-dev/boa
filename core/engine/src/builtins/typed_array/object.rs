@@ -1,6 +1,6 @@
 //! This module implements the `TypedArray` exotic object.
 
-use std::sync::atomic::{self, Ordering};
+use std::sync::atomic::Ordering;
 
 use crate::{
     builtins::{array_buffer::BufferObject, Number},
@@ -601,7 +601,7 @@ fn typed_array_get_element(obj: &JsObject, index: f64) -> Option<JsValue> {
     let value = unsafe {
         buffer
             .subslice(byte_index..)
-            .get_value(elem_type, atomic::Ordering::Relaxed)
+            .get_value(elem_type, Ordering::Relaxed)
     };
 
     Some(value.into())
@@ -657,7 +657,7 @@ pub(crate) fn typed_array_set_element(
     unsafe {
         buffer
             .subslice_mut(byte_index..)
-            .set_value(value, atomic::Ordering::Relaxed);
+            .set_value(value, Ordering::Relaxed);
     }
 
     // 4. Return unused.
