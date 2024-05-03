@@ -1,7 +1,7 @@
 // This example shows how to manipulate a Javascript array using Rust code.
 
 use boa_engine::{
-    js_str,
+    js_string,
     native_function::NativeFunction,
     object::{builtins::JsArray, FunctionObjectBuilder},
     Context, JsResult, JsValue,
@@ -16,13 +16,16 @@ fn main() -> JsResult<()> {
 
     assert!(array.is_empty(context)?);
 
-    array.push(js_str!("Hello, world"), context)?; // [ "Hello, world" ]
+    array.push(js_string!("Hello, world"), context)?; // [ "Hello, world" ]
     array.push(true, context)?; // [ "Hello, world", true ]
 
     assert!(!array.is_empty(context)?);
 
     assert_eq!(array.pop(context)?, JsValue::new(true)); // [ "Hello, world" ]
-    assert_eq!(array.pop(context)?, JsValue::new(js_str!("Hello, world"))); // [ ]
+    assert_eq!(
+        array.pop(context)?,
+        JsValue::new(js_string!("Hello, world"))
+    ); // [ ]
     assert_eq!(array.pop(context)?, JsValue::undefined()); // [ ]
 
     array.push(1, context)?; // [ 1 ]
@@ -113,7 +116,7 @@ fn main() -> JsResult<()> {
 
     context
         .global_object()
-        .set(js_str!("myArray"), array, true, context)?;
+        .set(js_string!("myArray"), array, true, context)?;
 
     Ok(())
 }

@@ -7,7 +7,7 @@ use std::{
 use boa_engine::{
     builtins::promise::PromiseState,
     job::{FutureJob, JobQueue, NativeJob},
-    js_str,
+    js_string,
     module::ModuleLoader,
     Context, JsNativeError, JsResult, JsString, JsValue, Module,
 };
@@ -148,7 +148,9 @@ fn main() -> JsResult<()> {
         }
     }
 
-    let default = module.namespace(context).get(js_str!("default"), context)?;
+    let default = module
+        .namespace(context)
+        .get(js_string!("default"), context)?;
 
     // `default` should contain the result of our calculations.
     let default = default
@@ -160,14 +162,14 @@ fn main() -> JsResult<()> {
             .get(0, context)?
             .as_string()
             .ok_or_else(|| JsNativeError::typ().with_message("array element was not a string"))?,
-        &js_str!("aGVsbG8=")
+        &js_string!("aGVsbG8=")
     );
     assert_eq!(
         default
             .get(1, context)?
             .as_string()
             .ok_or_else(|| JsNativeError::typ().with_message("array element was not a string"))?,
-        &js_str!("d29ybGQ=")
+        &js_string!("d29ybGQ=")
     );
 
     Ok(())

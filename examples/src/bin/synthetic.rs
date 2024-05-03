@@ -9,8 +9,7 @@ use boa_engine::builtins::promise::PromiseState;
 use boa_engine::module::{SimpleModuleLoader, SyntheticModuleInitializer};
 use boa_engine::object::FunctionObjectBuilder;
 use boa_engine::{
-    js_str, js_string, Context, JsArgs, JsError, JsNativeError, JsValue, Module, NativeFunction,
-    Source,
+    js_string, Context, JsArgs, JsError, JsNativeError, JsValue, Module, NativeFunction, Source,
 };
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -78,14 +77,17 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     // We can access the full namespace of the module with all its exports.
     let namespace = module.namespace(context);
-    let result = namespace.get(js_str!("result"), context)?;
+    let result = namespace.get(js_string!("result"), context)?;
 
     println!("result = {}", result.display());
 
-    assert_eq!(namespace.get(js_str!("result"), context)?, JsValue::from(5));
+    assert_eq!(
+        namespace.get(js_string!("result"), context)?,
+        JsValue::from(5)
+    );
 
     let mix = namespace
-        .get(js_str!("mix"), context)?
+        .get(js_string!("mix"), context)?
         .as_callable()
         .cloned()
         .ok_or_else(|| JsNativeError::typ().with_message("mix export wasn't a function!"))?;

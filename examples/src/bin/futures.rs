@@ -8,7 +8,7 @@ use std::{
 use boa_engine::{
     context::ContextBuilder,
     job::{FutureJob, JobQueue, NativeJob},
-    js_str,
+    js_string,
     native_function::NativeFunction,
     property::Attribute,
     Context, JsArgs, JsResult, JsValue, Source,
@@ -143,7 +143,7 @@ fn add_runtime(context: &mut Context) {
     // Then, bind the defined async function to the ECMAScript function "delay".
     context
         .register_global_builtin_callable(
-            js_str!("delay").into(),
+            js_string!("delay"),
             1,
             NativeFunction::from_async_fn(delay),
         )
