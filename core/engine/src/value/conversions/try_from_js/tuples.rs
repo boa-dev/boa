@@ -1,6 +1,6 @@
 //! Implementation of [`TryFromJs`] for tuples.
 //!
-//! Tuples are converted from a JavaScript array, using similar semantics to TypeScript tuples:
+//! Tuples are converted from a JavaScript array, using similar semantics to `TypeScript` tuples:
 //!     - If the tuple is shorter than the array, the extra elements are ignored.
 //!     - If the tuple is longer than the array, the extra elements are `undefined`.
 //!     - If the array is empty, all elements are `undefined`.
@@ -15,11 +15,9 @@ use super::TryFromJs;
 impl TryFromJs for () {
     fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {
         if value.is_null_or_undefined() {
-            Err(JsError::from_native(
-                JsNativeError::typ()
-                    .with_message("Cannot convert null or undefined to unit type")
-                    .into(),
-            ))
+            Err(JsError::from_native(JsNativeError::typ().with_message(
+                "Cannot convert null or undefined to unit type",
+            )))
         } else {
             Ok(())
         }
