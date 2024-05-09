@@ -2,7 +2,7 @@
 
 use num_bigint::BigInt;
 
-use crate::{Context, js_string, JsBigInt, JsNativeError, JsObject, JsResult, JsString, JsValue};
+use crate::{js_string, Context, JsBigInt, JsNativeError, JsObject, JsResult, JsString, JsValue};
 
 mod tuples;
 

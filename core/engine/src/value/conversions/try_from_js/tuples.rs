@@ -7,8 +7,8 @@
 //!
 //! A tuple of size 0 (unit type) is represented as any value except `null` or `undefined`.
 
-use crate::{Context, JsError, JsNativeError, JsResult};
 use crate::value::JsValue;
+use crate::{Context, JsError, JsNativeError, JsResult};
 
 use super::TryFromJs;
 
