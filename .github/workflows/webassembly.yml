@@ -29,10 +29,14 @@ jobs:
       WASM_PACK_PATH: ~/.cargo/bin/wasm-pack
       RUSTFLAGS: -D warnings
     steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: stable
+
       - uses: Swatinem/rust-cache@v2
       - name: Install wasm-pack
         uses: baptiste0928/cargo-install@v3.1.0

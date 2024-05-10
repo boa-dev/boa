@@ -20,9 +20,7 @@ jobs:
           toolchain: stable
 
       - name: Install cargo-workspaces
-        uses: actions-rs/install@v0.1
-        with:
-          crate: cargo-workspaces
+        run: cargo install cargo-workspaces
 
       - name: Release
         env:
@@ -99,11 +97,14 @@ jobs:
           binary_name: boa.exe
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: stable
+
       - name: Build
         run: cargo build --target ${{ matrix.target }} --verbose --release --locked --bin boa
       - name: Upload binaries to release
