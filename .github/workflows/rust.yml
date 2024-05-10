@@ -20,11 +20,9 @@ jobs:
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
-      - uses: actions-rs/toolchain@v1.0.7
+      - uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: stable
-          override: true
-          profile: minimal
       - uses: Swatinem/rust-cache@v2
         with:
           key: tarpaulin
@@ -51,11 +49,9 @@ jobs:
           - windows-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions-rs/toolchain@v1.0.7
+      - uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: stable
-          override: true
-          profile: minimal
       - uses: Swatinem/rust-cache@v2
       - name: Build tests
         run: cargo test --no-run --profile ci
@@ -79,11 +75,9 @@ jobs:
       - name: Get rust_version
         id: rust_version
         run: echo "rust_version=$(grep '^rust-version' Cargo.toml | cut -d' ' -f3 | tr -d '"')" >> $GITHUB_OUTPUT
-      - uses: actions-rs/toolchain@v1.0.7
+      - uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: ${{ steps.rust_version.outputs.rust_version }}
-          override: true
-          profile: minimal
       - name: Check compilation
         run: cargo check --all-features --all-targets
 
@@ -93,11 +87,9 @@ jobs:
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
-      - uses: actions-rs/toolchain@v1.0.7
+      - uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: stable
-          override: true
-          profile: minimal
           components: rustfmt
       - name: Format (rustfmt)
         run: cargo fmt --all --check
@@ -108,11 +100,9 @@ jobs:
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
-      - uses: actions-rs/toolchain@v1.0.7
+      - uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: stable
-          override: true
-          profile: minimal
           components: clippy
       - uses: Swatinem/rust-cache@v2
         with:
@@ -140,11 +130,9 @@ jobs:
       RUSTDOCFLAGS: -D warnings
     steps:
       - uses: actions/checkout@v4
-      - uses: actions-rs/toolchain@v1.0.7
+      - uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: stable
-          override: true
-          profile: minimal
       - uses: Swatinem/rust-cache@v2
         with:
           key: docs
@@ -157,11 +145,9 @@ jobs:
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
-      - uses: actions-rs/toolchain@v1.0.7
+      - uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: stable
-          override: true
-          profile: minimal
       - uses: Swatinem/rust-cache@v2
         with:
           key: build-fuzz
@@ -179,11 +165,9 @@ jobs:
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
-      - uses: actions-rs/toolchain@v1.0.7
+      - uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: stable
-          override: true
-          profile: minimal
       - uses: Swatinem/rust-cache@v2
         with:
           key: build-run-examples

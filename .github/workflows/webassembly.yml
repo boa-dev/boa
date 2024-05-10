@@ -30,11 +30,9 @@ jobs:
       RUSTFLAGS: -D warnings
     steps:
       - uses: actions/checkout@v4
-      - uses: actions-rs/toolchain@v1.0.7
+      - uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: stable
-          override: true
-          profile: minimal
       - uses: Swatinem/rust-cache@v2
       - name: Install wasm-pack
         uses: baptiste0928/cargo-install@v3.1.0
