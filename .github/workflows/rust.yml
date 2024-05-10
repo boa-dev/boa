@@ -87,6 +87,7 @@ jobs:
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
+        with:
           toolchain: ${{ steps.rust_version.outputs.rust_version }}
 
       - name: Check compilation
