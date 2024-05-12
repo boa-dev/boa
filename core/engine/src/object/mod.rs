@@ -23,7 +23,7 @@ use crate::{
     native_function::{NativeFunction, NativeFunctionObject},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
-    string::common::StaticJsStrings,
+    string::StaticJsStrings,
     Context, JsStr, JsString, JsSymbol, JsValue,
 };
 
