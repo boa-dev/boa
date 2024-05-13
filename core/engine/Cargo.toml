@@ -90,7 +90,7 @@ fast-float.workspace = true
 once_cell = { workspace = true, features = ["std"] }
 tap = "1.0.1"
 sptr = "0.3.2"
-thiserror = "1.0.59"
+thiserror = "1.0.60"
 dashmap = "5.5.3"
 num_enum = "0.7.2"
 pollster.workspace = true
