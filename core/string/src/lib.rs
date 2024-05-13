@@ -19,19 +19,18 @@
 mod common;
 mod iter;
 mod str;
-mod tagged;
 
 #[cfg(test)]
 mod tests;
 
 use self::{iter::Windows, str::JsSliceIndex};
-use crate::tagged::{Tagged, UnwrappedTagged};
 #[doc(inline)]
 pub use crate::{
     common::StaticJsStrings,
     iter::Iter,
     str::{JsStr, JsStrVariant},
 };
+use boa_utils::tagged::{Tagged, UnwrappedTagged};
 use std::{
     alloc::{alloc, dealloc, Layout},
     cell::Cell,

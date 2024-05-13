@@ -1,5 +1,5 @@
 [package]
-name = "boa_string"
+name = "boa_utils"
 keywords = ["javascript", "js", "string"]
 categories = ["parser-implementations", "compilers"]
 readme = "../../README.md"
@@ -12,14 +12,7 @@ repository.workspace = true
 rust-version.workspace = true
 
 [dependencies]
-boa_utils.workspace = true
-rustc-hash = { workspace = true, features = ["std"] }
-static_assertions.workspace = true
-paste = "1.0"
-fast-float.workspace = true
-
-[dev-dependencies]
-boa_macros.workspace = true
+sptr = "0.3.2"
 
 [lints]
 workspace = true

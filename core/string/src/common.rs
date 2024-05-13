@@ -1,8 +1,7 @@
 //! List of commonly used strings in Javascript code.
 
-use crate::{tagged::Tagged, JsStr};
-
-use super::JsString;
+use super::{JsStr, JsString};
+use boa_utils::tagged::Tagged;
 use paste::paste;
 use rustc_hash::{FxHashMap, FxHasher};
 use std::hash::BuildHasherDefault;

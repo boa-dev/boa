@@ -396,6 +396,7 @@ dependencies = [
  "boa_parser",
  "boa_profiler",
  "boa_string",
+ "boa_utils",
  "bytemuck",
  "cfg-if",
  "criterion",
@@ -576,10 +577,10 @@ name = "boa_string"
 version = "0.18.0"
 dependencies = [
  "boa_macros",
+ "boa_utils",
  "fast-float",
  "paste",
  "rustc-hash",
- "sptr",
  "static_assertions",
 ]
 
@@ -605,6 +606,13 @@ dependencies = [
  "serde_yaml",
  "time 0.3.36",
  "toml 0.8.12",
+]
+
+[[package]]
+name = "boa_utils"
+version = "0.18.0"
+dependencies = [
+ "sptr",
 ]
 
 [[package]]

@@ -19,6 +19,7 @@ Try out the most recent release with Boa's live demo
 - [**`boa_icu_provider`**][icu] - Boa's ICU4X data provider.
 - [**`boa_runtime`**][runtime] - Boa's WebAPI features.
 - [**`boa_string`**][string] - Boa's ECMAScript string implementation.
+- [**`boa_utils`**][utils] - Boa's utility crate.
 
 [boa-conformance]: https://boajs.dev/conformance
 [boa-web]: https://boajs.dev/
@@ -32,3 +33,4 @@ Try out the most recent release with Boa's live demo
 [icu]: https://docs.rs/boa_icu_provider/latest/boa_icu_provider/index.html
 [runtime]: https://docs.rs/boa_runtime/latest/boa_runtime/index.html
 [string]: https://docs.rs/boa_string/latest/boa_string/index.html
+[utils]: https://docs.rs/boa_utils/latest/boa_utils/index.html
