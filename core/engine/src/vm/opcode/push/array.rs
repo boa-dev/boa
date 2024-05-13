@@ -1,6 +1,6 @@
 use crate::{
     builtins::Array,
-    string::common::StaticJsStrings,
+    string::StaticJsStrings,
     vm::{opcode::Operation, CompletionType},
     Context, JsResult, JsValue,
 };

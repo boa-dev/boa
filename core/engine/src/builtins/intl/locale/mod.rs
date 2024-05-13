@@ -1,4 +1,4 @@
-use crate::{builtins::options::get_option, realm::Realm, string::common::StaticJsStrings};
+use crate::{builtins::options::get_option, realm::Realm, string::StaticJsStrings};
 use boa_macros::js_str;
 use boa_profiler::Profiler;
 use icu_collator::CaseFirst;

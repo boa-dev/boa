@@ -17,7 +17,7 @@ use crate::{
     object::{internal_methods::get_prototype_from_constructor, JsObject},
     property::{Attribute, PropertyDescriptor},
     realm::Realm,
-    string::{common::StaticJsStrings, CodePoint},
+    string::{CodePoint, StaticJsStrings},
     symbol::JsSymbol,
     value::IntegerOrInfinity,
     Context, JsArgs, JsResult, JsString, JsValue,
@@ -70,23 +70,6 @@ pub(crate) const fn is_trimmable_whitespace(c: char) -> bool {
             ..='\u{200A}' | '\u{202F}' | '\u{205F}' | '\u{3000}' |
     // Line terminators: https://tc39.es/ecma262/#sec-line-terminators
     '\u{000A}' | '\u{000D}' | '\u{2028}' | '\u{2029}'
-    )
-}
-
-/// Helper function to check if a `u8` latin1 character is trimmable.
-pub(crate) const fn is_trimmable_whitespace_latin1(c: u8) -> bool {
-    // The rust implementation of `trim` does not regard the same characters whitespace as ecma standard does
-    //
-    // Rust uses \p{White_Space} by default, which also includes:
-    // `\u{0085}' (next line)
-    // And does not include:
-    // '\u{FEFF}' (zero width non-breaking space)
-    // Explicit whitespace: https://tc39.es/ecma262/#sec-white-space
-    matches!(
-        c,
-        0x09 | 0x0B | 0x0C | 0x20 | 0xA0 |
-        // Line terminators: https://tc39.es/ecma262/#sec-line-terminators
-        0x0A | 0x0D
     )
 }
 

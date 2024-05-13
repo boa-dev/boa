@@ -3,7 +3,7 @@ use crate::{
     context::intrinsics::Intrinsics,
     object::JsObject,
     realm::Realm,
-    string::common::StaticJsStrings,
+    string::StaticJsStrings,
     Context, JsArgs, JsResult, JsStr, JsString, JsValue,
 };
 
