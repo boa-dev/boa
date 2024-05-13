@@ -25,7 +25,7 @@ use crate::{
     js_string,
     object::{JsFunction, JsObject},
     realm::Realm,
-    string::{common::StaticJsStrings, CodePoint},
+    string::{CodePoint, StaticJsStrings},
     Context, JsArgs, JsNativeError, JsResult, JsString, JsValue,
 };
 

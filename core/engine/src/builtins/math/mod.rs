@@ -13,8 +13,8 @@
 
 use crate::{
     builtins::BuiltInObject, context::intrinsics::Intrinsics, js_string, object::JsObject,
-    property::Attribute, realm::Realm, string::common::StaticJsStrings, symbol::JsSymbol, Context,
-    JsArgs, JsResult, JsString, JsValue,
+    property::Attribute, realm::Realm, string::StaticJsStrings, symbol::JsSymbol, Context, JsArgs,
+    JsResult, JsString, JsValue,
 };
 use boa_profiler::Profiler;
 

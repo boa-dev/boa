@@ -9,7 +9,7 @@ use crate::{
     object::{JsObject, PrivateElement, PrivateName, CONSTRUCTOR, PROTOTYPE},
     property::{PropertyDescriptor, PropertyDescriptorBuilder, PropertyKey, PropertyNameKind},
     realm::Realm,
-    string::common::StaticJsStrings,
+    string::StaticJsStrings,
     value::Type,
     Context, JsResult, JsSymbol, JsValue,
 };

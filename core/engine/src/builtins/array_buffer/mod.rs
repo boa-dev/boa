@@ -29,7 +29,7 @@ use crate::{
     object::{internal_methods::get_prototype_from_constructor, JsObject, Object},
     property::Attribute,
     realm::Realm,
-    string::common::StaticJsStrings,
+    string::StaticJsStrings,
     symbol::JsSymbol,
     Context, JsArgs, JsData, JsResult, JsString, JsValue,
 };

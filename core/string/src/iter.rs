@@ -29,6 +29,7 @@ impl<'a> Iter<'a> {
 impl Iterator for Iter<'_> {
     type Item = u16;
 
+    #[inline]
     fn next(&mut self) -> Option<Self::Item> {
         match &mut self.inner {
             IterInner::U8(iter) => iter.map(u16::from).next(),
@@ -40,6 +41,7 @@ impl Iterator for Iter<'_> {
 impl FusedIterator for Iter<'_> {}
 
 impl ExactSizeIterator for Iter<'_> {
+    #[inline]
     fn len(&self) -> usize {
         match &self.inner {
             IterInner::U8(v) => v.len(),
@@ -75,6 +77,7 @@ impl<'a> Windows<'a> {
 impl<'a> Iterator for Windows<'a> {
     type Item = JsStr<'a>;
 
+    #[inline]
     fn next(&mut self) -> Option<Self::Item> {
         match &mut self.inner {
             WindowsInner::U8(iter) => iter.next().map(JsStr::latin1),
@@ -86,6 +89,7 @@ impl<'a> Iterator for Windows<'a> {
 impl FusedIterator for Windows<'_> {}
 
 impl ExactSizeIterator for Windows<'_> {
+    #[inline]
     fn len(&self) -> usize {
         match &self.inner {
             WindowsInner::U8(v) => v.len(),

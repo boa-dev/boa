@@ -9,7 +9,7 @@ use crate::{
     js_string,
     property::Attribute,
     realm::Realm,
-    string::common::StaticJsStrings,
+    string::StaticJsStrings,
     sys::time::SystemTime,
     Context, JsBigInt, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };

@@ -28,7 +28,7 @@ use crate::{
     },
     property::{Attribute, PropertyDescriptor, PropertyKey, PropertyNameKind},
     realm::Realm,
-    string::common::StaticJsStrings,
+    string::StaticJsStrings,
     symbol::JsSymbol,
     value::JsValue,
     Context, JsArgs, JsData, JsResult, JsString,

@@ -17,7 +17,7 @@ use crate::{
     object::{internal_methods::get_prototype_from_constructor, JsObject},
     property::{Attribute, PropertyDescriptorBuilder},
     realm::Realm,
-    string::common::StaticJsStrings,
+    string::StaticJsStrings,
     Context, JsArgs, JsResult, JsString, JsValue,
 };
 use boa_macros::js_str;
