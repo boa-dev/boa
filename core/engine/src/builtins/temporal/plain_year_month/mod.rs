@@ -15,6 +15,8 @@ use boa_profiler::Profiler;
 
 use temporal_rs::{
     iso::IsoDateSlots,
+    iso::IsoDateSlots,
+    options::ArithmeticOverflow,
     {
         components::{
             calendar::{Calendar as InnerCalendar, GetTemporalCalendar},
@@ -205,22 +207,45 @@ impl BuiltInConstructor for PlainYearMonth {
 // ==== `PlainYearMonth` Accessor Implementations ====
 
 impl PlainYearMonth {
-    fn get_calendar_id(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        Err(JsNativeError::error()
-            .with_message("not yet implemented.")
+    fn get_internal_field(this: &JsValue, field: &DateTimeValues) -> JsResult<JsValue> {
+        let year_month = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("this value must be a PlainYearMonth object.")
+            })?;
+        let inner = &year_month.inner;
+        match field {
+            DateTimeValues::Year => Ok(inner.year().into()),
+            DateTimeValues::Month => Ok(inner.month().into()),
+            _ => unimplemented!(),
+        }
+    }
+
+    fn get_calendar_id(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let obj = this
+            .as_object()
+            .ok_or_else(|| JsNativeError::typ().with_message("this must be an object."))?;
+
+        let Ok(year_month) = obj.clone().downcast::<Self>() else {
+            return Err(JsNativeError::typ()
+                .with_message("the this object must be a PlainYearMonth object.")
+                .into());
+        };
+
+        Ok(year_month
+            .get_calendar()
+            .identifier(context)
+            .map(JsString::from)?
             .into())
     }
 
-    fn get_year(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        Err(JsNativeError::error()
-            .with_message("not yet implemented.")
-            .into())
+    fn get_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+        Self::get_internal_field(this, &DateTimeValues::Year)
     }
 
-    fn get_month(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        Err(JsNativeError::error()
-            .with_message("not yet implemented.")
-            .into())
+    fn get_month(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+        Self::get_internal_field(this, &DateTimeValues::Month)
     }
 
     fn get_month_code(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
