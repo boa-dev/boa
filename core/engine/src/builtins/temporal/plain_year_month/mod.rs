@@ -1,5 +1,7 @@
 //! Boa's implementation of the `Temporal.PlainYearMonth` builtin object.
 
+use std::str::FromStr;
+
 use crate::{
     builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
@@ -11,10 +13,13 @@ use crate::{
     Context, JsArgs, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 use boa_gc::{Finalize, Trace};
+use boa_macros::js_str;
 use boa_profiler::Profiler;
 
 use temporal_rs::{
     iso::IsoDateSlots,
+    iso::IsoDateSlots,
+    options::ArithmeticOverflow,
     {
         components::{
             calendar::{Calendar as InnerCalendar, GetTemporalCalendar},
@@ -145,6 +150,7 @@ impl IntrinsicObject for PlainYearMonth {
                 None,
                 Attribute::CONFIGURABLE,
             )
+            .static_method(Self::from, js_string!("from"), 2)
             .method(Self::with, js_string!("with"), 2)
             .method(Self::add, js_string!("add"), 2)
             .method(Self::subtract, js_string!("subtract"), 2)
@@ -202,43 +208,141 @@ impl BuiltInConstructor for PlainYearMonth {
     }
 }
 
-// ==== `PlainYearMonth` Accessor Implementations ====
+// ==== `Temporal.PlainYearMonth` static Methods ====
 
 impl PlainYearMonth {
-    fn get_calendar_id(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        Err(JsNativeError::error()
-            .with_message("not yet implemented.")
+    // 9.2.2 `Temporal.PlainYearMonth.from ( item [ , options ] )`
+    fn from(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let thing = args.get_or_undefined(0);
+        // let options = get_options_object(options.unwrap_or(&JsValue::undefined()))?;
+        let inner = if thing.is_object() {
+            // 1. If Type(item) is Object or Type(item) is String and item is not null, then
+            // a. Let calendar be ? ToTemporalCalendar(item).
+            let calendar = to_temporal_calendar_slot_value(args.get_or_undefined(1), context)?;
+            // b. Return ? ToTemporalYearMonth(item, calendar).
+            InnerYearMonth::new(
+                thing
+                    .get_v(js_str!("year"), context)
+                    .expect("Year not found")
+                    .to_i32(context)
+                    .expect("Cannot convert year to i32"),
+                thing
+                    .get_v(js_str!("month"), context)
+                    .expect("Year not found")
+                    .to_i32(context)
+                    .expect("Cannot convert month to i32"),
+                Some(1),
+                calendar,
+                ArithmeticOverflow::Constrain,
+            )?
+        } else if thing.is_string() {
+            let thing_str = &thing
+                .as_string()
+                .expect("Value passed not a string")
+                .to_std_string()
+                .expect("Failed to convert JsString to String");
+            InnerYearMonth::from_str(thing_str)?
+        } else {
+            return Err(JsNativeError::typ()
+                .with_message("item must be an object, string, or null.")
+                .into());
+        };
+
+        create_temporal_year_month(inner, None, context)
+    }
+}
+
+// ==== `PlainYearMonth` Accessor Implementations ====/
+
+impl PlainYearMonth {
+    fn get_internal_field(this: &JsValue, field: &DateTimeValues) -> JsResult<JsValue> {
+        let year_month = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("this value must be a PlainYearMonth object.")
+            })?;
+        let inner = &year_month.inner;
+        match field {
+            DateTimeValues::Year => Ok(inner.year().into()),
+            DateTimeValues::Month => Ok(inner.month().into()),
+            _ => unreachable!(),
+        }
+    }
+
+    fn get_calendar_id(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let obj = this
+            .as_object()
+            .ok_or_else(|| JsNativeError::typ().with_message("this must be an object."))?;
+
+        let Ok(year_month) = obj.clone().downcast::<Self>() else {
+            return Err(JsNativeError::typ()
+                .with_message("the this object must be a PlainYearMonth object.")
+                .into());
+        };
+
+        Ok(year_month
+            .get_calendar()
+            .identifier(context)
+            .map(JsString::from)?
             .into())
     }
 
-    fn get_year(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        Err(JsNativeError::error()
-            .with_message("not yet implemented.")
-            .into())
+    fn get_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+        Self::get_internal_field(this, &DateTimeValues::Year)
     }
 
-    fn get_month(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        Err(JsNativeError::error()
-            .with_message("not yet implemented.")
-            .into())
+    fn get_month(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+        Self::get_internal_field(this, &DateTimeValues::Month)
     }
 
-    fn get_month_code(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        Err(JsNativeError::error()
-            .with_message("not yet implemented.")
-            .into())
+    fn get_month_code(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let obj = this
+            .as_object()
+            .ok_or_else(|| JsNativeError::typ().with_message("this must be an object."))?;
+
+        let Ok(year_month) = obj.clone().downcast::<Self>() else {
+            return Err(JsNativeError::typ()
+                .with_message("the this object must be a PlainYearMonth object.")
+                .into());
+        };
+
+        Ok(JsString::from(
+            InnerYearMonth::<JsObject>::contextual_month_code(&year_month, context)?.as_str(),
+        )
+        .into())
     }
 
-    fn get_days_in_year(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        Err(JsNativeError::error()
-            .with_message("not yet implemented.")
-            .into())
+    fn get_days_in_year(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let obj = this
+            .as_object()
+            .ok_or_else(|| JsNativeError::typ().with_message("this must be an object."))?;
+
+        let Ok(year_month) = obj.clone().downcast::<Self>() else {
+            return Err(JsNativeError::typ()
+                .with_message("the this object must be a PlainYearMonth object.")
+                .into());
+        };
+
+        Ok(InnerYearMonth::<JsObject>::get_days_in_year(&year_month, context)?.into())
     }
 
-    fn get_days_in_month(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        Err(JsNativeError::error()
-            .with_message("not yet implemented.")
-            .into())
+    fn get_days_in_month(
+        this: &JsValue,
+        _: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        let obj = this
+            .as_object()
+            .ok_or_else(|| JsNativeError::typ().with_message("this must be an object."))?;
+
+        let Ok(year_month) = obj.clone().downcast::<Self>() else {
+            return Err(JsNativeError::typ()
+                .with_message("the this object must be a PlainYearMonth object.")
+                .into());
+        };
+
+        Ok(InnerYearMonth::<JsObject>::get_days_in_month(&year_month, context)?.into())
     }
 
     fn get_months_in_year(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
@@ -299,7 +403,7 @@ impl PlainYearMonth {
 // 9.5.2 `RegulateISOYearMonth ( year, month, overflow )`
 // Implemented on `TemporalFields`.
 
-// 9.5.5 `CreateTemporalYearMonth ( isoYear, isoMonth, calendar, referenceISODay [ , newTarget ] )`
+// 9.5.6 `CreateTemporalYearMonth ( isoYear, isoMonth, calendar, referenceISODay [ , newTarget ] )`
 pub(crate) fn create_temporal_year_month(
     ym: InnerYearMonth,
     new_target: Option<&JsValue>,
