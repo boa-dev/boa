@@ -218,7 +218,7 @@ impl PlainYearMonth {
         match field {
             DateTimeValues::Year => Ok(inner.year().into()),
             DateTimeValues::Month => Ok(inner.month().into()),
-            _ => unimplemented!(),
+            _ => unreachable!(),
         }
     }
 
@@ -248,10 +248,21 @@ impl PlainYearMonth {
         Self::get_internal_field(this, &DateTimeValues::Month)
     }
 
-    fn get_month_code(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        Err(JsNativeError::error()
-            .with_message("not yet implemented.")
-            .into())
+    fn get_month_code(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let obj = this
+            .as_object()
+            .ok_or_else(|| JsNativeError::typ().with_message("this must be an object."))?;
+
+        let Ok(year_month) = obj.clone().downcast::<Self>() else {
+            return Err(JsNativeError::typ()
+                .with_message("the this object must be a PlainDate object.")
+                .into());
+        };
+
+        Ok(JsString::from(
+            InnerYearMonth::<JsObject>::contextual_month_code(&year_month, context)?.as_str(),
+        )
+        .into())
     }
 
     fn get_days_in_year(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
