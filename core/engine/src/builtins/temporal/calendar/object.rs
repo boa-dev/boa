@@ -852,6 +852,7 @@ pub(crate) fn date_like_to_object(
                 .map_err(|e| TemporalError::general(e.to_string()))
                 .map(Into::into)
         }
+        CalendarDateLike::YearMonth(pym) => Ok(pym.clone().upcast().into()),
         CalendarDateLike::CustomMonthDay(md) => Ok(md.clone().upcast().into()),
         CalendarDateLike::CustomYearMonth(ym) => Ok(ym.clone().upcast().into()),
         CalendarDateLike::CustomDate(pd) => Ok(pd.clone().upcast().into()),
