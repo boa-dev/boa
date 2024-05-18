@@ -69,7 +69,11 @@ bitflags! {
 
         /// Trace instruction execution to `stdout`.
         #[cfg(feature = "trace")]
-        const TRACEABLE = 0b1000_0000_0000_0000;
+        const TRACEABLE = 0b0100_0000_0000_0000;
+
+        /// Stores whether the `CodeBlock` has been traced.
+        #[cfg(feature = "trace")]
+        const WAS_TRACED = 0b1000_0000_0000_0000;
     }
 }
 
@@ -194,7 +198,7 @@ impl CodeBlock {
 
     /// Check if the function is traced.
     #[cfg(feature = "trace")]
-    pub(crate) fn traceable(&self) -> bool {
+    pub fn traceable(&self) -> bool {
         self.flags.get().contains(CodeBlockFlags::TRACEABLE)
     }
     /// Enable or disable instruction tracing to `stdout`.
@@ -203,6 +207,20 @@ impl CodeBlock {
     pub fn set_traceable(&self, value: bool) {
         let mut flags = self.flags.get();
         flags.set(CodeBlockFlags::TRACEABLE, value);
+        self.flags.set(flags);
+    }
+
+    /// Returns whether the frame has been previously traced.
+    #[cfg(feature = "trace")]
+    pub fn was_traced(&self) -> bool {
+        self.flags.get().contains(CodeBlockFlags::WAS_TRACED)
+    }
+
+    /// Set the current frame as traced.
+    #[cfg(feature = "trace")]
+    pub fn set_frame_traced(&self, value: bool) {
+        let mut flags = self.flags.get();
+        flags.set(CodeBlockFlags::WAS_TRACED, value);
         self.flags.set(flags);
     }
 

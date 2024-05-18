@@ -21,6 +21,9 @@ mod code_block;
 mod completion_record;
 mod inline_cache;
 mod opcode;
+#[cfg(feature = "trace")]
+pub mod trace;
+
 mod runtime_limits;
 
 #[cfg(feature = "flowgraph")]
@@ -28,10 +31,14 @@ pub mod flowgraph;
 
 pub(crate) use inline_cache::InlineCache;
 
+#[cfg(feature = "trace")]
+use trace::VmTrace;
+
 // TODO: see if this can be exposed on all features.
 #[allow(unused_imports)]
 pub(crate) use opcode::{Instruction, InstructionIterator, Opcode, VaryingOperandKind};
 pub use runtime_limits::RuntimeLimits;
+
 pub use {
     call_frame::{CallFrame, GeneratorResumeKind},
     code_block::CodeBlock,
@@ -76,7 +83,7 @@ pub struct Vm {
     pub(crate) realm: Realm,
 
     #[cfg(feature = "trace")]
-    pub(crate) trace: bool,
+    pub(crate) trace: VmTrace,
 }
 
 /// Active runnable in the current vm context.
@@ -108,7 +115,7 @@ impl Vm {
             native_active_function: None,
             realm,
             #[cfg(feature = "trace")]
-            trace: false,
+            trace: VmTrace::default(),
         }
     }
 
@@ -181,6 +188,9 @@ impl Vm {
         }
 
         self.frames.push(frame);
+
+        #[cfg(feature = "trace")]
+        self.trace.trace_call_frame(self);
     }
 
     pub(crate) fn push_frame_with_stack(
@@ -193,6 +203,9 @@ impl Vm {
         self.push(function);
 
         self.push_frame(frame);
+
+        #[cfg(feature = "trace")]
+        self.trace.trace_call_frame(self);
     }
 
     pub(crate) fn pop_frame(&mut self) -> Option<CallFrame> {
@@ -264,38 +277,6 @@ pub(crate) enum CompletionType {
 
 #[cfg(feature = "trace")]
 impl Context {
-    const COLUMN_WIDTH: usize = 26;
-    const TIME_COLUMN_WIDTH: usize = Self::COLUMN_WIDTH / 2;
-    const OPCODE_COLUMN_WIDTH: usize = Self::COLUMN_WIDTH;
-    const OPERAND_COLUMN_WIDTH: usize = Self::COLUMN_WIDTH;
-    const NUMBER_OF_COLUMNS: usize = 4;
-
-    pub(crate) fn trace_call_frame(&self) {
-        let msg = if self.vm.frames.last().is_some() {
-            format!(
-                " Call Frame -- {} ",
-                self.vm.frame().code_block().name().to_std_string_escaped()
-            )
-        } else {
-            " VM Start ".to_string()
-        };
-
-        println!("{}", self.vm.frame().code_block);
-        println!(
-            "{msg:-^width$}",
-            width = Self::COLUMN_WIDTH * Self::NUMBER_OF_COLUMNS - 10
-        );
-        println!(
-            "{:<TIME_COLUMN_WIDTH$} {:<OPCODE_COLUMN_WIDTH$} {:<OPERAND_COLUMN_WIDTH$} Stack\n",
-            "Time",
-            "Opcode",
-            "Operands",
-            TIME_COLUMN_WIDTH = Self::TIME_COLUMN_WIDTH,
-            OPCODE_COLUMN_WIDTH = Self::OPCODE_COLUMN_WIDTH,
-            OPERAND_COLUMN_WIDTH = Self::OPERAND_COLUMN_WIDTH,
-        );
-    }
-
     fn trace_execute_instruction<F>(&mut self, f: F) -> JsResult<CompletionType>
     where
         F: FnOnce(Opcode, &mut Context) -> JsResult<CompletionType>,
@@ -368,13 +349,12 @@ impl Context {
             VaryingOperandKind::U32 => ".U32",
         };
 
-        println!(
-            "{:<TIME_COLUMN_WIDTH$} {:<OPCODE_COLUMN_WIDTH$} {operands:<OPERAND_COLUMN_WIDTH$} {stack}",
-            format!("{}μs", duration.as_micros()),
-            format!("{}{varying_operand_kind}", opcode.as_str()),
-            TIME_COLUMN_WIDTH = Self::TIME_COLUMN_WIDTH,
-            OPCODE_COLUMN_WIDTH = Self::OPCODE_COLUMN_WIDTH,
-            OPERAND_COLUMN_WIDTH = Self::OPERAND_COLUMN_WIDTH,
+        self.vm.trace.trace_instruction(
+            duration.as_micros(),
+            varying_operand_kind,
+            opcode.as_str(),
+            &operands,
+            &stack,
         );
 
         result
@@ -417,7 +397,7 @@ impl Context {
         }
 
         #[cfg(feature = "trace")]
-        let result = if self.vm.trace || self.vm.frame().code_block.traceable() {
+        let result = if self.vm.trace.should_trace(self.vm.frame()) {
             self.trace_execute_instruction(f)
         } else {
             self.execute_instruction(f)
@@ -445,6 +425,8 @@ impl Context {
                     }
                     self.vm.environments.truncate(env_fp);
                     self.vm.stack.truncate(fp);
+                    #[cfg(feature = "trace")]
+                    self.vm.trace.trace_frame_end(&self.vm, "Throw");
                     return ControlFlow::Break(CompletionRecord::Throw(err));
                 }
 
@@ -469,6 +451,9 @@ impl Context {
                 let fp = self.vm.frame().fp() as usize;
                 self.vm.stack.truncate(fp);
 
+                #[cfg(feature = "trace")]
+                self.vm.trace.trace_frame_end(&self.vm, "Return");
+
                 let result = self.vm.take_return_value();
                 if self.vm.frame().exit_early() {
                     return ControlFlow::Break(CompletionRecord::Normal(result));
@@ -480,6 +465,8 @@ impl Context {
             CompletionType::Throw => {
                 let mut fp = self.vm.frame().fp();
                 let mut env_fp = self.vm.frame().env_fp;
+                #[cfg(feature = "trace")]
+                self.vm.trace.trace_frame_end(&self.vm, "Throw");
                 if self.vm.frame().exit_early() {
                     self.vm.environments.truncate(env_fp as usize);
                     self.vm.stack.truncate(fp as usize);
@@ -519,6 +506,9 @@ impl Context {
             }
             // Early return immediately.
             CompletionType::Yield => {
+                #[cfg(feature = "trace")]
+                self.vm.trace.trace_frame_end(&self.vm, "Yield");
+
                 let result = self.vm.take_return_value();
                 if self.vm.frame().exit_early() {
                     return ControlFlow::Break(CompletionRecord::Return(result));
@@ -537,11 +527,6 @@ impl Context {
     #[allow(clippy::future_not_send)]
     pub(crate) async fn run_async_with_budget(&mut self, budget: u32) -> CompletionRecord {
         let _timer = Profiler::global().start_event("run_async_with_budget", "vm");
-
-        #[cfg(feature = "trace")]
-        if self.vm.trace {
-            self.trace_call_frame();
-        }
 
         let mut runtime_budget: u32 = budget;
 
@@ -562,11 +547,6 @@ impl Context {
 
     pub(crate) fn run(&mut self) -> CompletionRecord {
         let _timer = Profiler::global().start_event("run", "vm");
-
-        #[cfg(feature = "trace")]
-        if self.vm.trace {
-            self.trace_call_frame();
-        }
 
         loop {
             match self.execute_one(Opcode::execute) {

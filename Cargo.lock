@@ -614,6 +614,7 @@ dependencies = [
  "boa_engine",
  "console_error_panic_hook",
  "getrandom",
+ "js-sys",
  "wasm-bindgen",
  "wasm-bindgen-test",
 ]
