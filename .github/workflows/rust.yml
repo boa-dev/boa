@@ -45,6 +45,8 @@ jobs:
     name: Test
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
+    env:
+      RUSTUP_WINDOWS_PATH_ADD_BIN: 1
     strategy:
       matrix:
         os:
