@@ -28,6 +28,12 @@ icu_normalizer = { workspace = true, features = ["datagen"] }
 icu_plurals = { workspace = true, features = ["datagen", "experimental"] }
 icu_segmenter = { workspace = true, features = ["datagen"] }
 
+[target.'cfg(windows)'.dependencies]
+# wasmer-wasi apparently has a wrong deps config...
+# This dep patches that.
+winapi = { workspace = true, features = ["sysinfoapi"] }
+
+
 [lints]
 workspace = true
 

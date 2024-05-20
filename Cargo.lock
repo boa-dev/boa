@@ -1563,6 +1563,7 @@ dependencies = [
  "icu_segmenter",
  "log",
  "simple_logger",
+ "winapi",
 ]
 
 [[package]]

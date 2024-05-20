@@ -11,6 +11,9 @@ use icu_provider::{
 };
 use icu_provider_blob::export::BlobExporter;
 
+#[cfg(target_os = "windows")] // wasmer-wasi is a really fun dependency to maintain :)
+use winapi as _;
+
 /// Hack that associates the `und` locale with an empty plural ranges data.
 /// This enables the default behaviour for all locales without data.
 #[derive(Debug)]
