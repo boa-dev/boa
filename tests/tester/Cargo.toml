@@ -22,13 +22,13 @@ serde_json.workspace = true
 bitflags.workspace = true
 colored.workspace = true
 rustc-hash = { workspace = true, features = ["std"] }
-rayon = "1.10.0"
-toml = "0.8.12"
-color-eyre = "0.6.3"
+rayon.workspace = true
+toml.workspace = true
+color-eyre.workspace = true
 phf = { workspace = true, features = ["macros"] }
-comfy-table = "7.1.1"
-serde_repr = "0.1.19"
-bus = "2.4.1"
+comfy-table.workspace = true
+serde_repr.workspace = true
+bus.workspace = true
 time.workspace = true
 
 [features]
