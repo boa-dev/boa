@@ -4,76 +4,32 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    groups:
+      ci-dependencies:
+        applies-to: version-updates
+        patterns: ["*"]
+        update-types:
+        - "minor"
+        - "patch"
   - package-ecosystem: cargo
     directory: /
     schedule:
       interval: weekly
-  # CLI
-  - package-ecosystem: cargo
-    directory: /cli/
-    schedule:
-      interval: weekly
-  # CORE
-  - package-ecosystem: cargo
-    directory: /core/ast/
-    schedule:
-      interval: weekly
-  - package-ecosystem: cargo
-    directory: /core/engine/
-    schedule:
-      interval: weekly
-  - package-ecosystem: cargo
-    directory: /core/gc/
-    schedule:
-      interval: weekly
-  - package-ecosystem: cargo
-    directory: /core/icu_provider/
-    schedule:
-      interval: weekly
-  - package-ecosystem: cargo
-    directory: /core/interner/
-    schedule:
-      interval: weekly
-  - package-ecosystem: cargo
-    directory: /core/macros/
-    schedule:
-      interval: weekly
-  - package-ecosystem: cargo
-    directory: /core/parser/
-    schedule:
-      interval: weekly
-  - package-ecosystem: cargo
-    directory: /core/profiler/
-    schedule:
-      interval: weekly
-  - package-ecosystem: cargo
-    directory: /core/runtime/
-    schedule:
-      interval: weekly
-  - package-ecosystem: cargo
-    directory: /core/temporal/
-    schedule:
-      interval: weekly
-  # TESTS
-  - package-ecosystem: cargo
-    directory: /tests/tester/
-    schedule:
-      interval: weekly
-  - package-ecosystem: cargo
-    directory: /tests/macros/
-    schedule:
-      interval: weekly
+    groups:
+      rust-dependencies:
+        applies-to: version-updates
+        patterns: ["*"]
+        update-types:
+        - "minor"
+        - "patch"
   - package-ecosystem: cargo
     directory: /tests/fuzz/
     schedule:
       interval: weekly
-  # FFI
-  - package-ecosystem: cargo
-    directory: /ffi/wasm/
-    schedule:
-      interval: weekly
-  # TOOLS
-  - package-ecosystem: cargo
-    directory: /tools/
-    schedule:
-      interval: weekly
+    groups:
+      fuzz-dependencies:
+        applies-to: version-updates
+        patterns: ["*"]
+        update-types:
+        - "minor"
+        - "patch"

@@ -6,7 +6,7 @@ edition.workspace = true
 rust-version.workspace = true
 
 [dependencies]
-cargo_metadata = "0.18.1"
+cargo_metadata.workspace = true
 log.workspace = true
 simple_logger.workspace = true
 

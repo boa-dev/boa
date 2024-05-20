@@ -13,9 +13,9 @@ rust-version.workspace = true
 
 [dependencies]
 rustc-hash = { workspace = true, features = ["std"] }
-sptr = "0.3.2"
+sptr.workspace = true
 static_assertions.workspace = true
-paste = "1.0"
+paste.workspace = true
 fast-float.workspace = true
 
 [dev-dependencies]

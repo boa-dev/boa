@@ -16,14 +16,14 @@ boa_engine = { workspace = true, features = ["deser", "flowgraph", "trace"] }
 boa_parser.workspace = true
 boa_gc.workspace = true
 boa_runtime.workspace = true
-rustyline = { version = "14.0.0", features = ["derive"]}
+rustyline = { workspace = true, features = ["derive"]}
 clap = { workspace = true, features = ["derive"] }
 serde_json.workspace = true
 colored.workspace = true
 regex.workspace = true
 phf = { workspace = true, features = ["macros"] }
 pollster.workspace = true
-dhat = { version = "0.3.3", optional = true }
+dhat = { workspace = true, optional = true }
 
 [features]
 default = ["boa_engine/annex-b", "boa_engine/experimental", "boa_engine/intl_bundled"]
