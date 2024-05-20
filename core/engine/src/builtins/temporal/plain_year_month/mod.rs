@@ -255,7 +255,7 @@ impl PlainYearMonth {
 
         let Ok(year_month) = obj.clone().downcast::<Self>() else {
             return Err(JsNativeError::typ()
-                .with_message("the this object must be a PlainDate object.")
+                .with_message("the this object must be a PlainYearMonth object.")
                 .into());
         };
 
@@ -265,16 +265,36 @@ impl PlainYearMonth {
         .into())
     }
 
-    fn get_days_in_year(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        Err(JsNativeError::error()
-            .with_message("not yet implemented.")
-            .into())
+    fn get_days_in_year(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let obj = this
+            .as_object()
+            .ok_or_else(|| JsNativeError::typ().with_message("this must be an object."))?;
+
+        let Ok(year_month) = obj.clone().downcast::<Self>() else {
+            return Err(JsNativeError::typ()
+                .with_message("the this object must be a PlainYearMonth object.")
+                .into());
+        };
+
+        Ok(InnerYearMonth::<JsObject>::get_days_in_year(&year_month, context)?.into())
     }
 
-    fn get_days_in_month(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        Err(JsNativeError::error()
-            .with_message("not yet implemented.")
-            .into())
+    fn get_days_in_month(
+        this: &JsValue,
+        _: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        let obj = this
+            .as_object()
+            .ok_or_else(|| JsNativeError::typ().with_message("this must be an object."))?;
+
+        let Ok(year_month) = obj.clone().downcast::<Self>() else {
+            return Err(JsNativeError::typ()
+                .with_message("the this object must be a PlainYearMonth object.")
+                .into());
+        };
+
+        Ok(InnerYearMonth::<JsObject>::get_days_in_month(&year_month, context)?.into())
     }
 
     fn get_months_in_year(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
