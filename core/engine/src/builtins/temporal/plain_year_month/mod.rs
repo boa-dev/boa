@@ -3,7 +3,10 @@
 use std::str::FromStr;
 
 use crate::{
-    builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
+    builtins::{
+        options::{get_option, get_options_object},
+        BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
+    },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
     object::internal_methods::get_prototype_from_constructor,
@@ -213,41 +216,43 @@ impl BuiltInConstructor for PlainYearMonth {
 impl PlainYearMonth {
     // 9.2.2 `Temporal.PlainYearMonth.from ( item [ , options ] )`
     fn from(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let thing = args.get_or_undefined(0);
-        // let options = get_options_object(options.unwrap_or(&JsValue::undefined()))?;
-        let inner = if thing.is_object() {
-            // 1. If Type(item) is Object or Type(item) is String and item is not null, then
+        let item = args.get_or_undefined(0);
+        // 1. If Type(item) is Object or Type(item) is String and item is not null, then
+        let inner = if item.is_object() {
+            let options = get_options_object(args.get_or_undefined(1))?;
+            let overflow = get_option(&options, js_str!("overflow"), context)?
+                .unwrap_or(ArithmeticOverflow::Constrain);
+
             // a. Let calendar be ? ToTemporalCalendar(item).
             let calendar = to_temporal_calendar_slot_value(args.get_or_undefined(1), context)?;
-            // b. Return ? ToTemporalYearMonth(item, calendar).
             InnerYearMonth::new(
-                thing
-                    .get_v(js_str!("year"), context)
+                item.get_v(js_str!("year"), context)
                     .expect("Year not found")
                     .to_i32(context)
                     .expect("Cannot convert year to i32"),
-                thing
-                    .get_v(js_str!("month"), context)
-                    .expect("Year not found")
+                item.get_v(js_str!("month"), context)
+                    .expect("Month not found")
                     .to_i32(context)
                     .expect("Cannot convert month to i32"),
-                Some(1),
+                item.get_v(js_str!("day"), context)
+                    .map_or(Some(1), |x| x.to_i32(context).ok()),
                 calendar,
-                ArithmeticOverflow::Constrain,
+                overflow,
             )?
-        } else if thing.is_string() {
-            let thing_str = &thing
+        } else if item.is_string() {
+            let item_str = &item
                 .as_string()
                 .expect("Value passed not a string")
-                .to_std_string()
-                .expect("Failed to convert JsString to String");
-            InnerYearMonth::from_str(thing_str)?
+                .to_std_string_escaped();
+
+            InnerYearMonth::from_str(item_str)?
         } else {
             return Err(JsNativeError::typ()
                 .with_message("item must be an object, string, or null.")
                 .into());
         };
 
+        // b. Return ? ToTemporalYearMonth(item, calendar).
         create_temporal_year_month(inner, None, context)
     }
 }
@@ -345,16 +350,33 @@ impl PlainYearMonth {
         Ok(InnerYearMonth::<JsObject>::get_days_in_month(&year_month, context)?.into())
     }
 
-    fn get_months_in_year(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        Err(JsNativeError::error()
-            .with_message("not yet implemented.")
-            .into())
+    fn get_months_in_year(
+        this: &JsValue,
+        _: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        let obj = this
+            .as_object()
+            .ok_or_else(|| JsNativeError::typ().with_message("this must be an object."))?;
+
+        let Ok(year_month) = obj.clone().downcast::<Self>() else {
+            return Err(JsNativeError::typ()
+                .with_message("the this object must be a PlainYearMonth object.")
+                .into());
+        };
+
+        Ok(InnerYearMonth::<JsObject>::contextual_get_months_in_year(&year_month, context)?.into())
     }
 
-    fn get_in_leap_year(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        Err(JsNativeError::error()
-            .with_message("not yet implemented.")
-            .into())
+    fn get_in_leap_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+        let year_month = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("this value must be a PlainYearMonth object.")
+            })?;
+
+        Ok(year_month.inner.in_leap_year().into())
     }
 }
 
