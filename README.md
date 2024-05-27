@@ -18,6 +18,7 @@ Currently, it has support for some of the language.
 [![Crates.io](https://img.shields.io/crates/v/boa_engine.svg)](https://crates.io/crates/boa_engine)
 [![Docs.rs](https://docs.rs/boa_engine/badge.svg)](https://docs.rs/boa_engine)
 [![Discord](https://img.shields.io/discord/595323158140158003?logo=discord)](https://discord.gg/tUFFk9Y)
+[![Matrix](https://img.shields.io/matrix/boa:matrix.org)](https://matrix.to/#/#boa:matrix.org)
 
 [build_badge]: https://github.com/boa-dev/boa/actions/workflows/rust.yml/badge.svg?event=push&branch=main
 [build_link]: https://github.com/boa-dev/boa/actions/workflows/rust.yml?query=event%3Apush+branch%3Amain
@@ -177,7 +178,8 @@ See [CHANGELOG.md](./CHANGELOG.md).
 
 ## Communication
 
-Feel free to contact us on [Discord](https://discord.gg/tUFFk9Y).
+Feel free to contact us on [Discord](https://discord.gg/tUFFk9Y) for any questions or issues. The general
+contributor chat for Boa occurs on [Matrix](https://matrix.to/#/#boa:matrix.org) if you're interested in contributing.
 
 ## License
 
