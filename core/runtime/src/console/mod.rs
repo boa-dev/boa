@@ -218,7 +218,7 @@ impl Console {
                 0,
             )
             .function(
-                console_method_mut(Self::group, state.clone()),
+                console_method_mut(Self::group_collapsed, state.clone()),
                 js_string!("groupCollapsed"),
                 0,
             )
@@ -656,6 +656,25 @@ impl Console {
         console.groups.push(group_label);
 
         Ok(JsValue::undefined())
+    }
+
+    /// `console.groupCollapsed(...data)`
+    ///
+    /// Adds new group collapsed with name from formatted data to stack.
+    ///
+    /// More information:
+    ///  - [MDN documentation][mdn]
+    ///  - [WHATWG `console` specification][spec]
+    ///
+    /// [spec]: https://console.spec.whatwg.org/#groupcollapsed
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/groupcollapsed_static
+    fn group_collapsed(
+        _: &JsValue,
+        args: &[JsValue],
+        console: &mut Self,
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        Console::group(&JsValue::Undefined, args, console, context)
     }
 
     /// `console.groupEnd(label)`
