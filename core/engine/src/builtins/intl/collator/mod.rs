@@ -2,8 +2,7 @@ use boa_gc::{custom_trace, Finalize, Trace};
 use boa_macros::js_str;
 use boa_profiler::Profiler;
 use icu_collator::{
-    provider::CollationMetadataV1Marker, AlternateHandling, CaseFirst, Collator as NativeCollator,
-    MaxVariable, Numeric,
+    provider::CollationMetadataV1Marker, AlternateHandling, CaseFirst, MaxVariable, Numeric,
 };
 
 use icu_locid::{
@@ -35,7 +34,7 @@ use crate::{
 };
 
 use super::{
-    locale::{canonicalize_locale_list, resolve_locale, supported_locales, validate_extension},
+    locale::{canonicalize_locale_list, filter_locales, resolve_locale, validate_extension},
     options::{coerce_options_to_object, IntlOptions},
     Service,
 };
@@ -53,7 +52,7 @@ pub(crate) struct Collator {
     usage: Usage,
     sensitivity: Sensitivity,
     ignore_punctuation: bool,
-    collator: NativeCollator,
+    collator: icu_collator::Collator,
     bound_compare: Option<JsFunction>,
 }
 
@@ -277,7 +276,7 @@ impl BuiltInConstructor for Collator {
         // 18. Let relevantExtensionKeys be %Collator%.[[RelevantExtensionKeys]].
         // 19. Let r be ResolveLocale(%Collator%.[[AvailableLocales]], requestedLocales, opt, relevantExtensionKeys, localeData).
         let mut locale = resolve_locale::<Self>(
-            &requested_locales,
+            requested_locales,
             &mut intl_options,
             context.intl_provider(),
         );
@@ -337,7 +336,7 @@ impl BuiltInConstructor for Collator {
             .unzip();
 
         let collator =
-            NativeCollator::try_new_unstable(context.intl_provider(), &collator_locale, {
+            icu_collator::Collator::try_new_unstable(context.intl_provider(), &collator_locale, {
                 let mut options = icu_collator::CollatorOptions::new();
                 options.strength = strength;
                 options.case_level = case_level;
@@ -395,8 +394,8 @@ impl Collator {
         // 2. Let requestedLocales be ? CanonicalizeLocaleList(locales).
         let requested_locales = canonicalize_locale_list(locales, context)?;
 
-        // 3. Return ? SupportedLocales(availableLocales, requestedLocales, options).
-        supported_locales::<<Self as Service>::LangMarker>(&requested_locales, options, context)
+        // 3. Return ? FilterLocales(availableLocales, requestedLocales, options).
+        filter_locales::<<Self as Service>::LangMarker>(requested_locales, options, context)
             .map(JsValue::from)
     }
 

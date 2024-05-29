@@ -1743,10 +1743,12 @@ impl String {
         #[cfg(feature = "intl")]
         {
             use super::intl::locale::{
-                best_available_locale, canonicalize_locale_list, default_locale,
+                canonicalize_locale_list, default_locale, lookup_matching_locale_by_prefix,
             };
-            use icu_casemap::provider::CaseMapV1Marker;
-            use icu_locid::LanguageIdentifier;
+            // TODO: Small hack to make lookups behave.
+            // We would really like to be able to use `icu_casemap::provider::CaseMapV1Marker`
+            use icu_locid::Locale;
+            use icu_plurals::provider::OrdinalV1Marker;
 
             // 1. Let O be ? RequireObjectCoercible(this value).
             let this = this.require_object_coercible()?;
@@ -1762,19 +1764,25 @@ impl String {
             // 1. Let requestedLocales be ? CanonicalizeLocaleList(locales).
             // 2. If requestedLocales is not an empty List, then
             //     a. Let requestedLocale be requestedLocales[0].
-            let lang = canonicalize_locale_list(args.get_or_undefined(0), context)?
+            let mut requested_locale = canonicalize_locale_list(args.get_or_undefined(0), context)?
                 .into_iter()
                 .next()
                 // 3. Else,
                 //     a. Let requestedLocale be ! DefaultLocale().
-                .unwrap_or_else(|| default_locale(context.intl_provider().locale_canonicalizer()))
-                .id;
+                .unwrap_or_else(|| default_locale(context.intl_provider().locale_canonicalizer()));
             // 4. Let noExtensionsLocale be the String value that is requestedLocale with any Unicode locale extension sequences (6.2.1) removed.
-            // 5. Let availableLocales be a List with language tags that includes the languages for which the Unicode Character Database contains language sensitive case mappings. Implementations may add additional language tags if they support case mapping for additional locales.
-            // 6. Let locale be ! BestAvailableLocale(availableLocales, noExtensionsLocale).
-            // 7. If locale is undefined, set locale to "und".
-            let lang = best_available_locale::<CaseMapV1Marker>(lang, context.intl_provider())
-                .unwrap_or(LanguageIdentifier::UND);
+            requested_locale.extensions.unicode.clear();
+
+            // 5. Let availableLocales be a List with language tags that includes the languages for which the Unicode
+            //    Character Database contains language sensitive case mappings. Implementations may add additional
+            //    language tags if they support case mapping for additional locales.
+            // 6. Let match be LookupMatchingLocaleByPrefix(availableLocales, noExtensionsLocale).
+            // 7. If match is not undefined, let locale be match.[[locale]]; else let locale be "und".
+            let locale = lookup_matching_locale_by_prefix::<OrdinalV1Marker>(
+                [requested_locale],
+                context.intl_provider(),
+            )
+            .unwrap_or(Locale::UND);
 
             let casemapper = context.intl_provider().case_mapper();
 
@@ -1784,11 +1792,11 @@ impl String {
                     // 10. Else,
                     //     a. Assert: targetCase is upper.
                     //     b. Let newCodePoints be a List whose elements are the result of an uppercase transformation of codePoints according to an implementation-derived algorithm using locale or the Unicode Default Case Conversion algorithm.
-                    casemapper.uppercase_to_string(&segment, &lang)
+                    casemapper.uppercase_to_string(&segment, &locale.id)
                 } else {
                     // 9. If targetCase is lower, then
                     //     a. Let newCodePoints be a List whose elements are the result of a lowercase transformation of codePoints according to an implementation-derived algorithm using locale or the Unicode Default Case Conversion algorithm.
-                    casemapper.lowercase_to_string(&segment, &lang)
+                    casemapper.lowercase_to_string(&segment, &locale.id)
                 }
             });
 

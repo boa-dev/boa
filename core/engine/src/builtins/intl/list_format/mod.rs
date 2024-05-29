@@ -23,7 +23,7 @@ use crate::{
 };
 
 use super::{
-    locale::{canonicalize_locale_list, resolve_locale, supported_locales},
+    locale::{canonicalize_locale_list, filter_locales, resolve_locale},
     options::IntlOptions,
     Service,
 };
@@ -122,7 +122,7 @@ impl BuiltInConstructor for ListFormat {
         // 9. Let r be ResolveLocale(%ListFormat%.[[AvailableLocales]], requestedLocales, opt, %ListFormat%.[[RelevantExtensionKeys]], localeData).
         // 10. Set listFormat.[[Locale]] to r.[[locale]].
         let locale = resolve_locale::<Self>(
-            &requested_locales,
+            requested_locales,
             &mut IntlOptions {
                 matcher,
                 ..Default::default()
@@ -204,8 +204,8 @@ impl ListFormat {
         // 2. Let requestedLocales be ? CanonicalizeLocaleList(locales).
         let requested_locales = canonicalize_locale_list(locales, context)?;
 
-        // 3. Return ? SupportedLocales(availableLocales, requestedLocales, options).
-        supported_locales::<<Self as Service>::LangMarker>(&requested_locales, options, context)
+        // 3. Return ? FilterLocales(availableLocales, requestedLocales, options).
+        filter_locales::<<Self as Service>::LangMarker>(requested_locales, options, context)
             .map(JsValue::from)
     }
 

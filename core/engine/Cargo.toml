@@ -105,6 +105,7 @@ cfg-if.workspace = true
 time.workspace = true
 hashbrown.workspace = true
 either = { workspace = true, optional = true }
+static_assertions.workspace = true
 
 # intl deps
 boa_icu_provider = { workspace = true, features = ["std"], optional = true }
