@@ -10,9 +10,15 @@ license.workspace = true
 description.workspace = true
 
 [dependencies]
-icu_provider = { workspace = true, features = ["datagen"] }
-icu_provider_blob = { workspace = true, features = ["export"] }
-icu_datagen = { workspace = true, features = ["networking", "use_wasm"] }
+icu_provider.workspace = true
+icu_datagen = { workspace = true, features = [
+    "networking",
+    "use_wasm",
+    "provider",
+    "blob_exporter",
+    "experimental_components",
+    "rayon",
+] }
 log.workspace = true
 simple_logger.workspace = true
 
@@ -27,12 +33,6 @@ icu_locid_transform = { workspace = true, features = ["datagen"] }
 icu_normalizer = { workspace = true, features = ["datagen"] }
 icu_plurals = { workspace = true, features = ["datagen", "experimental"] }
 icu_segmenter = { workspace = true, features = ["datagen"] }
-
-[target.'cfg(windows)'.dependencies]
-# wasmer-wasi apparently has a wrong deps config...
-# This dep patches that.
-winapi = { workspace = true, features = ["sysinfoapi"] }
-
 
 [lints]
 workspace = true

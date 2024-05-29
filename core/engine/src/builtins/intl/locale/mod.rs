@@ -7,7 +7,7 @@ use icu_locid::{
     extensions::unicode::Value, extensions_unicode_key as key, extensions_unicode_value as value,
 };
 
-#[cfg(test)]
+#[cfg(all(test, feature = "intl_bundled"))]
 mod tests;
 
 mod utils;

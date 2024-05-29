@@ -3,10 +3,9 @@ use std::ops::Range;
 use boa_gc::{Finalize, Trace};
 use boa_macros::js_str;
 use boa_profiler::Profiler;
+use icu_collator::provider::CollationDiacriticsV1Marker;
 use icu_locid::Locale;
-use icu_segmenter::{
-    provider::WordBreakDataV1Marker, GraphemeClusterSegmenter, SentenceSegmenter, WordSegmenter,
-};
+use icu_segmenter::{GraphemeClusterSegmenter, SentenceSegmenter, WordSegmenter};
 
 use crate::{
     builtins::{
@@ -30,7 +29,7 @@ pub(crate) use options::*;
 pub(crate) use segments::*;
 
 use super::{
-    locale::{canonicalize_locale_list, resolve_locale, supported_locales},
+    locale::{canonicalize_locale_list, filter_locales, resolve_locale},
     options::IntlOptions,
     Service,
 };
@@ -79,7 +78,9 @@ impl NativeSegmenter {
 }
 
 impl Service for Segmenter {
-    type LangMarker = WordBreakDataV1Marker;
+    // TODO: Track https://github.com/unicode-org/icu4x/issues/3284
+    // and replace when segmenters are locale-aware.
+    type LangMarker = CollationDiacriticsV1Marker;
 
     type LocaleOptions = ();
 }
@@ -134,7 +135,7 @@ impl BuiltInConstructor for Segmenter {
         let options = args.get_or_undefined(1);
 
         // 4. Let requestedLocales be ? CanonicalizeLocaleList(locales).
-        let locales = canonicalize_locale_list(locales, context)?;
+        let requested_locales = canonicalize_locale_list(locales, context)?;
 
         // 5. Set options to ? GetOptionsObject(options).
         let options = get_options_object(options)?;
@@ -148,7 +149,7 @@ impl BuiltInConstructor for Segmenter {
         // 10. Let r be ResolveLocale(%Segmenter%.[[AvailableLocales]], requestedLocales, opt, %Segmenter%.[[RelevantExtensionKeys]], localeData).
         // 11. Set segmenter.[[Locale]] to r.[[locale]].
         let locale = resolve_locale::<Self>(
-            &locales,
+            requested_locales,
             &mut IntlOptions {
                 matcher,
                 ..Default::default()
@@ -214,8 +215,8 @@ impl Segmenter {
         // 2. Let requestedLocales be ? CanonicalizeLocaleList(locales).
         let requested_locales = canonicalize_locale_list(locales, context)?;
 
-        // 3. Return ? SupportedLocales(availableLocales, requestedLocales, options).
-        supported_locales::<<Self as Service>::LangMarker>(&requested_locales, options, context)
+        // 3. Return ? FilterLocales(availableLocales, requestedLocales, options).
+        filter_locales::<<Self as Service>::LangMarker>(requested_locales, options, context)
             .map(JsValue::from)
     }
 

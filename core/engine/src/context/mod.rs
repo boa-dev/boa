@@ -940,6 +940,14 @@ impl ContextBuilder {
     ///
     /// This function is only available if the `intl` feature is enabled.
     ///
+    /// # Additional considerations
+    ///
+    /// If the data was generated using `icu_datagen`, make sure that the deduplication strategy is
+    /// not set to [`Maximal`]. Otherwise, `icu_datagen` will delete base locales such as "en" from
+    /// the list of supported locales if the required data for "en" is the same as "und".
+    /// We recommend [`RetainBaseLanguages`] as a nice default, which will only deduplicate locales
+    /// if the deduplication target is not "und".
+    ///
     /// # Errors
     ///
     /// This returns `Err` if the provided provider doesn't have the required locale information
@@ -947,6 +955,9 @@ impl ContextBuilder {
     /// mean that the provider will successfully construct all `Intl` services; that check is made
     /// until the creation of an instance of a service.
     ///
+    /// [`Maximal`]: https://docs.rs/icu_datagen/latest/icu_datagen/enum.DeduplicationStrategy.html#variant.Maximal
+    /// [`RetainBaseLanguages`]: https://docs.rs/icu_datagen/latest/icu_datagen/enum.DeduplicationStrategy.html#variant.RetainBaseLanguages
+    /// [`ResolveLocale`]: https://tc39.es/ecma402/#sec-resolvelocale
     /// [`LocaleCanonicalizer`]: icu_locid_transform::LocaleCanonicalizer
     /// [`LocaleExpander`]: icu_locid_transform::LocaleExpander
     /// [`BufferProvider`]: icu_provider::BufferProvider
@@ -963,6 +974,14 @@ impl ContextBuilder {
     ///
     /// This function is only available if the `intl` feature is enabled.
     ///
+    /// # Additional considerations
+    ///
+    /// If the data was generated using `icu_datagen`, make sure that the deduplication strategy is
+    /// not set to [`Maximal`]. Otherwise, `icu_datagen` will delete base locales such as "en" from
+    /// the list of supported locales if the required data for "en" is the same as "und".
+    /// We recommend [`RetainBaseLanguages`] as a nice default, which will only deduplicate locales
+    /// if the deduplication target is not "und".
+    ///
     /// # Errors
     ///
     /// This returns `Err` if the provided provider doesn't have the required locale information
@@ -970,6 +989,9 @@ impl ContextBuilder {
     /// mean that the provider will successfully construct all `Intl` services; that check is made
     /// until the creation of an instance of a service.
     ///
+    /// [`Maximal`]: https://docs.rs/icu_datagen/latest/icu_datagen/enum.DeduplicationStrategy.html#variant.Maximal
+    /// [`RetainBaseLanguages`]: https://docs.rs/icu_datagen/latest/icu_datagen/enum.DeduplicationStrategy.html#variant.RetainBaseLanguages
+    /// [`ResolveLocale`]: https://tc39.es/ecma402/#sec-resolvelocale
     /// [`LocaleCanonicalizer`]: icu_locid_transform::LocaleCanonicalizer
     /// [`LocaleExpander`]: icu_locid_transform::LocaleExpander
     /// [`AnyProvider`]: icu_provider::AnyProvider

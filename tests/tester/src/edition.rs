@@ -81,6 +81,10 @@ static FEATURE_EDITION: phf::Map<&'static str, SpecEdition> = phf::phf_map! {
     // https://github.com/tc39/proposal-iterator-helpers
     "iterator-helpers" => SpecEdition::ESNext,
 
+    // Promise.try
+    // https://github.com/tc39/proposal-promise-try
+    "promise-try" => SpecEdition::ESNext,
+
     // Set methods
     // https://github.com/tc39/proposal-set-methods
     "set-methods" => SpecEdition::ESNext,

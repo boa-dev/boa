@@ -2,96 +2,50 @@
 
 use std::{error::Error, fs::File, path::Path};
 
-use icu_datagen::{CoverageLevel, DatagenDriver, DatagenProvider};
-use icu_plurals::provider::{PluralRangesV1, PluralRangesV1Marker};
-use icu_provider::{
-    datagen::{ExportMarker, IterableDynamicDataProvider},
-    dynutil::UpcastDataPayload,
-    prelude::*,
-};
-use icu_provider_blob::export::BlobExporter;
+use icu_datagen::blob_exporter::BlobExporter;
+use icu_datagen::prelude::*;
+use icu_provider::data_key;
 
-#[cfg(target_os = "windows")] // wasmer-wasi is a really fun dependency to maintain :)
-use winapi as _;
-
-/// Hack that associates the `und` locale with an empty plural ranges data.
-/// This enables the default behaviour for all locales without data.
-#[derive(Debug)]
-struct PluralRangesFallbackHack(DatagenProvider);
-
-// We definitely don't want to import dependencies just to do `T::default`.
-#[allow(clippy::default_trait_access)]
-impl DynamicDataProvider<AnyMarker> for PluralRangesFallbackHack {
-    fn load_data(
-        &self,
-        key: DataKey,
-        req: DataRequest<'_>,
-    ) -> Result<DataResponse<AnyMarker>, DataError> {
-        if req.locale.is_und() && key.hashed() == PluralRangesV1Marker::KEY.hashed() {
-            let payload = <AnyMarker as UpcastDataPayload<PluralRangesV1Marker>>::upcast(
-                DataPayload::from_owned(PluralRangesV1 {
-                    ranges: Default::default(),
-                }),
-            );
-            Ok(DataResponse {
-                metadata: DataResponseMetadata::default(),
-                payload: Some(payload),
-            })
-        } else {
-            self.0.load_data(key, req)
-        }
-    }
-}
-
-#[allow(clippy::default_trait_access)]
-impl DynamicDataProvider<ExportMarker> for PluralRangesFallbackHack {
-    fn load_data(
-        &self,
-        key: DataKey,
-        req: DataRequest<'_>,
-    ) -> Result<DataResponse<ExportMarker>, DataError> {
-        if req.locale.is_und() && key.hashed() == PluralRangesV1Marker::KEY.hashed() {
-            let payload = <ExportMarker as UpcastDataPayload<PluralRangesV1Marker>>::upcast(
-                DataPayload::from_owned(PluralRangesV1 {
-                    ranges: Default::default(),
-                }),
-            );
-            Ok(DataResponse {
-                metadata: DataResponseMetadata::default(),
-                payload: Some(payload),
-            })
-        } else {
-            self.0.load_data(key, req)
-        }
-    }
-}
-
-impl IterableDynamicDataProvider<ExportMarker> for PluralRangesFallbackHack {
-    fn supported_locales_for_key(&self, key: DataKey) -> Result<Vec<DataLocale>, DataError> {
-        if key.hashed() == PluralRangesV1Marker::KEY.hashed() {
-            let mut locales = self.0.supported_locales_for_key(key)?;
-            locales.push(DataLocale::default());
-            Ok(locales)
-        } else {
-            self.0.supported_locales_for_key(key)
-        }
-    }
-}
+const KEYS_LEN: usize = 129;
 
 /// List of keys used by `Intl` components.
 ///
 /// This must be kept in sync with the list of implemented components of `Intl`.
-const KEYS: [&[DataKey]; 9] = [
-    icu_casemap::provider::KEYS,
-    icu_collator::provider::KEYS,
-    icu_datetime::provider::KEYS,
-    icu_decimal::provider::KEYS,
-    icu_list::provider::KEYS,
-    icu_locid_transform::provider::KEYS,
-    icu_normalizer::provider::KEYS,
-    icu_plurals::provider::KEYS,
-    icu_segmenter::provider::KEYS,
-];
+const KEYS: [DataKey; KEYS_LEN] = {
+    const CENTINEL_KEY: DataKey = data_key!("centinel@1");
+    const SERVICES: [&[DataKey]; 9] = [
+        icu_casemap::provider::KEYS,
+        icu_collator::provider::KEYS,
+        icu_datetime::provider::KEYS,
+        icu_decimal::provider::KEYS,
+        icu_list::provider::KEYS,
+        icu_locid_transform::provider::KEYS,
+        icu_normalizer::provider::KEYS,
+        icu_plurals::provider::KEYS,
+        icu_segmenter::provider::KEYS,
+    ];
+
+    let mut array = [CENTINEL_KEY; KEYS_LEN];
+
+    let mut offset = 0;
+    let mut service_idx = 0;
+
+    while service_idx < SERVICES.len() {
+        let service = SERVICES[service_idx];
+        let mut idx = 0;
+        while idx < service.len() {
+            array[offset + idx] = service[idx];
+            idx += 1;
+        }
+
+        offset += service.len();
+        service_idx += 1;
+    }
+
+    assert!(offset == array.len());
+
+    array
+};
 
 fn main() -> Result<(), Box<dyn Error>> {
     simple_logger::SimpleLogger::new()
@@ -106,18 +60,26 @@ fn main() -> Result<(), Box<dyn Error>> {
     let _unused = std::fs::remove_dir_all(path);
     std::fs::create_dir_all(path)?;
 
-    log::info!("Generating ICU4X data for keys: {:?}", KEYS);
+    log::info!("Generating ICU4X data for keys: {:#?}", KEYS);
 
     let provider = DatagenProvider::new_latest_tested();
+    let locales = provider
+        .locales_for_coverage_levels([CoverageLevel::Modern])?
+        .into_iter()
+        .chain([langid!("en-US")]);
 
     DatagenDriver::new()
-        .with_keys(KEYS.into_iter().flatten().copied())
-        .with_locales(provider.locales_for_coverage_levels([CoverageLevel::Modern])?)
+        .with_keys(KEYS)
+        .with_locales_and_fallback(locales.map(LocaleFamily::with_descendants), {
+            let mut options = FallbackOptions::default();
+            options.deduplication_strategy = Some(DeduplicationStrategy::None);
+            options
+        })
         .with_additional_collations([String::from("search*")])
         .with_recommended_segmenter_models()
         .export(
-            &PluralRangesFallbackHack(provider),
-            BlobExporter::new_with_sink(Box::new(File::create(path.join("icudata.postcard"))?)),
+            &provider,
+            BlobExporter::new_v2_with_sink(Box::new(File::create(path.join("icudata.postcard"))?)),
         )?;
 
     Ok(())
