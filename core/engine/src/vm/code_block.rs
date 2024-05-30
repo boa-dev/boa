@@ -611,6 +611,7 @@ impl CodeBlock {
             | Instruction::Exception
             | Instruction::MaybeException
             | Instruction::This
+            | Instruction::ThisForObjectEnvironmentName { .. }
             | Instruction::Super
             | Instruction::CheckReturn
             | Instruction::Return
@@ -719,8 +720,7 @@ impl CodeBlock {
             | Instruction::Reserved50
             | Instruction::Reserved51
             | Instruction::Reserved52
-            | Instruction::Reserved53
-            | Instruction::Reserved54 => unreachable!("Reserved opcodes are unrechable"),
+            | Instruction::Reserved53 => unreachable!("Reserved opcodes are unrechable"),
         }
     }
 }

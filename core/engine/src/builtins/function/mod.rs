@@ -626,10 +626,12 @@ impl BuiltInFunctionObject {
             body
         };
 
+        let in_with = context.vm.environments.has_object_environment();
         let code = FunctionCompiler::new()
             .name(js_string!("anonymous"))
             .generator(generator)
             .r#async(r#async)
+            .in_with(in_with)
             .compile(
                 &parameters,
                 &body,

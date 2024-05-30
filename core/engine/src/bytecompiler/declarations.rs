@@ -586,6 +586,7 @@ impl ByteCompiler<'_> {
                 .generator(generator)
                 .r#async(r#async)
                 .strict(self.strict())
+                .in_with(self.in_with)
                 .binding_identifier(Some(name.sym().to_js_string(self.interner())))
                 .compile(
                     parameters,
@@ -954,6 +955,7 @@ impl ByteCompiler<'_> {
                 .generator(generator)
                 .r#async(r#async)
                 .strict(self.strict())
+                .in_with(self.in_with)
                 .binding_identifier(Some(name.sym().to_js_string(self.interner())))
                 .compile(
                     parameters,
