@@ -329,7 +329,7 @@ impl PlainYearMonth {
                 .into());
         };
 
-        Ok(InnerYearMonth::<JsObject>::get_days_in_year(&year_month, context)?.into())
+        Ok(InnerYearMonth::<JsObject>::contextual_get_days_in_year(&year_month, context)?.into())
     }
 
     fn get_days_in_month(
@@ -347,7 +347,7 @@ impl PlainYearMonth {
                 .into());
         };
 
-        Ok(InnerYearMonth::<JsObject>::get_days_in_month(&year_month, context)?.into())
+        Ok(InnerYearMonth::<JsObject>::contextual_get_days_in_month(&year_month, context)?.into())
     }
 
     fn get_months_in_year(
@@ -389,16 +389,18 @@ impl PlainYearMonth {
             .into())
     }
 
-    fn add(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        Err(JsNativeError::typ()
-            .with_message("not yet implemented.")
-            .into())
+    fn add(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let duration_like = args.get_or_undefined(0);
+        let options = get_options_object(args.get_or_undefined(1))?;
+
+        return add_or_subtract_duration(true, this, duration_like, &options, context);
     }
 
-    fn subtract(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        Err(JsNativeError::typ()
-            .with_message("not yet implemented.")
-            .into())
+    fn subtract(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let duration_like = args.get_or_undefined(0);
+        let options = get_options_object(args.get_or_undefined(1))?;
+
+        return add_or_subtract_duration(false, this, duration_like, &options, context);
     }
 
     fn until(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
@@ -463,4 +465,53 @@ pub(crate) fn create_temporal_year_month(
 
     // 9. Return object.
     Ok(obj.into())
+}
+
+// 9.5.9 AddDurationToOrSubtractDurationFromPlainYearMonth ( operation, yearMonth, temporalDurationLike, options )
+fn add_or_subtract_duration(
+    is_addition: bool,
+    this: &JsValue,
+    duration_like: &JsValue,
+    options: &JsObject,
+    context: &mut Context,
+) -> JsResult<JsValue> {
+    let duration: Duration = if duration_like.is_object() {
+        to_temporal_duration(duration_like, context)?
+    } else if duration_like.is_string() {
+        Duration::from_str(
+            duration_like
+                .as_string()
+                .expect("Value passed not a string")
+                .to_std_string_escaped()
+                .as_str(),
+        )
+        .expect("Unable to parse Duration from string")
+    } else {
+        return Err(JsNativeError::typ()
+            .with_message("cannot handler string durations yet.")
+            .into());
+    };
+
+    let overflow = get_option(&options, js_str!("overflow"), context)?
+        .unwrap_or(ArithmeticOverflow::Constrain);
+
+    let obj = this
+        .as_object()
+        .ok_or_else(|| JsNativeError::typ().with_message("this must be an object."))?;
+
+    let Ok(year_month) = obj.clone().downcast::<PlainYearMonth>() else {
+        return Err(JsNativeError::typ()
+            .with_message("the this object must be a PlainYearMonth object.")
+            .into());
+    };
+
+    let year_month_result = if is_addition {
+        InnerYearMonth::<JsObject>::add_duration(&year_month, duration, overflow, context)
+            .expect("Error adding duration to year month")
+    } else {
+        InnerYearMonth::<JsObject>::subtract_duration(&year_month, duration, overflow, context)
+            .expect("Error subtracting duration from year month")
+    };
+
+    create_temporal_year_month(year_month_result, None, context)
 }
