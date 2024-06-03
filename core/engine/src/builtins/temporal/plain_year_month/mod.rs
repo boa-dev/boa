@@ -407,16 +407,10 @@ impl PlainYearMonth {
         let overflow = get_option(&options, js_str!("overflow"), context)?
             .unwrap_or(ArithmeticOverflow::Constrain);
         if duration_like.is_object() {
-            let duration = to_temporal_partial_duration(duration_like, context)?;
+            let duration = to_temporal_duration(duration_like, context)?;
             let year_month_result =
-                InnerYearMonth::<JsObject>::contextual_add_or_subtract_duration(
-                    DurationOperation::Add,
-                    &year_month,
-                    duration,
-                    context,
-                    overflow,
-                )
-                .expect("Error adding duration to year month");
+                InnerYearMonth::<JsObject>::add_duration(&year_month, duration, overflow, context)
+                    .expect("Error adding duration to year month");
             create_temporal_year_month(year_month_result, None, context)
         } else {
             return Err(JsNativeError::typ()
