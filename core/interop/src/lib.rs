@@ -1,13 +1,19 @@
 //! Interop utilities between Boa and its host.
 
 use boa_engine::module::SyntheticModuleInitializer;
+use boa_engine::object::{ErasedObject, Ref, RefMut};
 use boa_engine::value::TryFromJs;
 use boa_engine::{
     Context, JsNativeError, JsResult, JsString, JsValue, Module, NativeFunction, NativeObject,
 };
+use std::marker::PhantomData;
+use std::ops::Deref;
+
+pub use boa_engine;
 pub use boa_macros;
 
 pub mod loaders;
+pub mod macros;
 
 /// Internal module only.
 pub(crate) mod private {
@@ -141,6 +147,20 @@ impl<'a, T: TryFromJs> TryFromJsArgument<'a> for T {
             Some((first, rest)) => Ok((first.try_js_into(context)?, rest)),
             None => T::try_from_js(&JsValue::undefined(), context).map(|v| (v, rest)),
         }
+    }
+}
+
+/// An argument that would be ignored in a JS function.
+#[derive(Debug, Clone, Copy)]
+pub struct Ignore;
+
+impl<'a> TryFromJsArgument<'a> for Ignore {
+    fn try_from_js_argument(
+        _this: &'a JsValue,
+        rest: &'a [JsValue],
+        _: &mut Context,
+    ) -> JsResult<(Self, &'a [JsValue])> {
+        Ok((Ignore, &rest[1..]))
     }
 }
 
@@ -302,6 +322,72 @@ impl<'a, T: TryFromJs> TryFromJsArgument<'a> for JsThis<T> {
         context: &mut Context,
     ) -> JsResult<(Self, &'a [JsValue])> {
         Ok((JsThis(this.try_js_into(context)?), rest))
+    }
+}
+
+impl<T: TryFromJs> Deref for JsThis<T> {
+    type Target = T;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+/// Captures a class instance from the `this` value in a JS function. The class
+/// will be a non-mutable reference of Rust type `T`, if it is an instance of `T`.
+///
+/// To have more flexibility on the parsing of the `this` value, you can use the
+/// [`JsThis`] capture instead.
+#[derive(Debug, Clone)]
+pub struct JsClass<T: NativeObject> {
+    inner: boa_engine::JsObject,
+    _ty: PhantomData<T>,
+}
+
+impl<T: NativeObject> JsClass<T> {
+    /// Borrow a reference to the class instance of type `T`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently borrowed.
+    ///
+    /// This does not panic if the type is wrong, as the type is checked
+    /// during the construction of the `JsClass` instance.
+    pub fn borrow(&self) -> Ref<'_, T> {
+        self.inner.downcast_ref::<T>().unwrap()
+    }
+
+    /// Borrow a mutable reference to the class instance of type `T`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    pub fn borrow_mut(&self) -> Option<RefMut<'_, ErasedObject, T>> {
+        self.inner.downcast_mut::<T>()
+    }
+}
+
+impl<'a, T: NativeObject + 'static> TryFromJsArgument<'a> for JsClass<T> {
+    fn try_from_js_argument(
+        this: &'a JsValue,
+        rest: &'a [JsValue],
+        _context: &mut Context,
+    ) -> JsResult<(Self, &'a [JsValue])> {
+        if let Some(object) = this.as_object() {
+            if object.downcast_ref::<T>().is_some() {
+                return Ok((
+                    JsClass {
+                        inner: object.clone(),
+                        _ty: Default::default(),
+                    },
+                    rest,
+                ));
+            }
+        }
+
+        Err(JsNativeError::typ()
+            .with_message("invalid this for class method")
+            .into())
     }
 }
 
@@ -505,5 +591,70 @@ fn can_throw_exception() {
     assert_eq!(
         promise_result.state().as_rejected(),
         Some(&JsString::from("from javascript").into())
+    );
+}
+
+#[test]
+fn class() {
+    use boa_engine::class::{Class, ClassBuilder};
+    use boa_engine::{js_string, JsValue, Source};
+    use boa_macros::{Finalize, JsData, Trace};
+    use std::rc::Rc;
+
+    #[derive(Debug, Trace, Finalize, JsData)]
+    struct Test {
+        value: i32,
+    }
+
+    impl Test {
+        fn get_value(this: JsClass<Test>) -> i32 {
+            this.borrow().value
+        }
+    }
+
+    impl Class for Test {
+        const NAME: &'static str = "Test";
+
+        fn init(class: &mut ClassBuilder<'_>) -> JsResult<()> {
+            let function = Self::get_value.into_js_function_copied(class.context());
+            class.method(js_string!("getValue"), 0, function);
+            Ok(())
+        }
+
+        fn data_constructor(
+            _new_target: &JsValue,
+            _args: &[JsValue],
+            _context: &mut Context,
+        ) -> JsResult<Self> {
+            Ok(Self { value: 123 })
+        }
+    }
+
+    let loader = Rc::new(loaders::HashMapModuleLoader::new());
+    let mut context = Context::builder()
+        .module_loader(loader.clone())
+        .build()
+        .unwrap();
+
+    context.register_global_class::<Test>().unwrap();
+
+    let source = Source::from_bytes(
+        r"
+            let t = new Test();
+            if (t.getValue() != 123) {
+                throw 'invalid value';
+            }
+        ",
+    );
+    let root_module = Module::parse(source, None, &mut context).unwrap();
+
+    let promise_result = root_module.load_link_evaluate(&mut context);
+    context.run_jobs();
+
+    // Checking if the final promise didn't return an error.
+    assert!(
+        promise_result.state().as_fulfilled().is_some(),
+        "module didn't execute successfully! Promise: {:?}",
+        promise_result.state()
     );
 }
