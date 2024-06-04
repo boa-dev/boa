@@ -13,11 +13,7 @@
 /// Here's an example using the animal class declared in [`boa_engine::class`]:
 /// # Example
 /// ```
-/// # use boa_engine::{
-/// #    Context, JsResult, JsValue, JsString,
-/// #    Source, js_str, js_string,
-/// #    JsData,
-/// # };
+/// # use boa_engine::{JsString, JsData, js_string};
 /// # use boa_gc::{Finalize, Trace};
 /// use boa_interop::{js_class, Ignore, JsClass};
 ///
@@ -65,6 +61,8 @@
 /// }
 ///
 /// fn main() {
+///#    use boa_engine::{Context, JsString, Source, js_str};
+///
 ///     let mut context = Context::default();
 ///
 ///     context.register_global_class::<Animal>().unwrap();
@@ -161,7 +159,7 @@ macro_rules! js_class {
 
                     instance.set(
                         $crate::boa_engine::JsString::from(stringify!($field_name)),
-                        function.call(&JsValue::undefined(), args, context)?,
+                        function.call(&$crate::boa_engine::JsValue::undefined(), args, context)?,
                         false,
                         context
                     );
