@@ -14,12 +14,9 @@
 /// # Example
 /// ```
 /// # use boa_engine::{
-/// #    NativeFunction,
-/// #    property::Attribute,
-/// #    class::{Class, ClassBuilder},
 /// #    Context, JsResult, JsValue, JsString,
-/// #    JsArgs, Source, JsObject, js_str, js_string,
-/// #    JsNativeError, JsData,
+/// #    Source, js_str, js_string,
+/// #    JsData,
 /// # };
 /// # use boa_gc::{Finalize, Trace};
 /// use boa_interop::{js_class, Ignore, JsClass};
@@ -114,7 +111,7 @@ macro_rules! js_class {
 
             const LENGTH: usize = $crate::__count!( $( $ctor_arg )* );
 
-            fn init(class: &mut ClassBuilder<'_>) -> $crate::boa_engine::JsResult<()> {
+            fn init(class: &mut $crate::boa_engine::class::ClassBuilder<'_>) -> $crate::boa_engine::JsResult<()> {
                 // Add all methods to the class.
                 $(
                     fn $method_name ( $($fn_arg: $fn_arg_type),* ) -> $( $result_type )?
