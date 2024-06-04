@@ -400,6 +400,7 @@ impl CodeBlock {
                 | Instruction::ToPropertyKey
                 | Instruction::ToBoolean
                 | Instruction::This
+                | Instruction::ThisForObjectEnvironmentName { .. }
                 | Instruction::Super
                 | Instruction::IncrementLoopIteration
                 | Instruction::CreateForInIterator
@@ -515,8 +516,7 @@ impl CodeBlock {
                 | Instruction::Reserved50
                 | Instruction::Reserved51
                 | Instruction::Reserved52
-                | Instruction::Reserved53
-                | Instruction::Reserved54 => unreachable!("Reserved opcodes are unrechable"),
+                | Instruction::Reserved53 => unreachable!("Reserved opcodes are unrechable"),
             }
         }
 

@@ -246,6 +246,8 @@ impl Eval {
             context,
         )?;
 
+        let in_with = context.vm.environments.has_object_environment();
+
         let mut compiler = ByteCompiler::new(
             js_string!("<main>"),
             body.strict(),
@@ -253,6 +255,7 @@ impl Eval {
             var_env.clone(),
             lex_env.clone(),
             context.interner_mut(),
+            in_with,
         );
 
         compiler.current_open_environments_count += 1;

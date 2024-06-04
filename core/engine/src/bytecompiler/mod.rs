@@ -304,6 +304,9 @@ pub struct ByteCompiler<'ctx> {
     pub(crate) async_handler: Option<u32>,
     json_parse: bool,
 
+    /// Whether the function is in a `with` statement.
+    pub(crate) in_with: bool,
+
     pub(crate) interner: &'ctx mut Interner,
 
     #[cfg(feature = "annex-b")]
@@ -324,6 +327,7 @@ impl<'ctx> ByteCompiler<'ctx> {
         variable_environment: Rc<CompileTimeEnvironment>,
         lexical_environment: Rc<CompileTimeEnvironment>,
         interner: &'ctx mut Interner,
+        in_with: bool,
     ) -> ByteCompiler<'ctx> {
         let mut code_block_flags = CodeBlockFlags::empty();
         code_block_flags.set(CodeBlockFlags::STRICT, strict);
@@ -356,6 +360,7 @@ impl<'ctx> ByteCompiler<'ctx> {
 
             #[cfg(feature = "annex-b")]
             annex_b_function_names: Vec::new(),
+            in_with,
         }
     }
 
@@ -1320,6 +1325,7 @@ impl<'ctx> ByteCompiler<'ctx> {
             .r#async(r#async)
             .strict(self.strict())
             .arrow(arrow)
+            .in_with(self.in_with)
             .binding_identifier(binding_identifier)
             .compile(
                 parameters,
@@ -1395,6 +1401,7 @@ impl<'ctx> ByteCompiler<'ctx> {
             .strict(self.strict())
             .arrow(arrow)
             .method(true)
+            .in_with(self.in_with)
             .binding_identifier(binding_identifier)
             .compile(
                 parameters,
@@ -1442,6 +1449,7 @@ impl<'ctx> ByteCompiler<'ctx> {
             .strict(true)
             .arrow(arrow)
             .method(true)
+            .in_with(self.in_with)
             .binding_identifier(binding_identifier)
             .compile(
                 parameters,
@@ -1481,8 +1489,19 @@ impl<'ctx> ByteCompiler<'ctx> {
                     if *ident == Sym::EVAL {
                         kind = CallKind::CallEval;
                     }
+
+                    if self.in_with {
+                        let name = self.resolve_identifier_expect(*ident);
+                        let binding = self.lexical_environment.get_identifier_reference(name);
+                        let index = self.get_or_insert_binding(binding.locator());
+                        self.emit_with_varying_operand(Opcode::ThisForObjectEnvironmentName, index);
+                    } else {
+                        self.emit_opcode(Opcode::PushUndefined);
+                    }
+                } else {
+                    self.emit_opcode(Opcode::PushUndefined);
                 }
-                self.emit_opcode(Opcode::PushUndefined);
+
                 self.compile_expr(expr, true);
             }
             expr => {

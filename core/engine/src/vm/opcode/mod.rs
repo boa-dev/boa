@@ -1614,6 +1614,13 @@ generate_opcodes! {
     /// Stack: **=>** this
     This,
 
+    /// Pushes `this` value that is related to the object environment of the given binding
+    ///
+    /// Operands: index: `VaryingOperand`
+    ///
+    /// Stack: **=>** value
+    ThisForObjectEnvironmentName { index: VaryingOperand },
+
     /// Pushes the current `super` value to the stack.
     ///
     /// Operands:
@@ -2252,8 +2259,6 @@ generate_opcodes! {
     Reserved52 => Reserved,
     /// Reserved [`Opcode`].
     Reserved53 => Reserved,
-    /// Reserved [`Opcode`].
-    Reserved54 => Reserved,
 }
 
 /// Specific opcodes for bindings.

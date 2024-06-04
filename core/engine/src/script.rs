@@ -135,6 +135,7 @@ impl Script {
             self.inner.realm.environment().compile_env(),
             self.inner.realm.environment().compile_env(),
             context.interner_mut(),
+            false,
         );
 
         #[cfg(feature = "annex-b")]

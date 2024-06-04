@@ -411,6 +411,13 @@ impl EnvironmentStack {
         }
         names
     }
+
+    /// Indicate if the current environment stack has an object environment.
+    pub(crate) fn has_object_environment(&self) -> bool {
+        self.stack
+            .iter()
+            .any(|env| matches!(env, Environment::Object(_)))
+    }
 }
 
 /// A binding locator contains all information about a binding that is needed to resolve it at runtime.
@@ -539,6 +546,50 @@ impl Context {
         }
 
         Ok(())
+    }
+
+    /// Finds the object environment that contains the binding and returns the `this` value of the object environment.
+    pub(crate) fn this_from_object_environment_binding(
+        &mut self,
+        locator: &BindingLocator,
+    ) -> JsResult<Option<JsObject>> {
+        let current = self.vm.environments.current();
+        if let Some(env) = current.as_declarative() {
+            if !env.with() {
+                return Ok(None);
+            }
+        }
+
+        for env_index in (locator.environment_index..self.vm.environments.stack.len() as u32).rev()
+        {
+            match self.environment_expect(env_index) {
+                Environment::Declarative(env) => {
+                    if env.poisoned() {
+                        let compile = env.compile_env();
+                        if compile.is_function() && compile.get_binding(locator.name()).is_some() {
+                            break;
+                        }
+                    } else if !env.with() {
+                        break;
+                    }
+                }
+                Environment::Object(o) => {
+                    let o = o.clone();
+                    let key = locator.name().clone();
+                    if o.has_property(key.clone(), self)? {
+                        if let Some(unscopables) = o.get(JsSymbol::unscopables(), self)?.as_object()
+                        {
+                            if unscopables.get(key.clone(), self)?.to_boolean() {
+                                continue;
+                            }
+                        }
+                        return Ok(Some(o));
+                    }
+                }
+            }
+        }
+
+        Ok(None)
     }
 
     /// Checks if the binding pointed by `locator` is initialized.
