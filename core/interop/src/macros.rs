@@ -126,7 +126,7 @@ macro_rules! js_class {
                     );
 
                     class.method(
-                        js_string!(stringify!($method_name)),
+                        $crate::boa_engine::JsString::from(stringify!($method_name)),
                         $crate::__count!($( $fn_arg )*),
                         function,
                     );
@@ -163,7 +163,7 @@ macro_rules! js_class {
                     );
 
                     instance.set(
-                        js_string!(stringify!($field_name)),
+                        $crate::boa_engine::JsString::from(stringify!($field_name)),
                         function.call(&JsValue::undefined(), args, context)?,
                         false,
                         context
