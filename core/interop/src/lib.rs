@@ -353,6 +353,7 @@ impl<T: NativeObject> JsClass<T> {
     ///
     /// This does not panic if the type is wrong, as the type is checked
     /// during the construction of the `JsClass` instance.
+    #[must_use]
     pub fn borrow(&self) -> Ref<'_, T> {
         self.inner.downcast_ref::<T>().unwrap()
     }
@@ -362,6 +363,7 @@ impl<T: NativeObject> JsClass<T> {
     /// # Panics
     ///
     /// Panics if the object is currently mutably borrowed.
+    #[must_use]
     pub fn borrow_mut(&self) -> Option<RefMut<'_, ErasedObject, T>> {
         self.inner.downcast_mut::<T>()
     }
@@ -378,7 +380,7 @@ impl<'a, T: NativeObject + 'static> TryFromJsArgument<'a> for JsClass<T> {
                 return Ok((
                     JsClass {
                         inner: object.clone(),
-                        _ty: Default::default(),
+                        _ty: PhantomData,
                     },
                     rest,
                 ));
@@ -607,6 +609,7 @@ fn class() {
     }
 
     impl Test {
+        #[allow(clippy::needless_pass_by_value)]
         fn get_value(this: JsClass<Test>) -> i32 {
             this.borrow().value
         }
