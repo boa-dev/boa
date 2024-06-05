@@ -96,7 +96,7 @@ macro_rules! js_class {
 
         $(
             $(#[$method_attr: meta])*
-            fn $method_name: ident
+            fn $method_name: ident $( as $method_js_name: literal )?
                 ( $( $fn_arg: ident: $fn_arg_type: ty ),* )
                 $(-> $result_type: ty)?
                 $method_body: block
@@ -120,8 +120,10 @@ macro_rules! js_class {
                         class.context(),
                     );
 
+                    let function_name = $crate::__js_class_name!($method_name, $($method_js_name)?);
+
                     class.method(
-                        $crate::boa_engine::JsString::from(stringify!($method_name)),
+                        $crate::boa_engine::JsString::from(function_name),
                         $crate::__count!($( $fn_arg )*),
                         function,
                     );
