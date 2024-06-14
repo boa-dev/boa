@@ -44,44 +44,52 @@ impl Operation for AsyncGeneratorYield {
             .async_generator_object(&context.vm.stack)
             .expect("`AsyncGeneratorYield` must only be called inside async generators");
         let completion = Ok(value);
+        let async_generator_object = async_generator_object
+            .downcast::<AsyncGenerator>()
+            .expect("must be async generator object");
         let next = async_generator_object
-            .downcast_mut::<AsyncGenerator>()
-            .expect("must be async generator object")
+            .borrow_mut()
+            .data
             .queue
             .pop_front()
             .expect("must have item in queue");
 
+        async_generator_object.borrow_mut().data.state = AsyncGeneratorState::SuspendedYield;
+
         // TODO: 7. Let previousContext be the second to top element of the execution context stack.
         AsyncGenerator::complete_step(&next, completion, false, None, context);
 
-        let mut generator_object_mut = async_generator_object.borrow_mut();
-        let gen = generator_object_mut
-            .downcast_mut::<AsyncGenerator>()
-            .expect("must be async generator object");
+        // TODO: Upgrade to the latest spec when the problem is fixed.
+        let gen = async_generator_object.borrow();
+        // Arbitrary code could call `AsyncGenerator::return`, which could change the inner
+        // state of the generator. Ensure the generator is still completed before trying to resolve
+        // the next completion.
+        if gen.data.state == AsyncGeneratorState::Completed {
+            if let Some(next) = gen.data.queue.front() {
+                let resume_kind = match next.completion.clone() {
+                    CompletionRecord::Normal(val) => {
+                        context.vm.push(val);
+                        GeneratorResumeKind::Normal
+                    }
+                    CompletionRecord::Return(val) => {
+                        context.vm.push(val);
+                        GeneratorResumeKind::Return
+                    }
+                    CompletionRecord::Throw(err) => {
+                        let err = err.to_opaque(context);
+                        context.vm.push(err);
+                        GeneratorResumeKind::Throw
+                    }
+                };
 
-        if let Some(next) = gen.queue.front() {
-            let resume_kind = match next.completion.clone() {
-                CompletionRecord::Normal(val) => {
-                    context.vm.push(val);
-                    GeneratorResumeKind::Normal
-                }
-                CompletionRecord::Return(val) => {
-                    context.vm.push(val);
-                    GeneratorResumeKind::Return
-                }
-                CompletionRecord::Throw(err) => {
-                    let err = err.to_opaque(context);
-                    context.vm.push(err);
-                    GeneratorResumeKind::Throw
-                }
-            };
+                context.vm.push(resume_kind);
 
-            context.vm.push(resume_kind);
-
-            return Ok(CompletionType::Normal);
+                return Ok(CompletionType::Normal);
+            }
         }
 
-        gen.state = AsyncGeneratorState::SuspendedYield;
+        // AsyncGenerator::resume_next(&async_generator_object, context);
+
         context.vm.set_return_value(JsValue::undefined());
         Ok(CompletionType::Yield)
     }
