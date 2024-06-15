@@ -161,7 +161,7 @@ impl<R> Lexer<R> {
                                 ))
                             }
                         }
-                        InputElement::RegExp => {
+                        InputElement::RegExp | InputElement::HashbangOrRegExp => {
                             // Can be a regular expression.
                             RegexLiteral.lex(&mut self.cursor, start, interner)
                         }
@@ -214,28 +214,34 @@ impl<R> Lexer<R> {
     {
         let _timer = Profiler::global().start_event("next()", "Lexing");
 
-        let (start, next_ch) = loop {
-            let start = self.cursor.pos();
-            if let Some(next_ch) = self.cursor.next_char()? {
-                // Ignore whitespace
-                if !is_whitespace(next_ch) {
-                    break (start, next_ch);
-                }
-            } else {
-                return Ok(None);
-            }
+        let mut start = self.cursor.pos();
+        let Some(mut next_ch) = self.cursor.next_char()? else {
+            return Ok(None);
         };
 
-        //handle hashbang here so the below match block still throws error on
-        //# if position isn't (1, 1)
-        if start.column_number() == 1
-            && start.line_number() == 1
-            && next_ch == 0x23
-            && self.cursor.peek_char()? == Some(0x21)
-        {
-            let _token = HashbangComment.lex(&mut self.cursor, start, interner);
-            return self.next(interner);
-        };
+        // If the goal symbol is HashbangOrRegExp, then we need to check if the next token is a hashbang comment.
+        // Since the goal symbol is only valid for the first token, we need to change it to RegExp after the first token.
+        if self.get_goal() == InputElement::HashbangOrRegExp {
+            self.set_goal(InputElement::RegExp);
+            if next_ch == 0x23 && self.cursor.peek_char()? == Some(0x21) {
+                let _token = HashbangComment.lex(&mut self.cursor, start, interner);
+                return self.next(interner);
+            };
+        }
+
+        // Ignore whitespace
+        if is_whitespace(next_ch) {
+            loop {
+                start = self.cursor.pos();
+                let Some(next) = self.cursor.next_char()? else {
+                    return Ok(None);
+                };
+                if !is_whitespace(next) {
+                    next_ch = next;
+                    break;
+                }
+            }
+        }
 
         if let Ok(c) = char::try_from(next_ch) {
             let token = match c {
@@ -392,6 +398,7 @@ pub(crate) enum InputElement {
     Div,
     RegExp,
     TemplateTail,
+    HashbangOrRegExp,
 }
 
 impl Default for InputElement {
