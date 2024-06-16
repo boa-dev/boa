@@ -138,20 +138,21 @@ impl AsyncGenerator {
                 .with_message("generator resumed on non generator object")
                 .into()
         });
-        let generator_object = if_abrupt_reject_promise!(result, promise_capability, context);
-        let result: JsResult<_> = generator_object.downcast_mut::<Self>().ok_or_else(|| {
+        let generator = if_abrupt_reject_promise!(result, promise_capability, context);
+        let result: JsResult<_> = generator.clone().downcast::<Self>().map_err(|_| {
             JsNativeError::typ()
                 .with_message("generator resumed on non generator object")
                 .into()
         });
-        let mut generator = if_abrupt_reject_promise!(result, promise_capability, context);
+        let generator = if_abrupt_reject_promise!(result, promise_capability, context);
+        let gen = generator.borrow_mut();
 
         // 5. Let state be generator.[[AsyncGeneratorState]].
-        let state = generator.state;
+        let state = gen.data.state;
 
         // 6. If state is completed, then
         if state == AsyncGeneratorState::Completed {
-            drop(generator);
+            drop(gen);
 
             // a. Let iteratorResult be CreateIterResultObject(undefined, true).
             let iterator_result = create_iter_result_object(JsValue::undefined(), true, context);
@@ -170,28 +171,7 @@ impl AsyncGenerator {
         let completion = CompletionRecord::Normal(args.get_or_undefined(0).clone());
 
         // 8. Perform AsyncGeneratorEnqueue(generator, completion, promiseCapability).
-        generator.enqueue(completion.clone(), promise_capability.clone());
-
-        // 9. If state is either suspendedStart or suspendedYield, then
-        if state == AsyncGeneratorState::SuspendedStart
-            || state == AsyncGeneratorState::SuspendedYield
-        {
-            // a. Perform AsyncGeneratorResume(generator, completion).
-            let generator_context = generator
-                .context
-                .take()
-                .expect("generator context cannot be empty here");
-
-            drop(generator);
-
-            Self::resume(
-                generator_object,
-                state,
-                generator_context,
-                completion,
-                context,
-            );
-        }
+        Self::enqueue(&generator, completion, promise_capability.clone(), context);
 
         // 11. Return promiseCapability.[[Promise]].
         Ok(promise_capability.promise().clone().into())
@@ -232,47 +212,13 @@ impl AsyncGenerator {
                 .into()
         });
         let generator = if_abrupt_reject_promise!(result, promise_capability, context);
-        let mut gen_borrow = generator.borrow_mut();
 
         // 5. Let completion be Completion Record { [[Type]]: return, [[Value]]: value, [[Target]]: empty }.
         let return_value = args.get_or_undefined(0).clone();
-        let completion = CompletionRecord::Return(return_value.clone());
+        let completion = CompletionRecord::Return(return_value);
 
         // 6. Perform AsyncGeneratorEnqueue(generator, completion, promiseCapability).
-        gen_borrow
-            .data
-            .enqueue(completion.clone(), promise_capability.clone());
-
-        // 7. Let state be generator.[[AsyncGeneratorState]].
-        let state = gen_borrow.data.state;
-
-        // 8. If state is either suspendedStart or completed, then
-        if state == AsyncGeneratorState::SuspendedStart || state == AsyncGeneratorState::Completed {
-            // a. Set generator.[[AsyncGeneratorState]] to awaiting-return.
-            gen_borrow.data.state = AsyncGeneratorState::AwaitingReturn;
-
-            // b. Perform ! AsyncGeneratorAwaitReturn(generator).
-            drop(gen_borrow);
-            Self::await_return(generator, return_value, context);
-        }
-        // 9. Else if state is suspendedYield, then
-        else if state == AsyncGeneratorState::SuspendedYield {
-            // a. Perform AsyncGeneratorResume(generator, completion).
-            let generator_context = gen_borrow
-                .data
-                .context
-                .take()
-                .expect("generator context cannot be empty here");
-
-            drop(gen_borrow);
-            Self::resume(
-                generator_object,
-                state,
-                generator_context,
-                completion,
-                context,
-            );
-        }
+        Self::enqueue(&generator, completion, promise_capability.clone(), context);
 
         // 11. Return promiseCapability.[[Promise]].
         Ok(promise_capability.promise().clone().into())
@@ -307,29 +253,31 @@ impl AsyncGenerator {
                 .into()
         });
         let generator_object = if_abrupt_reject_promise!(result, promise_capability, context);
-        let result: JsResult<_> = generator_object.downcast_mut::<Self>().ok_or_else(|| {
+        let result: JsResult<_> = generator_object.clone().downcast::<Self>().map_err(|_| {
             JsNativeError::typ()
                 .with_message("generator resumed on non generator object")
                 .into()
         });
-        let mut generator = if_abrupt_reject_promise!(result, promise_capability, context);
+        let generator = if_abrupt_reject_promise!(result, promise_capability, context);
+        let mut gen = generator.borrow_mut();
 
         // 5. Let state be generator.[[AsyncGeneratorState]].
-        let mut state = generator.state;
+        let mut state = gen.data.state;
 
         // 6. If state is suspendedStart, then
         if state == AsyncGeneratorState::SuspendedStart {
             // a. Set generator.[[AsyncGeneratorState]] to completed.
-            generator.state = AsyncGeneratorState::Completed;
-            generator.context = None;
+            gen.data.state = AsyncGeneratorState::Completed;
+            gen.data.context = None;
 
             // b. Set state to completed.
             state = AsyncGeneratorState::Completed;
         }
 
+        drop(gen);
+
         // 7. If state is completed, then
         if state == AsyncGeneratorState::Completed {
-            drop(generator);
 
             // a. Perform ! Call(promiseCapability.[[Reject]], undefined, « exception »).
             promise_capability
@@ -350,25 +298,7 @@ impl AsyncGenerator {
             CompletionRecord::Throw(JsError::from_opaque(args.get_or_undefined(0).clone()));
 
         // 9. Perform AsyncGeneratorEnqueue(generator, completion, promiseCapability).
-        generator.enqueue(completion.clone(), promise_capability.clone());
-
-        // 10. If state is suspendedYield, then
-        if state == AsyncGeneratorState::SuspendedYield {
-            let generator_context = generator
-                .context
-                .take()
-                .expect("generator context cannot be empty here");
-            drop(generator);
-
-            // a. Perform AsyncGeneratorResume(generator, completion).
-            Self::resume(
-                generator_object,
-                state,
-                generator_context,
-                completion,
-                context,
-            );
-        }
+        Self::enqueue(&generator, completion.clone(), promise_capability.clone(), context);
 
         // 12. Return promiseCapability.[[Promise]].
         Ok(promise_capability.promise().clone().into())
@@ -381,18 +311,27 @@ impl AsyncGenerator {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-asyncgeneratorenqueue
     pub(crate) fn enqueue(
-        &mut self,
+        generator: &JsObject<AsyncGenerator>,
         completion: CompletionRecord,
         promise_capability: PromiseCapability,
+        context: &mut Context
     ) {
-        // 1. Let request be AsyncGeneratorRequest { [[Completion]]: completion, [[Capability]]: promiseCapability }.
-        let request = AsyncGeneratorRequest {
-            completion,
-            capability: promise_capability,
-        };
+            let mut gen = generator.borrow_mut();
+            // 1. Let request be AsyncGeneratorRequest { [[Completion]]: completion, [[Capability]]: promiseCapability }.
+            let request = AsyncGeneratorRequest {
+                completion,
+                capability: promise_capability,
+            };
+    
+            // 2. Append request to the end of generator.[[AsyncGeneratorQueue]].
+            gen.data.queue.push_back(request);
 
-        // 2. Append request to the end of generator.[[AsyncGeneratorQueue]].
-        self.queue.push_back(request);
+        // Patch that mirrors https://262.ecma-international.org/12.0/#sec-asyncgeneratorenqueue
+        // This resolves the return bug.
+        if gen.data.state != AsyncGeneratorState::Executing {
+            drop(gen);
+            AsyncGenerator::resume_next(generator, context);
+        }
     }
 
     /// `AsyncGeneratorCompleteStep ( generator, completion, done [ , realm ] )`

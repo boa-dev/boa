@@ -1,6 +1,6 @@
 use crate::{
     builtins::async_generator::{AsyncGenerator, AsyncGeneratorState},
-    vm::{opcode::Operation, CompletionRecord, CompletionType, GeneratorResumeKind},
+    vm::{opcode::Operation, CompletionType},
     Context, JsResult, JsValue,
 };
 
@@ -60,35 +60,7 @@ impl Operation for AsyncGeneratorYield {
         AsyncGenerator::complete_step(&next, completion, false, None, context);
 
         // TODO: Upgrade to the latest spec when the problem is fixed.
-        let gen = async_generator_object.borrow();
-        // Arbitrary code could call `AsyncGenerator::return`, which could change the inner
-        // state of the generator. Ensure the generator is still completed before trying to resolve
-        // the next completion.
-        if gen.data.state == AsyncGeneratorState::Completed {
-            if let Some(next) = gen.data.queue.front() {
-                let resume_kind = match next.completion.clone() {
-                    CompletionRecord::Normal(val) => {
-                        context.vm.push(val);
-                        GeneratorResumeKind::Normal
-                    }
-                    CompletionRecord::Return(val) => {
-                        context.vm.push(val);
-                        GeneratorResumeKind::Return
-                    }
-                    CompletionRecord::Throw(err) => {
-                        let err = err.to_opaque(context);
-                        context.vm.push(err);
-                        GeneratorResumeKind::Throw
-                    }
-                };
-
-                context.vm.push(resume_kind);
-
-                return Ok(CompletionType::Normal);
-            }
-        }
-
-        // AsyncGenerator::resume_next(&async_generator_object, context);
+        AsyncGenerator::resume_next(&async_generator_object, context);
 
         context.vm.set_return_value(JsValue::undefined());
         Ok(CompletionType::Yield)
