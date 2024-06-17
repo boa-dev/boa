@@ -373,21 +373,6 @@ fn value_into_tuple() {
     use indoc::indoc;
 
     run_test_actions([
-        TestAction::assert_with_op(indoc! {r#" [] "#}, |value, context| {
-            type TestType = ();
-            TestType::try_from_js(&value, context).unwrap();
-            true
-        }),
-        TestAction::assert_with_op(indoc! {r#" 1 "#}, |value, context| {
-            type TestType = ();
-            TestType::try_from_js(&value, context).unwrap();
-            true
-        }),
-        TestAction::assert_with_op(indoc! {r#" [1, 2, 3] "#}, |value, context| {
-            type TestType = ();
-            TestType::try_from_js(&value, context).unwrap();
-            true
-        }),
         TestAction::assert_with_op(indoc! {r#" [42, "hello", true] "#}, |value, context| {
             type TestType = (i32, String, bool);
             TestType::try_from_js(&value, context).unwrap() == (42, "hello".to_string(), true)
@@ -423,14 +408,6 @@ fn value_into_tuple() {
         }),
         TestAction::assert_with_op(indoc!(r#"[42, "hello"]"#), |value, context| {
             type TestType = (i32, String, bool);
-            let Err(value) = TestType::try_from_js(&value, context) else {
-                return false;
-            };
-            assert!(value.to_string().contains("TypeError"));
-            true
-        }),
-        TestAction::assert_with_op(indoc!(r#" null "#), |value, context| {
-            type TestType = ();
             let Err(value) = TestType::try_from_js(&value, context) else {
                 return false;
             };

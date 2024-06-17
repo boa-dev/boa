@@ -5,24 +5,12 @@
 //!     - If the tuple is longer than the array, the extra elements are `undefined`.
 //!     - If the array is empty, all elements are `undefined`.
 //!
-//! A tuple of size 0 (unit type) is represented as any value except `null` or `undefined`.
+//! A tuple of size 0 (unit type) does not implement [`TryFromJs`].
 
 use crate::value::JsValue;
 use crate::{Context, JsError, JsNativeError, JsResult};
 
 use super::TryFromJs;
-
-impl TryFromJs for () {
-    fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {
-        if value.is_null_or_undefined() {
-            Err(JsError::from_native(JsNativeError::typ().with_message(
-                "Cannot convert null or undefined to unit type",
-            )))
-        } else {
-            Ok(())
-        }
-    }
-}
 
 macro_rules! impl_try_from_js_for_tuples {
     ($($name:ident),*) => {
