@@ -39,7 +39,7 @@ use crate::{
 };
 
 use super::{
-    locale::{canonicalize_locale_list, resolve_locale, supported_locales, validate_extension},
+    locale::{canonicalize_locale_list, filter_locales, resolve_locale, validate_extension},
     options::{coerce_options_to_object, IntlOptions},
     Service,
 };
@@ -237,7 +237,7 @@ impl BuiltInConstructor for NumberFormat {
         // 9. Let localeData be %Intl.NumberFormat%.[[LocaleData]].
         // 10. Let r be ResolveLocale(%Intl.NumberFormat%.[[AvailableLocales]], requestedLocales, opt, %Intl.NumberFormat%.[[RelevantExtensionKeys]], localeData).
         let locale = resolve_locale::<Self>(
-            &requested_locales,
+            requested_locales,
             &mut intl_options,
             context.intl_provider(),
         );
@@ -465,8 +465,8 @@ impl NumberFormat {
         // 2. Let requestedLocales be ? CanonicalizeLocaleList(locales).
         let requested_locales = canonicalize_locale_list(locales, context)?;
 
-        // 3. Return ? SupportedLocales(availableLocales, requestedLocales, options).
-        supported_locales::<<Self as Service>::LangMarker>(&requested_locales, options, context)
+        // 3. Return ? FilterLocales(availableLocales, requestedLocales, options).
+        filter_locales::<<Self as Service>::LangMarker>(requested_locales, options, context)
             .map(JsValue::from)
     }
 

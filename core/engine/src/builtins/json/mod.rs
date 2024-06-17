@@ -113,6 +113,7 @@ impl Json {
         parser.set_json_parse();
         let script = parser.parse_script(context.interner_mut())?;
         let code_block = {
+            let in_with = context.vm.environments.has_object_environment();
             let mut compiler = ByteCompiler::new(
                 js_string!("<main>"),
                 script.strict(),
@@ -120,6 +121,7 @@ impl Json {
                 context.realm().environment().compile_env(),
                 context.realm().environment().compile_env(),
                 context.interner_mut(),
+                in_with,
             );
             compiler.compile_statement_list(script.statements(), true, false);
             Gc::new(compiler.finish())

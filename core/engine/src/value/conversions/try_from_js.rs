@@ -4,6 +4,7 @@ use num_bigint::BigInt;
 
 use crate::{js_string, Context, JsBigInt, JsNativeError, JsObject, JsResult, JsString, JsValue};
 
+mod collections;
 mod tuples;
 
 /// This trait adds a fallible and efficient conversions from a [`JsValue`] to Rust types.
@@ -413,6 +414,51 @@ fn value_into_tuple() {
             };
             assert!(value.to_string().contains("TypeError"));
             true
+        }),
+    ]);
+}
+
+#[test]
+fn value_into_map() {
+    use boa_engine::{run_test_actions, TestAction};
+    use indoc::indoc;
+
+    run_test_actions([
+        TestAction::assert_with_op(indoc! {r#" ({ a: 1, b: 2, c: 3 }) "#}, |value, context| {
+            let value = std::collections::BTreeMap::<String, i32>::try_from_js(&value, context);
+
+            match value {
+                Ok(value) => {
+                    value
+                        == vec![
+                            ("a".to_string(), 1),
+                            ("b".to_string(), 2),
+                            ("c".to_string(), 3),
+                        ]
+                        .into_iter()
+                        .collect::<std::collections::BTreeMap<String, i32>>()
+                }
+                _ => false,
+            }
+        }),
+        TestAction::assert_with_op(indoc! {r#" ({ a: 1, b: 2, c: 3 }) "#}, |value, context| {
+            let value = std::collections::HashMap::<String, i32>::try_from_js(&value, context);
+
+            match value {
+                Ok(value) => {
+                    value
+                        == std::collections::HashMap::from_iter(
+                            vec![
+                                ("a".to_string(), 1),
+                                ("b".to_string(), 2),
+                                ("c".to_string(), 3),
+                            ]
+                            .into_iter()
+                            .collect::<std::collections::BTreeMap<String, i32>>(),
+                        )
+                }
+                _ => false,
+            }
         }),
     ]);
 }

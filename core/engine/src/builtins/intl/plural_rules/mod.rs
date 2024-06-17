@@ -26,7 +26,7 @@ use crate::{
 };
 
 use super::{
-    locale::{canonicalize_locale_list, resolve_locale, supported_locales},
+    locale::{canonicalize_locale_list, filter_locales, resolve_locale},
     number_format::{DigitFormatOptions, Extrema, NotationKind},
     options::{coerce_options_to_object, IntlOptions},
     Service,
@@ -136,7 +136,7 @@ impl BuiltInConstructor for PluralRules {
         // 10. Let r be ResolveLocale(%PluralRules%.[[AvailableLocales]], requestedLocales, opt, %PluralRules%.[[RelevantExtensionKeys]], localeData).
         // 11. Set pluralRules.[[Locale]] to r.[[locale]].
         let locale = resolve_locale::<Self>(
-            &requested_locales,
+            requested_locales,
             &mut IntlOptions {
                 matcher,
                 ..Default::default()
@@ -292,8 +292,8 @@ impl PluralRules {
         // 2. Let requestedLocales be ? CanonicalizeLocaleList(locales).
         let requested_locales = canonicalize_locale_list(locales, context)?;
 
-        // 3. Return ? SupportedLocales(availableLocales, requestedLocales, options).
-        supported_locales::<<Self as Service>::LangMarker>(&requested_locales, options, context)
+        // 3. Return ? FilterLocales(availableLocales, requestedLocales, options).
+        filter_locales::<<Self as Service>::LangMarker>(requested_locales, options, context)
             .map(JsValue::from)
     }
 
