@@ -8,7 +8,7 @@
 //! A tuple of size 0 (unit type) does not implement [`TryFromJs`].
 
 use crate::value::JsValue;
-use crate::{Context, JsError, JsNativeError, JsResult};
+use crate::{Context, JsResult};
 
 use super::TryFromJs;
 
