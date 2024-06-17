@@ -22,7 +22,7 @@ use crate::{
     string::StaticJsStrings,
     symbol::JsSymbol,
     value::JsValue,
-    vm::{CompletionRecord, GeneratorResumeKind},
+    vm::CompletionRecord,
     Context, JsArgs, JsData, JsError, JsResult, JsString,
 };
 use boa_gc::{Finalize, Trace};
@@ -278,7 +278,6 @@ impl AsyncGenerator {
 
         // 7. If state is completed, then
         if state == AsyncGeneratorState::Completed {
-
             // a. Perform ! Call(promiseCapability.[[Reject]], undefined, « exception »).
             promise_capability
                 .reject()
@@ -298,7 +297,12 @@ impl AsyncGenerator {
             CompletionRecord::Throw(JsError::from_opaque(args.get_or_undefined(0).clone()));
 
         // 9. Perform AsyncGeneratorEnqueue(generator, completion, promiseCapability).
-        Self::enqueue(&generator, completion.clone(), promise_capability.clone(), context);
+        Self::enqueue(
+            &generator,
+            completion.clone(),
+            promise_capability.clone(),
+            context,
+        );
 
         // 12. Return promiseCapability.[[Promise]].
         Ok(promise_capability.promise().clone().into())
@@ -314,17 +318,17 @@ impl AsyncGenerator {
         generator: &JsObject<AsyncGenerator>,
         completion: CompletionRecord,
         promise_capability: PromiseCapability,
-        context: &mut Context
+        context: &mut Context,
     ) {
-            let mut gen = generator.borrow_mut();
-            // 1. Let request be AsyncGeneratorRequest { [[Completion]]: completion, [[Capability]]: promiseCapability }.
-            let request = AsyncGeneratorRequest {
-                completion,
-                capability: promise_capability,
-            };
-    
-            // 2. Append request to the end of generator.[[AsyncGeneratorQueue]].
-            gen.data.queue.push_back(request);
+        let mut gen = generator.borrow_mut();
+        // 1. Let request be AsyncGeneratorRequest { [[Completion]]: completion, [[Capability]]: promiseCapability }.
+        let request = AsyncGeneratorRequest {
+            completion,
+            capability: promise_capability,
+        };
+
+        // 2. Append request to the end of generator.[[AsyncGeneratorQueue]].
+        gen.data.queue.push_back(request);
 
         // Patch that mirrors https://262.ecma-international.org/12.0/#sec-asyncgeneratorenqueue
         // This resolves the return bug.
@@ -396,60 +400,6 @@ impl AsyncGenerator {
         }
     }
 
-    /// `AsyncGeneratorResume ( generator, completion )`
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-asyncgeneratorresume
-    pub(crate) fn resume(
-        generator: &JsObject,
-        state: AsyncGeneratorState,
-        mut generator_context: GeneratorContext,
-        completion: CompletionRecord,
-        context: &mut Context,
-    ) {
-        // 1. Assert: generator.[[AsyncGeneratorState]] is either suspendedStart or suspendedYield.
-        assert!(
-            state == AsyncGeneratorState::SuspendedStart
-                || state == AsyncGeneratorState::SuspendedYield
-        );
-
-        // 2. Let genContext be generator.[[AsyncGeneratorContext]].
-
-        // 3. Let callerContext be the running execution context.
-        // 4. Suspend callerContext.
-
-        // 5. Set generator.[[AsyncGeneratorState]] to executing.
-        generator
-            .downcast_mut::<Self>()
-            .expect("already checked before")
-            .state = AsyncGeneratorState::Executing;
-
-        let (value, resume_kind) = match completion {
-            CompletionRecord::Normal(val) => (val, GeneratorResumeKind::Normal),
-            CompletionRecord::Return(val) => (val, GeneratorResumeKind::Return),
-            CompletionRecord::Throw(err) => (err.to_opaque(context), GeneratorResumeKind::Throw),
-        };
-        // 6. Push genContext onto the execution context stack; genContext is now the running execution context.
-
-        let result = generator_context.resume(Some(value), resume_kind, context);
-
-        // 7. Resume the suspended evaluation of genContext using completion as the result of the operation that suspended it. Let result be the Completion Record returned by the resumed computation.
-
-        generator
-            .downcast_mut::<Self>()
-            .expect("already checked before")
-            .context = Some(generator_context);
-
-        // 8. Assert: result is never an abrupt completion.
-        assert!(!result.is_throw_completion());
-
-        // 9. Assert: When we return here, genContext has already been removed from the execution context stack and
-        // callerContext is the currently running execution context.
-        // 10. Return unused.
-    }
-
     /// `AsyncGeneratorAwaitReturn ( generator )`
     ///
     /// More information:
@@ -486,7 +436,7 @@ impl AsyncGenerator {
                     gen.data.queue.pop_front().expect("queue must not be empty")
                 };
                 Self::complete_step(&next, Err(value), true, None, context);
-                Self::drain_queue(&generator, context);
+                Self::resume_next(&generator, context);
                 return;
             }
         };
@@ -514,7 +464,7 @@ impl AsyncGenerator {
                     Self::complete_step(&next, result, true, None, context);
 
                     // d. Perform AsyncGeneratorDrainQueue(generator).
-                    Self::drain_queue(generator, context);
+                    Self::resume_next(generator, context);
 
                     // e. Return undefined.
                     Ok(JsValue::undefined())
@@ -547,7 +497,7 @@ impl AsyncGenerator {
                     Self::complete_step(&next, result, true, None, context);
 
                     // d. Perform AsyncGeneratorDrainQueue(generator).
-                    Self::drain_queue(generator, context);
+                    Self::resume_next(generator, context);
 
                     // e. Return undefined.
                     Ok(JsValue::undefined())
@@ -567,65 +517,6 @@ impl AsyncGenerator {
             None,
             context,
         );
-    }
-
-    /// `AsyncGeneratorDrainQueue ( generator )`
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-asyncgeneratordrainqueue
-    pub(crate) fn drain_queue(generator: &JsObject<AsyncGenerator>, context: &mut Context) {
-        let mut gen = generator.borrow_mut();
-
-        // 1. Assert: generator.[[AsyncGeneratorState]] is completed.
-        assert_eq!(gen.data.state, AsyncGeneratorState::Completed);
-
-        // 2. Let queue be generator.[[AsyncGeneratorQueue]].
-        let queue = &mut gen.data.queue;
-
-        // 3. If queue is empty, return unused.
-        if queue.is_empty() {
-            return;
-        }
-
-        // 4. Let done be false.
-        // 5. Repeat, while done is false,
-        loop {
-            // a. Let next be the first element of queue.
-            let next = queue.front().expect("must have entry");
-
-            // b. Let completion be Completion(next.[[Completion]]).
-            match next.completion.clone() {
-                // c. If completion.[[Type]] is return, then
-                CompletionRecord::Return(val) => {
-                    // i. Set generator.[[AsyncGeneratorState]] to awaiting-return.
-                    gen.data.state = AsyncGeneratorState::AwaitingReturn;
-                    drop(gen);
-
-                    // ii. Perform ! AsyncGeneratorAwaitReturn(generator).
-                    Self::await_return(generator.clone(), val, context);
-
-                    // iii. Set done to true.
-                    break;
-                }
-                // d. Else,
-                completion => {
-                    // i. If completion.[[Type]] is normal, then
-                    // 1. Set completion to NormalCompletion(undefined).
-                    let completion = completion.consume().map(|_| JsValue::undefined());
-
-                    // ii. Perform AsyncGeneratorCompleteStep(generator, completion, true).
-                    let next = queue.pop_front().expect("must have entry");
-                    Self::complete_step(&next, completion, true, None, context);
-
-                    // iii. If queue is empty, set done to true.
-                    if queue.is_empty() {
-                        break;
-                    }
-                }
-            }
-        }
     }
 
     /// [`AsyncGeneratorResumeNext ( generator )`][spec]
