@@ -1,6 +1,6 @@
 use crate::{
     builtins::async_generator::{AsyncGenerator, AsyncGeneratorState},
-    vm::{opcode::Operation, CompletionType},
+    vm::{opcode::Operation, CompletionRecord, CompletionType, GeneratorResumeKind},
     Context, JsResult, JsValue,
 };
 
@@ -60,7 +60,27 @@ impl Operation for AsyncGeneratorYield {
         AsyncGenerator::complete_step(&next, completion, false, None, context);
 
         // TODO: Upgrade to the latest spec when the problem is fixed.
-        AsyncGenerator::resume_next(&async_generator_object, context);
+        if let Some(completion) = AsyncGenerator::resume_next(&async_generator_object, true, context) {
+            let resume_kind = match completion {
+                CompletionRecord::Normal(val) => {
+                    context.vm.push(val);
+                    GeneratorResumeKind::Normal
+                }
+                CompletionRecord::Return(val) => {
+                    context.vm.push(val);
+                    GeneratorResumeKind::Return
+                }
+                CompletionRecord::Throw(err) => {
+                    let err = err.to_opaque(context);
+                    context.vm.push(err);
+                    GeneratorResumeKind::Throw
+                }
+            };
+
+            context.vm.push(resume_kind);
+
+            return Ok(CompletionType::Normal);
+        };
 
         context.vm.set_return_value(JsValue::undefined());
         Ok(CompletionType::Yield)

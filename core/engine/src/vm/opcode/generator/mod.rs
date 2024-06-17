@@ -140,14 +140,13 @@ impl Operation for AsyncGeneratorClose {
             .vm
             .pending_exception
             .take()
-            .map(Err)
-            .unwrap_or(Ok(return_value));
+            .map_or(Ok(return_value), Err);
 
         drop(gen);
-        
+
         AsyncGenerator::complete_step(&next, completion, true, None, context);
         // TODO: Upgrade to the latest spec when the problem is fixed.
-        AsyncGenerator::resume_next(&generator, context);
+        AsyncGenerator::resume_next(&generator, false, context);
 
         Ok(CompletionType::Normal)
     }
