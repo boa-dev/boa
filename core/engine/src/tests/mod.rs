@@ -3,6 +3,7 @@
 use boa_macros::js_str;
 use indoc::indoc;
 
+mod async_generator;
 mod control_flow;
 mod env;
 mod function;
@@ -10,7 +11,6 @@ mod iterators;
 mod operators;
 mod promise;
 mod spread;
-mod async_generator;
 
 use crate::{run_test_actions, JsNativeErrorKind, JsValue, TestAction};
 

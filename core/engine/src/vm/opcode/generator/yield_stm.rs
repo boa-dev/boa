@@ -63,7 +63,7 @@ impl Operation for AsyncGeneratorYield {
             let Some(next) = gen.data.queue.front() else {
                 gen.data.state = AsyncGeneratorState::SuspendedYield;
                 context.vm.set_return_value(JsValue::undefined());
-                return Ok(CompletionType::Yield)
+                return Ok(CompletionType::Yield);
             };
 
             let resume_kind = match next.completion.clone() {
@@ -87,7 +87,10 @@ impl Operation for AsyncGeneratorYield {
             return Ok(CompletionType::Normal);
         }
 
-        assert!(matches!(gen.data.state, AsyncGeneratorState::AwaitingReturn | AsyncGeneratorState::Completed));
+        assert!(matches!(
+            gen.data.state,
+            AsyncGeneratorState::AwaitingReturn | AsyncGeneratorState::Completed
+        ));
 
         AsyncGenerator::resume_next(&async_generator_object, context);
 

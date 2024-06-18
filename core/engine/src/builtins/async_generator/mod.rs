@@ -521,10 +521,7 @@ impl AsyncGenerator {
     /// [`AsyncGeneratorResumeNext ( generator )`][spec]
     ///
     /// [spec]: https://262.ecma-international.org/12.0/#sec-asyncgeneratorresumenext
-    pub(crate) fn resume_next(
-        generator: &JsObject<AsyncGenerator>,
-        context: &mut Context,
-    ) {
+    pub(crate) fn resume_next(generator: &JsObject<AsyncGenerator>, context: &mut Context) {
         // 1. Assert: generator is an AsyncGenerator instance.
         let mut gen = generator.borrow_mut();
         // 2. Let state be generator.[[AsyncGeneratorState]].
