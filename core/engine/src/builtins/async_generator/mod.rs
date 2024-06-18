@@ -639,7 +639,11 @@ impl AsyncGenerator {
         // 19. Assert: result is never an abrupt completion.
         assert!(!matches!(result, CompletionRecord::Throw(_)));
 
-        generator.borrow_mut().data.context = Some(generator_context);
+        generator
+            .borrow_mut()
+            .data
+            .context
+            .get_or_insert(generator_context);
 
         // 20. Assert: When we return here, genContext has already been removed from the execution context stack and
         //     callerContext is the currently running execution context.

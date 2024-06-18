@@ -1,4 +1,6 @@
-use boa_gc::{Gc, GcRefCell};
+use std::cell::Cell;
+
+use boa_gc::Gc;
 use boa_macros::js_str;
 
 use crate::{
@@ -45,12 +47,18 @@ impl Operation for Await {
             .unwrap_or_default();
 
         let gen = GeneratorContext::from_current(context);
-        // Even though it would be great to split without cloning, we need to ensure
-        // the context is still valid, since the original generator stores the original
-        // context in case it is resumed by a `return` or `throw` call instead of a continuation.
-        context.vm.stack.extend_from_slice(&gen.stack);
 
-        let captures = Gc::new(GcRefCell::new(Some(gen)));
+        // Even though it would be great to avoid cloning, we need to ensure
+        // the original async generator has a copy of the context in case it is resumed
+        // by a `return` or `throw` call instead of a continuation.
+        if let Some(async_generator) = gen.async_generator_object() {
+            async_generator
+                .downcast_mut::<AsyncGenerator>()
+                .expect("must be async generator")
+                .context = Some(gen.clone());
+        }
+
+        let captures = Gc::new(Cell::new(Some(gen)));
 
         // 3. Let fulfilledClosure be a new Abstract Closure with parameters (value) that captures asyncContext and performs the following steps when called:
         // 4. Let onFulfilled be CreateBuiltinFunction(fulfilledClosure, 1, "", « »).
@@ -62,7 +70,7 @@ impl Operation for Await {
                     // b. Suspend prevContext.
                     // c. Push asyncContext onto the execution context stack; asyncContext is now the running execution context.
                     // d. Resume the suspended evaluation of asyncContext using NormalCompletion(value) as the result of the operation that suspended it.
-                    let mut gen = captures.borrow_mut().take().expect("should only run once");
+                    let mut gen = captures.take().expect("should only run once");
 
                     // NOTE: We need to get the object before resuming, since it could clear the stack.
                     let async_generator = gen.async_generator_object();
@@ -104,7 +112,7 @@ impl Operation for Await {
                     // e. Assert: When we reach this step, asyncContext has already been removed from the execution context stack and prevContext is the currently running execution context.
                     // f. Return undefined.
 
-                    let mut gen = captures.borrow_mut().take().expect("should only run once");
+                    let mut gen = captures.take().expect("should only run once");
 
                     // NOTE: We need to get the object before resuming, since it could clear the stack.
                     let async_generator = gen.async_generator_object();
