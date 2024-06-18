@@ -6,7 +6,12 @@ use boa_macros::js_str;
 use indoc::indoc;
 
 #[track_caller]
-fn assert_promise_iter_value(promise: JsValue, target: JsValue, done: bool, context: &mut Context) {
+fn assert_promise_iter_value(
+    promise: &JsValue,
+    target: &JsValue,
+    done: bool,
+    context: &mut Context,
+) {
     let promise = JsPromise::from_object(promise.as_object().unwrap().clone()).unwrap();
     let PromiseState::Fulfilled(v) = promise.state() else {
         panic!("promise was not fulfilled");
@@ -18,7 +23,7 @@ fn assert_promise_iter_value(promise: JsValue, target: JsValue, done: bool, cont
         .unwrap()
         .as_boolean()
         .unwrap();
-    assert_eq!(value, target);
+    assert_eq!(&value, target);
     assert_eq!(d, done);
 }
 
@@ -42,7 +47,7 @@ fn return_on_then_infinite_loop() {
             });
             g.return();
         "#}),
-        TestAction::inspect_context(|context| context.run_jobs()),
+        TestAction::inspect_context(Context::run_jobs),
         TestAction::assert_eq("count", 100),
     ]);
 }
@@ -69,7 +74,7 @@ fn return_on_then_single() {
         TestAction::inspect_context(Context::run_jobs),
         TestAction::assert_eq("first", false),
         TestAction::assert_with_op("ret", |ret, context| {
-            assert_promise_iter_value(ret, JsValue::undefined(), true, context);
+            assert_promise_iter_value(&ret, &JsValue::undefined(), true, context);
             true
         }),
     ]);
@@ -101,15 +106,15 @@ fn return_on_then_queue() {
         "#}),
         TestAction::inspect_context(Context::run_jobs),
         TestAction::assert_with_op("first", |first, context| {
-            assert_promise_iter_value(first, JsValue::from(1), false, context);
+            assert_promise_iter_value(&first, &JsValue::from(1), false, context);
             true
         }),
         TestAction::assert_with_op("second", |second, context| {
-            assert_promise_iter_value(second, JsValue::from(2), false, context);
+            assert_promise_iter_value(&second, &JsValue::from(2), false, context);
             true
         }),
         TestAction::assert_with_op("ret", |ret, context| {
-            assert_promise_iter_value(ret, JsValue::undefined(), true, context);
+            assert_promise_iter_value(&ret, &JsValue::undefined(), true, context);
             true
         }),
     ]);
