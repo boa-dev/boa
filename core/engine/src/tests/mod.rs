@@ -1,3 +1,5 @@
+#![cfg(any(not(feature = "intl"), feature = "intl_bundled"))]
+
 use boa_macros::js_str;
 use indoc::indoc;
 
@@ -8,6 +10,7 @@ mod iterators;
 mod operators;
 mod promise;
 mod spread;
+mod async_generator;
 
 use crate::{run_test_actions, JsNativeErrorKind, JsValue, TestAction};
 

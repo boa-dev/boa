@@ -146,7 +146,7 @@ impl Operation for AsyncGeneratorClose {
 
         AsyncGenerator::complete_step(&next, completion, true, None, context);
         // TODO: Upgrade to the latest spec when the problem is fixed.
-        AsyncGenerator::resume_next(&generator, false, context);
+        AsyncGenerator::resume_next(&generator, context);
 
         Ok(CompletionType::Normal)
     }

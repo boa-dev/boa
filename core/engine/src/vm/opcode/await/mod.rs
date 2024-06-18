@@ -45,6 +45,10 @@ impl Operation for Await {
             .unwrap_or_default();
 
         let gen = GeneratorContext::from_current(context);
+        // Even though it would be great to split without cloning, we need to ensure
+        // the context is still valid, since the original generator stores the original
+        // context in case it is resumed by a `return` or `throw` call instead of a continuation.
+        context.vm.stack.extend_from_slice(&gen.stack);
 
         let captures = Gc::new(GcRefCell::new(Some(gen)));
 

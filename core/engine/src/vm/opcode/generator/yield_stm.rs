@@ -54,14 +54,19 @@ impl Operation for AsyncGeneratorYield {
             .pop_front()
             .expect("must have item in queue");
 
-        async_generator_object.borrow_mut().data.state = AsyncGeneratorState::SuspendedYield;
-
         // TODO: 7. Let previousContext be the second to top element of the execution context stack.
         AsyncGenerator::complete_step(&next, completion, false, None, context);
 
         // TODO: Upgrade to the latest spec when the problem is fixed.
-        if let Some(completion) = AsyncGenerator::resume_next(&async_generator_object, true, context) {
-            let resume_kind = match completion {
+        let mut gen = async_generator_object.borrow_mut();
+        if gen.data.state == AsyncGeneratorState::Executing {
+            let Some(next) = gen.data.queue.front() else {
+                gen.data.state = AsyncGeneratorState::SuspendedYield;
+                context.vm.set_return_value(JsValue::undefined());
+                return Ok(CompletionType::Yield)
+            };
+
+            let resume_kind = match next.completion.clone() {
                 CompletionRecord::Normal(val) => {
                     context.vm.push(val);
                     GeneratorResumeKind::Normal
@@ -80,8 +85,13 @@ impl Operation for AsyncGeneratorYield {
             context.vm.push(resume_kind);
 
             return Ok(CompletionType::Normal);
-        };
+        }
 
+        assert!(matches!(gen.data.state, AsyncGeneratorState::AwaitingReturn | AsyncGeneratorState::Completed));
+
+        AsyncGenerator::resume_next(&async_generator_object, context);
+
+        async_generator_object.borrow_mut().data.state = AsyncGeneratorState::SuspendedYield;
         context.vm.set_return_value(JsValue::undefined());
         Ok(CompletionType::Yield)
     }

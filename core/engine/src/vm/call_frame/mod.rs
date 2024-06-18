@@ -292,6 +292,7 @@ impl CallFrame {
     /// # Panics
     ///
     /// If the index is out of bounds.
+    #[track_caller]
     pub(crate) fn register<'stack>(&self, index: u32, stack: &'stack [JsValue]) -> &'stack JsValue {
         debug_assert!(index < self.code_block().register_count);
         let at = self.rp + index;
