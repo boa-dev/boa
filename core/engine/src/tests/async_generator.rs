@@ -117,5 +117,6 @@ fn return_on_then_queue() {
             assert_promise_iter_value(&ret, &JsValue::undefined(), true, context);
             true
         }),
+        TestAction::assert_eq("count", JsValue::from(2)),
     ]);
 }
