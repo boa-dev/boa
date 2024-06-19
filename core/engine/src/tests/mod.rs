@@ -1,6 +1,9 @@
+#![cfg(any(not(feature = "intl"), feature = "intl_bundled"))]
+
 use boa_macros::js_str;
 use indoc::indoc;
 
+mod async_generator;
 mod control_flow;
 mod env;
 mod function;

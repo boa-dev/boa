@@ -44,9 +44,12 @@ impl Operation for AsyncGeneratorYield {
             .async_generator_object(&context.vm.stack)
             .expect("`AsyncGeneratorYield` must only be called inside async generators");
         let completion = Ok(value);
+        let async_generator_object = async_generator_object
+            .downcast::<AsyncGenerator>()
+            .expect("must be async generator object");
         let next = async_generator_object
-            .downcast_mut::<AsyncGenerator>()
-            .expect("must be async generator object")
+            .borrow_mut()
+            .data
             .queue
             .pop_front()
             .expect("must have item in queue");
@@ -54,12 +57,15 @@ impl Operation for AsyncGeneratorYield {
         // TODO: 7. Let previousContext be the second to top element of the execution context stack.
         AsyncGenerator::complete_step(&next, completion, false, None, context);
 
-        let mut generator_object_mut = async_generator_object.borrow_mut();
-        let gen = generator_object_mut
-            .downcast_mut::<AsyncGenerator>()
-            .expect("must be async generator object");
+        // TODO: Upgrade to the latest spec when the problem is fixed.
+        let mut gen = async_generator_object.borrow_mut();
+        if gen.data.state == AsyncGeneratorState::Executing {
+            let Some(next) = gen.data.queue.front() else {
+                gen.data.state = AsyncGeneratorState::SuspendedYield;
+                context.vm.set_return_value(JsValue::undefined());
+                return Ok(CompletionType::Yield);
+            };
 
-        if let Some(next) = gen.queue.front() {
             let resume_kind = match next.completion.clone() {
                 CompletionRecord::Normal(val) => {
                     context.vm.push(val);
@@ -81,7 +87,14 @@ impl Operation for AsyncGeneratorYield {
             return Ok(CompletionType::Normal);
         }
 
-        gen.state = AsyncGeneratorState::SuspendedYield;
+        assert!(matches!(
+            gen.data.state,
+            AsyncGeneratorState::AwaitingReturn | AsyncGeneratorState::Completed
+        ));
+
+        AsyncGenerator::resume_next(&async_generator_object, context);
+
+        async_generator_object.borrow_mut().data.state = AsyncGeneratorState::SuspendedYield;
         context.vm.set_return_value(JsValue::undefined());
         Ok(CompletionType::Yield)
     }
