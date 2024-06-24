@@ -9,13 +9,13 @@
 // https://github.com/tc39/proposal-temporal/blob/main/polyfill/index.d.ts
 
 use crate::{
-    builtins::options::{get_option, ParsableOptionType},
+    builtins::options::{get_option, OptionType, ParsableOptionType},
     string::JsStr,
-    Context, JsNativeError, JsObject, JsResult,
+    Context, JsNativeError, JsObject, JsResult, JsValue,
 };
 use temporal_rs::options::{
     ArithmeticOverflow, DurationOverflow, InstantDisambiguation, OffsetDisambiguation,
-    TemporalRoundingMode, TemporalUnit,
+    RoundingIncrement, TemporalRoundingMode, TemporalUnit,
 };
 
 // TODO: Expand docs on the below options.
@@ -99,3 +99,11 @@ impl ParsableOptionType for DurationOverflow {}
 impl ParsableOptionType for InstantDisambiguation {}
 impl ParsableOptionType for OffsetDisambiguation {}
 impl ParsableOptionType for TemporalRoundingMode {}
+
+impl OptionType for RoundingIncrement {
+    fn from_value(value: JsValue, context: &mut Context) -> JsResult<Self> {
+        let value = value.to_number(context)?;
+
+        Ok(RoundingIncrement::try_from(value)?)
+    }
+}
