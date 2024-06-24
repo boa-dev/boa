@@ -94,7 +94,7 @@ isahc = "1.7.2"
 rustyline = { version = "14.0.0", default-features = false }
 dhat = "0.3.3"
 quote = "1.0.36"
-syn = { version = "2.0.66", default-features = false }
+syn = { version = "2.0.68", default-features = false }
 proc-macro2 = "1.0"
 synstructure = "0.13"
 measureme = "11.0.1"
@@ -109,7 +109,7 @@ dashmap = "5.5.3"
 num_enum = "0.7.2"
 itertools = { version = "0.13.0", default-features = false }
 portable-atomic = "1.6.0"
-bytemuck = { version = "1.15.0", default-features = false }
+bytemuck = { version = "1.16.1", default-features = false }
 arrayvec = "0.7.4"
 intrusive-collections = "0.9.6"
 cfg-if = "1.0.0"
