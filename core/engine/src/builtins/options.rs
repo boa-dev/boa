@@ -2,6 +2,8 @@
 
 use std::{fmt, str::FromStr};
 
+use temporal_rs::options::RoundingIncrement;
+
 use crate::{object::JsObject, string::JsStr, Context, JsNativeError, JsResult, JsString, JsValue};
 
 /// A type used as an option parameter for [`get_option`].
@@ -121,6 +123,14 @@ impl OptionType for f64 {
         }
 
         Ok(value)
+    }
+}
+
+impl OptionType for RoundingIncrement {
+    fn from_value(value: JsValue, context: &mut Context) -> JsResult<Self> {
+        let value = value.to_number(context)?;
+
+        Ok(RoundingIncrement::try_from(value)?)
     }
 }
 
