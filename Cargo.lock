@@ -2051,6 +2051,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "49f1f14873335454500d59611f1cf4a4b0f786f9ac11f4312a78e4cf2566695b"
 
 [[package]]
+name = "ixdtf"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2123305f927452a9502fc05c33800280d90127c95c50eb45ec6b3c50346afbf3"
+dependencies = [
+ "displaydoc",
+]
+
+[[package]]
 name = "jemalloc-sys"
 version = "0.5.4+5.3.0-patched"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3207,10 +3216,11 @@ checksum = "55937e1799185b12863d447f42597ed69d9928686b8d88a1df17376a097d8369"
 [[package]]
 name = "temporal_rs"
 version = "0.0.2"
-source = "git+https://github.com/boa-dev/temporal.git?rev=61a05fbb7c72353deda72a3df0e6887d65b840d2#61a05fbb7c72353deda72a3df0e6887d65b840d2"
+source = "git+https://github.com/boa-dev/temporal.git?rev=21ea17dc5c9caca5a547e89de83ef91979cfeb34#21ea17dc5c9caca5a547e89de83ef91979cfeb34"
 dependencies = [
  "bitflags 2.5.0",
  "icu_calendar",
+ "ixdtf",
  "num-bigint",
  "num-traits",
  "rustc-hash",
