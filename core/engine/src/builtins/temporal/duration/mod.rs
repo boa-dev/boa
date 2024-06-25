@@ -18,11 +18,11 @@ use boa_macros::js_str;
 use boa_profiler::Profiler;
 use temporal_rs::{
     components::Duration as InnerDuration,
-    options::{RelativeTo, TemporalRoundingMode, TemporalUnit},
+    options::{RelativeTo, RoundingIncrement, TemporalRoundingMode, TemporalUnit},
 };
 
 use super::{
-    options::{get_temporal_rounding_increment, get_temporal_unit, TemporalUnitGroup},
+    options::{get_temporal_unit, TemporalUnitGroup},
     to_integer_if_integral, DateTimeValues,
 };
 
@@ -658,7 +658,8 @@ impl Duration {
             super::to_relative_temporal_object(&round_to, context)?;
 
         // 13. Let roundingIncrement be ? ToTemporalRoundingIncrement(roundTo).
-        let rounding_increment = get_temporal_rounding_increment(&round_to, context)?;
+        let rounding_increment =
+            get_option::<RoundingIncrement>(&round_to, js_str!("roundingIncrement"), context)?;
 
         // 14. Let roundingMode be ? ToTemporalRoundingMode(roundTo, "halfExpand").
         let rounding_mode =

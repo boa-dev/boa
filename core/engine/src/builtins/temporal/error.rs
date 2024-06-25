@@ -9,6 +9,7 @@ impl From<TemporalError> for JsNativeError {
             ErrorKind::Type => JsNativeError::typ().with_message(value.message()),
             ErrorKind::Generic => JsNativeError::error().with_message(value.message()),
             ErrorKind::Syntax => JsNativeError::syntax().with_message(value.message()),
+            ErrorKind::Assert => JsNativeError::error().with_message("internal engine error"),
         }
     }
 }

@@ -9,52 +9,16 @@
 // https://github.com/tc39/proposal-temporal/blob/main/polyfill/index.d.ts
 
 use crate::{
-    builtins::options::{get_option, ParsableOptionType},
-    js_string,
+    builtins::options::{get_option, OptionType, ParsableOptionType},
     string::JsStr,
-    Context, JsNativeError, JsObject, JsResult,
+    Context, JsNativeError, JsObject, JsResult, JsValue,
 };
 use temporal_rs::options::{
     ArithmeticOverflow, DurationOverflow, InstantDisambiguation, OffsetDisambiguation,
-    TemporalRoundingMode, TemporalUnit,
+    RoundingIncrement, TemporalRoundingMode, TemporalUnit,
 };
 
 // TODO: Expand docs on the below options.
-
-// TODO: Remove and refactor: migrate to `boa_temporal`
-#[inline]
-pub(crate) fn get_temporal_rounding_increment(
-    options: &JsObject,
-    context: &mut Context,
-) -> JsResult<Option<f64>> {
-    // 1. Let increment be ? GetOption(normalizedOptions, "roundingIncrement", "number", undefined, 1𝔽).
-    let value = options.get(js_string!("roundingIncrement"), context)?;
-
-    if value.is_undefined() {
-        return Ok(None);
-    }
-    let increment = value.to_number(context)?;
-
-    // 2. If increment is not finite, throw a RangeError exception.
-    if !increment.is_finite() {
-        return Err(JsNativeError::range()
-            .with_message("rounding increment was out of range.")
-            .into());
-    }
-
-    // 3. Let integerIncrement be truncate(ℝ(increment)).
-    let integer_increment = increment.trunc();
-
-    // 4. If integerIncrement < 1 or integerIncrement > 10^9, throw a RangeError exception.
-    if !(1.0..=1_000_000_000.0).contains(&integer_increment) {
-        return Err(JsNativeError::range()
-            .with_message("rounding increment was out of range.")
-            .into());
-    }
-
-    // 5. Return integerIncrement.
-    Ok(Some(integer_increment))
-}
 
 /// Gets the `TemporalUnit` from an options object.
 #[inline]
@@ -135,3 +99,11 @@ impl ParsableOptionType for DurationOverflow {}
 impl ParsableOptionType for InstantDisambiguation {}
 impl ParsableOptionType for OffsetDisambiguation {}
 impl ParsableOptionType for TemporalRoundingMode {}
+
+impl OptionType for RoundingIncrement {
+    fn from_value(value: JsValue, context: &mut Context) -> JsResult<Self> {
+        let value = value.to_number(context)?;
+
+        Ok(RoundingIncrement::try_from(value)?)
+    }
+}

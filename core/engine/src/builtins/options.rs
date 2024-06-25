@@ -116,7 +116,7 @@ impl OptionType for f64 {
 
         if !value.is_finite() {
             return Err(JsNativeError::range()
-                .with_message("roundingIncrement must be finite.")
+                .with_message("numeric option must be finite.")
                 .into());
         }
 

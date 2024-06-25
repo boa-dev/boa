@@ -23,7 +23,7 @@ use boa_macros::js_str;
 use boa_profiler::Profiler;
 use temporal_rs::{
     components::Instant as InnerInstant,
-    options::{TemporalRoundingMode, TemporalUnit},
+    options::{RoundingIncrement, TemporalRoundingMode, TemporalUnit},
 };
 
 /// The `Temporal.Instant` object.
@@ -287,7 +287,8 @@ impl Instant {
         // Fetch the necessary options.
         let options = get_options_object(args.get_or_undefined(1))?;
         let mode = get_option::<TemporalRoundingMode>(&options, js_str!("roundingMode"), context)?;
-        let increment = get_option::<f64>(&options, js_str!("roundingIncrement"), context)?;
+        let increment =
+            get_option::<RoundingIncrement>(&options, js_str!("roundingIncrement"), context)?;
         let smallest_unit = get_option::<TemporalUnit>(&options, js_str!("smallestUnit"), context)?;
         let largest_unit = get_option::<TemporalUnit>(&options, js_str!("largestUnit"), context)?;
         let result = instant
@@ -315,7 +316,8 @@ impl Instant {
         let other = to_temporal_instant(args.get_or_undefined(0))?;
         let options = get_options_object(args.get_or_undefined(1))?;
         let mode = get_option::<TemporalRoundingMode>(&options, js_str!("roundingMode"), context)?;
-        let increment = get_option::<f64>(&options, js_str!("roundingIncrement"), context)?;
+        let increment =
+            get_option::<RoundingIncrement>(&options, js_str!("roundingIncrement"), context)?;
         let smallest_unit = get_option::<TemporalUnit>(&options, js_str!("smallestUnit"), context)?;
         let largest_unit = get_option::<TemporalUnit>(&options, js_str!("largestUnit"), context)?;
         let result = instant
