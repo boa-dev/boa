@@ -827,6 +827,26 @@ impl Duration {
 
 // -- Duration Abstract Operations --
 
+/// 7.5.8 `ToTemporalDuration ( item )`
+pub(crate) fn to_temporal_duration(
+    item: &JsValue,
+    context: &mut Context,
+) -> JsResult<InnerDuration> {
+    // 1a. If Type(item) is Object
+    // 1b. and item has an [[InitializedTemporalDuration]] internal slot, then
+    if let Some(duration) = item
+        .as_object()
+        .and_then(JsObject::downcast_ref::<Duration>)
+    {
+        return Ok(duration.inner);
+    }
+
+    // 2. Let result be ? ToTemporalDurationRecord(item).
+    let result = to_temporal_duration_record(item, context)?;
+    // 3. Return ! CreateTemporalDuration(result.[[Years]], result.[[Months]], result.[[Weeks]], result.[[Days]], result.[[Hours]], result.[[Minutes]], result.[[Seconds]], result.[[Milliseconds]], result.[[Microseconds]], result.[[Nanoseconds]]).
+    Ok(result)
+}
+
 /// 7.5.9 `ToTemporalDurationRecord ( temporalDurationLike )`
 pub(crate) fn to_temporal_duration_record(
     temporal_duration_like: &JsValue,
