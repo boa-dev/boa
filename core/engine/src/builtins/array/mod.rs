@@ -385,7 +385,7 @@ impl Array {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-createarrayfromlist
-    pub(crate) fn create_array_from_list<I>(elements: I, context: &mut Context) -> JsObject
+    pub(crate) fn create_array_from_list<I>(elements: I, context: &Context) -> JsObject
     where
         I: IntoIterator<Item = JsValue>,
     {

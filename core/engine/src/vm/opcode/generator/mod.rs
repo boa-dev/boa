@@ -20,7 +20,7 @@ use crate::{
 
 pub(crate) use yield_stm::*;
 
-use super::SetReturnValue;
+use super::SetAccumulatorFromStack;
 
 /// `Generator` implements the Opcode Operation for `Opcode::Generator`
 ///
@@ -172,7 +172,7 @@ impl Operation for GeneratorNext {
             GeneratorResumeKind::Return => {
                 assert!(context.vm.pending_exception.is_none());
 
-                SetReturnValue::execute(context)?;
+                SetAccumulatorFromStack::execute(context)?;
                 ReThrow::execute(context)
             }
         }

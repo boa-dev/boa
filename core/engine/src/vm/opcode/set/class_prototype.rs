@@ -13,13 +13,16 @@ use crate::{
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct SetClassPrototype;
 
-impl Operation for SetClassPrototype {
-    const NAME: &'static str = "SetClassPrototype";
-    const INSTRUCTION: &'static str = "INST - SetClassPrototype";
-    const COST: u8 = 6;
-
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let prototype_value = context.vm.pop();
+impl SetClassPrototype {
+    #[allow(clippy::unnecessary_wraps)]
+    fn operation(
+        dst: u32,
+        prototype: u32,
+        class: u32,
+        context: &mut Context,
+    ) -> JsResult<CompletionType> {
+        let rp = context.vm.frame().rp;
+        let prototype_value = &context.vm.stack[(rp + prototype) as usize];
         let prototype = match &prototype_value {
             JsValue::Object(proto) => Some(proto.clone()),
             JsValue::Null => None,
@@ -33,7 +36,7 @@ impl Operation for SetClassPrototype {
             prototype,
             OrdinaryObject,
         );
-        let class = context.vm.pop();
+        let class = context.vm.stack[(rp + class) as usize].clone();
 
         {
             let class_object = class.as_object().expect("class must be object");
@@ -67,7 +70,34 @@ impl Operation for SetClassPrototype {
             )
             .expect("cannot fail per spec");
 
-        context.vm.push(proto);
+        context.vm.stack[(rp + dst) as usize] = proto.into();
         Ok(CompletionType::Normal)
+    }
+}
+
+impl Operation for SetClassPrototype {
+    const NAME: &'static str = "SetClassPrototype";
+    const INSTRUCTION: &'static str = "INST - SetClassPrototype";
+    const COST: u8 = 6;
+
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
+        let dst = u32::from(context.vm.read::<u8>());
+        let prototype = u32::from(context.vm.read::<u8>());
+        let class = u32::from(context.vm.read::<u8>());
+        Self::operation(dst, prototype, class, context)
+    }
+
+    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
+        let dst = u32::from(context.vm.read::<u16>());
+        let prototype = u32::from(context.vm.read::<u16>());
+        let class = u32::from(context.vm.read::<u16>());
+        Self::operation(dst, prototype, class, context)
+    }
+
+    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
+        let dst = context.vm.read::<u32>();
+        let prototype = context.vm.read::<u32>();
+        let class = context.vm.read::<u32>();
+        Self::operation(dst, prototype, class, context)
     }
 }

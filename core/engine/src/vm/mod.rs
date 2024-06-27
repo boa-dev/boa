@@ -30,7 +30,9 @@ pub(crate) use inline_cache::InlineCache;
 
 // TODO: see if this can be exposed on all features.
 #[allow(unused_imports)]
-pub(crate) use opcode::{Instruction, InstructionIterator, Opcode, VaryingOperandKind};
+pub(crate) use opcode::{
+    Instruction, InstructionIterator, InstructionOperand, Opcode, VaryingOperandKind,
+};
 pub use runtime_limits::RuntimeLimits;
 pub use {
     call_frame::{CallFrame, GeneratorResumeKind},
