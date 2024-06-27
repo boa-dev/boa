@@ -13,6 +13,7 @@ use crate::{
 use boa_ast::{function::FormalParameterList, operations::bound_names};
 use boa_gc::{Finalize, Gc, Trace};
 use rustc_hash::FxHashMap;
+use thin_vec::{thin_vec, ThinVec};
 
 #[derive(Debug, Copy, Clone, Trace, Finalize, JsData)]
 #[boa_gc(empty_trace)]
@@ -137,30 +138,7 @@ impl MappedArguments {
 }
 
 impl MappedArguments {
-    /// Creates a new mapped Arguments exotic object.
-    ///
-    /// <https://tc39.es/ecma262/#sec-createmappedargumentsobject>
-    #[allow(clippy::new_ret_no_self)]
-    pub(crate) fn new(
-        func: &JsObject,
-        formals: &FormalParameterList,
-        arguments_list: &[JsValue],
-        env: &Gc<DeclarativeEnvironment>,
-        context: &mut Context,
-    ) -> JsObject {
-        // 1. Assert: formals does not contain a rest parameter, any binding patterns, or any initializers.
-        // It may contain duplicate identifiers.
-        // 2. Let len be the number of elements in argumentsList.
-        let len = arguments_list.len();
-
-        // 3. Let obj be ! MakeBasicObject(« [[Prototype]], [[Extensible]], [[ParameterMap]] »).
-        // 4. Set obj.[[GetOwnProperty]] as specified in 10.4.4.1.
-        // 5. Set obj.[[DefineOwnProperty]] as specified in 10.4.4.2.
-        // 6. Set obj.[[Get]] as specified in 10.4.4.3.
-        // 7. Set obj.[[Set]] as specified in 10.4.4.4.
-        // 8. Set obj.[[Delete]] as specified in 10.4.4.5.
-        // 9. Set obj.[[Prototype]] to %Object.prototype%.
-
+    pub(crate) fn binding_indices(formals: &FormalParameterList) -> ThinVec<Option<u32>> {
         // Section 17-19 are done first, for easier object creation in 11.
         //
         // The section 17-19 differs from the spec, due to the way the runtime environments work.
@@ -196,14 +174,9 @@ impl MappedArguments {
         // In the case of duplicate parameter names, the last one is bound as the environment binding.
         //
         // The following logic implements the steps 17-19 adjusted for our environment structure.
-
         let mut bindings = FxHashMap::default();
         let mut property_index = 0;
         for name in bound_names(formals) {
-            if property_index >= len {
-                break;
-            }
-
             // NOTE(HalidOdat): Offset by +1 to account for the first binding ("argument").
             let binding_index = bindings.len() as u32 + 1;
 
@@ -215,14 +188,43 @@ impl MappedArguments {
             property_index += 1;
         }
 
-        let mut map = MappedArguments {
-            binding_indices: vec![None; property_index],
+        let mut binding_indices = thin_vec![None; property_index];
+        for (binding_index, property_index) in bindings.values() {
+            binding_indices[*property_index] = Some(*binding_index);
+        }
+
+        binding_indices
+    }
+
+    /// Creates a new mapped Arguments exotic object.
+    ///
+    /// <https://tc39.es/ecma262/#sec-createmappedargumentsobject>
+    #[allow(clippy::new_ret_no_self)]
+    pub(crate) fn new(
+        func: &JsObject,
+        binding_indices: &[Option<u32>],
+        arguments_list: &[JsValue],
+        env: &Gc<DeclarativeEnvironment>,
+        context: &mut Context,
+    ) -> JsObject {
+        // 1. Assert: formals does not contain a rest parameter, any binding patterns, or any initializers.
+        // It may contain duplicate identifiers.
+        // 2. Let len be the number of elements in argumentsList.
+        let len = arguments_list.len();
+
+        // 3. Let obj be ! MakeBasicObject(« [[Prototype]], [[Extensible]], [[ParameterMap]] »).
+        // 4. Set obj.[[GetOwnProperty]] as specified in 10.4.4.1.
+        // 5. Set obj.[[DefineOwnProperty]] as specified in 10.4.4.2.
+        // 6. Set obj.[[Get]] as specified in 10.4.4.3.
+        // 7. Set obj.[[Set]] as specified in 10.4.4.4.
+        // 8. Set obj.[[Delete]] as specified in 10.4.4.5.
+        // 9. Set obj.[[Prototype]] to %Object.prototype%.
+
+        let range = binding_indices.len().min(len);
+        let map = MappedArguments {
+            binding_indices: binding_indices[..range].to_vec(),
             environment: env.clone(),
         };
-
-        for (binding_index, property_index) in bindings.values() {
-            map.binding_indices[*property_index] = Some(*binding_index);
-        }
 
         // %Array.prototype.values%
         let values_function = context.intrinsics().objects().array_prototype_values();
