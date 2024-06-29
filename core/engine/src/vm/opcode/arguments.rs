@@ -31,7 +31,7 @@ impl Operation for CreateMappedArgumentsObject {
         let env = context.vm.environments.current();
         let arguments = MappedArguments::new(
             &function_object,
-            &code.params,
+            &code.mapped_arguments_binding_indices,
             &args,
             env.declarative_expect(),
             context,

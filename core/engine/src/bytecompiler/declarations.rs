@@ -1182,6 +1182,7 @@ impl ByteCompiler<'_> {
                 //          default value initializers, or any destructured parameters.
                 // ii. Let ao be CreateMappedArgumentsObject(func, formals, argumentsList, env).
                 self.emit_opcode(Opcode::CreateMappedArgumentsObject);
+                self.emitted_mapped_arguments_object_opcode = true;
             }
 
             // c. If strict is true, then
