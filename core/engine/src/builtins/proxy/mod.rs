@@ -53,6 +53,7 @@ impl JsData for Proxy {
             __get_own_property__: proxy_exotic_get_own_property,
             __define_own_property__: proxy_exotic_define_own_property,
             __has_property__: proxy_exotic_has_property,
+            __try_get__: proxy_exotic_try_get,
             __get__: proxy_exotic_get,
             __set__: proxy_exotic_set,
             __delete__: proxy_exotic_delete,
@@ -757,6 +758,30 @@ pub(crate) fn proxy_exotic_has_property(
 
     // 9. Return booleanTrapResult.
     Ok(boolean_trap_result)
+}
+
+/// Internal optimization method for `Proxy` exotic objects.
+///
+/// This method combines the internal methods `[[HasProperty]]` and `[[Get]]`.
+///
+/// More information:
+///  - [ECMAScript reference HasProperty][spec0]
+///  - [ECMAScript reference Get][spec1]
+///
+/// [spec0]: https://tc39.es/ecma262/#sec-proxy-object-internal-methods-and-internal-slots-hasproperty-p
+/// [spec1]: https://tc39.es/ecma262/#sec-proxy-object-internal-methods-and-internal-slots-get-p-receiver
+pub(crate) fn proxy_exotic_try_get(
+    obj: &JsObject,
+    key: &PropertyKey,
+    receiver: JsValue,
+    context: &mut InternalMethodContext<'_>,
+) -> JsResult<Option<JsValue>> {
+    // Note: For now, this just calls the normal methods. Could be optimized further.
+    if proxy_exotic_has_property(obj, key, context)? {
+        Ok(Some(proxy_exotic_get(obj, key, receiver, context)?))
+    } else {
+        Ok(None)
+    }
 }
 
 /// `10.5.8 [[Get]] ( P, Receiver )`

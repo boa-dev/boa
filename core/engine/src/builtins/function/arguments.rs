@@ -3,7 +3,8 @@ use crate::{
     object::{
         internal_methods::{
             ordinary_define_own_property, ordinary_delete, ordinary_get, ordinary_get_own_property,
-            ordinary_set, InternalMethodContext, InternalObjectMethods, ORDINARY_INTERNAL_METHODS,
+            ordinary_set, ordinary_try_get, InternalMethodContext, InternalObjectMethods,
+            ORDINARY_INTERNAL_METHODS,
         },
         JsObject,
     },
@@ -87,6 +88,7 @@ impl JsData for MappedArguments {
         static METHODS: InternalObjectMethods = InternalObjectMethods {
             __get_own_property__: arguments_exotic_get_own_property,
             __define_own_property__: arguments_exotic_define_own_property,
+            __try_get__: arguments_exotic_try_get,
             __get__: arguments_exotic_get,
             __set__: arguments_exotic_set,
             __delete__: arguments_exotic_delete,
@@ -392,6 +394,41 @@ pub(crate) fn arguments_exotic_define_own_property(
 
     // 8. Return true.
     Ok(true)
+}
+
+/// Internal optimization method for `Arguments` exotic objects.
+///
+/// This method combines the internal methods `OrdinaryHasProperty` and `[[Get]]`.
+///
+/// More information:
+///  - [ECMAScript reference OrdinaryHasProperty][spec0]
+///  - [ECMAScript reference Get][spec1]
+///
+/// [spec0]: https://tc39.es/ecma262/#sec-ordinaryhasproperty
+/// [spec1]: https://tc39.es/ecma262/#sec-arguments-exotic-objects-get-p-receiver
+pub(crate) fn arguments_exotic_try_get(
+    obj: &JsObject,
+    key: &PropertyKey,
+    receiver: JsValue,
+    context: &mut InternalMethodContext<'_>,
+) -> JsResult<Option<JsValue>> {
+    if let PropertyKey::Index(index) = key {
+        // 1. Let map be args.[[ParameterMap]].
+        // 2. Let isMapped be ! HasOwnProperty(map, P).
+        if let Some(value) = obj
+            .downcast_ref::<MappedArguments>()
+            .expect("arguments exotic method must only be callable from arguments objects")
+            .get(index.get())
+        {
+            // a. Assert: map contains a formal parameter mapping for P.
+            // b. Return Get(map, P).
+            return Ok(Some(value));
+        }
+    }
+
+    // 3. If isMapped is false, then
+    // a. Return ? OrdinaryGet(args, P, Receiver).
+    ordinary_try_get(obj, key, receiver, context)
 }
 
 /// `[[Get]]` for arguments exotic objects.

@@ -621,11 +621,7 @@ impl Context {
         if locator.global {
             let global = self.global_object();
             let key = locator.name().clone();
-            if global.has_property(key.clone(), self)? {
-                global.get(key, self).map(Some)
-            } else {
-                Ok(None)
-            }
+            global.try_get(key, self)
         } else {
             match self.environment_expect(locator.environment_index) {
                 Environment::Declarative(env) => Ok(env.get(locator.binding_index)),

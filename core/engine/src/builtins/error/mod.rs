@@ -210,11 +210,9 @@ impl Error {
         context: &mut Context,
     ) -> JsResult<()> {
         // 1. If Type(options) is Object and ? HasProperty(options, "cause") is true, then
+        // 1.a. Let cause be ? Get(options, "cause").
         if let Some(options) = options.as_object() {
-            if options.has_property(js_str!("cause"), context)? {
-                // a. Let cause be ? Get(options, "cause").
-                let cause = options.get(js_str!("cause"), context)?;
-
+            if let Some(cause) = options.try_get(js_str!("cause"), context)? {
                 // b. Perform CreateNonEnumerableDataPropertyOrThrow(O, "cause", cause).
                 o.create_non_enumerable_data_property_or_throw(js_str!("cause"), cause, context);
             }
