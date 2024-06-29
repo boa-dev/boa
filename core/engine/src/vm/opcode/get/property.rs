@@ -18,11 +18,20 @@ impl GetPropertyByName {
         receiver: u32,
         value: u32,
         index: usize,
+        operand_types: u8,
         context: &mut Context,
     ) -> JsResult<CompletionType> {
+        // println!("operand_types: {operand_types:08b}, reciever: {receiver}, value: {value}");
+        let receiver = context
+            .vm
+            .frame()
+            .read_value::<0>(operand_types, receiver, &context.vm);
+        let value = context
+            .vm
+            .frame()
+            .read_value::<1>(operand_types, value, &context.vm);
+
         let rp = context.vm.frame().rp;
-        let receiver = context.vm.stack[(rp + receiver) as usize].clone();
-        let value = &context.vm.stack[(rp + value) as usize];
         let object = if let Some(object) = value.as_object() {
             object.clone()
         } else {
@@ -79,27 +88,30 @@ impl Operation for GetPropertyByName {
     const COST: u8 = 4;
 
     fn execute(context: &mut Context) -> JsResult<CompletionType> {
+        let operand_types = context.vm.read::<u8>();
         let dst = context.vm.read::<u8>().into();
         let receiver = context.vm.read::<u8>().into();
         let value = context.vm.read::<u8>().into();
         let index = context.vm.read::<u8>() as usize;
-        Self::operation(dst, receiver, value, index, context)
+        Self::operation(dst, receiver, value, index, operand_types, context)
     }
 
     fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
+        let operand_types = context.vm.read::<u8>();
         let dst = context.vm.read::<u16>().into();
         let receiver = context.vm.read::<u16>().into();
         let value = context.vm.read::<u16>().into();
         let index = context.vm.read::<u16>() as usize;
-        Self::operation(dst, receiver, value, index, context)
+        Self::operation(dst, receiver, value, index, operand_types, context)
     }
 
     fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
+        let operand_types = context.vm.read::<u8>();
         let dst = context.vm.read::<u32>();
         let receiver = context.vm.read::<u32>();
         let value = context.vm.read::<u32>();
         let index = context.vm.read::<u32>() as usize;
-        Self::operation(dst, receiver, value, index, context)
+        Self::operation(dst, receiver, value, index, operand_types, context)
     }
 }
 

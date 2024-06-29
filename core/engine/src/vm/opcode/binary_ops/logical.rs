@@ -13,9 +13,16 @@ pub(crate) struct LogicalAnd;
 impl LogicalAnd {
     #[allow(clippy::unnecessary_wraps)]
     #[allow(clippy::needless_pass_by_value)]
-    fn operation(exit: u32, lhs: u32, context: &mut Context) -> JsResult<CompletionType> {
-        let rp = context.vm.frame().rp;
-        let lhs = context.vm.stack[(rp + lhs) as usize].clone();
+    fn operation(
+        exit: u32,
+        lhs: u32,
+        operand_types: u8,
+        context: &mut Context,
+    ) -> JsResult<CompletionType> {
+        let lhs = context
+            .vm
+            .frame()
+            .read_value::<0>(operand_types, lhs, &context.vm);
 
         if !lhs.to_boolean() {
             context.vm.frame_mut().pc = exit;
@@ -30,19 +37,22 @@ impl Operation for LogicalAnd {
     const COST: u8 = 1;
 
     fn execute(context: &mut Context) -> JsResult<CompletionType> {
+        let operand_types = context.vm.read::<u8>();
         let exit = context.vm.read::<u32>();
         let lhs = u32::from(context.vm.read::<u8>());
-        Self::operation(exit, lhs, context)
+        Self::operation(exit, lhs, operand_types, context)
     }
     fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
+        let operand_types = context.vm.read::<u8>();
         let exit = context.vm.read::<u32>();
         let lhs = u32::from(context.vm.read::<u16>());
-        Self::operation(exit, lhs, context)
+        Self::operation(exit, lhs, operand_types, context)
     }
     fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
+        let operand_types = context.vm.read::<u8>();
         let exit = context.vm.read::<u32>();
         let lhs = context.vm.read::<u32>();
-        Self::operation(exit, lhs, context)
+        Self::operation(exit, lhs, operand_types, context)
     }
 }
 
@@ -56,9 +66,16 @@ pub(crate) struct LogicalOr;
 impl LogicalOr {
     #[allow(clippy::unnecessary_wraps)]
     #[allow(clippy::needless_pass_by_value)]
-    fn operation(exit: u32, lhs: u32, context: &mut Context) -> JsResult<CompletionType> {
-        let rp = context.vm.frame().rp;
-        let lhs = context.vm.stack[(rp + lhs) as usize].clone();
+    fn operation(
+        exit: u32,
+        lhs: u32,
+        operand_types: u8,
+        context: &mut Context,
+    ) -> JsResult<CompletionType> {
+        let lhs = context
+            .vm
+            .frame()
+            .read_value::<0>(operand_types, lhs, &context.vm);
 
         if lhs.to_boolean() {
             context.vm.frame_mut().pc = exit;
@@ -73,19 +90,22 @@ impl Operation for LogicalOr {
     const COST: u8 = 1;
 
     fn execute(context: &mut Context) -> JsResult<CompletionType> {
+        let operand_types = context.vm.read::<u8>();
         let exit = context.vm.read::<u32>();
         let lhs = u32::from(context.vm.read::<u8>());
-        Self::operation(exit, lhs, context)
+        Self::operation(exit, lhs, operand_types, context)
     }
     fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
+        let operand_types = context.vm.read::<u8>();
         let exit = context.vm.read::<u32>();
         let lhs = u32::from(context.vm.read::<u16>());
-        Self::operation(exit, lhs, context)
+        Self::operation(exit, lhs, operand_types, context)
     }
     fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
+        let operand_types = context.vm.read::<u8>();
         let exit = context.vm.read::<u32>();
         let lhs = context.vm.read::<u32>();
-        Self::operation(exit, lhs, context)
+        Self::operation(exit, lhs, operand_types, context)
     }
 }
 
@@ -99,9 +119,16 @@ pub(crate) struct Coalesce;
 impl Coalesce {
     #[allow(clippy::unnecessary_wraps)]
     #[allow(clippy::needless_pass_by_value)]
-    fn operation(exit: u32, lhs: u32, context: &mut Context) -> JsResult<CompletionType> {
-        let rp = context.vm.frame().rp;
-        let lhs = context.vm.stack[(rp + lhs) as usize].clone();
+    fn operation(
+        exit: u32,
+        lhs: u32,
+        operand_types: u8,
+        context: &mut Context,
+    ) -> JsResult<CompletionType> {
+        let lhs = context
+            .vm
+            .frame()
+            .read_value::<0>(operand_types, lhs, &context.vm);
 
         if !lhs.is_null_or_undefined() {
             context.vm.frame_mut().pc = exit;
@@ -116,18 +143,21 @@ impl Operation for Coalesce {
     const COST: u8 = 1;
 
     fn execute(context: &mut Context) -> JsResult<CompletionType> {
+        let operand_types = context.vm.read::<u8>();
         let exit = context.vm.read::<u32>();
         let lhs = u32::from(context.vm.read::<u8>());
-        Self::operation(exit, lhs, context)
+        Self::operation(exit, lhs, operand_types, context)
     }
     fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
+        let operand_types = context.vm.read::<u8>();
         let exit = context.vm.read::<u32>();
         let lhs = u32::from(context.vm.read::<u16>());
-        Self::operation(exit, lhs, context)
+        Self::operation(exit, lhs, operand_types, context)
     }
     fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
+        let operand_types = context.vm.read::<u8>();
         let exit = context.vm.read::<u32>();
         let lhs = context.vm.read::<u32>();
-        Self::operation(exit, lhs, context)
+        Self::operation(exit, lhs, operand_types, context)
     }
 }

@@ -1,5 +1,5 @@
 use crate::{
-    bytecompiler::{Access, ByteCompiler, Operand2, ToJsString},
+    bytecompiler::{Access, ByteCompiler, InstructionOperand, Operand2, ToJsString},
     environments::BindingLocatorError,
     vm::Opcode,
 };
@@ -41,15 +41,15 @@ impl ByteCompiler<'_> {
                 self.emit2(
                     Opcode::ToNumeric,
                     &[
-                        Operand2::Varying(dst.index()),
-                        Operand2::Varying(src.index()),
+                        Operand2::Register(&dst),
+                        Operand2::Operand(InstructionOperand::Register(&src)),
                     ],
                 );
                 self.emit2(
                     opcode,
                     &[
-                        Operand2::Varying(src.index()),
-                        Operand2::Varying(dst.index()),
+                        Operand2::Register(&src),
+                        Operand2::Operand(InstructionOperand::Register(&dst)),
                     ],
                 );
                 self.push_from_register(&src);
@@ -100,15 +100,15 @@ impl ByteCompiler<'_> {
                             self.emit2(
                                 Opcode::ToNumeric,
                                 &[
-                                    Operand2::Varying(dst.index()),
-                                    Operand2::Varying(src.index()),
+                                    Operand2::Register(&dst),
+                                    Operand2::Operand(InstructionOperand::Register(&src)),
                                 ],
                             );
                             self.emit2(
                                 opcode,
                                 &[
-                                    Operand2::Varying(src.index()),
-                                    Operand2::Varying(dst.index()),
+                                    Operand2::Register(&src),
+                                    Operand2::Operand(InstructionOperand::Register(&dst)),
                                 ],
                             );
 
@@ -136,15 +136,15 @@ impl ByteCompiler<'_> {
                             self.emit2(
                                 Opcode::ToNumeric,
                                 &[
-                                    Operand2::Varying(dst.index()),
-                                    Operand2::Varying(src.index()),
+                                    Operand2::Register(&dst),
+                                    Operand2::Operand(InstructionOperand::Register(&src)),
                                 ],
                             );
                             self.emit2(
                                 opcode,
                                 &[
-                                    Operand2::Varying(src.index()),
-                                    Operand2::Varying(dst.index()),
+                                    Operand2::Register(&src),
+                                    Operand2::Operand(InstructionOperand::Register(&dst)),
                                 ],
                             );
 
@@ -177,15 +177,15 @@ impl ByteCompiler<'_> {
                     self.emit2(
                         Opcode::ToNumeric,
                         &[
-                            Operand2::Varying(dst.index()),
-                            Operand2::Varying(src.index()),
+                            Operand2::Register(&dst),
+                            Operand2::Operand(InstructionOperand::Register(&src)),
                         ],
                     );
                     self.emit2(
                         opcode,
                         &[
-                            Operand2::Varying(src.index()),
-                            Operand2::Varying(dst.index()),
+                            Operand2::Register(&src),
+                            Operand2::Operand(InstructionOperand::Register(&dst)),
                         ],
                     );
 
@@ -217,15 +217,15 @@ impl ByteCompiler<'_> {
                         self.emit2(
                             Opcode::ToNumeric,
                             &[
-                                Operand2::Varying(dst.index()),
-                                Operand2::Varying(src.index()),
+                                Operand2::Register(&dst),
+                                Operand2::Operand(InstructionOperand::Register(&src)),
                             ],
                         );
                         self.emit2(
                             opcode,
                             &[
-                                Operand2::Varying(src.index()),
-                                Operand2::Varying(dst.index()),
+                                Operand2::Register(&src),
+                                Operand2::Operand(InstructionOperand::Register(&dst)),
                             ],
                         );
 
@@ -255,15 +255,15 @@ impl ByteCompiler<'_> {
                         self.emit2(
                             Opcode::ToNumeric,
                             &[
-                                Operand2::Varying(dst.index()),
-                                Operand2::Varying(src.index()),
+                                Operand2::Register(&dst),
+                                Operand2::Operand(InstructionOperand::Register(&src)),
                             ],
                         );
                         self.emit2(
                             opcode,
                             &[
-                                Operand2::Varying(src.index()),
-                                Operand2::Varying(dst.index()),
+                                Operand2::Register(&src),
+                                Operand2::Operand(InstructionOperand::Register(&dst)),
                             ],
                         );
 

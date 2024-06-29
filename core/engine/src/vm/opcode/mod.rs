@@ -97,7 +97,7 @@ pub(crate) use unary_ops::*;
 #[doc(inline)]
 pub(crate) use value::*;
 
-use super::{code_block::Readable, GeneratorResumeKind, Vm};
+use super::{code_block::Readable, GeneratorResumeKind};
 use thin_vec::ThinVec;
 
 /// Read type T from code.
@@ -131,7 +131,8 @@ where
 }
 
 /// Represents a varying operand kind.
-#[derive(Default, Debug, Clone, Copy)]
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+#[repr(u8)]
 pub(crate) enum VaryingOperandKind {
     #[default]
     U8,
@@ -180,6 +181,16 @@ impl VaryingOperand {
     #[must_use]
     pub(crate) const fn kind(self) -> VaryingOperandKind {
         self.kind
+    }
+    #[must_use]
+    pub(crate) fn to_string<const N: u8>(self, operand_types: u8) -> String {
+        let type_ = (operand_types >> (N * 2)) & 0x0000_0011;
+        match type_ {
+            0b0000_0000 => format!("reg{}", self.value),
+            0b0000_0001 => format!("arg{}", self.value),
+            0b0000_0010 => format!("{}", self.value),
+            _ => unreachable!("unknown operand kind"),
+        }
     }
 }
 
@@ -758,14 +769,24 @@ generate_opcodes! {
     /// Operands:
     ///
     /// Stack: class, superclass **=>** class, superclass.prototype
-    PushClassPrototype,
+    PushClassPrototype {
+        operand_types: u8,
+        dst: VaryingOperand,
+        class: VaryingOperand,
+        superclass: VaryingOperand
+    },
 
     /// Set the prototype of a class object.
     ///
     /// Operands:
     ///
     /// Stack: class, prototype **=>** class.prototype
-    SetClassPrototype,
+    SetClassPrototype {
+        operand_types: u8,
+        dst: VaryingOperand,
+        prototype: VaryingOperand,
+        class: VaryingOperand
+    },
 
     /// Set home object internal slot of an object literal method.
     ///
@@ -814,160 +835,160 @@ generate_opcodes! {
     /// Operands:
     ///
     /// Stack: lhs, rhs **=>** (lhs + rhs)
-    Add { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
+    Add { operand_types: u8, dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `-` operator.
     ///
     /// Operands:
     ///
     /// Stack: lhs, rhs **=>** (lhs - rhs)
-    Sub { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
+    Sub { operand_types: u8, dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `/` operator.
     ///
     /// Operands:
     ///
     /// Stack: lhs, rhs **=>** (lhs / rhs)
-    Div { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
+    Div { operand_types: u8, dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `*` operator.
     ///
     /// Operands:
     ///
     /// Stack: lhs, rhs **=>** (lhs * rhs)
-    Mul { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
+    Mul { operand_types: u8, dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `%` operator.
     ///
     /// Operands:
     ///
     /// Stack: lhs, rhs **=>** (lhs % rhs)
-    Mod { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
+    Mod { operand_types: u8, dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `**` operator.
     ///
     /// Operands:
     ///
     /// Stack: lhs, rhs **=>** (lhs ** rhs)
-    Pow { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
+    Pow { operand_types: u8, dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `>>` operator.
     ///
     /// Operands:
     ///
     /// Stack: lhs, rhs **=>** (lhs >> rhs)
-    ShiftRight { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
+    ShiftRight { operand_types: u8, dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `<<` operator.
     ///
     /// Operands:
     ///
     /// Stack: lhs, rhs **=>** `(lhs << rhs)`
-    ShiftLeft { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
+    ShiftLeft { operand_types: u8, dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `>>>` operator.
     ///
     /// Operands:
     ///
     /// Stack: lhs, rhs **=>** (lhs >>> rhs)
-    UnsignedShiftRight { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
+    UnsignedShiftRight { operand_types: u8, dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary bitwise `|` operator.
     ///
     /// Operands:
     ///
     /// Stack: lhs, rhs **=>** (lhs | rhs)
-    BitOr { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
+    BitOr { operand_types: u8, dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary bitwise `&` operator.
     ///
     /// Operands:
     ///
     /// Stack: lhs, rhs **=>** (lhs & rhs)
-    BitAnd { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
+    BitAnd { operand_types: u8, dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary bitwise `^` operator.
     ///
     /// Operands:
     ///
     /// Stack: lhs, rhs **=>** (lhs ^ rhs)
-    BitXor { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
+    BitXor { operand_types: u8, dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Unary bitwise `~` operator.
     ///
     /// Operands:
     ///
     /// Stack: value **=>** ~value
-    BitNot { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
+    BitNot { operand_types: u8, dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `in` operator.
     ///
     /// Operands:
     ///
     /// Stack: lhs, rhs **=>** (lhs `in` rhs)
-    In { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
+    In { operand_types: u8, dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `in` operator for private names.
     ///
     /// Operands: index: `u32`
     ///
     /// Stack: rhs **=>** (private_name `in` rhs)
-    InPrivate { dst: VaryingOperand, index: VaryingOperand, rhs: VaryingOperand },
+    InPrivate { operand_types: u8, dst: VaryingOperand, index: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `==` operator.
     ///
     /// Operands:
     ///
     /// Stack: lhs, rhs **=>** (lhs `==` rhs)
-    Eq { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
+    Eq { operand_types: u8, dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `===` operator.
     ///
     /// Operands:
     ///
     /// Stack: lhs, rhs **=>** (lhs `===` rhs)
-    StrictEq { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
+    StrictEq { operand_types: u8, dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `!=` operator.
-    NotEq { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
+    NotEq { operand_types: u8, dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `!==` operator.
-    StrictNotEq { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
+    StrictNotEq { operand_types: u8, dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `>` operator.
     ///
     /// Operands:
     ///
     /// Stack: lhs, rhs **=>** (lhs > rhs)
-    GreaterThan { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
+    GreaterThan { operand_types: u8, dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `>=` operator.
     ///
     /// Operands:
     ///
     /// Stack: lhs, rhs **=>** (lhs >= rhs)
-    GreaterThanOrEq { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
+    GreaterThanOrEq { operand_types: u8, dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `<` operator.
     ///
     /// Operands:
     ///
     /// Stack: lhs, rhs **=>** `(lhs < rhs)`
-    LessThan { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
+    LessThan { operand_types: u8, dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `<=` operator.
     ///
     /// Operands:
     ///
     /// Stack: lhs, rhs **=>** `(lhs <= rhs)`
-    LessThanOrEq { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
+    LessThanOrEq { operand_types: u8, dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `instanceof` operator.
     ///
     /// Operands:
     ///
     /// Stack: lhs, rhs **=>** (lhs instanceof rhs)
-    InstanceOf { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
+    InstanceOf { operand_types: u8, dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary logical `&&` operator.
     ///
@@ -976,7 +997,7 @@ generate_opcodes! {
     /// Operands: exit: `u32`
     ///
     /// Stack: lhs, rhs **=>** (lhs && rhs)
-    LogicalAnd { exit: u32, lhs: VaryingOperand },
+    LogicalAnd { operand_types: u8, exit: u32, lhs: VaryingOperand },
 
     /// Binary logical `||` operator.
     ///
@@ -985,7 +1006,7 @@ generate_opcodes! {
     /// Operands: exit: `u32`
     ///
     /// Stack: lhs, rhs **=>** (lhs || rhs)
-    LogicalOr { exit: u32, lhs: VaryingOperand },
+    LogicalOr { operand_types: u8, exit: u32, lhs: VaryingOperand },
 
     /// Binary `??` operator.
     ///
@@ -995,7 +1016,7 @@ generate_opcodes! {
     /// Operands: exit: `u32`
     ///
     /// Stack: lhs, rhs **=>** (lhs ?? rhs)
-    Coalesce { exit: u32, lhs: VaryingOperand },
+    Coalesce { operand_types: u8, exit: u32, lhs: VaryingOperand },
 
     /// Unary `typeof` operator.
     ///
@@ -1033,21 +1054,21 @@ generate_opcodes! {
     Neg,
 
     /// Convert value at register `src` to numeric and puts it in register `dst`.
-    ToNumeric { dst: VaryingOperand, src: VaryingOperand },
+    ToNumeric { operand_types: u8, dst: VaryingOperand, src: VaryingOperand },
 
     /// Unary `++` operator.
     ///
     /// Operands:
     ///
     /// Stack: value **=>** (value + 1)
-    Inc { dst: VaryingOperand, src: VaryingOperand },
+    Inc { operand_types: u8, dst: VaryingOperand, src: VaryingOperand },
 
     /// Unary `--` operator.
     ///
     /// Operands:
     ///
     /// Stack: value **=>** (value - 1)
-    Dec { dst: VaryingOperand, src: VaryingOperand },
+    Dec { operand_types: u8, dst: VaryingOperand, src: VaryingOperand },
 
     /// Declare `var` type variable.
     ///
@@ -1142,6 +1163,7 @@ generate_opcodes! {
     ///
     /// Stack: object, receiver **=>** value
     GetPropertyByName {
+        operand_types: u8,
         dst: VaryingOperand,
         receiver: VaryingOperand,
         value: VaryingOperand,
@@ -1785,7 +1807,7 @@ generate_opcodes! {
     /// Operands:
     ///
     /// Stack: **=>**
-    Move { dst: VaryingOperand, src: VaryingOperand },
+    Move { operand_types: u8, dst: VaryingOperand, src: VaryingOperand },
 
     /// Pop value from the stack and push to register `dst`
     ///
@@ -2079,7 +2101,7 @@ generate_opcodes! {
     /// Operands: count: `u32`, count * name_index: `u32`
     ///
     /// Stack: class **=>** class
-    PushPrivateEnvironment { class: VaryingOperand, name_indices: ThinVec<u32> },
+    PushPrivateEnvironment { operand_types: u8, class: VaryingOperand, name_indices: ThinVec<u32> },
 
     /// Pop a private environment.
     ///
@@ -2348,63 +2370,3 @@ impl Iterator for InstructionIterator<'_> {
 }
 
 impl FusedIterator for InstructionIterator<'_> {}
-
-pub(crate) enum InstructionOperand {
-    Register { index: u32 },
-    Constant { value: u32 },
-    Argument { index: u32 },
-}
-
-impl From<u32> for InstructionOperand {
-    fn from(value: u32) -> Self {
-        let typ = (value & 0b11) as u8;
-        let value = value >> 2;
-        match typ {
-            0b00 => Self::Register { index: value },
-            0b01 => Self::Constant { value },
-            0b10 => Self::Argument { index: value },
-            _ => unreachable!(),
-        }
-    }
-}
-
-impl From<u16> for InstructionOperand {
-    fn from(value: u16) -> Self {
-        let typ = (value & 0b11) as u8;
-        let value = u32::from(value >> 2);
-        match typ {
-            0b00 => Self::Register { index: value },
-            0b01 => Self::Constant { value },
-            0b10 => Self::Argument { index: value },
-            _ => unreachable!(),
-        }
-    }
-}
-
-impl From<u8> for InstructionOperand {
-    fn from(value: u8) -> Self {
-        let typ = value & 0b11;
-        let value = u32::from(value >> 2);
-        match typ {
-            0b00 => Self::Register { index: value },
-            0b01 => Self::Constant { value },
-            0b10 => Self::Argument { index: value },
-            _ => unreachable!(),
-        }
-    }
-}
-
-impl InstructionOperand {
-    pub(crate) fn to_value(&self, vm: &Vm) -> JsValue {
-        let rp = vm.frame().rp;
-        match self {
-            Self::Register { index } => vm.stack[(rp + index) as usize].clone(),
-            Self::Constant { value } => JsValue::from(*value),
-            Self::Argument { index } => vm
-                .frame()
-                .argument(*index as usize, vm)
-                .expect("there should be an argument")
-                .clone(),
-        }
-    }
-}

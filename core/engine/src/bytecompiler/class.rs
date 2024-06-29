@@ -1,4 +1,4 @@
-use super::{ByteCompiler, Literal, Operand, Operand2, ToJsString};
+use super::{ByteCompiler, InstructionOperand, Literal, Operand, Operand2, ToJsString};
 use crate::{
     js_string,
     vm::{BindingOpcode, CodeBlock, CodeBlockFlags, Opcode},
@@ -98,13 +98,7 @@ impl ByteCompiler<'_> {
         let index = self.push_function_to_constants(code);
 
         let class_register = self.register_allocator.alloc();
-        self.emit2(
-            Opcode::GetFunction,
-            &[
-                Operand2::Varying(class_register.index()),
-                Operand2::Varying(index),
-            ],
-        );
+        self.emit_get_function(&class_register, index);
 
         let prototype_register = self.register_allocator.alloc();
 
@@ -115,9 +109,9 @@ impl ByteCompiler<'_> {
             self.emit2(
                 Opcode::PushClassPrototype,
                 &[
-                    Operand2::Varying(prototype_register.index()),
-                    Operand2::Varying(class_register.index()),
-                    Operand2::Varying(prototype_register.index()),
+                    Operand2::Register(&prototype_register),
+                    Operand2::Operand(InstructionOperand::Register(&class_register)),
+                    Operand2::Operand(InstructionOperand::Register(&prototype_register)),
                 ],
             );
         } else {
@@ -130,14 +124,15 @@ impl ByteCompiler<'_> {
         self.emit2(
             Opcode::SetClassPrototype,
             &[
-                Operand2::Varying(proto_register.index()),
-                Operand2::Varying(prototype_register.index()),
-                Operand2::Varying(class_register.index()),
+                Operand2::Register(&proto_register),
+                Operand2::Operand(InstructionOperand::Register(&prototype_register)),
+                Operand2::Operand(InstructionOperand::Register(&class_register)),
             ],
         );
         self.register_allocator.dealloc(prototype_register);
 
-        let count_label = self.emit_push_private_environment(&class_register);
+        let count_label =
+            self.emit_push_private_environment(InstructionOperand::Register(&class_register));
         let mut count = 0;
         for element in class.elements() {
             match element {
@@ -346,10 +341,7 @@ impl ByteCompiler<'_> {
                     let index = self.push_function_to_constants(code);
 
                     let dst = self.register_allocator.alloc();
-                    self.emit2(
-                        Opcode::GetFunction,
-                        &[Operand2::Varying(dst.index()), Operand2::Varying(index)],
-                    );
+                    self.emit_get_function(&dst, index);
                     self.push_from_register(&dst);
                     self.register_allocator.dealloc(dst);
 
@@ -382,10 +374,7 @@ impl ByteCompiler<'_> {
                     let code = Gc::new(field_compiler.finish());
                     let index = self.push_function_to_constants(code);
                     let dst = self.register_allocator.alloc();
-                    self.emit2(
-                        Opcode::GetFunction,
-                        &[Operand2::Varying(dst.index()), Operand2::Varying(index)],
-                    );
+                    self.emit_get_function(&dst, index);
                     self.push_from_register(&dst);
                     self.register_allocator.dealloc(dst);
                     self.emit_with_varying_operand(Opcode::PushClassFieldPrivate, name_index);
@@ -615,10 +604,7 @@ impl ByteCompiler<'_> {
                     self.emit_opcode(Opcode::Dup);
                     let index = self.push_function_to_constants(code);
                     let dst = self.register_allocator.alloc();
-                    self.emit2(
-                        Opcode::GetFunction,
-                        &[Operand2::Varying(dst.index()), Operand2::Varying(index)],
-                    );
+                    self.emit_get_function(&dst, index);
                     self.push_from_register(&dst);
                     self.register_allocator.dealloc(dst);
                     self.emit_opcode(Opcode::SetHomeObject);
@@ -630,10 +616,7 @@ impl ByteCompiler<'_> {
                     self.emit_opcode(Opcode::Dup);
                     let index = self.push_function_to_constants(code);
                     let dst = self.register_allocator.alloc();
-                    self.emit2(
-                        Opcode::GetFunction,
-                        &[Operand2::Varying(dst.index()), Operand2::Varying(index)],
-                    );
+                    self.emit_get_function(&dst, index);
                     self.push_from_register(&dst);
                     self.register_allocator.dealloc(dst);
                     self.emit_opcode(Opcode::SetHomeObject);

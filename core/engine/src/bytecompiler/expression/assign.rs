@@ -1,5 +1,5 @@
 use crate::{
-    bytecompiler::{Access, ByteCompiler, Operand, Operand2, ToJsString},
+    bytecompiler::{Access, ByteCompiler, InstructionOperand, Operand, Operand2, ToJsString},
     environments::BindingLocatorError,
     vm::{BindingOpcode, Opcode},
 };
@@ -62,9 +62,9 @@ impl ByteCompiler<'_> {
                 this.emit2(
                     opcode,
                     &[
-                        Operand2::Varying(lhs.index()),
                         Operand2::Register(&lhs),
-                        Operand2::Register(&rhs),
+                        Operand2::Operand(InstructionOperand::Register(&lhs)),
+                        Operand2::Operand(InstructionOperand::Register(&rhs)),
                     ],
                 );
                 this.register_allocator.dealloc(rhs);
@@ -89,9 +89,11 @@ impl ByteCompiler<'_> {
 
                     if short_circuit {
                         self.pop_into_register(&lhs);
-                        early_exit = Some(
-                            self.emit_opcode_with_operand2(opcode, Operand2::Varying(lhs.index())),
-                        );
+                        early_exit =
+                            Some(self.emit_opcode_with_operand2(
+                                opcode,
+                                InstructionOperand::Register(&lhs),
+                            ));
                         self.compile_expr(assign.rhs(), true);
 
                         self.pop_into_register(&lhs);
@@ -138,7 +140,7 @@ impl ByteCompiler<'_> {
                                 self.pop_into_register(&lhs);
                                 early_exit = Some(self.emit_opcode_with_operand2(
                                     opcode,
-                                    Operand2::Varying(lhs.index()),
+                                    InstructionOperand::Register(&lhs),
                                 ));
                                 self.compile_expr(assign.rhs(), true);
                                 self.pop_into_register(&lhs);
@@ -168,7 +170,7 @@ impl ByteCompiler<'_> {
                                 self.pop_into_register(&lhs);
                                 early_exit = Some(self.emit_opcode_with_operand2(
                                     opcode,
-                                    Operand2::Varying(lhs.index()),
+                                    InstructionOperand::Register(&lhs),
                                 ));
                                 self.compile_expr(assign.rhs(), true);
                                 self.pop_into_register(&lhs);
@@ -194,11 +196,10 @@ impl ByteCompiler<'_> {
                             pop_count = 1;
 
                             self.pop_into_register(&lhs);
-                            early_exit =
-                                Some(self.emit_opcode_with_operand2(
-                                    opcode,
-                                    Operand2::Varying(lhs.index()),
-                                ));
+                            early_exit = Some(self.emit_opcode_with_operand2(
+                                opcode,
+                                InstructionOperand::Register(&lhs),
+                            ));
                             self.compile_expr(assign.rhs(), true);
                             self.pop_into_register(&lhs);
                             self.push_from_register(&lhs);
@@ -227,7 +228,7 @@ impl ByteCompiler<'_> {
                                 self.pop_into_register(&lhs);
                                 early_exit = Some(self.emit_opcode_with_operand2(
                                     opcode,
-                                    Operand2::Varying(lhs.index()),
+                                    InstructionOperand::Register(&lhs),
                                 ));
                                 self.compile_expr(assign.rhs(), true);
                                 self.pop_into_register(&lhs);
@@ -255,7 +256,7 @@ impl ByteCompiler<'_> {
                                 self.pop_into_register(&lhs);
                                 early_exit = Some(self.emit_opcode_with_operand2(
                                     opcode,
-                                    Operand2::Varying(lhs.index()),
+                                    InstructionOperand::Register(&lhs),
                                 ));
                                 self.compile_expr(assign.rhs(), true);
                                 self.pop_into_register(&lhs);
@@ -282,7 +283,7 @@ impl ByteCompiler<'_> {
                 let exit = self.emit_opcode_with_operand(Opcode::Jump);
 
                 self.patch_jump(early_exit);
-                self.emit2(Opcode::PushFromRegister, &[Operand2::Varying(lhs.index())]);
+                self.emit2(Opcode::PushFromRegister, &[Operand2::Register(&lhs)]);
 
                 for _ in 0..pop_count {
                     self.emit_opcode(Opcode::Swap);

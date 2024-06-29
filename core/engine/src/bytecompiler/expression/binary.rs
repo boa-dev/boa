@@ -4,12 +4,12 @@ use boa_ast::expression::operator::{
 };
 
 use crate::{
-    bytecompiler::{ByteCompiler, Operand2, Reg},
+    bytecompiler::{ByteCompiler, InstructionOperand, Operand2, Reg},
     vm::Opcode,
 };
 
 impl ByteCompiler<'_> {
-    pub(crate) fn compile_binary(&mut self, binary: &Binary, output: &mut Operand2<'_>) {
+    pub(crate) fn compile_binary(&mut self, binary: &Binary, dst: &Reg) {
         self.compile_expr(binary.lhs(), true);
 
         match binary.op() {
@@ -32,7 +32,11 @@ impl ByteCompiler<'_> {
 
                 self.emit2(
                     opcode,
-                    &[*output, Operand2::Register(&lhs), Operand2::Register(&rhs)],
+                    &[
+                        Operand2::Register(dst),
+                        Operand2::Operand(InstructionOperand::Register(&lhs)),
+                        Operand2::Operand(InstructionOperand::Register(&rhs)),
+                    ],
                 );
                 self.register_allocator.dealloc(lhs);
                 self.register_allocator.dealloc(rhs);
@@ -56,7 +60,11 @@ impl ByteCompiler<'_> {
 
                 self.emit2(
                     opcode,
-                    &[*output, Operand2::Register(&lhs), Operand2::Register(&rhs)],
+                    &[
+                        Operand2::Register(dst),
+                        Operand2::Operand(InstructionOperand::Register(&lhs)),
+                        Operand2::Operand(InstructionOperand::Register(&rhs)),
+                    ],
                 );
                 self.register_allocator.dealloc(lhs);
                 self.register_allocator.dealloc(rhs);
@@ -84,16 +92,17 @@ impl ByteCompiler<'_> {
 
                 self.emit2(
                     opcode,
-                    &[*output, Operand2::Register(&lhs), Operand2::Register(&rhs)],
+                    &[
+                        Operand2::Register(dst),
+                        Operand2::Operand(InstructionOperand::Register(&lhs)),
+                        Operand2::Operand(InstructionOperand::Register(&rhs)),
+                    ],
                 );
                 self.register_allocator.dealloc(lhs);
                 self.register_allocator.dealloc(rhs);
             }
             BinaryOp::Logical(op) => {
-                let Operand2::Varying(_) = *output else {
-                    unreachable!()
-                };
-                self.emit2(Opcode::PopIntoRegister, &[*output]);
+                self.pop_into_register(dst);
 
                 let opcode = match op {
                     LogicalOp::And => Opcode::LogicalAnd,
@@ -101,15 +110,16 @@ impl ByteCompiler<'_> {
                     LogicalOp::Coalesce => Opcode::Coalesce,
                 };
 
-                let exit = self.emit_opcode_with_operand2(opcode, *output);
+                let exit =
+                    self.emit_opcode_with_operand2(opcode, InstructionOperand::Register(dst));
                 self.compile_expr(binary.rhs(), true);
-                self.emit2(Opcode::PopIntoRegister, &[*output]);
+                self.pop_into_register(dst);
                 self.patch_jump(exit);
             }
             BinaryOp::Comma => {
                 self.emit_opcode(Opcode::Pop);
                 self.compile_expr(binary.rhs(), true);
-                self.emit2(Opcode::PopIntoRegister, &[*output]);
+                self.pop_into_register(dst);
             }
         }
     }
@@ -121,9 +131,9 @@ impl ByteCompiler<'_> {
         self.emit2(
             Opcode::InPrivate,
             &[
-                Operand2::Varying(dst.index()),
-                Operand2::Varying(index),
                 Operand2::Register(dst),
+                Operand2::Varying(index),
+                Operand2::Operand(InstructionOperand::Register(dst)),
             ],
         );
     }

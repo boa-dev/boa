@@ -4,7 +4,7 @@ mod object_literal;
 mod unary;
 mod update;
 
-use super::{Access, Callable, NodeKind, Operand, Operand2, ToJsString};
+use super::{Access, Callable, NodeKind, Operand, ToJsString};
 use crate::{
     bytecompiler::{ByteCompiler, Literal},
     vm::{GeneratorResumeKind, Opcode},
@@ -95,8 +95,7 @@ impl ByteCompiler<'_> {
             Expression::Update(update) => self.compile_update(update, use_expr),
             Expression::Binary(binary) => {
                 let reg = self.register_allocator.alloc();
-                let mut output = Operand2::Varying(reg.index());
-                self.compile_binary(binary, &mut output);
+                self.compile_binary(binary, &reg);
                 if use_expr {
                     self.push_from_register(&reg);
                 }

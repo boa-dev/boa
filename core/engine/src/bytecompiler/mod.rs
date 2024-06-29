@@ -242,18 +242,9 @@ impl Access<'_> {
     }
 }
 
-// | 00 Register
-// | 01 Argements
-// | 10 Immediate
-// | 11 ???
-
-// 2^6 = 64
-//
-// 00 00 00 00
-
 /// An opcode operand.
 #[derive(Debug, Clone, Copy)]
-#[allow(unused)]
+#[allow(dead_code)]
 pub(crate) enum Operand {
     Bool(bool),
     I8(i8),
@@ -269,7 +260,7 @@ pub(crate) enum Operand {
 
 /// An opcode operand.
 #[derive(Debug, Clone, Copy)]
-#[allow(unused)]
+#[allow(dead_code)]
 pub(crate) enum Operand2<'a> {
     Bool(bool),
     I8(i8),
@@ -280,8 +271,24 @@ pub(crate) enum Operand2<'a> {
     U32(u32),
     I64(i64),
     U64(u64),
+
     Varying(u32),
     Register(&'a Reg),
+    Operand(InstructionOperand<'a>),
+}
+
+/// An opcode operand.
+///
+// | 00 Register
+// | 01 Argements
+// | 10 Immediate
+// | 11 ???
+#[derive(Debug, Clone, Copy)]
+#[allow(dead_code)]
+pub(crate) enum InstructionOperand<'a> {
+    Register(&'a Reg),
+    Argument(u32),
+    Constant(u32),
 }
 
 /// The [`ByteCompiler`] is used to compile ECMAScript AST from [`boa_ast`] to bytecode.
@@ -582,36 +589,54 @@ impl<'ctx> ByteCompiler<'ctx> {
     }
 
     pub(crate) fn emit2(&mut self, opcode: Opcode, operands: &[Operand2<'_>]) {
-        const MAX_U8: u8 = u8::MAX >> 2;
-        const MAX_U16: u16 = u16::MAX >> 2;
-        const MAX_U32: u32 = u32::MAX >> 2;
-
         let mut varying_kind = VaryingOperandKind::U8;
+        let mut operand_types = 0;
+        let mut has_operand_types = false;
         for operand in operands {
-            match *operand {
+            let operand = match *operand {
+                Operand2::Register(operand) => {
+                    if u8::try_from(operand.index()).is_ok() {
+                    } else if u16::try_from(operand.index()).is_ok() {
+                        varying_kind = std::cmp::max(varying_kind, VaryingOperandKind::U16);
+                    } else {
+                        varying_kind = std::cmp::max(varying_kind, VaryingOperandKind::U32);
+                    }
+                    None
+                }
                 Operand2::Varying(operand) => {
                     if u8::try_from(operand).is_ok() {
                     } else if u16::try_from(operand).is_ok() {
-                        varying_kind = VaryingOperandKind::U16;
+                        varying_kind = std::cmp::max(varying_kind, VaryingOperandKind::U16);
                     } else {
-                        varying_kind = VaryingOperandKind::U32;
-                        break;
+                        varying_kind = std::cmp::max(varying_kind, VaryingOperandKind::U32);
                     }
+                    None
                 }
-                Operand2::Register(operand) => {
-                    let operand = operand.index();
-                    if u8::try_from(operand).is_ok() && operand <= u32::from(MAX_U8) {
-                    } else if u16::try_from(operand).is_ok() && operand <= u32::from(MAX_U16) {
-                        varying_kind = VaryingOperandKind::U16;
-                    } else if operand <= MAX_U32 {
-                        varying_kind = VaryingOperandKind::U32;
-                        break;
-                    } else {
-                        unreachable!("range must be number of bits - 2")
-                    }
-                }
-                _ => {}
+                Operand2::Operand(operand) => Some(operand),
+                _ => None,
+            };
+
+            let Some(operand) = operand else {
+                continue;
+            };
+
+            has_operand_types = true;
+
+            let (value, type_) = match operand {
+                InstructionOperand::Register(reg) => (reg.index(), 0b0000_0000),
+                InstructionOperand::Argument(index) => (index, 0b0000_0001),
+                InstructionOperand::Constant(value) => (value, 0b0000_0010),
+            };
+
+            if u8::try_from(value).is_ok() {
+            } else if u16::try_from(value).is_ok() {
+                varying_kind = std::cmp::max(varying_kind, VaryingOperandKind::U16);
+            } else {
+                varying_kind = std::cmp::max(varying_kind, VaryingOperandKind::U32);
             }
+
+            operand_types <<= 2;
+            operand_types |= type_;
         }
 
         match varying_kind {
@@ -620,6 +645,9 @@ impl<'ctx> ByteCompiler<'ctx> {
             VaryingOperandKind::U32 => self.emit_opcode(Opcode::U32Operands),
         }
         self.emit_opcode(opcode);
+        if has_operand_types {
+            self.emit_u8(operand_types);
+        }
         for operand in operands {
             self.emit_operand2(*operand, varying_kind);
         }
@@ -640,35 +668,39 @@ impl<'ctx> ByteCompiler<'ctx> {
             Operand2::U32(v) => self.emit_u32(v),
             Operand2::I64(v) => self.emit_i64(v),
             Operand2::U64(v) => self.emit_u64(v),
-            // Operand2::Varying(v) => match varying_kind {
-            //     VaryingOperandKind::U8 => self.emit_u8(((v as u8) << 2) | 1),
-            //     VaryingOperandKind::U16 => self.emit_u16(((v as u16) << 2) | 1),
-            //     VaryingOperandKind::U32 => self.emit_u32((v << 2) | 1),
-            // },
-            Operand2::Varying(v) => match varying_kind {
+            Operand2::Varying(v)
+            | Operand2::Operand(
+                InstructionOperand::Argument(v) | InstructionOperand::Constant(v),
+            ) => match varying_kind {
                 VaryingOperandKind::U8 => self.emit_u8(v as u8),
                 VaryingOperandKind::U16 => self.emit_u16(v as u16),
                 VaryingOperandKind::U32 => self.emit_u32(v),
             },
-            Operand2::Register(reg) => {
+            Operand2::Register(reg) | Operand2::Operand(InstructionOperand::Register(reg)) => {
                 let v = reg.index();
-                #[allow(clippy::identity_op)]
                 match varying_kind {
-                    VaryingOperandKind::U8 => self.emit_u8(((v as u8) << 2) | 0b00),
-                    VaryingOperandKind::U16 => self.emit_u16(((v as u16) << 2) | 0b00),
-                    VaryingOperandKind::U32 => self.emit_u32((v << 2) | 0b00),
+                    VaryingOperandKind::U8 => self.emit_u8(v as u8),
+                    VaryingOperandKind::U16 => self.emit_u16(v as u16),
+                    VaryingOperandKind::U32 => self.emit_u32(v),
                 }
             }
         }
     }
 
+    pub(crate) fn emit_get_function(&mut self, dst: &Reg, index: u32) {
+        self.emit2(
+            Opcode::GetFunction,
+            &[Operand2::Register(dst), Operand2::Varying(index)],
+        );
+    }
+
     /// TODO: Temporary function, remove once transition is complete.
     fn pop_into_register(&mut self, dst: &Reg) {
-        self.emit2(Opcode::PopIntoRegister, &[Operand2::Varying(dst.index())]);
+        self.emit2(Opcode::PopIntoRegister, &[Operand2::Register(dst)]);
     }
     /// TODO: Temporary function, remove once transition is complete.
     fn push_from_register(&mut self, src: &Reg) {
-        self.emit2(Opcode::PushFromRegister, &[Operand2::Varying(src.index())]);
+        self.emit2(Opcode::PushFromRegister, &[Operand2::Register(src)]);
     }
 
     /// Emits an opcode with one varying operand.
@@ -740,9 +772,9 @@ impl<'ctx> ByteCompiler<'ctx> {
         self.emit2(
             Opcode::GetPropertyByName,
             &[
-                Operand2::Varying(dst.index()),
-                Operand2::Varying(receiver.index()),
-                Operand2::Varying(value.index()),
+                Operand2::Register(dst),
+                Operand2::Operand(InstructionOperand::Register(receiver)),
+                Operand2::Operand(InstructionOperand::Register(value)),
                 Operand2::Varying(ic_index),
             ],
         );
@@ -848,10 +880,10 @@ impl<'ctx> ByteCompiler<'ctx> {
     }
 
     #[allow(dead_code)]
-    fn emit_move(&mut self, dst: &Reg, src: &Reg) {
+    fn emit_move(&mut self, dst: &Reg, src: InstructionOperand<'_>) {
         self.emit2(
             Opcode::Move,
-            &[Operand2::Varying(dst.index()), Operand2::Register(src)],
+            &[Operand2::Register(dst), Operand2::Operand(src)],
         );
     }
 
@@ -910,17 +942,22 @@ impl<'ctx> ByteCompiler<'ctx> {
         Label { index }
     }
 
-    pub(crate) fn emit_opcode_with_operand2(&mut self, opcode: Opcode, src: Operand2<'_>) -> Label {
+    pub(crate) fn emit_opcode_with_operand2(
+        &mut self,
+        opcode: Opcode,
+        src: InstructionOperand<'_>,
+    ) -> Label {
         let index = self.next_opcode_location();
-        self.emit2(opcode, &[Operand2::U32(Self::DUMMY_ADDRESS), src]);
-        Label { index }
+        self.emit2(
+            opcode,
+            &[Operand2::U32(Self::DUMMY_ADDRESS), Operand2::Operand(src)],
+        );
+        // NOTE: Plus one because the `operand_types` is emited
+        Label { index: index + 1 }
     }
 
-    pub(crate) fn emit_push_private_environment(&mut self, class: &Reg) -> Label {
-        self.emit2(
-            Opcode::PushPrivateEnvironment,
-            &[Operand2::Varying(class.index())],
-        );
+    pub(crate) fn emit_push_private_environment(&mut self, class: InstructionOperand<'_>) -> Label {
+        self.emit2(Opcode::PushPrivateEnvironment, &[Operand2::Operand(class)]);
         let index = self.next_opcode_location();
         self.emit_u32(Self::DUMMY_ADDRESS);
         Label { index: index - 1 }
@@ -1552,10 +1589,7 @@ impl<'ctx> ByteCompiler<'ctx> {
 
         let index = self.function(function);
         let dst = self.register_allocator.alloc();
-        self.emit2(
-            Opcode::GetFunction,
-            &[Operand2::Varying(dst.index()), Operand2::Varying(index)],
-        );
+        self.emit_get_function(&dst, index);
         self.push_from_register(&dst);
         self.register_allocator.dealloc(dst);
 
@@ -1621,10 +1655,7 @@ impl<'ctx> ByteCompiler<'ctx> {
 
         let index = self.push_function_to_constants(code);
         let dst = self.register_allocator.alloc();
-        self.emit2(
-            Opcode::GetFunction,
-            &[Operand2::Varying(dst.index()), Operand2::Varying(index)],
-        );
+        self.emit_get_function(&dst, index);
         self.push_from_register(&dst);
         self.register_allocator.dealloc(dst);
     }
@@ -1675,10 +1706,7 @@ impl<'ctx> ByteCompiler<'ctx> {
 
         let index = self.push_function_to_constants(code);
         let dst = self.register_allocator.alloc();
-        self.emit2(
-            Opcode::GetFunction,
-            &[Operand2::Varying(dst.index()), Operand2::Varying(index)],
-        );
+        self.emit_get_function(&dst, index);
         self.push_from_register(&dst);
         self.register_allocator.dealloc(dst);
     }

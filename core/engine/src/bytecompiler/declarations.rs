@@ -23,7 +23,7 @@ use boa_interner::{JStrRef, Sym};
 #[cfg(feature = "annex-b")]
 use boa_ast::operations::annex_b_function_declarations_names;
 
-use super::{Operand, Operand2, ToJsString};
+use super::{Operand, ToJsString};
 
 /// `GlobalDeclarationInstantiation ( script, env )`
 ///
@@ -601,13 +601,7 @@ impl ByteCompiler<'_> {
 
             // b. Let fo be InstantiateFunctionObject of f with arguments env and privateEnv.
             let dst = self.register_allocator.alloc();
-            self.emit2(
-                Opcode::GetFunction,
-                &[
-                    Operand2::Varying(dst.index()),
-                    Operand2::Varying(function_index),
-                ],
-            );
+            self.emit_get_function(&dst, function_index);
             self.push_from_register(&dst);
             self.register_allocator.dealloc(dst);
 
@@ -981,10 +975,7 @@ impl ByteCompiler<'_> {
 
                 // b. Let fo be InstantiateFunctionObject of f with arguments lexEnv and privateEnv.
                 let dst = self.register_allocator.alloc();
-                self.emit2(
-                    Opcode::GetFunction,
-                    &[Operand2::Varying(dst.index()), Operand2::Varying(index)],
-                );
+                self.emit_get_function(&dst, index);
                 self.push_from_register(&dst);
                 self.register_allocator.dealloc(dst);
 
@@ -1000,10 +991,7 @@ impl ByteCompiler<'_> {
                 // b. Let fo be InstantiateFunctionObject of f with arguments lexEnv and privateEnv.
                 let index = self.push_function_to_constants(code);
                 let dst = self.register_allocator.alloc();
-                self.emit2(
-                    Opcode::GetFunction,
-                    &[Operand2::Varying(dst.index()), Operand2::Varying(index)],
-                );
+                self.emit_get_function(&dst, index);
                 self.push_from_register(&dst);
                 self.register_allocator.dealloc(dst);
 
