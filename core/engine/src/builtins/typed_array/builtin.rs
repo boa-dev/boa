@@ -1155,15 +1155,9 @@ impl BuiltinTypedArray {
         let ta = ta.upcast();
         for k in k..len {
             // a. Let kPresent be ! HasProperty(O, ! ToString(𝔽(k))).
-            let k_present = ta
-                .has_property(k, context)
-                .expect("HasProperty cannot fail here");
-
             // b. If kPresent is true, then
-            if k_present {
-                // i. Let elementK be ! Get(O, ! ToString(𝔽(k))).
-                let element_k = ta.get(k, context).expect("Get cannot fail here");
-
+            // b.i. Let elementK be ! Get(O, ! ToString(𝔽(k))).
+            if let Some(element_k) = ta.try_get(k, context).expect("Get cannot fail here") {
                 // ii. Let same be IsStrictlyEqual(searchElement, elementK).
                 // iii. If same is true, return 𝔽(k).
                 if args.get_or_undefined(0).strict_equals(&element_k) {
@@ -1296,15 +1290,9 @@ impl BuiltinTypedArray {
         let ta = ta.upcast();
         for k in (0..k).rev() {
             // a. Let kPresent be ! HasProperty(O, ! ToString(𝔽(k))).
-            let k_present = ta
-                .has_property(k, context)
-                .expect("HasProperty cannot fail here");
-
             // b. If kPresent is true, then
-            if k_present {
-                // i. Let elementK be ! Get(O, ! ToString(𝔽(k))).
-                let element_k = ta.get(k, context).expect("Get cannot fail here");
-
+            // b.i. Let elementK be ! Get(O, ! ToString(𝔽(k))).
+            if let Some(element_k) = ta.try_get(k, context).expect("Get cannot fail here") {
                 // ii. Let same be IsStrictlyEqual(searchElement, elementK).
                 // iii. If same is true, return 𝔽(k).
                 if args.get_or_undefined(0).strict_equals(&element_k) {

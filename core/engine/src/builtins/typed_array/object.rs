@@ -7,8 +7,8 @@ use crate::{
     object::{
         internal_methods::{
             ordinary_define_own_property, ordinary_delete, ordinary_get, ordinary_get_own_property,
-            ordinary_has_property, ordinary_set, InternalMethodContext, InternalObjectMethods,
-            ORDINARY_INTERNAL_METHODS,
+            ordinary_has_property, ordinary_set, ordinary_try_get, InternalMethodContext,
+            InternalObjectMethods, ORDINARY_INTERNAL_METHODS,
         },
         JsData, JsObject,
     },
@@ -42,6 +42,7 @@ impl JsData for TypedArray {
             __get_own_property__: typed_array_exotic_get_own_property,
             __has_property__: typed_array_exotic_has_property,
             __define_own_property__: typed_array_exotic_define_own_property,
+            __try_get__: typed_array_exotic_try_get,
             __get__: typed_array_exotic_get,
             __set__: typed_array_exotic_set,
             __delete__: typed_array_exotic_delete,
@@ -411,6 +412,42 @@ pub(crate) fn typed_array_exotic_define_own_property(
 
     // 2. Return ! OrdinaryDefineOwnProperty(O, P, Desc).
     ordinary_define_own_property(obj, key, desc, context)
+}
+
+/// Internal optimization method for `TypedArray` exotic objects.
+///
+/// This method combines the internal methods `[[HasProperty]]` and `[[Get]]`.
+///
+/// More information:
+///  - [ECMAScript reference HasProperty][spec0]
+///  - [ECMAScript reference Get][spec1]
+///
+/// [spec0]: https://tc39.es/ecma262/#sec-typedarray-hasproperty
+/// [spec1]: https://tc39.es/ecma262/#sec-typedarray-get
+pub(crate) fn typed_array_exotic_try_get(
+    obj: &JsObject,
+    key: &PropertyKey,
+    receiver: JsValue,
+    context: &mut InternalMethodContext<'_>,
+) -> JsResult<Option<JsValue>> {
+    let p = match key {
+        PropertyKey::String(key) => {
+            // 1.a. Let numericIndex be CanonicalNumericIndexString(P).
+            canonical_numeric_index_string(key)
+        }
+        PropertyKey::Index(index) => Some(index.get().into()),
+        PropertyKey::Symbol(_) => None,
+    };
+
+    // 1. If P is a String, then
+    // 1.b. If numericIndex is not undefined, then
+    if let Some(numeric_index) = p {
+        // i. Return IntegerIndexedElementGet(O, numericIndex).
+        return Ok(typed_array_get_element(obj, numeric_index));
+    }
+
+    // 2. Return ? OrdinaryGet(O, P, Receiver).
+    ordinary_try_get(obj, key, receiver, context)
 }
 
 /// Internal method `[[Get]]` for `TypedArray` exotic objects.

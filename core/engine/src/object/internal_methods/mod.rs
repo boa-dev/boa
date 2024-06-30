@@ -179,6 +179,26 @@ impl JsObject {
         (self.vtable().__has_property__)(self, key, context)
     }
 
+    /// Internal optimization method.
+    ///
+    /// This method combines the internal methods `[[hasProperty]]` and `[[Get]]`.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference hasProperty][spec0]
+    ///  - [ECMAScript reference get][spec1]
+    ///
+    /// [spec0]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-hasproperty-p
+    /// [spec1]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-get-p-receiver
+    pub(crate) fn __try_get__(
+        &self,
+        key: &PropertyKey,
+        receiver: JsValue,
+        context: &mut InternalMethodContext<'_>,
+    ) -> JsResult<Option<JsValue>> {
+        let _timer = Profiler::global().start_event("Object::__try_get__", "object");
+        (self.vtable().__try_get__)(self, key, receiver, context)
+    }
+
     /// Internal method `[[Get]]`
     ///
     /// Get the specified property of this object or its prototype.
@@ -308,6 +328,7 @@ pub(crate) static ORDINARY_INTERNAL_METHODS: InternalObjectMethods = InternalObj
     __get_own_property__: ordinary_get_own_property,
     __define_own_property__: ordinary_define_own_property,
     __has_property__: ordinary_has_property,
+    __try_get__: ordinary_try_get,
     __get__: ordinary_get,
     __set__: ordinary_set,
     __delete__: ordinary_delete,
@@ -345,6 +366,12 @@ pub struct InternalObjectMethods {
         fn(&JsObject, &PropertyKey, &mut InternalMethodContext<'_>) -> JsResult<bool>,
     pub(crate) __get__:
         fn(&JsObject, &PropertyKey, JsValue, &mut InternalMethodContext<'_>) -> JsResult<JsValue>,
+    pub(crate) __try_get__: fn(
+        &JsObject,
+        &PropertyKey,
+        JsValue,
+        &mut InternalMethodContext<'_>,
+    ) -> JsResult<Option<JsValue>>,
     pub(crate) __set__: fn(
         &JsObject,
         PropertyKey,
@@ -638,6 +665,60 @@ pub(crate) fn ordinary_get(
                 }
                 // 7. If getter is undefined, return undefined.
                 _ => Ok(JsValue::undefined()),
+            }
+        }
+    }
+}
+
+/// Abstract optimization operation.
+///
+/// This operation combines the abstract operations `OrdinaryHasProperty` and `OrdinaryGet`.
+///
+/// More information:
+///  - [ECMAScript reference OrdinaryHasProperty][spec0]
+///  - [ECMAScript reference OrdinaryGet][spec1]
+///
+/// [spec0]: https://tc39.es/ecma262/#sec-ordinaryhasproperty
+/// [spec1]: https://tc39.es/ecma262/#sec-ordinaryget
+pub(crate) fn ordinary_try_get(
+    obj: &JsObject,
+    key: &PropertyKey,
+    receiver: JsValue,
+    context: &mut InternalMethodContext<'_>,
+) -> JsResult<Option<JsValue>> {
+    let _timer = Profiler::global().start_event("Object::ordinary_try_get", "object");
+    // 1. Assert: IsPropertyKey(P) is true.
+    // 2. Let desc be ? O.[[GetOwnProperty]](P).
+    match obj.__get_own_property__(key, context)? {
+        // If desc is undefined, then
+        None => {
+            // a. Let parent be ? O.[[GetPrototypeOf]]().
+            if let Some(parent) = obj.__get_prototype_of__(context)? {
+                context.slot().set_not_cachable_if_already_prototype();
+                context.slot().attributes |= SlotAttributes::PROTOTYPE;
+
+                // c. Return ? parent.[[Get]](P, Receiver).
+                parent.__try_get__(key, receiver, context)
+            }
+            // b. If parent is null, return undefined.
+            else {
+                Ok(None)
+            }
+        }
+        Some(ref desc) => {
+            match desc.kind() {
+                // 4. If IsDataDescriptor(desc) is true, return desc.[[Value]].
+                DescriptorKind::Data {
+                    value: Some(value), ..
+                } => Ok(Some(value.clone())),
+                // 5. Assert: IsAccessorDescriptor(desc) is true.
+                // 6. Let getter be desc.[[Get]].
+                DescriptorKind::Accessor { get: Some(get), .. } if !get.is_undefined() => {
+                    // 8. Return ? Call(getter, Receiver).
+                    get.call(&receiver, &[], context).map(Some)
+                }
+                // 7. If getter is undefined, return undefined.
+                _ => Ok(Some(JsValue::undefined())),
             }
         }
     }

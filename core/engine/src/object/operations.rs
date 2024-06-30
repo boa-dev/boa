@@ -323,6 +323,28 @@ impl JsObject {
         self.__has_property__(&key.into(), &mut InternalMethodContext::new(context))
     }
 
+    /// Abstract optimization operation.
+    ///
+    /// Check if an object has a property and get it if it exists.
+    /// This operation combines the abstract operations `HasProperty` and `Get`.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference HasProperty][spec0]
+    ///  - [ECMAScript reference Get][spec1]
+    ///
+    /// [spec0]: https://tc39.es/ecma262/#sec-hasproperty
+    /// [spec1]: https://tc39.es/ecma262/#sec-get-o-p
+    pub(crate) fn try_get<K>(&self, key: K, context: &mut Context) -> JsResult<Option<JsValue>>
+    where
+        K: Into<PropertyKey>,
+    {
+        self.__try_get__(
+            &key.into(),
+            self.clone().into(),
+            &mut InternalMethodContext::new(context),
+        )
+    }
+
     /// Check if object has an own property.
     ///
     /// More information:

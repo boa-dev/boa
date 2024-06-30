@@ -811,11 +811,9 @@ impl Array {
                 for k in 0..len {
                     // 1. Let P be ! ToString(𝔽(k)).
                     // 2. Let exists be ? HasProperty(E, P).
-                    let exists = item.has_property(k, context)?;
                     // 3. If exists is true, then
-                    if exists {
-                        // a. Let subElement be ? Get(E, P).
-                        let sub_element = item.get(k, context)?;
+                    // 3.a. Let subElement be ? Get(E, P).
+                    if let Some(sub_element) = item.try_get(k, context)? {
                         // b. Perform ? CreateDataPropertyOrThrow(A, ! ToString(𝔽(n)), subElement).
                         arr.create_data_property_or_throw(n, sub_element, context)?;
                     }
@@ -960,11 +958,9 @@ impl Array {
             // a. Let Pk be ! ToString(𝔽(k)).
             let pk = k;
             // b. Let kPresent be ? HasProperty(O, Pk).
-            let present = o.has_property(pk, context)?;
             // c. If kPresent is true, then
-            if present {
-                // i. Let kValue be ? Get(O, Pk).
-                let k_value = o.get(pk, context)?;
+            // c.i. Let kValue be ? Get(O, Pk).
+            if let Some(k_value) = o.try_get(pk, context)? {
                 // ii. Perform ? Call(callbackfn, thisArg, « kValue, 𝔽(k), O »).
                 let this_arg = args.get_or_undefined(1);
                 callback.call(this_arg, &[k_value, k.into(), o.clone().into()], context)?;
@@ -1093,47 +1089,37 @@ impl Array {
             // Skipped: b. Let upperP be ! ToString(𝔽(upper)).
             // Skipped: c. Let lowerP be ! ToString(𝔽(lower)).
             // d. Let lowerExists be ? HasProperty(O, lowerP).
-            let lower_exists = o.has_property(lower, context)?;
             // e. If lowerExists is true, then
-            let lower_value = if lower_exists {
-                // i. Let lowerValue be ? Get(O, lowerP).
-                o.get(lower, context)?
-            } else {
-                JsValue::undefined()
-            };
+            // e.i. Let lowerValue be ? Get(O, lowerP).
+            let lower_value = o.try_get(lower, context)?;
             // f. Let upperExists be ? HasProperty(O, upperP).
-            let upper_exists = o.has_property(upper, context)?;
             // g. If upperExists is true, then
-            let upper_value = if upper_exists {
-                // i. Let upperValue be ? Get(O, upperP).
-                o.get(upper, context)?
-            } else {
-                JsValue::undefined()
-            };
-            match (lower_exists, upper_exists) {
+            // g.i. Let upperValue be ? Get(O, upperP).
+            let upper_value = o.try_get(upper, context)?;
+            match (lower_value, upper_value) {
                 // h. If lowerExists is true and upperExists is true, then
-                (true, true) => {
+                (Some(lower_value), Some(upper_value)) => {
                     // i. Perform ? Set(O, lowerP, upperValue, true).
                     o.set(lower, upper_value, true, context)?;
                     // ii. Perform ? Set(O, upperP, lowerValue, true).
                     o.set(upper, lower_value, true, context)?;
                 }
                 // i. Else if lowerExists is false and upperExists is true, then
-                (false, true) => {
+                (None, Some(upper_value)) => {
                     // i. Perform ? Set(O, lowerP, upperValue, true).
                     o.set(lower, upper_value, true, context)?;
                     // ii. Perform ? DeletePropertyOrThrow(O, upperP).
                     o.delete_property_or_throw(upper, context)?;
                 }
                 // j. Else if lowerExists is true and upperExists is false, then
-                (true, false) => {
+                (Some(lower_value), None) => {
                     // i. Perform ? DeletePropertyOrThrow(O, lowerP).
                     o.delete_property_or_throw(lower, context)?;
                     // ii. Perform ? Set(O, upperP, lowerValue, true).
                     o.set(upper, lower_value, true, context)?;
                 }
                 // k. Else,
-                (false, false) => {
+                (None, None) => {
                     // i. Assert: lowerExists and upperExists are both false.
                     // ii. No action is required.
                 }
@@ -1255,11 +1241,9 @@ impl Array {
             // b. Let to be ! ToString(𝔽(k - 1)).
             let to = k - 1;
             // c. Let fromPresent be ? HasProperty(O, from).
-            let from_present = o.has_property(from, context)?;
             // d. If fromPresent is true, then
-            if from_present {
-                // i. Let fromVal be ? Get(O, from).
-                let from_val = o.get(from, context)?;
+            // d.i. Let fromVal be ? Get(O, from).
+            if let Some(from_val) = o.try_get(from, context)? {
                 // ii. Perform ? Set(O, to, fromVal, true).
                 o.set(to, from_val, true, context)?;
             // e. Else,
@@ -1318,11 +1302,9 @@ impl Array {
                 // ii. Let to be ! ToString(𝔽(k + argCount - 1)).
                 let to = k + arg_count - 1;
                 // iii. Let fromPresent be ? HasProperty(O, from).
-                let from_present = o.has_property(from, context)?;
                 // iv. If fromPresent is true, then
-                if from_present {
-                    // 1. Let fromValue be ? Get(O, from).
-                    let from_value = o.get(from, context)?;
+                // iv.1. Let fromValue be ? Get(O, from).
+                if let Some(from_value) = o.try_get(from, context)? {
                     // 2. Perform ? Set(O, to, fromValue, true).
                     o.set(to, from_value, true, context)?;
                 // v. Else,
@@ -1383,11 +1365,9 @@ impl Array {
         for k in 0..len {
             // a. Let Pk be ! ToString(𝔽(k)).
             // b. Let kPresent be ? HasProperty(O, Pk).
-            let k_present = o.has_property(k, context)?;
             // c. If kPresent is true, then
-            if k_present {
-                // i. Let kValue be ? Get(O, Pk).
-                let k_value = o.get(k, context)?;
+            // c.i. Let kValue be ? Get(O, Pk).
+            if let Some(k_value) = o.try_get(k, context)? {
                 // ii. Let testResult be ! ToBoolean(? Call(callbackfn, thisArg, « kValue, 𝔽(k), O »)).
                 let test_result = callback
                     .call(this_arg, &[k_value, k.into(), o.clone().into()], context)?
@@ -1438,11 +1418,9 @@ impl Array {
         for k in 0..len {
             // a. Let Pk be ! ToString(𝔽(k)).
             // b. Let k_present be ? HasProperty(O, Pk).
-            let k_present = o.has_property(k, context)?;
             // c. If k_present is true, then
-            if k_present {
-                // i. Let kValue be ? Get(O, Pk).
-                let k_value = o.get(k, context)?;
+            // c.i. Let kValue be ? Get(O, Pk).
+            if let Some(k_value) = o.try_get(k, context)? {
                 // ii. Let mappedValue be ? Call(callbackfn, thisArg, « kValue, 𝔽(k), O »).
                 let mapped_value =
                     callback.call(this_arg, &[k_value, k.into(), o.clone().into()], context)?;
@@ -1514,11 +1492,9 @@ impl Array {
         // 10. Repeat, while k < len,
         while k < len {
             // a. Let kPresent be ? HasProperty(O, ! ToString(𝔽(k))).
-            let k_present = o.has_property(k, context)?;
             // b. If kPresent is true, then
-            if k_present {
-                // i. Let elementK be ? Get(O, ! ToString(𝔽(k))).
-                let element_k = o.get(k, context)?;
+            // b.i. Let elementK be ? Get(O, ! ToString(𝔽(k))).
+            if let Some(element_k) = o.try_get(k, context)? {
                 // ii. Let same be IsStrictlyEqual(searchElement, elementK).
                 // iii. If same is true, return 𝔽(k).
                 if search_element.strict_equals(&element_k) {
@@ -1590,11 +1566,9 @@ impl Array {
         // 8. Repeat, while k ≥ 0,
         while k >= 0 {
             // a. Let kPresent be ? HasProperty(O, ! ToString(𝔽(k))).
-            let k_present = o.has_property(k, context)?;
             // b. If kPresent is true, then
-            if k_present {
-                // i. Let elementK be ? Get(O, ! ToString(𝔽(k))).
-                let element_k = o.get(k, context)?;
+            // b.i. Let elementK be ? Get(O, ! ToString(𝔽(k))).
+            if let Some(element_k) = o.try_get(k, context)? {
                 // ii. Let same be IsStrictlyEqual(searchElement, elementK).
                 // iii. If same is true, return 𝔽(k).
                 if JsValue::strict_equals(search_element, &element_k) {
@@ -1907,12 +1881,9 @@ impl Array {
             let p = source_index;
 
             // b. Let exists be ? HasProperty(source, P).
-            let exists = source.has_property(p, context)?;
             // c. If exists is true, then
-            if exists {
-                // i. Let element be Get(source, P)
-                let mut element = source.get(p, context)?;
-
+            // c.i. Let element be Get(source, P)
+            if let Some(mut element) = source.try_get(p, context)? {
                 // ii. If mapperFunction is present, then
                 if let Some(mapper_function) = mapper_function {
                     // 1. Set element to ? Call(mapperFunction, thisArg, <<element, sourceIndex, source>>)
@@ -2156,11 +2127,9 @@ impl Array {
             // a. Let Pk be ! ToString(𝔽(k)).
             let pk = k;
             // b. Let kPresent be ? HasProperty(O, Pk).
-            let k_present = o.has_property(pk, context)?;
             // c. If kPresent is true, then
-            if k_present {
-                // i. Let kValue be ? Get(O, Pk).
-                let k_value = o.get(pk, context)?;
+            // c.i. Let kValue be ? Get(O, Pk).
+            if let Some(k_value) = o.try_get(pk, context)? {
                 // ii. Perform ? CreateDataPropertyOrThrow(A, ! ToString(𝔽(n)), kValue).
                 a.create_data_property_or_throw(n, k_value, context)?;
             }
@@ -2327,10 +2296,8 @@ impl Array {
         for k in 0..actual_delete_count {
             // a. Let from be ! ToString(𝔽(actualStart + k)).
             // b. If ? HasProperty(O, from) is true, then
-            if o.has_property(actual_start + k, context)? {
-                // i. Let fromValue be ? Get(O, from).
-                let from_value = o.get(actual_start + k, context)?;
-
+            // b.i. Let fromValue be ? Get(O, from).
+            if let Some(from_value) = o.try_get(actual_start + k, context)? {
                 // ii. Perform ? CreateDataPropertyOrThrow(A, ! ToString(𝔽(k)), fromValue).
                 arr.create_data_property_or_throw(k, from_value, context)?;
             }
@@ -2356,10 +2323,8 @@ impl Array {
                     let to = k + item_count;
 
                     // iii. If ? HasProperty(O, from) is true, then
-                    if o.has_property(from, context)? {
-                        // 1. Let fromValue be ? Get(O, from).
-                        let from_value = o.get(from, context)?;
-
+                    // iii.1. Let fromValue be ? Get(O, from).
+                    if let Some(from_value) = o.try_get(from, context)? {
                         // 2. Perform ? Set(O, to, fromValue, true).
                         o.set(to, from_value, true, context)?;
                     } else {
@@ -2391,10 +2356,8 @@ impl Array {
                     let to = k + item_count;
 
                     // iii. If ? HasProperty(O, from) is true, then
-                    if o.has_property(from, context)? {
-                        // 1. Let fromValue be ? Get(O, from).
-                        let from_value = o.get(from, context)?;
-
+                    // iii.1. Let fromValue be ? Get(O, from).
+                    if let Some(from_value) = o.try_get(from, context)? {
                         // 2. Perform ? Set(O, to, fromValue, true).
                         o.set(to, from_value, true, context)?;
                     }
@@ -2555,10 +2518,8 @@ impl Array {
             // a. Let Pk be ! ToString(𝔽(k)).
             // b. Let kPresent be ? HasProperty(O, Pk).
             // c. If kPresent is true, then
-            if o.has_property(idx, context)? {
-                // i. Let kValue be ? Get(O, Pk).
-                let element = o.get(idx, context)?;
-
+            // c.i. Let kValue be ? Get(O, Pk).
+            if let Some(element) = o.try_get(idx, context)? {
                 let args = [element.clone(), JsValue::new(idx), JsValue::new(o.clone())];
 
                 // ii. Let selected be ! ToBoolean(? Call(callbackfn, thisArg, « kValue, 𝔽(k), O »)).
@@ -2612,11 +2573,9 @@ impl Array {
         for k in 0..len {
             // a. Let Pk be ! ToString(𝔽(k)).
             // b. Let kPresent be ? HasProperty(O, Pk).
-            let k_present = o.has_property(k, context)?;
             // c. If kPresent is true, then
-            if k_present {
-                // i. Let kValue be ? Get(O, Pk).
-                let k_value = o.get(k, context)?;
+            // c.i. Let kValue be ? Get(O, Pk).
+            if let Some(k_value) = o.try_get(k, context)? {
                 // ii. Let testResult be ! ToBoolean(? Call(callbackfn, thisArg, « kValue, 𝔽(k), O »)).
                 let this_arg = args.get_or_undefined(1);
                 let test_result = callback
@@ -2868,11 +2827,13 @@ impl Array {
                 // i. Let Pk be ! ToString(𝔽(k)).
                 let pk = k;
                 // ii. Set kPresent to ? HasProperty(O, Pk).
-                k_present = o.has_property(pk, context)?;
                 // iii. If kPresent is true, then
-                if k_present {
-                    // 1. Set accumulator to ? Get(O, Pk).
-                    accumulator = o.get(pk, context)?;
+                // iii.1. Set accumulator to ? Get(O, Pk).
+                if let Some(v) = o.try_get(pk, context)? {
+                    accumulator = v;
+                    k_present = true;
+                } else {
+                    k_present = false;
                 }
                 // iv. Set k to k + 1.
                 k += 1;
@@ -2890,11 +2851,9 @@ impl Array {
             // a. Let Pk be ! ToString(𝔽(k)).
             let pk = k;
             // b. Let kPresent be ? HasProperty(O, Pk).
-            let k_present = o.has_property(pk, context)?;
             // c. If kPresent is true, then
-            if k_present {
-                // i. Let kValue be ? Get(O, Pk).
-                let k_value = o.get(pk, context)?;
+            // c.i. Let kValue be ? Get(O, Pk).
+            if let Some(k_value) = o.try_get(pk, context)? {
                 // ii. Set accumulator to ? Call(callbackfn, undefined, « accumulator, kValue, 𝔽(k), O »).
                 accumulator = callback.call(
                     &JsValue::undefined(),
@@ -2962,11 +2921,13 @@ impl Array {
                 // i. Let Pk be ! ToString(𝔽(k)).
                 let pk = k;
                 // ii. Set kPresent to ? HasProperty(O, Pk).
-                k_present = o.has_property(pk, context)?;
                 // iii. If kPresent is true, then
-                if k_present {
-                    // 1. Set accumulator to ? Get(O, Pk).
-                    accumulator = o.get(pk, context)?;
+                // iii.1. Set accumulator to ? Get(O, Pk).
+                if let Some(v) = o.try_get(pk, context)? {
+                    k_present = true;
+                    accumulator = v;
+                } else {
+                    k_present = false;
                 }
                 // iv. Set k to k - 1.
                 k -= 1;
@@ -2984,11 +2945,9 @@ impl Array {
             // a. Let Pk be ! ToString(𝔽(k)).
             let pk = k;
             // b. Let kPresent be ? HasProperty(O, Pk).
-            let k_present = o.has_property(pk, context)?;
             // c. If kPresent is true, then
-            if k_present {
-                // i. Let kValue be ? Get(O, Pk).
-                let k_value = o.get(pk, context)?;
+            // c.i. Let kValue be ? Get(O, Pk).
+            if let Some(k_value) = o.try_get(pk, context)? {
                 // ii. Set accumulator to ? Call(callbackfn, undefined, « accumulator, kValue, 𝔽(k), O »).
                 accumulator = callback.call(
                     &JsValue::undefined(),
@@ -3071,11 +3030,9 @@ impl Array {
             let to_key = to;
 
             // c. Let fromPresent be ? HasProperty(O, fromKey).
-            let from_present = o.has_property(from_key, context)?;
             // d. If fromPresent is true, then
-            if from_present {
-                // i. Let fromVal be ? Get(O, fromKey).
-                let from_val = o.get(from_key, context)?;
+            // d.i. Let fromVal be ? Get(O, fromKey).
+            if let Some(from_val) = o.try_get(from_key, context)? {
                 // ii. Perform ? Set(O, toKey, fromVal, true).
                 o.set(to_key, from_val, true, context)?;
             // e. Else,

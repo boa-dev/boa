@@ -233,13 +233,7 @@ impl JsError {
                     .ok_or_else(|| TryNativeError::NotAnErrorObject(val.clone()))?;
 
                 let try_get_property = |key: JsString, name, context: &mut Context| {
-                    obj.has_property(key.clone(), context)
-                        .map_err(|e| TryNativeError::InaccessibleProperty {
-                            property: name,
-                            source: e,
-                        })?
-                        .then(|| obj.get(key, context))
-                        .transpose()
+                    obj.try_get(key, context)
                         .map_err(|e| TryNativeError::InaccessibleProperty {
                             property: name,
                             source: e,

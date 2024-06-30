@@ -93,12 +93,9 @@ pub(crate) fn canonicalize_locale_list(
     for k in 0..len {
         // a. Let Pk be ToString(k).
         // b. Let kPresent be ? HasProperty(O, Pk).
-        let k_present = o.has_property(k, context)?;
         // c. If kPresent is true, then
-        if k_present {
-            // i. Let kValue be ? Get(O, Pk).
-            let k_value = o.get(k, context)?;
-
+        // c.i. Let kValue be ? Get(O, Pk).
+        if let Some(k_value) = o.try_get(k, context)? {
             // ii. If Type(kValue) is not String or Object, throw a TypeError exception.
             if !(k_value.is_object() || k_value.is_string()) {
                 return Err(JsNativeError::typ()
