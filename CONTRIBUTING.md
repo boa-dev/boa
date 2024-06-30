@@ -109,6 +109,12 @@ To only generate documentation for the workspace members, just add the `--no-dep
 cargo doc --all-features --document-private-items --workspace --no-deps
 ```
 
+## Performance
+
+You can get help inspecting performance by looking at:
+- [Profiling Boa](./docs/profiling.md)
+- [Profiling Boa With Windows Performance Analyzer](./docs/profiling_with_wpa.md)
+
 ## Communication
 
 We have a Discord server, feel free to ask questions here:
