@@ -315,7 +315,7 @@ impl SyntheticModule {
         }
 
         let env = envs
-            .current()
+            .current_ref()
             .as_declarative()
             .cloned()
             .expect("should have the module environment");

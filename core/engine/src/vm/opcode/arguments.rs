@@ -28,7 +28,7 @@ impl Operation for CreateMappedArgumentsObject {
         let code = context.vm.frame().code_block().clone();
         let args = context.vm.frame().arguments(&context.vm).to_vec();
 
-        let env = context.vm.environments.current();
+        let env = context.vm.environments.current_ref();
         let arguments = MappedArguments::new(
             &function_object,
             &code.mapped_arguments_binding_indices,

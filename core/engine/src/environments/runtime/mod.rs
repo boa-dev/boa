@@ -77,11 +77,11 @@ impl EnvironmentStack {
     }
 
     /// Gets the current global environment.
-    pub(crate) fn global(&self) -> Gc<DeclarativeEnvironment> {
-        let env = self.stack[0].clone();
+    pub(crate) fn global(&self) -> &Gc<DeclarativeEnvironment> {
+        let env = &self.stack[0];
 
         match env {
-            Environment::Declarative(ref env) => env.clone(),
+            Environment::Declarative(ref env) => env,
             Environment::Object(_) => {
                 unreachable!("first environment should be the global environment")
             }
@@ -89,7 +89,7 @@ impl EnvironmentStack {
     }
 
     /// Gets the next outer function environment.
-    pub(crate) fn outer_function_environment(&self) -> Gc<DeclarativeEnvironment> {
+    pub(crate) fn outer_function_environment(&self) -> &Gc<DeclarativeEnvironment> {
         for env in self
             .stack
             .iter()
@@ -97,7 +97,7 @@ impl EnvironmentStack {
             .rev()
         {
             if let DeclarativeEnvironmentKind::Function(_) = &env.kind() {
-                return env.clone();
+                return env;
             }
         }
         self.global()
@@ -288,11 +288,10 @@ impl EnvironmentStack {
     ///
     /// Panics if no environment exists on the stack.
     #[track_caller]
-    pub(crate) fn current(&self) -> Environment {
+    pub(crate) fn current_ref(&self) -> &Environment {
         self.stack
             .last()
             .expect("global environment must always exist")
-            .clone()
     }
 
     /// Get the compile environment for the current runtime environment.
@@ -502,7 +501,7 @@ impl Context {
     /// are completely removed of runtime checks because the specification guarantees that runtime
     /// semantics cannot add or remove lexical bindings.
     pub(crate) fn find_runtime_binding(&mut self, locator: &mut BindingLocator) -> JsResult<()> {
-        let current = self.vm.environments.current();
+        let current = self.vm.environments.current_ref();
         if let Some(env) = current.as_declarative() {
             if !env.with() && !env.poisoned() {
                 return Ok(());
@@ -553,7 +552,7 @@ impl Context {
         &mut self,
         locator: &BindingLocator,
     ) -> JsResult<Option<JsObject>> {
-        let current = self.vm.environments.current();
+        let current = self.vm.environments.current_ref();
         if let Some(env) = current.as_declarative() {
             if !env.with() {
                 return Ok(None);

@@ -229,7 +229,7 @@ impl Eval {
             }
         });
 
-        let var_environment = context.vm.environments.outer_function_environment();
+        let var_environment = context.vm.environments.outer_function_environment().clone();
         let mut var_env = var_environment.compile_env();
 
         let lex_env = context.vm.environments.current_compile_environment();
