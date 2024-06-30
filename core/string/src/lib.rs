@@ -823,6 +823,16 @@ impl JsString {
         I::get(self.as_str(), index)
     }
 
+    /// Get the element a the given index, without doing bounds checking.
+    #[inline]
+    #[must_use]
+    pub unsafe fn get_unchecked<'a, I>(&'a self, index: I) -> I::Value
+    where
+        I: JsSliceIndex<'a>,
+    {
+        unsafe { I::get_unchecked(self.as_str(), index) }
+    }
+
     /// Get the element a the given index.
     ///
     /// # Panics

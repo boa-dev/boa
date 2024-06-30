@@ -191,6 +191,16 @@ impl<'a> JsStr<'a> {
         I::get(self, index)
     }
 
+    /// Returns an element or subslice depending on the type of index, without doing bounds check.
+    #[inline]
+    #[must_use]
+    pub unsafe fn get_unchecked<I>(self, index: I) -> I::Value
+    where
+        I: JsSliceIndex<'a>,
+    {
+        unsafe { I::get_unchecked(self, index) }
+    }
+
     /// Convert the [`JsStr`] into a [`Vec<U16>`].
     #[inline]
     #[must_use]
@@ -295,6 +305,8 @@ pub trait JsSliceIndex<'a>: SliceIndex<[u8]> + SliceIndex<[u16]> {
     type Value;
 
     fn get(_: JsStr<'a>, index: Self) -> Option<Self::Value>;
+
+    unsafe fn get_unchecked(value: JsStr<'a>, index: Self) -> Self::Value;
 }
 
 impl<'a> JsSliceIndex<'a> for usize {
@@ -305,6 +317,16 @@ impl<'a> JsSliceIndex<'a> for usize {
         match value.variant() {
             JsStrVariant::Latin1(v) => v.get(index).copied().map(u16::from),
             JsStrVariant::Utf16(v) => v.get(index).copied(),
+        }
+    }
+
+    #[inline]
+    unsafe fn get_unchecked(value: JsStr<'a>, index: Self) -> Self::Value {
+        unsafe {
+            match value.variant() {
+                JsStrVariant::Latin1(v) => u16::from(*v.get_unchecked(index)),
+                JsStrVariant::Utf16(v) => *v.get_unchecked(index),
+            }
         }
     }
 }
@@ -319,6 +341,16 @@ impl<'a> JsSliceIndex<'a> for std::ops::Range<usize> {
             JsStrVariant::Utf16(v) => v.get(index).map(JsStr::utf16),
         }
     }
+
+    #[inline]
+    unsafe fn get_unchecked(value: JsStr<'a>, index: Self) -> Self::Value {
+        unsafe {
+            match value.variant() {
+                JsStrVariant::Latin1(v) => JsStr::latin1(v.get_unchecked(index)),
+                JsStrVariant::Utf16(v) => JsStr::utf16(v.get_unchecked(index)),
+            }
+        }
+    }
 }
 
 impl<'a> JsSliceIndex<'a> for std::ops::RangeInclusive<usize> {
@@ -329,6 +361,16 @@ impl<'a> JsSliceIndex<'a> for std::ops::RangeInclusive<usize> {
         match value.variant() {
             JsStrVariant::Latin1(v) => v.get(index).map(JsStr::latin1),
             JsStrVariant::Utf16(v) => v.get(index).map(JsStr::utf16),
+        }
+    }
+
+    #[inline]
+    unsafe fn get_unchecked(value: JsStr<'a>, index: Self) -> Self::Value {
+        unsafe {
+            match value.variant() {
+                JsStrVariant::Latin1(v) => JsStr::latin1(v.get_unchecked(index)),
+                JsStrVariant::Utf16(v) => JsStr::utf16(v.get_unchecked(index)),
+            }
         }
     }
 }
@@ -343,6 +385,16 @@ impl<'a> JsSliceIndex<'a> for std::ops::RangeFrom<usize> {
             JsStrVariant::Utf16(v) => v.get(index).map(JsStr::utf16),
         }
     }
+
+    #[inline]
+    unsafe fn get_unchecked(value: JsStr<'a>, index: Self) -> Self::Value {
+        unsafe {
+            match value.variant() {
+                JsStrVariant::Latin1(v) => JsStr::latin1(v.get_unchecked(index)),
+                JsStrVariant::Utf16(v) => JsStr::utf16(v.get_unchecked(index)),
+            }
+        }
+    }
 }
 
 impl<'a> JsSliceIndex<'a> for std::ops::RangeTo<usize> {
@@ -355,6 +407,16 @@ impl<'a> JsSliceIndex<'a> for std::ops::RangeTo<usize> {
             JsStrVariant::Utf16(v) => v.get(index).map(JsStr::utf16),
         }
     }
+
+    #[inline]
+    unsafe fn get_unchecked(value: JsStr<'a>, index: Self) -> Self::Value {
+        unsafe {
+            match value.variant() {
+                JsStrVariant::Latin1(v) => JsStr::latin1(v.get_unchecked(index)),
+                JsStrVariant::Utf16(v) => JsStr::utf16(v.get_unchecked(index)),
+            }
+        }
+    }
 }
 
 impl<'a> JsSliceIndex<'a> for std::ops::RangeFull {
@@ -363,5 +425,10 @@ impl<'a> JsSliceIndex<'a> for std::ops::RangeFull {
     #[inline]
     fn get(value: JsStr<'a>, _index: Self) -> Option<Self::Value> {
         Some(value)
+    }
+
+    #[inline]
+    unsafe fn get_unchecked(value: JsStr<'a>, index: Self) -> Self::Value {
+        value
     }
 }
