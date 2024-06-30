@@ -207,7 +207,7 @@ impl MappedArguments {
         binding_indices: &[Option<u32>],
         arguments_list: &[JsValue],
         env: &Gc<DeclarativeEnvironment>,
-        context: &mut Context,
+        context: &Context,
     ) -> JsObject {
         // 1. Assert: formals does not contain a rest parameter, any binding patterns, or any initializers.
         // It may contain duplicate identifiers.

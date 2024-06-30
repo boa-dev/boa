@@ -1665,7 +1665,7 @@ impl SourceTextModule {
                     BindingName::Name(name) => context
                         .vm
                         .environments
-                        .current()
+                        .current_ref()
                         .declarative_expect()
                         .kind()
                         .as_module()
@@ -1704,7 +1704,7 @@ impl SourceTextModule {
 
         let env = frame
             .environments
-            .current()
+            .current_ref()
             .as_declarative()
             .cloned()
             .expect("frame must have a declarative environment");
