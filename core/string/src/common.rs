@@ -4,8 +4,8 @@ use crate::{tagged::Tagged, JsStr};
 
 use super::JsString;
 use paste::paste;
-use rustc_hash::{FxHashMap, FxHasher};
-use std::hash::BuildHasherDefault;
+use rustc_hash::{FxBuildHasher, FxHashMap};
+use std::collections::HashMap;
 
 macro_rules! well_known_statics {
     ( $( $(#[$attr:meta])* ($name:ident, $string:literal) ),+$(,)? ) => {
@@ -216,9 +216,9 @@ const MAX_STATIC_LENGTH: usize = {
 thread_local! {
     /// Map from a string inside [`RAW_STATICS`] to its corresponding static index on `RAW_STATICS`.
     static RAW_STATICS_CACHE: FxHashMap<JsStr<'static>, usize> = {
-        let mut constants = FxHashMap::with_capacity_and_hasher(
+        let mut constants = HashMap::with_capacity_and_hasher(
             RAW_STATICS.len(),
-            BuildHasherDefault::<FxHasher>::default(),
+            FxBuildHasher::default()
         );
 
         for (idx, &s) in RAW_STATICS.iter().enumerate() {
