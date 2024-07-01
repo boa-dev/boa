@@ -16,7 +16,7 @@ profiler = ["dep:measureme", "dep:once_cell", "dep:rustc-hash"]
 [dependencies]
 measureme = { workspace = true, optional = true }
 once_cell = { workspace = true, optional = true, features = ["std"] }
-rustc-hash = { workspace = true, optional = true }
+rustc-hash = { workspace = true, optional = true, features = ["std"] }
 
 [lints]
 workspace = true

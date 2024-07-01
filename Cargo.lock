@@ -317,7 +317,7 @@ dependencies = [
  "boa_macros",
  "indexmap",
  "num-bigint",
- "rustc-hash 1.1.0",
+ "rustc-hash 2.0.0",
  "serde",
 ]
 
@@ -390,7 +390,7 @@ dependencies = [
  "portable-atomic",
  "rand",
  "regress",
- "rustc-hash 1.1.0",
+ "rustc-hash 2.0.0",
  "ryu-js",
  "serde",
  "serde_json",
@@ -460,7 +460,7 @@ dependencies = [
  "indexmap",
  "once_cell",
  "phf",
- "rustc-hash 1.1.0",
+ "rustc-hash 2.0.0",
  "serde",
  "static_assertions",
 ]
@@ -472,7 +472,7 @@ dependencies = [
  "boa_engine",
  "boa_gc",
  "boa_macros",
- "rustc-hash 1.1.0",
+ "rustc-hash 2.0.0",
 ]
 
 [[package]]
@@ -507,7 +507,7 @@ dependencies = [
  "num-bigint",
  "num-traits",
  "regress",
- "rustc-hash 1.1.0",
+ "rustc-hash 2.0.0",
 ]
 
 [[package]]
@@ -516,7 +516,7 @@ version = "0.18.0"
 dependencies = [
  "measureme",
  "once_cell",
- "rustc-hash 1.1.0",
+ "rustc-hash 2.0.0",
 ]
 
 [[package]]
@@ -526,7 +526,7 @@ dependencies = [
  "boa_engine",
  "boa_gc",
  "indoc",
- "rustc-hash 1.1.0",
+ "rustc-hash 2.0.0",
  "textwrap",
 ]
 
@@ -537,7 +537,7 @@ dependencies = [
  "boa_macros",
  "fast-float",
  "paste",
- "rustc-hash 1.1.0",
+ "rustc-hash 2.0.0",
  "sptr",
  "static_assertions",
 ]
@@ -557,7 +557,7 @@ dependencies = [
  "comfy-table",
  "phf",
  "rayon",
- "rustc-hash 1.1.0",
+ "rustc-hash 2.0.0",
  "serde",
  "serde_json",
  "serde_repr",
