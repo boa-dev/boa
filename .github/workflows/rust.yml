@@ -31,7 +31,7 @@ jobs:
         with:
           key: tarpaulin
       - name: Install cargo-tarpaulin
-        uses: baptiste0928/cargo-install@v3.1.0
+        uses: baptiste0928/cargo-install@v3.1.1
         with:
           crate: cargo-tarpaulin
 
