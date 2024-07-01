@@ -65,7 +65,7 @@ once_cell = { version = "1.19.0", default-features = false }
 phf = { version = "0.11.2", default-features = false }
 pollster = "0.3.0"
 regex = "1.10.5"
-regress = { version="0.10.0", features = ["utf16"]}
+regress = { version = "0.10.0", features = ["utf16"] }
 rustc-hash = { version = "2.0.0", default-features = false }
 serde_json = "1.0.119"
 serde = "1.0.203"

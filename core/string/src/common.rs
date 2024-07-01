@@ -218,7 +218,7 @@ thread_local! {
     static RAW_STATICS_CACHE: FxHashMap<JsStr<'static>, usize> = {
         let mut constants = HashMap::with_capacity_and_hasher(
             RAW_STATICS.len(),
-            FxBuildHasher::default()
+            FxBuildHasher
         );
 
         for (idx, &s) in RAW_STATICS.iter().enumerate() {
