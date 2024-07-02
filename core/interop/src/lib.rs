@@ -1,15 +1,15 @@
 //! Interop utilities between Boa and its host.
 
 use boa_engine::module::SyntheticModuleInitializer;
-use boa_engine::object::{ErasedObject, Ref, RefMut};
+use boa_engine::object::Object;
 use boa_engine::value::TryFromJs;
 use boa_engine::{
     Context, JsNativeError, JsResult, JsString, JsValue, Module, NativeFunction, NativeObject,
 };
-use std::marker::PhantomData;
 use std::ops::Deref;
 
 pub use boa_engine;
+use boa_gc::{GcRef, GcRefMut};
 pub use boa_macros;
 
 pub mod loaders;
@@ -340,8 +340,7 @@ impl<T: TryFromJs> Deref for JsThis<T> {
 /// [`JsThis`] capture instead.
 #[derive(Debug, Clone)]
 pub struct JsClass<T: NativeObject> {
-    inner: boa_engine::JsObject,
-    _ty: PhantomData<T>,
+    inner: boa_engine::JsObject<T>,
 }
 
 impl<T: NativeObject> JsClass<T> {
@@ -354,8 +353,8 @@ impl<T: NativeObject> JsClass<T> {
     /// This does not panic if the type is wrong, as the type is checked
     /// during the construction of the `JsClass` instance.
     #[must_use]
-    pub fn borrow(&self) -> Ref<'_, T> {
-        self.inner.downcast_ref::<T>().unwrap()
+    pub fn borrow(&self) -> GcRef<'_, T> {
+        GcRef::map(self.inner.borrow(), |obj| obj.data())
     }
 
     /// Borrow a mutable reference to the class instance of type `T`.
@@ -364,8 +363,8 @@ impl<T: NativeObject> JsClass<T> {
     ///
     /// Panics if the object is currently mutably borrowed.
     #[must_use]
-    pub fn borrow_mut(&self) -> Option<RefMut<'_, ErasedObject, T>> {
-        self.inner.downcast_mut::<T>()
+    pub fn borrow_mut(&self) -> GcRefMut<'_, Object<T>, T> {
+        GcRefMut::map(self.inner.borrow_mut(), |obj| obj.data_mut())
     }
 }
 
@@ -376,14 +375,8 @@ impl<'a, T: NativeObject + 'static> TryFromJsArgument<'a> for JsClass<T> {
         _context: &mut Context,
     ) -> JsResult<(Self, &'a [JsValue])> {
         if let Some(object) = this.as_object() {
-            if object.downcast_ref::<T>().is_some() {
-                return Ok((
-                    JsClass {
-                        inner: object.clone(),
-                        _ty: PhantomData,
-                    },
-                    rest,
-                ));
+            if let Ok(inner) = object.clone().downcast::<T>() {
+                return Ok((JsClass { inner }, rest));
             }
         }
 
@@ -613,14 +606,21 @@ fn class() {
         fn get_value(this: JsClass<Test>) -> i32 {
             this.borrow().value
         }
+
+        #[allow(clippy::needless_pass_by_value)]
+        fn set_value(this: JsClass<Test>, new_value: i32) {
+            (*this.borrow_mut()).value = new_value;
+        }
     }
 
     impl Class for Test {
         const NAME: &'static str = "Test";
 
         fn init(class: &mut ClassBuilder<'_>) -> JsResult<()> {
-            let function = Self::get_value.into_js_function_copied(class.context());
-            class.method(js_string!("getValue"), 0, function);
+            let get_value = Self::get_value.into_js_function_copied(class.context());
+            class.method(js_string!("getValue"), 0, get_value);
+            let set_value = Self::set_value.into_js_function_copied(class.context());
+            class.method(js_string!("setValue"), 1, set_value);
             Ok(())
         }
 
@@ -646,6 +646,10 @@ fn class() {
             let t = new Test();
             if (t.getValue() != 123) {
                 throw 'invalid value';
+            }
+            t.setValue(456);
+            if (t.getValue() != 456) {
+                throw 'invalid value 456';
             }
         ",
     );
