@@ -17,8 +17,9 @@ impl Operation for RestParameterInit {
     const COST: u8 = 6;
 
     fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let argument_count = context.vm.frame().argument_count;
-        let param_count = context.vm.frame().code_block().parameter_length;
+        let frame = context.vm.frame();
+        let argument_count = frame.argument_count;
+        let param_count = frame.code_block().parameter_length;
 
         let array = if argument_count >= param_count {
             let rest_count = argument_count - param_count + 1;

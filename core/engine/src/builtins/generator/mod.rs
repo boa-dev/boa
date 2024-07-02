@@ -96,8 +96,9 @@ impl GeneratorContext {
         let rp = frame.rp;
         context.vm.push_frame(frame);
 
-        context.vm.frame_mut().rp = rp;
-        context.vm.frame_mut().set_exit_early(true);
+        let frame = context.vm.frame_mut();
+        frame.rp = rp;
+        frame.set_exit_early(true);
 
         if let Some(value) = value {
             context.vm.push(value);

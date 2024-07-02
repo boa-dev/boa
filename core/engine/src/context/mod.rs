@@ -828,6 +828,10 @@ impl Context {
         // 1. If the execution context stack is empty, return null.
         // 2. Let ec be the topmost execution context on the execution context stack whose ScriptOrModule component is not null.
         // 3. If no such execution context exists, return null. Otherwise, return ec's ScriptOrModule.
+        if let Some(active_runnable) = &self.vm.frame.active_runnable {
+            return Some(active_runnable.clone());
+        }
+
         self.vm
             .frames
             .iter()
@@ -846,11 +850,7 @@ impl Context {
             return self.vm.native_active_function.clone();
         }
 
-        if let Some(frame) = self.vm.frames.last() {
-            return frame.function(&self.vm);
-        }
-
-        None
+        self.vm.frame.function(&self.vm)
     }
 }
 

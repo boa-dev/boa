@@ -17,16 +17,17 @@ impl Operation for IncrementLoopIteration {
     const COST: u8 = 3;
 
     fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let previous_iteration_count = context.vm.frame_mut().loop_iteration_count;
-
         let max = context.vm.runtime_limits.loop_iteration_limit();
+        let frame = context.vm.frame_mut();
+        let previous_iteration_count = frame.loop_iteration_count;
+
         if previous_iteration_count > max {
             return Err(JsNativeError::runtime_limit()
                 .with_message(format!("Maximum loop iteration limit {max} exceeded"))
                 .into());
         }
 
-        context.vm.frame_mut().loop_iteration_count = previous_iteration_count.wrapping_add(1);
+        frame.loop_iteration_count = previous_iteration_count.wrapping_add(1);
         Ok(CompletionType::Normal)
     }
 }

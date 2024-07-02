@@ -9,8 +9,9 @@ use crate::{
     Context, JsError, JsNativeError, JsObject, JsResult, JsValue, Module,
 };
 
-use boa_gc::{custom_trace, Finalize, Trace};
+use boa_gc::{custom_trace, Finalize, Gc, Trace};
 use boa_profiler::Profiler;
+use boa_string::JsString;
 use std::{future::Future, mem::size_of, ops::ControlFlow, pin::Pin, task};
 
 #[cfg(feature = "trace")]
@@ -52,7 +53,18 @@ mod tests;
 /// Virtual Machine.
 #[derive(Debug)]
 pub struct Vm {
+    /// The current call frame.
+    ///
+    /// Whenever a new frame is pushed, it will be swaped into this field.
+    /// Then the old frame will get pushed to the [`Self::frames`] stack.
+    /// Whenever the current frame gets poped, the last frame on the [`Self::frames`] stack will be swaped into this field.
+    ///
+    /// By default this is a dummy frame that gets pushed to [`Self::frames`] when the first real frame is pushed.
+    pub(crate) frame: CallFrame,
+
+    /// The stack for call frames.
     pub(crate) frames: Vec<CallFrame>,
+
     pub(crate) stack: Vec<JsValue>,
     pub(crate) return_value: JsValue,
 
@@ -100,6 +112,12 @@ impl Vm {
     pub(crate) fn new(realm: Realm) -> Self {
         Self {
             frames: Vec::with_capacity(16),
+            frame: CallFrame::new(
+                Gc::new(CodeBlock::new(JsString::default(), 0, true)),
+                None,
+                EnvironmentStack::new(realm.environment().clone()),
+                realm.clone(),
+            ),
             stack: Vec::with_capacity(1024),
             return_value: JsValue::undefined(),
             environments: EnvironmentStack::new(realm.environment().clone()),
@@ -132,29 +150,22 @@ impl Vm {
 
     #[track_caller]
     pub(crate) fn read<T: Readable>(&mut self) -> T {
-        let value = self.frame().code_block.read::<T>(self.frame().pc as usize);
-        self.frame_mut().pc += size_of::<T>() as u32;
+        let frame = self.frame_mut();
+        let value = frame.code_block.read::<T>(frame.pc as usize);
+        frame.pc += size_of::<T>() as u32;
         value
     }
 
-    /// Retrieves the VM frame
-    ///
-    /// # Panics
-    ///
-    /// If there is no frame, then this will panic.
+    /// Retrieves the VM frame.
     #[track_caller]
     pub(crate) fn frame(&self) -> &CallFrame {
-        self.frames.last().expect("no frame found")
+        &self.frame
     }
 
-    /// Retrieves the VM frame mutably
-    ///
-    /// # Panics
-    ///
-    /// If there is no frame, then this will panic.
+    /// Retrieves the VM frame mutably.
     #[track_caller]
     pub(crate) fn frame_mut(&mut self) -> &mut CallFrame {
-        self.frames.last_mut().expect("no frame found")
+        &mut self.frame
     }
 
     pub(crate) fn push_frame(&mut self, mut frame: CallFrame) {
@@ -177,9 +188,12 @@ impl Vm {
         // Keep carrying the last active runnable in case the current callframe
         // yields.
         if frame.active_runnable.is_none() {
-            frame.active_runnable = self.frames.last().and_then(|fr| fr.active_runnable.clone());
+            frame
+                .active_runnable
+                .clone_from(&self.frame.active_runnable);
         }
 
+        std::mem::swap(&mut self.frame, &mut frame);
         self.frames.push(frame);
     }
 
@@ -196,13 +210,14 @@ impl Vm {
     }
 
     pub(crate) fn pop_frame(&mut self) -> Option<CallFrame> {
-        let mut frame = self.frames.pop();
-        if let Some(frame) = &mut frame {
+        if let Some(mut frame) = self.frames.pop() {
+            std::mem::swap(&mut self.frame, &mut frame);
             std::mem::swap(&mut self.environments, &mut frame.environments);
             std::mem::swap(&mut self.realm, &mut frame.realm);
+            Some(frame)
+        } else {
+            None
         }
-
-        frame
     }
 
     /// Handles an exception thrown at position `pc`.
@@ -271,16 +286,17 @@ impl Context {
     const NUMBER_OF_COLUMNS: usize = 4;
 
     pub(crate) fn trace_call_frame(&self) {
-        let msg = if self.vm.frames.last().is_some() {
+        let frame = self.vm.frame();
+        let msg = if self.vm.frames.is_empty() {
+            " VM Start ".to_string()
+        } else {
             format!(
                 " Call Frame -- {} ",
-                self.vm.frame().code_block().name().to_std_string_escaped()
+                frame.code_block().name().to_std_string_escaped()
             )
-        } else {
-            " VM Start ".to_string()
         };
 
-        println!("{}", self.vm.frame().code_block);
+        println!("{}", frame.code_block);
         println!(
             "{msg:-^width$}",
             width = Self::COLUMN_WIDTH * Self::NUMBER_OF_COLUMNS - 10
@@ -300,16 +316,13 @@ impl Context {
     where
         F: FnOnce(Opcode, &mut Context) -> JsResult<CompletionType>,
     {
-        let bytecodes = &self.vm.frame().code_block.bytecode;
-        let pc = self.vm.frame().pc as usize;
+        let frame = self.vm.frame();
+        let bytecodes = &frame.code_block.bytecode;
+        let pc = frame.pc as usize;
         let (_, varying_operand_kind, instruction) = InstructionIterator::with_pc(bytecodes, pc)
             .next()
             .expect("There should be an instruction left");
-        let operands = self
-            .vm
-            .frame()
-            .code_block
-            .instruction_operands(&instruction);
+        let operands = frame.code_block.instruction_operands(&instruction);
 
         let opcode = instruction.opcode();
         match opcode {
@@ -332,12 +345,11 @@ impl Context {
         let result = self.execute_instruction(f);
         let duration = instant.elapsed();
 
-        let fp = self
-            .vm
-            .frames
-            .last()
-            .map(CallFrame::fp)
-            .map(|fp| fp as usize);
+        let fp = if self.vm.frames.is_empty() {
+            None
+        } else {
+            Some(self.vm.frame.fp() as usize)
+        };
 
         let stack = {
             let mut stack = String::from("[ ");
@@ -434,14 +446,16 @@ impl Context {
                 if !err.is_catchable() {
                     let mut fp = self.vm.stack.len();
                     let mut env_fp = self.vm.environments.len();
-                    while let Some(frame) = self.vm.frames.last() {
-                        if frame.exit_early() {
+                    loop {
+                        if self.vm.frame.exit_early() {
                             break;
                         }
 
-                        fp = frame.fp() as usize;
-                        env_fp = frame.env_fp as usize;
-                        self.vm.pop_frame();
+                        fp = self.vm.frame.fp() as usize;
+                        env_fp = self.vm.frame.env_fp as usize;
+                        if self.vm.pop_frame().is_none() {
+                            break;
+                        }
                     }
                     self.vm.environments.truncate(env_fp);
                     self.vm.stack.truncate(fp);
@@ -466,11 +480,13 @@ impl Context {
         match result {
             CompletionType::Normal => {}
             CompletionType::Return => {
-                let fp = self.vm.frame().fp() as usize;
+                let frame = self.vm.frame();
+                let fp = frame.fp() as usize;
+                let exit_early = frame.exit_early();
                 self.vm.stack.truncate(fp);
 
                 let result = self.vm.take_return_value();
-                if self.vm.frame().exit_early() {
+                if exit_early {
                     return ControlFlow::Break(CompletionRecord::Normal(result));
                 }
 
@@ -478,9 +494,10 @@ impl Context {
                 self.vm.pop_frame();
             }
             CompletionType::Throw => {
-                let mut fp = self.vm.frame().fp();
-                let mut env_fp = self.vm.frame().env_fp;
-                if self.vm.frame().exit_early() {
+                let frame = self.vm.frame();
+                let mut fp = frame.fp();
+                let mut env_fp = frame.env_fp;
+                if frame.exit_early() {
                     self.vm.environments.truncate(env_fp as usize);
                     self.vm.stack.truncate(fp as usize);
                     return ControlFlow::Break(CompletionRecord::Throw(
@@ -493,11 +510,11 @@ impl Context {
 
                 self.vm.pop_frame();
 
-                while let Some(frame) = self.vm.frames.last_mut() {
-                    fp = frame.fp();
-                    env_fp = frame.env_fp;
-                    let pc = frame.pc;
-                    let exit_early = frame.exit_early();
+                loop {
+                    fp = self.vm.frame.fp();
+                    env_fp = self.vm.frame.env_fp;
+                    let pc = self.vm.frame.pc;
+                    let exit_early = self.vm.frame.exit_early();
 
                     if self.vm.handle_exception_at(pc) {
                         return ControlFlow::Continue(());
@@ -512,7 +529,9 @@ impl Context {
                         ));
                     }
 
-                    self.vm.pop_frame();
+                    if self.vm.pop_frame().is_none() {
+                        break;
+                    }
                 }
                 self.vm.environments.truncate(env_fp as usize);
                 self.vm.stack.truncate(fp as usize);

@@ -411,7 +411,11 @@ impl JsObject {
             return Ok(context.vm.pop());
         }
 
-        context.vm.frames[frame_index].set_exit_early(true);
+        if frame_index + 1 == context.vm.frames.len() {
+            context.vm.frame.set_exit_early(true);
+        } else {
+            context.vm.frames[frame_index + 1].set_exit_early(true);
+        }
 
         let result = context.run().consume();
 
@@ -461,7 +465,11 @@ impl JsObject {
                 .clone());
         }
 
-        context.vm.frames[frame_index].set_exit_early(true);
+        if frame_index + 1 == context.vm.frames.len() {
+            context.vm.frame.set_exit_early(true);
+        } else {
+            context.vm.frames[frame_index + 1].set_exit_early(true);
+        }
 
         let result = context.run().consume();
 
