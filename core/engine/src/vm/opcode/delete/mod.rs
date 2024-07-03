@@ -16,15 +16,12 @@ impl DeletePropertyByName {
     fn operation(context: &mut Context, index: usize) -> JsResult<CompletionType> {
         let value = context.vm.pop();
         let object = value.to_object(context)?;
-        let key = context
-            .vm
-            .frame()
-            .code_block()
-            .constant_string(index)
-            .into();
+        let code_block = context.vm.frame().code_block();
+        let key = code_block.constant_string(index).into();
+        let strict = code_block.strict();
 
         let result = object.__delete__(&key, &mut InternalMethodContext::new(context))?;
-        if !result && context.vm.frame().code_block().strict() {
+        if !result && strict {
             return Err(JsNativeError::typ()
                 .with_message("Cannot delete property")
                 .into());

@@ -183,9 +183,7 @@ impl Operation for CreatePromiseCapability {
 
         context
             .vm
-            .frames
-            .last()
-            .expect("there should be a frame")
+            .frame
             .set_promise_capability(&mut context.vm.stack, Some(&promise_capability));
         Ok(CompletionType::Normal)
     }

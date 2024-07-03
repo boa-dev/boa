@@ -54,18 +54,16 @@ pub(crate) struct SetName;
 
 impl SetName {
     fn operation(context: &mut Context, index: usize) -> JsResult<CompletionType> {
-        let mut binding_locator = context.vm.frame().code_block.bindings[index].clone();
+        let code_block = context.vm.frame().code_block();
+        let mut binding_locator = code_block.bindings[index].clone();
+        let strict = code_block.strict();
         let value = context.vm.pop();
 
         context.find_runtime_binding(&mut binding_locator)?;
 
         verify_initialized(&binding_locator, context)?;
 
-        context.set_binding(
-            &binding_locator,
-            value,
-            context.vm.frame().code_block.strict(),
-        )?;
+        context.set_binding(&binding_locator, value, strict)?;
 
         Ok(CompletionType::Normal)
     }
@@ -105,9 +103,9 @@ impl Operation for SetNameByLocator {
     const COST: u8 = 4;
 
     fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let binding_locator = context
-            .vm
-            .frame_mut()
+        let frame = context.vm.frame_mut();
+        let strict = frame.code_block.strict();
+        let binding_locator = frame
             .binding_stack
             .pop()
             .expect("locator should have been popped before");
@@ -115,11 +113,7 @@ impl Operation for SetNameByLocator {
 
         verify_initialized(&binding_locator, context)?;
 
-        context.set_binding(
-            &binding_locator,
-            value,
-            context.vm.frame().code_block.strict(),
-        )?;
+        context.set_binding(&binding_locator, value, strict)?;
 
         Ok(CompletionType::Normal)
     }

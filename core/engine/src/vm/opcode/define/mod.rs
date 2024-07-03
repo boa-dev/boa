@@ -62,13 +62,11 @@ pub(crate) struct DefInitVar;
 impl DefInitVar {
     fn operation(context: &mut Context, index: usize) -> JsResult<CompletionType> {
         let value = context.vm.pop();
-        let mut binding_locator = context.vm.frame().code_block.bindings[index].clone();
+        let frame = context.vm.frame();
+        let strict = frame.code_block.strict();
+        let mut binding_locator = frame.code_block.bindings[index].clone();
         context.find_runtime_binding(&mut binding_locator)?;
-        context.set_binding(
-            &binding_locator,
-            value,
-            context.vm.frame().code_block.strict(),
-        )?;
+        context.set_binding(&binding_locator, value, strict)?;
 
         Ok(CompletionType::Normal)
     }

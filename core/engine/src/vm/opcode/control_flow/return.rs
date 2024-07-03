@@ -33,10 +33,10 @@ impl Operation for CheckReturn {
     const COST: u8 = 3;
 
     fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        if !context.vm.frame().construct() {
+        let frame = context.vm.frame();
+        if !frame.construct() {
             return Ok(CompletionType::Normal);
         }
-        let frame = context.vm.frame();
         let this = frame.this(&context.vm);
         let result = context.vm.take_return_value();
 
