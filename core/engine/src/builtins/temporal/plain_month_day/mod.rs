@@ -109,6 +109,10 @@ impl PlainMonthDay {
         Self::get_internal_field(this, &DateTimeValues::Day)
     }
 
+    fn get_year(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        Self::get_internal_field(this, &DateTimeValues::Year)
+    }
+
     fn get_month_code(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let obj = this
             .as_object()
@@ -153,6 +157,10 @@ impl IntrinsicObject for PlainMonthDay {
             .name(js_string!("get month"))
             .build();
 
+        let get_year = BuiltInBuilder::callable(realm, Self::get_year)
+            .name(js_string!("get year"))
+            .build();
+
         let get_month_code = BuiltInBuilder::callable(realm, Self::get_month_code)
             .name(js_string!("get monthCode"))
             .build();
@@ -178,6 +186,12 @@ impl IntrinsicObject for PlainMonthDay {
             .accessor(
                 js_string!("monthCode"),
                 Some(get_month_code),
+                None,
+                Attribute::CONFIGURABLE,
+            )
+            .accessor(
+                js_string!("year"),
+                Some(get_year),
                 None,
                 Attribute::CONFIGURABLE,
             )
