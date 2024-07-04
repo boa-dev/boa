@@ -2,10 +2,7 @@
 
 mod js262;
 
-use crate::{
-    read::ErrorType, Harness, Outcome, Phase, SpecEdition, Statistics, SuiteResult, Test,
-    TestFlags, TestOutcomeResult, TestResult, TestSuite, VersionedStats,
-};
+use crate::{Statistics, SuiteResult, TestFlags, TestOutcomeResult, TestResult, VersionedStats};
 use boa_engine::{
     builtins::promise::PromiseState,
     js_str, js_string,
@@ -22,12 +19,41 @@ use colored::Colorize;
 use rayon::prelude::*;
 use rustc_hash::FxHashSet;
 use std::{cell::RefCell, eprintln, path::Path, rc::Rc};
+use tc39_test262::{ErrorType, Harness, Outcome, Phase, SpecEdition, Test, TestSuite};
 
 use self::js262::WorkerHandles;
 
-impl TestSuite {
+pub(crate) trait RunTest<TO, TR> {
+    /// Runs the test.
+    fn run(&self, harness: &Harness, verbose: u8, optimizer_options: TO, console: bool) -> TR;
+
+    /// Runs the test once, in strict or non-strict mode
+    fn run_once(
+        &self,
+        harness: &Harness,
+        strict: bool,
+        verbose: u8,
+        optimizer_options: OptimizerOptions,
+        console: bool,
+    ) -> TestResult;
+}
+
+pub(crate) trait RunTestSuite<TO, TR> {
     /// Runs the test suite.
-    pub(crate) fn run(
+    fn run(
+        &self,
+        harness: &Harness,
+        verbose: u8,
+        parallel: bool,
+        max_edition: SpecEdition,
+        optimizer_options: OptimizerOptions,
+        console: bool,
+    ) -> SuiteResult;
+}
+
+impl RunTestSuite<OptimizerOptions, SuiteResult> for TestSuite {
+    /// Runs the test suite.
+    fn run(
         &self,
         harness: &Harness,
         verbose: u8,
@@ -161,9 +187,9 @@ impl TestSuite {
     }
 }
 
-impl Test {
+impl RunTest<OptimizerOptions, TestResult> for Test {
     /// Runs the test.
-    pub(crate) fn run(
+    fn run(
         &self,
         harness: &Harness,
         verbose: u8,
@@ -194,54 +220,6 @@ impl Test {
         }
     }
 
-    /// Creates the test result from the outcome and message.
-    fn create_result<S: Into<Box<str>>>(
-        &self,
-        outcome: TestOutcomeResult,
-        text: S,
-        strict: bool,
-        verbosity: u8,
-    ) -> TestResult {
-        let result_text = text.into();
-
-        if verbosity > 1 {
-            println!(
-                "`{}`{}: {}",
-                self.path.display(),
-                if strict { " (strict)" } else { "" },
-                match outcome {
-                    TestOutcomeResult::Passed => "Passed".green(),
-                    TestOutcomeResult::Ignored => "Ignored".yellow(),
-                    TestOutcomeResult::Failed => "Failed".red(),
-                    TestOutcomeResult::Panic => "⚠ Panic ⚠".red(),
-                }
-            );
-        } else {
-            let symbol = match outcome {
-                TestOutcomeResult::Passed => ".".green(),
-                TestOutcomeResult::Ignored => "-".yellow(),
-                TestOutcomeResult::Failed | TestOutcomeResult::Panic => "F".red(),
-            };
-
-            print!("{symbol}");
-        }
-
-        if verbosity > 2 {
-            println!(
-                "`{}`{}: result text\n{result_text}\n",
-                self.path.display(),
-                if strict { " (strict)" } else { "" },
-            );
-        }
-
-        TestResult {
-            name: self.name.clone(),
-            edition: self.edition,
-            result_text,
-            result: outcome,
-        }
-    }
-
     /// Runs the test once, in strict or non-strict mode
     fn run_once(
         &self,
@@ -252,7 +230,10 @@ impl Test {
         console: bool,
     ) -> TestResult {
         let Ok(source) = Source::from_filepath(&self.path) else {
-            return self.create_result(
+            return create_result(
+                &self.path,
+                &self.name,
+                &self.edition,
                 TestOutcomeResult::Failed,
                 "Could not read test file",
                 strict,
@@ -261,7 +242,7 @@ impl Test {
         };
 
         if self.ignored {
-            return self.create_result(TestOutcomeResult::Ignored, "", strict, verbosity);
+            return create_result(&self.path, &self.name, &self.edition, TestOutcomeResult::Ignored, "", strict, verbosity);
         }
 
         if verbosity > 1 {
@@ -275,7 +256,7 @@ impl Test {
         let result = std::panic::catch_unwind(|| match self.expected_outcome {
             Outcome::Positive => {
                 let (ref mut context, async_result, mut handles) =
-                    match self.create_context(harness, optimizer_options, console) {
+                    match create_context(&self.path, &self.flags, &self.includes, harness, optimizer_options, console) {
                         Ok(r) => r,
                         Err(e) => return (false, e),
                     };
@@ -375,7 +356,7 @@ impl Test {
                 phase: Phase::Resolution,
                 error_type,
             } => {
-                let context = &mut match self.create_context(harness, optimizer_options, console) {
+                let context = &mut match create_context(&self.path, &self.flags, &self.includes, harness, optimizer_options, console) {
                     Ok(r) => r,
                     Err(e) => return (false, e),
                 }
@@ -420,7 +401,7 @@ impl Test {
                 error_type,
             } => {
                 let (ref mut context, _async_result, mut handles) =
-                    match self.create_context(harness, optimizer_options, console) {
+                    match create_context(&self.path, &self.flags, &self.includes, harness, optimizer_options, console) {
                         Ok(r) => r,
                         Err(e) => return (false, e),
                     };
@@ -502,82 +483,134 @@ impl Test {
             },
         );
 
-        self.create_result(result, result_text, strict, verbosity)
+        create_result(&self.path, &self.name, &self.edition, result, result_text, strict, verbosity)
+    }
+}
+
+/// Creates the context to run the test.
+fn create_context(
+    path: &Path,
+    flags: &TestFlags,
+    includes: &FxHashSet<Box<str>>,
+    harness: &Harness,
+    optimizer_options: OptimizerOptions,
+    console: bool,
+) -> Result<(Context, AsyncResult, WorkerHandles), String> {
+    let async_result = AsyncResult::default();
+    let handles = WorkerHandles::new();
+    let loader = Rc::new(
+        SimpleModuleLoader::new(path.parent().expect("test should have a parent dir"))
+            .expect("test path should be canonicalizable"),
+    );
+    let mut context = Context::builder()
+        .module_loader(loader.clone())
+        .can_block(!flags.contains(TestFlags::CAN_BLOCK_IS_FALSE))
+        .build()
+        .expect("cannot fail with default global object");
+
+    context.set_optimizer_options(optimizer_options);
+
+    // Register the print() function.
+    register_print_fn(&mut context, async_result.clone());
+
+    // add the $262 object.
+    let _js262 = js262::register_js262(handles.clone(), &mut context);
+
+    if console {
+        let console = boa_runtime::Console::init(&mut context);
+        context
+            .register_global_property(boa_runtime::Console::NAME, console, Attribute::all())
+            .expect("the console builtin shouldn't exist");
     }
 
-    /// Creates the context to run the test.
-    fn create_context(
-        &self,
-        harness: &Harness,
-        optimizer_options: OptimizerOptions,
-        console: bool,
-    ) -> Result<(Context, AsyncResult, WorkerHandles), String> {
-        let async_result = AsyncResult::default();
-        let handles = WorkerHandles::new();
-        let loader = Rc::new(
-            SimpleModuleLoader::new(self.path.parent().expect("test should have a parent dir"))
-                .expect("test path should be canonicalizable"),
+    if flags.contains(TestFlags::RAW) {
+        return Ok((context, async_result, handles));
+    }
+
+    let assert = Source::from_reader(
+        harness.assert.content.as_bytes(),
+        Some(&harness.assert.path),
+    );
+    let sta = Source::from_reader(harness.sta.content.as_bytes(), Some(&harness.sta.path));
+
+    context
+        .eval(assert)
+        .map_err(|e| format!("could not run assert.js:\n{e}"))?;
+    context
+        .eval(sta)
+        .map_err(|e| format!("could not run sta.js:\n{e}"))?;
+
+    if flags.contains(TestFlags::ASYNC) {
+        let dph = Source::from_reader(
+            harness.doneprint_handle.content.as_bytes(),
+            Some(&harness.doneprint_handle.path),
         );
-        let mut context = Context::builder()
-            .module_loader(loader.clone())
-            .can_block(!self.flags.contains(TestFlags::CAN_BLOCK_IS_FALSE))
-            .build()
-            .expect("cannot fail with default global object");
+        context
+            .eval(dph)
+            .map_err(|e| format!("could not run doneprintHandle.js:\n{e}"))?;
+    }
 
-        context.set_optimizer_options(optimizer_options);
+    for include_name in includes {
+        let include = harness
+            .includes
+            .get(include_name)
+            .ok_or_else(|| format!("could not find the {include_name} include file."))?;
+        let source = Source::from_reader(include.content.as_bytes(), Some(&include.path));
+        context
+            .eval(source)
+            .map_err(|e| format!("could not run the harness `{include_name}`:\nUncaught {e}",))?;
+    }
 
-        // Register the print() function.
-        register_print_fn(&mut context, async_result.clone());
+    Ok((context, async_result, handles))
+}
 
-        // add the $262 object.
-        let _js262 = js262::register_js262(handles.clone(), &mut context);
+/// Creates the test result from the outcome and message.
+fn create_result<S: Into<Box<str>>>(
+    path: &Path,
+    name: &Box<str>,
+    edition: &SpecEdition,
+    outcome: TestOutcomeResult,
+    text: S,
+    strict: bool,
+    verbosity: u8,
+) -> TestResult {
+    let result_text = text.into();
 
-        if console {
-            let console = boa_runtime::Console::init(&mut context);
-            context
-                .register_global_property(boa_runtime::Console::NAME, console, Attribute::all())
-                .expect("the console builtin shouldn't exist");
-        }
-
-        if self.flags.contains(TestFlags::RAW) {
-            return Ok((context, async_result, handles));
-        }
-
-        let assert = Source::from_reader(
-            harness.assert.content.as_bytes(),
-            Some(&harness.assert.path),
+    if verbosity > 1 {
+        println!(
+            "`{}`{}: {}",
+            path.display(),
+            if strict { " (strict)" } else { "" },
+            match outcome {
+                TestOutcomeResult::Passed => "Passed".green(),
+                TestOutcomeResult::Ignored => "Ignored".yellow(),
+                TestOutcomeResult::Failed => "Failed".red(),
+                TestOutcomeResult::Panic => "⚠ Panic ⚠".red(),
+            }
         );
-        let sta = Source::from_reader(harness.sta.content.as_bytes(), Some(&harness.sta.path));
+    } else {
+        let symbol = match outcome {
+            TestOutcomeResult::Passed => ".".green(),
+            TestOutcomeResult::Ignored => "-".yellow(),
+            TestOutcomeResult::Failed | TestOutcomeResult::Panic => "F".red(),
+        };
 
-        context
-            .eval(assert)
-            .map_err(|e| format!("could not run assert.js:\n{e}"))?;
-        context
-            .eval(sta)
-            .map_err(|e| format!("could not run sta.js:\n{e}"))?;
+        print!("{symbol}");
+    }
 
-        if self.flags.contains(TestFlags::ASYNC) {
-            let dph = Source::from_reader(
-                harness.doneprint_handle.content.as_bytes(),
-                Some(&harness.doneprint_handle.path),
-            );
-            context
-                .eval(dph)
-                .map_err(|e| format!("could not run doneprintHandle.js:\n{e}"))?;
-        }
+    if verbosity > 2 {
+        println!(
+            "`{}`{}: result text\n{result_text}\n",
+            path.display(),
+            if strict { " (strict)" } else { "" },
+        );
+    }
 
-        for include_name in &self.includes {
-            let include = harness
-                .includes
-                .get(include_name)
-                .ok_or_else(|| format!("could not find the {include_name} include file."))?;
-            let source = Source::from_reader(include.content.as_bytes(), Some(&include.path));
-            context.eval(source).map_err(|e| {
-                format!("could not run the harness `{include_name}`:\nUncaught {e}",)
-            })?;
-        }
-
-        Ok((context, async_result, handles))
+    TestResult {
+        name: name.clone(),
+        edition: edition.clone(),
+        result_text,
+        result: outcome,
     }
 }
 

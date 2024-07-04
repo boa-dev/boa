@@ -1,4 +1,5 @@
 //! Module to read the list of test suites from disk.
+use super::test_files::{Harness, HarnessFile, MetaData, Test, TestSuite};
 
 use std::{
     ffi::OsStr,
@@ -11,85 +12,9 @@ use color_eyre::{
     Result,
 };
 use rustc_hash::FxHashMap;
-use serde::Deserialize;
-
-use crate::{HarnessFile, Ignored};
-
-use super::{Harness, Locale, Phase, Test, TestSuite};
-
-/// Representation of the YAML metadata in Test262 tests.
-#[derive(Debug, Clone, Deserialize)]
-pub(super) struct MetaData {
-    pub(super) description: Box<str>,
-    pub(super) esid: Option<Box<str>>,
-    #[allow(dead_code)]
-    pub(super) es5id: Option<Box<str>>,
-    pub(super) es6id: Option<Box<str>>,
-    #[serde(default)]
-    pub(super) info: Box<str>,
-    #[serde(default)]
-    pub(super) features: Box<[Box<str>]>,
-    #[serde(default)]
-    pub(super) includes: Box<[Box<str>]>,
-    #[serde(default)]
-    pub(super) flags: Box<[TestFlag]>,
-    #[serde(default)]
-    pub(super) negative: Option<Negative>,
-    #[serde(default)]
-    pub(super) locale: Locale,
-}
-
-/// Negative test information structure.
-#[derive(Debug, Clone, Deserialize)]
-pub(super) struct Negative {
-    pub(super) phase: Phase,
-    #[serde(rename = "type")]
-    pub(super) error_type: ErrorType,
-}
-
-/// All possible error types
-#[derive(Debug, Copy, Clone, Deserialize, PartialEq, Eq)]
-#[allow(clippy::enum_variant_names)] // Better than appending `rename` to all variants
-pub(super) enum ErrorType {
-    Test262Error,
-    SyntaxError,
-    ReferenceError,
-    RangeError,
-    TypeError,
-}
-
-impl ErrorType {
-    pub(super) const fn as_str(self) -> &'static str {
-        match self {
-            Self::Test262Error => "Test262Error",
-            Self::SyntaxError => "SyntaxError",
-            Self::ReferenceError => "ReferenceError",
-            Self::RangeError => "RangeError",
-            Self::TypeError => "TypeError",
-        }
-    }
-}
-
-/// Individual test flag.
-#[derive(Debug, Clone, Copy, Eq, PartialEq, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub(super) enum TestFlag {
-    OnlyStrict,
-    NoStrict,
-    Module,
-    Raw,
-    Async,
-    Generated,
-    #[serde(rename = "CanBlockIsFalse")]
-    CanBlockIsFalse,
-    #[serde(rename = "CanBlockIsTrue")]
-    CanBlockIsTrue,
-    #[serde(rename = "non-deterministic")]
-    NonDeterministic,
-}
 
 /// Reads the Test262 defined bindings.
-pub(super) fn read_harness(test262_path: &Path) -> Result<Harness> {
+pub fn read_harness(test262_path: &Path) -> Result<Harness> {
     fn read_harness_file(path: PathBuf) -> Result<HarnessFile> {
         let content = fs::read_to_string(path.as_path())
             .wrap_err_with(|| format!("error reading the harness file `{}`", path.display()))?;
@@ -130,9 +55,9 @@ pub(super) fn read_harness(test262_path: &Path) -> Result<Harness> {
 }
 
 /// Reads a test suite in the given path.
-pub(super) fn read_suite(
+pub fn read_suite(
     path: &Path,
-    ignored: &Ignored,
+    ignored: &crate::structs::Ignored,
     mut ignore_suite: bool,
 ) -> Result<TestSuite> {
     let name = path
@@ -204,7 +129,7 @@ pub(super) fn read_suite(
 }
 
 /// Reads information about a given test case.
-pub(super) fn read_test(path: &Path) -> Result<Test> {
+pub fn read_test(path: &Path) -> Result<Test> {
     let name = path
         .file_stem()
         .and_then(OsStr::to_str)
@@ -216,7 +141,7 @@ pub(super) fn read_test(path: &Path) -> Result<Test> {
 }
 
 /// Reads the metadata from the input test code.
-fn read_metadata(test: &Path) -> Result<MetaData> {
+pub fn read_metadata(test: &Path) -> Result<MetaData> {
     let code = fs::read_to_string(test)?;
 
     let (_, metadata) = code

@@ -3,11 +3,9 @@
 //! This module contains the [`SpecEdition`] struct, which is used in the tester to
 //! classify all tests per minimum required ECMAScript edition.
 
-use std::fmt::Display;
-
+use crate::{test_flags::TestFlag, MetaData};
 use serde_repr::{Deserialize_repr, Serialize_repr};
-
-use crate::read::{MetaData, TestFlag};
+use std::fmt::Display;
 
 /// Minimum edition required by a specific feature in the `test262` repository.
 static FEATURE_EDITION: phf::Map<&'static str, SpecEdition> = phf::phf_map! {
@@ -40,6 +38,12 @@ static FEATURE_EDITION: phf::Map<&'static str, SpecEdition> = phf::phf_map! {
     // JSON modules
     // https://github.com/tc39/proposal-json-modules
     "json-modules"  => SpecEdition::ESNext,
+
+    // https://github.com/tc39/proposal-source-phase-imports
+    "source-phase-imports"  => SpecEdition::ESNext,
+
+    // https://github.com/tc39/proposal-source-phase-imports
+    "source-phase-imports-module-source"  => SpecEdition::ESNext,
 
     // ArrayBuffer transfer
     // https://github.com/tc39/proposal-arraybuffer-transfer
@@ -275,7 +279,7 @@ static FEATURE_EDITION: phf::Map<&'static str, SpecEdition> = phf::phf_map! {
     clap::ValueEnum,
 )]
 #[repr(u8)]
-pub(crate) enum SpecEdition {
+pub enum SpecEdition {
     /// ECMAScript 5.1 Edition
     ///
     /// <https://262.ecma-international.org/5.1>
@@ -367,7 +371,7 @@ impl SpecEdition {
     }
 
     /// Gets an iterator of all currently available editions.
-    pub(crate) fn all_editions() -> impl Iterator<Item = Self> {
+    pub fn all_editions() -> impl Iterator<Item = Self> {
         [
             Self::ES5,
             Self::ES6,
