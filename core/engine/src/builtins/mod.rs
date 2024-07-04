@@ -284,7 +284,6 @@ impl Realm {
 
         #[cfg(feature = "temporal")]
         {
-            temporal::TimeZone::init(self);
             temporal::Temporal::init(self);
             temporal::Now::init(self);
             temporal::Instant::init(self);
@@ -295,7 +294,6 @@ impl Realm {
             temporal::PlainMonthDay::init(self);
             temporal::PlainYearMonth::init(self);
             temporal::ZonedDateTime::init(self);
-            temporal::Calendar::init(self);
         }
     }
 }

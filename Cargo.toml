@@ -29,7 +29,7 @@ exclude = [
 [workspace.package]
 edition = "2021"
 version = "0.18.0"
-rust-version = "1.74.0"
+rust-version = "1.79.0"
 authors = ["boa-dev"]
 repository = "https://github.com/boa-dev/boa"
 license = "Unlicense OR MIT"
@@ -115,7 +115,7 @@ intrusive-collections = "0.9.6"
 cfg-if = "1.0.0"
 either = "1.13.0"
 sys-locale = "0.3.1"
-temporal_rs = { git = "https://github.com/boa-dev/temporal.git", rev = "ec2f2d00294ee641285ec1570df6683ecd0d1a8e" }
+temporal_rs = { git = "https://github.com/boa-dev/temporal.git", rev = "c658ac7db4701822cc179d04b56bb9c8fb7e954c" }
 web-time = "1.1.0"
 criterion = "0.5.1"
 float-cmp = "0.9.0"
