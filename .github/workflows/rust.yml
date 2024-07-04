@@ -19,24 +19,25 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions-rs/toolchain@v1.0.7
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: stable
-          override: true
-          profile: minimal
+
       - uses: Swatinem/rust-cache@v2
         with:
           key: tarpaulin
       - name: Install cargo-tarpaulin
-        uses: baptiste0928/cargo-install@v3.0.1
+        uses: baptiste0928/cargo-install@v3.1.1
         with:
           crate: cargo-tarpaulin
+
       - name: Run tarpaulin
-        uses: actions-rs/cargo@v1
-        with:
-          command: tarpaulin
-          args: --workspace --features annex-b,intl_bundled,experimental --ignore-tests --engine llvm --out xml
+        run: cargo tarpaulin --workspace --features annex-b,intl_bundled,experimental --ignore-tests --engine llvm --out xml
+
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v4
 
@@ -44,18 +45,22 @@ jobs:
     name: Test
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
+    env:
+      RUSTUP_WINDOWS_PATH_ADD_BIN: 1
     strategy:
       matrix:
         os:
           - macos-latest
           - windows-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions-rs/toolchain@v1.0.7
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: stable
-          override: true
-          profile: minimal
+
       - uses: Swatinem/rust-cache@v2
       - name: Build tests
         run: cargo test --no-run --profile ci
@@ -74,16 +79,19 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       # Get the rust_version from the Cargo.toml
       - name: Get rust_version
         id: rust_version
         run: echo "rust_version=$(grep '^rust-version' Cargo.toml | cut -d' ' -f3 | tr -d '"')" >> $GITHUB_OUTPUT
-      - uses: actions-rs/toolchain@v1.0.7
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: ${{ steps.rust_version.outputs.rust_version }}
-          override: true
-          profile: minimal
+
       - name: Check compilation
         run: cargo check --all-features --all-targets
 
@@ -92,13 +100,15 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions-rs/toolchain@v1.0.7
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: stable
-          override: true
-          profile: minimal
           components: rustfmt
+
       - name: Format (rustfmt)
         run: cargo fmt --all --check
 
@@ -107,20 +117,22 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions-rs/toolchain@v1.0.7
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: stable
-          override: true
-          profile: minimal
           components: clippy
+
       - uses: Swatinem/rust-cache@v2
         with:
           key: clippy
+
       - name: Install cargo-workspaces
-        uses: actions-rs/install@v0.1
-        with:
-          crate: cargo-workspaces
+        run: cargo install cargo-workspaces
+
       - name: Clippy (All features)
         run: cargo workspaces exec cargo clippy --all-features --all-targets
       - name: Clippy (No features)
@@ -139,12 +151,14 @@ jobs:
     env:
       RUSTDOCFLAGS: -D warnings
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions-rs/toolchain@v1.0.7
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: stable
-          override: true
-          profile: minimal
+
       - uses: Swatinem/rust-cache@v2
         with:
           key: docs
@@ -156,20 +170,21 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions-rs/toolchain@v1.0.7
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: stable
-          override: true
-          profile: minimal
+
       - uses: Swatinem/rust-cache@v2
         with:
           key: build-fuzz
+
       - name: Install cargo-fuzz
-        uses: actions-rs/install@v0.1
-        with:
-          crate: cargo-fuzz
-          version: latest
+        run: cargo install cargo-fuzz
+
       - name: Build fuzz
         run: cd tests/fuzz && cargo fuzz build -s none --dev
 
@@ -178,19 +193,20 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions-rs/toolchain@v1.0.7
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: stable
-          override: true
-          profile: minimal
+
       - uses: Swatinem/rust-cache@v2
         with:
           key: build-run-examples
+
       - name: Install cargo-workspaces
-        uses: actions-rs/install@v0.1
-        with:
-          crate: cargo-workspaces
+        run: cargo install cargo-workspaces
 
       - name: Build (All features)
         run: cargo workspaces exec cargo build --all-features --all-targets --profile ci

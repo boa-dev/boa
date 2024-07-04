@@ -286,7 +286,8 @@ impl SyntheticModule {
             false,
             module_compile_env.clone(),
             module_compile_env.clone(),
-            context,
+            context.interner_mut(),
+            false,
         );
 
         // 4. For each String exportName in module.[[ExportNames]], do
@@ -314,7 +315,7 @@ impl SyntheticModule {
         }
 
         let env = envs
-            .current()
+            .current_ref()
             .as_declarative()
             .cloned()
             .expect("should have the module environment");

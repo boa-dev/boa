@@ -18,22 +18,24 @@ use tc39_test262::{read, Ignored, SpecEdition, TestFlags};
 use self::results::{compare_results, write_json};
 
 use boa_engine::optimizer::OptimizerOptions;
+use std::{
+    ops::{Add, AddAssign},
+    path::{Path, PathBuf},
+    sync::OnceLock,
+    time::Instant,
+};
+
 use clap::{ArgAction, Parser, ValueHint};
 use color_eyre::{
+    eyre::eyre,
     eyre::{bail, WrapErr},
     Result,
 };
 use colored::Colorize;
-use once_cell::sync::Lazy;
 use rustc_hash::FxHashSet;
 use serde::{Deserialize, Deserializer, Serialize};
-use std::{
-    ops::{Add, AddAssign},
-    path::{Path, PathBuf},
-    time::Instant,
-};
 
-static START: Lazy<Instant> = Lazy::new(Instant::now);
+static START: OnceLock<Instant> = OnceLock::new();
 
 /// Structure that contains the configuration of the tester.
 #[derive(Debug, Deserialize)]
@@ -128,6 +130,8 @@ enum Cli {
 
 /// Program entry point.
 fn main() -> Result<()> {
+    color_eyre::install()?;
+
     // Safety: This is needed because we run tests in multiple threads.
     // It is safe because tests do not modify the environment.
     unsafe {
@@ -135,8 +139,10 @@ fn main() -> Result<()> {
     }
 
     // initializes the monotonic clock.
-    Lazy::force(&START);
-    color_eyre::install()?;
+    START
+        .set(Instant::now())
+        .map_err(|_| eyre!("could not initialize the monotonic clock"))?;
+
     match Cli::parse() {
         Cli::Run {
             verbose,
@@ -152,8 +158,11 @@ fn main() -> Result<()> {
             console,
         } => {
             let config: Config = {
-                let input = std::fs::read_to_string(config_path)?;
-                toml::from_str(&input).wrap_err("could not decode tester config file")?
+                let input = std::fs::read_to_string(&config_path).wrap_err_with(|| {
+                    eyre!("could not read config file `{}`", config_path.display())
+                })?;
+                toml::from_str(&input)
+                    .wrap_err_with(|| eyre!("invalid config file `{}`", config_path.display()))?
             };
 
             let test262_commit = test262_commit
@@ -166,7 +175,9 @@ fn main() -> Result<()> {
             } else {
                 tc39_test262::clone_test262(test262_commit, verbose)?;
                 Path::new(tc39_test262::TEST262_DIRECTORY)
-            };
+            }
+            .canonicalize();
+            let test262_path = &test262_path.wrap_err("could not get the Test262 path")?;
 
             run_test_suite(
                 &config,
@@ -571,7 +582,7 @@ mod tests {
     #[test]
     #[ignore = "manual"]
     fn test_help() {
-        let output =  cmd().output().unwrap();
+        let output = cmd().output().unwrap();
         let err = String::from_utf8(output.stderr).unwrap();
         assert!(err.contains("boa_tester <COMMAND>"));
 
@@ -582,6 +593,11 @@ mod tests {
     #[test]
     #[ignore = "manual"]
     fn test() {
-        cmd().arg("run").arg("--edition es5").arg("-O").assert().success();
+        cmd()
+            .arg("run")
+            .arg("--edition=es5")
+            .arg("-O")
+            .assert()
+            .success();
     }
 }

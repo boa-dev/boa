@@ -1,14 +1,14 @@
 //! This module implements the `TypedArray` exotic object.
 
-use std::sync::atomic::{self, Ordering};
+use std::sync::atomic::Ordering;
 
 use crate::{
     builtins::{array_buffer::BufferObject, Number},
     object::{
         internal_methods::{
             ordinary_define_own_property, ordinary_delete, ordinary_get, ordinary_get_own_property,
-            ordinary_has_property, ordinary_set, InternalMethodContext, InternalObjectMethods,
-            ORDINARY_INTERNAL_METHODS,
+            ordinary_has_property, ordinary_set, ordinary_try_get, InternalMethodContext,
+            InternalObjectMethods, ORDINARY_INTERNAL_METHODS,
         },
         JsData, JsObject,
     },
@@ -16,7 +16,7 @@ use crate::{
     Context, JsNativeError, JsResult, JsString, JsValue,
 };
 use boa_gc::{Finalize, Trace};
-use boa_macros::utf16;
+use boa_macros::js_str;
 
 use super::{is_valid_integer_index, TypedArrayKind};
 
@@ -42,6 +42,7 @@ impl JsData for TypedArray {
             __get_own_property__: typed_array_exotic_get_own_property,
             __has_property__: typed_array_exotic_has_property,
             __define_own_property__: typed_array_exotic_define_own_property,
+            __try_get__: typed_array_exotic_try_get,
             __get__: typed_array_exotic_get,
             __set__: typed_array_exotic_set,
             __delete__: typed_array_exotic_delete,
@@ -263,7 +264,7 @@ impl TypedArray {
 /// [spec]: https://tc39.es/ecma262/#sec-canonicalnumericindexstring
 fn canonical_numeric_index_string(argument: &JsString) -> Option<f64> {
     // 1. If argument is "-0", return -0𝔽.
-    if argument == utf16!("-0") {
+    if argument == &js_str!("-0") {
         return Some(-0.0);
     }
 
@@ -411,6 +412,42 @@ pub(crate) fn typed_array_exotic_define_own_property(
 
     // 2. Return ! OrdinaryDefineOwnProperty(O, P, Desc).
     ordinary_define_own_property(obj, key, desc, context)
+}
+
+/// Internal optimization method for `TypedArray` exotic objects.
+///
+/// This method combines the internal methods `[[HasProperty]]` and `[[Get]]`.
+///
+/// More information:
+///  - [ECMAScript reference HasProperty][spec0]
+///  - [ECMAScript reference Get][spec1]
+///
+/// [spec0]: https://tc39.es/ecma262/#sec-typedarray-hasproperty
+/// [spec1]: https://tc39.es/ecma262/#sec-typedarray-get
+pub(crate) fn typed_array_exotic_try_get(
+    obj: &JsObject,
+    key: &PropertyKey,
+    receiver: JsValue,
+    context: &mut InternalMethodContext<'_>,
+) -> JsResult<Option<JsValue>> {
+    let p = match key {
+        PropertyKey::String(key) => {
+            // 1.a. Let numericIndex be CanonicalNumericIndexString(P).
+            canonical_numeric_index_string(key)
+        }
+        PropertyKey::Index(index) => Some(index.get().into()),
+        PropertyKey::Symbol(_) => None,
+    };
+
+    // 1. If P is a String, then
+    // 1.b. If numericIndex is not undefined, then
+    if let Some(numeric_index) = p {
+        // i. Return IntegerIndexedElementGet(O, numericIndex).
+        return Ok(typed_array_get_element(obj, numeric_index));
+    }
+
+    // 2. Return ? OrdinaryGet(O, P, Receiver).
+    ordinary_try_get(obj, key, receiver, context)
 }
 
 /// Internal method `[[Get]]` for `TypedArray` exotic objects.
@@ -579,12 +616,9 @@ fn typed_array_get_element(obj: &JsObject, index: f64) -> Option<JsValue> {
     let buffer = buffer.as_buffer();
 
     // 1. If IsValidIntegerIndex(O, index) is false, return undefined.
-    let Some(buffer) = buffer.bytes(Ordering::Relaxed) else {
-        return None;
-    };
-    let Some(index) = inner.validate_index(index, buffer.len()) else {
-        return None;
-    };
+    let buffer = buffer.bytes(Ordering::Relaxed)?;
+
+    let index = inner.validate_index(index, buffer.len())?;
 
     // 2. Let offset be O.[[ByteOffset]].
     let offset = inner.byte_offset();
@@ -604,7 +638,7 @@ fn typed_array_get_element(obj: &JsObject, index: f64) -> Option<JsValue> {
     let value = unsafe {
         buffer
             .subslice(byte_index..)
-            .get_value(elem_type, atomic::Ordering::Relaxed)
+            .get_value(elem_type, Ordering::Relaxed)
     };
 
     Some(value.into())
@@ -660,7 +694,7 @@ pub(crate) fn typed_array_set_element(
     unsafe {
         buffer
             .subslice_mut(byte_index..)
-            .set_value(value, atomic::Ordering::Relaxed);
+            .set_value(value, Ordering::Relaxed);
     }
 
     // 4. Return unused.

@@ -1,20 +1,17 @@
 //! The ECMAScript context.
 
-mod hooks;
-#[cfg(feature = "intl")]
-pub(crate) mod icu;
-pub mod intrinsics;
-
-use boa_parser::source::ReadChar;
-pub use hooks::{DefaultHooks, HostHooks};
-
-#[cfg(feature = "intl")]
-pub use icu::IcuError;
-
-use intrinsics::Intrinsics;
-
 use std::{cell::Cell, path::Path, rc::Rc};
 
+use boa_ast::StatementList;
+use boa_interner::Interner;
+use boa_parser::source::ReadChar;
+use boa_profiler::Profiler;
+pub use hooks::{DefaultHooks, HostHooks};
+#[cfg(feature = "intl")]
+pub use icu::IcuError;
+use intrinsics::Intrinsics;
+
+use crate::vm::RuntimeLimits;
 use crate::{
     builtins,
     class::{Class, ClassBuilder},
@@ -28,18 +25,18 @@ use crate::{
     realm::Realm,
     script::Script,
     vm::{ActiveRunnable, CallFrame, Vm},
-    JsNativeError, JsResult, JsString, JsValue, Source,
+    HostDefined, JsNativeError, JsResult, JsString, JsValue, NativeObject, Source,
 };
-use boa_ast::StatementList;
-use boa_interner::Interner;
-use boa_profiler::Profiler;
-
-use crate::vm::RuntimeLimits;
 
 use self::intrinsics::StandardConstructor;
 
+mod hooks;
+#[cfg(feature = "intl")]
+pub(crate) mod icu;
+pub mod intrinsics;
+
 thread_local! {
-    static CANNOT_BLOCK_COUNTER: Cell<u64> = Cell::new(0);
+    static CANNOT_BLOCK_COUNTER: Cell<u64> = const { Cell::new(0) };
 }
 
 /// ECMAScript context. It is the primary way to interact with the runtime.
@@ -54,7 +51,7 @@ thread_local! {
 ///
 /// ```rust
 /// use boa_engine::{
-///     js_string,
+///     js_str,
 ///     object::ObjectInitializer,
 ///     property::{Attribute, PropertyDescriptor},
 ///     Context, Source,
@@ -76,10 +73,10 @@ thread_local! {
 ///
 /// // Create an object that can be used in eval calls.
 /// let arg = ObjectInitializer::new(&mut context)
-///     .property(js_string!("x"), 12, Attribute::READONLY)
+///     .property(js_str!("x"), 12, Attribute::READONLY)
 ///     .build();
 /// context
-///     .register_global_property(js_string!("arg"), arg, Attribute::all())
+///     .register_global_property(js_str!("arg"), arg, Attribute::all())
 ///     .expect("property shouldn't exist");
 ///
 /// let value = context.eval(Source::from_bytes("test(arg)")).unwrap();
@@ -118,6 +115,8 @@ pub struct Context {
 
     /// Unique identifier for each parser instance used during the context lifetime.
     parser_identifier: u32,
+
+    data: HostDefined,
 }
 
 impl std::fmt::Debug for Context {
@@ -212,7 +211,7 @@ impl Context {
     /// # Example
     /// ```
     /// use boa_engine::{
-    ///     js_string,
+    ///     js_str,
     ///     object::ObjectInitializer,
     ///     property::{Attribute, PropertyDescriptor},
     ///     Context,
@@ -222,19 +221,19 @@ impl Context {
     ///
     /// context
     ///     .register_global_property(
-    ///         js_string!("myPrimitiveProperty"),
+    ///         js_str!("myPrimitiveProperty"),
     ///         10,
     ///         Attribute::all(),
     ///     )
     ///     .expect("property shouldn't exist");
     ///
     /// let object = ObjectInitializer::new(&mut context)
-    ///     .property(js_string!("x"), 0, Attribute::all())
-    ///     .property(js_string!("y"), 1, Attribute::all())
+    ///     .property(js_str!("x"), 0, Attribute::all())
+    ///     .property(js_str!("y"), 1, Attribute::all())
     ///     .build();
     /// context
     ///     .register_global_property(
-    ///         js_string!("myObjectProperty"),
+    ///         js_str!("myObjectProperty"),
     ///         object,
     ///         Attribute::all(),
     ///     )
@@ -588,6 +587,32 @@ impl Context {
     pub fn can_block(&self) -> bool {
         self.can_block
     }
+
+    /// Insert a type into the context-specific [`HostDefined`] field.
+    #[inline]
+    pub fn insert_data<T: NativeObject>(&mut self, value: T) -> Option<Box<T>> {
+        self.data.insert(value)
+    }
+
+    /// Check if the context-specific [`HostDefined`] has type T.
+    #[inline]
+    #[must_use]
+    pub fn has_data<T: NativeObject>(&self) -> bool {
+        self.data.has::<T>()
+    }
+
+    /// Remove type T from the context-specific [`HostDefined`], if it exists.
+    #[inline]
+    pub fn remove_data<T: NativeObject>(&mut self) -> Option<Box<T>> {
+        self.data.remove::<T>()
+    }
+
+    /// Get type T from the context-specific [`HostDefined`], if it exists.
+    #[inline]
+    #[must_use]
+    pub fn get_data<T: NativeObject>(&self) -> Option<&T> {
+        self.data.get::<T>()
+    }
 }
 
 // ==== Private API ====
@@ -803,6 +828,10 @@ impl Context {
         // 1. If the execution context stack is empty, return null.
         // 2. Let ec be the topmost execution context on the execution context stack whose ScriptOrModule component is not null.
         // 3. If no such execution context exists, return null. Otherwise, return ec's ScriptOrModule.
+        if let Some(active_runnable) = &self.vm.frame.active_runnable {
+            return Some(active_runnable.clone());
+        }
+
         self.vm
             .frames
             .iter()
@@ -821,11 +850,7 @@ impl Context {
             return self.vm.native_active_function.clone();
         }
 
-        if let Some(frame) = self.vm.frames.last() {
-            return frame.function(&self.vm);
-        }
-
-        None
+        self.vm.frame.function(&self.vm)
     }
 }
 
@@ -915,6 +940,14 @@ impl ContextBuilder {
     ///
     /// This function is only available if the `intl` feature is enabled.
     ///
+    /// # Additional considerations
+    ///
+    /// If the data was generated using `icu_datagen`, make sure that the deduplication strategy is
+    /// not set to [`Maximal`]. Otherwise, `icu_datagen` will delete base locales such as "en" from
+    /// the list of supported locales if the required data for "en" is the same as "und".
+    /// We recommend [`RetainBaseLanguages`] as a nice default, which will only deduplicate locales
+    /// if the deduplication target is not "und".
+    ///
     /// # Errors
     ///
     /// This returns `Err` if the provided provider doesn't have the required locale information
@@ -922,6 +955,9 @@ impl ContextBuilder {
     /// mean that the provider will successfully construct all `Intl` services; that check is made
     /// until the creation of an instance of a service.
     ///
+    /// [`Maximal`]: https://docs.rs/icu_datagen/latest/icu_datagen/enum.DeduplicationStrategy.html#variant.Maximal
+    /// [`RetainBaseLanguages`]: https://docs.rs/icu_datagen/latest/icu_datagen/enum.DeduplicationStrategy.html#variant.RetainBaseLanguages
+    /// [`ResolveLocale`]: https://tc39.es/ecma402/#sec-resolvelocale
     /// [`LocaleCanonicalizer`]: icu_locid_transform::LocaleCanonicalizer
     /// [`LocaleExpander`]: icu_locid_transform::LocaleExpander
     /// [`BufferProvider`]: icu_provider::BufferProvider
@@ -938,6 +974,14 @@ impl ContextBuilder {
     ///
     /// This function is only available if the `intl` feature is enabled.
     ///
+    /// # Additional considerations
+    ///
+    /// If the data was generated using `icu_datagen`, make sure that the deduplication strategy is
+    /// not set to [`Maximal`]. Otherwise, `icu_datagen` will delete base locales such as "en" from
+    /// the list of supported locales if the required data for "en" is the same as "und".
+    /// We recommend [`RetainBaseLanguages`] as a nice default, which will only deduplicate locales
+    /// if the deduplication target is not "und".
+    ///
     /// # Errors
     ///
     /// This returns `Err` if the provided provider doesn't have the required locale information
@@ -945,6 +989,9 @@ impl ContextBuilder {
     /// mean that the provider will successfully construct all `Intl` services; that check is made
     /// until the creation of an instance of a service.
     ///
+    /// [`Maximal`]: https://docs.rs/icu_datagen/latest/icu_datagen/enum.DeduplicationStrategy.html#variant.Maximal
+    /// [`RetainBaseLanguages`]: https://docs.rs/icu_datagen/latest/icu_datagen/enum.DeduplicationStrategy.html#variant.RetainBaseLanguages
+    /// [`ResolveLocale`]: https://tc39.es/ecma402/#sec-resolvelocale
     /// [`LocaleCanonicalizer`]: icu_locid_transform::LocaleCanonicalizer
     /// [`LocaleExpander`]: icu_locid_transform::LocaleExpander
     /// [`AnyProvider`]: icu_provider::AnyProvider
@@ -1073,6 +1120,7 @@ impl ContextBuilder {
             root_shape,
             parser_identifier: 0,
             can_block: self.can_block,
+            data: HostDefined::default(),
         };
 
         builtins::set_default_global_bindings(&mut context)?;

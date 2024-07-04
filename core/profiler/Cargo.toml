@@ -14,9 +14,12 @@ rust-version.workspace = true
 profiler = ["dep:measureme", "dep:once_cell", "dep:rustc-hash"]
 
 [dependencies]
-measureme = { version = "11.0.1", optional = true }
+measureme = { workspace = true, optional = true }
 once_cell = { workspace = true, optional = true, features = ["std"] }
-rustc-hash = { workspace = true, optional = true }
+rustc-hash = { workspace = true, optional = true, features = ["std"] }
 
 [lints]
 workspace = true
+
+[package.metadata.docs.rs]
+all-features = true

@@ -54,7 +54,8 @@ impl ByteCompiler<'_> {
             self.json_parse,
             self.variable_environment.clone(),
             self.lexical_environment.clone(),
-            self.context,
+            self.interner,
+            self.in_with,
         );
 
         compiler.code_block_flags |= CodeBlockFlags::IS_CLASS_CONSTRUCTOR;
@@ -287,7 +288,8 @@ impl ByteCompiler<'_> {
                         self.json_parse,
                         self.variable_environment.clone(),
                         self.lexical_environment.clone(),
-                        self.context,
+                        self.interner,
+                        self.in_with,
                     );
 
                     // Function environment
@@ -315,7 +317,8 @@ impl ByteCompiler<'_> {
                         self.json_parse,
                         self.variable_environment.clone(),
                         self.lexical_environment.clone(),
-                        self.context,
+                        self.interner,
+                        self.in_with,
                     );
                     let _ = field_compiler.push_compile_environment(true);
                     if let Some(node) = field {
@@ -353,7 +356,8 @@ impl ByteCompiler<'_> {
                         self.json_parse,
                         self.variable_environment.clone(),
                         self.lexical_environment.clone(),
-                        self.context,
+                        self.interner,
+                        self.in_with,
                     );
                     let _ = field_compiler.push_compile_environment(true);
                     if let Some(node) = field {
@@ -387,7 +391,8 @@ impl ByteCompiler<'_> {
                         false,
                         self.variable_environment.clone(),
                         self.lexical_environment.clone(),
-                        self.context,
+                        self.interner,
+                        self.in_with,
                     );
                     let _ = compiler.push_compile_environment(true);
 

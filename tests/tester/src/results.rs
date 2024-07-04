@@ -89,7 +89,7 @@ pub(crate) fn write_json(
 ) -> Result<()> {
     let mut branch = env::var("GITHUB_REF").unwrap_or_default();
     if branch.starts_with("refs/pull") {
-        branch = "pull".to_owned();
+        "pull".clone_into(&mut branch);
     }
 
     let output_dir = if branch.is_empty() {
@@ -99,9 +99,6 @@ pub(crate) fn write_json(
         fs::create_dir_all(&folder)?;
         folder
     };
-
-    // We make sure we are using the latest commit information in GitHub pages:
-    update_gh_pages_repo(output_dir.as_path(), verbose);
 
     if verbose != 0 {
         println!("Writing the results to {}...", output_dir.display());
@@ -168,33 +165,6 @@ fn get_test262_commit(test262_path: &Path) -> Result<Box<str>> {
     // Remove newline.
     commit_id.pop();
     Ok(commit_id.into_boxed_str())
-}
-
-/// Updates the GitHub pages repository by pulling latest changes before writing the new things.
-fn update_gh_pages_repo(path: &Path, verbose: u8) {
-    if env::var("GITHUB_REF").is_ok() {
-        use std::process::Command;
-
-        // We run the command to pull the gh-pages branch: git -C ../gh-pages/ pull origin
-        Command::new("git")
-            .args(["-C", "../gh-pages", "pull", "--ff-only"])
-            .output()
-            .expect("could not update GitHub Pages");
-
-        // Copy the full results file
-        let from = Path::new("../gh-pages/test262/refs/heads/main/").join(RESULTS_FILE_NAME);
-        let to = path.join(RESULTS_FILE_NAME);
-
-        if verbose != 0 {
-            println!(
-                "Copying the {} file to {} in order to add the results",
-                from.display(),
-                to.display()
-            );
-        }
-
-        fs::copy(from, to).expect("could not copy the main results file");
-    }
 }
 
 /// Compares the results of two test suite runs.

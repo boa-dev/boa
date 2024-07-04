@@ -111,7 +111,7 @@ fn create_operations_module(context: &mut Context) -> Module {
         }),
     )
     .length(2)
-    .name(js_string!("sum"))
+    .name("sum")
     .build();
     let sub = FunctionObjectBuilder::new(
         context.realm(),
@@ -120,7 +120,7 @@ fn create_operations_module(context: &mut Context) -> Module {
         }),
     )
     .length(2)
-    .name(js_string!("sub"))
+    .name("sub")
     .build();
     let mult = FunctionObjectBuilder::new(
         context.realm(),
@@ -129,7 +129,7 @@ fn create_operations_module(context: &mut Context) -> Module {
         }),
     )
     .length(2)
-    .name(js_string!("mult"))
+    .name("mult")
     .build();
     let div = FunctionObjectBuilder::new(
         context.realm(),
@@ -138,7 +138,7 @@ fn create_operations_module(context: &mut Context) -> Module {
         }),
     )
     .length(2)
-    .name(js_string!("div"))
+    .name("div")
     .build();
     let sqrt = FunctionObjectBuilder::new(
         context.realm(),
@@ -148,7 +148,7 @@ fn create_operations_module(context: &mut Context) -> Module {
         }),
     )
     .length(1)
-    .name(js_string!("sqrt"))
+    .name("sqrt")
     .build();
 
     Module::synthetic(
@@ -174,6 +174,7 @@ fn create_operations_module(context: &mut Context) -> Module {
             },
             (sum, sub, mult, div, sqrt),
         ),
+        None,
         None,
         context,
     )

@@ -11,8 +11,11 @@ use crate::{
     lexer::{Error as LexError, TokenKind},
     parser::{
         expression::{AssignmentExpression, Expression},
-        statement::declaration::LexicalDeclaration,
-        statement::{variable::VariableDeclarationList, Statement},
+        statement::{
+            declaration::{allowed_token_after_let, LexicalDeclaration},
+            variable::VariableDeclarationList,
+            Statement,
+        },
         AllowAwait, AllowReturn, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
     },
     source::ReadChar,
@@ -20,6 +23,7 @@ use crate::{
 };
 use ast::{
     declaration::Binding,
+    expression::Identifier,
     operations::{bound_names, var_declared_names},
 };
 use boa_ast::{
@@ -107,7 +111,8 @@ where
             }
         };
 
-        let init = match cursor.peek(0, interner).or_abrupt()?.kind() {
+        let mut init_is_async_of = false;
+        let init = match cursor.peek(0, interner).or_abrupt()?.kind().clone() {
             TokenKind::Keyword((Keyword::Var, _)) => {
                 cursor.advance(interner);
                 Some(
@@ -116,39 +121,33 @@ where
                         .into(),
                 )
             }
-            TokenKind::Keyword((Keyword::Let, _)) => Some('exit: {
-                if !cursor.strict() {
-                    if let Some(token) = cursor.peek(1, interner)? {
-                        if token.kind() == &TokenKind::Keyword((Keyword::In, false)) {
-                            cursor.advance(interner);
-                            break 'exit boa_ast::Expression::Identifier(Sym::LET.into()).into();
-                        }
-                    }
-                }
-
-                LexicalDeclaration::new(false, self.allow_yield, self.allow_await, true)
-                    .parse(cursor, interner)?
-                    .into()
-            }),
+            TokenKind::Keyword((Keyword::Let, false))
+                if allowed_token_after_let(cursor.peek(1, interner)?) =>
+            {
+                Some(
+                    LexicalDeclaration::new(false, self.allow_yield, self.allow_await, true)
+                        .parse(cursor, interner)?
+                        .into(),
+                )
+            }
             TokenKind::Keyword((Keyword::Const, _)) => Some(
                 LexicalDeclaration::new(false, self.allow_yield, self.allow_await, true)
                     .parse(cursor, interner)?
                     .into(),
             ),
             TokenKind::Keyword((Keyword::Async, false)) if !r#await => {
-                match cursor.peek(1, interner).or_abrupt()?.kind() {
-                    TokenKind::Keyword((Keyword::Of, _)) => {
-                        return Err(Error::lex(LexError::Syntax(
-                            "invalid left-hand side expression 'async' of a for-of loop".into(),
-                            init_position,
-                        )));
-                    }
-                    _ => Some(
-                        Expression::new(None, false, self.allow_yield, self.allow_await)
-                            .parse(cursor, interner)?
-                            .into(),
-                    ),
+                if matches!(
+                    cursor.peek(1, interner).or_abrupt()?.kind(),
+                    TokenKind::Keyword((Keyword::Of, false))
+                ) {
+                    init_is_async_of = true;
                 }
+
+                Some(
+                    Expression::new(None, false, self.allow_yield, self.allow_await)
+                        .parse(cursor, interner)?
+                        .into(),
+                )
             }
             TokenKind::Punctuator(Punctuator::Semicolon) => None,
             _ => Some(
@@ -174,6 +173,26 @@ where
                 ));
             }
             (Some(init), TokenKind::Keyword((kw @ (Keyword::In | Keyword::Of), false))) => {
+                if kw == &Keyword::Of
+                    && init
+                        == ForLoopInitializer::Expression(ast::Expression::Identifier(
+                            Identifier::new(Sym::LET),
+                        ))
+                {
+                    return Err(Error::general("unexpected token", position));
+                }
+                if init_is_async_of
+                    && init
+                        == ForLoopInitializer::Expression(ast::Expression::Identifier(
+                            Identifier::new(Sym::ASYNC),
+                        ))
+                {
+                    return Err(Error::lex(LexError::Syntax(
+                        "invalid left-hand side expression 'async' of a for-of loop".into(),
+                        init_position,
+                    )));
+                }
+
                 let in_loop = kw == &Keyword::In;
                 let init = initializer_to_iterable_loop_initializer(
                     init,

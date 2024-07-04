@@ -1,15 +1,13 @@
-use boa_macros::utf16;
-
 use crate::{
     builtins::{string::is_trimmable_whitespace, BuiltInBuilder, BuiltInObject, IntrinsicObject},
     context::intrinsics::Intrinsics,
     object::JsObject,
     realm::Realm,
-    string::{common::StaticJsStrings, Utf16Trim},
-    Context, JsArgs, JsResult, JsString, JsValue,
+    string::StaticJsStrings,
+    Context, JsArgs, JsResult, JsStr, JsString, JsValue,
 };
 
-use num_traits::Num;
+use boa_macros::js_str;
 
 /// Builtin javascript 'isFinite(number)' function.
 ///
@@ -95,6 +93,55 @@ impl BuiltInObject for IsNaN {
     const NAME: JsString = StaticJsStrings::IS_NAN;
 }
 
+fn from_js_str_radix(src: JsStr<'_>, radix: u8) -> Option<f64> {
+    /// Determines if a string of text of that length of that radix could be guaranteed to be
+    /// stored in the given type T.
+    /// Note that if the radix is known to the compiler, it is just the check of digits.len that
+    /// is done at runtime.
+    fn can_not_overflow(radix: u8, digits_len: usize) -> bool {
+        usize::from(radix) <= 16 && digits_len <= std::mem::size_of::<u64>() * 2
+    }
+
+    const fn to_digit(input: u8, radix: u8) -> Option<u8> {
+        // If not a digit, a number greater than radix will be created.
+        let mut digit = input.wrapping_sub(b'0');
+        if radix > 10 {
+            debug_assert!(radix <= 36, "to_digit: radix is too high (maximum 36)");
+            if digit < 10 {
+                return Some(digit);
+            }
+            // Force the 6th bit to be set to ensure ascii is lower case.
+            digit = (input | 0b10_0000).wrapping_sub(b'a').saturating_add(10);
+        }
+        // FIXME: once then_some is const fn, use it here
+        if digit < radix {
+            Some(digit)
+        } else {
+            None
+        }
+    }
+
+    let src = src
+        .iter()
+        .map(|x| u8::try_from(x).expect("should be ascii string"));
+
+    let result = if can_not_overflow(radix, src.len()) {
+        let mut result = 0;
+        for c in src {
+            result = result * u64::from(radix) + u64::from(to_digit(c, radix)?);
+        }
+        result as f64
+    } else {
+        let mut result = 0f64;
+        for c in src {
+            result = result * f64::from(radix) + f64::from(to_digit(c, radix)?);
+        }
+        result
+    };
+
+    Some(result)
+}
+
 /// Builtin javascript 'parseInt(str, radix)' function.
 ///
 /// Parses the given string as an integer using the given radix as a base.
@@ -110,107 +157,108 @@ impl BuiltInObject for IsNaN {
 /// [spec]: https://tc39.es/ecma262/#sec-parseint-string-radix
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/parseInt
 pub(crate) fn parse_int(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-    if let (Some(val), radix) = (args.first(), args.get_or_undefined(1)) {
-        // 1. Let inputString be ? ToString(string).
-        let input_string = val.to_string(context)?;
+    let (Some(val), radix) = (args.first(), args.get_or_undefined(1)) else {
+        // Not enough arguments to parseInt.
+        return Ok(JsValue::nan());
+    };
 
-        // 2. Let S be ! TrimString(inputString, start).
-        let mut var_s = input_string.trim_start();
+    // 1. Let inputString be ? ToString(string).
+    let input_string = val.to_string(context)?;
 
-        // 3. Let sign be 1.
-        // 4. If S is not empty and the first code unit of S is the code unit 0x002D (HYPHEN-MINUS),
-        //    set sign to -1.
-        let sign = if !var_s.is_empty() && var_s.starts_with(utf16!("-")) {
-            -1
-        } else {
-            1
-        };
+    // 2. Let S be ! TrimString(inputString, start).
+    let mut s = input_string.trim_start();
+    // let mut
 
-        // 5. If S is not empty and the first code unit of S is the code unit 0x002B (PLUS SIGN) or
-        //    the code unit 0x002D (HYPHEN-MINUS), remove the first code unit from S.
-        if !var_s.is_empty() && (var_s.starts_with(utf16!("+")) || var_s.starts_with(utf16!("-"))) {
-            var_s = &var_s[1..];
-        }
+    // 3. Let sign be 1.
+    // 4. If S is not empty and the first code unit of S is the code unit 0x002D (HYPHEN-MINUS),
+    //    set sign to -1.
+    let sign = if !s.is_empty() && s.starts_with(js_str!("-")) {
+        -1
+    } else {
+        1
+    };
 
-        // 6. Let R be ℝ(? ToInt32(radix)).
-        let mut var_r = radix.to_i32(context)?;
+    // 5. If S is not empty and the first code unit of S is the code unit 0x002B (PLUS SIGN) or
+    //    the code unit 0x002D (HYPHEN-MINUS), remove the first code unit from S.
+    if !s.is_empty() && (s.starts_with(js_str!("+")) || s.starts_with(js_str!("-"))) {
+        s = s.get(1..).expect("already checked that it's not empty");
+    }
 
-        // 7. Let stripPrefix be true.
-        let mut strip_prefix = true;
+    // 6. Let R be ℝ(? ToInt32(radix)).
+    let r = radix.to_i32(context)?;
 
-        // 8. If R ≠ 0, then
-        #[allow(clippy::if_not_else)]
-        if var_r != 0 {
-            //     a. If R < 2 or R > 36, return NaN.
-            if !(2..=36).contains(&var_r) {
-                return Ok(JsValue::nan());
-            }
+    // 7. Let stripPrefix be true.
+    let mut strip_prefix = true;
 
-            //     b. If R ≠ 16, set stripPrefix to false.
-            if var_r != 16 {
-                strip_prefix = false;
-            }
-        } else {
-            // 9. Else,
-            //     a. Set R to 10.
-            var_r = 10;
-        }
-
-        // 10. If stripPrefix is true, then
-        //     a. If the length of S is at least 2 and the first two code units of S are either "0x" or "0X", then
-        //         i. Remove the first two code units from S.
-        //         ii. Set R to 16.
-        if strip_prefix
-            && var_s.len() >= 2
-            && (var_s.starts_with(utf16!("0x")) || var_s.starts_with(utf16!("0X")))
-        {
-            var_s = &var_s[2..];
-
-            var_r = 16;
-        }
-
-        // 11. If S contains a code unit that is not a radix-R digit, let end be the index within S of the
-        //     first such code unit; otherwise, let end be the length of S.
-        let end = char::decode_utf16(var_s.iter().copied())
-            .position(|code| !code.map(|c| c.is_digit(var_r as u32)).unwrap_or_default())
-            .unwrap_or(var_s.len());
-
-        // 12. Let Z be the substring of S from 0 to end.
-        let var_z = String::from_utf16_lossy(&var_s[..end]);
-
-        // 13. If Z is empty, return NaN.
-        if var_z.is_empty() {
+    // 8. If R ≠ 0, then
+    #[allow(clippy::if_not_else)]
+    let mut r = if r != 0 {
+        //     a. If R < 2 or R > 36, return NaN.
+        if !(2..=36).contains(&r) {
             return Ok(JsValue::nan());
         }
 
-        // 14. Let mathInt be the integer value that is represented by Z in radix-R notation, using the
-        //     letters A-Z and a-z for digits with values 10 through 35. (However, if R is 10 and Z contains
-        //     more than 20 significant digits, every significant digit after the 20th may be replaced by a
-        //     0 digit, at the option of the implementation; and if R is not 2, 4, 8, 10, 16, or 32, then
-        //     mathInt may be an implementation-approximated value representing the integer value that is
-        //     represented by Z in radix-R notation.)
-        let math_int = u64::from_str_radix(&var_z, var_r as u32).map_or_else(
-            |_| f64::from_str_radix(&var_z, var_r as u32).expect("invalid_float_conversion"),
-            |i| i as f64,
-        );
+        //     b. If R ≠ 16, set stripPrefix to false.
+        if r != 16 {
+            strip_prefix = false;
+        }
+        r as u8
+    } else {
+        // 9. Else,
+        //     a. Set R to 10.
+        10
+    };
 
-        // 15. If mathInt = 0, then
-        //     a. If sign = -1, return -0𝔽.
-        //     b. Return +0𝔽.
-        if math_int == 0_f64 {
-            if sign == -1 {
-                return Ok(JsValue::new(-0_f64));
-            }
+    // 10. If stripPrefix is true, then
+    //     a. If the length of S is at least 2 and the first two code units of S are either "0x" or "0X", then
+    //         i. Remove the first two code units from S.
+    //         ii. Set R to 16.
+    if strip_prefix
+        && s.len() >= 2
+        && (s.starts_with(js_str!("0x")) || s.starts_with(js_str!("0X")))
+    {
+        s = s
+            .get(2..)
+            .expect("already checked that it contains at least two chars");
 
-            return Ok(JsValue::new(0_f64));
+        r = 16;
+    }
+
+    // 11. If S contains a code unit that is not a radix-R digit, let end be the index within S of the
+    //     first such code unit; otherwise, let end be the length of S.
+    let end = char::decode_utf16(s.iter())
+        .position(|code| !code.is_ok_and(|c| c.is_digit(u32::from(r))))
+        .unwrap_or(s.len());
+
+    // 12. Let Z be the substring of S from 0 to end.
+    let z = s.get(..end).expect("should be in range");
+
+    // 13. If Z is empty, return NaN.
+    if z.is_empty() {
+        return Ok(JsValue::nan());
+    }
+
+    // 14. Let mathInt be the integer value that is represented by Z in radix-R notation, using the
+    //     letters A-Z and a-z for digits with values 10 through 35. (However, if R is 10 and Z contains
+    //     more than 20 significant digits, every significant digit after the 20th may be replaced by a
+    //     0 digit, at the option of the implementation; and if R is not 2, 4, 8, 10, 16, or 32, then
+    //     mathInt may be an implementation-approximated value representing the integer value that is
+    //     represented by Z in radix-R notation.)
+    let math_int = from_js_str_radix(z, r).expect("Already checked");
+
+    // 15. If mathInt = 0, then
+    //     a. If sign = -1, return -0𝔽.
+    //     b. Return +0𝔽.
+    if math_int == 0_f64 {
+        if sign == -1 {
+            return Ok(JsValue::new(-0_f64));
         }
 
-        // 16. Return 𝔽(sign × mathInt).
-        Ok(JsValue::new(f64::from(sign) * math_int))
-    } else {
-        // Not enough arguments to parseInt.
-        Ok(JsValue::nan())
+        return Ok(JsValue::new(0_f64));
     }
+
+    // 16. Return 𝔽(sign × mathInt).
+    Ok(JsValue::new(f64::from(sign) * math_int))
 }
 
 pub(crate) struct ParseInt;

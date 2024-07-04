@@ -42,7 +42,7 @@ type GcErasedPointer = NonNull<GcBox<NonTraceable>>;
 type EphemeronPointer = NonNull<dyn ErasedEphemeronBox>;
 type ErasedWeakMapBoxPointer = NonNull<dyn ErasedWeakMapBox>;
 
-thread_local!(static GC_DROPPING: Cell<bool> = Cell::new(false));
+thread_local!(static GC_DROPPING: Cell<bool> = const { Cell::new(false) });
 thread_local!(static BOA_GC: RefCell<BoaGc> = RefCell::new( BoaGc {
     config: GcConfig::default(),
     runtime: GcRuntimeData::default(),
@@ -533,7 +533,7 @@ impl Collector {
     fn dump(gc: &mut BoaGc) {
         // Weak maps have to be dropped first, since the process dereferences GcBoxes.
         // This can be done without initializing a dropguard since no GcBox's are being dropped.
-        for node in std::mem::take(&mut gc.weak_maps) {
+        for node in mem::take(&mut gc.weak_maps) {
             // SAFETY:
             // The `Allocator` must always ensure its start node is a valid, non-null pointer that
             // was allocated by `Box::from_raw(Box::new(..))`.
@@ -543,7 +543,7 @@ impl Collector {
         // Not initializing a dropguard since this should only be invoked when BOA_GC is being dropped.
         let _guard = DropGuard::new();
 
-        for node in std::mem::take(&mut gc.strongs) {
+        for node in mem::take(&mut gc.strongs) {
             // SAFETY:
             // The `Allocator` must always ensure its start node is a valid, non-null pointer that
             // was allocated by `Box::from_raw(Box::new(..))`.
@@ -555,7 +555,7 @@ impl Collector {
             }
         }
 
-        for node in std::mem::take(&mut gc.weaks) {
+        for node in mem::take(&mut gc.weaks) {
             // SAFETY:
             // The `Allocator` must always ensure its start node is a valid, non-null pointer that
             // was allocated by `Box::from_raw(Box::new(..))`.

@@ -59,13 +59,13 @@ impl Token {
 #[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, PartialEq, Debug)]
 pub enum Numeric {
-    /// A floating point number
+    /// A floating point number.
     Rational(f64),
 
-    /// An integer
+    /// An integer.
     Integer(i32),
 
-    /// A BigInt
+    /// A `BigInt`.
     BigInt(Box<BigInt>),
 }
 

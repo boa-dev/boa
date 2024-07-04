@@ -1,8 +1,8 @@
 use boa_gc::{custom_trace, Finalize, Trace};
+use boa_macros::js_str;
 use boa_profiler::Profiler;
 use icu_collator::{
-    provider::CollationMetadataV1Marker, AlternateHandling, CaseFirst, Collator as NativeCollator,
-    MaxVariable, Numeric,
+    provider::CollationMetadataV1Marker, AlternateHandling, CaseFirst, MaxVariable, Numeric,
 };
 
 use icu_locid::{
@@ -28,13 +28,13 @@ use crate::{
     },
     property::Attribute,
     realm::Realm,
-    string::{common::StaticJsStrings, utf16},
+    string::StaticJsStrings,
     symbol::JsSymbol,
     Context, JsArgs, JsData, JsNativeError, JsResult, JsString, JsValue,
 };
 
 use super::{
-    locale::{canonicalize_locale_list, resolve_locale, supported_locales, validate_extension},
+    locale::{canonicalize_locale_list, filter_locales, resolve_locale, validate_extension},
     options::{coerce_options_to_object, IntlOptions},
     Service,
 };
@@ -52,7 +52,7 @@ pub(crate) struct Collator {
     usage: Usage,
     sensitivity: Sensitivity,
     ignore_punctuation: bool,
-    collator: NativeCollator,
+    collator: icu_collator::Collator,
     bound_compare: Option<JsFunction>,
 }
 
@@ -241,28 +241,28 @@ impl BuiltInConstructor for Collator {
         //     a. Let localeData be %Collator%.[[SortLocaleData]].
         // 6. Else,
         //     a. Let localeData be %Collator%.[[SearchLocaleData]].
-        let usage = get_option(&options, utf16!("usage"), context)?.unwrap_or_default();
+        let usage = get_option(&options, js_str!("usage"), context)?.unwrap_or_default();
 
         // 7. Let opt be a new Record.
         // 8. Let matcher be ? GetOption(options, "localeMatcher", string, « "lookup", "best fit" », "best fit").
         // 9. Set opt.[[localeMatcher]] to matcher.
-        let matcher = get_option(&options, utf16!("localeMatcher"), context)?.unwrap_or_default();
+        let matcher = get_option(&options, js_str!("localeMatcher"), context)?.unwrap_or_default();
 
         // 10. Let collation be ? GetOption(options, "collation", string, empty, undefined).
         // 11. If collation is not undefined, then
         //     a. If collation does not match the Unicode Locale Identifier type nonterminal, throw a RangeError exception.
         // 12. Set opt.[[co]] to collation.
-        let collation = get_option(&options, utf16!("collation"), context)?;
+        let collation = get_option(&options, js_str!("collation"), context)?;
 
         // 13. Let numeric be ? GetOption(options, "numeric", boolean, empty, undefined).
         // 14. If numeric is not undefined, then
         //     a. Let numeric be ! ToString(numeric).
         // 15. Set opt.[[kn]] to numeric.
-        let numeric = get_option(&options, utf16!("numeric"), context)?;
+        let numeric = get_option(&options, js_str!("numeric"), context)?;
 
         // 16. Let caseFirst be ? GetOption(options, "caseFirst", string, « "upper", "lower", "false" », undefined).
         // 17. Set opt.[[kf]] to caseFirst.
-        let case_first = get_option(&options, utf16!("caseFirst"), context)?;
+        let case_first = get_option(&options, js_str!("caseFirst"), context)?;
 
         let mut intl_options = IntlOptions {
             matcher,
@@ -276,7 +276,7 @@ impl BuiltInConstructor for Collator {
         // 18. Let relevantExtensionKeys be %Collator%.[[RelevantExtensionKeys]].
         // 19. Let r be ResolveLocale(%Collator%.[[AvailableLocales]], requestedLocales, opt, relevantExtensionKeys, localeData).
         let mut locale = resolve_locale::<Self>(
-            &requested_locales,
+            requested_locales,
             &mut intl_options,
             context.intl_provider(),
         );
@@ -314,7 +314,7 @@ impl BuiltInConstructor for Collator {
 
         // 26. Let sensitivity be ? GetOption(options, "sensitivity", string, « "base", "accent", "case", "variant" », undefined).
         // 28. Set collator.[[Sensitivity]] to sensitivity.
-        let sensitivity = get_option(&options, utf16!("sensitivity"), context)?
+        let sensitivity = get_option(&options, js_str!("sensitivity"), context)?
             // 27. If sensitivity is undefined, then
             //     a. If usage is "sort", then
             //         i. Let sensitivity be "variant".
@@ -327,7 +327,7 @@ impl BuiltInConstructor for Collator {
         // 29. Let ignorePunctuation be ? GetOption(options, "ignorePunctuation", boolean, empty, false).
         // 30. Set collator.[[IgnorePunctuation]] to ignorePunctuation.
         let ignore_punctuation: bool =
-            get_option(&options, utf16!("ignorePunctuation"), context)?.unwrap_or_default();
+            get_option(&options, js_str!("ignorePunctuation"), context)?.unwrap_or_default();
 
         let (strength, case_level) = sensitivity.map(Sensitivity::to_collator_options).unzip();
 
@@ -336,7 +336,7 @@ impl BuiltInConstructor for Collator {
             .unzip();
 
         let collator =
-            NativeCollator::try_new_unstable(context.intl_provider(), &collator_locale, {
+            icu_collator::Collator::try_new_unstable(context.intl_provider(), &collator_locale, {
                 let mut options = icu_collator::CollatorOptions::new();
                 options.strength = strength;
                 options.case_level = case_level;
@@ -394,8 +394,8 @@ impl Collator {
         // 2. Let requestedLocales be ? CanonicalizeLocaleList(locales).
         let requested_locales = canonicalize_locale_list(locales, context)?;
 
-        // 3. Return ? SupportedLocales(availableLocales, requestedLocales, options).
-        supported_locales::<<Self as Service>::LangMarker>(&requested_locales, options, context)
+        // 3. Return ? FilterLocales(availableLocales, requestedLocales, options).
+        filter_locales::<<Self as Service>::LangMarker>(requested_locales, options, context)
             .map(JsValue::from)
     }
 
@@ -442,13 +442,22 @@ impl Collator {
 
                         // 3. If x is not provided, let x be undefined.
                         // 5. Let X be ? ToString(x).
-                        let x = args.get_or_undefined(0).to_string(context)?;
+                        let x = args
+                            .get_or_undefined(0)
+                            .to_string(context)?
+                            .iter()
+                            .collect::<Vec<_>>();
 
                         // 4. If y is not provided, let y be undefined.
                         // 6. Let Y be ? ToString(y).
-                        let y = args.get_or_undefined(1).to_string(context)?;
+                        let y = args
+                            .get_or_undefined(1)
+                            .to_string(context)?
+                            .iter()
+                            .collect::<Vec<_>>();
 
                         // 7. Return CompareStrings(collator, X, Y).
+
                         let result = collator.collator.compare_utf16(&x, &y) as i32;
 
                         Ok(result.into())
@@ -507,58 +516,58 @@ impl Collator {
         // 5. Return options.
         options
             .create_data_property_or_throw(
-                utf16!("locale"),
+                js_str!("locale"),
                 js_string!(collator.locale.to_string()),
                 context,
             )
             .expect("operation must not fail per the spec");
         options
             .create_data_property_or_throw(
-                utf16!("usage"),
+                js_str!("usage"),
                 match collator.usage {
-                    Usage::Search => js_string!("search"),
-                    Usage::Sort => js_string!("sort"),
+                    Usage::Search => js_str!("search"),
+                    Usage::Sort => js_str!("sort"),
                 },
                 context,
             )
             .expect("operation must not fail per the spec");
         options
             .create_data_property_or_throw(
-                utf16!("sensitivity"),
+                js_str!("sensitivity"),
                 match collator.sensitivity {
-                    Sensitivity::Base => js_string!("base"),
-                    Sensitivity::Accent => js_string!("accent"),
-                    Sensitivity::Case => js_string!("case"),
-                    Sensitivity::Variant => js_string!("variant"),
+                    Sensitivity::Base => js_str!("base"),
+                    Sensitivity::Accent => js_str!("accent"),
+                    Sensitivity::Case => js_str!("case"),
+                    Sensitivity::Variant => js_str!("variant"),
                 },
                 context,
             )
             .expect("operation must not fail per the spec");
         options
             .create_data_property_or_throw(
-                js_string!("ignorePunctuation"),
+                js_str!("ignorePunctuation"),
                 collator.ignore_punctuation,
                 context,
             )
             .expect("operation must not fail per the spec");
         options
             .create_data_property_or_throw(
-                js_string!("collation"),
+                js_str!("collation"),
                 js_string!(collator.collation.to_string()),
                 context,
             )
             .expect("operation must not fail per the spec");
         options
-            .create_data_property_or_throw(utf16!("numeric"), collator.numeric, context)
+            .create_data_property_or_throw(js_str!("numeric"), collator.numeric, context)
             .expect("operation must not fail per the spec");
         if let Some(kf) = collator.case_first {
             options
                 .create_data_property_or_throw(
-                    js_string!("caseFirst"),
+                    js_str!("caseFirst"),
                     match kf {
-                        CaseFirst::Off => js_string!("false"),
-                        CaseFirst::LowerFirst => js_string!("lower"),
-                        CaseFirst::UpperFirst => js_string!("upper"),
+                        CaseFirst::Off => js_str!("false"),
+                        CaseFirst::LowerFirst => js_str!("lower"),
+                        CaseFirst::UpperFirst => js_str!("upper"),
                         _ => unreachable!(),
                     },
                     context,

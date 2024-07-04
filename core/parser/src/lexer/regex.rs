@@ -7,6 +7,7 @@ use boa_ast::Position;
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
 use regress::{Flags, Regex};
+use std::fmt::{Display, Write};
 use std::str::{self, FromStr};
 
 /// Regex literal lexing.
@@ -217,34 +218,33 @@ fn parse_regex_flags(s: &str, start: Position, interner: &mut Interner) -> Resul
     }
 }
 
-impl ToString for RegExpFlags {
-    fn to_string(&self) -> String {
-        let mut s = String::new();
+impl Display for RegExpFlags {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if self.contains(Self::HAS_INDICES) {
-            s.push('d');
+            f.write_char('d')?;
         }
         if self.contains(Self::GLOBAL) {
-            s.push('g');
+            f.write_char('g')?;
         }
         if self.contains(Self::IGNORE_CASE) {
-            s.push('i');
+            f.write_char('i')?;
         }
         if self.contains(Self::MULTILINE) {
-            s.push('m');
+            f.write_char('m')?;
         }
         if self.contains(Self::DOT_ALL) {
-            s.push('s');
+            f.write_char('s')?;
         }
         if self.contains(Self::UNICODE) {
-            s.push('u');
+            f.write_char('u')?;
         }
         if self.contains(Self::STICKY) {
-            s.push('y');
+            f.write_char('y')?;
         }
         if self.contains(Self::UNICODE_SETS) {
-            s.push('v');
+            f.write_char('v')?;
         }
-        s
+        Ok(())
     }
 }
 

@@ -28,7 +28,7 @@ use crate::{
     object::JsObject,
     property::Attribute,
     realm::Realm,
-    string::common::StaticJsStrings,
+    string::StaticJsStrings,
     symbol::JsSymbol,
     value::JsValue,
     Context, JsArgs, JsResult, JsString,
@@ -64,8 +64,8 @@ impl GlobalSymbolRegistry {
     }
 
     fn get_or_create_symbol(&self, key: &JsString) -> JsResult<JsSymbol> {
-        let slice = &**key;
-        if let Some(symbol) = self.keys.get(slice) {
+        let slice = key.iter().collect::<Vec<_>>();
+        if let Some(symbol) = self.keys.get(&slice[..]) {
             return Ok(symbol.clone());
         }
 
@@ -73,8 +73,10 @@ impl GlobalSymbolRegistry {
             JsNativeError::range()
                 .with_message("reached the maximum number of symbols that can be created")
         })?;
-        self.keys.insert(slice.into(), symbol.clone());
-        self.symbols.insert(symbol.clone(), slice.into());
+        self.keys
+            .insert(slice.clone().into_boxed_slice(), symbol.clone());
+        self.symbols
+            .insert(symbol.clone(), slice.into_boxed_slice());
         Ok(symbol)
     }
 

@@ -10,9 +10,15 @@ license.workspace = true
 description.workspace = true
 
 [dependencies]
-icu_provider = { workspace = true, features = ["datagen"] }
-icu_provider_blob = { workspace = true, features = ["export"] }
-icu_datagen = { workspace = true, features = ["networking", "use_wasm"] }
+icu_provider.workspace = true
+icu_datagen = { workspace = true, features = [
+    "networking",
+    "use_wasm",
+    "provider",
+    "blob_exporter",
+    "experimental_components",
+    "rayon",
+] }
 log.workspace = true
 simple_logger.workspace = true
 
@@ -30,3 +36,6 @@ icu_segmenter = { workspace = true, features = ["datagen"] }
 
 [lints]
 workspace = true
+
+[package.metadata.docs.rs]
+all-features = true

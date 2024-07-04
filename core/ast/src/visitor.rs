@@ -645,13 +645,13 @@ impl VisitWith for Sym {
     where
         V: Visitor<'a>,
     {
-        core::ops::ControlFlow::Continue(())
+        ControlFlow::Continue(())
     }
 
     fn visit_with_mut<'a, V>(&'a mut self, _visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
         V: VisitorMut<'a>,
     {
-        core::ops::ControlFlow::Continue(())
+        ControlFlow::Continue(())
     }
 }

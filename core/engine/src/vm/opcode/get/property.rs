@@ -115,12 +115,9 @@ impl Operation for GetPropertyByValue {
         if object.is_array() {
             if let PropertyKey::Index(index) = &key {
                 let object_borrowed = object.borrow();
-                if let Some(element) = object_borrowed
-                    .properties()
-                    .dense_indexed_properties()
-                    .and_then(|vec| vec.get(index.get() as usize))
+                if let Some(element) = object_borrowed.properties().get_dense_property(index.get())
                 {
-                    context.vm.push(element.clone());
+                    context.vm.push(element);
                     return Ok(CompletionType::Normal);
                 }
             }
@@ -162,13 +159,10 @@ impl Operation for GetPropertyByValuePush {
         if object.is_array() {
             if let PropertyKey::Index(index) = &key {
                 let object_borrowed = object.borrow();
-                if let Some(element) = object_borrowed
-                    .properties()
-                    .dense_indexed_properties()
-                    .and_then(|vec| vec.get(index.get() as usize))
+                if let Some(element) = object_borrowed.properties().get_dense_property(index.get())
                 {
                     context.vm.push(key);
-                    context.vm.push(element.clone());
+                    context.vm.push(element);
                     return Ok(CompletionType::Normal);
                 }
             }

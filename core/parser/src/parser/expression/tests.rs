@@ -10,7 +10,8 @@ use boa_ast::{
         },
         Call, Identifier, Parenthesized, RegExpLiteral,
     },
-    Declaration, Expression, Statement,
+    function::{AsyncArrowFunction, FormalParameter, FormalParameterList},
+    Declaration, Expression, Script, Statement,
 };
 use boa_interner::{Interner, Sym};
 use boa_macros::utf16;
@@ -683,6 +684,29 @@ fn check_logical_expressions() {
     check_invalid_script("a && b ?? c");
     check_invalid_script("a ?? b || c");
     check_invalid_script("a || b ?? c");
+}
+
+#[test]
+fn parse_async_arrow_function_named_of() {
+    let interner = &mut Interner::default();
+    check_script_parser(
+        "async of => {}",
+        vec![
+            Statement::Expression(Expression::from(AsyncArrowFunction::new(
+                None,
+                FormalParameterList::from_parameters(vec![FormalParameter::new(
+                    Variable::from_identifier(
+                        Identifier::new(interner.get_or_intern_static("of", utf16!("of"))),
+                        None,
+                    ),
+                    false,
+                )]),
+                Script::default(),
+            )))
+            .into(),
+        ],
+        interner,
+    );
 }
 
 macro_rules! check_non_reserved_identifier {

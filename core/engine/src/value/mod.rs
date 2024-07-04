@@ -2,16 +2,24 @@
 //!
 //! Javascript values, utility methods and conversion between Javascript values and Rust values.
 
-mod conversions;
-pub(crate) mod display;
-mod equality;
-mod hash;
-mod integer;
-mod operations;
-mod r#type;
+use std::{
+    collections::HashSet,
+    fmt::{self, Display},
+    ops::Sub,
+};
 
-#[cfg(test)]
-mod tests;
+use boa_macros::js_str;
+use num_bigint::BigInt;
+use num_integer::Integer;
+use num_traits::{ToPrimitive, Zero};
+use once_cell::sync::Lazy;
+
+use boa_gc::{custom_trace, Finalize, Trace};
+#[doc(inline)]
+pub use boa_macros::TryFromJs;
+use boa_profiler::Profiler;
+#[doc(inline)]
+pub use conversions::convert::Convert;
 
 use crate::{
     builtins::{
@@ -25,27 +33,24 @@ use crate::{
     symbol::JsSymbol,
     Context, JsBigInt, JsResult, JsString,
 };
-use boa_gc::{custom_trace, Finalize, Trace};
-use boa_profiler::Profiler;
-use num_bigint::BigInt;
-use num_integer::Integer;
-use num_traits::{ToPrimitive, Zero};
-use once_cell::sync::Lazy;
-use std::{
-    collections::HashSet,
-    fmt::{self, Display},
-    ops::Sub,
-};
 
+pub(crate) use self::conversions::IntoOrUndefined;
 #[doc(inline)]
 pub use self::{
     conversions::try_from_js::TryFromJs, display::ValueDisplay, integer::IntegerOrInfinity,
     operations::*, r#type::Type,
 };
-#[doc(inline)]
-pub use boa_macros::TryFromJs;
 
-pub(crate) use self::conversions::IntoOrUndefined;
+mod conversions;
+pub(crate) mod display;
+mod equality;
+mod hash;
+mod integer;
+mod operations;
+mod r#type;
+
+#[cfg(test)]
+mod tests;
 
 static TWO_E_64: Lazy<BigInt> = Lazy::new(|| {
     const TWO_E_64: u128 = 2u128.pow(64);
@@ -241,13 +246,35 @@ impl JsValue {
         matches!(self, Self::Rational(_))
     }
 
-    /// Returns true if the value is integer.
+    /// Determines if argument is a finite integral Number value.
+    ///
+    /// More information:
+    /// - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-isintegralnumber
+    #[must_use]
+    #[allow(clippy::float_cmp)]
+    pub fn is_integral_number(&self) -> bool {
+        // If it can fit in a i32 and the truncated version is
+        // equal to the original then it is an integer.
+        let is_rational_integer = |n: f64| n == f64::from(n as i32);
+
+        match *self {
+            Self::Integer(_) => true,
+            Self::Rational(n) if is_rational_integer(n) => true,
+            _ => false,
+        }
+    }
+
+    /// Returns true if the value can be reprented as an integer.
+    ///
+    /// Similar to [`JsValue::is_integral_number()`] except that it returns `false` for `-0`.
     #[must_use]
     #[allow(clippy::float_cmp)]
     pub fn is_integer(&self) -> bool {
         // If it can fit in a i32 and the truncated version is
         // equal to the original then it is an integer.
-        let is_rational_integer = |n: f64| n == f64::from(n as i32);
+        let is_rational_integer = |n: f64| n.to_bits() == f64::from(n as i32).to_bits();
 
         match *self {
             Self::Integer(_) => true,
@@ -367,9 +394,9 @@ impl JsValue {
                 //     1. Assert: preferredType is number.
                 //     2. Let hint be "number".
                 let hint = match preferred_type {
-                    PreferredType::Default => js_string!("default"),
-                    PreferredType::String => js_string!("string"),
-                    PreferredType::Number => js_string!("number"),
+                    PreferredType::Default => js_str!("default"),
+                    PreferredType::String => js_str!("string"),
+                    PreferredType::Number => js_str!("number"),
                 }
                 .into();
 
@@ -414,7 +441,7 @@ impl JsValue {
             Self::Undefined => Err(JsNativeError::typ()
                 .with_message("cannot convert undefined to a BigInt")
                 .into()),
-            Self::String(ref string) => string.to_big_int().map_or_else(
+            Self::String(ref string) => JsBigInt::from_js_string(string).map_or_else(
                 || {
                     Err(JsNativeError::syntax()
                         .with_message(format!(
@@ -469,8 +496,8 @@ impl JsValue {
     /// This function is equivalent to `String(value)` in JavaScript.
     pub fn to_string(&self, context: &mut Context) -> JsResult<JsString> {
         match self {
-            Self::Null => Ok("null".into()),
-            Self::Undefined => Ok("undefined".into()),
+            Self::Null => Ok(js_string!("null")),
+            Self::Undefined => Ok(js_string!("undefined")),
             Self::Boolean(boolean) => Ok(boolean.to_string().into()),
             Self::Rational(rational) => Ok(Number::to_js_string(*rational)),
             Self::Integer(integer) => Ok(integer.to_string().into()),
@@ -492,7 +519,6 @@ impl JsValue {
     ///
     /// See: <https://tc39.es/ecma262/#sec-toobject>
     pub fn to_object(&self, context: &mut Context) -> JsResult<JsObject> {
-        // TODO: add fast paths with object template
         match self {
             Self::Undefined | Self::Null => Err(JsNativeError::typ()
                 .with_message("cannot convert 'null' or 'undefined' to object")
@@ -965,21 +991,22 @@ impl JsValue {
     #[must_use]
     pub fn js_type_of(&self) -> JsString {
         match *self {
-            Self::Rational(_) | Self::Integer(_) => js_string!("number"),
-            Self::String(_) => js_string!("string"),
-            Self::Boolean(_) => js_string!("boolean"),
-            Self::Symbol(_) => js_string!("symbol"),
-            Self::Null => js_string!("object"),
-            Self::Undefined => js_string!("undefined"),
-            Self::BigInt(_) => js_string!("bigint"),
+            Self::Rational(_) | Self::Integer(_) => js_str!("number"),
+            Self::String(_) => js_str!("string"),
+            Self::Boolean(_) => js_str!("boolean"),
+            Self::Symbol(_) => js_str!("symbol"),
+            Self::Null => js_str!("object"),
+            Self::Undefined => js_str!("undefined"),
+            Self::BigInt(_) => js_str!("bigint"),
             Self::Object(ref object) => {
                 if object.is_callable() {
-                    js_string!("function")
+                    js_str!("function")
                 } else {
-                    js_string!("object")
+                    js_str!("object")
                 }
             }
         }
+        .into()
     }
 
     /// Abstract operation `IsArray ( argument )`
@@ -1024,7 +1051,7 @@ pub enum PreferredType {
 pub enum Numeric {
     /// Double precision floating point number.
     Number(f64),
-    /// BigInt an integer of arbitrary size.
+    /// `BigInt` an integer of arbitrary size.
     BigInt(JsBigInt),
 }
 

@@ -1,6 +1,6 @@
 use boa_engine::{
     js_string,
-    object::{builtins::JsArray, builtins::JsMap},
+    object::builtins::{JsArray, JsMap},
     Context, JsResult, JsValue,
 };
 

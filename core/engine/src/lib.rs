@@ -77,7 +77,11 @@
 compile_error!("Boa requires a lock free `AtomicUsize` in order to work properly.");
 
 extern crate self as boa_engine;
-extern crate static_assertions as sa;
+
+pub use boa_ast as ast;
+pub use boa_gc as gc;
+pub use boa_interner as interner;
+pub use boa_parser as parser;
 
 pub mod bigint;
 pub mod builtins;
@@ -99,10 +103,11 @@ pub mod symbol;
 pub mod value;
 pub mod vm;
 
+pub(crate) mod tagged;
+
 mod host_defined;
 mod small_map;
 mod sys;
-mod tagged;
 
 #[cfg(test)]
 mod tests;
@@ -118,12 +123,12 @@ pub mod prelude {
         native_function::NativeFunction,
         object::{JsData, JsObject, NativeObject},
         script::Script,
-        string::JsString,
+        string::{JsStr, JsString},
         symbol::JsSymbol,
         value::JsValue,
     };
     pub use boa_gc::{Finalize, Trace};
-    pub use boa_macros::JsData;
+    pub use boa_macros::{js_str, JsData};
     pub use boa_parser::Source;
 }
 
@@ -133,8 +138,27 @@ use std::result::Result as StdResult;
 #[doc(inline)]
 pub use prelude::*;
 
+#[doc(inline)]
+pub use boa_parser::Source;
+
 /// The result of a Javascript expression is represented like this so it can succeed (`Ok`) or fail (`Err`)
 pub type JsResult<T> = StdResult<T, JsError>;
+
+/// Create a [`JsResult`] from a Rust value. This trait is used to
+/// convert Rust types to JS types, including [`JsResult`] of
+/// Rust values and [`JsValue`]s.
+///
+/// This trait is implemented for any that can be converted into a [`JsValue`].
+pub trait TryIntoJsResult {
+    /// Try to convert a Rust value into a `JsResult<JsValue>`.
+    ///
+    /// # Errors
+    /// Any parsing errors that may occur during the conversion, or any
+    /// error that happened during the call to a function.
+    fn try_into_js_result(self, context: &mut Context) -> JsResult<JsValue>;
+}
+
+mod try_into_js_result_impls;
 
 /// A utility trait to make working with function arguments easier.
 pub trait JsArgs {

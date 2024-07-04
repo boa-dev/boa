@@ -16,11 +16,12 @@ use std::sync::atomic::Ordering;
 
 use crate::{
     builtins::BuiltInObject, context::intrinsics::Intrinsics, js_string, object::JsObject,
-    property::Attribute, realm::Realm, string::common::StaticJsStrings, symbol::JsSymbol,
+    property::Attribute, realm::Realm, string::StaticJsStrings, symbol::JsSymbol,
     sys::time::Duration, value::IntegerOrInfinity, Context, JsArgs, JsNativeError, JsResult,
     JsString, JsValue,
 };
 
+use boa_macros::js_str;
 use boa_profiler::Profiler;
 
 use super::{
@@ -463,9 +464,9 @@ impl Atomics {
         };
 
         Ok(match result {
-            futex::AtomicsWaitResult::NotEqual => js_string!("not-equal"),
-            futex::AtomicsWaitResult::TimedOut => js_string!("timed-out"),
-            futex::AtomicsWaitResult::Ok => js_string!("ok"),
+            futex::AtomicsWaitResult::NotEqual => js_str!("not-equal"),
+            futex::AtomicsWaitResult::TimedOut => js_str!("timed-out"),
+            futex::AtomicsWaitResult::Ok => js_str!("ok"),
         }
         .into())
     }

@@ -242,8 +242,8 @@ impl FutexWaiters {
         let addr = unsafe { (*node).addr };
 
         let mut wl = match self.waiters.entry(addr) {
-            crate::small_map::Entry::Occupied(wl) => wl,
-            crate::small_map::Entry::Vacant(_) => return,
+            Entry::Occupied(wl) => wl,
+            Entry::Vacant(_) => return,
         };
 
         // SAFETY: `node` must be inside the wait list associated with `node.addr`.

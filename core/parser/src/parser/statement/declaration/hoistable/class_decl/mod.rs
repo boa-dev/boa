@@ -728,9 +728,7 @@ where
                     cursor.set_strict(strict);
                     statement_list
                 };
-                function::ClassElement::StaticBlock(ast::function::FunctionBody::new(
-                    statement_list,
-                ))
+                function::ClassElement::StaticBlock(function::FunctionBody::new(statement_list))
             }
             TokenKind::Punctuator(Punctuator::Mul) => {
                 let token = cursor.peek(1, interner).or_abrupt()?;
@@ -895,7 +893,9 @@ where
                     }
                 }
             }
-            TokenKind::IdentifierName((Sym::GET, ContainsEscapeSequence(true))) if is_keyword => {
+            TokenKind::IdentifierName((Sym::GET | Sym::SET, ContainsEscapeSequence(true)))
+                if is_keyword =>
+            {
                 return Err(Error::general(
                     "keyword must not contain escaped characters",
                     token.span().start(),
@@ -1025,12 +1025,6 @@ where
                         }
                     }
                 }
-            }
-            TokenKind::IdentifierName((Sym::SET, ContainsEscapeSequence(true))) if is_keyword => {
-                return Err(Error::general(
-                    "keyword must not contain escaped characters",
-                    token.span().start(),
-                ))
             }
             TokenKind::IdentifierName((Sym::SET, ContainsEscapeSequence(false))) if is_keyword => {
                 cursor.advance(interner);

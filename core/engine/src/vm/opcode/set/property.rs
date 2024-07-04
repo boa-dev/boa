@@ -1,11 +1,11 @@
-use boa_macros::utf16;
+use boa_macros::js_str;
 
 use crate::{
-    builtins::{function::set_function_name, Proxy},
+    builtins::function::set_function_name,
     object::{internal_methods::InternalMethodContext, shape::slot::SlotAttributes},
     property::{PropertyDescriptor, PropertyKey},
     vm::{opcode::Operation, CompletionType},
-    Context, JsNativeError, JsResult, JsString, JsValue,
+    Context, JsNativeError, JsResult, JsValue,
 };
 
 /// `SetPropertyByName` implements the Opcode Operation for `Opcode::SetPropertyByName`
@@ -145,58 +145,12 @@ impl Operation for SetPropertyByValue {
                         break 'fast_path;
                     }
 
-                    let shape = object_borrowed.shape().clone();
-
-                    if let Some(dense_elements) = object_borrowed
+                    if object_borrowed
                         .properties_mut()
-                        .dense_indexed_properties_mut()
+                        .set_dense_property(index.get(), &value)
                     {
-                        let index = index.get() as usize;
-                        if let Some(element) = dense_elements.get_mut(index) {
-                            *element = value;
-                            context.vm.push(element.clone());
-                            return Ok(CompletionType::Normal);
-                        } else if dense_elements.len() == index {
-                            // Cannot use fast path if the [[prototype]] is a proxy object,
-                            // because we have to the call prototypes [[set]] on non-existing property,
-                            // and proxy objects can override [[set]].
-                            let prototype = shape.prototype();
-                            if prototype.map_or(false, |x| x.is::<Proxy>()) {
-                                break 'fast_path;
-                            }
-
-                            dense_elements.push(value.clone());
-                            context.vm.push(value);
-
-                            let len = dense_elements.len() as u32;
-                            let length_key = PropertyKey::from(utf16!("length"));
-                            let length = object_borrowed
-                                .properties_mut()
-                                .get(&length_key)
-                                .expect("Arrays must have length property");
-
-                            if length.expect_writable() {
-                                // We have to get the max of previous length and len(dense_elements) + 1,
-                                // this is needed if user spacifies `new Array(n)` then adds properties from 0, 1, etc.
-                                let len = length
-                                    .expect_value()
-                                    .to_u32(context)
-                                    .expect("length should have a u32 value")
-                                    .max(len);
-                                object_borrowed.insert(
-                                    length_key,
-                                    PropertyDescriptor::builder()
-                                        .value(len)
-                                        .writable(true)
-                                        .enumerable(length.expect_enumerable())
-                                        .configurable(false)
-                                        .build(),
-                                );
-                            } else if context.vm.frame().code_block.strict() {
-                                return Err(JsNativeError::typ().with_message("TypeError: Cannot assign to read only property 'length' of array object").into());
-                            }
-                            return Ok(CompletionType::Normal);
-                        }
+                        context.vm.push(value);
+                        return Ok(CompletionType::Normal);
                     }
                 }
             }
@@ -432,8 +386,8 @@ impl Operation for SetFunctionName {
         };
 
         let prefix = match prefix {
-            1 => Some(JsString::from("get")),
-            2 => Some(JsString::from("set")),
+            1 => Some(js_str!("get")),
+            2 => Some(js_str!("set")),
             _ => None,
         };
 

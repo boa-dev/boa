@@ -8,7 +8,7 @@ use boa_gc::{Finalize, Trace};
 use crate::object::internal_methods::immutable_prototype::immutable_prototype_exotic_set_prototype_of;
 use crate::object::internal_methods::{
     ordinary_define_own_property, ordinary_delete, ordinary_get, ordinary_get_own_property,
-    ordinary_has_property, ordinary_own_property_keys, InternalMethodContext,
+    ordinary_has_property, ordinary_own_property_keys, ordinary_try_get, InternalMethodContext,
     InternalObjectMethods, ORDINARY_INTERNAL_METHODS,
 };
 use crate::object::{JsData, JsPrototype};
@@ -38,6 +38,7 @@ impl JsData for ModuleNamespace {
             __get_own_property__: module_namespace_exotic_get_own_property,
             __define_own_property__: module_namespace_exotic_define_own_property,
             __has_property__: module_namespace_exotic_has_property,
+            __try_get__: module_namespace_exotic_try_get,
             __get__: module_namespace_exotic_get,
             __set__: module_namespace_exotic_set,
             __delete__: module_namespace_exotic_delete,
@@ -240,6 +241,91 @@ fn module_namespace_exotic_has_property(
     // 3. If exports contains P, return true.
     // 4. Return false.
     Ok(exports.contains(&key))
+}
+
+/// Internal optimization method for `Module Namespace` exotic objects.
+///
+/// This method combines the internal methods `[[HasProperty]]` and `[[Get]]`.
+///
+/// More information:
+///  - [ECMAScript reference HasProperty][spec0]
+///  - [ECMAScript reference Get][spec1]
+///
+/// [spec0]: https://tc39.es/ecma262/#sec-module-namespace-exotic-objects-hasproperty-p
+/// [spec1]: https://tc39.es/ecma262/#sec-module-namespace-exotic-objects-get-p-receiver
+fn module_namespace_exotic_try_get(
+    obj: &JsObject,
+    key: &PropertyKey,
+    receiver: JsValue,
+    context: &mut InternalMethodContext<'_>,
+) -> JsResult<Option<JsValue>> {
+    // 1. If P is a Symbol, then
+    //     a. Return ! OrdinaryGet(O, P, Receiver).
+    let key = match key {
+        PropertyKey::Symbol(_) => return ordinary_try_get(obj, key, receiver, context),
+        PropertyKey::Index(idx) => js_string!(format!("{}", idx.get())),
+        PropertyKey::String(s) => s.clone(),
+    };
+
+    let obj = obj
+        .downcast_ref::<ModuleNamespace>()
+        .expect("internal method can only be called on module namespace objects");
+
+    // 2. Let exports be O.[[Exports]].
+    let exports = obj.exports();
+
+    // 3. If exports does not contain P, return undefined.
+    let Some(export_name) = exports.get(&key).cloned() else {
+        return Ok(None);
+    };
+
+    // 4. Let m be O.[[Module]].
+    let m = obj.module();
+
+    // 5. Let binding be m.ResolveExport(P).
+    let binding = m
+        .resolve_export(
+            export_name.clone(),
+            &mut HashSet::default(),
+            context.interner(),
+        )
+        .expect("6. Assert: binding is a ResolvedBinding Record.");
+
+    // 7. Let targetModule be binding.[[Module]].
+    // 8. Assert: targetModule is not undefined.
+    let target_module = binding.module();
+
+    // TODO: cache binding resolution instead of doing the whole process on every access.
+    if let BindingName::Name(name) = binding.binding_name() {
+        // 10. Let targetEnv be targetModule.[[Environment]].
+        let Some(env) = target_module.environment() else {
+            // 11. If targetEnv is empty, throw a ReferenceError exception.
+            let import = export_name.to_std_string_escaped();
+            return Err(JsNativeError::reference()
+                .with_message(format!(
+                    "cannot get import `{import}` from an uninitialized module"
+                ))
+                .into());
+        };
+
+        let locator = env
+            .compile_env()
+            .get_binding(&name)
+            .expect("checked before that the name was reachable");
+
+        // 12. Return ? targetEnv.GetBindingValue(binding.[[BindingName]], true).
+        env.get(locator.binding_index()).map(Some).ok_or_else(|| {
+            let import = export_name.to_std_string_escaped();
+
+            JsNativeError::reference()
+                .with_message(format!("cannot get uninitialized import `{import}`"))
+                .into()
+        })
+    } else {
+        // 9. If binding.[[BindingName]] is namespace, then
+        //     a. Return GetModuleNamespace(targetModule).
+        Ok(Some(target_module.namespace(context).into()))
+    }
 }
 
 /// [`[[Get]] ( P, Receiver )`][spec]

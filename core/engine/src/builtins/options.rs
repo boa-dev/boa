@@ -2,7 +2,7 @@
 
 use std::{fmt, str::FromStr};
 
-use crate::{object::JsObject, Context, JsNativeError, JsResult, JsString, JsValue};
+use crate::{object::JsObject, string::JsStr, Context, JsNativeError, JsResult, JsString, JsValue};
 
 /// A type used as an option parameter for [`get_option`].
 pub(crate) trait OptionType: Sized {
@@ -50,7 +50,7 @@ where
 /// [spec]: https://tc39.es/ecma402/#sec-getoption
 pub(crate) fn get_option<T: OptionType>(
     options: &JsObject,
-    property: &[u16],
+    property: JsStr<'_>,
     context: &mut Context,
 ) -> JsResult<Option<T>> {
     // 1. Let value be ? Get(options, property).
@@ -116,7 +116,7 @@ impl OptionType for f64 {
 
         if !value.is_finite() {
             return Err(JsNativeError::range()
-                .with_message("roundingIncrement must be finite.")
+                .with_message("numeric option must be finite.")
                 .into());
         }
 
@@ -160,7 +160,7 @@ impl RoundingMode {
 pub(crate) struct ParseRoundingModeError;
 
 impl fmt::Display for ParseRoundingModeError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("provided string was not a valid rounding mode")
     }
 }

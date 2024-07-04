@@ -14,14 +14,14 @@ mod utils;
 use std::{cell::Cell, rc::Rc};
 
 use crate::{
-    builtins::function::ThisMode,
+    builtins::function::{arguments::MappedArguments, ThisMode},
     environments::{BindingLocator, BindingLocatorError, CompileTimeEnvironment},
     js_string,
     vm::{
         BindingOpcode, CodeBlock, CodeBlockFlags, Constant, GeneratorResumeKind, Handler,
         InlineCache, Opcode, VaryingOperandKind,
     },
-    Context, JsBigInt, JsString,
+    JsBigInt, JsStr, JsString,
 };
 use boa_ast::{
     declaration::{Binding, LexicalDeclaration, VarDeclaration},
@@ -41,10 +41,13 @@ use boa_ast::{
 use boa_gc::Gc;
 use boa_interner::{Interner, Sym};
 use rustc_hash::FxHashMap;
+use thin_vec::ThinVec;
 
+pub(crate) use declarations::{
+    eval_declaration_instantiation_context, global_declaration_instantiation_context,
+};
 pub(crate) use function::FunctionCompiler;
 pub(crate) use jump_control::JumpControlInfo;
-use thin_vec::ThinVec;
 
 pub(crate) trait ToJsString {
     fn to_js_string(&self, interner: &Interner) -> JsString;
@@ -52,7 +55,15 @@ pub(crate) trait ToJsString {
 
 impl ToJsString for Sym {
     fn to_js_string(&self, interner: &Interner) -> JsString {
-        js_string!(interner.resolve_expect(*self).utf16())
+        // TODO: Identify latin1 encodeable strings during parsing to avoid this check.
+        let string = interner.resolve_expect(*self).utf16();
+        for c in string {
+            if u8::try_from(*c).is_err() {
+                return js_string!(string);
+            }
+        }
+        let string = string.iter().map(|c| *c as u8).collect::<Vec<_>>();
+        js_string!(JsStr::latin1(&string))
     }
 }
 
@@ -257,7 +268,7 @@ pub struct ByteCompiler<'ctx> {
 
     pub(crate) register_count: u32,
 
-    /// \[\[ThisMode\]\]
+    /// `[[ThisMode]]`
     pub(crate) this_mode: ThisMode,
 
     /// Parameters passed to this function.
@@ -277,7 +288,7 @@ pub struct ByteCompiler<'ctx> {
     /// The current lexical environment.
     pub(crate) lexical_environment: Rc<CompileTimeEnvironment>,
 
-    current_open_environments_count: u32,
+    pub(crate) current_open_environments_count: u32,
     current_stack_value_count: u32,
     pub(crate) code_block_flags: CodeBlockFlags,
     handlers: ThinVec<Handler>,
@@ -293,11 +304,16 @@ pub struct ByteCompiler<'ctx> {
     pub(crate) async_handler: Option<u32>,
     json_parse: bool,
 
-    // TODO: remove when we separate scripts from the context
-    pub(crate) context: &'ctx mut Context,
+    /// Whether the function is in a `with` statement.
+    pub(crate) in_with: bool,
+
+    /// Used to determine if a we emited a `CreateUnmappedArgumentsObject` opcode
+    pub(crate) emitted_mapped_arguments_object_opcode: bool,
+
+    pub(crate) interner: &'ctx mut Interner,
 
     #[cfg(feature = "annex-b")]
-    annex_b_function_names: Vec<Identifier>,
+    pub(crate) annex_b_function_names: Vec<Identifier>,
 }
 
 impl<'ctx> ByteCompiler<'ctx> {
@@ -313,8 +329,8 @@ impl<'ctx> ByteCompiler<'ctx> {
         json_parse: bool,
         variable_environment: Rc<CompileTimeEnvironment>,
         lexical_environment: Rc<CompileTimeEnvironment>,
-        // TODO: remove when we separate scripts from the context
-        context: &'ctx mut Context,
+        interner: &'ctx mut Interner,
+        in_with: bool,
     ) -> ByteCompiler<'ctx> {
         let mut code_block_flags = CodeBlockFlags::empty();
         code_block_flags.set(CodeBlockFlags::STRICT, strict);
@@ -343,10 +359,12 @@ impl<'ctx> ByteCompiler<'ctx> {
             json_parse,
             variable_environment,
             lexical_environment,
-            context,
+            interner,
 
             #[cfg(feature = "annex-b")]
             annex_b_function_names: Vec::new(),
+            in_with,
+            emitted_mapped_arguments_object_opcode: false,
         }
     }
 
@@ -367,7 +385,7 @@ impl<'ctx> ByteCompiler<'ctx> {
     }
 
     pub(crate) fn interner(&self) -> &Interner {
-        self.context.interner()
+        self.interner
     }
 
     fn get_or_insert_literal(&mut self, literal: Literal) -> u32 {
@@ -391,9 +409,9 @@ impl<'ctx> ByteCompiler<'ctx> {
             return *index;
         }
 
-        let string = self.interner().resolve_expect(name.sym()).utf16();
         let index = self.constants.len() as u32;
-        self.constants.push(Constant::String(js_string!(string)));
+        let string = name.to_js_string(self.interner());
+        self.constants.push(Constant::String(string));
         self.names_map.insert(name, index);
         index
     }
@@ -568,6 +586,15 @@ impl<'ctx> ByteCompiler<'ctx> {
         self.emit_with_varying_operand(Opcode::SetPropertyByName, ic_index);
     }
 
+    fn emit_type_error(&mut self, message: &str) {
+        let error_msg = self.get_or_insert_literal(Literal::String(js_string!(message)));
+        self.emit_with_varying_operand(Opcode::ThrowNewTypeError, error_msg);
+    }
+    fn emit_syntax_error(&mut self, message: &str) {
+        let error_msg = self.get_or_insert_literal(Literal::String(js_string!(message)));
+        self.emit_with_varying_operand(Opcode::ThrowNewSyntaxError, error_msg);
+    }
+
     fn emit_u64(&mut self, value: u64) {
         self.bytecode.extend(value.to_ne_bytes());
     }
@@ -734,7 +761,7 @@ impl<'ctx> ByteCompiler<'ctx> {
     }
 
     fn resolve_identifier_expect(&self, identifier: Identifier) -> JsString {
-        js_string!(self.interner().resolve_expect(identifier.sym()).utf16())
+        identifier.to_js_string(self.interner())
     }
 
     fn access_get(&mut self, access: Access<'_>, use_expr: bool) {
@@ -1302,13 +1329,14 @@ impl<'ctx> ByteCompiler<'ctx> {
             .r#async(r#async)
             .strict(self.strict())
             .arrow(arrow)
+            .in_with(self.in_with)
             .binding_identifier(binding_identifier)
             .compile(
                 parameters,
                 body,
                 self.variable_environment.clone(),
                 self.lexical_environment.clone(),
-                self.context,
+                self.interner,
             );
 
         self.push_function_to_constants(code)
@@ -1377,13 +1405,14 @@ impl<'ctx> ByteCompiler<'ctx> {
             .strict(self.strict())
             .arrow(arrow)
             .method(true)
+            .in_with(self.in_with)
             .binding_identifier(binding_identifier)
             .compile(
                 parameters,
                 body,
                 self.variable_environment.clone(),
                 self.lexical_environment.clone(),
-                self.context,
+                self.interner,
             );
 
         let index = self.push_function_to_constants(code);
@@ -1424,13 +1453,14 @@ impl<'ctx> ByteCompiler<'ctx> {
             .strict(true)
             .arrow(arrow)
             .method(true)
+            .in_with(self.in_with)
             .binding_identifier(binding_identifier)
             .compile(
                 parameters,
                 body,
                 self.variable_environment.clone(),
                 self.lexical_environment.clone(),
-                self.context,
+                self.interner,
             );
 
         let index = self.push_function_to_constants(code);
@@ -1463,8 +1493,19 @@ impl<'ctx> ByteCompiler<'ctx> {
                     if *ident == Sym::EVAL {
                         kind = CallKind::CallEval;
                     }
+
+                    if self.in_with {
+                        let name = self.resolve_identifier_expect(*ident);
+                        let binding = self.lexical_environment.get_identifier_reference(name);
+                        let index = self.get_or_insert_binding(binding.locator());
+                        self.emit_with_varying_operand(Opcode::ThisForObjectEnvironmentName, index);
+                    } else {
+                        self.emit_opcode(Opcode::PushUndefined);
+                    }
+                } else {
+                    self.emit_opcode(Opcode::PushUndefined);
                 }
-                self.emit_opcode(Opcode::PushUndefined);
+
                 self.compile_expr(expr, true);
             }
             expr => {
@@ -1538,12 +1579,19 @@ impl<'ctx> ByteCompiler<'ctx> {
             handler.stack_count += self.register_count;
         }
 
+        let mapped_arguments_binding_indices = if self.emitted_mapped_arguments_object_opcode {
+            MappedArguments::binding_indices(&self.params)
+        } else {
+            ThinVec::new()
+        };
+
         CodeBlock {
             name: self.function_name,
             length: self.length,
             register_count: self.register_count,
             this_mode: self.this_mode,
-            params: self.params,
+            parameter_length: self.params.as_ref().len() as u32,
+            mapped_arguments_binding_indices,
             bytecode: self.bytecode.into_boxed_slice(),
             constants: self.constants,
             bindings: self.bindings.into_boxed_slice(),

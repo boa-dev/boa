@@ -20,7 +20,7 @@ use crate::{
     object::JsObject,
     property::Attribute,
     realm::Realm,
-    string::common::StaticJsStrings,
+    string::StaticJsStrings,
     symbol::JsSymbol,
     Context, JsArgs, JsData, JsResult, JsString, JsValue,
 };
@@ -28,6 +28,7 @@ use crate::{
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
 use icu_provider::KeyedDataMarker;
+use static_assertions::const_assert;
 
 pub(crate) mod collator;
 pub(crate) mod date_time_format;
@@ -43,6 +44,15 @@ pub(crate) use self::{
 };
 
 mod options;
+
+// No singletons are allowed as lang markers.
+// Hopefully, we'll be able to migrate this to the definition of `Service` in the future
+// (https://github.com/rust-lang/rust/issues/76560)
+const_assert! {!<Collator as Service>::LangMarker::KEY.metadata().singleton}
+const_assert! {!<ListFormat as Service>::LangMarker::KEY.metadata().singleton}
+const_assert! {!<NumberFormat as Service>::LangMarker::KEY.metadata().singleton}
+const_assert! {!<PluralRules as Service>::LangMarker::KEY.metadata().singleton}
+const_assert! {!<Segmenter as Service>::LangMarker::KEY.metadata().singleton}
 
 /// JavaScript `Intl` object.
 #[derive(Debug, Clone, Trace, Finalize, JsData)]

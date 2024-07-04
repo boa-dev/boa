@@ -1,4 +1,4 @@
-#![allow(unused, unused_tuple_struct_fields)]
+#![allow(unused)]
 
 use boa_engine::{value::TryFromJs, Context, JsNativeError, JsResult, JsValue};
 

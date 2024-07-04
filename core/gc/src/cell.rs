@@ -199,7 +199,7 @@ impl<T: Trace + ?Sized> GcRefCell<T> {
 pub struct BorrowError;
 
 impl Display for BorrowError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         Display::fmt("GcCell<T> already mutably borrowed", f)
     }
 }
@@ -209,7 +209,7 @@ impl Display for BorrowError {
 pub struct BorrowMutError;
 
 impl Display for BorrowMutError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         Display::fmt("GcCell<T> already borrowed", f)
     }
 }

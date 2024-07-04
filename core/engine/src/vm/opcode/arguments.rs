@@ -19,19 +19,18 @@ impl Operation for CreateMappedArgumentsObject {
     const COST: u8 = 8;
 
     fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let function_object = context
-            .vm
-            .frame()
+        let frame = context.vm.frame();
+        let function_object = frame
             .function(&context.vm)
             .clone()
             .expect("there should be a function object");
-        let code = context.vm.frame().code_block().clone();
-        let args = context.vm.frame().arguments(&context.vm).to_vec();
+        let code = frame.code_block().clone();
+        let args = frame.arguments(&context.vm).to_vec();
 
-        let env = context.vm.environments.current();
+        let env = context.vm.environments.current_ref();
         let arguments = MappedArguments::new(
             &function_object,
-            &code.params,
+            &code.mapped_arguments_binding_indices,
             &args,
             env.declarative_expect(),
             context,

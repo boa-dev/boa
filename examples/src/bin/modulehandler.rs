@@ -13,7 +13,7 @@ fn add_runtime(context: &mut Context) {
     // We first add the `console` object, to be able to call `console.log()`.
     let console = Console::init(context);
     context
-        .register_global_property(js_string!(Console::NAME), console, Attribute::all())
+        .register_global_property(Console::NAME, console, Attribute::all())
         .expect("the console builtin shouldn't exist");
 }
 
@@ -28,11 +28,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     add_runtime(&mut ctx);
 
     // Adding custom implementation that mimics 'require'
-    ctx.register_global_callable(
-        js_string!("require"),
-        0,
-        NativeFunction::from_fn_ptr(require),
-    )?;
+    ctx.register_global_callable("require".into(), 0, NativeFunction::from_fn_ptr(require))?;
 
     // Adding custom object that mimics 'module.exports'
     let moduleobj = JsObject::default();

@@ -12,7 +12,6 @@ use crate::{
     Context, JsBigInt, JsString, JsValue,
 };
 use bitflags::bitflags;
-use boa_ast::function::FormalParameterList;
 use boa_gc::{empty_trace, Finalize, Gc, Trace};
 use boa_profiler::Profiler;
 use std::{cell::Cell, fmt::Display, mem::size_of, rc::Rc};
@@ -137,14 +136,16 @@ pub struct CodeBlock {
     /// The number of arguments expected.
     pub(crate) length: u32,
 
+    pub(crate) parameter_length: u32,
+
     pub(crate) register_count: u32,
 
-    /// \[\[ThisMode\]\]
+    /// `[[ThisMode]]`
     pub(crate) this_mode: ThisMode,
 
-    /// Parameters passed to this function.
+    /// Used for constructing a `MappedArguments` object.
     #[unsafe_ignore_trace]
-    pub(crate) params: FormalParameterList,
+    pub(crate) mapped_arguments_binding_indices: ThinVec<Option<u32>>,
 
     /// Bytecode
     #[unsafe_ignore_trace]
@@ -180,7 +181,8 @@ impl CodeBlock {
             length,
             register_count: 0,
             this_mode: ThisMode::Global,
-            params: FormalParameterList::default(),
+            mapped_arguments_binding_indices: ThinVec::new(),
+            parameter_length: 0,
             handlers: ThinVec::default(),
             ic: Box::default(),
         }
@@ -385,7 +387,11 @@ impl CodeBlock {
             Instruction::PushFloat { value } => ryu_js::Buffer::new().format(*value).to_string(),
             Instruction::PushDouble { value } => ryu_js::Buffer::new().format(*value).to_string(),
             Instruction::PushLiteral { index }
-            | Instruction::ThrowNewTypeError { message: index } => index.value().to_string(),
+            | Instruction::ThrowNewTypeError { message: index }
+            | Instruction::ThrowNewSyntaxError { message: index }
+            | Instruction::HasRestrictedGlobalProperty { index }
+            | Instruction::CanDeclareGlobalFunction { index }
+            | Instruction::CanDeclareGlobalVar { index } => index.value().to_string(),
             Instruction::PushRegExp {
                 pattern_index: source_index,
                 flags_index: flag_index,
@@ -526,11 +532,15 @@ impl CodeBlock {
                 format!("done: {done}")
             }
             Instruction::CreateGlobalFunctionBinding {
-                name_index,
+                index,
+                configurable,
+            }
+            | Instruction::CreateGlobalVarBinding {
+                index,
                 configurable,
             } => {
                 let name = self
-                    .constant_string(name_index.value() as usize)
+                    .constant_string(index.value() as usize)
                     .to_std_string_escaped();
                 format!("name: {name}, configurable: {configurable}")
             }
@@ -603,6 +613,7 @@ impl CodeBlock {
             | Instruction::Exception
             | Instruction::MaybeException
             | Instruction::This
+            | Instruction::ThisForObjectEnvironmentName { .. }
             | Instruction::Super
             | Instruction::CheckReturn
             | Instruction::Return
@@ -711,13 +722,7 @@ impl CodeBlock {
             | Instruction::Reserved50
             | Instruction::Reserved51
             | Instruction::Reserved52
-            | Instruction::Reserved53
-            | Instruction::Reserved54
-            | Instruction::Reserved55
-            | Instruction::Reserved56
-            | Instruction::Reserved57
-            | Instruction::Reserved58
-            | Instruction::Reserved59 => unreachable!("Reserved opcodes are unrechable"),
+            | Instruction::Reserved53 => unreachable!("Reserved opcodes are unrechable"),
         }
     }
 }

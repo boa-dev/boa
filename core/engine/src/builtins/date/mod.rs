@@ -27,12 +27,13 @@ use crate::{
     object::{internal_methods::get_prototype_from_constructor, JsObject},
     property::Attribute,
     realm::Realm,
-    string::{common::StaticJsStrings, utf16},
+    string::StaticJsStrings,
     symbol::JsSymbol,
     value::{JsValue, PreferredType},
     Context, JsArgs, JsData, JsError, JsResult, JsString,
 };
 use boa_gc::{Finalize, Trace};
+use boa_macros::js_str;
 use boa_profiler::Profiler;
 
 pub(crate) mod utils;
@@ -1416,34 +1417,40 @@ impl Date {
         //    including all format elements and the UTC offset representation "Z".
         let year = year_from_time(tv);
         let year = if year.is_positive() && year >= 10000 {
-            js_string!(utf16!("+"), &pad_six(year.unsigned_abs()))
+            js_string!(js_str!("+"), pad_six(year.unsigned_abs(), &mut [0; 6]))
         } else if year.is_positive() {
-            JsString::from(&pad_four(year.unsigned_abs()))
+            pad_four(year.unsigned_abs(), &mut [0; 4]).into()
         } else {
-            js_string!(utf16!("-"), &pad_six(year.unsigned_abs()))
+            js_string!(js_str!("-"), pad_six(year.unsigned_abs(), &mut [0; 6]))
         };
-        let month = pad_two(month_from_time(tv) + 1);
-        let day = pad_two(date_from_time(tv));
-        let hour = pad_two(hour_from_time(tv));
-        let minute = pad_two(min_from_time(tv));
-        let second = pad_two(sec_from_time(tv));
-        let millisecond = pad_three(ms_from_time(tv));
+        let mut binding = [0; 2];
+        let month = pad_two(month_from_time(tv) + 1, &mut binding);
+        let mut binding = [0; 2];
+        let day = pad_two(date_from_time(tv), &mut binding);
+        let mut binding = [0; 2];
+        let hour = pad_two(hour_from_time(tv), &mut binding);
+        let mut binding = [0; 2];
+        let minute = pad_two(min_from_time(tv), &mut binding);
+        let mut binding = [0; 2];
+        let second = pad_two(sec_from_time(tv), &mut binding);
+        let mut binding = [0; 3];
+        let millisecond = pad_three(ms_from_time(tv), &mut binding);
 
         Ok(JsValue::from(js_string!(
             &year,
-            utf16!("-"),
-            &month,
-            utf16!("-"),
-            &day,
-            utf16!("T"),
-            &hour,
-            utf16!(":"),
-            &minute,
-            utf16!(":"),
-            &second,
-            utf16!("."),
-            &millisecond,
-            utf16!("Z")
+            js_str!("-"),
+            month,
+            js_str!("-"),
+            day,
+            js_str!("T"),
+            hour,
+            js_str!(":"),
+            minute,
+            js_str!(":"),
+            second,
+            js_str!("."),
+            millisecond,
+            js_str!("Z")
         )))
     }
 
@@ -1473,7 +1480,7 @@ impl Date {
         }
 
         // 4. Return ? Invoke(O, "toISOString").
-        let func = o.get(utf16!("toISOString"), context)?;
+        let func = o.get(js_string!("toISOString"), context)?;
         func.call(this, &[], context)
     }
 
@@ -1632,50 +1639,51 @@ impl Date {
 
         // 5. Let weekday be the Name of the entry in Table 63 with the Number WeekDay(tv).
         let weekday = match week_day(tv) {
-            0 => utf16!("Sun"),
-            1 => utf16!("Mon"),
-            2 => utf16!("Tue"),
-            3 => utf16!("Wed"),
-            4 => utf16!("Thu"),
-            5 => utf16!("Fri"),
-            6 => utf16!("Sat"),
+            0 => js_str!("Sun"),
+            1 => js_str!("Mon"),
+            2 => js_str!("Tue"),
+            3 => js_str!("Wed"),
+            4 => js_str!("Thu"),
+            5 => js_str!("Fri"),
+            6 => js_str!("Sat"),
             _ => unreachable!(),
         };
 
         // 6. Let month be the Name of the entry in Table 64 with the Number MonthFromTime(tv).
         let month = match month_from_time(tv) {
-            0 => utf16!("Jan"),
-            1 => utf16!("Feb"),
-            2 => utf16!("Mar"),
-            3 => utf16!("Apr"),
-            4 => utf16!("May"),
-            5 => utf16!("Jun"),
-            6 => utf16!("Jul"),
-            7 => utf16!("Aug"),
-            8 => utf16!("Sep"),
-            9 => utf16!("Oct"),
-            10 => utf16!("Nov"),
-            11 => utf16!("Dec"),
+            0 => js_str!("Jan"),
+            1 => js_str!("Feb"),
+            2 => js_str!("Mar"),
+            3 => js_str!("Apr"),
+            4 => js_str!("May"),
+            5 => js_str!("Jun"),
+            6 => js_str!("Jul"),
+            7 => js_str!("Aug"),
+            8 => js_str!("Sep"),
+            9 => js_str!("Oct"),
+            10 => js_str!("Nov"),
+            11 => js_str!("Dec"),
             _ => unreachable!(),
         };
 
         // 7. Let day be ToZeroPaddedDecimalString(ℝ(DateFromTime(tv)), 2).
-        let day = pad_two(date_from_time(tv));
+        let mut binding = [0; 2];
+        let day = pad_two(date_from_time(tv), &mut binding);
 
         // 8. Let yv be YearFromTime(tv).
         let yv = year_from_time(tv);
 
         // 9. If yv is +0𝔽 or yv > +0𝔽, let yearSign be the empty String; otherwise, let yearSign be "-".
-        let year_sign = if yv >= 0 { utf16!("") } else { utf16!("-") };
+        let year_sign = if yv >= 0 { js_str!("") } else { js_str!("-") };
 
         // 10. Let paddedYear be ToZeroPaddedDecimalString(abs(ℝ(yv)), 4).
         let yv = yv.unsigned_abs();
-        let padded_year = if yv >= 100_000 {
-            js_string!(&pad_six(yv))
+        let padded_year: JsString = if yv >= 100_000 {
+            pad_six(yv, &mut [0; 6]).into()
         } else if yv >= 10000 {
-            js_string!(&pad_five(yv))
+            pad_five(yv, &mut [0; 5]).into()
         } else {
-            js_string!(&pad_four(yv))
+            pad_four(yv, &mut [0; 4]).into()
         };
 
         // 11. Return the string-concatenation of
@@ -1692,15 +1700,15 @@ impl Date {
         // and TimeString(tv).
         Ok(JsValue::from(js_string!(
             weekday,
-            utf16!(","),
-            utf16!(" "),
-            &day,
-            utf16!(" "),
+            js_str!(","),
+            js_str!(" "),
+            day,
+            js_str!(" "),
             month,
-            utf16!(" "),
+            js_str!(" "),
             year_sign,
             &padded_year,
-            utf16!(" "),
+            js_str!(" "),
             &time_string(tv)
         )))
     }
@@ -1755,12 +1763,10 @@ impl Date {
         let try_first = match hint.as_string() {
             // 3. If hint is "string" or "default", then
             // a. Let tryFirst be string.
-            Some(string) if string == utf16!("string") || string == utf16!("default") => {
-                PreferredType::String
-            }
+            Some(string) if string == "string" || string == "default" => PreferredType::String,
             // 4. Else if hint is "number", then
             // a. Let tryFirst be number.
-            Some(number) if number == utf16!("number") => PreferredType::Number,
+            Some(number) if number == "number" => PreferredType::Number,
             // 5. Else, throw a TypeError exception.
             _ => {
                 return Err(JsNativeError::typ()

@@ -40,3 +40,5 @@ name = "bytecompiler-implied"
 path = "fuzz_targets/bytecompiler-implied.rs"
 test = false
 doc = false
+[package.metadata.docs.rs]
+all-features = true

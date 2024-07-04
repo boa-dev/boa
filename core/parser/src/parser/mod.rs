@@ -11,7 +11,7 @@ mod tests;
 
 use crate::{
     error::ParseResult,
-    lexer::Error as LexError,
+    lexer::{Error as LexError, InputElement},
     parser::{
         cursor::Cursor,
         function::{FormalParameters, FunctionStatementList},
@@ -140,6 +140,7 @@ impl<'a, R: ReadChar> Parser<'a, R> {
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-Script
     pub fn parse_script(&mut self, interner: &mut Interner) -> ParseResult<boa_ast::Script> {
+        self.cursor.set_goal(InputElement::HashbangOrRegExp);
         ScriptParser::new(false).parse(&mut self.cursor, interner)
     }
 
@@ -155,6 +156,7 @@ impl<'a, R: ReadChar> Parser<'a, R> {
     where
         R: ReadChar,
     {
+        self.cursor.set_goal(InputElement::HashbangOrRegExp);
         ModuleParser.parse(&mut self.cursor, interner)
     }
 
@@ -172,6 +174,7 @@ impl<'a, R: ReadChar> Parser<'a, R> {
         direct: bool,
         interner: &mut Interner,
     ) -> ParseResult<boa_ast::Script> {
+        self.cursor.set_goal(InputElement::HashbangOrRegExp);
         ScriptParser::new(direct).parse(&mut self.cursor, interner)
     }
 
@@ -321,7 +324,7 @@ where
     type Output = StatementList;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let body = self::statement::StatementList::new(
+        let body = statement::StatementList::new(
             false,
             false,
             false,

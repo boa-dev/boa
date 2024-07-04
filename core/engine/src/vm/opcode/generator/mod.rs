@@ -8,8 +8,8 @@ use crate::{
         generator::{GeneratorContext, GeneratorState},
     },
     error::JsNativeError,
+    js_str,
     object::PROTOTYPE,
-    string::utf16,
     vm::{
         call_frame::GeneratorResumeKind,
         opcode::{Operation, ReThrow},
@@ -118,31 +118,35 @@ impl Operation for AsyncGeneratorClose {
 
     fn execute(context: &mut Context) -> JsResult<CompletionType> {
         // Step 3.e-g in [AsyncGeneratorStart](https://tc39.es/ecma262/#sec-asyncgeneratorstart)
-        let async_generator_object = context
+        let generator = context
             .vm
             .frame()
             .async_generator_object(&context.vm.stack)
-            .expect("There should be a object");
-
-        let mut gen = async_generator_object
-            .downcast_mut::<AsyncGenerator>()
+            .expect("There should be a object")
+            .downcast::<AsyncGenerator>()
             .expect("must be async generator");
 
-        gen.state = AsyncGeneratorState::Completed;
-        gen.context = None;
+        let mut gen = generator.borrow_mut();
 
-        let next = gen.queue.pop_front().expect("must have item in queue");
-        drop(gen);
+        gen.data.state = AsyncGeneratorState::Completed;
+        gen.data.context = None;
+
+        let next = gen.data.queue.pop_front().expect("must have item in queue");
 
         let return_value = context.vm.get_return_value();
         context.vm.set_return_value(JsValue::undefined());
 
-        if let Some(error) = context.vm.pending_exception.take() {
-            AsyncGenerator::complete_step(&next, Err(error), true, None, context);
-        } else {
-            AsyncGenerator::complete_step(&next, Ok(return_value), true, None, context);
-        }
-        AsyncGenerator::drain_queue(&async_generator_object, context);
+        let completion = context
+            .vm
+            .pending_exception
+            .take()
+            .map_or(Ok(return_value), Err);
+
+        drop(gen);
+
+        AsyncGenerator::complete_step(&next, completion, true, None, context);
+        // TODO: Upgrade to the latest spec when the problem is fixed.
+        AsyncGenerator::resume_next(&generator, context);
 
         Ok(CompletionType::Normal)
     }
@@ -244,7 +248,7 @@ impl Operation for GeneratorDelegateNext {
             GeneratorResumeKind::Throw => {
                 let throw = iterator_record
                     .iterator()
-                    .get_method(utf16!("throw"), context)?;
+                    .get_method(js_str!("throw"), context)?;
                 if let Some(throw) = throw {
                     let result = throw.call(
                         &iterator_record.iterator().clone().into(),
@@ -265,7 +269,7 @@ impl Operation for GeneratorDelegateNext {
             GeneratorResumeKind::Return => {
                 let r#return = iterator_record
                     .iterator()
-                    .get_method(utf16!("return"), context)?;
+                    .get_method(js_str!("return"), context)?;
                 if let Some(r#return) = r#return {
                     let result = r#return.call(
                         &iterator_record.iterator().clone().into(),

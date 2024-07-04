@@ -17,6 +17,7 @@ mod dup;
 mod environment;
 mod generator;
 mod get;
+mod global;
 mod iteration;
 mod meta;
 mod modifier;
@@ -59,6 +60,8 @@ pub(crate) use environment::*;
 pub(crate) use generator::*;
 #[doc(inline)]
 pub(crate) use get::*;
+#[doc(inline)]
+pub(crate) use global::*;
 #[doc(inline)]
 pub(crate) use iteration::*;
 #[doc(inline)]
@@ -1590,6 +1593,13 @@ generate_opcodes! {
     /// Stack: **=>**
     ThrowNewTypeError { message: VaryingOperand },
 
+    /// Throw a new `SyntaxError` exception
+    ///
+    /// Operands: message: u32
+    ///
+    /// Stack: **=>**
+    ThrowNewSyntaxError { message: VaryingOperand },
+
     /// Pops value converts it to boolean and pushes it back.
     ///
     /// Operands:
@@ -1603,6 +1613,13 @@ generate_opcodes! {
     ///
     /// Stack: **=>** this
     This,
+
+    /// Pushes `this` value that is related to the object environment of the given binding
+    ///
+    /// Operands: index: `VaryingOperand`
+    ///
+    /// Stack: **=>** value
+    ThisForObjectEnvironmentName { index: VaryingOperand },
 
     /// Pushes the current `super` value to the stack.
     ///
@@ -2070,14 +2087,50 @@ generate_opcodes! {
     /// Stack: **=>** `arguments`
     CreateUnmappedArgumentsObject,
 
+    /// Performs [`HasRestrictedGlobalProperty ( N )`][spec]
+    ///
+    /// Operands: `index`: u32
+    ///
+    /// Stack: **=>**
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-hasrestrictedglobalproperty
+    HasRestrictedGlobalProperty { index: VaryingOperand },
+
+    /// Performs [`CanDeclareGlobalFunction ( N )`][spec]
+    ///
+    /// Operands: `index`: u32
+    ///
+    /// Stack: **=>**
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-candeclareglobalfunction
+    CanDeclareGlobalFunction { index: VaryingOperand },
+
+    /// Performs [`CanDeclareGlobalVar ( N )`][spec]
+    ///
+    /// Operands: `index`: u32
+    ///
+    /// Stack: **=>**
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-candeclareglobalvar
+    CanDeclareGlobalVar { index: VaryingOperand },
+
     /// Performs [`CreateGlobalFunctionBinding ( N, V, D )`][spec]
     ///
-    /// Operands: configurable: `bool`, `name_index`: `VaryingOperand`
+    /// Operands: configurable: `bool`, `index`: `VaryingOperand`
     ///
-    /// Stack: `value` **=>**
+    /// Stack: `function` **=>**
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-createglobalfunctionbinding
-    CreateGlobalFunctionBinding { configurable: bool, name_index: VaryingOperand },
+    CreateGlobalFunctionBinding { configurable: bool, index: VaryingOperand },
+
+    /// Performs [`CreateGlobalVarBinding ( N, V, D )`][spec]
+    ///
+    /// Operands: configurable: `bool`, `index`: `VaryingOperand`
+    ///
+    /// Stack: **=>**
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-createglobalvarbinding
+    CreateGlobalVarBinding { configurable: bool, index: VaryingOperand },
 
     /// No-operation instruction, does nothing.
     ///
@@ -2206,18 +2259,6 @@ generate_opcodes! {
     Reserved52 => Reserved,
     /// Reserved [`Opcode`].
     Reserved53 => Reserved,
-    /// Reserved [`Opcode`].
-    Reserved54 => Reserved,
-    /// Reserved [`Opcode`].
-    Reserved55 => Reserved,
-    /// Reserved [`Opcode`].
-    Reserved56 => Reserved,
-    /// Reserved [`Opcode`].
-    Reserved57 => Reserved,
-    /// Reserved [`Opcode`].
-    Reserved58 => Reserved,
-    /// Reserved [`Opcode`].
-    Reserved59 => Reserved,
 }
 
 /// Specific opcodes for bindings.

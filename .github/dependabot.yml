@@ -1,83 +1,35 @@
 version: 2
 updates:
-  - package-ecosystem: npm
-    directory: /
-    schedule:
-      interval: daily
   - package-ecosystem: github-actions
     directory: /
     schedule:
-      interval: daily
+      interval: weekly
+    groups:
+      ci-dependencies:
+        applies-to: version-updates
+        patterns: ["*"]
+        update-types:
+        - "minor"
+        - "patch"
   - package-ecosystem: cargo
     directory: /
     schedule:
-      interval: daily
-  # CLI
-  - package-ecosystem: cargo
-    directory: /cli/
-    schedule:
-      interval: daily
-  # CORE
-  - package-ecosystem: cargo
-    directory: /core/ast/
-    schedule:
-      interval: daily
-  - package-ecosystem: cargo
-    directory: /core/engine/
-    schedule:
-      interval: daily
-  - package-ecosystem: cargo
-    directory: /core/gc/
-    schedule:
-      interval: daily
-  - package-ecosystem: cargo
-    directory: /core/icu_provider/
-    schedule:
-      interval: daily
-  - package-ecosystem: cargo
-    directory: /core/interner/
-    schedule:
-      interval: daily
-  - package-ecosystem: cargo
-    directory: /core/macros/
-    schedule:
-      interval: daily
-  - package-ecosystem: cargo
-    directory: /core/parser/
-    schedule:
-      interval: daily
-  - package-ecosystem: cargo
-    directory: /core/profiler/
-    schedule:
-      interval: daily
-  - package-ecosystem: cargo
-    directory: /core/runtime/
-    schedule:
-      interval: daily
-  - package-ecosystem: cargo
-    directory: /core/temporal/
-    schedule:
-      interval: daily
-  # TESTS
-  - package-ecosystem: cargo
-    directory: /tests/tester/
-    schedule:
-      interval: daily
-  - package-ecosystem: cargo
-    directory: /tests/macros/
-    schedule:
-      interval: daily
+      interval: weekly
+    groups:
+      rust-dependencies:
+        applies-to: version-updates
+        patterns: ["*"]
+        update-types:
+        - "minor"
+        - "patch"
   - package-ecosystem: cargo
     directory: /tests/fuzz/
     schedule:
-      interval: daily
-  # FFI
-  - package-ecosystem: cargo
-    directory: /ffi/wasm/
-    schedule:
-      interval: daily
-  # TOOLS
-  - package-ecosystem: cargo
-    directory: /tools/
-    schedule:
-      interval: daily
+      interval: weekly
+    groups:
+      fuzz-dependencies:
+        applies-to: version-updates
+        patterns: ["*"]
+        update-types:
+        - "minor"
+        - "patch"

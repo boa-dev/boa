@@ -67,7 +67,7 @@ pub enum UnaryOp {
     /// Syntax: `~x`
     ///
     /// NOT `a` yields the inverted value (or one's complement) of `a`.
-    /// Bitwise NOTing any number x yields -(x + 1). For example, ~-5 yields 4.
+    /// Bitwise `NOT`ing any number x yields -(x + 1). For example, ~-5 yields 4.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]

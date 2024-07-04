@@ -8,10 +8,10 @@ use crate::{
     object::JsObject,
     property::PropertyDescriptor,
     realm::Realm,
-    string::utf16,
     Context, JsString, JsValue,
 };
 use boa_gc::{custom_trace, Finalize, Trace};
+use boa_macros::js_str;
 use thiserror::Error;
 
 /// The error type returned by all operations related
@@ -30,11 +30,11 @@ use thiserror::Error;
 /// # Examples
 ///
 /// ```rust
-/// # use boa_engine::{JsError, JsNativeError, JsNativeErrorKind, JsValue, js_string};
-/// let cause = JsError::from_opaque(js_string!("error!").into());
+/// # use boa_engine::{JsError, JsNativeError, JsNativeErrorKind, JsValue, js_str};
+/// let cause = JsError::from_opaque(js_str!("error!").into());
 ///
 /// assert!(cause.as_opaque().is_some());
-/// assert_eq!(cause.as_opaque().unwrap(), &JsValue::from(js_string!("error!")));
+/// assert_eq!(cause.as_opaque().unwrap(), &JsValue::from(js_str!("error!")));
 ///
 /// let native_error: JsError = JsNativeError::typ()
 ///     .with_message("invalid type!")
@@ -233,13 +233,7 @@ impl JsError {
                     .ok_or_else(|| TryNativeError::NotAnErrorObject(val.clone()))?;
 
                 let try_get_property = |key: JsString, name, context: &mut Context| {
-                    obj.has_property(key.clone(), context)
-                        .map_err(|e| TryNativeError::InaccessibleProperty {
-                            property: name,
-                            source: e,
-                        })?
-                        .then(|| obj.get(key, context))
-                        .transpose()
+                    obj.try_get(key, context)
                         .map_err(|e| TryNativeError::InaccessibleProperty {
                             property: name,
                             source: e,
@@ -270,7 +264,7 @@ impl JsError {
                     ErrorObject::Syntax => JsNativeErrorKind::Syntax,
                     ErrorObject::Uri => JsNativeErrorKind::Uri,
                     ErrorObject::Aggregate => {
-                        let errors = obj.get(utf16!("errors"), context).map_err(|e| {
+                        let errors = obj.get(js_str!("errors"), context).map_err(|e| {
                             TryNativeError::InaccessibleProperty {
                                 property: "errors",
                                 source: e,
@@ -878,7 +872,7 @@ impl JsNativeError {
     /// # Examples
     ///
     /// ```rust
-    /// # use boa_engine::{Context, JsError, JsNativeError, js_string};
+    /// # use boa_engine::{Context, JsError, JsNativeError, js_str};
     /// # use boa_engine::builtins::error::ErrorObject;
     /// let context = &mut Context::default();
     ///
@@ -887,8 +881,8 @@ impl JsNativeError {
     ///
     /// assert!(error_obj.is::<ErrorObject>());
     /// assert_eq!(
-    ///     error_obj.get(js_string!("message"), context).unwrap(),
-    ///     js_string!("error!").into()
+    ///     error_obj.get(js_str!("message"), context).unwrap(),
+    ///     js_str!("error!").into()
     /// )
     /// ```
     ///
@@ -941,14 +935,14 @@ impl JsNativeError {
             JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), prototype, tag);
 
         o.create_non_enumerable_data_property_or_throw(
-            js_string!("message"),
+            js_str!("message"),
             js_string!(&**message),
             context,
         );
 
         if let Some(cause) = cause {
             o.create_non_enumerable_data_property_or_throw(
-                js_string!("cause"),
+                js_str!("cause"),
                 cause.to_opaque(context),
                 context,
             );
@@ -961,7 +955,7 @@ impl JsNativeError {
                 .collect::<Vec<_>>();
             let errors = Array::create_array_from_list(errors, context);
             o.define_property_or_throw(
-                js_string!("errors"),
+                js_str!("errors"),
                 PropertyDescriptor::builder()
                     .configurable(true)
                     .enumerable(false)

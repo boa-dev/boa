@@ -4,13 +4,13 @@ use crate::{
     builtins::{BuiltInBuilder, IntrinsicObject},
     context::intrinsics::Intrinsics,
     error::JsNativeError,
-    js_string,
     object::JsObject,
     realm::Realm,
     symbol::JsSymbol,
     Context, JsResult, JsValue,
 };
 use boa_gc::{Finalize, Trace};
+use boa_macros::js_str;
 use boa_profiler::Profiler;
 
 mod async_from_sync_iterator;
@@ -282,7 +282,7 @@ impl JsValue {
         })?;
 
         // 5. Let nextMethod be ? GetV(iterator, "next").
-        let next_method = iterator.get_v(js_string!("next"), context)?;
+        let next_method = iterator.get_v(js_str!("next"), context)?;
 
         // 6. Let iteratorRecord be the Record { [[Iterator]]: iterator, [[NextMethod]]: nextMethod, [[Done]]: false }.
         // 7. Return iteratorRecord.
@@ -326,7 +326,7 @@ impl IteratorResult {
     #[inline]
     pub fn complete(&self, context: &mut Context) -> JsResult<bool> {
         // 1. Return ToBoolean(? Get(iterResult, "done")).
-        Ok(self.object.get(js_string!("done"), context)?.to_boolean())
+        Ok(self.object.get(js_str!("done"), context)?.to_boolean())
     }
 
     /// `IteratorValue ( iterResult )`
@@ -342,7 +342,7 @@ impl IteratorResult {
     #[inline]
     pub fn value(&self, context: &mut Context) -> JsResult<JsValue> {
         // 1. Return ? Get(iterResult, "value").
-        self.object.get(js_string!("value"), context)
+        self.object.get(js_str!("value"), context)
     }
 }
 
@@ -524,7 +524,7 @@ impl IteratorRecord {
         let iterator = &self.iterator;
 
         // 3. Let innerResult be Completion(GetMethod(iterator, "return")).
-        let inner_result = iterator.get_method(js_string!("return"), context);
+        let inner_result = iterator.get_method(js_str!("return"), context);
 
         // 4. If innerResult.[[Type]] is normal, then
         let inner_result = match inner_result {

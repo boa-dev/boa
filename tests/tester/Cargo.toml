@@ -19,14 +19,13 @@ clap = { workspace = true, features = ["derive"] }
 serde = { workspace = true, features = ["derive"] }
 tc39-test262 = { path = "../../tools/tc39-test262"}
 serde_json.workspace = true
-once_cell.workspace = true
 colored.workspace = true
 rustc-hash = { workspace = true, features = ["std"] }
-rayon = "1.9.0"
-toml = "0.8.11"
-color-eyre = "0.6.3"
-comfy-table = "7.1.0"
-bus = "2.4.1"
+rayon.workspace = true
+toml.workspace = true
+color-eyre.workspace = true
+comfy-table.workspace = true
+bus.workspace = true
 time.workspace = true
 
 [dev-dependencies]
@@ -37,3 +36,6 @@ default = ["boa_engine/intl_bundled", "boa_engine/experimental", "boa_engine/ann
 
 [lints]
 workspace = true
+
+[package.metadata.docs.rs]
+all-features = true

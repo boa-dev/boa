@@ -7,7 +7,7 @@ use boa_engine::{
         builtins::{JsArray, JsArrayBuffer, JsUint8Array},
         FunctionObjectBuilder,
     },
-    property::{Attribute, PropertyKey},
+    property::Attribute,
     Context, JsNativeError, JsResult, JsValue,
 };
 use boa_gc::{Gc, GcRefCell};
@@ -168,7 +168,7 @@ fn main() -> JsResult<()> {
             .buffer(context)?
             .as_object()
             .unwrap()
-            .get(PropertyKey::String(js_string!("byteLength")), context)
+            .get(js_string!("byteLength"), context)
             .unwrap(),
         JsValue::new(8)
     );

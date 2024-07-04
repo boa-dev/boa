@@ -2,6 +2,7 @@
 //!
 //! For the builtin object wrappers, please see [`object::builtins`][builtins] for implementors.
 
+use boa_macros::js_str;
 pub use jsobject::{RecursionLimiter, Ref, RefMut};
 pub use operations::IntegrityLevel;
 pub use property_map::*;
@@ -22,8 +23,8 @@ use crate::{
     native_function::{NativeFunction, NativeFunctionObject},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
-    string::utf16,
-    Context, JsString, JsSymbol, JsValue,
+    string::StaticJsStrings,
+    Context, JsStr, JsString, JsSymbol, JsValue,
 };
 
 use boa_gc::{Finalize, Trace};
@@ -49,13 +50,11 @@ pub(crate) use builtins::*;
 pub use datatypes::JsData;
 pub use jsobject::*;
 
-pub(crate) trait JsObjectType: Into<JsValue> + Into<JsObject> {}
-
 /// Const `constructor`, usually set on prototypes as a key to point to their respective constructor object.
-pub const CONSTRUCTOR: &[u16] = utf16!("constructor");
+pub const CONSTRUCTOR: JsStr<'_> = js_str!("constructor");
 
 /// Const `prototype`, usually set on constructors as a key to point to their respective prototype object.
-pub const PROTOTYPE: &[u16] = utf16!("prototype");
+pub const PROTOTYPE: JsStr<'_> = js_str!("prototype");
 
 /// Common field names.
 
@@ -316,10 +315,10 @@ impl<T: ?Sized> Object<T> {
                     } = value
                     {
                         if existing_getter.is_none() {
-                            *existing_getter = getter.clone();
+                            existing_getter.clone_from(getter);
                         }
                         if existing_setter.is_none() {
-                            *existing_setter = setter.clone();
+                            existing_setter.clone_from(setter);
                         }
                         return;
                     }
@@ -1016,8 +1015,8 @@ impl<'ctx> ConstructorBuilder<'ctx> {
                 },
             };
 
-            constructor.insert(utf16!("length"), length);
-            constructor.insert(utf16!("name"), name);
+            constructor.insert(StaticJsStrings::LENGTH, length);
+            constructor.insert(js_str!("name"), name);
 
             if let Some(proto) = self.custom_prototype.take() {
                 constructor.set_prototype(proto);

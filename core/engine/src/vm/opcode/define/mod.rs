@@ -62,13 +62,11 @@ pub(crate) struct DefInitVar;
 impl DefInitVar {
     fn operation(context: &mut Context, index: usize) -> JsResult<CompletionType> {
         let value = context.vm.pop();
-        let mut binding_locator = context.vm.frame().code_block.bindings[index].clone();
+        let frame = context.vm.frame();
+        let strict = frame.code_block.strict();
+        let mut binding_locator = frame.code_block.bindings[index].clone();
         context.find_runtime_binding(&mut binding_locator)?;
-        context.set_binding(
-            &binding_locator,
-            value,
-            context.vm.frame().code_block.strict(),
-        )?;
+        context.set_binding(&binding_locator, value, strict)?;
 
         Ok(CompletionType::Normal)
     }
@@ -135,58 +133,5 @@ impl Operation for PutLexicalValue {
     fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
         let index = context.vm.read::<u32>();
         Self::operation(context, index as usize)
-    }
-}
-
-/// `CreateGlobalFunctionBinding` implements the Opcode Operation for `Opcode::CreateGlobalFunctionBinding`
-///
-/// Operation:
-/// - Performs [`CreateGlobalFunctionBinding ( N, V, D )`][spec]
-///
-/// [spec]: https://tc39.es/ecma262/#sec-createglobalfunctionbinding
-#[derive(Debug, Clone, Copy)]
-pub(crate) struct CreateGlobalFunctionBinding;
-
-impl CreateGlobalFunctionBinding {
-    #[allow(clippy::unnecessary_wraps)]
-    fn operation(
-        context: &mut Context,
-        index: usize,
-        configurable: bool,
-    ) -> JsResult<CompletionType> {
-        let name = context.vm.frame().code_block().constant_string(index);
-        let value = context.vm.pop();
-
-        let function = value
-            .as_object()
-            .expect("valeu should be an function")
-            .clone();
-        context.create_global_function_binding(name, function, configurable)?;
-
-        Ok(CompletionType::Normal)
-    }
-}
-
-impl Operation for CreateGlobalFunctionBinding {
-    const NAME: &'static str = "CreateGlobalFunctionBinding";
-    const INSTRUCTION: &'static str = "INST - CreateGlobalFunctionBinding";
-    const COST: u8 = 2;
-
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let configurable = context.vm.read::<u8>() != 0;
-        let index = context.vm.read::<u8>() as usize;
-        Self::operation(context, index, configurable)
-    }
-
-    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
-        let configurable = context.vm.read::<u8>() != 0;
-        let index = context.vm.read::<u16>() as usize;
-        Self::operation(context, index, configurable)
-    }
-
-    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
-        let configurable = context.vm.read::<u8>() != 0;
-        let index = context.vm.read::<u32>() as usize;
-        Self::operation(context, index, configurable)
     }
 }

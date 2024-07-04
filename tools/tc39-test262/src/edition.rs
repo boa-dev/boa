@@ -39,6 +39,12 @@ static FEATURE_EDITION: phf::Map<&'static str, SpecEdition> = phf::phf_map! {
     // https://github.com/tc39/proposal-json-modules
     "json-modules"  => SpecEdition::ESNext,
 
+    // https://github.com/tc39/proposal-source-phase-imports
+    "source-phase-imports"  => SpecEdition::ESNext,
+
+    // https://github.com/tc39/proposal-source-phase-imports
+    "source-phase-imports-module-source"  => SpecEdition::ESNext,
+
     // ArrayBuffer transfer
     // https://github.com/tc39/proposal-arraybuffer-transfer
     "arraybuffer-transfer" => SpecEdition::ESNext,
@@ -71,17 +77,29 @@ static FEATURE_EDITION: phf::Map<&'static str, SpecEdition> = phf::phf_map! {
     // https://github.com/tc39/proposal-json-parse-with-source
     "json-parse-with-source" => SpecEdition::ESNext,
 
+    // Regular expression modifiers
+    // https://github.com/tc39/proposal-regexp-modifiers
+    "regexp-modifiers" => SpecEdition::ESNext,
+
     // Iterator Helpers
     // https://github.com/tc39/proposal-iterator-helpers
     "iterator-helpers" => SpecEdition::ESNext,
+
+    // Promise.try
+    // https://github.com/tc39/proposal-promise-try
+    "promise-try" => SpecEdition::ESNext,
 
     // Set methods
     // https://github.com/tc39/proposal-set-methods
     "set-methods" => SpecEdition::ESNext,
 
-    // Regular Expression Pattern Modifiers
-    // https://github.com/tc39/proposal-regexp-modifiers
-    "regexp-modifiers" => SpecEdition::ESNext,
+    // Explicit Resource Management
+    // https://github.com/tc39/proposal-explicit-resource-management
+    "explicit-resource-management" => SpecEdition::ESNext,
+
+    // Float16Array + Math.f16round
+    // https://github.com/tc39/proposal-float16array
+    "Float16Array" => SpecEdition::ESNext,
 
     // Part of the next ES15 edition
     "Atomics.waitAsync"  => SpecEdition::ESNext,

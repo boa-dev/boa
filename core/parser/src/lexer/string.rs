@@ -48,6 +48,7 @@ pub(crate) trait UTF16CodeUnitsBuffer {
     fn push_code_point(&mut self, code_point: u32);
 
     /// Decodes the buffer into a String and replace the invalid data with the replacement character (U+FFFD).
+    #[allow(dead_code)]
     fn to_string_lossy(&self) -> String;
 }
 

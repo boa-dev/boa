@@ -2,7 +2,7 @@
 use crate::{
     builtins::Array,
     error::JsNativeError,
-    object::{JsFunction, JsObject, JsObjectType},
+    object::{JsFunction, JsObject},
     value::{IntoOrUndefined, TryFromJs},
     Context, JsResult, JsString, JsValue,
 };
@@ -436,8 +436,6 @@ impl Deref for JsArray {
         &self.inner
     }
 }
-
-impl JsObjectType for JsArray {}
 
 impl TryFromJs for JsArray {
     fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {

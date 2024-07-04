@@ -17,12 +17,13 @@ impl Operation for RestParameterInit {
     const COST: u8 = 6;
 
     fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let argument_count = context.vm.frame().argument_count as usize;
-        let param_count = context.vm.frame().code_block().params.as_ref().len();
+        let frame = context.vm.frame();
+        let argument_count = frame.argument_count;
+        let param_count = frame.code_block().parameter_length;
 
         let array = if argument_count >= param_count {
             let rest_count = argument_count - param_count + 1;
-            let args = context.vm.pop_n_values(rest_count);
+            let args = context.vm.pop_n_values(rest_count as usize);
             Array::create_array_from_list(args, context)
         } else {
             Array::array_create(0, None, context).expect("could not create an empty array")

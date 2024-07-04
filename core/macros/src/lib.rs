@@ -16,6 +16,19 @@ use syn::{
 };
 use synstructure::{decl_derive, AddBounds, Structure};
 
+mod embedded_module_loader;
+
+/// Implementation of the inner iterator of the `embed_module!` macro. All
+/// arguments are required.
+///
+/// # Warning
+/// This should not be used directly as is, and instead should be used through
+/// the `embed_module!` macro in `boa_interop` for convenience.
+#[proc_macro]
+pub fn embed_module_inner(input: TokenStream) -> TokenStream {
+    embedded_module_loader::embed_module_impl(input)
+}
+
 struct Static {
     literal: LitStr,
     ident: Ident,
@@ -164,6 +177,33 @@ pub fn utf16(input: TokenStream) -> TokenStream {
     let utf16 = utf8.encode_utf16().collect::<Vec<_>>();
     quote! {
         [#(#utf16),*].as_slice()
+    }
+    .into()
+}
+
+/// Convert a utf8 string literal to a `JsString`
+#[proc_macro]
+pub fn js_str(input: TokenStream) -> TokenStream {
+    let literal = parse_macro_input!(input as LitStr);
+    let utf8 = literal.value();
+
+    let mut is_latin1 = true;
+    let utf16 = utf8
+        .encode_utf16()
+        .inspect(|x| {
+            if *x > u8::MAX.into() {
+                is_latin1 = false;
+            }
+        })
+        .collect::<Vec<_>>();
+    if is_latin1 {
+        quote! {
+            ::boa_engine::string::JsStr::latin1(#utf8.as_bytes())
+        }
+    } else {
+        quote! {
+            ::boa_engine::string::JsStr::utf16([#(#utf16),*].as_slice())
+        }
     }
     .into()
 }
@@ -418,30 +458,19 @@ fn generate_conversion(fields: FieldsNamed) -> Result<proc_macro2::TokenStream, 
             .map_err(|err| vec![err])?;
         }
 
+        final_fields.push(quote! {
+            let #name = match props.get(&::boa_engine::js_string!(#name_str).into()) {
+                Some(pd) => pd.value().ok_or_else(|| ::boa_engine::JsError::from(
+                        ::boa_engine::JsNativeError::typ().with_message(#error_str)
+                    ))?.clone().try_js_into(context)?,
+                None => ::boa_engine::JsValue::undefined().try_js_into(context)?,
+            };
+        });
+
         if let Some(method) = from_js_with {
             let ident = Ident::new(&method.value(), method.span());
             final_fields.push(quote! {
-                let #name = #ident(props.get(&::boa_engine::js_string!(#name_str).into()).ok_or_else(|| {
-                    ::boa_engine::JsError::from(
-                        boa_engine::JsNativeError::typ().with_message(#error_str)
-                    )
-                })?.value().ok_or_else(|| {
-                    ::boa_engine::JsError::from(
-                        boa_engine::JsNativeError::typ().with_message(#error_str)
-                    )
-                })?, context)?;
-            });
-        } else {
-            final_fields.push(quote! {
-                let #name = props.get(&::boa_engine::js_string!(#name_str).into()).ok_or_else(|| {
-                    ::boa_engine::JsError::from(
-                        boa_engine::JsNativeError::typ().with_message(#error_str)
-                    )
-                })?.value().ok_or_else(|| {
-                    ::boa_engine::JsError::from(
-                        boa_engine::JsNativeError::typ().with_message(#error_str)
-                    )
-                })?.clone().try_js_into(context)?;
+                let #name = #ident(&#name, context)?;
             });
         }
     }

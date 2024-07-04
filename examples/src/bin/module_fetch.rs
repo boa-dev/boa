@@ -9,7 +9,6 @@ use boa_engine::{
     job::{FutureJob, JobQueue, NativeJob},
     js_string,
     module::ModuleLoader,
-    string::utf16,
     Context, JsNativeError, JsResult, JsString, JsValue, Module,
 };
 use boa_parser::Source;
@@ -163,14 +162,14 @@ fn main() -> JsResult<()> {
             .get(0, context)?
             .as_string()
             .ok_or_else(|| JsNativeError::typ().with_message("array element was not a string"))?,
-        utf16!("aGVsbG8=")
+        &js_string!("aGVsbG8=")
     );
     assert_eq!(
         default
             .get(1, context)?
             .as_string()
             .ok_or_else(|| JsNativeError::typ().with_message("array element was not a string"))?,
-        utf16!("d29ybGQ=")
+        &js_string!("d29ybGQ=")
     );
 
     Ok(())

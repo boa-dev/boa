@@ -6,10 +6,11 @@ use crate::{
     environments::CompileTimeEnvironment,
     js_string,
     vm::{CodeBlock, CodeBlockFlags, Opcode},
-    Context, JsString,
+    JsString,
 };
 use boa_ast::function::{FormalParameterList, FunctionBody};
 use boa_gc::Gc;
+use boa_interner::Interner;
 
 /// `FunctionCompiler` is used to compile AST functions to bytecode.
 #[derive(Debug, Clone)]
@@ -21,6 +22,7 @@ pub(crate) struct FunctionCompiler {
     strict: bool,
     arrow: bool,
     method: bool,
+    in_with: bool,
     binding_identifier: Option<JsString>,
 }
 
@@ -34,6 +36,7 @@ impl FunctionCompiler {
             strict: false,
             arrow: false,
             method: false,
+            in_with: false,
             binding_identifier: None,
         }
     }
@@ -84,6 +87,12 @@ impl FunctionCompiler {
         self
     }
 
+    /// Indicate if the function is in a `with` statement.
+    pub(crate) const fn in_with(mut self, in_with: bool) -> Self {
+        self.in_with = in_with;
+        self
+    }
+
     /// Compile a function statement list and it's parameters into bytecode.
     pub(crate) fn compile(
         mut self,
@@ -91,7 +100,7 @@ impl FunctionCompiler {
         body: &FunctionBody,
         variable_environment: Rc<CompileTimeEnvironment>,
         lexical_environment: Rc<CompileTimeEnvironment>,
-        context: &mut Context,
+        interner: &mut Interner,
     ) -> Gc<CodeBlock> {
         self.strict = self.strict || body.strict();
 
@@ -103,7 +112,8 @@ impl FunctionCompiler {
             false,
             variable_environment,
             lexical_environment,
-            context,
+            interner,
+            self.in_with,
         );
         compiler.length = length;
         compiler

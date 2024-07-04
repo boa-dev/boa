@@ -1,4 +1,4 @@
-#![allow(unused_crate_dependencies, unused_tuple_struct_fields)]
+#![allow(unused_crate_dependencies)]
 
 #[test]
 fn try_from_js() {

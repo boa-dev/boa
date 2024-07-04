@@ -376,6 +376,7 @@ fn main() -> Result<(), io::Error> {
             .read(true)
             .write(true)
             .create(true)
+            .truncate(false)
             .open(CLI_HISTORY)?;
         editor.load_history(CLI_HISTORY).map_err(|err| match err {
             ReadlineError::Io(e) => e,

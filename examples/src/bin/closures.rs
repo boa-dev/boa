@@ -8,7 +8,6 @@ use boa_engine::{
     native_function::NativeFunction,
     object::{builtins::JsArray, FunctionObjectBuilder, JsObject},
     property::{Attribute, PropertyDescriptor},
-    string::utf16,
     Context, JsError, JsNativeError, JsString, JsValue, Source,
 };
 use boa_gc::{Finalize, GcRefCell, Trace};
@@ -24,7 +23,7 @@ fn main() -> Result<(), JsError> {
     // We register a global closure function that has the name 'closure' with length 0.
     context
         .register_global_callable(
-            js_string!("closure"),
+            JsString::from("closure"),
             0,
             NativeFunction::from_copy_closure(move |_, _, _| {
                 println!("Called `closure`");
@@ -82,14 +81,14 @@ fn main() -> Result<(), JsError> {
 
                 // We create a new message from our captured variable.
                 let message = js_string!(
-                    utf16!("message from `"),
+                    &js_string!("message from `"),
                     &name.to_string(context)?,
-                    utf16!("`: "),
-                    greeting
+                    &js_string!("`: "),
+                    &*greeting
                 );
 
                 // We can also mutate the moved data inside the closure.
-                captures.greeting = js_string!(greeting, utf16!(" Hello!"));
+                captures.greeting = js_string!(&*greeting, &js_string!(" Hello!"));
 
                 println!("{}", message.to_std_string_escaped());
                 println!();
@@ -102,7 +101,7 @@ fn main() -> Result<(), JsError> {
         ),
     )
     // And here we assign `createMessage` to the `name` property of the closure.
-    .name("createMessage")
+    .name(js_string!("createMessage"))
     // By default all `FunctionBuilder`s set the `length` property to `0` and
     // the `constructable` property to `false`.
     .build();

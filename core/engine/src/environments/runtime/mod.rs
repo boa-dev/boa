@@ -77,11 +77,11 @@ impl EnvironmentStack {
     }
 
     /// Gets the current global environment.
-    pub(crate) fn global(&self) -> Gc<DeclarativeEnvironment> {
-        let env = self.stack[0].clone();
+    pub(crate) fn global(&self) -> &Gc<DeclarativeEnvironment> {
+        let env = &self.stack[0];
 
         match env {
-            Environment::Declarative(ref env) => env.clone(),
+            Environment::Declarative(ref env) => env,
             Environment::Object(_) => {
                 unreachable!("first environment should be the global environment")
             }
@@ -89,7 +89,7 @@ impl EnvironmentStack {
     }
 
     /// Gets the next outer function environment.
-    pub(crate) fn outer_function_environment(&self) -> Gc<DeclarativeEnvironment> {
+    pub(crate) fn outer_function_environment(&self) -> &Gc<DeclarativeEnvironment> {
         for env in self
             .stack
             .iter()
@@ -97,7 +97,7 @@ impl EnvironmentStack {
             .rev()
         {
             if let DeclarativeEnvironmentKind::Function(_) = &env.kind() {
-                return env.clone();
+                return env;
             }
         }
         self.global()
@@ -288,11 +288,10 @@ impl EnvironmentStack {
     ///
     /// Panics if no environment exists on the stack.
     #[track_caller]
-    pub(crate) fn current(&self) -> Environment {
+    pub(crate) fn current_ref(&self) -> &Environment {
         self.stack
             .last()
             .expect("global environment must always exist")
-            .clone()
     }
 
     /// Get the compile environment for the current runtime environment.
@@ -411,6 +410,13 @@ impl EnvironmentStack {
         }
         names
     }
+
+    /// Indicate if the current environment stack has an object environment.
+    pub(crate) fn has_object_environment(&self) -> bool {
+        self.stack
+            .iter()
+            .any(|env| matches!(env, Environment::Object(_)))
+    }
 }
 
 /// A binding locator contains all information about a binding that is needed to resolve it at runtime.
@@ -495,7 +501,7 @@ impl Context {
     /// are completely removed of runtime checks because the specification guarantees that runtime
     /// semantics cannot add or remove lexical bindings.
     pub(crate) fn find_runtime_binding(&mut self, locator: &mut BindingLocator) -> JsResult<()> {
-        let current = self.vm.environments.current();
+        let current = self.vm.environments.current_ref();
         if let Some(env) = current.as_declarative() {
             if !env.with() && !env.poisoned() {
                 return Ok(());
@@ -541,6 +547,50 @@ impl Context {
         Ok(())
     }
 
+    /// Finds the object environment that contains the binding and returns the `this` value of the object environment.
+    pub(crate) fn this_from_object_environment_binding(
+        &mut self,
+        locator: &BindingLocator,
+    ) -> JsResult<Option<JsObject>> {
+        let current = self.vm.environments.current_ref();
+        if let Some(env) = current.as_declarative() {
+            if !env.with() {
+                return Ok(None);
+            }
+        }
+
+        for env_index in (locator.environment_index..self.vm.environments.stack.len() as u32).rev()
+        {
+            match self.environment_expect(env_index) {
+                Environment::Declarative(env) => {
+                    if env.poisoned() {
+                        let compile = env.compile_env();
+                        if compile.is_function() && compile.get_binding(locator.name()).is_some() {
+                            break;
+                        }
+                    } else if !env.with() {
+                        break;
+                    }
+                }
+                Environment::Object(o) => {
+                    let o = o.clone();
+                    let key = locator.name().clone();
+                    if o.has_property(key.clone(), self)? {
+                        if let Some(unscopables) = o.get(JsSymbol::unscopables(), self)?.as_object()
+                        {
+                            if unscopables.get(key.clone(), self)?.to_boolean() {
+                                continue;
+                            }
+                        }
+                        return Ok(Some(o));
+                    }
+                }
+            }
+        }
+
+        Ok(None)
+    }
+
     /// Checks if the binding pointed by `locator` is initialized.
     ///
     /// # Panics
@@ -570,11 +620,7 @@ impl Context {
         if locator.global {
             let global = self.global_object();
             let key = locator.name().clone();
-            if global.has_property(key.clone(), self)? {
-                global.get(key, self).map(Some)
-            } else {
-                Ok(None)
-            }
+            global.try_get(key, self)
         } else {
             match self.environment_expect(locator.environment_index) {
                 Environment::Declarative(env) => Ok(env.get(locator.binding_index)),

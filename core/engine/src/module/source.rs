@@ -12,7 +12,7 @@ use boa_ast::{
 };
 use boa_gc::{Finalize, Gc, GcRefCell, Trace};
 use boa_interner::Interner;
-use boa_macros::utf16;
+use boa_macros::js_str;
 use indexmap::IndexSet;
 use rustc_hash::{FxHashMap, FxHashSet, FxHasher};
 
@@ -506,7 +506,7 @@ impl SourceTextModule {
             // c. For each element n of starNames, do
             for n in requested_module.get_exported_names(export_star_set, interner) {
                 // i. If SameValue(n, "default") is false, then
-                if &n != utf16!("default") {
+                if n != js_str!("default") {
                     // 1. If exportedNames does not contain n, then
                     //    a. Append n to exportedNames.
                     exported_names.insert(n);
@@ -583,7 +583,7 @@ impl SourceTextModule {
         }
 
         // 7. If SameValue(exportName, "default") is true, then
-        if &export_name.clone() == utf16!("default") {
+        if export_name == &js_str!("default") {
             // a. Assert: A default export was not explicitly defined by this module.
             // b. Return null.
             // c. NOTE: A default export cannot be provided by an export * from "mod" declaration.
@@ -1001,7 +1001,7 @@ impl SourceTextModule {
         /// Returns an error if there's no more available indices.
         fn get_async_eval_index() -> JsResult<usize> {
             thread_local! {
-                static ASYNC_EVAL_QUEUE_INDEX: Cell<usize> = Cell::new(0);
+                static ASYNC_EVAL_QUEUE_INDEX: Cell<usize> = const { Cell::new(0) };
             }
 
             ASYNC_EVAL_QUEUE_INDEX
@@ -1432,7 +1432,8 @@ impl SourceTextModule {
             false,
             env.clone(),
             env.clone(),
-            context,
+            context.interner_mut(),
+            false,
         );
 
         compiler.code_block_flags |= CodeBlockFlags::IS_ASYNC;
@@ -1664,7 +1665,7 @@ impl SourceTextModule {
                     BindingName::Name(name) => context
                         .vm
                         .environments
-                        .current()
+                        .current_ref()
                         .declarative_expect()
                         .kind()
                         .as_module()
@@ -1703,7 +1704,7 @@ impl SourceTextModule {
 
         let env = frame
             .environments
-            .current()
+            .current_ref()
             .as_declarative()
             .cloned()
             .expect("frame must have a declarative environment");
@@ -1771,9 +1772,7 @@ impl SourceTextModule {
 
         context
             .vm
-            .frames
-            .last()
-            .expect("there should be a frame")
+            .frame
             .set_promise_capability(&mut context.vm.stack, capability);
 
         // 9. If module.[[HasTLA]] is false, then

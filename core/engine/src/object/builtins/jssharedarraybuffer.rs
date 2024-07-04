@@ -1,10 +1,7 @@
 //! A Rust API wrapper for Boa's `SharedArrayBuffer` Builtin ECMAScript Object
 use crate::{
-    builtins::array_buffer::SharedArrayBuffer,
-    error::JsNativeError,
-    object::{JsObject, JsObjectType},
-    value::TryFromJs,
-    Context, JsResult, JsValue,
+    builtins::array_buffer::SharedArrayBuffer, error::JsNativeError, object::JsObject,
+    value::TryFromJs, Context, JsResult, JsValue,
 };
 use boa_gc::{Finalize, Trace};
 use std::{ops::Deref, sync::atomic::Ordering};
@@ -117,8 +114,6 @@ impl Deref for JsSharedArrayBuffer {
         &self.inner
     }
 }
-
-impl JsObjectType for JsSharedArrayBuffer {}
 
 impl TryFromJs for JsSharedArrayBuffer {
     fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {

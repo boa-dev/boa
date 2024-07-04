@@ -33,10 +33,10 @@ impl Operation for CheckReturn {
     const COST: u8 = 3;
 
     fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        if !context.vm.frame().construct() {
+        let frame = context.vm.frame();
+        if !frame.construct() {
             return Ok(CompletionType::Normal);
         }
-        let frame = context.vm.frame();
         let this = frame.this(&context.vm);
         let result = context.vm.take_return_value();
 
@@ -54,16 +54,21 @@ impl Operation for CheckReturn {
             );
             return Ok(CompletionType::Throw);
         } else {
-            let realm = context.vm.frame().realm.clone();
-            let this = context.vm.environments.get_this_binding();
+            let frame = context.vm.frame();
+            if frame.has_this_value_cached() {
+                this
+            } else {
+                let realm = frame.realm.clone();
+                let this = context.vm.environments.get_this_binding();
 
-            match this {
-                Err(err) => {
-                    let err = err.inject_realm(realm);
-                    context.vm.pending_exception = Some(err);
-                    return Ok(CompletionType::Throw);
+                match this {
+                    Err(err) => {
+                        let err = err.inject_realm(realm);
+                        context.vm.pending_exception = Some(err);
+                        return Ok(CompletionType::Throw);
+                    }
+                    Ok(this) => this,
                 }
-                Ok(this) => this,
             }
         };
 

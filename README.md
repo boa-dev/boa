@@ -18,13 +18,14 @@ Currently, it has support for some of the language.
 [![Crates.io](https://img.shields.io/crates/v/boa_engine.svg)](https://crates.io/crates/boa_engine)
 [![Docs.rs](https://docs.rs/boa_engine/badge.svg)](https://docs.rs/boa_engine)
 [![Discord](https://img.shields.io/discord/595323158140158003?logo=discord)](https://discord.gg/tUFFk9Y)
+[![Matrix](https://img.shields.io/matrix/boa:matrix.org)](https://matrix.to/#/#boa:matrix.org)
 
 [build_badge]: https://github.com/boa-dev/boa/actions/workflows/rust.yml/badge.svg?event=push&branch=main
 [build_link]: https://github.com/boa-dev/boa/actions/workflows/rust.yml?query=event%3Apush+branch%3Amain
 
 ## Live Demo (WASM)
 
-Try out the engine now at the live WASM playground [here](https://boajs.dev/boa/playground/)!
+Try out the engine now at the live WASM playground [here](https://boajs.dev/playground)!
 
 Prefer a CLI? Feel free to try out `boa_cli`!
 
@@ -90,14 +91,12 @@ Congrats! You've executed your first `JavaScript` using `Boa`!
 
 For more information on `Boa`'s API. Feel free to check out our documentation.
 
-[**Release Documentation**](https://docs.rs/boa_engine/latest/boa_engine/)
-
-[**Dev `main` Documentation**](https://boajs.dev/boa/doc/boa_engine/index.html)
+[**API Documentation**](https://docs.rs/boa_engine/latest/boa_engine/)
 
 ## Conformance
 
 To know how much of the _ECMAScript_ specification does Boa cover, you can check out results
-running the _ECMASCript Test262_ test suite [here](https://boajs.dev/boa/test262/).
+running the _ECMASCript Test262_ test suite [here](https://boajs.dev/conformance).
 
 ## Contributing
 
@@ -167,7 +166,7 @@ See [Milestones](https://github.com/boa-dev/boa/milestones).
 
 ## Benchmarks
 
-See [Benchmarks](https://boajs.dev/boa/dev/bench/).
+See [Benchmarks](https://boajs.dev/benchmarks).
 
 ## Profiling
 
@@ -179,7 +178,8 @@ See [CHANGELOG.md](./CHANGELOG.md).
 
 ## Communication
 
-Feel free to contact us on [Discord](https://discord.gg/tUFFk9Y).
+Feel free to contact us on [Discord](https://discord.gg/tUFFk9Y) for any questions or issues. The general
+contributor chat for Boa occurs on [Matrix](https://matrix.to/#/#boa:matrix.org) if you're interested in contributing.
 
 ## License
 

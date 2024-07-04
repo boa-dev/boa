@@ -1,16 +1,14 @@
 //! A Rust API wrapper for the `Proxy` Builtin ECMAScript Object
-use boa_gc::{Finalize, Trace};
-
+use super::JsFunction;
 use crate::{
     builtins::Proxy,
+    js_str,
     native_function::{NativeFunction, NativeFunctionPointer},
-    object::{FunctionObjectBuilder, JsObject, JsObjectType},
-    string::utf16,
+    object::{FunctionObjectBuilder, JsObject},
     value::TryFromJs,
     Context, JsNativeError, JsResult, JsValue,
 };
-
-use super::JsFunction;
+use boa_gc::{Finalize, Trace};
 
 /// `JsProxy` provides a wrapper for Boa's implementation of the ECMAScript `Proxy` object
 ///
@@ -71,8 +69,6 @@ impl std::ops::Deref for JsProxy {
         &self.inner
     }
 }
-
-impl JsObjectType for JsProxy {}
 
 impl TryFromJs for JsProxy {
     fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {
@@ -405,7 +401,7 @@ impl JsProxyBuilder {
                 .length(3)
                 .build();
             handler
-                .create_data_property_or_throw(utf16!("apply"), f, context)
+                .create_data_property_or_throw(js_str!("apply"), f, context)
                 .expect("new object should be writable");
         }
         if let Some(construct) = self.construct {
@@ -414,7 +410,7 @@ impl JsProxyBuilder {
                     .length(3)
                     .build();
             handler
-                .create_data_property_or_throw(utf16!("construct"), f, context)
+                .create_data_property_or_throw(js_str!("construct"), f, context)
                 .expect("new object should be writable");
         }
         if let Some(define_property) = self.define_property {
@@ -425,7 +421,7 @@ impl JsProxyBuilder {
             .length(3)
             .build();
             handler
-                .create_data_property_or_throw(utf16!("defineProperty"), f, context)
+                .create_data_property_or_throw(js_str!("defineProperty"), f, context)
                 .expect("new object should be writable");
         }
         if let Some(delete_property) = self.delete_property {
@@ -436,7 +432,7 @@ impl JsProxyBuilder {
             .length(2)
             .build();
             handler
-                .create_data_property_or_throw(utf16!("deleteProperty"), f, context)
+                .create_data_property_or_throw(js_str!("deleteProperty"), f, context)
                 .expect("new object should be writable");
         }
         if let Some(get) = self.get {
@@ -444,7 +440,7 @@ impl JsProxyBuilder {
                 .length(3)
                 .build();
             handler
-                .create_data_property_or_throw(utf16!("get"), f, context)
+                .create_data_property_or_throw(js_str!("get"), f, context)
                 .expect("new object should be writable");
         }
         if let Some(get_own_property_descriptor) = self.get_own_property_descriptor {
@@ -455,7 +451,7 @@ impl JsProxyBuilder {
             .length(2)
             .build();
             handler
-                .create_data_property_or_throw(utf16!("getOwnPropertyDescriptor"), f, context)
+                .create_data_property_or_throw(js_str!("getOwnPropertyDescriptor"), f, context)
                 .expect("new object should be writable");
         }
         if let Some(get_prototype_of) = self.get_prototype_of {
@@ -466,7 +462,7 @@ impl JsProxyBuilder {
             .length(1)
             .build();
             handler
-                .create_data_property_or_throw(utf16!("getPrototypeOf"), f, context)
+                .create_data_property_or_throw(js_str!("getPrototypeOf"), f, context)
                 .expect("new object should be writable");
         }
         if let Some(has) = self.has {
@@ -474,7 +470,7 @@ impl JsProxyBuilder {
                 .length(2)
                 .build();
             handler
-                .create_data_property_or_throw(utf16!("has"), f, context)
+                .create_data_property_or_throw(js_str!("has"), f, context)
                 .expect("new object should be writable");
         }
         if let Some(is_extensible) = self.is_extensible {
@@ -485,7 +481,7 @@ impl JsProxyBuilder {
             .length(1)
             .build();
             handler
-                .create_data_property_or_throw(utf16!("isExtensible"), f, context)
+                .create_data_property_or_throw(js_str!("isExtensible"), f, context)
                 .expect("new object should be writable");
         }
         if let Some(own_keys) = self.own_keys {
@@ -494,7 +490,7 @@ impl JsProxyBuilder {
                     .length(1)
                     .build();
             handler
-                .create_data_property_or_throw(utf16!("ownKeys"), f, context)
+                .create_data_property_or_throw(js_str!("ownKeys"), f, context)
                 .expect("new object should be writable");
         }
         if let Some(prevent_extensions) = self.prevent_extensions {
@@ -505,7 +501,7 @@ impl JsProxyBuilder {
             .length(1)
             .build();
             handler
-                .create_data_property_or_throw(utf16!("preventExtensions"), f, context)
+                .create_data_property_or_throw(js_str!("preventExtensions"), f, context)
                 .expect("new object should be writable");
         }
         if let Some(set) = self.set {
@@ -513,7 +509,7 @@ impl JsProxyBuilder {
                 .length(4)
                 .build();
             handler
-                .create_data_property_or_throw(utf16!("set"), f, context)
+                .create_data_property_or_throw(js_str!("set"), f, context)
                 .expect("new object should be writable");
         }
         if let Some(set_prototype_of) = self.set_prototype_of {
@@ -524,7 +520,7 @@ impl JsProxyBuilder {
             .length(2)
             .build();
             handler
-                .create_data_property_or_throw(utf16!("setPrototypeOf"), f, context)
+                .create_data_property_or_throw(js_str!("setPrototypeOf"), f, context)
                 .expect("new object should be writable");
         }
 

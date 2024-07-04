@@ -39,6 +39,7 @@ impl<T> Clone for Tagged<T> {
 
 impl<T> Copy for Tagged<T> {}
 
+#[allow(dead_code)]
 impl<T> Tagged<T> {
     /// Creates a new, tagged `Tagged` pointer from an integer.
     ///

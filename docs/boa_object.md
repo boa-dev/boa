@@ -163,6 +163,30 @@ $boa.object.id(o)    // '0x7F5B3251B718'
 $boa.object.id($boa) // '0x7F5B3251B5D8'
 ```
 
+## Function `$boa.object.indexedStorageType(object)`
+
+This function returns indexed storage type.
+
+Example:
+
+```JavaScript
+let a = [1, 2]
+
+$boa.object.indexedStorageType(a) // 'DenseI32'
+
+a.push(0xdeadbeef)
+$boa.object.indexedStorageType(a) // 'DenseI32'
+
+a.push(0.5)
+$boa.object.indexedStorageType(a) // 'DenseF64'
+
+a.push("Hello")
+$boa.object.indexedStorageType(a) // 'DenseElement'
+
+a[100] = 100 // Make a hole
+$boa.object.indexedStorageType(a) // 'SparseElement'
+```
+
 ## Module `$boa.optimizer`
 
 This modules contains getters and setters for enabling and disabling optimizations.
@@ -288,4 +312,35 @@ function x() {
   return x();
 }
 x(); // RuntimeLimit: Maximum recursion limit 100 exceeded
+```
+
+## Module `$boa.string`
+
+This module contains helpful functions for getting information about a strings.
+
+### Function `$boa.string.storage(str)`
+
+Returns the string's inner storage type, if it's a well known string that is stored in the `STATIC_STRINGS` array in boa,
+then `"static"` is returned, `"heap"` otherwise.
+
+```JavaScript
+$boa.string.storage("push")             // "static"
+$boa.string.storage("specialFunction")  // "heap"
+```
+
+### Function `$boa.string.encoding(str)`
+
+Returns the string's inner encoding of the string.
+
+```JavaScript
+$boa.string.encoding("Greeting") // "latin1"
+$boa.string.encoding("挨拶")      // "utf16"
+```
+
+### Function `$boa.string.summary(str)`
+
+Returns an object with a short summary of the of the given string.
+
+```JavaScript
+$boa.string.summary("Greeting") // { storage: "heap", encoding: "latin1" }
 ```

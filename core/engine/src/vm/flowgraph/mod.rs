@@ -1,13 +1,13 @@
 //! This module is responsible for generating the vm instruction flowgraph.
 
 use crate::vm::CodeBlock;
-use boa_macros::utf16;
 
 mod color;
 mod edge;
 mod graph;
 mod node;
 
+use boa_macros::js_str;
 pub use color::*;
 pub use edge::*;
 pub use graph::*;
@@ -20,7 +20,7 @@ impl CodeBlock {
     #[allow(clippy::match_same_arms)]
     pub fn to_graph(&self, graph: &mut SubGraph) {
         // Have to remove any invalid graph chars like `<` or `>`.
-        let name = if self.name() == utf16!("<main>") {
+        let name = if self.name() == &js_str!("<main>") {
             "__main__".to_string()
         } else {
             self.name().to_std_string_escaped()
@@ -72,7 +72,11 @@ impl CodeBlock {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
                 }
-                Instruction::PushLiteral { .. } | Instruction::PushRegExp { .. } => {
+                Instruction::PushLiteral { .. }
+                | Instruction::PushRegExp { .. }
+                | Instruction::HasRestrictedGlobalProperty { .. }
+                | Instruction::CanDeclareGlobalFunction { .. }
+                | Instruction::CanDeclareGlobalVar { .. } => {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
                 }
@@ -281,7 +285,7 @@ impl CodeBlock {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
                 }
-                Instruction::ThrowNewTypeError { .. } => {
+                Instruction::ThrowNewTypeError { .. } | Instruction::ThrowNewSyntaxError { .. } => {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     if let Some((i, handler)) = self.find_handler(previous_pc as u32) {
                         graph.add_edge(
@@ -396,6 +400,7 @@ impl CodeBlock {
                 | Instruction::ToPropertyKey
                 | Instruction::ToBoolean
                 | Instruction::This
+                | Instruction::ThisForObjectEnvironmentName { .. }
                 | Instruction::Super
                 | Instruction::IncrementLoopIteration
                 | Instruction::CreateForInIterator
@@ -449,6 +454,7 @@ impl CodeBlock {
                 | Instruction::CreateMappedArgumentsObject
                 | Instruction::CreateUnmappedArgumentsObject
                 | Instruction::CreateGlobalFunctionBinding { .. }
+                | Instruction::CreateGlobalVarBinding { .. }
                 | Instruction::Nop => {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
@@ -510,13 +516,7 @@ impl CodeBlock {
                 | Instruction::Reserved50
                 | Instruction::Reserved51
                 | Instruction::Reserved52
-                | Instruction::Reserved53
-                | Instruction::Reserved54
-                | Instruction::Reserved55
-                | Instruction::Reserved56
-                | Instruction::Reserved57
-                | Instruction::Reserved58
-                | Instruction::Reserved59 => unreachable!("Reserved opcodes are unrechable"),
+                | Instruction::Reserved53 => unreachable!("Reserved opcodes are unrechable"),
             }
         }
 

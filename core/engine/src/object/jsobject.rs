@@ -17,11 +17,11 @@ use crate::{
     error::JsNativeError,
     js_string,
     property::{PropertyDescriptor, PropertyKey},
-    string::utf16,
     value::PreferredType,
     Context, JsResult, JsString, JsValue,
 };
 use boa_gc::{self, Finalize, Gc, GcBox, GcRefCell, Trace};
+use boa_macros::js_str;
 use std::{
     cell::RefCell,
     collections::HashMap,
@@ -337,9 +337,9 @@ impl JsObject {
         // 4. Else,
         //    a. Let methodNames be « "valueOf", "toString" ».
         let method_names = if hint == PreferredType::String {
-            [utf16!("toString"), utf16!("valueOf")]
+            [js_str!("toString"), js_str!("valueOf")]
         } else {
-            [utf16!("valueOf"), utf16!("toString")]
+            [js_str!("valueOf"), js_str!("toString")]
         };
 
         // 5. For each name in methodNames in List order, do
@@ -379,41 +379,40 @@ impl JsObject {
 
         // 3. Let hasEnumerable be ? HasProperty(Obj, "enumerable").
         // 4. If hasEnumerable is true, then ...
-        if self.has_property(utf16!("enumerable"), context)? {
+        if let Some(enumerable) = self.try_get(js_str!("enumerable"), context)? {
             // a. Let enumerable be ! ToBoolean(? Get(Obj, "enumerable")).
             // b. Set desc.[[Enumerable]] to enumerable.
-            desc = desc.enumerable(self.get(utf16!("enumerable"), context)?.to_boolean());
+            desc = desc.enumerable(enumerable.to_boolean());
         }
 
         // 5. Let hasConfigurable be ? HasProperty(Obj, "configurable").
         // 6. If hasConfigurable is true, then ...
-        if self.has_property(utf16!("configurable"), context)? {
+        if let Some(configurable) = self.try_get(js_str!("configurable"), context)? {
             // a. Let configurable be ! ToBoolean(? Get(Obj, "configurable")).
             // b. Set desc.[[Configurable]] to configurable.
-            desc = desc.configurable(self.get(utf16!("configurable"), context)?.to_boolean());
+            desc = desc.configurable(configurable.to_boolean());
         }
 
         // 7. Let hasValue be ? HasProperty(Obj, "value").
         // 8. If hasValue is true, then ...
-        if self.has_property(utf16!("value"), context)? {
+        if let Some(value) = self.try_get(js_str!("value"), context)? {
             // a. Let value be ? Get(Obj, "value").
             // b. Set desc.[[Value]] to value.
-            desc = desc.value(self.get(utf16!("value"), context)?);
+            desc = desc.value(value);
         }
 
         // 9. Let hasWritable be ? HasProperty(Obj, ).
         // 10. If hasWritable is true, then ...
-        if self.has_property(utf16!("writable"), context)? {
+        if let Some(writable) = self.try_get(js_str!("writable"), context)? {
             // a. Let writable be ! ToBoolean(? Get(Obj, "writable")).
             // b. Set desc.[[Writable]] to writable.
-            desc = desc.writable(self.get(utf16!("writable"), context)?.to_boolean());
+            desc = desc.writable(writable.to_boolean());
         }
 
         // 11. Let hasGet be ? HasProperty(Obj, "get").
         // 12. If hasGet is true, then
-        let get = if self.has_property(utf16!("get"), context)? {
-            // a. Let getter be ? Get(Obj, "get").
-            let getter = self.get(utf16!("get"), context)?;
+        // 12.a. Let getter be ? Get(Obj, "get").
+        let get = if let Some(getter) = self.try_get(js_str!("get"), context)? {
             // b. If IsCallable(getter) is false and getter is not undefined, throw a TypeError exception.
             // todo: extract IsCallable to be callable from Value
             if !getter.is_undefined() && getter.as_object().map_or(true, |o| !o.is_callable()) {
@@ -429,9 +428,8 @@ impl JsObject {
 
         // 13. Let hasSet be ? HasProperty(Obj, "set").
         // 14. If hasSet is true, then
-        let set = if self.has_property(utf16!("set"), context)? {
-            // 14.a. Let setter be ? Get(Obj, "set").
-            let setter = self.get(utf16!("set"), context)?;
+        // 14.a. Let setter be ? Get(Obj, "set").
+        let set = if let Some(setter) = self.try_get(js_str!("set"), context)? {
             // 14.b. If IsCallable(setter) is false and setter is not undefined, throw a TypeError exception.
             // todo: extract IsCallable to be callable from Value
             if !setter.is_undefined() && setter.as_object().map_or(true, |o| !o.is_callable()) {
@@ -534,6 +532,8 @@ Cannot both specify accessors and a value or writable attribute",
         Ok(())
     }
 
+    // Allow lint, false positive.
+    #[allow(clippy::assigning_clones)]
     pub(crate) fn get_property(&self, key: &PropertyKey) -> Option<PropertyDescriptor> {
         let mut obj = Some(self.clone());
 
@@ -842,7 +842,7 @@ impl Error for BorrowMutError {}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 enum RecursionValueState {
-    /// This value is "live": there's an active RecursionLimiter that hasn't been dropped.
+    /// This value is "live": there's an active `RecursionLimiter` that hasn't been dropped.
     Live,
     /// This value has been seen before, but the recursion limiter has been dropped.
     /// For example:
@@ -863,11 +863,11 @@ enum RecursionValueState {
 pub struct RecursionLimiter {
     /// If this was the first `JsObject` in the tree.
     top_level: bool,
-    /// The ptr being kept in the HashSet, so we can delete it when we drop.
+    /// The ptr being kept in the `HashSet`, so we can delete it when we drop.
     ptr: usize,
-    /// If this JsObject has been visited before in the graph, but not in the current branch.
+    /// If this `JsObject` has been visited before in the graph, but not in the current branch.
     pub visited: bool,
-    /// If this JsObject has been visited in the current branch of the graph.
+    /// If this `JsObject` has been visited in the current branch of the graph.
     pub live: bool,
 }
 
@@ -923,7 +923,7 @@ impl RecursionLimiter {
 }
 
 impl<T: NativeObject + ?Sized> Debug for JsObject<T> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let limiter = RecursionLimiter::new(self.as_ref());
 
         // Typically, using `!limiter.live` would be good enough here.
@@ -940,7 +940,7 @@ impl<T: NativeObject + ?Sized> Debug for JsObject<T> {
             if self.is_callable() {
                 let name_prop = obj
                     .properties()
-                    .get(&PropertyKey::String(JsString::from("name")));
+                    .get(&PropertyKey::String(js_string!("name")));
                 let name = match name_prop {
                     None => JsString::default(),
                     Some(prop) => prop

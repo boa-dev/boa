@@ -1,9 +1,9 @@
 use std::{
     cmp::{self, min},
-    sync::atomic::{self, Ordering},
+    sync::atomic::Ordering,
 };
 
-use boa_macros::utf16;
+use boa_macros::{js_str, utf16};
 use num_traits::Zero;
 
 use super::{
@@ -24,7 +24,7 @@ use crate::{
     object::internal_methods::get_prototype_from_constructor,
     property::{Attribute, PropertyNameKind},
     realm::Realm,
-    string::common::StaticJsStrings,
+    string::StaticJsStrings,
     value::IntegerOrInfinity,
     Context, JsArgs, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
@@ -79,25 +79,25 @@ impl IntrinsicObject for BuiltinTypedArray {
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("buffer"),
+                js_string!("buffer"),
                 Some(get_buffer),
                 None,
                 Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
             )
             .accessor(
-                utf16!("byteLength"),
+                js_string!("byteLength"),
                 Some(get_byte_length),
                 None,
                 Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
             )
             .accessor(
-                utf16!("byteOffset"),
+                js_string!("byteOffset"),
                 Some(get_byte_offset),
                 None,
                 Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
             )
             .accessor(
-                utf16!("length"),
+                StaticJsStrings::LENGTH,
                 Some(get_length),
                 None,
                 Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
@@ -1155,15 +1155,9 @@ impl BuiltinTypedArray {
         let ta = ta.upcast();
         for k in k..len {
             // a. Let kPresent be ! HasProperty(O, ! ToString(𝔽(k))).
-            let k_present = ta
-                .has_property(k, context)
-                .expect("HasProperty cannot fail here");
-
             // b. If kPresent is true, then
-            if k_present {
-                // i. Let elementK be ! Get(O, ! ToString(𝔽(k))).
-                let element_k = ta.get(k, context).expect("Get cannot fail here");
-
+            // b.i. Let elementK be ! Get(O, ! ToString(𝔽(k))).
+            if let Some(element_k) = ta.try_get(k, context).expect("Get cannot fail here") {
                 // ii. Let same be IsStrictlyEqual(searchElement, elementK).
                 // iii. If same is true, return 𝔽(k).
                 if args.get_or_undefined(0).strict_equals(&element_k) {
@@ -1214,7 +1208,7 @@ impl BuiltinTypedArray {
         for k in 0..len {
             // a. If k > 0, set R to the string-concatenation of R and sep.
             if k > 0 {
-                r.extend_from_slice(&sep);
+                r.extend(sep.iter());
             }
 
             // b. Let element be ! Get(O, ! ToString(𝔽(k))).
@@ -1223,12 +1217,12 @@ impl BuiltinTypedArray {
             // c. If element is undefined, let next be the empty String; otherwise, let next be ! ToString(element).
             // d. Set R to the string-concatenation of R and next.
             if !element.is_undefined() {
-                r.extend_from_slice(&element.to_string(context)?);
+                r.extend(element.to_string(context)?.iter());
             }
         }
 
         // 9. Return R.
-        Ok(js_string!(r).into())
+        Ok(js_string!(&r[..]).into())
     }
 
     /// `%TypedArray%.prototype.keys ( )`
@@ -1296,15 +1290,9 @@ impl BuiltinTypedArray {
         let ta = ta.upcast();
         for k in (0..k).rev() {
             // a. Let kPresent be ! HasProperty(O, ! ToString(𝔽(k))).
-            let k_present = ta
-                .has_property(k, context)
-                .expect("HasProperty cannot fail here");
-
             // b. If kPresent is true, then
-            if k_present {
-                // i. Let elementK be ! Get(O, ! ToString(𝔽(k))).
-                let element_k = ta.get(k, context).expect("Get cannot fail here");
-
+            // b.i. Let elementK be ! Get(O, ! ToString(𝔽(k))).
+            if let Some(element_k) = ta.try_get(k, context).expect("Get cannot fail here") {
                 // ii. Let same be IsStrictlyEqual(searchElement, elementK).
                 // iii. If same is true, return 𝔽(k).
                 if args.get_or_undefined(0).strict_equals(&element_k) {
@@ -1896,7 +1884,7 @@ impl BuiltinTypedArray {
                 let value = unsafe {
                     src_buffer
                         .subslice(src_byte_index..)
-                        .get_value(src_type, atomic::Ordering::Relaxed)
+                        .get_value(src_type, Ordering::Relaxed)
                 };
 
                 let value = JsValue::from(value);
@@ -1910,7 +1898,7 @@ impl BuiltinTypedArray {
                 unsafe {
                     target_buffer
                         .subslice_mut(target_byte_index..)
-                        .set_value(value, atomic::Ordering::Relaxed);
+                        .set_value(value, Ordering::Relaxed);
                 }
 
                 // iii. Set srcByteIndex to srcByteIndex + srcElementSize.
@@ -2493,7 +2481,7 @@ impl BuiltinTypedArray {
             if is_fixed_len || !next_element.is_undefined() {
                 let s = next_element
                     .invoke(
-                        utf16!("toLocaleString"),
+                        js_str!("toLocaleString"),
                         &[
                             args.get_or_undefined(0).clone(),
                             args.get_or_undefined(1).clone(),
@@ -2502,11 +2490,11 @@ impl BuiltinTypedArray {
                     )?
                     .to_string(context)?;
 
-                r.extend_from_slice(&s);
+                r.extend(s.iter());
             };
         }
 
-        Ok(js_string!(r).into())
+        Ok(js_string!(&r[..]).into())
     }
 
     /// `%TypedArray%.prototype.values ( )`
@@ -2913,7 +2901,7 @@ impl BuiltinTypedArray {
                     let value = unsafe {
                         src_data
                             .subslice(src_byte_index..)
-                            .get_value(src_type, atomic::Ordering::Relaxed)
+                            .get_value(src_type, Ordering::Relaxed)
                     };
 
                     let value = JsValue::from(value);
@@ -2928,7 +2916,7 @@ impl BuiltinTypedArray {
                     // bytes available, which makes `target_byte_index` always in-bounds.
                     unsafe {
                         data.subslice_mut(target_byte_index..)
-                            .set_value(value, atomic::Ordering::Relaxed);
+                            .set_value(value, Ordering::Relaxed);
                     }
 
                     // iii. Set srcByteIndex to srcByteIndex + srcElementSize.

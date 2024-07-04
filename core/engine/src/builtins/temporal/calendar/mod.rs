@@ -18,10 +18,11 @@ use crate::{
     object::internal_methods::get_prototype_from_constructor,
     property::Attribute,
     realm::Realm,
-    string::{common::StaticJsStrings, utf16},
+    string::StaticJsStrings,
     Context, JsArgs, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 use boa_gc::{custom_trace, Finalize, Trace};
+use boa_macros::js_str;
 use boa_profiler::Profiler;
 use temporal_rs::{
     components::calendar::{
@@ -75,7 +76,12 @@ impl IntrinsicObject for Calendar {
                 Self::NAME,
                 Attribute::CONFIGURABLE,
             )
-            .accessor(utf16!("id"), Some(get_id), None, Attribute::CONFIGURABLE)
+            .accessor(
+                js_string!("id"),
+                Some(get_id),
+                None,
+                Attribute::CONFIGURABLE,
+            )
             .static_method(Self::from, js_string!("from"), 1)
             .method(Self::date_from_fields, js_string!("dateFromFields"), 2)
             .method(
@@ -244,7 +250,7 @@ impl Calendar {
         };
 
         // 8. Let overflow be ? ToTemporalOverflow(options).
-        let overflow = get_option(&options, utf16!("overflow"), context)?
+        let overflow = get_option(&options, js_str!("overflow"), context)?
             .unwrap_or(ArithmeticOverflow::Constrain);
 
         // NOTE: implement the below on the calenar itself
@@ -327,7 +333,7 @@ impl Calendar {
         };
 
         // 7. Let overflow be ? ToTemporalOverflow(options).
-        let overflow = get_option::<ArithmeticOverflow>(&options, utf16!("overflow"), context)?
+        let overflow = get_option::<ArithmeticOverflow>(&options, js_str!("overflow"), context)?
             .unwrap_or(ArithmeticOverflow::Constrain);
 
         let result = calendar
@@ -403,7 +409,7 @@ impl Calendar {
         };
 
         // 8. Let overflow be ? ToTemporalOverflow(options).
-        let overflow = get_option(&options, utf16!("overflow"), context)?
+        let overflow = get_option(&options, js_str!("overflow"), context)?
             .unwrap_or(ArithmeticOverflow::Constrain);
 
         let result = calendar
@@ -439,7 +445,7 @@ impl Calendar {
         let options_obj = get_options_object(options)?;
 
         // 7. Let overflow be ? ToTemporalOverflow(options).
-        let overflow = get_option(&options_obj, utf16!("overflow"), context)?
+        let overflow = get_option(&options_obj, js_str!("overflow"), context)?
             .unwrap_or(ArithmeticOverflow::Constrain);
 
         // 8. Let balanceResult be ? BalanceTimeDuration(duration.[[Days]], duration.[[Hours]], duration.[[Minutes]],
@@ -476,7 +482,7 @@ impl Calendar {
         // 8. If largestUnit is "auto", set largestUnit to "day".
         let largest_unit = super::options::get_temporal_unit(
             &options,
-            utf16!("largestUnit"),
+            js_str!("largestUnit"),
             TemporalUnitGroup::Date,
             None,
             context,
@@ -909,11 +915,10 @@ impl Calendar {
         let additional_fields = args.get_or_undefined(1).to_object(context)?;
 
         // 3. Let fieldsCopy be ? SnapshotOwnProperties(? ToObject(fields), null, « », « undefined »).
-        let fields_copy = temporal::fields::object_to_temporal_fields(&fields, context)?;
+        let fields_copy = fields::object_to_temporal_fields(&fields, context)?;
 
         // 4. Let additionalFieldsCopy be ? SnapshotOwnProperties(? ToObject(additionalFields), null, « », « undefined »).
-        let additional_copy =
-            temporal::fields::object_to_temporal_fields(&additional_fields, context)?;
+        let additional_copy = fields::object_to_temporal_fields(&additional_fields, context)?;
 
         // Custom Calendars override the `fields` method.
         if let CalendarSlot::Protocol(proto) = &calendar.slot {
@@ -1033,7 +1038,7 @@ pub(crate) fn get_temporal_calendar_slot_value_with_default(
     }
 
     // 2. Let calendarLike be ? Get(item, "calendar").
-    let calendar_like = item.get(utf16!("calendar"), context)?;
+    let calendar_like = item.get(js_str!("calendar"), context)?;
 
     // 3. Return ? ToTemporalCalendarSlotValue(calendarLike, "iso8601").
     to_temporal_calendar_slot_value(&calendar_like, context)

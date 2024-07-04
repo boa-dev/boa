@@ -137,7 +137,7 @@ fn add_runtime(context: &mut Context) {
     // First add the `console` object, to be able to call `console.log()`.
     let console = Console::init(context);
     context
-        .register_global_property(js_string!(Console::NAME), console, Attribute::all())
+        .register_global_property(Console::NAME, console, Attribute::all())
         .expect("the console builtin shouldn't exist");
 
     // Then, bind the defined async function to the ECMAScript function "delay".

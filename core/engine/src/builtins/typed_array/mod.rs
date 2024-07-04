@@ -23,12 +23,13 @@ use crate::{
     object::{internal_methods::get_prototype_from_constructor, JsObject},
     property::Attribute,
     realm::Realm,
-    string::common::StaticJsStrings,
+    string::StaticJsStrings,
     symbol::JsSymbol,
     value::{JsValue, Numeric},
     Context, JsArgs, JsResult, JsString,
 };
 use boa_gc::{Finalize, Trace};
+use boa_macros::js_str;
 use boa_profiler::Profiler;
 
 mod builtin;
@@ -74,12 +75,12 @@ impl<T: TypedArrayMarker> IntrinsicObject for T {
                 Attribute::CONFIGURABLE,
             )
             .property(
-                js_string!("BYTES_PER_ELEMENT"),
+                js_str!("BYTES_PER_ELEMENT"),
                 std::mem::size_of::<T::Element>(),
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
             )
             .static_property(
-                js_string!("BYTES_PER_ELEMENT"),
+                js_str!("BYTES_PER_ELEMENT"),
                 std::mem::size_of::<T::Element>(),
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
             )

@@ -26,11 +26,12 @@ use crate::{
     },
     property::{PropertyDescriptor, PropertyKey},
     realm::Realm,
-    string::{common::StaticJsStrings, utf16},
+    string::StaticJsStrings,
     value::Type,
     Context, JsArgs, JsResult, JsString, JsValue,
 };
 use boa_gc::{Finalize, GcRefCell, Trace};
+use boa_macros::js_str;
 use boa_profiler::Profiler;
 use rustc_hash::FxHashSet;
 
@@ -52,6 +53,7 @@ impl JsData for Proxy {
             __get_own_property__: proxy_exotic_get_own_property,
             __define_own_property__: proxy_exotic_define_own_property,
             __has_property__: proxy_exotic_has_property,
+            __try_get__: proxy_exotic_try_get,
             __get__: proxy_exotic_get,
             __set__: proxy_exotic_set,
             __delete__: proxy_exotic_delete,
@@ -233,12 +235,12 @@ impl Proxy {
 
         // 6. Perform ! CreateDataPropertyOrThrow(result, "proxy", p).
         result
-            .create_data_property_or_throw(utf16!("proxy"), p, context)
+            .create_data_property_or_throw(js_str!("proxy"), p, context)
             .expect("CreateDataPropertyOrThrow cannot fail here");
 
         // 7. Perform ! CreateDataPropertyOrThrow(result, "revoke", revoker).
         result
-            .create_data_property_or_throw(utf16!("revoke"), revoker, context)
+            .create_data_property_or_throw(js_str!("revoke"), revoker, context)
             .expect("CreateDataPropertyOrThrow cannot fail here");
 
         // 8. Return result.
@@ -266,7 +268,7 @@ pub(crate) fn proxy_exotic_get_prototype_of(
         .try_data()?;
 
     // 5. Let trap be ? GetMethod(handler, "getPrototypeOf").
-    let Some(trap) = handler.get_method(utf16!("getPrototypeOf"), context)? else {
+    let Some(trap) = handler.get_method(js_str!("getPrototypeOf"), context)? else {
         // 6. If trap is undefined, then
         // a. Return ? target.[[GetPrototypeOf]]().
         return target.__get_prototype_of__(context);
@@ -327,7 +329,7 @@ pub(crate) fn proxy_exotic_set_prototype_of(
         .try_data()?;
 
     // 5. Let trap be ? GetMethod(handler, "setPrototypeOf").
-    let Some(trap) = handler.get_method(utf16!("setPrototypeOf"), context)? else {
+    let Some(trap) = handler.get_method(js_str!("setPrototypeOf"), context)? else {
         // 6. If trap is undefined, then
         // a. Return ? target.[[SetPrototypeOf]](V).
         return target.__set_prototype_of__(val, context);
@@ -386,7 +388,7 @@ pub(crate) fn proxy_exotic_is_extensible(obj: &JsObject, context: &mut Context) 
         .try_data()?;
 
     // 5. Let trap be ? GetMethod(handler, "isExtensible").
-    let Some(trap) = handler.get_method(utf16!("isExtensible"), context)? else {
+    let Some(trap) = handler.get_method(js_str!("isExtensible"), context)? else {
         // 6. If trap is undefined, then
         // a. Return ? IsExtensible(target).
         return target.is_extensible(context);
@@ -431,7 +433,7 @@ pub(crate) fn proxy_exotic_prevent_extensions(
         .try_data()?;
 
     // 5. Let trap be ? GetMethod(handler, "preventExtensions").
-    let Some(trap) = handler.get_method(utf16!("preventExtensions"), context)? else {
+    let Some(trap) = handler.get_method(js_str!("preventExtensions"), context)? else {
         // 6. If trap is undefined, then
         // a. Return ? target.[[PreventExtensions]]().
         return target.__prevent_extensions__(context);
@@ -478,7 +480,7 @@ pub(crate) fn proxy_exotic_get_own_property(
         .try_data()?;
 
     // 5. Let trap be ? GetMethod(handler, "getOwnPropertyDescriptor").
-    let Some(trap) = handler.get_method(utf16!("getOwnPropertyDescriptor"), context)? else {
+    let Some(trap) = handler.get_method(js_str!("getOwnPropertyDescriptor"), context)? else {
         // 6. If trap is undefined, then
         // a. Return ? target.[[GetOwnProperty]](P).
         return target.__get_own_property__(key, context);
@@ -603,7 +605,7 @@ pub(crate) fn proxy_exotic_define_own_property(
         .try_data()?;
 
     // 5. Let trap be ? GetMethod(handler, "defineProperty").
-    let Some(trap) = handler.get_method(utf16!("defineProperty"), context)? else {
+    let Some(trap) = handler.get_method(js_str!("defineProperty"), context)? else {
         // 6. If trap is undefined, then
         // a. Return ? target.[[DefineOwnProperty]](P, Desc).
         return target.__define_own_property__(key, desc, context);
@@ -715,7 +717,7 @@ pub(crate) fn proxy_exotic_has_property(
         .try_data()?;
 
     // 5. Let trap be ? GetMethod(handler, "has").
-    let Some(trap) = handler.get_method(utf16!("has"), context)? else {
+    let Some(trap) = handler.get_method(js_str!("has"), context)? else {
         // 6. If trap is undefined, then
         // a. Return ? target.[[HasProperty]](P).
         return target.has_property(key.clone(), context);
@@ -758,6 +760,30 @@ pub(crate) fn proxy_exotic_has_property(
     Ok(boolean_trap_result)
 }
 
+/// Internal optimization method for `Proxy` exotic objects.
+///
+/// This method combines the internal methods `[[HasProperty]]` and `[[Get]]`.
+///
+/// More information:
+///  - [ECMAScript reference HasProperty][spec0]
+///  - [ECMAScript reference Get][spec1]
+///
+/// [spec0]: https://tc39.es/ecma262/#sec-proxy-object-internal-methods-and-internal-slots-hasproperty-p
+/// [spec1]: https://tc39.es/ecma262/#sec-proxy-object-internal-methods-and-internal-slots-get-p-receiver
+pub(crate) fn proxy_exotic_try_get(
+    obj: &JsObject,
+    key: &PropertyKey,
+    receiver: JsValue,
+    context: &mut InternalMethodContext<'_>,
+) -> JsResult<Option<JsValue>> {
+    // Note: For now, this just calls the normal methods. Could be optimized further.
+    if proxy_exotic_has_property(obj, key, context)? {
+        Ok(Some(proxy_exotic_get(obj, key, receiver, context)?))
+    } else {
+        Ok(None)
+    }
+}
+
 /// `10.5.8 [[Get]] ( P, Receiver )`
 ///
 /// More information:
@@ -783,7 +809,7 @@ pub(crate) fn proxy_exotic_get(
         .try_data()?;
 
     // 5. Let trap be ? GetMethod(handler, "get").
-    let Some(trap) = handler.get_method(utf16!("get"), context)? else {
+    let Some(trap) = handler.get_method(js_str!("get"), context)? else {
         // 6. If trap is undefined, then
         // a. Return ? target.[[Get]](P, Receiver).
         return target.__get__(key, receiver, context);
@@ -853,7 +879,7 @@ pub(crate) fn proxy_exotic_set(
         .try_data()?;
 
     // 5. Let trap be ? GetMethod(handler, "set").
-    let Some(trap) = handler.get_method(utf16!("set"), context)? else {
+    let Some(trap) = handler.get_method(js_str!("set"), context)? else {
         // 6. If trap is undefined, then
         // a. Return ? target.[[Set]](P, V, Receiver).
         return target.__set__(key, value, receiver, context);
@@ -933,7 +959,7 @@ pub(crate) fn proxy_exotic_delete(
         .try_data()?;
 
     // 5. Let trap be ? GetMethod(handler, "deleteProperty").
-    let Some(trap) = handler.get_method(utf16!("deleteProperty"), context)? else {
+    let Some(trap) = handler.get_method(js_str!("deleteProperty"), context)? else {
         // 6. If trap is undefined, then
         // a. Return ? target.[[Delete]](P).
         return target.__delete__(key, context);
@@ -998,7 +1024,7 @@ pub(crate) fn proxy_exotic_own_property_keys(
         .try_data()?;
 
     // 5. Let trap be ? GetMethod(handler, "ownKeys").
-    let Some(trap) = handler.get_method(utf16!("ownKeys"), context)? else {
+    let Some(trap) = handler.get_method(js_str!("ownKeys"), context)? else {
         // 6. If trap is undefined, then
         // a. Return ? target.[[OwnPropertyKeys]]().
         return target.__own_property_keys__(context);
@@ -1132,7 +1158,7 @@ fn proxy_exotic_call(
         .try_data()?;
 
     // 5. Let trap be ? GetMethod(handler, "apply").
-    let Some(trap) = handler.get_method(utf16!("apply"), context)? else {
+    let Some(trap) = handler.get_method(js_str!("apply"), context)? else {
         // 6. If trap is undefined, then
         // a. Return ? Call(target, thisArgument, argumentsList).
         return Ok(target.__call__(argument_count));
@@ -1180,7 +1206,7 @@ fn proxy_exotic_construct(
     assert!(target.is_constructor());
 
     // 6. Let trap be ? GetMethod(handler, "construct").
-    let Some(trap) = handler.get_method(utf16!("construct"), context)? else {
+    let Some(trap) = handler.get_method(js_str!("construct"), context)? else {
         // 7. If trap is undefined, then
         // a. Return ? Construct(target, argumentsList, newTarget).
         return Ok(target.__construct__(argument_count));

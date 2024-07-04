@@ -11,7 +11,7 @@ use crate::{
     object::{internal_methods::get_prototype_from_constructor, CONSTRUCTOR},
     property::Attribute,
     realm::Realm,
-    string::{common::StaticJsStrings, utf16},
+    string::StaticJsStrings,
     Context, JsArgs, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 use boa_gc::{custom_trace, Finalize, Trace};
@@ -95,7 +95,7 @@ impl IntrinsicObject for TimeZone {
                 realm.intrinsics().constructors().time_zone().prototype(),
                 Attribute::default(),
             )
-            .accessor(utf16!("id"), Some(get_id), None, Attribute::default())
+            .accessor(js_string!("id"), Some(get_id), None, Attribute::default())
             .build();
     }
 
@@ -331,70 +331,6 @@ pub(super) fn create_temporal_time_zone(
         get_prototype_from_constructor(&new_target, StandardConstructors::time_zone, context)?;
 
     // TODO: Migrate ISO8601 parsing to `boa_temporal`
-    Err(JsNativeError::error()
-        .with_message("not yet implemented.")
-        .into())
-}
-
-/// Abstract operation `ParseTimeZoneOffsetString ( offsetString )`
-///
-/// The abstract operation `ParseTimeZoneOffsetString` takes argument `offsetString` (a String). It
-/// parses the argument as a numeric UTC offset string and returns a signed integer representing
-/// that offset as a number of nanoseconds.
-///
-/// More information:
-///  - [ECMAScript specififcation][spec]
-///
-/// [spec]: https://tc39.es/ecma262/#sec-parsetimezoneoffsetstring
-#[allow(clippy::unnecessary_wraps, unused)]
-fn parse_timezone_offset_string(offset_string: &str, context: &mut Context) -> JsResult<i64> {
-    use temporal_rs::parser::{Cursor, TemporalTimeZoneString};
-
-    // 1. Let parseResult be ParseText(StringToCodePoints(offsetString), UTCOffset).
-    let parse_result = TemporalTimeZoneString::parse(&mut Cursor::new(offset_string))?;
-
-    // 2. Assert: parseResult is not a List of errors.
-    // 3. Assert: parseResult contains a TemporalSign Parse Node.
-    let Some(utc_offset) = parse_result.offset else {
-        return Err(JsNativeError::typ()
-            .with_message("Offset string was not a valid offset")
-            .into());
-    };
-
-    // 4. Let parsedSign be the source text matched by the TemporalSign Parse Node contained within
-    //    parseResult.
-    // 5. If parsedSign is the single code point U+002D (HYPHEN-MINUS) or U+2212 (MINUS SIGN), then
-    let sign = utc_offset.sign;
-    // a. Let sign be -1.
-    // 6. Else,
-    // a. Let sign be 1.
-
-    // 7. NOTE: Applications of StringToNumber below do not lose precision, since each of the parsed
-    //    values is guaranteed to be a sufficiently short string of decimal digits.
-    // 8. Assert: parseResult contains an Hour Parse Node.
-    // 9. Let parsedHours be the source text matched by the Hour Parse Node contained within parseResult.
-    let parsed_hours = utc_offset.hour;
-
-    // 10. Let hours be ℝ(StringToNumber(CodePointsToString(parsedHours))).
-    // 11. If parseResult does not contain a MinuteSecond Parse Node, then
-    // a. Let minutes be 0.
-    // 12. Else,
-    // a. Let parsedMinutes be the source text matched by the first MinuteSecond Parse Node contained within parseResult.
-    // b. Let minutes be ℝ(StringToNumber(CodePointsToString(parsedMinutes))).
-    // 13. If parseResult does not contain two MinuteSecond Parse Nodes, then
-    // a. Let seconds be 0.
-    // 14. Else,
-    // a. Let parsedSeconds be the source text matched by the second MinuteSecond Parse Node contained within parseResult.
-    // b. Let seconds be ℝ(StringToNumber(CodePointsToString(parsedSeconds))).
-    // 15. If parseResult does not contain a TemporalDecimalFraction Parse Node, then
-    // a. Let nanoseconds be 0.
-    // 16. Else,
-    // a. Let parsedFraction be the source text matched by the TemporalDecimalFraction Parse Node contained within parseResult.
-    // b. Let fraction be the string-concatenation of CodePointsToString(parsedFraction) and "000000000".
-    // c. Let nanosecondsString be the substring of fraction from 1 to 10.
-    // d. Let nanoseconds be ℝ(StringToNumber(nanosecondsString)).
-    // 17. Return sign × (((hours × 60 + minutes) × 60 + seconds) × 10^9 + nanoseconds).
-
     Err(JsNativeError::error()
         .with_message("not yet implemented.")
         .into())

@@ -7,7 +7,6 @@ use boa_engine::{
     property::Attribute,
     Context, JsArgs, JsData, JsResult, JsString, JsValue, Source,
 };
-
 use boa_gc::{Finalize, Trace};
 use boa_runtime::Console;
 
@@ -140,7 +139,7 @@ fn add_runtime(context: &mut Context) {
     // We first add the `console` object, to be able to call `console.log()`.
     let console = Console::init(context);
     context
-        .register_global_property(js_string!(Console::NAME), console, Attribute::all())
+        .register_global_property(Console::NAME, console, Attribute::all())
         .expect("the console builtin shouldn't exist");
 
     // Then we need to register the global class `Person` inside `context`.

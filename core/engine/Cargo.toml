@@ -14,6 +14,7 @@ rust-version.workspace = true
 [features]
 profiler = ["boa_profiler/profiler"]
 deser = ["boa_interner/serde", "boa_ast/serde"]
+either = ["dep:either"]
 
 # Enables the `Intl` builtin object and bundles a default ICU4X data provider.
 # Prefer this over `intl` if you just want to enable `Intl` without dealing with the
@@ -68,46 +69,47 @@ js = ["dep:web-time"]
 
 [dependencies]
 boa_interner.workspace = true
-boa_gc = { workspace = true, features = [ "thin-vec" ] }
+boa_gc = { workspace = true, features = ["thin-vec", "boa_string"] }
 boa_profiler.workspace = true
 boa_macros.workspace = true
 boa_ast.workspace = true
 boa_parser.workspace = true
+boa_string.workspace = true
 serde = { workspace = true, features = ["derive", "rc"] }
 serde_json.workspace = true
-rand = "0.8.5"
+rand.workspace = true
 num-traits.workspace = true
 regress.workspace = true
 rustc-hash = { workspace = true, features = ["std"] }
 num-bigint = { workspace = true, features = ["serde"] }
-num-integer = "0.1.46"
+num-integer.workspace = true
 bitflags.workspace = true
 indexmap = { workspace = true, features = ["std"] }
-ryu-js = "1.0.1"
+ryu-js.workspace = true
 fast-float.workspace = true
 once_cell = { workspace = true, features = ["std"] }
-tap = "1.0.1"
-sptr = "0.3.2"
-static_assertions.workspace = true
-thiserror = "1.0.58"
-dashmap = "5.5.3"
-num_enum = "0.7.2"
+tap.workspace = true
+sptr.workspace = true
+thiserror.workspace = true
+dashmap.workspace = true
+num_enum.workspace = true
 pollster.workspace = true
 thin-vec.workspace = true
-itertools = { version = "0.12.1", default-features = false }
+itertools = { workspace = true, default-features = false }
 icu_normalizer = { workspace = true, features = ["compiled_data"] }
-paste = "1.0"
-portable-atomic = "1.6.0"
-bytemuck = { version = "1.15.0", features = ["derive"] }
-arrayvec = "0.7.4"
-intrusive-collections = "0.9.6"
-cfg-if = "1.0.0"
+portable-atomic.workspace = true
+bytemuck = { workspace = true, features = ["derive"] }
+arrayvec.workspace = true
+intrusive-collections.workspace = true
+cfg-if.workspace = true
 time.workspace = true
 hashbrown.workspace = true
+either = { workspace = true, optional = true }
+static_assertions.workspace = true
 
 # intl deps
-boa_icu_provider = {workspace = true, features = ["std"], optional = true }
-sys-locale = { version = "0.3.1", optional = true }
+boa_icu_provider = { workspace = true, features = ["std"], optional = true }
+sys-locale = { workspace = true, optional = true }
 icu_provider = { workspace = true, optional = true }
 icu_locid = { workspace = true, features = ["serde"], optional = true }
 icu_locid_transform = { workspace = true, default-features = false, features = ["std", "serde"], optional = true }
@@ -116,7 +118,7 @@ icu_calendar = { workspace = true, default-features = false, optional = true }
 icu_collator = { workspace = true, default-features = false, features = ["serde"], optional = true }
 icu_plurals = { workspace = true, default-features = false, features = ["serde", "experimental"], optional = true }
 icu_list = { workspace = true, default-features = false, features = ["serde"], optional = true }
-icu_casemap = { workspace = true, default-features = false, features = ["serde"], optional = true}
+icu_casemap = { workspace = true, default-features = false, features = ["serde"], optional = true }
 icu_segmenter = { workspace = true, default-features = false, features = ["auto", "serde"], optional = true }
 icu_decimal = { workspace = true, default-features = false, features = ["serde"], optional = true }
 writeable = { workspace = true, optional = true }
@@ -126,20 +128,21 @@ fixed_decimal = { workspace = true, features = ["ryu", "experimental"], optional
 tinystr = { workspace = true, optional = true }
 
 # temporal deps
-temporal_rs = { version = "0.0.2", optional = true }
+temporal_rs = { workspace = true, optional = true }
 
 [target.'cfg(all(target_family = "wasm", not(any(target_os = "emscripten", target_os = "wasi"))))'.dependencies]
-web-time = { version = "1.1.0", optional = true }
+web-time = { workspace = true, optional = true }
 
 [dev-dependencies]
-criterion = "0.5.1"
-float-cmp = "0.9.0"
+criterion.workspace = true
+float-cmp.workspace = true
 indoc.workspace = true
 textwrap.workspace = true
-futures-lite = "2.2.0"
+futures-lite.workspace = true
+test-case.workspace = true
 
 [target.x86_64-unknown-linux-gnu.dev-dependencies]
-jemallocator = "0.5.4"
+jemallocator.workspace = true
 
 [lib]
 crate-type = ["cdylib", "lib"]
@@ -152,3 +155,6 @@ harness = false
 
 [lints]
 workspace = true
+
+[package.metadata.docs.rs]
+all-features = true

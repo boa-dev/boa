@@ -168,16 +168,9 @@ where
                     .parse(cursor, interner)?;
                 Ok(Binding::Pattern(pat.into()))
             }
-            TokenKind::IdentifierName(_) => {
-                let ident = BindingIdentifier::new(self.allow_yield, self.allow_await)
-                    .parse(cursor, interner)?;
-                Ok(Binding::Identifier(ident))
-            }
-            _ => Err(Error::expected(
-                [String::from("pattern"), String::from("binding identifier")],
-                token.to_string(interner),
-                token.span(),
-                "catch parameter",
+            _ => Ok(Binding::Identifier(
+                BindingIdentifier::new(self.allow_yield, self.allow_await)
+                    .parse(cursor, interner)?,
             )),
         }
     }

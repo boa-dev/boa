@@ -31,6 +31,9 @@ bitflags::bitflags! {
 
         /// Does this [`CallFrame`] need to push registers on [`Vm::push_frame()`].
         const REGISTERS_ALREADY_PUSHED = 0b0000_0100;
+
+        /// If the `this` value has been cached.
+        const THIS_VALUE_CACHED = 0b0000_1000;
     }
 }
 
@@ -56,7 +59,7 @@ pub struct CallFrame {
     /// How many iterations a loop has done.
     pub(crate) loop_iteration_count: u64,
 
-    /// \[\[ScriptOrModule\]\]
+    /// `[[ScriptOrModule]]`
     pub(crate) active_runnable: Option<ActiveRunnable>,
 
     /// \[\[Environment\]\]
@@ -289,6 +292,7 @@ impl CallFrame {
     /// # Panics
     ///
     /// If the index is out of bounds.
+    #[track_caller]
     pub(crate) fn register<'stack>(&self, index: u32, stack: &'stack [JsValue]) -> &'stack JsValue {
         debug_assert!(index < self.code_block().register_count);
         let at = self.rp + index;
@@ -322,6 +326,12 @@ impl CallFrame {
     pub(crate) fn registers_already_pushed(&self) -> bool {
         self.flags
             .contains(CallFrameFlags::REGISTERS_ALREADY_PUSHED)
+    }
+    /// Does this [`CallFrame`] have a cached `this` value.
+    ///
+    /// The cached value is placed in the [`CallFrame::THIS_POSITION`] position.
+    pub(crate) fn has_this_value_cached(&self) -> bool {
+        self.flags.contains(CallFrameFlags::THIS_VALUE_CACHED)
     }
 }
 

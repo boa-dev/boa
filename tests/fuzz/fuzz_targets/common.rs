@@ -74,6 +74,7 @@ impl Debug for FuzzData {
     }
 }
 
+#[allow(dead_code)]
 pub struct FuzzSource {
     pub interner: Interner,
     pub source: String,

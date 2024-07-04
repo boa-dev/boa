@@ -21,18 +21,20 @@ use crate::{
     error::JsNativeError,
     js_string,
     native_function::NativeFunctionObject,
-    object::{internal_methods::get_prototype_from_constructor, JsObject},
     object::{
-        internal_methods::{CallValue, InternalObjectMethods, ORDINARY_INTERNAL_METHODS},
-        JsData, JsFunction, PrivateElement, PrivateName,
+        internal_methods::{
+            get_prototype_from_constructor, CallValue, InternalObjectMethods,
+            ORDINARY_INTERNAL_METHODS,
+        },
+        JsData, JsFunction, JsObject, PrivateElement, PrivateName,
     },
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
-    string::{common::StaticJsStrings, utf16},
+    string::StaticJsStrings,
     symbol::JsSymbol,
     value::IntegerOrInfinity,
     vm::{ActiveRunnable, CallFrame, CallFrameFlags, CodeBlock},
-    Context, JsArgs, JsResult, JsString, JsValue,
+    Context, JsArgs, JsResult, JsStr, JsString, JsValue,
 };
 use boa_ast::{
     function::{FormalParameterList, FunctionBody},
@@ -43,6 +45,7 @@ use boa_ast::{
 };
 use boa_gc::{self, custom_trace, Finalize, Gc, Trace};
 use boa_interner::Sym;
+use boa_macros::js_str;
 use boa_parser::{Parser, Source};
 use boa_profiler::Profiler;
 use thin_vec::ThinVec;
@@ -312,13 +315,13 @@ impl IntrinsicObject for BuiltInFunctionObject {
             .method(Self::to_string, js_string!("toString"), 0)
             .property(JsSymbol::has_instance(), has_instance, Attribute::default())
             .accessor(
-                utf16!("caller"),
+                js_string!("caller"),
                 Some(throw_type_error.clone()),
                 Some(throw_type_error.clone()),
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("arguments"),
+                js_string!("arguments"),
                 Some(throw_type_error.clone()),
                 Some(throw_type_error),
                 Attribute::CONFIGURABLE,
@@ -436,15 +439,18 @@ impl BuiltInFunctionObject {
 
         // 6. Let argCount be the number of elements in parameterArgs.
         let (body, param_list) = if let Some((body, params)) = args.split_last() {
-            // 7. Let bodyString be ? ToString(bodyArg).
-            let body = body.to_string(context)?;
-            // 8. Let parameterStrings be a new empty List.
+            // 7. Let parameterStrings be a new empty List.
             let mut parameters = Vec::with_capacity(args.len());
-            // 9. For each element arg of parameterArgs, do
+
+            // 8. For each element arg of parameterArgs, do
             for param in params {
-                //     a. Append ? ToString(arg) to parameterStrings.
+                // a. Append ? ToString(arg) to parameterStrings.
                 parameters.push(param.to_string(context)?);
             }
+
+            // 9. Let bodyString be ? ToString(bodyArg).
+            let body = body.to_string(context)?;
+
             (body, parameters)
         } else {
             (js_string!(), Vec::new())
@@ -470,7 +476,15 @@ impl BuiltInFunctionObject {
             //         i. Let nextArgString be parameterStrings[k].
             //         ii. Set P to the string-concatenation of P, "," (a comma), and nextArgString.
             //         iii. Set k to k + 1.
-            let parameters = param_list.join(utf16!(","));
+
+            // TODO: Replace with standard `Iterator::intersperse` iterator method when it's stabilized.
+            //       See: <https://github.com/rust-lang/rust/issues/79524>
+            let parameters = itertools::Itertools::intersperse(
+                param_list.iter().map(JsString::iter),
+                js_str!(",").iter(),
+            )
+            .flatten()
+            .collect::<Vec<_>>();
             let mut parser = Parser::new(Source::from_utf16(&parameters));
             parser.set_identifier(context.next_parser_identifier());
 
@@ -515,7 +529,7 @@ impl BuiltInFunctionObject {
             // 14. Let bodyParseString be the string-concatenation of 0x000A (LINE FEED), bodyString, and 0x000A (LINE FEED).
             let mut body_parse = Vec::with_capacity(body.len());
             body_parse.push(u16::from(b'\n'));
-            body_parse.extend_from_slice(&body);
+            body_parse.extend(body.iter());
             body_parse.push(u16::from(b'\n'));
 
             // 19. Let body be ParseText(StringToCodePoints(bodyParseString), bodySym).
@@ -612,16 +626,18 @@ impl BuiltInFunctionObject {
             body
         };
 
+        let in_with = context.vm.environments.has_object_environment();
         let code = FunctionCompiler::new()
             .name(js_string!("anonymous"))
             .generator(generator)
             .r#async(r#async)
+            .in_with(in_with)
             .compile(
                 &parameters,
                 &body,
                 context.realm().environment().compile_env(),
                 context.realm().environment().compile_env(),
-                context,
+                context.interner_mut(),
             );
 
         let environments = context.vm.environments.pop_to_global();
@@ -702,9 +718,9 @@ impl BuiltInFunctionObject {
 
         // 5. Let targetHasLength be ? HasOwnProperty(Target, "length").
         // 6. If targetHasLength is true, then
-        if target.has_own_property(utf16!("length"), context)? {
+        if target.has_own_property(StaticJsStrings::LENGTH, context)? {
             // a. Let targetLen be ? Get(Target, "length").
-            let target_len = target.get(utf16!("length"), context)?;
+            let target_len = target.get(StaticJsStrings::LENGTH, context)?;
             // b. If Type(targetLen) is Number, then
             if target_len.is_number() {
                 // 1. Let targetLenAsInt be ! ToIntegerOrInfinity(targetLen).
@@ -729,7 +745,7 @@ impl BuiltInFunctionObject {
 
         // 7. Perform ! SetFunctionLength(F, L).
         f.define_property_or_throw(
-            utf16!("length"),
+            StaticJsStrings::LENGTH,
             PropertyDescriptor::builder()
                 .value(l)
                 .writable(false)
@@ -740,7 +756,7 @@ impl BuiltInFunctionObject {
         .expect("defining the `length` property for a new object should not fail");
 
         // 8. Let targetName be ? Get(Target, "name").
-        let target_name = target.get(utf16!("name"), context)?;
+        let target_name = target.get(js_str!("name"), context)?;
 
         // 9. If Type(targetName) is not String, set targetName to the empty String.
         let target_name = target_name
@@ -748,7 +764,7 @@ impl BuiltInFunctionObject {
             .map_or_else(JsString::default, Clone::clone);
 
         // 10. Perform SetFunctionName(F, targetName, "bound").
-        set_function_name(&f, &target_name.into(), Some(js_string!("bound")), context);
+        set_function_name(&f, &target_name.into(), Some(js_str!("bound")), context);
 
         // 11. Return F.
         Ok(f.into())
@@ -813,7 +829,7 @@ impl BuiltInFunctionObject {
             let name = {
                 // Is there a case here where if there is no name field on a value
                 // name should default to None? Do all functions have names set?
-                let value = object.get(utf16!("name"), &mut *context)?;
+                let value = object.get(js_str!("name"), &mut *context)?;
                 if value.is_null_or_undefined() {
                     js_string!()
                 } else {
@@ -821,10 +837,10 @@ impl BuiltInFunctionObject {
                 }
             };
             return Ok(
-                js_string!(utf16!("function "), &name, utf16!("() { [native code] }")).into(),
+                js_string!(js_str!("function "), &name, js_str!("() { [native code] }")).into(),
             );
         } else if object_borrow.is::<Proxy>() || object_borrow.is::<BoundFunction>() {
-            return Ok(js_string!(utf16!("function () { [native code] }")).into());
+            return Ok(js_string!("function () { [native code] }").into());
         }
 
         let function = object_borrow
@@ -834,9 +850,9 @@ impl BuiltInFunctionObject {
         let code = function.codeblock();
 
         Ok(js_string!(
-            utf16!("function "),
+            js_str!("function "),
             code.name(),
-            utf16!("() { [native code] }")
+            js_str!("() { [native code] }")
         )
         .into())
     }
@@ -868,7 +884,7 @@ impl BuiltInFunctionObject {
 pub(crate) fn set_function_name(
     function: &JsObject,
     name: &PropertyKey,
-    prefix: Option<JsString>,
+    prefix: Option<JsStr<'_>>,
     context: &mut Context,
 ) {
     // 1. Assert: F is an extensible object that does not have a "name" own property.
@@ -880,7 +896,7 @@ pub(crate) fn set_function_name(
             // c. Else, set name to the string-concatenation of "[", description, and "]".
             sym.description().map_or_else(
                 || js_string!(),
-                |desc| js_string!(utf16!("["), &desc, utf16!("]")),
+                |desc| js_string!(js_str!("["), &desc, js_str!("]")),
             )
         }
         PropertyKey::String(string) => string.clone(),
@@ -897,7 +913,7 @@ pub(crate) fn set_function_name(
 
     // 5. If prefix is present, then
     if let Some(prefix) = prefix {
-        name = js_string!(&prefix, utf16!(" "), &name);
+        name = js_string!(prefix, js_str!(" "), &name);
         // b. If F has an [[InitialName]] internal slot, then
         // i. Optionally, set F.[[InitialName]] to name.
         // todo: implement [[InitialName]] for builtins
@@ -907,7 +923,7 @@ pub(crate) fn set_function_name(
     // [[Writable]]: false, [[Enumerable]]: false, [[Configurable]]: true }).
     function
         .define_property_or_throw(
-            utf16!("name"),
+            js_str!("name"),
             PropertyDescriptor::builder()
                 .value(name)
                 .writable(false)
@@ -1054,10 +1070,16 @@ fn function_construct(
         Some(this)
     };
 
-    let frame = CallFrame::new(code.clone(), script_or_module, environments, realm)
+    let mut frame = CallFrame::new(code.clone(), script_or_module, environments, realm)
         .with_argument_count(argument_count as u32)
         .with_env_fp(env_fp)
         .with_flags(CallFrameFlags::CONSTRUCT);
+
+    // We push the `this` below so we can mark this function as having the this value
+    // cached if it's initialized.
+    frame
+        .flags
+        .set(CallFrameFlags::THIS_VALUE_CACHED, this.is_some());
 
     let len = context.vm.stack.len();
 

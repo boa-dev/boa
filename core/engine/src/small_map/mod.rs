@@ -158,10 +158,10 @@ impl<K, V, const ARRAY_SIZE: usize> SmallMap<K, V, ARRAY_SIZE> {
     ///
     /// The key may be any borrowed form of the map's key type, but the ordering
     /// on the borrowed form *must* match the ordering on the key type.
-    pub fn get<Q: ?Sized>(&self, key: &Q) -> Option<&V>
+    pub fn get<Q>(&self, key: &Q) -> Option<&V>
     where
         K: Borrow<Q> + Ord + Eq,
-        Q: Ord + Eq,
+        Q: ?Sized + Ord + Eq,
     {
         match &self.inner {
             Inner::Inline(v) => v.iter().find(|(k, _)| k.borrow() == key).map(|(_, v)| v),
@@ -174,10 +174,10 @@ impl<K, V, const ARRAY_SIZE: usize> SmallMap<K, V, ARRAY_SIZE> {
     /// The supplied key may be any borrowed form of the map's key type, but the ordering
     /// on the borrowed form *must* match the ordering on the key type.
     #[allow(clippy::map_identity)]
-    pub fn get_key_value<Q: ?Sized>(&self, key: &Q) -> Option<(&K, &V)>
+    pub fn get_key_value<Q>(&self, key: &Q) -> Option<(&K, &V)>
     where
         K: Borrow<Q> + Ord + Eq,
-        Q: Ord + Eq,
+        Q: ?Sized + Ord + Eq,
     {
         match &self.inner {
             Inner::Inline(v) => v
@@ -192,10 +192,10 @@ impl<K, V, const ARRAY_SIZE: usize> SmallMap<K, V, ARRAY_SIZE> {
     ///
     /// The key may be any borrowed form of the map's key type, but the ordering
     /// on the borrowed form *must* match the ordering on the key type.
-    pub fn contains_key<Q: ?Sized>(&self, key: &Q) -> bool
+    pub fn contains_key<Q>(&self, key: &Q) -> bool
     where
         K: Borrow<Q> + Ord + Eq,
-        Q: Ord + Eq,
+        Q: ?Sized + Ord + Eq,
     {
         self.get(key).is_some()
     }
@@ -204,10 +204,10 @@ impl<K, V, const ARRAY_SIZE: usize> SmallMap<K, V, ARRAY_SIZE> {
     ///
     /// The key may be any borrowed form of the map's key type, but the ordering
     /// on the borrowed form *must* match the ordering on the key type.
-    pub fn get_mut<Q: ?Sized>(&mut self, key: &Q) -> Option<&mut V>
+    pub fn get_mut<Q>(&mut self, key: &Q) -> Option<&mut V>
     where
         K: Borrow<Q> + Ord + Eq,
-        Q: Ord + Eq,
+        Q: ?Sized + Ord + Eq,
     {
         match &mut self.inner {
             Inner::Inline(v) => v
@@ -246,10 +246,10 @@ impl<K, V, const ARRAY_SIZE: usize> SmallMap<K, V, ARRAY_SIZE> {
     ///
     /// The key may be any borrowed form of the map's key type, but the ordering
     /// on the borrowed form *must* match the ordering on the key type.
-    pub fn remove<Q: ?Sized>(&mut self, key: &Q) -> Option<V>
+    pub fn remove<Q>(&mut self, key: &Q) -> Option<V>
     where
         K: Borrow<Q> + Ord + Eq,
-        Q: Ord + Eq,
+        Q: ?Sized + Ord + Eq,
     {
         self.remove_entry(key).map(|(_, v)| v)
     }
@@ -259,10 +259,10 @@ impl<K, V, const ARRAY_SIZE: usize> SmallMap<K, V, ARRAY_SIZE> {
     ///
     /// The key may be any borrowed form of the map's key type, but the ordering
     /// on the borrowed form *must* match the ordering on the key type.
-    pub fn remove_entry<Q: ?Sized>(&mut self, key: &Q) -> Option<(K, V)>
+    pub fn remove_entry<Q>(&mut self, key: &Q) -> Option<(K, V)>
     where
         K: Borrow<Q> + Ord,
-        Q: Ord,
+        Q: ?Sized + Ord,
     {
         match &mut self.inner {
             Inner::Inline(v) => v
@@ -581,7 +581,7 @@ impl<K: Eq + Ord, V: Eq, const ARRAY_SIZE: usize> Eq for SmallMap<K, V, ARRAY_SI
 impl<K: fmt::Debug, V: fmt::Debug, const ARRAY_SIZE: usize> fmt::Debug
     for SmallMap<K, V, ARRAY_SIZE>
 {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_map().entries(self.iter()).finish()
     }
 }

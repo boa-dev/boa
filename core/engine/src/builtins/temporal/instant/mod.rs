@@ -14,15 +14,16 @@ use crate::{
     object::internal_methods::get_prototype_from_constructor,
     property::Attribute,
     realm::Realm,
-    string::{common::StaticJsStrings, utf16},
+    string::StaticJsStrings,
     Context, JsArgs, JsBigInt, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol,
     JsValue,
 };
 use boa_gc::{Finalize, Trace};
+use boa_macros::js_str;
 use boa_profiler::Profiler;
 use temporal_rs::{
     components::Instant as InnerInstant,
-    options::{TemporalRoundingMode, TemporalUnit},
+    options::{RoundingIncrement, TemporalRoundingMode, TemporalUnit},
 };
 
 /// The `Temporal.Instant` object.
@@ -64,25 +65,25 @@ impl IntrinsicObject for Instant {
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("epochSeconds"),
+                js_str!("epochSeconds"),
                 Some(get_seconds),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("epochMilliseconds"),
+                js_str!("epochMilliseconds"),
                 Some(get_millis),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("epochMicroseconds"),
+                js_str!("epochMicroseconds"),
                 Some(get_micros),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                utf16!("epochNanoseconds"),
+                js_str!("epochNanoseconds"),
                 Some(get_nanos),
                 None,
                 Attribute::CONFIGURABLE,
@@ -285,10 +286,11 @@ impl Instant {
 
         // Fetch the necessary options.
         let options = get_options_object(args.get_or_undefined(1))?;
-        let mode = get_option::<TemporalRoundingMode>(&options, utf16!("roundingMode"), context)?;
-        let increment = get_option::<f64>(&options, utf16!("roundingIncrement"), context)?;
-        let smallest_unit = get_option::<TemporalUnit>(&options, utf16!("smallestUnit"), context)?;
-        let largest_unit = get_option::<TemporalUnit>(&options, utf16!("largestUnit"), context)?;
+        let mode = get_option::<TemporalRoundingMode>(&options, js_str!("roundingMode"), context)?;
+        let increment =
+            get_option::<RoundingIncrement>(&options, js_str!("roundingIncrement"), context)?;
+        let smallest_unit = get_option::<TemporalUnit>(&options, js_str!("smallestUnit"), context)?;
+        let largest_unit = get_option::<TemporalUnit>(&options, js_str!("largestUnit"), context)?;
         let result = instant
             .inner
             .until(&other, mode, increment, smallest_unit, largest_unit)?;
@@ -313,10 +315,11 @@ impl Instant {
         // 3. Return ? DifferenceTemporalInstant(since, instant, other, options).
         let other = to_temporal_instant(args.get_or_undefined(0))?;
         let options = get_options_object(args.get_or_undefined(1))?;
-        let mode = get_option::<TemporalRoundingMode>(&options, utf16!("roundingMode"), context)?;
-        let increment = get_option::<f64>(&options, utf16!("roundingIncrement"), context)?;
-        let smallest_unit = get_option::<TemporalUnit>(&options, utf16!("smallestUnit"), context)?;
-        let largest_unit = get_option::<TemporalUnit>(&options, utf16!("largestUnit"), context)?;
+        let mode = get_option::<TemporalRoundingMode>(&options, js_str!("roundingMode"), context)?;
+        let increment =
+            get_option::<RoundingIncrement>(&options, js_str!("roundingIncrement"), context)?;
+        let smallest_unit = get_option::<TemporalUnit>(&options, js_str!("smallestUnit"), context)?;
+        let largest_unit = get_option::<TemporalUnit>(&options, js_str!("largestUnit"), context)?;
         let result = instant
             .inner
             .since(&other, mode, increment, smallest_unit, largest_unit)?;
@@ -353,7 +356,7 @@ impl Instant {
                 let new_round_to = JsObject::with_null_proto();
                 // c. Perform ! CreateDataPropertyOrThrow(roundTo, "smallestUnit", paramString).
                 new_round_to.create_data_property_or_throw(
-                    utf16!("smallestUnit"),
+                    js_str!("smallestUnit"),
                     param_string,
                     context,
                 )?;
@@ -370,16 +373,16 @@ impl Instant {
         // alphabetical order (ToTemporalRoundingIncrement reads "roundingIncrement" and ToTemporalRoundingMode reads "roundingMode").
         // 7. Let roundingIncrement be ? ToTemporalRoundingIncrement(roundTo).
         let rounding_increment =
-            get_option::<f64>(&round_to, utf16!("roundingIncrement"), context)?;
+            get_option::<f64>(&round_to, js_str!("roundingIncrement"), context)?;
 
         // 8. Let roundingMode be ? ToTemporalRoundingMode(roundTo, "halfExpand").
         let rounding_mode =
-            get_option::<TemporalRoundingMode>(&round_to, utf16!("roundingMode"), context)?;
+            get_option::<TemporalRoundingMode>(&round_to, js_str!("roundingMode"), context)?;
 
         // 9. Let smallestUnit be ? GetTemporalUnit(roundTo, "smallestUnit"), time, required).
         let smallest_unit = get_temporal_unit(
             &round_to,
-            utf16!("smallestUnit"),
+            js_str!("smallestUnit"),
             TemporalUnitGroup::Time,
             None,
             context,
