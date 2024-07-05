@@ -95,18 +95,12 @@ impl PlainMonthDay {
             })?;
         let inner = &month_day.inner;
         match field {
-            DateTimeValues::Month => Ok(inner.month().into()),
             DateTimeValues::Day => Ok(inner.day().into()),
-            DateTimeValues::Year => Ok(inner.year().into()),
             DateTimeValues::MonthCode => {
                 Ok(JsString::from(InnerMonthDay::month_code(inner)?.as_str()).into())
             }
             _ => unreachable!(),
         }
-    }
-
-    fn get_month(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        Self::get_internal_field(this, &DateTimeValues::Month)
     }
 
     fn get_day(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
@@ -140,10 +134,6 @@ impl BuiltInObject for PlainMonthDay {
 impl IntrinsicObject for PlainMonthDay {
     fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-        let get_month = BuiltInBuilder::callable(realm, Self::get_month)
-            .name(js_string!("get month"))
-            .build();
-
         let get_day = BuiltInBuilder::callable(realm, Self::get_day)
             .name(js_string!("get month"))
             .build();
@@ -152,20 +142,10 @@ impl IntrinsicObject for PlainMonthDay {
             .name(js_string!("get monthCode"))
             .build();
 
-        let get_year = BuiltInBuilder::callable(realm, Self::get_year)
-            .name(js_string!("get year"))
-            .build();
-
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .property(
                 JsSymbol::to_string_tag(),
                 StaticJsStrings::PLAIN_MD_TAG,
-                Attribute::CONFIGURABLE,
-            )
-            .accessor(
-                js_string!("month"),
-                Some(get_month),
-                None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
@@ -177,12 +157,6 @@ impl IntrinsicObject for PlainMonthDay {
             .accessor(
                 js_string!("monthCode"),
                 Some(get_month_code),
-                None,
-                Attribute::CONFIGURABLE,
-            )
-            .accessor(
-                js_string!("year"),
-                Some(get_year),
                 None,
                 Attribute::CONFIGURABLE,
             )
