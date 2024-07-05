@@ -537,7 +537,7 @@ impl PlainDateTime {
                 .into());
         };
 
-        Ok(date.inner.day_of_week()?.into())
+        Ok(date.inner.day_of_year()?.into())
     }
 
     /// 5.3.16 get `Temporal.PlainDateTime.prototype.weekOfYear`
