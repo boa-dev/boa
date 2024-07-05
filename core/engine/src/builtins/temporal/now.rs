@@ -1,10 +1,7 @@
 //! Boa's implementation of `Temporal.Now` ECMAScript Builtin object.
 
 use crate::{
-    builtins::{
-        temporal::{create_temporal_time_zone, default_time_zone},
-        BuiltInBuilder, BuiltInObject, IntrinsicObject,
-    },
+    builtins::{BuiltInBuilder, BuiltInObject, IntrinsicObject},
     context::intrinsics::Intrinsics,
     js_string,
     property::Attribute,
@@ -14,8 +11,9 @@ use crate::{
     Context, JsBigInt, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 use boa_profiler::Profiler;
+use temporal_rs::components::tz::TimeZone;
 
-use super::{ns_max_instant, ns_min_instant};
+use super::{ns_max_instant, ns_min_instant, time_zone::default_time_zone};
 
 /// JavaScript `Temporal.Now` object.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -61,13 +59,16 @@ impl Now {
     /// `Temporal.Now.timeZoneId ( )`
     ///
     /// More information:
-    ///  - [ECMAScript specififcation][spec]
+    ///  - [ECMAScript specification][spec]
     ///
     /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal.now.timezone
     #[allow(clippy::unnecessary_wraps)]
     fn time_zone_id(_: &JsValue, _args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Return ! SystemTimeZone().
-        system_time_zone(context)
+        system_time_zone(context)?
+            .id()
+            .map(|s| JsValue::from(js_string!(s.as_str())))
+            .map_err(Into::into)
     }
 
     /// `Temporal.Now.instant()`
@@ -176,9 +177,12 @@ fn system_zoned_date_time() {
 ///
 /// [spec]: https://tc39.es/proposal-temporal/#sec-temporal-systemtimezone
 #[allow(unused)]
-fn system_time_zone(context: &mut Context) -> JsResult<JsValue> {
+fn system_time_zone(context: &mut Context) -> JsResult<TimeZone> {
     // 1. Let identifier be ! DefaultTimeZone().
     let identifier = default_time_zone(context);
     // 2. Return ! CreateTemporalTimeZone(identifier).
-    create_temporal_time_zone(identifier, None, context)
+
+    Err(JsNativeError::error()
+        .with_message("not yet implemented.")
+        .into())
 }

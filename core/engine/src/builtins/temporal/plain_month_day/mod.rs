@@ -14,7 +14,7 @@ use boa_profiler::Profiler;
 
 use temporal_rs::{
     components::{
-        calendar::{CalendarSlot, GetCalendarSlot},
+        calendar::{Calendar, GetTemporalCalendar},
         DateTime, MonthDay as InnerMonthDay,
     },
     iso::IsoDateSlots,
@@ -24,11 +24,11 @@ use temporal_rs::{
 #[derive(Debug, Clone, Trace, Finalize, JsData)]
 #[boa_gc(unsafe_empty_trace)] // TODO: Remove this!!! `InnerMonthDay` could contain `Trace` types.
 pub struct PlainMonthDay {
-    pub(crate) inner: InnerMonthDay<JsObject>,
+    pub(crate) inner: InnerMonthDay,
 }
 
 impl PlainMonthDay {
-    fn new(inner: InnerMonthDay<JsObject>) -> Self {
+    fn new(inner: InnerMonthDay) -> Self {
         Self { inner }
     }
 }
@@ -39,8 +39,8 @@ impl IsoDateSlots for JsObject<PlainMonthDay> {
     }
 }
 
-impl GetCalendarSlot<JsObject> for JsObject<PlainMonthDay> {
-    fn get_calendar(&self) -> CalendarSlot<JsObject> {
+impl GetTemporalCalendar for JsObject<PlainMonthDay> {
+    fn get_calendar(&self) -> Calendar {
         self.borrow().data().inner.get_calendar()
     }
 }
@@ -87,13 +87,13 @@ impl BuiltInConstructor for PlainMonthDay {
 // ==== `PlainMonthDay` Abstract Operations ====
 
 pub(crate) fn create_temporal_month_day(
-    inner: InnerMonthDay<JsObject>,
+    inner: InnerMonthDay,
     new_target: Option<&JsValue>,
     context: &mut Context,
 ) -> JsResult<JsValue> {
     // 1. If IsValidISODate(referenceISOYear, isoMonth, isoDay) is false, throw a RangeError exception.
     // 2. If ISODateTimeWithinLimits(referenceISOYear, isoMonth, isoDay, 12, 0, 0, 0, 0, 0) is false, throw a RangeError exception.
-    if DateTime::<JsObject>::validate(&inner) {
+    if DateTime::validate(&inner) {
         return Err(JsNativeError::range()
             .with_message("PlainMonthDay is not a valid ISO date time.")
             .into());

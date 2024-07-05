@@ -13,28 +13,28 @@ use crate::{
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
 
-use super::calendar::to_temporal_calendar_slot_value;
-
 use temporal_rs::{
     iso::IsoDateSlots,
     {
         components::{
-            calendar::{CalendarSlot, GetCalendarSlot},
+            calendar::{Calendar as InnerCalendar, GetTemporalCalendar},
             YearMonth as InnerYearMonth,
         },
         options::ArithmeticOverflow,
     },
 };
 
+use super::calendar;
+
 /// The `Temporal.PlainYearMonth` object.
 #[derive(Debug, Clone, Trace, Finalize, JsData)]
 #[boa_gc(unsafe_empty_trace)] // TODO: Remove this!!! `InnerYearMonth` could contain `Trace` types.
 pub struct PlainYearMonth {
-    pub(crate) inner: InnerYearMonth<JsObject>,
+    pub(crate) inner: InnerYearMonth,
 }
 
 impl PlainYearMonth {
-    pub(crate) fn new(inner: InnerYearMonth<JsObject>) -> Self {
+    pub(crate) fn new(inner: InnerYearMonth) -> Self {
         Self { inner }
     }
 }
@@ -45,8 +45,8 @@ impl IsoDateSlots for JsObject<PlainYearMonth> {
     }
 }
 
-impl GetCalendarSlot<JsObject> for JsObject<PlainYearMonth> {
-    fn get_calendar(&self) -> CalendarSlot<JsObject> {
+impl GetTemporalCalendar for JsObject<PlainYearMonth> {
+    fn get_calendar(&self) -> InnerCalendar {
         self.borrow().data().inner.get_calendar()
     }
 }
@@ -193,7 +193,7 @@ impl BuiltInConstructor for PlainYearMonth {
         // 4. Let m be ? ToIntegerWithTruncation(isoMonth).
         let m = super::to_integer_with_truncation(args.get_or_undefined(1), context)?;
         // 5. Let calendar be ? ToTemporalCalendarSlotValue(calendarLike, "iso8601").
-        let calendar = to_temporal_calendar_slot_value(args.get_or_undefined(2), context)?;
+        let calendar = calendar::to_temporal_calendar_slot_value(args.get_or_undefined(2))?;
 
         // 7. Return ? CreateTemporalYearMonth(y, m, calendar, ref, NewTarget).
         let inner = InnerYearMonth::new(y, m, ref_day, calendar, ArithmeticOverflow::Reject)?;
@@ -301,7 +301,7 @@ impl PlainYearMonth {
 
 // 9.5.5 `CreateTemporalYearMonth ( isoYear, isoMonth, calendar, referenceISODay [ , newTarget ] )`
 pub(crate) fn create_temporal_year_month(
-    ym: InnerYearMonth<JsObject>,
+    ym: InnerYearMonth,
     new_target: Option<&JsValue>,
     context: &mut Context,
 ) -> JsResult<JsValue> {

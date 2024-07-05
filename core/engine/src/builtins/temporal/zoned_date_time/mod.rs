@@ -7,32 +7,15 @@ use crate::{
     string::StaticJsStrings,
     Context, JsBigInt, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
-use boa_gc::{custom_trace, Finalize, Trace};
+use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
-use temporal_rs::components::{
-    calendar::CalendarSlot, tz::TimeZoneSlot, Duration as TemporalDuration,
-    ZonedDateTime as InnerZdt,
-};
-
-use super::JsCustomTimeZone;
+use temporal_rs::components::{Duration as TemporalDuration, ZonedDateTime as InnerZdt};
 
 /// The `Temporal.ZonedDateTime` object.
-#[derive(Debug, Clone, Finalize, JsData)]
+#[derive(Debug, Clone, Trace, Finalize, JsData)]
+#[boa_gc(unsafe_empty_trace)]
 pub struct ZonedDateTime {
-    pub(crate) inner: InnerZdt<JsObject, JsCustomTimeZone>,
-}
-
-unsafe impl Trace for ZonedDateTime {
-    custom_trace!(this, mark, {
-        match this.inner.calendar() {
-            CalendarSlot::Protocol(custom) => mark(custom),
-            CalendarSlot::Builtin(_) => {}
-        }
-        match this.inner.tz() {
-            TimeZoneSlot::Protocol(custom) => mark(custom),
-            TimeZoneSlot::Tz(_) => {}
-        }
-    });
+    pub(crate) inner: InnerZdt,
 }
 
 impl BuiltInObject for ZonedDateTime {

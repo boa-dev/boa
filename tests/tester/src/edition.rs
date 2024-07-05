@@ -97,6 +97,16 @@ static FEATURE_EDITION: phf::Map<&'static str, SpecEdition> = phf::phf_map! {
     // https://github.com/tc39/proposal-float16array
     "Float16Array" => SpecEdition::ESNext,
 
+    // Math.sumPrecise
+    // https://github.com/tc39/proposal-math-sum
+    "Math.sumPrecise" => SpecEdition::ESNext,
+
+    // Source Phase Imports
+    // https://github.com/tc39/proposal-source-phase-imports
+    "source-phase-imports" => SpecEdition::ESNext,
+    // test262 special specifier
+    "source-phase-imports-module-source" => SpecEdition::ESNext,
+
     // Part of the next ES15 edition
     "Atomics.waitAsync"  => SpecEdition::ESNext,
     "regexp-v-flag" => SpecEdition::ESNext,
