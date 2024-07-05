@@ -20,19 +20,15 @@ use boa_macros::js_str;
 use boa_profiler::Profiler;
 
 use temporal_rs::{
-    iso::IsoDateSlots,
+    components::{
+        calendar::{Calendar as InnerCalendar, GetTemporalCalendar},
+        Duration, YearMonth as InnerYearMonth,
+    },
     iso::IsoDateSlots,
     options::ArithmeticOverflow,
-    {
-        components::{
-            calendar::{Calendar as InnerCalendar, GetTemporalCalendar},
-            YearMonth as InnerYearMonth,
-        },
-        options::ArithmeticOverflow,
-    },
 };
 
-use super::calendar;
+use super::{calendar::to_temporal_calendar_slot_value, to_temporal_duration, DateTimeValues};
 
 /// The `Temporal.PlainYearMonth` object.
 #[derive(Debug, Clone, Trace, Finalize, JsData)]
@@ -202,7 +198,7 @@ impl BuiltInConstructor for PlainYearMonth {
         // 4. Let m be ? ToIntegerWithTruncation(isoMonth).
         let m = super::to_integer_with_truncation(args.get_or_undefined(1), context)?;
         // 5. Let calendar be ? ToTemporalCalendarSlotValue(calendarLike, "iso8601").
-        let calendar = calendar::to_temporal_calendar_slot_value(args.get_or_undefined(2))?;
+        let calendar = to_temporal_calendar_slot_value(args.get_or_undefined(2))?;
 
         // 7. Return ? CreateTemporalYearMonth(y, m, calendar, ref, NewTarget).
         let inner = InnerYearMonth::new(y, m, ref_day, calendar, ArithmeticOverflow::Reject)?;
@@ -224,7 +220,7 @@ impl PlainYearMonth {
                 .unwrap_or(ArithmeticOverflow::Constrain);
 
             // a. Let calendar be ? ToTemporalCalendar(item).
-            let calendar = to_temporal_calendar_slot_value(args.get_or_undefined(1), context)?;
+            let calendar = to_temporal_calendar_slot_value(args.get_or_undefined(1))?;
             InnerYearMonth::new(
                 item.get_v(js_str!("year"), context)
                     .expect("Year not found")
@@ -271,11 +267,14 @@ impl PlainYearMonth {
         match field {
             DateTimeValues::Year => Ok(inner.year().into()),
             DateTimeValues::Month => Ok(inner.month().into()),
+            DateTimeValues::MonthCode => {
+                Ok(JsString::from(InnerYearMonth::month_code(inner)?.as_str()).into())
+            }
             _ => unreachable!(),
         }
     }
 
-    fn get_calendar_id(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn get_calendar_id(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let obj = this
             .as_object()
             .ok_or_else(|| JsNativeError::typ().with_message("this must be an object."))?;
@@ -288,7 +287,7 @@ impl PlainYearMonth {
 
         Ok(year_month
             .get_calendar()
-            .identifier(context)
+            .identifier()
             .map(JsString::from)?
             .into())
     }
@@ -301,71 +300,41 @@ impl PlainYearMonth {
         Self::get_internal_field(this, &DateTimeValues::Month)
     }
 
-    fn get_month_code(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let obj = this
-            .as_object()
-            .ok_or_else(|| JsNativeError::typ().with_message("this must be an object."))?;
-
-        let Ok(year_month) = obj.clone().downcast::<Self>() else {
-            return Err(JsNativeError::typ()
-                .with_message("the this object must be a PlainYearMonth object.")
-                .into());
-        };
-
-        Ok(JsString::from(
-            InnerYearMonth::<JsObject>::contextual_month_code(&year_month, context)?.as_str(),
-        )
-        .into())
+    fn get_month_code(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+        Self::get_internal_field(this, &DateTimeValues::MonthCode)
     }
 
-    fn get_days_in_year(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let obj = this
+    fn get_days_in_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+        let year_month = this
             .as_object()
-            .ok_or_else(|| JsNativeError::typ().with_message("this must be an object."))?;
-
-        let Ok(year_month) = obj.clone().downcast::<Self>() else {
-            return Err(JsNativeError::typ()
-                .with_message("the this object must be a PlainYearMonth object.")
-                .into());
-        };
-
-        Ok(InnerYearMonth::<JsObject>::contextual_get_days_in_year(&year_month, context)?.into())
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("this value must be a PlainYearMonth object.")
+            })?;
+        let inner = &year_month.inner;
+        Ok(inner.get_days_in_year()?.into())
     }
 
-    fn get_days_in_month(
-        this: &JsValue,
-        _: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
-        let obj = this
+    fn get_days_in_month(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+        let year_month = this
             .as_object()
-            .ok_or_else(|| JsNativeError::typ().with_message("this must be an object."))?;
-
-        let Ok(year_month) = obj.clone().downcast::<Self>() else {
-            return Err(JsNativeError::typ()
-                .with_message("the this object must be a PlainYearMonth object.")
-                .into());
-        };
-
-        Ok(InnerYearMonth::<JsObject>::contextual_get_days_in_month(&year_month, context)?.into())
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("this value must be a PlainYearMonth object.")
+            })?;
+        let inner = &year_month.inner;
+        Ok(inner.get_days_in_month()?.into())
     }
 
-    fn get_months_in_year(
-        this: &JsValue,
-        _: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
-        let obj = this
+    fn get_months_in_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+        let year_month = this
             .as_object()
-            .ok_or_else(|| JsNativeError::typ().with_message("this must be an object."))?;
-
-        let Ok(year_month) = obj.clone().downcast::<Self>() else {
-            return Err(JsNativeError::typ()
-                .with_message("the this object must be a PlainYearMonth object.")
-                .into());
-        };
-
-        Ok(InnerYearMonth::<JsObject>::contextual_get_months_in_year(&year_month, context)?.into())
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("this value must be a PlainYearMonth object.")
+            })?;
+        let inner = &year_month.inner;
+        Ok(inner.get_months_in_year()?.into())
     }
 
     fn get_in_leap_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
@@ -499,17 +468,21 @@ fn add_or_subtract_duration(
         .as_object()
         .ok_or_else(|| JsNativeError::typ().with_message("this must be an object."))?;
 
-    let Ok(year_month) = obj.clone().downcast::<PlainYearMonth>() else {
-        return Err(JsNativeError::typ()
-            .with_message("the this object must be a PlainYearMonth object.")
-            .into());
-    };
+    let year_month = this
+        .as_object()
+        .and_then(JsObject::downcast_ref::<PlainYearMonth>)
+        .ok_or_else(|| {
+            JsNativeError::typ().with_message("this value must be a PlainYearMonth object.")
+        })?;
 
+    let inner = &year_month.inner;
     let year_month_result = if is_addition {
-        InnerYearMonth::<JsObject>::add_duration(&year_month, duration, overflow, context)
+        inner
+            .add_duration(duration, overflow)
             .expect("Error adding duration to year month")
     } else {
-        InnerYearMonth::<JsObject>::subtract_duration(&year_month, duration, overflow, context)
+        inner
+            .subtract_duration(duration, overflow)
             .expect("Error subtracting duration from year month")
     };
 

@@ -28,7 +28,7 @@ use temporal_rs::{
     options::ArithmeticOverflow,
 };
 
-use super::{to_temporal_calendar_slot_value, DateTimeValues};
+use super::{calendar::to_temporal_calendar_slot_value, DateTimeValues};
 
 /// The `Temporal.PlainMonthDay` object.
 #[derive(Debug, Clone, Trace, Finalize, JsData)]
@@ -53,7 +53,7 @@ impl PlainMonthDay {
             let overflow = get_option(&options, js_str!("overflow"), context)?
                 .unwrap_or(ArithmeticOverflow::Constrain);
 
-            let calendar = to_temporal_calendar_slot_value(args.get_or_undefined(1), context)?;
+            let calendar = to_temporal_calendar_slot_value(args.get_or_undefined(1))?;
 
             InnerMonthDay::new(
                 item.get_v(js_str!("month"), context)
@@ -97,6 +97,10 @@ impl PlainMonthDay {
         match field {
             DateTimeValues::Month => Ok(inner.month().into()),
             DateTimeValues::Day => Ok(inner.day().into()),
+            DateTimeValues::Year => Ok(inner.year().into()),
+            DateTimeValues::MonthCode => {
+                Ok(JsString::from(InnerMonthDay::month_code(inner)?.as_str()).into())
+            }
             _ => unreachable!(),
         }
     }
@@ -114,20 +118,7 @@ impl PlainMonthDay {
     }
 
     fn get_month_code(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let obj = this
-            .as_object()
-            .ok_or_else(|| JsNativeError::typ().with_message("this must be an object."))?;
-
-        let Ok(month_day) = obj.clone().downcast::<Self>() else {
-            return Err(JsNativeError::typ()
-                .with_message("the this object must be a PlainYearMonth object.")
-                .into());
-        };
-
-        Ok(JsString::from(
-            InnerMonthDay::<JsObject>::contextual_month_code(&month_day, context)?.as_str(),
-        )
-        .into())
+        Self::get_internal_field(this, &DateTimeValues::MonthCode)
     }
 }
 impl IsoDateSlots for JsObject<PlainMonthDay> {
@@ -157,12 +148,12 @@ impl IntrinsicObject for PlainMonthDay {
             .name(js_string!("get month"))
             .build();
 
-        let get_year = BuiltInBuilder::callable(realm, Self::get_year)
-            .name(js_string!("get year"))
-            .build();
-
         let get_month_code = BuiltInBuilder::callable(realm, Self::get_month_code)
             .name(js_string!("get monthCode"))
+            .build();
+
+        let get_year = BuiltInBuilder::callable(realm, Self::get_year)
+            .name(js_string!("get year"))
             .build();
 
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
@@ -230,9 +221,9 @@ pub(crate) fn create_temporal_month_day(
 ) -> JsResult<JsValue> {
     // 1. If IsValidISODate(referenceISOYear, isoMonth, isoDay) is false, throw a RangeError exception.
     // 2. If ISODateTimeWithinLimits(referenceISOYear, isoMonth, isoDay, 12, 0, 0, 0, 0, 0) is false, throw a RangeError exception.
-    if DateTime::validate(&inner) {
+    if !DateTime::validate(&inner) {
         return Err(JsNativeError::range()
-            .with_message("PlainMonthDay is not a valid ISO date time.")
+            .with_message("PlainMonthDay does not hold a valid ISO date time.")
             .into());
     }
 
