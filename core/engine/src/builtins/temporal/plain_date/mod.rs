@@ -28,7 +28,10 @@ use temporal_rs::{
     options::ArithmeticOverflow,
 };
 
-use super::{calendar, to_temporal_duration_record, PlainDateTime, ZonedDateTime};
+use super::{
+    calendar, create_temporal_duration, options::get_difference_settings,
+    to_temporal_duration_record, PlainDateTime, ZonedDateTime,
+};
 
 /// The `Temporal.PlainDate` object.
 #[derive(Debug, Clone, Trace, Finalize, JsData)]
@@ -597,10 +600,14 @@ impl PlainDate {
                 JsNativeError::typ().with_message("the this object must be a PlainDate object.")
             })?;
 
+        let other = to_temporal_date(args.get_or_undefined(0), None, context)?;
+
         // 3. Return ? DifferenceTemporalPlainDate(until, temporalDate, other, options).
-        Err(JsNativeError::error()
-            .with_message("not yet implemented.")
-            .into())
+        let options = get_options_object(args.get_or_undefined(1))?;
+        let settings = get_difference_settings(&options, context)?;
+
+        create_temporal_duration(date.inner.until(&other.inner, settings)?, None, context)
+            .map(Into::into)
     }
 
     fn since(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
@@ -614,9 +621,13 @@ impl PlainDate {
             })?;
 
         // 3. Return ? DifferenceTemporalPlainDate(since, temporalDate, other, options).
-        Err(JsNativeError::error()
-            .with_message("not yet implemented.")
-            .into())
+        let other = to_temporal_date(args.get_or_undefined(0), None, context)?;
+
+        let options = get_options_object(args.get_or_undefined(1))?;
+        let settings = get_difference_settings(&options, context)?;
+
+        create_temporal_duration(date.inner.since(&other.inner, settings)?, None, context)
+            .map(Into::into)
     }
 
     fn equals(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
