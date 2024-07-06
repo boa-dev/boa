@@ -13,9 +13,10 @@ use crate::{
     string::JsStr,
     Context, JsNativeError, JsObject, JsResult, JsValue,
 };
+use boa_macros::js_str;
 use temporal_rs::options::{
-    ArithmeticOverflow, DurationOverflow, InstantDisambiguation, OffsetDisambiguation,
-    RoundingIncrement, TemporalRoundingMode, TemporalUnit,
+    ArithmeticOverflow, DifferenceSettings, DurationOverflow, InstantDisambiguation,
+    OffsetDisambiguation, RoundingIncrement, TemporalRoundingMode, TemporalUnit,
 };
 
 // TODO: Expand docs on the below options.
@@ -44,6 +45,21 @@ pub(crate) fn get_temporal_unit(
     }
 
     Ok(unit)
+}
+
+#[inline]
+pub(crate) fn get_difference_settings(
+    options: &JsObject,
+    context: &mut Context,
+) -> JsResult<DifferenceSettings> {
+    let mut settings = DifferenceSettings::default();
+    settings.rounding_mode =
+        get_option::<TemporalRoundingMode>(options, js_str!("roundingMode"), context)?;
+    settings.increment =
+        get_option::<RoundingIncrement>(options, js_str!("roundingIncrement"), context)?;
+    settings.smallest_unit = get_option::<TemporalUnit>(options, js_str!("smallestUnit"), context)?;
+    settings.largest_unit = get_option::<TemporalUnit>(options, js_str!("largestUnit"), context)?;
+    Ok(settings)
 }
 
 #[derive(Debug, Clone, Copy)]

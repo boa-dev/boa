@@ -115,7 +115,7 @@ intrusive-collections = "0.9.6"
 cfg-if = "1.0.0"
 either = "1.13.0"
 sys-locale = "0.3.1"
-temporal_rs = { git = "https://github.com/boa-dev/temporal.git", rev = "c658ac7db4701822cc179d04b56bb9c8fb7e954c" }
+temporal_rs = { git = "https://github.com/boa-dev/temporal.git", rev = "c999bb366c9cceff7fadae23c5c6f2cacd7d6e2f" }
 web-time = "1.1.0"
 criterion = "0.5.1"
 float-cmp = "0.9.0"
