@@ -30,7 +30,7 @@ mod runtime;
 pub(crate) use {
     compile::CompileTimeEnvironment,
     runtime::{
-        BindingLocator, BindingLocatorError, DeclarativeEnvironment, Environment, EnvironmentStack,
+        BindingLocator, BindingLocatorError, BindingLocatorEnvironment, DeclarativeEnvironment, Environment, EnvironmentStack,
         FunctionSlots, PrivateEnvironment, ThisBindingStatus,
     },
 };

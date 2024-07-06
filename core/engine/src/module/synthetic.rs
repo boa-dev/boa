@@ -308,15 +308,14 @@ impl SyntheticModule {
         for locator in exports {
             //     b. Perform ! env.InitializeBinding(exportName, undefined).
             envs.put_lexical_value(
-                locator.environment_index(),
+                locator.environment(),
                 locator.binding_index(),
                 JsValue::undefined(),
             );
         }
 
         let env = envs
-            .current_ref()
-            .as_declarative()
+            .current_declarative_ref()
             .cloned()
             .expect("should have the module environment");
 

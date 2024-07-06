@@ -3,15 +3,14 @@ mod global;
 mod lexical;
 mod module;
 
-use std::{cell::Cell, rc::Rc};
-
-use boa_gc::{Finalize, GcRefCell, Trace};
 pub(crate) use function::{FunctionEnvironment, FunctionSlots, ThisBindingStatus};
 pub(crate) use global::GlobalEnvironment;
 pub(crate) use lexical::LexicalEnvironment;
 pub(crate) use module::ModuleEnvironment;
 
-use crate::{environments::CompileTimeEnvironment, JsObject, JsResult, JsValue};
+use crate::{environments::CompileTimeEnvironment, JsResult, JsValue};
+use boa_gc::{Finalize, GcRefCell, Trace};
+use std::{cell::Cell, rc::Rc};
 
 /// A declarative environment holds binding values at runtime.
 ///
@@ -44,9 +43,9 @@ pub(crate) struct DeclarativeEnvironment {
 
 impl DeclarativeEnvironment {
     /// Creates a new global `DeclarativeEnvironment`.
-    pub(crate) fn global(global_this: JsObject) -> Self {
+    pub(crate) fn global() -> Self {
         Self {
-            kind: DeclarativeEnvironmentKind::Global(GlobalEnvironment::new(global_this)),
+            kind: DeclarativeEnvironmentKind::Global(GlobalEnvironment::new()),
             compile: Rc::new(CompileTimeEnvironment::new_global()),
         }
     }
@@ -221,8 +220,7 @@ impl DeclarativeEnvironmentKind {
     /// [spec]: https://tc39.es/ecma262/#sec-function-environment-records-getthisbinding
     pub(crate) fn get_this_binding(&self) -> JsResult<Option<JsValue>> {
         match self {
-            Self::Lexical(_) => Ok(None),
-            Self::Global(g) => Ok(Some(g.get_this_binding().into())),
+            Self::Lexical(_) | Self::Global(_) => Ok(None),
             Self::Function(f) => f.get_this_binding(),
             Self::Module(_) => Ok(Some(JsValue::undefined())),
         }

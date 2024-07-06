@@ -1653,7 +1653,7 @@ impl SourceTextModule {
                     // i. Let namespace be GetModuleNamespace(importedModule).
                     let namespace = module.namespace(context);
                     context.vm.environments.put_lexical_value(
-                        locator.environment_index(),
+                        locator.environment(),
                         locator.binding_index(),
                         namespace.into(),
                     );
@@ -1665,8 +1665,8 @@ impl SourceTextModule {
                     BindingName::Name(name) => context
                         .vm
                         .environments
-                        .current_ref()
-                        .declarative_expect()
+                        .current_declarative_ref()
+                        .expect("must be declarative")
                         .kind()
                         .as_module()
                         .expect("last environment should be the module env")
@@ -1674,7 +1674,7 @@ impl SourceTextModule {
                     BindingName::Namespace => {
                         let namespace = export_locator.module.namespace(context);
                         context.vm.environments.put_lexical_value(
-                            locator.environment_index(),
+                            locator.environment(),
                             locator.binding_index(),
                             namespace.into(),
                         );
@@ -1690,7 +1690,7 @@ impl SourceTextModule {
             let function = create_function_object_fast(code, context);
 
             context.vm.environments.put_lexical_value(
-                locator.environment_index(),
+                locator.environment(),
                 locator.binding_index(),
                 function.into(),
             );
@@ -1704,8 +1704,7 @@ impl SourceTextModule {
 
         let env = frame
             .environments
-            .current_ref()
-            .as_declarative()
+            .current_declarative_ref()
             .cloned()
             .expect("frame must have a declarative environment");
 
