@@ -7,7 +7,7 @@ use super::PoisonableEnvironment;
 #[derive(Debug, Trace, Finalize)]
 pub(crate) struct FunctionEnvironment {
     inner: PoisonableEnvironment,
-    slots: FunctionSlots,
+    slots: Box<FunctionSlots>,
 }
 
 impl FunctionEnvironment {
@@ -15,7 +15,7 @@ impl FunctionEnvironment {
     pub(crate) fn new(bindings: u32, poisoned: bool, with: bool, slots: FunctionSlots) -> Self {
         Self {
             inner: PoisonableEnvironment::new(bindings, poisoned, with),
-            slots,
+            slots: Box::new(slots),
         }
     }
 
