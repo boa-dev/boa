@@ -18,7 +18,7 @@ use boa_macros::js_str;
 use boa_profiler::Profiler;
 use temporal_rs::{
     components::Duration as InnerDuration,
-    options::{RelativeTo, RoundingIncrement, TemporalRoundingMode, TemporalUnit},
+    options::{RelativeTo, RoundingIncrement, RoundingOptions, TemporalRoundingMode, TemporalUnit},
 };
 
 use super::{
@@ -389,7 +389,7 @@ impl Duration {
         // 3. Return 𝔽(! DurationSign(duration.[[Years]], duration.[[Months]], duration.[[Weeks]],
         // duration.[[Days]], duration.[[Hours]], duration.[[Minutes]], duration.[[Seconds]],
         // duration.[[Milliseconds]], duration.[[Microseconds]], duration.[[Nanoseconds]])).
-        Ok(duration.inner.sign().into())
+        Ok((duration.inner.sign() as i8).into())
     }
 
     /// 7.3.14 get Temporal.Duration.prototype.blank
@@ -640,10 +640,11 @@ impl Duration {
         // NOTE: 6 & 7 unused in favor of `is_none()`.
         // 6. Let smallestUnitPresent be true.
         // 7. Let largestUnitPresent be true.
+        let mut options = RoundingOptions::default();
 
         // 8. NOTE: The following steps read options and perform independent validation in alphabetical order (ToRelativeTemporalObject reads "relativeTo", ToTemporalRoundingIncrement reads "roundingIncrement" and ToTemporalRoundingMode reads "roundingMode").
         // 9. Let largestUnit be ? GetTemporalUnit(roundTo, "largestUnit", datetime, undefined, « "auto" »).
-        let largest_unit = get_temporal_unit(
+        options.largest_unit = get_temporal_unit(
             &round_to,
             js_str!("largestUnit"),
             TemporalUnitGroup::DateTime,
@@ -658,15 +659,15 @@ impl Duration {
             super::to_relative_temporal_object(&round_to, context)?;
 
         // 13. Let roundingIncrement be ? ToTemporalRoundingIncrement(roundTo).
-        let rounding_increment =
+        options.increment =
             get_option::<RoundingIncrement>(&round_to, js_str!("roundingIncrement"), context)?;
 
         // 14. Let roundingMode be ? ToTemporalRoundingMode(roundTo, "halfExpand").
-        let rounding_mode =
+        options.rounding_mode =
             get_option::<TemporalRoundingMode>(&round_to, js_str!("roundingMode"), context)?;
 
         // 15. Let smallestUnit be ? GetTemporalUnit(roundTo, "smallestUnit", datetime, undefined).
-        let smallest_unit = get_temporal_unit(
+        options.smallest_unit = get_temporal_unit(
             &round_to,
             js_str!("smallestUnit"),
             TemporalUnitGroup::DateTime,
@@ -676,17 +677,9 @@ impl Duration {
 
         // NOTE: execute step 21 earlier before initial values are shadowed.
         // 21. If smallestUnitPresent is false and largestUnitPresent is false, then
-        if smallest_unit.is_none() && largest_unit.is_none() {
-            // a. Throw a RangeError exception.
-            return Err(JsNativeError::range()
-                .with_message("smallestUnit or largestUnit must be present.")
-                .into());
-        }
+
         let rounded_duration = duration.inner.round(
-            rounding_increment,
-            smallest_unit,
-            largest_unit,
-            rounding_mode,
+            options,
             &RelativeTo {
                 date: plain_relative_to.as_ref(),
                 zdt: zoned_relative_to.as_ref(),
