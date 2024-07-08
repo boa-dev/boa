@@ -29,8 +29,8 @@ use temporal_rs::{
 };
 
 use super::{
-    calendar, create_temporal_duration, options::get_difference_settings,
-    to_temporal_duration_record, PlainDateTime, ZonedDateTime,
+    calendar, create_temporal_datetime, create_temporal_duration, options::get_difference_settings,
+    to_temporal_duration_record, to_temporal_time, PlainDateTime, ZonedDateTime,
 };
 
 /// The `Temporal.PlainDate` object.
@@ -223,6 +223,7 @@ impl IntrinsicObject for PlainDate {
             .method(Self::until, js_string!("until"), 2)
             .method(Self::since, js_string!("since"), 2)
             .method(Self::equals, js_string!("equals"), 1)
+            .method(Self::to_plain_datetime, js_string!("toPlainDateTime"), 1)
             .build();
     }
 
@@ -662,6 +663,30 @@ impl PlainDate {
         let other = to_temporal_date(args.get_or_undefined(0), None, context)?;
 
         Ok((date.inner == other).into())
+    }
+
+    /// 3.3.30 Temporal.PlainDate.prototype.toPlainDateTime ( [ temporalTime ] )
+    fn to_plain_datetime(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let temporalDate be the this value.
+        // 2. Perform ? RequireInternalSlot(temporalDate, [[InitializedTemporalDate]]).
+        let date = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a PlainDate object.")
+            })?;
+
+        // 3. Set temporalTime to ? ToTemporalTimeOrMidnight(temporalTime).
+        let time = args
+            .first()
+            .map(|v| to_temporal_time(v, None, context))
+            .transpose()?;
+        // 4. Return ? CreateTemporalDateTime(temporalDate.[[ISOYear]], temporalDate.[[ISOMonth]], temporalDate.[[ISODay]], temporalTime.[[ISOHour]], temporalTime.[[ISOMinute]], temporalTime.[[ISOSecond]], temporalTime.[[ISOMillisecond]], temporalTime.[[ISOMicrosecond]], temporalTime.[[ISONanosecond]], temporalDate.[[Calendar]]).
+        create_temporal_datetime(date.inner.to_date_time(time)?, None, context).map(Into::into)
     }
 }
 

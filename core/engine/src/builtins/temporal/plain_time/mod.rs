@@ -540,7 +540,7 @@ pub(crate) fn create_temporal_time(
     Ok(obj)
 }
 
-fn to_temporal_time(
+pub(crate) fn to_temporal_time(
     value: &JsValue,
     _overflow: Option<ArithmeticOverflow>,
     _context: &mut Context,
