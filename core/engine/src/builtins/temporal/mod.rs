@@ -34,7 +34,7 @@ use crate::{
     realm::Realm,
     string::StaticJsStrings,
     value::Type,
-    Context, JsBigInt, JsError, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
+    Context, JsBigInt, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 use boa_macros::js_str;
 use boa_profiler::Profiler;
@@ -250,15 +250,18 @@ pub(crate) fn to_relative_temporal_object(
 ) -> RelativeTemporalObjectResult {
     let relative_to = options.get(PropertyKey::from(js_str!("relativeTo")), context)?;
     let plain_date = match relative_to {
-        JsValue::String(relative_to_str) => Some(relative_to_str.into()),
-        JsValue::Object(relative_to_obj) => Some(relative_to_obj.into()),
-        _ => None,
-    }
-    .map(|plane_date| Ok::<_, JsError>(to_temporal_date(&plane_date, None, context)?.inner))
-    .transpose()?;
+        JsValue::String(relative_to_str) => JsValue::from(relative_to_str),
+        JsValue::Object(relative_to_obj) => JsValue::from(relative_to_obj),
+        _ => {
+            return Err(JsNativeError::typ()
+                .with_message("Invalid type for converting to relativeTo object")
+                .into())
+        }
+    };
+    let plain_date = to_temporal_date(&plain_date, None, context)?;
 
     // TODO: Implement TemporalZonedDateTime conversion when ZonedDateTime is implemented
-    Ok((plain_date, None))
+    Ok((Some(plain_date), None))
 }
 
 // 13.22 `LargerOfTwoTemporalUnits ( u1, u2 )`

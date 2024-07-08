@@ -23,7 +23,7 @@ use temporal_rs::{
 
 use super::{
     options::{get_temporal_unit, TemporalUnitGroup},
-    to_integer_with_truncation, to_temporal_duration_record,
+    to_integer_with_truncation, to_temporal_duration_record, PlainDateTime, ZonedDateTime,
 };
 
 /// The `Temporal.PlainTime` object.
@@ -75,7 +75,7 @@ impl IntrinsicObject for PlainTime {
                 js_string!("hour"),
                 Some(get_hour),
                 None,
-                Attribute::default(),
+                Attribute::CONFIGURABLE,
             )
             .accessor(
                 js_string!("minute"),
@@ -107,9 +107,11 @@ impl IntrinsicObject for PlainTime {
                 None,
                 Attribute::CONFIGURABLE,
             )
+            .static_method(Self::from, js_string!("from"), 2)
             .method(Self::add, js_string!("add"), 1)
             .method(Self::subtract, js_string!("subtract"), 1)
             .method(Self::round, js_string!("round"), 1)
+            .method(Self::equals, js_string!("equals"), 1)
             .method(Self::get_iso_fields, js_string!("getISOFields"), 0)
             .method(Self::value_of, js_string!("valueOf"), 0)
             .build();
@@ -288,6 +290,36 @@ impl PlainTime {
 // ==== PlainTime method implementations ====
 
 impl PlainTime {
+    fn from(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let item = args.get_or_undefined(0);
+        // 1. Set options to ? GetOptionsObject(options).
+        // 2. Let overflow be ? GetTemporalOverflowOption(options).
+        let overflow = get_option::<ArithmeticOverflow>(
+            &get_options_object(args.get_or_undefined(1))?,
+            js_str!("overflow"),
+            context,
+        )?;
+        // 3. If item is an Object and item has an [[InitializedTemporalTime]] internal slot, then
+        let time = if let Some(time) = item
+            .as_object()
+            .and_then(JsObject::downcast_ref::<PlainTime>)
+        {
+            // a. Return ! CreateTemporalTime(item.[[ISOHour]], item.[[ISOMinute]],
+            // item.[[ISOSecond]], item.[[ISOMillisecond]], item.[[ISOMicrosecond]],
+            // item.[[ISONanosecond]]).
+            time.inner
+        } else {
+            to_temporal_time(item, overflow, context)?
+        };
+
+        // 4. Return ? ToTemporalTime(item, overflow).
+        create_temporal_time(time, None, context).map(Into::into)
+    }
+}
+
+// ==== PlainTime.prototype method implementations ====
+
+impl PlainTime {
     /// 4.3.9 Temporal.PlainTime.prototype.add ( temporalDurationLike )
     fn add(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let temporalTime be the this value.
@@ -394,6 +426,29 @@ impl PlainTime {
         create_temporal_time(result, None, context).map(Into::into)
     }
 
+    /// 4.3.15 Temporal.PlainTime.prototype.equals ( other )
+    fn equals(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        // 1. Let temporalTime be the this value.
+        // 2. Perform ? RequireInternalSlot(temporalTime, [[InitializedTemporalTime]]).
+        let time = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a PlainTime object.")
+            })?;
+
+        // 3. Set other to ? ToTemporalTime(other).
+        let other = to_temporal_time(args.get_or_undefined(0), None, context)?;
+        // 4. If temporalTime.[[ISOHour]] ≠ other.[[ISOHour]], return false.
+        // 5. If temporalTime.[[ISOMinute]] ≠ other.[[ISOMinute]], return false.
+        // 6. If temporalTime.[[ISOSecond]] ≠ other.[[ISOSecond]], return false.
+        // 7. If temporalTime.[[ISOMillisecond]] ≠ other.[[ISOMillisecond]], return false.
+        // 8. If temporalTime.[[ISOMicrosecond]] ≠ other.[[ISOMicrosecond]], return false.
+        // 9. If temporalTime.[[ISONanosecond]] ≠ other.[[ISONanosecond]], return false.
+        // 10. Return true.
+        Ok((time.inner == other).into())
+    }
+
     /// 4.3.18 Temporal.PlainTime.prototype.getISOFields ( )
     fn get_iso_fields(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let temporalTime be the this value.
@@ -483,4 +538,69 @@ pub(crate) fn create_temporal_time(
 
     // 10. Return object.
     Ok(obj)
+}
+
+pub(crate) fn to_temporal_time(
+    value: &JsValue,
+    _overflow: Option<ArithmeticOverflow>,
+    _context: &mut Context,
+) -> JsResult<Time> {
+    // 1.If overflow is not present, set overflow to "constrain".
+    // 2. If item is an Object, then
+    match value {
+        JsValue::Object(object) => {
+            // a. If item has an [[InitializedTemporalTime]] internal slot, then
+            if let Some(time) = object.downcast_ref::<PlainTime>() {
+                // i. Return item.
+                return Ok(time.inner);
+            // b. If item has an [[InitializedTemporalZonedDateTime]] internal slot, then
+            } else if let Some(_zdt) = object.downcast_ref::<ZonedDateTime>() {
+                // i. Let instant be ! CreateTemporalInstant(item.[[Nanoseconds]]).
+                // ii. Let timeZoneRec be ? CreateTimeZoneMethodsRecord(item.[[TimeZone]], « get-offset-nanoseconds-for »).
+                // iii. Let plainDateTime be ? GetPlainDateTimeFor(timeZoneRec, instant, item.[[Calendar]]).
+                // iv. Return ! CreateTemporalTime(plainDateTime.[[ISOHour]], plainDateTime.[[ISOMinute]],
+                // plainDateTime.[[ISOSecond]], plainDateTime.[[ISOMillisecond]], plainDateTime.[[ISOMicrosecond]],
+                // plainDateTime.[[ISONanosecond]]).
+                return Err(JsNativeError::range()
+                    .with_message("Not yet implemented.")
+                    .into());
+            // c. If item has an [[InitializedTemporalDateTime]] internal slot, then
+            } else if let Some(dt) = object.downcast_ref::<PlainDateTime>() {
+                // i. Return ! CreateTemporalTime(item.[[ISOHour]], item.[[ISOMinute]],
+                // item.[[ISOSecond]], item.[[ISOMillisecond]], item.[[ISOMicrosecond]],
+                // item.[[ISONanosecond]]).
+                return Ok(Time::new(
+                    dt.inner.hour().into(),
+                    dt.inner.minute().into(),
+                    dt.inner.second().into(),
+                    dt.inner.millisecond().into(),
+                    dt.inner.microsecond().into(),
+                    dt.inner.nanosecond().into(),
+                    ArithmeticOverflow::Reject,
+                )?);
+            }
+            // d. Let result be ? ToTemporalTimeRecord(item).
+            // e. Set result to ? RegulateTime(result.[[Hour]], result.[[Minute]],
+            // result.[[Second]], result.[[Millisecond]], result.[[Microsecond]],
+            // result.[[Nanosecond]], overflow).
+            Err(JsNativeError::range()
+                .with_message("Not yet implemented.")
+                .into())
+        }
+        // 3. Else,
+        JsValue::String(_str) => {
+            // b. Let result be ? ParseTemporalTimeString(item).
+            // c. Assert: IsValidTime(result.[[Hour]], result.[[Minute]], result.[[Second]], result.[[Millisecond]], result.[[Microsecond]], result.[[Nanosecond]]) is true.
+            // TODO: Add time parsing to `temporal_rs`
+            Err(JsNativeError::typ()
+                .with_message("Invalid value for converting to PlainTime.")
+                .into())
+        }
+        // a. If item is not a String, throw a TypeError exception.
+        _ => Err(JsNativeError::typ()
+            .with_message("Invalid value for converting to PlainTime.")
+            .into()),
+    }
+
+    // 4. Return ! CreateTemporalTime(result.[[Hour]], result.[[Minute]], result.[[Second]], result.[[Millisecond]], result.[[Microsecond]], result.[[Nanosecond]]).
 }

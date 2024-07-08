@@ -180,6 +180,7 @@ impl IntrinsicObject for Duration {
                 None,
                 Attribute::CONFIGURABLE,
             )
+            .static_method(Self::from, js_string!("from"), 1)
             .method(Self::with, js_string!("with"), 1)
             .method(Self::negated, js_string!("negated"), 0)
             .method(Self::abs, js_string!("abs"), 0)
@@ -412,7 +413,26 @@ impl Duration {
     }
 }
 
-// -- Duration Method implementations --
+// ==== Duration methods implementations ====
+
+impl Duration {
+    fn from(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let item = args.get_or_undefined(0);
+        // 1. If item is an Object and item has an [[InitializedTemporalDuration]] internal slot, then
+        if let Some(duration) = item.as_object().and_then(JsObject::downcast_ref::<Self>) {
+            // a. Return ! CreateTemporalDuration(item.[[Years]], item.[[Months]], item.[[Weeks]],
+            // item.[[Days]], item.[[Hours]], item.[[Minutes]], item.[[Seconds]], item.[[Milliseconds]],
+            // item.[[Microseconds]], item.[[Nanoseconds]]).
+            return create_temporal_duration(duration.inner, None, context).map(Into::into);
+        }
+
+        // 2. Return ? ToTemporalDuration(item).
+        create_temporal_duration(to_temporal_duration_record(item, context)?, None, context)
+            .map(Into::into)
+    }
+}
+
+// ==== Duration.prototype method implementations ====
 
 impl Duration {
     /// 7.3.15 `Temporal.Duration.prototype.with ( temporalDurationLike )`
@@ -581,17 +601,45 @@ impl Duration {
     }
 
     /// 7.3.18 `Temporal.Duration.prototype.add ( other [ , options ] )`
-    pub(crate) fn add(_: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        Err(JsNativeError::range()
-            .with_message("not yet implemented.")
-            .into())
+    pub(crate) fn add(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1.Let duration be the this value.
+        // 2. Perform ? RequireInternalSlot(duration, [[InitializedTemporalDuration]]).
+        let duration = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("this value must be a Duration object.")
+            })?;
+
+        // 3. Return ? AddDurations(add, duration, other).
+        let other = to_temporal_duration_record(args.get_or_undefined(0), context)?;
+
+        create_temporal_duration(duration.inner.add(&other)?, None, context).map(Into::into)
     }
 
     /// 7.3.19 `Temporal.Duration.prototype.subtract ( other [ , options ] )`
-    pub(crate) fn subtract(_: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        Err(JsNativeError::range()
-            .with_message("not yet implemented.")
-            .into())
+    pub(crate) fn subtract(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1.Let duration be the this value.
+        // 2. Perform ? RequireInternalSlot(duration, [[InitializedTemporalDuration]]).
+        let duration = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("this value must be a Duration object.")
+            })?;
+
+        let other = to_temporal_duration_record(args.get_or_undefined(0), context)?;
+
+        // 3. Return ? AddDurations(add, duration, other).
+        create_temporal_duration(duration.inner.subtract(&other)?, None, context).map(Into::into)
     }
 
     /// 7.3.20 `Temporal.Duration.prototype.round ( roundTo )`

@@ -3200,8 +3200,9 @@ checksum = "55937e1799185b12863d447f42597ed69d9928686b8d88a1df17376a097d8369"
 
 [[package]]
 name = "temporal_rs"
-version = "0.0.2"
-source = "git+https://github.com/boa-dev/temporal.git?rev=cf70b50f90865d2c00fb994b7adf8b9e1bd837b8#cf70b50f90865d2c00fb994b7adf8b9e1bd837b8"
+version = "0.0.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8e6f351ef929946476b4107c09348c9e25ba1155ff8e3867b1914878a0fb553f"
 dependencies = [
  "bitflags 2.6.0",
  "icu_calendar",
