@@ -665,7 +665,7 @@ impl PlainDate {
         Ok((date.inner == other).into())
     }
 
-    /// 3.3.30 Temporal.PlainDate.prototype.toPlainDateTime ( [ temporalTime ] )
+    /// 3.3.30 `Temporal.PlainDate.prototype.toPlainDateTime ( [ temporalTime ] )`
     fn to_plain_datetime(
         this: &JsValue,
         args: &[JsValue],
