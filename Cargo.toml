@@ -67,8 +67,8 @@ pollster = "0.3.0"
 regex = "1.10.5"
 regress = { version = "0.10.0", features = ["utf16"] }
 rustc-hash = { version = "2.0.0", default-features = false }
-serde_json = "1.0.119"
-serde = "1.0.203"
+serde_json = "1.0.120"
+serde = "1.0.204"
 static_assertions = "1.1.0"
 textwrap = "0.16.0"
 thin-vec = "0.2.13"
@@ -77,7 +77,7 @@ tinystr = "0.7.5"
 log = "0.4.22"
 simple_logger = "5.0.0"
 cargo_metadata = "0.18.1"
-trybuild = "1.0.95"
+trybuild = "1.0.97"
 rayon = "1.10.0"
 toml = "0.8.14"
 color-eyre = "0.6.3"
@@ -94,7 +94,7 @@ isahc = "1.7.2"
 rustyline = { version = "14.0.0", default-features = false }
 dhat = "0.3.3"
 quote = "1.0.36"
-syn = { version = "2.0.68", default-features = false }
+syn = { version = "2.0.69", default-features = false }
 proc-macro2 = "1.0"
 synstructure = "0.13"
 measureme = "11.0.1"
