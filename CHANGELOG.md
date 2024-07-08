@@ -6,7 +6,6 @@
 
 # [0.19.0 (2024-07-08)](https://github.com/boa-dev/boa/compare/v0.18...v0.19)
 
-
 ### Feature Enhancements
 
 - Add release binary striping by @Razican in https://github.com/boa-dev/boa/pull/3727
