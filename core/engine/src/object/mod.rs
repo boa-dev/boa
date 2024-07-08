@@ -247,6 +247,13 @@ impl<T: ?Sized> Object<T> {
         &self.data
     }
 
+    /// Returns the data of the object.
+    #[inline]
+    #[must_use]
+    pub fn data_mut(&mut self) -> &mut T {
+        &mut self.data
+    }
+
     /// Gets the prototype instance of this object.
     #[inline]
     #[must_use]
