@@ -423,21 +423,33 @@ impl ByteCompiler<'_> {
                             self.emit_with_varying_operand(Opcode::PushClassPrivateSetter, index);
                         }
                         MethodDefinition::Ordinary(expr) => {
+                            self.emit(Opcode::RotateLeft, &[Operand::U8(3)]);
+                            self.emit_opcode(Opcode::Dup);
+                            self.emit(Opcode::RotateRight, &[Operand::U8(4)]);
                             self.method(expr.into());
                             let index = self.get_or_insert_private_name(*name);
                             self.emit_with_varying_operand(Opcode::PushClassPrivateMethod, index);
                         }
                         MethodDefinition::Async(expr) => {
+                            self.emit(Opcode::RotateLeft, &[Operand::U8(3)]);
+                            self.emit_opcode(Opcode::Dup);
+                            self.emit(Opcode::RotateRight, &[Operand::U8(4)]);
                             self.method(expr.into());
                             let index = self.get_or_insert_private_name(*name);
                             self.emit_with_varying_operand(Opcode::PushClassPrivateMethod, index);
                         }
                         MethodDefinition::Generator(expr) => {
+                            self.emit(Opcode::RotateLeft, &[Operand::U8(3)]);
+                            self.emit_opcode(Opcode::Dup);
+                            self.emit(Opcode::RotateRight, &[Operand::U8(4)]);
                             self.method(expr.into());
                             let index = self.get_or_insert_private_name(*name);
                             self.emit_with_varying_operand(Opcode::PushClassPrivateMethod, index);
                         }
                         MethodDefinition::AsyncGenerator(expr) => {
+                            self.emit(Opcode::RotateLeft, &[Operand::U8(3)]);
+                            self.emit_opcode(Opcode::Dup);
+                            self.emit(Opcode::RotateRight, &[Operand::U8(4)]);
                             self.method(expr.into());
                             let index = self.get_or_insert_private_name(*name);
                             self.emit_with_varying_operand(Opcode::PushClassPrivateMethod, index);

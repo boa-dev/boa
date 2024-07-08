@@ -1450,7 +1450,7 @@ generate_opcodes! {
     ///
     /// Operands: index: `u32`
     ///
-    /// Stack: class, method **=>**
+    /// Stack: class, class_proto, method **=>**
     PushClassPrivateMethod { index: VaryingOperand },
 
     /// Deletes a property by name of an object.
