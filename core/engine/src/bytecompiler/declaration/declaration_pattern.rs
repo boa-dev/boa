@@ -117,31 +117,57 @@ impl ByteCompiler<'_> {
                         } => {
                             self.emit_opcode(Opcode::Dup);
                             self.emit_opcode(Opcode::Dup);
-                            match name {
-                                PropertyName::Literal(name) => {
-                                    self.emit_get_property_by_name(*name);
-                                }
-                                PropertyName::Computed(node) => {
-                                    self.compile_expr(node, true);
-                                    if rest_exits {
-                                        self.emit_opcode(Opcode::GetPropertyByValuePush);
-                                    } else {
-                                        self.emit_opcode(Opcode::GetPropertyByValue);
-                                    }
-                                }
-                            }
-
-                            if let Some(init) = default_init {
-                                let skip =
-                                    self.emit_opcode_with_operand(Opcode::JumpIfNotUndefined);
-                                self.compile_expr(init, true);
-                                self.patch_jump(skip);
+                            if let PropertyName::Computed(node) = &name {
+                                self.compile_expr(node, true);
+                                self.emit_opcode(Opcode::Swap);
                             }
 
                             self.access_set(
                                 Access::Property { access },
                                 false,
-                                ByteCompiler::access_set_top_of_stack_expr_fn,
+                                |compiler: &mut ByteCompiler<'_>, level: u8| {
+                                    match level {
+                                        0 => {}
+                                        1 => compiler.emit_opcode(Opcode::Swap),
+                                        _ => {
+                                            compiler.emit(
+                                                Opcode::RotateLeft,
+                                                &[Operand::U8(level + 1)],
+                                            );
+                                        }
+                                    }
+                                    compiler.emit_opcode(Opcode::Dup);
+
+                                    match name {
+                                        PropertyName::Literal(name) => {
+                                            compiler.emit_get_property_by_name(*name);
+                                        }
+                                        PropertyName::Computed(_) => {
+                                            compiler.emit(
+                                                Opcode::RotateLeft,
+                                                &[Operand::U8(level + 3)],
+                                            );
+                                            if rest_exits {
+                                                compiler
+                                                    .emit_opcode(Opcode::GetPropertyByValuePush);
+                                                compiler.emit_opcode(Opcode::Swap);
+                                                compiler.emit(
+                                                    Opcode::RotateRight,
+                                                    &[Operand::U8(level + 2)],
+                                                );
+                                            } else {
+                                                compiler.emit_opcode(Opcode::GetPropertyByValue);
+                                            }
+                                        }
+                                    }
+
+                                    if let Some(init) = default_init {
+                                        let skip = compiler
+                                            .emit_opcode_with_operand(Opcode::JumpIfNotUndefined);
+                                        compiler.compile_expr(init, true);
+                                        compiler.patch_jump(skip);
+                                    }
+                                },
                             );
 
                             if rest_exits && name.computed().is_some() {
