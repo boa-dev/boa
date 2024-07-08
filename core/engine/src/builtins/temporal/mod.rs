@@ -254,7 +254,8 @@ pub(crate) fn to_relative_temporal_object(
         JsValue::Object(relative_to_obj) => Some(relative_to_obj.into()),
         _ => None,
     }
-    .map(|plane_date| Ok::<_, JsError>(to_temporal_date(&plane_date, None, context)?.inner))
+    .map(|plain_date| Ok::<_, JsError>(to_temporal_date(&plain_date, None, context)))
+    .transpose()?
     .transpose()?;
 
     // TODO: Implement TemporalZonedDateTime conversion when ZonedDateTime is implemented
