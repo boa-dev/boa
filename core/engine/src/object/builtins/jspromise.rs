@@ -34,20 +34,14 @@ use boa_gc::{Finalize, Gc, GcRefCell, Trace};
 /// # fn main() -> Result<(), Box<dyn Error>> {
 /// let context = &mut Context::default();
 ///
-/// context.register_global_property(
-///     js_str!("finally"),
-///     false,
-///     Attribute::all(),
-/// );
+/// context.register_global_property(js_str!("finally"), false, Attribute::all());
 ///
 /// let promise = JsPromise::new(
 ///     |resolvers, context| {
 ///         let result = js_str!("hello world!").into();
-///         resolvers.resolve.call(
-///             &JsValue::undefined(),
-///             &[result],
-///             context,
-///         )?;
+///         resolvers
+///             .resolve
+///             .call(&JsValue::undefined(), &[result], context)?;
 ///         Ok(JsValue::undefined())
 ///     },
 ///     context,
@@ -57,8 +51,7 @@ use boa_gc::{Finalize, Gc, GcRefCell, Trace};
 ///     .then(
 ///         Some(
 ///             NativeFunction::from_fn_ptr(|_, args, _| {
-///                 Err(JsError::from_opaque(args.get_or_undefined(0).clone())
-///                     .into())
+///                 Err(JsError::from_opaque(args.get_or_undefined(0).clone()).into())
 ///             })
 ///             .to_js_function(context.realm()),
 ///         ),
@@ -66,10 +59,8 @@ use boa_gc::{Finalize, Gc, GcRefCell, Trace};
 ///         context,
 ///     )
 ///     .catch(
-///         NativeFunction::from_fn_ptr(|_, args, _| {
-///             Ok(args.get_or_undefined(0).clone())
-///         })
-///         .to_js_function(context.realm()),
+///         NativeFunction::from_fn_ptr(|_, args, _| Ok(args.get_or_undefined(0).clone()))
+///             .to_js_function(context.realm()),
 ///         context,
 ///     )
 ///     .finally(
@@ -140,11 +131,9 @@ impl JsPromise {
     /// let promise = JsPromise::new(
     ///     |resolvers, context| {
     ///         let result = js_string!("hello world").into();
-    ///         resolvers.resolve.call(
-    ///             &JsValue::undefined(),
-    ///             &[result],
-    ///             context,
-    ///         )?;
+    ///         resolvers
+    ///             .resolve
+    ///             .call(&JsValue::undefined(), &[result], context)?;
     ///         Ok(JsValue::undefined())
     ///     },
     ///     context,
@@ -379,10 +368,7 @@ impl JsPromise {
     /// # };
     /// let context = &mut Context::default();
     ///
-    /// let promise = JsPromise::reject(
-    ///     JsError::from_opaque(js_string!("oops!").into()),
-    ///     context,
-    /// );
+    /// let promise = JsPromise::reject(JsError::from_opaque(js_string!("oops!").into()), context);
     ///
     /// assert_eq!(
     ///     promise.state(),
@@ -467,11 +453,9 @@ impl JsPromise {
     ///
     /// let promise = JsPromise::new(
     ///     |resolvers, context| {
-    ///         resolvers.resolve.call(
-    ///             &JsValue::undefined(),
-    ///             &[255.255.into()],
-    ///             context,
-    ///         )?;
+    ///         resolvers
+    ///             .resolve
+    ///             .call(&JsValue::undefined(), &[255.255.into()], context)?;
     ///         Ok(JsValue::undefined())
     ///     },
     ///     context,
@@ -534,11 +518,9 @@ impl JsPromise {
     ///     |resolvers, context| {
     ///         let error = JsNativeError::typ().with_message("thrown");
     ///         let error = error.to_opaque(context);
-    ///         resolvers.reject.call(
-    ///             &JsValue::undefined(),
-    ///             &[error.into()],
-    ///             context,
-    ///         )?;
+    ///         resolvers
+    ///             .reject
+    ///             .call(&JsValue::undefined(), &[error.into()], context)?;
     ///         Ok(JsValue::undefined())
     ///     },
     ///     context,
@@ -592,21 +574,15 @@ impl JsPromise {
     /// # fn main() -> Result<(), Box<dyn Error>> {
     /// let context = &mut Context::default();
     ///
-    /// context.register_global_property(
-    ///     js_string!("finally"),
-    ///     false,
-    ///     Attribute::all(),
-    /// )?;
+    /// context.register_global_property(js_string!("finally"), false, Attribute::all())?;
     ///
     /// let promise = JsPromise::new(
     ///     |resolvers, context| {
     ///         let error = JsNativeError::typ().with_message("thrown");
     ///         let error = error.to_opaque(context);
-    ///         resolvers.reject.call(
-    ///             &JsValue::undefined(),
-    ///             &[error.into()],
-    ///             context,
-    ///         )?;
+    ///         resolvers
+    ///             .reject
+    ///             .call(&JsValue::undefined(), &[error.into()], context)?;
     ///         Ok(JsValue::undefined())
     ///     },
     ///     context,

@@ -58,7 +58,13 @@ impl<T: IntoIterator<Item = (JsString, NativeFunction)> + Clone> IntoJsModule fo
 /// # let mut context = Context::default();
 /// let f = |a: i32, b: i32| a + b;
 /// let f = unsafe { f.into_js_function_unsafe(&mut context) };
-/// let result = f.call(&JsValue::undefined(), &[JsValue::from(1), JsValue::from(2)], &mut context).unwrap();
+/// let result = f
+///     .call(
+///         &JsValue::undefined(),
+///         &[JsValue::from(1), JsValue::from(2)],
+///         &mut context,
+///     )
+///     .unwrap();
 /// assert_eq!(result, JsValue::new(3));
 /// ```
 ///
@@ -79,8 +85,10 @@ impl<T: IntoIterator<Item = (JsString, NativeFunction)> + Clone> IntoJsModule fo
 ///     move |a: i32| *x.borrow_mut() += a
 /// };
 /// let f = unsafe { f.into_js_function_unsafe(&mut context) };
-/// f.call(&JsValue::undefined(), &[JsValue::from(1)], &mut context).unwrap();
-/// f.call(&JsValue::undefined(), &[JsValue::from(4)], &mut context).unwrap();
+/// f.call(&JsValue::undefined(), &[JsValue::from(1)], &mut context)
+///     .unwrap();
+/// f.call(&JsValue::undefined(), &[JsValue::from(4)], &mut context)
+///     .unwrap();
 /// assert_eq!(*x.borrow(), 5);
 /// ```
 pub trait UnsafeIntoJsFunction<Args, Ret>: private::IntoJsFunctionSealed<Args, Ret> {
@@ -103,11 +111,13 @@ pub trait UnsafeIntoJsFunction<Args, Ret>: private::IntoJsFunctionSealed<Args, R
 /// # let mut context = Context::default();
 /// let f = |a: i32, b: i32| a + b;
 /// let f = f.into_js_function_copied(&mut context);
-/// let result = f.call(
-///     &JsValue::undefined(),
-///     &[JsValue::from(1), JsValue::from(2)],
-///     &mut context
-/// ).unwrap();
+/// let result = f
+///     .call(
+///         &JsValue::undefined(),
+///         &[JsValue::from(1), JsValue::from(2)],
+///         &mut context,
+///     )
+///     .unwrap();
 /// assert_eq!(result, JsValue::new(3));
 /// ```
 pub trait IntoJsFunctionCopied<Args, Ret>: private::IntoJsFunctionSealed<Args, Ret> + Copy {
@@ -155,14 +165,19 @@ impl<'a, T: TryFromJs> TryFromJsArgument<'a> for T {
 /// # use boa_interop::{IntoJsFunctionCopied, JsRest};
 /// # let mut context = Context::default();
 /// let sums = (|args: JsRest, context: &mut Context| -> i32 {
-///    args.iter().map(|i| i.try_js_into::<i32>(context).unwrap()).sum::<i32>()
-/// }).into_js_function_copied(&mut context);
+///     args.iter()
+///         .map(|i| i.try_js_into::<i32>(context).unwrap())
+///         .sum::<i32>()
+/// })
+/// .into_js_function_copied(&mut context);
 ///
-/// let result = sums.call(
-///     &JsValue::undefined(),
-///     &[JsValue::from(1), JsValue::from(2), JsValue::from(3)],
-///     &mut context
-/// ).unwrap();
+/// let result = sums
+///     .call(
+///         &JsValue::undefined(),
+///         &[JsValue::from(1), JsValue::from(2), JsValue::from(3)],
+///         &mut context,
+///     )
+///     .unwrap();
 /// assert_eq!(result, JsValue::new(6));
 /// ```
 #[derive(Debug, Clone)]
@@ -224,15 +239,22 @@ impl<'a> IntoIterator for JsRest<'a> {
 /// # use boa_engine::{Context, JsValue};
 /// # use boa_interop::{IntoJsFunctionCopied, JsAll};
 /// # let mut context = Context::default();
-/// let sums = (|args: JsAll<i32>, context: &mut Context| -> i32 {
-///    args.iter().sum()
-/// }).into_js_function_copied(&mut context);
+/// let sums = (|args: JsAll<i32>, context: &mut Context| -> i32 { args.iter().sum() })
+///     .into_js_function_copied(&mut context);
 ///
-/// let result = sums.call(
-///     &JsValue::undefined(),
-///     &[JsValue::from(1), JsValue::from(2), JsValue::from(3), JsValue::Boolean(true), JsValue::from(4)],
-///     &mut context
-/// ).unwrap();
+/// let result = sums
+///     .call(
+///         &JsValue::undefined(),
+///         &[
+///             JsValue::from(1),
+///             JsValue::from(2),
+///             JsValue::from(3),
+///             JsValue::Boolean(true),
+///             JsValue::from(4),
+///         ],
+///         &mut context,
+///     )
+///     .unwrap();
 /// assert_eq!(result, JsValue::new(6));
 /// ```
 #[derive(Debug, Clone)]
@@ -316,20 +338,22 @@ impl<'a, T: TryFromJs> TryFromJsArgument<'a> for JsThis<T> {
 /// For example,
 /// ```
 /// # use boa_engine::{Context, Finalize, JsData, JsValue, Trace};
-/// use boa_interop::{IntoJsFunctionCopied, ContextData};
+/// use boa_interop::{ContextData, IntoJsFunctionCopied};
 ///
 /// #[derive(Clone, Debug, Finalize, JsData, Trace)]
 /// struct CustomHostDefinedStruct {
-///    #[unsafe_ignore_trace]
-///    pub counter: usize,
+///     #[unsafe_ignore_trace]
+///     pub counter: usize,
 /// }
 /// let mut context = Context::default();
 /// context.insert_data(CustomHostDefinedStruct { counter: 123 });
-/// let f = (|ContextData(host): ContextData<CustomHostDefinedStruct>| {
-///   host.counter + 1
-/// }).into_js_function_copied(&mut context);
+/// let f = (|ContextData(host): ContextData<CustomHostDefinedStruct>| host.counter + 1)
+///     .into_js_function_copied(&mut context);
 ///
-/// assert_eq!(f.call(&JsValue::undefined(), &[], &mut context), Ok(JsValue::new(124)));
+/// assert_eq!(
+///     f.call(&JsValue::undefined(), &[], &mut context),
+///     Ok(JsValue::new(124))
+/// );
 /// ```
 #[derive(Debug, Clone)]
 pub struct ContextData<T: Clone>(pub T);
