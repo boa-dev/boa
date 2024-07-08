@@ -111,10 +111,7 @@ impl JsMap {
     /// let js_array = JsArray::new(context);
     ///
     /// // Create a `[key, value]` pair of JsValues and add it to the `JsArray` as a `JsArray`
-    /// let vec_one: Vec<JsValue> = vec![
-    ///     js_str!("first-key").into(),
-    ///     js_str!("first-value").into()
-    /// ];
+    /// let vec_one: Vec<JsValue> = vec![js_str!("first-key").into(), js_str!("first-value").into()];
     /// js_array.push(JsArray::from_iter(vec_one, context), context)?;
     ///
     /// // Create a `JsMap` from the `JsArray` using it's iterable property.
@@ -232,10 +229,7 @@ impl JsMap {
     /// js_map.set(js_str!("foo"), js_str!("bar"), context)?;
     /// js_map.set(2, 4, context)?;
     ///
-    /// assert_eq!(
-    ///     js_map.get(js_str!("foo"), context)?,
-    ///     js_str!("bar").into()
-    /// );
+    /// assert_eq!(js_map.get(js_str!("foo"), context)?, js_str!("bar").into());
     /// assert_eq!(js_map.get(2, context)?, 4.into());
     /// # Ok(())
     /// # }
@@ -296,10 +290,7 @@ impl JsMap {
     /// js_map.delete(js_str!("foo"), context)?;
     ///
     /// assert_eq!(js_map.get_size(context)?, 1.into());
-    /// assert_eq!(
-    ///     js_map.get(js_str!("foo"), context)?,
-    ///     JsValue::undefined()
-    /// );
+    /// assert_eq!(js_map.get(js_str!("foo"), context)?, JsValue::undefined());
     /// # Ok(())
     /// # }
     /// ```

@@ -220,11 +220,7 @@ impl Context {
     /// let mut context = Context::default();
     ///
     /// context
-    ///     .register_global_property(
-    ///         js_str!("myPrimitiveProperty"),
-    ///         10,
-    ///         Attribute::all(),
-    ///     )
+    ///     .register_global_property(js_str!("myPrimitiveProperty"), 10, Attribute::all())
     ///     .expect("property shouldn't exist");
     ///
     /// let object = ObjectInitializer::new(&mut context)
@@ -232,11 +228,7 @@ impl Context {
     ///     .property(js_str!("y"), 1, Attribute::all())
     ///     .build();
     /// context
-    ///     .register_global_property(
-    ///         js_str!("myObjectProperty"),
-    ///         object,
-    ///         Attribute::all(),
-    ///     )
+    ///     .register_global_property(js_str!("myObjectProperty"), object, Attribute::all())
     ///     .expect("property shouldn't exist");
     /// ```
     pub fn register_global_property<K, V>(

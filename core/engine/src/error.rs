@@ -34,7 +34,10 @@ use thiserror::Error;
 /// let cause = JsError::from_opaque(js_str!("error!").into());
 ///
 /// assert!(cause.as_opaque().is_some());
-/// assert_eq!(cause.as_opaque().unwrap(), &JsValue::from(js_str!("error!")));
+/// assert_eq!(
+///     cause.as_opaque().unwrap(),
+///     &JsValue::from(js_str!("error!"))
+/// );
 ///
 /// let native_error: JsError = JsNativeError::typ()
 ///     .with_message("invalid type!")
@@ -170,8 +173,7 @@ impl JsError {
     /// # use boa_engine::{Context, JsError, JsNativeError};
     /// # use boa_engine::builtins::error::ErrorObject;
     /// let context = &mut Context::default();
-    /// let error: JsError =
-    ///     JsNativeError::eval().with_message("invalid script").into();
+    /// let error: JsError = JsNativeError::eval().with_message("invalid script").into();
     /// let error_val = error.to_opaque(context);
     ///
     /// assert!(error_val.as_object().unwrap().is::<ErrorObject>());
@@ -346,8 +348,7 @@ impl JsError {
     ///
     /// ```rust
     /// # use boa_engine::{JsError, JsNativeError, JsValue};
-    /// let error: JsError =
-    ///     JsNativeError::error().with_message("Unknown error").into();
+    /// let error: JsError = JsNativeError::error().with_message("Unknown error").into();
     ///
     /// assert!(error.as_native().is_some());
     ///
