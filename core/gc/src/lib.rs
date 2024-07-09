@@ -53,7 +53,9 @@ thread_local!(static BOA_GC: RefCell<BoaGc> = RefCell::new( BoaGc {
 
 #[derive(Debug, Clone, Copy)]
 struct GcConfig {
+    /// The threshold at which the garbage collector will trigger a collection.
     threshold: usize,
+    /// The percentage of used space at which the garbage collector will trigger a collection.
     used_space_percentage: usize,
 }
 
@@ -63,7 +65,7 @@ struct GcConfig {
 impl Default for GcConfig {
     fn default() -> Self {
         Self {
-            threshold: 1024,
+            threshold: 1_000_000,
             used_space_percentage: 70,
         }
     }
@@ -191,6 +193,8 @@ impl Allocator {
         if gc.runtime.bytes_allocated > gc.config.threshold {
             Collector::collect(gc);
 
+            // Post collection check
+            // If the allocated bytes are still above the threshold, increase the threshold.
             if gc.runtime.bytes_allocated
                 > gc.config.threshold / 100 * gc.config.used_space_percentage
             {
