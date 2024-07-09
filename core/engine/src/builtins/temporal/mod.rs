@@ -252,6 +252,7 @@ pub(crate) fn to_relative_temporal_object(
     let plain_date = match relative_to {
         JsValue::String(relative_to_str) => JsValue::from(relative_to_str),
         JsValue::Object(relative_to_obj) => JsValue::from(relative_to_obj),
+        JsValue::Undefined => return Ok((None, None)),
         _ => {
             return Err(JsNativeError::typ()
                 .with_message("Invalid type for converting to relativeTo object")
