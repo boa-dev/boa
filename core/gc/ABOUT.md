@@ -16,7 +16,6 @@ Try out the most recent release with Boa's live demo
 - [**`boa_gc`**][gc] - Boa's garbage collector.
 - [**`boa_icu_provider`**][icu] - Boa's ICU4X data provider.
 - [**`boa_interner`**][interner] - Boa's string interner.
-- [**`boa_interop`**][interop] - Boa's interop with other languages.
 - [**`boa_macros`**][macros] - Boa's macros.
 - [**`boa_parser`**][parser] - Boa's lexer and parser.
 - [**`boa_profiler`**][profiler] - Boa's code profiler.
