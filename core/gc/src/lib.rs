@@ -65,7 +65,7 @@ struct GcConfig {
 impl Default for GcConfig {
     fn default() -> Self {
         Self {
-            // Start at 1MB, the nursary for V8 is ~1-8MB and SM can be up to 16MB, so we have room to increase if needed.
+            // Start at 1MB, the nursary size for V8 is ~1-8MB and SM can be up to 16MB
             threshold: 1_000_000,
             used_space_percentage: 70,
         }
