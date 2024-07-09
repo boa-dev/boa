@@ -29,7 +29,6 @@ Try out the most recent release with Boa's live demo
 [engine]: https://docs.rs/boa_engine/latest/boa_engine/index.html
 [gc]: https://docs.rs/boa_gc/latest/boa_gc/index.html
 [interner]: https://docs.rs/boa_interner/latest/boa_interner/index.html
-[interop]: https://docs.rs/boa_interop/latest/boa_interop/index.html
 [parser]: https://docs.rs/boa_parser/latest/boa_parser/index.html
 [profiler]: https://docs.rs/boa_profiler/latest/boa_profiler/index.html
 [icu]: https://docs.rs/boa_icu_provider/latest/boa_icu_provider/index.html
