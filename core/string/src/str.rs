@@ -192,12 +192,17 @@ impl<'a> JsStr<'a> {
     }
 
     /// Returns an element or subslice depending on the type of index, without doing bounds check.
+    ///
+    /// # Safety
+    ///
+    /// Caller must ensure the index is not out of bounds
     #[inline]
     #[must_use]
     pub unsafe fn get_unchecked<I>(self, index: I) -> I::Value
     where
         I: JsSliceIndex<'a>,
     {
+        // Safety: Caller must ensure the index is not out of bounds
         unsafe { I::get_unchecked(self, index) }
     }
 
@@ -321,7 +326,11 @@ impl<'a> JsSliceIndex<'a> for usize {
     }
 
     #[inline]
+    /// # Safety
+    ///
+    /// Caller must ensure the index is not out of bounds
     unsafe fn get_unchecked(value: JsStr<'a>, index: Self) -> Self::Value {
+        // Safety: Caller must ensure the index is not out of bounds
         unsafe {
             match value.variant() {
                 JsStrVariant::Latin1(v) => u16::from(*v.get_unchecked(index)),
@@ -343,7 +352,11 @@ impl<'a> JsSliceIndex<'a> for std::ops::Range<usize> {
     }
 
     #[inline]
+    /// # Safety
+    ///
+    /// Caller must ensure the index is not out of bounds
     unsafe fn get_unchecked(value: JsStr<'a>, index: Self) -> Self::Value {
+        // Safety: Caller must ensure the index is not out of bounds
         unsafe {
             match value.variant() {
                 JsStrVariant::Latin1(v) => JsStr::latin1(v.get_unchecked(index)),
@@ -365,7 +378,11 @@ impl<'a> JsSliceIndex<'a> for std::ops::RangeInclusive<usize> {
     }
 
     #[inline]
+    /// # Safety
+    ///
+    /// Caller must ensure the index is not out of bounds
     unsafe fn get_unchecked(value: JsStr<'a>, index: Self) -> Self::Value {
+        // Safety: Caller must ensure the index is not out of bounds
         unsafe {
             match value.variant() {
                 JsStrVariant::Latin1(v) => JsStr::latin1(v.get_unchecked(index)),
@@ -387,7 +404,11 @@ impl<'a> JsSliceIndex<'a> for std::ops::RangeFrom<usize> {
     }
 
     #[inline]
+    /// # Safety
+    ///
+    /// Caller must ensure the index is not out of bounds
     unsafe fn get_unchecked(value: JsStr<'a>, index: Self) -> Self::Value {
+        // Safety: Caller must ensure the index is not out of bounds
         unsafe {
             match value.variant() {
                 JsStrVariant::Latin1(v) => JsStr::latin1(v.get_unchecked(index)),
@@ -409,7 +430,11 @@ impl<'a> JsSliceIndex<'a> for std::ops::RangeTo<usize> {
     }
 
     #[inline]
+    /// # Safety
+    ///
+    /// Caller must ensure the index is not out of bounds
     unsafe fn get_unchecked(value: JsStr<'a>, index: Self) -> Self::Value {
+        // Safety: Caller must ensure the index is not out of bounds
         unsafe {
             match value.variant() {
                 JsStrVariant::Latin1(v) => JsStr::latin1(v.get_unchecked(index)),
@@ -428,7 +453,10 @@ impl<'a> JsSliceIndex<'a> for std::ops::RangeFull {
     }
 
     #[inline]
-    unsafe fn get_unchecked(value: JsStr<'a>, index: Self) -> Self::Value {
+    /// # Safety
+    ///
+    /// Caller must ensure the index is not out of bounds
+    unsafe fn get_unchecked(value: JsStr<'a>, _index: Self) -> Self::Value {
         value
     }
 }
