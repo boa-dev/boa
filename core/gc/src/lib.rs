@@ -66,7 +66,7 @@ impl Default for GcConfig {
     fn default() -> Self {
         Self {
             // Start at 1MB, the nursary size for V8 is ~1-8MB and SM can be up to 16MB
-            threshold: 1_000_000,
+            threshold: 1_048_576,
             used_space_percentage: 70,
         }
     }
