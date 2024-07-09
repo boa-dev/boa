@@ -53,12 +53,12 @@ pub(crate) fn get_difference_settings(
     context: &mut Context,
 ) -> JsResult<DifferenceSettings> {
     let mut settings = DifferenceSettings::default();
-    settings.rounding_mode =
-        get_option::<TemporalRoundingMode>(options, js_str!("roundingMode"), context)?;
+    settings.largest_unit = get_option::<TemporalUnit>(options, js_str!("largestUnit"), context)?;
     settings.increment =
         get_option::<RoundingIncrement>(options, js_str!("roundingIncrement"), context)?;
+    settings.rounding_mode =
+        get_option::<TemporalRoundingMode>(options, js_str!("roundingMode"), context)?;
     settings.smallest_unit = get_option::<TemporalUnit>(options, js_str!("smallestUnit"), context)?;
-    settings.largest_unit = get_option::<TemporalUnit>(options, js_str!("largestUnit"), context)?;
     Ok(settings)
 }
 
