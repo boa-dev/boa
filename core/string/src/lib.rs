@@ -823,7 +823,7 @@ impl JsString {
         I::get(self.as_str(), index)
     }
 
-    /// Get the element a the given index, without doing bounds checking.
+    /// Returns an element or subslice depending on the type of index, without doing bounds check.
     ///
     /// # Safety
     ///

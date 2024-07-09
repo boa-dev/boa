@@ -325,10 +325,10 @@ impl<'a> JsSliceIndex<'a> for usize {
         }
     }
 
-    #[inline]
     /// # Safety
     ///
     /// Caller must ensure the index is not out of bounds
+    #[inline]
     unsafe fn get_unchecked(value: JsStr<'a>, index: Self) -> Self::Value {
         // Safety: Caller must ensure the index is not out of bounds
         unsafe {
@@ -351,10 +351,10 @@ impl<'a> JsSliceIndex<'a> for std::ops::Range<usize> {
         }
     }
 
-    #[inline]
     /// # Safety
     ///
     /// Caller must ensure the index is not out of bounds
+    #[inline]
     unsafe fn get_unchecked(value: JsStr<'a>, index: Self) -> Self::Value {
         // Safety: Caller must ensure the index is not out of bounds
         unsafe {
@@ -377,10 +377,10 @@ impl<'a> JsSliceIndex<'a> for std::ops::RangeInclusive<usize> {
         }
     }
 
-    #[inline]
     /// # Safety
     ///
     /// Caller must ensure the index is not out of bounds
+    #[inline]
     unsafe fn get_unchecked(value: JsStr<'a>, index: Self) -> Self::Value {
         // Safety: Caller must ensure the index is not out of bounds
         unsafe {
@@ -403,10 +403,10 @@ impl<'a> JsSliceIndex<'a> for std::ops::RangeFrom<usize> {
         }
     }
 
-    #[inline]
     /// # Safety
     ///
     /// Caller must ensure the index is not out of bounds
+    #[inline]
     unsafe fn get_unchecked(value: JsStr<'a>, index: Self) -> Self::Value {
         // Safety: Caller must ensure the index is not out of bounds
         unsafe {
@@ -429,10 +429,10 @@ impl<'a> JsSliceIndex<'a> for std::ops::RangeTo<usize> {
         }
     }
 
-    #[inline]
     /// # Safety
     ///
     /// Caller must ensure the index is not out of bounds
+    #[inline]
     unsafe fn get_unchecked(value: JsStr<'a>, index: Self) -> Self::Value {
         // Safety: Caller must ensure the index is not out of bounds
         unsafe {
@@ -452,10 +452,10 @@ impl<'a> JsSliceIndex<'a> for std::ops::RangeFull {
         Some(value)
     }
 
-    #[inline]
     /// # Safety
     ///
     /// Caller must ensure the index is not out of bounds
+    #[inline]
     unsafe fn get_unchecked(value: JsStr<'a>, _index: Self) -> Self::Value {
         value
     }
