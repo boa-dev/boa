@@ -43,8 +43,9 @@ Boa currently publishes and actively maintains the following crates:
 - **`boa_profiler`** - Boa's code profiler
 - **`boa_icu_provider`** - Boa's ICU4X data provider
 - **`boa_runtime`** - Boa's WebAPI features
+- **`boa_string`** - Boa's ECMAScript string implementation.
 
-Please note: the `Boa` and `boa_unicode` crate are deprecated.
+Please note: the `Boa` and `boa_unicode` crates are deprecated.
 
 ## Boa Engine Example
 
@@ -54,7 +55,7 @@ Add the below dependency to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-boa_engine = "0.17.3"
+boa_engine = "0.19.0"
 ```
 
 Then in `main.rs`, copy the below:
@@ -178,8 +179,9 @@ See [CHANGELOG.md](./CHANGELOG.md).
 
 ## Communication
 
-Feel free to contact us on [Discord](https://discord.gg/tUFFk9Y) for any questions or issues. The general
-contributor chat for Boa occurs on [Matrix](https://matrix.to/#/#boa:matrix.org) if you're interested in contributing.
+Feel free to contact us on [Matrix](https://matrix.to/#/#boa:matrix.org) if you have any questions.
+Contributor discussions take place on the same Matrix Space if you're interested in contributing.
+We also have a [Discord](https://discord.gg/tUFFk9Y) for any questions or issues.
 
 ## License
 
