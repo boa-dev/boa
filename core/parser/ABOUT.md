@@ -10,13 +10,15 @@ Try out the most recent release with Boa's live demo
 
 ## Boa Crates
 
+- [**`boa_cli`**][cli] - Boa's CLI && REPL implementation
 - [**`boa_ast`**][ast] - Boa's ECMAScript Abstract Syntax Tree.
 - [**`boa_engine`**][engine] - Boa's implementation of ECMAScript builtin objects and execution.
 - [**`boa_gc`**][gc] - Boa's garbage collector.
+- [**`boa_icu_provider`**][icu] - Boa's ICU4X data provider.
 - [**`boa_interner`**][interner] - Boa's string interner.
+- [**`boa_macros`**][macros] - Boa's macros.
 - [**`boa_parser`**][parser] - Boa's lexer and parser.
 - [**`boa_profiler`**][profiler] - Boa's code profiler.
-- [**`boa_icu_provider`**][icu] - Boa's ICU4X data provider.
 - [**`boa_runtime`**][runtime] - Boa's WebAPI features.
 - [**`boa_string`**][string] - Boa's ECMAScript string implementation.
 
@@ -32,3 +34,5 @@ Try out the most recent release with Boa's live demo
 [icu]: https://docs.rs/boa_icu_provider/latest/boa_icu_provider/index.html
 [runtime]: https://docs.rs/boa_runtime/latest/boa_runtime/index.html
 [string]: https://docs.rs/boa_string/latest/boa_string/index.html
+[macros]: https://docs.rs/boa_macros/latest/boa_macros/index.html
+[cli]: https://crates.io/crates/boa_cli
