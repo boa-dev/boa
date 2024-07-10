@@ -1,6 +1,7 @@
 //! This module contains the [`TryFromJs`] trait, and conversions to basic Rust types.
 
 use num_bigint::BigInt;
+use num_traits::AsPrimitive;
 
 use crate::{js_string, Context, JsBigInt, JsNativeError, JsObject, JsResult, JsString, JsValue};
 
@@ -156,12 +157,28 @@ impl TryFromJs for f64 {
     }
 }
 
+fn from_f64<T>(v: f64) -> Option<T>
+where
+    T: AsPrimitive<f64>,
+    f64: AsPrimitive<T>,
+{
+    if <f64 as AsPrimitive<T>>::as_(v).as_().to_bits() == v.to_bits() {
+        return Some(v.as_());
+    }
+    None
+}
+
 impl TryFromJs for i8 {
     fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {
         match value {
             JsValue::Integer(i) => (*i).try_into().map_err(|e| {
                 JsNativeError::typ()
                     .with_message(format!("cannot convert value to a i8: {e}"))
+                    .into()
+            }),
+            JsValue::Rational(f) => from_f64(*f).ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message("cannot convert value to a i8")
                     .into()
             }),
             _ => Err(JsNativeError::typ()
@@ -179,6 +196,11 @@ impl TryFromJs for u8 {
                     .with_message(format!("cannot convert value to a u8: {e}"))
                     .into()
             }),
+            JsValue::Rational(f) => from_f64(*f).ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message("cannot convert value to a u8")
+                    .into()
+            }),
             _ => Err(JsNativeError::typ()
                 .with_message("cannot convert value to a u8")
                 .into()),
@@ -192,6 +214,11 @@ impl TryFromJs for i16 {
             JsValue::Integer(i) => (*i).try_into().map_err(|e| {
                 JsNativeError::typ()
                     .with_message(format!("cannot convert value to a i16: {e}"))
+                    .into()
+            }),
+            JsValue::Rational(f) => from_f64(*f).ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message("cannot convert value to a i16")
                     .into()
             }),
             _ => Err(JsNativeError::typ()
@@ -209,6 +236,11 @@ impl TryFromJs for u16 {
                     .with_message(format!("cannot convert value to a iu16: {e}"))
                     .into()
             }),
+            JsValue::Rational(f) => from_f64(*f).ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message("cannot convert value to a u16")
+                    .into()
+            }),
             _ => Err(JsNativeError::typ()
                 .with_message("cannot convert value to a u16")
                 .into()),
@@ -220,6 +252,11 @@ impl TryFromJs for i32 {
     fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {
         match value {
             JsValue::Integer(i) => Ok(*i),
+            JsValue::Rational(f) => from_f64(*f).ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message("cannot convert value to a i32")
+                    .into()
+            }),
             _ => Err(JsNativeError::typ()
                 .with_message("cannot convert value to a i32")
                 .into()),
@@ -235,6 +272,11 @@ impl TryFromJs for u32 {
                     .with_message(format!("cannot convert value to a u32: {e}"))
                     .into()
             }),
+            JsValue::Rational(f) => from_f64(*f).ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message("cannot convert value to a u32")
+                    .into()
+            }),
             _ => Err(JsNativeError::typ()
                 .with_message("cannot convert value to a u32")
                 .into()),
@@ -246,6 +288,11 @@ impl TryFromJs for i64 {
     fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {
         match value {
             JsValue::Integer(i) => Ok((*i).into()),
+            JsValue::Rational(f) => from_f64(*f).ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message("cannot convert value to a i64")
+                    .into()
+            }),
             _ => Err(JsNativeError::typ()
                 .with_message("cannot convert value to a i64")
                 .into()),
@@ -259,6 +306,11 @@ impl TryFromJs for u64 {
             JsValue::Integer(i) => (*i).try_into().map_err(|e| {
                 JsNativeError::typ()
                     .with_message(format!("cannot convert value to a u64: {e}"))
+                    .into()
+            }),
+            JsValue::Rational(f) => from_f64(*f).ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message("cannot convert value to a u64")
                     .into()
             }),
             _ => Err(JsNativeError::typ()
@@ -276,6 +328,11 @@ impl TryFromJs for usize {
                     .with_message(format!("cannot convert value to a usize: {e}"))
                     .into()
             }),
+            JsValue::Rational(f) => from_f64(*f).ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message("cannot convert value to a usize")
+                    .into()
+            }),
             _ => Err(JsNativeError::typ()
                 .with_message("cannot convert value to a usize")
                 .into()),
@@ -287,6 +344,11 @@ impl TryFromJs for i128 {
     fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {
         match value {
             JsValue::Integer(i) => Ok((*i).into()),
+            JsValue::Rational(f) => from_f64(*f).ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message("cannot convert value to a i128")
+                    .into()
+            }),
             _ => Err(JsNativeError::typ()
                 .with_message("cannot convert value to a i128")
                 .into()),
@@ -302,11 +364,46 @@ impl TryFromJs for u128 {
                     .with_message(format!("cannot convert value to a u128: {e}"))
                     .into()
             }),
+            JsValue::Rational(f) => from_f64(*f).ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message("cannot convert value to a u128")
+                    .into()
+            }),
             _ => Err(JsNativeError::typ()
                 .with_message("cannot convert value to a u128")
                 .into()),
         }
     }
+}
+
+#[test]
+fn integer_floating_js_value_to_integer() {
+    let context = &mut Context::default();
+
+    assert_eq!(i8::try_from_js(&JsValue::from(4.0), context), Ok(4));
+    assert_eq!(u8::try_from_js(&JsValue::from(4.0), context), Ok(4));
+    assert_eq!(i16::try_from_js(&JsValue::from(4.0), context), Ok(4));
+    assert_eq!(u16::try_from_js(&JsValue::from(4.0), context), Ok(4));
+    assert_eq!(i32::try_from_js(&JsValue::from(4.0), context), Ok(4));
+    assert_eq!(u32::try_from_js(&JsValue::from(4.0), context), Ok(4));
+    assert_eq!(i64::try_from_js(&JsValue::from(4.0), context), Ok(4));
+    assert_eq!(u64::try_from_js(&JsValue::from(4.0), context), Ok(4));
+
+    // Floating with fractional part
+    let result = i32::try_from_js(&JsValue::from(4.000_000_000_000_001), context);
+    assert!(result.is_err());
+
+    // NaN
+    let result = i32::try_from_js(&JsValue::nan(), context);
+    assert!(result.is_err());
+
+    // +Infinity
+    let result = i32::try_from_js(&JsValue::positive_infinity(), context);
+    assert!(result.is_err());
+
+    // -Infinity
+    let result = i32::try_from_js(&JsValue::negative_infinity(), context);
+    assert!(result.is_err());
 }
 
 #[test]
