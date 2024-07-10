@@ -1,6 +1,7 @@
 //! This module contains the [`TryFromJs`] trait, and conversions to basic Rust types.
 
 use num_bigint::BigInt;
+use num_traits::AsPrimitive;
 
 use crate::{js_string, Context, JsBigInt, JsNativeError, JsObject, JsResult, JsString, JsValue};
 
@@ -156,43 +157,13 @@ impl TryFromJs for f64 {
     }
 }
 
-trait ToF64: Sized {
-    fn cast_to_f64(self) -> f64;
-    fn cast_from_f64(v: f64) -> Self;
-}
-
-macro_rules! impl_to_f64 {
-    ($type_:ident) => {
-        impl ToF64 for $type_ {
-            #[inline]
-            // NOTE: Lint only applies to types that are lossless conversion to f64.
-            #[allow(clippy::cast_lossless)]
-            fn cast_to_f64(self) -> f64 {
-                self as f64
-            }
-            #[inline]
-            fn cast_from_f64(v: f64) -> Self {
-                v as Self
-            }
-        }
-    };
-}
-
-impl_to_f64!(i8);
-impl_to_f64!(u8);
-impl_to_f64!(i16);
-impl_to_f64!(u16);
-impl_to_f64!(i32);
-impl_to_f64!(u32);
-impl_to_f64!(i64);
-impl_to_f64!(u64);
-impl_to_f64!(usize);
-impl_to_f64!(i128);
-impl_to_f64!(u128);
-
-fn from_f64<T: ToF64>(v: f64) -> Option<T> {
-    if T::cast_from_f64(v).cast_to_f64().to_bits() == v.to_bits() {
-        return Some(T::cast_from_f64(v));
+fn from_f64<T>(v: f64) -> Option<T>
+where
+    T: AsPrimitive<f64>,
+    f64: AsPrimitive<T>,
+{
+    if <f64 as AsPrimitive<T>>::as_(v).as_().to_bits() == v.to_bits() {
+        return Some(v.as_());
     }
     None
 }
