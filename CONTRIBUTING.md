@@ -111,8 +111,8 @@ cargo doc --all-features --document-private-items --workspace --no-deps
 
 ## Communication
 
-We have a Discord server, feel free to ask questions here:
-<https://discord.gg/tUFFk9Y>
+We have a Matrix space, feel free to ask questions here:
+<https://matrix.to/#/#boa:matrix.org>
 
 [issues]: https://github.com/boa-dev/boa/issues
 [rustup]: https://rustup.rs/

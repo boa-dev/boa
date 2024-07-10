@@ -11,6 +11,6 @@ on [crates.io][crate].
 
 ## Reporting a Vulnerability
 
-If you find any potential vulnerability, join our [discord](https://discord.gg/tUFFk9Y) channel
-and contact anyone in the _@boa_dev_ group (check the yellow usernames). Explain how to trigger
-the vulnerability, where can it be found and any recommendation you might have to fix it.
+If you find any potential vulnerability, join our [Matrix](https://matrix.to/#/#boa:matrix.org) space
+and contact anyone who is an admin. Explain how to trigger the vulnerability, where can it be found
+and any recommendation you might have to fix it.
