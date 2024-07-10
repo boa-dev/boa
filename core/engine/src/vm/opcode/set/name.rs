@@ -131,7 +131,7 @@ fn verify_initialized(locator: &BindingLocator, context: &mut Context) -> JsResu
                 key.to_std_string_escaped()
             )),
             BindingLocatorEnvironment::GlobalObject => None,
-            BindingLocatorEnvironment::GlobalDecalrative => Some(format!(
+            BindingLocatorEnvironment::GlobalDeclarative => Some(format!(
                 "cannot assign to uninitialized binding `{}`",
                 key.to_std_string_escaped()
             )),

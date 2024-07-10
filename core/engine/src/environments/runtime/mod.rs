@@ -299,7 +299,7 @@ impl EnvironmentStack {
     ) {
         let env = match environment {
             BindingLocatorEnvironment::GlobalObject
-            | BindingLocatorEnvironment::GlobalDecalrative => self.global(),
+            | BindingLocatorEnvironment::GlobalDeclarative => self.global(),
             BindingLocatorEnvironment::Stack(index) => self
                 .stack
                 .get(index as usize)
@@ -323,7 +323,7 @@ impl EnvironmentStack {
     ) {
         let env = match environment {
             BindingLocatorEnvironment::GlobalObject
-            | BindingLocatorEnvironment::GlobalDecalrative => self.global(),
+            | BindingLocatorEnvironment::GlobalDeclarative => self.global(),
             BindingLocatorEnvironment::Stack(index) => self
                 .stack
                 .get(index as usize)
@@ -447,7 +447,7 @@ impl BindingLocator {
     pub(crate) fn environment(&self) -> BindingLocatorEnvironment {
         match self.environment {
             0 => BindingLocatorEnvironment::GlobalObject,
-            1 => BindingLocatorEnvironment::GlobalDecalrative,
+            1 => BindingLocatorEnvironment::GlobalDeclarative,
             n => BindingLocatorEnvironment::Stack(n - 2),
         }
     }
@@ -456,7 +456,7 @@ impl BindingLocator {
     fn set_environment(&mut self, environment: BindingLocatorEnvironment) {
         self.environment = match environment {
             BindingLocatorEnvironment::GlobalObject => 0,
-            BindingLocatorEnvironment::GlobalDecalrative => 1,
+            BindingLocatorEnvironment::GlobalDeclarative => 1,
             BindingLocatorEnvironment::Stack(index) => index + 2,
         };
     }
@@ -481,7 +481,7 @@ pub(crate) enum BindingLocatorError {
 #[derive(Clone, Copy, Debug)]
 pub(crate) enum BindingLocatorEnvironment {
     GlobalObject,
-    GlobalDecalrative,
+    GlobalDeclarative,
     Stack(u32),
 }
 
@@ -504,7 +504,7 @@ impl Context {
 
         let (global, min_index) = match locator.environment() {
             BindingLocatorEnvironment::GlobalObject
-            | BindingLocatorEnvironment::GlobalDecalrative => (true, 0),
+            | BindingLocatorEnvironment::GlobalDeclarative => (true, 0),
             BindingLocatorEnvironment::Stack(index) => (false, index),
         };
         let max_index = self.vm.environments.stack.len() as u32;
@@ -569,7 +569,7 @@ impl Context {
 
         let min_index = match locator.environment() {
             BindingLocatorEnvironment::GlobalObject
-            | BindingLocatorEnvironment::GlobalDecalrative => 0,
+            | BindingLocatorEnvironment::GlobalDeclarative => 0,
             BindingLocatorEnvironment::Stack(index) => index,
         };
         let max_index = self.vm.environments.stack.len() as u32;
@@ -617,7 +617,7 @@ impl Context {
                 let obj = self.global_object();
                 obj.has_property(key, self)
             }
-            BindingLocatorEnvironment::GlobalDecalrative => {
+            BindingLocatorEnvironment::GlobalDeclarative => {
                 let env = self.vm.environments.global();
                 Ok(env.get(locator.binding_index()).is_some())
             }
@@ -644,7 +644,7 @@ impl Context {
                 let obj = self.global_object();
                 obj.try_get(key, self)
             }
-            BindingLocatorEnvironment::GlobalDecalrative => {
+            BindingLocatorEnvironment::GlobalDeclarative => {
                 let env = self.vm.environments.global();
                 Ok(env.get(locator.binding_index()))
             }
@@ -677,7 +677,7 @@ impl Context {
                 let obj = self.global_object();
                 obj.set(key, value, strict, self)?;
             }
-            BindingLocatorEnvironment::GlobalDecalrative => {
+            BindingLocatorEnvironment::GlobalDeclarative => {
                 let env = self.vm.environments.global();
                 env.set(locator.binding_index(), value);
             }
@@ -709,7 +709,7 @@ impl Context {
                 let obj = self.global_object();
                 obj.__delete__(&key.into(), &mut self.into())
             }
-            BindingLocatorEnvironment::GlobalDecalrative => Ok(false),
+            BindingLocatorEnvironment::GlobalDeclarative => Ok(false),
             BindingLocatorEnvironment::Stack(index) => match self.environment_expect(index) {
                 Environment::Declarative(_) => Ok(false),
                 Environment::Object(obj) => {
