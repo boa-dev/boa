@@ -616,6 +616,7 @@ fn can_throw_exception() {
 #[test]
 fn class() {
     use boa_engine::class::{Class, ClassBuilder};
+    use boa_engine::property::Attribute;
     use boa_engine::{js_string, JsValue, Source};
     use boa_macros::{Finalize, JsData, Trace};
     use std::rc::Rc;
@@ -645,6 +646,26 @@ fn class() {
             class.method(js_string!("getValue"), 0, get_value);
             let set_value = Self::set_value.into_js_function_copied(class.context());
             class.method(js_string!("setValue"), 1, set_value);
+
+            let get_value_getter = Self::get_value
+                .into_js_function_copied(class.context())
+                .to_js_function(class.context().realm());
+            let set_value_setter = Self::set_value
+                .into_js_function_copied(class.context())
+                .to_js_function(class.context().realm());
+            class.accessor(
+                js_string!("value_get"),
+                Some(get_value_getter),
+                None,
+                Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
+            );
+            class.accessor(
+                js_string!("value_set"),
+                None,
+                Some(set_value_setter),
+                Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
+            );
+
             Ok(())
         }
 
@@ -674,6 +695,13 @@ fn class() {
             t.setValue(456);
             if (t.getValue() != 456) {
                 throw 'invalid value 456';
+            }
+            if (t.value_get != 456) {
+                throw 'invalid value 456';
+            }
+            t.value_set = 789;
+            if (t.getValue() != 789) {
+                throw 'invalid value 789';
             }
         ",
     );
