@@ -78,7 +78,7 @@ impl Realm {
         let global_this = hooks
             .create_global_this(&intrinsics)
             .unwrap_or_else(|| global_object.clone());
-        let environment = Gc::new(DeclarativeEnvironment::global(global_this.clone()));
+        let environment = Gc::new(DeclarativeEnvironment::global());
 
         let realm = Self {
             inner: Gc::new(Inner {

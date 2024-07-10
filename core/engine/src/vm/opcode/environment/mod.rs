@@ -27,7 +27,11 @@ impl Operation for This {
             return Ok(CompletionType::Normal);
         }
 
-        let this = context.vm.environments.get_this_binding()?;
+        let this = context
+            .vm
+            .environments
+            .get_this_binding()?
+            .unwrap_or(context.realm().global_this().clone().into());
         context.vm.frame_mut().flags |= CallFrameFlags::THIS_VALUE_CACHED;
         context.vm.stack[this_index as usize] = this.clone();
         context.vm.push(this);

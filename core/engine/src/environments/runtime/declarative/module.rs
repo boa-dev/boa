@@ -67,9 +67,9 @@ impl ModuleEnvironment {
                             .get_binding(name)
                             .expect("linking must ensure the binding exists");
 
-                        let value = env.get(index.binding_index)?;
+                        let value = env.get(index.binding_index())?;
 
-                        *accessor.borrow_mut() = BindingAccessor::Index(index.binding_index);
+                        *accessor.borrow_mut() = BindingAccessor::Index(index.binding_index());
 
                         Some(value)
                     }

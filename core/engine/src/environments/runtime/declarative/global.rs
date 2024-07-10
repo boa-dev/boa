@@ -1,21 +1,17 @@
-use boa_gc::{Finalize, Trace};
-
-use crate::{JsObject, JsValue};
-
 use super::PoisonableEnvironment;
+use crate::JsValue;
+use boa_gc::{Finalize, Trace};
 
 #[derive(Debug, Trace, Finalize)]
 pub(crate) struct GlobalEnvironment {
     inner: PoisonableEnvironment,
-    global_this: JsObject,
 }
 
 impl GlobalEnvironment {
     /// Creates a new `GlobalEnvironment`.
-    pub(crate) fn new(global_this: JsObject) -> Self {
+    pub(crate) fn new() -> Self {
         Self {
             inner: PoisonableEnvironment::new(0, false, false),
-            global_this,
         }
     }
 
@@ -42,17 +38,5 @@ impl GlobalEnvironment {
     #[track_caller]
     pub(crate) fn set(&self, index: u32, value: JsValue) {
         self.inner.set(index, value);
-    }
-
-    /// `GetThisBinding`
-    ///
-    /// Returns the `this` binding on the global environment.
-    ///
-    /// More information:
-    ///  - [ECMAScript specification][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-function-environment-records-getthisbinding
-    pub(crate) fn get_this_binding(&self) -> JsObject {
-        self.global_this.clone()
     }
 }

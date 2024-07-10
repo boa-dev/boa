@@ -17,7 +17,10 @@ use crate::{
     },
     bytecompiler::FunctionCompiler,
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
-    environments::{EnvironmentStack, FunctionSlots, PrivateEnvironment, ThisBindingStatus},
+    environments::{
+        BindingLocatorEnvironment, EnvironmentStack, FunctionSlots, PrivateEnvironment,
+        ThisBindingStatus,
+    },
     error::JsNativeError,
     js_string,
     native_function::NativeFunctionObject,
@@ -1003,10 +1006,11 @@ pub(crate) fn function_call(
             .vm
             .environments
             .push_lexical(code.constant_compile_time_environment(last_env));
-        context
-            .vm
-            .environments
-            .put_lexical_value(index, 0, function_object.clone().into());
+        context.vm.environments.put_lexical_value(
+            BindingLocatorEnvironment::Stack(index),
+            0,
+            function_object.clone().into(),
+        );
         last_env += 1;
     }
 
@@ -1095,10 +1099,11 @@ fn function_construct(
             .vm
             .environments
             .push_lexical(code.constant_compile_time_environment(last_env));
-        context
-            .vm
-            .environments
-            .put_lexical_value(index, 0, this_function_object.clone().into());
+        context.vm.environments.put_lexical_value(
+            BindingLocatorEnvironment::Stack(index),
+            0,
+            this_function_object.clone().into(),
+        );
         last_env += 1;
     }
 

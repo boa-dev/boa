@@ -224,7 +224,7 @@ impl Eval {
         let context = &mut context.guard(move |ctx| match action {
             EnvStackAction::Truncate(len) => ctx.vm.environments.truncate(len),
             EnvStackAction::Restore(envs) => {
-                ctx.vm.environments.truncate(1);
+                ctx.vm.environments.truncate(0);
                 ctx.vm.environments.extend(envs);
             }
         });
