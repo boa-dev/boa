@@ -194,6 +194,7 @@ macro_rules! js_class {
 
             const LENGTH: usize = $crate::__count!( $( $ctor_arg )* );
 
+            #[allow(clippy::items_after_statements)]
             fn init(class: &mut $crate::boa_engine::class::ClassBuilder<'_>) -> $crate::boa_engine::JsResult<()> {
                 // Add getters.
                 $(
@@ -216,7 +217,7 @@ macro_rules! js_class {
 
                 // Add setters.
                 $(
-                    fn $field_set_name ( $($field_set_arg: $field_set_arg_type),* ) -> ()
+                    fn $field_set_name ( $($field_set_arg: $field_set_arg_type),* )
                         $field_set_body
 
                     let function = $crate::IntoJsFunctionCopied::into_js_function_copied(
@@ -240,6 +241,7 @@ macro_rules! js_class {
                 // Add getters+setters.
                 // Use the field name for the getter, to prevent duplicate names.
                 // Rust does not allow two functions with the same name in the same scope.
+                // The setter is built inline.
                 $(
                     fn $field_getset_name( $($field_getset_get_arg: $field_getset_get_arg_type),* ) -> $field_getset_get_ty
                         $field_getset_get_body
@@ -250,7 +252,7 @@ macro_rules! js_class {
                         ).to_js_function(class.context().realm());
                     let function_s = $crate::IntoJsFunctionCopied::into_js_function_copied(
                         |$($field_getset_set_arg: $field_getset_set_arg_type),*|
-                        $field_getset_set_body,
+                            $field_getset_set_body,
                         class.context(),
                     ).to_js_function(class.context().realm());
 
