@@ -13,7 +13,7 @@
 - Remove references to dev docs and npm dependencies by @jedel1043 in https://github.com/boa-dev/boa/pull/3787
 - Cleanup tester deps and patterns by @jedel1043 in https://github.com/boa-dev/boa/pull/3792
 - Build docs.rs docs with all features enabled by @jedel1043 in https://github.com/boa-dev/boa/pull/3794
-- Add a new type Convert<> to convert values by @hansl in https://github.com/boa-dev/boa/pull/3786
+- Add a new type Convert<> to convert values  by @hansl in https://github.com/boa-dev/boa/pull/3786
 - Add functions to create modules from a JSON value by @hansl in https://github.com/boa-dev/boa/pull/3804
 - Add an embed_module!() macro to boa_interop by @hansl in https://github.com/boa-dev/boa/pull/3784
 - Add a ContextData struct to inject host defined types from the context by @hansl in https://github.com/boa-dev/boa/pull/3802
@@ -21,6 +21,8 @@
 - Group dependabot updates by @jedel1043 in https://github.com/boa-dev/boa/pull/3863
 - Adding TryFromJs implementations for BTreeMap and HashMap by @hansl in https://github.com/boa-dev/boa/pull/3844
 - Adding TryFromJs implementations for tuples by @hansl in https://github.com/boa-dev/boa/pull/3843
+- Add a js_class to implement the Class trait without boilerplate by @hansl in https://github.com/boa-dev/boa/pull/3872
+- Implement lossless TryFromJs for integers from f64 by @HalidOdat in https://github.com/boa-dev/boa/pull/3907
 
 ### Bug Fixes
 
@@ -37,6 +39,8 @@
 - Fix boa cli history by @raskad in https://github.com/boa-dev/boa/pull/3875
 - Fix hashbang comments by using proper goal symbols by @raskad in https://github.com/boa-dev/boa/pull/3876
 - Fix AsyncGenerator to correctly handle `return` inside `then` by @jedel1043 in https://github.com/boa-dev/boa/pull/3879
+- Fix HomeObject for private class methods by @raskad in https://github.com/boa-dev/boa/pull/3897
+- Fix evaluation order in destructive property assignments by @raskad in https://github.com/boa-dev/boa/pull/3895
 
 ### Internal Improvements
 
@@ -44,7 +48,7 @@
 - Change dependabot interval to weekly by @jedel1043 in https://github.com/boa-dev/boa/pull/3758
 - Dense array storage variants for `i32` and `f64` by @HalidOdat in https://github.com/boa-dev/boa/pull/3760
 - Optimize number to `PropertyKey` conversion by @HalidOdat in https://github.com/boa-dev/boa/pull/3769
-- don't run test262 on push by @jasonwilliams in https://github.com/boa-dev/boa/pull/3774
+- don't run test262 on push  by @jasonwilliams in https://github.com/boa-dev/boa/pull/3774
 - Check that `min <= max` in `clamp_finite` by @jedel1043 in https://github.com/boa-dev/boa/pull/3699
 - Decouple `Context` from `ByteCompiler` by @HalidOdat in https://github.com/boa-dev/boa/pull/3829
 - Implement latin1 encoded `JsString`s by @HalidOdat in https://github.com/boa-dev/boa/pull/3450
@@ -80,6 +84,14 @@
 - Refactor call frame access to avoid panic checks by @raskad in https://github.com/boa-dev/boa/pull/3888
 - Remove `Temporal.Calendar` and `Temporal.TimeZone` by @jedel1043 in https://github.com/boa-dev/boa/pull/3890
 - Update Temporal rounding and implement additional methods by @nekevss in https://github.com/boa-dev/boa/pull/3892
+- format code in comments by @jasonwilliams in https://github.com/boa-dev/boa/pull/3902
+- Updates to temporal_rs version and temporal methods by @nekevss in https://github.com/boa-dev/boa/pull/3900
+- Patch regression from change to to-relative-to-object by @nekevss in https://github.com/boa-dev/boa/pull/3906
+- Add `get_unchecked` method to `JsString` and `JsStr` by @CrazyboyQCD in https://github.com/boa-dev/boa/pull/3898
+- bump gc threshold by @jasonwilliams in https://github.com/boa-dev/boa/pull/3908
+- update versions and ABOUT files by @jasonwilliams in https://github.com/boa-dev/boa/pull/3903
+- Cleanup README.md and contributor documentation by @jedel1043 in https://github.com/boa-dev/boa/pull/3909
+- Refactor environment stack to remove some panics by @raskad in https://github.com/boa-dev/boa/pull/3893
 
 ## New Contributors
 
@@ -89,6 +101,7 @@
 - @linusg made their first contribution in https://github.com/boa-dev/boa/pull/3800
 - @getong made their first contribution in https://github.com/boa-dev/boa/pull/3836
 - @leoflalv made their first contribution in https://github.com/boa-dev/boa/pull/3867
+- @CrazyboyQCD made their first contribution in https://github.com/boa-dev/boa/pull/3898
 
 **Full Changelog**: https://github.com/boa-dev/boa/compare/v0.18...v0.19
 
