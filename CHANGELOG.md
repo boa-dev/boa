@@ -13,7 +13,7 @@
 - Remove references to dev docs and npm dependencies by @jedel1043 in https://github.com/boa-dev/boa/pull/3787
 - Cleanup tester deps and patterns by @jedel1043 in https://github.com/boa-dev/boa/pull/3792
 - Build docs.rs docs with all features enabled by @jedel1043 in https://github.com/boa-dev/boa/pull/3794
-- Add a new type Convert<> to convert values  by @hansl in https://github.com/boa-dev/boa/pull/3786
+- Add a new type Convert<> to convert values by @hansl in https://github.com/boa-dev/boa/pull/3786
 - Add functions to create modules from a JSON value by @hansl in https://github.com/boa-dev/boa/pull/3804
 - Add an embed_module!() macro to boa_interop by @hansl in https://github.com/boa-dev/boa/pull/3784
 - Add a ContextData struct to inject host defined types from the context by @hansl in https://github.com/boa-dev/boa/pull/3802
@@ -48,7 +48,7 @@
 - Change dependabot interval to weekly by @jedel1043 in https://github.com/boa-dev/boa/pull/3758
 - Dense array storage variants for `i32` and `f64` by @HalidOdat in https://github.com/boa-dev/boa/pull/3760
 - Optimize number to `PropertyKey` conversion by @HalidOdat in https://github.com/boa-dev/boa/pull/3769
-- don't run test262 on push  by @jasonwilliams in https://github.com/boa-dev/boa/pull/3774
+- don't run test262 on push by @jasonwilliams in https://github.com/boa-dev/boa/pull/3774
 - Check that `min <= max` in `clamp_finite` by @jedel1043 in https://github.com/boa-dev/boa/pull/3699
 - Decouple `Context` from `ByteCompiler` by @HalidOdat in https://github.com/boa-dev/boa/pull/3829
 - Implement latin1 encoded `JsString`s by @HalidOdat in https://github.com/boa-dev/boa/pull/3450
