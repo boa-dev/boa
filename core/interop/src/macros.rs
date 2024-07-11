@@ -13,35 +13,24 @@
 /// # Allowed declarations (in order):
 ///
 /// ## Any number of JS fields
-///   ```ignore
-///   public <field_name>(<field_args>) -> <field_ty> { <field_body> }
-///   ```
+/// ```ignore
+/// public <field_name>(<field_args>) -> <field_ty> { <field_body> }
+/// ```
 /// Declare public fields on the JavaScript prototype at construction. This is optional.
 /// Those fields can be overwritten on the object itself.
 ///
-/// ## Any number of getters
+/// ## Any number of properties
 /// ```ignore
-/// getter <field_get_name>(<field_get_args>) -> <field_get_ty> { <field_get_body> }
-/// ```
-/// Declare public getters on the JavaScript class property. This is optional.
-/// To declare both a getter and a setter, use getset instead.
-///
-/// ## Any number of setters
-/// ```ignore
-/// setter <field_set_name>(<field_set_args>) { <field_set_body> }
-/// ```
-/// Declare public setters on the JavaScript class property. This is optional.
-/// To declare both a getter and a setter, use getset instead.
-///
-/// ## Any number of getters and setters for the same property name
-/// ```ignore
-/// getset <field_getset_name> {
+/// property <field_getset_name> [as "<js_field_name>"] {
 ///     get(<field_getset_get_args>) -> <field_getset_get_ty> { <field_getset_get_body> }
 ///     set(<field_getset_set_args>) { <field_getset_set_body> }
 /// }
 /// ```
-/// Declare both a getter and a setter on the JavaScript class property. This is optional.
-/// To declare only a getter or a setter, use getter or setter instead.
+/// Declare a getter and/or a setter on a JavaScript class property. This is optional.
+/// Both get and set are optional, but at least one must be present.
+///
+/// Using the `as` keyword, you can set the name of the property in JavaScript that
+/// would otherwise not be possible in Rust.
 ///
 /// ## Required JavaScript Constructor
 /// ```ignore
@@ -59,9 +48,12 @@
 ///
 /// ## Any number of methods
 /// ```ignore
-/// fn <method_name>(<fn_args>) -> <result_type> { <method_body> }
+/// fn <method_name> [as <js_method_name>](<fn_args>) -> <result_type> { <method_body> }
 /// ```
 /// Declare methods on the class. This is optional.
+///
+/// Using the `as` keyword, you can set the name of the property in JavaScript that
+/// would otherwise not be possible in Rust.
 ///
 /// ----
 /// # Example
@@ -146,28 +138,22 @@ macro_rules! js_class {
         )*
 
         $(
-            $(#[$field_get_attr: meta])*
-            getter $field_get_name: ident
-                ( $( $field_get_arg: ident: $field_get_arg_type: ty ),* ) -> $field_get_ty: ty
-                $field_get_body: block
-        )*
+            $(#[$field_prop_attr: meta])*
+            property $field_prop_name: ident $(as $field_prop_js_name: literal)? {
+                $(
+                    $(#[$field_prop_get_attr: meta])*
+                    $(fn)? get( $( $field_prop_get_arg: ident: $field_prop_get_arg_type: ty ),* ) -> $field_prop_get_ty: ty
+                    $field_prop_get_body: block
+                )?
 
-        $(
-            $(#[$field_set_attr: meta])*
-            setter $field_set_name: ident
-                ( $( $field_set_arg: ident: $field_set_arg_type: ty ),* )
-                $field_set_body: block
-        )*
-
-        $(
-            $(#[$field_getset_attr: meta])*
-            getset $field_getset_name: ident {
-                fn get ( $( $field_getset_get_arg: ident: $field_getset_get_arg_type: ty ),* ) -> $field_getset_get_ty: ty
-                $field_getset_get_body: block
-                fn set ( $( $field_getset_set_arg: ident: $field_getset_set_arg_type: ty ),* )
-                $field_getset_set_body: block
+                $(
+                    $(#[$field_prop_set_attr: meta])*
+                    $(fn)? set( $( $field_prop_set_arg: ident: $field_prop_set_arg_type: ty ),* )
+                        $field_prop_set_body: block
+                )?
             }
         )*
+
 
         $(#[$constructor_attr: meta])*
         constructor( $( $ctor_arg: ident: $ctor_arg_ty: ty ),* )
@@ -196,72 +182,24 @@ macro_rules! js_class {
 
             #[allow(clippy::items_after_statements)]
             fn init(class: &mut $crate::boa_engine::class::ClassBuilder<'_>) -> $crate::boa_engine::JsResult<()> {
-                // Add getters.
+                // Add properties.
                 $(
-                    fn $field_get_name ( $($field_get_arg: $field_get_arg_type),* ) -> $field_get_ty
-                        $field_get_body
+                    // Declare a function so that the compiler prevents duplicated names.
+                    #[allow(dead_code)]
+                    fn $field_prop_name() {}
 
-                    let function = $crate::IntoJsFunctionCopied::into_js_function_copied(
-                        $field_get_name,
-                        class.context(),
-                    ).to_js_function(class.context().realm());
-
-                    class.accessor(
-                        $crate::boa_engine::JsString::from(stringify!($field_get_name)),
-                        Some(function),
-                        None,
-                        $crate::boa_engine::property::Attribute::CONFIGURABLE
-                        | $crate::boa_engine::property::Attribute::NON_ENUMERABLE,
-                    );
-                )*
-
-                // Add setters.
-                $(
-                    fn $field_set_name ( $($field_set_arg: $field_set_arg_type),* )
-                        $field_set_body
-
-                    let function = $crate::IntoJsFunctionCopied::into_js_function_copied(
-                        $field_set_name,
-                        class.context(),
-                    );
-                    let function = $crate::boa_engine::object::FunctionObjectBuilder::new(class.context().realm(), function)
-                        .name($crate::boa_engine::JsString::from(concat!("set ", stringify!($field_set_name))))
-                        .length(1)
-                        .build();
-
-                    class.accessor(
-                        $crate::boa_engine::JsString::from(stringify!($field_set_name)),
-                        None,
-                        Some(function),
-                        $crate::boa_engine::property::Attribute::CONFIGURABLE
-                        | $crate::boa_engine::property::Attribute::NON_ENUMERABLE,
-                    );
-                )*
-
-                // Add getters+setters.
-                // Use the field name for the getter, to prevent duplicate names.
-                // Rust does not allow two functions with the same name in the same scope.
-                // The setter is built inline.
-                $(
-                    fn $field_getset_name( $($field_getset_get_arg: $field_getset_get_arg_type),* ) -> $field_getset_get_ty
-                        $field_getset_get_body
-
-                    let function_g = $crate::IntoJsFunctionCopied::into_js_function_copied(
-                            $field_getset_name,
-                            class.context(),
-                        ).to_js_function(class.context().realm());
-                    let function_s = $crate::IntoJsFunctionCopied::into_js_function_copied(
-                        |$($field_getset_set_arg: $field_getset_set_arg_type),*|
-                            $field_getset_set_body,
-                        class.context(),
-                    ).to_js_function(class.context().realm());
-
-                    class.accessor(
-                        $crate::boa_engine::JsString::from(stringify!($field_getset_name)),
-                        Some(function_g),
-                        Some(function_s),
-                        $crate::boa_engine::property::Attribute::CONFIGURABLE
-                        | $crate::boa_engine::property::Attribute::NON_ENUMERABLE,
+                    $crate::__get_set_decl!(
+                        class,
+                        $field_prop_name,
+                        $($field_prop_js_name)?,
+                        $(
+                        @get( $( $field_prop_get_arg: $field_prop_get_arg_type ),* ) -> $field_prop_get_ty
+                            $field_prop_get_body,
+                        )?
+                        $(
+                        @set( $( $field_prop_set_arg: $field_prop_set_arg_type ),* )
+                            $field_prop_set_body
+                        )?
                     );
                 )*
 
@@ -359,6 +297,90 @@ macro_rules! __count {
     };
 }
 
+/// Internal macro to declare a getter/setter name.
+#[macro_export]
+macro_rules! __get_set_decl {
+    (
+        $class: ident,
+        $field_name: ident,
+        $( $js_field_name: literal )?,
+        @get( $( $get_arg: ident: $get_arg_type: ty ),* ) -> $get_ty: ty
+            $get_body: block,
+    ) => {
+        let function = |$( $get_arg: $get_arg_type ),*| -> $get_ty { $get_body };
+        let function_get =
+            $crate::IntoJsFunctionCopied::into_js_function_copied(function, $class.context())
+                .to_js_function($class.context().realm());
+
+        let field_name = $crate::__js_class_name!($field_name, $($js_field_name)?);
+        $class.accessor(
+            $crate::boa_engine::JsString::from(field_name),
+            Some(function_get),
+            None,
+            $crate::boa_engine::property::Attribute::CONFIGURABLE
+                | $crate::boa_engine::property::Attribute::NON_ENUMERABLE,
+        );
+    };
+    (
+        $class: ident,
+        $field_name: ident,
+        $( $js_field_name: literal )?,
+        @set( $( $set_arg: ident: $set_arg_type: ty ),* )
+            $set_body: block
+    ) => {
+        let function = |$( $set_arg: $set_arg_type ),*| { $set_body };
+        let function_set =
+            $crate::IntoJsFunctionCopied::into_js_function_copied(function, $class.context())
+                .to_js_function($class.context().realm());
+
+        let field_name = $crate::__js_class_name!($field_name, $($js_field_name)?);
+        $class.accessor(
+            $crate::boa_engine::JsString::from(field_name),
+            None,
+            Some(function_set),
+            $crate::boa_engine::property::Attribute::CONFIGURABLE
+                | $crate::boa_engine::property::Attribute::NON_ENUMERABLE,
+        );
+    };
+    (
+        $class: ident,
+        $field_name: ident,
+        $( $js_field_name: literal )?,
+        @get( $( $get_arg: ident: $get_arg_type: ty ),* ) -> $get_ty: ty
+            $get_body: block,
+        @set( $( $set_arg: ident: $set_arg_type: ty ),* )
+            $set_body: block
+    ) => {
+        let function_get =
+            $crate::IntoJsFunctionCopied::into_js_function_copied(
+                |$( $get_arg: $get_arg_type ),*| -> $get_ty { $get_body },
+                $class.context()
+            ).to_js_function($class.context().realm());
+        let function_set =
+            $crate::IntoJsFunctionCopied::into_js_function_copied(
+                |$( $set_arg: $set_arg_type ),*| { $set_body },
+                $class.context()
+            ).to_js_function($class.context().realm());
+
+        let field_name = $crate::__js_class_name!($field_name, $($js_field_name)?);
+        $class.accessor(
+            $crate::boa_engine::JsString::from(field_name),
+            Some(function_get),
+            Some(function_set),
+            $crate::boa_engine::property::Attribute::CONFIGURABLE
+                | $crate::boa_engine::property::Attribute::NON_ENUMERABLE,
+        );
+
+    };
+    (
+        $class: ident,
+        $field_name: ident,
+        $( $js_field_name: literal )?,
+    ) => {
+        compile_error!("Property must have at least a getter or a setter");
+    };
+}
+
 #[test]
 fn js_class_test() {
     use crate::IntoJsFunctionCopied;
@@ -381,20 +403,24 @@ fn js_class_test() {
                 10
             }
 
-            getter f1(this: JsClass<Test>) -> u32 {
-                this.borrow().f1
+            property f1 {
+                get(this: JsClass<Test>) -> u32 {
+                    this.borrow().f1
+                }
             }
 
-            setter f2(this: JsClass<Test>, new_value: u32) {
-                this.borrow_mut().f1 = new_value;
+            property f2 {
+                set(this: JsClass<Test>, new_value: u32) {
+                    this.borrow_mut().f1 = new_value;
+                }
             }
 
-            getset f3 {
-                fn get(this: JsClass<Test>) -> u32 {
+            property f3 {
+                get(this: JsClass<Test>) -> u32 {
                     this.borrow().f3
                 }
 
-                fn set(this: JsClass<Test>, new_value: u32) {
+                set(this: JsClass<Test>, new_value: u32) {
                     this.borrow_mut().f3 = new_value;
                 }
             }
