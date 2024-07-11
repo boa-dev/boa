@@ -534,7 +534,6 @@ dependencies = [
 name = "boa_string"
 version = "0.19.0"
 dependencies = [
- "boa_macros",
  "fast-float",
  "paste",
  "rustc-hash 2.0.0",

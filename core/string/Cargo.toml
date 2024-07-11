@@ -18,9 +18,6 @@ static_assertions.workspace = true
 paste.workspace = true
 fast-float.workspace = true
 
-[dev-dependencies]
-boa_macros.workspace = true
-
 [lints]
 workspace = true
 

@@ -4,17 +4,26 @@ use std::hash::{BuildHasher, BuildHasherDefault, Hash};
 
 use crate::{JsStr, JsString, StaticJsStrings};
 
-use boa_macros::utf16;
 use rustc_hash::FxHasher;
 
 fn hash_value<T: Hash>(value: &T) -> u64 {
     BuildHasherDefault::<FxHasher>::default().hash_one(value)
 }
 
+const fn ascii_to_utf16<const LEN: usize>(ascii: &[u8; LEN]) -> [u16; LEN] {
+    let mut array = [0; LEN];
+    let mut i = 0;
+    while i < LEN {
+        array[i] = ascii[i] as u16;
+        i += 1;
+    }
+    array
+}
+
 #[test]
 fn empty() {
     let s = StaticJsStrings::EMPTY_STRING;
-    assert_eq!(&s, utf16!(""));
+    assert_eq!(&s, &[]);
 }
 
 #[test]
@@ -85,7 +94,7 @@ fn static_ptr_eq() {
 
 #[test]
 fn as_str() {
-    const HELLO: &[u16] = utf16!("Hello");
+    const HELLO: &[u16] = &ascii_to_utf16(b"Hello");
     let x = JsString::from(HELLO);
 
     assert_eq!(&x, HELLO);
@@ -109,22 +118,22 @@ fn hash() {
 
 #[test]
 fn concat() {
-    const Y: &[u16] = utf16!(", ");
-    const W: &[u16] = utf16!("!");
+    const Y: &[u16] = &ascii_to_utf16(b", ");
+    const W: &[u16] = &ascii_to_utf16(b"!");
 
     let x = JsString::from("hello");
     let z = JsString::from("world");
 
     let xy = JsString::concat(x.as_str(), JsString::from(Y).as_str());
-    assert_eq!(&xy, utf16!("hello, "));
+    assert_eq!(&xy, &ascii_to_utf16(b"hello, "));
     assert_eq!(xy.refcount(), Some(1));
 
     let xyz = JsString::concat(xy.as_str(), z.as_str());
-    assert_eq!(&xyz, utf16!("hello, world"));
+    assert_eq!(&xyz, &ascii_to_utf16(b"hello, world"));
     assert_eq!(xyz.refcount(), Some(1));
 
     let xyzw = JsString::concat(xyz.as_str(), JsString::from(W).as_str());
-    assert_eq!(&xyzw, utf16!("hello, world!"));
+    assert_eq!(&xyzw, &ascii_to_utf16(b"hello, world!"));
     assert_eq!(xyzw.refcount(), Some(1));
 }
 
@@ -141,7 +150,7 @@ fn trim_start_non_ascii_to_ascii() {
 #[test]
 fn conversion_to_known_static_js_string() {
     const JS_STR_U8: &JsStr<'_> = &JsStr::latin1("length".as_bytes());
-    const JS_STR_U16: &JsStr<'_> = &JsStr::utf16(utf16!("length"));
+    const JS_STR_U16: &JsStr<'_> = &JsStr::utf16(&ascii_to_utf16(b"length"));
 
     assert!(JS_STR_U8.is_latin1());
     assert!(!JS_STR_U16.is_latin1());
