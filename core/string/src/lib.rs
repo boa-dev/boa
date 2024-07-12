@@ -1151,15 +1151,16 @@ pub trait JsStringData: std::fmt::Display {}
 impl JsStringData for u8 {}
 impl JsStringData for u16 {}
 
-/// A mutable builder to create instance of JsString.
+/// A mutable builder to create instance of `JsString`.
 ///
 /// # Examples
 ///
-/// ```
+/// ```rust
+/// use boa_string::JsStringBuilder;
 /// let mut s = JsStringBuilder::new();
-/// s.push(ch);
-/// s.extend_from_slice(slice);
-/// s.extend(iter);
+/// s.push(b'x');
+/// s.extend_from_slice(&[b'1', b'2', b'3']);
+/// s.extend([b'1', b'2', b'3']);
 /// let js_string = s.build();
 /// ```
 #[derive(Debug)]
@@ -1190,6 +1191,7 @@ impl<T: JsStringData> JsStringBuilder<T> {
 
     /// Create a new `JsStringBuilder` with capacity of zero.
     #[inline]
+    #[must_use]
     pub const fn new() -> Self {
         Self::NEW
     }
@@ -1223,6 +1225,7 @@ impl<T: JsStringData> JsStringBuilder<T> {
     }
 
     /// create a new `JsStringBuilder` with specific capacity
+    #[must_use]
     pub fn with_capacity(cap: usize) -> Self {
         let layout = Self::new_layout(cap);
         #[allow(clippy::cast_ptr_alignment)]
@@ -1245,6 +1248,7 @@ impl<T: JsStringData> JsStringBuilder<T> {
         self.inner == NonNull::dangling()
     }
 
+    #[allow(clippy::cast_ptr_alignment)]
     fn reserve(&mut self, new_layout: Layout) {
         // SAFETY:
         // The layout size of `RawJsString` is never zero, since it has to store
@@ -1379,13 +1383,14 @@ impl<T: JsStringData> JsStringBuilder<T> {
         }
     }
 
-    /// Returns true if this JsStringBuilder has a length of zero, and false otherwise.
+    /// Returns true if this `JsStringBuilder` has a length of zero, and false otherwise.
     #[must_use]
     pub fn is_empty(&self) -> bool {
         self.len() == 0
     }
 
     /// build `JsString` from JsStringBuilder
+    #[must_use]
     pub fn build(mut self) -> JsString {
         if self.is_empty() {
             return JsString::default();
@@ -1421,7 +1426,7 @@ impl<T: JsStringData> JsStringBuilder<T> {
 }
 
 impl<T: JsStringData> Drop for JsStringBuilder<T> {
-    /// Set cold since [`JsStringBuilder`] should be created to build JsString
+    /// Set cold since [`JsStringBuilder`] should be created to build `JsString`
     #[cold]
     fn drop(&mut self) {
         if self.is_dangling() {

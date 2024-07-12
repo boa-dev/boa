@@ -183,7 +183,11 @@ fn js_string_builder() {
     assert_eq!(s_js_string, s_builder);
 
     // from_iter
-    let s_builder = JsStringBuilder::from_iter(s_utf8.iter().copied()).build();
+    let s_builder = s_utf8
+        .iter()
+        .copied()
+        .collect::<JsStringBuilder<_>>()
+        .build();
     assert_eq!(s_js_string, s_builder);
 
     // extend_from_slice
@@ -204,7 +208,11 @@ fn js_string_builder() {
     assert_eq!(s_js_string, s_builder);
 
     // from_iter
-    let s_builder = JsStringBuilder::from_iter(s_utf16.iter().copied()).build();
+    let s_builder = s_utf8
+        .iter()
+        .copied()
+        .collect::<JsStringBuilder<_>>()
+        .build();
     assert_eq!(s_js_string, s_builder);
 
     // extend_from_slice
