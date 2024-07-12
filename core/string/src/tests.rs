@@ -208,7 +208,7 @@ fn js_string_builder() {
     assert_eq!(s_js_string, s_builder);
 
     // from_iter
-    let s_builder = s_utf8
+    let s_builder = s_utf16
         .iter()
         .copied()
         .collect::<JsStringBuilder<_>>()
