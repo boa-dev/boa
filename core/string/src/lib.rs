@@ -1389,7 +1389,7 @@ impl<T: JsStringData> JsStringBuilder<T> {
         self.len() == 0
     }
 
-    /// build `JsString` from JsStringBuilder
+    /// build `JsString` from `JsStringBuilder`
     #[must_use]
     pub fn build(mut self) -> JsString {
         if self.is_empty() {
