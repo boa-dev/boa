@@ -1170,9 +1170,17 @@ pub struct JsStringBuilder<T: JsStringData> {
     phantom_data: PhantomData<T>,
 }
 
+impl<T: JsStringData> Default for JsStringBuilder<T> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<T: JsStringData> JsStringBuilder<T> {
     const DATA_SIZE: usize = std::mem::size_of::<T>();
     const IS_LATIN: bool = Self::DATA_SIZE == std::mem::size_of::<u8>();
+
+    /// Constant default for [`JsStringBuilder`]
     pub const NEW: Self = Self {
         cap: 0,
         len: 0,
