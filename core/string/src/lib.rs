@@ -38,6 +38,7 @@ use std::{
     convert::Infallible,
     hash::{Hash, Hasher},
     iter::Peekable,
+    marker::PhantomData,
     process::abort,
     ptr::{self, addr_of, addr_of_mut, NonNull},
     str::FromStr,
@@ -342,7 +343,7 @@ impl JsString {
                 }
             }
             Self {
-                // Safety: We already know it's a valid heap pointer.
+                // SAFETY: We already know it's a valid heap pointer.
                 ptr: unsafe { Tagged::from_ptr(ptr.as_ptr()) },
             }
         };
@@ -720,7 +721,7 @@ impl JsString {
             }
         }
         Self {
-            // Safety: `allocate_inner` guarantees `ptr` is a valid heap pointer.
+            // SAFETY: `allocate_inner` guarantees `ptr` is a valid heap pointer.
             ptr: Tagged::from_non_null(ptr),
         }
     }
@@ -834,7 +835,7 @@ impl JsString {
     where
         I: JsSliceIndex<'a>,
     {
-        // Safety: Caller must ensure the index is not out of bounds
+        // SAFETY: Caller must ensure the index is not out of bounds
         unsafe { I::get_unchecked(self.as_str(), index) }
     }
 
@@ -922,7 +923,7 @@ impl Drop for JsString {
                 }
             };
 
-            // Safety:
+            // SAFETY:
             // If refcount is 0 and we call drop, that means this is the last `JsString` which
             // points to this memory allocation, so deallocating it is safe.
             unsafe {
@@ -1142,5 +1143,308 @@ impl ToStringEscaped for [u16] {
                 Err(e) => format!("\\u{:04X}", e.unpaired_surrogate()),
             })
             .collect()
+    }
+}
+/// Inner elements represented for [`RawJsString`].
+pub trait JsStringData: std::fmt::Display {}
+
+impl JsStringData for u8 {}
+impl JsStringData for u16 {}
+
+/// A mutable builder to create instance of JsString.
+///
+/// # Examples
+///
+/// ```
+/// let mut s = JsStringBuilder::new();
+/// s.push(ch);
+/// s.extend_from_slice(slice);
+/// s.extend(iter);
+/// let js_string = s.build();
+/// ```
+#[derive(Debug)]
+pub struct JsStringBuilder<T: JsStringData> {
+    cap: usize,
+    len: usize,
+    inner: NonNull<RawJsString>,
+    phantom_data: PhantomData<T>,
+}
+
+impl<T: JsStringData> JsStringBuilder<T> {
+    const DATA_SIZE: usize = std::mem::size_of::<T>();
+    const IS_LATIN: bool = Self::DATA_SIZE == std::mem::size_of::<u8>();
+    pub const NEW: Self = Self {
+        cap: 0,
+        len: 0,
+        inner: NonNull::dangling(),
+        phantom_data: PhantomData,
+    };
+
+    /// Create a new `JsStringBuilder` with capacity of zero.
+    #[inline]
+    pub const fn new() -> Self {
+        Self::NEW
+    }
+
+    /// Returns the number of elements in the inner [`RawJsString`], also referred to
+    #[inline]
+    #[must_use]
+    pub fn len(&self) -> usize {
+        self.len
+    }
+
+    /// Forces the length of the [`JsStringBuilder`] to `new_len`.
+    ///
+    /// # Safety
+    ///
+    /// - `new_len` must be less than or equal to [`capacity()`].
+    /// - The elements at `old_len..new_len` must be initialized.
+    ///
+    #[inline]
+    pub unsafe fn set_len(&mut self, new_len: usize) {
+        debug_assert!(new_len <= self.capacity());
+
+        self.len = new_len;
+    }
+
+    /// Returns the total number of elements the inner [`RawJsString`] can hold without reallocating
+    #[inline]
+    #[must_use]
+    pub fn capacity(&self) -> usize {
+        self.cap
+    }
+
+    /// create a new `JsStringBuilder` with specific capacity
+    pub fn with_capacity(cap: usize) -> Self {
+        let layout = Self::new_layout(cap);
+        #[allow(clippy::cast_ptr_alignment)]
+        // SAFETY:
+        // The layout size of `RawJsString` is never zero, since it has to store
+        // the length of the string and the reference count.
+        let ptr = unsafe { alloc(layout) };
+
+        let Some(ptr) = NonNull::new(ptr.cast()) else {
+            std::alloc::handle_alloc_error(layout)
+        };
+        Self {
+            cap,
+            len: 0,
+            inner: ptr,
+            phantom_data: PhantomData,
+        }
+    }
+    fn is_dangling(&self) -> bool {
+        self.inner == NonNull::dangling()
+    }
+
+    fn reserve(&mut self, new_layout: Layout) {
+        // SAFETY:
+        // The layout size of `RawJsString` is never zero, since it has to store
+        // the length of the string and the reference count.
+        // if `realloc` returns valid pointer the old pointer will have been freed
+        // and the data will have been copied to the new memory otherwise the old pointer is still valid.
+        let new_ptr = unsafe { alloc(new_layout) };
+        let Some(new_ptr) = NonNull::new(new_ptr.cast::<RawJsString>()) else {
+            std::alloc::handle_alloc_error(new_layout)
+        };
+
+        if !self.is_dangling() {
+            // SAFETY:
+            // All the checks for the validity of the layout have already been made on `new_layout`,
+            // so we can skip the unwrap.
+            let old_layout = unsafe {
+                Layout::for_value(self.inner.as_ref())
+                    .extend(Layout::array::<T>(self.capacity()).unwrap_unchecked())
+                    .unwrap_unchecked()
+                    .0
+                    .pad_to_align()
+            };
+
+            let old_ptr = self.inner.as_ptr();
+
+            // SAFETY:
+            // New pointer and old pointer are both valid.
+            unsafe {
+                ptr::copy_nonoverlapping(
+                    old_ptr.cast::<u8>(),
+                    new_ptr.as_ptr().cast::<u8>(),
+                    DATA_OFFSET + self.len() * Self::DATA_SIZE,
+                );
+            }
+            // SAFETY:
+            // Old pointer is valid.
+            unsafe {
+                dealloc(old_ptr.cast(), old_layout);
+            }
+        }
+        self.inner = new_ptr;
+        let new_arr_size = new_layout.size() - DATA_OFFSET;
+        self.cap = new_arr_size / Self::DATA_SIZE;
+    }
+
+    /// Appends an element to the inner `RawJsString` of `JsStringBuilder`.
+    pub fn push(&mut self, v: T) {
+        let len = self.len();
+        if len == self.capacity() {
+            self.expand(len + 1);
+        }
+        // SAFETY:
+        // Capacity has been expanded to be large enough to hold elements.
+        unsafe {
+            self.push_unchecked(v);
+        }
+    }
+
+    /// Push elements from slice to `JsStringBuilder` without doing capacity check.\
+    /// Unlike the standard vector, our holded element types are only `u8` and `u16`, which is [`Copy`] derived,\
+    /// so we only need to copy them instead of cloning.
+    /// # Safety
+    ///
+    /// Caller should ensure the capacity is large enough to hold elements.
+    pub unsafe fn extend_from_slice_unchecked(&mut self, v: &[T]) {
+        // SAFETY: Caller should ensure the capacity is large enough to hold elements.
+        unsafe {
+            ptr::copy_nonoverlapping(
+                v.as_ptr(),
+                addr_of_mut!((*self.inner.as_ptr()).data)
+                    .cast::<T>()
+                    .add(self.len()),
+                v.len(),
+            );
+        }
+        self.len += v.len();
+    }
+
+    /// push elements from slice to `JsStringBuilder`.
+    pub fn extend_from_slice(&mut self, v: &[T]) {
+        let required_cap = self.len() + v.len();
+        if required_cap >= self.capacity() {
+            self.expand(required_cap);
+        }
+        // SAFETY:
+        // Capacity has been expanded to be large enough to hold elements.
+        unsafe {
+            self.extend_from_slice_unchecked(v);
+        }
+    }
+
+    fn new_layout(cap: usize) -> Layout {
+        let new_layout = Layout::array::<T>(cap)
+            .and_then(|arr| Layout::new::<RawJsString>().extend(arr))
+            .map(|(layout, offset)| (layout.pad_to_align(), offset))
+            .map_err(|_| None);
+        match new_layout {
+            Ok((new_layout, offset)) => {
+                debug_assert_eq!(offset, DATA_OFFSET);
+                new_layout
+            }
+            Err(None) => alloc_overflow(),
+            Err(Some(layout)) => std::alloc::handle_alloc_error(layout),
+        }
+    }
+
+    /// Extends `JsStringBuilder` with the contents of an iterator.
+    pub fn extend<I: IntoIterator<Item = T>>(&mut self, iter: I) {
+        let iterator = iter.into_iter();
+        let (lower_bound, _) = iterator.size_hint();
+        self.reserve(Self::new_layout(lower_bound));
+        iterator.for_each(move |c| self.push(c));
+    }
+
+    /// Capacity calculation from [`std::vec::Vec::reserve`].
+    fn expand(&mut self, cap: usize) {
+        let cap = std::cmp::max(self.capacity() * 2, cap);
+        let cap = std::cmp::max(4 * Self::DATA_SIZE, cap);
+        self.reserve(Self::new_layout(cap));
+    }
+
+    /// Appends an element to the inner `RawJsString` of `JsStringBuilder` without doing bounds check.
+    /// # Safety
+    ///
+    /// Caller should ensure the capacity is large enough to hold elements.
+    pub unsafe fn push_unchecked(&mut self, v: T) {
+        // SAFETY: Caller should ensure the capacity is large enough to hold elements.
+        unsafe {
+            let data = addr_of_mut!((*self.inner.as_ptr()).data).cast::<T>();
+            data.add(self.len()).write(v);
+            self.len += 1;
+        }
+    }
+
+    /// Returns true if this JsStringBuilder has a length of zero, and false otherwise.
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
+
+    /// build `JsString` from JsStringBuilder
+    pub fn build(mut self) -> JsString {
+        if self.is_empty() {
+            return JsString::default();
+        }
+        let len = self.len();
+
+        // Shrink to fit the length.
+        if len != self.capacity() {
+            let layout = Self::new_layout(self.len());
+            self.reserve(layout);
+        }
+
+        let inner = self.inner;
+
+        // SAFETY:
+        // `NonNull` verified for us that the pointer returned by `alloc` is valid,
+        // meaning we can write to its pointed memory.
+        unsafe {
+            inner.as_ptr().write(RawJsString {
+                flags_and_len: RawJsString::encode_flags_and_len(len, Self::IS_LATIN),
+                refcount: Cell::new(1),
+                data: [0; 0],
+            });
+        }
+
+        // Tell the compiler not to call the destructor of `JsStringBuilder`,
+        // becuase we move inner `RawJsString` to `JsString`.
+        std::mem::forget(self);
+        JsString {
+            ptr: Tagged::from_non_null(inner),
+        }
+    }
+}
+
+impl<T: JsStringData> Drop for JsStringBuilder<T> {
+    /// Set cold since [`JsStringBuilder`] should be created to build JsString
+    #[cold]
+    fn drop(&mut self) {
+        if self.is_dangling() {
+            return;
+        }
+        // SAFETY:
+        // All the checks for the validity of the layout have already been made on `new_layout`,
+        // so we can skip the unwrap.
+        let layout = unsafe {
+            let inner = self.inner.as_ref();
+            Layout::for_value(inner)
+                .extend(Layout::array::<T>(self.capacity()).unwrap_unchecked())
+                .unwrap_unchecked()
+                .0
+                .pad_to_align()
+        };
+
+        // SAFETY:
+        // layout: see safety above.
+        // `NonNull` verified for us that the pointer returned by `alloc` is valid,
+        // meaning we can free its pointed memory.
+        unsafe {
+            dealloc(self.inner.as_ptr().cast(), layout);
+        }
+    }
+}
+
+impl<D: JsStringData> FromIterator<D> for JsStringBuilder<D> {
+    fn from_iter<T: IntoIterator<Item = D>>(iter: T) -> Self {
+        let mut builder = Self::new();
+        builder.extend(iter);
+        builder
     }
 }
