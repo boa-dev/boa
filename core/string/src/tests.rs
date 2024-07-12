@@ -167,8 +167,8 @@ fn conversion_to_known_static_js_string() {
 
 #[test]
 fn js_string_builder() {
-    let _s_utf16 = utf16!("2024年5月21日").repeat(10);
-    let s_utf16 = _s_utf16.as_slice();
+    let utf16 = "2024年5月21日".encode_utf16().collect::<Vec<_>>();
+    let s_utf16 = utf16.as_slice();
     let s_utf8 = &b"Lorem ipsum dolor sit amet"[..];
 
     // utf8 -- test

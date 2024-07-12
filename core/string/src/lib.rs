@@ -1145,7 +1145,7 @@ impl ToStringEscaped for [u16] {
             .collect()
     }
 }
-/// Inner elements represented for [`RawJsString`].
+/// Inner elements represented for `RawJsString`.
 pub trait JsStringData: std::fmt::Display {}
 
 impl JsStringData for u8 {}
@@ -1194,7 +1194,7 @@ impl<T: JsStringData> JsStringBuilder<T> {
         Self::NEW
     }
 
-    /// Returns the number of elements in the inner [`RawJsString`], also referred to
+    /// Returns the number of elements in the inner `RawJsString`, also referred to
     #[inline]
     #[must_use]
     pub fn len(&self) -> usize {
@@ -1205,7 +1205,7 @@ impl<T: JsStringData> JsStringBuilder<T> {
     ///
     /// # Safety
     ///
-    /// - `new_len` must be less than or equal to [`capacity()`].
+    /// - `new_len` must be less than or equal to `capacity()`.
     /// - The elements at `old_len..new_len` must be initialized.
     ///
     #[inline]
@@ -1215,7 +1215,7 @@ impl<T: JsStringData> JsStringBuilder<T> {
         self.len = new_len;
     }
 
-    /// Returns the total number of elements the inner [`RawJsString`] can hold without reallocating
+    /// Returns the total number of elements the inner `RawJsString` can hold without reallocating
     #[inline]
     #[must_use]
     pub fn capacity(&self) -> usize {
