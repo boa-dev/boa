@@ -250,6 +250,11 @@ fn pow() {
         TestAction::assert_eq("Math.pow(-7, 2)", 49.0),
         TestAction::assert_eq("Math.pow(4, 0.5)", 2.0),
         TestAction::assert_eq("Math.pow(7, -2)", 0.020_408_163_265_306_12),
+        TestAction::assert_eq("Math.pow(1, NaN)", f64::NAN),
+        TestAction::assert_eq("Math.pow(1, Infinity)", f64::NAN),
+        TestAction::assert_eq("Math.pow(1, -Infinity)", f64::NAN),
+        TestAction::assert_eq("Math.pow(-1, Infinity)", f64::NAN),
+        TestAction::assert_eq("Math.pow(-1, -Infinity)", f64::NAN),
     ]);
 }
 
