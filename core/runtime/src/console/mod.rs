@@ -15,14 +15,11 @@
 mod tests;
 
 use boa_engine::{
-    js_str, js_string,
-    native_function::NativeFunction,
-    object::{JsObject, ObjectInitializer},
-    value::{JsValue, Numeric},
-    Context, JsArgs, JsData, JsResult, JsStr, JsString,
+    ast::statement::Throw, js_str, js_string, native_function::NativeFunction, object::{JsObject, ObjectInitializer}, value::{JsValue, Numeric}, Context, JsArgs, JsData, JsResult, JsStr, JsString
 };
 use boa_gc::{Finalize, Trace};
 use rustc_hash::FxHashMap;
+use core::borrow;
 use std::{cell::RefCell, collections::hash_map::Entry, rc::Rc, time::SystemTime};
 
 /// This represents the different types of log messages.
@@ -190,6 +187,11 @@ impl Console {
             .function(
                 console_method(Self::log, state.clone()),
                 js_string!("log"),
+                0,
+            )
+            .function(
+                console_method(Self::table, state.clone()),
+                js_string!("table"),
                 0,
             )
             .function(
@@ -382,6 +384,96 @@ impl Console {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         logger(LogMessage::Log(formatter(args, context)?), console);
+        Ok(JsValue::undefined())
+    }
+
+    /// `console.table(...data)`
+    ///
+    /// Prints a JavaScript values to a tabular form with "log" logLevel.
+    ///
+    /// More information:
+    ///  - [MDN documentation][mdn]
+    ///  - [WHATWG `console` specification][spec]
+    ///
+    /// [spec]: https://console.spec.whatwg.org/#log
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/log
+    fn table(
+        _: &JsValue,
+        args: &[JsValue],
+        console: &Self,
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        let mut separator: usize = 0;
+
+        let mut get_value = |value: String| -> String {
+            if value.len() > 6 {
+                separator = value.len();
+            }
+            value
+        };
+
+        for arg in args {
+            match arg {
+                JsValue::Object(obj) => {
+                    if obj.is_array() {
+                        let borrowed_object = obj.borrow();
+
+                        let key_value_array = borrowed_object.properties().index_properties();
+                        for key_value in key_value_array {
+                            let key = key_value.0;
+                            // let value = key_value.1.value().unwrap().as_number().unwrap();
+                            let value: String;
+                            print!("{key}");
+                            match key_value.1.value().unwrap() {
+                                JsValue::Integer(integer) => {
+                                    value = get_value(integer.to_string())
+
+                                },
+                                JsValue::BigInt(big_int) => {
+                                    value = get_value(big_int.to_string())
+                                }
+                                JsValue::Rational(rational) => {
+                                    value = get_value(rational.to_string());                              
+                                }
+                                JsValue::Symbol(symbol) => {
+                                    value = get_value(symbol.to_string());
+                                }
+                                JsValue::String(s) => {
+                                    value = get_value(s.to_std_string_escaped());
+                                    
+                                },
+                                JsValue::Boolean(b) => {
+                                    value = get_value(b.to_string());
+                                },
+                                JsValue::Null => {
+                                    value = String::from("null");
+                                },
+                                JsValue::Undefined => {
+                                    value = String::from("undefined");
+                                },
+                                _ => {
+                                    value = String::from("unknown");
+                                },
+                            }
+                            println!("{value}")
+                            
+                        }         
+                    }
+                    if obj.is_ordinary() {
+                        //when doing new Class()
+                        println!("ordinary")
+                    }
+                }
+
+                _ => {
+                    // Handle other JsValue types
+                    logger(LogMessage::Log(formatter(args, context)?), console);
+                }
+                
+            }
+        }
+        
+        println!("{separator}");
         Ok(JsValue::undefined())
     }
 
