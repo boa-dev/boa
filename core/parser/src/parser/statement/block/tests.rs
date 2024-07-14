@@ -78,7 +78,7 @@ fn non_empty() {
             a++;
         }",
         vec![
-            Declaration::Function(Function::new(
+            Declaration::Function(Function::new_with_binding_identifier(
                 Some(hello.into()),
                 FormalParameterList::default(),
                 FunctionBody::new(
@@ -87,6 +87,7 @@ fn non_empty() {
                     ))]
                     .into(),
                 ),
+                true,
             ))
             .into(),
             Statement::Var(VarDeclaration(
@@ -135,7 +136,7 @@ fn hoisting() {
                 UpdateTarget::Identifier(Identifier::new(a)),
             )))
             .into(),
-            Declaration::Function(Function::new(
+            Declaration::Function(Function::new_with_binding_identifier(
                 Some(hello.into()),
                 FormalParameterList::default(),
                 FunctionBody::new(
@@ -144,6 +145,7 @@ fn hoisting() {
                     ))]
                     .into(),
                 ),
+                true,
             ))
             .into(),
         ],

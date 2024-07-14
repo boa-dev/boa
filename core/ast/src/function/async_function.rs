@@ -79,8 +79,10 @@ impl AsyncFunction {
 impl ToIndentedString for AsyncFunction {
     fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         let mut buf = "async function".to_owned();
-        if let Some(name) = self.name {
-            buf.push_str(&format!(" {}", interner.resolve_expect(name.sym())));
+        if self.has_binding_identifier {
+            if let Some(name) = self.name {
+                buf.push_str(&format!(" {}", interner.resolve_expect(name.sym())));
+            }
         }
         buf.push_str(&format!(
             "({}",

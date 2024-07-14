@@ -123,13 +123,14 @@ fn hoisting() {
                 UpdateTarget::Identifier(Identifier::new(a)),
             )))
             .into(),
-            Declaration::Function(Function::new(
+            Declaration::Function(Function::new_with_binding_identifier(
                 Some(hello.into()),
                 FormalParameterList::default(),
                 FunctionBody::new(
                     vec![Statement::Return(Return::new(Some(Literal::from(10).into()))).into()]
                         .into(),
                 ),
+                true,
             ))
             .into(),
         ],

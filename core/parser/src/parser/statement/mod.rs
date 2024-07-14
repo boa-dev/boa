@@ -495,7 +495,6 @@ where
         )?;
 
         let mut patterns = Vec::new();
-        let mut property_names = Vec::new();
 
         loop {
             let next_token_is_colon = *cursor.peek(1, interner).or_abrupt()?.kind()
@@ -523,10 +522,7 @@ where
                         "object binding pattern",
                         interner,
                     )?;
-                    patterns.push(ObjectPatternElement::RestProperty {
-                        ident,
-                        excluded_keys: property_names,
-                    });
+                    patterns.push(ObjectPatternElement::RestProperty { ident });
                     return Ok(patterns);
                 }
                 _ => {
@@ -548,9 +544,6 @@ where
                     if is_property_name {
                         let property_name = PropertyName::new(self.allow_yield, self.allow_await)
                             .parse(cursor, interner)?;
-                        if let Some(name) = property_name.prop_name() {
-                            property_names.push(name.into());
-                        }
                         cursor.expect(
                             TokenKind::Punctuator(Punctuator::Colon),
                             "object binding pattern",
@@ -661,7 +654,6 @@ where
                     } else {
                         let name = BindingIdentifier::new(self.allow_yield, self.allow_await)
                             .parse(cursor, interner)?;
-                        property_names.push(name);
                         match cursor.peek(0, interner)?.map(Token::kind) {
                             Some(TokenKind::Punctuator(Punctuator::Assign)) => {
                                 let init = Initializer::new(

@@ -133,3 +133,19 @@ fn check_combined_empty_str() {
         &mut Interner::default(),
     );
 }
+
+#[test]
+fn check_elision_start_end() {
+    check_script_parser(
+        "[, 1 , , ]",
+        vec![
+            Statement::Expression(Expression::from(ArrayLiteral::from(vec![
+                None,
+                Some(Literal::from(1).into()),
+                None,
+            ])))
+            .into(),
+        ],
+        &mut Interner::default(),
+    );
+}

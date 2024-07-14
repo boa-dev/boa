@@ -19,6 +19,7 @@ impl ByteCompiler<'_> {
 
                 self.emit_opcode(Opcode::RequireObjectCoercible);
 
+                let mut excluded_keys = Vec::new();
                 let mut additional_excluded_keys_count = 0;
                 let rest_exits = pattern.has_rest();
 
@@ -40,6 +41,7 @@ impl ByteCompiler<'_> {
                             match name {
                                 PropertyName::Literal(name) => {
                                     self.emit_get_property_by_name(*name);
+                                    excluded_keys.push(*name);
                                 }
                                 PropertyName::Computed(node) => {
                                     self.compile_expr(node, true);
@@ -65,15 +67,12 @@ impl ByteCompiler<'_> {
                             }
                         }
                         //  BindingRestProperty : ... BindingIdentifier
-                        RestProperty {
-                            ident,
-                            excluded_keys,
-                        } => {
+                        RestProperty { ident } => {
                             self.emit_opcode(Opcode::PushEmptyObject);
 
-                            for key in excluded_keys {
+                            for key in &excluded_keys {
                                 self.emit_push_literal(Literal::String(
-                                    self.interner().resolve_expect(key.sym()).into_common(false),
+                                    self.interner().resolve_expect(*key).into_common(false),
                                 ));
                             }
 
@@ -86,15 +85,12 @@ impl ByteCompiler<'_> {
                             );
                             self.emit_binding(def, ident.to_js_string(self.interner()));
                         }
-                        AssignmentRestPropertyAccess {
-                            access,
-                            excluded_keys,
-                        } => {
+                        AssignmentRestPropertyAccess { access } => {
                             self.emit_opcode(Opcode::Dup);
                             self.emit_opcode(Opcode::PushEmptyObject);
-                            for key in excluded_keys {
+                            for key in &excluded_keys {
                                 self.emit_push_literal(Literal::String(
-                                    self.interner().resolve_expect(key.sym()).into_common(false),
+                                    self.interner().resolve_expect(*key).into_common(false),
                                 ));
                             }
                             self.emit(
@@ -117,10 +113,13 @@ impl ByteCompiler<'_> {
                         } => {
                             self.emit_opcode(Opcode::Dup);
                             self.emit_opcode(Opcode::Dup);
-                            if let PropertyName::Computed(node) = &name {
-                                self.compile_expr(node, true);
-                                self.emit_opcode(Opcode::ToPropertyKey);
-                                self.emit_opcode(Opcode::Swap);
+                            match &name {
+                                PropertyName::Literal(name) => excluded_keys.push(*name),
+                                PropertyName::Computed(node) => {
+                                    self.compile_expr(node, true);
+                                    self.emit_opcode(Opcode::ToPropertyKey);
+                                    self.emit_opcode(Opcode::Swap);
+                                }
                             }
 
                             self.access_set(

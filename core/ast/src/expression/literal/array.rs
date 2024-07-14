@@ -1,6 +1,6 @@
 //! Array declaration Expression.
 
-use crate::expression::operator::assign::AssignTarget;
+use crate::expression::operator::assign::{AssignOp, AssignTarget};
 use crate::expression::Expression;
 use crate::pattern::{ArrayPattern, ArrayPatternElement, Pattern};
 use crate::try_break;
@@ -99,34 +99,39 @@ impl ArrayLiteral {
                         return None;
                     }
                 }
-                Expression::Assign(assign) => match assign.lhs() {
-                    AssignTarget::Identifier(ident) => {
-                        bindings.push(ArrayPatternElement::SingleName {
-                            ident: *ident,
-                            default_init: Some(assign.rhs().clone()),
-                        });
+                Expression::Assign(assign) => {
+                    if assign.op() != AssignOp::Assign {
+                        return None;
                     }
-                    AssignTarget::Access(access) => {
-                        bindings.push(ArrayPatternElement::PropertyAccess {
-                            access: access.clone(),
-                            default_init: Some(assign.rhs().clone()),
-                        });
-                    }
-                    AssignTarget::Pattern(pattern) => match pattern {
-                        Pattern::Object(pattern) => {
-                            bindings.push(ArrayPatternElement::Pattern {
-                                pattern: Pattern::Object(pattern.clone()),
+                    match assign.lhs() {
+                        AssignTarget::Identifier(ident) => {
+                            bindings.push(ArrayPatternElement::SingleName {
+                                ident: *ident,
                                 default_init: Some(assign.rhs().clone()),
                             });
                         }
-                        Pattern::Array(pattern) => {
-                            bindings.push(ArrayPatternElement::Pattern {
-                                pattern: Pattern::Array(pattern.clone()),
+                        AssignTarget::Access(access) => {
+                            bindings.push(ArrayPatternElement::PropertyAccess {
+                                access: access.clone(),
                                 default_init: Some(assign.rhs().clone()),
                             });
                         }
-                    },
-                },
+                        AssignTarget::Pattern(pattern) => match pattern {
+                            Pattern::Object(pattern) => {
+                                bindings.push(ArrayPatternElement::Pattern {
+                                    pattern: Pattern::Object(pattern.clone()),
+                                    default_init: Some(assign.rhs().clone()),
+                                });
+                            }
+                            Pattern::Array(pattern) => {
+                                bindings.push(ArrayPatternElement::Pattern {
+                                    pattern: Pattern::Array(pattern.clone()),
+                                    default_init: Some(assign.rhs().clone()),
+                                });
+                            }
+                        },
+                    }
+                }
                 Expression::ArrayLiteral(array) => {
                     let pattern = array.to_pattern(strict)?.into();
                     bindings.push(ArrayPatternElement::Pattern {
@@ -184,15 +189,18 @@ impl ToInternedString for ArrayLiteral {
     #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         let mut buf = String::from("[");
-        let mut first = true;
-        for e in &*self.arr {
-            if first {
-                first = false;
-            } else {
-                buf.push_str(", ");
-            }
-            if let Some(e) = e {
+        let mut elements = self.arr.iter().peekable();
+
+        while let Some(element) = elements.next() {
+            if let Some(e) = element {
                 buf.push_str(&e.to_interned_string(interner));
+                if elements.peek().is_some() {
+                    buf.push_str(", ");
+                }
+            } else if elements.peek().is_some() {
+                buf.push_str(", ");
+            } else {
+                buf.push(',');
             }
         }
         buf.push(']');
