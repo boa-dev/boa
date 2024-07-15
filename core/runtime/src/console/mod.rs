@@ -15,11 +15,10 @@
 mod tests;
 
 use boa_engine::{
-    ast::statement::Throw, js_str, js_string, native_function::NativeFunction, object::{JsObject, ObjectInitializer}, value::{JsValue, Numeric}, Context, JsArgs, JsData, JsResult, JsStr, JsString
+    js_str, js_string, native_function::NativeFunction, object::{JsObject, ObjectInitializer}, value::{JsValue, Numeric}, Context, JsArgs, JsData, JsResult, JsStr, JsString
 };
 use boa_gc::{Finalize, Trace};
 use rustc_hash::FxHashMap;
-use core::borrow;
 use std::{cell::RefCell, collections::hash_map::Entry, rc::Rc, time::SystemTime};
 
 /// This represents the different types of log messages.
@@ -387,7 +386,7 @@ impl Console {
         Ok(JsValue::undefined())
     }
 
-    /// `console.table(...data)`
+    /// `console.table(...data, columns)`
     ///
     /// Prints a JavaScript values to a tabular form with "log" logLevel.
     ///
@@ -395,8 +394,8 @@ impl Console {
     ///  - [MDN documentation][mdn]
     ///  - [WHATWG `console` specification][spec]
     ///
-    /// [spec]: https://console.spec.whatwg.org/#log
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/log
+    /// [spec]: https://console.spec.whatwg.org/#table
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/table
     fn table(
         _: &JsValue,
         args: &[JsValue],
