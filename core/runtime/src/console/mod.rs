@@ -403,35 +403,21 @@ impl Console {
         console: &Self,
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        let mut separator: usize = 0;
         let mut value_vec: Vec<String> = Vec::new();
-
-        let mut get_value = |value: String| -> String {
-            if value.len() > 6 {
-                separator = value.len();
-            }
-            value
-        };
 
         fn print_table(value_vec: &Vec<String>) {
             let max_value_width = value_vec.iter().map(|value| value.len()).max().unwrap_or(0);
-
-            println!("{max_value_width}");
         
-            // Print the header
             println!("┌─────────┬─{:─<width$}─┐", "", width = max_value_width + 2);
             println!("│ (index) │ Values{:>width$} │", "", width = if max_value_width < 5 { 0 } else { max_value_width - 4});
-            // println!("│ (index) │ Values│");
             println!("├─────────┼{:─<width$}──┤", "", width = max_value_width + 2);
         
-            // Print each value with its index
             for (i, el) in value_vec.iter().enumerate() {
                 println!("│ {:<7} │ {:<width$}   │", i, el, width = max_value_width);
             }
             println!("└─────────┴{:─<width$}──┘", "", width = max_value_width + 2);
         }
         
-
         for arg in args {
             match arg {
                 JsValue::Object(obj) => {
@@ -440,42 +426,37 @@ impl Console {
 
                         let key_value_array = borrowed_object.properties().index_properties();
                         for key_value in key_value_array {
-                            // let key = key_value.0;
-                            let value: String;
-                            // print!("{key}");
+
                             match key_value.1.value().unwrap() {
                                 JsValue::Integer(integer) => {
-                                    value = get_value(integer.to_string())
-
+                                    value_vec.push(integer.to_string())
                                 },
                                 JsValue::BigInt(big_int) => {
-                                    value = get_value(big_int.to_string())
+                                    value_vec.push(big_int.to_string())
                                 }
                                 JsValue::Rational(rational) => {
-                                    value = get_value(rational.to_string());                              
+                                    value_vec.push(rational.to_string());                              
                                 }
                                 JsValue::Symbol(symbol) => {
-                                    value = get_value(symbol.to_string());
+                                    value_vec.push(symbol.to_string());
                                 }
                                 JsValue::String(s) => {
-                                    value = get_value(s.to_std_string_escaped());
+                                    value_vec.push(s.to_std_string_escaped());
                                     
                                 },
                                 JsValue::Boolean(b) => {
-                                    value = get_value(b.to_string());
+                                    value_vec.push(b.to_string());
                                 },
                                 JsValue::Null => {
-                                    value = String::from("null");
+                                    value_vec.push(String::from("null"));
                                 },
                                 JsValue::Undefined => {
-                                    value = String::from("undefined");
+                                    value_vec.push(String::from("undefined"));
                                 },
                                 _ => {
-                                    value = String::from("unknown");
+                                    value_vec.push(String::from("unknown"));
                                 },
                             }
-                            value_vec.push(value)
-                            
                         }        
                         print_table(&value_vec);
                     }
@@ -489,11 +470,8 @@ impl Console {
                     // Handle other JsValue types
                     logger(LogMessage::Log(formatter(args, context)?), console);
                 }
-                
             }
         }
-        
-        println!("{separator}");
         Ok(JsValue::undefined())
     }
 
