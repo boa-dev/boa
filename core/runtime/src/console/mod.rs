@@ -407,14 +407,14 @@ impl Console {
         fn print_table(value_vec: &Vec<String>) {
             let max_value_width = value_vec.iter().map(|value| value.len()).max().unwrap_or(0);
         
-            println!("┌─────────┬─{:─<width$}────┐", "", width = max_value_width + 2);
-            println!("│ (index) │ Values{:>width$} │", "", width = if max_value_width < 1 { 0 } else { max_value_width - 1});
-            println!("├─────────┼{:─<width$}─────┤", "", width = max_value_width + 2);
+            println!("┌─────────┬─{:─<width$}──────┐", "", width = max_value_width);
+            println!("│ (index) │ Values{:>width$}│", "", width = max_value_width);
+            println!("├─────────┼{:─<width$}───────┤", "", width = max_value_width);
         
             for (i, el) in value_vec.iter().enumerate() {
                 println!("│ {:<7} │ {:<width$}      │", i, el, width = max_value_width);
             }
-            println!("└─────────┴{:─<width$}─────┘", "", width = max_value_width + 2);
+            println!("└─────────┴{:─<width$}───────┘", "", width = max_value_width);
         }
         
         for arg in args {
