@@ -404,6 +404,7 @@ impl Console {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         let mut separator: usize = 0;
+        let mut value_vec: Vec<String> = Vec::new();
 
         let mut get_value = |value: String| -> String {
             if value.len() > 6 {
@@ -411,6 +412,25 @@ impl Console {
             }
             value
         };
+
+        fn print_table(value_vec: &Vec<String>) {
+            let max_value_width = value_vec.iter().map(|value| value.len()).max().unwrap_or(0);
+
+            println!("{max_value_width}");
+        
+            // Print the header
+            println!("┌─────────┬─{:─<width$}─┐", "", width = max_value_width + 2);
+            println!("│ (index) │ Values{:>width$} │", "", width = if max_value_width < 5 { 0 } else { max_value_width - 4});
+            // println!("│ (index) │ Values│");
+            println!("├─────────┼{:─<width$}──┤", "", width = max_value_width + 2);
+        
+            // Print each value with its index
+            for (i, el) in value_vec.iter().enumerate() {
+                println!("│ {:<7} │ {:<width$}   │", i, el, width = max_value_width);
+            }
+            println!("└─────────┴{:─<width$}──┘", "", width = max_value_width + 2);
+        }
+        
 
         for arg in args {
             match arg {
@@ -420,10 +440,9 @@ impl Console {
 
                         let key_value_array = borrowed_object.properties().index_properties();
                         for key_value in key_value_array {
-                            let key = key_value.0;
-                            // let value = key_value.1.value().unwrap().as_number().unwrap();
+                            // let key = key_value.0;
                             let value: String;
-                            print!("{key}");
+                            // print!("{key}");
                             match key_value.1.value().unwrap() {
                                 JsValue::Integer(integer) => {
                                     value = get_value(integer.to_string())
@@ -455,9 +474,10 @@ impl Console {
                                     value = String::from("unknown");
                                 },
                             }
-                            println!("{value}")
+                            value_vec.push(value)
                             
-                        }         
+                        }        
+                        print_table(&value_vec);
                     }
                     if obj.is_ordinary() {
                         //when doing new Class()
