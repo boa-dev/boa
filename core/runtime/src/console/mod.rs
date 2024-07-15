@@ -407,14 +407,14 @@ impl Console {
         fn print_table(value_vec: &Vec<String>) {
             let max_value_width = value_vec.iter().map(|value| value.len()).max().unwrap_or(0);
         
-            println!("┌─────────┬─{:─<width$}─┐", "", width = max_value_width + 2);
-            println!("│ (index) │ Values{:>width$} │", "", width = if max_value_width < 5 { 0 } else { max_value_width - 4});
-            println!("├─────────┼{:─<width$}──┤", "", width = max_value_width + 2);
+            println!("┌─────────┬─{:─<width$}────┐", "", width = max_value_width + 2);
+            println!("│ (index) │ Values{:>width$} │", "", width = if max_value_width < 1 { 0 } else { max_value_width - 1});
+            println!("├─────────┼{:─<width$}─────┤", "", width = max_value_width + 2);
         
             for (i, el) in value_vec.iter().enumerate() {
-                println!("│ {:<7} │ {:<width$}   │", i, el, width = max_value_width);
+                println!("│ {:<7} │ {:<width$}      │", i, el, width = max_value_width);
             }
-            println!("└─────────┴{:─<width$}──┘", "", width = max_value_width + 2);
+            println!("└─────────┴{:─<width$}─────┘", "", width = max_value_width + 2);
         }
         
         for arg in args {
@@ -460,8 +460,14 @@ impl Console {
                         print_table(&value_vec);
                     }
                     if obj.is_ordinary() {
-                        //when doing new Class()
-                        println!("ordinary")
+                        let borrowed_object = obj.borrow();
+
+                        let key_value_array = borrowed_object.properties().index_properties();
+                        for key_value in key_value_array {
+                            let lol  = key_value.0;
+                            println!("{lol}");
+                        }
+                        
                     }
                 }
 
