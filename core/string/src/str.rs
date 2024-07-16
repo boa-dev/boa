@@ -291,13 +291,20 @@ impl PartialEq for JsStr<'_> {
     }
 }
 
-impl PartialEq<&str> for JsStr<'_> {
+impl PartialEq<str> for JsStr<'_> {
     #[inline]
-    fn eq(&self, other: &&str) -> bool {
+    fn eq(&self, other: &str) -> bool {
         match self.variant() {
             JsStrVariant::Latin1(v) => v == other.as_bytes(),
             JsStrVariant::Utf16(v) => other.encode_utf16().zip(v).all(|(a, b)| a == *b),
         }
+    }
+}
+
+impl PartialEq<&str> for JsStr<'_> {
+    #[inline]
+    fn eq(&self, other: &&str) -> bool {
+        self == *other
     }
 }
 
