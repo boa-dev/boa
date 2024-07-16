@@ -23,11 +23,13 @@
 /// ```ignore
 /// property <field_getset_name> [as "<js_field_name>"] {
 ///     get(<field_getset_get_args>) -> <field_getset_get_ty> { <field_getset_get_body> }
-///     set(<field_getset_set_args>) { <field_getset_set_body> }
+///     set(<field_getset_set_args>) [-> JsResult<()>] { <field_getset_set_body> }
 /// }
 /// ```
 /// Declare a getter and/or a setter on a JavaScript class property. This is optional.
-/// Both get and set are optional, but at least one must be present.
+/// Both get and set are optional, but at least one must be present. The `set` method
+/// must either return the unit type or a `JsResult<...>`. The value returned will be
+/// ignored, only errors will be used.
 ///
 /// Using the `as` keyword, you can set the name of the property in JavaScript that
 /// would otherwise not be possible in Rust.
@@ -149,6 +151,7 @@ macro_rules! js_class {
                 $(
                     $(#[$field_prop_set_attr: meta])*
                     $(fn)? set( $( $field_prop_set_arg: ident: $field_prop_set_arg_type: ty ),* )
+                        $( -> $field_prop_set_ty: ty )?
                         $field_prop_set_body: block
                 )?
             }
@@ -198,6 +201,7 @@ macro_rules! js_class {
                         )?
                         $(
                         @set( $( $field_prop_set_arg: $field_prop_set_arg_type ),* )
+                            $( -> $field_prop_set_ty )?
                             $field_prop_set_body
                         )?
                     );
@@ -326,9 +330,10 @@ macro_rules! __get_set_decl {
         $field_name: ident,
         $( $js_field_name: literal )?,
         @set( $( $set_arg: ident: $set_arg_type: ty ),* )
+            $( -> $field_prop_set_ty: ty )?
             $set_body: block
     ) => {
-        let function = |$( $set_arg: $set_arg_type ),*| { $set_body };
+        let function = |$( $set_arg: $set_arg_type ),*| $(-> $field_prop_set_ty)? { $set_body };
         let function_set =
             $crate::IntoJsFunctionCopied::into_js_function_copied(function, $class.context())
                 .to_js_function($class.context().realm());
@@ -386,7 +391,7 @@ fn js_class_test() {
     use crate::IntoJsFunctionCopied;
     use crate::{js_class, loaders, JsClass};
     use boa_engine::property::Attribute;
-    use boa_engine::{js_string, Context, JsData, Module, Source};
+    use boa_engine::{js_string, Context, JsData, JsError, JsResult, Module, Source};
     use boa_gc::{Finalize, Trace};
     use std::rc::Rc;
 
@@ -422,6 +427,12 @@ fn js_class_test() {
 
                 set(this: JsClass<Test>, new_value: u32) {
                     this.borrow_mut().f3 = new_value;
+                }
+            }
+
+            property f4 {
+                set() -> JsResult<()> {
+                    Err(JsError::from_opaque(boa_engine::JsString::from("Cannot set f4.").into()))
                 }
             }
 
@@ -489,6 +500,16 @@ fn js_class_test() {
             assert_eq('f3', t.f3, 0);
             t.f3 = 456;
             assert_eq('f3 (set)', t.f3, 456);
+
+            // Test exception on setter.
+            try {
+                t.f4 = 123;
+                throw 'Expected an exception';
+            } catch (e) {
+                if (e !== 'Cannot set f4.') {
+                    throw e;
+                }
+            }
         ",
     );
     let root_module = Module::parse(source, None, &mut context).unwrap();
