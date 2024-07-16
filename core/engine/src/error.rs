@@ -17,7 +17,7 @@ use thiserror::Error;
 /// Create an opaque error object from a value. This can be a literal or any
 /// value that can be converted to a `JsValue`.
 ///
-/// Can be used with an expression that converts into JsValue or a format
+/// Can be used with an expression that converts into `JsValue` or a format
 /// string with arguments.
 ///
 /// # Examples
