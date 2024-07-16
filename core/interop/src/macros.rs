@@ -354,6 +354,7 @@ macro_rules! __get_set_decl {
         @get( $( $get_arg: ident: $get_arg_type: ty ),* ) -> $get_ty: ty
             $get_body: block,
         @set( $( $set_arg: ident: $set_arg_type: ty ),* )
+            $( -> $field_prop_set_ty: ty )?
             $set_body: block
     ) => {
         let function_get =
@@ -363,7 +364,7 @@ macro_rules! __get_set_decl {
             ).to_js_function($class.context().realm());
         let function_set =
             $crate::IntoJsFunctionCopied::into_js_function_copied(
-                |$( $set_arg: $set_arg_type ),*| { $set_body },
+                |$( $set_arg: $set_arg_type ),*| $(-> $field_prop_set_ty)? { $set_body },
                 $class.context()
             ).to_js_function($class.context().realm());
 
@@ -437,6 +438,12 @@ fn js_class_test() {
                 set() -> JsResult<()> {
                     Err(JsError::from_opaque(boa_engine::JsString::from("Cannot set f4.").into()))
                 }
+            }
+
+            // Just to test the branch with both get, set and return value.
+            property f5 {
+                get() -> u8 { 1 }
+                set() -> () { }
             }
 
             constructor() {
