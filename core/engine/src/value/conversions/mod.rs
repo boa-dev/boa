@@ -39,24 +39,6 @@ impl From<char> for JsValue {
     }
 }
 
-impl From<&str> for JsValue {
-    #[inline]
-    fn from(value: &str) -> Self {
-        let _timer = Profiler::global().start_event("From<&str>", "value");
-
-        Self::from(js_string!(value))
-    }
-}
-
-impl From<String> for JsValue {
-    #[inline]
-    fn from(value: String) -> Self {
-        let _timer = Profiler::global().start_event("From<&str>", "value");
-
-        Self::from(JsString::from(value))
-    }
-}
-
 impl From<JsSymbol> for JsValue {
     #[inline]
     fn from(value: JsSymbol) -> Self {
