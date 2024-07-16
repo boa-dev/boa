@@ -386,7 +386,10 @@ macro_rules! __get_set_decl {
     };
 }
 
+// We allow too many lines. This test is straightforward but has a lot of boilerplate
+// still.
 #[test]
+#[allow(clippy::too_many_lines)]
 fn js_class_test() {
     use crate::IntoJsFunctionCopied;
     use crate::{js_class, loaders, JsClass};
