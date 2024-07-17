@@ -59,8 +59,9 @@ macro_rules! js_string {
             use std::cell::Cell;
             use $crate::string::JsStr;
 
-            // `Cell<usize>` should have the same size with `Option<&usize>`.
             debug_assert_eq!(
+                // SAFETY:
+                // `Cell<usize>` should have the same size with `Option<&usize>`.
                 unsafe { std::mem::transmute::<Cell<usize>, Option<&usize>>(Cell::new(0usize)) },
                 <Option<&usize>>::None
             );
@@ -130,6 +131,9 @@ mod tests {
     #[test]
     fn refcount() {
         let x = js_string!("Hello world");
+        assert_eq!(x.refcount(), None);
+
+        let x = js_string!("你好");
         assert_eq!(x.refcount(), Some(1));
 
         {
