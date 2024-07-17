@@ -106,9 +106,11 @@ macro_rules! js_string_from_ascii_literal {
         // The literal should be ASCII.
         debug_assert!($ascii.is_ascii());
 
+        #[allow(clippy::items_after_statements)]
         // Create a static `JsStr` that references an ASCII literal
         static ORIGINAL_JS_STR: JsStr<'static> = JsStr::latin1($ascii.as_bytes());
 
+        #[allow(clippy::items_after_statements)]
         // Use `[Option<&usize>; 2]` which has the same size with primitive `RawJsString`
         // to represent `RawJsString` since `Cell` is unable to construct in static
         // and `RawJsString` is private.
@@ -126,7 +128,9 @@ macro_rules! js_string_from_ascii_literal {
         // Reference of static variable is always valid to cast into non-null pointer,
         // size of `[Option<&usize>; 2]` is equal to the primitive size of `RawJsString`.
         unsafe {
-            $crate::string::JsString::from_opaque_ptr(DUMMY_RAW_JS_STRING as *const _ as *mut _)
+            $crate::string::JsString::from_opaque_ptr(
+                std::ptr::from_ref(DUMMY_RAW_JS_STRING) as *mut _
+            )
         }
     }};
 }
