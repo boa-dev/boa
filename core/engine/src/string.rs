@@ -54,9 +54,47 @@ macro_rules! js_string {
     () => {
         $crate::string::JsString::default()
     };
-    ($s:literal) => {
-        $crate::string::JsString::from($crate::js_str!($s))
-    };
+    ($s:literal) => {{
+        if $s.is_ascii() {
+            use std::cell::Cell;
+            use $crate::string::JsStr;
+
+            // `Cell<usize>` should have the same size with `Option<&usize>`.
+            debug_assert_eq!(
+                unsafe { std::mem::transmute::<Cell<usize>, Option<&usize>>(Cell::new(0usize)) },
+                <Option<&usize>>::None
+            );
+
+            #[allow(clippy::items_after_statements)]
+            // Create a static `JsStr` that references an ASCII literal
+            static ORIGINAL_JS_STR: JsStr<'static> = JsStr::latin1($s.as_bytes());
+
+            #[allow(clippy::items_after_statements)]
+            // Use `[Option<&usize>; 2]` which has the same size with primitive `RawJsString`
+            // to represent `RawJsString` since `Cell` is unable to construct in static
+            // and `RawJsString` is private.
+            // With `Null Pointer Optimization` we could use `None`
+            // to represent `Cell(0usize)` to mark it as being created from ASCII literal.
+            static DUMMY_RAW_JS_STRING: &[Option<&usize>; 2] = &[
+                // SAFETY:
+                // Reference of static variable is always valid to cast into an non-null pointer,
+                // And the primitive size of `RawJsString` is twice as large as `usize`.
+                Some(unsafe { &*std::ptr::addr_of!(ORIGINAL_JS_STR).cast::<usize>() }),
+                None,
+            ];
+            #[allow(trivial_casts)]
+            // SAFETY:
+            // Reference of static variable is always valid to cast into non-null pointer,
+            // size of `[Option<&usize>; 2]` is equal to the primitive size of `RawJsString`.
+            unsafe {
+                $crate::string::JsString::from_opaque_ptr(
+                    std::ptr::from_ref(DUMMY_RAW_JS_STRING) as *mut _
+                )
+            }
+        } else {
+            $crate::string::JsString::from($crate::js_str!($s))
+        }
+    }};
     ($s:expr) => {
         $crate::string::JsString::from($s)
     };
@@ -66,73 +104,6 @@ macro_rules! js_string {
     ( $( $s:expr ),+ ) => {
         $crate::string::JsString::concat_array(&[ $( $crate::string::JsStr::from($s) ),+ ])
     };
-}
-
-/// Utility macro to create a [`JsString`] from an ASCII literal.
-///
-/// # Examples
-///
-/// You can call the macro without arguments to create an empty `JsString`:
-///
-/// ```rust
-/// use boa_engine::js_string_from_ascii_literal;
-///
-/// let empty_str = js_string_from_ascii_literal!();
-/// assert!(empty_str.is_empty());
-/// ```
-///
-/// You can create a `JsString` from an ASCII literal without heap allocation.
-///
-/// ```rust
-/// # use boa_engine::js_string_from_ascii_literal;
-/// let hw = js_string_from_ascii_literal!("Hello, world!");
-/// assert_eq!(&hw, "Hello, world!");
-/// ```
-#[macro_export]
-macro_rules! js_string_from_ascii_literal {
-    () => {
-        $crate::string::JsString::default()
-    };
-    ($ascii: literal) => {{
-        use std::cell::Cell;
-        use $crate::string::JsStr;
-
-        // `Cell<usize>` should have the same size with `Option<&usize>`.
-        debug_assert_eq!(
-            unsafe { std::mem::transmute::<Cell<usize>, Option<&usize>>(Cell::new(0usize)) },
-            <Option<&usize>>::None
-        );
-
-        // The literal should be ASCII.
-        debug_assert!($ascii.is_ascii());
-
-        #[allow(clippy::items_after_statements)]
-        // Create a static `JsStr` that references an ASCII literal
-        static ORIGINAL_JS_STR: JsStr<'static> = JsStr::latin1($ascii.as_bytes());
-
-        #[allow(clippy::items_after_statements)]
-        // Use `[Option<&usize>; 2]` which has the same size with primitive `RawJsString`
-        // to represent `RawJsString` since `Cell` is unable to construct in static
-        // and `RawJsString` is private.
-        // With `Null Pointer Optimization` we could use `None`
-        // to represent `Cell(0usize)` to mark it as being created from ASCII literal.
-        static DUMMY_RAW_JS_STRING: &[Option<&usize>; 2] = &[
-            // SAFETY:
-            // Reference of static variable is always valid to cast into an non-null pointer,
-            // And the primitive size of `RawJsString` is twice as large as `usize`.
-            Some(unsafe { &*std::ptr::addr_of!(ORIGINAL_JS_STR).cast::<usize>() }),
-            None,
-        ];
-        #[allow(trivial_casts)]
-        // SAFETY:
-        // Reference of static variable is always valid to cast into non-null pointer,
-        // size of `[Option<&usize>; 2]` is equal to the primitive size of `RawJsString`.
-        unsafe {
-            $crate::string::JsString::from_opaque_ptr(
-                std::ptr::from_ref(DUMMY_RAW_JS_STRING) as *mut _
-            )
-        }
-    }};
 }
 
 #[allow(clippy::redundant_clone)]
@@ -274,11 +245,5 @@ mod tests {
 
         assert!(string.is_some());
         assert!(string.unwrap().as_str().is_latin1());
-    }
-
-    #[test]
-    fn from_ascii_literal() {
-        let s = js_string_from_ascii_literal!("hello world");
-        assert_eq!(&s, "hello world");
     }
 }
