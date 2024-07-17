@@ -155,11 +155,18 @@ struct RawJsString {
     /// Contains the flags and Latin1/UTF-16 length.
     ///
     /// The latin1 flag is stored in the bottom bit.
-    flags_and_len: usize,
+    ///
+    /// Could be a pointer if this is created from ASCII literal.
+    flags_and_len_or_ptr: usize,
 
     /// The number of references to the string.
     ///
     /// When this reaches `0` the string is deallocated.
+    ///
+    /// Since reference count of `RawJsString` created from `try_allocate_inner`
+    /// will only reach `0` in `drop`,
+    /// we can mark `RawJsString` created with a reference count of 0 as
+    /// being created from an ASCII literal.
     refcount: Cell<usize>,
 
     /// An empty array which is used to get the offset of string data.
@@ -170,12 +177,32 @@ impl RawJsString {
     const LATIN1_BITFLAG: usize = 1 << 0;
     const BITFLAG_COUNT: usize = 1;
 
+    /// This should be called to check if it is from an ASCII literal
+    /// before modifying reference count to avoid dropping static value
+    /// that might causes UB.
+    fn is_ascii_literal(&self) -> bool {
+        self.refcount.get() == 0
+    }
+
+    /// Returns `JsStr` from ASCII literal by using `flags_and_len` as pointer to dereference.
+    /// # Safety
+    ///
+    /// Caller must ensure that `RawJsString` is created from ASCII literal
+    /// so that pointer casting and dereferencing are valid.
+    unsafe fn ascii_literal_js_str(&self) -> JsStr<'static> {
+        // SADETY:
+        //
+        // Caller must call `is_ascii_literal` before this to ensure the
+        // pointer conversion is valid.
+        unsafe { *(self.flags_and_len_or_ptr as *const _) }
+    }
+
     const fn is_latin1(&self) -> bool {
-        (self.flags_and_len & Self::LATIN1_BITFLAG) != 0
+        (self.flags_and_len_or_ptr & Self::LATIN1_BITFLAG) != 0
     }
 
     const fn len(&self) -> usize {
-        self.flags_and_len >> Self::BITFLAG_COUNT
+        self.flags_and_len_or_ptr >> Self::BITFLAG_COUNT
     }
 
     const fn encode_flags_and_len(len: usize, latin1: bool) -> usize {
@@ -221,6 +248,21 @@ impl<'a> IntoIterator for &'a JsString {
 }
 
 impl JsString {
+    /// Create a [`JsString`] from a raw opaque pointer
+    /// # Safety
+    ///
+    /// Caller must ensure the pointer is valid and the data pointed \
+    /// has the same size and alignment of `RawJsString`.
+    #[must_use]
+    pub const unsafe fn from_opaque_ptr(src: *mut ()) -> Self {
+        JsString {
+            // SAFETY:
+            // Caller must ensure the pointer is valid and point to data
+            // with the same size and alignment of `RawJsString`.
+            ptr: unsafe { Tagged::from_ptr(src.cast()) },
+        }
+    }
+
     /// Create an iterator over the [`JsString`].
     #[inline]
     #[must_use]
@@ -250,19 +292,17 @@ impl JsString {
                 //
                 // - The lifetime of `&Self::Target` is shorter than the lifetime of `self`, as seen
                 //   by its signature, so this doesn't outlive `self`.
+                //
+                // - The `RawJsString` created from ASCII literal has a static lifetime `JsStr`.
                 unsafe {
-                    let h = h.as_ptr();
-
-                    if (*h).is_latin1() {
-                        JsStr::latin1(std::slice::from_raw_parts(
-                            addr_of!((*h).data).cast(),
-                            (*h).len(),
-                        ))
+                    let h = h.as_ref();
+                    if h.is_ascii_literal() {
+                        return h.ascii_literal_js_str();
+                    }
+                    if h.is_latin1() {
+                        JsStr::latin1(std::slice::from_raw_parts(addr_of!(h.data).cast(), h.len()))
                     } else {
-                        JsStr::utf16(std::slice::from_raw_parts(
-                            addr_of!((*h).data).cast(),
-                            (*h).len(),
-                        ))
+                        JsStr::utf16(std::slice::from_raw_parts(addr_of!(h.data).cast(), h.len()))
                     }
                 }
             }
@@ -665,7 +705,7 @@ impl JsString {
         unsafe {
             // Write the first part, the `RawJsString`.
             inner.as_ptr().write(RawJsString {
-                flags_and_len: RawJsString::encode_flags_and_len(str_len, latin1),
+                flags_and_len_or_ptr: RawJsString::encode_flags_and_len(str_len, latin1),
                 refcount: Cell::new(1),
                 data: [0; 0],
             });
@@ -749,8 +789,12 @@ impl JsString {
                 // - The lifetime of `&Self::Target` is shorter than the lifetime of `self`, as seen
                 //   by its signature, so this doesn't outlive `self`.
                 unsafe {
-                    let h = h.as_ptr();
-                    (*h).len()
+                    let h = h.as_ref();
+                    if h.is_ascii_literal() {
+                        h.ascii_literal_js_str().len()
+                    } else {
+                        h.len()
+                    }
                 }
             }
             UnwrappedTagged::Tag(index) => {
@@ -860,9 +904,13 @@ impl JsString {
             UnwrappedTagged::Ptr(inner) => {
                 // SAFETY: The reference count of `JsString` guarantees that `inner` is always valid.
                 let inner = unsafe { inner.as_ref() };
-                Some(inner.refcount.get())
+                if inner.is_ascii_literal() {
+                    None
+                } else {
+                    Some(inner.refcount.get())
+                }
             }
-            UnwrappedTagged::Tag(_inner) => None,
+            UnwrappedTagged::Tag(_) => None,
         }
     }
 }
@@ -873,11 +921,13 @@ impl Clone for JsString {
         if let UnwrappedTagged::Ptr(inner) = self.ptr.unwrap() {
             // SAFETY: The reference count of `JsString` guarantees that `raw` is always valid.
             let inner = unsafe { inner.as_ref() };
-            let strong = inner.refcount.get().wrapping_add(1);
-            if strong == 0 {
-                abort()
+            if !inner.is_ascii_literal() {
+                let strong = inner.refcount.get().wrapping_add(1);
+                if strong == 0 {
+                    abort()
+                }
+                inner.refcount.set(strong);
             }
-            inner.refcount.set(strong);
         }
         Self { ptr: self.ptr }
     }
@@ -898,6 +948,12 @@ impl Drop for JsString {
 
             // SAFETY: The reference count of `JsString` guarantees that `raw` is always valid.
             let inner = unsafe { raw.as_ref() };
+
+            // Do not drop `JsString` created from ASCII literal.
+            if inner.is_ascii_literal() {
+                return;
+            }
+
             inner.refcount.set(inner.refcount.get() - 1);
             if inner.refcount.get() != 0 {
                 return;
