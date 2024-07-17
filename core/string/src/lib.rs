@@ -190,7 +190,7 @@ impl RawJsString {
     /// Caller must ensure that `RawJsString` is created from ASCII literal
     /// so that pointer casting and dereferencing are valid.
     unsafe fn ascii_literal_js_str(&self) -> JsStr<'static> {
-        // SADETY:
+        // SAFETY:
         //
         // Caller must call `is_ascii_literal` before this to ensure the
         // pointer conversion is valid.
