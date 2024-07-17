@@ -1146,7 +1146,7 @@ impl ToStringEscaped for [u16] {
     }
 }
 /// Inner elements represented for `RawJsString`.
-pub trait JsStringData: std::fmt::Display {}
+pub trait JsStringData: std::fmt::Display + Copy {}
 
 impl JsStringData for u8 {}
 impl JsStringData for u16 {}
@@ -1171,6 +1171,27 @@ pub struct JsStringBuilder<T: JsStringData> {
     phantom_data: PhantomData<T>,
 }
 
+impl<T: JsStringData> Clone for JsStringBuilder<T> {
+    #[must_use]
+    fn clone(&self) -> Self {
+        let mut builder = Self::with_capacity(self.capacity());
+        // SAFETY:
+        // - `inner` must be a valid pointer, since it comes from a `NonNull`
+        // allocated above with the capacity of `s`, and initialize to `s.len()` in
+        // ptr::copy_to_non_overlapping below.
+        unsafe {
+            builder
+                .inner
+                .as_ptr()
+                .cast::<u8>()
+                .copy_from_nonoverlapping(self.inner.as_ptr().cast(), self.initialized_bits());
+
+            builder.set_len(self.len());
+        }
+        builder
+    }
+}
+
 impl<T: JsStringData> Default for JsStringBuilder<T> {
     fn default() -> Self {
         Self::new()
@@ -1179,6 +1200,7 @@ impl<T: JsStringData> Default for JsStringBuilder<T> {
 
 impl<T: JsStringData> JsStringBuilder<T> {
     const DATA_SIZE: usize = std::mem::size_of::<T>();
+    const MIN_NON_ZERO_CAP: usize = 8 / Self::DATA_SIZE;
     const IS_LATIN: bool = Self::DATA_SIZE == std::mem::size_of::<u8>();
 
     /// Constant default for [`JsStringBuilder`]
@@ -1224,6 +1246,12 @@ impl<T: JsStringData> JsStringBuilder<T> {
         self.cap
     }
 
+    /// Returns the initalized bits of inner `RawJsString`.
+    #[must_use]
+    fn initialized_bits(&self) -> usize {
+        DATA_OFFSET + self.len() * Self::DATA_SIZE
+    }
+
     /// create a new `JsStringBuilder` with specific capacity
     #[must_use]
     pub fn with_capacity(cap: usize) -> Self {
@@ -1244,8 +1272,35 @@ impl<T: JsStringData> JsStringBuilder<T> {
             phantom_data: PhantomData,
         }
     }
+
+    /// Checks if inner `RawJsString` is allocated.
     fn is_dangling(&self) -> bool {
         self.inner == NonNull::dangling()
+    }
+
+    /// Returns the current inner `RawJsString` layout.
+    #[must_use]
+    fn current_layout(&self) -> Layout {
+        // SAFETY:
+        // All the checks for the validity of the layout have already been made on `new_layout`,
+        // so we can skip the unwrap.
+        unsafe {
+            Layout::for_value(self.inner.as_ref())
+                .extend(Layout::array::<T>(self.capacity()).unwrap_unchecked())
+                .unwrap_unchecked()
+                .0
+                .pad_to_align()
+        }
+    }
+
+    /// Returns the pointer of `data` of inner `RawJsString`.
+    /// # Safety
+    /// Caller should ensure that the inner is allocated.
+    #[must_use]
+    unsafe fn data(&self) -> *mut T {
+        // SAFETY:
+        // Caller should ensure that the inner is allocated.
+        unsafe { addr_of_mut!((*self.inner.as_ptr()).data).cast() }
     }
 
     #[allow(clippy::cast_ptr_alignment)]
@@ -1261,16 +1316,7 @@ impl<T: JsStringData> JsStringBuilder<T> {
         };
 
         if !self.is_dangling() {
-            // SAFETY:
-            // All the checks for the validity of the layout have already been made on `new_layout`,
-            // so we can skip the unwrap.
-            let old_layout = unsafe {
-                Layout::for_value(self.inner.as_ref())
-                    .extend(Layout::array::<T>(self.capacity()).unwrap_unchecked())
-                    .unwrap_unchecked()
-                    .0
-                    .pad_to_align()
-            };
+            let old_layout = self.current_layout();
 
             let old_ptr = self.inner.as_ptr();
 
@@ -1280,7 +1326,7 @@ impl<T: JsStringData> JsStringBuilder<T> {
                 ptr::copy_nonoverlapping(
                     old_ptr.cast::<u8>(),
                     new_ptr.as_ptr().cast::<u8>(),
-                    DATA_OFFSET + self.len() * Self::DATA_SIZE,
+                    self.initialized_bits(),
                 );
             }
             // SAFETY:
@@ -1316,13 +1362,7 @@ impl<T: JsStringData> JsStringBuilder<T> {
     pub unsafe fn extend_from_slice_unchecked(&mut self, v: &[T]) {
         // SAFETY: Caller should ensure the capacity is large enough to hold elements.
         unsafe {
-            ptr::copy_nonoverlapping(
-                v.as_ptr(),
-                addr_of_mut!((*self.inner.as_ptr()).data)
-                    .cast::<T>()
-                    .add(self.len()),
-                v.len(),
-            );
+            ptr::copy_nonoverlapping(v.as_ptr(), self.data().add(self.len()), v.len());
         }
         self.len += v.len();
     }
@@ -1360,13 +1400,13 @@ impl<T: JsStringData> JsStringBuilder<T> {
         let iterator = iter.into_iter();
         let (lower_bound, _) = iterator.size_hint();
         self.reserve(Self::new_layout(lower_bound));
-        iterator.for_each(move |c| self.push(c));
+        iterator.for_each(|c| self.push(c));
     }
 
     /// Capacity calculation from [`std::vec::Vec::reserve`].
     fn expand(&mut self, cap: usize) {
         let cap = std::cmp::max(self.capacity() * 2, cap);
-        let cap = std::cmp::max(4 * Self::DATA_SIZE, cap);
+        let cap = std::cmp::max(Self::MIN_NON_ZERO_CAP, cap);
         self.reserve(Self::new_layout(cap));
     }
 
@@ -1377,8 +1417,7 @@ impl<T: JsStringData> JsStringBuilder<T> {
     pub unsafe fn push_unchecked(&mut self, v: T) {
         // SAFETY: Caller should ensure the capacity is large enough to hold elements.
         unsafe {
-            let data = addr_of_mut!((*self.inner.as_ptr()).data).cast::<T>();
-            data.add(self.len()).write(v);
+            self.data().add(self.len()).write(v);
             self.len += 1;
         }
     }
@@ -1432,17 +1471,7 @@ impl<T: JsStringData> Drop for JsStringBuilder<T> {
         if self.is_dangling() {
             return;
         }
-        // SAFETY:
-        // All the checks for the validity of the layout have already been made on `new_layout`,
-        // so we can skip the unwrap.
-        let layout = unsafe {
-            let inner = self.inner.as_ref();
-            Layout::for_value(inner)
-                .extend(Layout::array::<T>(self.capacity()).unwrap_unchecked())
-                .unwrap_unchecked()
-                .0
-                .pad_to_align()
-        };
+        let layout = self.current_layout();
 
         // SAFETY:
         // layout: see safety above.
