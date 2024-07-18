@@ -571,14 +571,22 @@ impl Duration {
     }
 
     /// 7.3.16 `Temporal.Duration.prototype.negated ( )`
-    pub(crate) fn negated(_: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn negated(
+        this: &JsValue,
+        _: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
         // 1. Let duration be the this value.
         // 2. Perform ? RequireInternalSlot(duration, [[InitializedTemporalDuration]]).
         // 3. Return ! CreateNegatedTemporalDuration(duration).
+        let duration = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("this value must be a Duration object.")
+            })?;
 
-        Err(JsNativeError::range()
-            .with_message("not yet implemented.")
-            .into())
+        create_temporal_duration(duration.inner.negated(), None, context).map(Into::into)
     }
 
     /// 7.3.17 `Temporal.Duration.prototype.abs ( )`
@@ -595,9 +603,7 @@ impl Duration {
                 JsNativeError::typ().with_message("this value must be a Duration object.")
             })?;
 
-        let abs = duration.inner.abs();
-
-        create_temporal_duration(abs, None, context).map(Into::into)
+        create_temporal_duration(duration.inner.abs(), None, context).map(Into::into)
     }
 
     /// 7.3.18 `Temporal.Duration.prototype.add ( other [ , options ] )`

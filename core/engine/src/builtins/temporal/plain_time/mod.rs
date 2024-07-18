@@ -22,7 +22,8 @@ use temporal_rs::{
 };
 
 use super::{
-    options::{get_temporal_unit, TemporalUnitGroup},
+    create_temporal_duration,
+    options::{get_difference_settings, get_temporal_unit, TemporalUnitGroup},
     to_integer_with_truncation, to_temporal_duration_record, PlainDateTime, ZonedDateTime,
 };
 
@@ -108,8 +109,11 @@ impl IntrinsicObject for PlainTime {
                 Attribute::CONFIGURABLE,
             )
             .static_method(Self::from, js_string!("from"), 2)
+            .static_method(Self::compare, js_string!("compare"), 2)
             .method(Self::add, js_string!("add"), 1)
             .method(Self::subtract, js_string!("subtract"), 1)
+            .method(Self::until, js_string!("until"), 2)
+            .method(Self::since, js_string!("since"), 2)
             .method(Self::round, js_string!("round"), 1)
             .method(Self::equals, js_string!("equals"), 1)
             .method(Self::get_iso_fields, js_string!("getISOFields"), 0)
@@ -290,6 +294,7 @@ impl PlainTime {
 // ==== PlainTime method implementations ====
 
 impl PlainTime {
+    /// 4.2.2 Temporal.PlainTime.from ( item [ , options ] )
     fn from(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let item = args.get_or_undefined(0);
         // 1. Set options to ? GetOptionsObject(options).
@@ -315,6 +320,19 @@ impl PlainTime {
         // 4. Return ? ToTemporalTime(item, overflow).
         create_temporal_time(time, None, context).map(Into::into)
     }
+
+    /// 4.2.3 Temporal.PlainTime.compare ( one, two )
+    fn compare(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        // 1. Set one to ? ToTemporalTime(one).
+        let one = to_temporal_time(args.get_or_undefined(0), None, context)?;
+        // 2. Set two to ? ToTemporalTime(two).
+        let two = to_temporal_time(args.get_or_undefined(1), None, context)?;
+        // 3. Return 𝔽(CompareTemporalTime(one.[[ISOHour]], one.[[ISOMinute]], one.[[ISOSecond]],
+        // one.[[ISOMillisecond]], one.[[ISOMicrosecond]], one.[[ISONanosecond]], two.[[ISOHour]],
+        // two.[[ISOMinute]], two.[[ISOSecond]], two.[[ISOMillisecond]], two.[[ISOMicrosecond]],
+        // two.[[ISONanosecond]])).
+        Ok((one.cmp(&two) as i8).into())
+    }
 }
 
 // ==== PlainTime.prototype method implementations ====
@@ -326,7 +344,7 @@ impl PlainTime {
         // 2. Perform ? RequireInternalSlot(temporalTime, [[InitializedTemporalTime]]).
         let time = this
             .as_object()
-            .and_then(JsObject::downcast_ref::<PlainTime>)
+            .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a PlainTime object.")
             })?;
@@ -344,7 +362,7 @@ impl PlainTime {
         // 2. Perform ? RequireInternalSlot(temporalTime, [[InitializedTemporalTime]]).
         let time = this
             .as_object()
-            .and_then(JsObject::downcast_ref::<PlainTime>)
+            .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a PlainTime object.")
             })?;
@@ -356,13 +374,51 @@ impl PlainTime {
         create_temporal_time(time.inner.subtract(&duration)?, None, context).map(Into::into)
     }
 
+    /// 4.3.12 Temporal.PlainTime.prototype.until ( other [ , options ] )
+    fn until(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let time = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a PlainTime object.")
+            })?;
+
+        let other = to_temporal_time(args.get_or_undefined(0), None, context)?;
+
+        let settings =
+            get_difference_settings(&get_options_object(args.get_or_undefined(1))?, context)?;
+
+        let result = time.inner.until(&other, settings)?;
+
+        create_temporal_duration(result, None, context).map(Into::into)
+    }
+
+    /// 4.3.13 Temporal.PlainTime.prototype.since ( other [ , options ] )
+    fn since(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let time = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a PlainTime object.")
+            })?;
+
+        let other = to_temporal_time(args.get_or_undefined(0), None, context)?;
+
+        let settings =
+            get_difference_settings(&get_options_object(args.get_or_undefined(1))?, context)?;
+
+        let result = time.inner.since(&other, settings)?;
+
+        create_temporal_duration(result, None, context).map(Into::into)
+    }
+
     /// 4.3.14 Temporal.PlainTime.prototype.round ( roundTo )
     fn round(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let temporalTime be the this value.
         // 2. Perform ? RequireInternalSlot(temporalTime, [[InitializedTemporalTime]]).
         let time = this
             .as_object()
-            .and_then(JsObject::downcast_ref::<PlainTime>)
+            .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a PlainTime object.")
             })?;
@@ -588,13 +644,12 @@ pub(crate) fn to_temporal_time(
                 .into())
         }
         // 3. Else,
-        JsValue::String(_str) => {
+        JsValue::String(str) => {
             // b. Let result be ? ParseTemporalTimeString(item).
             // c. Assert: IsValidTime(result.[[Hour]], result.[[Minute]], result.[[Second]], result.[[Millisecond]], result.[[Microsecond]], result.[[Nanosecond]]) is true.
-            // TODO: Add time parsing to `temporal_rs`
-            Err(JsNativeError::typ()
-                .with_message("Invalid value for converting to PlainTime.")
-                .into())
+            str.to_std_string_escaped()
+                .parse::<Time>()
+                .map_err(Into::into)
         }
         // a. If item is not a String, throw a TypeError exception.
         _ => Err(JsNativeError::typ()

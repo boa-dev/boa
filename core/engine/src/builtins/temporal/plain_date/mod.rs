@@ -29,8 +29,9 @@ use temporal_rs::{
 };
 
 use super::{
-    calendar, create_temporal_datetime, create_temporal_duration, options::get_difference_settings,
-    to_temporal_duration_record, to_temporal_time, PlainDateTime, ZonedDateTime,
+    calendar::to_temporal_calendar_slot_value, create_temporal_datetime, create_temporal_duration,
+    options::get_difference_settings, to_temporal_duration_record, to_temporal_time, PlainDateTime,
+    ZonedDateTime,
 };
 
 /// The `Temporal.PlainDate` object.
@@ -213,6 +214,7 @@ impl IntrinsicObject for PlainDate {
                 Attribute::CONFIGURABLE,
             )
             .static_method(Self::from, js_string!("from"), 2)
+            .static_method(Self::compare, js_string!("compare"), 2)
             .method(Self::to_plain_year_month, js_string!("toPlainYearMonth"), 0)
             .method(Self::to_plain_month_day, js_string!("toPlainMonthDay"), 0)
             .method(Self::get_iso_fields, js_string!("getISOFields"), 0)
@@ -252,7 +254,7 @@ impl BuiltInConstructor for PlainDate {
         let iso_year = super::to_integer_with_truncation(args.get_or_undefined(0), context)?;
         let iso_month = super::to_integer_with_truncation(args.get_or_undefined(1), context)?;
         let iso_day = super::to_integer_with_truncation(args.get_or_undefined(2), context)?;
-        let calendar_slot = calendar::to_temporal_calendar_slot_value(args.get_or_undefined(3))?;
+        let calendar_slot = to_temporal_calendar_slot_value(args.get_or_undefined(3))?;
 
         let date = InnerDate::new(
             iso_year,
@@ -488,6 +490,7 @@ impl PlainDate {
 // ==== `PlainDate` method implementations ====
 
 impl PlainDate {
+    /// 3.2.2 Temporal.PlainDate.from ( item [ , options ] )
     fn from(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let item = args.get_or_undefined(0);
         let options = args.get(1);
@@ -504,6 +507,14 @@ impl PlainDate {
             context,
         )
         .map(Into::into)
+    }
+
+    /// 3.2.3 Temporal.PlainDate.compare ( one, two )
+    fn compare(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let one = to_temporal_date(args.get_or_undefined(0), None, context)?;
+        let two = to_temporal_date(args.get_or_undefined(1), None, context)?;
+
+        Ok((one.cmp(&two) as i8).into())
     }
 }
 
@@ -608,10 +619,18 @@ impl PlainDate {
             .into())
     }
 
-    fn with_calendar(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        Err(JsNativeError::error()
-            .with_message("not yet implemented.")
-            .into())
+    /// 3.3.26 Temporal.PlainDate.prototype.withCalendar ( calendarLike )
+    fn with_calendar(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let date = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a PlainDate object.")
+            })?;
+
+        let calendar = to_temporal_calendar_slot_value(args.get_or_undefined(0))?;
+
+        create_temporal_date(date.inner.with_calendar(calendar)?, None, context).map(Into::into)
     }
 
     fn until(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
@@ -781,7 +800,7 @@ pub(crate) fn to_temporal_date(
             let _o = get_option(&options_obj, js_str!("overflow"), context)?
                 .unwrap_or(ArithmeticOverflow::Constrain);
 
-            let date = InnerDate::from_datetime(date_time.inner());
+            let date = InnerDate::from(date_time.inner().clone());
 
             // ii. Return ! CreateTemporalDate(item.[[ISOYear]], item.[[ISOMonth]], item.[[ISODay]], item.[[Calendar]]).
             return Ok(date);
