@@ -152,11 +152,20 @@ impl CodePoint {
 /// The raw representation of a [`JsString`] in the heap.
 #[repr(C)]
 struct RawJsString {
+    /// A field represented for **flag_and_len** or **pointer**.
+    ///
+    /// ## flag_and_len:
+    /// ```text
+    /// ┌───────────────────────────────────────────────────┐
+    /// │  length((usize::BITS -  1) bits)  │  flag(1 bit)  │
+    /// └───────────────────────────────────────────────────┘
+    /// ``````
     /// Contains the flags and Latin1/UTF-16 length.
     ///
     /// The latin1 flag is stored in the bottom bit.
     ///
-    /// Could be a pointer if this is created from ASCII literal.
+    /// ## pointer:
+    /// A pointer to a static `JsStr` that references an ASCII literal.
     flags_and_len_or_ptr: usize,
 
     /// The number of references to the string.
@@ -165,8 +174,8 @@ struct RawJsString {
     ///
     /// Since reference count of `RawJsString` created from `try_allocate_inner`
     /// will only reach `0` in `drop`,
-    /// we can mark `RawJsString` created with a reference count of 0 as
-    /// being created from an ASCII literal.
+    /// we can set reference count of `RawJsString` created from an ASCII literal to `0` as a mark,
+    /// see detail in `js_string` macro.
     refcount: Cell<usize>,
 
     /// An empty array which is used to get the offset of string data.
@@ -192,8 +201,8 @@ impl RawJsString {
     unsafe fn ascii_literal_js_str(&self) -> JsStr<'static> {
         // SAFETY:
         //
-        // Caller must call `is_ascii_literal` before this to ensure the
-        // pointer conversion is valid.
+        // Caller must ensure that the `RawJsString` is created from ASCII literal
+        // so that pointer casting and dereferencing are valid.
         unsafe { *(self.flags_and_len_or_ptr as *const _) }
     }
 
@@ -921,6 +930,8 @@ impl Clone for JsString {
         if let UnwrappedTagged::Ptr(inner) = self.ptr.unwrap() {
             // SAFETY: The reference count of `JsString` guarantees that `raw` is always valid.
             let inner = unsafe { inner.as_ref() };
+
+            // Do not increase reference count when it is created from ASCII literal.
             if !inner.is_ascii_literal() {
                 let strong = inner.refcount.get().wrapping_add(1);
                 if strong == 0 {
