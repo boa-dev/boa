@@ -152,7 +152,7 @@ impl CodePoint {
 /// The raw representation of a [`JsString`] in the heap.
 #[repr(C)]
 struct RawJsString {
-    /// A field represented for **flag_and_len** or **pointer**.
+    /// A field represented for **`flag_and_len`** or **`pointer`**.
     ///
     /// ## `flag_and_len`:
     /// ```text
