@@ -284,7 +284,7 @@ impl IntrinsicObject for PlainDateTime {
             .method(Self::until, js_string!("until"), 2)
             .method(Self::since, js_string!("since"), 2)
             .method(Self::round, js_string!("round"), 1)
-            .method(Self::equals, js_string!("equals"), 2)
+            .method(Self::equals, js_string!("equals"), 1)
             .build();
     }
 
