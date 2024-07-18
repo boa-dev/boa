@@ -214,6 +214,7 @@ impl IntrinsicObject for PlainDate {
                 Attribute::CONFIGURABLE,
             )
             .static_method(Self::from, js_string!("from"), 2)
+            .static_method(Self::compare, js_string!("compare"), 2)
             .method(Self::to_plain_year_month, js_string!("toPlainYearMonth"), 0)
             .method(Self::to_plain_month_day, js_string!("toPlainMonthDay"), 0)
             .method(Self::get_iso_fields, js_string!("getISOFields"), 0)
@@ -489,6 +490,7 @@ impl PlainDate {
 // ==== `PlainDate` method implementations ====
 
 impl PlainDate {
+    /// 3.2.2 Temporal.PlainDate.from ( item [ , options ] )
     fn from(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let item = args.get_or_undefined(0);
         let options = args.get(1);
@@ -505,6 +507,14 @@ impl PlainDate {
             context,
         )
         .map(Into::into)
+    }
+
+    /// 3.2.3 Temporal.PlainDate.compare ( one, two )
+    fn compare(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let one = to_temporal_date(args.get_or_undefined(0), None, context)?;
+        let two = to_temporal_date(args.get_or_undefined(1), None, context)?;
+
+        Ok((one.cmp(&two) as i8).into())
     }
 }
 

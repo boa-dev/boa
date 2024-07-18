@@ -109,6 +109,7 @@ impl IntrinsicObject for PlainTime {
                 Attribute::CONFIGURABLE,
             )
             .static_method(Self::from, js_string!("from"), 2)
+            .static_method(Self::compare, js_string!("compare"), 2)
             .method(Self::add, js_string!("add"), 1)
             .method(Self::subtract, js_string!("subtract"), 1)
             .method(Self::until, js_string!("until"), 2)
@@ -293,6 +294,7 @@ impl PlainTime {
 // ==== PlainTime method implementations ====
 
 impl PlainTime {
+    /// 4.2.2 Temporal.PlainTime.from ( item [ , options ] )
     fn from(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let item = args.get_or_undefined(0);
         // 1. Set options to ? GetOptionsObject(options).
@@ -317,6 +319,19 @@ impl PlainTime {
 
         // 4. Return ? ToTemporalTime(item, overflow).
         create_temporal_time(time, None, context).map(Into::into)
+    }
+
+    /// 4.2.3 Temporal.PlainTime.compare ( one, two )
+    fn compare(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        // 1. Set one to ? ToTemporalTime(one).
+        let one = to_temporal_time(args.get_or_undefined(0), None, context)?;
+        // 2. Set two to ? ToTemporalTime(two).
+        let two = to_temporal_time(args.get_or_undefined(1), None, context)?;
+        // 3. Return 𝔽(CompareTemporalTime(one.[[ISOHour]], one.[[ISOMinute]], one.[[ISOSecond]],
+        // one.[[ISOMillisecond]], one.[[ISOMicrosecond]], one.[[ISONanosecond]], two.[[ISOHour]],
+        // two.[[ISOMinute]], two.[[ISOSecond]], two.[[ISOMillisecond]], two.[[ISOMicrosecond]],
+        // two.[[ISONanosecond]])).
+        Ok((one.cmp(&two) as i8).into())
     }
 }
 

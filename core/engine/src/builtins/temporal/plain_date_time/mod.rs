@@ -277,6 +277,7 @@ impl IntrinsicObject for PlainDateTime {
                 Attribute::CONFIGURABLE,
             )
             .static_method(Self::from, js_string!("from"), 2)
+            .static_method(Self::compare, js_string!("compare"), 2)
             .method(Self::with_plain_time, js_string!("withPlainTime"), 1)
             .method(Self::with_calendar, js_string!("withCalendar"), 1)
             .method(Self::add, js_string!("add"), 2)
@@ -636,6 +637,7 @@ impl PlainDateTime {
 // ==== PlainDateTime method implemenations ====
 
 impl PlainDateTime {
+    /// 5.2.2 Temporal.PlainDateTime.from ( item [ , options ] )
     fn from(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let item = args.get_or_undefined(0);
         // 1. Set options to ? GetOptionsObject(options).
@@ -656,6 +658,21 @@ impl PlainDateTime {
 
         // 3. Return ? ToTemporalDateTime(item, options).
         create_temporal_datetime(dt, None, context).map(Into::into)
+    }
+
+    /// 5.2.3 Temporal.PlainDateTime.compare ( one, two )
+    fn compare(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        // 1. Set one to ? ToTemporalDateTime(one).
+        let one = to_temporal_datetime(args.get_or_undefined(0), None, context)?;
+        // 2. Set two to ? ToTemporalDateTime(two).
+        let two = to_temporal_datetime(args.get_or_undefined(1), None, context)?;
+
+        // 3. Return 𝔽(CompareISODateTime(one.[[ISOYear]], one.[[ISOMonth]], one.[[ISODay]],
+        // one.[[ISOHour]], one.[[ISOMinute]], one.[[ISOSecond]], one.[[ISOMillisecond]],
+        // one.[[ISOMicrosecond]], one.[[ISONanosecond]], two.[[ISOYear]], two.[[ISOMonth]],
+        // two.[[ISODay]], two.[[ISOHour]], two.[[ISOMinute]], two.[[ISOSecond]],
+        // two.[[ISOMillisecond]], two.[[ISOMicrosecond]], two.[[ISONanosecond]])).
+        Ok((one.cmp(&two) as i8).into())
     }
 }
 
