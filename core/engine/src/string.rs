@@ -7,6 +7,15 @@
 #[doc(inline)]
 pub use boa_string::*;
 
+static_assertions::const_assert_eq!(
+    // SAFETY:
+    // Compiler will throw error if `transmute` does not meet the requirement.
+    unsafe { std::mem::transmute::<std::cell::Cell<usize>, usize>(std::cell::Cell::new(0usize)) },
+    // SAFETY:
+    // Compiler will throw error if `transmute` does not meet the requirement.
+    unsafe { std::mem::transmute::<Option<&'static usize>, usize>(None) }
+);
+
 /// Utility macro to create a [`JsString`].
 ///
 /// # Examples
@@ -56,15 +65,7 @@ macro_rules! js_string {
     };
     ($s:literal) => {{
         if $s.is_ascii() {
-            use std::cell::Cell;
             use $crate::string::JsStr;
-
-            debug_assert_eq!(
-                // SAFETY:
-                // `Cell<usize>` should have the same size with `Option<&usize>`.
-                unsafe { std::mem::transmute::<Cell<usize>, Option<&usize>>(Cell::new(0usize)) },
-                <Option<&usize>>::None
-            );
 
             #[allow(clippy::items_after_statements)]
             // Create a static `JsStr` that references an ASCII literal
