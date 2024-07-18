@@ -629,13 +629,13 @@ pub(crate) fn to_temporal_time(
                 .into())
         }
         // 3. Else,
-        JsValue::String(_str) => {
+        JsValue::String(str) => {
             // b. Let result be ? ParseTemporalTimeString(item).
             // c. Assert: IsValidTime(result.[[Hour]], result.[[Minute]], result.[[Second]], result.[[Millisecond]], result.[[Microsecond]], result.[[Nanosecond]]) is true.
-            // TODO: Add time parsing to `temporal_rs`
-            Err(JsNativeError::typ()
-                .with_message("Invalid value for converting to PlainTime.")
-                .into())
+            str
+                .to_std_string_escaped()
+                .parse::<Time>()
+                .map_err(Into::into)
         }
         // a. If item is not a String, throw a TypeError exception.
         _ => Err(JsNativeError::typ()
