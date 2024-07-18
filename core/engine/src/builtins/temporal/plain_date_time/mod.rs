@@ -662,7 +662,7 @@ impl PlainDateTime {
 // ==== PlainDateTime.prototype method implementations ====
 
 impl PlainDateTime {
-    /// 5.3.26 Temporal.PlainDateTime.prototype.withPlainTime ( [ plainTimeLike ] )
+    /// 5.3.26 Temporal.PlainDateTime.prototype.withPlainTime ( `[ plainTimeLike ]` )
     fn with_plain_time(
         this: &JsValue,
         args: &[JsValue],
